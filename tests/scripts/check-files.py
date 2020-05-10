@@ -15,6 +15,7 @@ import argparse
 import logging
 import codecs
 import re
+import subprocess
 import sys
 
 
@@ -263,14 +264,6 @@ class IntegrityChecker:
         self.check_repo_path()
         self.logger = None
         self.setup_logger(log_file)
-        self.excluded_directories = [
-            '.git',
-            'mbed-os',
-        ]
-        self.excluded_paths = list(map(os.path.normpath, [
-            'cov-int',
-            'examples',
-        ]))
         self.issues_to_check = [
             PermissionIssueTracker(),
             EndOfFileNewlineIssueTracker(),
@@ -297,21 +290,22 @@ class IntegrityChecker:
             console = logging.StreamHandler()
             self.logger.addHandler(console)
 
-    def prune_branch(self, root, d):
-        if d in self.excluded_directories:
-            return True
-        if os.path.normpath(os.path.join(root, d)) in self.excluded_paths:
-            return True
-        return False
+    @staticmethod
+    def collect_files():
+        bytes_output = subprocess.check_output(['git', 'ls-files', '-z'])
+        bytes_filepaths = bytes_output.split(b'\0')[:-1]
+        ascii_filepaths = map(lambda fp: fp.decode('ascii'), bytes_filepaths)
+        # Prepend './' to files in the top-level directory so that
+        # something like `'/Makefile' in fp` matches in the top-level
+        # directory as well as in subdirectories.
+        return [fp if os.path.dirname(fp) else os.path.join(os.curdir, fp)
+                for fp in ascii_filepaths]
 
     def check_files(self):
-        for root, dirs, files in os.walk("."):
-            dirs[:] = sorted(d for d in dirs if not self.prune_branch(root, d))
-            for filename in sorted(files):
-                filepath = os.path.join(root, filename)
-                for issue_to_check in self.issues_to_check:
-                    if issue_to_check.should_check_file(filepath):
-                        issue_to_check.check_file_for_issue(filepath)
+        for issue_to_check in self.issues_to_check:
+            for filepath in self.collect_files():
+                if issue_to_check.should_check_file(filepath):
+                    issue_to_check.check_file_for_issue(filepath)
 
     def output_issues(self):
         integrity_return_code = 0

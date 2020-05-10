@@ -23,13 +23,13 @@ class FileIssueTracker:
     To implement a checker that processes a file as a whole, inherit from
     this class and implement `check_file_for_issue` and define ``heading``.
 
-    ``files_exemptions``: files whose name ends with a string in this set
+    ``suffix_exemptions``: files whose name ends with a string in this set
      will not be checked.
 
     ``heading``: human-readable description of the issue
     """
 
-    files_exemptions = frozenset()
+    suffix_exemptions = frozenset()
     # heading must be defined in derived classes.
     # pylint: disable=no-member
 
@@ -39,10 +39,10 @@ class FileIssueTracker:
     def should_check_file(self, filepath):
         """Whether the given file name should be checked.
 
-        Files whose name ends with a string listed in ``self.files_exemptions``
-        will not be checked.
+        Files whose name ends with a string listed in ``self.suffix_exemptions``
+        or whose path matches ``self.path_exemptions`` will not be checked.
         """
-        for files_exemption in self.files_exemptions:
+        for files_exemption in self.suffix_exemptions:
             if filepath.endswith(files_exemption):
                 return False
         return True
@@ -138,7 +138,7 @@ class Utf8BomIssueTracker(FileIssueTracker):
 
     heading = "UTF-8 BOM present:"
 
-    files_exemptions = frozenset([".vcxproj", ".sln"])
+    suffix_exemptions = frozenset([".vcxproj", ".sln"])
 
     def check_file_for_issue(self, filepath):
         with open(filepath, "rb") as f:
@@ -174,7 +174,7 @@ class TrailingWhitespaceIssueTracker(LineIssueTracker):
     """Track lines with trailing whitespace."""
 
     heading = "Trailing whitespace:"
-    files_exemptions = frozenset([".dsp", ".md"])
+    suffix_exemptions = frozenset([".dsp", ".md"])
 
     def issue_with_line(self, line, _filepath):
         return line.rstrip(b"\r\n") != line.rstrip()
@@ -184,7 +184,7 @@ class TabIssueTracker(LineIssueTracker):
     """Track lines with tabs."""
 
     heading = "Tabs present:"
-    files_exemptions = frozenset([
+    suffix_exemptions = frozenset([
         ".sln",
         "/Makefile",
         "/Makefile.inc",

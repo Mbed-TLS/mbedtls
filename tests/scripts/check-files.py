@@ -223,24 +223,6 @@ class IntegrityChecker:
         self.check_repo_path()
         self.logger = None
         self.setup_logger(log_file)
-        self.extensions_to_check = (
-            ".bat",
-            ".c",
-            ".data",
-            ".dsp",
-            ".function",
-            ".h",
-            ".md",
-            ".pl",
-            ".py",
-            ".sh",
-            ".sln",
-            ".vcxproj",
-            "/CMakeLists.txt",
-            "/ChangeLog",
-            "/Makefile",
-            "/Makefile.inc",
-        )
         self.excluded_directories = [
             '.git',
             'mbed-os',
@@ -287,8 +269,6 @@ class IntegrityChecker:
             dirs[:] = sorted(d for d in dirs if not self.prune_branch(root, d))
             for filename in sorted(files):
                 filepath = os.path.join(root, filename)
-                if not filepath.endswith(self.extensions_to_check):
-                    continue
                 for issue_to_check in self.issues_to_check:
                     if issue_to_check.should_check_file(filepath):
                         issue_to_check.check_file_for_issue(filepath)

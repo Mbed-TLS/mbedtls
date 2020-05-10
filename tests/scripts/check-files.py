@@ -164,7 +164,14 @@ class EndOfFileNewlineIssueTracker(FileIssueTracker):
 
     def check_file_for_issue(self, filepath):
         with open(filepath, "rb") as f:
-            if not f.read().endswith(b"\n"):
+            try:
+                f.seek(-1, 2)
+            except OSError:
+                # This script only works on regular files. If we can't seek
+                # 1 before the end, it means that this position is before
+                # the beginning of the file, i.e. that the file is empty.
+                return
+            if f.read(1) != b"\n":
                 self.files_with_issues[filepath] = None
 
 

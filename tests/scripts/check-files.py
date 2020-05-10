@@ -92,12 +92,26 @@ class FileIssueTracker:
                     logger.info(filename)
             logger.info("")
 
+BINARY_FILE_PATH_RE_LIST = [
+    r'docs/.*\.pdf\Z',
+    r'programs/fuzz/corpuses/[^.]+\Z',
+    r'tests/data_files/[^.]+\Z',
+    r'tests/data_files/.*\.(crt|csr|db|der|key|pubkey)\Z',
+    r'tests/data_files/.*\.req\.[^/]+\Z',
+    r'tests/data_files/.*malformed[^/]+\Z',
+    r'tests/data_files/format_pkcs12\.fmt\Z',
+]
+BINARY_FILE_PATH_RE = re.compile('|'.join(BINARY_FILE_PATH_RE_LIST))
+
 class LineIssueTracker(FileIssueTracker):
     """Base class for line-by-line issue tracking.
 
     To implement a checker that processes files line by line, inherit from
     this class and implement `line_with_issue`.
     """
+
+    # Exclude binary files.
+    path_exemptions = BINARY_FILE_PATH_RE
 
     def issue_with_line(self, line, filepath):
         """Check the specified line for the issue that this class is for.
@@ -145,6 +159,8 @@ class EndOfFileNewlineIssueTracker(FileIssueTracker):
 
     heading = "Missing newline at end of file:"
 
+    path_exemptions = BINARY_FILE_PATH_RE
+
     def check_file_for_issue(self, filepath):
         with open(filepath, "rb") as f:
             if not f.read().endswith(b"\n"):
@@ -158,6 +174,7 @@ class Utf8BomIssueTracker(FileIssueTracker):
     heading = "UTF-8 BOM present:"
 
     suffix_exemptions = frozenset([".vcxproj", ".sln"])
+    path_exemptions = BINARY_FILE_PATH_RE
 
     def check_file_for_issue(self, filepath):
         with open(filepath, "rb") as f:

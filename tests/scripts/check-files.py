@@ -14,6 +14,7 @@ import os
 import argparse
 import logging
 import codecs
+import re
 import sys
 
 
@@ -26,15 +27,30 @@ class FileIssueTracker:
     ``suffix_exemptions``: files whose name ends with a string in this set
      will not be checked.
 
+    ``path_exemptions``: files whose path (relative to the root of the source
+    tree) matches this regular expression will not be checked. This can be
+    ``None`` to match no path. Paths are normalized and converted to ``/``
+    separators before matching.
+
     ``heading``: human-readable description of the issue
     """
 
     suffix_exemptions = frozenset()
+    path_exemptions = None
     # heading must be defined in derived classes.
     # pylint: disable=no-member
 
     def __init__(self):
         self.files_with_issues = {}
+
+    @staticmethod
+    def normalize_path(filepath):
+        """Normalize ``filepath`` """
+        filepath = os.path.normpath(filepath)
+        seps = os.path.sep
+        if os.path.altsep is not None:
+            seps += os.path.altsep
+        return '/'.join(filepath.split(seps))
 
     def should_check_file(self, filepath):
         """Whether the given file name should be checked.
@@ -45,6 +61,9 @@ class FileIssueTracker:
         for files_exemption in self.suffix_exemptions:
             if filepath.endswith(files_exemption):
                 return False
+        if self.path_exemptions and \
+           re.match(self.path_exemptions, self.normalize_path(filepath)):
+            return False
         return True
 
     def check_file_for_issue(self, filepath):
@@ -152,6 +171,8 @@ class UnixLineEndingIssueTracker(LineIssueTracker):
     heading = "Non-Unix line endings:"
 
     def should_check_file(self, filepath):
+        if not super().should_check_file(filepath):
+            return False
         return not is_windows_file(filepath)
 
     def issue_with_line(self, line, _filepath):
@@ -164,6 +185,8 @@ class WindowsLineEndingIssueTracker(LineIssueTracker):
     heading = "Non-Windows line endings:"
 
     def should_check_file(self, filepath):
+        if not super().should_check_file(filepath):
+            return False
         return is_windows_file(filepath)
 
     def issue_with_line(self, line, _filepath):

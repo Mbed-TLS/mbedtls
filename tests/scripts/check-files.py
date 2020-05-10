@@ -137,7 +137,7 @@ class LineIssueTracker(FileIssueTracker):
 
 def is_windows_file(filepath):
     _root, ext = os.path.splitext(filepath)
-    return ext in ('.bat', '.dsp', '.sln', '.vcxproj')
+    return ext in ('.bat', '.dsp', '.dsw', '.sln', '.vcxproj')
 
 
 class PermissionIssueTracker(FileIssueTracker):

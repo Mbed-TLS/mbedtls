@@ -863,7 +863,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     unsigned char *key2;
     unsigned char *mac_enc;
     unsigned char *mac_dec;
-    size_t mac_key_len;
+    size_t mac_key_len = 0;
     size_t iv_copy_len;
     unsigned keylen;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;

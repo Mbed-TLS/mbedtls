@@ -1,0 +1,3 @@
+Bugfix
+   * Fix issue with a detected HW accelerated record error not being exposed
+     due to shadowed variable. Contributed by Sander Visser in #3310.

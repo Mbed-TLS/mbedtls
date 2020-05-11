@@ -293,11 +293,11 @@ Solution: TODO. We don't test this at all at this point.
 
 Goal: test the absence of resource leaks in the PSA key store code, in particular that `psa_close_key` and `psa_destroy_key` work correctly.
 
-Solution ([internal interface](#internal-interfaces)): in some tests, close keys explicitly call `PSA_DONE` instead of `mbedtls_psa_crypto_free`. `PSA_DONE` fails the test if the key store is not empty.
+Solution ([internal interface](#internal-interfaces)): in most tests involving PSA functions, the cleanup code explicitly calls `PSA_DONE()` instead of `mbedtls_psa_crypto_free()`. `PSA_DONE` fails the test if the key store in memory is not empty.
 
 Note there must also be tests that call `mbedtls_psa_crypto_free` with keys still open, to verify that it does close all keys.
 
-`PSA_DONE` is a macro defined in `psa_crypto_helpers.h` which uses `mbedtls_psa_get_stats()`. This feature is mostly but not exclusively useful for testing, and may be moved under `MBEDTLS_TEST_HOOKS`.
+`PSA_DONE` is a macro defined in `psa_crypto_helpers.h` which uses `mbedtls_psa_get_stats()` to get information about the keystore content before calling `mbedtls_psa_crypto_free()`. This feature is mostly but not exclusively useful for testing, and may be moved under `MBEDTLS_TEST_HOOKS`.
 
 ### PSA storage
 

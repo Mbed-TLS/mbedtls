@@ -8,6 +8,13 @@ The goal of this document is to identify areas where black-box testing is insuff
 
 This is a test strategy document, not a test plan. A description of exactly what is tested is out of scope.
 
+This document is structured as follows:
+
+* [“Rules”](#rules) gives general rules and is written for brevity.
+* [“Requirements”](#requirements) explores the reasons why invasive testing is needed and how it should be done.
+* [“Possible approaches”](#possible-approaches) discusses some general methods for non-black-box testing.
+* [“Solutions”](#solutions) explains how we currently solve, or intend to solve, specific problems.
+
 ### TLS
 
 This document currently focuses on data structure manipulation and storage, which is what the crypto/keystore and X.509 parts of the library are about. More work is needed to fully take TLS into account.

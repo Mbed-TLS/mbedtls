@@ -62,17 +62,19 @@ If the most practical way to test something is to add code to the product that i
 
 #### Rules for function substitution
 
-The code calls a function `mbedtls_foo()`. Usually this a macro defined to be a system function (like `mbedtls_calloc` or `mbedtls_fopen`), which we replace to mock or wrap it. This is useful to simulate I/O failure, for example.
+This section explains how to replace a library function `mbedtls_foo()` by alternative code for test purposes. That is, library code calls `mbedtls_foo()`, and there is a mechanism to arrange for these calls to invoke different code.
+
+Often `mbedtls_foo` is a macro which is defined to be a system function (like `mbedtls_calloc` or `mbedtls_fopen`), which we replace to mock or wrap the system function. This is useful to simulate I/O failure, for example. Note that if the macro can be replaced at compile time to support alternative platforms, the test code should be compatible with this compile-time configuration so that it works on these alternative platforms as well.
 
 Sometimes the substitutable function is a `static inline` function that does nothing (not a macro, to avoid accidentally skipping side effects in its parameters), to provide a hook for test code; such functions should have a name that starts with the prefix `mbedtls_test_hook_`. In such cases, the function should generally not modify its parameters, so any pointer argument should be const. The function should return void.
 
-With `MBEDTLS_TEST_HOOKS` set, `mbedtls_foo` is a global variable of function pointer type. This global variable is initialized to the system function, or to a function that does nothing. The global variable is defined in a header in the `library` directory such as `psa_crypto_invasive.h`.
+With `MBEDTLS_TEST_HOOKS` set, `mbedtls_foo` is a global variable of function pointer type. This global variable is initialized to the system function, or to a function that does nothing. The global variable is defined in a header in the `library` directory such as `psa_crypto_invasive.h`. This is similar to the platform function configuration mechanism with `MBEDTLS_PLATFORM_xxx_ALT`.
 
 In unit test code that needs to modify the internal behavior:
 
 * The test function (or the whole test file) must depend on `MBEDTLS_TEST_HOOKS`.
-* At the beginning of the function, set the global function pointers to the desired value.
-* In the function's cleanup code, restore the global function pointers to their default value.
+* At the beginning of the test function, set the global function pointers to the desired value.
+* In the test function's cleanup code, restore the global function pointers to their default value.
 
 ## Requirements
 

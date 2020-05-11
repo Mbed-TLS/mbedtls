@@ -1,0 +1,4 @@
+Changes
+   * Unify the example programs termination to call mbedtls_exit() instead of
+     using a return command. This has been done to enable customization of the
+     behavior in bare metal environments.

@@ -68,7 +68,7 @@ Sometimes the substitutable function is a `static inline` function that does not
 
 With `MBEDTLS_TEST_HOOKS` set, `mbedtls_foo` is a global variable of function pointer type. This global variable is initialized to the system function, or to a function that does nothing. The global variable is defined in a header in the `library` directory such as `psa_crypto_invasive.h`.
 
-In test code that needs to modify the internal behavior:
+In unit test code that needs to modify the internal behavior:
 
 * The test function (or the whole test file) must depend on `MBEDTLS_TEST_HOOKS`.
 * At the beginning of the function, set the global function pointers to the desired value.
@@ -283,7 +283,7 @@ Goal: test the absence of memory leaks.
 
 Solution ([instrumentation](#runtime-instrumentation)): run tests with ASan. (We also use Valgrind, but it's slower than ASan, so we favor ASan.)
 
-Since we run many test jobs with a memory leak detector, each test function must clean up after itself. Use the cleanup code (after the `exit` label) to free any memory that the function may have allocated.
+Since we run many test jobs with a memory leak detector, each test function or test program must clean up after itself. Use the cleanup code (after the `exit` label in test functions) to free any memory that the function may have allocated.
 
 #### Robustness against memory allocation failure
 

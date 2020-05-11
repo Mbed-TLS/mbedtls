@@ -274,7 +274,7 @@ Rationale: this cannot be tested by adding C code, because the danger is that th
 
 Goal: test the absence of memory leaks.
 
-Solution ([instrumentation](#runtime-instrumentation)): run tests with Asan. (We also use Valgrind, but it's slower than Asan, so we favor Asan.)
+Solution ([instrumentation](#runtime-instrumentation)): run tests with ASan. (We also use Valgrind, but it's slower than ASan, so we favor ASan.)
 
 Since we run many test jobs with a memory leak detector, each test function must clean up after itself. Use the cleanup code (after the `exit` label) to free any memory that the function may have allocated.
 

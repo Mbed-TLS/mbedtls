@@ -25,6 +25,7 @@
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
+#include "mbedtls/check_config.h"
 
 #include "mbedtls/aes.h"
 #include "mbedtls/aesni.h"
@@ -41,7 +42,6 @@
 #include "mbedtls/certs.h"
 #include "mbedtls/chacha20.h"
 #include "mbedtls/chachapoly.h"
-#include "mbedtls/check_config.h"
 #include "mbedtls/cipher.h"
 #include "mbedtls/cipher_internal.h"
 #include "mbedtls/cmac.h"

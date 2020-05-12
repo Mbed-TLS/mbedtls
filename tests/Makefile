@@ -77,6 +77,20 @@ all: $(BINARIES)
 $(DEP):
 	$(MAKE) -C ../library
 
+EXTRA_OBJECTS =
+
+ifneq ($(strip $(PSA_DRIVERS)), )
+PSA_DRIVERS_C = \
+                # This line is intentionally left blank
+
+EXTRA_OBJECTS += $(PSA_DRIVERS_C:.c=.o)
+LOCAL_CFLAGS += -Idrivers
+
+drivers/%.o: drivers/%.c
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+endif
+
 C_FILES := $(addsuffix .c,$(APPS))
 
 # Wildcard target for test code generation:
@@ -105,9 +119,9 @@ C_FILES := $(addsuffix .c,$(APPS))
 		-o .
 
 
-$(BINARIES): %$(EXEXT): %.c $(DEP)
+$(BINARIES): %$(EXEXT): %.c $(DEP) $(EXTRA_OBJECTS)
 	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $< $(EXTRA_OBJECTS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 # Some test suites require additional header files.
 $(filter test_suite_psa_crypto%, $(BINARIES)): psa_crypto_helpers.h
@@ -118,10 +132,12 @@ $(addprefix embedded_,$(filter test_suite_psa_%, $(APPS))): embedded_%: TESTS/mb
 clean:
 ifndef WINDOWS
 	rm -rf $(BINARIES) *.c *.datax TESTS
+	rm -rf drivers/*.o
 else
 	if exist *.c del /Q /F *.c
 	if exist *.exe del /Q /F *.exe
 	if exist *.datax del /Q /F *.datax
+	if exist drivers\*.o del /Q /F drivers\*.o
 ifneq ($(wildcard TESTS/.*),)
 	rmdir /Q /S TESTS
 endif

@@ -48,7 +48,7 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_MD_C and/or MBEDTLS_FS_IO not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -203,7 +203,7 @@ int main( int argc, char *argv[] )
         fflush( stdout ); getchar();
 #endif
 
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 
     /*
@@ -213,12 +213,12 @@ int main( int argc, char *argv[] )
     if( md_info == NULL )
     {
         mbedtls_fprintf( stderr, "Message Digest '%s' not found\n", argv[1] );
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
     if( mbedtls_md_setup( &md_ctx, md_info, 0 ) )
     {
         mbedtls_fprintf( stderr, "Failed to initialize context.\n" );
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 
     ret = 0;
@@ -237,6 +237,6 @@ int main( int argc, char *argv[] )
 exit:
     mbedtls_md_free( &md_ctx );
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_MD_C && MBEDTLS_FS_IO */

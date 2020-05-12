@@ -54,7 +54,7 @@ int main( void )
            "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
            "MBEDTLS_THREADING_C and/or MBEDTLS_THREADING_PTHREAD "
            "and/or MBEDTLS_PEM_PARSE_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -524,7 +524,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( ret );
+    mbedtls_exit( ret );
 }
 
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_CERTS_C && MBEDTLS_ENTROPY_C &&

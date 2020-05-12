@@ -56,7 +56,7 @@ int main( void )
     mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_PK_PARSE_C and/or "
            "MBEDTLS_FS_IO and/or MBEDTLS_ENTROPY_C and/or "
            "MBEDTLS_CTR_DRBG_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -172,7 +172,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO &&
           MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */

@@ -124,18 +124,7 @@
         #endif /* !MBEDTLS_HAVE_INT64 */
         typedef  int64_t mbedtls_mpi_sint;
         typedef uint64_t mbedtls_mpi_uint;
-        #if !defined(MBEDTLS_MPI_UINT_BITS)
-            #define MBEDTLS_MPI_UINT_BITS 64
-        #endif /* MBEDTLS_MPI_UINT_BITS */
-        #if !defined(MBEDTLS_MPI_HALF_MASK)
-            #define MBEDTLS_MPI_HALF_MASK 0xffffffff
-        #endif /* MBEDTLS_MPI_HALF_MASK */
-        #if !defined(MBEDTLS_MPI_HALF_BITS)
-            #define MBEDTLS_MPI_HALF_BITS 32
-        #endif /* MBEDTLS_MPI_HALF_BITS */
-        #if !defined(MBEDTLS_MPI_INT_MASK)
-            #define MBEDTLS_MPI_INT_MASK 0xffffffffffffffffLL
-        #endif /* MBEDTLS_MPI_INT_MASK */
+        #define MBEDTLS_MPI_UINT_BITS 64
     #elif defined(__GNUC__) && (                         \
         defined(__amd64__) || defined(__x86_64__)     || \
         defined(__ppc64__) || defined(__powerpc64__)  || \
@@ -148,18 +137,7 @@
         #endif /* MBEDTLS_HAVE_INT64 */
         typedef  int64_t mbedtls_mpi_sint;
         typedef uint64_t mbedtls_mpi_uint;
-        #if !defined(MBEDTLS_MPI_UINT_BITS)
-            #define MBEDTLS_MPI_UINT_BITS 64
-        #endif /* MBEDTLS_MPI_UINT_BITS */
-        #if !defined(MBEDTLS_MPI_INT_MASK)
-            #define MBEDTLS_MPI_INT_MASK 0xffffffffffffffffLL
-        #endif /* MBEDTLS_MPI_INT_MASK */
-        #if !defined(MBEDTLS_MPI_HALF_MASK)
-            #define MBEDTLS_MPI_HALF_MASK 0xffffffff
-        #endif /* MBEDTLS_MPI_HALF_MASK */
-        #if !defined(MBEDTLS_MPI_HALF_BITS)
-            #define MBEDTLS_MPI_HALF_BITS 32
-        #endif /* MBEDTLS_MPI_HALF_BITS */
+        #define MBEDTLS_MPI_UINT_BITS 64
         #if !defined(MBEDTLS_NO_UDBL_DIVISION)
             /* mbedtls_t_udbl defined as 128-bit unsigned int */
             typedef unsigned int mbedtls_t_udbl __attribute__((mode(TI)));
@@ -175,18 +153,7 @@
         #endif /* !MBEDTLS_HAVE_INT64 */
         typedef  int64_t mbedtls_mpi_sint;
         typedef uint64_t mbedtls_mpi_uint;
-        #if !defined(MBEDTLS_MPI_UINT_BITS)
-            #define MBEDTLS_MPI_UINT_BITS 64
-        #endif /* MBEDTLS_MPI_UINT_BITS */
-        #if !defined(MBEDTLS_MPI_INT_MASK)
-            #define MBEDTLS_MPI_INT_MASK 0xffffffffffffffffLL
-        #endif /* MBEDTLS_MPI_INT_MASK */
-        #if !defined(MBEDTLS_MPI_HALF_MASK)
-            #define MBEDTLS_MPI_HALF_MASK 0xffffffff
-        #endif /* MBEDTLS_MPI_HALF_MASK */
-        #if !defined(MBEDTLS_MPI_HALF_BITS)
-            #define MBEDTLS_MPI_HALF_BITS 32
-        #endif /* MBEDTLS_MPI_HALF_BITS */
+        #define MBEDTLS_MPI_UINT_BITS 64
         #if !defined(MBEDTLS_NO_UDBL_DIVISION)
             /* mbedtls_t_udbl defined as 128-bit unsigned int */
             typedef __uint128_t mbedtls_t_udbl;
@@ -196,18 +163,7 @@
         /* Force 64-bit integers with unknown compiler */
         typedef  int64_t mbedtls_mpi_sint;
         typedef uint64_t mbedtls_mpi_uint;
-        #if !defined(MBEDTLS_MPI_UINT_BITS)
-            #define MBEDTLS_MPI_UINT_BITS 64
-        #endif /* MBEDTLS_MPI_UINT_BITS */
-        #if !defined(MBEDTLS_MPI_INT_MASK)
-            #define MBEDTLS_MPI_INT_MASK 0xffffffffffffffffLL
-        #endif /* MBEDTLS_MPI_INT_MASK */
-        #if !defined(MBEDTLS_MPI_HALF_MASK)
-            #define MBEDTLS_MPI_HALF_MASK 0xffffffff
-        #endif /* MBEDTLS_MPI_HALF_MASK */
-        #if !defined(MBEDTLS_MPI_HALF_BITS)
-            #define MBEDTLS_MPI_HALF_BITS 32
-        #endif /* MBEDTLS_MPI_HALF_BITS */
+        #define MBEDTLS_MPI_UINT_BITS 64
     #endif
 #endif /* !MBEDTLS_HAVE_INT32 */
 
@@ -221,20 +177,21 @@
     #if !defined(MBEDTLS_MPI_UINT_BITS)
         #define MBEDTLS_MPI_UINT_BITS 32
     #endif /* MBEDTLS_MPI_UINT_BITS */
-    #if !defined(MBEDTLS_MPI_INT_MASK)
-        #define MBEDTLS_MPI_INT_MASK 0xffffffff
-    #endif /* MBEDTLS_MPI_INT_MASK */
-    #if !defined(MBEDTLS_MPI_HALF_MASK)
-        #define MBEDTLS_MPI_HALF_MASK 0xffff
-    #endif /* MBEDTLS_MPI_HALF_MASK */
-    #if !defined(MBEDTLS_MPI_HALF_BITS)
-        #define MBEDTLS_MPI_HALF_BITS 16
-    #endif /* MBEDTLS_MPI_HALF_BITS */
     #if !defined(MBEDTLS_NO_UDBL_DIVISION)
         typedef uint64_t mbedtls_t_udbl;
         #define MBEDTLS_HAVE_UDBL
     #endif /* !MBEDTLS_NO_UDBL_DIVISION */
 #endif /* !MBEDTLS_HAVE_INT64 */
+
+#if MBEDTLS_MPI_UINT_BITS == 64
+    #define MBEDTLS_MPI_INT_MASK 0xffffffffffffffffLL
+    #define MBEDTLS_MPI_HALF_MASK 0xffffffff
+    #define MBEDTLS_MPI_HALF_BITS 32
+#elif MBEDTLS_MPI_UINT_BITS == 32
+    #define MBEDTLS_MPI_INT_MASK 0xffffffff
+    #define MBEDTLS_MPI_HALF_MASK 0xffff
+    #define MBEDTLS_MPI_HALF_BITS 16
+#endif
 
 #ifdef __cplusplus
 extern "C" {

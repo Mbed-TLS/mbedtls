@@ -107,34 +107,59 @@ psa_status_t test_transparent_signature_sign_hash(
         return( PSA_SUCCESS );
     }
 
+    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
+
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) && \
     defined(MBEDTLS_SHA256_C)
     if( alg != PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 ) )
-        return( PSA_ERROR_GENERIC_ERROR );
-    if( ! PSA_KEY_TYPE_IS_ECC_KEY_PAIR( psa_get_key_type( attributes ) ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return( PSA_ERROR_NOT_SUPPORTED );
+    mbedtls_ecp_group_id grp_id;
+    switch( psa_get_key_type( attributes ) )
+    {
+        case PSA_ECC_CURVE_SECP_R1:
+            switch( psa_get_key_bits( attributes ) )
+            {
+                case 256:
+                    grp_id = MBEDTLS_ECP_DP_SECP256R1;
+                    break;
+                case 384:
+                    grp_id = MBEDTLS_ECP_DP_SECP384R1;
+                    break;
+                case 521:
+                    grp_id = MBEDTLS_ECP_DP_SECP521R1;
+                    break;
+                default:
+                    return( PSA_ERROR_NOT_SUPPORTED );
+            }
+            break;
+        default:
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
 
     /* Beyond this point, the driver is actually doing the work of
      * calculating the signature. */
 
-    /* FIXME: the current API design forces us to cheat since we're
-     * getting a pointer to something unspecified. The current
-     * implementation happens to put a pointer to the mbedtls
-     * representation here due to the layout of the `data` union in
-     * `psa_key_slot_t`. */
-    mbedtls_ecp_keypair *ecp = (mbedtls_ecp_keypair*) key;
-    (void) key_length;
-
-    /* Code mostly copied from psa_ecdsa_sign() in psa_crypto.c. */
-    int ret;
+    status = PSA_ERROR_GENERIC_ERROR;
+    int ret = 0;
     mbedtls_mpi r, s;
-    size_t curve_bytes = PSA_BITS_TO_BYTES( ecp->grp.pbits );
-    mbedtls_md_type_t md_alg = MBEDTLS_MD_SHA256;
     mbedtls_mpi_init( &r );
     mbedtls_mpi_init( &s );
+    mbedtls_ecp_keypair ecp;
+    mbedtls_ecp_keypair_init( &ecp );
+    size_t curve_bytes = PSA_BITS_TO_BYTES( ecp.grp.pbits );
+
+    MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &ecp.grp, grp_id ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary( &ecp.grp, &ecp.Q,
+                                                    key, key_length ) );
+
+    /* Code adapted from psa_ecdsa_sign() in psa_crypto.c. */
+    mbedtls_md_type_t md_alg = MBEDTLS_MD_SHA256;
     if( signature_size < 2 * curve_bytes )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
-    MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_det( &ecp->grp, &r, &s, &ecp->d,
+    {
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+        goto cleanup;
+    }
+    MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_det( &ecp.grp, &r, &s, &ecp.d,
                                   hash, hash_length, md_alg ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &r,
                                                signature,
@@ -143,21 +168,27 @@ psa_status_t test_transparent_signature_sign_hash(
                                                signature + curve_bytes,
                                                curve_bytes ) );
 cleanup:
+    /* There's no easy way to translate the error code except through a
+     * library function that's not exported. Use a debugger. */
+    if( ret == 0 )
+        status = PSA_SUCCESS;
     mbedtls_mpi_free( &r );
     mbedtls_mpi_free( &s );
-    if( ret == 0 )
-    {
+    mbedtls_ecp_keypair_free( &ecp );
+    if( status == PSA_SUCCESS )
         *signature_length = 2 * curve_bytes;
-        return( PSA_SUCCESS );
-    }
-    else
+#else /* defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) && \
+         defined(MBEDTLS_SHA256_C) */
+    (void) attributes;
+    (void) key;
+    (void) key_length;
+    (void) alg;
+    (void) hash;
+    (void) hash_length;
 #endif /* defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) && \
           defined(MBEDTLS_SHA256_C) */
-    {
-        /* Something bad happened. There's no easy way to translate the
-         * error code. Use a debugger if this comes up. */
-        return( PSA_ERROR_GENERIC_ERROR );
-    }
+
+    return( status );
 }
 
 psa_status_t test_opaque_signature_sign_hash(

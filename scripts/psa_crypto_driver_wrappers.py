@@ -42,6 +42,10 @@ class Wrapper:
         self.name = name
         self.parameters = parameters
 
+    @staticmethod
+    def lines(lines, indent):
+        return ''.join([' ' * indent + line for line in lines])
+
     FUNCTION_TEMPLATE = """
 psa_status_t psa_driver_wrapper_{name}({parameters})
 {{
@@ -80,12 +84,13 @@ psa_status_t psa_driver_wrapper_{name}({parameters})
 class OperationWrapper(Wrapper):
     """Wrapper for a single-part operation."""
 
-    def __init__(self, name, other_parameters):
+    def __init__(self, name, other_parameters, asymmetric=0):
         parameters = ([
             'psa_key_slot_t *slot',
             'psa_algorithm_t alg',
         ] + other_parameters)
         super().__init__(name, parameters)
+        self.asymmetric = asymmetric # 0=symmetric 1=public_key 2=key_pair
 
     START = """
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -101,6 +106,7 @@ class OperationWrapper(Wrapper):
         break;
     }
 
+    goto exit;
 exit:
     psa_reset_key_attributes(&attributes);
     """[1:].rstrip(' ')
@@ -112,10 +118,12 @@ exit:
 
     def driver_call(self, driver):
         name = driver.prefix + '_' + self.name
-        # FIXME: this is wrong for transparent drivers for asymmetric keys,
-        # and maybe for opaque drivers as well.
-        key_pointer = 'slot->data.raw.data'
-        key_size = 'slot->data.raw.bytes'
+        if driver.is_transparent() and self.asymmetric:
+            key_pointer = 'exported_key'
+            key_size = 'exported_key_length'
+        else:
+            key_pointer = 'slot->data.raw.data'
+            key_size = 'slot->data.raw.bytes'
         call = self.gen_call(name,
                              ['&attributes', key_pointer, key_size],
                              self.parameters[1:])
@@ -123,10 +131,31 @@ exit:
 
     def transparent_body(self, transparent_drivers):
         case_body = []
+        label = 'exit'
+        if self.asymmetric == 1: # public key
+            case_body += ['uint8_t exported_key[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];',
+                          'size_t exported_key_length = 0;',
+                          'status = psa_internal_export_key(slot, exported_key, sizeof(exported_key), &exported_key_length, 1);',
+                          'if (status != PSA_SUCCESS) goto exit;']
+        elif self.asymmetric: # key pair
+            case_body += ['uint8_t exported_key[PSA_EXPORT_KEY_PAIR_MAX_SIZE];',
+                          'size_t exported_key_length = 0;',
+                          'status = psa_internal_export_key(slot, exported_key, sizeof(exported_key), &exported_key_length, 0);',
+                          'if (status != PSA_SUCCESS) goto transparent_exit;']
+            label = 'transparent_exit'
         for driver in transparent_drivers:
             case_body += [self.driver_call(driver),
-                          'if (status != PSA_ERROR_NOT_SUPPORTED) goto exit;']
-        return case_body
+                          'if (status != PSA_ERROR_NOT_SUPPORTED) goto {};'.format(label)]
+        if self.asymmetric > 1:
+            return (['{'] +
+                    ['    ' + line for line in case_body] +
+                    ['transparent_exit:',
+                     '    if (exported_key != NULL) {',
+                     '        mbedtls_platform_zeroize(exported_key, exported_key_length);',
+                     '    }',
+                     '}'])
+        else:
+            return case_body
 
     def body(self, transparent_drivers, opaque_drivers):
         if not (transparent_drivers or opaque_drivers):
@@ -144,7 +173,8 @@ exit:
 
 WRAPPERS = [
     OperationWrapper('sign_hash',
-                     [*inbuf('hash'), *outbuf('signature')]),
+                     [*inbuf('hash'), *outbuf('signature')],
+                     asymmetric=2),
 ]
 
 def write_location_constants(out, drivers):

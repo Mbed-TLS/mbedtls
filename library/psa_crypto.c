@@ -1338,11 +1338,11 @@ static int pk_write_pubkey_simple( mbedtls_pk_context *key,
 }
 #endif /* defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECP_C) */
 
-static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
-                                             uint8_t *data,
-                                             size_t data_size,
-                                             size_t *data_length,
-                                             int export_public_key )
+psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
+                                      uint8_t *data,
+                                      size_t data_size,
+                                      size_t *data_length,
+                                      int export_public_key )
 {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     const psa_drv_se_t *drv;

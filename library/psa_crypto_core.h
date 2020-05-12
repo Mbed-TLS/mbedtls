@@ -180,4 +180,32 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
 psa_status_t psa_get_key_slot_attributes( const psa_key_slot_t *slot,
                                           psa_key_attributes_t *attributes );
 
+/** Export a key or public key.
+ *
+ * This function does not check the key policy and works even with
+ * keys that do not have #PSA_KEY_USAGE_EXPORT.
+ *
+ * \param slot              Slot containing the key to export.
+ * \param[out] data         Buffer where the key data is to be written.
+ * \param data_size         Size of the \p data buffer in bytes.
+ * \param[out] data_length  On success, the number of bytes
+ *                          that make up the key data.
+ * \param export_public_key If true and the key is a key pair, export the
+ *                          public part only.
+ *                          If true and the key is a public key, export it.
+ *                          If true and the ky is not asymmetric, return
+ *                          #PSA_ERROR_INVALID_ARGUMENT.
+ *                          If false, export the key, whatever its type.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ */
+psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
+                                      uint8_t *data,
+                                      size_t data_size,
+                                      size_t *data_length,
+                                      int export_public_key );
+
 #endif /* PSA_CRYPTO_CORE_H */

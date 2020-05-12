@@ -60,7 +60,7 @@ int main( void )
     mbedtls_printf( "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_ENTROPY_C and/or "
             "MBEDTLS_NET_C and/or MBEDTLS_SSL_CLI_C and/or UNIX "
             "not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -296,6 +296,6 @@ exit:
     mbedtls_x509_crt_free( &ca );
 #endif
 
-    return( ret );
+    mbedtls_exit( ret );
 }
 #endif

@@ -1022,6 +1022,10 @@ static int exercise_export_key( psa_key_handle_t handle,
     PSA_ASSERT( psa_export_key( handle,
                                 exported, exported_size,
                                 &exported_length ) );
+    if( PSA_KEY_TYPE_IS_KEY_PAIR( psa_get_key_type( &attributes ) ) )
+        TEST_ASSERT( exported_length <= PSA_EXPORT_KEY_PAIR_MAX_SIZE );
+    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( psa_get_key_type( &attributes ) ) )
+        TEST_ASSERT( exported_length <= PSA_EXPORT_PUBLIC_KEY_MAX_SIZE );
     ok = exported_key_sanity_check( psa_get_key_type( &attributes ),
                                     psa_get_key_bits( &attributes ),
                                     exported, exported_length );
@@ -1058,6 +1062,8 @@ static int exercise_export_public_key( psa_key_handle_t handle )
     PSA_ASSERT( psa_export_public_key( handle,
                                        exported, exported_size,
                                        &exported_length ) );
+    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( psa_get_key_type( &attributes ) ) )
+        TEST_ASSERT( exported_length <= PSA_EXPORT_PUBLIC_KEY_MAX_SIZE );
     ok = exported_key_sanity_check( public_type,
                                     psa_get_key_bits( &attributes ),
                                     exported, exported_length );
@@ -1710,8 +1716,9 @@ void import_export_public_key( data_t *data,
         size_t bits;
         PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
         bits = psa_get_key_bits( &attributes );
-        TEST_ASSERT( expected_public_key->len <=
+        TEST_ASSERT( exported_length <=
                      PSA_KEY_EXPORT_MAX_SIZE( public_type, bits ) );
+        TEST_ASSERT( exported_length <= PSA_EXPORT_PUBLIC_KEY_MAX_SIZE );
         ASSERT_COMPARE( expected_public_key->x, expected_public_key->len,
                         exported, exported_length );
     }

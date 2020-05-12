@@ -1,8 +1,7 @@
 /* BEGIN_HEADER */
 #include "psa_crypto_helpers.h"
 
-#include "mbedtls/rsa.h"
-#include "mbedtls/ecdsa.h"
+#include "drivers/signature.h"
 
 uint8_t test_secp256r1_key_data[32] = {
     0xab, 0x45, 0x43, 0x57, 0x12, 0x64, 0x9c, 0xb3,

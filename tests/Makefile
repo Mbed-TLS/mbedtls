@@ -81,6 +81,7 @@ EXTRA_OBJECTS =
 
 ifneq ($(strip $(PSA_DRIVERS)), )
 PSA_DRIVERS_C = \
+                drivers/signature.c \
                 # This line is intentionally left blank
 
 EXTRA_OBJECTS += $(PSA_DRIVERS_C:.c=.o)

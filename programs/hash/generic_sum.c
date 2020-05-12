@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #define mbedtls_fprintf         fprintf
 #define mbedtls_printf          printf
+#define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -47,7 +48,7 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_MD_C and/or MBEDTLS_FS_IO not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 static int generic_wrapper( const mbedtls_md_info_t *md_info, char *filename, unsigned char *sum )
@@ -200,7 +201,7 @@ int main( int argc, char *argv[] )
         fflush( stdout ); getchar();
 #endif
 
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 
     /*
@@ -210,12 +211,12 @@ int main( int argc, char *argv[] )
     if( md_info == NULL )
     {
         mbedtls_fprintf( stderr, "Message Digest '%s' not found\n", argv[1] );
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
     if( mbedtls_md_setup( &md_ctx, md_info, 0 ) )
     {
         mbedtls_fprintf( stderr, "Failed to initialize context.\n" );
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 
     ret = 0;
@@ -234,6 +235,6 @@ int main( int argc, char *argv[] )
 exit:
     mbedtls_md_free( &md_ctx );
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_MD_C && MBEDTLS_FS_IO */

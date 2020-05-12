@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #define mbedtls_fprintf         fprintf
 #define mbedtls_printf          printf
+#define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -47,7 +48,7 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_HAVEGE_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 int main( int argc, char *argv[] )
@@ -62,13 +63,13 @@ int main( int argc, char *argv[] )
     if( argc < 2 )
     {
         mbedtls_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
         mbedtls_printf( "failed to open '%s' for writing.\n", argv[1] );
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 
     mbedtls_havege_init( &hs );
@@ -101,6 +102,6 @@ int main( int argc, char *argv[] )
 exit:
     mbedtls_havege_free( &hs );
     fclose( f );
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_HAVEGE_C */

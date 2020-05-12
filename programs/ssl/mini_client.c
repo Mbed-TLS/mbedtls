@@ -26,6 +26,15 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdio.h>
+#include <stdlib.h>
+#define mbedtls_printf printf
+#define mbedtls_exit   exit
+#endif
+
 /*
  * We're creating and connecting the socket "manually" rather than using the
  * NET module, in order to avoid the overhead of getaddrinfo() which tends to
@@ -44,27 +53,14 @@
     !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_SSL_CLI_C) || \
     !defined(UNIX)
 
-#if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#define mbedtls_printf printf
-#endif
-
 int main( void )
 {
     mbedtls_printf( "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_ENTROPY_C and/or "
             "MBEDTLS_NET_C and/or MBEDTLS_SSL_CLI_C and/or UNIX "
             "not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
-
-#if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
-#else
-#include <stdlib.h>
-#endif
 
 #include <string.h>
 
@@ -297,6 +293,6 @@ exit:
     mbedtls_x509_crt_free( &ca );
 #endif
 
-    return( ret );
+    mbedtls_exit( ret );
 }
 #endif

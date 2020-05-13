@@ -158,6 +158,31 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void ecp_test_mul_rng( int id, char *d_hex )
+{
+    mbedtls_ecp_group grp;
+    mbedtls_mpi d;
+    mbedtls_ecp_point Q;
+
+    mbedtls_ecp_group_init( &grp ); mbedtls_mpi_init( &d );
+    mbedtls_ecp_point_init( &Q );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+
+    TEST_ASSERT( mbedtls_ecp_check_pubkey( &grp, &grp.G ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &d, 16, d_hex ) == 0 );
+
+    TEST_ASSERT( mbedtls_ecp_mul( &grp, &Q, &d, &grp.G, &rnd_zero_rand, NULL )
+                 == MBEDTLS_ERR_ECP_RANDOM_FAILED );
+
+exit:
+    mbedtls_ecp_group_free( &grp ); mbedtls_mpi_free( &d );
+    mbedtls_ecp_point_free( &Q );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void ecp_fast_mod( int id, char *N_str )
 {
     mbedtls_ecp_group grp;

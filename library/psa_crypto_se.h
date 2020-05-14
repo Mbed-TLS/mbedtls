@@ -31,31 +31,30 @@
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
 
-/** The maximum lifetime value that this implementation supports
+/** The maximum location value that this implementation supports
  * for a secure element.
  *
  * This is not a characteristic that each PSA implementation has, but a
  * limitation of the current implementation due to the constraints imposed
  * by storage. See #PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE.
  *
- * The minimum lifetime value for a secure element is 2, like on any
- * PSA implementation (0=volatile and 1=internal-storage are taken).
+ * The minimum location value for a secure element is 1, like on any
+ * PSA implementation (0 means a transparent key).
  */
-#define PSA_MAX_SE_LIFETIME 255
+#define PSA_MAX_SE_LOCATION 255
 
 /** The base of the range of ITS file identifiers for secure element
  * driver persistent data.
  *
  * We use a slice of the implemenation reserved range 0xffff0000..0xffffffff,
  * specifically the range 0xfffffe00..0xfffffeff. The length of this range
- * drives the value of #PSA_MAX_SE_LIFETIME.
- * The identifiers 0xfffffe00 and 0xfffffe01 are actually not used since
- * they correspond to #PSA_KEY_LIFETIME_VOLATILE and
- * #PSA_KEY_LIFETIME_PERSISTENT which don't have a driver.
+ * drives the value of #PSA_MAX_SE_LOCATION. The identifier 0xfffffe00 is
+ * actually not used since it corresponds to #PSA_KEY_LOCATION_LOCAL_STORAGE
+ * which doesn't have a driver.
  */
 #define PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE ( (psa_key_id_t) 0xfffffe00 )
 
-/** The maximum number of registered secure element driver lifetimes. */
+/** The maximum number of registered secure element driver locations. */
 #define PSA_MAX_SE_DRIVERS 4
 
 /** Unregister all secure element drivers.
@@ -173,10 +172,10 @@ psa_status_t psa_save_se_persistent_data(
  *
  * This is currently only used for testing.
  *
- * \param[in] lifetime  The driver lifetime whose persistent data should
- *                      be erased.
+ * \param[in] location  The location identifier for the driver whose
+ *                      persistent data is to be erased.
  */
-psa_status_t psa_destroy_se_persistent_data( psa_key_lifetime_t lifetime );
+psa_status_t psa_destroy_se_persistent_data( psa_key_location_t location );
 
 
 /** The storage representation of a key whose data is in a secure element.

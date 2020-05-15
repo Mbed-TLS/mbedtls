@@ -48,7 +48,10 @@ function(add_test_suite suite_name)
 
     add_executable(test_suite_${data_name} test_suite_${data_name}.c $<TARGET_OBJECTS:mbedtests>)
     target_link_libraries(test_suite_${data_name} ${libs})
-    target_include_directories(test_suite_${data_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_include_directories(test_suite_${data_name}
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../library)
+
     if(${data_name} MATCHES ${SKIP_TEST_SUITES_REGEX})
         message(STATUS "The test suite ${data_name} will not be executed.")
     else()
@@ -68,7 +71,10 @@ endif(MSVC)
 
 file(GLOB MBEDTESTS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
 add_library(mbedtests OBJECT ${MBEDTESTS_FILES})
-target_include_directories(mbedtests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(mbedtests
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../library)
 
 add_test_suite(aes aes.cbc)
 add_test_suite(aes aes.cfb)

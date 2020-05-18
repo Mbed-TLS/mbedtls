@@ -40,7 +40,27 @@ max-attributes=15
 max-module-lines=2000
 
 [MESSAGES CONTROL]
-disable=
+# * locally-disabled, locally-enabled: If we disable or enable a message
+#   locally, it's by design. There's no need to clutter the Pylint output
+#   with this information.
+# * logging-format-interpolation: Pylint warns about things like
+#   ``log.info('...'.format(...))``. It insists on ``log.info('...', ...)``.
+#   This is of minor utility (mainly a performance gain when there are
+#   many messages that use formatting and are below the log level).
+#   Some versions of Pylint (including 1.8, which is the version on
+#   Ubuntu 18.04) only recognize old-style format strings using '%',
+#   and complain about something like ``log.info('{}', foo)`` with
+#   logging-too-many-args (Pylint supports new-style formatting if
+#   declared globally with logging_format_style under [LOGGING] but
+#   this requires Pylint >=2.2).
+# * no-else-return: Allow the perfectly reasonable idiom
+#    if condition1:
+#        return value1
+#    else:
+#        return value2
+# * unnecessary-pass: If we take the trouble of adding a line with "pass",
+#   it's because we think the code is clearer that way.
+disable=locally-disabled,locally-enabled,logging-format-interpolation,no-else-return,unnecessary-pass
 
 [REPORTS]
 # Don't diplay statistics. Just the facts.

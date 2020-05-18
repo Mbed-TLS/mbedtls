@@ -1,0 +1,5 @@
+Bugfix
+   * Fix undefined behavior in X.509 certificate parsing if the
+     pathLenConstraint basic constraint value is equal to INT_MAX.
+     The actual effect with almost every compiler is the intended
+     behavior, so this is unlikely to be exploitable anywhere. #3197

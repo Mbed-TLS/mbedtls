@@ -306,10 +306,10 @@ void entropy_nv_seed_std_io(  )
 void entropy_nv_seed( data_t * read_seed )
 {
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
-    const mbedtls_md_info_t *md_info =
+    const mbedtls_md_handle_t md_info =
         mbedtls_md_info_from_type( MBEDTLS_MD_SHA512 );
 #elif defined(MBEDTLS_ENTROPY_SHA256_ACCUMULATOR)
-    const mbedtls_md_info_t *md_info =
+    const mbedtls_md_handle_t md_info =
         mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 );
 #else
 #error "Unsupported entropy accumulator"

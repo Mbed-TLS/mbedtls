@@ -1426,6 +1426,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    if( strcmp( "MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( strcmp( "MBEDTLS_SSL_PROTO_DTLS", config ) == 0 )
     {

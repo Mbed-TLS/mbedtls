@@ -578,16 +578,21 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
+    /* The following two code paths implement the (D)TLSInnerPlaintext
+     * structure present in TLS 1.3 and DTLS 1.2 + CID.
+     *
+     * See ssl_build_inner_plaintext() for more information.
+     *
+     * Note that this changes `rec->data_len`, and hence
+     * `post_avail` needs to be recalculated afterwards.
+     *
+     * Note also that the two code paths cannot occur simultaneously
+     * since they apply to different versions of the protocol. There
+     * is hence no risk of double-addition of the inner plaintext.
+     */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
     if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
     {
-        /*
-         * Wrap plaintext into TLSInnerPlaintext structure.
-         * See ssl_build_inner_plaintext() for more information.
-         *
-         * Note that this changes `rec->data_len`, and hence
-         * `post_avail` needs to be recalculated afterwards.
-         */
         if( ssl_build_inner_plaintext( data,
                         &rec->data_len,
                         post_avail,

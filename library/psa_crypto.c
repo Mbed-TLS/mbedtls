@@ -396,7 +396,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
                 default:
                     return( MBEDTLS_ECP_DP_NONE );
             }
-            break;
 
         case PSA_ECC_CURVE_BRAINPOOL_P_R1:
             switch( byte_length )
@@ -410,7 +409,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
                 default:
                     return( MBEDTLS_ECP_DP_NONE );
             }
-            break;
 
         case PSA_ECC_CURVE_MONTGOMERY:
             switch( byte_length )
@@ -422,7 +420,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
                 default:
                     return( MBEDTLS_ECP_DP_NONE );
             }
-            break;
 
         case PSA_ECC_CURVE_SECP_K1:
             switch( byte_length )
@@ -436,7 +433,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
                 default:
                     return( MBEDTLS_ECP_DP_NONE );
             }
-            break;
 
         default:
             return( MBEDTLS_ECP_DP_NONE );

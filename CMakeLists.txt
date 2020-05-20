@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-if(TEST_CPP)
+if(TEST_CPP OR BUILD_LIBS_AS_CPP)
     project("mbed TLS" C CXX)
 else()
     project("mbed TLS" C)

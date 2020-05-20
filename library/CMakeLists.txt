@@ -77,6 +77,9 @@ set(src_crypto
     version_features.c
     xtea.c
 )
+if(BUILD_LIBS_AS_CPP)
+    set_source_files_properties(${src_crypto} PROPERTIES LANGUAGE CXX)
+endif()
 
 list(APPEND src_crypto ${thirdparty_src})
 
@@ -91,6 +94,9 @@ set(src_x509
     x509write_crt.c
     x509write_csr.c
 )
+if(BUILD_LIBS_AS_CPP)
+    set_source_files_properties(${src_x509} PROPERTIES LANGUAGE CXX)
+endif()
 
 set(src_tls
     debug.c
@@ -104,6 +110,9 @@ set(src_tls
     ssl_ticket.c
     ssl_tls.c
 )
+if(BUILD_LIBS_AS_CPP)
+    set_source_files_properties(${src_tls} PROPERTIES LANGUAGE CXX)
+endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes")
@@ -161,16 +170,25 @@ endif()
 if(USE_STATIC_MBEDTLS_LIBRARY)
     add_library(${mbedcrypto_static_target} STATIC ${src_crypto})
     set_target_properties(${mbedcrypto_static_target} PROPERTIES OUTPUT_NAME mbedcrypto)
+    if(BUILD_LIBS_AS_CPP)
+        set_target_properties(${mbedcrypto_static_target} PROPERTIES LINKER_LANGUAGE CXX)
+    endif()
     target_link_libraries(${mbedcrypto_static_target} ${libs})
     target_include_directories(${mbedcrypto_static_target}
         PUBLIC ${MBEDTLS_DIR}/include/)
 
     add_library(${mbedx509_static_target} STATIC ${src_x509})
     set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509)
+    if(BUILD_LIBS_AS_CPP)
+        set_target_properties(${mbedx509_static_target} PROPERTIES LINKER_LANGUAGE CXX)
+    endif()
     target_link_libraries(${mbedx509_static_target} ${libs} ${mbedcrypto_static_target})
 
     add_library(${mbedtls_static_target} STATIC ${src_tls})
     set_target_properties(${mbedtls_static_target} PROPERTIES OUTPUT_NAME mbedtls)
+    if(BUILD_LIBS_AS_CPP)
+        set_target_properties(${mbedtls_static_target} PROPERTIES LINKER_LANGUAGE CXX)
+    endif()
     target_link_libraries(${mbedtls_static_target} ${libs} ${mbedx509_static_target})
 
     install(TARGETS ${mbedtls_static_target} ${mbedx509_static_target} ${mbedcrypto_static_target}
@@ -182,18 +200,27 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
 
     add_library(mbedcrypto SHARED ${src_crypto})
     set_target_properties(mbedcrypto PROPERTIES VERSION 2.22.0 SOVERSION 4)
+    if(BUILD_LIBS_AS_CPP)
+        set_target_properties(mbedcrypto PROPERTIES LINKER_LANGUAGE CXX)
+    endif()
     target_link_libraries(mbedcrypto ${libs})
     target_include_directories(mbedcrypto
         PUBLIC ${MBEDTLS_DIR}/include/)
 
     add_library(mbedx509 SHARED ${src_x509})
     set_target_properties(mbedx509 PROPERTIES VERSION 2.22.0 SOVERSION 1)
+    if(BUILD_LIBS_AS_CPP)
+        set_target_properties(mbedx509 PROPERTIES LINKER_LANGUAGE CXX)
+    endif()
     target_link_libraries(mbedx509 ${libs} mbedcrypto)
     target_include_directories(mbedx509
         PUBLIC ${MBEDTLS_DIR}/include/)
 
     add_library(mbedtls SHARED ${src_tls})
     set_target_properties(mbedtls PROPERTIES VERSION 2.22.0 SOVERSION 13)
+    if(BUILD_LIBS_AS_CPP)
+        set_target_properties(mbedtls PROPERTIES LINKER_LANGUAGE CXX)
+    endif()
     target_link_libraries(mbedtls ${libs} mbedx509)
     target_include_directories(mbedtls
         PUBLIC ${MBEDTLS_DIR}/include/)

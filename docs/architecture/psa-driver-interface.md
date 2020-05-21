@@ -17,17 +17,16 @@ Functions in the PSA Cryptography API invoke functions in the core. Code from th
 
 ### Types of drivers
 
-The PSA Cryptography driver interface supports three types of cryptoprocessors, and accordingly three types of drivers.
+The PSA Cryptography driver interface supports two types of cryptoprocessors, and accordingly two types of drivers.
 
-* **Transparent** drivers implement cryptographic operations on keys that are provided in cleartext at the beginning of each operation. They are typically used for hardware **accelerators** that don't have any persistent storage. When a transparent driver is available for a particular combination of parameters (cryptographic algorithm, key type and size, etc.), it is used instead of the default software implementation.
-* **Opaque** drivers implement cryptographic operations on keys that can only be used inside a protected environment such as a **secure element without storage**. The code that calls the driver only sees the key in an wrapped form which only the protected environment can decrypt. For each operation, the driver receives an opaque blob containing the key material in wrapped form. An opaque driver is invoked for the specific key location that the driver is registered for: the dispatch is based on the key's lifetime.
-* **Remote** drivers implement cryptographic operations on keys that are fully stored inside a protected environment such as a **secure element with storage**. The code that calls the driver passes it a label or identifier to indicate which key to use. A remote opaque driver is invoked for the specific key location that the driver is registered for: the dispatch is based on the key's lifetime.
+* **Transparent** drivers implement cryptographic operations on keys that are provided in cleartext at the beginning of each operation. They are typically used for hardware **accelerators**. When a transparent driver is available for a particular combination of parameters (cryptographic algorithm, key type and size, etc.), it is used instead of the default software implementation. Transparent drivers can also be pure software implementations that are distributed as plug-ins to a PSA Crypto implementation.
+* **Opaque** drivers implement cryptographic operations on keys that can only be used inside a protected environment such as a **secure element**, a hardware security module, a smartcard, a secure enclave, etc. An opaque driver is invoked for the specific key location that the driver is registered for: the dispatch is based on the key's lifetime.
 
 ## Overview of drivers
 
 ### Deliverables for a driver
 
-To write a driver, you need to implement some functions with C linkage, and to declare these functions in a **driver description file**. The driver description file declares which functions the driver implements and what cryptographic mechanisms they support. Depending on the driver type, you may also need to define some C types in a header file.
+To write a driver, you need to implement some functions with C linkage, and to declare these functions in a **driver description file**. The driver description file declares which functions the driver implements and what cryptographic mechanisms they support. Depending on the driver type, you may also need to define some C types and macros in a header file.
 
 The concrete syntax for a driver description file is JSON. The structure of this JSON file is specified in the section [“Driver description syntax”](#driver-description-syntax).
 
@@ -50,10 +49,13 @@ The concrete syntax for a driver description file is JSON.
 A driver description is a JSON object containing the following properties:
 
 * `"prefix"` (mandatory, string). This must be a valid prefix for a C identifier. All the types and functions provided by the driver have a name that starts with this prefix unless overridden with a `"name"` element in the applicable capability as described below.
-* `"type"` (mandatory, string). One of `"transparent"`, `"opaque"` or `"remote"`.
+* `"type"` (mandatory, string). One of `"transparent"` or `"opaque"`.
 * `"headers"` (optional, array of strings). A list of header files. These header files must define the types provided by the driver and may declare the functions provided by the driver. They may include other PSA headers and standard headers of the platform. Whether they may include other headers is implementation-specific. If omitted, the list of headers is empty.
 * `"capabilities"` (mandatory, array of [capabilities](#driver-description-capability)).
 A list of **capabilities**. Each capability describes a family of functions that the driver implements for a certain class of cryptographic mechanisms.
+* `"key_context"` (not permitted for transparent drivers, mandatory for opaque drivers): information about the [representation of keys](#key-format-for-opaque-drivers).
+* `"persistent_state_size"` (not permitted for transparent drivers, optional for opaque drivers, integer or string). The size in bytes of the [persistent state of the driver](#opaque-driver-persistent-state). This may be either a non-negative integer or a C constant expression of type `size_t`.
+* `"location"` (not permitted for transparent drivers, optional for opaque drivers, integer or string). The location value for which this driver is invoked. This may be either a non-negative integer or a C constant expression of type `psa_key_location_t`.
 
 #### Driver description capability
 
@@ -61,12 +63,12 @@ A capability declares a family of functions that the driver implements for a cer
 
 A capability is a JSON object containing the following properties:
 
-* `"methods"` (mandatory, list of strings). A list of method names. Most method names consist of PSA API function names without the `psa_` prefix. The exact set of method names that a driver may define depends on the driver type; refer to the section on each driver type for details.
-* `"algorithms"` (optional, list of strings). Each element is an [algorithm specification](#algorithm-specifications). If specified, the core will invoke the methods listed in the `"methods"` property only when performing one of the specified algorithms. If omitted, the core will invoke the methods for all applicable algorithms.
-* `"key_types"` (optional, list of strings). Each element is a [key type specification](#key-type-specifications). If specified, the core will invoke the methods listed in the `"methods"` property only for operations involving a key with one of the specified key types. If omitted, the core will invoke the methods for all applicable key types.
-* `"key_sizes"` (optional, list of integers). If specified, the core will invoke the methods listed in the `"methods"` property only for operations involving a key with one of the specified key sizes. If omitted, the core will invoke the methods for all applicable key sizes. Key sizes are expressed in bits.
-* `"names"` (optional, object). A mapping from method names listed in the `"methods"` value, to the name of the C function in the driver that implements this method. If a method is not listed here, name of the driver function that implements it is the driver's prefix followed by an underscore (`_`) followed by the method name. If this property is omitted, it is equivalent to an empty object (so each method is implemented by a function with called *prefix*`_`*method*).
-* `"fallback"` (optional for transparent drivers, not permitted for opaque or remote drivers, boolean). If present and true, the driver may return `PSA_ERROR_NOT_SUPPORTED`, in which case the core should call another driver or use built-in code to perform this operation. If absent or false, the core should not include built-in code to perform this particular cryptographic mechanism.
+* `"functions"` (optional, list of strings). Each element is the name of a [driver function](#driver-functions) or driver function family. If specified, the core will invoke this capability of the driver only when performing one of the specified operations. If omitted, the `"algorithms"` property is mandatory and the core will invoke this capability of the driver for all operations that are applicable to the specified algorithms. The driver must implement all the specified or implied functions, as well as the types if applicable.
+* `"algorithms"` (optional, list of strings). Each element is an [algorithm specification](#algorithm-specifications). If specified, the core will invoke this capability of the driver only when performing one of the specified algorithms. If omitted, the core will invoke this capability for all applicable algorithms.
+* `"key_types"` (optional, list of strings). Each element is a [key type specification](#key-type-specifications). If specified, the core will invoke this capability of the driver only for operations involving a key with one of the specified key types. If omitted, the core will invoke this capability of the driver for all applicable key types.
+* `"key_sizes"` (optional, list of integers). If specified, the core will invoke this capability of the driver only for operations involving a key with one of the specified key sizes. If omitted, the core will invoke this capability of the driver for all applicable key sizes. Key sizes are expressed in bits.
+* `"names"` (optional, object). A mapping from function names described by the `"functions"` property, to the name of the C function in the driver that implements the corresponding function. If a function is not listed here, name of the driver function that implements it is the driver's prefix followed by an underscore (`_`) followed by the function name. If this property is omitted, it is equivalent to an empty object (so each function *suffix* is implemented by a function with called *prefix*`_`*suffix*).
+* `"fallback"` (optional for transparent drivers, not permitted for opaque drivers, boolean). If present and true, the driver may return `PSA_ERROR_NOT_SUPPORTED`, in which case the core should call another driver or use built-in code to perform this operation. If absent or false, the core should not include built-in code to perform this particular cryptographic mechanism.
 
 Example: the following capability declares that the driver can perform deterministic ECDSA signatures using SHA-256 or SHA-384 with a SECP256R1 or SECP384R1 private key (with either hash being possible in combinatio with either curve). If the prefix of this driver is `"acme"`, the function that performs the signature is called `acme_sign_hash`.
 ```
@@ -78,6 +80,8 @@ Example: the following capability declares that the driver can perform determini
     "key_sizes": [256, 384]
 }
 ```
+
+### Algorithm and key specifications
 
 #### Algorithm specifications
 
@@ -105,21 +109,170 @@ PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1)
 PSA_KEY_TYPE_ECC_KEY_PAIR(_)
 ```
 
-### Driver methods
+### Driver functions
 
-A **method** in a driver is a function that implements an aspect of a capability of a driver. Most methods correspond to a particular function in the PSA Cryptography API. For example, if a call to `psa_sign_hash()` is dispatched to a driver, it invokes the driver's `sign_hash` method.
+#### Overview of driver functions
 
-All driver functions return a status of type `psa_status_t` which should use the error codes documented for PSA services in general and for PSA Crypto in particular.
+Drivers define functions, each of which implements an aspect of a capability of a driver, such as a cryptographic operation, a part of a cryptographic operation, or a key management action. Most driver functions correspond to a particular function in the PSA Cryptography API. For example, if a call to `psa_sign_hash()` is dispatched to a driver, it invokes the driver's `sign_hash` function.
 
-The signature of a driver function generally looks like the signature of the PSA Crypto API that it implements, with some modifications. This section gives an overview of modifications that apply to whole classes of functions. Refer to the reference section for each driver type for details.
+All driver functions return a status of type `psa_status_t` which should use the status codes documented for PSA services in general and for PSA Crypto in particular: `PSA_SUCCESS` indicates that the function succeeded, and `PSA_ERROR_xxx` values indicate that an error occurred.
 
-* For functions that operate on an existing key, the `psa_key_id_t` parameter (`psa_key_handle_t` in versions of Mbed TLS that are compatible with PSA Crypto 1.0 beta 3) is replaced by a sequence of parameters that describe the key. The first of these parameters is always the key attributes (`const psa_key_attributes_t *`). The subsequent parameters depend on the driver type:
-    * For a transparent driver, the key material (`const uint8_t *`), and its size in bytes (`size_t`). The format of the key material is the same export format as for `psa_export_key()` and `psa_export_public_key()` in the application interface.
-    * For an opaque driver, the wrapped key material (`const uint8_t *`), and its size in bytes (`size_t`). The driver builds the key material when the key is created and the core treats it opaquely.
-    * For a remote driver, a key context (`const `*prefix*`_key_context_t *`).
+The signature of a driver function generally looks like the signature of the PSA Crypto API that it implements, with some modifications. This section gives an overview of modifications that apply to whole classes of functions. Refer to the reference section for each function or function family for details.
 
-* For functions that involve a multipart operation, the operation state type (`psa_XXX_operation_t`) is replaced by a driver-specific operation state type (*prefix*`_XXX_operation_t`).
+* For functions that operate on an existing key, the `psa_key_id_t` parameter (`psa_key_handle_t` in versions of Mbed TLS that are compatible with PSA Crypto 1.0 beta 3) is replaced by a sequence of three parameters that describe the key:
+    1. `const psa_key_attributes_t *attributes`: the key attributes.
+    2. `const uint8_t *key_buffer`: a key material or key context buffer.
+    3. `size_t key_buffer_size`: the size of the key buffer in bytes.
 
+    For transparent drivers, the key buffer contains the key material, in the same format as defined for `psa_export_key()` and `psa_export_public_key()` in the PSA Cryptography API. For opaque drivers, the content of the key buffer is entirely up to the driver.
+
+* For functions that involve a multi-part operation, the operation state type (`psa_XXX_operation_t`) is replaced by a driver-specific operation state type (*prefix*`_XXX_operation_t`).
+
+Some functions are grouped in families that must be implemented as a whole. If a driver supports a function family, it must provide all the functions in the family.
+
+#### General considerations on driver function parameters
+
+Buffer parameters for driver functions obey the following conventions:
+
+* An input buffer has the type `const uint8_t *` and is immediately followed by a parameter of type `size_t` that indicates the buffer size.
+* An output buffer has the type `uint8_t *` and is immediately followed by a parameter of type `size_t` that indicates the buffer size. A third parameter of type `size_t *` is provided to report the actual buffer size if the function succeeds.
+* An in-out buffer has the type `uint8_t *` and is immediately followed by a parameter of type `size_t` that indicates the buffer size. Note that the buffer size does not change.
+
+Buffers of size 0 may be represented with either a null pointer or a non-null pointer.
+
+Input buffers and other input-only parameters (`const` pointers) may be in read-only memory. Overlap is possible between input buffers, and between an input buffer and an output buffer, but not between two output buffers or between a non-buffer parameter and another parameter.
+
+#### Driver functions for single-part cryptographic operations
+
+The following driver functions perform a cryptographic operation in one shot (single-part operation):
+
+* `"hash_compute"` (transparent drivers only): calculation of a hash. Called by `psa_hash_compute()` and `psa_hash_compare()`. To verify a hash with `psa_hash_compare()`, the core calls the driver's `"hash_compute"` function and compares the result with the reference hash value.
+* `"mac_compute"`: calculation of a MAC. Called by `psa_mac_compute()` and possibly `psa_mac_verify()`. To verify a mac with `psa_mac_verify()`, the core calls an applicable driver's `"mac_verify"` function if there is one, otherwise the core calls an applicable driver's `"mac_compute"` function and compares the result with the reference MAC value.
+* `"mac_verify"`: verification of a MAC. Called by `psa_mac_verify()`. This function is mainly useful for drivers of secure elements that verify a MAC without revealing the correct MAC. Although transparent drivers may implement this function in addition to `"mac_compute"`, it is generally not useful because the core can call the `"mac_compute"` function and compare with the expected MAC value.
+* `"cipher_encrypt"`: unauthenticated symmetric cipher encryption. Called by `psa_cipher_encrypt()`.
+* `"cipher_decrypt"`: unauthenticated symmetric cipher decryption. Called by `psa_cipher_decrypt()`.
+* `"aead_encrypt"`: authenticated encryption with associated data. Called by `psa_aead_encrypt()`.
+* `"aead_decrypt"`: authenticated decryption with associated data. Called by `psa_aead_decrypt()`.
+* `"asymmetric_encrypt"`: asymmetric encryption. Called by `psa_asymmetric_encrypt()`.
+* `"asymmetric_decrypt"`: asymmetric decryption. Called by `psa_asymmetric_decrypt()`.
+* `"sign_hash"`: signature of an already calculated hash. Called by `psa_sign_hash()` and possibly `psa_sign_message()`. To sign a message with `psa_sign_message()`, the core calls an applicable driver's `"sign_message"` function if there is one, otherwise the core calls an applicable driver's `"hash_compute"` function followed by an applicable driver's `"sign_hash"` function.
+* `"verify_hash"`: verification of an already calculated hash. Called by `psa_verify_hash()` and possibly `psa_verify_message()`. To verify a message with `psa_verify_message()`, the core calls an applicable driver's `"verify_message"` function if there is one, otherwise the core calls an applicable driver's `"hash_compute"` function followed by an applicable driver's `"verify_hash"` function.
+* `"sign_message"`: signature of a message. Called by `psa_sign_message()`.
+* `"verify_message"`: verification of a message. Called by `psa_verify_message()`.
+* `"key_agreement"`: key agreement without a subsequent key derivation. Called by `psa_raw_key_agreement()` and possibly `psa_key_derivation_key_agreement()`.
+
+### Driver functions for multi-part operations
+
+#### General considerations on multi-part operations
+
+The functions that implement each step of a multi-part operation are grouped into a family. A driver that implements a multi-part operation must define all of the functions in this family as well as a type that represents the operation context. The lifecycle of a driver operation context is similar to the lifecycle of an API operation context:
+
+1. The core initializes operation context objects to either all-bits-zero or to logical zero (`{0}`), at its discretion.
+1. The core calls the `xxx_setup` function for this operation family. If this fails, the core destroys the operation context object without calling any other driver function on it.
+1. The core calls other functions that manipulate the operation context object, respecting the constraints.
+1. If any function fails, the core calls the driver's `xxx_abort` function for this operation family, then destroys the operation context object without calling any other driver function on it.
+1. If a “finish” function fails, the core destroys the operation context object without calling any other driver function on it. The finish functions are: *prefix*`_mac_sign_finish`, *prefix*`_mac_verify_finish`, *prefix*`_cipher_fnish`, *prefix*`_aead_finish`, *prefix*`_aead_verify`.
+
+If a driver implements a multi-part operation but not the corresponding single-part operation, the core calls the driver's multipart operation functions to perform the single-part operation.
+
+#### Multi-part operation function family `"hash_multipart"`
+
+This family corresponds to the calculation of a hash in one multiple parts.
+
+This family applies to transparent drivers only.
+
+This family requires the following type and functions:
+
+* Type `"hash_operation_t"`: the type of a hash operation context. It must be possible to copy a hash operation context byte by byte, therefore hash operation contexts must not contain any embedded pointers (except pointers to global data that do not change after the setup step).
+* `"hash_setup"`: called by `psa_hash_setup()`.
+* `"hash_update"`: called by `psa_hash_update()`.
+* `"hash_finish"`: called by `psa_hash_finish()` and `psa_hash_verify()`.
+* `"hash_abort"`: called by all multi-part hash functions.
+
+To verify a hash with `psa_hash_verify()`, the core calls the driver's *prefix`_hash_finish` function and compares the result with the reference hsah value.
+
+For example, a driver with the prefix `"acme"` that implements the `"hash_multipart"` function family must define the following type and functions (assuming that the capability does not use the `"names"` property to declare different type and function names):
+
+```
+typedef ... acme_hash_operation_t;
+psa_status_t acme_hash_setup(acme_hash_operation_t *operation,
+                             psa_algorithm_t alg);
+psa_status_t acme_hash_update(acme_hash_operation_t *operation,
+                              const uint8_t *input,
+                              size_t input_length);
+psa_status_t acme_hash_finish(acme_hash_operation_t *operation,
+                              uint8_t *hash,
+                              size_t hash_size,
+                              size_t *hash_length);
+psa_status_t acme_hash_abort(acme_hash_operation_t *operation);
+```
+
+#### Operation family `"mac_multipart"`
+
+TODO
+
+#### Operation family `"mac_verify_multipart"`
+
+TODO
+
+#### Operation family `"cipher_encrypt_multipart"`
+
+TODO
+
+#### Operation family `"cipher_decrypt_multipart"`
+
+TODO
+
+#### Operation family `"aead_encrypt_multipart"`
+
+TODO
+
+#### Operation family `"aead_decrypt_multipart"`
+
+TODO
+
+#### Operation family `"key_derivation"`
+
+This family requires the following type and functions:
+
+* Type `"key_derivation_operation_t"`: the type of a key derivation operation context.
+* `"key_derivation_setup"`: called by `psa_key_derivation_setup()`.
+* `"key_derivation_set_capacity"`: called by `psa_key_derivation_set_capacity()`. The core will always enforce the capacity, therefore this function does not need to do anything for algorithms where the output stream only depends on the effective generated length and not on the capacity.
+* `"key_derivation_input_bytes"`: called by `psa_key_derivation_input_bytes()` and `psa_key_derivation_input_key()`. For transparent drivers, when processing a call to `psa_key_derivation_input_key()`, the core always calls the applicable driver's `"key_derivation_input_bytes"` function.
+* `"key_derivation_input_key"` (opaque drivers only)
+* `"key_derivation_output_bytes"`: called by `psa_key_derivation_output_bytes()`; also by `psa_key_derivation_output_key()` for transparent drivers.
+* `"key_derivation_abort"`: called by all key derivation functions.
+
+TODO: key input and output for opaque drivers; deterministic key generation for transparent drivers
+
+TODO
+
+### Driver functions for key management
+
+The driver functions for key management differs significantly between [transparent drivers](#key-management-with-transparent-drivers) and [opaque drivers](#key-management-with-transparent-drivers). Refer to the applicable section for each driver type.
+
+### Miscellaneous driver functions
+
+#### Driver initialization
+
+An opaque driver may declare an `"init"` function in a capability with no algorithm, key type or key size. If so, the driver calls this function once during the initialization of the PSA Crypto subsystem. If the init function of any driver fails, the initialization of the PSA Crypto subsystem fails.
+
+When multiple drivers have an init function, the order in which they are called is unspecified. It is also unspecified whether other drivers' init functions are called if one or more init function fails.
+
+On platforms where the PSA Crypto implementation is a subsystem of a single application, the initialization of the PSA Crypto subsystem takes place during the call to `psa_crypto_init()`. On platforms where the PSA Crypto implementation is separate from the application or applications, the initialization the initialization of the PSA Crypto subsystem takes place before or during the first time an application calls `psa_crypto_init()`.
+
+For transparent drivers, the init function does not take any parameter.
+
+For opaque drivers, the init function takes the following parameters:
+
+* `uint8_t *persistent_state`: the driver's persistent state. On the first boot of the device, this contains all-bits-zero. On subsequent boots, the core loads the last saved state.
+* `size_t persistent_state_size`: the size of the persistent state in bytes.
+
+For an opaque driver, if the init function succeeds, the core saves the updated persistent state. If the init function fails, the persistent state is unchanged.
+
+### Combining multiple drivers
+
+To declare a cryproprocessor can handle both cleartext and plaintext keys, you need to provide two driver descriptions, one for a transparent driver and one for an opaque driver. You can use the mapping in capabilities' `"names"` property to arrange for driver functions to map to the same C function.
 
 ## Transparent drivers
 
@@ -129,9 +282,33 @@ The format of a key for transparent drivers is the same as in applications. Refe
 
 ### Key management with transparent drivers
 
-Transparent drivers do not provide key management functions, only cryptographic primitives.
+Transparent drivers may provide the following key management functions:
 
-There are API functions that combine key management with cryptographic calculations: `psa_generate_key()` and `psa_key_derivation_output_key()`. The corresponding driver functions pass an output buffer to the driver which is to contain the key in the export format. TODO: prototypes
+* `"generate_key_pair"`: called by `psa_generate_key()`, only when generating a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
+* `"derive_key_pair"`: called by `psa_key_derivation_output_key()`, only when deriving a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
+
+Transparent drivers are not involved when importing, exporting, copying or destroying keys, or when generating or deriving symmetric keys.
+
+A transparent driver's `"generate_key_pair"` function takes the following arguments:
+
+* `const psa_key_attributes_t *attributes`: the key attributes.
+* `uint8_t *private_key`: an output buffer for the private key.
+* `size_t private_key_size`: the size of the `private_key` buffer in bytes.
+* `size_t *private_key_length`: on success, the length of the private key in bytes.
+* `uint8_t *public_key`: an output buffer for the public key.
+* `size_t public_key_size`: the size of the `public_key` buffer in bytes.
+* `size_t *public_key_length`: on success, the length of the public key in bytes.
+
+A transparent driver's `"derive_key_pair"` function takes the following arguments:
+
+* `const psa_key_attributes_t *attributes`: the key attributes.
+* *prefix*`_key_derivation_operation_t *operation`: the key derivation operation object.
+* `uint8_t *private_key`: an output buffer for the private key.
+* `size_t private_key_size`: the size of the `private_key` buffer in bytes.
+* `size_t *private_key_length`: on success, the length of the private key in bytes.
+* `uint8_t *public_key`: an output buffer for the public key.
+* `size_t public_key_size`: the size of the `public_key` buffer in bytes.
+* `size_t *public_key_length`: on success, the length of the public key in bytes.
 
 ### Fallback
 
@@ -143,58 +320,67 @@ If a transparent driver function is part of a capability where the `"fallback"` 
 
 ## Opaque drivers
 
+Opaque drivers allow a PSA Cryptography implementation to delegate cryptographic operations to a separate environment that might not allow exporting key material in cleartext. The opaque driver interface is designed so that the core never inspects the representation of a key. The opaque driver interface is designed to support two subtypes of cryptoprocessors:
+
+* Some cryptoprocessors do not have persistent storage for individual keys. The representation of a key is the key material wrapped with a master key which is located in the cryptoprocessor and never exported from it. The core stores this wrapped key material on behalf of the cryptoprocessor.
+* Some cryptoprocessors have persistent storage for individual keys. The representation of a key is an identifier such as label or slot number. The core stores this identifier.
+
 ### Key format for opaque drivers
 
-The format of a key for opaque drivers is a wrapped (encrypted) binary blob. The content of this blob is fully up to the driver. The core merely stores this blob.
+The format of a key for opaque drivers is an opaque blob. The content of this blob is fully up to the driver. The core merely stores this blob.
+
+The `"key_context"` property in the [driver description](#driver-description-top-level-element) specifies how to calculate the size of the key context as a function of the key type and size. TODO
 
 ### Key management with opaque drivers
 
-To create a key with an opaque driver:
+Transparent drivers may provide the following key management functions:
 
-* The driver conveys the size of the wrapped key blob based on its attributes (type, size). TODO
-* The core allocates memory for the wrapped key blob.
-* The core calls the driver's import, generate or derive function.
+* `"allocate_key"`: called by `psa_import_key()`, `psa_generate_key()`, `psa_key_derivation_output_key()` or `psa_copy_key()` before creating a key in the location of this driver.
+* `"import_key"`: called by `psa_import_key()`, or by `psa_copy_key()` when copying a key from another location.
+* `"export_key"`: called by `psa_export_key()`, or by `psa_copy_key()` when copying a key from to location.
+* `"copy_key"`: called by `psa_copy_key()` when copying a key within the same location.
+* `"destroy_key"`: called by `psa_destroy_key()`.
+* `"generate_key"`: called by `psa_generate_key()`, only when generating a symmetric key (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is false).
+* `"generate_key_pair"`: called by `psa_generate_key()`, only when generating a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
+* `"derive_key"`: called by `psa_key_derivation_output_key()`, only when deriving a symmetric key (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
+* `"derive_key_pair"`: called by `psa_key_derivation_output_key()`, only when deriving a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
 
-To export a key from an opaque driver, the core calls the driver's export function, which takes the wrapped form of the key as input and writes the cleartext form as output. TODO: call it unwrap function rather than export? Or will this clash with wrapping as used in the API 1.x?
+#### Key creation in a secure element without storage
 
-Copying a key from some location to an opaque location invokes the target location's import function. Copying a key from an opaque location to another location invokes the source location's export function. Copying a key within the same opaque location does not invoke driver code.
+This section describes the key creation process for secure elements that do not store the key material. The driver must obtain a wrapped form of the key material which the core will store. A driver for such a secure element has no `"allocate_key"` function.
 
-Destroying a key in an opaque location does not invoke driver code.
+When creating a key with an opaque driver which does not have an `"allocate_key"` function:
+
+1. The core allocates memory for the key context.
+2. The core calls the driver's import, generate, derive or copy function.
+3. The core saves the resulting wrapped key material and any other data that the key context may contain.
+
+#### Key creation in a secure element with storage
+
+This section describes the key creation process for secure elements that have persistent storage for the key material. A driver for such a secure element has an `"allocate_key"` function whose intended purpose is to obtain an identifier for the key. This may be, for example, a unique label or a slot number.
+
+When creating a persistent key with an opaque driver which does not have an `"allocate_key"` function:
+
+1. The core calls the driver's `"allocate_key"` function. This function typically allocates an identifier for the key without modifying the state of the secure element and stores the identifier in the key context. This function should not modify the state of the secure element.
+
+1. The core saves the key context to persistent storage.
+
+1. The core saves the driver's persistent state.
+
+1. The core calls the driver's key creation function.
+
+If a failure occurs after the `"allocate_key"` step but before the call to the second driver function, the core will do one of the following:
+
+* Fail the creation of the key without indicating this to the driver. This can happen, in particular, if the device loses power immediately after the key allocation function returns.
+* Call the driver's `"destroy_key"` function.
+
+TODO: explain the individual key management functions
 
 ### Opaque driver persistent state
 
-The core maintains persistent state on behalf of an opaque driver. The mechanism is the same as [for remote drivers](#remote-driver-persistent-state).
+The core maintains persistent state on behalf of an opaque driver. This persistent state consists of a single byte array whose size is given by the `"persistent_state_size"` property in the [driver description](#driver-description-top-level-element).
 
-## Remote drivers
-
-### Key format for remote drivers
-
-With a remote driver, each key has a fixed-size key context of type *prefix*`_key_context_t`.
-
-TODO: what about variable-size auxiliary data? For example a secure element that stores a private key, where the public key must be stored outside.
-
-### Key management with remote drivers
-
-Creating a key in a remote location happens in two steps.
-
-1. The core calls the driver's key allocation function *prefix*`_allocate_key()`. This function typically allocates an identifier for the key without modifying the state of the secure element and stores the identifier in the key context.
-
-2. The core calls the driver's key creation function (*prefix*`_import_key()`, *prefix*`_generate_key()`, *prefix*`_key_derivation_output_key()` or *prefix*`_copy_key()`).
-
-If a failure occurs after the key allocation step but before the second step, the core will do one of the following:
-
-* Fail the creation of the key without indicating this to the driver. This can happen, in particular, if the device loses power immediately after the key allocation function returns.
-* Call the driver's key destruction function.
-
-Destroying a key in a remote location calls the driver's key destruction function *prefix*`_destroy_key()`.
-
-Copying a key from some location to an remote location invokes the target location's import function. Copying a key from an remote location to another location invokes the source location's export function. Copying a key within the same remote location does not invoke driver code.
-
-### Remote driver persistent state
-
-The core maintains persistent state on behalf of a remote driver. This persistent state consists of a single byte array whose size is indicated in the driver configuration. <!-- How? -->
-
-TODO: how the state is passed to the driver; which driver functions can modify the state and how
+TODO: how the state is passed to the driver; which driver functions can modify the state and how; when the core saves the updated state
 
 ## How to use drivers from an application
 
@@ -254,3 +440,35 @@ To build Mbed TLS with drivers:
 ## Mbed TLS internal architecture
 
 TODO
+
+## Open questions
+
+### Driver function interfaces
+
+#### Driver function parameter conventions
+
+Should 0-size buffers be guaranteed to have a non-null pointers?
+
+Should drivers really have to cope with overlap?
+
+Should the core guarantee that the output buffer size has the size indicated by the applicable buffer size macro (which may be an overestimation)?
+
+#### Opaque driver persistent state
+
+Should the driver be able to update it at any time?
+
+#### Mixing drivers in key derivation
+
+How does `psa_key_derivation_output_key` work when the extraction part and the expansion part use different drivers?
+
+### Declaring driver functions
+
+The core may want to provide declarations for the driver functions so that it can compile code using them. At the time of writing this paragraph, the driver headers must define types but there is no obligation for them to declare functions. The core knows what the function names and argument types are, so it can generate prototypes.
+
+It should be ok for driver functions to be function-like macros or function pointers.
+
+### Driver location values
+
+How does a driver author decide which location values to use? It should be possible to combine drivers from different sources. Use the same vendor assignment as for PSA services?
+
+Can the driver assembly process generate distinct location values as needed? This can be convenient, but it's also risky: if you upgrade a device, you need the location values to be the same between builds.

@@ -426,7 +426,8 @@ static int ssl_parse_inner_plaintext( unsigned char const *content,
  * and 13 + 1 + CID-length Bytes if the CID extension is enabled. */
 static void ssl_extract_add_data_from_record( unsigned char* add_data,
                                               size_t *add_data_len,
-                                              mbedtls_record *rec )
+                                              mbedtls_record *rec,
+                                              unsigned minor_ver )
 {
     /* Quoting RFC 5246 (TLS 1.2):
      *
@@ -442,28 +443,50 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
      *                         cid +
      *                         cid_length +
      *                         length_of_DTLSInnerPlaintext;
+     *
+     * For TLS 1.3, the record sequence number is dropped from the AAD
+     * and encoded within the nonce of the AEAD operation instead.
      */
 
-    memcpy( add_data, rec->ctr, sizeof( rec->ctr ) );
-    add_data[8] = rec->type;
-    memcpy( add_data + 9, rec->ver, sizeof( rec->ver ) );
+    unsigned char *cur = add_data;
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    if( minor_ver != MBEDTLS_SSL_MINOR_VERSION_4 )
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+    {
+        ((void) minor_ver);
+        memcpy( cur, rec->ctr, sizeof( rec->ctr ) );
+        cur += sizeof( rec->ctr );
+    }
+
+    *cur = rec->type;
+    cur++;
+
+    memcpy( cur, rec->ver, sizeof( rec->ver ) );
+    cur += sizeof( rec->ver );
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( rec->cid_len != 0 )
     {
-        memcpy( add_data + 11, rec->cid, rec->cid_len );
-        add_data[11 + rec->cid_len + 0] = rec->cid_len;
-        add_data[11 + rec->cid_len + 1] = ( rec->data_len >> 8 ) & 0xFF;
-        add_data[11 + rec->cid_len + 2] = ( rec->data_len >> 0 ) & 0xFF;
-        *add_data_len = 13 + 1 + rec->cid_len;
+        memcpy( cur, rec->cid, rec->cid_len );
+        cur += rec->cid_len;
+
+        *cur = rec->cid_len;
+        cur++;
+
+        cur[0] = ( rec->data_len >> 8 ) & 0xFF;
+        cur[1] = ( rec->data_len >> 0 ) & 0xFF;
+        cur += 2;
     }
     else
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     {
-        add_data[11 + 0] = ( rec->data_len >> 8 ) & 0xFF;
-        add_data[11 + 1] = ( rec->data_len >> 0 ) & 0xFF;
-        *add_data_len = 13;
+        cur[0] = ( rec->data_len >> 8 ) & 0xFF;
+        cur[1] = ( rec->data_len >> 0 ) & 0xFF;
+        cur += 2;
     }
+
+    *add_data_len = cur - add_data;
 }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
@@ -669,7 +692,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         {
             unsigned char mac[MBEDTLS_SSL_MAC_ADD];
 
-            ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
+            ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
+                                              transform->minor_ver );
 
             mbedtls_md_hmac_update( &transform->md_ctx_enc, add_data,
                                     add_data_len );
@@ -775,7 +799,12 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
+        /*
+         * Build additional data for AEAD encryption.
+         * This depends on the TLS version.
+         */
+        ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
+                                          transform->minor_ver );
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used (internal)",
                                   iv, transform->ivlen );
@@ -929,7 +958,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                 return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
             }
 
-            ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
+            ssl_extract_add_data_from_record( add_data, &add_data_len,
+                                              rec, transform->minor_ver );
 
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
             MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", add_data,
@@ -1097,7 +1127,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         rec->data_offset += explicit_iv_len;
         rec->data_len -= explicit_iv_len + transform->taglen;
 
-        ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
+        ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
+                                          transform->minor_ver );
         MBEDTLS_SSL_DEBUG_BUF( 4, "additional data used for AEAD",
                                add_data, add_data_len );
 
@@ -1209,7 +1240,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
              *
              * Further, we still know that data_len > minlen */
             rec->data_len -= transform->maclen;
-            ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
+            ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
+                                              transform->minor_ver );
 
             /* Calculate expected MAC. */
             MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", add_data,
@@ -1428,7 +1460,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
          * hence data_len >= maclen in any case.
          */
         rec->data_len -= transform->maclen;
-        ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
+        ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
+                                          transform->minor_ver );
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
         if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )

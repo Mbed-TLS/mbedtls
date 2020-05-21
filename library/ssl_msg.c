@@ -761,10 +761,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         unsigned char iv[12];
         size_t explicit_iv_len = transform->ivlen - transform->fixed_ivlen;
 
-        /* Check that there's space for both the authentication tag
-         * and the explicit IV before and after the record content. */
-        if( post_avail < transform->taglen ||
-            rec->data_offset < explicit_iv_len )
+        /* Check that there's space for the authentication tag. */
+        if( post_avail < transform->taglen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "Buffer provided for encrypted record not large enough" ) );
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
@@ -779,8 +777,6 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             memcpy( iv, transform->iv_enc, transform->fixed_ivlen );
             memcpy( iv + transform->fixed_ivlen, rec->ctr,
                     explicit_iv_len );
-            /* Prefix record content with explicit IV. */
-            memcpy( data - explicit_iv_len, rec->ctr, explicit_iv_len );
         }
         else if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
         {
@@ -831,9 +827,20 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( ret );
         }
 
+        /*
+         * Prefix record content with explicit IV.
+         */
+        if( rec->data_offset < explicit_iv_len )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Buffer provided for encrypted record not large enough" ) );
+            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+        }
+        memcpy( data - explicit_iv_len, rec->ctr, explicit_iv_len );
+
         MBEDTLS_SSL_DEBUG_BUF( 4, "after encrypt: tag",
                                data + rec->data_len, transform->taglen );
 
+        /* Account for tag and explicit IV. */
         rec->data_len    += transform->taglen + explicit_iv_len;
         rec->data_offset -= explicit_iv_len;
         post_avail -= transform->taglen;

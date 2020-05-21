@@ -536,6 +536,78 @@ static void ssl_mac( mbedtls_md_context_t *md_ctx,
 }
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
+#define SSL_RECORD_AEAD_NONCE_UNKNOWN 0u
+#define SSL_RECORD_AEAD_NONCE_CONCAT  1u
+#define SSL_RECORD_AEAD_NONCE_XOR     2u
+
+static int ssl_transform_get_nonce_mode( mbedtls_ssl_transform const *transform )
+{
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
+    {
+        return( SSL_RECORD_AEAD_NONCE_XOR );
+    }
+#endif /* MBEDTLS_CHACHAPOLY_C */
+
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
+    if( transform->ivlen == 12 && transform->fixed_ivlen == 4 )
+    {
+        return( SSL_RECORD_AEAD_NONCE_CONCAT );
+    }
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C */
+
+    return( SSL_RECORD_AEAD_NONCE_UNKNOWN );
+}
+
+/* Preconditions:
+ * - If mode == SSL_RECORD_AEAD_NONCE_CONCAT, then
+ *     dst_nonce_len == fixed_iv_len + dynamic_iv_len
+ * - If mode == SSL_RECORD_AEAD_NONCE_XOR, then
+ *     dst_nonce_len == fixed_iv_len &&
+ *     dynamic_iv_len < dst_nonce
+ */
+static int ssl_build_record_nonce( unsigned char *dst_nonce,
+                                   size_t dst_nonce_len,
+                                   unsigned char const *fixed_iv,
+                                   size_t fixed_iv_len,
+                                   unsigned char const *dynamic_iv,
+                                   size_t dynamic_iv_len,
+                                   unsigned mode )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    ((void) dst_nonce_len);
+
+    /* Start with Fixed IV || 0 */
+    memcpy( dst_nonce, fixed_iv, fixed_iv_len );
+    dst_nonce += fixed_iv_len;
+
+    if( mode == SSL_RECORD_AEAD_NONCE_CONCAT )
+    {
+        /* Nonce := Fixed IV || Dynamic IV */
+        memcpy( dst_nonce, dynamic_iv, dynamic_iv_len );
+        ret = 0;
+    }
+    else if( mode == SSL_RECORD_AEAD_NONCE_XOR )
+    {
+        /* Nonce := Fixed IV XOR ( 0 || Dynamic IV ) */
+        unsigned char i;
+
+        /* This is safe by the second precondition above. */
+        dst_nonce -= dynamic_iv_len;
+        for( i = 0; i < dynamic_iv_len; i++ )
+            dst_nonce[i] ^= dynamic_iv[i];
+
+        ret = 0;
+    }
+    else
+    {
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    return( ret );
+}
+
 int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                              mbedtls_ssl_transform *transform,
                              mbedtls_record *rec,
@@ -759,7 +831,13 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         unsigned char iv[12];
-        size_t explicit_iv_len = transform->ivlen - transform->fixed_ivlen;
+        unsigned char *dynamic_iv;
+        size_t dynamic_iv_len;
+
+        unsigned const nonce_mode
+            = ssl_transform_get_nonce_mode( transform );
+        unsigned const dynamic_iv_is_explicit
+            = nonce_mode == SSL_RECORD_AEAD_NONCE_CONCAT;
 
         /* Check that there's space for the authentication tag. */
         if( post_avail < transform->taglen )
@@ -769,31 +847,28 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         }
 
         /*
-         * Generate IV
+         * Build nonce for AEAD encryption.
+         *
+         * Note: In the case of CCM and GCM in TLS 1.2, the dynamic
+         *       part of the IV is prepended to the ciphertext and
+         *       can be chosen freely - in particular, it need not
+         *       agree with the record sequence number.
+         *       However, since ChaChaPoly as well as all AEAD modes
+         *       in TLS 1.3 use the record sequence number as the
+         *       dynamic part of the nonce, we uniformly use the
+         *       record sequence number here in all cases.
          */
-        if( transform->ivlen == 12 && transform->fixed_ivlen == 4 )
-        {
-            /* GCM and CCM: fixed || explicit (=seqnum) */
-            memcpy( iv, transform->iv_enc, transform->fixed_ivlen );
-            memcpy( iv + transform->fixed_ivlen, rec->ctr,
-                    explicit_iv_len );
-        }
-        else if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
-        {
-            /* ChachaPoly: fixed XOR sequence number */
-            unsigned char i;
+        dynamic_iv     = rec->ctr;
+        dynamic_iv_len = sizeof( rec->ctr );
 
-            memcpy( iv, transform->iv_enc, transform->fixed_ivlen );
-
-            for( i = 0; i < 8; i++ )
-                iv[i+4] ^= rec->ctr[i];
-        }
-        else
-        {
-            /* Reminder if we ever add an AEAD mode with a different size */
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
+        ret = ssl_build_record_nonce( iv, sizeof( iv ),
+                                      transform->iv_enc,
+                                      transform->fixed_ivlen,
+                                      dynamic_iv,
+                                      dynamic_iv_len,
+                                      nonce_mode );
+        if( ret != 0 )
+            return( ret );
 
         /*
          * Build additional data for AEAD encryption.
@@ -805,7 +880,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used (internal)",
                                   iv, transform->ivlen );
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used (transmitted)",
-                                  data - explicit_iv_len, explicit_iv_len );
+                               data - dynamic_iv_len * dynamic_iv_is_explicit,
+                               dynamic_iv_len * dynamic_iv_is_explicit );
         MBEDTLS_SSL_DEBUG_BUF( 4, "additional data used for AEAD",
                                add_data, add_data_len );
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
@@ -826,24 +902,28 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_auth_encrypt", ret );
             return( ret );
         }
-
-        /*
-         * Prefix record content with explicit IV.
-         */
-        if( rec->data_offset < explicit_iv_len )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Buffer provided for encrypted record not large enough" ) );
-            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
-        }
-        memcpy( data - explicit_iv_len, rec->ctr, explicit_iv_len );
-
         MBEDTLS_SSL_DEBUG_BUF( 4, "after encrypt: tag",
                                data + rec->data_len, transform->taglen );
-
-        /* Account for tag and explicit IV. */
-        rec->data_len    += transform->taglen + explicit_iv_len;
-        rec->data_offset -= explicit_iv_len;
+        /* Account for authentication tag. */
+        rec->data_len += transform->taglen;
         post_avail -= transform->taglen;
+
+        /*
+         * Prefix record content with dynamic IV in case it is explicit.
+         */
+        if( dynamic_iv_is_explicit == 1 )
+        {
+            if( rec->data_offset < dynamic_iv_len )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Buffer provided for encrypted record not large enough" ) );
+                return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+            }
+
+            memcpy( data - dynamic_iv_len, dynamic_iv, dynamic_iv_len );
+            rec->data_offset -= dynamic_iv_len;
+            rec->data_len    += dynamic_iv_len;
+        }
+
         auth_done++;
     }
     else
@@ -1080,60 +1160,63 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         mode == MBEDTLS_MODE_CHACHAPOLY )
     {
         unsigned char iv[12];
-        size_t explicit_iv_len = transform->ivlen - transform->fixed_ivlen;
+        unsigned const nonce_mode = ssl_transform_get_nonce_mode( transform );
+        unsigned char *dynamic_iv;
+        size_t dynamic_iv_len;
 
         /*
-         * Prepare IV from explicit and implicit data.
+         * Extract dynamic part of nonce for AEAD decryption.
+         *
+         * Note: In the case of CCM and GCM in TLS 1.2, the dynamic
+         *       part of the IV is prepended to the ciphertext and
+         *       can be chosen freely - in particular, it need not
+         *       agree with the record sequence number.
          */
-
-        /* Check that there's enough space for the explicit IV
-         * (at the beginning of the record) and the MAC (at the
-         * end of the record). */
-        if( rec->data_len < explicit_iv_len + transform->taglen )
+        dynamic_iv_len = sizeof( rec->ctr );
+        if( nonce_mode == SSL_RECORD_AEAD_NONCE_XOR )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) < explicit_iv_len (%d) "
-                                        "+ taglen (%d)", rec->data_len,
-                                        explicit_iv_len, transform->taglen ) );
+            dynamic_iv = rec->ctr;
+        }
+        else
+        {
+            if( rec->data_len < dynamic_iv_len )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) < explicit_iv_len (%d) ",
+                                            rec->data_len,
+                                            dynamic_iv_len ) );
+                return( MBEDTLS_ERR_SSL_INVALID_MAC );
+            }
+            dynamic_iv = data;
+
+            data += dynamic_iv_len;
+            rec->data_offset += dynamic_iv_len;
+            rec->data_len    -= dynamic_iv_len;
+        }
+
+        /* Check that there's space for the authentication tag. */
+        if( rec->data_len < transform->taglen )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) < taglen (%d) " ) );
             return( MBEDTLS_ERR_SSL_INVALID_MAC );
         }
+        rec->data_len -= transform->taglen;
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
-        if( transform->ivlen == 12 && transform->fixed_ivlen == 4 )
-        {
-            /* GCM and CCM: fixed || explicit */
+        /*
+         * Prepare nonce from dynamic and static parts.
+         */
+        ret = ssl_build_record_nonce( iv, sizeof( iv ),
+                                      transform->iv_dec,
+                                      transform->fixed_ivlen,
+                                      dynamic_iv,
+                                      dynamic_iv_len,
+                                      nonce_mode );
+        if( ret != 0 )
+            return( ret );
 
-            /* Fixed */
-            memcpy( iv, transform->iv_dec, transform->fixed_ivlen );
-            /* Explicit */
-            memcpy( iv + transform->fixed_ivlen, data, 8 );
-        }
-        else
-#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C */
-#if defined(MBEDTLS_CHACHAPOLY_C)
-        if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
-        {
-            /* ChachaPoly: fixed XOR sequence number */
-            unsigned char i;
-
-            memcpy( iv, transform->iv_dec, transform->fixed_ivlen );
-
-            for( i = 0; i < 8; i++ )
-                iv[i+4] ^= rec->ctr[i];
-        }
-        else
-#endif /* MBEDTLS_CHACHAPOLY_C */
-        {
-            /* Reminder if we ever add an AEAD mode with a different size */
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
-
-        /* Group changes to data, data_len, and add_data, because
-         * add_data depends on data_len. */
-        data += explicit_iv_len;
-        rec->data_offset += explicit_iv_len;
-        rec->data_len -= explicit_iv_len + transform->taglen;
-
+        /*
+         * Build additional data for AEAD encryption.
+         * This depends on the TLS version.
+         */
         ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
                                           transform->minor_ver );
         MBEDTLS_SSL_DEBUG_BUF( 4, "additional data used for AEAD",

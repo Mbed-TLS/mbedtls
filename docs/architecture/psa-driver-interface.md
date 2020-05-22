@@ -284,31 +284,11 @@ The format of a key for transparent drivers is the same as in applications. Refe
 
 Transparent drivers may provide the following key management functions:
 
-* `"generate_key_pair"`: called by `psa_generate_key()`, only when generating a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
-* `"derive_key_pair"`: called by `psa_key_derivation_output_key()`, only when deriving a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
+* `"generate_key"`: called by `psa_generate_key()`, only when generating a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
+* `"derive_key"`: called by `psa_key_derivation_output_key()`, only when deriving a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
+* `"export_public_key"`: called by the core to obtain the public key of a key pair. The core may call this function at any time to obtain the public key, which can be for `psa_export_public_key()` but also at other times, including during a cryptographic operation that requires the public key such as a call to `psa_verify_message()` on a key pair object.
 
 Transparent drivers are not involved when importing, exporting, copying or destroying keys, or when generating or deriving symmetric keys.
-
-A transparent driver's `"generate_key_pair"` function takes the following arguments:
-
-* `const psa_key_attributes_t *attributes`: the key attributes.
-* `uint8_t *private_key`: an output buffer for the private key.
-* `size_t private_key_size`: the size of the `private_key` buffer in bytes.
-* `size_t *private_key_length`: on success, the length of the private key in bytes.
-* `uint8_t *public_key`: an output buffer for the public key.
-* `size_t public_key_size`: the size of the `public_key` buffer in bytes.
-* `size_t *public_key_length`: on success, the length of the public key in bytes.
-
-A transparent driver's `"derive_key_pair"` function takes the following arguments:
-
-* `const psa_key_attributes_t *attributes`: the key attributes.
-* *prefix*`_key_derivation_operation_t *operation`: the key derivation operation object.
-* `uint8_t *private_key`: an output buffer for the private key.
-* `size_t private_key_size`: the size of the `private_key` buffer in bytes.
-* `size_t *private_key_length`: on success, the length of the private key in bytes.
-* `uint8_t *public_key`: an output buffer for the public key.
-* `size_t public_key_size`: the size of the `public_key` buffer in bytes.
-* `size_t *public_key_length`: on success, the length of the public key in bytes.
 
 ### Fallback
 
@@ -338,12 +318,11 @@ Transparent drivers may provide the following key management functions:
 * `"allocate_key"`: called by `psa_import_key()`, `psa_generate_key()`, `psa_key_derivation_output_key()` or `psa_copy_key()` before creating a key in the location of this driver.
 * `"import_key"`: called by `psa_import_key()`, or by `psa_copy_key()` when copying a key from another location.
 * `"export_key"`: called by `psa_export_key()`, or by `psa_copy_key()` when copying a key from to location.
+* `"export_public_key"`: called by the core to obtain the public key of a key pair. The core may call this function at any time to obtain the public key, which can be for `psa_export_public_key()` but also at other times, including during a cryptographic operation that requires the public key such as a call to `psa_verify_message()` on a key pair object.
 * `"copy_key"`: called by `psa_copy_key()` when copying a key within the same location.
 * `"destroy_key"`: called by `psa_destroy_key()`.
-* `"generate_key"`: called by `psa_generate_key()`, only when generating a symmetric key (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is false).
-* `"generate_key_pair"`: called by `psa_generate_key()`, only when generating a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
-* `"derive_key"`: called by `psa_key_derivation_output_key()`, only when deriving a symmetric key (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
-* `"derive_key_pair"`: called by `psa_key_derivation_output_key()`, only when deriving a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
+* `"generate_key"`: called by `psa_generate_key()`.
+* `"derive_key"`: called by `psa_key_derivation_output_key()`.
 
 #### Key creation in a secure element without storage
 
@@ -467,22 +446,22 @@ Should drivers really have to cope with overlap?
 
 Should the core guarantee that the output buffer size has the size indicated by the applicable buffer size macro (which may be an overestimation)?
 
-#### Opaque driver persistent state
-
-Should the driver be able to update it at any time?
+### Key management
 
 #### Mixing drivers in key derivation
 
 How does `psa_key_derivation_output_key` work when the extraction part and the expansion part use different drivers?
 
-### Declaring driver functions
+#### Public key not stored
 
-The core may want to provide declarations for the driver functions so that it can compile code using them. At the time of writing this paragraph, the driver headers must define types but there is no obligation for them to declare functions. The core knows what the function names and argument types are, so it can generate prototypes.
+ECC key pairs are stored as the private key value only. The public key needs to be calculated from that.
 
-It should be ok for driver functions to be function-like macros or function pointers.
+It's fairly common for secure elements to also store only the private value. When a key is generated randomly or derived, the hardware reports the public key, and it is up to the software to store it. The current design makes this the job of the driver. Should it be the work of the core instead?
 
-### Driver location values
+Note that a solution also has to work for transparent keys, and when importing a private key into a secure element. If the core already has code to calculate the public key, it would make sense for the driver to be able to use it, especially in these cases.
 
-How does a driver author decide which location values to use? It should be possible to combine drivers from different sources. Use the same vendor assignment as for PSA services?
+### Opaque drivers
 
-Can the driver assembly process generate distinct location values as needed? This can be convenient, but it's also risky: if you upgrade a device, you need the location values to be the same between builds.
+#### Opaque driver persistent state
+
+Should the driver be able to update it at any time?

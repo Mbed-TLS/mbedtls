@@ -38,7 +38,7 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_TIMING_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -101,7 +101,7 @@ int main( void )
 #define OPTIONS                                                         \
     "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
     "arc4, des3, des, camellia, blowfish, chacha20,\n"                  \
-    "aes_cbc, aes_gcm, aes_ccm, aes_ctx, chachapoly,\n"                 \
+    "aes_cbc, aes_gcm, aes_ccm, aes_xts, chachapoly,\n"                 \
     "aes_cmac, des3_cmac, poly1305\n"                                   \
     "havege, ctr_drbg, hmac_drbg\n"                                     \
     "rsa, dhm, ecdsa, ecdh.\n"
@@ -1065,7 +1065,7 @@ int main( int argc, char *argv[] )
     fflush( stdout ); getchar();
 #endif
 
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 
 #endif /* MBEDTLS_TIMING_C */

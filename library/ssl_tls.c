@@ -863,7 +863,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     unsigned char *key2;
     unsigned char *mac_enc;
     unsigned char *mac_dec;
-    size_t mac_key_len;
+    size_t mac_key_len = 0;
     size_t iv_copy_len;
     unsigned keylen;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
@@ -1175,7 +1175,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_init != NULL )
     {
-        int ret = 0;
+        ret = 0;
 
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "going for mbedtls_ssl_hw_record_init()" ) );
 
@@ -2747,9 +2747,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     {
         ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
 
-        if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
-            ret = 0;
-        else
+        if( authmode != MBEDTLS_SSL_VERIFY_OPTIONAL )
             ret = MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE;
 
         goto exit;
@@ -6663,14 +6661,6 @@ int mbedtls_ssl_context_load( mbedtls_ssl_context *context,
  */
 void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 {
-#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
-    size_t in_buf_len = ssl->in_buf_len;
-    size_t out_buf_len = ssl->out_buf_len;
-#else
-    size_t in_buf_len = MBEDTLS_SSL_IN_BUFFER_LEN;
-    size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN;
-#endif
-
     if( ssl == NULL )
         return;
 
@@ -6678,6 +6668,12 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 
     if( ssl->out_buf != NULL )
     {
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+        size_t out_buf_len = ssl->out_buf_len;
+#else
+        size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN;
+#endif
+
         mbedtls_platform_zeroize( ssl->out_buf, out_buf_len );
         mbedtls_free( ssl->out_buf );
         ssl->out_buf = NULL;
@@ -6685,6 +6681,12 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 
     if( ssl->in_buf != NULL )
     {
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+        size_t in_buf_len = ssl->in_buf_len;
+#else
+        size_t in_buf_len = MBEDTLS_SSL_IN_BUFFER_LEN;
+#endif
+
         mbedtls_platform_zeroize( ssl->in_buf, in_buf_len );
         mbedtls_free( ssl->in_buf );
         ssl->in_buf = NULL;

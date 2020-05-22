@@ -18,8 +18,14 @@
 /* Test driver helpers */
 /****************************************************************/
 
-/** The minimum valid lifetime value for a secure element driver. */
-#define MIN_DRIVER_LIFETIME 2
+/** The minimum valid location value for a secure element driver. */
+#define MIN_DRIVER_LOCATION 1
+
+/** The location and lifetime used for tests that use a single driver. */
+#define TEST_DRIVER_LOCATION 1
+#define TEST_SE_PERSISTENT_LIFETIME                             \
+    ( PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(           \
+        PSA_KEY_PERSISTENCE_DEFAULT, TEST_DRIVER_LOCATION ) )
 
 /** The driver detected a condition that shouldn't happen.
  * This is probably a bug in the library. */
@@ -547,7 +553,7 @@ static int check_key_attributes(
             psa_get_key_lifetime( &actual_attributes );
         psa_status_t status = psa_get_key_slot_number( &actual_attributes,
                                                        &actual_slot_number );
-        if( lifetime < MIN_DRIVER_LIFETIME )
+        if( PSA_KEY_LIFETIME_GET_LOCATION( lifetime ) < MIN_DRIVER_LOCATION )
         {
             /* The key is not in a secure element. */
             TEST_EQUAL( status, PSA_ERROR_INVALID_ARGUMENT );
@@ -571,23 +577,23 @@ exit:
     return( ok );
 }
 
-/* Get the file UID corresponding to the specified lifetime.
+/* Get the file UID corresponding to the specified location.
  * If this changes, the storage format version must change.
  * See psa_get_se_driver_its_file_uid() in psa_crypto_se.c.
  */
-psa_storage_uid_t file_uid_for_lifetime( psa_key_lifetime_t lifetime )
+psa_storage_uid_t file_uid_for_location( psa_key_location_t location )
 {
-    if( lifetime > PSA_MAX_SE_LIFETIME )
+    if( location > PSA_MAX_SE_LOCATION )
         return( 0 );
-    return( 0xfffffe00 + lifetime );
+    return( 0xfffffe00 + location );
 }
 
 /* Check that the persistent data of a driver has its expected content. */
-static int check_persistent_data( psa_key_lifetime_t lifetime,
+static int check_persistent_data( psa_key_location_t location,
                                   const void *expected_data,
                                   size_t size )
 {
-    psa_storage_uid_t uid = file_uid_for_lifetime( lifetime );
+    psa_storage_uid_t uid = file_uid_for_location( location );
     struct psa_storage_info_t info;
     uint8_t *loaded = NULL;
     int ok = 0;
@@ -737,7 +743,7 @@ exit:
 static void psa_purge_storage( void )
 {
     psa_key_id_t id;
-    psa_key_lifetime_t lifetime;
+    psa_key_location_t location;
     /* The tests may have potentially created key ids from 1 to
      * MAX_KEY_ID_FOR_TEST. In addition, run the destroy function on key id
      * 0, which file-based storage uses as a temporary file. */
@@ -746,8 +752,8 @@ static void psa_purge_storage( void )
     /* Purge the transaction file. */
     psa_crypto_stop_transaction( );
     /* Purge driver persistent data. */
-    for( lifetime = 0; lifetime < PSA_MAX_SE_LIFETIME; lifetime++ )
-        psa_destroy_se_persistent_data( lifetime );
+    for( location = 0; location < PSA_MAX_SE_LOCATION; location++ )
+        psa_destroy_se_persistent_data( location );
 }
 
 /* END_HEADER */
@@ -758,7 +764,7 @@ static void psa_purge_storage( void )
  */
 
 /* BEGIN_CASE */
-void register_one( int lifetime, int version, int expected_status_arg )
+void register_one( int location, int version, int expected_status_arg )
 {
     psa_status_t expected_status = expected_status_arg;
     psa_drv_se_t driver;
@@ -766,7 +772,7 @@ void register_one( int lifetime, int version, int expected_status_arg )
     memset( &driver, 0, sizeof( driver ) );
     driver.hal_version = version;
 
-    TEST_EQUAL( psa_register_se_driver( lifetime, &driver ),
+    TEST_EQUAL( psa_register_se_driver( location, &driver ),
                 expected_status );
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -780,16 +786,16 @@ exit:
 void register_twice( int count )
 {
     psa_drv_se_t driver;
-    psa_key_lifetime_t lifetime;
-    psa_key_lifetime_t max = MIN_DRIVER_LIFETIME + count;
+    psa_key_location_t location;
+    psa_key_location_t max = MIN_DRIVER_LOCATION + count;
 
     memset( &driver, 0, sizeof( driver ) );
     driver.hal_version = PSA_DRV_SE_HAL_VERSION;
 
-    for( lifetime = MIN_DRIVER_LIFETIME; lifetime < max; lifetime++ )
-        PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
-    for( lifetime = MIN_DRIVER_LIFETIME; lifetime < max; lifetime++ )
-        TEST_EQUAL( psa_register_se_driver( lifetime, &driver ),
+    for( location = MIN_DRIVER_LOCATION; location < max; location++ )
+        PSA_ASSERT( psa_register_se_driver( location, &driver ) );
+    for( location = MIN_DRIVER_LOCATION; location < max; location++ )
+        TEST_EQUAL( psa_register_se_driver( location, &driver ),
                     PSA_ERROR_ALREADY_EXISTS );
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -803,16 +809,16 @@ exit:
 void register_max( )
 {
     psa_drv_se_t driver;
-    psa_key_lifetime_t lifetime;
-    psa_key_lifetime_t max = MIN_DRIVER_LIFETIME + PSA_MAX_SE_DRIVERS;
+    psa_key_location_t location;
+    psa_key_location_t max = MIN_DRIVER_LOCATION + PSA_MAX_SE_DRIVERS;
 
     memset( &driver, 0, sizeof( driver ) );
     driver.hal_version = PSA_DRV_SE_HAL_VERSION;
 
-    for( lifetime = MIN_DRIVER_LIFETIME; lifetime < max; lifetime++ )
-        PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+    for( location = MIN_DRIVER_LOCATION; location < max; location++ )
+        PSA_ASSERT( psa_register_se_driver( location, &driver ) );
 
-    TEST_EQUAL( psa_register_se_driver( lifetime, &driver ),
+    TEST_EQUAL( psa_register_se_driver( location, &driver ),
                 PSA_ERROR_INSUFFICIENT_MEMORY );
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -827,7 +833,8 @@ void key_creation_import_export( int min_slot, int restart )
 {
     psa_drv_se_t driver;
     psa_drv_se_key_management_t key_management;
-    psa_key_lifetime_t lifetime = 2;
+    psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     psa_key_id_t id = 1;
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -846,7 +853,7 @@ void key_creation_import_export( int min_slot, int restart )
     key_management.p_export = ram_export;
     ram_min_slot = min_slot;
 
-    PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+    PSA_ASSERT( psa_register_se_driver( location, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Create a key. */
@@ -857,7 +864,7 @@ void key_creation_import_export( int min_slot, int restart )
     PSA_ASSERT( psa_import_key( &attributes,
                                 key_material, sizeof( key_material ),
                                 &handle ) );
-    if( ! check_persistent_data( lifetime,
+    if( ! check_persistent_data( location,
                                  &ram_shadow_slot_usage,
                                  sizeof( ram_shadow_slot_usage ) ) )
         goto exit;
@@ -866,9 +873,9 @@ void key_creation_import_export( int min_slot, int restart )
     if( restart )
     {
         mbedtls_psa_crypto_free( );
-        PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+        PSA_ASSERT( psa_register_se_driver( location, &driver ) );
         PSA_ASSERT( psa_crypto_init( ) );
-        if( ! check_persistent_data( lifetime,
+        if( ! check_persistent_data( location,
                                      &ram_shadow_slot_usage,
                                      sizeof( ram_shadow_slot_usage ) ) )
             goto exit;
@@ -894,7 +901,7 @@ void key_creation_import_export( int min_slot, int restart )
 
     PSA_ASSERT( psa_destroy_key( handle ) );
     handle = 0;
-    if( ! check_persistent_data( lifetime,
+    if( ! check_persistent_data( location,
                                  &ram_shadow_slot_usage,
                                  sizeof( ram_shadow_slot_usage ) ) )
         goto exit;
@@ -921,7 +928,8 @@ void key_creation_in_chosen_slot( int slot_arg,
     psa_status_t status;
     psa_drv_se_t driver;
     psa_drv_se_key_management_t key_management;
-    psa_key_lifetime_t lifetime = 2;
+    psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     psa_key_id_t id = 1;
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -937,7 +945,7 @@ void key_creation_in_chosen_slot( int slot_arg,
     key_management.p_destroy = ram_destroy;
     key_management.p_export = ram_export;
 
-    PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+    PSA_ASSERT( psa_register_se_driver( location, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Create a key. */
@@ -953,7 +961,7 @@ void key_creation_in_chosen_slot( int slot_arg,
 
     if( status != PSA_SUCCESS )
         goto exit;
-    if( ! check_persistent_data( lifetime,
+    if( ! check_persistent_data( location,
                                  &ram_shadow_slot_usage,
                                  sizeof( ram_shadow_slot_usage ) ) )
         goto exit;
@@ -962,9 +970,9 @@ void key_creation_in_chosen_slot( int slot_arg,
     if( restart )
     {
         mbedtls_psa_crypto_free( );
-        PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+        PSA_ASSERT( psa_register_se_driver( location, &driver ) );
         PSA_ASSERT( psa_crypto_init( ) );
-        if( ! check_persistent_data( lifetime,
+        if( ! check_persistent_data( location,
                                      &ram_shadow_slot_usage,
                                      sizeof( ram_shadow_slot_usage ) ) )
             goto exit;
@@ -980,7 +988,7 @@ void key_creation_in_chosen_slot( int slot_arg,
 
     PSA_ASSERT( psa_destroy_key( handle ) );
     handle = 0;
-    if( ! check_persistent_data( lifetime,
+    if( ! check_persistent_data( location,
                                  &ram_shadow_slot_usage,
                                  sizeof( ram_shadow_slot_usage ) ) )
         goto exit;
@@ -1002,7 +1010,8 @@ void import_key_smoke( int type_arg, int alg_arg,
     psa_algorithm_t alg = alg_arg;
     psa_drv_se_t driver;
     psa_drv_se_key_management_t key_management;
-    psa_key_lifetime_t lifetime = 2;
+    psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     psa_key_id_t id = 1;
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -1016,7 +1025,7 @@ void import_key_smoke( int type_arg, int alg_arg,
     key_management.p_import = null_import;
     key_management.p_destroy = null_destroy;
 
-    PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+    PSA_ASSERT( psa_register_se_driver( location, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Create a key. */
@@ -1031,7 +1040,7 @@ void import_key_smoke( int type_arg, int alg_arg,
     PSA_ASSERT( psa_import_key( &attributes,
                                 key_material->x, key_material->len,
                                 &handle ) );
-    if( ! check_persistent_data( lifetime,
+    if( ! check_persistent_data( location,
                                  &shadow_counter, sizeof( shadow_counter ) ) )
         goto exit;
 
@@ -1041,9 +1050,9 @@ void import_key_smoke( int type_arg, int alg_arg,
 
     /* Restart and try again. */
     mbedtls_psa_crypto_free( );
-    PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+    PSA_ASSERT( psa_register_se_driver( location, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
-    if( ! check_persistent_data( lifetime,
+    if( ! check_persistent_data( location,
                                  &shadow_counter, sizeof( shadow_counter ) ) )
         goto exit;
     PSA_ASSERT( psa_open_key( id, &handle ) );
@@ -1053,7 +1062,7 @@ void import_key_smoke( int type_arg, int alg_arg,
     /* We're done. */
     PSA_ASSERT( psa_destroy_key( handle ) );
     handle = 0;
-    if( ! check_persistent_data( lifetime,
+    if( ! check_persistent_data( location,
                                  &shadow_counter, sizeof( shadow_counter ) ) )
         goto exit;
     TEST_EQUAL( psa_open_key( id, &handle ),
@@ -1073,7 +1082,8 @@ void generate_key_not_supported( int type_arg, int bits_arg )
     size_t bits = bits_arg;
     psa_drv_se_t driver;
     psa_drv_se_key_management_t key_management;
-    psa_key_lifetime_t lifetime = 2;
+    psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     psa_key_id_t id = 1;
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -1086,7 +1096,7 @@ void generate_key_not_supported( int type_arg, int bits_arg )
     key_management.p_allocate = counter_allocate;
     /* No p_generate method */
 
-    PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+    PSA_ASSERT( psa_register_se_driver( location, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
 
     psa_set_key_id( &attributes, id );
@@ -1111,7 +1121,8 @@ void generate_key_smoke( int type_arg, int bits_arg, int alg_arg )
     psa_algorithm_t alg = alg_arg;
     psa_drv_se_t driver;
     psa_drv_se_key_management_t key_management;
-    psa_key_lifetime_t lifetime = 2;
+    psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     psa_key_id_t id = 1;
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -1125,7 +1136,7 @@ void generate_key_smoke( int type_arg, int bits_arg, int alg_arg )
     key_management.p_generate = null_generate;
     key_management.p_destroy = null_destroy;
 
-    PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+    PSA_ASSERT( psa_register_se_driver( location, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Create a key. */
@@ -1139,7 +1150,7 @@ void generate_key_smoke( int type_arg, int bits_arg, int alg_arg )
     psa_set_key_type( &attributes, type );
     psa_set_key_bits( &attributes, bits );
     PSA_ASSERT( psa_generate_key( &attributes, &handle ) );
-    if( ! check_persistent_data( lifetime,
+    if( ! check_persistent_data( location,
                                  &shadow_counter, sizeof( shadow_counter ) ) )
         goto exit;
 
@@ -1149,9 +1160,9 @@ void generate_key_smoke( int type_arg, int bits_arg, int alg_arg )
 
     /* Restart and try again. */
     mbedtls_psa_crypto_free( );
-    PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+    PSA_ASSERT( psa_register_se_driver( location, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
-    if( ! check_persistent_data( lifetime,
+    if( ! check_persistent_data( location,
                                  &shadow_counter, sizeof( shadow_counter ) ) )
         goto exit;
     PSA_ASSERT( psa_open_key( id, &handle ) );
@@ -1161,7 +1172,7 @@ void generate_key_smoke( int type_arg, int bits_arg, int alg_arg )
     /* We're done. */
     PSA_ASSERT( psa_destroy_key( handle ) );
     handle = 0;
-    if( ! check_persistent_data( lifetime,
+    if( ! check_persistent_data( location,
                                  &shadow_counter, sizeof( shadow_counter ) ) )
         goto exit;
     TEST_EQUAL( psa_open_key( id, &handle ),
@@ -1190,7 +1201,8 @@ void sign_verify( int flow,
     psa_drv_se_key_management_t key_management;
     psa_drv_se_asymmetric_t asymmetric;
 
-    psa_key_lifetime_t lifetime = 2;
+    psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     psa_key_id_t id = 1;
     psa_key_handle_t drv_handle = 0; /* key managed by the driver */
     psa_key_handle_t sw_handle = 0; /* transparent key */
@@ -1229,7 +1241,7 @@ void sign_verify( int flow,
     }
     asymmetric.p_verify = ram_verify;
 
-    PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+    PSA_ASSERT( psa_register_se_driver( location, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Prepare to create two keys with the same key material: a transparent
@@ -1347,6 +1359,7 @@ void register_key_smoke_test( int lifetime_arg,
                               int expected_status_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     psa_status_t expected_status = expected_status_arg;
     psa_drv_se_t driver;
     psa_drv_se_key_management_t key_management;
@@ -1371,7 +1384,7 @@ void register_key_smoke_test( int lifetime_arg,
             ( validate > 0 ? PSA_SUCCESS : PSA_ERROR_NOT_PERMITTED );
     }
 
-    PSA_ASSERT( psa_register_se_driver( MIN_DRIVER_LIFETIME, &driver ) );
+    PSA_ASSERT( psa_register_se_driver( MIN_DRIVER_LOCATION, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
 
     psa_set_key_id( &attributes, id );
@@ -1395,7 +1408,7 @@ void register_key_smoke_test( int lifetime_arg,
 
     /* Restart and try again. */
     PSA_DONE( );
-    PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+    PSA_ASSERT( psa_register_se_driver( location, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
     PSA_ASSERT( psa_open_key( id, &handle ) );
     if( ! check_key_attributes( handle, &attributes ) )

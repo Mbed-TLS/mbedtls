@@ -1,0 +1,8 @@
+Default behavior changes
+   * In the experimental PSA secure element interface, change the encoding of
+     key lifetimes to encode a persistence level and the location. Although C
+     prototypes do not effectively change, code calling
+     psa_register_se_driver() must be modified to pass the driver's location
+     instead of the keys' lifetime. If the library is upgraded on an existing
+     device, keys created with the old lifetime value will not be readable or
+     removable through Mbed TLS after the upgrade.

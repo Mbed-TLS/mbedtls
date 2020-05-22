@@ -1539,12 +1539,20 @@
  * @{
  */
 
-/** A volatile key only exists as long as the handle to it is not closed.
+/** The default lifetime for volatile keys.
+ *
+ * A volatile key only exists as long as the handle to it is not closed.
  * The key material is guaranteed to be erased on a power reset.
+ *
+ * A key with this lifetime is typically stored in the RAM area of the
+ * PSA Crypto subsystem. However this is an implementation choice.
+ * If an implementation stores data about the key in a non-volatile memory,
+ * it must release all the resources associated with the key and erase the
+ * key material if the calling application terminates.
  */
 #define PSA_KEY_LIFETIME_VOLATILE               ((psa_key_lifetime_t)0x00000000)
 
-/** The default storage area for persistent keys.
+/** The default lifetime for persistent keys.
  *
  * A persistent key remains in storage until it is explicitly destroyed or
  * until the corresponding storage area is wiped. This specification does
@@ -1555,8 +1563,76 @@
  * This lifetime value is the default storage area for the calling
  * application. Implementations may offer other storage areas designated
  * by other lifetime values as implementation-specific extensions.
+ * See ::psa_key_lifetime_t for more information.
  */
 #define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000001)
+
+/** The persistence level of volatile keys.
+ *
+ * See ::psa_key_persistence_t for more information.
+ */
+#define PSA_KEY_PERSISTENCE_VOLATILE            ((psa_key_persistence_t)0x00)
+
+/** The default persistence level for persistent keys.
+ *
+ * See ::psa_key_persistence_t for more information.
+ */
+#define PSA_KEY_PERSISTENCE_DEFAULT             ((psa_key_persistence_t)0x01)
+
+/** A persistence level indicating that a key is never destroyed.
+ *
+ * See ::psa_key_persistence_t for more information.
+ */
+#define PSA_KEY_PERSISTENCE_READ_ONLY           ((psa_key_persistence_t)0xff)
+
+#define PSA_KEY_LIFETIME_GET_PERSISTENCE(lifetime)      \
+    ((psa_key_persistence_t)((lifetime) & 0x000000ff))
+
+#define PSA_KEY_LIFETIME_GET_LOCATION(lifetime)      \
+    ((psa_key_location_t)((lifetime) >> 8))
+
+/** Whether a key lifetime indicates that the key is volatile.
+ *
+ * A volatile key is automatically destroyed by the implementation when
+ * the application instance terminates. In particular, a volatile key
+ * is automatically destroyed on a power reset of the device.
+ *
+ * A key that is not volatile is persistent. Persistent keys are
+ * preserved until the application explicitly destroys them or until an
+ * implementation-specific device management event occurs (for example,
+ * a factory reset).
+ *
+ * \param lifetime      The lifetime value to query (value of type
+ *                      ::psa_key_lifetime_t).
+ *
+ * \return \c 1 if the key is volatile, otherwise \c 0.
+ */
+#define PSA_KEY_LIFETIME_IS_VOLATILE(lifetime)  \
+    (PSA_KEY_LIFETIME_GET_PERSISTENCE(lifetime) == \
+     PSA_KEY_LIFETIME_PERSISTENCE_VOLATILE)
+
+/** Construct a lifetime from a persistence level and a location.
+ *
+ * \param persistence   The persistence level
+ *                      (value of type ::psa_key_persistence_t).
+ * \param location      The location indicator
+ *                      (value of type ::psa_key_location_t).
+ *
+ * \return The constructed lifetime value.
+ */
+#define PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(persistence, location) \
+    ((location) << 8 | (persistence))
+
+/** The local storage area for persistent keys.
+ *
+ * This storage area is available on all systems that can store persistent
+ * keys without delegating the storage to a third-party cryptoprocessor.
+ *
+ * See ::psa_key_location_t for more information.
+ */
+#define PSA_KEY_LOCATION_LOCAL_STORAGE          ((psa_key_location_t)0x000000)
+
+#define PSA_KEY_LOCATION_VENDOR_FLAG            ((psa_key_location_t)0x800000)
 
 /** The minimum value for a key identifier chosen by the application.
  */

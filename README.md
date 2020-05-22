@@ -85,11 +85,11 @@ In order to build the source using CMake in a separate directory (recommended), 
 
     mkdir /path/to/build_dir && cd /path/to/build_dir
     cmake /path/to/mbedtls_source
-    make
+    cmake --build .
 
 In order to run the tests, enter:
 
-    make test
+    ctest
 
 The test suites need Python to be built and Perl to be executed. If you don't have one of these installed, you'll want to disable the test suites with:
 

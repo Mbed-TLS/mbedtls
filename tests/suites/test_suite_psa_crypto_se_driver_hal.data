@@ -6,14 +6,11 @@ register_one:2:PSA_DRV_SE_HAL_VERSION:PSA_SUCCESS
 Register SE driver: good, again
 register_one:2:PSA_DRV_SE_HAL_VERSION:PSA_SUCCESS
 
-Register SE driver: invalid lifetime (0)
+Register SE driver: invalid location (0)
 register_one:0:PSA_DRV_SE_HAL_VERSION:PSA_ERROR_INVALID_ARGUMENT
 
-Register SE driver: invalid lifetime (VOLATILE)
-register_one:PSA_KEY_LIFETIME_VOLATILE:PSA_DRV_SE_HAL_VERSION:PSA_ERROR_INVALID_ARGUMENT
-
-Register SE driver: invalid lifetime (PERSISTENT)
-register_one:PSA_KEY_LIFETIME_PERSISTENT:PSA_DRV_SE_HAL_VERSION:PSA_ERROR_INVALID_ARGUMENT
+Register SE driver: invalid location (local)
+register_one:PSA_KEY_LOCATION_LOCAL_STORAGE:PSA_DRV_SE_HAL_VERSION:PSA_ERROR_INVALID_ARGUMENT
 
 Register SE driver: invalid version (ancient)
 register_one:2:0x00000003:PSA_ERROR_NOT_SUPPORTED
@@ -121,7 +118,7 @@ Key generation smoke test: HMAC-SHA-256
 generate_key_smoke:PSA_KEY_TYPE_HMAC:256:PSA_ALG_HMAC( PSA_ALG_SHA_256 )
 
 Key registration: smoke test
-register_key_smoke_test:MIN_DRIVER_LIFETIME:1:PSA_SUCCESS
+register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:1:PSA_SUCCESS
 
 Key registration: invalid lifetime (volatile)
 register_key_smoke_test:PSA_KEY_LIFETIME_VOLATILE:1:PSA_ERROR_INVALID_ARGUMENT
@@ -130,13 +127,13 @@ Key registration: invalid lifetime (internal storage)
 register_key_smoke_test:PSA_KEY_LIFETIME_PERSISTENT:1:PSA_ERROR_INVALID_ARGUMENT
 
 Key registration: invalid lifetime (no registered driver)
-register_key_smoke_test:MIN_DRIVER_LIFETIME + 1:1:PSA_ERROR_INVALID_ARGUMENT
+register_key_smoke_test:PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION( PSA_KEY_PERSISTENCE_DEFAULT, TEST_DRIVER_LOCATION + 1 ):1:PSA_ERROR_INVALID_ARGUMENT
 
 Key registration: rejected
-register_key_smoke_test:MIN_DRIVER_LIFETIME:0:PSA_ERROR_NOT_PERMITTED
+register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:0:PSA_ERROR_NOT_PERMITTED
 
 Key registration: not supported
-register_key_smoke_test:MIN_DRIVER_LIFETIME:-1:PSA_ERROR_NOT_SUPPORTED
+register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:-1:PSA_ERROR_NOT_SUPPORTED
 
 Import-sign-verify: sign in driver, ECDSA
 depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED

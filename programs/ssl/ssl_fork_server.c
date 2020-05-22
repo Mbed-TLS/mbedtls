@@ -54,14 +54,14 @@ int main( int argc, char *argv[] )
            "MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
            "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
            "MBEDTLS_TIMING_C and/or MBEDTLS_PEM_PARSE_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #elif defined(_WIN32)
 int main( void )
 {
     mbedtls_printf("_WIN32 defined. This application requires fork() and signals "
            "to work correctly.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -417,7 +417,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_CERTS_C && MBEDTLS_ENTROPY_C &&
           MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_SRV_C && MBEDTLS_NET_C &&

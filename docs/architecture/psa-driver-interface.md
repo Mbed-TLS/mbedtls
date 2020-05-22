@@ -446,6 +446,17 @@ Should drivers really have to cope with overlap?
 
 Should the core guarantee that the output buffer size has the size indicated by the applicable buffer size macro (which may be an overestimation)?
 
+### Partial computations in drivers
+
+#### Substitution points
+
+Earlier drafts of the driver interface had a concept of _substitution points_: places in the calculation where a driver may be called. Some hardware doesn't do the whole calculation, but only the “main” part. This goes both for transparent and opaque drivers. Some common examples:
+
+* A processor that performs the RSA exponentiation, but not the padding. The driver should be able to leverage the padding code in the core.
+* A processor that performs a block cipher operation only for a single block, or only in ECB mode, or only in CTR mode. The core would perform the block mode (CBC, CTR, CCM, ...).
+
+This concept, or some other way to reuse portable code such as specifying inner functions like `psa_rsa_pad` in the core, should be added to the specification.
+
 ### Key management
 
 #### Mixing drivers in key derivation

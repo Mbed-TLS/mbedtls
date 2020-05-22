@@ -163,7 +163,11 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
     set_target_properties(${mbedcrypto_static_target} PROPERTIES OUTPUT_NAME mbedcrypto)
     target_link_libraries(${mbedcrypto_static_target} ${libs})
     target_include_directories(${mbedcrypto_static_target}
-        PUBLIC ${MBEDTLS_DIR}/include/)
+        PUBLIC ${MBEDTLS_DIR}/include/
+        PUBLIC ${thirdparty_inc_public}
+        PRIVATE ${thirdparty_inc})
+    target_compile_definitions(${mbedcrypto_static_target}
+        PRIVATE ${thirdparty_def})
 
     add_library(${mbedx509_static_target} STATIC ${src_x509})
     set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509)
@@ -188,7 +192,11 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     set_target_properties(mbedcrypto PROPERTIES VERSION 2.22.0 SOVERSION 4)
     target_link_libraries(mbedcrypto ${libs})
     target_include_directories(mbedcrypto
-        PUBLIC ${MBEDTLS_DIR}/include/)
+        PUBLIC ${MBEDTLS_DIR}/include/
+        PUBLIC ${thirdparty_inc_public}
+        PRIVATE ${thirdparty_inc})
+    target_compile_definitions(mbedcrypto
+        PRIVATE ${thirdparty_def})
 
     add_library(mbedx509 SHARED ${src_x509})
     set_target_properties(mbedx509 PROPERTIES VERSION 2.22.0 SOVERSION 1)

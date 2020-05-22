@@ -67,6 +67,16 @@
 
 #include "mbedtls/ecp_internal.h"
 
+#if !defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
+#if defined(MBEDTLS_CTR_DRBG_C)
+#include "mbedtls/ctr_drbg.h"
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+#include "mbedtls/hmac_drbg.h"
+#else
+#error "Invalid configuration detected. Include check_config.h to ensure that the configuration is valid."
+#endif
+#endif /* MBEDTLS_ECP_NO_INTERNAL_RNG */
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -84,6 +94,113 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  */
 static unsigned long add_count, dbl_count, mul_count;
 #endif
+
+#if !defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
+/*
+ * Currently ecp_mul() takes a RNG function as an argument, used for
+ * side-channel protection, but it can be NULL. The initial reasonning was
+ * that people will pass non-NULL RNG when they care about side-channels, but
+ * unfortunately we have some APIs that call ecp_mul() with a NULL RNG, with
+ * no opportunity for the user to do anything about it.
+ *
+ * The obvious strategies for addressing that include:
+ * - change those APIs so that they take RNG arguments;
+ * - require a global RNG to be available to all crypto modules.
+ *
+ * Unfortunately those would break compatibility. So what we do instead is
+ * have our own internal DRBG instance, seeded from the secret scalar.
+ *
+ * The following is a light-weight abstraction layer for doing that with
+ * CTR_DRBG or HMAC_DRBG.
+ */
+
+#if defined(MBEDTLS_CTR_DRBG_C)
+/* DRBG context type */
+typedef mbedtls_ctr_drbg_context ecp_drbg_context;
+
+/* DRBG context init */
+static inline void ecp_drbg_init( ecp_drbg_context *ctx )
+{
+    mbedtls_ctr_drbg_init( ctx );
+}
+
+/* DRBG context free */
+static inline void ecp_drbg_free( ecp_drbg_context *ctx )
+{
+    mbedtls_ctr_drbg_free( ctx );
+}
+
+/* DRBG function */
+static inline int ecp_drbg_random( void *p_rng,
+                                   unsigned char *output, size_t output_len )
+{
+    return( mbedtls_ctr_drbg_random( p_rng, output, output_len ) );
+}
+
+/*
+ * Since CTR_DRBG doesn't have a seed_buf() function the way HMAC_DRBG does,
+ * we need to pass an entropy function when seeding. So we use a dummy
+ * function for that, and pass the actual entropy as customisation string.
+ * (During seeding of CTR_DRBG the entropy input and customisation string are
+ * concatenated before being used to update the secret state.)
+ */
+static int ecp_ctr_drbg_null_entropy(void *ctx, unsigned char *out, size_t len)
+{
+    (void) ctx;
+    memset( out, 0, len );
+    return( 0 );
+}
+
+/* DRBG context seeding */
+static int ecp_drbg_seed( ecp_drbg_context *ctx, const mbedtls_mpi *secret )
+{
+    const unsigned char *secret_p = (const unsigned char *) secret->p;
+    const size_t secret_size = secret->n * sizeof( mbedtls_mpi_uint );
+
+    return( mbedtls_ctr_drbg_seed( ctx, ecp_ctr_drbg_null_entropy, NULL,
+                                   secret_p, secret_size ) );
+}
+
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+/* DRBG context type */
+typedef mbedtls_hmac_drbg_context ecp_drbg_context;
+
+/* DRBG context init */
+static inline void ecp_drbg_init( ecp_drbg_context *ctx )
+{
+    mbedtls_hmac_drbg_init( ctx );
+}
+
+/* DRBG context free */
+static inline void ecp_drbg_free( ecp_drbg_context *ctx )
+{
+    mbedtls_hmac_drbg_free( ctx );
+}
+
+/* DRBG function */
+static inline int ecp_drbg_random( void *p_rng,
+                                   unsigned char *output, size_t output_len )
+{
+    return( mbedtls_hmac_drbg_random( p_rng, output, output_len ) );
+}
+
+/* DRBG context seeding */
+static int ecp_drbg_seed( ecp_drbg_context *ctx, const mbedtls_mpi *secret )
+{
+    const unsigned char *secret_p = (const unsigned char *) secret->p;
+    const size_t secret_size = secret->n * sizeof( mbedtls_mpi_uint );
+
+    /* The list starts with strong hashes */
+    const mbedtls_md_type_t md_type = mbedtls_md_list()[0];
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_type );
+
+    return( mbedtls_hmac_drbg_seed_buf( ctx, md_info, secret_p, secret_size ) );
+}
+
+#else
+#error "Invalid configuration detected. Include check_config.h to ensure that the configuration is valid."
+#endif /* DRBG modules */
+#endif /* MBEDTLS_ECP_NO_INTERNAL_RNG */
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||   \
@@ -1719,6 +1836,11 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     char is_grp_capable = 0;
 #endif
+#if !defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
+    ecp_drbg_context drbg_ctx;
+
+    ecp_drbg_init( &drbg_ctx );
+#endif /* !MBEDTLS_ECP_NO_INTERNAL_RNG */
 
     /* Common sanity checks */
     if( mbedtls_mpi_cmp_int( &P->Z, 1 ) != 0 )
@@ -1728,32 +1850,45 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         ( ret = mbedtls_ecp_check_pubkey( grp, P ) ) != 0 )
         return( ret );
 
+#if !defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
+    if( f_rng == NULL )
+    {
+        MBEDTLS_MPI_CHK( ecp_drbg_seed( &drbg_ctx, m ) );
+        f_rng = &ecp_drbg_random;
+        p_rng = &drbg_ctx;
+    }
+#endif /* !MBEDTLS_ECP_NO_INTERNAL_RNG */
+
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     if ( is_grp_capable = mbedtls_internal_ecp_grp_capable( grp )  )
     {
         MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
     }
-
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
+
 #if defined(ECP_MONTGOMERY)
     if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
         ret = ecp_mul_mxz( grp, R, m, P, f_rng, p_rng );
-
 #endif
 #if defined(ECP_SHORTWEIERSTRASS)
     if( ecp_get_type( grp ) == ECP_TYPE_SHORT_WEIERSTRASS )
         ret = ecp_mul_comb( grp, R, m, P, f_rng, p_rng );
+#endif
 
+#if defined(MBEDTLS_ECP_INTERNAL_ALT) || !defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
+cleanup:
 #endif
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
-cleanup:
-
     if ( is_grp_capable )
     {
         mbedtls_internal_ecp_free( grp );
     }
-
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
+
+#if !defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
+    ecp_drbg_free( &drbg_ctx );
+#endif
+
     return( ret );
 }
 

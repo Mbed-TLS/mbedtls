@@ -443,6 +443,20 @@ TODO
 
 ## Open questions
 
+### Driver declarations
+
+#### Declaring driver functions
+
+The core may want to provide declarations for the driver functions so that it can compile code using them. At the time of writing this paragraph, the driver headers must define types but there is no obligation for them to declare functions. The core knows what the function names and argument types are, so it can generate prototypes.
+
+It should be ok for driver functions to be function-like macros or function pointers.
+
+#### Driver location values
+
+How does a driver author decide which location values to use? It should be possible to combine drivers from different sources. Use the same vendor assignment as for PSA services?
+
+Can the driver assembly process generate distinct location values as needed? This can be convenient, but it's also risky: if you upgrade a device, you need the location values to be the same between builds.
+
 ### Driver function interfaces
 
 #### Driver function parameter conventions

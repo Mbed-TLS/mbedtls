@@ -219,6 +219,7 @@ endif(ENABLE_ZLIB_SUPPORT)
 add_subdirectory(include)
 
 add_subdirectory(3rdparty)
+include_directories(${thirdparty_inc_public})
 include_directories(${thirdparty_inc})
 list(APPEND libs ${thirdparty_lib})
 add_definitions(${thirdparty_def})

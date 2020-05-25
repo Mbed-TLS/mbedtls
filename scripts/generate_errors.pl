@@ -101,7 +101,6 @@ foreach my $line (@matches)
 
     my $include_name = $module_name;
     $include_name =~ tr/A-Z/a-z/;
-    $include_name = "" if ($include_name eq "asn1");
 
     # Fix faulty ones
     $include_name = "net_sockets" if ($module_name eq "NET");

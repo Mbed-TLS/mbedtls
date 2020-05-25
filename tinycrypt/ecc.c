@@ -848,7 +848,7 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 		}
 		while (carry < 0);
 	} else  {
-		while (carry || 
+		while (carry ||
 		       uECC_vli_cmp_unsafe(curve_p, result) != 1) {
 			carry -= uECC_vli_sub(result, result, curve_p);
 		}
@@ -1224,7 +1224,7 @@ int uECC_valid_public_key(const uint8_t *public_key)
 
 int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key)
 {
-	int ret;
+	int ret = UECC_FAULT_DETECTED;
 	uECC_word_t _private[NUM_ECC_WORDS];
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 
@@ -1252,6 +1252,5 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key)
 	uECC_vli_nativeToBytes(
 	public_key +
 	NUM_ECC_BYTES, NUM_ECC_BYTES, _public + NUM_ECC_WORDS);
-	return UECC_SUCCESS;
+	return ret;
 }
-

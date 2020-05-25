@@ -74,7 +74,7 @@
 int uECC_make_key_with_d(uint8_t *public_key, uint8_t *private_key,
 			 unsigned int *d)
 {
-	int ret;
+	int ret = UECC_FAULT_DETECTED;
 	uECC_word_t _private[NUM_ECC_WORDS];
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 
@@ -109,7 +109,7 @@ exit:
 
 int uECC_make_key(uint8_t *public_key, uint8_t *private_key)
 {
-	int ret;
+	int ret = UECC_FAULT_DETECTED;
 	uECC_word_t _random[NUM_ECC_WORDS * 2];
 	uECC_word_t _private[NUM_ECC_WORDS];
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
@@ -162,7 +162,7 @@ int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
 	uECC_word_t _private[NUM_ECC_WORDS];
 	wordcount_t num_words = NUM_ECC_WORDS;
 	wordcount_t num_bytes = NUM_ECC_BYTES;
-	int r;
+	int r = UECC_FAULT_DETECTED;
 
 	/* Converting buffers to correct bit order: */
 	uECC_vli_bytesToNative(_private,

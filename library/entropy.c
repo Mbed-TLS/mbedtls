@@ -142,7 +142,7 @@ int mbedtls_entropy_add_source( mbedtls_entropy_context *ctx,
                         mbedtls_entropy_f_source_ptr f_source, void *p_source,
                         size_t threshold, int strong )
 {
-    int idx, ret = 0;
+    int idx, ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
@@ -162,6 +162,7 @@ int mbedtls_entropy_add_source( mbedtls_entropy_context *ctx,
     ctx->source[idx].strong    = strong;
 
     ctx->source_count++;
+    ret = 0;
 
 exit:
 #if defined(MBEDTLS_THREADING_C)
@@ -182,7 +183,7 @@ static int entropy_update( mbedtls_entropy_context *ctx, unsigned char source_id
     unsigned char tmp[MBEDTLS_ENTROPY_BLOCK_SIZE];
     size_t use_len = len;
     const unsigned char *p = data;
-    int ret = 0;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
     if( use_len > MBEDTLS_ENTROPY_BLOCK_SIZE )
     {
@@ -234,7 +235,7 @@ cleanup:
 int mbedtls_entropy_update_manual( mbedtls_entropy_context *ctx,
                            const unsigned char *data, size_t len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
@@ -325,7 +326,7 @@ cleanup:
  */
 int mbedtls_entropy_gather( mbedtls_entropy_context *ctx )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
@@ -344,7 +345,8 @@ int mbedtls_entropy_gather( mbedtls_entropy_context *ctx )
 
 int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
 {
-    int ret, count = 0, i, done;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    int count = 0, i, done;
     mbedtls_entropy_context *ctx = (mbedtls_entropy_context *) data;
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
 

@@ -13,6 +13,7 @@
 # This includes:
 #   - architecture of the system
 #   - type and version of the operating system
+#   - version of make and cmake
 #   - version of armcc, clang, gcc-arm and gcc compilers
 #   - version of libc, clang, asan and valgrind if installed
 #   - version of gnuTLS and OpenSSL
@@ -69,6 +70,12 @@ print_version "uname" "-a" ""
 echo
 echo
 echo "** Tool Versions:"
+echo
+
+print_version "make" "--version" "" "head -n 1"
+echo
+
+print_version "cmake" "--version" "" "head -n 1"
 echo
 
 if [ "${RUN_ARMCC:-1}" -ne 0 ]; then

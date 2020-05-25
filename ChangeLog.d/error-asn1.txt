@@ -1,0 +1,2 @@
+Bugfix
+   * Include asn1.h in error.c. Fixes #3328 reported by David Hu.

@@ -6,6 +6,10 @@
 #
 # /!\ This must not be a Makefile target, as it would create a race condition
 # when multiple targets are invoked in the same parallel build.
+#
+# Copyright (C) 2016, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 set -eu
 

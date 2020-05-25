@@ -5,6 +5,10 @@
 #
 # Must be run from mbedTLS root or scripts directory.
 # Takes no argument.
+#
+# Copyright (C) 2013-2020, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 use warnings;
 use strict;

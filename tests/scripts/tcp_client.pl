@@ -4,6 +4,10 @@
 # Usage: tcp_client.pl HOSTNAME PORT DATA1 RESPONSE1
 #   DATA: hex-encoded data to send to the server
 #   RESPONSE: regexp that must match the server's response
+#
+# Copyright (C) 2017, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 use warnings;
 use strict;

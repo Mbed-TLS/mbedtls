@@ -5,6 +5,10 @@
 #
 # Use different build options for measuring executable size and memory usage,
 # since for memory we want debug information.
+#
+# Copyright (C) 2014-2015, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 set -eu
 

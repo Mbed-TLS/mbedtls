@@ -15,6 +15,10 @@
 # function by using the template in scripts/data_files/query_config.fmt.
 #
 # Usage: ./scripts/generate_query_config.pl without arguments
+#
+# Copyright (C) 2018-2019, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 use strict;
 

@@ -1,4 +1,8 @@
 #!/usr/bin/env perl
+#
+# Copyright (C) 2015, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 use warnings;
 use strict;

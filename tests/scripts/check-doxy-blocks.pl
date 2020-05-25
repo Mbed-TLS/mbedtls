@@ -7,6 +7,10 @@
 #   sed -e '/EXTRACT/s/YES/NO/' doxygen/mbedtls.doxyfile | doxygen -
 # but that would warn about any undocumented item, while our goal is to find
 # items that are documented, but not marked as such by mistake.
+#
+# Copyright (C) 2012-2016, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 use warnings;
 use strict;

@@ -5,6 +5,10 @@
 # Outputs the line count of the file to stdout.
 #
 # Usage: list-identifiers.sh [ -i | --internal ]
+#
+# Copyright (C) 2015-2019, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 set -eu
 

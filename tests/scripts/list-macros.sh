@@ -1,4 +1,8 @@
 #!/bin/sh
+#
+# Copyright (C) 2015, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 set -eu
 

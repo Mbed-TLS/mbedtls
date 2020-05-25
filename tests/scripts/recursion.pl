@@ -7,6 +7,10 @@
 # an unbounded way, those functions should use interation instead.
 #
 # Typical usage: scripts/recursion.pl library/*.c
+#
+# Copyright (C) 2014-2015, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 use warnings;
 use strict;

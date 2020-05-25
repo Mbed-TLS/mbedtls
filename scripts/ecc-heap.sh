@@ -6,6 +6,10 @@
 # Usage (preferably on a 32-bit platform):
 # cmake -D CMAKE_BUILD_TYPE=Release .
 # scripts/ecc-heap.sh | tee ecc-heap.log
+#
+# Copyright (C) 2014-2015, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 set -eu
 

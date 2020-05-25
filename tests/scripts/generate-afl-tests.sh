@@ -7,6 +7,10 @@
 # Usage: generate-afl-tests.sh <test data file path>
 #  <test data file path> - should be the path to one of the test suite files
 #                          such as 'test_suite_mpi.data'
+#
+# Copyright (C) 2016, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 # Abort on errors
 set -e

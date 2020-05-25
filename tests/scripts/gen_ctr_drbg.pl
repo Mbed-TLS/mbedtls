@@ -3,6 +3,10 @@
 # Based on NIST CTR_DRBG.rsp validation file
 # Only uses AES-256-CTR cases that use a Derivation function
 # and concats nonce and personalization for initialization.
+#
+# Copyright (C) 2011, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 use strict;
 

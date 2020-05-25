@@ -2,6 +2,10 @@
 #
 # Based on NIST gcmDecryptxxx.rsp validation files
 # Only first 3 of every set used for compile time saving
+#
+# Copyright (C) 2012-2013, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 use strict;
 

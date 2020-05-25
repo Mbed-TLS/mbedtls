@@ -1,6 +1,10 @@
 #!/bin/sh
 
 # Make sure the doxygen documentation builds without warnings
+#
+# Copyright (C) 2016, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 # Abort on errors (and uninitiliased variables)
 set -eu

@@ -112,6 +112,9 @@ echo
 print_version "python" "--version" "" "head -n 1"
 echo
 
+print_version "python3" "--version" "" "head -n 1"
+echo
+
 # Find the installed version of Pylint. Installed as a distro package this can
 # be pylint3 and as a PEP egg, pylint. In test scripts We prefer pylint over
 # pylint3

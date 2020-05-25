@@ -290,6 +290,7 @@ uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right)
 	uECC_word_t tmp1, tmp2;
 	volatile int i;
 
+	/* Start from a random location and check the correct number of iterations */
 	int start_offset = mbedtls_platform_random_in_range(NUM_ECC_WORDS);
 
 	for (i = start_offset; i < NUM_ECC_WORDS; ++i) {
@@ -306,6 +307,7 @@ uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right)
 		diff |= (tmp1 ^ tmp2);
 	}
 
+	/* Random delay to increase security */
 	mbedtls_platform_random_delay();
 
 	/* Return 0 only when diff is 0 and flow_counter is equal to NUM_ECC_WORDS */

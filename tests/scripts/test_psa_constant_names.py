@@ -7,6 +7,10 @@ Return 0 if all test cases pass, 1 if the output was not always as expected,
 or 1 (with a Python backtrace) if there was an operational error.
 """
 
+# Copyright (C) 2018-2020, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
+
 import argparse
 from collections import namedtuple
 import itertools

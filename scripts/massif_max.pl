@@ -1,6 +1,10 @@
 #!/usr/bin/env perl
 
 # Parse a massif.out.xxx file and output peak total memory usage
+#
+# Copyright (C) 2014, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 use warnings;
 use strict;

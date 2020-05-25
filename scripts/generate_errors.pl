@@ -4,6 +4,10 @@
 #
 # Usage: ./generate_errors.pl or scripts/generate_errors.pl without arguments,
 # or generate_errors.pl include_dir data_dir error_file
+#
+# Copyright (C) 2011-2020, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 use strict;
 

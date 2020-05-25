@@ -1,4 +1,9 @@
 #!/bin/sh
+#
+# Copyright (C) 2018, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
+
 set -e -u
 
 program="${0%/*}"/key_ladder_demo

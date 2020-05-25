@@ -1,3 +1,9 @@
+/*
+ *  Copyright (C) 2018-2019, ARM Limited, All Rights Reserved
+ *
+ *  This file is part of mbed TLS (https://tls.mbed.org)
+ */
+
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>

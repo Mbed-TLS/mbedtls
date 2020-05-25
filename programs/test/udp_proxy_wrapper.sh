@@ -1,6 +1,10 @@
 #!/bin/sh
 # -*-sh-basic-offset: 4-*-
 # Usage: udp_proxy_wrapper.sh [PROXY_PARAM...] -- [SERVER_PARAM...]
+#
+# Copyright (C) 2017, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 set -u
 

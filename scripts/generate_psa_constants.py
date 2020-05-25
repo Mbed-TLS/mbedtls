@@ -11,6 +11,10 @@ file is written:
 * OUTPUT_FILE_DIR passed: writes to OUTPUT_FILE_DIR/
 """
 
+# Copyright (C) 2018-2020, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
+
 import os
 import re
 import sys

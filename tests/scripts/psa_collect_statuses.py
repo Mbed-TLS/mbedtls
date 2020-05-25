@@ -12,6 +12,10 @@ The build command is "make -DRECORD_PSA_STATUS_COVERAGE_LOG", which is
 only supported with make (as opposed to CMake or other build methods).
 """
 
+# Copyright (C) 2019, Arm Limited, All Rights Reserved
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
+
 import argparse
 import os
 import subprocess

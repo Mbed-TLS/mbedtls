@@ -112,6 +112,9 @@ echo
 print_version "python" "--version" "" "head -n 1"
 echo
 
+print_version "python3" "--version" "" "head -n 1"
+echo
+
 print_version "pylint3" "--version" "" "sed /^.*config/d" "grep pylint"
 echo
 

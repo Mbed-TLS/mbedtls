@@ -787,7 +787,7 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
                 break;
 
             c = name->val.p[i];
-            if( c < 32 || c == 127 || ( c > 128 && c < 160 ) )
+            if( c < 32 || c >= 127 )
                  s[i] = '?';
             else s[i] = c;
         }

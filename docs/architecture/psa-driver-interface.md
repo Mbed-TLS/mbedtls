@@ -5,6 +5,8 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 **This is work in progress**. This document is still incomplete and **may change or may be abandoned at any time**. The interface is not fully implemented in Mbed TLS yet and is disabled by default; you can enable the experimental work in progress by setting `MBEDTLS_PSA_CRYPTO_DRIVERS` in the compile-time configuration.
 
+Time-stamp: "2020/05/26 21:44:21 GMT"
+
 ## Introduction
 
 ### Purpose of the driver interface
@@ -547,3 +549,13 @@ Note that a solution also has to work for transparent keys, and when importing a
 #### Opaque driver persistent state
 
 Should the driver be able to update it at any time?
+
+<!--
+Local Variables:
+time-stamp-line-limit: 40
+time-stamp-start: "Time-stamp: *\""
+time-stamp-end: "\""
+time-stamp-format: "%04Y/%02m/%02d %02H:%02M:%02S %Z"
+time-stamp-time-zone: "GMT"
+End:
+-->

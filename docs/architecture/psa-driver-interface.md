@@ -327,7 +327,60 @@ Opaque drivers allow a PSA Cryptography implementation to delegate cryptographic
 
 The format of a key for opaque drivers is an opaque blob. The content of this blob is fully up to the driver. The core merely stores this blob.
 
-The `"key_context"` property in the [driver description](#driver-description-top-level-element) specifies how to calculate the size of the key context as a function of the key type and size. TODO
+Note that since the core stores the key context blob as it is in memory, it must only contain data that is meaningful after a reboot. In particular, it must not contain any pointers or transient handles.
+
+The `"key_context"` property in the [driver description](#driver-description-top-level-element) specifies how to calculate the size of the key context as a function of the key type and size. This is an object with the following properties:
+
+* `"base_size"` (integer or string, optional): this many bytes are included in every key context. If omitted, this value defaults to 0.
+* `"key_pair_size"` (integer or string, optional): this many bytes are included in every key context for a key pair. If omitted, this value defaults to 0.
+* `"public_key_size"` (integer or string, optional): this many bytes are included in every key context for a key pair. If omitted, this value defaults to 0.
+* `"symmetric_factor"` (integer or string, optional): every key context for a symmetric key includes this many times the key size. If omitted, this value defaults to 0.
+* `"store_public_key"` (boolean, optional): If specified and true, for a key pair, the key context includes space for the public key. If omitted or false, no additional space is added for the public key.
+* `"size_function"` (string, optional): the name of a function that returns the number of bytes that the driver needs in a key context for a key. This may be a pointer to function. This must be a C identifier; more complex expressions are not permitted. If the core uses this function, it supersedes all the other properties.
+
+The integer properties must be C language constants. A typical value for `"base_size"` is `sizeof(acme_key_context_t)` where `acme_key_context_t` is a type defined in a driver header file.
+
+#### Size of a dynamically allocated key context
+
+If the core supports dynamic allocation for the key context and chooses to use it, and the driver specification includes the `"size_function"` property, the size of the key context is at least
+```
+size_function(key_type, key_bits)
+```
+where `size_function` is the function named in the `"size_function"` property, `key_type` is the key type and `key_bits` is the key size in bits. The prototype of the size function is
+```
+size_t size_function(psa_key_type_t key_type, size_t key_bits);
+```
+
+#### Size of a statically allocated key context
+
+If the core does not support dynamic allocation for the key context or chooses not to use it, or if the driver specification does not include the `"size_function"` property, the size of the key context for a key of type `key_type` and of size `key_bits` bits is:
+
+* For a key pair (`PSA_KEY_TYPE_IS_KEY_PAIR(key_type)` is true):
+    ```
+    base_size + key_pair_size + public_key_overhead
+    ```
+    where `public_key_overhead = PSA_EXPORT_PUBLIC_KEY_MAX_SIZE(key_type, key_bits)` if the `"store_public_key"` property is true and `public_key_overhead = 0` otherwise.
+
+* For a public key (`PSA_KEY_TYPE_IS_PUBLIC_KEY(key_type)` is true):
+    ```
+    base_size + public_key_size
+    ```
+
+* For a symmetric key (not a key pair or public key):
+    ```
+    base_size + symmetric_factor * key_bytes
+    ```
+    where `key_bytes = ((key_bits + 7) / 8)` is the key size in bytes.
+
+#### Key context size for a secure element with storage
+
+If the key is stored in the secure element and the driver only needs to store a label for the key, use `"base_size"` as the size of the label plus any other metadata that the driver needs to store, and omit the other properties.
+
+If the key is stored in the secure element, but the secure element does not store the public part of a key pair and cannot recompute it on demand, additionally use the `"store_public_key"` property with the value `true`. Note that this only influences the size of the key context: the driver code must copy the public key to the key context and retrieve it on demand in its `export_public_key` function.
+
+#### Key context size for a secure element without storage
+
+If the key is stored in wrapped form outside the secure element, and the wrapped form of the key plus any metadata has up to *N* bytes of overhead, use *N* as the value of the `"base_size"` property and set the `"symmetric_factor"` property to 1. Set the `"key_pair_size"` and `"public_key_size"` properties appropriately for the largest supported key pair and the largest supported public key respectively.
 
 ### Key management with opaque drivers
 

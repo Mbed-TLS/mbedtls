@@ -8,4 +8,4 @@ data_files/hmac_drbg_seed
 data_files/ctr_drbg_seed
 data_files/entropy_seed
 
-/instrument_record_status.h
+include/test/instrument_record_status.h

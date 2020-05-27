@@ -17,7 +17,7 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/psa_util.h"
-#include "psa_crypto_helpers.h"
+#include "test/psa_crypto_helpers.h"
 #define PSA_INIT( ) PSA_ASSERT( psa_crypto_init( ) )
 #else
 /* Define empty macros so that we can use them in the preamble and teardown

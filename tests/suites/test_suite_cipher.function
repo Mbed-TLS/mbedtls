@@ -10,7 +10,7 @@
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "psa_crypto_helpers.h"
+#include "test/psa_crypto_helpers.h"
 #endif
 
 /* END_HEADER */

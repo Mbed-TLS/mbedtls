@@ -46,7 +46,7 @@ function(add_test_suite suite_name)
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_code.py mbedtls ${CMAKE_CURRENT_SOURCE_DIR}/suites/helpers.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/host_test.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${data_name}.data
     )
 
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
     add_executable(test_suite_${data_name} test_suite_${data_name}.c)
     target_link_libraries(test_suite_${data_name} ${libs})
     if(${data_name} MATCHES ${SKIP_TEST_SUITES_REGEX})

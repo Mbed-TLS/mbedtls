@@ -6,7 +6,7 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -Wextra
 LDFLAGS ?=
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -I../library -D_FILE_OFFSET_BITS=64
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I./include -I../include -I../library -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = -L../library			\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
@@ -110,9 +110,9 @@ $(BINARIES): %$(EXEXT): %.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 # Some test suites require additional header files.
-$(filter test_suite_psa_crypto%, $(BINARIES)): psa_crypto_helpers.h
+$(filter test_suite_psa_crypto%, $(BINARIES)): include/test/psa_crypto_helpers.h
 $(addprefix embedded_,$(filter test_suite_psa_crypto%, $(APPS))): embedded_%: TESTS/mbedtls/%/psa_crypto_helpers.h
-$(filter test_suite_psa_%, $(BINARIES)): psa_helpers.h
+$(filter test_suite_psa_%, $(BINARIES)): include/test/psa_helpers.h
 $(addprefix embedded_,$(filter test_suite_psa_%, $(APPS))): embedded_%: TESTS/mbedtls/%/psa_helpers.h
 
 clean:
@@ -152,7 +152,7 @@ $(EMBEDDED_TESTS): embedded_%: suites/$$(firstword $$(subst ., ,$$*)).function s
 generate-target-tests: $(EMBEDDED_TESTS)
 
 define copy_header_to_target
-TESTS/mbedtls/$(1)/$(2): $(2)
+TESTS/mbedtls/$(1)/$(2): include/test/$(2)
 	echo "  Copy ./$$@"
 ifndef WINDOWS
 	mkdir -p $$(@D)
@@ -163,11 +163,11 @@ else
 endif
 
 endef
-$(foreach app, $(APPS), $(foreach file, $(wildcard *.h), \
+$(foreach app, $(APPS), $(foreach file, $(notdir $(wildcard include/test/*.h)), \
 	$(eval $(call copy_header_to_target,$(app),$(file)))))
 
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-$(BINARIES): instrument_record_status.h
-instrument_record_status.h: ../include/psa/crypto.h Makefile
+$(BINARIES): include/test/instrument_record_status.h
+include/test/instrument_record_status.h: ../include/psa/crypto.h Makefile
 	sed <../include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
 endif

@@ -449,7 +449,7 @@ test_info_t;
 static test_info_t test_info;
 
 #if defined(MBEDTLS_PLATFORM_C)
-mbedtls_platform_context platform_ctx;
+static mbedtls_platform_context platform_ctx;
 #endif
 
 #if defined(MBEDTLS_CHECK_PARAMS)
@@ -504,7 +504,7 @@ void test_skip( const char *test, int line_no, const char* filename )
     test_info.filename = filename;
 }
 
-static int platform_setup()
+int platform_setup()
 {
     int ret = 0;
 #if defined(MBEDTLS_PLATFORM_C)
@@ -513,7 +513,7 @@ static int platform_setup()
     return( ret );
 }
 
-static void platform_teardown()
+void platform_teardown()
 {
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown( &platform_ctx );
@@ -652,7 +652,7 @@ void hexify( unsigned char *obuf, const unsigned char *ibuf, int len )
  *
  * For convenience, dies if allocation fails.
  */
-static unsigned char *zero_alloc( size_t len )
+unsigned char *zero_alloc( size_t len )
 {
     void *p;
     size_t actual_len = ( len != 0 ) ? len : 1;
@@ -701,7 +701,7 @@ unsigned char *unhexify_alloc( const char *ibuf, size_t *olen )
  *
  * rng_state shall be NULL.
  */
-static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len )
+int rnd_std_rand( void *rng_state, unsigned char *output, size_t len )
 {
 #if !defined(__OpenBSD__)
     size_t i;

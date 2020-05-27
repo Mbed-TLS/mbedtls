@@ -27,8 +27,6 @@
 #define PSA_DONE( ) ( (void) 0 )
 #endif
 
-static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len );
-
 #define RSA_KEY_SIZE 512
 #define RSA_KEY_LEN   64
 

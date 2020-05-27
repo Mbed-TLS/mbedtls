@@ -40,8 +40,10 @@
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
+#include <stdio.h>
 #include <stdlib.h>
 #define mbedtls_printf     printf
+#define mbedtls_exit       exit
 #define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
@@ -72,14 +74,14 @@ int main( int argc, char** argv )
     {
         mbedtls_printf( "This program takes exactly 1 agument\n" );
         usage();
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 
     fp = fopen( argv[1], "r" );
     if( fp == NULL )
     {
         mbedtls_printf( "Could not open file '%s'\n", argv[1] );
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 
     while( ( c = fgetc( fp ) ) != EOF && p < end - 1 )
@@ -97,7 +99,7 @@ int main( int argc, char** argv )
     fclose( fp );
     mbedtls_platform_zeroize( buf, sizeof( buf ) );
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)

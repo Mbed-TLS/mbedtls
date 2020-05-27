@@ -78,7 +78,7 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_CIPHER_C and/or MBEDTLS_MD_C and/or MBEDTLS_FS_IO not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -97,7 +97,8 @@ int mbedtls_hardware_poll( void *data, unsigned char *output,
 
 int main( int argc, char *argv[] )
 {
-    int ret = 1, i, n;
+    int ret = 1, i;
+    unsigned n;
     int exit_code = MBEDTLS_EXIT_FAILURE;
     int mode;
     size_t keylen, ilen, olen;
@@ -574,6 +575,6 @@ exit:
     mbedtls_cipher_free( &cipher_ctx );
     mbedtls_md_free( &md_ctx );
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_CIPHER_C && MBEDTLS_MD_C && MBEDTLS_FS_IO */

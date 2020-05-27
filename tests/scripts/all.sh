@@ -131,6 +131,7 @@ pre_initialize_variables () {
     : ${OUT_OF_SOURCE_DIR:=./mbedtls_out_of_source_build}
     : ${ARMC5_BIN_DIR:=/usr/bin}
     : ${ARMC6_BIN_DIR:=/usr/bin}
+    : ${ARM_NONE_EABI_GCC_PREFIX:=arm-none-eabi-}
 
     # if MAKEFLAGS is not set add the -j option to speed up invocations of make
     if [ -z "${MAKEFLAGS+set}" ]; then
@@ -192,6 +193,9 @@ General options:
   -f|--force            Force the tests to overwrite any modified files.
   -k|--keep-going       Run all tests and report errors at the end.
   -m|--memory           Additional optional memory tests.
+     --arm-none-eabi-gcc-prefix=<string>
+                        Prefix for a cross-compiler for arm-none-eabi
+                        (default: "${ARM_NONE_EABI_GCC_PREFIX}")
      --armcc            Run ARM Compiler builds (on by default).
      --except           Exclude the COMPONENTs listed on the command line,
                         instead of running only those.
@@ -276,9 +280,13 @@ armc6_build_test()
 {
     FLAGS="$1"
 
-    msg "build: ARM Compiler 6 ($FLAGS), make"
+    msg "build: ARM Compiler 6 ($FLAGS)"
     ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
                     WARNING_CFLAGS='-xc -std=c99' make lib
+
+    msg "size: ARM Compiler 6 ($FLAGS)"
+    "$ARMC6_FROMELF" -z library/*.o
+
     make clean
 }
 
@@ -312,6 +320,7 @@ pre_parse_command_line () {
 
     while [ $# -gt 0 ]; do
         case "$1" in
+            --arm-none-eabi-gcc-prefix) shift; ARM_NONE_EABI_GCC_PREFIX="$1";;
             --armcc) no_armcc=;;
             --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
             --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
@@ -513,7 +522,7 @@ pre_check_tools () {
     esac
 
     case " $RUN_COMPONENTS " in
-        *_arm_none_eabi_gcc[_\ ]*) check_tools "arm-none-eabi-gcc";;
+        *_arm_none_eabi_gcc[_\ ]*) check_tools "${ARM_NONE_EABI_GCC_PREFIX}gcc";;
     esac
 
     case " $RUN_COMPONENTS " in
@@ -528,9 +537,12 @@ pre_check_tools () {
         *_armcc*)
             ARMC5_CC="$ARMC5_BIN_DIR/armcc"
             ARMC5_AR="$ARMC5_BIN_DIR/armar"
+            ARMC5_FROMELF="$ARMC5_BIN_DIR/fromelf"
             ARMC6_CC="$ARMC6_BIN_DIR/armclang"
             ARMC6_AR="$ARMC6_BIN_DIR/armar"
-            check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR";;
+            ARMC6_FROMELF="$ARMC6_BIN_DIR/fromelf"
+            check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC5_FROMELF" \
+                        "$ARMC6_CC" "$ARMC6_AR" "$ARMC6_FROMELF";;
     esac
 
     msg "info: output_env.sh"
@@ -620,7 +632,7 @@ component_test_default_out_of_box () {
     make test
 
     msg "selftest: make, default config (out-of-box)" # ~10s
-    programs/test/selftest
+    if_build_succeeded programs/test/selftest
 }
 
 component_test_default_cmake_gcc_asan () {
@@ -630,6 +642,9 @@ component_test_default_cmake_gcc_asan () {
 
     msg "test: main suites (inc. selftests) (ASan build)" # ~ 50s
     make test
+
+    msg "test: selftest (ASan build)" # ~ 10s
+    if_build_succeeded programs/test/selftest
 
     msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
     if_build_succeeded tests/ssl-opt.sh
@@ -646,6 +661,9 @@ component_test_full_cmake_gcc_asan () {
 
     msg "test: main suites (inc. selftests) (full config, ASan build)"
     make test
+
+    msg "test: selftest (ASan build)" # ~ 10s
+    if_build_succeeded programs/test/selftest
 
     msg "test: ssl-opt.sh (full config, ASan build)"
     if_build_succeeded tests/ssl-opt.sh
@@ -1008,24 +1026,33 @@ component_test_hardcoded_hash_cmake_clang() {
     if_build_succeeded tests/ssl-opt.sh -f '^Default$\|^Default, DTLS$'
 }
 
-component_build_deprecated () {
-    msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
-    scripts/config.pl full
-    scripts/config.pl set MBEDTLS_DEPRECATED_WARNING
-    # Build with -O -Wextra to catch a maximum of issues.
-    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra' lib programs
-    make PTHREAD=1 CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
-
-    msg "build: make, full config + DEPRECATED_REMOVED, clang -O" # ~ 30s
-    # No cleanup, just tweak the configuration and rebuild
-    make clean
-    scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
+component_test_default_no_deprecated () {
+    # Test that removing the deprecated features from the default
+    # configuration leaves something consistent.
+    msg "build: make, default + MBEDTLS_DEPRECATED_REMOVED" # ~ 30s
     scripts/config.pl set MBEDTLS_DEPRECATED_REMOVED
-    # Build with -O -Wextra to catch a maximum of issues.
-    make CC=clang CFLAGS='-O -Werror -Wall -Wextra' lib programs
-    make PTHREAD=1 CC=clang CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
+    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
+
+    msg "test: make, default + MBEDTLS_DEPRECATED_REMOVED" # ~ 5s
+    make test
 }
 
+component_test_full_deprecated_warning () {
+    # Test that there is nothing deprecated in the full configuration.
+    # A deprecated feature would trigger a warning (made fatal) from
+    # MBEDTLS_DEPRECATED_WARNING.
+    msg "build: make, full + MBEDTLS_DEPRECATED_WARNING" # ~ 30s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_DEPRECATED_REMOVED
+    scripts/config.pl set MBEDTLS_DEPRECATED_WARNING
+    # There are currently no tests for any deprecated feature.
+    # If some are added, 'make test' would trigger warnings here.
+    make CC=clang CFLAGS='-O -Werror -Wall -Wextra' lib programs
+    make PTHREAD=1 CC=clang CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
+
+    msg "test: make, full + MBEDTLS_DEPRECATED_WARNING" # ~ 5s
+    make test
+}
 
 component_test_depends_curves () {
     msg "test/build: curves.pl (gcc)" # ~ 4 min
@@ -1076,6 +1103,7 @@ component_test_check_params_without_platform () {
     scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_FPRINTF_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_MEMORY
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_PRINTF_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_SNPRINTF_ALT
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
@@ -1105,6 +1133,7 @@ component_test_no_platform () {
     scripts/config.pl unset MBEDTLS_PLATFORM_SNPRINTF_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.pl unset MBEDTLS_FS_IO
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
@@ -1119,6 +1148,7 @@ component_build_no_std_function () {
     scripts/config.pl full
     scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     make CC=gcc PTHREAD=1 CFLAGS='-Werror -Wall -Wextra -Os'
 }
 
@@ -1266,6 +1296,7 @@ component_test_null_entropy () {
     scripts/config.pl set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
     scripts/config.pl set MBEDTLS_ENTROPY_C
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.pl unset MBEDTLS_ENTROPY_HARDWARE_ALT
     scripts/config.pl unset MBEDTLS_HAVEGE_C
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan -D UNSAFE_BUILD=ON .
@@ -1379,7 +1410,7 @@ test_build_opt () {
     info=$1 cc=$2; shift 2
     for opt in "$@"; do
           msg "build/test: $cc $opt, $info" # ~ 30s
-          make CC="$cc" CFLAGS="$opt -Wall -Wextra -Werror"
+          make CC="$cc" CFLAGS="$opt -std=c99 -pedantic -Wall -Wextra -Werror"
           # We're confident enough in compilers to not run _all_ the tests,
           # but at least run the unit tests. In particular, runs with
           # optimizations use inline assembly whereas runs with -O0
@@ -1553,45 +1584,63 @@ component_test_no_x509_verify_callback () {
 }
 
 component_build_arm_none_eabi_gcc () {
-    msg "build: arm-none-eabi-gcc, make" # ~ 10s
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -O1" # ~ 10s
     scripts/config.pl baremetal
-    make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
+    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra -O1' lib
+
+    msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -O1"
+    ${ARM_NONE_EABI_GCC_PREFIX}size library/*.o
 }
 
 component_build_arm_none_eabi_gcc_arm5vte () {
-    msg "build: arm-none-eabi-gcc -march=arm5vte, make" # ~ 10s
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -march=arm5vte" # ~ 10s
     scripts/config.pl baremetal
     # Build for a target platform that's close to what Debian uses
     # for its "armel" distribution (https://wiki.debian.org/ArmEabiPort).
     # See https://github.com/ARMmbed/mbedtls/pull/2169 and comments.
     # It would be better to build with arm-linux-gnueabi-gcc but
     # we don't have that on our CI at this time.
-    make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar CFLAGS='-Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te' SHELL='sh -x' lib
+    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" CFLAGS='-Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te' SHELL='sh -x' lib
+
+    msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -march=armv5te -O1"
+    ${ARM_NONE_EABI_GCC_PREFIX}size library/*.o
+}
+
+component_build_arm_none_eabi_gcc_m0plus () {
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -mthumb -mcpu=cortex-m0plus" # ~ 10s
+    scripts/config.pl baremetal
+    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra -mthumb -mcpu=cortex-m0plus -Os' lib
+
+    msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -mthumb -mcpu=cortex-m0plus -Os"
+    ${ARM_NONE_EABI_GCC_PREFIX}size library/*.o
 }
 
 component_build_arm_none_eabi_gcc_no_udbl_division () {
-    msg "build: arm-none-eabi-gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX} -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
     scripts/config.pl baremetal
     scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
-    make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
+    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra' lib
     echo "Checking that software 64-bit division is not required"
     if_build_succeeded not grep __aeabi_uldiv library/*.o
 }
 
 component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
-    msg "build: arm-none-eabi-gcc MBEDTLS_NO_64BIT_MULTIPLICATION, make" # ~ 10s
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX} MBEDTLS_NO_64BIT_MULTIPLICATION, make" # ~ 10s
     scripts/config.pl baremetal
     scripts/config.pl set MBEDTLS_NO_64BIT_MULTIPLICATION
-    make TINYCRYPT_BUILD=0 CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -O1 -march=armv6-m -mthumb' lib
+    make TINYCRYPT_BUILD=0 CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-Werror -O1 -march=armv6-m -mthumb' lib
     echo "Checking that software 64-bit multiplication is not required"
     if_build_succeeded not grep __aeabi_lmul library/*.o
 }
 
 component_build_armcc () {
-    msg "build: ARM Compiler 5, make"
+    msg "build: ARM Compiler 5"
     scripts/config.pl baremetal
-
     make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
+
+    msg "size: ARM Compiler 5"
+    "$ARMC5_FROMELF" -z library/*.o
+
     make clean
 
     # ARM Compiler 6 - Target ARMv7-A
@@ -1716,6 +1765,12 @@ component_test_hardware_entropy () {
     if_build_succeeded tests/ssl-opt.sh --filter "^Default, DTLS$"
 }
 
+component_build_ssl_hw_record_accel() {
+    msg "build: default config with MBEDTLS_SSL_HW_RECORD_ACCEL enabled"
+    scripts/config.pl set MBEDTLS_SSL_HW_RECORD_ACCEL
+    make CFLAGS='-Werror -O1'
+}
+
 component_test_allow_sha1 () {
     msg "build: allow SHA1 in certificates by default"
     scripts/config.pl set MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
@@ -1836,9 +1891,6 @@ component_test_zeroize () {
     unset gdb_disable_aslr
 }
 
-support_check_python_files () {
-    type pylint3 >/dev/null 2>/dev/null
-}
 component_check_python_files () {
     msg "Lint: Python scripts"
     record_status tests/scripts/check-python-files.sh

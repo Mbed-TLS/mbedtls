@@ -53,7 +53,7 @@ int main( void )
            "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_CLI_C and/or "
            "MBEDTLS_NET_C not defined, or "
            "neither MBEDTLS_CTR_DRBG_C nor MBEDTLS_HMAC_DRBG_C defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -131,6 +131,7 @@ int main( void )
 #define DFL_ETM                 -1
 #define DFL_SERIALIZE           0
 #define DFL_EXTENDED_MS_ENFORCE -1
+#define DFL_SKIP_CLOSE_NOTIFY   0
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
@@ -335,7 +336,9 @@ int main( void )
 #define USAGE_FORCE_VERSION ""
 #endif
 
-#define USAGE \
+/* USAGE is arbitrarily split to stay under the portable string literal
+ * length limit: 4095 bytes in C99. */
+#define USAGE1 \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
     "    server_name=%%s      default: localhost\n"         \
@@ -355,17 +358,22 @@ int main( void )
     "                        options: 1 (level-triggered, implies nbio=1),\n" \
     USAGE_READ_TIMEOUT                                                  \
     "    max_resend=%%d       default: 0 (no resend on timeout)\n" \
+    "    skip_close_notify=%%d default: 0 (send close_notify)\n" \
     "\n"                                                    \
     USAGE_DTLS                                              \
     USAGE_CID                                               \
-    "\n"                                                    \
+    "\n"
+
+#define USAGE2 \
     USAGE_AUTH_MODE                                         \
     USAGE_IO                                                \
     "\n"                                                    \
     USAGE_PSK                                               \
     USAGE_ECJPAKE                                           \
     USAGE_ECRESTART                                         \
-    "\n"                                                    \
+    "\n"
+
+#define USAGE3 \
     USAGE_ALLOW_LEGACY_RENEGO                               \
     USAGE_RENEGO                                            \
     "    exchanges=%%d        default: 1\n"                 \
@@ -385,7 +393,8 @@ int main( void )
     USAGE_CURVES                                            \
     USAGE_RECSPLIT                                          \
     USAGE_DHMLEN                                            \
-    "\n"                                                    \
+    "\n"
+#define USAGE4 \
     "    arc4=%%d             default: (library default: 0)\n" \
     "    allow_sha1=%%d       default: 0\n"                             \
     USAGE_MIN_VERSION                                                   \
@@ -466,6 +475,7 @@ struct options
     int serialize;              /* serialize/deserialize connection         */
     const char *cid_val_renego; /* the CID to use for incoming messages
                                  * after renegotiation                      */
+    int skip_close_notify;      /* skip sending the close_notify alert      */
 } opt;
 
 int query_config( const char *config );
@@ -1060,7 +1070,10 @@ int main( int argc, char *argv[] )
         if( ret == 0 )
             ret = 1;
 
-        mbedtls_printf( USAGE );
+        mbedtls_printf( USAGE1 );
+        mbedtls_printf( USAGE2 );
+        mbedtls_printf( USAGE3 );
+        mbedtls_printf( USAGE4 );
 
         list = mbedtls_ssl_list_ciphersuites();
         while( *list )
@@ -1129,6 +1142,7 @@ int main( int argc, char *argv[] )
     opt.etm                 = DFL_ETM;
     opt.dgram_packing       = DFL_DGRAM_PACKING;
     opt.serialize           = DFL_SERIALIZE;
+    opt.skip_close_notify   = DFL_SKIP_CLOSE_NOTIFY;
 
     for( i = 1; i < argc; i++ )
     {
@@ -1523,7 +1537,13 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "query_config" ) == 0 )
         {
-            return query_config( q );
+            mbedtls_exit( query_config( q ) );
+        }
+        else if( strcmp( p, "skip_close_notify" ) == 0 )
+        {
+            opt.skip_close_notify = atoi( q );
+            if( opt.skip_close_notify < 0 || opt.skip_close_notify > 1 )
+                goto usage;
         }
         else if( strcmp( p, "serialize") == 0 )
         {
@@ -2892,10 +2912,25 @@ close_notify:
     mbedtls_printf( "  . Closing the connection..." );
     fflush( stdout );
 
-    /* No error checking, the connection might be closed already */
-    do ret = mbedtls_ssl_close_notify( ssl );
-    while( ret == MBEDTLS_ERR_SSL_WANT_WRITE );
-    ret = 0;
+    /*
+     * Most of the time sending a close_notify before closing is the right
+     * thing to do. However, when the server already knows how many messages
+     * are expected and closes the connection by itself, this alert becomes
+     * redundant. Sometimes with DTLS this redundancy becomes a problem by
+     * leading to a race condition where the server might close the connection
+     * before seeing the alert, and since UDP is connection-less when the
+     * alert arrives it will be seen as a new connection, which will fail as
+     * the alert is clearly not a valid ClientHello. This may cause spurious
+     * failures in tests that use DTLS and resumption with ssl_server2 in
+     * ssl-opt.sh, avoided by enabling skip_close_notify client-side.
+     */
+    if( opt.skip_close_notify == 0 )
+    {
+        /* No error checking, the connection might be closed already */
+        do ret = mbedtls_ssl_close_notify( ssl );
+        while( ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+        ret = 0;
+    }
 
     mbedtls_printf( " done\n" );
 
@@ -3049,7 +3084,7 @@ exit:
     if( ret < 0 )
         ret = 1;
 
-    return( ret );
+    mbedtls_exit( ret );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&
           MBEDTLS_SSL_CLI_C && MBEDTLS_NET_C && MBEDTLS_RSA_C &&

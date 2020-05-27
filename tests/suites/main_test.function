@@ -19,6 +19,12 @@
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
 
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#if !defined(_POSIX_C_SOURCE)
+#define _POSIX_C_SOURCE 1 // for fileno() from <stdio.h>
+#endif
+#endif
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include <mbedtls/config.h>
 #else
@@ -174,7 +180,7 @@ void execute_function_ptr(TestWrapper_t fp, void **params)
  *               DISPATCH_TEST_FN_NOT_FOUND if not found
  *               DISPATCH_UNSUPPORTED_SUITE if not compile time enabled.
  */
-int dispatch_test( int func_idx, void ** params )
+int dispatch_test( size_t func_idx, void ** params )
 {
     int ret = DISPATCH_TEST_SUCCESS;
     TestWrapper_t fp = NULL;
@@ -205,7 +211,7 @@ int dispatch_test( int func_idx, void ** params )
  *               DISPATCH_TEST_FN_NOT_FOUND if not found
  *               DISPATCH_UNSUPPORTED_SUITE if not compile time enabled.
  */
-int check_test( int func_idx )
+int check_test( size_t func_idx )
 {
     int ret = DISPATCH_TEST_SUCCESS;
     TestWrapper_t fp = NULL;

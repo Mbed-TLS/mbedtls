@@ -139,8 +139,10 @@ endif
 
 ## Editor navigation files
 C_SOURCE_FILES = $(wildcard $(INCLUDE_DIR)/*/*.h $(LIBRARY_DIR)/*.[hc] $(PROGRAMS_DIR)/*/*.[hc] $(TESTS_DIR)/suites/*.function)
+# Exuberant-ctags invocation. Other ctags implementations may require different options.
+CTAGS = ctags --langmap=c:+.h.function -o
 tags: $(C_SOURCE_FILES)
-	ctags -o $@ $(C_SOURCE_FILES)
+	$(CTAGS) $@ $(C_SOURCE_FILES)
 TAGS: $(C_SOURCE_FILES)
 	etags -o $@ $(C_SOURCE_FILES)
 GPATH GRTAGS GSYMS GTAGS: $(C_SOURCE_FILES)

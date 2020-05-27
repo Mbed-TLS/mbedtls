@@ -63,7 +63,24 @@ Changes
    * Reduce RAM consumption during session renegotiation by not storing
      the peer CRT chain and session ticket twice.
 
-= mbed TLS 2.16.X branch released XXXX-XX-XX
+= mbed TLS 2.16.6 branch released 2020-04-14
+
+Security
+   * Fix side channel in ECC code that allowed an adversary with access to
+     precise enough timing and memory access information (typically an
+     untrusted operating system attacking a secure enclave) to fully recover
+     an ECDSA private key. Found and reported by Alejandro Cabrera Aldaya,
+     Billy Brumley and Cesar Pereida Garcia. CVE-2020-10932
+   * Fix a potentially remotely exploitable buffer overread in a
+     DTLS client when parsing the Hello Verify Request message.
+
+Bugfix
+   * Fix compilation failure when both MBEDTLS_SSL_PROTO_DTLS and
+     MBEDTLS_SSL_HW_RECORD_ACCEL are enabled.
+   * Fix a function name in a debug message. Contributed by Ercan Ozturk in
+     #3013.
+
+= mbed TLS 2.16.5 branch released 2020-02-20
 
 Security
    * Fix potential memory overread when performing an ECDSA signature
@@ -80,6 +97,11 @@ Security
 
 Bugfix
    * Fix an unchecked call to mbedtls_md() in the x509write module.
+   * Fix a bug in mbedtls_pk_parse_key() that would cause it to accept some
+     RSA keys that would later be rejected by functions expecting private
+     keys. Found by Catena cyber using oss-fuzz (issue 20467).
+   * Fix a bug in mbedtls_pk_parse_key() that would cause it to accept some
+     RSA keys with invalid values by silently fixing those values.
 
 = mbed TLS 2.16.4 branch released 2020-01-15
 

@@ -1306,8 +1306,18 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     {
         case MBEDTLS_MODE_GCM:
         case MBEDTLS_MODE_CCM:
-            t_out->fixed_ivlen = 4;
-            t_in->fixed_ivlen = 4;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+            if( ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+            {
+                t_out->fixed_ivlen = 12;
+                t_in->fixed_ivlen  = 12;
+            }
+            else
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+            {
+                t_out->fixed_ivlen = 4;
+                t_in->fixed_ivlen = 4;
+            }
             t_out->maclen = 0;
             t_in->maclen = 0;
             switch( tag_mode )

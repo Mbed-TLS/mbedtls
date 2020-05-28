@@ -20,8 +20,12 @@
 /* Enable definition of getaddrinfo() even when compiling with -std=c99. Must
  * be set before config.h, which pulls in glibc's features.h indirectly.
  * Harmless on other platforms. */
+#ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200112L
+#endif
+#ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 600 /* sockaddr_storage */
+#endif
 
 #include "common.h"
 

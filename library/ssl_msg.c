@@ -4985,6 +4985,15 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
  *       and the caller has to make sure there's space for this.
  */
 
+static size_t ssl_transform_get_explicit_iv_len(
+                        mbedtls_ssl_transform const *transform )
+{
+    if( transform->minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
+        return( 0 );
+
+    return( transform->ivlen - transform->fixed_ivlen );
+}
+
 void mbedtls_ssl_update_out_pointers( mbedtls_ssl_context *ssl,
                                       mbedtls_ssl_transform *transform )
 {
@@ -5013,14 +5022,10 @@ void mbedtls_ssl_update_out_pointers( mbedtls_ssl_context *ssl,
         ssl->out_iv  = ssl->out_hdr + 5;
     }
 
+    ssl->out_msg = ssl->out_iv;
     /* Adjust out_msg to make space for explicit IV, if used. */
-    if( transform != NULL &&
-        ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
-    {
-        ssl->out_msg = ssl->out_iv + transform->ivlen - transform->fixed_ivlen;
-    }
-    else
-        ssl->out_msg = ssl->out_iv;
+    if( transform != NULL )
+        ssl->out_msg += ssl_transform_get_explicit_iv_len( transform );
 }
 
 /* Once ssl->in_hdr as the address of the beginning of the

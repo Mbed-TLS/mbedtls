@@ -46,8 +46,10 @@ class FileIssueTracker:
 
     @staticmethod
     def normalize_path(filepath):
-        """Normalize ``filepath`` """
+        """Normalize ``filepath`` with / as the directory separator."""
         filepath = os.path.normpath(filepath)
+        # On Windows, we may have backslashes to separate directories.
+        # We need slashes to match exemption lists.
         seps = os.path.sep
         if os.path.altsep is not None:
             seps += os.path.altsep

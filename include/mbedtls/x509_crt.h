@@ -310,14 +310,15 @@ int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain,
  *                 mbedtls_x509_crt_parse_der_ext() routine when it encounters
  *                 an unsupported extension.
  *
- * \param crt      Pointer to the certificate being parsed
- * \param oid      Extension's OID
- * \param critical If the extension is critical (per the RFC's definition)
- * \param p        On entry \c *p points to the start of the extension ASN.1
- *                 data.  On successful completion \c *p must point to the
- *                 first byte after it.
- *                 On error, the value of \c *p is undefined.
- * \param end      End of extension data.
+ * \param crt      The certificate being parsed.
+ * \param oid      The OID of the extension.
+ * \param critical Whether the extension is critical.
+ * \param p        On entry, \c *p points to the start of the extension value
+ *                 (the content of the OCTET STRING).
+ *                 On successful completion, \c *p must point to the
+ *                 first byte after the extension value.
+ *                 On error, the value of \c *p is not undefined.
+ * \param end      End of extension value.
   *
  * \note           The callback must fail and return a negative error code if
  *                 it can not parse or does not support the extension.
@@ -326,10 +327,10 @@ int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain,
  * \return         A negative error code on failure.
  */
 typedef int (*mbedtls_x509_crt_ext_cb_t)( mbedtls_x509_crt const *crt,
-                                        mbedtls_x509_buf const *oid,
-                                        int critical,
-                                        unsigned char **p,
-                                        const unsigned char *end );
+                                          mbedtls_x509_buf const *oid,
+                                          int critical,
+                                          unsigned char **p,
+                                          const unsigned char *end );
 
 /**
  * \brief          Parse a single DER formatted certificate and add it
@@ -354,10 +355,9 @@ typedef int (*mbedtls_x509_crt_ext_cb_t)( mbedtls_x509_crt const *crt,
  * \return         A negative error code on failure.
  */
 int mbedtls_x509_crt_parse_der_ext( mbedtls_x509_crt *chain,
-                                const unsigned char *buf,
-                                size_t buflen,
-                                mbedtls_x509_crt_ext_cb_t cb
-                                );
+                                    const unsigned char *buf,
+                                    size_t buflen,
+                                    mbedtls_x509_crt_ext_cb_t cb );
 
 /**
  * \brief          Parse a single DER formatted certificate and add it

@@ -957,7 +957,7 @@ static int x509_get_crt_ext( unsigned char **p,
         if( ret != 0 )
         {
             /* Give the callback (if any) a chance to handle the extension */
-            if (cb && cb(crt, &extn_oid, is_critical, p, end_ext_octet) == 0)
+            if( cb != NULL && cb( crt, &extn_oid, is_critical, p, end_ext_octet ) == 0 )
                 continue;
 
             /* No parser found, skip extension */

@@ -784,6 +784,20 @@ component_test_rsa_no_crt () {
     if_build_succeeded tests/compat.sh -t RSA
 }
 
+component_test_no_ctr_drbg () {
+    msg "build: Full minus CTR_DRBG"
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_CTR_DRBG_C
+
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: no CTR_DRBG"
+    make test
+
+    # no SSL tests as they all depend on CTR_DRBG so far
+}
+
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.pl full

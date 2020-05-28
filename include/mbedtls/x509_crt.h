@@ -307,8 +307,8 @@ int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain,
  * \brief          The type of certificate extension callbacks.
  *
  *                 Callbacks of this type are passed to and used by the
- *                 mbedtls_x509_crt_parse_der_ext() routine when it encounters
- *                 an unsupported extension.
+ *                 mbedtls_x509_crt_parse_der_with_ext_cb() routine when
+ *                 it encounters an unsupported extension.
  *
  * \param crt      The certificate being parsed.
  * \param oid      The OID of the extension.
@@ -354,10 +354,10 @@ typedef int (*mbedtls_x509_crt_ext_cb_t)( mbedtls_x509_crt const *crt,
  * \return         \c 0 if successful.
  * \return         A negative error code on failure.
  */
-int mbedtls_x509_crt_parse_der_ext( mbedtls_x509_crt *chain,
-                                    const unsigned char *buf,
-                                    size_t buflen,
-                                    mbedtls_x509_crt_ext_cb_t cb );
+int mbedtls_x509_crt_parse_der_with_ext_cb( mbedtls_x509_crt *chain,
+                                            const unsigned char *buf,
+                                            size_t buflen,
+                                            mbedtls_x509_crt_ext_cb_t cb );
 
 /**
  * \brief          Parse a single DER formatted certificate and add it

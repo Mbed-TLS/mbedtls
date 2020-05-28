@@ -302,9 +302,10 @@ int verify_parse_san( mbedtls_x509_subject_alternative_name *san,
     return( 0 );
 }
 
-int parse_crt_ext_cb( mbedtls_x509_crt const *crt, mbedtls_x509_buf const *oid, int critical,
-                      const unsigned char *p, const unsigned char *end )
+int parse_crt_ext_cb( void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf const *oid,
+                      int critical, const unsigned char *p, const unsigned char *end )
 {
+    ( void ) p_ctx;
     ( void ) crt;
     ( void ) p;
     ( void ) end;
@@ -786,7 +787,7 @@ void x509parse_crt( data_t * buf, char * result_str, int result )
     mbedtls_x509_crt_init( &crt );
     memset( output, 0, 2000 );
 
-    TEST_ASSERT( mbedtls_x509_crt_parse_der_with_ext_cb( &crt, buf->x, buf->len, 0, NULL ) == ( result ) );
+    TEST_ASSERT( mbedtls_x509_crt_parse_der_with_ext_cb( &crt, buf->x, buf->len, 0, NULL, NULL ) == ( result ) );
     if( ( result ) == 0 )
     {
         res = mbedtls_x509_crt_info( (char *) output, 2000, "", &crt );
@@ -801,7 +802,7 @@ void x509parse_crt( data_t * buf, char * result_str, int result )
     mbedtls_x509_crt_init( &crt );
     memset( output, 0, 2000 );
 
-    TEST_ASSERT( mbedtls_x509_crt_parse_der_with_ext_cb( &crt, buf->x, buf->len, 1, NULL ) == ( result ) );
+    TEST_ASSERT( mbedtls_x509_crt_parse_der_with_ext_cb( &crt, buf->x, buf->len, 1, NULL, NULL ) == ( result ) );
     if( ( result ) == 0 )
     {
         res = mbedtls_x509_crt_info( (char *) output, 2000, "", &crt );
@@ -827,7 +828,7 @@ void x509parse_crt_cb( data_t * buf, char * result_str, int result )
     mbedtls_x509_crt_init( &crt );
     memset( output, 0, 2000 );
 
-    TEST_ASSERT( mbedtls_x509_crt_parse_der_with_ext_cb( &crt, buf->x, buf->len, 0, parse_crt_ext_cb ) == ( result ) );
+    TEST_ASSERT( mbedtls_x509_crt_parse_der_with_ext_cb( &crt, buf->x, buf->len, 0, parse_crt_ext_cb, NULL ) == ( result ) );
     if( ( result ) == 0 )
     {
         res = mbedtls_x509_crt_info( (char *) output, 2000, "", &crt );
@@ -842,7 +843,7 @@ void x509parse_crt_cb( data_t * buf, char * result_str, int result )
     mbedtls_x509_crt_init( &crt );
     memset( output, 0, 2000 );
 
-    TEST_ASSERT( mbedtls_x509_crt_parse_der_with_ext_cb( &crt, buf->x, buf->len, 1, parse_crt_ext_cb ) == ( result ) );
+    TEST_ASSERT( mbedtls_x509_crt_parse_der_with_ext_cb( &crt, buf->x, buf->len, 1, parse_crt_ext_cb, NULL ) == ( result ) );
     if( ( result ) == 0 )
     {
         res = mbedtls_x509_crt_info( (char *) output, 2000, "", &crt );

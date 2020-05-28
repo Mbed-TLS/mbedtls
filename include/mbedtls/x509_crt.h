@@ -310,6 +310,7 @@ int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain,
  *                 mbedtls_x509_crt_parse_der_with_ext_cb() routine when
  *                 it encounters an unsupported extension.
  *
+ * \param p_ctx    An opaque context passed to the callback.
  * \param crt      The certificate being parsed.
  * \param oid      The OID of the extension.
  * \param critical Whether the extension is critical.
@@ -323,7 +324,8 @@ int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-typedef int (*mbedtls_x509_crt_ext_cb_t)( mbedtls_x509_crt const *crt,
+typedef int (*mbedtls_x509_crt_ext_cb_t)( void *p_ctx,
+                                          mbedtls_x509_crt const *crt,
                                           mbedtls_x509_buf const *oid,
                                           int critical,
                                           const unsigned char *p,
@@ -347,6 +349,7 @@ typedef int (*mbedtls_x509_crt_ext_cb_t)( mbedtls_x509_crt const *crt,
  *                   is destroyed (like mbedtls_x509_crt_parse_der_nocopy())
  * \param cb         A callback invoked for every unsupported certificate
  *                   extension.
+ * \param p_ctx      An opaque context passed to the callback.
  *
  * \note             This call is functionally equivalent to
  *                   mbedtls_x509_crt_parse_der(), and/or
@@ -363,7 +366,8 @@ int mbedtls_x509_crt_parse_der_with_ext_cb( mbedtls_x509_crt *chain,
                                             const unsigned char *buf,
                                             size_t buflen,
                                             int make_copy,
-                                            mbedtls_x509_crt_ext_cb_t cb );
+                                            mbedtls_x509_crt_ext_cb_t cb,
+                                            void *p_ctx );
 
 /**
  * \brief          Parse a single DER formatted certificate and add it

@@ -2862,7 +2862,10 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
              * such as secp224k1 are actually very close to the worst case.
              */
             if( ++count > 30 )
-                return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
+            {
+                ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
+                goto cleanup;
+            }
 
             ret = mbedtls_mpi_lt_mpi_ct( d, &grp->N, &cmp );
             if( ret != 0 )

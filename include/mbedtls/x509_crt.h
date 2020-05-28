@@ -330,30 +330,39 @@ typedef int (*mbedtls_x509_crt_ext_cb_t)( mbedtls_x509_crt const *crt,
                                           const unsigned char *end );
 
 /**
- * \brief          Parse a single DER formatted certificate and add it
- *                 to the end of the provided chained list.
+ * \brief            Parse a single DER formatted certificate and add it
+ *                   to the end of the provided chained list.
  *
- * \param chain    The pointer to the start of the CRT chain to attach to.
- *                 When parsing the first CRT in a chain, this should point
- *                 to an instance of ::mbedtls_x509_crt initialized through
- *                 mbedtls_x509_crt_init().
- * \param buf      The buffer holding the DER encoded certificate.
- * \param buflen   The size in Bytes of \p buf.
- * \param cb       A callback invoked for every unsupported certificate
- *                 extension.
+ * \param chain      The pointer to the start of the CRT chain to attach to.
+ *                   When parsing the first CRT in a chain, this should point
+ *                   to an instance of ::mbedtls_x509_crt initialized through
+ *                   mbedtls_x509_crt_init().
+ * \param buf        The buffer holding the DER encoded certificate.
+ * \param buflen     The size in Bytes of \p buf.
+ * \param make_copy  When not zero this function makes an internal copy of the
+ *                   CRT buffer \p buf. In particular, \p buf may be destroyed
+ *                   or reused after this call returns.
+ *                   When zero this function avoids duplicating the CRT buffer
+ *                   by taking temporary ownership thereof until the CRT
+ *                   is destroyed (like mbedtls_x509_crt_parse_der_nocopy())
+ * \param cb         A callback invoked for every unsupported certificate
+ *                   extension.
  *
- * \note           This call is functionally equivalent to
- *                 mbedtls_x509_crt_parse_der(), but it calls the callback
- *                 with every unsupported certificate extension.
- *                 The callback must return a negative error code if it
- *                 does not know how to handle such an extension.
+ * \note             This call is functionally equivalent to
+ *                   mbedtls_x509_crt_parse_der(), and/or
+ *                   mbedtls_x509_crt_parse_der_nocopy()
+ *                   but it calls the callback with every unsupported
+ *                   certificate extension.
+ *                   The callback must return a negative error code if it
+ *                   does not know how to handle such an extension.
  *
- * \return         \c 0 if successful.
- * \return         A negative error code on failure.
+ * \return           \c 0 if successful.
+ * \return           A negative error code on failure.
  */
 int mbedtls_x509_crt_parse_der_with_ext_cb( mbedtls_x509_crt *chain,
                                             const unsigned char *buf,
                                             size_t buflen,
+                                            int no_copy,
                                             mbedtls_x509_crt_ext_cb_t cb );
 
 /**

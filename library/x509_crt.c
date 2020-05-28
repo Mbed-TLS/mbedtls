@@ -1392,9 +1392,10 @@ int mbedtls_x509_crt_parse_der_nocopy( mbedtls_x509_crt *chain,
 int mbedtls_x509_crt_parse_der_with_ext_cb( mbedtls_x509_crt *chain,
                                             const unsigned char *buf,
                                             size_t buflen,
+                                            int make_copy,
                                             mbedtls_x509_crt_ext_cb_t cb )
 {
-    return( mbedtls_x509_crt_parse_der_internal( chain, buf, buflen, 1, cb ) );
+    return( mbedtls_x509_crt_parse_der_internal( chain, buf, buflen, make_copy, cb ) );
 }
 
 int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain,

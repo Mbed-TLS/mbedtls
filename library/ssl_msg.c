@@ -541,12 +541,14 @@ static void ssl_mac( mbedtls_md_context_t *md_ctx,
 }
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
+#if defined(MBEDTLS_GCM_C) || \
+    defined(MBEDTLS_CCM_C) || \
+    defined(MBEDTLS_CHACHAPOLY_C)
 static int ssl_transform_aead_dynamic_iv_is_explicit(
                                 mbedtls_ssl_transform const *transform )
 {
     return( transform->ivlen != transform->fixed_ivlen );
 }
-
 
 /* Compute IV := ( fixed_iv || 0 ) XOR ( 0 || dynamic_IV )
  *
@@ -575,6 +577,7 @@ static void ssl_build_record_nonce( unsigned char *dst_iv,
     for( i = 0; i < dynamic_iv_len; i++ )
         dst_iv[i] ^= dynamic_iv[i];
 }
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C */
 
 int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                              mbedtls_ssl_transform *transform,

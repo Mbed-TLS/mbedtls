@@ -362,7 +362,7 @@ typedef int (*mbedtls_x509_crt_ext_cb_t)( mbedtls_x509_crt const *crt,
 int mbedtls_x509_crt_parse_der_with_ext_cb( mbedtls_x509_crt *chain,
                                             const unsigned char *buf,
                                             size_t buflen,
-                                            int no_copy,
+                                            int make_copy,
                                             mbedtls_x509_crt_ext_cb_t cb );
 
 /**

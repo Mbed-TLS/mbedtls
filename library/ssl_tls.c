@@ -977,14 +977,24 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
          * with mode and version:
          * - For GCM and CCM in TLS 1.2, there's a static IV of 4 Bytes
          *   (to be concatenated with a dynamically chosen IV of 8 Bytes)
-         * - For ChaChaPoly in TLS 1.2, there's a static IV of 12 Bytes
-         *   (to be XOR'ed with the 8 Byte record sequence number).
+         * - For ChaChaPoly in TLS 1.2, and all modes in TLS 1.3, there's
+         *   a static IV of 12 Bytes (to be XOR'ed with the 8 Byte record
+         *   sequence number).
          */
         transform->ivlen = 12;
-        if( cipher_info->mode == MBEDTLS_MODE_CHACHAPOLY )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+        if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+        {
             transform->fixed_ivlen = 12;
+        }
         else
-            transform->fixed_ivlen = 4;
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+        {
+            if( cipher_info->mode == MBEDTLS_MODE_CHACHAPOLY )
+                transform->fixed_ivlen = 12;
+            else
+                transform->fixed_ivlen = 4;
+        }
 
         /* Minimum length of encrypted record */
         explicit_ivlen = transform->ivlen - transform->fixed_ivlen;

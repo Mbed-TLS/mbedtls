@@ -536,76 +536,39 @@ static void ssl_mac( mbedtls_md_context_t *md_ctx,
 }
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
-#define SSL_RECORD_AEAD_NONCE_UNKNOWN 0u
-#define SSL_RECORD_AEAD_NONCE_CONCAT  1u
-#define SSL_RECORD_AEAD_NONCE_XOR     2u
-
-static int ssl_transform_get_nonce_mode( mbedtls_ssl_transform const *transform )
+static int ssl_transform_aead_dynamic_iv_is_explicit(
+                                mbedtls_ssl_transform const *transform )
 {
-#if defined(MBEDTLS_CHACHAPOLY_C)
-    if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
-    {
-        return( SSL_RECORD_AEAD_NONCE_XOR );
-    }
-#endif /* MBEDTLS_CHACHAPOLY_C */
-
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
-    if( transform->ivlen == 12 && transform->fixed_ivlen == 4 )
-    {
-        return( SSL_RECORD_AEAD_NONCE_CONCAT );
-    }
-#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C */
-
-    return( SSL_RECORD_AEAD_NONCE_UNKNOWN );
+    return( transform->ivlen != transform->fixed_ivlen );
 }
 
-/* Preconditions:
- * - If mode == SSL_RECORD_AEAD_NONCE_CONCAT, then
- *     dst_nonce_len == fixed_iv_len + dynamic_iv_len
- * - If mode == SSL_RECORD_AEAD_NONCE_XOR, then
- *     dst_nonce_len == fixed_iv_len &&
- *     dynamic_iv_len < dst_nonce
- */
-static int ssl_build_record_nonce( unsigned char *dst_nonce,
-                                   size_t dst_nonce_len,
-                                   unsigned char const *fixed_iv,
-                                   size_t fixed_iv_len,
-                                   unsigned char const *dynamic_iv,
-                                   size_t dynamic_iv_len,
-                                   unsigned mode )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    ((void) dst_nonce_len);
+/* Compute IV := ( fixed_iv || 0 ) XOR ( 0 || dynamic_IV )
+ *
+ * Concretely, this occurs in two variants:
+ *
+ * a) Fixed and dynamic IV lengths add up to total IV length, giving
+ *       IV = fixed_iv || dynamic_iv
+ *
+ * b) Fixed IV lengths matches total IV length, giving
+ *       IV = fixed_iv XOR ( 0 || dynamic_iv )
+ */
+static void ssl_build_record_nonce( unsigned char *dst_iv,
+                                    size_t dst_iv_len,
+                                    unsigned char const *fixed_iv,
+                                    size_t fixed_iv_len,
+                                    unsigned char const *dynamic_iv,
+                                    size_t dynamic_iv_len )
+{
+    size_t i;
 
     /* Start with Fixed IV || 0 */
-    memcpy( dst_nonce, fixed_iv, fixed_iv_len );
-    dst_nonce += fixed_iv_len;
+    memset( dst_iv, 0, dst_iv_len );
+    memcpy( dst_iv, fixed_iv, fixed_iv_len );
 
-    if( mode == SSL_RECORD_AEAD_NONCE_CONCAT )
-    {
-        /* Nonce := Fixed IV || Dynamic IV */
-        memcpy( dst_nonce, dynamic_iv, dynamic_iv_len );
-        ret = 0;
-    }
-    else if( mode == SSL_RECORD_AEAD_NONCE_XOR )
-    {
-        /* Nonce := Fixed IV XOR ( 0 || Dynamic IV ) */
-        unsigned char i;
-
-        /* This is safe by the second precondition above. */
-        dst_nonce -= dynamic_iv_len;
-        for( i = 0; i < dynamic_iv_len; i++ )
-            dst_nonce[i] ^= dynamic_iv[i];
-
-        ret = 0;
-    }
-    else
-    {
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-    }
-
-    return( ret );
+    dst_iv += dst_iv_len - dynamic_iv_len;
+    for( i = 0; i < dynamic_iv_len; i++ )
+        dst_iv[i] ^= dynamic_iv[i];
 }
 
 int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
@@ -833,11 +796,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         unsigned char iv[12];
         unsigned char *dynamic_iv;
         size_t dynamic_iv_len;
-
-        unsigned const nonce_mode
-            = ssl_transform_get_nonce_mode( transform );
-        unsigned const dynamic_iv_is_explicit
-            = nonce_mode == SSL_RECORD_AEAD_NONCE_CONCAT;
+        int dynamic_iv_is_explicit =
+            ssl_transform_aead_dynamic_iv_is_explicit( transform );
 
         /* Check that there's space for the authentication tag. */
         if( post_avail < transform->taglen )
@@ -861,14 +821,11 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         dynamic_iv     = rec->ctr;
         dynamic_iv_len = sizeof( rec->ctr );
 
-        ret = ssl_build_record_nonce( iv, sizeof( iv ),
-                                      transform->iv_enc,
-                                      transform->fixed_ivlen,
-                                      dynamic_iv,
-                                      dynamic_iv_len,
-                                      nonce_mode );
-        if( ret != 0 )
-            return( ret );
+        ssl_build_record_nonce( iv, sizeof( iv ),
+                                transform->iv_enc,
+                                transform->fixed_ivlen,
+                                dynamic_iv,
+                                dynamic_iv_len );
 
         /*
          * Build additional data for AEAD encryption.
@@ -911,7 +868,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         /*
          * Prefix record content with dynamic IV in case it is explicit.
          */
-        if( dynamic_iv_is_explicit == 1 )
+        if( dynamic_iv_is_explicit )
         {
             if( rec->data_offset < dynamic_iv_len )
             {
@@ -1160,7 +1117,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         mode == MBEDTLS_MODE_CHACHAPOLY )
     {
         unsigned char iv[12];
-        unsigned const nonce_mode = ssl_transform_get_nonce_mode( transform );
         unsigned char *dynamic_iv;
         size_t dynamic_iv_len;
 
@@ -1173,11 +1129,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
          *       agree with the record sequence number.
          */
         dynamic_iv_len = sizeof( rec->ctr );
-        if( nonce_mode == SSL_RECORD_AEAD_NONCE_XOR )
-        {
-            dynamic_iv = rec->ctr;
-        }
-        else
+        if( ssl_transform_aead_dynamic_iv_is_explicit( transform ) == 1 )
         {
             if( rec->data_len < dynamic_iv_len )
             {
@@ -1192,6 +1144,10 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             rec->data_offset += dynamic_iv_len;
             rec->data_len    -= dynamic_iv_len;
         }
+        else
+        {
+            dynamic_iv = rec->ctr;
+        }
 
         /* Check that there's space for the authentication tag. */
         if( rec->data_len < transform->taglen )
@@ -1204,14 +1160,11 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         /*
          * Prepare nonce from dynamic and static parts.
          */
-        ret = ssl_build_record_nonce( iv, sizeof( iv ),
-                                      transform->iv_dec,
-                                      transform->fixed_ivlen,
-                                      dynamic_iv,
-                                      dynamic_iv_len,
-                                      nonce_mode );
-        if( ret != 0 )
-            return( ret );
+        ssl_build_record_nonce( iv, sizeof( iv ),
+                                transform->iv_dec,
+                                transform->fixed_ivlen,
+                                dynamic_iv,
+                                dynamic_iv_len );
 
         /*
          * Build additional data for AEAD encryption.

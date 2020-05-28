@@ -313,11 +313,8 @@ int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain,
  * \param crt      The certificate being parsed.
  * \param oid      The OID of the extension.
  * \param critical Whether the extension is critical.
- * \param p        On entry, \c *p points to the start of the extension value
+ * \param p        Pointer to the start of the extension value
  *                 (the content of the OCTET STRING).
- *                 On successful completion, \c *p must point to the
- *                 first byte after the extension value.
- *                 On error, the value of \c *p is not undefined.
  * \param end      End of extension value.
   *
  * \note           The callback must fail and return a negative error code if
@@ -329,7 +326,7 @@ int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain,
 typedef int (*mbedtls_x509_crt_ext_cb_t)( mbedtls_x509_crt const *crt,
                                           mbedtls_x509_buf const *oid,
                                           int critical,
-                                          unsigned char **p,
+                                          const unsigned char *p,
                                           const unsigned char *end );
 
 /**

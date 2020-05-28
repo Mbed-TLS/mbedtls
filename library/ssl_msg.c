@@ -343,6 +343,13 @@ static void ssl_read_memory( unsigned char *p, size_t len )
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) ||  \
     defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+
+static size_t ssl_compute_padding_length( size_t len,
+                                          size_t granularity )
+{
+    return( ( granularity - ( len + 1 ) % granularity ) % granularity );
+}
+
 /* This functions transforms a (D)TLS plaintext fragment and a record content
  * type into an instance of the (D)TLSInnerPlaintext structure. This is used
  * in DTLS 1.2 + CID and within TLS 1.3 to allow flexible padding and to protect
@@ -374,12 +381,10 @@ static void ssl_read_memory( unsigned char *p, size_t len )
 static int ssl_build_inner_plaintext( unsigned char *content,
                                       size_t *content_size,
                                       size_t remaining,
-                                      uint8_t rec_type )
+                                      uint8_t rec_type,
+                                      size_t pad )
 {
     size_t len = *content_size;
-    size_t pad = ( MBEDTLS_SSL_CID_PADDING_GRANULARITY -
-                   ( len + 1 ) % MBEDTLS_SSL_CID_PADDING_GRANULARITY ) %
-        MBEDTLS_SSL_CID_PADDING_GRANULARITY;
 
     /* Write real content type */
     if( remaining == 0 )
@@ -651,10 +656,14 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
     if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
     {
+        size_t padding =
+            ssl_compute_padding_length( rec->data_len,
+                                        MBEDTLS_SSL_TLS13_PADDING_GRANULARITY );
         if( ssl_build_inner_plaintext( data,
-                        &rec->data_len,
-                        post_avail,
-                        rec->type ) != 0 )
+                                       &rec->data_len,
+                                       post_avail,
+                                       rec->type,
+                                       padding ) != 0 )
         {
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
@@ -673,6 +682,9 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 
     if( rec->cid_len != 0 )
     {
+        size_t padding =
+            ssl_compute_padding_length( rec->data_len,
+                                        MBEDTLS_SSL_CID_PADDING_GRANULARITY );
         /*
          * Wrap plaintext into DTLSInnerPlaintext structure.
          * See ssl_build_inner_plaintext() for more information.
@@ -683,7 +695,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         if( ssl_build_inner_plaintext( data,
                         &rec->data_len,
                         post_avail,
-                        rec->type ) != 0 )
+                        rec->type,
+                        padding ) != 0 )
         {
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }

@@ -957,10 +957,11 @@ static int x509_get_crt_ext( unsigned char **p,
         if( ret != 0 )
         {
             /* Give the callback (if any) a chance to handle the extension */
-            if( cb != NULL ) {
+            if( cb != NULL )
+            {
                 ret = cb( crt, &extn_oid, is_critical, *p, end_ext_octet );
-                if ( ret != 0 )
-                    return ( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+                if( ret != 0 )
+                    return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
                 *p = end_ext_octet;
                 continue;
             }

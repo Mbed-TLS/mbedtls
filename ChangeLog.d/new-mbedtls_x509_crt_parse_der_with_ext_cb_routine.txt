@@ -1,0 +1,5 @@
+Features
+   * Add new mbedtls_x509_crt_parse_der_with_ext_cb() routine which allows
+     parsing unsupported certificate extensions via user provided callback.
+     Contributed by Nicola Di Lieto <nicola.dilieto@gmail.com> in #3243 as
+     a solution to #3241.

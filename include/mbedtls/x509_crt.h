@@ -317,9 +317,14 @@ int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain,
  * \param p        Pointer to the start of the extension value
  *                 (the content of the OCTET STRING).
  * \param end      End of extension value.
-  *
- * \note           The callback must fail and return a negative error code if
- *                 it can not parse or does not support the extension.
+ *
+ * \note           The callback must fail and return a negative error code
+ *                 if it can not parse or does not support the extension.
+ *                 When the callback fails to parse a critical extension
+ *                 mbedtls_x509_crt_parse_der_with_ext_cb() also fails.
+ *                 When the callback fails to parse a non critical extension
+ *                 mbedtls_x509_crt_parse_der_with_ext_cb() simply skips
+ *                 the extension and continues parsing.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -358,6 +363,11 @@ typedef int (*mbedtls_x509_crt_ext_cb_t)( void *p_ctx,
  *                   certificate extension.
  *                   The callback must return a negative error code if it
  *                   does not know how to handle such an extension.
+ *                   When the callback fails to parse a critical extension
+ *                   mbedtls_x509_crt_parse_der_with_ext_cb() also fails.
+ *                   When the callback fails to parse a non critical extension
+ *                   mbedtls_x509_crt_parse_der_with_ext_cb() simply skips
+ *                   the extension and continues parsing.
  *
  * \return           \c 0 if successful.
  * \return           A negative error code on failure.

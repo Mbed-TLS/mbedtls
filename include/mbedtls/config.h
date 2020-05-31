@@ -3568,7 +3568,7 @@
  * Note: On systems lacking division instructions,
  *       a power of two should be preferred.
  */
-//#define MBEDTLS_SSL_TLS13_PADDING_GRANULARITY 16
+//#define MBEDTLS_SSL_TLS13_PADDING_GRANULARITY 1
 
 /** \def MBEDTLS_SSL_OUT_CONTENT_LEN
  *

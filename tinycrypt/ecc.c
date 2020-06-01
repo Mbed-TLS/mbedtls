@@ -286,20 +286,32 @@ uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right)
 {
 
 	uECC_word_t diff = 0;
+	uECC_word_t flow_monitor = 0;
 	uECC_word_t tmp1, tmp2;
 	volatile int i;
 
-	for (i = NUM_ECC_WORDS - 1; i >= 0; --i) {
+	/* Start from a random location and check the correct number of iterations */
+	int start_offset = mbedtls_platform_random_in_range(NUM_ECC_WORDS);
+
+	for (i = start_offset; i < NUM_ECC_WORDS; ++i) {
 		tmp1 = left[i];
 		tmp2 = right[i];
+		flow_monitor++;
 		diff |= (tmp1 ^ tmp2);
 	}
 
-	/* i should be -1 now */
-	mbedtls_platform_random_delay();
-	diff |= i ^ -1;
+	for (i = 0; i < start_offset; ++i) {
+		tmp1 = left[i];
+		tmp2 = right[i];
+		flow_monitor++;
+		diff |= (tmp1 ^ tmp2);
+	}
 
-	return diff;
+	/* Random delay to increase security */
+	mbedtls_platform_random_delay();
+
+	/* Return 0 only when diff is 0 and flow_counter is equal to NUM_ECC_WORDS */
+	return (diff | (flow_monitor ^ NUM_ECC_WORDS));
 }
 
 uECC_word_t cond_set(uECC_word_t p_true, uECC_word_t p_false, unsigned int cond)
@@ -848,7 +860,7 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 		}
 		while (carry < 0);
 	} else  {
-		while (carry || 
+		while (carry ||
 		       uECC_vli_cmp_unsafe(curve_p, result) != 1) {
 			carry -= uECC_vli_sub(result, result, curve_p);
 		}

@@ -111,6 +111,9 @@ void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
     /* Randomize initial data to prevent leakage while copying */
     uint32_t data = mbedtls_platform_random_in_range( 256 );
 
+    /* Use memset with random value at first to increase security - memset is
+       not normally part of the memcpy function and here can be useed
+       with regular, unsecured implementation */
     memset( (void *) dst, data, num );
     memcpy( (void *) ( (unsigned char *) dst + start_offset ),
             (void *) ( (unsigned char *) src + start_offset ),
@@ -124,23 +127,26 @@ int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )
     volatile const unsigned char *B = (volatile const unsigned char *) buf2;
     volatile unsigned char diff = 0;
 
-    size_t i = num;
-
+    /* Start from a random location and check the correct number of iterations */
+    size_t i, flow_counter = 0;
     size_t start_offset = (size_t) mbedtls_platform_random_in_range( num );
 
     for( i = start_offset; i < num; i++ )
     {
         unsigned char x = A[i], y = B[i];
+        flow_counter++;
         diff |= x ^ y;
     }
 
     for( i = 0; i < start_offset; i++ )
     {
         unsigned char x = A[i], y = B[i];
+        flow_counter++;
         diff |= x ^ y;
     }
 
-    return( diff );
+    /* Return 0 only when diff is 0 and flow_counter is equal to num */
+    return( (int) diff | (int) ( flow_counter ^ num ) );
 }
 
 uint32_t mbedtls_platform_random_in_range( size_t num )

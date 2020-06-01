@@ -192,6 +192,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	const uECC_word_t *point;
 	bitcount_t num_bits;
 	bitcount_t i;
+	bitcount_t flow_control;
 	volatile uECC_word_t diff;
 
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
@@ -202,6 +203,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	rx[num_n_words - 1] = 0;
 	r[num_n_words - 1] = 0;
 	s[num_n_words - 1] = 0;
+	flow_control = 1;
 
 	uECC_vli_bytesToNative(_public, public_key, NUM_ECC_BYTES);
 	uECC_vli_bytesToNative(_public + num_words, public_key + NUM_ECC_BYTES,
@@ -220,6 +222,8 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 		return UECC_FAILURE;
 	}
 
+	flow_control++;
+
 	/* Calculate u1 and u2. */
 	uECC_vli_modInv(z, s, curve_n); /* z = 1/s */
 	u1[num_n_words - 1] = 0;
@@ -237,6 +241,8 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	uECC_vli_modInv(z, z, curve_p); /* z = 1/z */
 	apply_z(sum, sum + num_words, z);
 
+	flow_control++;
+
 	/* Use Shamir's trick to calculate u1*G + u2*Q */
 	points[0] = 0;
 	points[1] = curve_G;
@@ -251,6 +257,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	uECC_vli_set(ry, point + num_words);
 	uECC_vli_clear(z);
 	z[0] = 1;
+	flow_control++;
 
 	for (i = num_bits - 2; i >= 0; --i) {
 		uECC_word_t index;
@@ -266,10 +273,12 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 			XYcZ_add(tx, ty, rx, ry);
 			uECC_vli_modMult_fast(z, z, tz);
 		}
+		flow_control++;
   	}
 
 	uECC_vli_modInv(z, z, curve_p); /* Z = 1/Z */
 	apply_z(rx, ry, z);
+	flow_control++;
 
 	/* v = x1 (mod n) */
 	if (uECC_vli_cmp_unsafe(curve_n, rx) != 1) {
@@ -279,8 +288,13 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	/* Accept only if v == r. */
 	diff = uECC_vli_equal(rx, r);
 	if (diff == 0) {
+	    flow_control++;
 	    mbedtls_platform_random_delay();
-		if (diff == 0) {
+	    
+	    /* Re-check the condition and test if the control flow is as expected. 
+	     * 1 (base value) + num_bits - 1 (from the loop) + 5 incrementations.
+	     */
+		if (diff == 0 && flow_control == (num_bits + 5)) {
 			return UECC_SUCCESS;
 		}
 		else {

@@ -675,7 +675,12 @@ component_check_names () {
 
 component_check_test_cases () {
     msg "Check: test case descriptions" # < 1s
-    record_status tests/scripts/check-test-cases.py
+    if [ $QUIET -eq 1 ]; then
+        OPT='--quiet'
+    else
+        OPT=''
+    fi
+    record_status tests/scripts/check-test-cases.py $OPT
 }
 
 component_check_doxygen_warnings () {

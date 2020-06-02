@@ -1522,6 +1522,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH */
 
+#if defined(MBEDTLS_TEST_HOOKS)
+    if( strcmp( "MBEDTLS_TEST_HOOKS", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_TEST_HOOKS );
+        return( 0 );
+    }
+#endif /* MBEDTLS_TEST_HOOKS */
+
 #if defined(MBEDTLS_THREADING_ALT)
     if( strcmp( "MBEDTLS_THREADING_ALT", config ) == 0 )
     {

@@ -661,7 +661,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     {
         size_t padding =
             ssl_compute_padding_length( rec->data_len,
-                                        MBEDTLS_SSL_TLS13_PADDING_GRANULARITY );
+                                        MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY );
         if( ssl_build_inner_plaintext( data,
                                        &rec->data_len,
                                        post_avail,

@@ -3554,7 +3554,7 @@
  */
 //#define MBEDTLS_SSL_CID_PADDING_GRANULARITY 16
 
-/** \def MBEDTLS_SSL_TLS13_PADDING_GRANULARITY
+/** \def MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY
  *
  * This option controls the use of record plaintext padding
  * in TLS 1.3.
@@ -3568,7 +3568,7 @@
  * Note: On systems lacking division instructions,
  *       a power of two should be preferred.
  */
-//#define MBEDTLS_SSL_TLS13_PADDING_GRANULARITY 1
+//#define MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY 1
 
 /** \def MBEDTLS_SSL_OUT_CONTENT_LEN
  *

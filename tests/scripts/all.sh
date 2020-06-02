@@ -1886,7 +1886,7 @@ run_component () {
     # Unconditionally create a seedfile that's sufficiently long.
     # Do this before each component, because a previous component may
     # have messed it up or shortened it.
-    dd if=/dev/urandom of=./tests/seedfile bs=64 count=1
+    dd if=/dev/urandom of=./tests/seedfile bs=64 count=1 >/dev/null 2>&1
 
     # Run the component code.
     "$@"

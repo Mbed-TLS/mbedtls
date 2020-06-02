@@ -1,3 +1,4 @@
 Changes
    * Fix warnings about signedness issues in format strings. The build is now
-     clean of -Wformat-signedness warnings. Contributed by Kenneth Soerensen in #3153.
+     clean of -Wformat-signedness warnings. Contributed by Kenneth Soerensen
+     in #3153.

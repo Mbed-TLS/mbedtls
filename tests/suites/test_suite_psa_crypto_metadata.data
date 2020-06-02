@@ -352,28 +352,28 @@ depends_on:MBEDTLS_DSA_C
 key_type:PSA_KEY_TYPE_DSA_KEY_PAIR:KEY_TYPE_IS_KEY_PAIR | KEY_TYPE_IS_DSA
 
 ECC key family: SECP K1
-ecc_key_family:PSA_ECC_CURVE_SECP_K1
+ecc_key_family:PSA_ECC_FAMILY_SECP_K1
 
 ECC key family: SECP R1
-ecc_key_family:PSA_ECC_CURVE_SECP_R1
+ecc_key_family:PSA_ECC_FAMILY_SECP_R1
 
 ECC key family: SECP R2
-ecc_key_family:PSA_ECC_CURVE_SECP_R2
+ecc_key_family:PSA_ECC_FAMILY_SECP_R2
 
 ECC key family: SECT K1
-ecc_key_family:PSA_ECC_CURVE_SECT_K1
+ecc_key_family:PSA_ECC_FAMILY_SECT_K1
 
 ECC key family: SECT R1
-ecc_key_family:PSA_ECC_CURVE_SECT_R1
+ecc_key_family:PSA_ECC_FAMILY_SECT_R1
 
 ECC key family: SECT R2
-ecc_key_family:PSA_ECC_CURVE_SECT_R2
+ecc_key_family:PSA_ECC_FAMILY_SECT_R2
 
 ECC key family: Brainpool P R1
-ecc_key_family:PSA_ECC_CURVE_BRAINPOOL_P_R1
+ecc_key_family:PSA_ECC_FAMILY_BRAINPOOL_P_R1
 
 ECC key family: Montgomery (Curve25519, Curve448)
-ecc_key_family:PSA_ECC_CURVE_MONTGOMERY
+ecc_key_family:PSA_ECC_FAMILY_MONTGOMERY
 
 DH group family: RFC 7919
 dh_key_family:PSA_DH_GROUP_RFC7919

@@ -493,7 +493,7 @@ void stream_cipher_key_type( int type_arg )
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void ecc_key_family( int curve_arg )
 {
-    psa_ecc_curve_t curve = curve_arg;
+    psa_ecc_family_t curve = curve_arg;
     psa_key_type_t public_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
     psa_key_type_t pair_type = PSA_KEY_TYPE_ECC_KEY_PAIR( curve );
 
@@ -502,8 +502,8 @@ void ecc_key_family( int curve_arg )
     test_key_type( public_type, KEY_TYPE_IS_ECC | KEY_TYPE_IS_PUBLIC_KEY );
     test_key_type( pair_type, KEY_TYPE_IS_ECC | KEY_TYPE_IS_KEY_PAIR );
 
-    TEST_EQUAL( PSA_KEY_TYPE_GET_CURVE( public_type ), curve );
-    TEST_EQUAL( PSA_KEY_TYPE_GET_CURVE( pair_type ), curve );
+    TEST_EQUAL( PSA_KEY_TYPE_ECC_GET_FAMILY( public_type ), curve );
+    TEST_EQUAL( PSA_KEY_TYPE_ECC_GET_FAMILY( pair_type ), curve );
 }
 /* END_CASE */
 

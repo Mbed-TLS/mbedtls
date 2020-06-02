@@ -735,9 +735,9 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
  *   where `m` is the bit size associated with the curve, i.e. the bit size
  *   of the order of the curve's coordinate field. This byte string is
  *   in little-endian order for Montgomery curves (curve types
- *   `PSA_ECC_CURVE_CURVEXXX`), and in big-endian order for Weierstrass
- *   curves (curve types `PSA_ECC_CURVE_SECTXXX`, `PSA_ECC_CURVE_SECPXXX`
- *   and `PSA_ECC_CURVE_BRAINPOOL_PXXX`).
+ *   `PSA_ECC_FAMILY_CURVEXXX`), and in big-endian order for Weierstrass
+ *   curves (curve types `PSA_ECC_FAMILY_SECTXXX`, `PSA_ECC_FAMILY_SECPXXX`
+ *   and `PSA_ECC_FAMILY_BRAINPOOL_PXXX`).
  *   This is the content of the `privateKey` field of the `ECPrivateKey`
  *   format defined by RFC 5915.
  * - For Diffie-Hellman key exchange key pairs (key types for which
@@ -3502,9 +3502,9 @@ psa_status_t psa_key_derivation_output_bytes(
  *   length is determined by the curve, and sets the mandatory bits
  *   accordingly. That is:
  *
- *     - Curve25519 (#PSA_ECC_CURVE_MONTGOMERY, 255 bits): draw a 32-byte
+ *     - Curve25519 (#PSA_ECC_FAMILY_MONTGOMERY, 255 bits): draw a 32-byte
  *       string and process it as specified in RFC 7748 &sect;5.
- *     - Curve448 (#PSA_ECC_CURVE_MONTGOMERY, 448 bits): draw a 56-byte
+ *     - Curve448 (#PSA_ECC_FAMILY_MONTGOMERY, 448 bits): draw a 56-byte
  *       string and process it as specified in RFC 7748 &sect;5.
  *
  * - For key types for which the key is represented by a single sequence of

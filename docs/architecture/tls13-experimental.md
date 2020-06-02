@@ -1,4 +1,4 @@
-Experimental TLS 1.3 develpoments
+TLS 1.3 Experimental Developments
 =================================
 
 Overview

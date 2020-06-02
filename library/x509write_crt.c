@@ -25,11 +25,7 @@
  * - attributes: PKCS#9 v2.0 aka RFC 2985
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_X509_CRT_WRITE_C)
 

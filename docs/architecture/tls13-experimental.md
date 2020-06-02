@@ -34,3 +34,7 @@ together with their level of testing:
   tests for the other record protection routines.
 
   TODO: Add some test vectors from RFC 8448.
+
+- The HKDF key derivation function on which the TLS 1.3 key schedule is based,
+  is already present as an independent module controlled by `MBEDTLS_HKDF_C`
+  independently of the development of the TLS 1.3 prototype.

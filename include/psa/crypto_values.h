@@ -354,6 +354,9 @@
     (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_RAW || \
      ((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_SYMMETRIC)
 
+/** Whether a key type is symmetric. */
+#define PSA_KEY_TYPE_IS_SYMMETRIC(type)                                 \
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_SYMMETRIC)
 /** Whether a key type is asymmetric: either a key pair or a public key. */
 #define PSA_KEY_TYPE_IS_ASYMMETRIC(type)                                \
     (((type) & PSA_KEY_TYPE_CATEGORY_MASK                               \

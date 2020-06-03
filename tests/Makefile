@@ -21,9 +21,9 @@ LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 LOCAL_CFLAGS += -D_POSIX_C_SOURCE=200809L
 
 ifndef SHARED
-DEP=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
+MBEDLIBS=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
 else
-DEP=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
+MBEDLIBS=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
 endif
 
 ifdef DEBUG
@@ -74,8 +74,15 @@ BINARIES := $(addsuffix $(EXEXT),$(APPS))
 
 all: $(BINARIES)
 
-$(DEP):
+$(MBEDLIBS):
 	$(MAKE) -C ../library
+
+MBEDTESTS_OBJS=$(patsubst %.c,%.o,$(wildcard src/*.c))
+
+# Rule to compile common test C files in src folder
+src/%.o : src/%.c
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
 C_FILES := $(addsuffix .c,$(APPS))
 
@@ -105,9 +112,9 @@ C_FILES := $(addsuffix .c,$(APPS))
 		-o .
 
 
-$(BINARIES): %$(EXEXT): %.c $(DEP)
+$(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(MBEDTESTS_OBJS)
 	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $< $(MBEDTESTS_OBJS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 # Some test suites require additional header files.
 $(filter test_suite_psa_crypto%, $(BINARIES)): include/test/psa_crypto_helpers.h
@@ -118,10 +125,13 @@ $(addprefix embedded_,$(filter test_suite_psa_%, $(APPS))): embedded_%: TESTS/mb
 clean:
 ifndef WINDOWS
 	rm -rf $(BINARIES) *.c *.datax TESTS
+	rm -f src/*.o src/libmbed*
 else
 	if exist *.c del /Q /F *.c
 	if exist *.exe del /Q /F *.exe
 	if exist *.datax del /Q /F *.datax
+	if exist src/*.o del /Q /F src/*.o
+	if exist src/libmbed* del /Q /F src/libmed*
 ifneq ($(wildcard TESTS/.*),)
 	rmdir /Q /S TESTS
 endif

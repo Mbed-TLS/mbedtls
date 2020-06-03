@@ -3,6 +3,7 @@
 /* Headers */
 
 #include <test/macros.h>
+#include <test/helpers.h>
 
 #include <stdlib.h>
 

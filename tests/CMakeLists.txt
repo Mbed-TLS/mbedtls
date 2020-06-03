@@ -46,9 +46,9 @@ function(add_test_suite suite_name)
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_code.py mbedtls ${CMAKE_CURRENT_SOURCE_DIR}/suites/helpers.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/host_test.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${data_name}.data
     )
 
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-    add_executable(test_suite_${data_name} test_suite_${data_name}.c)
+    add_executable(test_suite_${data_name} test_suite_${data_name}.c $<TARGET_OBJECTS:mbedtests>)
     target_link_libraries(test_suite_${data_name} ${libs})
+    target_include_directories(test_suite_${data_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
     if(${data_name} MATCHES ${SKIP_TEST_SUITES_REGEX})
         message(STATUS "The test suite ${data_name} will not be executed.")
     else()
@@ -65,6 +65,10 @@ if(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W0")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX-")
 endif(MSVC)
+
+file(GLOB MBEDTESTS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
+add_library(mbedtests OBJECT ${MBEDTESTS_FILES})
+target_include_directories(mbedtests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_test_suite(aes aes.cbc)
 add_test_suite(aes aes.cfb)

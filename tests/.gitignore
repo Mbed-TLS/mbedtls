@@ -9,3 +9,6 @@ data_files/ctr_drbg_seed
 data_files/entropy_seed
 
 include/test/instrument_record_status.h
+
+src/*.o
+src/libmbed*

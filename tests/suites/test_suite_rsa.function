@@ -1506,7 +1506,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_C:ENTROPY_HAVE_STRONG */
+/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_C:ENTROPY_HAVE_STRONG:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
 void mbedtls_rsa_validate_params( int radix_N, char *input_N,
                                   int radix_P, char *input_P,
                                   int radix_Q, char *input_Q,

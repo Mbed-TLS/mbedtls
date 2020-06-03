@@ -831,6 +831,24 @@ component_test_rsa_no_crt () {
     if_build_succeeded tests/context-info.sh
 }
 
+component_test_no_ctr_drbg () {
+    msg "build: Full minus CTR_DRBG"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_C # requires CTR_DRBG
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA Crypto
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C # requires PSA Crypto
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO # requires PSA Crypto
+
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: no CTR_DRBG"
+    make test
+
+    # no SSL tests as they all depend on CTR_DRBG so far
+}
+
 component_test_new_ecdh_context () {
     msg "build: new ECDH context (ASan build)" # ~ 6 min
     scripts/config.py unset MBEDTLS_ECDH_LEGACY_CONTEXT

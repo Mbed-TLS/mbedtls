@@ -376,4 +376,4 @@ ECC key family: Montgomery (Curve25519, Curve448)
 ecc_key_family:PSA_ECC_FAMILY_MONTGOMERY
 
 DH group family: RFC 7919
-dh_key_family:PSA_DH_GROUP_RFC7919
+dh_key_family:PSA_DH_FAMILY_RFC7919

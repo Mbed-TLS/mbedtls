@@ -510,7 +510,7 @@ void ecc_key_family( int curve_arg )
 /* BEGIN_CASE depends_on:MBEDTLS_DHM_C */
 void dh_key_family( int group_arg )
 {
-    psa_dh_group_t group = group_arg;
+    psa_dh_family_t group = group_arg;
     psa_key_type_t public_type = PSA_KEY_TYPE_DH_PUBLIC_KEY( group );
     psa_key_type_t pair_type = PSA_KEY_TYPE_DH_KEY_PAIR( group );
 
@@ -519,7 +519,7 @@ void dh_key_family( int group_arg )
     test_key_type( public_type, KEY_TYPE_IS_DH | KEY_TYPE_IS_PUBLIC_KEY );
     test_key_type( pair_type, KEY_TYPE_IS_DH | KEY_TYPE_IS_KEY_PAIR );
 
-    TEST_EQUAL( PSA_KEY_TYPE_GET_GROUP( public_type ), group );
-    TEST_EQUAL( PSA_KEY_TYPE_GET_GROUP( pair_type ), group );
+    TEST_EQUAL( PSA_KEY_TYPE_DH_GET_FAMILY( public_type ), group );
+    TEST_EQUAL( PSA_KEY_TYPE_DH_GET_FAMILY( pair_type ), group );
 }
 /* END_CASE */

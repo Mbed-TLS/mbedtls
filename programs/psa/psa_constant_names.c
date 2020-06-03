@@ -83,7 +83,7 @@ static void append_integer(char **buffer, size_t buffer_size,
 
 /* The code of these function is automatically generated and included below. */
 static const char *psa_ecc_family_name(psa_ecc_family_t curve);
-static const char *psa_dh_group_name(psa_dh_group_t group);
+static const char *psa_dh_family_name(psa_dh_family_t group);
 static const char *psa_hash_algorithm_name(psa_algorithm_t hash_alg);
 
 static void append_with_curve(char **buffer, size_t buffer_size,
@@ -107,9 +107,9 @@ static void append_with_curve(char **buffer, size_t buffer_size,
 static void append_with_group(char **buffer, size_t buffer_size,
                               size_t *required_size,
                               const char *string, size_t length,
-                              psa_dh_group_t group)
+                              psa_dh_family_t group)
 {
-    const char *group_name = psa_dh_group_name(group);
+    const char *group_name = psa_dh_family_name(group);
     append(buffer, buffer_size, required_size, string, length);
     append(buffer, buffer_size, required_size, "(", 1);
     if (group_name != NULL) {
@@ -176,9 +176,9 @@ static int psa_snprint_ecc_curve(char *buffer, size_t buffer_size,
 }
 
 static int psa_snprint_dh_group(char *buffer, size_t buffer_size,
-                                psa_dh_group_t group)
+                                psa_dh_family_t group)
 {
-    const char *name = psa_dh_group_name(group);
+    const char *name = psa_dh_family_name(group);
     if (name == NULL) {
         return snprintf(buffer, buffer_size, "0x%02x", (unsigned) group);
     } else {
@@ -200,7 +200,7 @@ static void usage(const char *program_name)
     printf("Supported types (with = between aliases):\n");
     printf("  alg=algorithm         Algorithm (psa_algorithm_t)\n");
     printf("  curve=ecc_curve       Elliptic curve identifier (psa_ecc_family_t)\n");
-    printf("  group=dh_group        Diffie-Hellman group identifier (psa_dh_group_t)\n");
+    printf("  group=dh_group        Diffie-Hellman group identifier (psa_dh_family_t)\n");
     printf("  type=key_type         Key type (psa_key_type_t)\n");
     printf("  usage=key_usage       Key usage (psa_key_usage_t)\n");
     printf("  error=status          Status code (psa_status_t)\n");
@@ -275,7 +275,7 @@ int process_unsigned(unsigned_value_type type, unsigned long max, char **argp)
                 break;
             case TYPE_DH_GROUP:
                 psa_snprint_dh_group(buffer, sizeof(buffer),
-                                     (psa_dh_group_t) value);
+                                     (psa_dh_family_t) value);
                 break;
             case TYPE_KEY_TYPE:
                 psa_snprint_key_type(buffer, sizeof(buffer),
@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
         return process_unsigned(TYPE_ECC_CURVE, (psa_ecc_family_t) (-1),
                                 argv + 2);
     } else if (!strcmp(argv[1], "group") || !strcmp(argv[1], "dh_group")) {
-        return process_unsigned(TYPE_DH_GROUP, (psa_dh_group_t) (-1),
+        return process_unsigned(TYPE_DH_GROUP, (psa_dh_family_t) (-1),
                                 argv + 2);
     } else if (!strcmp(argv[1], "type") || !strcmp(argv[1], "key_type")) {
         return process_unsigned(TYPE_KEY_TYPE, (psa_key_type_t) (-1),

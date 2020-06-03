@@ -414,11 +414,11 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
 
 /** Custom Diffie-Hellman group.
  *
- * For keys of type #PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_GROUP_CUSTOM) or
- * #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_GROUP_CUSTOM), the group data comes
+ * For keys of type #PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_FAMILY_CUSTOM) or
+ * #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_FAMILY_CUSTOM), the group data comes
  * from domain parameters set by psa_set_key_domain_parameters().
  */
-#define PSA_DH_GROUP_CUSTOM             ((psa_dh_group_t) 0x7e)
+#define PSA_DH_FAMILY_CUSTOM             ((psa_dh_family_t) 0x7e)
 
 
 /**
@@ -448,8 +448,8 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  *   }
  *   ```
  * - For Diffie-Hellman key exchange keys
- *   (#PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_GROUP_CUSTOM) or
- *   #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_GROUP_CUSTOM)), the
+ *   (#PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_FAMILY_CUSTOM) or
+ *   #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_FAMILY_CUSTOM)), the
  *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
  *   ```
  *   DomainParameters ::= SEQUENCE {

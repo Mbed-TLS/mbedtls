@@ -51,7 +51,7 @@ static const char *psa_ecc_family_name(psa_ecc_family_t curve)
     }
 }
 
-static const char *psa_dh_group_name(psa_dh_group_t group)
+static const char *psa_dh_family_name(psa_dh_family_t group)
 {
     switch (group) {
     %(dh_group_cases)s
@@ -185,7 +185,7 @@ KEY_TYPE_FROM_CURVE_TEMPLATE = '''if (%(tester)s(type)) {
 KEY_TYPE_FROM_GROUP_TEMPLATE = '''if (%(tester)s(type)) {
             append_with_group(&buffer, buffer_size, &required_size,
                               "%(builder)s", %(builder_length)s,
-                              PSA_KEY_TYPE_GET_GROUP(type));
+                              PSA_KEY_TYPE_DH_GET_FAMILY(type));
         } else '''
 
 ALGORITHM_FROM_HASH_TEMPLATE = '''if (%(tester)s(core_alg)) {
@@ -266,7 +266,7 @@ class MacroCollector:
             self.key_types_from_group[name] = name[:13] + 'IS_' + name[13:]
         elif name.startswith('PSA_ECC_FAMILY_') and not parameter:
             self.ecc_curves.add(name)
-        elif name.startswith('PSA_DH_GROUP_') and not parameter:
+        elif name.startswith('PSA_DH_FAMILY_') and not parameter:
             self.dh_groups.add(name)
         elif name.startswith('PSA_ALG_') and not parameter:
             if name in ['PSA_ALG_ECDSA_BASE',

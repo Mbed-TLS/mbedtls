@@ -67,7 +67,6 @@ export CFLAGS=' --coverage -g3 -O0 '
 make clean
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
-scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
 make -j
 
 
@@ -75,15 +74,19 @@ make -j
 TEST_OUTPUT=out_${PPID}
 cd tests
 
-# Step 2a - Unit Tests
+if [ ! -f "seedfile" ]; then
+    dd if=/dev/urandom of="seedfile" bs=64 count=1
+fi
+
+# Step 2a - Unit Tests (keep going even if some tests fail)
 perl scripts/run-test-suites.pl -v 2 |tee unit-test-$TEST_OUTPUT
 echo
 
-# Step 2b - System Tests
+# Step 2b - System Tests (keep going even if some tests fail)
 sh ssl-opt.sh |tee sys-test-$TEST_OUTPUT
 echo
 
-# Step 2c - Compatibility tests
+# Step 2c - Compatibility tests (keep going even if some tests fail)
 sh compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2' | \
     tee compat-test-$TEST_OUTPUT
 OPENSSL_CMD="$OPENSSL_LEGACY"                               \
@@ -97,7 +100,15 @@ echo
 
 # Step 3 - Process the coverage report
 cd ..
-make lcov |tee tests/cov-$TEST_OUTPUT
+{
+    make lcov
+    echo SUCCESS
+} | tee tests/cov-$TEST_OUTPUT
+
+if [ "$(tail -n1 tests/cov-$TEST_OUTPUT)" != "SUCCESS" ]; then
+    echo >&2 "Fatal: 'make lcov' failed"
+    exit 2
+fi
 
 
 # Step 4 - Summarise the test report
@@ -216,4 +227,8 @@ make clean
 
 if [ -f "$CONFIG_BAK" ]; then
     mv "$CONFIG_BAK" "$CONFIG_H"
+fi
+
+if [ $TOTAL_FAIL -ne 0 ]; then
+    exit 1
 fi

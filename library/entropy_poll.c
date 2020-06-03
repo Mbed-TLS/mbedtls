@@ -52,7 +52,7 @@
 
 #if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
     !defined(__APPLE__) && !defined(_WIN32) && !defined(__QNXNTO__) && \
-    !defined(__HAIKU__)
+    !defined(__HAIKU__) && !defined(__midipix__)
 #error "Platform entropy sources only work on Unix and Windows, see MBEDTLS_NO_PLATFORM_ENTROPY in config.h"
 #endif
 
@@ -95,7 +95,7 @@ int mbedtls_platform_entropy_poll( void *data, unsigned char *output, size_t len
  * Since there is no wrapper in the libc yet, use the generic syscall wrapper
  * available in GNU libc and compatible libc's (eg uClibc).
  */
-#if defined(__linux__) && defined(__GLIBC__)
+#if ((defined(__linux__) && defined(__GLIBC__)) || defined(__midipix__))
 #include <unistd.h>
 #include <sys/syscall.h>
 #if defined(SYS_getrandom)
@@ -113,7 +113,7 @@ static int getrandom_wrapper( void *buf, size_t buflen, unsigned int flags )
     return( syscall( SYS_getrandom, buf, buflen, flags ) );
 }
 #endif /* SYS_getrandom */
-#endif /* __linux__ */
+#endif /* __linux__ || __midipix__ */
 
 #include <stdio.h>
 

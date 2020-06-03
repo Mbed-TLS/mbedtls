@@ -79,4 +79,4 @@ Mbed TLS is well documented, but if you think documentation is needed, speak out
 1. Complex parts in the code should include comments.
 1. If needed, a Readme file is advised.
 1. If a [Knowledge Base (KB)](https://tls.mbed.org/kb) article should be added, write this as a comment in the PR description.
-1. A [ChangeLog](https://github.com/ARMmbed/mbedtls/blob/development/ChangeLog) entry should be added for this contribution.
+1. A [ChangeLog](https://github.com/ARMmbed/mbedtls/blob/development/ChangeLog.d/00README.md) entry should be added for this contribution.

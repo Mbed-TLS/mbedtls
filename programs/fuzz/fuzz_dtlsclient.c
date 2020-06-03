@@ -10,20 +10,27 @@
 #include "mbedtls/timing.h"
 
 
-#ifdef MBEDTLS_SSL_CLI_C
+#if defined(MBEDTLS_SSL_CLI_C) && \
+    defined(MBEDTLS_ENTROPY_C) && \
+    defined(MBEDTLS_CTR_DRBG_C) && \
+    defined(MBEDTLS_TIMING_C)
 static int initialized = 0;
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
 static mbedtls_x509_crt cacert;
 #endif
 
 const char *pers = "fuzz_dtlsclient";
-#endif // MBEDTLS_SSL_CLI_C
+#endif
 #endif // MBEDTLS_SSL_PROTO_DTLS
 
 
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
-#if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_PROTO_DTLS) && \
+    defined(MBEDTLS_SSL_CLI_C) && \
+    defined(MBEDTLS_ENTROPY_C) && \
+    defined(MBEDTLS_CTR_DRBG_C) && \
+    defined(MBEDTLS_TIMING_C)
     int ret;
     size_t len;
     mbedtls_ssl_context ssl;

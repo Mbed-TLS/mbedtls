@@ -48,12 +48,16 @@ close(FORMAT_FILE);
 $/ = $line_separator;
 
 my @files = <$include_dir/*.h>;
+my @necessary_include_files;
 my @matches;
 foreach my $file (@files) {
     open(FILE, "$file");
     my @grep_res = grep(/^\s*#define\s+MBEDTLS_ERR_\w+\s+\-0x[0-9A-Fa-f]+/, <FILE>);
     push(@matches, @grep_res);
     close FILE;
+    my $include_name = $file;
+    $include_name =~ s!.*/!!;
+    push @necessary_include_files, $include_name if @grep_res;
 }
 
 my $ll_old_define = "";
@@ -63,9 +67,9 @@ my $ll_code_check = "";
 my $hl_code_check = "";
 
 my $headers = "";
+my %included_headers;
 
 my %error_codes_seen;
-
 
 foreach my $line (@matches)
 {
@@ -97,10 +101,11 @@ foreach my $line (@matches)
 
     my $include_name = $module_name;
     $include_name =~ tr/A-Z/a-z/;
-    $include_name = "" if ($include_name eq "asn1");
 
     # Fix faulty ones
     $include_name = "net_sockets" if ($module_name eq "NET");
+
+    $included_headers{"${include_name}.h"} = $module_name;
 
     my $found_ll = grep $_ eq $module_name, @low_level_modules;
     my $found_hl = grep $_ eq $module_name, @high_level_modules;
@@ -194,3 +199,15 @@ $error_format =~ s/HIGH_LEVEL_CODE_CHECKS\n/$hl_code_check/g;
 open(ERROR_FILE, ">$error_file") or die "Opening destination file '$error_file': $!";
 print ERROR_FILE $error_format;
 close(ERROR_FILE);
+
+my $errors = 0;
+for my $include_name (@necessary_include_files)
+{
+    if (not $included_headers{$include_name})
+    {
+        print STDERR "The header file \"$include_name\" defines error codes but has not been included!\n";
+        ++$errors;
+    }
+}
+
+exit !!$errors;

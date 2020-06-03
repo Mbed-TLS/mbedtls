@@ -5,6 +5,7 @@ default: all
 all_markdown = \
 	       mbed-crypto-storage-specification.md \
 	       testing/driver-interface-test-strategy.md \
+	       testing/invasive-testing.md \
 	       testing/test-framework.md \
 	       # This line is intentionally left blank
 
@@ -22,3 +23,4 @@ all: html pdf
 
 clean:
 	rm -f *.html *.pdf
+	rm -f testing/*.html testing/*.pdf

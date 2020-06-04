@@ -2026,7 +2026,9 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
         i = d;
         MBEDTLS_MPI_CHK( ecp_select_comb( grp, R, T, T_size, x[i] ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &R->Z, 1 ) );
+#if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
         if( f_rng != 0 )
+#endif
             MBEDTLS_MPI_CHK( ecp_randomize_jac( grp, R, f_rng, p_rng ) );
     }
 
@@ -2159,7 +2161,9 @@ final_norm:
      *
      * Avoid the leak by randomizing coordinates before we normalize them.
      */
+#if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
     if( f_rng != 0 )
+#endif
         MBEDTLS_MPI_CHK( ecp_randomize_jac( grp, RR, f_rng, p_rng ) );
 
     MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_INV );
@@ -2564,7 +2568,9 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MOD_ADD( RP.X );
 
     /* Randomize coordinates of the starting point */
+#if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
     if( f_rng != NULL )
+#endif
         MBEDTLS_MPI_CHK( ecp_randomize_mxz( grp, &RP, f_rng, p_rng ) );
 
     /* Loop invariant: R = result so far, RP = R + P */
@@ -2597,7 +2603,9 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
      *
      * Avoid the leak by randomizing coordinates before we normalize them.
      */
+#if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
     if( f_rng != NULL )
+#endif
         MBEDTLS_MPI_CHK( ecp_randomize_mxz( grp, R, f_rng, p_rng ) );
 
     MBEDTLS_MPI_CHK( ecp_normalize_mxz( grp, R ) );

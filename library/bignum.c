@@ -244,6 +244,22 @@ void mbedtls_mpi_swap( mbedtls_mpi *X, mbedtls_mpi *Y )
 }
 
 /*
+ * Conditionally assign dest = src, without leaking information
+ * about whether the assignment was made or not.
+ * dest and src must be arrays of limbs of size n.
+ * assign must be 0 or 1.
+ */
+static void mpi_safe_cond_assign( size_t n,
+                                  mbedtls_mpi_uint *dest,
+                                  const mbedtls_mpi_uint *src,
+                                  unsigned char assign )
+{
+    size_t i;
+    for( i = 0; i < n; i++ )
+        dest[i] = dest[i] * ( 1 - assign ) + src[i] * assign;
+}
+
+/*
  * Conditionally assign X = Y, without leaking information
  * about whether the assignment was made or not.
  * (Leaking information about the respective sizes of X and Y is ok however.)
@@ -262,10 +278,9 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X, const mbedtls_mpi *Y, unsigned
 
     X->s = X->s * ( 1 - assign ) + Y->s * assign;
 
-    for( i = 0; i < Y->n; i++ )
-        X->p[i] = X->p[i] * ( 1 - assign ) + Y->p[i] * assign;
+    mpi_safe_cond_assign( Y->n, X->p, Y->p, assign );
 
-    for( ; i < X->n; i++ )
+    for( i = Y->n; i < X->n; i++ )
         X->p[i] *= ( 1 - assign );
 
 cleanup:

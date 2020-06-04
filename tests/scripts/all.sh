@@ -835,6 +835,25 @@ component_test_ecp_no_internal_rng () {
     # no SSL tests as they all depend on having a DRBG
 }
 
+component_test_ecp_restartable_no_internal_rng () {
+    msg "build: Default plus ECP_RESTARTABLE and ECP_NO_INTERNAL_RNG, no DRBG"
+    scripts/config.pl set MBEDTLS_ECP_NO_INTERNAL_RNG
+    scripts/config.pl set MBEDTLS_ECP_RESTARTABLE
+    scripts/config.pl unset MBEDTLS_CTR_DRBG_C
+    scripts/config.pl unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.pl unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_C # requires CTR_DRBG
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA Crypto
+
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: ECP_RESTARTABLE and ECP_NO_INTERNAL_RNG, no DRBG module"
+    make test
+
+    # no SSL tests as they all depend on having a DRBG
+}
+
 component_test_small_ssl_out_content_len () {
     msg "build: small SSL_OUT_CONTENT_LEN (ASan build)"
     scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 16384

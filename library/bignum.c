@@ -1701,14 +1701,11 @@ static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
 /*
  * Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)
  */
-static int mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N, mbedtls_mpi_uint mm,
+static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N, mbedtls_mpi_uint mm,
                          const mbedtls_mpi *T )
 {
     size_t i, n, m;
     mbedtls_mpi_uint u0, u1, *d;
-
-    if( T->n < N->n + 1 || T->p == NULL )
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
     memset( T->p, 0, T->n * ciL );
 
@@ -1737,14 +1734,12 @@ static int mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi 
     else
         /* prevent timing attacks */
         mpi_sub_hlp( n, A->p, T->p );
-
-    return( 0 );
 }
 
 /*
  * Montgomery reduction: A = A * R^-1 mod N
  */
-static int mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N, mbedtls_mpi_uint mm, const mbedtls_mpi *T )
+static void mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N, mbedtls_mpi_uint mm, const mbedtls_mpi *T )
 {
     mbedtls_mpi_uint z = 1;
     mbedtls_mpi U;
@@ -1752,7 +1747,7 @@ static int mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N, mbedtls_mpi_uint m
     U.n = U.s = (int) z;
     U.p = &z;
 
-    return( mpi_montmul( A, &U, N, mm, T ) );
+    mpi_montmul( A, &U, N, mm, T );
 }
 
 /*
@@ -1831,13 +1826,13 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     else
         MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[1], A ) );
 
-    MBEDTLS_MPI_CHK( mpi_montmul( &W[1], &RR, N, mm, &T ) );
+    mpi_montmul( &W[1], &RR, N, mm, &T );
 
     /*
      * X = R^2 * R^-1 mod N = R mod N
      */
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( X, &RR ) );
-    MBEDTLS_MPI_CHK( mpi_montred( X, N, mm, &T ) );
+    mpi_montred( X, N, mm, &T );
 
     if( wsize > 1 )
     {
@@ -1850,7 +1845,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
         MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[j], &W[1]    ) );
 
         for( i = 0; i < wsize - 1; i++ )
-            MBEDTLS_MPI_CHK( mpi_montmul( &W[j], &W[j], N, mm, &T ) );
+            mpi_montmul( &W[j], &W[j], N, mm, &T );
 
         /*
          * W[i] = W[i - 1] * W[1]
@@ -1860,7 +1855,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
             MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[i], N->n + 1 ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[i], &W[i - 1] ) );
 
-            MBEDTLS_MPI_CHK( mpi_montmul( &W[i], &W[1], N, mm, &T ) );
+            mpi_montmul( &W[i], &W[1], N, mm, &T );
         }
     }
 
@@ -1897,7 +1892,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
             /*
              * out of window, square X
              */
-            MBEDTLS_MPI_CHK( mpi_montmul( X, X, N, mm, &T ) );
+            mpi_montmul( X, X, N, mm, &T );
             continue;
         }
 
@@ -1915,12 +1910,12 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
              * X = X^wsize R^-1 mod N
              */
             for( i = 0; i < wsize; i++ )
-                MBEDTLS_MPI_CHK( mpi_montmul( X, X, N, mm, &T ) );
+                mpi_montmul( X, X, N, mm, &T );
 
             /*
              * X = X * W[wbits] R^-1 mod N
              */
-            MBEDTLS_MPI_CHK( mpi_montmul( X, &W[wbits], N, mm, &T ) );
+            mpi_montmul( X, &W[wbits], N, mm, &T );
 
             state--;
             nbits = 0;
@@ -1933,18 +1928,18 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
      */
     for( i = 0; i < nbits; i++ )
     {
-        MBEDTLS_MPI_CHK( mpi_montmul( X, X, N, mm, &T ) );
+        mpi_montmul( X, X, N, mm, &T );
 
         wbits <<= 1;
 
         if( ( wbits & ( one << wsize ) ) != 0 )
-            MBEDTLS_MPI_CHK( mpi_montmul( X, &W[1], N, mm, &T ) );
+            mpi_montmul( X, &W[1], N, mm, &T );
     }
 
     /*
      * X = A^E * R * R^-1 mod N = A^E mod N
      */
-    MBEDTLS_MPI_CHK( mpi_montred( X, N, mm, &T ) );
+    mpi_montred( X, N, mm, &T );
 
     if( neg && E->n != 0 && ( E->p[0] & 1 ) != 0 )
     {

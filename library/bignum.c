@@ -1330,7 +1330,9 @@ cleanup:
 /*
  * Helper for mbedtls_mpi subtraction
  */
-static void mpi_sub_hlp( size_t n, mbedtls_mpi_uint *s, mbedtls_mpi_uint *d )
+static void mpi_sub_hlp( size_t n,
+                         const mbedtls_mpi_uint *s,
+                         mbedtls_mpi_uint *d )
 {
     size_t i;
     mbedtls_mpi_uint c, z;

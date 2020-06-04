@@ -565,6 +565,13 @@ static int ssl_transform_aead_dynamic_iv_is_explicit(
  *    This variant occurs in TLS 1.3 and for TLS 1.2 when using ChaChaPoly.
  *
  * See also the documentation of mbedtls_ssl_transform.
+ *
+ * This function has the precondition that
+ *
+ *     dst_iv_len >= max( fixed_iv_len, dynamic_iv_len )
+ *
+ * which has to be ensured by the caller. If this precondition
+ * violated, the behavior of this function is undefined.
  */
 static void ssl_build_record_nonce( unsigned char *dst_iv,
                                     size_t dst_iv_len,

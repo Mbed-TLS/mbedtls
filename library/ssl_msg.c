@@ -884,7 +884,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         /*
          * Prefix record content with dynamic IV in case it is explicit.
          */
-        if( dynamic_iv_is_explicit )
+        if( dynamic_iv_is_explicit != 0 )
         {
             if( rec->data_offset < dynamic_iv_len )
             {

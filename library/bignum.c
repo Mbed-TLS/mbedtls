@@ -1090,7 +1090,8 @@ cleanup:
 }
 
 /*
- * Helper for mbedtls_mpi subtraction
+ * Helper for mbedtls_mpi subtraction:
+ * d -= s where d and s have the same size and d >= s.
  */
 static void mpi_sub_hlp( size_t n,
                          const mbedtls_mpi_uint *s,
@@ -1698,8 +1699,27 @@ static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
     *mm = ~x + 1;
 }
 
-/*
- * Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)
+/** Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)
+ *
+ * \param[in,out]   A   One of the numbers to multiply.
+ *                      It must have at least one more limb than N
+ *                      (A->n >= N->n + 1).
+ *                      On successful completion, A contains the result of
+ *                      the multiplication A * B * R^-1 mod N where
+ *                      R = (2^ciL)^n.
+ * \param[in]       B   One of the numbers to multiply.
+ *                      It must be nonzero and must not have more limbs than N
+ *                      (B->n <= N->n).
+ * \param[in]       N   The modulo. N must be odd.
+ * \param           mm  The value calculated by `mpi_montg_init(&mm, N)`.
+ *                      This is -N^-1 mod 2^ciL.
+ * \param[in,out]   T   A bignum for temporary storage.
+ *                      It must be at least twice the limb size of N plus 2
+ *                      (T->n >= 2 * (N->n + 1)).
+ *                      Its initial content is unused and
+ *                      its final content is indeterminate.
+ *                      Note that unlike the usual convention in the library
+ *                      for `const mbedtls_mpi*`, the content of T can change.
  */
 static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N, mbedtls_mpi_uint mm,
                          const mbedtls_mpi *T )
@@ -1729,6 +1749,8 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
 
     memcpy( A->p, d, ( n + 1 ) * ciL );
 
+    /* If A >= N then A -= N. Do the subtraction unconditionally to prevent
+     * timing attacks. Modify T as a side effect. */
     if( mbedtls_mpi_cmp_abs( A, N ) >= 0 )
         mpi_sub_hlp( n, N->p, A->p );
     else
@@ -1738,6 +1760,8 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
 
 /*
  * Montgomery reduction: A = A * R^-1 mod N
+ *
+ * See mpi_montmul() regarding constraints and guarantees on the parameters.
  */
 static void mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N, mbedtls_mpi_uint mm, const mbedtls_mpi *T )
 {

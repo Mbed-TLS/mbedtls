@@ -341,15 +341,25 @@ static void ssl_read_memory( unsigned char *p, size_t len )
  * Encryption/decryption functions
  */
 
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-/* This functions transforms a DTLS plaintext fragment and a record content
- * type into an instance of the DTLSInnerPlaintext structure:
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) ||  \
+    defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+
+static size_t ssl_compute_padding_length( size_t len,
+                                          size_t granularity )
+{
+    return( ( granularity - ( len + 1 ) % granularity ) % granularity );
+}
+
+/* This functions transforms a (D)TLS plaintext fragment and a record content
+ * type into an instance of the (D)TLSInnerPlaintext structure. This is used
+ * in DTLS 1.2 + CID and within TLS 1.3 to allow flexible padding and to protect
+ * a record's content type.
  *
  *        struct {
  *            opaque content[DTLSPlaintext.length];
  *            ContentType real_type;
  *            uint8 zeros[length_of_padding];
- *        } DTLSInnerPlaintext;
+ *        } (D)TLSInnerPlaintext;
  *
  *  Input:
  *  - `content`: The beginning of the buffer holding the
@@ -360,23 +370,21 @@ static void ssl_read_memory( unsigned char *p, size_t len )
  *  - `rec_type`: The desired record content type.
  *
  *  Output:
- *  - `content`: The beginning of the resulting DTLSInnerPlaintext structure.
- *  - `*content_size`: The length of the resulting DTLSInnerPlaintext structure.
+ *  - `content`: The beginning of the resulting (D)TLSInnerPlaintext structure.
+ *  - `*content_size`: The length of the resulting (D)TLSInnerPlaintext structure.
  *
  *  Returns:
  *  - `0` on success.
  *  - A negative error code if `max_len` didn't offer enough space
  *    for the expansion.
  */
-static int ssl_cid_build_inner_plaintext( unsigned char *content,
-                                          size_t *content_size,
-                                          size_t remaining,
-                                          uint8_t rec_type )
+static int ssl_build_inner_plaintext( unsigned char *content,
+                                      size_t *content_size,
+                                      size_t remaining,
+                                      uint8_t rec_type,
+                                      size_t pad )
 {
     size_t len = *content_size;
-    size_t pad = ( MBEDTLS_SSL_CID_PADDING_GRANULARITY -
-                   ( len + 1 ) % MBEDTLS_SSL_CID_PADDING_GRANULARITY ) %
-        MBEDTLS_SSL_CID_PADDING_GRANULARITY;
 
     /* Write real content type */
     if( remaining == 0 )
@@ -395,9 +403,9 @@ static int ssl_cid_build_inner_plaintext( unsigned char *content,
     return( 0 );
 }
 
-/* This function parses a DTLSInnerPlaintext structure.
- * See ssl_cid_build_inner_plaintext() for details. */
-static int ssl_cid_parse_inner_plaintext( unsigned char const *content,
+/* This function parses a (D)TLSInnerPlaintext structure.
+ * See ssl_build_inner_plaintext() for details. */
+static int ssl_parse_inner_plaintext( unsigned char const *content,
                                           size_t *content_size,
                                           uint8_t *rec_type )
 {
@@ -416,13 +424,15 @@ static int ssl_cid_parse_inner_plaintext( unsigned char const *content,
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID ||
+          MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 /* `add_data` must have size 13 Bytes if the CID extension is disabled,
  * and 13 + 1 + CID-length Bytes if the CID extension is enabled. */
 static void ssl_extract_add_data_from_record( unsigned char* add_data,
                                               size_t *add_data_len,
-                                              mbedtls_record *rec )
+                                              mbedtls_record *rec,
+                                              unsigned minor_ver )
 {
     /* Quoting RFC 5246 (TLS 1.2):
      *
@@ -438,28 +448,50 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
      *                         cid +
      *                         cid_length +
      *                         length_of_DTLSInnerPlaintext;
+     *
+     * For TLS 1.3, the record sequence number is dropped from the AAD
+     * and encoded within the nonce of the AEAD operation instead.
      */
 
-    memcpy( add_data, rec->ctr, sizeof( rec->ctr ) );
-    add_data[8] = rec->type;
-    memcpy( add_data + 9, rec->ver, sizeof( rec->ver ) );
+    unsigned char *cur = add_data;
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    if( minor_ver != MBEDTLS_SSL_MINOR_VERSION_4 )
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+    {
+        ((void) minor_ver);
+        memcpy( cur, rec->ctr, sizeof( rec->ctr ) );
+        cur += sizeof( rec->ctr );
+    }
+
+    *cur = rec->type;
+    cur++;
+
+    memcpy( cur, rec->ver, sizeof( rec->ver ) );
+    cur += sizeof( rec->ver );
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( rec->cid_len != 0 )
     {
-        memcpy( add_data + 11, rec->cid, rec->cid_len );
-        add_data[11 + rec->cid_len + 0] = rec->cid_len;
-        add_data[11 + rec->cid_len + 1] = ( rec->data_len >> 8 ) & 0xFF;
-        add_data[11 + rec->cid_len + 2] = ( rec->data_len >> 0 ) & 0xFF;
-        *add_data_len = 13 + 1 + rec->cid_len;
+        memcpy( cur, rec->cid, rec->cid_len );
+        cur += rec->cid_len;
+
+        *cur = rec->cid_len;
+        cur++;
+
+        cur[0] = ( rec->data_len >> 8 ) & 0xFF;
+        cur[1] = ( rec->data_len >> 0 ) & 0xFF;
+        cur += 2;
     }
     else
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     {
-        add_data[11 + 0] = ( rec->data_len >> 8 ) & 0xFF;
-        add_data[11 + 1] = ( rec->data_len >> 0 ) & 0xFF;
-        *add_data_len = 13;
+        cur[0] = ( rec->data_len >> 8 ) & 0xFF;
+        cur[1] = ( rec->data_len >> 0 ) & 0xFF;
+        cur += 2;
     }
+
+    *add_data_len = cur - add_data;
 }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
@@ -508,6 +540,57 @@ static void ssl_mac( mbedtls_md_context_t *md_ctx,
     mbedtls_md_finish( md_ctx, out                );
 }
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
+
+#if defined(MBEDTLS_GCM_C) || \
+    defined(MBEDTLS_CCM_C) || \
+    defined(MBEDTLS_CHACHAPOLY_C)
+static int ssl_transform_aead_dynamic_iv_is_explicit(
+                                mbedtls_ssl_transform const *transform )
+{
+    return( transform->ivlen != transform->fixed_ivlen );
+}
+
+/* Compute IV := ( fixed_iv || 0 ) XOR ( 0 || dynamic_IV )
+ *
+ * Concretely, this occurs in two variants:
+ *
+ * a) Fixed and dynamic IV lengths add up to total IV length, giving
+ *       IV = fixed_iv || dynamic_iv
+ *
+ *    This variant is used in TLS 1.2 when used with GCM or CCM.
+ *
+ * b) Fixed IV lengths matches total IV length, giving
+ *       IV = fixed_iv XOR ( 0 || dynamic_iv )
+ *
+ *    This variant occurs in TLS 1.3 and for TLS 1.2 when using ChaChaPoly.
+ *
+ * See also the documentation of mbedtls_ssl_transform.
+ *
+ * This function has the precondition that
+ *
+ *     dst_iv_len >= max( fixed_iv_len, dynamic_iv_len )
+ *
+ * which has to be ensured by the caller. If this precondition
+ * violated, the behavior of this function is undefined.
+ */
+static void ssl_build_record_nonce( unsigned char *dst_iv,
+                                    size_t dst_iv_len,
+                                    unsigned char const *fixed_iv,
+                                    size_t fixed_iv_len,
+                                    unsigned char const *dynamic_iv,
+                                    size_t dynamic_iv_len )
+{
+    size_t i;
+
+    /* Start with Fixed IV || 0 */
+    memset( dst_iv, 0, dst_iv_len );
+    memcpy( dst_iv, fixed_iv, fixed_iv_len );
+
+    dst_iv += dst_iv_len - dynamic_iv_len;
+    for( i = 0; i < dynamic_iv_len; i++ )
+        dst_iv[i] ^= dynamic_iv[i];
+}
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C */
 
 int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                              mbedtls_ssl_transform *transform,
@@ -574,6 +657,37 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
+    /* The following two code paths implement the (D)TLSInnerPlaintext
+     * structure present in TLS 1.3 and DTLS 1.2 + CID.
+     *
+     * See ssl_build_inner_plaintext() for more information.
+     *
+     * Note that this changes `rec->data_len`, and hence
+     * `post_avail` needs to be recalculated afterwards.
+     *
+     * Note also that the two code paths cannot occur simultaneously
+     * since they apply to different versions of the protocol. There
+     * is hence no risk of double-addition of the inner plaintext.
+     */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    {
+        size_t padding =
+            ssl_compute_padding_length( rec->data_len,
+                                        MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY );
+        if( ssl_build_inner_plaintext( data,
+                                       &rec->data_len,
+                                       post_avail,
+                                       rec->type,
+                                       padding ) != 0 )
+        {
+            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+        }
+
+        rec->type = MBEDTLS_SSL_MSG_APPLICATION_DATA;
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /*
      * Add CID information
@@ -584,17 +698,21 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 
     if( rec->cid_len != 0 )
     {
+        size_t padding =
+            ssl_compute_padding_length( rec->data_len,
+                                        MBEDTLS_SSL_CID_PADDING_GRANULARITY );
         /*
          * Wrap plaintext into DTLSInnerPlaintext structure.
-         * See ssl_cid_build_inner_plaintext() for more information.
+         * See ssl_build_inner_plaintext() for more information.
          *
          * Note that this changes `rec->data_len`, and hence
          * `post_avail` needs to be recalculated afterwards.
          */
-        if( ssl_cid_build_inner_plaintext( data,
+        if( ssl_build_inner_plaintext( data,
                         &rec->data_len,
                         post_avail,
-                        rec->type ) != 0 )
+                        rec->type,
+                        padding ) != 0 )
         {
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
@@ -638,7 +756,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         {
             unsigned char mac[MBEDTLS_SSL_MAC_ADD];
 
-            ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
+            ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
+                                              transform->minor_ver );
 
             mbedtls_md_hmac_update( &transform->md_ctx_enc, add_data,
                                     add_data_len );
@@ -704,52 +823,51 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         unsigned char iv[12];
-        size_t explicit_iv_len = transform->ivlen - transform->fixed_ivlen;
+        unsigned char *dynamic_iv;
+        size_t dynamic_iv_len;
+        int dynamic_iv_is_explicit =
+            ssl_transform_aead_dynamic_iv_is_explicit( transform );
 
-        /* Check that there's space for both the authentication tag
-         * and the explicit IV before and after the record content. */
-        if( post_avail < transform->taglen ||
-            rec->data_offset < explicit_iv_len )
+        /* Check that there's space for the authentication tag. */
+        if( post_avail < transform->taglen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "Buffer provided for encrypted record not large enough" ) );
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
 
         /*
-         * Generate IV
+         * Build nonce for AEAD encryption.
+         *
+         * Note: In the case of CCM and GCM in TLS 1.2, the dynamic
+         *       part of the IV is prepended to the ciphertext and
+         *       can be chosen freely - in particular, it need not
+         *       agree with the record sequence number.
+         *       However, since ChaChaPoly as well as all AEAD modes
+         *       in TLS 1.3 use the record sequence number as the
+         *       dynamic part of the nonce, we uniformly use the
+         *       record sequence number here in all cases.
          */
-        if( transform->ivlen == 12 && transform->fixed_ivlen == 4 )
-        {
-            /* GCM and CCM: fixed || explicit (=seqnum) */
-            memcpy( iv, transform->iv_enc, transform->fixed_ivlen );
-            memcpy( iv + transform->fixed_ivlen, rec->ctr,
-                    explicit_iv_len );
-            /* Prefix record content with explicit IV. */
-            memcpy( data - explicit_iv_len, rec->ctr, explicit_iv_len );
-        }
-        else if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
-        {
-            /* ChachaPoly: fixed XOR sequence number */
-            unsigned char i;
+        dynamic_iv     = rec->ctr;
+        dynamic_iv_len = sizeof( rec->ctr );
 
-            memcpy( iv, transform->iv_enc, transform->fixed_ivlen );
+        ssl_build_record_nonce( iv, sizeof( iv ),
+                                transform->iv_enc,
+                                transform->fixed_ivlen,
+                                dynamic_iv,
+                                dynamic_iv_len );
 
-            for( i = 0; i < 8; i++ )
-                iv[i+4] ^= rec->ctr[i];
-        }
-        else
-        {
-            /* Reminder if we ever add an AEAD mode with a different size */
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
-
-        ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
+        /*
+         * Build additional data for AEAD encryption.
+         * This depends on the TLS version.
+         */
+        ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
+                                          transform->minor_ver );
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used (internal)",
-                                  iv, transform->ivlen );
+                               iv, transform->ivlen );
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used (transmitted)",
-                                  data - explicit_iv_len, explicit_iv_len );
+                               dynamic_iv,
+                               dynamic_iv_is_explicit ? dynamic_iv_len : 0 );
         MBEDTLS_SSL_DEBUG_BUF( 4, "additional data used for AEAD",
                                add_data, add_data_len );
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
@@ -770,17 +888,32 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_auth_encrypt", ret );
             return( ret );
         }
-
         MBEDTLS_SSL_DEBUG_BUF( 4, "after encrypt: tag",
                                data + rec->data_len, transform->taglen );
-
-        rec->data_len    += transform->taglen + explicit_iv_len;
-        rec->data_offset -= explicit_iv_len;
+        /* Account for authentication tag. */
+        rec->data_len += transform->taglen;
         post_avail -= transform->taglen;
+
+        /*
+         * Prefix record content with dynamic IV in case it is explicit.
+         */
+        if( dynamic_iv_is_explicit != 0 )
+        {
+            if( rec->data_offset < dynamic_iv_len )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Buffer provided for encrypted record not large enough" ) );
+                return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+            }
+
+            memcpy( data - dynamic_iv_len, dynamic_iv, dynamic_iv_len );
+            rec->data_offset -= dynamic_iv_len;
+            rec->data_len    += dynamic_iv_len;
+        }
+
         auth_done++;
     }
     else
-#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C */
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C */
 #if defined(MBEDTLS_CIPHER_MODE_CBC) &&                                    \
     ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_CAMELLIA_C) || defined(MBEDTLS_ARIA_C) )
     if( mode == MBEDTLS_MODE_CBC )
@@ -898,7 +1031,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                 return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
             }
 
-            ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
+            ssl_extract_add_data_from_record( add_data, &add_data_len,
+                                              rec, transform->minor_ver );
 
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
             MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", add_data,
@@ -1012,61 +1146,61 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         mode == MBEDTLS_MODE_CHACHAPOLY )
     {
         unsigned char iv[12];
-        size_t explicit_iv_len = transform->ivlen - transform->fixed_ivlen;
+        unsigned char *dynamic_iv;
+        size_t dynamic_iv_len;
 
         /*
-         * Prepare IV from explicit and implicit data.
+         * Extract dynamic part of nonce for AEAD decryption.
+         *
+         * Note: In the case of CCM and GCM in TLS 1.2, the dynamic
+         *       part of the IV is prepended to the ciphertext and
+         *       can be chosen freely - in particular, it need not
+         *       agree with the record sequence number.
          */
-
-        /* Check that there's enough space for the explicit IV
-         * (at the beginning of the record) and the MAC (at the
-         * end of the record). */
-        if( rec->data_len < explicit_iv_len + transform->taglen )
+        dynamic_iv_len = sizeof( rec->ctr );
+        if( ssl_transform_aead_dynamic_iv_is_explicit( transform ) == 1 )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) < explicit_iv_len (%d) "
-                                        "+ taglen (%d)", rec->data_len,
-                                        explicit_iv_len, transform->taglen ) );
+            if( rec->data_len < dynamic_iv_len )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) < explicit_iv_len (%d) ",
+                                            rec->data_len,
+                                            dynamic_iv_len ) );
+                return( MBEDTLS_ERR_SSL_INVALID_MAC );
+            }
+            dynamic_iv = data;
+
+            data += dynamic_iv_len;
+            rec->data_offset += dynamic_iv_len;
+            rec->data_len    -= dynamic_iv_len;
+        }
+        else
+        {
+            dynamic_iv = rec->ctr;
+        }
+
+        /* Check that there's space for the authentication tag. */
+        if( rec->data_len < transform->taglen )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) < taglen (%d) " ) );
             return( MBEDTLS_ERR_SSL_INVALID_MAC );
         }
+        rec->data_len -= transform->taglen;
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
-        if( transform->ivlen == 12 && transform->fixed_ivlen == 4 )
-        {
-            /* GCM and CCM: fixed || explicit */
+        /*
+         * Prepare nonce from dynamic and static parts.
+         */
+        ssl_build_record_nonce( iv, sizeof( iv ),
+                                transform->iv_dec,
+                                transform->fixed_ivlen,
+                                dynamic_iv,
+                                dynamic_iv_len );
 
-            /* Fixed */
-            memcpy( iv, transform->iv_dec, transform->fixed_ivlen );
-            /* Explicit */
-            memcpy( iv + transform->fixed_ivlen, data, 8 );
-        }
-        else
-#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C */
-#if defined(MBEDTLS_CHACHAPOLY_C)
-        if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
-        {
-            /* ChachaPoly: fixed XOR sequence number */
-            unsigned char i;
-
-            memcpy( iv, transform->iv_dec, transform->fixed_ivlen );
-
-            for( i = 0; i < 8; i++ )
-                iv[i+4] ^= rec->ctr[i];
-        }
-        else
-#endif /* MBEDTLS_CHACHAPOLY_C */
-        {
-            /* Reminder if we ever add an AEAD mode with a different size */
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
-
-        /* Group changes to data, data_len, and add_data, because
-         * add_data depends on data_len. */
-        data += explicit_iv_len;
-        rec->data_offset += explicit_iv_len;
-        rec->data_len -= explicit_iv_len + transform->taglen;
-
-        ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
+        /*
+         * Build additional data for AEAD encryption.
+         * This depends on the TLS version.
+         */
+        ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
+                                          transform->minor_ver );
         MBEDTLS_SSL_DEBUG_BUF( 4, "additional data used for AEAD",
                                add_data, add_data_len );
 
@@ -1178,7 +1312,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
              *
              * Further, we still know that data_len > minlen */
             rec->data_len -= transform->maclen;
-            ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
+            ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
+                                              transform->minor_ver );
 
             /* Calculate expected MAC. */
             MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", add_data,
@@ -1397,7 +1532,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
          * hence data_len >= maclen in any case.
          */
         rec->data_len -= transform->maclen;
-        ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
+        ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
+                                          transform->minor_ver );
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
         if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
@@ -1549,11 +1685,23 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    {
+        /* Remove inner padding and infer true content type. */
+        ret = ssl_parse_inner_plaintext( data, &rec->data_len,
+                                         &rec->type );
+
+        if( ret != 0 )
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( rec->cid_len != 0 )
     {
-        ret = ssl_cid_parse_inner_plaintext( data, &rec->data_len,
-                                             &rec->type );
+        ret = ssl_parse_inner_plaintext( data, &rec->data_len,
+                                         &rec->type );
         if( ret != 0 )
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
@@ -4866,6 +5014,15 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
  *       and the caller has to make sure there's space for this.
  */
 
+static size_t ssl_transform_get_explicit_iv_len(
+                        mbedtls_ssl_transform const *transform )
+{
+    if( transform->minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
+        return( 0 );
+
+    return( transform->ivlen - transform->fixed_ivlen );
+}
+
 void mbedtls_ssl_update_out_pointers( mbedtls_ssl_context *ssl,
                                       mbedtls_ssl_transform *transform )
 {
@@ -4894,14 +5051,10 @@ void mbedtls_ssl_update_out_pointers( mbedtls_ssl_context *ssl,
         ssl->out_iv  = ssl->out_hdr + 5;
     }
 
+    ssl->out_msg = ssl->out_iv;
     /* Adjust out_msg to make space for explicit IV, if used. */
-    if( transform != NULL &&
-        ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
-    {
-        ssl->out_msg = ssl->out_iv + transform->ivlen - transform->fixed_ivlen;
-    }
-    else
-        ssl->out_msg = ssl->out_iv;
+    if( transform != NULL )
+        ssl->out_msg += ssl_transform_get_explicit_iv_len( transform );
 }
 
 /* Once ssl->in_hdr as the address of the beginning of the

@@ -554,6 +554,10 @@ typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
  *   time with the 8-byte record sequence number, without prepending the
  *   latter to the encrypted record.
  *
+ * Additionally, DTLS 1.2 + CID as well as TLS 1.3 use an inner plaintext
+ * which allows to add flexible length padding and to hide a record's true
+ * content type.
+ *
  * In addition to type and version, the following parameters are relevant:
  * - The symmetric cipher algorithm to be used.
  * - The (static) encryption/decryption keys for the cipher.

@@ -106,10 +106,10 @@
 #include "mbedtls/ecp_internal.h"
 
 #if !defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
-#if defined(MBEDTLS_CTR_DRBG_C)
-#include "mbedtls/ctr_drbg.h"
-#elif defined(MBEDTLS_HMAC_DRBG_C)
+#if defined(MBEDTLS_HMAC_DRBG_C)
 #include "mbedtls/hmac_drbg.h"
+#elif defined(MBEDTLS_CTR_DRBG_C)
+#include "mbedtls/ctr_drbg.h"
 #else
 #error "Invalid configuration detected. Include check_config.h to ensure that the configuration is valid."
 #endif
@@ -144,10 +144,48 @@ static unsigned long add_count, dbl_count, mul_count;
  * have our own internal DRBG instance, seeded from the secret scalar.
  *
  * The following is a light-weight abstraction layer for doing that with
- * CTR_DRBG or HMAC_DRBG.
+ * HMAC_DRBG (first choice) or CTR_DRBG.
  */
 
-#if defined(MBEDTLS_CTR_DRBG_C)
+#if defined(MBEDTLS_HMAC_DRBG_C)
+
+/* DRBG context type */
+typedef mbedtls_hmac_drbg_context ecp_drbg_context;
+
+/* DRBG context init */
+static inline void ecp_drbg_init( ecp_drbg_context *ctx )
+{
+    mbedtls_hmac_drbg_init( ctx );
+}
+
+/* DRBG context free */
+static inline void ecp_drbg_free( ecp_drbg_context *ctx )
+{
+    mbedtls_hmac_drbg_free( ctx );
+}
+
+/* DRBG function */
+static inline int ecp_drbg_random( void *p_rng,
+                                   unsigned char *output, size_t output_len )
+{
+    return( mbedtls_hmac_drbg_random( p_rng, output, output_len ) );
+}
+
+/* DRBG context seeding */
+static int ecp_drbg_seed( ecp_drbg_context *ctx, const mbedtls_mpi *secret )
+{
+    const unsigned char *secret_p = (const unsigned char *) secret->p;
+    const size_t secret_size = secret->n * sizeof( mbedtls_mpi_uint );
+
+    /* The list starts with strong hashes */
+    const mbedtls_md_type_t md_type = mbedtls_md_list()[0];
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_type );
+
+    return( mbedtls_hmac_drbg_seed_buf( ctx, md_info, secret_p, secret_size ) );
+}
+
+#elif defined(MBEDTLS_CTR_DRBG_C)
+
 /* DRBG context type */
 typedef mbedtls_ctr_drbg_context ecp_drbg_context;
 
@@ -192,42 +230,6 @@ static int ecp_drbg_seed( ecp_drbg_context *ctx, const mbedtls_mpi *secret )
 
     return( mbedtls_ctr_drbg_seed( ctx, ecp_ctr_drbg_null_entropy, NULL,
                                    secret_p, secret_size ) );
-}
-
-#elif defined(MBEDTLS_HMAC_DRBG_C)
-/* DRBG context type */
-typedef mbedtls_hmac_drbg_context ecp_drbg_context;
-
-/* DRBG context init */
-static inline void ecp_drbg_init( ecp_drbg_context *ctx )
-{
-    mbedtls_hmac_drbg_init( ctx );
-}
-
-/* DRBG context free */
-static inline void ecp_drbg_free( ecp_drbg_context *ctx )
-{
-    mbedtls_hmac_drbg_free( ctx );
-}
-
-/* DRBG function */
-static inline int ecp_drbg_random( void *p_rng,
-                                   unsigned char *output, size_t output_len )
-{
-    return( mbedtls_hmac_drbg_random( p_rng, output, output_len ) );
-}
-
-/* DRBG context seeding */
-static int ecp_drbg_seed( ecp_drbg_context *ctx, const mbedtls_mpi *secret )
-{
-    const unsigned char *secret_p = (const unsigned char *) secret->p;
-    const size_t secret_size = secret->n * sizeof( mbedtls_mpi_uint );
-
-    /* The list starts with strong hashes */
-    const mbedtls_md_type_t md_type = mbedtls_md_list()[0];
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_type );
-
-    return( mbedtls_hmac_drbg_seed_buf( ctx, md_info, secret_p, secret_size ) );
 }
 
 #else

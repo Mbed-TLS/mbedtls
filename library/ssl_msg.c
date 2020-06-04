@@ -557,8 +557,14 @@ static int ssl_transform_aead_dynamic_iv_is_explicit(
  * a) Fixed and dynamic IV lengths add up to total IV length, giving
  *       IV = fixed_iv || dynamic_iv
  *
+ *    This variant is used in TLS 1.2 when used with GCM or CCM.
+ *
  * b) Fixed IV lengths matches total IV length, giving
  *       IV = fixed_iv XOR ( 0 || dynamic_iv )
+ *
+ *    This variant occurs in TLS 1.3 and for TLS 1.2 when using ChaChaPoly.
+ *
+ * See also the documentation of mbedtls_ssl_transform.
  */
 static void ssl_build_record_nonce( unsigned char *dst_iv,
                                     size_t dst_iv_len,

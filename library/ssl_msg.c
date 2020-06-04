@@ -853,8 +853,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used (internal)",
                                iv, transform->ivlen );
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used (transmitted)",
-                               data - dynamic_iv_len * dynamic_iv_is_explicit,
-                               dynamic_iv_len * dynamic_iv_is_explicit );
+                               dynamic_iv,
+                               dynamic_iv_is_explicit ? dynamic_iv_len : 0 );
         MBEDTLS_SSL_DEBUG_BUF( 4, "additional data used for AEAD",
                                add_data, add_data_len );
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "

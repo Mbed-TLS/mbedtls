@@ -172,7 +172,7 @@ Mbed TLS can be ported to many different architectures, OS's and platforms. Befo
 License
 -------
 
-Unless specifically indicated otherwise in a file, Mbed TLS files are provided under the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) license. See [here](./apache-2.0.txt) for the full text of this license. Contributors must accept that their contributions are made under both the Apache-2.0 AND [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) licenses. This enables LTS (Long Term Support) branches of the software to be provided under either the Apache-2.0 OR GPL-2.0-or-later licenses.
+Unless specifically indicated otherwise in a file, Mbed TLS files are provided under the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) OR [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) licenses. A copy of these licenses can be found in [apache-2.0.txt](./apache-2.0.txt) and [gpl-2.0.txt](./gpl-2.0.txt). Contributors must accept that their contributions are made under both the Apache-2.0 AND GPL-2.0-or-later licenses.
 
 Contributing
 ------------

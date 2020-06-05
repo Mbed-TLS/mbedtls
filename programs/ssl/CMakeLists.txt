@@ -14,6 +14,7 @@ set(targets
     ssl_fork_server
     ssl_mail_client
     ssl_server
+    ssl_server2
 )
 
 if(USE_PKCS11_HELPER_LIBRARY)

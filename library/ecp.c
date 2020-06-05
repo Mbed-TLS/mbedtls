@@ -1544,7 +1544,10 @@ static int ecp_randomize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
             MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &l, 1 ) );
 
         if( count++ > 10 )
-            return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
+        {
+            ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
+            goto cleanup;
+        }
     }
     while( mbedtls_mpi_cmp_int( &l, 1 ) <= 0 );
 
@@ -2278,7 +2281,10 @@ static int ecp_randomize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
             MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &l, 1 ) );
 
         if( count++ > 10 )
-            return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
+        {
+            ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
+            goto cleanup;
+        }
     }
     while( mbedtls_mpi_cmp_int( &l, 1 ) <= 0 );
 
@@ -2856,7 +2862,10 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
              * such as secp224k1 are actually very close to the worst case.
              */
             if( ++count > 30 )
-                return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
+            {
+                ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
+                goto cleanup;
+            }
 
             ret = mbedtls_mpi_lt_mpi_ct( d, &grp->N, &cmp );
             if( ret != 0 )

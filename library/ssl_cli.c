@@ -27,9 +27,9 @@
 
 #if defined(MBEDTLS_SSL_CLI_C)
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
+
+#if !defined(MBEDTLS_PLATFORM_C)
 #include <stdlib.h>
 #define mbedtls_calloc    calloc
 #define mbedtls_free      free
@@ -723,6 +723,10 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
         {
             ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_SET;
             return( 0 );
+        }
+        else
+        {
+            ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
         }
     }
 
@@ -2388,6 +2392,10 @@ static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
             ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
             return( 0 );
         }
+        else
+        {
+            ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+        }
     }
 
     MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
@@ -2459,6 +2467,12 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
         if( ret == 0 )
         {
             ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
+        }
+        else
+        {
+            ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_rsa_pkcs1_encrypt", ret );
+            goto cleanup;
         }
     }
     else
@@ -3101,7 +3115,7 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
             }
             else
             {
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
             }
         }
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)

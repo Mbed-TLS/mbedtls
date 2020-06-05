@@ -2027,8 +2027,9 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
             }
             else
             {
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
-                return( ret );
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret",
+                                       MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
             }
         }
         else

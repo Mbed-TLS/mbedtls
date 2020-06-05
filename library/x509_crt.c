@@ -2936,7 +2936,7 @@ static int x509_crt_check_parent( const mbedtls_x509_crt_sig_info *sig_info,
  *
  * Return value:
  *  - 0 on success
- *  - MBEDTLS_ERR_ECP_IN_PROGRESS otherwise
+ *  - MBEDTLS_ERR_ECP_IN_PROGRESS or MBEDTLS_ERR_PLATFORM_FAULT_DETECTED otherwise
  */
 static int x509_crt_find_parent_in(
                         mbedtls_x509_crt_sig_info const *child_sig,
@@ -3051,6 +3051,8 @@ check_signature:
             mbedtls_platform_random_delay();
             if( ret_fi == 0 )
                 signature_is_good = X509_SIGNATURE_IS_GOOD;
+            else
+                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
         }
 
         if( top && ! signature_is_good )
@@ -3869,6 +3871,8 @@ exit:
         mbedtls_platform_random_delay();
         if( flags_fi == 0 )
             return( 0 );
+        else
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 
     /* Preserve the API by removing internal extra bits - from now on the

@@ -846,7 +846,23 @@ component_test_no_ctr_drbg () {
     msg "test: no CTR_DRBG"
     make test
 
-    # no SSL tests as they all depend on CTR_DRBG so far
+    # no ssl-opt.sh/compat.sh as they all depend on CTR_DRBG so far
+}
+
+component_test_no_hmac_drbg () {
+    msg "build: Full minus HMAC_DRBG"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: no HMAC_DRBG"
+    make test
+
+    # No ssl-opt.sh/compat.sh as they never use HMAC_DRBG so far,
+    # so there's little value in running those lengthy tests here.
 }
 
 component_test_new_ecdh_context () {

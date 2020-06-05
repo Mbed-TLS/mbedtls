@@ -1772,7 +1772,7 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
     /* Now d - (2^biL)^n = A - N so d >= (2^biL)^n iff A >= N.
      * So we want to copy the result of the subtraction iff d->p[n] != 0.
      * Note that d->p[n] is either 0 or 1 since A - N <= N <= (2^biL)^n. */
-    mpi_safe_cond_assign( n + 1, A->p, d, d[n] );
+    mpi_safe_cond_assign( n + 1, A->p, d, (unsigned char) d[n] );
     A->p[n] = 0;
 }
 

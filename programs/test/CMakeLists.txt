@@ -28,7 +28,7 @@ add_executable(zeroize zeroize.c)
 target_link_libraries(zeroize mbedcrypto)
 
 add_executable(query_compile_time_config query_compile_time_config.c)
-target_sources(query_compile_time_config PUBLIC query_config.c)
+target_sources(query_compile_time_config PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/query_config.c)
 target_link_libraries(query_compile_time_config mbedcrypto)
 
 install(TARGETS selftest benchmark udp_proxy query_compile_time_config

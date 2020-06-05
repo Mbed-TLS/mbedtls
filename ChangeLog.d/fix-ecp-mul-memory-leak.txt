@@ -1,0 +1,3 @@
+Bugfix
+   * Fix potential memory leaks in ecp_randomize_jac() and ecp_randomize_mxz()
+     when PRNG function fails. Contributed by Jonas Lejeune in #3318.

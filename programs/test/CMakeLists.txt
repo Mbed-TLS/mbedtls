@@ -26,7 +26,7 @@ if(TEST_CPP)
 endif()
 
 foreach(exe IN LISTS executables_libs executables_mbedcrypto)
-    add_executable(${exe} ${exe}.c)
+    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>)
 
     # This emulates "if ( ... IN_LIST ... )" which becomes available in CMake 3.3
     list(FIND executables_libs ${exe} exe_index)

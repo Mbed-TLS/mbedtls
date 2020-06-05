@@ -32,7 +32,7 @@ set(executables_with_common_c
 
 foreach(exe IN LISTS executables_no_common_c executables_with_common_c)
 
-    add_executable(${exe} ${exe}.c)
+    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>)
 
     if (NOT FUZZINGENGINE_LIB)
         target_link_libraries(${exe} ${libs})

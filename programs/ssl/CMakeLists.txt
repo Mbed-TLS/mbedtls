@@ -27,15 +27,16 @@ set(executables
 )
 
 foreach(exe IN LISTS executables)
-    add_executable(${exe} ${exe}.c)
+    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>)
     target_link_libraries(${exe} ${libs})
+    target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
 endforeach()
 
 target_sources(ssl_client2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../test/query_config.c)
 target_sources(ssl_server2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../test/query_config.c)
 
 if(THREADS_FOUND)
-    add_executable(ssl_pthread_server ssl_pthread_server.c)
+    add_executable(ssl_pthread_server ssl_pthread_server.c $<TARGET_OBJECTS:mbedtls_test>)
     target_link_libraries(ssl_pthread_server ${libs} ${CMAKE_THREAD_LIBS_INIT})
     list(APPEND executables ssl_pthread_server)
 endif(THREADS_FOUND)

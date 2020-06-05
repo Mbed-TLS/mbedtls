@@ -19,7 +19,7 @@ set(executables
 )
 
 foreach(exe IN LISTS executables)
-    add_executable(${exe} ${exe}.c)
+    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>)
     target_link_libraries(${exe} ${libs})
 endforeach()
 

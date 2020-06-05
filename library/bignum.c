@@ -558,7 +558,11 @@ static int mpi_write_hlp( mbedtls_mpi *X, int radix,
         length++;
     } while( mbedtls_mpi_cmp_int( X, 0 ) != 0 );
 
-    memmove( *p, p_end, length );
+    if( 0 != mbedtls_platform_memmove( *p, p_end, length ) )
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
     *p += length;
 
 cleanup:

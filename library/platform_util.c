@@ -38,6 +38,12 @@
 #include "mbedtls/platform.h"
 #include "mbedtls/threading.h"
 
+#if !defined(MBEDTLS_PLATFORM_C)
+#include <stdlib.h>
+#define mbedtls_calloc    calloc
+#define mbedtls_free       free
+#endif
+
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
 #include "mbedtls/entropy_poll.h"
 #endif
@@ -119,6 +125,23 @@ void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
             (void *) ( (unsigned char *) src + start_offset ),
             ( num - start_offset ) );
     return( memcpy( (void *) dst, (void *) src, start_offset ) );
+}
+
+int mbedtls_platform_memmove( void *dst, const void *src, size_t num )
+{
+    /* The buffers can have a common part, so we cannot do a copy from a random
+     * location. By using a temporary buffer we can do so, but the cost of it
+     * is using more memory and longer transfer time. */
+    void *tmp = mbedtls_calloc( 1, num );
+    if( tmp != NULL )
+    {
+        mbedtls_platform_memcpy( tmp, src, num );
+        mbedtls_platform_memcpy( dst, tmp, num );
+        mbedtls_free( tmp );
+        return 0;
+    }
+
+    return -1;
 }
 
 int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )

@@ -190,13 +190,13 @@ psa_status_t psa_validate_key_location( const psa_key_attributes_t *attributes,
     if ( psa_key_lifetime_is_external( lifetime ) )
     {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-        psa_se_drv_table_entry_t *p_drv_e = psa_get_se_driver_entry( lifetime );
-        if( p_drv_e == NULL )
+        psa_se_drv_table_entry_t *driver = psa_get_se_driver_entry( lifetime );
+        if( driver == NULL )
             return( PSA_ERROR_INVALID_ARGUMENT );
         else
         {
             if (p_drv != NULL)
-                *p_drv = p_drv_e;
+                *p_drv = driver;
             return( PSA_SUCCESS );
         }
 #else

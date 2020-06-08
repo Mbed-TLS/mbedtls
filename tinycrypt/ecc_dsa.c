@@ -89,7 +89,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	uECC_word_t s[NUM_ECC_WORDS];
 	uECC_word_t p[NUM_ECC_WORDS * 2];
 	wordcount_t num_n_words = BITS_TO_WORDS(NUM_ECC_BITS);
-	int r;
+	int r = UECC_FAILURE;
 
 
 	/* Make sure 0 < k < curve_n */
@@ -136,7 +136,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	}
 
 	uECC_vli_nativeToBytes(signature + NUM_ECC_BYTES, NUM_ECC_BYTES, s);
-	return UECC_SUCCESS;
+	return r;
 }
 
 int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,

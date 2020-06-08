@@ -38,6 +38,7 @@
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/ssl_internal.h"
+#include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 
 #include <string.h>
@@ -3424,7 +3425,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
         {
-            int ret;
+            int ret = UECC_FAULT_DETECTED;
             static const unsigned char ecdh_param_hdr[] = {
                 MBEDTLS_SSL_EC_TLS_NAMED_CURVE,
                 0  /* high bits of secp256r1 TLS ID  */,
@@ -4213,7 +4214,7 @@ static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
                                           size_t buflen )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
     unsigned char *p, *end;
@@ -4249,8 +4250,7 @@ static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
     {
-        ((void) ret);
-        if( mbedtls_ssl_ecdh_read_peerkey( ssl, &p, end ) != 0 )
+        if( ( ret = mbedtls_ssl_ecdh_read_peerkey( ssl, &p, end ) ) != 0 )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     }
     else
@@ -4272,7 +4272,6 @@ static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
         if( ( ret = mbedtls_ecdh_read_public( &ssl->handshake->ecdh_ctx,
                                       p, end - p) ) != 0 )
         {
-            ((void) ret);
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_read_public", ret );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
         }
@@ -4414,7 +4413,7 @@ static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    return( 0 );
+    return( ret );
 }
 
 /* Update the handshake state */
@@ -4735,7 +4734,7 @@ static int ssl_write_new_session_ticket( mbedtls_ssl_context *ssl )
  */
 int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
 {
-    int ret = 0;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
     if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER || ssl->handshake == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );

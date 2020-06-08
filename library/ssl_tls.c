@@ -50,7 +50,6 @@
 #include "mbedtls/version.h"
 #include "mbedtls/platform.h"
 
-
 #include <string.h>
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -175,7 +174,7 @@ int mbedtls_ssl_check_record( mbedtls_ssl_context const *ssl,
                               unsigned char *buf,
                               size_t buflen )
 {
-    int ret = 0;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     mbedtls_record rec;
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "=> mbedtls_ssl_check_record" ) );
     MBEDTLS_SSL_DEBUG_BUF( 3, "record buffer", buf, buflen );
@@ -1893,7 +1892,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 {
-    volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
     ssl->handshake->key_derivation_done = MBEDTLS_SSL_FI_FLAG_UNSET;
@@ -1982,7 +1981,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
 int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
 {
-    volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
@@ -7340,7 +7339,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
                                          void *rs_ctx )
 {
     volatile int verify_ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
-    volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     volatile int flow_counter = 0;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
@@ -7966,7 +7965,7 @@ static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
 
 int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
 {
-    volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     volatile const int authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET

@@ -47,6 +47,7 @@
 #include "mbedtls/platform_time.h"
 #endif
 
+#include "mbedtls/platform.h"
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #include "mbedtls/platform_util.h"
 #endif
@@ -682,7 +683,7 @@ static void ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
  */
 static int ssl_generate_random( mbedtls_ssl_context *ssl )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     unsigned char *p = ssl->handshake->randbytes;
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t t;
@@ -2354,7 +2355,7 @@ static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
                                          unsigned char* out,
                                          unsigned add_length_tag )
 {
-    volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
     /*
      * Generate (part of) the pre-master secret as
@@ -2402,7 +2403,7 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
                                         unsigned char *out, size_t buflen,
                                         size_t *olen )
 {
-    volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     size_t len_bytes = mbedtls_ssl_get_minor_ver( ssl ) ==
         MBEDTLS_SSL_MINOR_VERSION_0 ? 0 : 2;
     mbedtls_pk_context *peer_pk = NULL;
@@ -3133,7 +3134,7 @@ static int ssl_in_server_key_exchange_postprocess( mbedtls_ssl_context *ssl )
 
 static int ssl_process_in_server_key_exchange( mbedtls_ssl_context *ssl )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
 
     /* Preparation:
@@ -3374,7 +3375,7 @@ exit:
 
 static int ssl_parse_server_hello_done( mbedtls_ssl_context *ssl )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server hello done" ) );
 
@@ -3408,7 +3409,7 @@ static int ssl_parse_server_hello_done( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server hello done" ) );
 
-    return( 0 );
+    return( ret );
 }
 
 /*

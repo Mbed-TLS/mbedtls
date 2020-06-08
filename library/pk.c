@@ -576,8 +576,8 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
 {
-    int ret;
-    volatile int ret_fi;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    volatile int ret_fi = UECC_FAULT_DETECTED;
     uint8_t signature[2*NUM_ECC_BYTES];
     unsigned char *p;
     const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
@@ -677,7 +677,7 @@ static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
 static int pk_ecdsa_sig_asn1_from_uecc( unsigned char *sig, size_t *sig_len,
                                         size_t buf_len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     size_t len = 0;
     const size_t rs_len = *sig_len / 2;
     unsigned char *p = sig + buf_len;
@@ -691,10 +691,11 @@ static int pk_ecdsa_sig_asn1_from_uecc( unsigned char *sig, size_t *sig_len,
     *--p = MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE;
     len += 2;
 
+    ret = 0;
     memmove( sig, p, len );
     *sig_len = len;
 
-    return( 0 );
+    return( ret );
 }
 
 static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,

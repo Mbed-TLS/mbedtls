@@ -222,8 +222,8 @@ void aria_encrypt_ecb( char *hex_key_string, char *hex_src_string,
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
-    key_len = unhexify( key_str, hex_key_string );
-    data_len = unhexify( src_str, hex_src_string );
+    key_len = mbedtls_test_unhexify( key_str, hex_key_string );
+    data_len = mbedtls_test_unhexify( src_str, hex_src_string );
 
     TEST_ASSERT( mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 )
                  == setkey_result );
@@ -234,7 +234,7 @@ void aria_encrypt_ecb( char *hex_key_string, char *hex_src_string,
             TEST_ASSERT( mbedtls_aria_crypt_ecb( &ctx, src_str + i, output + i )
                                                  == 0 );
         }
-        hexify( dst_str, output, data_len );
+        mbedtls_test_hexify( dst_str, output, data_len );
 
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
@@ -261,8 +261,8 @@ void aria_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
-    key_len = unhexify( key_str, hex_key_string );
-    data_len = unhexify( src_str, hex_src_string );
+    key_len = mbedtls_test_unhexify( key_str, hex_key_string );
+    data_len = mbedtls_test_unhexify( src_str, hex_src_string );
 
     TEST_ASSERT( mbedtls_aria_setkey_dec( &ctx, key_str, key_len * 8 )
                  == setkey_result );
@@ -273,7 +273,7 @@ void aria_decrypt_ecb( char *hex_key_string, char *hex_src_string,
             TEST_ASSERT( mbedtls_aria_crypt_ecb( &ctx, src_str + i, output + i )
                          == 0 );
         }
-        hexify( dst_str, output, data_len );
+        mbedtls_test_hexify( dst_str, output, data_len );
 
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
@@ -303,9 +303,9 @@ void aria_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
-    key_len = unhexify( key_str, hex_key_string );
-    unhexify( iv_str, hex_iv_string );
-    data_len = unhexify( src_str, hex_src_string );
+    key_len = mbedtls_test_unhexify( key_str, hex_key_string );
+    mbedtls_test_unhexify( iv_str, hex_iv_string );
+    data_len = mbedtls_test_unhexify( src_str, hex_src_string );
 
     mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
     TEST_ASSERT( mbedtls_aria_crypt_cbc( &ctx, MBEDTLS_ARIA_ENCRYPT, data_len,
@@ -313,7 +313,7 @@ void aria_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
                  == cbc_result );
     if( cbc_result == 0 )
     {
-        hexify( dst_str, output, data_len );
+        mbedtls_test_hexify( dst_str, output, data_len );
 
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
@@ -343,9 +343,9 @@ void aria_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
-    key_len = unhexify( key_str, hex_key_string );
-    unhexify( iv_str, hex_iv_string );
-    data_len = unhexify( src_str, hex_src_string );
+    key_len = mbedtls_test_unhexify( key_str, hex_key_string );
+    mbedtls_test_unhexify( iv_str, hex_iv_string );
+    data_len = mbedtls_test_unhexify( src_str, hex_src_string );
 
     mbedtls_aria_setkey_dec( &ctx, key_str, key_len * 8 );
     TEST_ASSERT( mbedtls_aria_crypt_cbc( &ctx, MBEDTLS_ARIA_DECRYPT, data_len,
@@ -353,7 +353,7 @@ void aria_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
                  == cbc_result );
     if( cbc_result == 0 )
     {
-        hexify( dst_str, output, data_len );
+        mbedtls_test_hexify( dst_str, output, data_len );
 
         TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
     }
@@ -384,16 +384,16 @@ void aria_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
-    key_len = unhexify( key_str, hex_key_string );
-    unhexify( iv_str, hex_iv_string );
-    data_len = unhexify( src_str, hex_src_string );
+    key_len = mbedtls_test_unhexify( key_str, hex_key_string );
+    mbedtls_test_unhexify( iv_str, hex_iv_string );
+    data_len = mbedtls_test_unhexify( src_str, hex_src_string );
 
     mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
     TEST_ASSERT( mbedtls_aria_crypt_cfb128( &ctx, MBEDTLS_ARIA_ENCRYPT,
                                             data_len, &iv_offset, iv_str,
                                             src_str, output )
                  == result );
-    hexify( dst_str, output, data_len );
+    mbedtls_test_hexify( dst_str, output, data_len );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
 
@@ -423,16 +423,16 @@ void aria_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
-    key_len = unhexify( key_str, hex_key_string );
-    unhexify( iv_str, hex_iv_string );
-    data_len = unhexify( src_str, hex_src_string );
+    key_len = mbedtls_test_unhexify( key_str, hex_key_string );
+    mbedtls_test_unhexify( iv_str, hex_iv_string );
+    data_len = mbedtls_test_unhexify( src_str, hex_src_string );
 
     mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
     TEST_ASSERT( mbedtls_aria_crypt_cfb128( &ctx, MBEDTLS_ARIA_DECRYPT,
                                             data_len, &iv_offset, iv_str,
                                             src_str, output )
                  == result );
-    hexify( dst_str, output, data_len );
+    mbedtls_test_hexify( dst_str, output, data_len );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
 
@@ -463,15 +463,15 @@ void aria_encrypt_ctr( char *hex_key_string, char *hex_iv_string,
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
-    key_len = unhexify( key_str, hex_key_string );
-    unhexify( iv_str, hex_iv_string );
-    data_len = unhexify( src_str, hex_src_string );
+    key_len = mbedtls_test_unhexify( key_str, hex_key_string );
+    mbedtls_test_unhexify( iv_str, hex_iv_string );
+    data_len = mbedtls_test_unhexify( src_str, hex_src_string );
 
     mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
     TEST_ASSERT( mbedtls_aria_crypt_ctr( &ctx, data_len, &iv_offset, iv_str,
                                          blk, src_str, output )
                  == result );
-    hexify( dst_str, output, data_len );
+    mbedtls_test_hexify( dst_str, output, data_len );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
 
@@ -502,15 +502,15 @@ void aria_decrypt_ctr( char *hex_key_string, char *hex_iv_string,
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
-    key_len = unhexify( key_str, hex_key_string );
-    unhexify( iv_str, hex_iv_string );
-    data_len = unhexify( src_str, hex_src_string );
+    key_len = mbedtls_test_unhexify( key_str, hex_key_string );
+    mbedtls_test_unhexify( iv_str, hex_iv_string );
+    data_len = mbedtls_test_unhexify( src_str, hex_src_string );
 
     mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
     TEST_ASSERT( mbedtls_aria_crypt_ctr( &ctx, data_len, &iv_offset, iv_str,
                                          blk, src_str, output )
                  == result );
-    hexify( dst_str, output, data_len );
+    mbedtls_test_hexify( dst_str, output, data_len );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
 

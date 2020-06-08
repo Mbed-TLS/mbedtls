@@ -1707,6 +1707,25 @@
 #define MBEDTLS_SSL_PROTO_TLS1_2
 
 /**
+ * \def MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+ *
+ * This macro is used to selectively enable experimental parts
+ * of the code that contribute to the ongoing development of
+ * the prototype TLS 1.3 and DTLS 1.3 implementation, and provide
+ * no other purpose.
+ *
+ * \warning TLS 1.3 and DTLS 1.3 aren't yet supported in Mbed TLS,
+ *          and no feature exposed through this macro is part of the
+ *          public API. In particular, features under the control
+ *          of this macro are experimental and don't come with any
+ *          stability guarantees.
+ *
+ * Uncomment this macro to enable experimental and partial
+ * functionality specific to TLS 1.3.
+ */
+//#define MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+
+/**
  * \def MBEDTLS_SSL_PROTO_DTLS
  *
  * Enable support for DTLS (all available versions).
@@ -3554,6 +3573,22 @@
  *
  */
 //#define MBEDTLS_SSL_CID_PADDING_GRANULARITY 16
+
+/** \def MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY
+ *
+ * This option controls the use of record plaintext padding
+ * in TLS 1.3.
+ *
+ * The padding will always be chosen so that the length of the
+ * padded plaintext is a multiple of the value of this option.
+ *
+ * Note: A value of \c 1 means that no padding will be used
+ *       for outgoing records.
+ *
+ * Note: On systems lacking division instructions,
+ *       a power of two should be preferred.
+ */
+//#define MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY 1
 
 /** \def MBEDTLS_SSL_OUT_CONTENT_LEN
  *

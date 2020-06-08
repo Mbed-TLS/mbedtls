@@ -846,7 +846,23 @@ component_test_no_ctr_drbg () {
     msg "test: no CTR_DRBG"
     make test
 
-    # no SSL tests as they all depend on CTR_DRBG so far
+    # no ssl-opt.sh/compat.sh as they all depend on CTR_DRBG so far
+}
+
+component_test_no_hmac_drbg () {
+    msg "build: Full minus HMAC_DRBG"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: no HMAC_DRBG"
+    make test
+
+    # No ssl-opt.sh/compat.sh as they never use HMAC_DRBG so far,
+    # so there's little value in running those lengthy tests here.
 }
 
 component_test_new_ecdh_context () {
@@ -1729,6 +1745,15 @@ component_test_allow_sha1 () {
     msg "test: allow SHA1 in certificates by default"
     make test
     if_build_succeeded tests/ssl-opt.sh -f SHA-1
+}
+
+component_test_tls13_experimental () {
+    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled"
+    scripts/config.pl set MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled"
+    make test
 }
 
 component_build_mingw () {

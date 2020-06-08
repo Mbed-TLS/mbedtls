@@ -40,7 +40,7 @@ void mbedtls_test_platform_teardown( void )
 #endif /* MBEDTLS_PLATFORM_C */
 }
 
-int unhexify( unsigned char *obuf, const char *ibuf )
+int mbedtls_test_unhexify( unsigned char *obuf, const char *ibuf )
 {
     unsigned char c, c2;
     int len = strlen( ibuf ) / 2;
@@ -74,7 +74,9 @@ int unhexify( unsigned char *obuf, const char *ibuf )
     return len;
 }
 
-void hexify( unsigned char *obuf, const unsigned char *ibuf, int len )
+void mbedtls_test_hexify( unsigned char *obuf,
+                          const unsigned char *ibuf,
+                          int len )
 {
     unsigned char l, h;
 
@@ -123,7 +125,7 @@ unsigned char *unhexify_alloc( const char *ibuf, size_t *olen )
     obuf = mbedtls_calloc( 1, *olen );
     TEST_HELPER_ASSERT( obuf != NULL );
 
-    (void) unhexify( obuf, ibuf );
+    (void) mbedtls_test_unhexify( obuf, ibuf );
 
     return( obuf );
 }

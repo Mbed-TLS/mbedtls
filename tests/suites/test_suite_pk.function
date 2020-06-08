@@ -841,7 +841,7 @@ void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
     TEST_ASSERT( mbedtls_ecp_group_load( &mbedtls_pk_ec( pub )->grp, grp_id ) == 0 );
     TEST_ASSERT( mbedtls_ecp_point_read_string( &mbedtls_pk_ec( pub )->Q, 16, QX_str, QY_str ) == 0 );
 
-    slen_check = unhexify( sig_check, sig_str );
+    slen_check = mbedtls_test_unhexify( sig_check, sig_str );
 
     md_info = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md_info != NULL );

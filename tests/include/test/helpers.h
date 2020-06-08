@@ -53,8 +53,10 @@
 int mbedtls_test_platform_setup( void );
 void mbedtls_test_platform_teardown( void );
 
-int unhexify( unsigned char *obuf, const char *ibuf );
-void hexify( unsigned char *obuf, const unsigned char *ibuf, int len );
+int mbedtls_test_unhexify( unsigned char *obuf, const char *ibuf );
+void mbedtls_test_hexify( unsigned char *obuf,
+                          const unsigned char *ibuf,
+                          int len );
 
 /**
  * Allocate and zeroize a buffer.

@@ -183,39 +183,54 @@ static int psa_is_key_id_valid( psa_key_file_id_t file_id,
 }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
-psa_status_t psa_validate_persistent_key_parameters(
-    psa_key_lifetime_t lifetime,
-    psa_key_file_id_t id,
-    psa_se_drv_table_entry_t **p_drv,
-    int creating )
+psa_status_t psa_validate_key_location( const psa_key_attributes_t *attributes,
+                                        psa_se_drv_table_entry_t **p_drv )
 {
-    if( p_drv != NULL )
-        *p_drv = NULL;
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( psa_key_lifetime_is_external( lifetime ) )
+    psa_key_lifetime_t lifetime = psa_get_key_lifetime( attributes );
+    if ( psa_key_lifetime_is_external( lifetime ) )
     {
-        *p_drv = psa_get_se_driver_entry( lifetime );
-        if( *p_drv == NULL )
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+        psa_se_drv_table_entry_t *p_drv_e = psa_get_se_driver_entry( lifetime );
+        if( p_drv_e == NULL )
             return( PSA_ERROR_INVALID_ARGUMENT );
+        else
+        {
+            if (p_drv != NULL)
+                *p_drv = p_drv_e;
+            return( PSA_SUCCESS );
+        }
+#else
+        (void) p_drv;
+        return( PSA_ERROR_INVALID_ARGUMENT );
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     }
     else
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    if( ( PSA_KEY_LIFETIME_GET_LOCATION( lifetime )
-            != PSA_KEY_LOCATION_LOCAL_STORAGE ) ||
-        ( PSA_KEY_LIFETIME_GET_PERSISTENCE( lifetime )
-            != PSA_KEY_PERSISTENCE_DEFAULT ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        /* Local/internal keys are always valid */
+        return( PSA_SUCCESS );
+}
 
+psa_status_t psa_validate_key_persistence( const psa_key_attributes_t *attributes )
+{
+    psa_key_lifetime_t lifetime = psa_get_key_lifetime( attributes );
+
+    if ( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
+    {
+        /* Volatile keys are always supported */
+        return( PSA_SUCCESS );
+    }
+    else
+    {
+        /* Persistent keys require storage support */
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    if( ! psa_is_key_id_valid( id, ! creating ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    return( PSA_SUCCESS );
-
+        if( psa_is_key_id_valid( psa_get_key_id( attributes ),
+                                 psa_key_lifetime_is_external( lifetime ) ) )
+            return( PSA_SUCCESS );
+        else
+            return( PSA_ERROR_INVALID_ARGUMENT );
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
-    (void) id;
-    (void) creating;
-    return( PSA_ERROR_NOT_SUPPORTED );
+        return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* !MBEDTLS_PSA_CRYPTO_STORAGE_C */
+    }
 }
 
 psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
@@ -226,10 +241,8 @@ psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
 
     *handle = 0;
 
-    status = psa_validate_persistent_key_parameters(
-        PSA_KEY_LIFETIME_PERSISTENT, id, NULL, 0 );
-    if( status != PSA_SUCCESS )
-        return( status );
+    if( ! psa_is_key_id_valid( id, 1 ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_get_empty_key_slot( handle, &slot );
     if( status != PSA_SUCCESS )

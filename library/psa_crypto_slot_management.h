@@ -92,38 +92,33 @@ static inline int psa_key_lifetime_is_external( psa_key_lifetime_t lifetime )
                 != PSA_KEY_LOCATION_LOCAL_STORAGE );
 }
 
-/** Test whether the given parameters are acceptable for a persistent key.
+/** Validate that a key's attributes point to a known location.
  *
- * This function does not access the storage in any way. It only tests
- * whether the parameters are meaningful and permitted by general policy.
- * It does not test whether the a file by the given id exists or could be
- * created.
+ * This function checks whether the key's attributes point to a location that
+ * is known to the PSA Core, and returns the driver function table if the key
+ * is to be found in an external location.
  *
- * If the key is in external storage, this function returns the corresponding
- * driver.
+ * \param[in] attributes    The key attributes.
+ * \param[out] p_drv        On success, when a key is located in external
+ *                          storage, returns a pointer to the driver table
+ *                          associated with the key's storage location.
  *
- * \param lifetime      The lifetime to test.
- * \param id            The key id to test.
- * \param[out] p_drv    On output, if \p lifetime designates a key
- *                      in an external processor, \c *p_drv is a pointer
- *                      to the driver table entry fot this lifetime.
- *                      If \p lifetime designates a transparent key,
- *                      \c *p_drv is \c NULL.
- * \param creating      0 if attempting to open an existing key.
- *                      Nonzero if attempting to create a key.
- *
- * \retval PSA_SUCCESS
- *         The given parameters are valid.
- * \retval PSA_ERROR_INVALID_ARGUMENT
- *         \p lifetime is volatile or is invalid.
- * \retval PSA_ERROR_INVALID_ARGUMENT
- *         \p id is invalid.
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
  */
-psa_status_t psa_validate_persistent_key_parameters(
-    psa_key_lifetime_t lifetime,
-    psa_key_file_id_t id,
-    psa_se_drv_table_entry_t **p_drv,
-    int creating );
+psa_status_t psa_validate_key_location( const psa_key_attributes_t *attributes,
+                                        psa_se_drv_table_entry_t **p_drv );
+
+/** Validate that a key's persistence is consistent.
+ *
+ * This function checks whether a key's persistence attribute is consistent.
+ *
+ * \param[in] attributes    The key attributes.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ */
+psa_status_t psa_validate_key_persistence( const psa_key_attributes_t *attributes );
 
 
 #endif /* PSA_CRYPTO_SLOT_MANAGEMENT_H */

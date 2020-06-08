@@ -1498,16 +1498,15 @@ static psa_status_t psa_validate_key_attributes(
     const psa_key_attributes_t *attributes,
     psa_se_drv_table_entry_t **p_drv )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
 
-    if( ! PSA_KEY_LIFETIME_IS_VOLATILE( attributes->core.lifetime ) )
-    {
-        status = psa_validate_persistent_key_parameters(
-            attributes->core.lifetime, attributes->core.id,
-            p_drv, 1 );
-        if( status != PSA_SUCCESS )
-            return( status );
-    }
+    status = psa_validate_key_location( attributes, p_drv );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    status = psa_validate_key_persistence( attributes );
+    if( status != PSA_SUCCESS )
+        return( status );
 
     status = psa_validate_key_policy( &attributes->core.policy );
     if( status != PSA_SUCCESS )

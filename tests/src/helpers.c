@@ -24,7 +24,7 @@
 static mbedtls_platform_context platform_ctx;
 #endif
 
-int platform_setup( void )
+int mbedtls_test_platform_setup( void )
 {
     int ret = 0;
 #if defined(MBEDTLS_PLATFORM_C)
@@ -33,7 +33,7 @@ int platform_setup( void )
     return( ret );
 }
 
-void platform_teardown( void )
+void mbedtls_test_platform_teardown( void )
 {
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown( &platform_ctx );

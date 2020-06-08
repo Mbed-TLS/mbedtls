@@ -50,8 +50,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-int platform_setup( void );
-void platform_teardown( void );
+int mbedtls_test_platform_setup( void );
+void mbedtls_test_platform_teardown( void );
 
 int unhexify( unsigned char *obuf, const char *ibuf );
 void hexify( unsigned char *obuf, const unsigned char *ibuf, int len );

@@ -1624,7 +1624,7 @@ run_component () {
 
     # Restore the build tree to a clean state.
     cleanup
-    current_component=""
+    unset current_component
 }
 
 # Preliminary setup

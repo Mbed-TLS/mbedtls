@@ -1136,17 +1136,17 @@ static mbedtls_mpi_uint mpi_sub_hlp( size_t n,
 }
 
 /*
- * Unsigned subtraction: X = |A| - |B|  (HAC 14.9)
+ * Unsigned subtraction: X = |A| - |B|  (HAC 14.9, 14.10)
  */
 int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
 {
     mbedtls_mpi TB;
     int ret;
     size_t n;
-    mbedtls_mpi_uint c, z;
+    mbedtls_mpi_uint carry;
 
-    if( mbedtls_mpi_cmp_abs( A, B ) < 0 )
-        return( MBEDTLS_ERR_MPI_NEGATIVE_VALUE );
+    /* if( mbedtls_mpi_cmp_abs( A, B ) < 0 ) */
+    /*     return( MBEDTLS_ERR_MPI_NEGATIVE_VALUE ); */
 
     mbedtls_mpi_init( &TB );
 
@@ -1170,11 +1170,17 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
         if( B->p[n - 1] != 0 )
             break;
 
-    c = mpi_sub_hlp( n, X->p, B->p );
-    while( c != 0 )
+    carry = mpi_sub_hlp( n, X->p, B->p );
+    if( carry != 0 )
     {
-        z = ( X->p[n] < c ); X->p[n] -= c;
-        c = z; n++;
+        /* Propagate the carry to the first nonzero limb of X. */
+        for( ; n < X->n && X->p[n] == 0; n++ )
+            --X->p[n];
+        /* If we ran out of space for the carry, it means that the result
+         * is negative. */
+        if( n == X->n )
+            return( MBEDTLS_ERR_MPI_NEGATIVE_VALUE );
+        --X->p[n];
     }
 
 cleanup:

@@ -24,17 +24,29 @@ register_twice:3
 Register SE driver: maximum number of drivers
 register_max:
 
-SE key import-export (p_allocate allows all slots)
-key_creation_import_export:0:0
+SE key import-export persistent (p_allocate allows all slots)
+key_creation_import_export:TEST_SE_PERSISTENT_LIFETIME:0:0
 
-SE key import-export (p_allocate allows 1 slot)
-key_creation_import_export:ARRAY_LENGTH( ram_slots ) - 1:0
+SE key import-export persistent (p_allocate allows 1 slot)
+key_creation_import_export:TEST_SE_PERSISTENT_LIFETIME:ARRAY_LENGTH( ram_slots ) - 1:0
 
-SE key import-export, check after restart (slot 0)
-key_creation_import_export:0:1
+SE key import-export persistent, check after restart (slot 0)
+key_creation_import_export:TEST_SE_PERSISTENT_LIFETIME:0:1
 
-SE key import-export, check after restart (slot 3)
-key_creation_import_export:3:1
+SE key import-export persistent, check after restart (slot 3)
+key_creation_import_export:TEST_SE_PERSISTENT_LIFETIME:3:1
+
+SE key import-export volatile (p_allocate allows all slots)
+key_creation_import_export:TEST_SE_VOLATILE_LIFETIME:0:0
+
+SE key import-export volatile (p_allocate allows 1 slot)
+key_creation_import_export:TEST_SE_VOLATILE_LIFETIME:ARRAY_LENGTH( ram_slots ) - 1:0
+
+SE key import-export volatile, check after restart (slot 0)
+key_creation_import_export:TEST_SE_VOLATILE_LIFETIME:0:1
+
+SE key import-export volatile, check after restart (slot 3)
+key_creation_import_export:TEST_SE_VOLATILE_LIFETIME:3:1
 
 Key creation in a specific slot (0)
 key_creation_in_chosen_slot:0:0:PSA_SUCCESS

@@ -56,6 +56,8 @@
 #include "mbedtls/oid.h"
 #endif
 
+#define PROPER_HS_FRAGMENT 0x75555555
+
 #if defined(MBEDTLS_USE_TINYCRYPT)
 static int uecc_rng_wrapper( uint8_t *dest, unsigned int size )
 {
@@ -4735,7 +4737,7 @@ static int ssl_hs_is_proper_fragment( mbedtls_ssl_context *ssl )
         mbedtls_platform_memcmp( ssl->in_msg + 6, "\0\0\0",        3 ) != 0 ||
         mbedtls_platform_memcmp( ssl->in_msg + 9, ssl->in_msg + 1, 3 ) != 0 )
     {
-        return( 1 );
+        return( PROPER_HS_FRAGMENT );
     }
     return( 0 );
 }
@@ -4928,7 +4930,7 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
          * messages; the commonality is that both handshake fragments and
          * future messages cannot be forwarded immediately to the
          * handshake logic layer. */
-        if( ssl_hs_is_proper_fragment( ssl ) == 1 )
+        if( ssl_hs_is_proper_fragment( ssl ) == PROPER_HS_FRAGMENT )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "found fragmented DTLS handshake message" ) );
             return( MBEDTLS_ERR_SSL_EARLY_MESSAGE );
@@ -6052,7 +6054,7 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
                 size_t reassembly_buf_sz;
 
                 hs_buf->is_fragmented =
-                    ( ssl_hs_is_proper_fragment( ssl ) == 1 );
+                    ( ssl_hs_is_proper_fragment( ssl ) == PROPER_HS_FRAGMENT );
 
                 /* We copy the message back into the input buffer
                  * after reassembly, so check that it's not too large.

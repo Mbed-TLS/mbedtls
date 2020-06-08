@@ -3686,11 +3686,13 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     /* If the buffers are too small - reallocate */
     {
         int modified = 0;
-        size_t written_in = 0;
-        size_t written_out = 0;
+        size_t written_in = 0, iv_offset_in = 0, len_offset_in = 0;
+        size_t written_out = 0, iv_offset_out = 0, len_offset_out = 0;
         if( ssl->in_buf != NULL )
         {
             written_in = ssl->in_msg - ssl->in_buf;
+            iv_offset_in = ssl->in_iv - ssl->in_buf;
+            len_offset_in = ssl->in_len - ssl->in_buf;
             if( ssl->in_buf_len < MBEDTLS_SSL_IN_BUFFER_LEN )
             {
                 if( resize_buffer( &ssl->in_buf, MBEDTLS_SSL_IN_BUFFER_LEN,
@@ -3709,6 +3711,8 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
         if( ssl->out_buf != NULL )
         {
             written_out = ssl->out_msg - ssl->out_buf;
+            iv_offset_out = ssl->out_iv - ssl->out_buf;
+            len_offset_out = ssl->out_len - ssl->out_buf;
             if( ssl->out_buf_len < MBEDTLS_SSL_OUT_BUFFER_LEN )
             {
                 if( resize_buffer( &ssl->out_buf, MBEDTLS_SSL_OUT_BUFFER_LEN,
@@ -3728,9 +3732,14 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
             /* Update pointers here to avoid doing it twice. */
             mbedtls_ssl_reset_in_out_pointers( ssl );
             /* Fields below might not be properly updated with record
-            * splitting, so they are manually updated here. */
+             * splitting or with CID, so they are manually updated here. */
             ssl->out_msg = ssl->out_buf + written_out;
+            ssl->out_len = ssl->out_buf + len_offset_out;
+            ssl->out_iv = ssl->out_buf + iv_offset_out;
+
             ssl->in_msg = ssl->in_buf + written_in;
+            ssl->in_len = ssl->in_buf + len_offset_in;
+            ssl->in_iv = ssl->in_buf + iv_offset_in;
         }
     }
 #endif
@@ -5960,14 +5969,15 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
     {
         int modified = 0;
         uint32_t buf_len = mbedtls_ssl_get_input_buflen( ssl );
-        size_t written_in = 0;
-        size_t written_out = 0;
+        size_t written_in = 0, iv_offset_in = 0, len_offset_in = 0;
+        size_t written_out = 0, iv_offset_out = 0, len_offset_out = 0;
         if( ssl->in_buf != NULL )
         {
             written_in = ssl->in_msg - ssl->in_buf;
+            iv_offset_in = ssl->in_iv - ssl->in_buf;
+            len_offset_in = ssl->in_len - ssl->in_buf;
             if( ssl->in_buf_len > buf_len && ssl->in_left < buf_len )
             {
-                written_in = ssl->in_msg - ssl->in_buf;
                 if( resize_buffer( &ssl->in_buf, buf_len, &ssl->in_buf_len ) != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_MSG( 1, ( "input buffer resizing failed - out of memory" ) );
@@ -5985,6 +5995,8 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
         if(ssl->out_buf != NULL )
         {
             written_out = ssl->out_msg - ssl->out_buf;
+            iv_offset_out = ssl->out_iv - ssl->out_buf;
+            len_offset_out = ssl->out_len - ssl->out_buf;
             if( ssl->out_buf_len > mbedtls_ssl_get_output_buflen( ssl ) &&
                 ssl->out_left < buf_len )
             {
@@ -6004,9 +6016,14 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
             /* Update pointers here to avoid doing it twice. */
             mbedtls_ssl_reset_in_out_pointers( ssl );
             /* Fields below might not be properly updated with record
-             * splitting, so they are manually updated here. */
+             * splitting or with CID, so they are manually updated here. */
             ssl->out_msg = ssl->out_buf + written_out;
+            ssl->out_len = ssl->out_buf + len_offset_out;
+            ssl->out_iv = ssl->out_buf + iv_offset_out;
+
             ssl->in_msg = ssl->in_buf + written_in;
+            ssl->in_len = ssl->in_buf + len_offset_in;
+            ssl->in_iv = ssl->in_buf + iv_offset_in;
         }
     }
 #endif

@@ -1410,6 +1410,7 @@ exit:
 
 /* BEGIN_CASE */
 void register_key_smoke_test( int lifetime_arg,
+                              int id_arg,
                               int validate,
                               int expected_status_arg )
 {
@@ -1419,7 +1420,7 @@ void register_key_smoke_test( int lifetime_arg,
     psa_drv_se_t driver;
     psa_drv_se_key_management_t key_management;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_id_t id = 1;
+    psa_key_id_t id = id_arg;
     size_t bit_size = 48;
     psa_key_slot_number_t wanted_slot = 0x123456789;
     psa_key_handle_t handle = 0;

@@ -2151,6 +2151,7 @@ static int ecp_mul_comb_after_precomp( const mbedtls_ecp_group *grp,
         rs_ctx->rsm->state = ecp_rsm_final_norm;
 
 final_norm:
+    MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_INV );
 #endif
     /*
      * Knowledge of the jacobian coordinates may leak the last few bits of the
@@ -2168,7 +2169,6 @@ final_norm:
 #endif
         MBEDTLS_MPI_CHK( ecp_randomize_jac( grp, RR, f_rng, p_rng ) );
 
-    MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_INV );
     MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, RR ) );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)

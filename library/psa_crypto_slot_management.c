@@ -200,7 +200,10 @@ psa_status_t psa_validate_persistent_key_parameters(
     }
     else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    if( lifetime != PSA_KEY_LIFETIME_PERSISTENT )
+    if( ( PSA_KEY_LIFETIME_GET_LOCATION( lifetime )
+            != PSA_KEY_LOCATION_LOCAL_STORAGE ) ||
+        ( PSA_KEY_LIFETIME_GET_PERSISTENCE( lifetime )
+            != PSA_KEY_PERSISTENCE_DEFAULT ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)

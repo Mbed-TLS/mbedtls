@@ -88,8 +88,8 @@ psa_status_t psa_get_empty_key_slot( psa_key_handle_t *handle,
  */
 static inline int psa_key_lifetime_is_external( psa_key_lifetime_t lifetime )
 {
-    return( lifetime != PSA_KEY_LIFETIME_VOLATILE &&
-            lifetime != PSA_KEY_LIFETIME_PERSISTENT );
+    return( PSA_KEY_LIFETIME_GET_LOCATION( lifetime )
+                != PSA_KEY_LOCATION_LOCAL_STORAGE );
 }
 
 /** Test whether the given parameters are acceptable for a persistent key.

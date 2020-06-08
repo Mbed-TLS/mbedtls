@@ -1500,7 +1500,7 @@ static psa_status_t psa_validate_key_attributes(
 {
     psa_status_t status;
 
-    if( attributes->core.lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    if( ! PSA_KEY_LIFETIME_IS_VOLATILE( attributes->core.lifetime ) )
     {
         status = psa_validate_persistent_key_parameters(
             attributes->core.lifetime, attributes->core.id,
@@ -1660,7 +1660,7 @@ static psa_status_t psa_finish_key_creation(
     (void) driver;
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    if( slot->attr.lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    if( ! PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) )
     {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
         if( driver != NULL )

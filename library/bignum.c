@@ -1105,12 +1105,23 @@ cleanup:
 }
 
 /*
- * Helper for mbedtls_mpi subtraction:
- * d -= s where d and s have the same size and d >= s.
+ * Helper for mbedtls_mpi subtraction.
+ *
+ * Calculate d - s where d and s have the same size.
+ * This function operates modulo (2^ciL)^n and returns the carry
+ * (1 if there was a wraparound, i.e. if `d < s`, and 0 otherwise).
+ *
+ * \param n             Number of limbs of \p d and \p s.
+ * \param[in,out] d     On input, the left operand.
+ *                      On output, the result of the subtraction:
+ * \param[s]            The right operand.
+ *
+ * \return              1 if `d < s`.
+ *                      0 if `d >= s`.
  */
-static void mpi_sub_hlp( size_t n,
-                         mbedtls_mpi_uint *d,
-                         const mbedtls_mpi_uint *s )
+static mbedtls_mpi_uint mpi_sub_hlp( size_t n,
+                                     mbedtls_mpi_uint *d,
+                                     const mbedtls_mpi_uint *s )
 {
     size_t i;
     mbedtls_mpi_uint c, z;
@@ -1121,11 +1132,7 @@ static void mpi_sub_hlp( size_t n,
         c = ( *d < *s ) + z; *d -= *s;
     }
 
-    while( c != 0 )
-    {
-        z = ( *d < c ); *d -= c;
-        c = z; i++; d++;
-    }
+    return( c );
 }
 
 /*
@@ -1136,6 +1143,7 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     mbedtls_mpi TB;
     int ret;
     size_t n;
+    mbedtls_mpi_uint c, z;
 
     if( mbedtls_mpi_cmp_abs( A, B ) < 0 )
         return( MBEDTLS_ERR_MPI_NEGATIVE_VALUE );
@@ -1162,7 +1170,12 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
         if( B->p[n - 1] != 0 )
             break;
 
-    mpi_sub_hlp( n, X->p, B->p );
+    c = mpi_sub_hlp( n, X->p, B->p );
+    while( c != 0 )
+    {
+        z = ( X->p[n] < c ); X->p[n] -= c;
+        c = z; n++;
+    }
 
 cleanup:
 
@@ -1768,7 +1781,7 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
      * timing attacks. */
     /* Set d to A + (2^biL)^n - N. */
     d[n] += 1;
-    mpi_sub_hlp( n, d, N->p );
+    d[n] -= mpi_sub_hlp( n, d, N->p );
     /* Now d - (2^biL)^n = A - N so d >= (2^biL)^n iff A >= N.
      * So we want to copy the result of the subtraction iff d->p[n] != 0.
      * Note that d->p[n] is either 0 or 1 since A - N <= N <= (2^biL)^n. */

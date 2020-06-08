@@ -133,6 +133,7 @@ void mbedtls_nist_kw_free( mbedtls_nist_kw_context *ctx );
  *
  * \return          \c 0 on success.
  * \return          \c MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA for invalid input length.
+ * \return          \c MBEDTLS_ERR_PLATFORM_ALLOC_FAILED in case of a memory allocation failure.
  * \return          cipher-specific error code on failure of the underlying cipher.
  */
 int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx, mbedtls_nist_kw_mode_t mode,

@@ -141,7 +141,7 @@ int mbedtls_platform_memmove( void *dst, const void *src, size_t num )
         return 0;
     }
 
-    return -1;
+    return MBEDTLS_ERR_PLATFORM_ALLOC_FAILED;
 }
 
 int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )

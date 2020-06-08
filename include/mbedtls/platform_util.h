@@ -209,8 +209,8 @@ void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num );
  * \param src   Source buffer where the data is being moved from.
  * \param num   The length of the buffers in bytes.
  *
- * \return      0 if the operation was successful or -1 if memory allocation
- *              failed.
+ * \return      0 if the operation was successful
+ * \return      #MBEDTLS_ERR_PLATFORM_ALLOC_FAILED if a memory allocation failed
  */
 int mbedtls_platform_memmove( void *dst, const void *src, size_t num );
 

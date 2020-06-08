@@ -623,15 +623,17 @@ static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
                               size_t n_len )
 {
     size_t len = 0;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
     if( (size_t)( *p - start ) < n_len )
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
     len = n_len;
     *p -= len;
-    if( 0 != mbedtls_platform_memmove( *p, start, len ) )
+    ret = mbedtls_platform_memmove( *p, start, len );
+    if( ret != 0 )
     {
-        return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+        return( ret );
     }
 
     /* ASN.1 DER encoding requires minimal length, so skip leading 0s.
@@ -694,11 +696,11 @@ static int pk_ecdsa_sig_asn1_from_uecc( unsigned char *sig, size_t *sig_len,
     *--p = MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE;
     len += 2;
 
-    if( 0 != mbedtls_platform_memmove( sig, p, len ) )
+    ret = mbedtls_platform_memmove( sig, p, len );
+    if( ret != 0 )
     {
-        return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+        return( ret );
     }
-    ret = 0;
     *sig_len = len;
 
     return( ret );

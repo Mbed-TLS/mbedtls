@@ -222,9 +222,10 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
         }
 
         mbedtls_platform_memcpy( output, NIST_KW_ICV1, KW_SEMIBLOCK_LENGTH );
-        if( 0 != mbedtls_platform_memmove( output + KW_SEMIBLOCK_LENGTH, input, in_len ) )
+        ret = mbedtls_platform_memmove( output + KW_SEMIBLOCK_LENGTH, input, in_len );
+        if( ret != 0 )
         {
-            return MBEDTLS_ERR_CIPHER_ALLOC_FAILED;
+            return ret;
         }
     }
     else
@@ -346,10 +347,11 @@ static int unwrap( mbedtls_nist_kw_context *ctx,
     }
 
     mbedtls_platform_memcpy( A, input, KW_SEMIBLOCK_LENGTH );
-    if( 0 != mbedtls_platform_memmove( output, input + KW_SEMIBLOCK_LENGTH,
-                                       ( semiblocks - 1 ) * KW_SEMIBLOCK_LENGTH ) )
+    ret = mbedtls_platform_memmove( output, input + KW_SEMIBLOCK_LENGTH,
+                                       ( semiblocks - 1 ) * KW_SEMIBLOCK_LENGTH );
+    if( ret != 0 )
     {
-        return( MBEDTLS_ERR_CIPHER_ALLOC_FAILED );
+        return ret;
     }
 
     /* Calculate intermediate values */

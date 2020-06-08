@@ -43,6 +43,11 @@ fi
 : ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
 : ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
 
+# Used to make ssl-opt.sh deterministic.
+# !!! Keep this in sync with RELEASE_SEED in all.sh !!!
+: ${SEED:=1}
+export SEED
+
 # To avoid setting OpenSSL and GnuTLS for each call to compat.sh and ssl-opt.sh
 # we just export the variables they require
 export OPENSSL_CMD="$OPENSSL"

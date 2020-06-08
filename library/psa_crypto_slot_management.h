@@ -109,9 +109,10 @@ static inline int psa_key_lifetime_is_external( psa_key_lifetime_t lifetime )
 psa_status_t psa_validate_key_location( const psa_key_attributes_t *attributes,
                                         psa_se_drv_table_entry_t **p_drv );
 
-/** Validate that a key's persistence is consistent.
+/** Validate that a key's persistence is valid.
  *
- * This function checks whether a key's persistence attribute is consistent.
+ * This function checks whether a key's declared persistence and key ID are
+ * valid and supported by the PSA Core in its actual configuration.
  *
  * \param[in] attributes    The key attributes.
  *

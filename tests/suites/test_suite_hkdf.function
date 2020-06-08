@@ -37,7 +37,10 @@ void test_hkdf( int md_alg, char *hex_ikm_string, char *hex_salt_string,
                         okm_len);
     TEST_ASSERT( ret == 0 );
 
-    // Run mbedtls_test_hexify on it so that it looks nicer if the assertion fails
+    /*
+     * Run mbedtls_test_hexify on it so that it looks nicer if the assertion
+     * fails.
+     */
     mbedtls_test_hexify( okm_hex, okm, okm_len );
     TEST_ASSERT( !strcmp( (char *)okm_hex, hex_okm_string ) );
 }

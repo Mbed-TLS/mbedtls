@@ -1169,7 +1169,7 @@ int uECC_generate_random_int(uECC_word_t *random, const uECC_word_t *top,
 	}
 
 	for (tries = 0; tries < uECC_RNG_MAX_TRIES; ++tries) {
-		if (!g_rng_function((uint8_t *)random, num_words * uECC_WORD_SIZE)) {
+		if (g_rng_function((uint8_t *)random, num_words * uECC_WORD_SIZE) != num_words * uECC_WORD_SIZE) {
       			return 0;
     		}
 		random[num_words - 1] &=

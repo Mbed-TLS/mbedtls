@@ -510,9 +510,15 @@ pre_setup_quiet_redirect () {
         redirect_out () {
             "$@"
         }
+        redirect_err () {
+            "$@"
+        }
     else
         redirect_out () {
             "$@" >/dev/null
+        }
+        redirect_err () {
+            "$@" 2>/dev/null
         }
     fi
 }
@@ -1925,7 +1931,7 @@ run_component () {
     # Unconditionally create a seedfile that's sufficiently long.
     # Do this before each component, because a previous component may
     # have messed it up or shortened it.
-    dd if=/dev/urandom of=./tests/seedfile bs=64 count=1 >/dev/null 2>&1
+    redirect_err dd if=/dev/urandom of=./tests/seedfile bs=64 count=1
 
     # Run the component code.
     if [ $QUIET -eq 1 ]; then

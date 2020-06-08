@@ -631,6 +631,12 @@ run_test() {
     # update DTLS variable
     detect_dtls "$SRV_CMD"
 
+    # if the test uses DTLS but no custom proxy, add a simple proxy
+    # as it provides timing info that's useful to debug failures
+    if [ "X$PXY_CMD" = "X" -a "$DTLS" -eq 1 ]; then
+        PXY_CMD="$P_PXY"
+    fi
+
     # prepend valgrind to our commands if active
     if [ "$MEMCHECK" -gt 0 ]; then
         if is_polar "$SRV_CMD"; then

@@ -222,8 +222,10 @@ void mbedtls_ccm_star_encrypt_and_tag( int cipher_id,
     msg_len = mbedtls_test_unhexify( msg, msg_hex );
     add_len = mbedtls_test_unhexify( add, add_hex );
     result_len = mbedtls_test_unhexify( result, result_hex );
-    source_address_len = mbedtls_test_unhexify( source_address, source_address_hex );
-    frame_counter_len = mbedtls_test_unhexify( frame_counter, frame_counter_hex );
+    source_address_len = mbedtls_test_unhexify( source_address,
+                                                source_address_hex );
+    frame_counter_len = mbedtls_test_unhexify( frame_counter,
+                                               frame_counter_hex );
 
     if( sec_level % 4 == 0)
         tag_len = 0;
@@ -290,8 +292,10 @@ void mbedtls_ccm_star_auth_decrypt( int cipher_id,
     msg_len = mbedtls_test_unhexify( msg, msg_hex );
     add_len = mbedtls_test_unhexify( add, add_hex );
     result_len = mbedtls_test_unhexify( result, result_hex );
-    source_address_len = mbedtls_test_unhexify( source_address, source_address_hex );
-    frame_counter_len = mbedtls_test_unhexify( frame_counter, frame_counter_hex );
+    source_address_len = mbedtls_test_unhexify( source_address,
+                                                source_address_hex );
+    frame_counter_len = mbedtls_test_unhexify( frame_counter,
+                                               frame_counter_hex );
 
     if( sec_level % 4 == 0)
         tag_len = 0;

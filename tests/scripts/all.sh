@@ -682,11 +682,12 @@ component_check_names () {
 component_check_test_cases () {
     msg "Check: test case descriptions" # < 1s
     if [ $QUIET -eq 1 ]; then
-        OPT='--quiet'
+        opt='--quiet'
     else
-        OPT=''
+        opt=''
     fi
-    record_status tests/scripts/check-test-cases.py $OPT
+    record_status tests/scripts/check-test-cases.py $opt
+    unset opt
 }
 
 component_check_doxygen_warnings () {
@@ -1942,7 +1943,7 @@ run_component () {
 
     # Restore the build tree to a clean state.
     cleanup
-    current_component=""
+    unset current_component
 }
 
 # Preliminary setup

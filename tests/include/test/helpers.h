@@ -32,4 +32,51 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdio.h>
+#define mbedtls_fprintf    fprintf
+#define mbedtls_snprintf   snprintf
+#define mbedtls_calloc     calloc
+#define mbedtls_free       free
+#define mbedtls_exit       exit
+#define mbedtls_time       time
+#define mbedtls_time_t     time_t
+#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
+#endif
+
+#include <stddef.h>
+#include <stdint.h>
+
+int platform_setup( void );
+void platform_teardown( void );
+
+int unhexify( unsigned char *obuf, const char *ibuf );
+void hexify( unsigned char *obuf, const unsigned char *ibuf, int len );
+
+/**
+ * Allocate and zeroize a buffer.
+ *
+ * If the size if zero, a pointer to a zeroized 1-byte buffer is returned.
+ *
+ * For convenience, dies if allocation fails.
+ */
+unsigned char *zero_alloc( size_t len );
+
+/**
+ * Allocate and fill a buffer from hex data.
+ *
+ * The buffer is sized exactly as needed. This allows to detect buffer
+ * overruns (including overreads) when running the test suite under valgrind.
+ *
+ * If the size if zero, a pointer to a zeroized 1-byte buffer is returned.
+ *
+ * For convenience, dies if allocation fails.
+ */
+unsigned char *unhexify_alloc( const char *ibuf, size_t *olen );
+
+int hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_len );
+
 #endif /* TEST_HELPERS_H */

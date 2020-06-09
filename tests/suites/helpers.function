@@ -2,6 +2,8 @@
 /*----------------------------------------------------------------------------*/
 /* Headers */
 
+#include <test/macros.h>
+
 #include <stdlib.h>
 
 #if defined(MBEDTLS_PLATFORM_C)

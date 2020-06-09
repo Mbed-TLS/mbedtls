@@ -2997,6 +2997,53 @@ cleanup:
 }
 
 /*
+ * Write a private key.
+ */
+int mbedtls_ecp_write_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
+                           size_t *olen, unsigned char *buf, size_t buflen )
+{
+    int ret = 0;
+
+    ECP_VALIDATE_RET( key  != NULL );
+    ECP_VALIDATE_RET( buf  != NULL );
+    ECP_VALIDATE_RET( olen != NULL );
+
+    if( ( ret = mbedtls_ecp_group_load( &key->grp, grp_id ) ) != 0 )
+        return( ret );
+
+    ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+
+#if defined(ECP_MONTGOMERY)
+    if( mbedtls_ecp_get_type( &key->grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
+    {
+        if( grp_id == MBEDTLS_ECP_DP_CURVE25519 )
+        {
+            if( buflen < ECP_CURVE25519_KEY_SIZE )
+                return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &key->d, buf, buflen ) );
+            *olen = ECP_CURVE25519_KEY_SIZE;
+        }
+        else
+            ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+    }
+
+#endif
+#if defined(ECP_SHORTWEIERSTRASS)
+    if( mbedtls_ecp_get_type( &key->grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &key->d, buf, buflen ) );
+        *olen = mbedtls_mpi_size( &key->d );
+    }
+
+#endif
+cleanup:
+
+    return( ret );
+}
+
+
+/*
  * Check a public-private key pair
  */
 int mbedtls_ecp_check_pub_priv( const mbedtls_ecp_keypair *pub, const mbedtls_ecp_keypair *prv )

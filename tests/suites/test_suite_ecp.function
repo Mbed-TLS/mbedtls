@@ -1069,12 +1069,14 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_ecp_read_key( int grp_id, data_t* in_key, int expected )
+void mbedtls_ecp_read_key( int grp_id, data_t* in_key, int expected, int canonical )
 {
     int ret = 0;
     mbedtls_ecp_keypair key;
+    mbedtls_ecp_keypair key2;
 
     mbedtls_ecp_keypair_init( &key );
+    mbedtls_ecp_keypair_init( &key2 );
 
     ret = mbedtls_ecp_read_key( grp_id, &key, in_key->x, in_key->len );
     TEST_ASSERT( ret == expected );
@@ -1083,10 +1085,52 @@ void mbedtls_ecp_read_key( int grp_id, data_t* in_key, int expected )
     {
         ret = mbedtls_ecp_check_privkey( &key.grp, &key.d );
         TEST_ASSERT( ret == 0 );
+
+        if( canonical )
+        {
+            unsigned char buf[MBEDTLS_ECP_MAX_BYTES];
+            size_t olen;
+
+            ret = mbedtls_ecp_write_key( grp_id, &key, &olen, buf, in_key->len );
+            TEST_ASSERT( ret == 0 );
+
+            TEST_ASSERT( olen == in_key->len );
+
+            mbedtls_fprintf( stdout, "written key: ");
+            for( size_t i = 0; i < in_key->len; i++ ) {
+                mbedtls_fprintf( stdout, "%02x", buf[i]);
+            }
+            mbedtls_fprintf( stdout, "\n");
+            ASSERT_COMPARE( in_key->x, in_key->len,
+                            buf, olen );
+        }
+        else
+        {
+            unsigned char export1[MBEDTLS_ECP_MAX_BYTES];
+            size_t olen1;
+
+            unsigned char export2[MBEDTLS_ECP_MAX_BYTES];
+            size_t olen2;
+
+            ret = mbedtls_ecp_write_key( grp_id, &key, &olen1, export1, in_key->len );
+            TEST_ASSERT( ret == 0 );
+
+            ret = mbedtls_ecp_read_key( grp_id, &key2, export1, in_key->len );
+            TEST_ASSERT( ret == expected );
+
+            ret = mbedtls_ecp_write_key( grp_id, &key2, &olen2, export2, in_key->len );
+            TEST_ASSERT( ret == 0 );
+
+            TEST_ASSERT( olen2 == olen1 );
+
+            ASSERT_COMPARE( export1, olen1,
+                            export2, olen2 );
+        }
     }
 
 exit:
     mbedtls_ecp_keypair_free( &key );
+    mbedtls_ecp_keypair_free( &key2 );
 }
 /* END_CASE */
 

@@ -4,6 +4,7 @@
 
 #include <test/macros.h>
 #include <test/helpers.h>
+#include <test/random.h>
 
 #include <stdlib.h>
 

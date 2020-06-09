@@ -1342,7 +1342,7 @@ cleanup:
     return( ret );
 }
 
-/*
+/**
  * Helper for mbedtls_mpi subtraction.
  *
  * Calculate d - s where d and s have the same size.
@@ -1352,7 +1352,7 @@ cleanup:
  * \param n             Number of limbs of \p d and \p s.
  * \param[in,out] d     On input, the left operand.
  *                      On output, the result of the subtraction:
- * \param[s]            The right operand.
+ * \param[in] s         The right operand.
  *
  * \return              1 if `d < s`.
  *                      0 if `d >= s`.
@@ -1385,9 +1385,6 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( A != NULL );
     MPI_VALIDATE_RET( B != NULL );
-
-    /* if( mbedtls_mpi_cmp_abs( A, B ) < 0 ) */
-    /*     return( MBEDTLS_ERR_MPI_NEGATIVE_VALUE ); */
 
     mbedtls_mpi_init( &TB );
 
@@ -2067,7 +2064,7 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
     /* Copy the n least significant limbs of d to A, so that
      * A = d if d < N (recall that N has n limbs). */
     memcpy( A->p, d, n * ciL );
-    /* If d >= N then we want to set A to N - d. To prevent timing attacks,
+    /* If d >= N then we want to set A to d - N. To prevent timing attacks,
      * do the calculation without using conditional tests. */
     /* Set d to d0 + (2^biL)^n - N where d0 is the current value of d. */
     d[n] += 1;

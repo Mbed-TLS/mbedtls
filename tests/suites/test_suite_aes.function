@@ -119,7 +119,8 @@ void aes_encrypt_xts( char *hex_key_string, char *hex_data_unit_string,
 
     mbedtls_aes_xts_init( &ctx );
 
-    data_unit = mbedtls_test_unhexify_alloc( hex_data_unit_string, &data_unit_len );
+    data_unit = mbedtls_test_unhexify_alloc( hex_data_unit_string,
+                                             &data_unit_len );
     TEST_ASSERT( data_unit_len == AES_BLOCK_SIZE );
 
     key = mbedtls_test_unhexify_alloc( hex_key_string, &key_len );
@@ -162,7 +163,8 @@ void aes_decrypt_xts( char *hex_key_string, char *hex_data_unit_string,
 
     mbedtls_aes_xts_init( &ctx );
 
-    data_unit = mbedtls_test_unhexify_alloc( hex_data_unit_string, &data_unit_len );
+    data_unit = mbedtls_test_unhexify_alloc( hex_data_unit_string,
+                                             &data_unit_len );
     TEST_ASSERT( data_unit_len == AES_BLOCK_SIZE );
 
     key = mbedtls_test_unhexify_alloc( hex_key_string, &key_len );

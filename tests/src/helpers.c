@@ -130,7 +130,8 @@ unsigned char *mbedtls_test_unhexify_alloc( const char *ibuf, size_t *olen )
     return( obuf );
 }
 
-int hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_len )
+int mbedtls_test_hexcmp( uint8_t * a, uint8_t * b,
+                         uint32_t a_len, uint32_t b_len )
 {
     int ret = 0;
     uint32_t i = 0;

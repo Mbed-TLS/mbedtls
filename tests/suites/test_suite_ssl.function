@@ -3424,7 +3424,7 @@ void ssl_tls_prf( int type, data_t * secret, data_t * random,
 
     if( exp_ret == 0 )
     {
-        TEST_ASSERT( hexcmp( output, result_hex_str->x,
+        TEST_ASSERT( mbedtls_test_hexcmp( output, result_hex_str->x,
                      result_hex_str->len, result_hex_str->len ) == 0 );
     }
 exit:

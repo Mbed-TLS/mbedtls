@@ -100,7 +100,7 @@ void mbedtls_test_hexify( unsigned char *obuf,
     }
 }
 
-unsigned char *zero_alloc( size_t len )
+unsigned char *mbedtls_test_zero_alloc( size_t len )
 {
     void *p;
     size_t actual_len = ( len != 0 ) ? len : 1;
@@ -120,7 +120,7 @@ unsigned char *unhexify_alloc( const char *ibuf, size_t *olen )
     *olen = strlen( ibuf ) / 2;
 
     if( *olen == 0 )
-        return( zero_alloc( *olen ) );
+        return( mbedtls_test_zero_alloc( *olen ) );
 
     obuf = mbedtls_calloc( 1, *olen );
     TEST_HELPER_ASSERT( obuf != NULL );

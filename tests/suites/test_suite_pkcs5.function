@@ -43,7 +43,7 @@ void mbedtls_pkcs5_pbes2( int params_tag, data_t *params_hex, data_t *pw,
     params.p = params_hex->x;
     params.len = params_hex->len;
 
-    my_out = zero_alloc( ref_out->len );
+    my_out = mbedtls_test_zero_alloc( ref_out->len );
 
     my_ret = mbedtls_pkcs5_pbes2( &params, MBEDTLS_PKCS5_DECRYPT,
                           pw->x, pw->len, data->x, data->len, my_out );

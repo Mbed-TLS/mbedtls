@@ -65,7 +65,7 @@ void mbedtls_test_hexify( unsigned char *obuf,
  *
  * For convenience, dies if allocation fails.
  */
-unsigned char *zero_alloc( size_t len );
+unsigned char *mbedtls_test_zero_alloc( size_t len );
 
 /**
  * Allocate and fill a buffer from hex data.

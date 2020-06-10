@@ -222,29 +222,37 @@ void ecp_invalid_param( )
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_mul( NULL, &P, &m, &P,
-                                             mbedtls_test_rnd_std_rand, NULL ) );
+                                             mbedtls_test_rnd_std_rand,
+                                             NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_mul( &grp, NULL, &m, &P,
-                                             mbedtls_test_rnd_std_rand, NULL ) );
+                                             mbedtls_test_rnd_std_rand,
+                                             NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_mul( &grp, &P, NULL, &P,
-                                             mbedtls_test_rnd_std_rand, NULL ) );
+                                             mbedtls_test_rnd_std_rand,
+                                             NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_mul( &grp, &P, &m, NULL,
-                                             mbedtls_test_rnd_std_rand, NULL ) );
+                                             mbedtls_test_rnd_std_rand,
+                                             NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_mul_restartable( NULL, &P, &m, &P,
-                                                 mbedtls_test_rnd_std_rand, NULL , NULL ) );
+                                                     mbedtls_test_rnd_std_rand,
+                                                     NULL , NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_mul_restartable( &grp, NULL, &m, &P,
-                                                 mbedtls_test_rnd_std_rand, NULL , NULL ) );
+                                                     mbedtls_test_rnd_std_rand,
+                                                     NULL , NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_mul_restartable( &grp, &P, NULL, &P,
-                                                 mbedtls_test_rnd_std_rand, NULL , NULL ) );
+                                                     mbedtls_test_rnd_std_rand,
+                                                     NULL , NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_mul_restartable( &grp, &P, &m, NULL,
-                                                 mbedtls_test_rnd_std_rand, NULL , NULL ) );
+                                                     mbedtls_test_rnd_std_rand,
+                                                     NULL , NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_muladd( NULL, &P, &m, &P,
@@ -300,30 +308,23 @@ void ecp_invalid_param( )
                             mbedtls_ecp_check_privkey( &grp, NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecp_gen_keypair_base( NULL, &P,
-                                                          &m, &P,
-                                                          mbedtls_test_rnd_std_rand,
-                                                          NULL ) );
+        mbedtls_ecp_gen_keypair_base( NULL, &P, &m, &P,
+                                      mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecp_gen_keypair_base( &grp, NULL,
-                                                          &m, &P,
-                                                          mbedtls_test_rnd_std_rand,
-                                                          NULL ) );
+        mbedtls_ecp_gen_keypair_base( &grp, NULL, &m, &P,
+                                      mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecp_gen_keypair_base( &grp, &P,
-                                                          NULL, &P,
-                                                          mbedtls_test_rnd_std_rand,
-                                                          NULL ) );
+        mbedtls_ecp_gen_keypair_base( &grp, &P, NULL, &P,
+                                      mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecp_gen_keypair_base( &grp, &P,
-                                                          &m, NULL,
-                                                          mbedtls_test_rnd_std_rand,
-                                                          NULL ) );
+        mbedtls_ecp_gen_keypair_base( &grp, &P, &m, NULL,
+                                      mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecp_gen_keypair_base( &grp, &P,
-                                                          &m, &P,
-                                                          NULL,
-                                                          NULL ) );
+        mbedtls_ecp_gen_keypair_base( &grp, &P, &m, &P, NULL, NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_gen_keypair( NULL,
@@ -348,7 +349,8 @@ void ecp_invalid_param( )
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_gen_key( valid_group, NULL,
-                                                 mbedtls_test_rnd_std_rand, NULL ) );
+                                                 mbedtls_test_rnd_std_rand,
+                                                 NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_gen_key( valid_group, &kp,
                                                  NULL, NULL ) );
@@ -740,7 +742,8 @@ void ecp_test_mul_rng( int id, data_t * d_hex)
 
     TEST_ASSERT( mbedtls_mpi_read_binary( &d, d_hex->x, d_hex->len ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecp_mul( &grp, &Q, &d, &grp.G, &mbedtls_test_rnd_zero_rand, NULL )
+    TEST_ASSERT( mbedtls_ecp_mul( &grp, &Q, &d, &grp.G,
+                                  &mbedtls_test_rnd_zero_rand, NULL )
                  == MBEDTLS_ERR_ECP_RANDOM_FAILED );
 
 exit:
@@ -1061,8 +1064,9 @@ void mbedtls_ecp_gen_keypair( int id )
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecp_gen_keypair( &grp, &d, &Q, &mbedtls_test_rnd_pseudo_rand, &rnd_info )
-                 == 0 );
+    TEST_ASSERT( mbedtls_ecp_gen_keypair( &grp, &d, &Q,
+                                          &mbedtls_test_rnd_pseudo_rand,
+                                          &rnd_info ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_check_pubkey( &grp, &Q ) == 0 );
     TEST_ASSERT( mbedtls_ecp_check_privkey( &grp, &d ) == 0 );
@@ -1083,7 +1087,9 @@ void mbedtls_ecp_gen_key( int id )
     mbedtls_ecp_keypair_init( &key );
     memset( &rnd_info, 0x00, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
-    TEST_ASSERT( mbedtls_ecp_gen_key( id, &key, &mbedtls_test_rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_gen_key( id, &key,
+                                      &mbedtls_test_rnd_pseudo_rand,
+                                      &rnd_info ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_check_pubkey( &key.grp, &key.Q ) == 0 );
     TEST_ASSERT( mbedtls_ecp_check_privkey( &key.grp, &key.d ) == 0 );

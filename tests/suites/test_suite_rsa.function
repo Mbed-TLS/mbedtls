@@ -67,7 +67,8 @@ void rsa_invalid_param( )
                                                  invalid_padding, 0 ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_gen_key( NULL, mbedtls_test_rnd_std_rand,
+                            mbedtls_rsa_gen_key( NULL,
+                                                 mbedtls_test_rnd_std_rand,
                                                  NULL, 0, 0 ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_gen_key( &ctx, NULL,
@@ -500,9 +501,9 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
     if( mbedtls_md_info_from_type( digest ) != NULL )
         TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &mbedtls_test_rnd_pseudo_rand, &rnd_info,
-                                         MBEDTLS_RSA_PRIVATE, digest, 0,
-                                         hash_result, output ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &mbedtls_test_rnd_pseudo_rand,
+                                         &rnd_info, MBEDTLS_RSA_PRIVATE, digest,
+                                         0, hash_result, output ) == result );
     if( result == 0 )
     {
 
@@ -581,10 +582,10 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &mbedtls_test_rnd_pseudo_rand, &rnd_info,
-                                         MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_NONE,
-                                         hash_result->len, hash_result->x,
-                                         output ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &mbedtls_test_rnd_pseudo_rand,
+                                         &rnd_info, MBEDTLS_RSA_PRIVATE,
+                                         MBEDTLS_MD_NONE, hash_result->len,
+                                         hash_result->x, output ) == 0 );
 
 
     TEST_ASSERT( mbedtls_test_hexcmp( output, result_hex_str->x,
@@ -598,8 +599,9 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
         memset( output, 0x00, sizeof( output) );
 
         res = mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx,
-                    &mbedtls_test_rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE,
-                    hash_result->len, hash_result->x, output );
+                  &mbedtls_test_rnd_pseudo_rand, &rnd_info,
+                  MBEDTLS_RSA_PRIVATE, hash_result->len,
+                  hash_result->x, output );
 
 #if !defined(MBEDTLS_RSA_ALT)
         TEST_ASSERT( res == 0 );
@@ -712,9 +714,11 @@ void mbedtls_rsa_pkcs1_encrypt( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx, &mbedtls_test_rnd_pseudo_rand, &rnd_info,
-                                            MBEDTLS_RSA_PUBLIC, message_str->len,
-                                            message_str->x, output ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx,
+                                            &mbedtls_test_rnd_pseudo_rand,
+                                            &rnd_info, MBEDTLS_RSA_PUBLIC,
+                                            message_str->len, message_str->x,
+                                            output ) == result );
     if( result == 0 )
     {
 
@@ -751,9 +755,10 @@ void rsa_pkcs1_encrypt_bad_rng( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx, &mbedtls_test_rnd_zero_rand, NULL,
-                                            MBEDTLS_RSA_PUBLIC, message_str->len,
-                                            message_str->x, output ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx, &mbedtls_test_rnd_zero_rand,
+                                            NULL, MBEDTLS_RSA_PUBLIC,
+                                            message_str->len, message_str->x,
+                                            output ) == result );
     if( result == 0 )
     {
 
@@ -802,7 +807,10 @@ void mbedtls_rsa_pkcs1_decrypt( data_t * message_str, int padding_mode,
 
     output_len = 0;
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, mbedtls_test_rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE, &output_len, message_str->x, output, max_output ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, mbedtls_test_rnd_pseudo_rand,
+                                            &rnd_info, MBEDTLS_RSA_PRIVATE,
+                                            &output_len, message_str->x, output,
+                                            max_output ) == result );
     if( result == 0 )
     {
 
@@ -907,8 +915,9 @@ void mbedtls_rsa_private( data_t * message_str, int mod, int radix_P,
     for( i = 0; i < 3; i++ )
     {
         memset( output, 0x00, sizeof( output ) );
-        TEST_ASSERT( mbedtls_rsa_private( &ctx, mbedtls_test_rnd_pseudo_rand, &rnd_info,
-                                  message_str->x, output ) == result );
+        TEST_ASSERT( mbedtls_rsa_private( &ctx, mbedtls_test_rnd_pseudo_rand,
+                                          &rnd_info, message_str->x,
+                                          output ) == result );
         if( result == 0 )
         {
 
@@ -926,8 +935,9 @@ void mbedtls_rsa_private( data_t * message_str, int mod, int radix_P,
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx2 ) == 0 );
 
     memset( output, 0x00, sizeof( output ) );
-    TEST_ASSERT( mbedtls_rsa_private( &ctx2, mbedtls_test_rnd_pseudo_rand, &rnd_info,
-                              message_str->x, output ) == result );
+    TEST_ASSERT( mbedtls_rsa_private( &ctx2, mbedtls_test_rnd_pseudo_rand,
+                                      &rnd_info, message_str->x,
+                                      output ) == result );
     if( result == 0 )
     {
 

@@ -316,7 +316,8 @@ void ctr_drbg_seed_file( char * path, int ret )
 
     mbedtls_ctr_drbg_init( &ctx );
 
-    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctx, mbedtls_test_rnd_std_rand, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctx, mbedtls_test_rnd_std_rand,
+                                        NULL, NULL, 0 ) == 0 );
     TEST_ASSERT( mbedtls_ctr_drbg_write_seed_file( &ctx, path ) == ret );
     TEST_ASSERT( mbedtls_ctr_drbg_update_seed_file( &ctx, path ) == ret );
 

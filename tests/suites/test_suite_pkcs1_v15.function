@@ -34,7 +34,12 @@ void pkcs1_rsaes_v15_encrypt( int mod, int radix_N, char * input_N,
 
     if( message_str->len == 0 )
         message_str->x = NULL;
-    TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx, &mbedtls_test_rnd_buffer_rand, &info, MBEDTLS_RSA_PUBLIC, message_str->len, message_str->x, output ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx,
+                                            &mbedtls_test_rnd_buffer_rand,
+                                            &info, MBEDTLS_RSA_PUBLIC,
+                                            message_str->len, message_str->x,
+                                            output ) == result );
+
     if( result == 0 )
     {
         TEST_ASSERT( mbedtls_test_hexcmp( output, result_hex_str->x,
@@ -81,11 +86,20 @@ void pkcs1_rsaes_v15_decrypt( int mod, int radix_P, char * input_P,
 
     if( result_hex_str->len == 0 )
     {
-        TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, &mbedtls_test_rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE, &output_len, message_str->x, NULL, 0 ) == result );
+        TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx,
+                                                &mbedtls_test_rnd_pseudo_rand,
+                                                &rnd_info,
+                                                MBEDTLS_RSA_PRIVATE,
+                                                &output_len, message_str->x,
+                                                NULL, 0 ) == result );
     }
     else
     {
-        TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, &mbedtls_test_rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE, &output_len, message_str->x, output, 1000 ) == result );
+        TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx,
+                                                &mbedtls_test_rnd_pseudo_rand,
+                                                &rnd_info, MBEDTLS_RSA_PRIVATE,
+                                                &output_len, message_str->x,
+                                                output, 1000 ) == result );
         if( result == 0 )
         {
             TEST_ASSERT( mbedtls_test_hexcmp( output, result_hex_str->x,
@@ -196,16 +210,15 @@ void pkcs1_v15_decode( int mode,
     if( mode == MBEDTLS_RSA_PRIVATE )
         TEST_ASSERT( mbedtls_rsa_public( &ctx, original, intermediate ) == 0 );
     else
-        TEST_ASSERT( mbedtls_rsa_private( &ctx, &mbedtls_test_rnd_pseudo_rand, &rnd_info,
-                                          original, intermediate ) == 0 );
+        TEST_ASSERT( mbedtls_rsa_private( &ctx, &mbedtls_test_rnd_pseudo_rand,
+                                          &rnd_info, original,
+                                          intermediate ) == 0 );
 
     memcpy( final, default_content, sizeof( final ) );
     TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx,
-                                            &mbedtls_test_rnd_pseudo_rand, &rnd_info,
-                                            mode,
-                                            &output_length,
-                                            intermediate,
-                                            final,
+                                            &mbedtls_test_rnd_pseudo_rand,
+                                            &rnd_info, mode, &output_length,
+                                            intermediate, final,
                                             output_size ) == expected_result );
     if( expected_result == 0 )
     {
@@ -286,7 +299,9 @@ void pkcs1_rsassa_v15_sign( int mod, int radix_P, char * input_P, int radix_Q,
     if( mbedtls_md_info_from_type( digest ) != NULL )
         TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &mbedtls_test_rnd_buffer_rand, &info, MBEDTLS_RSA_PRIVATE, digest, 0, hash_result, output ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &mbedtls_test_rnd_buffer_rand,
+                                         &info, MBEDTLS_RSA_PRIVATE, digest,
+                                         0, hash_result, output ) == result );
     if( result == 0 )
     {
 

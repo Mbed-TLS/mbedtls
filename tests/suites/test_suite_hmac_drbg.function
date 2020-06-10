@@ -129,8 +129,9 @@ void hmac_drbg_seed_file( int md_alg, char * path, int ret )
     md_info = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md_info != NULL );
 
-    TEST_ASSERT( mbedtls_hmac_drbg_seed( &ctx, md_info, mbedtls_test_rnd_std_rand, NULL,
-                                 NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_hmac_drbg_seed( &ctx, md_info,
+                                         mbedtls_test_rnd_std_rand, NULL,
+                                         NULL, 0 ) == 0 );
 
     TEST_ASSERT( mbedtls_hmac_drbg_write_seed_file( &ctx, path ) == ret );
     TEST_ASSERT( mbedtls_hmac_drbg_update_seed_file( &ctx, path ) == ret );

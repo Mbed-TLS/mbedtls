@@ -39,7 +39,7 @@ typedef struct
 {
     unsigned char *buf;
     size_t length;
-} rnd_buf_info;
+} mbedtls_test_rnd_buf_info;
 
 /**
  * Info structure for the pseudo random function
@@ -52,7 +52,7 @@ typedef struct
 {
     uint32_t key[16];
     uint32_t v0, v1;
-} rnd_pseudo_info;
+} mbedtls_test_rnd_pseudo_info;
 
 /**
  * This function just returns data from rand().
@@ -63,14 +63,18 @@ typedef struct
  *
  * rng_state shall be NULL.
  */
-int rnd_std_rand( void *rng_state, unsigned char *output, size_t len );
+int mbedtls_test_rnd_std_rand( void *rng_state,
+                               unsigned char *output,
+                               size_t len );
 
 /**
  * This function only returns zeros
  *
  * rng_state shall be NULL.
  */
-int rnd_zero_rand( void *rng_state, unsigned char *output, size_t len );
+int mbedtls_test_rnd_zero_rand( void *rng_state,
+                                unsigned char *output,
+                                size_t len );
 
 /**
  * This function returns random based on a buffer it receives.
@@ -83,7 +87,9 @@ int rnd_zero_rand( void *rng_state, unsigned char *output, size_t len );
  *
  * After the buffer is empty it will return rand();
  */
-int rnd_buffer_rand( void *rng_state, unsigned char *output, size_t len );
+int mbedtls_test_rnd_buffer_rand( void *rng_state,
+                                  unsigned char *output,
+                                  size_t len );
 
 /**
  * This function returns random based on a pseudo random function.
@@ -93,6 +99,8 @@ int rnd_buffer_rand( void *rng_state, unsigned char *output, size_t len );
  *
  * rng_state shall be a pointer to a rnd_pseudo_info structure.
  */
-int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len );
+int mbedtls_test_rnd_pseudo_rand( void *rng_state,
+                                  unsigned char *output,
+                                  size_t len );
 
 #endif /* TEST_RANDOM_H */

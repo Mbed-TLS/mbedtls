@@ -27,7 +27,9 @@
 #include <test/random.h>
 #include <string.h>
 
-int rnd_std_rand( void *rng_state, unsigned char *output, size_t len )
+int mbedtls_test_rnd_std_rand( void *rng_state,
+                               unsigned char *output,
+                               size_t len )
 {
 #if !defined(__OpenBSD__)
     size_t i;
@@ -47,7 +49,9 @@ int rnd_std_rand( void *rng_state, unsigned char *output, size_t len )
     return( 0 );
 }
 
-int rnd_zero_rand( void *rng_state, unsigned char *output, size_t len )
+int mbedtls_test_rnd_zero_rand( void *rng_state,
+                                unsigned char *output,
+                                size_t len )
 {
     if( rng_state != NULL )
         rng_state  = NULL;
@@ -57,13 +61,15 @@ int rnd_zero_rand( void *rng_state, unsigned char *output, size_t len )
     return( 0 );
 }
 
-int rnd_buffer_rand( void *rng_state, unsigned char *output, size_t len )
+int mbedtls_test_rnd_buffer_rand( void *rng_state,
+                                  unsigned char *output,
+                                  size_t len )
 {
-    rnd_buf_info *info = (rnd_buf_info *) rng_state;
+    mbedtls_test_rnd_buf_info *info = (mbedtls_test_rnd_buf_info *) rng_state;
     size_t use_len;
 
     if( rng_state == NULL )
-        return( rnd_std_rand( NULL, output, len ) );
+        return( mbedtls_test_rnd_std_rand( NULL, output, len ) );
 
     use_len = len;
     if( len > info->length )
@@ -77,19 +83,23 @@ int rnd_buffer_rand( void *rng_state, unsigned char *output, size_t len )
     }
 
     if( len - use_len > 0 )
-        return( rnd_std_rand( NULL, output + use_len, len - use_len ) );
+        return( mbedtls_test_rnd_std_rand( NULL, output + use_len,
+                                           len - use_len ) );
 
     return( 0 );
 }
 
-int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
+int mbedtls_test_rnd_pseudo_rand( void *rng_state,
+                                  unsigned char *output,
+                                  size_t len )
 {
-    rnd_pseudo_info *info = (rnd_pseudo_info *) rng_state;
+    mbedtls_test_rnd_pseudo_info *info =
+        (mbedtls_test_rnd_pseudo_info *) rng_state;
     uint32_t i, *k, sum, delta=0x9E3779B9;
     unsigned char result[4], *out = output;
 
     if( rng_state == NULL )
-        return( rnd_std_rand( NULL, output, len ) );
+        return( mbedtls_test_rnd_std_rand( NULL, output, len ) );
 
     k = info->key;
 

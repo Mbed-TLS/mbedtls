@@ -42,6 +42,7 @@
 #define MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED     -0x0070 /**< Hardware accelerator failed */
 #define MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED -0x0072 /**< The requested feature is not supported by the platform */
 #define MBEDTLS_ERR_PLATFORM_FAULT_DETECTED      -0x0071 /**< A hardware fault was detected in a critical path. As a security precaution this should be treated as a potential physical attack */
+#define MBEDTLS_ERR_PLATFORM_ALLOC_FAILED        -0x0076 /**< Memory allocation failed */
 
 #if defined(MBEDTLS_PLATFORM_C)
 

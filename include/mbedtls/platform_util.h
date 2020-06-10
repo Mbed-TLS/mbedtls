@@ -199,6 +199,22 @@ void *mbedtls_platform_memset( void *ptr, int value, size_t num );
 void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num );
 
 /**
+ * \brief       Secure memmove
+ *
+ *              This is a constant-time version of memmove(). It is based on
+ *              the double use of the mbedtls_platform_memcpy() function secured
+ *              against side-channel attacks.
+ *
+ * \param dst   Destination buffer where the data is being moved to.
+ * \param src   Source buffer where the data is being moved from.
+ * \param num   The length of the buffers in bytes.
+ *
+ * \return      0 if the operation was successful
+ * \return      #MBEDTLS_ERR_PLATFORM_ALLOC_FAILED if a memory allocation failed
+ */
+int mbedtls_platform_memmove( void *dst, const void *src, size_t num );
+
+/**
  * \brief       Secure memcmp
  *
  *              This is a constant-time version of memcmp(). If

@@ -131,7 +131,7 @@ static unsigned long add_count, dbl_count, mul_count;
 #if !defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
 /*
  * Currently ecp_mul() takes a RNG function as an argument, used for
- * side-channel protection, but it can be NULL. The initial reasonning was
+ * side-channel protection, but it can be NULL. The initial reasoning was
  * that people will pass non-NULL RNG when they care about side-channels, but
  * unfortunately we have some APIs that call ecp_mul() with a NULL RNG, with
  * no opportunity for the user to do anything about it.

@@ -27,9 +27,9 @@
 
 #if defined(MBEDTLS_SSL_SRV_C)
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
+
+#if !defined(MBEDTLS_PLATFORM_C)
 #include <stdlib.h>
 #define mbedtls_calloc    calloc
 #define mbedtls_free      free
@@ -4658,6 +4658,10 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate verify" ) );
             goto exit;
+        }
+        else
+        {
+            ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
         }
 
     }

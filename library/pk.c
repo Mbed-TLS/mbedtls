@@ -46,10 +46,9 @@
 #endif /* MBEDTLS_USE_TINYCRYPT */
 
 #include "mbedtls/platform_util.h"
-
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
+
+#if !defined(MBEDTLS_PLATFORM_C)
 #include <stdlib.h>
 #define mbedtls_calloc    calloc
 #define mbedtls_free       free
@@ -1561,7 +1560,7 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
         }
         else
         {
-            verify_ret = MBEDTLS_ERR_PK_HW_ACCEL_FAILED;
+            verify_ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
         }
     }
 

@@ -190,6 +190,9 @@ void mbedtls_platform_random_delay( void )
     do
     {
         i++;
+        /* Dummy calculations to increase the time between iterations and
+         * make side channel attack more difficult by reducing predictability
+         * of its behaviour */
         shift = rn_2 & 0x07;
         if ( i % 2 )
             rn_2 = (uint32_t)( rn_2 >> shift | rn_2 << ( 32 - shift ) );

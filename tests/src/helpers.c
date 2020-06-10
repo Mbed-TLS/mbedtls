@@ -113,7 +113,7 @@ unsigned char *mbedtls_test_zero_alloc( size_t len )
     return( p );
 }
 
-unsigned char *unhexify_alloc( const char *ibuf, size_t *olen )
+unsigned char *mbedtls_test_unhexify_alloc( const char *ibuf, size_t *olen )
 {
     unsigned char *obuf;
 

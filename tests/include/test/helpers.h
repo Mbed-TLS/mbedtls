@@ -77,7 +77,7 @@ unsigned char *mbedtls_test_zero_alloc( size_t len );
  *
  * For convenience, dies if allocation fails.
  */
-unsigned char *unhexify_alloc( const char *ibuf, size_t *olen );
+unsigned char *mbedtls_test_unhexify_alloc( const char *ibuf, size_t *olen );
 
 int hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_len );
 

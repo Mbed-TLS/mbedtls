@@ -63,9 +63,9 @@ void test_hkdf_extract( int md_alg, char *hex_ikm_string,
     output_prk_len = mbedtls_md_get_size( md );
     output_prk = mbedtls_calloc( 1, output_prk_len );
 
-    ikm = unhexify_alloc( hex_ikm_string, &ikm_len );
-    salt = unhexify_alloc( hex_salt_string, &salt_len );
-    prk = unhexify_alloc( hex_prk_string, &prk_len );
+    ikm = mbedtls_test_unhexify_alloc( hex_ikm_string, &ikm_len );
+    salt = mbedtls_test_unhexify_alloc( hex_salt_string, &salt_len );
+    prk = mbedtls_test_unhexify_alloc( hex_prk_string, &prk_len );
     TEST_ASSERT( prk_len == output_prk_len );
 
     ret = mbedtls_hkdf_extract( md, salt, salt_len, ikm, ikm_len, output_prk );
@@ -98,9 +98,9 @@ void test_hkdf_expand( int md_alg, char *hex_info_string,
 
     output_okm = mbedtls_calloc( OKM_LEN, 1 );
 
-    prk = unhexify_alloc( hex_prk_string, &prk_len );
-    info = unhexify_alloc( hex_info_string, &info_len );
-    okm = unhexify_alloc( hex_okm_string, &okm_len );
+    prk = mbedtls_test_unhexify_alloc( hex_prk_string, &prk_len );
+    info = mbedtls_test_unhexify_alloc( hex_info_string, &info_len );
+    okm = mbedtls_test_unhexify_alloc( hex_okm_string, &okm_len );
     TEST_ASSERT( prk_len == mbedtls_md_get_size( md ) );
     TEST_ASSERT( okm_len < OKM_LEN );
 

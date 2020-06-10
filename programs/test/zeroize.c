@@ -40,7 +40,6 @@
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
-#include <stdio.h>
 #include <stdlib.h>
 #define mbedtls_printf     printf
 #define mbedtls_exit       exit

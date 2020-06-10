@@ -43,7 +43,7 @@
 set confirm off
 
 file ./programs/test/zeroize
-break zeroize.c:102
+break zeroize.c:100
 
 set args ./programs/test/zeroize.c
 run

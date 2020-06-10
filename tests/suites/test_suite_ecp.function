@@ -756,7 +756,7 @@ void ecp_write_binary( int id, char * x, char * y, char * z, int format,
 
     if( ret == 0 )
     {
-        TEST_ASSERT( hexcmp( buf, out->x, olen, out->len ) == 0 );
+        TEST_ASSERT( mbedtls_test_hexcmp( buf, out->x, olen, out->len ) == 0 );
     }
 
 exit:

@@ -4,12 +4,10 @@
  * This is a simple test application used for debugger-driven testing to check
  * whether calls to mbedtls_platform_zeroize() are being eliminated by compiler
  * optimizations. This application is used by the GDB script at
- * tests/scripts/test_zeroize.gdb under the assumption that the code does not
- * change often (as opposed to the library code) because the script sets a
- * breakpoint at the last return statement in the main() function of this
- * program. The debugger facilities are then used to manually inspect the
- * memory and verify that the call to mbedtls_platform_zeroize() was not
- * eliminated.
+ * tests/scripts/test_zeroize.gdb: the script sets a breakpoint at the last
+ * return statement in the main() function of this program. The debugger
+ * facilities are then used to manually inspect the memory and verify that the
+ * call to mbedtls_platform_zeroize() was not eliminated.
  *
  *  Copyright (C) 2018, Arm Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -40,7 +38,6 @@
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
-#include <stdio.h>
 #include <stdlib.h>
 #define mbedtls_printf     printf
 #define mbedtls_exit       exit
@@ -99,5 +96,5 @@ int main( int argc, char** argv )
     fclose( fp );
     mbedtls_platform_zeroize( buf, sizeof( buf ) );
 
-    mbedtls_exit( exit_code );
+    mbedtls_exit( exit_code ); // GDB_BREAK_HERE -- don't remove this comment!
 }

@@ -1,0 +1,10 @@
+Requirement changes
+   * Clarify and test the import/export behaviour of PSA key management APIs to
+     adhere to the to-be-introduced clarification. Montgomery keys
+     (such as Curve25519) should be imported/exported in masked form.
+
+Bugfix
+   * Update and test the PSA key management against Montgomery keys, since
+     these need to be imported/exported in little-endian form. Added mirror
+     function of mbedtls_ecp_read_key called mbedtls_ecp_write_key to retrieve
+     a private key in the correct form.

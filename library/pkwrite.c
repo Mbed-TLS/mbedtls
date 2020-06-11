@@ -166,9 +166,10 @@ static int pk_write_ec_private( unsigned char **p, unsigned char *start,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t byte_length = ( ec->grp.pbits + 7 ) / 8;
+    size_t output_length;
     unsigned char tmp[MBEDTLS_ECP_MAX_BYTES];
 
-    ret = mbedtls_mpi_write_binary( &ec->d, tmp, byte_length );
+    ret = mbedtls_ecp_write_key( ec->grp.id, ec, &output_length, tmp, byte_length );
     if( ret != 0 )
         goto exit;
     ret = mbedtls_asn1_write_octet_string( p, start, tmp, byte_length );

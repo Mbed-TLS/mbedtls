@@ -1152,20 +1152,20 @@ int mbedtls_ecp_read_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
  *
  * \param grp_id    The ECP group identifier.
  * \param key       The private key.
- * \param olen      The amount of bytes written into the output buffer.
- * \param buf       The output buffer containing the binary representation of
- *                  the key. (Big endian integer for Weierstrass curves, byte
+ * \param buf       The output buffer for containing the binary representation
+ *                  of the key. (Big endian integer for Weierstrass curves, byte
  *                  string for Montgomery curves.)
  * \param buflen    The total length of the buffer in bytes.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL if key is larger than buffer.
+ * \return          #MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL if the \p key
+                    representation is larger than the available space in \p buf.
  * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the operation for
  *                  the group is not implemented.
  * \return          Another negative error code on different kinds of failure.
  */
 int mbedtls_ecp_write_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
-                           size_t *olen, unsigned char *buf, size_t buflen );
+                           unsigned char *buf, size_t buflen );
 
 /**
  * \brief           This function checks that the keypair objects

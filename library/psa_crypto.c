@@ -1321,14 +1321,13 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
     if( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( slot->attr.type ) && !export_public_key )
     {
         psa_status_t status;
-        size_t actual_data_size;
 
         size_t bytes = PSA_BITS_TO_BYTES( slot->attr.bits );
         if( bytes > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
         status = mbedtls_to_psa_error(
             mbedtls_ecp_write_key(slot->data.ecp->grp.id, slot->data.ecp,
-                                  &actual_data_size, data, bytes) );
+                                  data, bytes) );
         if( status != PSA_SUCCESS )
             return( status );
         memset( data + bytes, 0, data_size - bytes );

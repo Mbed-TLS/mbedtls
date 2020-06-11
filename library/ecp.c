@@ -3000,13 +3000,12 @@ cleanup:
  * Write a private key.
  */
 int mbedtls_ecp_write_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
-                           size_t *olen, unsigned char *buf, size_t buflen )
+                           unsigned char *buf, size_t buflen )
 {
     int ret = 0;
 
     ECP_VALIDATE_RET( key  != NULL );
     ECP_VALIDATE_RET( buf  != NULL );
-    ECP_VALIDATE_RET( olen != NULL );
 
     if( ( ret = mbedtls_ecp_group_load( &key->grp, grp_id ) ) != 0 )
         return( ret );
@@ -3022,7 +3021,6 @@ int mbedtls_ecp_write_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key
                 return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
 
             MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &key->d, buf, buflen ) );
-            *olen = ECP_CURVE25519_KEY_SIZE;
         }
         else
             ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
@@ -3033,7 +3031,6 @@ int mbedtls_ecp_write_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key
     if( mbedtls_ecp_get_type( &key->grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &key->d, buf, buflen ) );
-        *olen = mbedtls_mpi_size( &key->d );
     }
 
 #endif

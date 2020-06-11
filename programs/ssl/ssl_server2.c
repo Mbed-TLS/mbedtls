@@ -1734,6 +1734,7 @@ int main( int argc, char *argv[] )
     psa_algorithm_t alg = 0;
     psa_key_handle_t psk_slot = 0;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+    int psk_free_ret = 0;
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
     size_t psk_len = 0;
     psk_entry *psk_info = NULL;
@@ -4301,8 +4302,8 @@ exit:
     sni_free( sni_info );
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-    if( ( ret = psk_free( psk_info ) ) != 0 )
-        mbedtls_printf( "Failed to list of opaque PSKs - error was %d\n", ret );
+    if( ( psk_free_ret = psk_free( psk_info ) ) != 0 )
+        mbedtls_printf( "Failed to list of opaque PSKs - error was %d\n", psk_free_ret );
 #endif
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
     mbedtls_dhm_free( &dhm );

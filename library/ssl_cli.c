@@ -1367,8 +1367,8 @@ static int ssl_parse_renegotiation_info( mbedtls_ssl_context *ssl,
     {
         if( len != 1 || buf[0] != 0x00 )
         {
-            MBEDTLS_SSL_DEBUG_MSG(
-                1, ( "non-zero length renegotiation info" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                ( "non-zero length renegotiation info" ) );
             mbedtls_ssl_send_alert_message(
                 ssl,
                 MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -3761,8 +3761,8 @@ ecdh_calc_secret:
             ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
             ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
         {
-            MBEDTLS_SSL_DEBUG_MSG(
-                1, ( "skip PMS generation for opaque PSK" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                ( "skip PMS generation for opaque PSK" ) );
         }
         else
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&
@@ -3770,8 +3770,8 @@ ecdh_calc_secret:
         if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
                         ciphersuite_info->key_exchange ) ) != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET(
-                1, "mbedtls_ssl_psk_derive_premaster", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1,
+                "mbedtls_ssl_psk_derive_premaster", ret );
             return( ret );
         }
     }

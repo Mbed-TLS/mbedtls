@@ -109,7 +109,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 		uECC_vli_clear(tmp);
 		tmp[0] = 1;
 	}
-	else if (!uECC_generate_random_int(tmp, curve_n, num_n_words)) {
+	else if (uECC_generate_random_int(tmp, curve_n, num_n_words) != UECC_SUCCESS) {
 		return UECC_FAILURE;
 	}
 

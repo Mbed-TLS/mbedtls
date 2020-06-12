@@ -1080,7 +1080,7 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 	/* If an RNG function was specified, get a random initial Z value to
          * protect against side-channel attacks such as Template SPA */
 	if (g_rng_function) {
-		if (!uECC_generate_random_int(k2[carry], curve_p, num_words)) {
+		if (uECC_generate_random_int(k2[carry], curve_p, num_words) != UECC_SUCCESS) {
 			r = UECC_FAILURE;
 			goto clear_and_out;
 		}
@@ -1165,21 +1165,21 @@ int uECC_generate_random_int(uECC_word_t *random, const uECC_word_t *top,
 	bitcount_t num_bits = uECC_vli_numBits(top);
 
 	if (!g_rng_function) {
-		return 0;
+		return UECC_FAILURE;
 	}
 
 	for (tries = 0; tries < uECC_RNG_MAX_TRIES; ++tries) {
 		if (g_rng_function((uint8_t *)random, num_words * uECC_WORD_SIZE) != num_words * uECC_WORD_SIZE) {
-      			return 0;
+      			return UECC_FAILURE;
     		}
 		random[num_words - 1] &=
         		mask >> ((bitcount_t)(num_words * uECC_WORD_SIZE * 8 - num_bits));
 		if (!uECC_vli_isZero(random) &&
 			uECC_vli_cmp(top, random) == 1) {
-			return 1;
+			return UECC_SUCCESS;
 		}
 	}
-	return 0;
+	return UECC_FAILURE;
 }
 
 

@@ -155,7 +155,8 @@ extern const uECC_word_t curve_b[NUM_ECC_WORDS];
  * @param random OUT -- random integer in the range 0 < random < top
  * @param top IN -- upper limit
  * @param num_words IN -- number of words
- * @return a random integer in the range 0 < random < top
+ * @return UECC_SUCCESS in case of success
+ * @return UECC_FAILURE upon failure
  */
 int uECC_generate_random_int(uECC_word_t *random, const uECC_word_t *top,
 			     wordcount_t num_words);

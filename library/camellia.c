@@ -111,8 +111,8 @@ static const unsigned char FSb[256] =
 };
 
 #define SBOX1(n) FSb[(n)]
-#define SBOX2(n) (unsigned char)((FSb[(n)] >> 7 ^ FSb[(n)] << 1) & 0xff)
-#define SBOX3(n) (unsigned char)((FSb[(n)] >> 1 ^ FSb[(n)] << 7) & 0xff)
+#define SBOX2(n) (unsigned char)(FSb[(n)] >> 7 ^ FSb[(n)] << 1)
+#define SBOX3(n) (unsigned char)(FSb[(n)] >> 1 ^ FSb[(n)] << 7)
 #define SBOX4(n) FSb[((n) << 1 ^ (n) >> 7) &0xff]
 
 #else /* MBEDTLS_CAMELLIA_SMALL_MEMORY */

@@ -241,12 +241,12 @@ static psa_status_t psa_crypto_storage_get_data_length(
 #endif
 
 #ifndef PUT_UINT32_LE
-#define PUT_UINT32_LE( n, b, i )                                \
-{                                                               \
-    (b)[(i)    ] = (unsigned char) ( ( (n)       ) & 0xFF );    \
-    (b)[(i) + 1] = (unsigned char) ( ( (n) >>  8 ) & 0xFF );    \
-    (b)[(i) + 2] = (unsigned char) ( ( (n) >> 16 ) & 0xFF );    \
-    (b)[(i) + 3] = (unsigned char) ( ( (n) >> 24 ) & 0xFF );    \
+#define PUT_UINT32_LE( n, b, i )                      \
+{                                                     \
+    (b)[(i)    ] = (unsigned char) ( (n)       ) ;    \
+    (b)[(i) + 1] = (unsigned char) ( (n) >>  8 ) ;    \
+    (b)[(i) + 2] = (unsigned char) ( (n) >> 16 ) ;    \
+    (b)[(i) + 3] = (unsigned char) ( (n) >> 24 ) ;    \
 }
 #endif
 

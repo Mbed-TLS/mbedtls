@@ -1,10 +1,9 @@
-Requirement changes
-   * Clarify and test the import/export behaviour of PSA key management APIs to
-     adhere to the to-be-introduced clarification. Montgomery keys
-     (such as Curve25519) should be imported/exported in masked form.
+Features
+   * The new function mbedtls_ecp_write_key() exports private ECC keys back to
+     a byte buffer. It is the inverse of the existing mbedtls_ecp_read_key().
 
 Bugfix
-   * Update and test the PSA key management against Montgomery keys, since
-     these need to be imported/exported in little-endian form. Added mirror
-     function of mbedtls_ecp_read_key called mbedtls_ecp_write_key to retrieve
-     a private key in the correct form.
+   * Fix the endianness of Curve25519 keys imported/exported through the PSA
+     APIs. psa_import_key and psa_export_key will now correctly expect/output
+     Montgomery keys in little-endian as defined by RFC7748. Contributed by
+     Steven Cooreman in #3425.

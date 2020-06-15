@@ -240,7 +240,8 @@ void mpi_invalid_param( )
                             mbedtls_mpi_exp_mod( &X, &X, &X, NULL, NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
-                            mbedtls_mpi_fill_random( NULL, 42, rnd_std_rand,
+                            mbedtls_mpi_fill_random( NULL, 42,
+                                                     mbedtls_test_rnd_std_rand,
                                                      NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
                             mbedtls_mpi_fill_random( &X, 42, NULL, NULL ) );
@@ -373,7 +374,8 @@ void mbedtls_mpi_write_binary( int radix_X, char * input_X,
     if( result == 0)
     {
 
-        TEST_ASSERT( hexcmp( buf, input_A->x, buflen, input_A->len ) == 0 );
+        TEST_ASSERT( mbedtls_test_hexcmp( buf, input_A->x,
+                                          buflen, input_A->len ) == 0 );
     }
 
 exit:
@@ -404,7 +406,8 @@ void mbedtls_mpi_write_binary_le( int radix_X, char * input_X,
     if( result == 0)
     {
 
-        TEST_ASSERT( hexcmp( buf, input_A->x, buflen, input_A->len ) == 0 );
+        TEST_ASSERT( mbedtls_test_hexcmp( buf, input_A->x,
+                                          buflen, input_A->len ) == 0 );
     }
 
 exit:
@@ -438,7 +441,8 @@ void mbedtls_mpi_read_file( int radix_X, char * input_file,
         TEST_ASSERT( mbedtls_mpi_write_binary( &X, buf, buflen ) == 0 );
 
 
-        TEST_ASSERT( hexcmp( buf, input_A->x, buflen, input_A->len ) == 0 );
+        TEST_ASSERT( mbedtls_test_hexcmp( buf, input_A->x,
+                                          buflen, input_A->len ) == 0 );
     }
 
 exit:
@@ -1192,7 +1196,7 @@ void mbedtls_mpi_is_prime( int radix_X, char * input_X, int div_result )
     mbedtls_mpi_init( &X );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == 0 );
-    res = mbedtls_mpi_is_prime_ext( &X, 40, rnd_std_rand, NULL );
+    res = mbedtls_mpi_is_prime_ext( &X, 40, mbedtls_test_rnd_std_rand, NULL );
     TEST_ASSERT( res == div_result );
 
 exit:
@@ -1241,7 +1245,8 @@ void mbedtls_mpi_gen_prime( int bits, int flags, int ref_ret )
 
     mbedtls_mpi_init( &X );
 
-    my_ret = mbedtls_mpi_gen_prime( &X, bits, flags, rnd_std_rand, NULL );
+    my_ret = mbedtls_mpi_gen_prime( &X, bits, flags,
+                                    mbedtls_test_rnd_std_rand, NULL );
     TEST_ASSERT( my_ret == ref_ret );
 
     if( ref_ret == 0 )
@@ -1251,14 +1256,16 @@ void mbedtls_mpi_gen_prime( int bits, int flags, int ref_ret )
         TEST_ASSERT( actual_bits >= (size_t) bits );
         TEST_ASSERT( actual_bits <= (size_t) bits + 1 );
 
-        TEST_ASSERT( mbedtls_mpi_is_prime_ext( &X, 40, rnd_std_rand, NULL )
-                     == 0 );
+        TEST_ASSERT( mbedtls_mpi_is_prime_ext( &X, 40,
+                                               mbedtls_test_rnd_std_rand,
+                                               NULL ) == 0 );
         if( flags & MBEDTLS_MPI_GEN_PRIME_FLAG_DH )
         {
             /* X = ( X - 1 ) / 2 */
             TEST_ASSERT( mbedtls_mpi_shift_r( &X, 1 ) == 0 );
-            TEST_ASSERT( mbedtls_mpi_is_prime_ext( &X, 40, rnd_std_rand, NULL )
-                         == 0 );
+            TEST_ASSERT( mbedtls_mpi_is_prime_ext( &X, 40,
+                                                   mbedtls_test_rnd_std_rand,
+                                                   NULL ) == 0 );
         }
     }
 

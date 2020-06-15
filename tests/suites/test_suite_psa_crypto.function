@@ -9,7 +9,7 @@
  * uses mbedtls_ctr_drbg internally. */
 #include "mbedtls/ctr_drbg.h"
 
-#include "psa_crypto_helpers.h"
+#include "test/psa_crypto_helpers.h"
 
 /* Tests that require more than 128kB of RAM plus change have this symbol
  * as a dependency. Currently we always define this symbol, so the tests

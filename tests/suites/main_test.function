@@ -261,7 +261,7 @@ $platform_code
  */
 int main( int argc, const char *argv[] )
 {
-    int ret = platform_setup();
+    int ret = mbedtls_test_platform_setup();
     if( ret != 0 )
     {
         mbedtls_fprintf( stderr,
@@ -271,6 +271,6 @@ int main( int argc, const char *argv[] )
     }
 
     ret = execute_tests( argc, argv );
-    platform_teardown();
+    mbedtls_test_platform_teardown();
     return( ret );
 }

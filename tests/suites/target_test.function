@@ -75,7 +75,7 @@ uint8_t receive_byte()
     c[1] = greentea_getc();
     c[2] = '\0';
 
-    TEST_HELPER_ASSERT( unhexify( &byte, c ) != 2 );
+    TEST_HELPER_ASSERT( mbedtls_test_unhexify( &byte, c ) != 2 );
     return( byte );
 }
 
@@ -101,7 +101,7 @@ uint32_t receive_uint32()
                              };
     const uint8_t c[9] = { c_be[6], c_be[7], c_be[4], c_be[5], c_be[2],
                            c_be[3], c_be[0], c_be[1], '\0' };
-    TEST_HELPER_ASSERT( unhexify( (uint8_t*)&value, c ) != 8 );
+    TEST_HELPER_ASSERT( mbedtls_test_unhexify( (uint8_t*)&value, c ) != 8 );
     return( value );
 }
 

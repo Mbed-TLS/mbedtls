@@ -23,7 +23,8 @@ void aes_encrypt_ecb( data_t * key_str, data_t * src_str,
     {
         TEST_ASSERT( mbedtls_aes_crypt_ecb( &ctx, MBEDTLS_AES_ENCRYPT, src_str->x, output ) == 0 );
 
-        TEST_ASSERT( hexcmp( output, hex_dst_string->x, 16, hex_dst_string->len ) == 0 );
+        TEST_ASSERT( mbedtls_test_hexcmp( output, hex_dst_string->x,
+                                          16, hex_dst_string->len ) == 0 );
     }
 
 exit:
@@ -47,7 +48,8 @@ void aes_decrypt_ecb( data_t * key_str, data_t * src_str,
     {
         TEST_ASSERT( mbedtls_aes_crypt_ecb( &ctx, MBEDTLS_AES_DECRYPT, src_str->x, output ) == 0 );
 
-        TEST_ASSERT( hexcmp( output, hex_dst_string->x, 16, hex_dst_string->len ) == 0 );
+        TEST_ASSERT( mbedtls_test_hexcmp( output, hex_dst_string->x,
+                                          16, hex_dst_string->len ) == 0 );
     }
 
 exit:
@@ -72,7 +74,9 @@ void aes_encrypt_cbc( data_t * key_str, data_t * iv_str,
     if( cbc_result == 0 )
     {
 
-        TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
+        TEST_ASSERT( mbedtls_test_hexcmp( output, hex_dst_string->x,
+                                          src_str->len,
+                                          hex_dst_string->len ) == 0 );
     }
 
 exit:
@@ -96,7 +100,9 @@ void aes_decrypt_cbc( data_t * key_str, data_t * iv_str,
     if( cbc_result == 0)
     {
 
-        TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
+        TEST_ASSERT( mbedtls_test_hexcmp( output, hex_dst_string->x,
+                                          src_str->len,
+                                          hex_dst_string->len ) == 0 );
     }
 
 exit:
@@ -119,17 +125,18 @@ void aes_encrypt_xts( char *hex_key_string, char *hex_data_unit_string,
 
     mbedtls_aes_xts_init( &ctx );
 
-    data_unit = unhexify_alloc( hex_data_unit_string, &data_unit_len );
+    data_unit = mbedtls_test_unhexify_alloc( hex_data_unit_string,
+                                             &data_unit_len );
     TEST_ASSERT( data_unit_len == AES_BLOCK_SIZE );
 
-    key = unhexify_alloc( hex_key_string, &key_len );
+    key = mbedtls_test_unhexify_alloc( hex_key_string, &key_len );
     TEST_ASSERT( key_len % 2 == 0 );
 
-    src = unhexify_alloc( hex_src_string, &src_len );
-    dst = unhexify_alloc( hex_dst_string, &dst_len );
+    src = mbedtls_test_unhexify_alloc( hex_src_string, &src_len );
+    dst = mbedtls_test_unhexify_alloc( hex_dst_string, &dst_len );
     TEST_ASSERT( src_len == dst_len );
 
-    output = zero_alloc( dst_len );
+    output = mbedtls_test_zero_alloc( dst_len );
 
     TEST_ASSERT( mbedtls_aes_xts_setkey_enc( &ctx, key, key_len * 8 ) == 0 );
     TEST_ASSERT( mbedtls_aes_crypt_xts( &ctx, MBEDTLS_AES_ENCRYPT, src_len,
@@ -162,17 +169,18 @@ void aes_decrypt_xts( char *hex_key_string, char *hex_data_unit_string,
 
     mbedtls_aes_xts_init( &ctx );
 
-    data_unit = unhexify_alloc( hex_data_unit_string, &data_unit_len );
+    data_unit = mbedtls_test_unhexify_alloc( hex_data_unit_string,
+                                             &data_unit_len );
     TEST_ASSERT( data_unit_len == AES_BLOCK_SIZE );
 
-    key = unhexify_alloc( hex_key_string, &key_len );
+    key = mbedtls_test_unhexify_alloc( hex_key_string, &key_len );
     TEST_ASSERT( key_len % 2 == 0 );
 
-    src = unhexify_alloc( hex_src_string, &src_len );
-    dst = unhexify_alloc( hex_dst_string, &dst_len );
+    src = mbedtls_test_unhexify_alloc( hex_src_string, &src_len );
+    dst = mbedtls_test_unhexify_alloc( hex_dst_string, &dst_len );
     TEST_ASSERT( src_len == dst_len );
 
-    output = zero_alloc( dst_len );
+    output = mbedtls_test_zero_alloc( dst_len );
 
     TEST_ASSERT( mbedtls_aes_xts_setkey_dec( &ctx, key, key_len * 8 ) == 0 );
     TEST_ASSERT( mbedtls_aes_crypt_xts( &ctx, MBEDTLS_AES_DECRYPT, src_len,
@@ -241,7 +249,8 @@ void aes_encrypt_cfb128( data_t * key_str, data_t * iv_str,
     mbedtls_aes_setkey_enc( &ctx, key_str->x, key_str->len * 8 );
     TEST_ASSERT( mbedtls_aes_crypt_cfb128( &ctx, MBEDTLS_AES_ENCRYPT, 16, &iv_offset, iv_str->x, src_str->x, output ) == 0 );
 
-    TEST_ASSERT( hexcmp( output, hex_dst_string->x, 16, hex_dst_string->len ) == 0 );
+    TEST_ASSERT( mbedtls_test_hexcmp( output, hex_dst_string->x,
+                                      16, hex_dst_string->len ) == 0 );
 
 exit:
     mbedtls_aes_free( &ctx );
@@ -263,7 +272,8 @@ void aes_decrypt_cfb128( data_t * key_str, data_t * iv_str,
     mbedtls_aes_setkey_enc( &ctx, key_str->x, key_str->len * 8 );
     TEST_ASSERT( mbedtls_aes_crypt_cfb128( &ctx, MBEDTLS_AES_DECRYPT, 16, &iv_offset, iv_str->x, src_str->x, output ) == 0 );
 
-    TEST_ASSERT( hexcmp( output, hex_dst_string->x, 16, hex_dst_string->len ) == 0 );
+    TEST_ASSERT( mbedtls_test_hexcmp( output, hex_dst_string->x,
+                                      16, hex_dst_string->len ) == 0 );
 
 exit:
     mbedtls_aes_free( &ctx );
@@ -284,7 +294,9 @@ void aes_encrypt_cfb8( data_t * key_str, data_t * iv_str,
     mbedtls_aes_setkey_enc( &ctx, key_str->x, key_str->len * 8 );
     TEST_ASSERT( mbedtls_aes_crypt_cfb8( &ctx, MBEDTLS_AES_ENCRYPT, src_str->len, iv_str->x, src_str->x, output ) == 0 );
 
-    TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
+    TEST_ASSERT( mbedtls_test_hexcmp( output, hex_dst_string->x,
+                                      src_str->len,
+                                      hex_dst_string->len ) == 0 );
 
 exit:
     mbedtls_aes_free( &ctx );
@@ -305,7 +317,9 @@ void aes_decrypt_cfb8( data_t * key_str, data_t * iv_str,
     mbedtls_aes_setkey_enc( &ctx, key_str->x, key_str->len * 8 );
     TEST_ASSERT( mbedtls_aes_crypt_cfb8( &ctx, MBEDTLS_AES_DECRYPT, src_str->len, iv_str->x, src_str->x, output ) == 0 );
 
-    TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
+    TEST_ASSERT( mbedtls_test_hexcmp( output, hex_dst_string->x,
+                                      src_str->len,
+                                      hex_dst_string->len ) == 0 );
 
 exit:
     mbedtls_aes_free( &ctx );
@@ -340,9 +354,9 @@ void aes_encrypt_ofb( int fragment_size, char *hex_key_string,
     TEST_ASSERT( strlen( hex_src_string ) <= ( 64 * 2 ) );
     TEST_ASSERT( strlen( hex_dst_string ) <= ( 64 * 2 ) );
 
-    key_len = unhexify( key_str, hex_key_string );
-    unhexify( iv_str, hex_iv_string );
-    in_buffer_len = unhexify( src_str, hex_src_string );
+    key_len = mbedtls_test_unhexify( key_str, hex_key_string );
+    mbedtls_test_unhexify( iv_str, hex_iv_string );
+    in_buffer_len = mbedtls_test_unhexify( src_str, hex_src_string );
 
     TEST_ASSERT( mbedtls_aes_setkey_enc( &ctx, key_str, key_len * 8 ) == 0 );
     src_str_next = src_str;
@@ -352,7 +366,7 @@ void aes_encrypt_ofb( int fragment_size, char *hex_key_string,
         TEST_ASSERT( mbedtls_aes_crypt_ofb( &ctx, fragment_size, &iv_offset,
                                             iv_str, src_str_next, output ) == 0 );
 
-        hexify( dst_str, output, fragment_size );
+        mbedtls_test_hexify( dst_str, output, fragment_size );
         TEST_ASSERT( strncmp( (char *) dst_str, hex_dst_string,
                               ( 2 * fragment_size ) ) == 0 );
 

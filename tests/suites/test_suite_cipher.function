@@ -10,7 +10,7 @@
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "psa_crypto_helpers.h"
+#include "test/psa_crypto_helpers.h"
 #endif
 
 /* END_HEADER */
@@ -1161,15 +1161,15 @@ void test_vec_crypt( int cipher_id, int operation, char *hex_key,
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
                               mbedtls_cipher_info_from_type( cipher_id ) ) );
 
-    key_len = unhexify( key, hex_key );
-    inputlen =  unhexify( input, hex_input );
-    resultlen = unhexify( result, hex_result );
+    key_len = mbedtls_test_unhexify( key, hex_key );
+    inputlen =  mbedtls_test_unhexify( input, hex_input );
+    resultlen = mbedtls_test_unhexify( result, hex_result );
 
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, 8 * key_len, operation ) );
     if( MBEDTLS_MODE_CBC == ctx.cipher_info->mode )
         TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx, MBEDTLS_PADDING_NONE ) );
 
-    iv_len = unhexify( iv, hex_iv );
+    iv_len = mbedtls_test_unhexify( iv, hex_iv );
 
     TEST_ASSERT( finish_result == mbedtls_cipher_crypt( &ctx, iv_len ? iv : NULL,
                                                         iv_len, input, inputlen,

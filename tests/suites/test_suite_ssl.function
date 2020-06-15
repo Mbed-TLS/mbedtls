@@ -1185,8 +1185,8 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     unsigned char cid0[ SSL_CID_LEN_MIN ];
     unsigned char cid1[ SSL_CID_LEN_MIN ];
 
-    rnd_std_rand( NULL, cid0, sizeof( cid0 ) );
-    rnd_std_rand( NULL, cid1, sizeof( cid1 ) );
+    mbedtls_test_rnd_std_rand( NULL, cid0, sizeof( cid0 ) );
+    mbedtls_test_rnd_std_rand( NULL, cid1, sizeof( cid1 ) );
 #else
     ((void) cid0_len);
     ((void) cid1_len);
@@ -3232,7 +3232,7 @@ void ssl_crypt_record( int cipher_type, int hash_id,
 
         /* Encrypt record */
         ret = mbedtls_ssl_encrypt_buf( &ssl, t_enc, &rec,
-                                       rnd_std_rand, NULL );
+                                       mbedtls_test_rnd_std_rand, NULL );
         TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         if( ret != 0 )
         {
@@ -3386,7 +3386,8 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
             rec_backup = rec;
 
             /* Encrypt record */
-            ret = mbedtls_ssl_encrypt_buf( &ssl, t_enc, &rec, rnd_std_rand, NULL );
+            ret = mbedtls_ssl_encrypt_buf( &ssl, t_enc, &rec,
+                                           mbedtls_test_rnd_std_rand, NULL );
 
             if( ( mode == 1 || mode == 2 ) && seen_success )
             {
@@ -3471,7 +3472,7 @@ void ssl_tls_prf( int type, data_t * secret, data_t * random,
 
     if( exp_ret == 0 )
     {
-        TEST_ASSERT( hexcmp( output, result_hex_str->x,
+        TEST_ASSERT( mbedtls_test_hexcmp( output, result_hex_str->x,
                      result_hex_str->len, result_hex_str->len ) == 0 );
     }
 exit:

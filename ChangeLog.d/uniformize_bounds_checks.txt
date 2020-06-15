@@ -1,0 +1,9 @@
+Bugfix
+   * Add additional bounds checks in ssl_write_client_hello() preventing
+     output buffer overflow if the configuration declared a buffer that was
+     too small.
+Changes
+   * Abort the ClientHello writing function as soon as some extension doesn't
+     fit into the record buffer. Previously, such extensions were silently
+     dropped. As a consequence, the TLS handshake now fails when the output
+     buffer is not large enough to hold the ClientHello.

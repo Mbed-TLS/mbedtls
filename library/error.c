@@ -495,6 +495,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "SSL - The alert message received indicates a non-fatal error" );
         if( use_ret == -(MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH) )
             mbedtls_snprintf( buf, buflen, "SSL - Couldn't set the hash for verifying CertificateVerify" );
+        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_CONFIG) )
+            mbedtls_snprintf( buf, buflen, "SSL - Invalid value in SSL config" );
 #endif /* MBEDTLS_SSL_TLS_C */
 
 #if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)

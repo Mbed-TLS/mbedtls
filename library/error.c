@@ -526,6 +526,8 @@ const char * mbedtls_high_level_strerr( int error_code )
             return( "SSL - An operation failed due to an unexpected version or configuration" );
         case -(MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS):
             return( "SSL - A cryptographic operation is in progress. Try again later" );
+        case -(MBEDTLS_ERR_SSL_BAD_CONFIG):
+            return( "SSL - Invalid value in SSL config" );
 #endif /* MBEDTLS_SSL_TLS_C */
 
 #if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)

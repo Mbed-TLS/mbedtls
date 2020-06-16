@@ -90,7 +90,11 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	uECC_word_t p[NUM_ECC_WORDS * 2];
 	wordcount_t num_n_words = BITS_TO_WORDS(NUM_ECC_BITS);
 	int r = UECC_FAILURE;
-
+	volatile const uint8_t *private_key_dup = private_key;
+	volatile const uint8_t *message_hash_dup = message_hash;
+	volatile unsigned hash_size_dup = hash_size;
+	volatile uECC_word_t *k_dup = k;
+	volatile uint8_t *signature_dup = signature;
 
 	/* Make sure 0 < k < curve_n */
   	if (uECC_vli_isZero(k) ||
@@ -136,6 +140,10 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	}
 
 	uECC_vli_nativeToBytes(signature + NUM_ECC_BYTES, NUM_ECC_BYTES, s);
+	if(private_key_dup != private_key || message_hash_dup != message_hash ||
+       hash_size_dup != hash_size || k_dup != k || signature_dup != signature){
+	    return UECC_FAULT_DETECTED;
+	}
 	return r;
 }
 
@@ -146,6 +154,10 @@ int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,
 	uECC_word_t _random[2*NUM_ECC_WORDS];
 	uECC_word_t k[NUM_ECC_WORDS];
 	uECC_word_t tries;
+	volatile const uint8_t *private_key_dup = private_key;
+	volatile const uint8_t *message_hash_dup = message_hash;
+    volatile unsigned hash_size_dup = hash_size;
+    volatile uint8_t *signature_dup = signature;
 
 	for (tries = 0; tries < uECC_RNG_MAX_TRIES; ++tries) {
 		/* Generating _random uniformly at random: */
@@ -164,6 +176,10 @@ int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,
 			return r;
 		}
 		if (r == UECC_SUCCESS) {
+		    if(private_key_dup != private_key || message_hash_dup != message_hash ||
+               hash_size_dup != hash_size || signature_dup != signature){
+		        return UECC_FAULT_DETECTED;
+		    }
 			return UECC_SUCCESS;
 		}
 		/* else keep trying */
@@ -194,6 +210,11 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	bitcount_t i;
 	bitcount_t flow_control;
 	volatile uECC_word_t diff;
+    volatile const uint8_t *public_key_dup = public_key;
+    volatile const uint8_t *message_hash_dup = message_hash;
+    volatile unsigned hash_size_dup = hash_size;
+    volatile const uint8_t *signature_dup = signature;
+
 
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 	uECC_word_t r[NUM_ECC_WORDS], s[NUM_ECC_WORDS];
@@ -295,6 +316,10 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	     * 1 (base value) + num_bits - 1 (from the loop) + 5 incrementations.
 	     */
 		if (diff == 0 && flow_control == (num_bits + 5)) {
+		    if(public_key_dup != public_key || message_hash_dup != message_hash ||
+		       hash_size_dup != hash_size || signature_dup != signature){
+                return UECC_FAULT_DETECTED;
+            }
 			return UECC_SUCCESS;
 		}
 		else {

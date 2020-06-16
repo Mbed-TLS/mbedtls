@@ -177,6 +177,8 @@ int mbedtls_ssl_check_record( mbedtls_ssl_context const *ssl,
                               size_t buflen )
 {
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    volatile unsigned char *buf_dup = buf;
+    volatile size_t buflen_dup = buflen;
     mbedtls_record rec;
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "=> mbedtls_ssl_check_record" ) );
     MBEDTLS_SSL_DEBUG_BUF( 3, "record buffer", buf, buflen );
@@ -228,6 +230,10 @@ exit:
         ret = MBEDTLS_ERR_SSL_UNEXPECTED_RECORD;
     }
 
+    if( buf_dup != buf || buflen_dup != buflen )
+    {
+        return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    }
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "<= mbedtls_ssl_check_record" ) );
     return( ret );
 }

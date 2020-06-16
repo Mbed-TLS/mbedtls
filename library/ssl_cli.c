@@ -2360,6 +2360,7 @@ static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
                                          unsigned add_length_tag )
 {
     volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    volatile unsigned char *out_dup = out;
 
     /*
      * Generate (part of) the pre-master secret as
@@ -2387,7 +2388,7 @@ static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
     if( ret == 0 )
     {
         mbedtls_platform_random_delay();
-        if( ret == 0 )
+        if( ret == 0 && ( out_dup + ( add_length_tag ? 2 : 0 ) ) == out )
         {
             ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
             return( 0 );
@@ -2415,6 +2416,10 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
     size_t len_bytes = mbedtls_ssl_get_minor_ver( ssl ) ==
         MBEDTLS_SSL_MINOR_VERSION_0 ? 0 : 2;
     mbedtls_pk_context *peer_pk = NULL;
+    volatile unsigned char const *ppms_dup = ppms;
+    volatile unsigned char *out_dup = out;
+    volatile size_t buflen_dup = buflen;
+    volatile size_t *olen_dup = olen;
 
     if( buflen < len_bytes )
     {
@@ -2464,7 +2469,9 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
     if( ret == 0 )
     {
         mbedtls_platform_random_delay();
-        if( ret == 0 )
+
+        if( ret == 0 && ppms_dup == ppms && out_dup == out &&
+            buflen_dup == buflen && olen_dup == olen )
         {
             ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
         }
@@ -2796,10 +2803,14 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
     volatile int ret = 0;
     unsigned char *p;
     unsigned char *end;
+    volatile unsigned char *buf_dup = buf;
+    volatile size_t buflen_dup = buflen;
 
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
+    ((void) buf_dup);
+    ((void) buflen_dup);
     p   = buf + mbedtls_ssl_hs_hdr_len( ssl );
     end = buf + buflen;
 
@@ -3100,7 +3111,7 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         {
             mbedtls_platform_random_delay();
 
-            if( ret == 0 )
+            if( ret == 0 && buf_dup == buf && buflen_dup == buflen )
             {
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
                 /* We don't need the peer's public key anymore. Free it,

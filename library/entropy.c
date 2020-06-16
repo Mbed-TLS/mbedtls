@@ -143,6 +143,10 @@ int mbedtls_entropy_add_source( mbedtls_entropy_context *ctx,
                         size_t threshold, int strong )
 {
     int idx, ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    volatile mbedtls_entropy_f_source_ptr f_source_dup = f_source;
+    volatile void *p_source_dup = p_source;
+    volatile size_t threshold_dup = threshold;
+    volatile int strong_dup = strong;
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
@@ -170,6 +174,11 @@ exit:
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
 
+    if( f_source_dup != f_source || p_source_dup != p_source ||
+        threshold_dup != threshold || strong_dup != strong )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    }
     return( ret );
 }
 
@@ -184,7 +193,8 @@ static int entropy_update( mbedtls_entropy_context *ctx, unsigned char source_id
     size_t use_len = len;
     const unsigned char *p = data;
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
-
+    volatile const unsigned char *data_dup = data;
+    volatile size_t len_dup = len;
     if( use_len > MBEDTLS_ENTROPY_BLOCK_SIZE )
     {
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
@@ -229,6 +239,10 @@ static int entropy_update( mbedtls_entropy_context *ctx, unsigned char source_id
 cleanup:
     mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
 
+    if( len_dup != len || data_dup != data )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    }
     return( ret );
 }
 
@@ -349,6 +363,9 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
     int count = 0, i, done;
     mbedtls_entropy_context *ctx = (mbedtls_entropy_context *) data;
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
+    volatile void *data_dup = data;
+    volatile unsigned char *output_dup = output;
+    volatile size_t len_dup = len;
 
     if( len > MBEDTLS_ENTROPY_BLOCK_SIZE )
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
@@ -456,7 +473,10 @@ exit:
     if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
-
+    if( data_dup != data || len_dup != len || output_dup != output )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    }
     return( ret );
 }
 

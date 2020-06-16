@@ -491,7 +491,7 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
 static int extract_ecdsa_sig_int( unsigned char **from, const unsigned char *end,
                                   unsigned char *to, size_t to_len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     size_t unpadded_len, padding_len;
 
     if( ( ret = mbedtls_asn1_get_tag( from, end, &unpadded_len,
@@ -514,7 +514,7 @@ static int extract_ecdsa_sig_int( unsigned char **from, const unsigned char *end
     mbedtls_platform_memcpy( to + padding_len, *from, unpadded_len );
     ( *from ) += unpadded_len;
 
-    return( 0 );
+    return( ret );
 }
 
 /*
@@ -525,7 +525,7 @@ static int extract_ecdsa_sig_int( unsigned char **from, const unsigned char *end
 static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
                               unsigned char *sig, size_t int_size )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     size_t tmp_size;
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, &tmp_size,
@@ -539,7 +539,7 @@ static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
     if( ( ret = extract_ecdsa_sig_int( p, end, sig + int_size, int_size ) ) != 0 )
         return( ret );
 
-    return( 0 );
+    return( ret );
 }
 
 static size_t uecc_eckey_get_bitlen( const void *ctx )
@@ -580,6 +580,10 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     uint8_t signature[2*NUM_ECC_BYTES];
     unsigned char *p;
     const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
+    volatile const unsigned char *hash_dup = hash;
+    volatile size_t hash_len_dup = hash_len;
+    volatile const unsigned char *sig_dup = sig;
+    volatile size_t sig_len_dup = sig_len;
 
     ((void) md_alg);
     p = (unsigned char*) sig;
@@ -597,10 +601,16 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     if( ret_fi == UECC_SUCCESS )
     {
         mbedtls_platform_random_delay();
-        if( ret_fi == UECC_SUCCESS )
+        if( ret_fi == UECC_SUCCESS && hash == hash_dup &&
+            hash_len_dup == hash_len && sig_dup == sig &&
+            sig_len_dup == sig_len )
+        {
             return( 0 );
+        }
         else
+        {
             return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+        }
     }
 
     return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
@@ -685,6 +695,9 @@ static int pk_ecdsa_sig_asn1_from_uecc( unsigned char *sig, size_t *sig_len,
     size_t len = 0;
     const size_t rs_len = *sig_len / 2;
     unsigned char *p = sig + buf_len;
+    volatile unsigned char *sig_dup = sig;
+    volatile size_t *sig_len_dup = sig_len;
+    volatile size_t buf_len_dup = buf_len;
 
     MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig + rs_len, rs_len ) );
     MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig, rs_len ) );
@@ -702,6 +715,11 @@ static int pk_ecdsa_sig_asn1_from_uecc( unsigned char *sig, size_t *sig_len,
     }
     *sig_len = len;
 
+    if( sig_dup != sig || sig_len_dup != sig_len || buf_len_dup != buf_len )
+    {
+        return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    }
+
     return( ret );
 }
 
@@ -711,7 +729,11 @@ static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    volatile const unsigned char *hash_dup = hash;
+    volatile size_t hash_len_dup = hash_len;
+    volatile unsigned char *sig_dup = sig;
+    volatile size_t *sig_len_dup = sig_len;
 
     /*
      * RFC-4492 page 20:
@@ -743,6 +765,11 @@ static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     (void) p_rng;
     (void) md_alg;
 
+    if( sig_dup != sig || sig_len_dup != sig_len ||
+        hash_dup != hash || hash_len_dup != hash_len )
+    {
+        return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    }
     return( pk_ecdsa_sig_asn1_from_uecc( sig, sig_len,
                                          MAX_SECP256R1_ECDSA_SIG_LEN ) );
 

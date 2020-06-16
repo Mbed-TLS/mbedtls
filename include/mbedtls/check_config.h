@@ -127,8 +127,11 @@
     defined(MBEDTLS_ECP_ALT) ||             \
     defined(MBEDTLS_CTR_DRBG_C) ||          \
     defined(MBEDTLS_HMAC_DRBG_C) ||         \
+    defined(MBEDTLS_SHA512_C) ||            \
+    defined(MBEDTLS_SHA256_C) ||            \
+    defined(MBEDTLS_SHA1_C) ||              \
     defined(MBEDTLS_ECP_NO_INTERNAL_RNG))
-#error "MBEDTLS_ECP_C requires a DRBG module unless MBEDTLS_ECP_NO_INTERNAL_RNG is defined or an alternative implementation is used"
+#error "MBEDTLS_ECP_C requires a DRBG or SHA module unless MBEDTLS_ECP_NO_INTERNAL_RNG is defined or an alternative implementation is used"
 #endif
 
 #if defined(MBEDTLS_PK_PARSE_C) && !defined(MBEDTLS_ASN1_PARSE_C)

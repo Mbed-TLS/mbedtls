@@ -72,6 +72,12 @@
 #include "mbedtls/hmac_drbg.h"
 #elif defined(MBEDTLS_CTR_DRBG_C)
 #include "mbedtls/ctr_drbg.h"
+#elif defined(MBEDTLS_SHA512_C)
+#include "mbedtls/sha512.h"
+#elif defined(MBEDTLS_SHA256_C)
+#include "mbedtls/sha256.h"
+#elif defined(MBEDTLS_SHA1_C)
+#include "mbedtls/sha1.h"
 #else
 #error "Invalid configuration detected. Include check_config.h to ensure that the configuration is valid."
 #endif
@@ -139,16 +145,16 @@ static inline int ecp_drbg_random( void *p_rng,
 }
 
 /* DRBG context seeding */
-static int ecp_drbg_seed( ecp_drbg_context *ctx, const mbedtls_mpi *secret )
+static int ecp_drbg_seed( ecp_drbg_context *ctx,
+                   const mbedtls_mpi *secret, size_t secret_len )
 {
     const unsigned char *secret_p = (const unsigned char *) secret->p;
-    const size_t secret_size = secret->n * sizeof( mbedtls_mpi_uint );
 
     /* The list starts with strong hashes */
     const mbedtls_md_type_t md_type = mbedtls_md_list()[0];
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_type );
 
-    return( mbedtls_hmac_drbg_seed_buf( ctx, md_info, secret_p, secret_size ) );
+    return( mbedtls_hmac_drbg_seed_buf( ctx, md_info, secret_p, secret_len ) );
 }
 
 #elif defined(MBEDTLS_CTR_DRBG_C)
@@ -190,18 +196,113 @@ static int ecp_ctr_drbg_null_entropy(void *ctx, unsigned char *out, size_t len)
 }
 
 /* DRBG context seeding */
-static int ecp_drbg_seed( ecp_drbg_context *ctx, const mbedtls_mpi *secret )
+static int ecp_drbg_seed( ecp_drbg_context *ctx,
+                   const mbedtls_mpi *secret, size_t secret_len )
 {
     const unsigned char *secret_p = (const unsigned char *) secret->p;
-    const size_t secret_size = secret->n * sizeof( mbedtls_mpi_uint );
 
     return( mbedtls_ctr_drbg_seed( ctx, ecp_ctr_drbg_null_entropy, NULL,
-                                   secret_p, secret_size ) );
+                                   secret_p, secret_len ) );
 }
 
-#else
+#elif defined(MBEDTLS_SHA512_C) || \
+      defined(MBEDTLS_SHA256_C) || \
+      defined(MBEDTLS_SHA1_C)
+
+/* This will be used in the self-test function */
+#define ECP_ONE_STEP_KDF
+
+/*
+ * We need to expand secret data (the scalar) into a longer stream of bytes.
+ *
+ * We'll use the One-Step KDF from NIST SP 800-56C, with option 1 (H is a hash
+ * function) and empty FixedInfo. (Though we'll make it fit the DRBG API for
+ * convenience, this is not a full-fledged DRBG, but we don't need one here.)
+ *
+ * We need a basic hash abstraction layer to use whatever SHA is available.
+ */
+#if defined(MBEDTLS_SHA512_C)
+
+#define HASH_FUNC( in, ilen, out )  mbedtls_sha512_ret( in, ilen, out, 0 );
+#define HASH_BLOCK_BYTES            ( 512 / 8 )
+
+#elif defined(MBEDTLS_SHA256_C)
+
+#define HASH_FUNC( in, ilen, out )  mbedtls_sha256_ret( in, ilen, out, 0 );
+#define HASH_BLOCK_BYTES            ( 256 / 8 )
+
+#else // from a previous #if we know that SHA-1 is available if SHA-2 isn't
+
+#define HASH_FUNC                   mbedtls_sha1_ret
+#define HASH_BLOCK_BYTES            ( 160 / 8 )
+
+#endif /* SHA512/SHA256/SHA1 abstraction */
+
+/*
+ * State consists of a 32-bit counter plus the secret value.
+ *
+ * We stored them concatenated in a single buffer as that's what will get
+ * passed to the hash function.
+ */
+typedef struct {
+    size_t total_len;
+    uint8_t buf[4 + MBEDTLS_ECP_MAX_BYTES];
+} ecp_drbg_context;
+
+static void ecp_drbg_init( ecp_drbg_context *ctx )
+{
+    memset( ctx, 0, sizeof( ecp_drbg_context ) );
+}
+
+static void ecp_drbg_free( ecp_drbg_context *ctx )
+{
+    mbedtls_zeroize( ctx, sizeof( ecp_drbg_context ) );
+}
+
+static int ecp_drbg_seed( ecp_drbg_context *ctx,
+                   const mbedtls_mpi *secret, size_t secret_len )
+{
+    ctx->total_len = 4 + secret_len;
+    memset( ctx->buf, 0, 4);
+    return( mbedtls_mpi_write_binary( secret, ctx->buf + 4, secret_len ) );
+}
+
+static int ecp_drbg_random( void *p_rng, unsigned char *output, size_t output_len )
+{
+    ecp_drbg_context *ctx = p_rng;
+    int ret;
+    size_t len_done = 0;
+
+    while( len_done < output_len )
+    {
+        uint8_t tmp[HASH_BLOCK_BYTES];
+        uint8_t use_len;
+
+        /* We don't need to draw more that 255 blocks, so don't bother with
+         * carry propagation and just return an error instead. */
+        ctx->buf[3] += 1;
+        if( ctx->buf[3] == 0 )
+            return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
+
+        ret = HASH_FUNC( ctx->buf, ctx->total_len, tmp );
+        if( ret != 0 )
+            return( ret );
+
+        if( output_len - len_done > HASH_BLOCK_BYTES )
+            use_len = HASH_BLOCK_BYTES;
+        else
+            use_len = output_len - len_done;
+
+        memcpy( output + len_done, tmp, use_len );
+        len_done += use_len;
+    }
+
+    return( 0 );
+}
+
+#else /* DRBG/SHA modules */
 #error "Invalid configuration detected. Include check_config.h to ensure that the configuration is valid."
-#endif /* DRBG modules */
+#endif /* DRBG/SHA modules */
 #endif /* MBEDTLS_ECP_NO_INTERNAL_RNG */
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) ||   \
@@ -1863,7 +1964,8 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #if !defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
     if( f_rng == NULL )
     {
-        MBEDTLS_MPI_CHK( ecp_drbg_seed( &drbg_ctx, m ) );
+        const size_t m_len = ( grp->nbits + 7 ) / 8;
+        MBEDTLS_MPI_CHK( ecp_drbg_seed( &drbg_ctx, m, m_len ) );
         f_rng = &ecp_drbg_random;
         p_rng = &drbg_ctx;
     }
@@ -2263,6 +2365,89 @@ cleanup:
 
 #if defined(MBEDTLS_SELF_TEST)
 
+#if defined(ECP_ONE_STEP_KDF)
+/*
+ * There are no test vectors from NIST for the One-Step KDF in SP 800-56C,
+ * but unofficial ones can be found at:
+ * https://github.com/patrickfav/singlestep-kdf/wiki/NIST-SP-800-56C-Rev1:-Non-Official-Test-Vectors
+ *
+ * We only use the ones with empty fixedInfo, and for brevity's sake, only
+ * 32-bytes output (with SHA-1 that's more than one block, with SHA-256
+ * exactly one block, and with SHA-512 less than one block).
+ */
+#if defined(MBEDTLS_SHA512_C)
+
+static const uint8_t test_kdf_z[16] = {
+    0xeb, 0xf3, 0x19, 0x67, 0x1e, 0xac, 0xcc, 0x6f,
+    0xc5, 0xc0, 0x5d, 0x95, 0x8d, 0x17, 0x15, 0x94,
+};
+static const uint8_t test_kdf_out[32] = {
+    0xa9, 0x48, 0x85, 0x67, 0x54, 0x7c, 0x2a, 0x8e,
+    0x9e, 0xd1, 0x67, 0x76, 0xe3, 0x1c, 0x03, 0x92,
+    0x41, 0x77, 0x2a, 0x9e, 0xc7, 0xcc, 0xd7, 0x1f,
+    0xda, 0x12, 0xe9, 0xba, 0xc9, 0xb2, 0x17, 0x24,
+};
+
+#elif defined(MBEDTLS_SHA256_C)
+
+static const uint8_t test_kdf_z[16] = {
+    0x0d, 0x5e, 0xc8, 0x9a, 0x68, 0xb1, 0xa7, 0xa0,
+    0xdf, 0x95, 0x24, 0x54, 0x3f, 0x4d, 0x70, 0xef,
+};
+static const uint8_t test_kdf_out[32] = {
+    0x77, 0xbc, 0x94, 0x9e, 0xa0, 0xd3, 0xdd, 0x5c,
+    0x8e, 0xb7, 0xeb, 0x84, 0x05, 0x40, 0x60, 0xfa,
+    0x96, 0x6e, 0x7e, 0xcd, 0x73, 0x9f, 0xa1, 0xe6,
+    0x34, 0x3f, 0x6d, 0x82, 0x16, 0x22, 0xb4, 0x45,
+};
+
+#elif defined(MBEDTLS_SHA1_C)
+
+static const uint8_t test_kdf_z[16] = {
+    0x4e, 0x1e, 0x70, 0xc9, 0x88, 0x68, 0x19, 0xa3,
+    0x1b, 0xc2, 0x9a, 0x53, 0x79, 0x11, 0xad, 0xd9,
+};
+static const uint8_t test_kdf_out[32] = {
+    0xdd, 0xbf, 0xc4, 0x40, 0x44, 0x9a, 0xab, 0x41,
+    0x31, 0xc6, 0xd8, 0xae, 0xc0, 0x8c, 0xe1, 0x49,
+    0x6f, 0x27, 0x02, 0x24, 0x1d, 0x0e, 0x27, 0xcc,
+    0x15, 0x5c, 0x5c, 0x7c, 0x3c, 0xda, 0x75, 0xb5,
+};
+
+#else
+#error "Need at least one of SHA-512, SHA-256 or SHA-1"
+#endif
+
+static int ecp_kdf_self_test( void )
+{
+    int ret;
+    ecp_drbg_context kdf_ctx;
+    mbedtls_mpi scalar;
+    uint8_t out[sizeof( test_kdf_out )];
+
+    ecp_drbg_init( &kdf_ctx );
+    mbedtls_mpi_init( &scalar );
+    memset( out, 0, sizeof( out ) );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &scalar,
+                        test_kdf_z, sizeof( test_kdf_z ) ) );
+
+    MBEDTLS_MPI_CHK( ecp_drbg_seed( &kdf_ctx,
+                                    &scalar, sizeof( test_kdf_z ) ) );
+
+    MBEDTLS_MPI_CHK( ecp_drbg_random( &kdf_ctx, out, sizeof( out ) ) );
+
+    if( memcmp( out, test_kdf_out, sizeof( out ) ) != 0 )
+        ret = -1;
+
+cleanup:
+    ecp_drbg_free( &kdf_ctx );
+    mbedtls_mpi_free( &scalar );
+
+    return( ret );
+}
+#endif /* ECP_ONE_STEP_KDF */
+
 /*
  * Checkup routine
  */
@@ -2373,6 +2558,24 @@ int mbedtls_ecp_self_test( int verbose )
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
+
+#if defined(ECP_ONE_STEP_KDF)
+    if( verbose != 0 )
+        mbedtls_printf( "  ECP test #3 (internal KDF): " );
+
+    ret = ecp_kdf_self_test();
+    if( ret != 0 )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "failed\n" );
+
+        ret = 1;
+        goto cleanup;
+    }
+
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n" );
+#endif /* ECP_ONE_STEP_KDF */
 
 cleanup:
 

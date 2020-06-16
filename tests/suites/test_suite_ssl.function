@@ -1179,6 +1179,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
 
     size_t keylen, maclen, ivlen;
     unsigned char *key0 = NULL, *key1 = NULL;
+    unsigned char *md0 = NULL, *md1 = NULL;
     unsigned char iv_enc[16], iv_dec[16];
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -1245,7 +1246,6 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
         cipher_info->mode == MBEDTLS_MODE_STREAM )
     {
         mbedtls_md_info_t const *md_info;
-        unsigned char *md0, *md1;
 
         /* Pick hash */
         md_info = mbedtls_md_info_from_type( hash_id );
@@ -1283,9 +1283,6 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
             memcpy( &t_out->mac_dec, md0, maclen );
         }
 #endif
-
-        mbedtls_free( md0 );
-        mbedtls_free( md1 );
     }
 #else
     ((void) hash_id);
@@ -1416,6 +1413,9 @@ cleanup:
 
     mbedtls_free( key0 );
     mbedtls_free( key1 );
+
+    mbedtls_free( md0 );
+    mbedtls_free( md1 );
 
     return( ret );
 }

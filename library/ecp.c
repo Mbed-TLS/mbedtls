@@ -295,8 +295,19 @@ static int ecp_drbg_random( void *p_rng, unsigned char *output, size_t output_le
     {
         uint8_t use_len;
 
-        /* We don't need to draw more that 255 blocks, so don't bother with
-         * carry propagation and just return an error instead. */
+        /* This function is only called for coordinate randomisation, which
+         * happens only twice in a scalar multiplication. Each time needs a
+         * random value in the range [2, p-1], and gets it by drawing len(p)
+         * bytes from this function, and retrying up to 10 times if unlucky.
+         *
+         * So for the largest curve, each scalar multiplication draws at most
+         * 2 * 66 bytes. The minimum block size is 20 bytes (with SHA-1), so
+         * that means at most 66 blocks.
+         *
+         * Since we don't need to draw more that 255 blocks, don't bother
+         * with carry propagation and just return an error instead. We can
+         * change that it we even need to draw more blinding values.
+         */
         ctx->buf[3] += 1;
         if( ctx->buf[3] == 0 )
             return( MBEDTLS_ERR_ECP_RANDOM_FAILED );

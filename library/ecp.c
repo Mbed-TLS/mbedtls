@@ -289,10 +289,10 @@ static int ecp_drbg_random( void *p_rng, unsigned char *output, size_t output_le
     ecp_drbg_context *ctx = p_rng;
     int ret;
     size_t len_done = 0;
+    uint8_t tmp[HASH_BLOCK_BYTES];
 
     while( len_done < output_len )
     {
-        uint8_t tmp[HASH_BLOCK_BYTES];
         uint8_t use_len;
 
         /* We don't need to draw more that 255 blocks, so don't bother with
@@ -313,6 +313,8 @@ static int ecp_drbg_random( void *p_rng, unsigned char *output, size_t output_le
         memcpy( output + len_done, tmp, use_len );
         len_done += use_len;
     }
+
+    mbedtls_zeroize( tmp, sizeof( tmp ) );
 
     return( 0 );
 }

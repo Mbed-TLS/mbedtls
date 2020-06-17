@@ -180,13 +180,21 @@ static inline int ecp_drbg_random( void *p_rng,
 static int ecp_drbg_seed( ecp_drbg_context *ctx,
                    const mbedtls_mpi *secret, size_t secret_len )
 {
-    const unsigned char *secret_p = (const unsigned char *) secret->p;
-
+    int ret;
+    unsigned char secret_bytes[MBEDTLS_ECP_MAX_BYTES];
     /* The list starts with strong hashes */
     const mbedtls_md_type_t md_type = mbedtls_md_list()[0];
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_type );
 
-    return( mbedtls_hmac_drbg_seed_buf( ctx, md_info, secret_p, secret_len ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( secret,
+                                               secret_bytes, secret_len ) );
+
+    ret = mbedtls_hmac_drbg_seed_buf( ctx, md_info, secret_bytes, secret_len );
+
+cleanup:
+    mbedtls_platform_zeroize( secret_bytes, secret_len );
+
+    return( ret );
 }
 
 #elif defined(MBEDTLS_CTR_DRBG_C)
@@ -231,10 +239,19 @@ static int ecp_ctr_drbg_null_entropy(void *ctx, unsigned char *out, size_t len)
 static int ecp_drbg_seed( ecp_drbg_context *ctx,
                    const mbedtls_mpi *secret, size_t secret_len )
 {
-    const unsigned char *secret_p = (const unsigned char *) secret->p;
+    int ret;
+    unsigned char secret_bytes[MBEDTLS_ECP_MAX_BYTES];
 
-    return( mbedtls_ctr_drbg_seed( ctx, ecp_ctr_drbg_null_entropy, NULL,
-                                   secret_p, secret_len ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( secret,
+                                               secret_bytes, secret_len ) );
+
+    ret = mbedtls_ctr_drbg_seed( ctx, ecp_ctr_drbg_null_entropy, NULL,
+                                 secret_bytes, secret_len );
+
+cleanup:
+    mbedtls_platform_zeroize( secret_bytes, secret_len );
+
+    return( ret );
 }
 
 #elif defined(MBEDTLS_SHA512_C) || \

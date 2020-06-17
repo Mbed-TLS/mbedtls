@@ -92,13 +92,13 @@ static inline int psa_key_lifetime_is_external( psa_key_lifetime_t lifetime )
                 != PSA_KEY_LOCATION_LOCAL_STORAGE );
 }
 
-/** Validate that a key's attributes point to a known location.
+/** Validate a key's location.
  *
  * This function checks whether the key's attributes point to a location that
  * is known to the PSA Core, and returns the driver function table if the key
  * is to be found in an external location.
  *
- * \param[in] attributes    The key attributes.
+ * \param[in] lifetime      The key lifetime attribute.
  * \param[out] p_drv        On success, when a key is located in external
  *                          storage, returns a pointer to the driver table
  *                          associated with the key's storage location.
@@ -106,20 +106,22 @@ static inline int psa_key_lifetime_is_external( psa_key_lifetime_t lifetime )
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  */
-psa_status_t psa_validate_key_location( const psa_key_attributes_t *attributes,
+psa_status_t psa_validate_key_location( psa_key_lifetime_t lifetime,
                                         psa_se_drv_table_entry_t **p_drv );
 
-/** Validate that a key's persistence is valid.
+/** Validate that a key's persistence attributes are valid.
  *
- * This function checks whether a key's declared persistence and key ID are
- * valid and supported by the PSA Core in its actual configuration.
+ * This function checks whether a key's declared persistence level and key ID
+ * attributes are valid and known to the PSA Core in its actual configuration.
  *
- * \param[in] attributes    The key attributes.
+ * \param[in] lifetime    The key lifetime attribute.
+ * \param[in] key_id      The key ID attribute
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  */
-psa_status_t psa_validate_key_persistence( const psa_key_attributes_t *attributes );
+psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime,
+                                           psa_key_id_t key_id );
 
 
 #endif /* PSA_CRYPTO_SLOT_MANAGEMENT_H */

@@ -806,13 +806,14 @@
  *                      a correct size for a key type and cipher algorithm
  *                      that it recognizes, but does not support.
  */
-#define PSA_CIPHER_ENCRYPT_OUTPUT_SIZE(key_type, alg, input_length)     \
-    (PSA_ALG_IS_CIPHER(alg) && PSA_KEY_TYPE_IS_SYMMETRIC(key_type) ?    \
-     (alg == PSA_ALG_CBC_PKCS7 ?                                        \
-      (((input_length) + PSA_CIPHER_IV_LENGTH(key_type, alg) + 1) /     \
-       PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) + 1) *                   \
-       PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) :                        \
-      (input_length) + PSA_CIPHER_IV_LENGTH(key_type, alg) ) :          \
+#define PSA_CIPHER_ENCRYPT_OUTPUT_SIZE(key_type, alg, input_length)                 \
+    (PSA_ALG_IS_CIPHER(alg) &&                                                      \
+     ((key_type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_SYMMETRIC ? \
+     (alg == PSA_ALG_CBC_PKCS7 ?                                                    \
+      (((input_length) + PSA_CIPHER_IV_LENGTH(key_type, alg) + 1) /                 \
+       PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) + 1) *                               \
+       PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) :                                    \
+      (input_length) + PSA_CIPHER_IV_LENGTH(key_type, alg) ) :                      \
      0)
 
 /** The maximum size of the output of psa_cipher_decrypt(), in bytes.
@@ -836,9 +837,10 @@
  *                      a correct size for a key type and cipher algorithm
  *                      that it recognizes, but does not support.
  */
-#define PSA_CIPHER_DECRYPT_OUTPUT_SIZE(key_type, alg, input_length)     \
-    (PSA_ALG_IS_CIPHER(alg) && PSA_KEY_TYPE_IS_SYMMETRIC(key_type) ?    \
-     (input_length) :                                                   \
+#define PSA_CIPHER_DECRYPT_OUTPUT_SIZE(key_type, alg, input_length)                 \
+    (PSA_ALG_IS_CIPHER(alg) &&                                                      \
+     ((key_type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_SYMMETRIC ? \
+     (input_length) :                                                               \
      0)
 
 #endif /* PSA_CRYPTO_SIZES_H */

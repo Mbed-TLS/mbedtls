@@ -2201,6 +2201,32 @@ run_test    "Connection ID, 3D: Cli+Srv enabled, Srv disables on renegotiation" 
             -c "ignoring unexpected CID" \
             -s "ignoring unexpected CID"
 
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+requires_config_enabled MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+run_test    "Connection ID: Cli+Srv enabled, variable buffer lengths, MFL=512" \
+            "$P_SRV dtls=1 cid=1 cid_val=dead debug_level=2" \
+            "$P_CLI force_ciphersuite="TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" max_frag_len=512 dtls=1 cid=1 cid_val=beef" \
+            0 \
+            -c "(initial handshake) Peer CID (length 2 Bytes): de ad" \
+            -s "(initial handshake) Peer CID (length 2 Bytes): be ef" \
+            -s "(initial handshake) Use of Connection ID has been negotiated" \
+            -c "(initial handshake) Use of Connection ID has been negotiated" \
+            -s "Reallocating in_buf" \
+            -s "Reallocating out_buf"
+
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+requires_config_enabled MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+run_test    "Connection ID: Cli+Srv enabled, variable buffer lengths, MFL=1024" \
+            "$P_SRV dtls=1 cid=1 cid_val=dead debug_level=2" \
+            "$P_CLI force_ciphersuite="TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" max_frag_len=1024 dtls=1 cid=1 cid_val=beef" \
+            0 \
+            -c "(initial handshake) Peer CID (length 2 Bytes): de ad" \
+            -s "(initial handshake) Peer CID (length 2 Bytes): be ef" \
+            -s "(initial handshake) Use of Connection ID has been negotiated" \
+            -c "(initial handshake) Use of Connection ID has been negotiated" \
+            -s "Reallocating in_buf" \
+            -s "Reallocating out_buf"
+
 # Tests for Encrypt-then-MAC extension
 
 run_test    "Encrypt then MAC: default" \

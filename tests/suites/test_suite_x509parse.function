@@ -306,8 +306,6 @@ int parse_crt_ext_cb( void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf
                       int critical, const unsigned char *cp, const unsigned char *end )
 {
     ( void ) crt;
-    ( void ) cp;
-    ( void ) end;
     ( void ) critical;
     mbedtls_x509_buf *new_oid = (mbedtls_x509_buf *)p_ctx;
     if( oid->tag == MBEDTLS_ASN1_OID &&
@@ -352,6 +350,9 @@ int parse_crt_ext_cb( void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf
                                               MBEDTLS_ASN1_OID ) ) != 0 )
                 return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
 
+            /*
+             * Recognize exclusively the policy with OID 1
+             */
             if( len != 1 || *p[0] != 1 )
                 parse_ret = MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;
 

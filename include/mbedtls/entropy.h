@@ -86,8 +86,6 @@
 #define MBEDTLS_ENTROPY_SOURCE_STRONG   1       /**< Entropy source is strong   */
 #define MBEDTLS_ENTROPY_SOURCE_WEAK     0       /**< Entropy source is weak     */
 
-#if defined(MBEDTLS_ENTROPY_C)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -287,7 +285,5 @@ int mbedtls_entropy_source_self_test( int verbose );
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* MBEDTLS_ENTROPY_C */
 
 #endif /* entropy.h */

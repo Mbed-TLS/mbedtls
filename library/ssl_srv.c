@@ -90,6 +90,8 @@ static int ssl_parse_servername_ext( mbedtls_ssl_context *ssl,
     int ret;
     size_t servername_list_size, hostname_len;
     const unsigned char *p;
+    volatile const unsigned char *buf_dup = buf;
+    volatile size_t len_dup = len;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "parse ServerName extension" ) );
 
@@ -133,7 +135,11 @@ static int ssl_parse_servername_ext( mbedtls_ssl_context *ssl,
                         MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME );
                 return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
             }
-            return( 0 );
+            /* Secure against buffer substitution */
+            if( buf_dup == buf && len_dup == len )
+            {
+                return( 0 );
+            }
         }
 
         servername_list_size -= hostname_len + 3;
@@ -148,7 +154,12 @@ static int ssl_parse_servername_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( buf_dup == buf && len_dup == len )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
@@ -156,6 +167,9 @@ static int ssl_parse_renegotiation_info( mbedtls_ssl_context *ssl,
                                          const unsigned char *buf,
                                          size_t len )
 {
+    volatile const unsigned char *buf_dup = buf;
+    volatile size_t len_dup = len;
+
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
     {
@@ -185,7 +199,12 @@ static int ssl_parse_renegotiation_info( mbedtls_ssl_context *ssl,
         ssl->secure_renegotiation = MBEDTLS_SSL_SECURE_RENEGOTIATION;
     }
 
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( buf_dup == buf && len_dup == len )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
@@ -211,7 +230,8 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 
     const unsigned char *p;
     const unsigned char *end = buf + len;
-
+    volatile const unsigned char *buf_dup = buf;
+    volatile size_t len_dup = len;
     mbedtls_md_type_t md_cur;
     mbedtls_pk_type_t sig_cur;
 
@@ -276,7 +296,12 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
         }
     }
 
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( buf_dup == buf && len_dup == len )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
           MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
@@ -291,6 +316,8 @@ static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
 {
     size_t list_size;
     const unsigned char *p;
+    volatile const unsigned char *buf_dup = buf;
+    volatile size_t len_dup = len;
 
     if ( len < 2 ) {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
@@ -332,7 +359,12 @@ static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
         p += 2;
     }
 
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( buf_dup == buf && len_dup == len )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 static int ssl_parse_supported_point_formats( mbedtls_ssl_context *ssl,
@@ -341,6 +373,8 @@ static int ssl_parse_supported_point_formats( mbedtls_ssl_context *ssl,
 {
     size_t list_size;
     const unsigned char *p;
+    volatile const unsigned char *buf_dup = buf;
+    volatile size_t len_dup = len;
 
     if( len == 0 || (size_t)( buf[0] + 1 ) != len )
     {
@@ -371,7 +405,12 @@ static int ssl_parse_supported_point_formats( mbedtls_ssl_context *ssl,
         p++;
     }
 
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( buf_dup == buf && len_dup == len )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
@@ -382,6 +421,8 @@ static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
                                    size_t len )
 {
     int ret;
+    volatile const unsigned char *buf_dup = buf;
+    volatile size_t len_dup = len;
 
     if( mbedtls_ecjpake_check( &ssl->handshake->ecjpake_ctx ) != 0 )
     {
@@ -401,7 +442,12 @@ static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
     /* Only mark the extension as OK when we're sure it is */
     ssl->handshake->cli_exts |= MBEDTLS_TLS_EXT_ECJPAKE_KKPP_OK;
 
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( buf_dup == buf && len_dup == len )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
@@ -410,6 +456,9 @@ static int ssl_parse_max_fragment_length_ext( mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
                                               size_t len )
 {
+    volatile const unsigned char *buf_dup = buf;
+    volatile size_t len_dup = len;
+
     if( len != 1 || buf[0] >= MBEDTLS_SSL_MAX_FRAG_LEN_INVALID )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
@@ -420,7 +469,12 @@ static int ssl_parse_max_fragment_length_ext( mbedtls_ssl_context *ssl,
 
     ssl->session_negotiate->mfl_code = buf[0];
 
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( buf_dup == buf && len_dup == len )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
@@ -430,6 +484,8 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
                               size_t len )
 {
     size_t peer_cid_len;
+    volatile const unsigned char *buf_dup = buf;
+    volatile size_t len_dup = len;
 
     /* CID extension only makes sense in DTLS */
     if( MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) )
@@ -474,7 +530,12 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
         /* Leave ssl->handshake->cid_in_use in its default
          * value of MBEDTLS_SSL_CID_DISABLED. */
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "Client sent CID extension, but CID disabled" ) );
-        return( 0 );
+        /* Secure against buffer substitution */
+        if( ( buf_dup + 1 ) == buf && ( len_dup - 1 ) == len )
+        {
+            return( 0 );
+        }
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 
     if( peer_cid_len > MBEDTLS_SSL_CID_OUT_LEN_MAX )
@@ -493,7 +554,12 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Use of CID extension negotiated" ) );
     MBEDTLS_SSL_DEBUG_BUF( 3, "Client CID", buf, peer_cid_len );
 
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( ( buf_dup + 1 ) == buf && ( len_dup - 1 ) == len )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
@@ -502,6 +568,8 @@ static int ssl_parse_truncated_hmac_ext( mbedtls_ssl_context *ssl,
                                          const unsigned char *buf,
                                          size_t len )
 {
+    volatile const unsigned char *buf_dup = buf;
+    volatile size_t len_dup = len;
     if( len != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
@@ -515,7 +583,12 @@ static int ssl_parse_truncated_hmac_ext( mbedtls_ssl_context *ssl,
     if( ssl->conf->trunc_hmac == MBEDTLS_SSL_TRUNC_HMAC_ENABLED )
         ssl->session_negotiate->trunc_hmac = MBEDTLS_SSL_TRUNC_HMAC_ENABLED;
 
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( buf_dup == buf && len_dup == len )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
@@ -524,6 +597,9 @@ static int ssl_parse_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
                                       const unsigned char *buf,
                                       size_t len )
 {
+    volatile const unsigned char *buf_dup = buf;
+    volatile size_t len_dup = len;
+
     if( len != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
@@ -540,7 +616,12 @@ static int ssl_parse_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
         ssl->session_negotiate->encrypt_then_mac = MBEDTLS_SSL_ETM_ENABLED;
     }
 
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( buf_dup == buf && len_dup == len )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
 
@@ -549,6 +630,9 @@ static int ssl_parse_extended_ms_ext( mbedtls_ssl_context *ssl,
                                       const unsigned char *buf,
                                       size_t len )
 {
+    volatile const unsigned char *buf_dup = buf;
+    volatile size_t len_dup = len;
+
     if( len != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
@@ -559,7 +643,12 @@ static int ssl_parse_extended_ms_ext( mbedtls_ssl_context *ssl,
 
     ((void) buf);
 
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( buf_dup == buf && len_dup == len )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
@@ -570,6 +659,8 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
 {
     int ret;
     mbedtls_ssl_session session;
+    volatile const unsigned char *buf_dup = buf;
+    volatile size_t len_dup = len;
 
     mbedtls_ssl_session_init( &session );
 
@@ -585,13 +676,25 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket length: %d", len ) );
 
     if( len == 0 )
-        return( 0 );
+    {
+        /* Secure against buffer substitution */
+        if( buf_dup == buf && len_dup == len )
+        {
+            return( 0 );
+        }
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    }
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket rejected: renegotiating" ) );
-        return( 0 );
+        /* Secure against buffer substitution */
+        if( buf_dup == buf && len_dup == len )
+        {
+            return( 0 );
+        }
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
@@ -610,7 +713,12 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
         else
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_ticket_parse", ret );
 
-        return( 0 );
+        /* Secure against buffer substitution */
+        if( buf_dup == buf && len_dup == len )
+        {
+            return( 0 );
+        }
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 
     /*
@@ -633,7 +741,12 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
     /* Don't send a new ticket after all, this one is OK */
     ssl->handshake->new_session_ticket = 0;
 
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( buf_dup == buf && len_dup == len )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
@@ -644,6 +757,8 @@ static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
     size_t list_len, cur_len, ours_len;
     const unsigned char *theirs, *start, *end;
     const char **ours;
+    volatile const unsigned char *buf_dup = buf;
+    volatile size_t len_dup = len;
 
     /* If ALPN not configured, just ignore the extension */
     if( ssl->conf->alpn_list == NULL )
@@ -714,7 +829,12 @@ static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
                 mbedtls_platform_memcmp( theirs, *ours, cur_len ) == 0 )
             {
                 ssl->alpn_chosen = *ours;
-                return( 0 );
+                /* Secure against buffer substitution */
+                if( buf_dup == buf && len_dup == len )
+                {
+                    return( 0 );
+                }
+                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
             }
         }
     }
@@ -3269,13 +3389,19 @@ static int ssl_resume_server_key_exchange( mbedtls_ssl_context *ssl,
                            - sig_start );
     int ret = ssl->conf->f_async_resume( ssl,
                                          sig_start, signature_len, sig_max_len );
+    volatile size_t *signature_len_dup = signature_len;
     if( ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
     {
         ssl->handshake->async_in_progress = 0;
         mbedtls_ssl_set_async_operation_data( ssl, NULL );
     }
     MBEDTLS_SSL_DEBUG_RET( 2, "ssl_resume_server_key_exchange", ret );
-    return( ret );
+    /* Secure against buffer substitution */
+    if( signature_len_dup == signature_len )
+    {
+        return( ret );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) &&
           defined(MBEDTLS_SSL_ASYNC_PRIVATE) */
@@ -3678,7 +3804,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
     {
         return( 0 );
     }
-    return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 /* Prepare the ServerKeyExchange message and send it. For ciphersuites
@@ -3826,6 +3952,8 @@ static int ssl_parse_client_dh_public( mbedtls_ssl_context *ssl, unsigned char *
                                        const unsigned char *end )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    unsigned char ** volatile p_dup = p;
+    volatile const unsigned char *end_dup = end;
     size_t n;
 
     /*
@@ -3856,7 +3984,12 @@ static int ssl_parse_client_dh_public( mbedtls_ssl_context *ssl, unsigned char *
 
     MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: GY", &ssl->handshake->dhm_ctx.GY );
 
-    return( ret );
+    /* Secure against buffer substitution */
+    if( p_dup == p && end_dup == end )
+    {
+        return( ret );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
@@ -3892,6 +4025,11 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
     int ret;
     size_t len = (size_t)( end - p ); /* Cast is safe because p <= end. */
     mbedtls_pk_context *private_key = mbedtls_ssl_own_key( ssl );
+    volatile const unsigned char *p_dup = p;
+    volatile const unsigned char *end_dup = end;
+    volatile unsigned char *peer_pms_dup = peer_pms;
+    volatile size_t *peer_pmslen_dup = peer_pmslen;
+    volatile size_t peer_pmssize_dup = peer_pmssize;
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     /* If we have already started decoding the message and there is an ongoing
@@ -3919,6 +4057,7 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }
         len -= 2;
+        p_dup += 2;
 
         if( *p++ != ( ( len >> 8 ) & 0xFF ) ||
             *p++ != ( ( len      ) & 0xFF ) )
@@ -3969,7 +4108,14 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
                               peer_pms, peer_pmslen, peer_pmssize,
                               mbedtls_ssl_conf_get_frng( ssl->conf ),
                               mbedtls_ssl_conf_get_prng( ssl->conf ) );
-    return( ret );
+
+    /* Secure against buffer substitution */
+    if( p_dup == p && end_dup == end && peer_pms_dup == peer_pms &&
+        peer_pmslen_dup == peer_pmslen && peer_pmssize_dup == peer_pmssize )
+    {
+        return( ret );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
@@ -3985,6 +4131,9 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     size_t i, peer_pmslen;
     unsigned int diff;
     volatile unsigned int pmscounter = 0;
+    volatile const unsigned char *p_dup = p;
+    volatile const unsigned char *end_dup = end;
+    volatile size_t pms_offset_dup = pms_offset;
 
     /* In case of a failure in decryption, the decryption may write less than
      * 2 bytes of output, but we always read the first two bytes. It doesn't
@@ -4077,7 +4226,12 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
         }
     }
 
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( p_dup == p && end_dup == end && pms_offset_dup == pms_offset )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
@@ -4088,6 +4242,8 @@ static int ssl_parse_client_psk_identity( mbedtls_ssl_context *ssl, unsigned cha
 {
     int ret = 0;
     size_t n;
+    unsigned char ** volatile p_dup = p;
+    volatile const unsigned char *end_dup = end;
 
     if( ssl->conf->f_psk == NULL &&
         ( ssl->conf->psk == NULL || ssl->conf->psk_identity == NULL ||
@@ -4141,7 +4297,12 @@ static int ssl_parse_client_psk_identity( mbedtls_ssl_context *ssl, unsigned cha
 
     *p += n;
 
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( p_dup == p && end_dup == end )
+    {
+        return( ret );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
@@ -4423,7 +4584,7 @@ static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
     {
         return( ret );
     }
-    return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 /* Update the handshake state */

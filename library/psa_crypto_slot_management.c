@@ -226,6 +226,7 @@ psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime,
         else
             return( PSA_ERROR_INVALID_ARGUMENT );
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
+        (void) key_id;
         return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* !MBEDTLS_PSA_CRYPTO_STORAGE_C */
     }

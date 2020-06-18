@@ -76,8 +76,6 @@
 #include "mbedtls/sha512.h"
 #elif defined(MBEDTLS_SHA256_C)
 #include "mbedtls/sha256.h"
-#elif defined(MBEDTLS_SHA1_C)
-#include "mbedtls/sha1.h"
 #else
 #error "Invalid configuration detected. Include check_config.h to ensure that the configuration is valid."
 #endif
@@ -222,9 +220,7 @@ cleanup:
     return( ret );
 }
 
-#elif defined(MBEDTLS_SHA512_C) || \
-      defined(MBEDTLS_SHA256_C) || \
-      defined(MBEDTLS_SHA1_C)
+#elif defined(MBEDTLS_SHA512_C) || defined(MBEDTLS_SHA256_C)
 
 /* This will be used in the self-test function */
 #define ECP_ONE_STEP_KDF
@@ -236,7 +232,7 @@ cleanup:
  * function) and empty FixedInfo. (Though we'll make it fit the DRBG API for
  * convenience, this is not a full-fledged DRBG, but we don't need one here.)
  *
- * We need a basic hash abstraction layer to use whatever SHA is available.
+ * We need a basic hash abstraction layer to use whatever SHA-2 is available.
  */
 #if defined(MBEDTLS_SHA512_C)
 
@@ -248,12 +244,7 @@ cleanup:
 #define HASH_FUNC( in, ilen, out )  mbedtls_sha256_ret( in, ilen, out, 0 );
 #define HASH_BLOCK_BYTES            ( 256 / 8 )
 
-#else // from a previous #if we know that SHA-1 is available if SHA-2 isn't
-
-#define HASH_FUNC                   mbedtls_sha1_ret
-#define HASH_BLOCK_BYTES            ( 160 / 8 )
-
-#endif /* SHA512/SHA256/SHA1 abstraction */
+#endif /* SHA512/SHA256 abstraction */
 
 /*
  * State consists of a 32-bit counter plus the secret value.
@@ -301,8 +292,8 @@ static int ecp_drbg_random( void *p_rng, unsigned char *output, size_t output_le
          * bytes from this function, and retrying up to 10 times if unlucky.
          *
          * So for the largest curve, each scalar multiplication draws at most
-         * 2 * 66 bytes. The minimum block size is 20 bytes (with SHA-1), so
-         * that means at most 66 blocks.
+         * 20 * 66 bytes. The minimum block size is 32 (SHA-256), so with
+         * rounding that means a most 20 * 3 blocks.
          *
          * Since we don't need to draw more that 255 blocks, don't bother
          * with carry propagation and just return an error instead. We can
@@ -2402,8 +2393,8 @@ cleanup:
  * https://github.com/patrickfav/singlestep-kdf/wiki/NIST-SP-800-56C-Rev1:-Non-Official-Test-Vectors
  *
  * We only use the ones with empty fixedInfo, and for brevity's sake, only
- * 32-bytes output (with SHA-1 that's more than one block, with SHA-256
- * exactly one block, and with SHA-512 less than one block).
+ * 32-bytes output (with SHA-256 that's exactly one block, and with SHA-512
+ * less than one block).
  */
 #if defined(MBEDTLS_SHA512_C)
 
@@ -2431,21 +2422,6 @@ static const uint8_t test_kdf_out[32] = {
     0x34, 0x3f, 0x6d, 0x82, 0x16, 0x22, 0xb4, 0x45,
 };
 
-#elif defined(MBEDTLS_SHA1_C)
-
-static const uint8_t test_kdf_z[16] = {
-    0x4e, 0x1e, 0x70, 0xc9, 0x88, 0x68, 0x19, 0xa3,
-    0x1b, 0xc2, 0x9a, 0x53, 0x79, 0x11, 0xad, 0xd9,
-};
-static const uint8_t test_kdf_out[32] = {
-    0xdd, 0xbf, 0xc4, 0x40, 0x44, 0x9a, 0xab, 0x41,
-    0x31, 0xc6, 0xd8, 0xae, 0xc0, 0x8c, 0xe1, 0x49,
-    0x6f, 0x27, 0x02, 0x24, 0x1d, 0x0e, 0x27, 0xcc,
-    0x15, 0x5c, 0x5c, 0x7c, 0x3c, 0xda, 0x75, 0xb5,
-};
-
-#else
-#error "Need at least one of SHA-512, SHA-256 or SHA-1"
 #endif
 
 static int ecp_kdf_self_test( void )

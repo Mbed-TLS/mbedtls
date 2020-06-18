@@ -626,12 +626,11 @@
  * against some side-channel attacks.
  *
  * This protection introduces a dependency of the ECP module on one of the
- * DRBG or SHA modules (HMAC-DRBG, CTR-DRBG, SHA-512, SHA-256 or SHA-1).
- * For very constrained applications that don't require this protection
- * (for example, because you're only doing signature verification, so not
- * manipulating any secret, or because local/physical side-channel attacks are
- * outside your threat model), it might be desirable to get rid of that
- * dependency.
+ * DRBG or SHA modules (HMAC-DRBG, CTR-DRBG, SHA-512 or SHA-256.) For very
+ * constrained applications that don't require this protection (for example,
+ * because you're only doing signature verification, so not manipulating any
+ * secret, or because local/physical side-channel attacks are outside your
+ * threat model), it might be desirable to get rid of that dependency.
  *
  * \warning Enabling this option makes some uses of ECP vulnerable to some
  * side-channel attacks. Only enable it if you know that's not a problem for

@@ -851,32 +851,6 @@ component_test_no_drbg_no_sha512 () {
     # no SSL tests as they all depend on having a DRBG
 }
 
-component_test_no_drbg_no_sha2 () {
-    # this tests the internal ECP DRBG using a KDF based on SHA-1
-    msg "build: Default minus DRBGs minus SHA-2"
-    scripts/config.pl unset MBEDTLS_CTR_DRBG_C
-    scripts/config.pl unset MBEDTLS_HMAC_DRBG_C
-    scripts/config.pl unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_C # requires a DRBG
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA Crypto
-    scripts/config.pl unset MBEDTLS_SHA512_C
-    scripts/config.pl unset MBEDTLS_SHA256_C
-    scripts/config.pl unset MBEDTLS_ENTROPY_C # requires SHA-2
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_C # requires Entropy
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA Crypto
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_SE_C # requires PSA Crypto
-    scripts/config.pl unset MBEDTLS_USE_PSA_CRYPTO # requires PSA Crypto
-    scripts/config.pl unset MBEDTLS_SSL_PROTO_TLS1_2 # requires SHA-2
-
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: Default minus DRBGs minus SHA-2"
-    make test
-
-    # no SSL tests as they all depend on having a DRBG
-}
-
 component_test_ecp_no_internal_rng () {
     msg "build: Default plus ECP_NO_INTERNAL_RNG minus DRBG modules"
     scripts/config.pl set MBEDTLS_ECP_NO_INTERNAL_RNG

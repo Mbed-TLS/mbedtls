@@ -172,16 +172,24 @@ static inline int ecp_drbg_random( void *p_rng,
 }
 
 /* DRBG context seeding */
-static int ecp_drbg_seed( ecp_drbg_context *ctx, const mbedtls_mpi *secret )
+static int ecp_drbg_seed( ecp_drbg_context *ctx,
+                   const mbedtls_mpi *secret, size_t secret_len )
 {
-    const unsigned char *secret_p = (const unsigned char *) secret->p;
-    const size_t secret_size = secret->n * sizeof( mbedtls_mpi_uint );
-
+    int ret;
+    unsigned char secret_bytes[MBEDTLS_ECP_MAX_BYTES];
     /* The list starts with strong hashes */
     const mbedtls_md_type_t md_type = mbedtls_md_list()[0];
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_type );
 
-    return( mbedtls_hmac_drbg_seed_buf( ctx, md_info, secret_p, secret_size ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( secret,
+                                               secret_bytes, secret_len ) );
+
+    ret = mbedtls_hmac_drbg_seed_buf( ctx, md_info, secret_bytes, secret_len );
+
+cleanup:
+    mbedtls_platform_zeroize( secret_bytes, secret_len );
+
+    return( ret );
 }
 
 #elif defined(MBEDTLS_CTR_DRBG_C)
@@ -223,13 +231,22 @@ static int ecp_ctr_drbg_null_entropy(void *ctx, unsigned char *out, size_t len)
 }
 
 /* DRBG context seeding */
-static int ecp_drbg_seed( ecp_drbg_context *ctx, const mbedtls_mpi *secret )
+static int ecp_drbg_seed( ecp_drbg_context *ctx,
+                   const mbedtls_mpi *secret, size_t secret_len )
 {
-    const unsigned char *secret_p = (const unsigned char *) secret->p;
-    const size_t secret_size = secret->n * sizeof( mbedtls_mpi_uint );
+    int ret;
+    unsigned char secret_bytes[MBEDTLS_ECP_MAX_BYTES];
 
-    return( mbedtls_ctr_drbg_seed( ctx, ecp_ctr_drbg_null_entropy, NULL,
-                                   secret_p, secret_size ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( secret,
+                                               secret_bytes, secret_len ) );
+
+    ret = mbedtls_ctr_drbg_seed( ctx, ecp_ctr_drbg_null_entropy, NULL,
+                                 secret_bytes, secret_len );
+
+cleanup:
+    mbedtls_platform_zeroize( secret_bytes, secret_len );
+
+    return( ret );
 }
 
 #else
@@ -2267,7 +2284,8 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
             rs_ctx->rsm->drbg_seeded == 0 )
 #endif
         {
-            MBEDTLS_MPI_CHK( ecp_drbg_seed( p_rng, m ) );
+            const size_t m_len = ( grp->nbits + 7 ) / 8;
+            MBEDTLS_MPI_CHK( ecp_drbg_seed( p_rng, m, m_len ) );
         }
 #if defined(MBEDTLS_ECP_RESTARTABLE)
         if( rs_ctx != NULL && rs_ctx->rsm != NULL )
@@ -2551,7 +2569,8 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #if !defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
     if( f_rng == NULL )
     {
-        MBEDTLS_MPI_CHK( ecp_drbg_seed( &drbg_ctx, m ) );
+        const size_t m_len = ( grp->nbits + 7 ) / 8;
+        MBEDTLS_MPI_CHK( ecp_drbg_seed( &drbg_ctx, m, m_len ) );
         f_rng = &ecp_drbg_random;
         p_rng = &drbg_ctx;
     }

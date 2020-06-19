@@ -181,6 +181,12 @@ static int ecp_drbg_seed( ecp_drbg_context *ctx,
     const mbedtls_md_type_t md_type = mbedtls_md_list()[0];
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_type );
 
+    if( secret_len > MBEDTLS_ECP_MAX_BYTES )
+    {
+        ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
+        goto cleanup;
+    }
+
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( secret,
                                                secret_bytes, secret_len ) );
 
@@ -236,6 +242,12 @@ static int ecp_drbg_seed( ecp_drbg_context *ctx,
 {
     int ret;
     unsigned char secret_bytes[MBEDTLS_ECP_MAX_BYTES];
+
+    if( secret_len > MBEDTLS_ECP_MAX_BYTES )
+    {
+        ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
+        goto cleanup;
+    }
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( secret,
                                                secret_bytes, secret_len ) );

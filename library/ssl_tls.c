@@ -7112,7 +7112,7 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
 static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
                                         mbedtls_x509_crt *chain )
 {
-    int ret;
+    volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 #if defined(MBEDTLS_SSL_RENEGOTIATION) && defined(MBEDTLS_SSL_CLI_C)
     int crt_cnt=0;
 #endif
@@ -7224,10 +7224,25 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
         switch( ret )
         {
-            case 0: /*ok*/
+            case 0: /* ok */
+                mbedtls_platform_random_delay();
+                if( ret != 0 )
+                {
+                    alert = MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR;
+                    ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+                    goto crt_parse_der_failed;
+                }
+                break;
             case MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG + MBEDTLS_ERR_OID_NOT_FOUND:
                 /* Ignore certificate with an unknown algorithm: maybe a
-                   prior certificate was already trusted. */
+                 * prior certificate was already trusted. */
+                mbedtls_platform_random_delay();
+                if( ret != MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG + MBEDTLS_ERR_OID_NOT_FOUND )
+                {
+                    alert = MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR;
+                    ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+                    goto crt_parse_der_failed;
+                }
                 break;
 
             case MBEDTLS_ERR_X509_ALLOC_FAILED:

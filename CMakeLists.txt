@@ -238,6 +238,15 @@ list(APPEND libs ${thirdparty_lib})
 
 add_subdirectory(library)
 
+if(ENABLE_TESTING OR ENABLE_PROGRAMS)
+    file(GLOB MBEDTLS_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c)
+    add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
+    target_include_directories(mbedtls_test
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library)
+endif()
+
 if(ENABLE_PROGRAMS)
     add_subdirectory(programs)
 endif()

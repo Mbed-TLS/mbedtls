@@ -79,6 +79,8 @@ $(MBEDLIBS):
 
 MBEDTLS_TEST_OBJS=$(patsubst %.c,%.o,$(wildcard src/*.c))
 
+mbedtls_test: $(MBEDTLS_TEST_OBJS)
+
 # Rule to compile common test C files in src folder
 src/%.o : src/%.c
 	echo "  CC    $<"

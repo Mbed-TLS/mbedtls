@@ -129,7 +129,7 @@ static int getrandom_wrapper( void *buf, size_t buflen, unsigned int flags )
 #if defined(KERN_ARND)
 #define HAVE_SYSCTL_ARND
 
-static int sysctl_wrapper ( void *buf, size_t buflen )
+static int sysctl_arnd_wrapper( void *buf, size_t buflen )
 {
     int name[2];
     size_t len;
@@ -177,7 +177,7 @@ int mbedtls_platform_entropy_poll( void *data,
 #if defined(HAVE_SYSCTL_ARND)
     ((void) file);
     ((void) read_len);
-    if( sysctl_wrapper( output, len ) == -1 )
+    if( sysctl_arnd_wrapper( output, len ) == -1 )
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
     *olen = len;
     return( 0 );

@@ -123,7 +123,11 @@ pre_initialize_variables () {
     KEEP_GOING=0
 
     # Seed value used with the --release-test option.
-    # !!! Keep this in sync with SEED in basic-build-test.sh !!!
+    #
+    # See also RELEASE_SEED in basic-build-test.sh. Debugging is easier if
+    # both values are kept in sync. If you change the value here because it
+    # breaks some tests, you'll definitely want to change it in
+    # basic-build-test.sh as well.
     RELEASE_SEED=1
 
     : ${MBEDTLS_TEST_OUTCOME_FILE=}

@@ -84,7 +84,10 @@ fi
 : ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
 
 # Used to make ssl-opt.sh deterministic.
-# !!! Keep this in sync with RELEASE_SEED in all.sh !!!
+#
+# See also RELEASE_SEED in all.sh. Debugging is easier if both values are kept
+# in sync. If you change the value here because it breaks some tests, you'll
+# definitely want to change it in all.sh as well.
 : ${SEED:=1}
 export SEED
 

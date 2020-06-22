@@ -34,6 +34,7 @@
 
 #include "mbedtls/sha256.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/platform.h"
 
 #include <string.h>
 
@@ -187,6 +188,7 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
 {
     uint32_t temp1, temp2, W[64];
     uint32_t A[8];
+    uint32_t flow_ctrl = 0;
     unsigned int i;
 
     SHA256_VALIDATE_RET( ctx != NULL );
@@ -203,11 +205,18 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
         for( i = offset; i < 16; i++ )
         {
             W[i] = (uint32_t)mbedtls_platform_get_uint32_be( &data[4 * i] );
+            flow_ctrl++;
         }
         for( i = 0; i < offset; i++ )
         {
             W[i] = (uint32_t)mbedtls_platform_get_uint32_be( &data[4 * i] );
+            flow_ctrl++;
         }
+    }
+
+    if( flow_ctrl != 16 )
+    {
+        return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     }
 
     for( i = 0; i < 64; i++ )
@@ -219,10 +228,20 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
 
         temp1 = A[7]; A[7] = A[6]; A[6] = A[5]; A[5] = A[4]; A[4] = A[3];
         A[3] = A[2]; A[2] = A[1]; A[1] = A[0]; A[0] = temp1;
+        flow_ctrl++;
     }
+
+    if( flow_ctrl != 80 )
+    {
+        return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    }
+
 #else /* MBEDTLS_SHA256_SMALLER */
     for( i = 0; i < 16; i++ )
+    {
         W[i] = (uint32_t)mbedtls_platform_get_uint32_be( &data[4 * i] );
+        flow_ctrl++;
+    }
 
     for( i = 0; i < 16; i += 8 )
     {
@@ -234,6 +253,7 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
         P( A[3], A[4], A[5], A[6], A[7], A[0], A[1], A[2], W[i+5], K[i+5] );
         P( A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], W[i+6], K[i+6] );
         P( A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], W[i+7], K[i+7] );
+        flow_ctrl++;
     }
 
     for( i = 16; i < 64; i += 8 )
@@ -246,13 +266,29 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
         P( A[3], A[4], A[5], A[6], A[7], A[0], A[1], A[2], R(i+5), K[i+5] );
         P( A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], R(i+6), K[i+6] );
         P( A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], R(i+7), K[i+7] );
+        flow_ctrl++;
+    }
+
+    /* 16 from the first loop, 2 from the second and 6 from the third. */
+    if( flow_ctrl != 24 )
+    {
+        return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     }
 #endif /* MBEDTLS_SHA256_SMALLER */
+    flow_ctrl = 0;
 
     for( i = 0; i < 8; i++ )
+    {
         ctx->state[i] += A[i];
+        flow_ctrl++;
+    }
 
-    return( 0 );
+    if( flow_ctrl == 8 )
+    {
+        return( 0 );
+    }
+
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -314,7 +350,12 @@ int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
     if( ilen > 0 )
         mbedtls_platform_memcpy( (void *) (ctx->buffer + left), input, ilen );
 
-    return( 0 );
+    /* Re-check ilen to protect from a FI attack */
+    if( ilen < 64 )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -336,6 +377,7 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
     uint32_t used;
     uint32_t high, low;
     uint32_t offset = 0;
+    uint32_t flow_ctrl = 0;
 
     SHA256_VALIDATE_RET( ctx != NULL );
     SHA256_VALIDATE_RET( (unsigned char *)output != NULL );
@@ -346,6 +388,7 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
     used = ctx->total[0] & 0x3F;
 
     ctx->buffer[used++] = 0x80;
+    flow_ctrl++;
 
     if( used <= 56 )
     {
@@ -372,6 +415,7 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
 
     (void)mbedtls_platform_put_uint32_be( ctx->buffer + 56, high );
     (void)mbedtls_platform_put_uint32_be( ctx->buffer + 60, low );
+    flow_ctrl++;
 
     if( ( ret = mbedtls_internal_sha256_process( ctx, ctx->buffer ) ) != 0 )
         return( ret );
@@ -388,6 +432,7 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
     {
         (void)mbedtls_platform_put_uint32_be( &output[o_pos],
                                             ctx->state[s_pos] );
+        flow_ctrl++;
     }
 
 #if !defined(MBEDTLS_SHA256_NO_SHA224)
@@ -399,8 +444,14 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
     {
         (void)mbedtls_platform_put_uint32_be( &output[o_pos],
                                             ctx->state[s_pos] );
+        flow_ctrl++;
     }
-    return( 0 );
+    /* flow ctrl was incremented twice and then 7 times in two loops */
+    if( flow_ctrl == 9 )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)

@@ -311,6 +311,8 @@ int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain,
  *                 it encounters either an unsupported extension or a
  *                 "certificate policies" extension containing any
  *                 unsupported certificate policies.
+ *                 Future versions of the library may invoke the callback
+ *                 in other cases, if and when the need arises.
  *
  * \param p_ctx    An opaque context passed to the callback.
  * \param crt      The certificate being parsed.
@@ -372,6 +374,8 @@ typedef int (*mbedtls_x509_crt_ext_cb_t)( void *p_ctx,
  *                   When the callback fails to parse a non critical extension
  *                   mbedtls_x509_crt_parse_der_with_ext_cb() simply skips
  *                   the extension and continues parsing.
+ *                   Future versions of the library may invoke the callback
+ *                   in other cases, if and when the need arises.
  *
  * \return           \c 0 if successful.
  * \return           A negative error code on failure.

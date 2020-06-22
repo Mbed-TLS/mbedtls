@@ -817,6 +817,80 @@ component_test_no_hmac_drbg () {
     # so there's little value in running those lengthy tests here.
 }
 
+component_test_no_drbg_all_hashes () {
+    # this tests the internal ECP DRBG using a KDF based on SHA-512
+    msg "build: Default minus DRBGs"
+    scripts/config.pl unset MBEDTLS_CTR_DRBG_C
+    scripts/config.pl unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.pl unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_C # requires a DRBG
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA Crypto
+
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: Default minus DRBGs"
+    make test
+
+    # no SSL tests as they all depend on having a DRBG
+}
+
+component_test_no_drbg_no_sha512 () {
+    # this tests the internal ECP DRBG using a KDF based on SHA-256
+    msg "build: Default minus DRBGs minus SHA-512"
+    scripts/config.pl unset MBEDTLS_CTR_DRBG_C
+    scripts/config.pl unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.pl unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_C # requires a DRBG
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA Crypto
+    scripts/config.pl unset MBEDTLS_SHA512_C
+
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: Default minus DRBGs minus SHA-512"
+    make test
+
+    # no SSL tests as they all depend on having a DRBG
+}
+
+component_test_ecp_no_internal_rng () {
+    msg "build: Default plus ECP_NO_INTERNAL_RNG minus DRBG modules"
+    scripts/config.pl set MBEDTLS_ECP_NO_INTERNAL_RNG
+    scripts/config.pl unset MBEDTLS_CTR_DRBG_C
+    scripts/config.pl unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.pl unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_C # requires a DRBG
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA Crypto
+
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: ECP_NO_INTERNAL_RNG, no DRBG module"
+    make test
+
+    # no SSL tests as they all depend on having a DRBG
+}
+
+component_test_ecp_restartable_no_internal_rng () {
+    msg "build: Default plus ECP_RESTARTABLE and ECP_NO_INTERNAL_RNG, no DRBG"
+    scripts/config.pl set MBEDTLS_ECP_NO_INTERNAL_RNG
+    scripts/config.pl set MBEDTLS_ECP_RESTARTABLE
+    scripts/config.pl unset MBEDTLS_CTR_DRBG_C
+    scripts/config.pl unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.pl unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_C # requires CTR_DRBG
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA Crypto
+
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: ECP_RESTARTABLE and ECP_NO_INTERNAL_RNG, no DRBG module"
+    make test
+
+    # no SSL tests as they all depend on having a DRBG
+}
+
 component_test_small_ssl_out_content_len () {
     msg "build: small SSL_OUT_CONTENT_LEN (ASan build)"
     scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 16384

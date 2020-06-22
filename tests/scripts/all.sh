@@ -160,6 +160,14 @@ pre_initialize_variables () {
     FORCE=0
     KEEP_GOING=0
 
+    # Seed value used with the --release-test option.
+    #
+    # See also RELEASE_SEED in basic-build-test.sh. Debugging is easier if
+    # both values are kept in sync. If you change the value here because it
+    # breaks some tests, you'll definitely want to change it in
+    # basic-build-test.sh as well.
+    RELEASE_SEED=1
+
     # Default commands, can be overridden by the environment
     : ${OPENSSL:="openssl"}
     : ${OPENSSL_LEGACY:="$OPENSSL"}
@@ -245,7 +253,7 @@ General options:
      --no-memory        No additional memory tests (default).
      --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
      --random-seed      Use a random seed value for randomized tests (default).
-  -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
+  -r|--release-test     Run this script in release mode. This fixes the seed value to ${RELEASE_SEED}.
   -s|--seed             Integer seed value to use for this test run.
 
 Tool path options:
@@ -384,7 +392,7 @@ pre_parse_command_line () {
             --openssl-next) shift; OPENSSL_NEXT="$1";;
             --out-of-source-dir) shift; OUT_OF_SOURCE_DIR="$1";;
             --random-seed) unset SEED;;
-            --release-test|-r) SEED=1;;
+            --release-test|-r) SEED=$RELEASE_SEED;;
             --seed|-s) shift; SEED="$1";;
             -*)
                 echo >&2 "Unknown option: $1"

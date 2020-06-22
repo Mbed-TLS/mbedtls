@@ -155,7 +155,8 @@ extern const uECC_word_t curve_b[NUM_ECC_WORDS];
  * @param random OUT -- random integer in the range 0 < random < top
  * @param top IN -- upper limit
  * @param num_words IN -- number of words
- * @return a random integer in the range 0 < random < top
+ * @return UECC_SUCCESS in case of success
+ * @return UECC_FAILURE upon failure
  */
 int uECC_generate_random_int(uECC_word_t *random, const uECC_word_t *top,
 			     wordcount_t num_words);
@@ -163,9 +164,9 @@ int uECC_generate_random_int(uECC_word_t *random, const uECC_word_t *top,
 
 /* uECC_RNG_Function type
  * The RNG function should fill 'size' random bytes into 'dest'. It should
- * return 1 if 'dest' was filled with random data, or 0 if the random data could
- * not be generated. The filled-in values should be either truly random, or from
- * a cryptographically-secure PRNG.
+ * return 'size' if 'dest' was filled with random data of 'size' length, or 0
+ * if the random data could not be generated. The filled-in values should be
+ * either truly random, or from a cryptographically-secure PRNG.
  *
  * A correctly functioning RNG function must be set (using uECC_set_rng())
  * before calling uECC_make_key() or uECC_sign().
@@ -181,8 +182,8 @@ typedef int(*uECC_RNG_Function)(uint8_t *dest, unsigned int size);
 
 /*
  * @brief Set the function that will be used to generate random bytes. The RNG
- * function should return 1 if the random data was generated, or 0 if the random
- * data could not be generated.
+ * function should return 'size' if the random data of length 'size' was
+ * generated, or 0 if the random data could not be generated.
  *
  * @note On platforms where there is no predefined RNG function, this must be
  * called before uECC_make_key() or uECC_sign() are used.

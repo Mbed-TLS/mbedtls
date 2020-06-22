@@ -109,7 +109,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 		uECC_vli_clear(tmp);
 		tmp[0] = 1;
 	}
-	else if (!uECC_generate_random_int(tmp, curve_n, num_n_words)) {
+	else if (uECC_generate_random_int(tmp, curve_n, num_n_words) != UECC_SUCCESS) {
 		return UECC_FAILURE;
 	}
 
@@ -151,7 +151,7 @@ int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,
 		/* Generating _random uniformly at random: */
 		uECC_RNG_Function rng_function = uECC_get_rng();
 		if (!rng_function ||
-		    !rng_function((uint8_t *)_random, 2*NUM_ECC_WORDS*uECC_WORD_SIZE)) {
+		    rng_function((uint8_t *)_random, 2*NUM_ECC_WORDS*uECC_WORD_SIZE) != 2*NUM_ECC_WORDS*uECC_WORD_SIZE) {
 			return UECC_FAILURE;
 		}
 

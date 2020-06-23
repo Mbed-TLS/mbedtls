@@ -2486,7 +2486,6 @@ static int ssl_cid_build_inner_plaintext( unsigned char *content,
     volatile size_t *content_size_dup = content_size;
     volatile size_t remaining_dup = remaining;
 
-
     /* Write real content type */
     if( remaining == 0 )
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
@@ -4910,6 +4909,7 @@ static void ssl_bitmask_set( unsigned char *mask, size_t offset, size_t len )
     memset( mask + offset / 8, 0xFF, len / 8 );
 }
 
+#define BITMASK_CHECK_FAILED 0x75555555
 /*
  * Check that bitmask is full
  */
@@ -4921,11 +4921,11 @@ static int ssl_bitmask_check( unsigned char *mask, size_t len )
 
     for( i = 0; i < len / 8; i++ )
         if( mask[i] != 0xFF )
-            return( 0x75555555 );
+            return( BITMASK_CHECK_FAILED );
 
     for( i = 0; i < len % 8; i++ )
         if( ( mask[len / 8] & ( 1 << ( 7 - i ) ) ) == 0 )
-            return( 0x75555555 );
+            return( BITMASK_CHECK_FAILED );
 
     /* Secure against buffer substitution */
     if( mask_dup == mask && len_dup == len )
@@ -7183,6 +7183,7 @@ write_msg:
 #if defined(MBEDTLS_SSL_RENEGOTIATION) && defined(MBEDTLS_SSL_CLI_C)
 
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#define PEER_CRT_CHANGED 0x75555555
 static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
                                          unsigned char *crt_buf,
                                          size_t crt_buf_len )
@@ -7190,14 +7191,15 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
     mbedtls_x509_crt const * const peer_crt = ssl->session->peer_cert;
 
     if( peer_crt == NULL )
-        return( 0x75555555 );
+        return( PEER_CRT_CHANGED );
 
     if( peer_crt->raw.len != crt_buf_len )
-        return( 0x75555555 );
+        return( PEER_CRT_CHANGED );
 
     return( mbedtls_platform_memcmp( peer_crt->raw.p, crt_buf, crt_buf_len ) );
 }
 #elif defined(MBEDTLS_SSL_RENEGOTIATION)
+#define PEER_CRT_CHANGED 0x75555555
 static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
                                          unsigned char *crt_buf,
                                          size_t crt_buf_len )
@@ -7215,7 +7217,7 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
     if( peer_cert_digest == NULL ||
         digest_info == MBEDTLS_MD_INVALID_HANDLE )
     {
-        return( 0x75555555 );
+        return( PEER_CRT_CHANGED );
     }
 
     digest_len = mbedtls_md_get_size( digest_info );
@@ -7224,7 +7226,7 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
 
     ret = mbedtls_md( digest_info, crt_buf, crt_buf_len, tmp_digest );
     if( ret != 0 )
-        return( 0x75555555 );
+        return( PEER_CRT_CHANGED );
 
     return( mbedtls_platform_memcmp( tmp_digest, peer_cert_digest, digest_len ) );
 }

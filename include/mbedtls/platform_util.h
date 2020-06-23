@@ -264,7 +264,7 @@ uint32_t mbedtls_platform_random_uint32( void );
  *
  * \return      The generated random number.
  */
-uint32_t mbedtls_platform_random_in_range( size_t num );
+uint32_t mbedtls_platform_random_in_range( uint32_t num );
 
 /**
  * \brief       Random delay function.

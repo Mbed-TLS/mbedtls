@@ -96,7 +96,7 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
 void *mbedtls_platform_memset( void *ptr, int value, size_t num )
 {
     /* Randomize start offset. */
-    size_t start_offset = (size_t) mbedtls_platform_random_in_range( num );
+    size_t start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
     /* Randomize data */
     uint32_t data = mbedtls_platform_random_in_range( 256 );
 
@@ -113,7 +113,7 @@ void *mbedtls_platform_memset( void *ptr, int value, size_t num )
 void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
 {
     /* Randomize start offset. */
-    size_t start_offset = (size_t) mbedtls_platform_random_in_range( num );
+    size_t start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
     /* Randomize initial data to prevent leakage while copying */
     uint32_t data = mbedtls_platform_random_in_range( 256 );
 
@@ -152,7 +152,7 @@ int mbedtls_platform_memequal( const void *buf1, const void *buf2, size_t num )
 
     /* Start from a random location and check the correct number of iterations */
     size_t i, flow_counter = 0;
-    size_t start_offset = (size_t) mbedtls_platform_random_in_range( num );
+    size_t start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
 
     for( i = start_offset; i < num; i++ )
     {
@@ -186,7 +186,7 @@ uint32_t mbedtls_platform_random_uint32( )
 #endif
 }
 
-uint32_t mbedtls_platform_random_in_range( size_t num )
+uint32_t mbedtls_platform_random_in_range( uint32_t num )
 {
 #if !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
     (void) num;
@@ -216,7 +216,7 @@ void mbedtls_platform_random_delay( void )
 #if !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
     return;
 #else
-    size_t rn_1, rn_2, rn_3;
+    uint32_t rn_1, rn_2, rn_3;
     volatile size_t i = 0;
     uint8_t shift;
 
@@ -232,9 +232,9 @@ void mbedtls_platform_random_delay( void )
          * of its behaviour */
         shift = rn_2 & 0x07;
         if ( i % 2 )
-            rn_2 = (uint32_t)( rn_2 >> shift | rn_2 << ( 32 - shift ) );
+            rn_2 = ( rn_2 >> shift ) | ( rn_2 << ( 32 - shift ) );
         else
-            rn_3 = (uint32_t)( rn_3 << shift | rn_3 >> ( 32 - shift ) );
+            rn_3 = ( rn_3 << shift ) | ( rn_3 >> ( 32 - shift ) );
         rn_2 ^= rn_3;
     } while( i < rn_1 || rn_2 == 0 || rn_3 == 0 );
 

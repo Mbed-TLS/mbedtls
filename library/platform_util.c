@@ -95,30 +95,68 @@
 void *mbedtls_platform_memset( void *, int, size_t );
 static void * (* const volatile memset_func)( void *, int, size_t ) = mbedtls_platform_memset;
 
-void mbedtls_platform_zeroize( void *buf, size_t len )
+void *mbedtls_platform_zeroize( void *buf, size_t len )
 {
-    MBEDTLS_INTERNAL_VALIDATE( len == 0 || buf != NULL );
+    volatile size_t vlen = len;
 
-    if( len > 0 )
-        memset_func( buf, 0, len );
+    MBEDTLS_INTERNAL_VALIDATE_RET( ( len == 0 || buf != NULL ), NULL );
+
+    if( vlen > 0 )
+    {
+        return memset_func( buf, 0, vlen );
+    }
+    else
+    {
+        mbedtls_platform_random_delay();
+        if( vlen == 0 && vlen == len )
+        {
+            return buf;
+        }
+    }
+    return NULL;
 }
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */
 
 void *mbedtls_platform_memset( void *ptr, int value, size_t num )
 {
-    /* Randomize start offset. */
-    size_t start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
-    /* Randomize data */
-    uint32_t data = mbedtls_platform_random_in_range( 256 );
+    size_t i, start_offset;
+    volatile size_t flow_counter = 0;
+    volatile char *b = ptr;
+    char rnd_data;
 
-    /* Perform a pair of memset operations from random locations with
-     * random data */
-    memset( (void *) ( (unsigned char *) ptr + start_offset ), data,
-            ( num - start_offset ) );
-    memset( (void *) ptr, data, start_offset );
+    start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
+    rnd_data = (char) mbedtls_platform_random_in_range( 256 );
 
-    /* Perform the original memset */
-    return( memset( ptr, value, num ) );
+    /* Start from a random location */
+    for( i = start_offset; i < num; ++i )
+    {
+        b[i] = value;
+        flow_counter++;
+    }
+
+    /* Perform a memset operations with random data */
+    for( i = 0; i < start_offset; ++i )
+    {
+        b[i] = rnd_data;
+    }
+
+    /* Finish a memset operations with correct data */
+    for( i = 0; i < start_offset; ++i )
+    {
+        b[i] = value;
+        flow_counter++;
+    }
+
+    /* check the correct number of iterations */
+    if( flow_counter == num )
+    {
+        mbedtls_platform_random_delay();
+        if( flow_counter == num )
+        {
+            return ptr;
+        }
+    }
+    return NULL;
 }
 
 void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num )

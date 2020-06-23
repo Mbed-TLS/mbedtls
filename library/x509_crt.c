@@ -894,7 +894,7 @@ static int x509_get_crt_ext( unsigned char **p,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
-    unsigned char *end_ext_data, *end_ext_octet;
+    unsigned char *end_ext_data, *start_ext_octet, *end_ext_octet;
 
     if( *p == end )
         return( 0 );
@@ -940,6 +940,7 @@ static int x509_get_crt_ext( unsigned char **p,
                 MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
             return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
 
+        start_ext_octet = *p;
         end_ext_octet = *p + len;
 
         if( end_ext_octet != end_ext_data )
@@ -1025,6 +1026,13 @@ static int x509_get_crt_ext( unsigned char **p,
             if( ( ret = x509_get_certificate_policies( p, end_ext_octet,
                     &crt->certificate_policies ) ) != 0 )
             {
+                /* Give the callback (if any) a chance to handle the extension
+                 * if it contains unsupported policies */
+                if( ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE && cb != NULL &&
+                    cb( p_ctx, crt, &extn_oid, is_critical,
+                        start_ext_octet, end_ext_octet ) == 0 )
+                    break;
+
 #if !defined(MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION)
                 if( is_critical )
                     return( ret );

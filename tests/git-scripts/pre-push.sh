@@ -72,18 +72,4 @@ echo "URL is $URL"
 
 set -eu
 
-run_test()
-{
-    TEST=$1
-    echo "running '$TEST'"
-    if ! `$TEST > /dev/null 2>&1`; then
-        echo "test '$TEST' failed"
-        return 1
-    fi
-}
-
-run_test ./tests/scripts/check-doxy-blocks.pl
-run_test ./tests/scripts/check-names.sh
-run_test ./tests/scripts/check-generated-files.sh
-run_test ./tests/scripts/check-files.py
-run_test ./tests/scripts/doxygen.sh
+tests/scripts/all.sh -q -k 'check_*'

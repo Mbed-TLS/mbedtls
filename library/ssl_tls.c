@@ -3164,7 +3164,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
              *
              * Afterwards, we know that data + data_len is followed by at
              * least maclen Bytes, which justifies the call to
-             * mbedtls_platform_memcmp() below.
+             * mbedtls_platform_memequal() below.
              *
              * Further, we still know that data_len > minlen */
             rec->data_len -= transform->maclen;
@@ -3186,8 +3186,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                                    transform->maclen );
 
             /* Compare expected MAC with MAC at the end of the record. */
-            if( mbedtls_platform_memcmp( data + rec->data_len, mac_expect,
-                                          transform->maclen ) != 0 )
+            if( mbedtls_platform_memequal( data + rec->data_len, mac_expect,
+                                           transform->maclen ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
                 return( MBEDTLS_ERR_SSL_INVALID_MAC );
@@ -3525,8 +3525,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", data + rec->data_len, transform->maclen );
 #endif
 
-        if( mbedtls_platform_memcmp( data + rec->data_len, mac_expect,
-                                      transform->maclen ) != 0 )
+        if( mbedtls_platform_memequal( data + rec->data_len, mac_expect,
+                                       transform->maclen ) != 0 )
         {
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
@@ -4734,8 +4734,8 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
 static int ssl_hs_is_proper_fragment( mbedtls_ssl_context *ssl )
 {
     if( ssl->in_msglen < ssl->in_hslen ||
-        mbedtls_platform_memcmp( ssl->in_msg + 6, "\0\0\0",        3 ) != 0 ||
-        mbedtls_platform_memcmp( ssl->in_msg + 9, ssl->in_msg + 1, 3 ) != 0 )
+        mbedtls_platform_memequal( ssl->in_msg + 6, "\0\0\0",        3 ) != 0 ||
+        mbedtls_platform_memequal( ssl->in_msg + 9, ssl->in_msg + 1, 3 ) != 0 )
     {
         return( PROPER_HS_FRAGMENT );
     }
@@ -7070,7 +7070,7 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
     if( peer_crt->raw.len != crt_buf_len )
         return( PEER_CRT_CHANGED );
 
-    return( mbedtls_platform_memcmp( peer_crt->raw.p, crt_buf, crt_buf_len ) );
+    return( mbedtls_platform_memequal( peer_crt->raw.p, crt_buf, crt_buf_len ) );
 }
 #elif defined(MBEDTLS_SSL_RENEGOTIATION)
 #define PEER_CRT_CHANGED 0x75555555
@@ -7102,7 +7102,7 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
     if( ret != 0 )
         return( PEER_CRT_CHANGED );
 
-    return( mbedtls_platform_memcmp( tmp_digest, peer_cert_digest, digest_len ) );
+    return( mbedtls_platform_memequal( tmp_digest, peer_cert_digest, digest_len ) );
 }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE && MBEDTLS_SSL_RENEGOTIATION */
 #endif /* MBEDTLS_SSL_RENEGOTIATION && MBEDTLS_SSL_CLI_C */
@@ -8350,8 +8350,8 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
     }
 
-    if( mbedtls_platform_memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ),
-                      buf, hash_len ) != 0 )
+    if( mbedtls_platform_memequal( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ),
+                                   buf, hash_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
         mbedtls_ssl_pend_fatal_alert( ssl,
@@ -12125,7 +12125,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
             for( cur = ssl->conf->alpn_list; *cur != NULL; cur++ )
             {
                 if( strlen( *cur ) == alpn_len &&
-                    mbedtls_platform_memcmp( p, cur, alpn_len ) == 0 )
+                    mbedtls_platform_memequal( p, cur, alpn_len ) == 0 )
                 {
                     ssl->alpn_chosen = *cur;
                     break;

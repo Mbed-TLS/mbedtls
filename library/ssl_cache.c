@@ -94,7 +94,7 @@ int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session )
             continue;
         }
 
-        if( mbedtls_platform_memcmp( session->id, entry->session.id,
+        if( mbedtls_platform_memequal( session->id, entry->session.id,
                     entry->session.id_len ) != 0 )
             continue;
 
@@ -180,7 +180,7 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
         }
 #endif
 
-        if( mbedtls_platform_memcmp( session->id, cur->session.id, cur->session.id_len ) == 0 )
+        if( mbedtls_platform_memequal( session->id, cur->session.id, cur->session.id_len ) == 0 )
             break; /* client reconnected, keep timestamp for session id */
 
 #if defined(MBEDTLS_HAVE_TIME)

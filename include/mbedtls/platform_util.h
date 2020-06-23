@@ -215,12 +215,12 @@ void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num );
 int mbedtls_platform_memmove( void *dst, const void *src, size_t num );
 
 /**
- * \brief       Secure memcmp
+ * \brief       Secure check if the buffers have the same data.
  *
- *              This is a constant-time version of memcmp(). If
- *              MBEDTLS_ENTROPY_HARDWARE_ALT is defined, the order is also
- *              randomised using the hardware RNG in order to further harden
- *              against side-channel attacks.
+ *              This is a constant-time version of memcmp(), but without checking
+ *              if the bytes are greater or lower. If MBEDTLS_ENTROPY_HARDWARE_ALT
+ *              is defined, the order is also randomised using the hardware RNG in
+ *              order to further harden against side-channel attacks.
  *
  * \param buf1  First buffer to compare.
  * \param buf2  Second buffer to compare against.
@@ -229,7 +229,7 @@ int mbedtls_platform_memmove( void *dst, const void *src, size_t num );
  * \return      0 if the buffers were equal or an unspecified non-zero value
  *              otherwise.
  */
-int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num );
+int mbedtls_platform_memequal( const void *buf1, const void *buf2, size_t num );
 
 /**
  * \brief       RNG-function for getting a random 32-bit integer.

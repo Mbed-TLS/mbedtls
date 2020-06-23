@@ -417,7 +417,7 @@ int mbedtls_des_key_check_weak( const unsigned char key[MBEDTLS_DES_KEY_SIZE] )
     int i;
 
     for( i = 0; i < WEAK_KEY_COUNT; i++ )
-        if( mbedtls_platform_memcmp( weak_key_table[i], key, MBEDTLS_DES_KEY_SIZE) == 0 )
+        if( mbedtls_platform_memequal( weak_key_table[i], key, MBEDTLS_DES_KEY_SIZE) == 0 )
             return( 1 );
 
     return( 0 );

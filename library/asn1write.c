@@ -348,7 +348,7 @@ static mbedtls_asn1_named_data *asn1_find_named_data(
     while( list != NULL )
     {
         if( list->oid.len == len &&
-            mbedtls_platform_memcmp( list->oid.p, oid, len ) == 0 )
+            mbedtls_platform_memequal( list->oid.p, oid, len ) == 0 )
         {
             break;
         }

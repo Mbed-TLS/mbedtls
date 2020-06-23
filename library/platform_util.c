@@ -144,7 +144,7 @@ int mbedtls_platform_memmove( void *dst, const void *src, size_t num )
     return MBEDTLS_ERR_PLATFORM_ALLOC_FAILED;
 }
 
-int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )
+int mbedtls_platform_memequal( const void *buf1, const void *buf2, size_t num )
 {
     volatile const unsigned char *A = (volatile const unsigned char *) buf1;
     volatile const unsigned char *B = (volatile const unsigned char *) buf2;

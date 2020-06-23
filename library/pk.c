@@ -556,7 +556,7 @@ static int uecc_eckey_check_pair( const void *pub, const void *prv )
     const mbedtls_uecc_keypair *uecc_prv =
         (const mbedtls_uecc_keypair *) prv;
 
-    if( mbedtls_platform_memcmp( uecc_pub->public_key,
+    if( mbedtls_platform_memequal( uecc_pub->public_key,
                 uecc_prv->public_key,
                 2 * NUM_ECC_BYTES ) == 0 )
     {

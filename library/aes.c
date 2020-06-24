@@ -552,7 +552,7 @@ static int aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
     int i = 0, j, is_even_pos, dummy_rounds, num;
 
     mbedtls_platform_memset( tbl, 0, tbl_len );
-    // get random from 0x0fff (each f will be used separately)
+    // get random from 0x0fff
     num = mbedtls_platform_random_in_range( 0x1000 );
 
     // Randomize execution order of initial round key addition
@@ -570,7 +570,7 @@ static int aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
     tbl_len = tbl_len - (AES_SCA_CM_ROUNDS - dummy_rounds);
 
     // randomize positions for the dummy rounds
-    num = ( num & 0x000f ) % ( dummy_rounds + 1 );
+    num = ( num & 0x0fff ) % ( dummy_rounds + 1 );
 
     // add dummy rounds after initial round key addition (if needed)
     for ( ; i < num + 2; i++ )
@@ -725,7 +725,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
         return( mbedtls_aesni_setkey_enc( (unsigned char *) ctx->rk, key, keybits ) );
 #endif
 
-    mbedtls_platform_memset( RK, 0, ( keybits >> 5 ) * 4 );
+    mbedtls_platform_memset( RK, 0, keybits >> 3 );
     offset = mbedtls_platform_random_in_range( keybits >> 5 );
 
     for( j = offset; j < ( keybits >> 5 ); j++ )
@@ -1089,7 +1089,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     do
     {
         GET_UINT32_LE( aes_data_real.xy_values[i], input,  ( i * 4 ) );
-        aes_data_fake.xy_values[i] = mbedtls_platform_random_in_range( 0xffffffff );
+        aes_data_fake.xy_values[i] = mbedtls_platform_random_uint32();
         flow_control++;
     } while( ( i = ( i + 1 ) % 4 ) != offset );
 

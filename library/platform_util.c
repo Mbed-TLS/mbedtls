@@ -172,6 +172,20 @@ int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )
     return( (int) diff | (int) ( flow_counter ^ num ) );
 }
 
+uint32_t mbedtls_platform_random_uint32( )
+{
+#if !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+    return 0;
+#else
+    uint32_t result = 0;
+    size_t olen = 0;
+
+    mbedtls_hardware_poll( NULL, (unsigned char *) &result, sizeof( result ),
+                           &olen );
+    return( result );
+#endif
+}
+
 uint32_t mbedtls_platform_random_in_range( size_t num )
 {
 #if !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)

@@ -129,9 +129,8 @@ static int getrandom_wrapper( void *buf, size_t buflen, unsigned int flags )
 #if defined(KERN_ARND)
 #define HAVE_SYSCTL_ARND
 
-static int sysctl_arnd_wrapper( void *buf, size_t buflen )
+static int sysctl_arnd_wrapper( unsigned char *buf, size_t buflen )
 {
-    unsigned char *output = buf;
     int name[2];
     size_t len;
 
@@ -141,10 +140,10 @@ static int sysctl_arnd_wrapper( void *buf, size_t buflen )
     while( buflen > 0 )
     {
         len = buflen > 256 ? 256 : buflen;
-        if( sysctl(name, 2, output, &len, NULL, 0) == -1 )
+        if( sysctl(name, 2, buf, &len, NULL, 0) == -1 )
             return( -1 );
         buflen -= len;
-        output += len;
+        buf += len;
     }
     return( 0 );
 }

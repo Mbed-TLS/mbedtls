@@ -665,8 +665,8 @@ component_check_doxy_blocks () {
 }
 
 component_check_files () {
-    msg "test: check-files.py" # < 1s
-    record_status tests/scripts/check-files.py
+    msg "Check: file sanity checks (permissions, encodings)" # < 1s
+    record_status tests/scripts/check_files.py
 }
 
 component_check_changelog () {

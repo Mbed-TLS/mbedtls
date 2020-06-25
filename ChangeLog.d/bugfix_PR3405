@@ -1,0 +1,5 @@
+Bugfix
+   * Update iv and len context pointers manually when reallocating buffers
+     using the MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH feature. This caused issues
+     when receiving a connection with CID, when these fields were shifted
+     in ssl_parse_record_header().

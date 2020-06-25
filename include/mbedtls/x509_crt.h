@@ -304,6 +304,90 @@ int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain,
                                 size_t buflen );
 
 /**
+ * \brief          The type of certificate extension callbacks.
+ *
+ *                 Callbacks of this type are passed to and used by the
+ *                 mbedtls_x509_crt_parse_der_with_ext_cb() routine when
+ *                 it encounters either an unsupported extension or a
+ *                 "certificate policies" extension containing any
+ *                 unsupported certificate policies.
+ *                 Future versions of the library may invoke the callback
+ *                 in other cases, if and when the need arises.
+ *
+ * \param p_ctx    An opaque context passed to the callback.
+ * \param crt      The certificate being parsed.
+ * \param oid      The OID of the extension.
+ * \param critical Whether the extension is critical.
+ * \param p        Pointer to the start of the extension value
+ *                 (the content of the OCTET STRING).
+ * \param end      End of extension value.
+ *
+ * \note           The callback must fail and return a negative error code
+ *                 if it can not parse or does not support the extension.
+ *                 When the callback fails to parse a critical extension
+ *                 mbedtls_x509_crt_parse_der_with_ext_cb() also fails.
+ *                 When the callback fails to parse a non critical extension
+ *                 mbedtls_x509_crt_parse_der_with_ext_cb() simply skips
+ *                 the extension and continues parsing.
+ *
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ */
+typedef int (*mbedtls_x509_crt_ext_cb_t)( void *p_ctx,
+                                          mbedtls_x509_crt const *crt,
+                                          mbedtls_x509_buf const *oid,
+                                          int critical,
+                                          const unsigned char *p,
+                                          const unsigned char *end );
+
+/**
+ * \brief            Parse a single DER formatted certificate and add it
+ *                   to the end of the provided chained list.
+ *
+ * \param chain      The pointer to the start of the CRT chain to attach to.
+ *                   When parsing the first CRT in a chain, this should point
+ *                   to an instance of ::mbedtls_x509_crt initialized through
+ *                   mbedtls_x509_crt_init().
+ * \param buf        The buffer holding the DER encoded certificate.
+ * \param buflen     The size in Bytes of \p buf.
+ * \param make_copy  When not zero this function makes an internal copy of the
+ *                   CRT buffer \p buf. In particular, \p buf may be destroyed
+ *                   or reused after this call returns.
+ *                   When zero this function avoids duplicating the CRT buffer
+ *                   by taking temporary ownership thereof until the CRT
+ *                   is destroyed (like mbedtls_x509_crt_parse_der_nocopy())
+ * \param cb         A callback invoked for every unsupported certificate
+ *                   extension.
+ * \param p_ctx      An opaque context passed to the callback.
+ *
+ * \note             This call is functionally equivalent to
+ *                   mbedtls_x509_crt_parse_der(), and/or
+ *                   mbedtls_x509_crt_parse_der_nocopy()
+ *                   but it calls the callback with every unsupported
+ *                   certificate extension and additionally the
+ *                   "certificate policies" extension if it contains any
+ *                   unsupported certificate policies.
+ *                   The callback must return a negative error code if it
+ *                   does not know how to handle such an extension.
+ *                   When the callback fails to parse a critical extension
+ *                   mbedtls_x509_crt_parse_der_with_ext_cb() also fails.
+ *                   When the callback fails to parse a non critical extension
+ *                   mbedtls_x509_crt_parse_der_with_ext_cb() simply skips
+ *                   the extension and continues parsing.
+ *                   Future versions of the library may invoke the callback
+ *                   in other cases, if and when the need arises.
+ *
+ * \return           \c 0 if successful.
+ * \return           A negative error code on failure.
+ */
+int mbedtls_x509_crt_parse_der_with_ext_cb( mbedtls_x509_crt *chain,
+                                            const unsigned char *buf,
+                                            size_t buflen,
+                                            int make_copy,
+                                            mbedtls_x509_crt_ext_cb_t cb,
+                                            void *p_ctx );
+
+/**
  * \brief          Parse a single DER formatted certificate and add it
  *                 to the end of the provided chained list. This is a
  *                 variant of mbedtls_x509_crt_parse_der() which takes

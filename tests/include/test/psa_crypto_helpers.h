@@ -1,7 +1,8 @@
 /*
  * Helper functions for tests that use the PSA Crypto API.
  */
-/*  Copyright (C) 2019, ARM Limited, All Rights Reserved
+/*
+ *  Copyright (C) 2019, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -22,7 +23,7 @@
 #ifndef PSA_CRYPTO_HELPERS_H
 #define PSA_CRYPTO_HELPERS_H
 
-#include "psa_helpers.h"
+#include "test/psa_helpers.h"
 
 #include <psa/crypto.h>
 

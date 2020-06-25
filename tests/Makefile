@@ -6,7 +6,7 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -Wextra
 LDFLAGS ?=
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -I../library -D_FILE_OFFSET_BITS=64
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I./include -I../include -I../library -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = -L../library			\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
@@ -21,9 +21,9 @@ LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 LOCAL_CFLAGS += -D_POSIX_C_SOURCE=200809L
 
 ifndef SHARED
-DEP=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
+MBEDLIBS=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
 else
-DEP=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
+MBEDLIBS=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
 endif
 
 ifdef DEBUG
@@ -74,8 +74,15 @@ BINARIES := $(addsuffix $(EXEXT),$(APPS))
 
 all: $(BINARIES)
 
-$(DEP):
+$(MBEDLIBS):
 	$(MAKE) -C ../library
+
+MBEDTESTS_OBJS=$(patsubst %.c,%.o,$(wildcard src/*.c))
+
+# Rule to compile common test C files in src folder
+src/%.o : src/%.c
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
 C_FILES := $(addsuffix .c,$(APPS))
 
@@ -105,23 +112,26 @@ C_FILES := $(addsuffix .c,$(APPS))
 		-o .
 
 
-$(BINARIES): %$(EXEXT): %.c $(DEP)
+$(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(MBEDTESTS_OBJS)
 	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $< $(MBEDTESTS_OBJS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 # Some test suites require additional header files.
-$(filter test_suite_psa_crypto%, $(BINARIES)): psa_crypto_helpers.h
+$(filter test_suite_psa_crypto%, $(BINARIES)): include/test/psa_crypto_helpers.h
 $(addprefix embedded_,$(filter test_suite_psa_crypto%, $(APPS))): embedded_%: TESTS/mbedtls/%/psa_crypto_helpers.h
-$(filter test_suite_psa_%, $(BINARIES)): psa_helpers.h
+$(filter test_suite_psa_%, $(BINARIES)): include/test/psa_helpers.h
 $(addprefix embedded_,$(filter test_suite_psa_%, $(APPS))): embedded_%: TESTS/mbedtls/%/psa_helpers.h
 
 clean:
 ifndef WINDOWS
 	rm -rf $(BINARIES) *.c *.datax TESTS
+	rm -f src/*.o src/libmbed*
 else
 	if exist *.c del /Q /F *.c
 	if exist *.exe del /Q /F *.exe
 	if exist *.datax del /Q /F *.datax
+	if exist src/*.o del /Q /F src/*.o
+	if exist src/libmbed* del /Q /F src/libmed*
 ifneq ($(wildcard TESTS/.*),)
 	rmdir /Q /S TESTS
 endif
@@ -152,7 +162,7 @@ $(EMBEDDED_TESTS): embedded_%: suites/$$(firstword $$(subst ., ,$$*)).function s
 generate-target-tests: $(EMBEDDED_TESTS)
 
 define copy_header_to_target
-TESTS/mbedtls/$(1)/$(2): $(2)
+TESTS/mbedtls/$(1)/$(2): include/test/$(2)
 	echo "  Copy ./$$@"
 ifndef WINDOWS
 	mkdir -p $$(@D)
@@ -163,11 +173,11 @@ else
 endif
 
 endef
-$(foreach app, $(APPS), $(foreach file, $(wildcard *.h), \
+$(foreach app, $(APPS), $(foreach file, $(notdir $(wildcard include/test/*.h)), \
 	$(eval $(call copy_header_to_target,$(app),$(file)))))
 
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-$(BINARIES): instrument_record_status.h
-instrument_record_status.h: ../include/psa/crypto.h Makefile
+$(BINARIES): include/test/instrument_record_status.h
+include/test/instrument_record_status.h: ../include/psa/crypto.h Makefile
 	sed <../include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
 endif

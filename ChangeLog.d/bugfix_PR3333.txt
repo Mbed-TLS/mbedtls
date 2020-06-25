@@ -1,0 +1,2 @@
+Bugfix
+   * Remove unused macros from MSVC projects. Reported in #3297 and fix submitted in #3333 by irwir.

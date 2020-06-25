@@ -23,15 +23,15 @@ void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src
     memset( key,     0x00, sizeof( key ) );
     memset( mac,     0x00, sizeof( mac ) );
 
-    src_len = unhexify( src_str, hex_src_string );
-    unhexify( key, hex_key_string );
+    src_len = mbedtls_test_unhexify( src_str, hex_src_string );
+    mbedtls_test_unhexify( key, hex_key_string );
 
     /*
      * Test the integrated API
      */
     TEST_ASSERT( mbedtls_poly1305_mac( key, src_str, src_len, mac ) == 0 );
 
-    hexify( mac_str, mac, 16 );
+    mbedtls_test_hexify( mac_str, mac, 16 );
     TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
 
     /*
@@ -45,7 +45,7 @@ void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src
 
     TEST_ASSERT( mbedtls_poly1305_finish( &ctx, mac ) == 0 );
 
-    hexify( mac_str, mac, 16 );
+    mbedtls_test_hexify( mac_str, mac, 16 );
     TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
 
     /*
@@ -63,7 +63,7 @@ void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src
 
         TEST_ASSERT( mbedtls_poly1305_finish( &ctx, mac ) == 0 );
 
-        hexify( mac_str, mac, 16 );
+        mbedtls_test_hexify( mac_str, mac, 16 );
         TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
     }
 
@@ -80,7 +80,7 @@ void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src
 
         TEST_ASSERT( mbedtls_poly1305_finish( &ctx, mac ) == 0 );
 
-        hexify( mac_str, mac, 16 );
+        mbedtls_test_hexify( mac_str, mac, 16 );
         TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
     }
 

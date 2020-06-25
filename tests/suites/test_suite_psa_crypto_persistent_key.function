@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 
-#include "psa_crypto_helpers.h"
+#include "test/psa_crypto_helpers.h"
 #include "psa_crypto_storage.h"
 
 #include "mbedtls/md.h"

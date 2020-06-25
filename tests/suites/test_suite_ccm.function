@@ -218,12 +218,14 @@ void mbedtls_ccm_star_encrypt_and_tag( int cipher_id,
     memset( source_address, 0x00, sizeof( source_address ) );
     memset( frame_counter, 0x00, sizeof( frame_counter ) );
 
-    key_len = unhexify( key, key_hex );
-    msg_len = unhexify( msg, msg_hex );
-    add_len = unhexify( add, add_hex );
-    result_len = unhexify( result, result_hex );
-    source_address_len = unhexify( source_address, source_address_hex );
-    frame_counter_len = unhexify( frame_counter, frame_counter_hex );
+    key_len = mbedtls_test_unhexify( key, key_hex );
+    msg_len = mbedtls_test_unhexify( msg, msg_hex );
+    add_len = mbedtls_test_unhexify( add, add_hex );
+    result_len = mbedtls_test_unhexify( result, result_hex );
+    source_address_len = mbedtls_test_unhexify( source_address,
+                                                source_address_hex );
+    frame_counter_len = mbedtls_test_unhexify( frame_counter,
+                                               frame_counter_hex );
 
     if( sec_level % 4 == 0)
         tag_len = 0;
@@ -286,12 +288,14 @@ void mbedtls_ccm_star_auth_decrypt( int cipher_id,
     memset( frame_counter, 0x00, sizeof( frame_counter ) );
     memset( tag, 0x00, sizeof( tag ) );
 
-    key_len = unhexify( key, key_hex );
-    msg_len = unhexify( msg, msg_hex );
-    add_len = unhexify( add, add_hex );
-    result_len = unhexify( result, result_hex );
-    source_address_len = unhexify( source_address, source_address_hex );
-    frame_counter_len = unhexify( frame_counter, frame_counter_hex );
+    key_len = mbedtls_test_unhexify( key, key_hex );
+    msg_len = mbedtls_test_unhexify( msg, msg_hex );
+    add_len = mbedtls_test_unhexify( add, add_hex );
+    result_len = mbedtls_test_unhexify( result, result_hex );
+    source_address_len = mbedtls_test_unhexify( source_address,
+                                                source_address_hex );
+    frame_counter_len = mbedtls_test_unhexify( frame_counter,
+                                               frame_counter_hex );
 
     if( sec_level % 4 == 0)
         tag_len = 0;

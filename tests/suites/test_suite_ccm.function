@@ -195,17 +195,18 @@ void mbedtls_ccm_star_encrypt_and_tag( int cipher_id,
                             char *key_hex, char *msg_hex,
                             char *source_address_hex, char *frame_counter_hex,
                             int sec_level, char *add_hex,
-                            char *result_hex, int output_ret )
+                            char *expected_result_hex, int output_ret )
 {
     unsigned char key[32];
     unsigned char msg[50];
     unsigned char iv[13];
     unsigned char add[32];
     unsigned char result[50];
+    unsigned char expected_result[50];
     unsigned char source_address[8];
     unsigned char frame_counter[4];
     mbedtls_ccm_context ctx;
-    size_t i, key_len, msg_len, iv_len, add_len, result_len, source_address_len, frame_counter_len, tag_len;
+    size_t i, key_len, msg_len, iv_len, add_len, expected_result_len, source_address_len, frame_counter_len, tag_len;
     int ret;
 
     mbedtls_ccm_init( &ctx );
@@ -215,13 +216,14 @@ void mbedtls_ccm_star_encrypt_and_tag( int cipher_id,
     memset( iv, 0x00, sizeof( iv ) );
     memset( add, 0x00, sizeof( add ) );
     memset( result, 0x00, sizeof( result ) );
+    memset( expected_result, 0x00, sizeof( expected_result ) );
     memset( source_address, 0x00, sizeof( source_address ) );
     memset( frame_counter, 0x00, sizeof( frame_counter ) );
 
     key_len = mbedtls_test_unhexify( key, key_hex );
     msg_len = mbedtls_test_unhexify( msg, msg_hex );
     add_len = mbedtls_test_unhexify( add, add_hex );
-    result_len = mbedtls_test_unhexify( result, result_hex );
+    expected_result_len = mbedtls_test_unhexify( expected_result, expected_result_hex );
     source_address_len = mbedtls_test_unhexify( source_address,
                                                 source_address_hex );
     frame_counter_len = mbedtls_test_unhexify( frame_counter,
@@ -244,14 +246,15 @@ void mbedtls_ccm_star_encrypt_and_tag( int cipher_id,
     TEST_ASSERT( mbedtls_ccm_setkey( &ctx, cipher_id, key, key_len * 8 ) == 0 );
 
     ret = mbedtls_ccm_star_encrypt_and_tag( &ctx, msg_len, iv, iv_len,
-                 add, add_len, msg, msg, msg + msg_len, tag_len );
+                 add, add_len, msg, result, result + msg_len, tag_len );
 
     TEST_ASSERT( ret == output_ret );
 
-    TEST_ASSERT( memcmp( msg, result, result_len ) == 0 );
+    TEST_ASSERT( memcmp( result, expected_result, expected_result_len ) == 0 );
 
     /* Check we didn't write past the end */
-    TEST_ASSERT( msg[result_len] == 0 && msg[result_len + 1] == 0 );
+    TEST_ASSERT( result[expected_result_len] == 0 &&
+                 result[expected_result_len + 1] == 0 );
 
 exit:
     mbedtls_ccm_free( &ctx );
@@ -263,18 +266,18 @@ void mbedtls_ccm_star_auth_decrypt( int cipher_id,
                             char *key_hex, char *msg_hex,
                             char *source_address_hex, char *frame_counter_hex,
                             int sec_level, char *add_hex,
-                            char *result_hex, int output_ret )
+                            char *expected_result_hex, int output_ret )
 {
     unsigned char key[32];
     unsigned char msg[50];
     unsigned char iv[13];
     unsigned char add[32];
-    unsigned char tag[16];
     unsigned char result[50];
+    unsigned char expected_result[50];
     unsigned char source_address[8];
     unsigned char frame_counter[4];
     mbedtls_ccm_context ctx;
-    size_t i, key_len, msg_len, iv_len, add_len, tag_len, result_len, source_address_len, frame_counter_len;
+    size_t i, key_len, msg_len, iv_len, add_len, tag_len, expected_result_len, source_address_len, frame_counter_len;
     int ret;
 
     mbedtls_ccm_init( &ctx );
@@ -283,15 +286,15 @@ void mbedtls_ccm_star_auth_decrypt( int cipher_id,
     memset( msg, 0x00, sizeof( msg ) );
     memset( iv, 0x00, sizeof( iv ) );
     memset( add, 0x00, sizeof( add ) );
-    memset( result, 0x00, sizeof( result ) );
+    memset( result, '+', sizeof( result ) );
+    memset( expected_result, 0x00, sizeof( expected_result ) );
     memset( source_address, 0x00, sizeof( source_address ) );
     memset( frame_counter, 0x00, sizeof( frame_counter ) );
-    memset( tag, 0x00, sizeof( tag ) );
 
     key_len = mbedtls_test_unhexify( key, key_hex );
     msg_len = mbedtls_test_unhexify( msg, msg_hex );
     add_len = mbedtls_test_unhexify( add, add_hex );
-    result_len = mbedtls_test_unhexify( result, result_hex );
+    expected_result_len = mbedtls_test_unhexify( expected_result, expected_result_hex );
     source_address_len = mbedtls_test_unhexify( source_address,
                                                 source_address_hex );
     frame_counter_len = mbedtls_test_unhexify( frame_counter,
@@ -311,20 +314,19 @@ void mbedtls_ccm_star_auth_decrypt( int cipher_id,
     iv[source_address_len + frame_counter_len] = sec_level;
     iv_len = sizeof( iv );
 
-    msg_len -= tag_len;
-    memcpy( tag, msg + msg_len, tag_len );
-
     TEST_ASSERT( mbedtls_ccm_setkey( &ctx, cipher_id, key, key_len * 8 ) == 0 );
 
-    ret = mbedtls_ccm_star_auth_decrypt( &ctx, msg_len, iv, iv_len,
-                 add, add_len, msg, msg, msg + msg_len, tag_len );
+    ret = mbedtls_ccm_star_auth_decrypt( &ctx, msg_len - tag_len, iv, iv_len,
+                 add, add_len, msg, result, msg + msg_len - tag_len, tag_len );
 
     TEST_ASSERT( ret == output_ret );
 
-    TEST_ASSERT( memcmp( msg, result, result_len ) == 0 );
+    TEST_ASSERT( memcmp( result, expected_result, expected_result_len ) == 0 );
 
     /* Check we didn't write past the end (where the original tag is) */
-    TEST_ASSERT( memcmp( msg + msg_len, tag, tag_len ) == 0 );
+    TEST_ASSERT( ( msg_len + 2 ) <= sizeof( result ) );
+    TEST_ASSERT( result[msg_len] == '+' );
+    TEST_ASSERT( result[msg_len + 1] == '+' );
 
 exit:
     mbedtls_ccm_free( &ctx );

@@ -665,13 +665,6 @@ run_test() {
         return
     fi
 
-    # fix client port
-    if [ -n "$PXY_CMD" ]; then
-        CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$PXY_PORT/g )
-    else
-        CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$SRV_PORT/g )
-    fi
-
     # update DTLS variable
     detect_dtls "$SRV_CMD"
 
@@ -679,6 +672,13 @@ run_test() {
     # as it provides timing info that's useful to debug failures
     if [ "X$PXY_CMD" = "X" -a "$DTLS" -eq 1 ]; then
         PXY_CMD="$P_PXY"
+    fi
+
+    # fix client port
+    if [ -n "$PXY_CMD" ]; then
+        CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$PXY_PORT/g )
+    else
+        CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$SRV_PORT/g )
     fi
 
     # prepend valgrind to our commands if active

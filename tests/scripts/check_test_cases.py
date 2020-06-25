@@ -76,59 +76,98 @@ def check_description(results, seen, file_name, line_number, description):
                         len(description))
     seen[description] = line_number
 
-def walk_test_suite(function, results, descriptions, data_file_name):
-    """Iterate over the test cases in the given unit test data file.
+class TestDescriptionExplorer:
+    """An iterator over test cases with descriptions.
 
-Call function(results, descriptions, data_file_name, line_number, description)
-on each description.
+The test cases that have descriptions are:
+* Individual unit tests (entries in a .data file) in test suites.
+* Individual test cases in ssl-opt.sh.
+
+This is an abstract class. To use it, derive a class that implements
+the process_test_case method, and call walk_all().
 """
-    in_paragraph = False
-    with open(data_file_name, 'rb') as data_file:
-        for line_number, line in enumerate(data_file, 1):
-            line = line.rstrip(b'\r\n')
-            if not line:
-                in_paragraph = False
-                continue
-            if line.startswith(b'#'):
-                continue
-            if not in_paragraph:
-                # This is a test case description line.
-                function(results, descriptions,
-                         data_file_name, line_number, line)
-            in_paragraph = True
 
-def walk_ssl_opt_sh(function, results, descriptions, file_name):
-    """Iterate over the test cases in ssl-opt.sh or a file with a similar format.
+    def process_test_case(self, per_file_state,
+                          file_name, line_number, description):
+        """Process a test case.
 
-Call function(results, descriptions, file_name, line_number, description)
-on each description.
+per_file_state: a new object returned by per_file_state() for each file.
+file_name: a relative path to the file containing the test case.
+line_number: the line number in the given file.
+description: the test case description as a byte string.
 """
-    with open(file_name, 'rb') as file_contents:
-        for line_number, line in enumerate(file_contents, 1):
-            # Assume that all run_test calls have the same simple form
-            # with the test description entirely on the same line as the
-            # function name.
-            m = re.match(br'\s*run_test\s+"((?:[^\\"]|\\.)*)"', line)
-            if not m:
-                continue
-            description = m.group(1)
-            function(results, descriptions,
-                     file_name, line_number, description)
+        raise NotImplementedError
 
-def walk_all(function, results):
-    """Iterate over all named test cases.
+    def per_file_state(self):
+        """Return a new per-file state object.
 
-Call function(results, {}, file_name, line_number, description)
-on each description.
+The default per-file state object is None. Child classes that require per-file
+state may override this method.
 """
-    test_directories = collect_test_directories()
-    for directory in test_directories:
-        for data_file_name in glob.glob(os.path.join(directory, 'suites',
-                                                     '*.data')):
-            walk_test_suite(function, results, {}, data_file_name)
-        ssl_opt_sh = os.path.join(directory, 'ssl-opt.sh')
-        if os.path.exists(ssl_opt_sh):
-            walk_ssl_opt_sh(function, results, {}, ssl_opt_sh)
+        #pylint: disable=no-self-use
+        return None
+
+    def walk_test_suite(self, data_file_name):
+        """Iterate over the test cases in the given unit test data file."""
+        in_paragraph = False
+        descriptions = self.per_file_state() # pylint: disable=assignment-from-none
+        with open(data_file_name, 'rb') as data_file:
+            for line_number, line in enumerate(data_file, 1):
+                line = line.rstrip(b'\r\n')
+                if not line:
+                    in_paragraph = False
+                    continue
+                if line.startswith(b'#'):
+                    continue
+                if not in_paragraph:
+                    # This is a test case description line.
+                    self.process_test_case(descriptions,
+                                           data_file_name, line_number, line)
+                in_paragraph = True
+
+    def walk_ssl_opt_sh(self, file_name):
+        """Iterate over the test cases in ssl-opt.sh or a file with a similar format."""
+        descriptions = self.per_file_state() # pylint: disable=assignment-from-none
+        with open(file_name, 'rb') as file_contents:
+            for line_number, line in enumerate(file_contents, 1):
+                # Assume that all run_test calls have the same simple form
+                # with the test description entirely on the same line as the
+                # function name.
+                m = re.match(br'\s*run_test\s+"((?:[^\\"]|\\.)*)"', line)
+                if not m:
+                    continue
+                description = m.group(1)
+                self.process_test_case(descriptions,
+                                       file_name, line_number, description)
+
+    def walk_all(self):
+        """Iterate over all named test cases."""
+        test_directories = collect_test_directories()
+        for directory in test_directories:
+            for data_file_name in glob.glob(os.path.join(directory, 'suites',
+                                                         '*.data')):
+                self.walk_test_suite(data_file_name)
+            ssl_opt_sh = os.path.join(directory, 'ssl-opt.sh')
+            if os.path.exists(ssl_opt_sh):
+                self.walk_ssl_opt_sh(ssl_opt_sh)
+
+class DescriptionChecker(TestDescriptionExplorer):
+    """Check all test case descriptions.
+
+* Check that each description is valid (length, allowed character set, etc.).
+* Check that there is no duplicated description inside of one test suite.
+"""
+
+    def __init__(self, results):
+        self.results = results
+
+    def per_file_state(self):
+        return {}
+
+    def process_test_case(self, per_file_state,
+                          file_name, line_number, description):
+        check_description(self.results, per_file_state,
+                          file_name, line_number, description)
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -140,7 +179,8 @@ def main():
                         help='Show warnings (default: on; undoes --quiet)')
     options = parser.parse_args()
     results = Results(options)
-    walk_all(check_description, results)
+    checker = DescriptionChecker(results)
+    checker.walk_all()
     if (results.warnings or results.errors) and not options.quiet:
         sys.stderr.write('{}: {} errors, {} warnings\n'
                          .format(sys.argv[0], results.errors, results.warnings))

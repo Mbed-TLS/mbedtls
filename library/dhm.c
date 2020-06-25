@@ -371,6 +371,9 @@ static int dhm_update_blinding( mbedtls_dhm_context *ctx,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret;
+    mbedtls_mpi R;
+
+    mbedtls_mpi_init( &R );
 
     /*
      * Don't use any blinding the first time a particular X is used,
@@ -407,11 +410,21 @@ static int dhm_update_blinding( mbedtls_dhm_context *ctx,
     /* Vi = random( 2, P-1 ) */
     MBEDTLS_MPI_CHK( dhm_random_below( &ctx->Vi, &ctx->P, f_rng, p_rng ) );
 
-    /* Vf = Vi^-X mod P */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &ctx->Vf, &ctx->Vi, &ctx->P ) );
+    /* Vf = Vi^-X mod P
+     * First compute Vi^-1 = R * (R Vi)^-1, (avoiding leaks from inv_mod),
+     * then elevate to the Xth power. */
+    MBEDTLS_MPI_CHK( dhm_random_below( &R, &ctx->P, f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->Vf, &ctx->Vi, &R ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->Vf, &ctx->Vf, &ctx->P ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &ctx->Vf, &ctx->Vf, &ctx->P ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->Vf, &ctx->Vf, &R ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->Vf, &ctx->Vf, &ctx->P ) );
+
     MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &ctx->Vf, &ctx->Vf, &ctx->X, &ctx->P, &ctx->RP ) );
 
 cleanup:
+    mbedtls_mpi_free( &R );
+
     return( ret );
 }
 

@@ -45,37 +45,6 @@ class Results:
                              .format(file_name, line_number, *args))
             self.warnings += 1
 
-def collect_test_directories():
-    """Get the relative path for the TLS and Crypto test directories."""
-    if os.path.isdir('tests'):
-        tests_dir = 'tests'
-    elif os.path.isdir('suites'):
-        tests_dir = '.'
-    elif os.path.isdir('../suites'):
-        tests_dir = '..'
-    directories = [tests_dir]
-    return directories
-
-def check_description(results, seen, file_name, line_number, description):
-    """Check test case descriptions for errors."""
-    if description in seen:
-        results.error(file_name, line_number,
-                      'Duplicate description (also line {})',
-                      seen[description])
-        return
-    if re.search(br'[\t;]', description):
-        results.error(file_name, line_number,
-                      'Forbidden character \'{}\' in description',
-                      re.search(br'[\t;]', description).group(0).decode('ascii'))
-    if re.search(br'[^ -~]', description):
-        results.error(file_name, line_number,
-                      'Non-ASCII character in description')
-    if len(description) > 66:
-        results.warning(file_name, line_number,
-                        'Test description too long ({} > 66)',
-                        len(description))
-    seen[description] = line_number
-
 class TestDescriptionExplorer:
     """An iterator over test cases with descriptions.
 
@@ -140,9 +109,21 @@ state may override this method.
                 self.process_test_case(descriptions,
                                        file_name, line_number, description)
 
+    @staticmethod
+    def collect_test_directories():
+        """Get the relative path for the TLS and Crypto test directories."""
+        if os.path.isdir('tests'):
+            tests_dir = 'tests'
+        elif os.path.isdir('suites'):
+            tests_dir = '.'
+        elif os.path.isdir('../suites'):
+            tests_dir = '..'
+        directories = [tests_dir]
+        return directories
+
     def walk_all(self):
         """Iterate over all named test cases."""
-        test_directories = collect_test_directories()
+        test_directories = self.collect_test_directories()
         for directory in test_directories:
             for data_file_name in glob.glob(os.path.join(directory, 'suites',
                                                          '*.data')):
@@ -162,12 +143,31 @@ class DescriptionChecker(TestDescriptionExplorer):
         self.results = results
 
     def per_file_state(self):
+        """Dictionary mapping descriptions to their line number."""
         return {}
 
     def process_test_case(self, per_file_state,
                           file_name, line_number, description):
-        check_description(self.results, per_file_state,
-                          file_name, line_number, description)
+        """Check test case descriptions for errors."""
+        results = self.results
+        seen = per_file_state
+        if description in seen:
+            results.error(file_name, line_number,
+                          'Duplicate description (also line {})',
+                          seen[description])
+            return
+        if re.search(br'[\t;]', description):
+            results.error(file_name, line_number,
+                          'Forbidden character \'{}\' in description',
+                          re.search(br'[\t;]', description).group(0).decode('ascii'))
+        if re.search(br'[^ -~]', description):
+            results.error(file_name, line_number,
+                          'Non-ASCII character in description')
+        if len(description) > 66:
+            results.warning(file_name, line_number,
+                            'Test description too long ({} > 66)',
+                            len(description))
+        seen[description] = line_number
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)

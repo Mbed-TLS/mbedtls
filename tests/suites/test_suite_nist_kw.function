@@ -244,14 +244,14 @@ exit:
 /* BEGIN_CASE */
 void mbedtls_nist_kw_wrap( int cipher_id, int mode,
                            char *key_hex, char *msg_hex,
-                           char *result_hex )
+                           char *expected_result_hex )
 {
     unsigned char key[32];
     unsigned char msg[512];
     unsigned char result[528];
     unsigned char expected_result[528];
     mbedtls_nist_kw_context ctx;
-    size_t key_len, msg_len, output_len, result_len, i, padlen;
+    size_t key_len, msg_len, result_len, expected_result_len, i, padlen;
 
     mbedtls_nist_kw_init( &ctx );
 
@@ -261,19 +261,19 @@ void mbedtls_nist_kw_wrap( int cipher_id, int mode,
 
     key_len = mbedtls_test_unhexify( key, key_hex );
     msg_len = mbedtls_test_unhexify( msg, msg_hex );
-    result_len = mbedtls_test_unhexify( expected_result, result_hex );
-    output_len = sizeof( result );
+    expected_result_len = mbedtls_test_unhexify( expected_result, expected_result_hex );
+    result_len = sizeof( result );
 
     TEST_ASSERT( mbedtls_nist_kw_setkey( &ctx, cipher_id, key, key_len * 8, 1 )
                  == 0 );
 
     /* Test with input == output */
     TEST_ASSERT( mbedtls_nist_kw_wrap( &ctx, mode, msg, msg_len,
-                 result, &output_len, sizeof( result ) ) == 0 );
+                 result, &result_len, sizeof( result ) ) == 0 );
 
-    TEST_ASSERT( output_len == result_len );
+    TEST_ASSERT( result_len == expected_result_len );
 
-    TEST_ASSERT( memcmp( expected_result, result, result_len ) == 0 );
+    TEST_ASSERT( memcmp( expected_result, result, expected_result_len ) == 0 );
 
     padlen = ( msg_len % 8 != 0 ) ? 8 - (msg_len % 8 ) : 0;
     /* Check that the function didn't write beyond the end of the buffer. */
@@ -290,14 +290,14 @@ exit:
 /* BEGIN_CASE */
 void mbedtls_nist_kw_unwrap( int cipher_id, int mode,
                              char *key_hex, char *msg_hex,
-                             char *result_hex, int expected_ret )
+                             char *expected_result_hex, int expected_ret )
 {
     unsigned char key[32];
     unsigned char msg[528];
     unsigned char result[528];
     unsigned char expected_result[528];
     mbedtls_nist_kw_context ctx;
-    size_t key_len, msg_len, output_len, result_len, i;
+    size_t key_len, msg_len, result_len, expected_result_len, i;
 
     mbedtls_nist_kw_init( &ctx );
 
@@ -308,23 +308,23 @@ void mbedtls_nist_kw_unwrap( int cipher_id, int mode,
 
     key_len = mbedtls_test_unhexify( key, key_hex );
     msg_len = mbedtls_test_unhexify( msg, msg_hex );
-    result_len = mbedtls_test_unhexify( expected_result, result_hex );
-    output_len = sizeof( result );
+    expected_result_len = mbedtls_test_unhexify( expected_result, expected_result_hex );
+    result_len = sizeof( result );
 
     TEST_ASSERT( mbedtls_nist_kw_setkey( &ctx, cipher_id, key, key_len * 8, 0 )
                  == 0 );
 
     /* Test with input == output */
     TEST_ASSERT( mbedtls_nist_kw_unwrap( &ctx, mode, msg, msg_len,
-                 result, &output_len, sizeof( result ) ) == expected_ret );
+                 result, &result_len, sizeof( result ) ) == expected_ret );
     if( expected_ret == 0 )
     {
-        TEST_ASSERT( output_len == result_len );
-        TEST_ASSERT( memcmp( expected_result, result, result_len ) == 0 );
+        TEST_ASSERT( result_len == expected_result_len );
+        TEST_ASSERT( memcmp( expected_result, result, expected_result_len ) == 0 );
     }
     else
     {
-        TEST_ASSERT( output_len == 0 );
+        TEST_ASSERT( result_len == 0 );
     }
 
     /* Check that the function didn't write beyond the end of the buffer. */

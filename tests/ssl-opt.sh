@@ -626,7 +626,7 @@ run_test() {
 
     # if the test uses DTLS but no custom proxy, add a simple proxy
     # as it provides timing info that's useful to debug failures
-    if [ "X$PXY_CMD" = "X" -a "$DTLS" -eq 1 ]; then
+    if [ -z "$PXY_CMD" ] && [ "$DTLS" -eq 1 ]; then
         PXY_CMD="$P_PXY"
     fi
 

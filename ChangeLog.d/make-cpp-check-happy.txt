@@ -1,0 +1,3 @@
+Bugfix
+   * Fix false positive uninitialised variable reported by cpp-check.
+     Contributed by Sander Visser in #3311.

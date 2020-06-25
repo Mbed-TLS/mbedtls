@@ -1,0 +1,2 @@
+Features
+   * Add support for Windows 2000 in net_sockets. Contributed by opatomic. #3239

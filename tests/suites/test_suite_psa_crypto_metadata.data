@@ -155,7 +155,7 @@ depends_on:MBEDTLS_ARC4_C
 cipher_algorithm:PSA_ALG_ARC4:ALG_IS_STREAM_CIPHER
 
 Cipher: ChaCha20
-depends_on:MBEDTLS_CHACHA_C
+depends_on:MBEDTLS_CHACHA20_C
 cipher_algorithm:PSA_ALG_CHACHA20:ALG_IS_STREAM_CIPHER
 
 Cipher: CTR

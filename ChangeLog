@@ -1,5 +1,128 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Default behavior changes
+   * In the experimental PSA secure element interface, change the encoding of
+     key lifetimes to encode a persistence level and the location. Although C
+     prototypes do not effectively change, code calling
+     psa_register_se_driver() must be modified to pass the driver's location
+     instead of the keys' lifetime. If the library is upgraded on an existing
+     device, keys created with the old lifetime value will not be readable or
+     removable through Mbed TLS after the upgrade.
+
+Features
+   * New functions in the error module return constant strings for
+     high- and low-level error codes, complementing mbedtls_strerror()
+     which constructs a string for any error code, including compound
+     ones, but requires a writable buffer. Contributed by Gaurav Aggarwal
+     in #3176.
+   * The new utility programs/ssl/ssl_context_info prints a human-readable
+     dump of an SSL context saved with mbedtls_ssl_context_save().
+   * Add support for midipix, a POSIX layer for Microsoft Windows.
+   * Add new mbedtls_x509_crt_parse_der_with_ext_cb() routine which allows
+     parsing unsupported certificate extensions via user provided callback.
+     Contributed by Nicola Di Lieto <nicola.dilieto@gmail.com> in #3243 as
+     a solution to #3241.
+   * Pass the "certificate policies" extension to the callback supplied to
+     mbedtls_x509_crt_parse_der_with_ext_cb() if it contains unsupported
+     policies (#3419).
+   * Added support to entropy_poll for the kern.arandom syscall supported on
+     some BSD systems. Contributed by Nia Alarie in #3423.
+   * Add support for Windows 2000 in net_sockets. Contributed by opatomic. #3239
+
+Security
+   * Fix a side channel vulnerability in modular exponentiation that could
+     reveal an RSA private key used in a secure enclave. Noticed by Sangho Lee,
+     Ming-Wei Shih, Prasun Gera, Taesoo Kim and Hyesoon Kim (Georgia Institute
+     of Technology); and Marcus Peinado (Microsoft Research). Reported by Raoul
+     Strackx (Fortanix) in #3394.
+   * Fix side channel in mbedtls_ecp_check_pub_priv() and
+     mbedtls_pk_parse_key() / mbedtls_pk_parse_keyfile() (when loading a
+     private key that didn't include the uncompressed public key), as well as
+     mbedtls_ecp_mul() / mbedtls_ecp_mul_restartable() when called with a NULL
+     f_rng argument. An attacker with access to precise enough timing and
+     memory access information (typically an untrusted operating system
+     attacking a secure enclave) could fully recover the ECC private key.
+     Found and reported by Alejandro Cabrera Aldaya and Billy Brumley.
+   * Fix issue in Lucky 13 counter-measure that could make it ineffective when
+     hardware accelerators were used (using one of the MBEDTLS_SHAxxx_ALT
+     macros). This would cause the original Lucky 13 attack to be possible in
+     those configurations, allowing an active network attacker to recover
+     plaintext after repeated timing measurements under some conditions.
+     Reported and fix suggested by Luc Perneel in #3246.
+
+Bugfix
+   * Fix the Visual Studio Release x64 build configuration for mbedtls itself.
+     Completes a previous fix in Mbed TLS 2.19 that only fixed the build for
+     the example programs. Reported in #1430 and fix contributed by irwir.
+   * Fix undefined behavior in X.509 certificate parsing if the
+     pathLenConstraint basic constraint value is equal to INT_MAX.
+     The actual effect with almost every compiler is the intended
+     behavior, so this is unlikely to be exploitable anywhere. #3192
+   * Fix issue with a detected HW accelerated record error not being exposed
+     due to shadowed variable. Contributed by Sander Visser in #3310.
+   * Avoid NULL pointer dereferencing if mbedtls_ssl_free() is called with a
+     NULL pointer argument. Contributed by Sander Visser in #3312.
+   * Fix potential linker errors on dual world platforms by inlining
+     mbedtls_gcc_group_to_psa(). This allows the pk.c module to link separately
+     from psa_crypto.c. Fixes #3300.
+   * Remove dead code in X.509 certificate parsing. Contributed by irwir in
+     #2855.
+   * Include asn1.h in error.c. Fixes #3328 reported by David Hu.
+   * Fix potential memory leaks in ecp_randomize_jac() and ecp_randomize_mxz()
+     when PRNG function fails. Contributed by Jonas Lejeune in #3318.
+   * Remove unused macros from MSVC projects. Reported in #3297 and fix
+     submitted in #3333 by irwir.
+   * Add additional bounds checks in ssl_write_client_hello() preventing
+     output buffer overflow if the configuration declared a buffer that was
+     too small.
+   * Set _POSIX_C_SOURCE to at least 200112L in C99 code. Reported in #3420 and
+     fix submitted in #3421 by Nia Alarie.
+   * Fix building library/net_sockets.c and the ssl_mail_client program on
+     NetBSD. Contributed by Nia Alarie in #3422.
+   * Fix false positive uninitialised variable reported by cpp-check.
+     Contributed by Sander Visser in #3311.
+   * Update iv and len context pointers manually when reallocating buffers
+     using the MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH feature. This caused issues
+     when receiving a connection with CID, when these fields were shifted
+     in ssl_parse_record_header().
+
+Changes
+   * Fix warnings about signedness issues in format strings. The build is now
+     clean of -Wformat-signedness warnings. Contributed by Kenneth Soerensen
+     in #3153.
+   * Fix minor performance issue in operations on Curve25519 caused by using a
+     suboptimal modular reduction in one place. Found and fix contributed by
+     Aurelien Jarno in #3209.
+   * Combine identical cases in switch statements in md.c. Contributed
+     by irwir in #3208.
+   * Simplify a bounds check in ssl_write_certificate_request(). Contributed
+     by irwir in #3150.
+   * Unify the example programs termination to call mbedtls_exit() instead of
+     using a return command. This has been done to enable customization of the
+     behavior in bare metal environments.
+   * Fix mbedtls_x509_dn_gets to escape non-ASCII characters as "?".
+     Contributed by Koh M. Nakagawa in #3326.
+   * Use FindPython3 when cmake version >= 3.15.0
+   * Abort the ClientHello writing function as soon as some extension doesn't
+     fit into the record buffer. Previously, such extensions were silently
+     dropped. As a consequence, the TLS handshake now fails when the output
+     buffer is not large enough to hold the ClientHello.
+   * The unit tests now rely on header files in tests/include/test and source
+     files in tests/src. When building with make or cmake, the files in
+     tests/src are compiled and the resulting object linked into each test
+     executable.
+   * The ECP module, enabled by `MBEDTLS_ECP_C`, now depends on
+     `MBEDTLS_CTR_DRBG_C` or `MBEDTLS_HMAC_DRBG_C` for some side-channel
+     coutermeasures. If side channels are not a concern, this dependency can
+     be avoided by enabling the new option `MBEDTLS_ECP_NO_INTERNAL_RNG`.
+   * Align MSVC error flag with GCC and Clang. Contributed by Carlos Gomes
+     Martinho. #3147
+   * Remove superfluous assignment in mbedtls_ssl_parse_certificate(). Reported
+     in #3182 and fix submitted by irwir. #3217
+   * Fix typo in XTS tests. Reported and fix submitted by Kxuan. #3319
+
 = mbed TLS 2.22.0 branch released 2020-04-14
 
 New deprecations

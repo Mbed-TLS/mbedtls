@@ -1,3 +1,0 @@
-Changes
-   *  Align MSVC error flag with GCC and Clang. Contributed by Carlos Gomes
-      Martinho. #3147

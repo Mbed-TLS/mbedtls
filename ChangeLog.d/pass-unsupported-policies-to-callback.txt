@@ -1,4 +1,0 @@
-Features
-   * Pass the "certificate policies" extension to the callback supplied to
-     mbedtls_x509_crt_parse_der_with_ext_cb() if it contains unsupported
-     policies (#3419).

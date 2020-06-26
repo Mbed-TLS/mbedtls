@@ -1,3 +1,0 @@
-Changes
-   * Remove superfluous assignment in mbedtls_ssl_parse_certificate(). Reported
-     in #3182 and fix submitted by irwir. #3217

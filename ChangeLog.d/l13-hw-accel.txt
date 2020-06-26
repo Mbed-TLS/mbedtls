@@ -1,7 +1,0 @@
-Security
-   * Fix issue in Lucky 13 counter-measure that could make it ineffective when
-     hardware accelerators were used (using one of the MBEDTLS_SHAxxx_ALT
-     macros). This would cause the original Lucky 13 attack to be possible in
-     those configurations, allowing an active network attacker to recover
-     plaintext after repeated timing measurements under some conditions.
-     Reported and fix suggested by Luc Perneel in #3246.

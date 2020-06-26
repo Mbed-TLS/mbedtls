@@ -1,2 +1,0 @@
-Features
-   * Added support to entropy_poll for the kern.arandom syscall supported on some BSD systems. Contributed by Nia Alarie in #3423.

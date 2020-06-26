@@ -1,2 +1,0 @@
-Changes
-   * Fix typo in XTS tests. Reported and fix submitted by Kxuan. #3319

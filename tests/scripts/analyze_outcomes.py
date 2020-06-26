@@ -37,6 +37,10 @@ class TestCaseOutcomes:
     # pylint: disable=too-few-public-methods
 
     def __init__(self):
+        # Collect a list of witnesses of the test case succeeding or failing.
+        # Currently we don't do anything with witnesses except count them.
+        # The format of a witness is determined by the read_outcome_file
+        # function; it's the platform and configuration joined by ';'.
         self.successes = []
         self.failures = []
 

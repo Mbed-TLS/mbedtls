@@ -241,6 +241,33 @@ requires_ciphersuite_enabled() {
     fi
 }
 
+# maybe_requires_ciphersuite_enabled CMD [RUN_TEST_OPTION...]
+# If CMD (call to a TLS client or server program) requires a specific
+# ciphersuite, arrange to only run the test case if this ciphersuite is
+# enabled. As an exception, do run the test case if it expects a ciphersuite
+# mismatch.
+maybe_requires_ciphersuite_enabled() {
+    case "$1" in
+        *\ force_ciphersuite=*) :;;
+        *) return;; # No specific required ciphersuite
+    esac
+    ciphersuite="${1##*\ force_ciphersuite=}"
+    ciphersuite="${ciphersuite%%[!-0-9A-Z_a-z]*}"
+    shift
+
+    case "$*" in
+        *"-s SSL - The server has no ciphersuites in common"*)
+            # This test case expects a ciphersuite mismatch, so it doesn't
+            # require the ciphersuite to be enabled.
+            ;;
+        *)
+            requires_ciphersuite_enabled "$ciphersuite"
+            ;;
+    esac
+
+    unset ciphersuite
+}
+
 # skip next test if OpenSSL doesn't support FALLBACK_SCSV
 requires_openssl_with_fallback_scsv() {
     if [ -z "${OPENSSL_HAS_FBSCSV:-}" ]; then
@@ -658,17 +685,9 @@ run_test() {
        requires_config_enabled MBEDTLS_FS_IO
     fi
 
-    # Check if server forces ciphersuite
-    FORCE_CIPHERSUITE=$(echo "$SRV_CMD" | sed -n 's/^.*force_ciphersuite=\([a-zA-Z0-9\-]*\).*$/\1/p')
-    if [ ! -z "$FORCE_CIPHERSUITE" ]; then
-       requires_ciphersuite_enabled $FORCE_CIPHERSUITE
-    fi
-
-    # Check if client forces ciphersuite
-    FORCE_CIPHERSUITE=$(echo "$CLI_CMD" | sed -n 's/^.*force_ciphersuite=\([a-zA-Z0-9\-]*\).*$/\1/p')
-    if [ ! -z "$FORCE_CIPHERSUITE" ]; then
-       requires_ciphersuite_enabled $FORCE_CIPHERSUITE
-    fi
+    # If the client or serve requires a ciphersuite, check that it's enabled.
+    maybe_requires_ciphersuite_enabled "$SRV_CMD" "$@"
+    maybe_requires_ciphersuite_enabled "$CLI_CMD" "$@"
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then

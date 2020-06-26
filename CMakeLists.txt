@@ -1,3 +1,21 @@
+#
+# CMake build system design considerations:
+#
+# - Include directories:
+#   + Do not define include directories globally using the include_directories
+#     command but rather at the target level using the
+#     target_include_directories command. That way, it is easier to guarantee
+#     that targets are built using the proper list of include directories.
+#   + Use the PUBLIC and PRIVATE keywords to specifiy the scope of include
+#     directories. That way, a target linking to a library (using the
+#     target_link_librairies command) inherits from the library PUBLIC include
+#     directories and not from the PRIVATE ones.
+#   + Note: there is currently one remaining include_directories command in the
+#     CMake files. It is related to ZLIB support which is planned to be removed.
+#     When the support is removed, the associated include_directories command
+#     will be removed as well as this note.
+#
+
 cmake_minimum_required(VERSION 2.6)
 if(TEST_CPP)
     project("mbed TLS" C CXX)
@@ -205,9 +223,6 @@ else()
     set(LIB_INSTALL_DIR lib)
 endif()
 
-include_directories(include/)
-include_directories(library/)
-
 if(ENABLE_ZLIB_SUPPORT)
     find_package(ZLIB)
 
@@ -219,9 +234,7 @@ endif(ENABLE_ZLIB_SUPPORT)
 add_subdirectory(include)
 
 add_subdirectory(3rdparty)
-include_directories(${thirdparty_inc})
 list(APPEND libs ${thirdparty_lib})
-add_definitions(${thirdparty_def})
 
 add_subdirectory(library)
 

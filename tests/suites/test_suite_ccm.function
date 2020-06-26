@@ -152,7 +152,7 @@ exit:
 void mbedtls_ccm_auth_decrypt( int cipher_id, data_t * key,
                                data_t * msg, data_t * iv,
                                data_t * add, int tag_len, int result,
-                               data_t * hex_msg )
+                               data_t * expected_msg )
 {
     unsigned char tag[16];
     mbedtls_ccm_context ctx;
@@ -172,7 +172,7 @@ void mbedtls_ccm_auth_decrypt( int cipher_id, data_t * key,
 
     if( result == 0 )
     {
-        TEST_ASSERT( memcmp( msg->x, hex_msg->x, hex_msg->len ) == 0 );
+        TEST_ASSERT( memcmp( msg->x, expected_msg->x, expected_msg->len ) == 0 );
     }
     else
     {

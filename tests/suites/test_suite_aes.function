@@ -321,17 +321,15 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_OFB */
 void aes_encrypt_ofb( int fragment_size, data_t *key_str,
                       data_t *iv_str, data_t *src_str,
-                      char *expected_output_string)
+                      data_t *expected_output )
 {
     unsigned char output[32];
-    unsigned char output_string[65];
     mbedtls_aes_context ctx;
     size_t iv_offset = 0;
     int in_buffer_len;
     unsigned char* src_str_next;
 
     memset( output, 0x00, sizeof( output ) );
-    memset( output_string, 0x00, sizeof( output_string ) );
     mbedtls_aes_init( &ctx );
 
     TEST_ASSERT( (size_t)fragment_size < sizeof( output ) );
@@ -346,12 +344,10 @@ void aes_encrypt_ofb( int fragment_size, data_t *key_str,
         TEST_ASSERT( mbedtls_aes_crypt_ofb( &ctx, fragment_size, &iv_offset,
                                             iv_str->x, src_str_next, output ) == 0 );
 
-        mbedtls_test_hexify( output_string, output, fragment_size );
-        TEST_ASSERT( strncmp( (char *) output_string, expected_output_string,
-                              ( 2 * fragment_size ) ) == 0 );
+        TEST_ASSERT( memcmp( output, expected_output->x, fragment_size ) == 0 );
 
         in_buffer_len -= fragment_size;
-        expected_output_string += ( fragment_size * 2 );
+        expected_output->x += fragment_size;
         src_str_next += fragment_size;
 
         if( in_buffer_len < fragment_size )

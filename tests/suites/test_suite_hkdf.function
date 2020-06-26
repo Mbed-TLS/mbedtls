@@ -14,13 +14,6 @@ void test_hkdf( int md_alg, data_t *ikm, data_t *salt, data_t *info,
 {
     int ret;
     unsigned char okm[128] = { '\0' };
-    /*
-     * okm_string and expected_okm_string are the ASCII string representations
-     * of km and expected_okm, so their size should be twice the size of
-     * okm and expected_okm, and an extra null-termination.
-     */
-    unsigned char okm_string[257] = { '\0' };
-    unsigned char expected_okm_string[257] = { '\0' };
 
     const mbedtls_md_info_t *md = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md != NULL );
@@ -31,14 +24,7 @@ void test_hkdf( int md_alg, data_t *ikm, data_t *salt, data_t *info,
                         info->x, info->len, okm, expected_okm->len );
     TEST_ASSERT( ret == 0 );
 
-    /*
-     * Run mbedtls_test_hexify on okm and expected_okm so that it looks nicer
-     * if the assertion fails.
-     */
-    mbedtls_test_hexify( okm_string, okm, expected_okm->len );
-    mbedtls_test_hexify( expected_okm_string,
-                         expected_okm->x, expected_okm->len );
-    TEST_ASSERT( !strcmp( (char *)okm_string, (char *)expected_okm_string ) );
+    TEST_ASSERT( !memcmp( okm, expected_okm->x, expected_okm->len ) );
 }
 /* END_CASE */
 

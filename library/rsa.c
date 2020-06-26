@@ -800,11 +800,14 @@ static int rsa_prepare_blinding( mbedtls_rsa_context *ctx,
             return( MBEDTLS_ERR_RSA_RNG_FAILED );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &ctx->Vf, ctx->len - 1, f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_gcd( &ctx->Vi, &ctx->Vf, &ctx->N ) );
-    } while( mbedtls_mpi_cmp_int( &ctx->Vi, 1 ) != 0 );
+
+        ret = mbedtls_mpi_inv_mod( &ctx->Vi, &ctx->Vf, &ctx->N );
+        if( ret != 0 && ret != MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
+            goto cleanup;
+
+    } while( ret == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
 
     /* Blinding value: Vi =  Vf^(-e) mod N */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &ctx->Vi, &ctx->Vf, &ctx->N ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &ctx->Vi, &ctx->Vi, &ctx->E, &ctx->N, &ctx->RN ) );
 
 

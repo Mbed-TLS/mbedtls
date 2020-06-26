@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.7.16 branch released 2020-07-01
 
 Security
    * Fix a side channel vulnerability in modular exponentiation that could

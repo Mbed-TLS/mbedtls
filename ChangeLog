@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.23.0 branch released 2020-07-01
 
 Default behavior changes
    * In the experimental PSA secure element interface, change the encoding of

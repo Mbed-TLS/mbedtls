@@ -808,6 +808,9 @@ static int rsa_prepare_blinding( mbedtls_rsa_context *ctx,
                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret, count = 0;
+    mbedtls_mpi R;
+
+    mbedtls_mpi_init( &R );
 
     if( ctx->Vf.p != NULL )
     {
@@ -827,17 +830,32 @@ static int rsa_prepare_blinding( mbedtls_rsa_context *ctx,
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &ctx->Vf, ctx->len - 1, f_rng, p_rng ) );
 
-        ret = mbedtls_mpi_inv_mod( &ctx->Vi, &ctx->Vf, &ctx->N );
-        if( ret != 0 && ret != MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
+        /* Compute the Vf^1 as R * (R Vf)^-1 to avoid leaks from inv_mod.
+         * There's a negligible but non-zero probability that R is not
+         * invertible mod N, in that case we'd just loop one more time,
+         * just as if Vf itself wasn't invertible - no need to distinguish. */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &R, ctx->len - 1, f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->Vi, &ctx->Vf, &R ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->Vi, &ctx->Vi, &ctx->N ) );
+
+        ret = mbedtls_mpi_inv_mod( &ctx->Vi, &ctx->Vi, &ctx->N );
+        if( ret == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
+            continue;
+        if( ret != 0 )
             goto cleanup;
 
-    } while( ret == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->Vi, &ctx->Vi, &R ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->Vi, &ctx->Vi, &ctx->N ) );
+    } while( 0 );
 
-    /* Blinding value: Vi =  Vf^(-e) mod N */
+    /* Blinding value: Vi =  Vf^(-e) mod N
+     * (Vi already contains Vf^-1 at this point) */
     MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &ctx->Vi, &ctx->Vi, &ctx->E, &ctx->N, &ctx->RN ) );
 
 
 cleanup:
+    mbedtls_mpi_free( &R );
+
     return( ret );
 }
 

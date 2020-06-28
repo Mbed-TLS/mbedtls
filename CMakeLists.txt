@@ -26,6 +26,18 @@ endif()
 # Set the project root directory.
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
+include(CMakePackageConfigHelpers)
+
+# cmake export script installation directory
+set(CMAKE_EXPORT_DIR "lib/cmake/mbedtls")
+
+file(READ "${CMAKE_SOURCE_DIR}/include/mbedtls/version.h" MBEDTLS_VERSION_H)
+string(REGEX REPLACE ".*#define[\t ]+MBEDTLS_VERSION_MAJOR[\t ]+([0-9]+).*" "\\1" MBEDTLS_VERSION_MAJOR "${MBEDTLS_VERSION_H}")
+string(REGEX REPLACE ".*#define[\t ]+MBEDTLS_VERSION_MINOR[\t ]+([0-9]+).*" "\\1" MBEDTLS_VERSION_MINOR "${MBEDTLS_VERSION_H}")
+string(REGEX REPLACE ".*#define[\t ]+MBEDTLS_VERSION_PATCH[\t ]+([0-9]+).*" "\\1" MBEDTLS_VERSION_PATCH "${MBEDTLS_VERSION_H}")
+set(MBEDTLS_VERSION "${MBEDTLS_VERSION_MAJOR}.${MBEDTLS_VERSION_MINOR}.${MBEDTLS_VERSION_PATCH}")
+message(STATUS "Mbed TLS version ${MBEDTLS_VERSION}")
+
 option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
 option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
 
@@ -290,3 +302,22 @@ if(ENABLE_TESTING)
                     ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl COPYONLY)
     endif()
 endif()
+
+# installation
+
+export(PACKAGE mbedtls)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/mbedtls-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/mbedtls-config.cmake"
+    INSTALL_DESTINATION "${CMAKE_EXPORT_DIR}")
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/mbedtls-config-version.cmake"
+    VERSION ${MBEDTLS_VERSION}
+    COMPATIBILITY SameMajorVersion)
+
+install(FILES
+    ${PROJECT_BINARY_DIR}/mbedtls-config.cmake
+    ${PROJECT_BINARY_DIR}/mbedtls-config-version.cmake
+    DESTINATION "${CMAKE_EXPORT_DIR}")

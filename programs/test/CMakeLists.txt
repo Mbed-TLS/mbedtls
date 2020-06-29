@@ -10,27 +10,35 @@ if(ENABLE_ZLIB_SUPPORT)
     set(libs ${libs} ${ZLIB_LIBRARIES})
 endif(ENABLE_ZLIB_SUPPORT)
 
-add_executable(selftest selftest.c)
-target_link_libraries(selftest ${libs})
+set(executables_libs
+    selftest
+    udp_proxy
+)
 
-add_executable(benchmark benchmark.c)
-target_link_libraries(benchmark mbedcrypto)
+set(executables_mbedcrypto
+    benchmark
+    query_compile_time_config
+    zeroize
+)
 
 if(TEST_CPP)
-    add_executable(cpp_dummy_build cpp_dummy_build.cpp)
-    target_link_libraries(cpp_dummy_build mbedcrypto)
+    list(APPEND executables_mbedcrypto cpp_dummy_build)
 endif()
 
-add_executable(udp_proxy udp_proxy.c)
-target_link_libraries(udp_proxy ${libs})
+foreach(exe IN LISTS executables_libs executables_mbedcrypto)
+    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>)
 
-add_executable(zeroize zeroize.c)
-target_link_libraries(zeroize mbedcrypto)
+    # This emulates "if ( ... IN_LIST ... )" which becomes available in CMake 3.3
+    list(FIND executables_libs ${exe} exe_index)
+    if (${exe_index} GREATER -1)
+        target_link_libraries(${exe} ${libs})
+    else()
+        target_link_libraries(${exe} mbedcrypto)
+    endif()
+endforeach()
 
-add_executable(query_compile_time_config query_compile_time_config.c)
-target_sources(query_compile_time_config PUBLIC query_config.c)
-target_link_libraries(query_compile_time_config mbedcrypto)
+target_sources(query_compile_time_config PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/query_config.c)
 
-install(TARGETS selftest benchmark udp_proxy query_compile_time_config
+install(TARGETS ${executables_libs} ${executables_mbedcrypto}
         DESTINATION "bin"
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

@@ -277,8 +277,13 @@ static int convert_params( size_t cnt , char ** params , int * int_params_store 
         {
             if ( verify_string( &val ) == 0 )
             {
-                *int_params_store = mbedtls_test_unhexify(
-                                        (unsigned char *) val, val );
+                size_t len;
+
+                TEST_HELPER_ASSERT(
+                  mbedtls_test_unhexify( (unsigned char *) val, strlen( val ),
+                                         val, &len ) == 0 );
+
+                *int_params_store = len;
                 *out++ = val;
                 *out++ = (char *)(int_params_store++);
             }

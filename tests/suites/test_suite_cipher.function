@@ -1062,48 +1062,33 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_WITH_PADDING */
-void test_vec_crypt( int cipher_id, int operation, char *hex_key,
-                   char *hex_iv, char *hex_input, char *hex_result,
-                   int finish_result )
+void test_vec_crypt( int cipher_id, int operation, data_t *key,
+                     data_t *iv, data_t *input, data_t *result,
+                     int finish_result )
 {
-    unsigned char key[50];
-    unsigned char input[16];
-    unsigned char result[16];
-    unsigned char iv[16];
-    size_t key_len, iv_len, inputlen, resultlen;
     mbedtls_cipher_context_t ctx;
     unsigned char output[32];
     size_t outlen;
 
     mbedtls_cipher_init( &ctx );
 
-    memset( key, 0x00, sizeof( key ) );
-    memset( input, 0x00, sizeof( input ) );
-    memset( result, 0x00, sizeof( result ) );
     memset( output, 0x00, sizeof( output ) );
-    memset( iv, 0x00, sizeof( iv ) );
 
     /* Prepare context */
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
                                        mbedtls_cipher_info_from_type( cipher_id ) ) );
 
-    key_len = unhexify( key, hex_key );
-    inputlen =  unhexify( input, hex_input );
-    resultlen = unhexify( result, hex_result );
-
-    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, 8 * key_len, operation ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key->x, 8 * key->len, operation ) );
     if( MBEDTLS_MODE_CBC == ctx.cipher_info->mode )
         TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx, MBEDTLS_PADDING_NONE ) );
 
-    iv_len = unhexify( iv, hex_iv );
-
-    TEST_ASSERT( finish_result == mbedtls_cipher_crypt( &ctx, iv_len ? iv : NULL,
-                                                        iv_len, input, inputlen,
+    TEST_ASSERT( finish_result == mbedtls_cipher_crypt( &ctx, iv->len ? iv->x : NULL,
+                                                        iv->len, input->x, input->len,
                                                         output, &outlen ) );
-    TEST_ASSERT( resultlen == outlen );
+    TEST_ASSERT( result->len == outlen );
     /* check plaintext only if everything went fine */
     if( 0 == finish_result )
-        TEST_ASSERT( 0 == memcmp( output, result, outlen ) );
+        TEST_ASSERT( 0 == memcmp( output, result->x, outlen ) );
 
 exit:
     mbedtls_cipher_free( &ctx );

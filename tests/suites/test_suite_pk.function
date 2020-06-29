@@ -679,7 +679,7 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE:MBEDTLS_ECDSA_C:MBEDTLS_ECDSA_DETERMINISTIC */
 void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
                               char *QX_str, char *QY_str,
-                              int md_alg, char *msg, char *sig_str,
+                              int md_alg, char *msg, data_t *sig_check,
                               int max_ops, int min_restart, int max_restart )
 {
     int ret, cnt_restart;
@@ -687,8 +687,7 @@ void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
     mbedtls_pk_context prv, pub;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     unsigned char sig[MBEDTLS_ECDSA_MAX_LEN];
-    unsigned char sig_check[MBEDTLS_ECDSA_MAX_LEN];
-    size_t hlen, slen, slen_check;
+    size_t hlen, slen;
     const mbedtls_md_info_t *md_info;
 
     mbedtls_pk_restart_init( &rs_ctx );
@@ -696,7 +695,6 @@ void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
     mbedtls_pk_init( &pub );
     memset( hash, 0, sizeof( hash ) );
     memset( sig, 0, sizeof( sig ) );
-    memset( sig_check, 0, sizeof( sig_check ) );
 
     TEST_ASSERT( mbedtls_pk_setup( &prv, mbedtls_pk_info_from_type( pk_type ) ) == 0 );
     TEST_ASSERT( mbedtls_ecp_group_load( &mbedtls_pk_ec( prv )->grp, grp_id ) == 0 );
@@ -705,8 +703,6 @@ void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
     TEST_ASSERT( mbedtls_pk_setup( &pub, mbedtls_pk_info_from_type( pk_type ) ) == 0 );
     TEST_ASSERT( mbedtls_ecp_group_load( &mbedtls_pk_ec( pub )->grp, grp_id ) == 0 );
     TEST_ASSERT( mbedtls_ecp_point_read_string( &mbedtls_pk_ec( pub )->Q, 16, QX_str, QY_str ) == 0 );
-
-    slen_check = unhexify( sig_check, sig_str );
 
     md_info = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md_info != NULL );
@@ -726,8 +722,8 @@ void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
     } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restart );
 
     TEST_ASSERT( ret == 0 );
-    TEST_ASSERT( slen == slen_check );
-    TEST_ASSERT( memcmp( sig, sig_check, slen ) == 0 );
+    TEST_ASSERT( slen == sig_check->len );
+    TEST_ASSERT( memcmp( sig, sig_check->x, slen ) == 0 );
 
     TEST_ASSERT( cnt_restart >= min_restart );
     TEST_ASSERT( cnt_restart <= max_restart );

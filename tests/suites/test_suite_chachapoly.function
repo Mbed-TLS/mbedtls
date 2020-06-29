@@ -8,53 +8,27 @@
  */
 
 /* BEGIN_CASE */
-void mbedtls_chachapoly_enc( char *hex_key_string, char *hex_nonce_string, char *hex_aad_string, char *hex_input_string, char *hex_output_string, char *hex_mac_string )
+void mbedtls_chachapoly_enc( data_t *key_str, data_t *nonce_str, data_t *aad_str, data_t *input_str, data_t *output_str, data_t *mac_str )
 {
-    unsigned char key_str[32]; /* size set by the standard */
-    unsigned char nonce_str[12]; /* size set by the standard */
-    unsigned char aad_str[12]; /* max size of test data so far */
-    unsigned char input_str[265]; /* max size of binary input/output so far */
-    unsigned char output_str[265];
     unsigned char output[265];
-    unsigned char mac_str[16]; /* size set by the standard */
     unsigned char mac[16]; /* size set by the standard */
-    size_t input_len;
-    size_t output_len;
-    size_t aad_len;
-    size_t key_len;
-    size_t nonce_len;
-    size_t mac_len;
     mbedtls_chachapoly_context ctx;
 
-    memset( key_str,    0x00, sizeof( key_str ) );
-    memset( nonce_str,  0x00, sizeof( nonce_str ) );
-    memset( aad_str,    0x00, sizeof( aad_str ) );
-    memset( input_str,  0x00, sizeof( input_str ) );
-    memset( output_str, 0x00, sizeof( output_str ) );
-    memset( mac_str,    0x00, sizeof( mac_str ) );
-
-    aad_len    = unhexify( aad_str,    hex_aad_string    );
-    input_len  = unhexify( input_str,  hex_input_string  );
-    output_len = unhexify( output_str, hex_output_string );
-    key_len    = unhexify( key_str,    hex_key_string    );
-    nonce_len  = unhexify( nonce_str,  hex_nonce_string  );
-    mac_len    = unhexify( mac_str,    hex_mac_string    );
-
-    TEST_ASSERT( key_len   == 32 );
-    TEST_ASSERT( nonce_len == 12 );
-    TEST_ASSERT( mac_len   == 16 );
+    TEST_ASSERT( key_str->len   == 32 );
+    TEST_ASSERT( nonce_str->len == 12 );
+    TEST_ASSERT( mac_str->len   == 16 );
 
     mbedtls_chachapoly_init( &ctx );
 
-    TEST_ASSERT( mbedtls_chachapoly_setkey( &ctx, key_str ) == 0 );
+    TEST_ASSERT( mbedtls_chachapoly_setkey( &ctx, key_str->x ) == 0 );
 
     TEST_ASSERT( mbedtls_chachapoly_encrypt_and_tag( &ctx,
-                                      input_len, nonce_str,
-                                      aad_str, aad_len,
-                                      input_str, output, mac ) == 0 );
+                                      input_str->len, nonce_str->x,
+                                      aad_str->x, aad_str->len,
+                                      input_str->x, output, mac ) == 0 );
 
-    TEST_ASSERT( memcmp( output_str, output, output_len ) == 0 );
-    TEST_ASSERT( memcmp( mac_str, mac, 16U ) == 0 );
+    TEST_ASSERT( memcmp( output_str->x, output, output_str->len ) == 0 );
+    TEST_ASSERT( memcmp( mac_str->x, mac, 16U ) == 0 );
 
 exit:
     mbedtls_chachapoly_free( &ctx );
@@ -62,55 +36,29 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_chachapoly_dec( char *hex_key_string, char *hex_nonce_string, char *hex_aad_string, char *hex_input_string, char *hex_output_string, char *hex_mac_string, int ret_exp )
+void mbedtls_chachapoly_dec( data_t *key_str, data_t *nonce_str, data_t *aad_str, data_t *input_str, data_t *output_str, data_t *mac_str, int ret_exp )
 {
-    unsigned char key_str[32]; /* size set by the standard */
-    unsigned char nonce_str[12]; /* size set by the standard */
-    unsigned char aad_str[12]; /* max size of test data so far */
-    unsigned char input_str[265]; /* max size of binary input/output so far */
-    unsigned char output_str[265];
     unsigned char output[265];
-    unsigned char mac_str[16]; /* size set by the standard */
-    size_t input_len;
-    size_t output_len;
-    size_t aad_len;
-    size_t key_len;
-    size_t nonce_len;
-    size_t mac_len;
     int ret;
     mbedtls_chachapoly_context ctx;
 
-    memset( key_str,    0x00, sizeof( key_str ) );
-    memset( nonce_str,  0x00, sizeof( nonce_str ) );
-    memset( aad_str,    0x00, sizeof( aad_str ) );
-    memset( input_str,  0x00, sizeof( input_str ) );
-    memset( output_str, 0x00, sizeof( output_str ) );
-    memset( mac_str,    0x00, sizeof( mac_str ) );
-
-    aad_len    = unhexify( aad_str,    hex_aad_string    );
-    input_len  = unhexify( input_str,  hex_input_string  );
-    output_len = unhexify( output_str, hex_output_string );
-    key_len    = unhexify( key_str,    hex_key_string    );
-    nonce_len  = unhexify( nonce_str,  hex_nonce_string  );
-    mac_len    = unhexify( mac_str,    hex_mac_string    );
-
-    TEST_ASSERT( key_len   == 32 );
-    TEST_ASSERT( nonce_len == 12 );
-    TEST_ASSERT( mac_len   == 16 );
+    TEST_ASSERT( key_str->len   == 32 );
+    TEST_ASSERT( nonce_str->len == 12 );
+    TEST_ASSERT( mac_str->len   == 16 );
 
     mbedtls_chachapoly_init( &ctx );
 
-    TEST_ASSERT( mbedtls_chachapoly_setkey( &ctx, key_str ) == 0 );
+    TEST_ASSERT( mbedtls_chachapoly_setkey( &ctx, key_str->x ) == 0 );
 
     ret = mbedtls_chachapoly_auth_decrypt( &ctx,
-                                           input_len, nonce_str,
-                                           aad_str, aad_len,
-                                           mac_str, input_str, output );
+                                           input_str->len, nonce_str->x,
+                                           aad_str->x, aad_str->len,
+                                           mac_str->x, input_str->x, output );
 
     TEST_ASSERT( ret == ret_exp );
     if( ret_exp == 0 )
     {
-        TEST_ASSERT( memcmp( output_str, output, output_len ) == 0 );
+        TEST_ASSERT( memcmp( output_str->x, output, output_str->len ) == 0 );
     }
 
 exit:

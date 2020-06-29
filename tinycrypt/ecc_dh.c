@@ -186,7 +186,9 @@ int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
 	uECC_vli_nativeToBytes(secret, num_bytes, _public);
 
 	/* erasing temporary buffer used to store secret: */
-	mbedtls_platform_zeroize(_private, sizeof(_private));
+	if (_private == mbedtls_platform_zeroize(_private, sizeof(_private))) {
+		return r;
+	}
 
-	return r;
+	return UECC_FAULT_DETECTED;
 }

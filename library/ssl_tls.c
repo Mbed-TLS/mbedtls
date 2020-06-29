@@ -1886,9 +1886,13 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
         return( ret );
     }
 
-    mbedtls_platform_zeroize( handshake->premaster,
-                              sizeof(handshake->premaster) );
-    return( 0 );
+    if( handshake->premaster == mbedtls_platform_zeroize( 
+                    handshake->premaster, sizeof(handshake->premaster) ) )
+    {
+        return( 0 );
+    }
+
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )

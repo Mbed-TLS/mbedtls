@@ -264,6 +264,7 @@ static const mbedtls_cipher_info_t aes_128_ecb_info = {
     &aes_info
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_ecb_info = {
     MBEDTLS_CIPHER_AES_192_ECB,
     MBEDTLS_MODE_ECB,
@@ -285,6 +286,7 @@ static const mbedtls_cipher_info_t aes_256_ecb_info = {
     16,
     &aes_info
 };
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 static const mbedtls_cipher_info_t aes_128_cbc_info = {
@@ -298,6 +300,7 @@ static const mbedtls_cipher_info_t aes_128_cbc_info = {
     &aes_info
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_cbc_info = {
     MBEDTLS_CIPHER_AES_192_CBC,
     MBEDTLS_MODE_CBC,
@@ -319,6 +322,7 @@ static const mbedtls_cipher_info_t aes_256_cbc_info = {
     16,
     &aes_info
 };
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
@@ -333,6 +337,7 @@ static const mbedtls_cipher_info_t aes_128_cfb128_info = {
     &aes_info
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_cfb128_info = {
     MBEDTLS_CIPHER_AES_192_CFB128,
     MBEDTLS_MODE_CFB,
@@ -354,6 +359,7 @@ static const mbedtls_cipher_info_t aes_256_cfb128_info = {
     16,
     &aes_info
 };
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_OFB)
@@ -368,6 +374,7 @@ static const mbedtls_cipher_info_t aes_128_ofb_info = {
     &aes_info
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_ofb_info = {
     MBEDTLS_CIPHER_AES_192_OFB,
     MBEDTLS_MODE_OFB,
@@ -389,6 +396,7 @@ static const mbedtls_cipher_info_t aes_256_ofb_info = {
     16,
     &aes_info
 };
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 #endif /* MBEDTLS_CIPHER_MODE_OFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
@@ -403,6 +411,7 @@ static const mbedtls_cipher_info_t aes_128_ctr_info = {
     &aes_info
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_ctr_info = {
     MBEDTLS_CIPHER_AES_192_CTR,
     MBEDTLS_MODE_CTR,
@@ -424,6 +433,7 @@ static const mbedtls_cipher_info_t aes_256_ctr_info = {
     16,
     &aes_info
 };
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
@@ -500,6 +510,7 @@ static const mbedtls_cipher_info_t aes_128_xts_info = {
     &xts_aes_info
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_256_xts_info = {
     MBEDTLS_CIPHER_AES_256_XTS,
     MBEDTLS_MODE_XTS,
@@ -510,6 +521,7 @@ static const mbedtls_cipher_info_t aes_256_xts_info = {
     16,
     &xts_aes_info
 };
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
 
 #if defined(MBEDTLS_GCM_C)
@@ -558,6 +570,7 @@ static const mbedtls_cipher_info_t aes_128_gcm_info = {
     &gcm_aes_info
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_gcm_info = {
     MBEDTLS_CIPHER_AES_192_GCM,
     MBEDTLS_MODE_GCM,
@@ -579,6 +592,7 @@ static const mbedtls_cipher_info_t aes_256_gcm_info = {
     16,
     &gcm_aes_info
 };
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 #endif /* MBEDTLS_GCM_C */
 
 #if defined(MBEDTLS_CCM_C)
@@ -627,6 +641,7 @@ static const mbedtls_cipher_info_t aes_128_ccm_info = {
     &ccm_aes_info
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_ccm_info = {
     MBEDTLS_CIPHER_AES_192_CCM,
     MBEDTLS_MODE_CCM,
@@ -648,6 +663,7 @@ static const mbedtls_cipher_info_t aes_256_ccm_info = {
     16,
     &ccm_aes_info
 };
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 #endif /* MBEDTLS_CCM_C */
 
 #endif /* MBEDTLS_AES_C */
@@ -2123,42 +2139,65 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
 {
 #if defined(MBEDTLS_AES_C)
     { MBEDTLS_CIPHER_AES_128_ECB,          &aes_128_ecb_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_ECB,          &aes_192_ecb_info },
     { MBEDTLS_CIPHER_AES_256_ECB,          &aes_256_ecb_info },
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     { MBEDTLS_CIPHER_AES_128_CBC,          &aes_128_cbc_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_CBC,          &aes_192_cbc_info },
     { MBEDTLS_CIPHER_AES_256_CBC,          &aes_256_cbc_info },
-#endif
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
     { MBEDTLS_CIPHER_AES_128_CFB128,       &aes_128_cfb128_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_CFB128,       &aes_192_cfb128_info },
     { MBEDTLS_CIPHER_AES_256_CFB128,       &aes_256_cfb128_info },
-#endif
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+#endif /* MBEDTLS_CIPHER_MODE_CFB */
+
 #if defined(MBEDTLS_CIPHER_MODE_OFB)
     { MBEDTLS_CIPHER_AES_128_OFB,          &aes_128_ofb_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_OFB,          &aes_192_ofb_info },
     { MBEDTLS_CIPHER_AES_256_OFB,          &aes_256_ofb_info },
-#endif
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+#endif /* MBEDTLS_CIPHER_MODE_OFB */
+
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     { MBEDTLS_CIPHER_AES_128_CTR,          &aes_128_ctr_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_CTR,          &aes_192_ctr_info },
     { MBEDTLS_CIPHER_AES_256_CTR,          &aes_256_ctr_info },
-#endif
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+#endif /* MBEDTLS_CIPHER_MODE_CTR */
+
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
     { MBEDTLS_CIPHER_AES_128_XTS,          &aes_128_xts_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_256_XTS,          &aes_256_xts_info },
-#endif
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+#endif /* MBEDTLS_CIPHER_MODE_XTS */
+
 #if defined(MBEDTLS_GCM_C)
     { MBEDTLS_CIPHER_AES_128_GCM,          &aes_128_gcm_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_GCM,          &aes_192_gcm_info },
     { MBEDTLS_CIPHER_AES_256_GCM,          &aes_256_gcm_info },
-#endif
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+#endif /* MBEDTLS_GCM_C */
+
 #if defined(MBEDTLS_CCM_C)
     { MBEDTLS_CIPHER_AES_128_CCM,          &aes_128_ccm_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_CCM,          &aes_192_ccm_info },
     { MBEDTLS_CIPHER_AES_256_CCM,          &aes_256_ccm_info },
-#endif
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+#endif /* MBEDTLS_CCM_C */
+
 #endif /* MBEDTLS_AES_C */
 
 #if defined(MBEDTLS_ARC4_C)

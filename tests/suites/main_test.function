@@ -167,6 +167,8 @@ $dispatch_code
 void execute_function_ptr(TestWrapper_t fp, void **params)
 {
 #if defined(MBEDTLS_CHECK_PARAMS)
+    mbedtls_test_param_failed_location_record_t location_record;
+
     if ( setjmp( param_fail_jmp ) == 0 )
     {
         fp( params );
@@ -174,6 +176,10 @@ void execute_function_ptr(TestWrapper_t fp, void **params)
     else
     {
         /* Unexpected parameter validation error */
+        mbedtls_test_param_failed_get_location_record( &location_record );
+        test_fail( location_record.failure_condition,
+                   location_record.line,
+                   location_record.file );
         test_info.result = TEST_RESULT_FAILED;
     }
 

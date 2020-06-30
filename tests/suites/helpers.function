@@ -370,6 +370,21 @@ test_info_t;
 static test_info_t test_info;
 
 #if defined(MBEDTLS_CHECK_PARAMS)
+typedef struct
+{
+    const char *failure_condition;
+    const char *file;
+    int line;
+}
+mbedtls_test_param_failed_location_record_t;
+
+typedef struct
+{
+    mbedtls_test_param_failed_location_record_t location_record;
+}
+param_failed_ctx_t;
+static param_failed_ctx_t param_failed_ctx;
+
 jmp_buf param_fail_jmp;
 jmp_buf jmp_tmp;
 #endif
@@ -422,10 +437,29 @@ void test_skip( const char *test, int line_no, const char* filename )
 }
 
 #if defined(MBEDTLS_CHECK_PARAMS)
+/**
+ * \brief   Get the location record of the last call to
+ *          mbedtls_test_param_failed().
+ *
+ * \note    The call expectation is set up and active until the next call to
+ *          mbedtls_test_param_failed_check_expected_call() or
+ *          mbedtls_param_failed() that cancels it.
+ */
+void mbedtls_test_param_failed_get_location_record(
+         mbedtls_test_param_failed_location_record_t *location_record )
+{
+    *location_record = param_failed_ctx.location_record;
+}
+
 void mbedtls_param_failed( const char *failure_condition,
                            const char *file,
                            int line )
 {
+    /* Record the location of the failure */
+    param_failed_ctx.location_record.failure_condition = failure_condition;
+    param_failed_ctx.location_record.file = file;
+    param_failed_ctx.location_record.line = line;
+
     /* If we are testing the callback function...  */
     if( test_info.paramfail_test_state == PARAMFAIL_TESTSTATE_PENDING )
     {
@@ -434,11 +468,6 @@ void mbedtls_param_failed( const char *failure_condition,
     else
     {
         /* ...else we treat this as an error */
-
-        /* Record the location of the failure, but not as a failure yet, in case
-         * it was part of the test */
-        test_fail( failure_condition, line, file );
-        test_info.result = TEST_RESULT_SUCCESS;
 
         longjmp( param_fail_jmp, 1 );
     }

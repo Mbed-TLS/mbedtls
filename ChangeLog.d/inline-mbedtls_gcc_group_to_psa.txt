@@ -1,4 +1,0 @@
-Bugfix
-   * Fix potential linker errors on dual world platforms by inlining
-     mbedtls_gcc_group_to_psa(). This allows the pk.c module to link separately
-     from psa_crypto.c. Fixes #3300.

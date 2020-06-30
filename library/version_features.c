@@ -354,6 +354,9 @@ static const char * const features[] = {
 #if defined(MBEDTLS_ECP_NIST_OPTIM)
     "MBEDTLS_ECP_NIST_OPTIM",
 #endif /* MBEDTLS_ECP_NIST_OPTIM */
+#if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
+    "MBEDTLS_ECP_NO_INTERNAL_RNG",
+#endif /* MBEDTLS_ECP_NO_INTERNAL_RNG */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     "MBEDTLS_ECP_RESTARTABLE",
 #endif /* MBEDTLS_ECP_RESTARTABLE */

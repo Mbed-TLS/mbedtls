@@ -1,3 +1,0 @@
-Changes
-   * Simplify a bounds check in ssl_write_certificate_request(). Contributed
-     by irwir in #3150.

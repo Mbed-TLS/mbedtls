@@ -1578,6 +1578,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
              * linking an extra division function in some builds).
              */
             size_t j, extra_run = 0;
+            /* This size is enough to server either as input to
+             * md_process() or as output to md_finish() */
             unsigned char tmp[MBEDTLS_MD_MAX_BLOCK_SIZE];
 
             /*
@@ -1633,10 +1635,15 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             ssl_read_memory( data + rec->data_len, padlen );
             mbedtls_md_hmac_finish( &transform->md_ctx_dec, mac_expect );
 
-            /* Call mbedtls_md_process at least once due to cache attacks
-             * that observe whether md_process() was called of not */
+            /* Dummy calls to compression function.
+             * Call mbedtls_md_process at least once due to cache attacks
+             * that observe whether md_process() was called of not.
+             * Respect the usual start-(process|update)-finish sequence for
+             * the sake of hardware accelerators that might require it. */
+            mbedtls_md_starts( &transform->md_ctx_dec );
             for( j = 0; j < extra_run + 1; j++ )
                 mbedtls_md_process( &transform->md_ctx_dec, tmp );
+            mbedtls_md_finish( &transform->md_ctx_dec, tmp );
 
             mbedtls_md_hmac_reset( &transform->md_ctx_dec );
 

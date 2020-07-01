@@ -1,2 +1,0 @@
-Bugfix
-   * Remove dead code in X.509 certificate parsing. Contributed by irwir in #2855.

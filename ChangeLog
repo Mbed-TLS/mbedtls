@@ -1,5 +1,57 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.16.7 branch released 2020-07-01
+
+Security
+   * Fix a side channel vulnerability in modular exponentiation that could
+     reveal an RSA private key used in a secure enclave. Noticed by Sangho Lee,
+     Ming-Wei Shih, Prasun Gera, Taesoo Kim and Hyesoon Kim (Georgia Institute
+     of Technology); and Marcus Peinado (Microsoft Research). Reported by Raoul
+     Strackx (Fortanix) in #3394.
+   * Fix side channel in mbedtls_ecp_check_pub_priv() and
+     mbedtls_pk_parse_key() / mbedtls_pk_parse_keyfile() (when loading a
+     private key that didn't include the uncompressed public key), as well as
+     mbedtls_ecp_mul() / mbedtls_ecp_mul_restartable() when called with a NULL
+     f_rng argument. An attacker with access to precise enough timing and
+     memory access information (typically an untrusted operating system
+     attacking a secure enclave) could fully recover the ECC private key.
+     Found and reported by Alejandro Cabrera Aldaya and Billy Brumley.
+   * Fix issue in Lucky 13 counter-measure that could make it ineffective when
+     hardware accelerators were used (using one of the MBEDTLS_SHAxxx_ALT
+     macros). This would cause the original Lucky 13 attack to be possible in
+     those configurations, allowing an active network attacker to recover
+     plaintext after repeated timing measurements under some conditions.
+     Reported and fix suggested by Luc Perneel in #3246.
+
+Bugfix
+   * Fix the Visual Studio Release x64 build configuration for mbedtls itself.
+     Completes a previous fix in Mbed TLS 2.16.3 that only fixed the build for
+     the example programs. Reported in #1430 and fix contributed by irwir.
+   * Fix undefined behavior in X.509 certificate parsing if the
+     pathLenConstraint basic constraint value is equal to INT_MAX.
+     The actual effect with almost every compiler is the intended
+     behavior, so this is unlikely to be exploitable anywhere. #3197
+   * Include asn1.h in error.c. Fixes #3328 reported by David Hu.
+   * Fix potential memory leaks in ecp_randomize_jac() and ecp_randomize_mxz()
+     when PRNG function fails. Contributed by Jonas Lejeune in #3318.
+   * Add additional bounds checks in ssl_write_client_hello() preventing
+     output buffer overflow if the configuration declared a buffer that was
+     too small.
+
+Changes
+   * Unify the example programs termination to call mbedtls_exit() instead of
+     using a return command. This has been done to enable customization of the
+     behavior in bare metal environments.
+   * Abort the ClientHello writing function as soon as some extension doesn't
+     fit into the record buffer. Previously, such extensions were silently
+     dropped. As a consequence, the TLS handshake now fails when the output
+     buffer is not large enough to hold the ClientHello.
+   * The ECP module, enabled by `MBEDTLS_ECP_C`, now depends on
+     `MBEDTLS_CTR_DRBG_C`, `MBEDTLS_HMAC_DRBG_C`, `MBEDTLS_SHA512_C` or
+     `MBEDTLS_SHA256_C` for some side-channel coutermeasures. If side channels
+     are not a concern, this dependency can be avoided by enabling the new
+     option `MBEDTLS_ECP_NO_INTERNAL_RNG`.
+
 = mbed TLS 2.16.6 branch released 2020-04-14
 
 Security

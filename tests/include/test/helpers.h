@@ -103,4 +103,83 @@ unsigned char *mbedtls_test_unhexify_alloc( const char *ibuf, size_t *olen );
 int mbedtls_test_hexcmp( uint8_t * a, uint8_t * b,
                          uint32_t a_len, uint32_t b_len );
 
+#if defined(MBEDTLS_CHECK_PARAMS)
+
+typedef struct
+{
+    const char *failure_condition;
+    const char *file;
+    int line;
+}
+mbedtls_test_param_failed_location_record_t;
+
+/**
+ * \brief   Get the location record of the last call to
+ *          mbedtls_test_param_failed().
+ *
+ * \note    The call expectation is set up and active until the next call to
+ *          mbedtls_test_param_failed_check_expected_call() or
+ *          mbedtls_param_failed() that cancels it.
+ */
+void mbedtls_test_param_failed_get_location_record(
+         mbedtls_test_param_failed_location_record_t *location_record );
+
+/**
+ * \brief   State that a call to mbedtls_param_failed() is expected.
+ *
+ * \note    The call expectation is set up and active until the next call to
+ *          mbedtls_test_param_failed_check_expected_call() or
+ *          mbedtls_param_failed that cancel it.
+ */
+void mbedtls_test_param_failed_expect_call( void );
+
+/**
+ * \brief   Check whether mbedtls_param_failed() has been called as expected.
+ *
+ * \note    Check whether mbedtls_param_failed() has been called between the
+ *          last call to mbedtls_test_param_failed_expect_call() and the call
+ *          to this function.
+ *
+ * \return  \c 0 Since the last call to mbedtls_param_failed_expect_call(),
+ *               mbedtls_param_failed() has been called.
+ *          \c -1 Otherwise.
+ */
+int mbedtls_test_param_failed_check_expected_call( void );
+
+/**
+ * \brief   Get a pointer to the object of type jmp_buf holding the execution
+ *          state information used by mbedtls_param_failed() to do a long jump.
+ *
+ * \note    If a call to mbedtls_param_failed() is not expected in the sense
+ *          that there is no call to mbedtls_test_param_failed_expect_call()
+ *          preceding it, then mbedtls_param_failed() will try to restore the
+ *          execution to the state stored in the jmp_buf object whose address
+ *          is returned by the present function.
+ *
+ * \note    The returned pointer is of type void* as its type is opaque,
+ *          implementation dependent (jmp_buf is an array type not the type of
+ *          one element of an array).
+ *
+ * \return  Address of the object of type jmp_buf holding the execution state
+ *          information used by mbedtls_param_failed() to do a long jump.
+ */
+void* mbedtls_test_param_failed_get_state_buf( void );
+
+/**
+ * \brief   Reset the execution state used by mbedtls_param_failed() to do a
+ *          long jump.
+ *
+ * \note    If a call to mbedtls_param_failed() is not expected in the sense
+ *          that there is no call to mbedtls_test_param_failed_expect_call()
+ *          preceding it, then mbedtls_param_failed() will try to restore the
+ *          execution state that this function reset.
+ *
+ * \note    It is recommended to reset the execution state when the state
+ *          is not relevant anymore. That way an unexpected call to
+ *          mbedtls_param_failed() will not trigger a long jump with
+ *          undefined behavior but rather a long jump that will rather fault.
+ */
+void mbedtls_test_param_failed_reset_state( void );
+#endif /* MBEDTLS_CHECK_PARAMS */
+
 #endif /* TEST_HELPERS_H */

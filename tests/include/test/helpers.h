@@ -55,10 +55,8 @@ int mbedtls_test_platform_setup( void );
 void mbedtls_test_platform_teardown( void );
 
 /**
- * \brief          This function translates an ASCII string encoding an
- *                 hexadecimal number into the encoded hexadecimal number. The
- *                 hexadecimal number is represented as an array of
- *                 unsigned char.
+ * \brief          This function decodes the hexadecimal representation of
+ *                 data.
  *
  * \note           The output buffer can be the same as the input buffer. For
  *                 any other overlapping of the input and output buffers, the
@@ -72,7 +70,7 @@ void mbedtls_test_platform_teardown( void );
  *
  * \return         \c 0 on success.
  * \return         \c -1 if the output buffer is too small or the input string
- *                 is not a valid ASCII encoding of an hexadecimal number.
+ *                 is not a valid hexadecimal representation.
  */
 int mbedtls_test_unhexify( unsigned char *obuf, size_t obufmax,
                            const char *ibuf, size_t *len );

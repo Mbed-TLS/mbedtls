@@ -259,16 +259,17 @@ typedef struct data_tag
  *
  * \param   TEST                The test expression to be tested.
  */
-#define TEST_INVALID_PARAM( TEST )                                          \
-    do {                                                                    \
-        memcpy(jmp_tmp, param_fail_jmp, sizeof(jmp_buf));                   \
-        if( setjmp( param_fail_jmp ) == 0 )                                 \
-        {                                                                   \
-            TEST;                                                           \
-            test_fail( #TEST, __LINE__, __FILE__ );                         \
-            goto exit;                                                      \
-        }                                                                   \
-        memcpy(param_fail_jmp, jmp_tmp, sizeof(jmp_buf));                   \
+#define TEST_INVALID_PARAM( TEST )                                       \
+    do {                                                                 \
+        memcpy( jmp_tmp, mbedtls_test_param_failed_get_state_buf( ),     \
+                sizeof( jmp_tmp ) );                                     \
+        if( setjmp(  mbedtls_test_param_failed_get_state_buf( ) ) == 0 ) \
+        {                                                                \
+            TEST;                                                        \
+            test_fail( #TEST, __LINE__, __FILE__ );                      \
+            goto exit;                                                   \
+        }                                                                \
+        mbedtls_test_param_failed_reset_state( );                        \
     } while( 0 )
 #endif /* MBEDTLS_CHECK_PARAMS && !MBEDTLS_PARAM_FAILED_ALT */
 
@@ -373,12 +374,13 @@ typedef struct
     uint8_t expected_call;
     uint8_t expected_call_happened;
 
+    jmp_buf state;
+
     mbedtls_test_param_failed_location_record_t location_record;
 }
 param_failed_ctx_t;
 static param_failed_ctx_t param_failed_ctx;
 
-jmp_buf param_fail_jmp;
 jmp_buf jmp_tmp;
 #endif
 
@@ -478,6 +480,47 @@ int mbedtls_test_param_failed_check_expected_call( void )
     return( -1 );
 }
 
+/**
+ * \brief   Get a pointer to the object of type jmp_buf holding the execution
+ *          state information used by mbedtls_param_failed() to do a long jump.
+ *
+ * \note    If a call to mbedtls_param_failed() is not expected in the sense
+ *          that there is no call to mbedtls_test_param_failed_expect_call()
+ *          preceding it, then mbedtls_param_failed() will try to restore the
+ *          execution to the state stored in the jmp_buf object whose address
+ *          is returned by the present function.
+ *
+ * \note    The returned pointer is of type void* as its type is opaque,
+ *          implementation dependent (jmp_buf is an array type not the type of
+ *          one element of an array).
+ *
+ * \return  Address of the object of type jmp_buf holding the execution state
+ *          information used by mbedtls_param_failed() to do a long jump.
+ */
+void* mbedtls_test_param_failed_get_state_buf( void )
+{
+    return &param_failed_ctx.state[0];
+}
+
+/**
+ * \brief   Reset the execution state used by mbedtls_param_failed() to do a
+ *          long jump.
+ *
+ * \note    If a call to mbedtls_param_failed() is not expected in the sense
+ *          that there is no call to mbedtls_test_param_failed_expect_call()
+ *          preceding it, then mbedtls_param_failed() will try to restore the
+ *          execution state that this function reset.
+ *
+ * \note    It is recommended to reset the execution state when the state
+ *          is not relevant anymore. That way an unexpected call to
+ *          mbedtls_param_failed() will not trigger a long jump with
+ *          undefined behavior but rather a long jump that will rather fault.
+ */
+void mbedtls_test_param_failed_reset_state( void )
+{
+    memset( param_failed_ctx.state, 0, sizeof( param_failed_ctx.state ) );
+}
+
 void mbedtls_param_failed( const char *failure_condition,
                            const char *file,
                            int line )
@@ -495,9 +538,13 @@ void mbedtls_param_failed( const char *failure_condition,
     }
     else
     {
-        /* ...else we treat this as an error */
+        /* ...else try a long jump. If the execution state has not been set-up
+         * or reset then the long jump buffer is all zero's and the call will
+         * with high probability fault, emphasizing there is something to look
+         * at.
+         */
 
-        longjmp( param_fail_jmp, 1 );
+        longjmp( param_failed_ctx.state, 1 );
     }
 }
 #endif

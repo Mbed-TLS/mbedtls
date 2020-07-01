@@ -169,7 +169,7 @@ void execute_function_ptr(TestWrapper_t fp, void **params)
 #if defined(MBEDTLS_CHECK_PARAMS)
     mbedtls_test_param_failed_location_record_t location_record;
 
-    if ( setjmp( param_fail_jmp ) == 0 )
+    if ( setjmp( mbedtls_test_param_failed_get_state_buf( ) ) == 0 )
     {
         fp( params );
     }
@@ -183,7 +183,7 @@ void execute_function_ptr(TestWrapper_t fp, void **params)
         test_info.result = TEST_RESULT_FAILED;
     }
 
-    memset( param_fail_jmp, 0, sizeof(jmp_buf) );
+    mbedtls_test_param_failed_reset_state( );
 #else
     fp( params );
 #endif

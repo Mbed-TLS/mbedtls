@@ -1,5 +1,0 @@
-Changes
-   * The unit tests now rely on header files in tests/include/test and source
-     files in tests/src. When building with make or cmake, the files in
-     tests/src are compiled and the resulting object linked into each test
-     executable.

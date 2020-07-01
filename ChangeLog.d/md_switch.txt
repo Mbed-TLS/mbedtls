@@ -1,3 +1,0 @@
-Changes
-   * Combine identical cases in switch statements in md.c. Contributed
-     by irwir in #3208.

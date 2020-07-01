@@ -74,16 +74,6 @@ typedef struct data_tag
 #define DISPATCH_UNSUPPORTED_SUITE      -5  /* Test suite not supported by the
                                                build */
 
-typedef enum
-{
-    PARAMFAIL_TESTSTATE_IDLE = 0,           /* No parameter failure call test */
-    PARAMFAIL_TESTSTATE_PENDING,            /* Test call to the parameter failure
-                                             * is pending */
-    PARAMFAIL_TESTSTATE_CALLED              /* The test call to the parameter
-                                             * failure function has been made */
-} paramfail_test_state_t;
-
-
 /*----------------------------------------------------------------------------*/
 /* Macros */
 
@@ -237,15 +227,16 @@ typedef enum
  *
  * \param   TEST                The test expression to be tested.
  */
-#define TEST_INVALID_PARAM_RET( PARAM_ERR_VALUE, TEST )                     \
-    do {                                                                    \
-        test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_PENDING;       \
-        if( (TEST) != (PARAM_ERR_VALUE) ||                                  \
-            test_info.paramfail_test_state != PARAMFAIL_TESTSTATE_CALLED )  \
-        {                                                                   \
-            test_fail( #TEST, __LINE__, __FILE__ );                         \
-            goto exit;                                                      \
-        }                                                                   \
+#define TEST_INVALID_PARAM_RET( PARAM_ERR_VALUE, TEST )                 \
+    do {                                                                \
+        mbedtls_test_param_failed_expect_call( );                       \
+        if( ( ( TEST ) != ( PARAM_ERR_VALUE ) ) ||                      \
+            ( mbedtls_test_param_failed_check_expected_call( ) != 0 ) ) \
+        {                                                               \
+            test_fail( #TEST, __LINE__, __FILE__ );                     \
+            goto exit;                                                  \
+        }                                                               \
+        mbedtls_test_param_failed_check_expected_call( );               \
    } while( 0 )
 
 /**
@@ -359,7 +350,6 @@ typedef enum
 
 typedef struct
 {
-    paramfail_test_state_t paramfail_test_state;
     test_result_t result;
     const char *test;
     const char *filename;
@@ -380,6 +370,9 @@ mbedtls_test_param_failed_location_record_t;
 
 typedef struct
 {
+    uint8_t expected_call;
+    uint8_t expected_call_happened;
+
     mbedtls_test_param_failed_location_record_t location_record;
 }
 param_failed_ctx_t;
@@ -451,6 +444,40 @@ void mbedtls_test_param_failed_get_location_record(
     *location_record = param_failed_ctx.location_record;
 }
 
+/**
+ * \brief   State that a call to mbedtls_param_failed() is expected.
+ *
+ * \note    The call expectation is set up and active until the next call to
+ *          mbedtls_test_param_failed_check_expected_call() or
+ *          mbedtls_param_failed that cancel it.
+ */
+void mbedtls_test_param_failed_expect_call( void )
+{
+    param_failed_ctx.expected_call_happened = 0;
+    param_failed_ctx.expected_call = 1;
+}
+
+/**
+ * \brief   Check whether mbedtls_param_failed() has been called as expected.
+ *
+ * \note    Check whether mbedtls_param_failed() has been called between the
+ *          last call to mbedtls_test_param_failed_expect_call() and the call
+ *          to this function.
+ *
+ * \return  \c 0 Since the last call to mbedtls_param_failed_expect_call(),
+ *               mbedtls_param_failed() has been called.
+ *          \c -1 Otherwise.
+ */
+int mbedtls_test_param_failed_check_expected_call( void )
+{
+    param_failed_ctx.expected_call = 0;
+
+    if( param_failed_ctx.expected_call_happened != 0 )
+        return( 0 );
+
+    return( -1 );
+}
+
 void mbedtls_param_failed( const char *failure_condition,
                            const char *file,
                            int line )
@@ -461,9 +488,10 @@ void mbedtls_param_failed( const char *failure_condition,
     param_failed_ctx.location_record.line = line;
 
     /* If we are testing the callback function...  */
-    if( test_info.paramfail_test_state == PARAMFAIL_TESTSTATE_PENDING )
+    if( param_failed_ctx.expected_call != 0 )
     {
-        test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_CALLED;
+        param_failed_ctx.expected_call = 0;
+        param_failed_ctx.expected_call_happened = 1;
     }
     else
     {

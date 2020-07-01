@@ -683,7 +683,6 @@ int execute_tests( int argc , const char ** argv )
             if( unmet_dep_count == 0 )
             {
                 test_info.result = TEST_RESULT_SUCCESS;
-                test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_IDLE;
                 test_info.step = (unsigned long)( -1 );
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))

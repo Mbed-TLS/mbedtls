@@ -1005,6 +1005,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_ECP_NIST_OPTIM */
 
+#if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
+    if( strcmp( "MBEDTLS_ECP_NO_INTERNAL_RNG", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_ECP_NO_INTERNAL_RNG );
+        return( 0 );
+    }
+#endif /* MBEDTLS_ECP_NO_INTERNAL_RNG */
+
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( strcmp( "MBEDTLS_ECP_RESTARTABLE", config ) == 0 )
     {

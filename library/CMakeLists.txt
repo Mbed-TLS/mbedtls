@@ -201,7 +201,7 @@ foreach(target IN LISTS target_libraries)
         PRIVATE ${thirdparty_def})
     install(TARGETS ${target}
             DESTINATION ${LIB_INSTALL_DIR}
-            PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+            PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 endforeach(target)
 
 add_custom_target(lib DEPENDS mbedcrypto mbedx509 mbedtls)

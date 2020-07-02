@@ -192,6 +192,11 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
 endif(USE_SHARED_MBEDTLS_LIBRARY)
 
 foreach(target IN LISTS target_libraries)
+    # Include public header files from /include and other directories
+    # declared by /3rdparty/**/CMakeLists.txt. Include private header files
+    # from /library and others declared by /3rdparty/**/CMakeLists.txt.
+    # /library needs to be listed explicitly when building .c files outside
+    # of /library (which currently means: under /3rdparty).
     target_include_directories(${target}
         PUBLIC ${MBEDTLS_DIR}/include/
         PUBLIC ${thirdparty_inc_public}

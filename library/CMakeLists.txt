@@ -195,6 +195,7 @@ foreach(target IN LISTS target_libraries)
     target_include_directories(${target}
         PUBLIC ${MBEDTLS_DIR}/include/
         PUBLIC ${thirdparty_inc_public}
+        PRIVATE ${MBEDTLS_DIR}/library/
         PRIVATE ${thirdparty_inc})
     target_compile_definitions(${target}
         PRIVATE ${thirdparty_def})

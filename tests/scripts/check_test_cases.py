@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 """Sanity checks for test data.
+
+This program contains a class for traversing test cases that can be used
+independently of the checks.
 """
 
 # Copyright (C) 2019, Arm Limited, All Rights Reserved
@@ -60,14 +63,15 @@ the process_test_case method, and call walk_all().
                           file_name, line_number, description):
         """Process a test case.
 
-per_file_state: a new object returned by per_file_state() for each file.
+per_file_state: an object created by new_per_file_state() at the beginning
+                of each file.
 file_name: a relative path to the file containing the test case.
 line_number: the line number in the given file.
 description: the test case description as a byte string.
 """
         raise NotImplementedError
 
-    def per_file_state(self):
+    def new_per_file_state(self):
         """Return a new per-file state object.
 
 The default per-file state object is None. Child classes that require per-file
@@ -79,7 +83,7 @@ state may override this method.
     def walk_test_suite(self, data_file_name):
         """Iterate over the test cases in the given unit test data file."""
         in_paragraph = False
-        descriptions = self.per_file_state() # pylint: disable=assignment-from-none
+        descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
         with open(data_file_name, 'rb') as data_file:
             for line_number, line in enumerate(data_file, 1):
                 line = line.rstrip(b'\r\n')
@@ -96,7 +100,7 @@ state may override this method.
 
     def walk_ssl_opt_sh(self, file_name):
         """Iterate over the test cases in ssl-opt.sh or a file with a similar format."""
-        descriptions = self.per_file_state() # pylint: disable=assignment-from-none
+        descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
         with open(file_name, 'rb') as file_contents:
             for line_number, line in enumerate(file_contents, 1):
                 # Assume that all run_test calls have the same simple form
@@ -142,7 +146,7 @@ class DescriptionChecker(TestDescriptionExplorer):
     def __init__(self, results):
         self.results = results
 
-    def per_file_state(self):
+    def new_per_file_state(self):
         """Dictionary mapping descriptions to their line number."""
         return {}
 

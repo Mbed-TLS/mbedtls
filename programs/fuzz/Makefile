@@ -1,6 +1,9 @@
+MBEDTLS_TEST_PATH:=../../tests/src
+MBEDTLS_TEST_OBJS:=$(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/*.c))
 
-LOCAL_CFLAGS = -I../../include -D_FILE_OFFSET_BITS=64
-LOCAL_LDFLAGS = -L../../library			\
+LOCAL_CFLAGS = -I../../tests/include -I../../include -D_FILE_OFFSET_BITS=64
+LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS}		\
+		-L../../library			\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)

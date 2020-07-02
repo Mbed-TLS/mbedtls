@@ -1499,16 +1499,17 @@ static psa_status_t psa_validate_key_attributes(
     const psa_key_attributes_t *attributes,
     psa_se_drv_table_entry_t **p_drv )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
 
-    if( attributes->core.lifetime != PSA_KEY_LIFETIME_VOLATILE )
-    {
-        status = psa_validate_persistent_key_parameters(
-            attributes->core.lifetime, attributes->core.id,
-            p_drv, 1 );
-        if( status != PSA_SUCCESS )
-            return( status );
-    }
+    status = psa_validate_key_location( psa_get_key_lifetime( attributes ),
+                                        p_drv );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    status = psa_validate_key_persistence( psa_get_key_lifetime( attributes ),
+                                           psa_get_key_id( attributes ) );
+    if( status != PSA_SUCCESS )
+        return( status );
 
     status = psa_validate_key_policy( &attributes->core.policy );
     if( status != PSA_SUCCESS )
@@ -1594,11 +1595,14 @@ static psa_status_t psa_start_key_creation(
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* For a key in a secure element, we need to do three things
-     * when creating or registering a key:
+     * when creating or registering a persistent key:
      * create the key file in internal storage, create the
      * key inside the secure element, and update the driver's
-     * persistent data. Start a transaction that will encompass these
-     * three actions. */
+     * persistent data. This is done by starting a transaction that will
+     * encompass these three actions.
+     * For registering a volatile key, we just need to find an appropriate
+     * slot number inside the SE. Since the key is designated volatile, creating
+     * a transaction is not required. */
     /* The first thing to do is to find a slot number for the new key.
      * We save the slot number in persistent storage as part of the
      * transaction data. It will be needed to recover if the power
@@ -1613,15 +1617,19 @@ static psa_status_t psa_start_key_creation(
                                            &slot->data.se.slot_number );
         if( status != PSA_SUCCESS )
             return( status );
-        psa_crypto_prepare_transaction( PSA_CRYPTO_TRANSACTION_CREATE_KEY );
-        psa_crypto_transaction.key.lifetime = slot->attr.lifetime;
-        psa_crypto_transaction.key.slot = slot->data.se.slot_number;
-        psa_crypto_transaction.key.id = slot->attr.id;
-        status = psa_crypto_save_transaction( );
-        if( status != PSA_SUCCESS )
+
+        if( ! PSA_KEY_LIFETIME_IS_VOLATILE( attributes->core.lifetime ) )
         {
-            (void) psa_crypto_stop_transaction( );
-            return( status );
+            psa_crypto_prepare_transaction( PSA_CRYPTO_TRANSACTION_CREATE_KEY );
+            psa_crypto_transaction.key.lifetime = slot->attr.lifetime;
+            psa_crypto_transaction.key.slot = slot->data.se.slot_number;
+            psa_crypto_transaction.key.id = slot->attr.id;
+            status = psa_crypto_save_transaction( );
+            if( status != PSA_SUCCESS )
+            {
+                (void) psa_crypto_stop_transaction( );
+                return( status );
+            }
         }
     }
 
@@ -1661,7 +1669,7 @@ static psa_status_t psa_finish_key_creation(
     (void) driver;
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    if( slot->attr.lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    if( ! PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) )
     {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
         if( driver != NULL )
@@ -1709,8 +1717,8 @@ static psa_status_t psa_finish_key_creation(
     /* Finish the transaction for a key creation. This does not
      * happen when registering an existing key. Detect this case
      * by checking whether a transaction is in progress (actual
-     * creation of a key in a secure element requires a transaction,
-     * but registration doesn't use one). */
+     * creation of a persistent key in a secure element requires a transaction,
+     * but registration or volatile key creation doesn't use one). */
     if( driver != NULL &&
         psa_crypto_transaction.unknown.type == PSA_CRYPTO_TRANSACTION_CREATE_KEY )
     {

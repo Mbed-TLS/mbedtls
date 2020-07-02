@@ -1611,7 +1611,7 @@
  */
 #define PSA_KEY_LIFETIME_IS_VOLATILE(lifetime)  \
     (PSA_KEY_LIFETIME_GET_PERSISTENCE(lifetime) == \
-     PSA_KEY_LIFETIME_PERSISTENCE_VOLATILE)
+     PSA_KEY_PERSISTENCE_VOLATILE)
 
 /** Construct a lifetime from a persistence level and a location.
  *

@@ -27,6 +27,10 @@
     ( PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(           \
         PSA_KEY_PERSISTENCE_DEFAULT, TEST_DRIVER_LOCATION ) )
 
+#define TEST_SE_VOLATILE_LIFETIME                               \
+    ( PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(           \
+        PSA_KEY_PERSISTENCE_VOLATILE, TEST_DRIVER_LOCATION ) )
+
 /** The driver detected a condition that shouldn't happen.
  * This is probably a bug in the library. */
 #define PSA_ERROR_DETECTED_BY_DRIVER ((psa_status_t)( -500 ))
@@ -609,6 +613,20 @@ exit:
     return( ok );
 }
 
+/* Check that no persistent data exists for the given location. */
+static int check_no_persistent_data( psa_key_location_t location )
+{
+    psa_storage_uid_t uid = file_uid_for_location( location );
+    struct psa_storage_info_t info;
+    int ok = 0;
+
+    TEST_EQUAL( psa_its_get_info( uid, &info ), PSA_ERROR_DOES_NOT_EXIST );
+    ok = 1;
+
+exit:
+    return( ok );
+}
+
 /* Check that a function's return status is "smoke-free", i.e. that
  * it's an acceptable error code when calling an API function that operates
  * on a key with potentially bogus parameters. */
@@ -829,11 +847,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void key_creation_import_export( int min_slot, int restart )
+void key_creation_import_export( int lifetime_arg, int min_slot, int restart )
 {
     psa_drv_se_t driver;
     psa_drv_se_key_management_t key_management;
-    psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
+    psa_key_lifetime_t lifetime = (psa_key_lifetime_t) lifetime_arg;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     psa_key_id_t id = 1;
     psa_key_handle_t handle = 0;
@@ -864,10 +882,25 @@ void key_creation_import_export( int min_slot, int restart )
     PSA_ASSERT( psa_import_key( &attributes,
                                 key_material, sizeof( key_material ),
                                 &handle ) );
-    if( ! check_persistent_data( location,
-                                 &ram_shadow_slot_usage,
-                                 sizeof( ram_shadow_slot_usage ) ) )
-        goto exit;
+
+
+    if( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
+    {
+        /* For volatile keys, check no persistent data was created */
+        if( ! check_no_persistent_data( location ) )
+            goto exit;
+    }
+    else
+    {
+        /* For persistent keys, check persistent data */
+        if( ! check_persistent_data( location,
+                             &ram_shadow_slot_usage,
+                             sizeof( ram_shadow_slot_usage ) ) )
+            goto exit;
+    }
+
+    /* Test that the key was created in the expected slot. */
+    TEST_EQUAL( ram_slots[min_slot].type, PSA_KEY_TYPE_RAW_DATA );
 
     /* Maybe restart, to check that the information is saved correctly. */
     if( restart )
@@ -875,15 +908,37 @@ void key_creation_import_export( int min_slot, int restart )
         mbedtls_psa_crypto_free( );
         PSA_ASSERT( psa_register_se_driver( location, &driver ) );
         PSA_ASSERT( psa_crypto_init( ) );
-        if( ! check_persistent_data( location,
-                                     &ram_shadow_slot_usage,
-                                     sizeof( ram_shadow_slot_usage ) ) )
-            goto exit;
-        PSA_ASSERT( psa_open_key( id, &handle ) );
+
+        if( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
+        {
+            /* Check that the PSA core has no knowledge of the volatile key */
+            TEST_ASSERT( psa_open_key( id, &handle ) == PSA_ERROR_DOES_NOT_EXIST );
+
+            /* Drop data from our mockup driver */
+            ram_slots_reset();
+            ram_min_slot = min_slot;
+
+            /* Re-import key */
+            PSA_ASSERT( psa_import_key( &attributes,
+                                key_material, sizeof( key_material ),
+                                &handle ) );
+        }
+        else
+        {
+
+            /* Check we can re-open the persistent key */
+            if( ! check_persistent_data( location,
+                                         &ram_shadow_slot_usage,
+                                         sizeof( ram_shadow_slot_usage ) ) )
+                goto exit;
+
+            /* Check that the PSA core still knows about the key */
+            PSA_ASSERT( psa_open_key( id, &handle ) );
+        }
     }
 
     /* Test that the key was created in the expected slot. */
-    TEST_ASSERT( ram_slots[min_slot].type == PSA_KEY_TYPE_RAW_DATA );
+    TEST_EQUAL( ram_slots[min_slot].type, PSA_KEY_TYPE_RAW_DATA );
 
     /* Test the key attributes, including the reported slot number. */
     psa_set_key_bits( &attributes,
@@ -909,7 +964,7 @@ void key_creation_import_export( int min_slot, int restart )
                 PSA_ERROR_DOES_NOT_EXIST );
 
     /* Test that the key has been erased from the designated slot. */
-    TEST_ASSERT( ram_slots[min_slot].type == 0 );
+    TEST_EQUAL( ram_slots[min_slot].type, 0 );
 
 exit:
     PSA_DONE( );
@@ -1263,7 +1318,7 @@ void sign_verify( int flow,
          * generate material, store the desired result of generation in
          * the mock secure element storage. */
         PSA_ASSERT( psa_get_key_attributes( drv_handle, &drv_attributes ) );
-        TEST_ASSERT( key_material->len == PSA_BITS_TO_BYTES( bits ) );
+        TEST_EQUAL( key_material->len, PSA_BITS_TO_BYTES( bits ) );
         memcpy( ram_slots[ram_min_slot].content, key_material->x,
                 key_material->len );
     }
@@ -1355,6 +1410,7 @@ exit:
 
 /* BEGIN_CASE */
 void register_key_smoke_test( int lifetime_arg,
+                              int id_arg,
                               int validate,
                               int expected_status_arg )
 {
@@ -1364,7 +1420,7 @@ void register_key_smoke_test( int lifetime_arg,
     psa_drv_se_t driver;
     psa_drv_se_key_management_t key_management;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_id_t id = 1;
+    psa_key_id_t id = id_arg;
     size_t bit_size = 48;
     psa_key_slot_number_t wanted_slot = 0x123456789;
     psa_key_handle_t handle = 0;

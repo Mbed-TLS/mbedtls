@@ -1,2 +1,0 @@
-Bugfix
-   * Fix building library/net_sockets.c and the ssl_mail_client program on NetBSD. Contributed by Nia Alarie in #3422.

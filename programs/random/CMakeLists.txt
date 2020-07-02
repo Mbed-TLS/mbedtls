@@ -1,12 +1,14 @@
-add_executable(gen_random_havege gen_random_havege.c)
-target_link_libraries(gen_random_havege mbedcrypto)
+set(executables
+    gen_entropy
+    gen_random_ctr_drbg
+    gen_random_havege
+)
 
-add_executable(gen_random_ctr_drbg gen_random_ctr_drbg.c)
-target_link_libraries(gen_random_ctr_drbg mbedcrypto)
+foreach(exe IN LISTS executables)
+    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>)
+    target_link_libraries(${exe} mbedcrypto)
+endforeach()
 
-add_executable(gen_entropy gen_entropy.c)
-target_link_libraries(gen_entropy mbedcrypto)
-
-install(TARGETS gen_random_havege gen_random_ctr_drbg gen_entropy
+install(TARGETS ${executables}
         DESTINATION "bin"
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

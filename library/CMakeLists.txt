@@ -154,7 +154,6 @@ if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
     set(mbedtls_static_target "mbedtls_static")
     set(mbedx509_static_target "mbedx509_static")
     set(mbedcrypto_static_target "mbedcrypto_static")
-    set(target_libraries "mbedcrypto" "mbedx509" "mbedtls")
     list(APPEND target_libraries
         "mbedcrypto_static" "mbedx509_static" "mbedtls_static")
 elseif(USE_STATIC_MBEDTLS_LIBRARY)

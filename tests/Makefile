@@ -6,6 +6,9 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -Wextra
 LDFLAGS ?=
 
+# Include public header files from ../include, test-specific header files
+# from ./include, and private header files (used by some invasive tests)
+# from ../library.
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I./include -I../include -I../library -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = -L../library			\
 		-lmbedtls$(SHARED_SUFFIX)	\

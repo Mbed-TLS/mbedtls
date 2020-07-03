@@ -4,8 +4,10 @@
 #
 # Purpose
 # -------
-# This runs a rough equivalent of the travis.yml in a Docker container.
-# The tests are run for both clang and gcc.
+# This runs sanity checks and library tests in a Docker container. The tests
+# are run for both clang and gcc. The testing includes a full test run
+# in the default configuration, partial test runs in the reference
+# configurations, and some dependency tests.
 #
 # Notes for users
 # ---------------
@@ -30,12 +32,7 @@
 
 source tests/scripts/docker_env.sh
 
-run_in_docker tests/scripts/recursion.pl library/*.c
-run_in_docker tests/scripts/check-generated-files.sh
-run_in_docker tests/scripts/check-doxy-blocks.pl
-run_in_docker tests/scripts/check-names.sh
-run_in_docker tests/scripts/check-files.py
-run_in_docker tests/scripts/doxygen.sh
+run_in_docker tests/scripts/all.sh 'check_*'
 
 for compiler in clang gcc; do
     run_in_docker -e CC=${compiler} cmake -D CMAKE_BUILD_TYPE:String="Check" .

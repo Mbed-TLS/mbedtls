@@ -1,0 +1,3 @@
+Changes
+   * Only pass -Wformat-signedness to versions of GCC that support it. Reported
+     in #3478 and fix contributed in #3479 by okhowang.

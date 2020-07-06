@@ -346,7 +346,11 @@ PSA import RSA public key: maximum size exceeded
 depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_RSA_C
 import_rsa_made_up:PSA_VENDOR_RSA_MAX_KEY_BITS+8:0:PSA_ERROR_NOT_SUPPORTED
 
-PSA key policy: AES
+PSA key policy: AES ECB
+depends_on:MBEDTLS_AES_C
+check_key_policy:PSA_KEY_TYPE_AES:128:PSA_KEY_USAGE_ENCRYPT:PSA_ALG_ECB_NO_PADDING
+
+PSA key policy: AES CBC
 depends_on:MBEDTLS_AES_C
 check_key_policy:PSA_KEY_TYPE_AES:128:PSA_KEY_USAGE_ENCRYPT:PSA_ALG_CBC_NO_PADDING
 
@@ -1122,6 +1126,10 @@ PSA cipher: bad order function calls
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
 cipher_bad_order:
 
+PSA symmetric encrypt: AES-ECB, 16 bytes, good
+depends_on:MBEDTLS_AES_C
+cipher_encrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"6bc1bee22e409f96e93d7e117393172a":"3ad77bb40d7a3660a89ecaf32466ef97":PSA_SUCCESS
+
 PSA symmetric encrypt: AES-CBC-nopad, 16 bytes, good
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
 cipher_encrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":"a076ec9dfbe47d52afc357336f20743b":PSA_SUCCESS
@@ -1157,6 +1165,10 @@ cipher_encrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7
 PSA symmetric encrypt: 3-key 3DES-CBC-nopad, 8 bytes, good
 depends_on:MBEDTLS_DES_C:MBEDTLS_CIPHER_MODE_CBC
 cipher_encrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"2a2a2a2a2a2a2a2a":"eda4011239bc3ac9":"817ca7d69b80d86a":PSA_SUCCESS
+
+PSA symmetric decrypt: AES-ECB, 16 bytes, good
+depends_on:MBEDTLS_AES_C
+cipher_decrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"396ee84fb75fdbb5c2b13c7fe5a654aa":"63cecc46a382414d5fa7d2b79387437f":PSA_SUCCESS
 
 PSA symmetric decrypt: AES-CBC-nopad, 16 bytes, good
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
@@ -1194,6 +1206,10 @@ PSA symmetric decrypt: 3-key 3DES-CBC-nopad, 8 bytes, good
 depends_on:MBEDTLS_DES_C:MBEDTLS_CIPHER_MODE_CBC
 cipher_decrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"2a2a2a2a2a2a2a2a":"817ca7d69b80d86a":"eda4011239bc3ac9":PSA_SUCCESS
 
+PSA symmetric encrypt/decrypt: AES-ECB, 16 bytes, good
+depends_on:MBEDTLS_AES_C
+cipher_verify_output:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
+
 PSA symmetric encrypt/decrypt: AES-CBC-nopad, 16 bytes, good
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
 cipher_verify_output:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
@@ -1209,6 +1225,10 @@ cipher_verify_output:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158
 PSA symmetric encrypt/decrypt: AES-CTR
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 cipher_verify_output:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
+
+PSA symmetric encryption multipart: AES-ECB, 16+16 bytes
+depends_on:MBEDTLS_AES_C
+cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":16:16:16:"3ad77bb40d7a3660a89ecaf32466ef9755ed5e9e066820fa52c729886d18854c"
 
 PSA symmetric encryption multipart: AES-CBC-nopad, 7+9 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
@@ -1273,6 +1293,10 @@ cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf715880
 PSA symmetric encryption multipart: AES-CTR, 16+0 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":16:16:0:"8f9408fe80a81d3e813da3c7b0b2bd32"
+
+PSA symmetric decryption multipart: AES-ECB, 16+16 bytes
+depends_on:MBEDTLS_AES_C
+cipher_decrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"3ad77bb40d7a3660a89ecaf32466ef9755ed5e9e066820fa52c729886d18854c":16:16:16:"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef"
 
 PSA symmetric decryption multipart: AES-CBC-nopad, 7+9 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC

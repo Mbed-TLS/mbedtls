@@ -980,6 +980,15 @@
  */
 #define PSA_ALG_XTS                             ((psa_algorithm_t)0x044000ff)
 
+/** The Electronic Code Book (ECB) mode of a block cipher, with no padding.
+ *
+ * The underlying block cipher is determined by the key type.
+ *
+ * This symmetric cipher mode can only be used with messages whose lengths
+ * are whole number of blocks for the chosen block cipher.
+ */
+#define PSA_ALG_ECB_NO_PADDING                  ((psa_algorithm_t)0x04404400)
+
 /** The CBC block cipher chaining mode, with no padding.
  *
  * The underlying block cipher is determined by the key type.

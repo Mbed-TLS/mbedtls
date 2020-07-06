@@ -11,10 +11,10 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
+ *	this list of conditions and the following disclaimer.
  *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
+ *	this list of conditions and the following disclaimer in the documentation
+ *	and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -34,16 +34,16 @@
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
  *
- *    - Redistributions of source code must retain the above copyright notice,
- *     this list of conditions and the following disclaimer.
+ *	- Redistributions of source code must retain the above copyright notice,
+ *	 this list of conditions and the following disclaimer.
  *
- *    - Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
+ *	- Redistributions in binary form must reproduce the above copyright
+ *	notice, this list of conditions and the following disclaimer in the
+ *	documentation and/or other materials provided with the distribution.
  *
- *    - Neither the name of Intel Corporation nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ *	- Neither the name of Intel Corporation nor the names of its contributors
+ *	may be used to endorse or promote products derived from this software
+ *	without specific prior written permission.
  *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -69,7 +69,7 @@
 #include "mbedtls/platform_util.h"
 
 static void bits2int(uECC_word_t *native, const uint8_t *bits,
-		     unsigned bits_size)
+			 unsigned bits_size)
 {
 	unsigned num_n_bytes = BITS_TO_BYTES(NUM_ECC_BITS);
 
@@ -82,7 +82,7 @@ static void bits2int(uECC_word_t *native, const uint8_t *bits,
 }
 
 int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
-		     unsigned hash_size, uECC_word_t *k, uint8_t *signature)
+			 unsigned hash_size, uECC_word_t *k, uint8_t *signature)
 {
 
 	uECC_word_t tmp[NUM_ECC_WORDS];
@@ -94,12 +94,12 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 
 	/* Make sure 0 < k < curve_n */
   	if (uECC_vli_isZero(k) ||
-	    uECC_vli_cmp(curve_n, k) != 1) {
+		uECC_vli_cmp(curve_n, k) != 1) {
 		return UECC_FAILURE;
 	}
 
 	r = EccPoint_mult_safer(p, curve_G, k);
-        if (r != UECC_SUCCESS) {
+		if (r != UECC_SUCCESS) {
 		return r;
 	}
 
@@ -116,7 +116,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	/* Prevent side channel analysis of uECC_vli_modInv() to determine
 	bits of k / the private key by premultiplying by a random number */
 	uECC_vli_modMult(k, k, tmp, curve_n); /* k' = rand * k */
-	uECC_vli_modInv(k, k, curve_n);       /* k = 1 / k' */
+	uECC_vli_modInv(k, k, curve_n);	   /* k = 1 / k' */
 	uECC_vli_modMult(k, k, tmp, curve_n); /* k = 1 / k */
 
 	uECC_vli_nativeToBytes(signature, NUM_ECC_BYTES, p); /* store r */
@@ -140,7 +140,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 }
 
 int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,
-	      unsigned hash_size, uint8_t *signature)
+		  unsigned hash_size, uint8_t *signature)
 {
 	int r;
 	uECC_word_t _random[2*NUM_ECC_WORDS];
@@ -148,14 +148,14 @@ int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,
 	uECC_word_t tries;
 	volatile const uint8_t *private_key_dup = private_key;
 	volatile const uint8_t *message_hash_dup = message_hash;
-    volatile unsigned hash_size_dup = hash_size;
-    volatile uint8_t *signature_dup = signature;
+	volatile unsigned hash_size_dup = hash_size;
+	volatile uint8_t *signature_dup = signature;
 
 	for (tries = 0; tries < uECC_RNG_MAX_TRIES; ++tries) {
 		/* Generating _random uniformly at random: */
 		uECC_RNG_Function rng_function = uECC_get_rng();
 		if (!rng_function ||
-		    rng_function((uint8_t *)_random, 2*NUM_ECC_WORDS*uECC_WORD_SIZE) != 2*NUM_ECC_WORDS*uECC_WORD_SIZE) {
+			rng_function((uint8_t *)_random, 2*NUM_ECC_WORDS*uECC_WORD_SIZE) != 2*NUM_ECC_WORDS*uECC_WORD_SIZE) {
 			return UECC_FAILURE;
 		}
 
@@ -168,10 +168,10 @@ int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,
 			return r;
 		}
 		if (r == UECC_SUCCESS) {
-		    if(private_key_dup != private_key || message_hash_dup != message_hash ||
-               hash_size_dup != hash_size || signature_dup != signature){
-		        return UECC_FAULT_DETECTED;
-		    }
+			if (private_key_dup != private_key || message_hash_dup != message_hash ||
+				hash_size_dup != hash_size || signature_dup != signature) {
+				return UECC_FAULT_DETECTED;
+			}
 			return UECC_SUCCESS;
 		}
 		/* else keep trying */
@@ -202,10 +202,10 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	bitcount_t i;
 	bitcount_t flow_control;
 	volatile uECC_word_t diff;
-    volatile const uint8_t *public_key_dup = public_key;
-    volatile const uint8_t *message_hash_dup = message_hash;
-    volatile unsigned hash_size_dup = hash_size;
-    volatile const uint8_t *signature_dup = signature;
+	volatile const uint8_t *public_key_dup = public_key;
+	volatile const uint8_t *message_hash_dup = message_hash;
+	volatile unsigned hash_size_dup = hash_size;
+	volatile const uint8_t *signature_dup = signature;
 
 
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
@@ -220,7 +220,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 
 	uECC_vli_bytesToNative(_public, public_key, NUM_ECC_BYTES);
 	uECC_vli_bytesToNative(_public + num_words, public_key + NUM_ECC_BYTES,
-			       NUM_ECC_BYTES);
+				   NUM_ECC_BYTES);
 	uECC_vli_bytesToNative(r, signature, NUM_ECC_BYTES);
 	uECC_vli_bytesToNative(s, signature + NUM_ECC_BYTES, NUM_ECC_BYTES);
 
@@ -231,7 +231,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 
 	/* r, s must be < n. */
 	if (uECC_vli_cmp_unsafe(curve_n, r) != 1 ||
-	    uECC_vli_cmp_unsafe(curve_n, s) != 1) {
+		uECC_vli_cmp_unsafe(curve_n, s) != 1) {
 		return UECC_FAILURE;
 	}
 
@@ -265,7 +265,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	uECC_vli_numBits(u2));
 
 	point = points[(!!uECC_vli_testBit(u1, num_bits - 1)) |
-                       ((!!uECC_vli_testBit(u2, num_bits - 1)) << 1)];
+					   ((!!uECC_vli_testBit(u2, num_bits - 1)) << 1)];
 	uECC_vli_set(rx, point);
 	uECC_vli_set(ry, point + num_words);
 	uECC_vli_clear(z);
@@ -301,17 +301,17 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	/* Accept only if v == r. */
 	diff = uECC_vli_equal(rx, r);
 	if (diff == 0) {
-	    flow_control++;
-	    mbedtls_platform_random_delay();
-	    
-	    /* Re-check the condition and test if the control flow is as expected. 
-	     * 1 (base value) + num_bits - 1 (from the loop) + 5 incrementations.
-	     */
+		flow_control++;
+		mbedtls_platform_random_delay();
+
+		/* Re-check the condition and test if the control flow is as expected.
+		 * 1 (base value) + num_bits - 1 (from the loop) + 5 incrementations.
+		 */
 		if (diff == 0 && flow_control == (num_bits + 5)) {
-		    if(public_key_dup != public_key || message_hash_dup != message_hash ||
-		       hash_size_dup != hash_size || signature_dup != signature){
-                return UECC_FAULT_DETECTED;
-            }
+			if (public_key_dup != public_key || message_hash_dup != message_hash ||
+				hash_size_dup != hash_size || signature_dup != signature) {
+				return UECC_FAULT_DETECTED;
+			}
 			return UECC_SUCCESS;
 		}
 		else {

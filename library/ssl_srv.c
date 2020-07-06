@@ -3269,13 +3269,19 @@ static int ssl_resume_server_key_exchange( mbedtls_ssl_context *ssl,
                            - sig_start );
     int ret = ssl->conf->f_async_resume( ssl,
                                          sig_start, signature_len, sig_max_len );
+    volatile size_t *signature_len_dup = signature_len;
     if( ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
     {
         ssl->handshake->async_in_progress = 0;
         mbedtls_ssl_set_async_operation_data( ssl, NULL );
     }
     MBEDTLS_SSL_DEBUG_RET( 2, "ssl_resume_server_key_exchange", ret );
-    return( ret );
+    /* Secure against buffer substitution */
+    if( signature_len_dup == signature_len )
+    {
+        return( ret );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) &&
           defined(MBEDTLS_SSL_ASYNC_PRIVATE) */
@@ -3678,7 +3684,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
     {
         return( 0 );
     }
-    return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 /* Prepare the ServerKeyExchange message and send it. For ciphersuites
@@ -3826,6 +3832,8 @@ static int ssl_parse_client_dh_public( mbedtls_ssl_context *ssl, unsigned char *
                                        const unsigned char *end )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    unsigned char ** volatile p_dup = p;
+    volatile const unsigned char *end_dup = end;
     size_t n;
 
     /*
@@ -3856,7 +3864,12 @@ static int ssl_parse_client_dh_public( mbedtls_ssl_context *ssl, unsigned char *
 
     MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: GY", &ssl->handshake->dhm_ctx.GY );
 
-    return( ret );
+    /* Secure against buffer substitution */
+    if( p_dup == p && end_dup == end )
+    {
+        return( ret );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
@@ -4423,7 +4436,7 @@ static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
     {
         return( ret );
     }
-    return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 /* Update the handshake state */

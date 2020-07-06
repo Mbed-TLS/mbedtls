@@ -3587,7 +3587,10 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
 {
     int ret;
     unsigned char *p, *end;
+    volatile unsigned char *buf_dup = buf;
+    volatile size_t buflen_dup = buflen;
     size_t n;
+
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
@@ -3870,7 +3873,12 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
     }
 
     *olen = p - buf;
-    return( 0 );
+    /* Secure against buffer substitution */
+    if( buf_dup == buf && buflen_dup == buflen )
+    {
+       return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 static int ssl_out_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )

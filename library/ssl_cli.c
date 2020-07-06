@@ -2796,10 +2796,14 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
     volatile int ret = 0;
     unsigned char *p;
     unsigned char *end;
+    volatile unsigned char *buf_dup = buf;
+    volatile size_t buflen_dup = buflen;
 
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
+    ((void) buf_dup);
+    ((void) buflen_dup);
     p   = buf + mbedtls_ssl_hs_hdr_len( ssl );
     end = buf + buflen;
 
@@ -3100,7 +3104,7 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         {
             mbedtls_platform_random_delay();
 
-            if( ret == 0 )
+            if( ret == 0 && buf_dup == buf && buflen_dup == buflen )
             {
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
                 /* We don't need the peer's public key anymore. Free it,

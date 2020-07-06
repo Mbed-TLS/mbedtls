@@ -81,6 +81,8 @@ int mbedtls_hmac_drbg_update_ret( mbedtls_hmac_drbg_context *ctx,
     volatile unsigned int flow_counter = 0;
     unsigned char K[MBEDTLS_MD_MAX_SIZE];
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    volatile const unsigned char *additional_dup = additional;
+    volatile size_t add_len_dup = add_len;
 
     for( sep[0] = 0; sep[0] < rounds; sep[0]++ )
     {
@@ -143,7 +145,10 @@ exit:
         // Double check flow_counter
         if ( ( flow_counter == 7 ) || ( flow_counter == 16 ) )
         {
-            return ret;   // success, return 0 from ret
+            if( additional_dup == additional && add_len_dup == add_len )
+            {
+                return ret;   // success, return 0 from ret
+            }
         }
     }
 
@@ -167,6 +172,8 @@ int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
                                 const unsigned char *data, size_t data_len )
 {
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    volatile const unsigned char *data_dup = data;
+    volatile size_t data_len_dup = data_len;
 
     if( ( ret = mbedtls_md_setup( &ctx->md_ctx, md_info, 1 ) ) != 0 )
         return( ret );
@@ -183,7 +190,10 @@ int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
 
     if( ( ret = mbedtls_hmac_drbg_update_ret( ctx, data, data_len ) ) != 0 )
         return( ret );
-
+    if( data_dup != data || data_len_dup != data_len )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    }
     return( ret );
 }
 
@@ -200,6 +210,8 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
     size_t seedlen = 0;
     size_t total_entropy_len;
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    volatile const unsigned char *additional_dup = additional;
+    volatile size_t len_dup = len;
 
     if( use_nonce == HMAC_NONCE_NO )
         total_entropy_len = ctx->entropy_len;
@@ -264,6 +276,11 @@ exit:
     /* 4. Done */
     mbedtls_platform_zeroize( seed, seedlen );
 
+    if( additional_dup != additional || len_dup != len )
+    {
+        return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    }
+
     if ( ret != 0 )
         return ret;
 
@@ -299,6 +316,11 @@ int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
                     size_t len )
 {
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    int (* volatile f_entropy_dup)(void *, unsigned char *, size_t) = f_entropy;
+    volatile void *p_entropy_dup = p_entropy;
+    volatile const unsigned char *custom_dup = custom;
+    volatile size_t len_dup = len;
+
     size_t md_size;
 
     if( ( ret = mbedtls_md_setup( &ctx->md_ctx, md_info, 1 ) ) != 0 )
@@ -339,6 +361,11 @@ int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
         return( ret );
     }
 
+    if( f_entropy != f_entropy_dup || p_entropy != p_entropy_dup ||
+        custom_dup != custom || len_dup != len )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    }
     return( ret );
 }
 

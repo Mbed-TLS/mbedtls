@@ -77,6 +77,8 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
 {
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     const mbedtls_cipher_info_t *cipher_info;
+    volatile const unsigned char *key_dup = key;
+    volatile unsigned int keybits_dup = keybits;
 
     CCM_VALIDATE_RET( ctx != NULL );
     CCM_VALIDATE_RET( key != NULL );
@@ -97,6 +99,11 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
                                MBEDTLS_ENCRYPT ) ) != 0 )
     {
         return( ret );
+    }
+
+    if( keybits_dup != keybits || key_dup != key )
+    {
+        return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     }
 
     return( ret );
@@ -165,6 +172,15 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     unsigned char ctr[16];
     const unsigned char *src;
     unsigned char *dst;
+    volatile size_t length_dup = length;
+    volatile const unsigned char *iv_dup = iv;
+    volatile size_t iv_len_dup = iv_len;
+    volatile const unsigned char *add_dup = add;
+    volatile size_t add_len_dup = add_len;
+    volatile const unsigned char *input_dup = input;
+    volatile unsigned char *output_dup = output;
+    volatile unsigned char *tag_dup = tag;
+    volatile size_t tag_len_dup = tag_len;
 
     /*
      * Check length requirements: SP800-38C A.1
@@ -316,6 +332,13 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     CTR_CRYPT( y, y, 16 );
     mbedtls_platform_memcpy( tag, y, tag_len );
 
+    if( length_dup != length || iv_dup != iv || iv_len_dup != iv_len ||
+        add_dup != add || add_len_dup != add_len || input_dup != input ||
+        output_dup != output || tag_dup != tag || tag_len_dup != tag_len)
+    {
+        return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    }
+
     return( ret );
 }
 
@@ -370,6 +393,15 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     unsigned char check_tag[16];
     unsigned char i;
     int diff;
+    volatile size_t length_dup = length;
+    volatile const unsigned char *iv_dup = iv;
+    volatile size_t iv_len_dup = iv_len;
+    volatile const unsigned char *add_dup = add;
+    volatile size_t add_len_dup = add_len;
+    volatile const unsigned char *input_dup = input;
+    volatile unsigned char *output_dup = output;
+    volatile const unsigned char *tag_dup = tag;
+    volatile size_t tag_len_dup = tag_len;
 
     CCM_VALIDATE_RET( ctx != NULL );
     CCM_VALIDATE_RET( iv != NULL );
@@ -393,6 +425,13 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     {
         mbedtls_platform_zeroize( output, length );
         return( MBEDTLS_ERR_CCM_AUTH_FAILED );
+    }
+
+    if( length_dup != length || iv_dup != iv || iv_len_dup != iv_len ||
+        add_dup != add || add_len_dup != add_len || input_dup != input ||
+        output_dup != output || tag_dup != tag || tag_len_dup != tag_len)
+    {
+        return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     }
 
     return( ret );

@@ -310,7 +310,9 @@ int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
     int ret;
     size_t fill;
     uint32_t left;
-
+    volatile const unsigned char *input_dup = input;
+    volatile size_t ilen_dup = ilen;
+    size_t ilen_change;
     SHA256_VALIDATE_RET( ctx != NULL );
     SHA256_VALIDATE_RET( ilen == 0 || input != NULL );
 
@@ -353,7 +355,12 @@ int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
     /* Re-check ilen to protect from a FI attack */
     if( ilen < 64 )
     {
-        return( 0 );
+        /* Re-check that the calculated offsets are correct */
+        ilen_change = ilen_dup - ilen;
+        if( ( input_dup + ilen_change ) == input )
+        {
+            return( 0 );
+        }
     }
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
@@ -472,8 +479,10 @@ int mbedtls_sha256_ret( const unsigned char *input,
                         unsigned char output[32],
                         int is224 )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     mbedtls_sha256_context ctx;
+    volatile const unsigned char *input_dup = input;
+    volatile size_t ilen_dup = ilen;
 
     SHA256_VALIDATE_RET( is224 == 0 || is224 == 1 );
     SHA256_VALIDATE_RET( ilen == 0 || input != NULL );
@@ -493,7 +502,11 @@ int mbedtls_sha256_ret( const unsigned char *input,
 exit:
     mbedtls_sha256_free( &ctx );
 
-    return( ret );
+    if( input_dup == input && ilen_dup == ilen )
+    {
+        return( ret );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)

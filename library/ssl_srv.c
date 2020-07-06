@@ -3286,6 +3286,7 @@ static int ssl_resume_server_key_exchange( mbedtls_ssl_context *ssl,
 static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
                                             size_t *signature_len )
 {
+    volatile size_t *signature_len_dup = signature_len;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
@@ -3673,7 +3674,11 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 
-    return( 0 );
+    if( signature_len_dup == signature_len )
+    {
+        return( 0 );
+    }
+    return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 }
 
 /* Prepare the ServerKeyExchange message and send it. For ciphersuites
@@ -4218,6 +4223,8 @@ static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
     unsigned char *p, *end;
+    volatile unsigned char *buf_dup = buf;
+    volatile size_t buflen_dup = buflen;
 
     p = buf + mbedtls_ssl_hs_hdr_len( ssl );
     end = buf + buflen;
@@ -4412,8 +4419,11 @@ static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
-
-    return( ret );
+    if( buf_dup == buf && buflen_dup == buflen )
+    {
+        return( ret );
+    }
+    return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 }
 
 /* Update the handshake state */

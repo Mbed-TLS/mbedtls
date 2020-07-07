@@ -598,7 +598,7 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
     const mbedtls_ecp_keypair *ec;
     unsigned char d[MBEDTLS_ECP_MAX_BYTES];
     size_t d_len;
-    psa_ecc_curve_t curve_id;
+    psa_ecc_family_t curve_id;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t key_type;
     size_t bits;

@@ -372,12 +372,12 @@ static inline int psa_key_slot_is_external( const psa_key_slot_t *slot )
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(MBEDTLS_ECP_C)
-mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
+mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
                                                size_t byte_length )
 {
     switch( curve )
     {
-        case PSA_ECC_CURVE_SECP_R1:
+        case PSA_ECC_FAMILY_SECP_R1:
             switch( byte_length )
             {
                 case PSA_BITS_TO_BYTES( 192 ):
@@ -395,7 +395,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
             }
             break;
 
-        case PSA_ECC_CURVE_BRAINPOOL_P_R1:
+        case PSA_ECC_FAMILY_BRAINPOOL_P_R1:
             switch( byte_length )
             {
                 case PSA_BITS_TO_BYTES( 256 ):
@@ -409,7 +409,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
             }
             break;
 
-        case PSA_ECC_CURVE_MONTGOMERY:
+        case PSA_ECC_FAMILY_MONTGOMERY:
             switch( byte_length )
             {
                 case PSA_BITS_TO_BYTES( 255 ):
@@ -421,7 +421,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
             }
             break;
 
-        case PSA_ECC_CURVE_SECP_K1:
+        case PSA_ECC_FAMILY_SECP_K1:
             switch( byte_length )
             {
                 case PSA_BITS_TO_BYTES( 192 ):
@@ -582,7 +582,7 @@ exit:
 #endif /* defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C) */
 
 #if defined(MBEDTLS_ECP_C)
-static psa_status_t psa_prepare_import_ec_key( psa_ecc_curve_t curve,
+static psa_status_t psa_prepare_import_ec_key( psa_ecc_family_t curve,
                                                size_t data_length,
                                                int is_public,
                                                mbedtls_ecp_keypair **p_ecp )
@@ -616,7 +616,7 @@ static psa_status_t psa_prepare_import_ec_key( psa_ecc_curve_t curve,
 
 /* Import a public key given as the uncompressed representation defined by SEC1
  * 2.3.3 as the content of an ECPoint. */
-static psa_status_t psa_import_ec_public_key( psa_ecc_curve_t curve,
+static psa_status_t psa_import_ec_public_key( psa_ecc_family_t curve,
                                               const uint8_t *data,
                                               size_t data_length,
                                               mbedtls_ecp_keypair **p_ecp )
@@ -655,7 +655,7 @@ exit:
 
 /* Import a private key given as a byte string which is the private value
  * in big-endian order. */
-static psa_status_t psa_import_ec_private_key( psa_ecc_curve_t curve,
+static psa_status_t psa_import_ec_private_key( psa_ecc_family_t curve,
                                                const uint8_t *data,
                                                size_t data_length,
                                                mbedtls_ecp_keypair **p_ecp )
@@ -765,14 +765,14 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( slot->attr.type ) )
     {
-        status = psa_import_ec_private_key( PSA_KEY_TYPE_GET_CURVE( slot->attr.type ),
+        status = psa_import_ec_private_key( PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type ),
                                             data, data_length,
                                             &slot->data.ecp );
     }
     else if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( slot->attr.type ) )
     {
         status = psa_import_ec_public_key(
-            PSA_KEY_TYPE_GET_CURVE( slot->attr.type ),
+            PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type ),
             data, data_length,
             &slot->data.ecp );
     }
@@ -5271,7 +5271,7 @@ static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
     mbedtls_ecdh_context ecdh;
     psa_status_t status;
     size_t bits = 0;
-    psa_ecc_curve_t curve = mbedtls_ecc_group_to_psa( our_key->grp.id, &bits );
+    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa( our_key->grp.id, &bits );
     mbedtls_ecdh_init( &ecdh );
 
     status = psa_import_ec_public_key( curve,
@@ -5584,7 +5584,7 @@ static psa_status_t psa_generate_key_internal(
 #if defined(MBEDTLS_ECP_C)
     if ( PSA_KEY_TYPE_IS_ECC( type ) && PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
     {
-        psa_ecc_curve_t curve = PSA_KEY_TYPE_GET_CURVE( type );
+        psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( type );
         mbedtls_ecp_group_id grp_id =
             mbedtls_ecc_group_of_psa( curve, PSA_BITS_TO_BYTES( bits ) );
         const mbedtls_ecp_curve_info *curve_info =

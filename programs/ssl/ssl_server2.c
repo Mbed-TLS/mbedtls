@@ -182,6 +182,7 @@ int main( void )
 #define DFL_REPRODUCIBLE        0
 #define DFL_NSS_KEYLOG          0
 #define DFL_NSS_KEYLOG_FILE     NULL
+#define DFL_QUERY_CONFIG_MODE   0
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -643,6 +644,7 @@ struct options
     const char *cid_val_renego; /* the CID to use for incoming messages
                                  * after renegotiation                      */
     int reproducible;           /* make communication reproducible          */
+    int query_config_mode;      /* whether to read config                   */
 } opt;
 
 int query_config( const char *config );
@@ -1723,6 +1725,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags, exchanges_left;
+    int query_config_ret = 0;
     int version_suites[4][2];
     io_ctx_t io_ctx;
     unsigned char* buf = 0;
@@ -1972,6 +1975,7 @@ int main( int argc, char *argv[] )
     opt.reproducible        = DFL_REPRODUCIBLE;
     opt.nss_keylog          = DFL_NSS_KEYLOG;
     opt.nss_keylog_file     = DFL_NSS_KEYLOG_FILE;
+    opt.query_config_mode   = DFL_QUERY_CONFIG_MODE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -2386,7 +2390,9 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "query_config" ) == 0 )
         {
-            mbedtls_exit( query_config( q ) );
+            opt.query_config_mode = 1;
+            query_config_ret = query_config( q );
+            mbedtls_exit( ret );
         }
         else if( strcmp( p, "serialize") == 0 )
         {
@@ -4252,17 +4258,20 @@ close_notify:
      * Cleanup and exit
      */
 exit:
-#ifdef MBEDTLS_ERROR_C
-    if( ret != 0 )
+    if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
     {
-        char error_buf[100];
-        mbedtls_strerror( ret, error_buf, 100 );
-        mbedtls_printf("Last error was: -0x%X - %s\n\n", (unsigned int) -ret, error_buf );
-    }
+#ifdef MBEDTLS_ERROR_C
+        if( ret != 0 )
+        {
+            char error_buf[100];
+            mbedtls_strerror( ret, error_buf, 100 );
+            mbedtls_printf("Last error was: -0x%X - %s\n\n", (unsigned int) -ret, error_buf );
+        }
 #endif
 
-    mbedtls_printf( "  . Cleaning up..." );
-    fflush( stdout );
+        mbedtls_printf( "  . Cleaning up..." );
+        fflush( stdout );
+    }
 
     mbedtls_net_free( &client_fd );
     mbedtls_net_free( &listen_fd );
@@ -4347,18 +4356,24 @@ exit:
     mbedtls_memory_buffer_alloc_free();
 #endif
 
-    mbedtls_printf( " done.\n" );
+    if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
+    {
+        mbedtls_printf( " done.\n" );
 
 #if defined(_WIN32)
-    mbedtls_printf( "  + Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
+        mbedtls_printf( "  + Press Enter to exit this program.\n" );
+        fflush( stdout ); getchar();
 #endif
+    }
 
     // Shell can not handle large exit numbers -> 1 for errors
     if( ret < 0 )
         ret = 1;
 
-    mbedtls_exit( ret );
+    if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
+        mbedtls_exit( ret );
+    else
+        mbedtls_exit( query_config_ret );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&
           MBEDTLS_SSL_SRV_C && MBEDTLS_NET_C && MBEDTLS_RSA_C &&

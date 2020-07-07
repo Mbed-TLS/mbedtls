@@ -124,7 +124,10 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
  */
 #define UPDATE_CBC_MAC                                                      \
     for( i = 0; i < 16; i++ )                                               \
+    {                                                                       \
+        flow_ctrl_local++;                                                  \
         y[i] ^= b[i];                                                       \
+    }                                                                       \
                                                                             \
     if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, y, 16, y, &olen ) ) != 0 ) \
         return( ret );
@@ -134,7 +137,7 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
  * Warning: using b for temporary storage! src and dst must not be b!
  * This avoids allocating one more 16 bytes buffer while allowing src == dst.
  */
-#define CTR_CRYPT( dst, src, len  )                                            \
+#define CTR_CRYPT( dst, src, len )                                      \
     do                                                                  \
     {                                                                   \
         if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, ctr,       \
@@ -144,9 +147,30 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
         }                                                               \
                                                                         \
         for( i = 0; i < (len); i++ )                                    \
+        {                                                               \
             (dst)[i] = (src)[i] ^ b[i];                                 \
+            flow_ctrl_local++;                                          \
+        }                                                               \
     } while( 0 )
 
+/*
+ * Check flow_ctrl_local variable against a given length and reset a
+ * given flag if the flow is as expected. In other case, return
+ * MBEDTLS_ERR_PLATFORM_FAULT_DETECTED.
+ */
+#define CHECK_FLOW_CTRL( len, flow_flag )                               \
+    do                                                                  \
+    {                                                                   \
+        if( flow_ctrl_local == len )                                    \
+        {                                                               \
+            flow_ctrl_local = 0;                                        \
+            flow_flag = 0;                                              \
+        }                                                               \
+        else                                                            \
+            return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;                 \
+    } while(0)
+
+#define FLAG_ERROR 0x75555555
 /*
  * Authenticated encryption or decryption
  */
@@ -159,12 +183,17 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     unsigned char i;
     unsigned char q;
-    size_t len_left, olen;
+    volatile size_t len_left;
+    size_t olen;
     unsigned char b[16];
     unsigned char y[16];
     unsigned char ctr[16];
     const unsigned char *src;
     unsigned char *dst;
+    volatile unsigned int flow_ctrl_local = 0;
+    volatile int fc0 = FLAG_ERROR, fc1 = FLAG_ERROR, fc2 = FLAG_ERROR,
+                 fc3 = FLAG_ERROR, fc4 = FLAG_ERROR, fc5 = FLAG_ERROR,
+                 fc6 = FLAG_ERROR, fc7 = FLAG_ERROR;
 
     /*
      * Check length requirements: SP800-38C A.1
@@ -210,11 +239,10 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     if( len_left > 0 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
 
-
     /* Start CBC-MAC with first block */
     memset( y, 0, 16 );
     UPDATE_CBC_MAC;
-
+    CHECK_FLOW_CTRL( 16, fc0 );
     /*
      * If there is additional data, update CBC-MAC with
      * add_len, add, 0 (padding to a block boundary)
@@ -235,7 +263,11 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         src += use_len;
 
         UPDATE_CBC_MAC;
-
+        CHECK_FLOW_CTRL( 16, fc1 );
+        if( len_left <= 0 )
+        {
+            fc2 = 0;
+        }
         while( len_left > 0 )
         {
             use_len = len_left > 16 ? 16 : len_left;
@@ -243,12 +275,21 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
             mbedtls_platform_memset( b, 0, 16 );
             mbedtls_platform_memcpy( b, src, use_len );
             UPDATE_CBC_MAC;
+            CHECK_FLOW_CTRL( 16, fc2 );
 
             len_left -= use_len;
             src += use_len;
         }
+        if( len_left > 0 )
+        {
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+        }
     }
-
+    else
+    {
+        fc1 = 0;
+        fc2 = 0;
+    }
     /*
      * Prepare counter block for encryption:
      * 0        .. 0        flags
@@ -273,7 +314,12 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     len_left = length;
     src = input;
     dst = output;
-
+    if( len_left == 0 )
+    {
+        fc3 = 0;
+        fc4 = 0;
+        fc5 = 0;
+    }
     while( len_left > 0 )
     {
         size_t use_len = len_left > 16 ? 16 : len_left;
@@ -283,21 +329,25 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
             mbedtls_platform_memset( b, 0, 16 );
             mbedtls_platform_memcpy( b, src, use_len );
             UPDATE_CBC_MAC;
+            CHECK_FLOW_CTRL( 16, fc3 );
+            fc5 = 0;
         }
 
         CTR_CRYPT( dst, src, use_len );
+        CHECK_FLOW_CTRL( use_len, fc4 );
 
         if( mode == CCM_DECRYPT )
         {
             mbedtls_platform_memset( b, 0, 16 );
             mbedtls_platform_memcpy( b, dst, use_len );
             UPDATE_CBC_MAC;
+            CHECK_FLOW_CTRL( 16, fc5 );
+            fc3 = 0;
         }
 
         dst += use_len;
         src += use_len;
         len_left -= use_len;
-
         /*
          * Increment counter.
          * No need to check for overflow thanks to the length check above.
@@ -307,16 +357,32 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
                 break;
     }
 
+    if( len_left > 0 )
+    {
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    }
     /*
      * Authentication: reset counter and crypt/mask internal tag
      */
+    flow_ctrl_local = 0;
     for( i = 0; i < q; i++ )
+    {
+        flow_ctrl_local++;
         ctr[15-i] = 0;
+    }
+    CHECK_FLOW_CTRL( q, fc6 );
 
     CTR_CRYPT( y, y, 16 );
+    CHECK_FLOW_CTRL( 16, fc7 );
     mbedtls_platform_memcpy( tag, y, tag_len );
 
-    return( ret );
+    if( ( fc0 | fc1 | fc2 | fc3 | fc4 | fc5 | fc6 | fc7 ) == 0 )
+    {
+        return( ret );
+    }
+    // In case of a FI - clear the output
+    mbedtls_platform_memset( output, 0, length );
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 /*
@@ -368,7 +434,6 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
 {
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     unsigned char check_tag[16];
-    unsigned char i;
     int diff;
 
     CCM_VALIDATE_RET( ctx != NULL );
@@ -386,8 +451,7 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     }
 
     /* Check tag in "constant-time" */
-    for( diff = 0, i = 0; i < tag_len; i++ )
-        diff |= tag[i] ^ check_tag[i];
+    diff = mbedtls_platform_memcmp( tag, check_tag, tag_len );
 
     if( diff != 0 )
     {

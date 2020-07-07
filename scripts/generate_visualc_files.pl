@@ -64,6 +64,15 @@ my @include_directories = qw(
 );
 my $include_directories = join(';', map {"../../$_"} @include_directories);
 
+# Directories to add to the include path when building the library, but not
+# when building tests or applications.
+my @library_include_directories = qw(
+    library
+);
+my $library_include_directories =
+  join(';', map {"../../$_"} (@library_include_directories,
+                              @include_directories));
+
 my @excluded_files = qw(
     3rdparty/everest/library/Hacl_Curve25519.c
 );
@@ -202,7 +211,7 @@ sub gen_main_file {
     my $out = slurp_file( $main_tpl );
     $out =~ s/SOURCE_ENTRIES\r\n/$source_entries/m;
     $out =~ s/HEADER_ENTRIES\r\n/$header_entries/m;
-    $out =~ s/INCLUDE_DIRECTORIES\r\n/$include_directories/g;
+    $out =~ s/INCLUDE_DIRECTORIES\r\n/$library_include_directories/g;
 
     content_to_file( $out, $main_out );
 }

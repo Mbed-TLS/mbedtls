@@ -5,7 +5,11 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -Wextra
 LDFLAGS ?=
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
+# Include ../include for public headers and . for private headers.
+# Note that . needs to be included explicitly for the sake of library
+# files that are not in the /library directory (which currently means
+# under /3rdparty).
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I. -I../include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS =
 
 ifdef DEBUG

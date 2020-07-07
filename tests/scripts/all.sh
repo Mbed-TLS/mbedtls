@@ -680,7 +680,7 @@ component_check_doxy_blocks () {
 
 component_check_files () {
     msg "Check: file sanity checks (permissions, encodings)" # < 1s
-    record_status tests/scripts/check-files.py
+    record_status tests/scripts/check_files.py
 }
 
 component_check_changelog () {
@@ -707,7 +707,7 @@ component_check_test_cases () {
     else
         opt=''
     fi
-    record_status tests/scripts/check-test-cases.py $opt
+    record_status tests/scripts/check_test_cases.py $opt
     unset opt
 }
 

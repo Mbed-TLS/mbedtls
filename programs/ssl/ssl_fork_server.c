@@ -54,14 +54,14 @@ int main( int argc, char *argv[] )
            "MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
            "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
            "MBEDTLS_TIMING_C and/or MBEDTLS_PEM_PARSE_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #elif defined(_WIN32)
 int main( void )
 {
     mbedtls_printf("_WIN32 defined. This application requires fork() and signals "
            "to work correctly.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -87,17 +87,6 @@ int main( void )
 
 #define DEBUG_LEVEL 0
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-}
-#endif
 
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
@@ -265,6 +254,7 @@ int main( void )
         if( pid != 0 )
         {
             mbedtls_printf( " ok\n" );
+            mbedtls_net_close( &client_fd );
 
             if( ( ret = mbedtls_ctr_drbg_reseed( &ctr_drbg,
                                          (const unsigned char *) "parent",
@@ -277,7 +267,7 @@ int main( void )
             continue;
         }
 
-        mbedtls_net_init( &listen_fd );
+        mbedtls_net_close( &listen_fd );
 
         pid = getpid();
 
@@ -427,7 +417,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_CERTS_C && MBEDTLS_ENTROPY_C &&
           MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_SRV_C && MBEDTLS_NET_C &&

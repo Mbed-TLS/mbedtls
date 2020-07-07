@@ -16,14 +16,17 @@ mpi_read_write_string:10:"128":16:"80":100:0:0
 Base test mpi_read_write_string #3 (Read zero)
 mpi_read_write_string:10:"0":10:"0":100:0:0
 
-Base test mpi_read_write_string #3 (Negative decimal)
+Base test mpi_read_write_string #3 (Negative decimal) [#1]
 mpi_read_write_string:10:"-23":10:"-23":100:0:0
 
 Base test mpi_read_write_string #3 (Negative hex)
 mpi_read_write_string:16:"-20":10:"-32":100:0:0
 
-Base test mpi_read_write_string #3 (Negative decimal)
+Base test mpi_read_write_string #3 (Negative decimal) [#2]
 mpi_read_write_string:16:"-23":16:"-23":100:0:0
+
+Base test mpi_read_write_string #4 (Buffer just fits)
+mpi_read_write_string:16:"-4":4:"-10":4:0:0
 
 Test mpi_read_write_string #1 (Invalid character)
 mpi_read_write_string:10:"a28":0:"":100:MBEDTLS_ERR_MPI_INVALID_CHARACTER:0
@@ -58,6 +61,9 @@ mpi_read_write_string:16:"-1":16:"":3:0:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
 Base test mbedtls_mpi_read_binary #1
 mbedtls_mpi_read_binary:"0941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":10:"56125680981752282334141896320372489490613963693556392520816017892111350604111697682705498319512049040516698827829292076808006940873974979584527073481012636016353913462376755556720019831187364993587901952757307830896531678727717924"
 
+Base test mbedtls_mpi_read_binary_le #1
+mbedtls_mpi_read_binary_le:"0941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":10:"219946662473865722255717126709915431768051735954189829340600976826409773245337023925691629251672268961177825243440202069039100741562168093042339401187848509859789949044607421190014088260008793380554914226244485299326152319899746569"
+
 Base test mbedtls_mpi_write_binary #1
 mbedtls_mpi_write_binary:10:"56125680981752282334141896320372489490613963693556392520816017892111350604111697682705498319512049040516698827829292076808006940873974979584527073481012636016353913462376755556720019831187364993587901952757307830896531678727717924":"0941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":200:0
 
@@ -66,6 +72,15 @@ mbedtls_mpi_write_binary:16:"123123123123123123123123123":"012312312312312312312
 
 Test mbedtls_mpi_write_binary #2 (Buffer too small)
 mbedtls_mpi_write_binary:16:"123123123123123123123123123":"23123123123123123123123123":13:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
+
+Base test mbedtls_mpi_write_binary_le #1
+mbedtls_mpi_write_binary_le:10:"56125680981752282334141896320372489490613963693556392520816017892111350604111697682705498319512049040516698827829292076808006940873974979584527073481012636016353913462376755556720019831187364993587901952757307830896531678727717924":"24448b952fbbef93f89286ba330e62528b151eac265cc8ce3038519d09e148af89288e91f48b41acad55d9dc5e2b18097c106be4ce132721bf6359eaf403e7ff90623e8866ee5c192320418daa682f144adedf84f25de11f49d1fe009d374109":200:0
+
+Test mbedtls_mpi_write_binary_le #1 (Buffer just fits)
+mbedtls_mpi_write_binary_le:16:"123123123123123123123123123":"2331122331122331122331122301":14:0
+
+Test mbedtls_mpi_write_binary_le #2 (Buffer too small)
+mbedtls_mpi_write_binary_le:16:"123123123123123123123123123":"23311223311223311223311223":13:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
 
 Base test mbedtls_mpi_read_file #1
 mbedtls_mpi_read_file:10:"data_files/mpi_10":"01f55332c3a48b910f9942f6c914e58bef37a47ee45cb164a5b6b8d1006bf59a059c21449939ebebfdf517d2e1dbac88010d7b1f141e997bd6801ddaec9d05910f4f2de2b2c4d714e2c14a72fc7f17aa428d59c531627f09":0
@@ -160,6 +175,93 @@ mbedtls_mpi_cmp_mpi:10:"2":10:"-3":1
 Base test mbedtls_mpi_cmp_mpi (Mixed values) #6
 mbedtls_mpi_cmp_mpi:10:"-2":10:"31231231289798":-1
 
+Base test mbedtls_mpi_lt_mpi_ct #1
+mbedtls_mpi_lt_mpi_ct:1:"2B5":1:"2B5":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct #2
+mbedtls_mpi_lt_mpi_ct:1:"2B5":1:"2B4":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct #3
+mbedtls_mpi_lt_mpi_ct:1:"2B5":1:"2B6":1:0
+
+Base test mbedtls_mpi_lt_mpi_ct (Negative values) #1
+mbedtls_mpi_lt_mpi_ct:1:"-2":1:"-2":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (Negative values) #2
+mbedtls_mpi_lt_mpi_ct:1:"-2":1:"-3":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (Negative values) #3
+mbedtls_mpi_lt_mpi_ct:1:"-2":1:"-1":1:0
+
+Base test mbedtls_mpi_lt_mpi_ct (Mixed values) #1
+mbedtls_mpi_lt_mpi_ct:1:"-3":1:"2":1:0
+
+Base test mbedtls_mpi_lt_mpi_ct (Mixed values) #2
+mbedtls_mpi_lt_mpi_ct:1:"2":1:"-3":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (Mixed values) #3
+mbedtls_mpi_lt_mpi_ct:2:"-2":2:"1C67967269C6":1:0
+
+Base test mbedtls_mpi_lt_mpi_ct (X is longer in storage)
+mbedtls_mpi_lt_mpi_ct:3:"2B5":2:"2B5":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Base test mbedtls_mpi_lt_mpi_ct (Y is longer in storage)
+mbedtls_mpi_lt_mpi_ct:3:"2B5":4:"2B5":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Base test mbedtls_mpi_lt_mpi_ct (corner case - 64 bit) #1
+mbedtls_mpi_lt_mpi_ct:2:"7FFFFFFFFFFFFFFF":2:"FF":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (corner case - 64 bit) #2
+mbedtls_mpi_lt_mpi_ct:2:"8000000000000000":2:"7FFFFFFFFFFFFFFF":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (corner case - 64 bit) #3
+mbedtls_mpi_lt_mpi_ct:2:"8000000000000000":2:"1":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (corner case - 64 bit) #4
+mbedtls_mpi_lt_mpi_ct:2:"8000000000000000":2:"0":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (corner case - 64 bit) #5
+mbedtls_mpi_lt_mpi_ct:2:"FFFFFFFFFFFFFFFF":2:"FF":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (corner case - 32 bit) #1
+mbedtls_mpi_lt_mpi_ct:1:"7FFFFFFF":1:"FF":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (corner case - 32 bit) #2
+mbedtls_mpi_lt_mpi_ct:1:"80000000":1:"7FFFFFFF":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (corner case - 32 bit) #3
+mbedtls_mpi_lt_mpi_ct:1:"80000000":1:"1":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (corner case - 32 bit) #4
+mbedtls_mpi_lt_mpi_ct:1:"80000000":1:"0":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (corner case - 32 bit) #5
+mbedtls_mpi_lt_mpi_ct:1:"FFFFFFFF":1:"FF":0:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (X<Y, zero vs non-zero MS limb)
+mbedtls_mpi_lt_mpi_ct:2:"0FFFFFFFFFFFFFFFF":2:"1FFFFFFFFFFFFFFFF":1:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (X>Y, equal MS limbs)
+mbedtls_mpi_lt_mpi_ct:2:"-EEFFFFFFFFFFFFFFF1":2:"-EEFFFFFFFFFFFFFFFF":0:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (X=Y)
+mbedtls_mpi_lt_mpi_ct:2:"EEFFFFFFFFFFFFFFFF":2:"EEFFFFFFFFFFFFFFFF":0:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (X=-Y)
+mbedtls_mpi_lt_mpi_ct:2:"-EEFFFFFFFFFFFFFFFF":2:"EEFFFFFFFFFFFFFFFF":1:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (Alternating limbs) #1
+mbedtls_mpi_lt_mpi_ct:2:"11FFFFFFFFFFFFFFFF":2:"FF1111111111111111":1:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (Alternating limbs) #2
+mbedtls_mpi_lt_mpi_ct:2:"FF1111111111111111":2:"11FFFFFFFFFFFFFFFF":0:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (Alternating limbs) #3
+mbedtls_mpi_lt_mpi_ct:2:"-11FFFFFFFFFFFFFFFF":2:"-FF1111111111111111":0:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (Alternating limbs) #4
+mbedtls_mpi_lt_mpi_ct:2:"-FF1111111111111111":2:"-11FFFFFFFFFFFFFFFF":1:0
+
 Base test mbedtls_mpi_cmp_abs #1
 mbedtls_mpi_cmp_abs:10:"693":10:"693":0
 
@@ -190,37 +292,106 @@ mbedtls_mpi_cmp_abs:10:"2":10:"-3":-1
 Base test mbedtls_mpi_cmp_abs (Mix values) #3
 mbedtls_mpi_cmp_abs:10:"-2":10:"1":1
 
-Base test mbedtls_mpi_copy #1
-mbedtls_mpi_copy:0:1500
+Copy zero (1 limb) to positive (1 limb)
+mbedtls_mpi_copy_sint:0:1500
 
-Base test mpi_copy_self #1
+Copy zero (1 limb) to negative (1 limb)
+mbedtls_mpi_copy_sint:0:-1500
+
+Copy positive (1 limb) to zero (1 limb)
+mbedtls_mpi_copy_sint:1500:0
+
+Copy negative (1 limb) to zero (1 limb)
+mbedtls_mpi_copy_sint:-1500:0
+
+Copy positive (1 limb) to negative (1 limb)
+mbedtls_mpi_copy_sint:1500:-42
+
+Copy negative (1 limb) to positive (1 limb)
+mbedtls_mpi_copy_sint:-42:1500
+
+Copy zero (null) to zero (null)
+mbedtls_mpi_copy_binary:"":""
+
+Copy zero (null) to positive (1 limb)
+mbedtls_mpi_copy_binary:"":"1234"
+
+Copy positive (1 limb) to zero (null)
+mbedtls_mpi_copy_binary:"1234":""
+
+Copy positive to larger
+mbedtls_mpi_copy_binary:"bead":"ca5cadedb01dfaceacc01ade"
+
+Copy positive to smaller
+mbedtls_mpi_copy_binary:"ca5cadedb01dfaceacc01ade":"bead"
+
+Copy self: positive (1 limb)
 mpi_copy_self:14
 
-Base test mbedtls_mpi_swap #1
-mbedtls_mpi_swap:0:1500
+Copy self: zero (1 limb)
+mpi_copy_self:0
 
-Test mbedtls_mpi_shrink #1
+Swap zero (1 limb) with positive (1 limb)
+mbedtls_mpi_swap_sint:0:1500
+
+Swap zero (1 limb) with negative (1 limb)
+mbedtls_mpi_swap_sint:0:-1500
+
+Swap positive (1 limb) with zero (1 limb)
+mbedtls_mpi_swap_sint:1500:0
+
+Swap negative (1 limb) with zero (1 limb)
+mbedtls_mpi_swap_sint:-1500:0
+
+Swap positive (1 limb) with negative (1 limb)
+mbedtls_mpi_swap_sint:1500:-42
+
+Swap negative (1 limb) with positive (1 limb)
+mbedtls_mpi_swap_sint:-42:1500
+
+Swap zero (null) with zero (null)
+mbedtls_mpi_swap_binary:"":""
+
+Swap zero (null) with positive (1 limb)
+mbedtls_mpi_swap_binary:"":"1234"
+
+Swap positive (1 limb) with zero (null)
+mbedtls_mpi_swap_binary:"1234":""
+
+Swap positive with larger
+mbedtls_mpi_swap_binary:"bead":"ca5cadedb01dfaceacc01ade"
+
+Swap positive with smaller
+mbedtls_mpi_swap_binary:"ca5cadedb01dfaceacc01ade":"bead"
+
+Swap self: 1 limb
+mpi_swap_self:"face"
+
+Swap self: null
+mpi_swap_self:""
+
+Shrink 2 limbs in a buffer of size 2 to 4
 mbedtls_mpi_shrink:2:2:4:4
 
-Test mbedtls_mpi_shrink #2
+Shrink 2 limbs in a buffer of size 4 to 4
 mbedtls_mpi_shrink:4:2:4:4
 
-Test mbedtls_mpi_shrink #3
+Shrink 2 limbs in a buffer of size 8 to 4
 mbedtls_mpi_shrink:8:2:4:4
 
-Test mbedtls_mpi_shrink #4
+Shrink 4 limbs in a buffer of size 8 to 4
 mbedtls_mpi_shrink:8:4:4:4
 
-Test mbedtls_mpi_shrink #5
+Shrink 6 limbs in a buffer of size 8 to 4 yielding 6
 mbedtls_mpi_shrink:8:6:4:6
 
-Test mbedtls_mpi_shrink #6
+Shrink 2 limbs in a buffer of size 4 to 0 yielding 2
 mbedtls_mpi_shrink:4:2:0:2
 
-Test mbedtls_mpi_shrink #7
+Shrink 1 limbs in a buffer of size 4 to 0 yielding 1
 mbedtls_mpi_shrink:4:1:0:1
 
-Test mbedtls_mpi_shrink #8
+Shrink 0 limbs in a buffer of size 4 to 0 yielding 1
 mbedtls_mpi_shrink:4:0:0:1
 
 Test mbedtls_mpi_safe_cond_assign #1
@@ -280,10 +451,10 @@ mpi_add_abs_add_first:10:"123123":10:"123123":10:"246246"
 Test mbedtls_mpi_add_abs #3 (add to second value)
 mpi_add_abs_add_second:10:"123123":10:"123123":10:"246246"
 
-Regression mbedtls_mpi_add_abs (add small to very large MPI with carry rollover)
+Regression mbedtls_mpi_add_abs (add small to very large MPI with carry rollover) [#1]
 mbedtls_mpi_add_abs:16:"FFFFFFFFFFFFFFFFFFFFFFFFFFFFF8":16:"08":16:"1000000000000000000000000000000"
 
-Regression mbedtls_mpi_add_abs (add small to very large MPI with carry rollover)
+Regression mbedtls_mpi_add_abs (add small to very large MPI with carry rollover) [#2]
 mbedtls_mpi_add_abs:16:"08":16:"FFFFFFFFFFFFFFFFFFFFFFFFFFFFF8":16:"1000000000000000000000000000000"
 
 Base test mbedtls_mpi_add_mpi #1
@@ -391,10 +562,10 @@ mbedtls_mpi_shift_r:10:"128":1:10:"64"
 Test mbedtls_mpi_shift_r #2
 mbedtls_mpi_shift_r:10:"120815570979701484704906977000760567182871429114712069861589084706550626575967516787438008593490722779337547394120718248995900363209947025063336882559539208430319216688889117222633155838468458047056355241515415159736436403445579777425189969":45:10:"3433785053053426415343295076376096153094051405637175942660777670498379921354157795219578264137985649407981651226029903483433269093721578004287291678324982297860947730012217028349628999378309630601971640587504883789518896817457"
 
-Test mbedtls_mpi_shift_r #4
+Test mbedtls_mpi_shift_r #4 [#1]
 mbedtls_mpi_shift_r:16:"FFFFFFFFFFFFFFFF":63:16:"01"
 
-Test mbedtls_mpi_shift_r #4
+Test mbedtls_mpi_shift_r #4 [#2]
 mbedtls_mpi_shift_r:16:"FFFFFFFFFFFFFFFF":64:16:"00"
 
 Test mbedtls_mpi_shift_r #6
@@ -526,10 +697,10 @@ mbedtls_mpi_exp_mod:10:"-23":10:"-13":10:"29":10:"":10:"0":MBEDTLS_ERR_MPI_BAD_I
 Test mbedtls_mpi_exp_mod #1
 mbedtls_mpi_exp_mod:10:"433019240910377478217373572959560109819648647016096560523769010881172869083338285573756574557395862965095016483867813043663981946477698466501451832407592327356331263124555137732393938242285782144928753919588632679050799198937132922145084847":10:"5781538327977828897150909166778407659250458379645823062042492461576758526757490910073628008613977550546382774775570888130029763571528699574717583228939535960234464230882573615930384979100379102915657483866755371559811718767760594919456971354184113721":10:"583137007797276923956891216216022144052044091311388601652961409557516421612874571554415606746479105795833145583959622117418531166391184939066520869800857530421873250114773204354963864729386957427276448683092491947566992077136553066273207777134303397724679138833126700957":10:"":10:"114597449276684355144920670007147953232659436380163461553186940113929777196018164149703566472936578890991049344459204199888254907113495794730452699842273939581048142004834330369483813876618772578869083248061616444392091693787039636316845512292127097865026290173004860736":0
 
-Test mbedtls_mpi_exp_mod (Negative base)
+Test mbedtls_mpi_exp_mod (Negative base) [#1]
 mbedtls_mpi_exp_mod:10:"-10000000000":10:"10000000000":10:"99999":10:"":10:"1":0
 
-Test mbedtls_mpi_exp_mod (Negative base)
+Test mbedtls_mpi_exp_mod (Negative base) [#2]
 mbedtls_mpi_exp_mod:16:"-9f13012cd92aa72fb86ac8879d2fde4f7fd661aaae43a00971f081cc60ca277059d5c37e89652e2af2585d281d66ef6a9d38a117e9608e9e7574cd142dc55278838a2161dd56db9470d4c1da2d5df15a908ee2eb886aaa890f23be16de59386663a12f1afbb325431a3e835e3fd89b98b96a6f77382f458ef9a37e1f84a03045c8676ab55291a94c2228ea15448ee96b626b998":16:"40a54d1b9e86789f06d9607fb158672d64867665c73ee9abb545fc7a785634b354c7bae5b962ce8040cf45f2c1f3d3659b2ee5ede17534c8fc2ec85c815e8df1fe7048d12c90ee31b88a68a081f17f0d8ce5f4030521e9400083bcea73a429031d4ca7949c2000d597088e0c39a6014d8bf962b73bb2e8083bd0390a4e00b9b3":16:"eeaf0ab9adb38dd69c33f80afa8fc5e86072618775ff3c0b9ea2314c9c256576d674df7496ea81d3383b4813d692c6e0e0d5d8e250b98be48e495c1d6089dad15dc7d7b46154d6b6ce8ef4ad69b15d4982559b297bcf1885c529f566660e57ec68edbc3c05726cc02fd4cbf4976eaa9afd5138fe8376435b9fc61d2fc0eb06e3":16:"":16:"21acc7199e1b90f9b4844ffe12c19f00ec548c5d32b21c647d48b6015d8eb9ec9db05b4f3d44db4227a2b5659c1a7cceb9d5fa8fa60376047953ce7397d90aaeb7465e14e820734f84aa52ad0fc66701bcbb991d57715806a11531268e1e83dd48288c72b424a6287e9ce4e5cc4db0dd67614aecc23b0124a5776d36e5c89483":0
 
 Base test GCD #1
@@ -618,11 +789,11 @@ Test mbedtls_mpi_is_prime #4
 depends_on:MBEDTLS_GENPRIME
 mbedtls_mpi_is_prime:10:"195845982777569926302400511":0
 
-Test mbedtls_mpi_is_prime #5
+Test mbedtls_mpi_is_prime #5 [#1]
 depends_on:MBEDTLS_GENPRIME
 mbedtls_mpi_is_prime:10:"4776913109852041418248056622882488319":0
 
-Test mbedtls_mpi_is_prime #5
+Test mbedtls_mpi_is_prime #5 [#2]
 depends_on:MBEDTLS_GENPRIME
 mbedtls_mpi_is_prime:10:"768614336404564651":0
 

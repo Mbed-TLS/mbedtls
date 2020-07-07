@@ -20,16 +20,13 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_CHACHAPOLY_C)
 
 #include "mbedtls/chachapoly.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -122,7 +119,7 @@ void mbedtls_chachapoly_free( mbedtls_chachapoly_context *ctx )
 int mbedtls_chachapoly_setkey( mbedtls_chachapoly_context *ctx,
                                const unsigned char key[32] )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     CHACHAPOLY_VALIDATE_RET( ctx != NULL );
     CHACHAPOLY_VALIDATE_RET( key != NULL );
 
@@ -135,7 +132,7 @@ int mbedtls_chachapoly_starts( mbedtls_chachapoly_context *ctx,
                                const unsigned char nonce[12],
                                mbedtls_chachapoly_mode_t mode  )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char poly1305_key[64];
     CHACHAPOLY_VALIDATE_RET( ctx != NULL );
     CHACHAPOLY_VALIDATE_RET( nonce != NULL );
@@ -191,7 +188,7 @@ int mbedtls_chachapoly_update( mbedtls_chachapoly_context *ctx,
                                const unsigned char *input,
                                unsigned char *output )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     CHACHAPOLY_VALIDATE_RET( ctx != NULL );
     CHACHAPOLY_VALIDATE_RET( len == 0 || input != NULL );
     CHACHAPOLY_VALIDATE_RET( len == 0 || output != NULL );
@@ -240,7 +237,7 @@ int mbedtls_chachapoly_update( mbedtls_chachapoly_context *ctx,
 int mbedtls_chachapoly_finish( mbedtls_chachapoly_context *ctx,
                                unsigned char mac[16] )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char len_block[16];
     CHACHAPOLY_VALIDATE_RET( ctx != NULL );
     CHACHAPOLY_VALIDATE_RET( mac != NULL );
@@ -304,7 +301,7 @@ static int chachapoly_crypt_and_tag( mbedtls_chachapoly_context *ctx,
                                      unsigned char *output,
                                      unsigned char tag[16] )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     ret = mbedtls_chachapoly_starts( ctx, nonce, mode );
     if( ret != 0 )
@@ -354,7 +351,7 @@ int mbedtls_chachapoly_auth_decrypt( mbedtls_chachapoly_context *ctx,
                                      const unsigned char *input,
                                      unsigned char *output )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char check_tag[16];
     size_t i;
     int diff;
@@ -492,7 +489,7 @@ int mbedtls_chachapoly_self_test( int verbose )
 {
     mbedtls_chachapoly_context ctx;
     unsigned i;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char output[200];
     unsigned char mac[16];
 

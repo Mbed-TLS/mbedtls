@@ -23,6 +23,7 @@
  * be set before config.h, which pulls in glibc's features.h indirectly.
  * Harmless on other platforms. */
 #define _POSIX_C_SOURCE 200112L
+#define _XOPEN_SOURCE 600
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -56,7 +57,7 @@ int main( void )
            "MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
            "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_X509_CRT_PARSE_C "
            "not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -110,9 +111,9 @@ int main( void )
 
 #if defined(MBEDTLS_BASE64_C)
 #define USAGE_AUTH \
-    "    authentication=%%d   default: 0 (disabled)\n"      \
-    "    user_name=%%s        default: \"user\"\n"          \
-    "    user_pwd=%%s         default: \"password\"\n"
+    "    authentication=%%d   default: 0 (disabled)\n"          \
+    "    user_name=%%s        default: \"" DFL_USER_NAME "\"\n" \
+    "    user_pwd=%%s         default: \"" DFL_USER_PWD "\"\n"
 #else
 #define USAGE_AUTH \
     "    authentication options disabled. (Require MBEDTLS_BASE64_C)\n"
@@ -129,30 +130,19 @@ int main( void )
 #endif /* MBEDTLS_FS_IO */
 
 #define USAGE \
-    "\n usage: ssl_mail_client param=<>...\n"               \
-    "\n acceptable parameters:\n"                           \
-    "    server_name=%%s      default: localhost\n"         \
-    "    server_port=%%d      default: 4433\n"              \
-    "    debug_level=%%d      default: 0 (disabled)\n"      \
+    "\n usage: ssl_mail_client param=<>...\n"                 \
+    "\n acceptable parameters:\n"                             \
+    "    server_name=%%s      default: " DFL_SERVER_NAME "\n" \
+    "    server_port=%%d      default: " DFL_SERVER_PORT "\n" \
+    "    debug_level=%%d      default: 0 (disabled)\n"        \
     "    mode=%%d             default: 0 (SSL/TLS) (1 for STARTTLS)\n"  \
-    USAGE_AUTH                                              \
-    "    mail_from=%%s        default: \"\"\n"              \
-    "    mail_to=%%s          default: \"\"\n"              \
-    USAGE_IO                                                \
-    "    force_ciphersuite=<name>    default: all enabled\n"\
+    USAGE_AUTH                                                \
+    "    mail_from=%%s        default: \"\"\n"                \
+    "    mail_to=%%s          default: \"\"\n"                \
+    USAGE_IO                                                  \
+    "    force_ciphersuite=<name>    default: all enabled\n"  \
     " acceptable ciphersuite names:\n"
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-}
-#endif
 
 /*
  * global options
@@ -324,7 +314,7 @@ static int write_and_get_response( mbedtls_net_context *sock_fd, unsigned char *
     mbedtls_printf("\n%s", buf);
     if( len && ( ret = mbedtls_net_send( sock_fd, buf, len ) ) <= 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_net_send returned %d\n\n", ret );
             return -1;
     }
 
@@ -336,7 +326,7 @@ static int write_and_get_response( mbedtls_net_context *sock_fd, unsigned char *
 
         if( ret <= 0 )
         {
-            mbedtls_printf( "failed\n  ! read returned %d\n\n", ret );
+            mbedtls_printf( "failed\n  ! mbedtls_net_recv returned %d\n\n", ret );
             return -1;
         }
 
@@ -864,7 +854,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&
           MBEDTLS_SSL_CLI_C && MBEDTLS_NET_C && MBEDTLS_RSA_C **

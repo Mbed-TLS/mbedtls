@@ -27,12 +27,16 @@
 #define MBEDTLS_CIPHER_WRAP_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "cipher.h"
+#include "mbedtls/cipher.h"
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #ifdef __cplusplus
 extern "C" {
@@ -113,6 +117,29 @@ typedef struct
     mbedtls_cipher_type_t type;
     const mbedtls_cipher_info_t *info;
 } mbedtls_cipher_definition_t;
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+typedef enum
+{
+    MBEDTLS_CIPHER_PSA_KEY_UNSET = 0,
+    MBEDTLS_CIPHER_PSA_KEY_OWNED, /* Used for PSA-based cipher contexts which */
+                                  /* use raw key material internally imported */
+                                  /* as a volatile key, and which hence need  */
+                                  /* to destroy that key when the context is  */
+                                  /* freed.                                   */
+    MBEDTLS_CIPHER_PSA_KEY_NOT_OWNED, /* Used for PSA-based cipher contexts   */
+                                      /* which use a key provided by the      */
+                                      /* user, and which hence will not be    */
+                                      /* destroyed when the context is freed. */
+} mbedtls_cipher_psa_key_ownership;
+
+typedef struct
+{
+    psa_algorithm_t alg;
+    psa_key_handle_t slot;
+    mbedtls_cipher_psa_key_ownership slot_state;
+} mbedtls_cipher_context_psa;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 extern const mbedtls_cipher_definition_t mbedtls_cipher_definitions[];
 

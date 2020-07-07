@@ -6,6 +6,23 @@
 # Usage (preferably on a 32-bit platform):
 # cmake -D CMAKE_BUILD_TYPE=Release .
 # scripts/ecc-heap.sh | tee ecc-heap.log
+#
+# Copyright (C) 2014-2015, Arm Limited, All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 set -eu
 
@@ -59,8 +76,8 @@ EOF
 
 for F in 0 1; do
     for W in 2 3 4 5 6; do
-        scripts/config.pl set MBEDTLS_ECP_WINDOW_SIZE $W
-        scripts/config.pl set MBEDTLS_ECP_FIXED_POINT_OPTIM $F
+        scripts/config.py set MBEDTLS_ECP_WINDOW_SIZE $W
+        scripts/config.py set MBEDTLS_ECP_FIXED_POINT_OPTIM $F
         make benchmark >/dev/null 2>&1
         echo "fixed point optim = $F, max window size = $W"
         echo "--------------------------------------------"

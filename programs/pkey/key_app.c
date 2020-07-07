@@ -40,7 +40,7 @@
     defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_FS_IO)
 #include "mbedtls/error.h"
 #include "mbedtls/rsa.h"
-#include "mbedtls/x509.h"
+#include "mbedtls/pk.h"
 
 #include <string.h>
 #endif
@@ -64,28 +64,16 @@
     "    password_file=%%s    default: \"\"\n"          \
     "\n"
 
-
 #if !defined(MBEDTLS_BIGNUM_C) ||                                  \
     !defined(MBEDTLS_PK_PARSE_C) || !defined(MBEDTLS_FS_IO)
 int main( void )
 {
     mbedtls_printf("MBEDTLS_BIGNUM_C and/or "
            "MBEDTLS_PK_PARSE_C and/or MBEDTLS_FS_IO not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-}
-#endif
 
 /*
  * global options
@@ -199,7 +187,7 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%04x\n", -ret );
+            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%04x\n", (unsigned int) -ret );
             goto cleanup;
         }
 
@@ -260,7 +248,7 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_public_keyfile returned -0x%04x\n", -ret );
+            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_public_keyfile returned -0x%04x\n", (unsigned int) -ret );
             goto cleanup;
         }
 
@@ -323,6 +311,6 @@ cleanup:
     fflush( stdout ); getchar();
 #endif
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO */

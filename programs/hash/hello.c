@@ -44,21 +44,10 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_MD5_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-}
-#endif
 
 int main( void )
 {
@@ -69,7 +58,7 @@ int main( void )
     mbedtls_printf( "\n  MD5('%s') = ", str );
 
     if( ( ret = mbedtls_md5_ret( (unsigned char *) str, 13, digest ) ) != 0 )
-        return( MBEDTLS_EXIT_FAILURE );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
 
     for( i = 0; i < 16; i++ )
         mbedtls_printf( "%02x", digest[i] );
@@ -81,6 +70,6 @@ int main( void )
     fflush( stdout ); getchar();
 #endif
 
-    return( MBEDTLS_EXIT_SUCCESS );
+    mbedtls_exit( MBEDTLS_EXIT_SUCCESS );
 }
 #endif /* MBEDTLS_MD5_C */

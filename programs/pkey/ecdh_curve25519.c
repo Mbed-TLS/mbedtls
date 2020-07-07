@@ -45,7 +45,7 @@ int main( void )
                     "MBEDTLS_ECP_DP_CURVE25519_ENABLED and/or "
                     "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C "
                     "not defined\n" );
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -53,17 +53,6 @@ int main( void )
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/ecdh.h"
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-}
-#endif
 
 int main( int argc, char *argv[] )
 {
@@ -249,7 +238,7 @@ exit:
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_ECDH_C && MBEDTLS_ECP_DP_CURVE25519_ENABLED &&
           MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */

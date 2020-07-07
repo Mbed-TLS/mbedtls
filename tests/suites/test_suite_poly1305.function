@@ -9,29 +9,22 @@
  */
 
 /* BEGIN_CASE */
-void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src_string  )
+void mbedtls_poly1305( data_t *key, char *hex_mac_string, data_t *src_str )
 {
-    unsigned char src_str[375]; /* max size of binary input */
-    unsigned char key[32]; /* size set by the standard */
     unsigned char mac[16]; /* size set by the standard */
     unsigned char mac_str[33]; /* hex expansion of the above */
-    size_t src_len;
     mbedtls_poly1305_context ctx;
 
-    memset( src_str, 0x00, sizeof( src_str ) );
     memset( mac_str, 0x00, sizeof( mac_str ) );
-    memset( key,     0x00, sizeof( key ) );
     memset( mac,     0x00, sizeof( mac ) );
-
-    src_len = unhexify( src_str, hex_src_string );
-    unhexify( key, hex_key_string );
 
     /*
      * Test the integrated API
      */
-    TEST_ASSERT( mbedtls_poly1305_mac( key, src_str, src_len, mac ) == 0 );
+    TEST_ASSERT( mbedtls_poly1305_mac( key->x, src_str->x,
+                                       src_str->len, mac ) == 0 );
 
-    hexify( mac_str, mac, 16 );
+    mbedtls_test_hexify( mac_str, mac, 16 );
     TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
 
     /*
@@ -39,13 +32,13 @@ void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src
      */
     mbedtls_poly1305_init( &ctx );
 
-    TEST_ASSERT( mbedtls_poly1305_starts( &ctx, key ) == 0 );
+    TEST_ASSERT( mbedtls_poly1305_starts( &ctx, key->x ) == 0 );
 
-    TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str, src_len ) == 0 );
+    TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str->x, src_str->len ) == 0 );
 
     TEST_ASSERT( mbedtls_poly1305_finish( &ctx, mac ) == 0 );
 
-    hexify( mac_str, mac, 16 );
+    mbedtls_test_hexify( mac_str, mac, 16 );
     TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
 
     /*
@@ -54,33 +47,33 @@ void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src
 
     /* Don't free/init the context, in order to test that starts() does the
      * right thing. */
-    if( src_len >= 1 )
+    if( src_str->len >= 1 )
     {
-        TEST_ASSERT( mbedtls_poly1305_starts( &ctx, key ) == 0 );
+        TEST_ASSERT( mbedtls_poly1305_starts( &ctx, key->x ) == 0 );
 
-        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str, 1 ) == 0 );
-        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str + 1, src_len - 1 ) == 0 );
+        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str->x, 1 ) == 0 );
+        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str->x + 1, src_str->len - 1 ) == 0 );
 
         TEST_ASSERT( mbedtls_poly1305_finish( &ctx, mac ) == 0 );
 
-        hexify( mac_str, mac, 16 );
+        mbedtls_test_hexify( mac_str, mac, 16 );
         TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
     }
 
     /*
      * Again with more pieces
      */
-    if( src_len >= 2 )
+    if( src_str->len >= 2 )
     {
-        TEST_ASSERT( mbedtls_poly1305_starts( &ctx, key ) == 0 );
+        TEST_ASSERT( mbedtls_poly1305_starts( &ctx, key->x ) == 0 );
 
-        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str, 1 ) == 0 );
-        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str + 1, 1 ) == 0 );
-        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str + 2, src_len - 2 ) == 0 );
+        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str->x, 1 ) == 0 );
+        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str->x + 1, 1 ) == 0 );
+        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str->x + 2, src_str->len - 2 ) == 0 );
 
         TEST_ASSERT( mbedtls_poly1305_finish( &ctx, mac ) == 0 );
 
-        hexify( mac_str, mac, 16 );
+        mbedtls_test_hexify( mac_str, mac, 16 );
         TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
     }
 

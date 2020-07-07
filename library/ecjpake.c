@@ -24,16 +24,13 @@
  * available to members of the Thread Group http://threadgroup.org/
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_ECJPAKE_C)
 
 #include "mbedtls/ecjpake.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -110,7 +107,7 @@ int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
                            const unsigned char *secret,
                            size_t len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     ECJPAKE_VALIDATE_RET( ctx != NULL );
     ECJPAKE_VALIDATE_RET( role == MBEDTLS_ECJPAKE_CLIENT ||
@@ -159,7 +156,7 @@ static int ecjpake_write_len_point( unsigned char **p,
                                     const int pf,
                                     const mbedtls_ecp_point *P )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
 
     /* Need at least 4 for length plus 1 for point */
@@ -199,7 +196,7 @@ static int ecjpake_hash( const mbedtls_md_info_t *md_info,
                          const char *id,
                          mbedtls_mpi *h )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char buf[ECJPAKE_HASH_BUF_LEN];
     unsigned char *p = buf;
     const unsigned char *end = buf + sizeof( buf );
@@ -226,7 +223,7 @@ static int ecjpake_hash( const mbedtls_md_info_t *md_info,
     p += id_len;
 
     /* Compute hash */
-    mbedtls_md( md_info, buf, p - buf, hash );
+    MBEDTLS_MPI_CHK( mbedtls_md( md_info, buf, p - buf, hash ) );
 
     /* Turn it into an integer mod n */
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( h, hash,
@@ -249,7 +246,7 @@ static int ecjpake_zkp_read( const mbedtls_md_info_t *md_info,
                              const unsigned char **p,
                              const unsigned char *end )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_point V, VV;
     mbedtls_mpi r, h;
     size_t r_len;
@@ -324,7 +321,7 @@ static int ecjpake_zkp_write( const mbedtls_md_info_t *md_info,
                               int (*f_rng)(void *, unsigned char *, size_t),
                               void *p_rng )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_point V;
     mbedtls_mpi v;
     mbedtls_mpi h; /* later recycled to hold r */
@@ -382,7 +379,7 @@ static int ecjpake_kkp_read( const mbedtls_md_info_t *md_info,
                              const unsigned char **p,
                              const unsigned char *end )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( end < *p )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -422,7 +419,7 @@ static int ecjpake_kkp_write( const mbedtls_md_info_t *md_info,
                               int (*f_rng)(void *, unsigned char *, size_t),
                               void *p_rng )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
 
     if( end < *p )
@@ -457,7 +454,7 @@ static int ecjpake_kkpp_read( const mbedtls_md_info_t *md_info,
                               const unsigned char *buf,
                               size_t len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
     const unsigned char *end = buf + len;
 
@@ -495,7 +492,7 @@ static int ecjpake_kkpp_write( const mbedtls_md_info_t *md_info,
                                int (*f_rng)(void *, unsigned char *, size_t),
                                void *p_rng )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p = buf;
     const unsigned char *end = buf + len;
 
@@ -553,7 +550,7 @@ static int ecjpake_ecp_add3( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                              const mbedtls_ecp_point *B,
                              const mbedtls_ecp_point *C )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi one;
 
     mbedtls_mpi_init( &one );
@@ -575,7 +572,7 @@ int mbedtls_ecjpake_read_round_two( mbedtls_ecjpake_context *ctx,
                                             const unsigned char *buf,
                                             size_t len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
     const unsigned char *end = buf + len;
     mbedtls_ecp_group grp;
@@ -639,7 +636,7 @@ static int ecjpake_mul_secret( mbedtls_mpi *R, int sign,
                                int (*f_rng)(void *, unsigned char *, size_t),
                                void *p_rng )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi b; /* Blinding value, then s + N * blinding */
 
     mbedtls_mpi_init( &b );
@@ -668,7 +665,7 @@ int mbedtls_ecjpake_write_round_two( mbedtls_ecjpake_context *ctx,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_point G;    /* C: GA, S: GB */
     mbedtls_ecp_point Xm;   /* C: Xc, S: Xs */
     mbedtls_mpi xm;         /* C: xc, S: xs */
@@ -750,7 +747,7 @@ int mbedtls_ecjpake_derive_secret( mbedtls_ecjpake_context *ctx,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_point K;
     mbedtls_mpi m_xm2_s, one;
     unsigned char kx[MBEDTLS_ECP_MAX_BYTES];
@@ -956,7 +953,7 @@ static int ecjpake_test_load( mbedtls_ecjpake_context *ctx,
                               const unsigned char *xm1, size_t len1,
                               const unsigned char *xm2, size_t len2 )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->xm1, xm1, len1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->xm2, xm2, len2 ) );
@@ -1004,7 +1001,7 @@ static int ecjpake_lgc( void *p, unsigned char *out, size_t len )
  */
 int mbedtls_ecjpake_self_test( int verbose )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecjpake_context cli;
     mbedtls_ecjpake_context srv;
     unsigned char buf[512], pms[32];

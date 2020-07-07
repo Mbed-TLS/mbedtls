@@ -29,12 +29,12 @@
 #define MBEDTLS_PADLOCK_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "aes.h"
+#include "mbedtls/aes.h"
 
 #define MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED               -0x0030  /**< Input data should be aligned. */
 
@@ -59,7 +59,7 @@
 #define MBEDTLS_PADLOCK_PHE 0x0C00
 #define MBEDTLS_PADLOCK_PMM 0x3000
 
-#define MBEDTLS_PADLOCK_ALIGN16(x) (uint32_t *) (16 + ((int32_t) x & ~15))
+#define MBEDTLS_PADLOCK_ALIGN16(x) (uint32_t *) (16 + ((int32_t) (x) & ~15))
 
 #ifdef __cplusplus
 extern "C" {

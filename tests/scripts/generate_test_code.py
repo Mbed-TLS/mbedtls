@@ -208,7 +208,7 @@ class GeneratorInputError(Exception):
     pass
 
 
-class FileWrapper(io.FileIO, object):
+class FileWrapper(io.FileIO):
     """
     This class extends built-in io.FileIO class with attribute line_no,
     that indicates line number for the line that is read.
@@ -238,7 +238,7 @@ class FileWrapper(io.FileIO, object):
         if hasattr(parent, '__next__'):
             line = parent.__next__()  # Python 3
         else:
-            line = parent.next()  # Python 2
+            line = parent.next()  # Python 2 # pylint: disable=no-member
         if line is not None:
             self._line_no += 1
             # Convert byte array to string with correct encoding and
@@ -402,8 +402,7 @@ def parse_dependencies(inp_str):
     :param inp_str: Input string with macros delimited by ':'.
     :return: list of dependencies
     """
-    dependencies = [dep for dep in map(validate_dependency,
-                                       inp_str.split(':'))]
+    dependencies = list(map(validate_dependency, inp_str.split(':')))
     return dependencies
 
 

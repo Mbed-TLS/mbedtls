@@ -48,21 +48,10 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_HAVEGE_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-}
-#endif
 
 int main( int argc, char *argv[] )
 {
@@ -76,13 +65,13 @@ int main( int argc, char *argv[] )
     if( argc < 2 )
     {
         mbedtls_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
         mbedtls_printf( "failed to open '%s' for writing.\n", argv[1] );
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 
     mbedtls_havege_init( &hs );
@@ -115,6 +104,6 @@ int main( int argc, char *argv[] )
 exit:
     mbedtls_havege_free( &hs );
     fclose( f );
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_HAVEGE_C */

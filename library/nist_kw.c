@@ -29,16 +29,13 @@
  * the wrapping and unwrapping operation than the definition in NIST SP 800-38F.
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_NIST_KW_C)
 
 #include "mbedtls/nist_kw.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -116,7 +113,7 @@ int mbedtls_nist_kw_setkey( mbedtls_nist_kw_context *ctx,
                             unsigned int keybits,
                             const int is_wrap )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_cipher_info_t *cipher_info;
 
     cipher_info = mbedtls_cipher_info_from_values( cipher,

@@ -25,15 +25,15 @@
 #define MBEDTLS_SSL_CACHE_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "ssl.h"
+#include "mbedtls/ssl.h"
 
 #if defined(MBEDTLS_THREADING_C)
-#include "threading.h"
+#include "mbedtls/threading.h"
 #endif
 
 /**
@@ -70,7 +70,8 @@ struct mbedtls_ssl_cache_entry
     mbedtls_time_t timestamp;           /*!< entry timestamp    */
 #endif
     mbedtls_ssl_session session;        /*!< entry session      */
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     mbedtls_x509_buf peer_cert;         /*!< entry peer_cert    */
 #endif
     mbedtls_ssl_cache_entry *next;      /*!< chain pointer      */

@@ -19,15 +19,12 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_ASN1_WRITE_C)
 
 #include "mbedtls/asn1write.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -131,7 +128,7 @@ int mbedtls_asn1_write_raw_buffer( unsigned char **p, unsigned char *start,
 #if defined(MBEDTLS_BIGNUM_C)
 int mbedtls_asn1_write_mpi( unsigned char **p, unsigned char *start, const mbedtls_mpi *X )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
 
     // Write the MPI
@@ -168,7 +165,7 @@ cleanup:
 
 int mbedtls_asn1_write_null( unsigned char **p, unsigned char *start )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
 
     // Write NULL
@@ -182,7 +179,7 @@ int mbedtls_asn1_write_null( unsigned char **p, unsigned char *start )
 int mbedtls_asn1_write_oid( unsigned char **p, unsigned char *start,
                     const char *oid, size_t oid_len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( p, start,
@@ -197,7 +194,7 @@ int mbedtls_asn1_write_algorithm_identifier( unsigned char **p, unsigned char *s
                                      const char *oid, size_t oid_len,
                                      size_t par_len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
 
     if( par_len == 0 )
@@ -216,7 +213,7 @@ int mbedtls_asn1_write_algorithm_identifier( unsigned char **p, unsigned char *s
 
 int mbedtls_asn1_write_bool( unsigned char **p, unsigned char *start, int boolean )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
 
     if( *p - start < 1 )
@@ -231,36 +228,49 @@ int mbedtls_asn1_write_bool( unsigned char **p, unsigned char *start, int boolea
     return( (int) len );
 }
 
-int mbedtls_asn1_write_int( unsigned char **p, unsigned char *start, int val )
+static int asn1_write_tagged_int( unsigned char **p, unsigned char *start, int val, int tag )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
 
-    if( *p - start < 1 )
-        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
-
-    len += 1;
-    *--(*p) = val;
-
-    if( val > 0 && **p & 0x80 )
+    do
     {
         if( *p - start < 1 )
             return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+        len += 1;
+        *--(*p) = val & 0xff;
+        val >>= 8;
+    }
+    while( val > 0 );
 
+    if( **p & 0x80 )
+    {
+        if( *p - start < 1 )
+            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
         *--(*p) = 0x00;
         len += 1;
     }
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start, MBEDTLS_ASN1_INTEGER ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start, tag ) );
 
     return( (int) len );
+}
+
+int mbedtls_asn1_write_int( unsigned char **p, unsigned char *start, int val )
+{
+    return( asn1_write_tagged_int( p, start, val, MBEDTLS_ASN1_INTEGER ) );
+}
+
+int mbedtls_asn1_write_enum( unsigned char **p, unsigned char *start, int val )
+{
+    return( asn1_write_tagged_int( p, start, val, MBEDTLS_ASN1_ENUMERATED ) );
 }
 
 int mbedtls_asn1_write_tagged_string( unsigned char **p, unsigned char *start, int tag,
     const char *text, size_t text_len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( p, start,
@@ -290,26 +300,75 @@ int mbedtls_asn1_write_ia5_string( unsigned char **p, unsigned char *start,
     return( mbedtls_asn1_write_tagged_string(p, start, MBEDTLS_ASN1_IA5_STRING, text, text_len) );
 }
 
+int mbedtls_asn1_write_named_bitstring( unsigned char **p,
+                                        unsigned char *start,
+                                        const unsigned char *buf,
+                                        size_t bits )
+{
+    size_t unused_bits, byte_len;
+    const unsigned char *cur_byte;
+    unsigned char cur_byte_shifted;
+    unsigned char bit;
+
+    byte_len = ( bits + 7 ) / 8;
+    unused_bits = ( byte_len * 8 ) - bits;
+
+    /*
+     * Named bitstrings require that trailing 0s are excluded in the encoding
+     * of the bitstring. Trailing 0s are considered part of the 'unused' bits
+     * when encoding this value in the first content octet
+     */
+    if( bits != 0 )
+    {
+        cur_byte = buf + byte_len - 1;
+        cur_byte_shifted = *cur_byte >> unused_bits;
+
+        for( ; ; )
+        {
+            bit = cur_byte_shifted & 0x1;
+            cur_byte_shifted >>= 1;
+
+            if( bit != 0 )
+                break;
+
+            bits--;
+            if( bits == 0 )
+                break;
+
+            if( bits % 8 == 0 )
+                cur_byte_shifted = *--cur_byte;
+        }
+    }
+
+    return( mbedtls_asn1_write_bitstring( p, start, buf, bits ) );
+}
+
 int mbedtls_asn1_write_bitstring( unsigned char **p, unsigned char *start,
                           const unsigned char *buf, size_t bits )
 {
-    int ret;
-    size_t len = 0, size;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len = 0;
+    size_t unused_bits, byte_len;
 
-    size = ( bits / 8 ) + ( ( bits % 8 ) ? 1 : 0 );
+    byte_len = ( bits + 7 ) / 8;
+    unused_bits = ( byte_len * 8 ) - bits;
 
-    // Calculate byte length
-    //
-    if( *p < start || (size_t)( *p - start ) < size + 1 )
+    if( *p < start || (size_t)( *p - start ) < byte_len + 1 )
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
-    len = size + 1;
-    (*p) -= size;
-    memcpy( *p, buf, size );
+    len = byte_len + 1;
 
-    // Write unused bits
-    //
-    *--(*p) = (unsigned char) (size * 8 - bits);
+    /* Write the bitstring. Ensure the unused bits are zeroed */
+    if( byte_len > 0 )
+    {
+        byte_len--;
+        *--( *p ) = buf[byte_len] & ~( ( 0x1 << unused_bits ) - 1 );
+        ( *p ) -= byte_len;
+        memcpy( *p, buf, byte_len );
+    }
+
+    /* Write unused bits */
+    *--( *p ) = (unsigned char)unused_bits;
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start, MBEDTLS_ASN1_BIT_STRING ) );
@@ -320,7 +379,7 @@ int mbedtls_asn1_write_bitstring( unsigned char **p, unsigned char *start,
 int mbedtls_asn1_write_octet_string( unsigned char **p, unsigned char *start,
                              const unsigned char *buf, size_t size )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( p, start, buf, size ) );
@@ -380,18 +439,26 @@ mbedtls_asn1_named_data *mbedtls_asn1_store_named_data(
         memcpy( cur->oid.p, oid, oid_len );
 
         cur->val.len = val_len;
-        cur->val.p = mbedtls_calloc( 1, val_len );
-        if( cur->val.p == NULL )
+        if( val_len != 0 )
         {
-            mbedtls_free( cur->oid.p );
-            mbedtls_free( cur );
-            return( NULL );
+            cur->val.p = mbedtls_calloc( 1, val_len );
+            if( cur->val.p == NULL )
+            {
+                mbedtls_free( cur->oid.p );
+                mbedtls_free( cur );
+                return( NULL );
+            }
         }
 
         cur->next = *head;
         *head = cur;
     }
-    else if( cur->val.len < val_len )
+    else if( val_len == 0 )
+    {
+        mbedtls_free( cur->val.p );
+        cur->val.p = NULL;
+    }
+    else if( cur->val.len != val_len )
     {
         /*
          * Enlarge existing value buffer if needed

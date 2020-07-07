@@ -12,7 +12,8 @@
  * \author Daniel King <damaki.gh@gmail.com>
  */
 
-/*  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved.
+/*
+ *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved.
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -34,13 +35,13 @@
 #define MBEDTLS_CHACHAPOLY_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
 /* for shared error codes */
-#include "poly1305.h"
+#include "mbedtls/poly1305.h"
 
 #define MBEDTLS_ERR_CHACHAPOLY_BAD_STATE            -0x0054 /**< The requested operation is not permitted in the current state. */
 #define MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED          -0x0056 /**< Authenticated decryption failed: data was not authentic. */
@@ -58,7 +59,7 @@ mbedtls_chachapoly_mode_t;
 
 #if !defined(MBEDTLS_CHACHAPOLY_ALT)
 
-#include "chacha20.h"
+#include "mbedtls/chacha20.h"
 
 typedef struct mbedtls_chachapoly_context
 {

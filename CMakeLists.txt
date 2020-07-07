@@ -1,3 +1,21 @@
+#
+# CMake build system design considerations:
+#
+# - Include directories:
+#   + Do not define include directories globally using the include_directories
+#     command but rather at the target level using the
+#     target_include_directories command. That way, it is easier to guarantee
+#     that targets are built using the proper list of include directories.
+#   + Use the PUBLIC and PRIVATE keywords to specifiy the scope of include
+#     directories. That way, a target linking to a library (using the
+#     target_link_librairies command) inherits from the library PUBLIC include
+#     directories and not from the PRIVATE ones.
+#   + Note: there is currently one remaining include_directories command in the
+#     CMake files. It is related to ZLIB support which is planned to be removed.
+#     When the support is removed, the associated include_directories command
+#     will be removed as well as this note.
+#
+
 cmake_minimum_required(VERSION 2.6)
 if(TEST_CPP)
     project("mbed TLS" C CXX)
@@ -5,12 +23,16 @@ else()
     project("mbed TLS" C)
 endif()
 
+# Set the project root directory.
+set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
 option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
 option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
 
 option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
+option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
 
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 string(REGEX MATCH "GNU" CMAKE_COMPILER_IS_GNU "${CMAKE_C_COMPILER_ID}")
@@ -46,19 +68,30 @@ set(CTR_DRBG_128_BIT_KEY_WARNING "${WARNING_BORDER}"
                          "${CTR_DRBG_128_BIT_KEY_WARN_L3}"
                          "${WARNING_BORDER}")
 
-find_package(PythonInterp)
-find_package(Perl)
-if(PERL_FOUND)
+# Python 3 is only needed here to check for configuration warnings.
+if(NOT CMAKE_VERSION VERSION_LESS 3.15.0)
+    set(Python3_FIND_STRATEGY LOCATION)
+    find_package(Python3 COMPONENTS Interpreter)
+    if(Python3_Interpreter_FOUND)
+        set(MBEDTLS_PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+    endif()
+else()
+    find_package(PythonInterp 3)
+    if(PYTHONINTERP_FOUND)
+        set(MBEDTLS_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
+    endif()
+endif()
+if(MBEDTLS_PYTHON_EXECUTABLE)
 
     # If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
-    execute_process(COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.pl -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+    execute_process(COMMAND ${MBEDTLS_PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
                         RESULT_VARIABLE result)
     if(${result} EQUAL 0)
         message(WARNING ${CTR_DRBG_128_BIT_KEY_WARNING})
     endif()
 
     # If NULL Entropy is configured, display an appropriate warning
-    execute_process(COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.pl -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_TEST_NULL_ENTROPY
+    execute_process(COMMAND ${MBEDTLS_PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_TEST_NULL_ENTROPY
                         RESULT_VARIABLE result)
     if(${result} EQUAL 0)
         message(WARNING ${NULL_ENTROPY_WARNING})
@@ -87,8 +120,14 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
 # to the corresponding path in the source directory.
 function(link_to_source base_name)
     # Get OS dependent path to use in `execute_process`
-    file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${base_name}" link)
-    file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}" target)
+    if (CMAKE_HOST_WIN32)
+        #mklink is an internal command of cmd.exe it can only work with \
+        string(REPLACE "/" "\\" link "${CMAKE_CURRENT_BINARY_DIR}/${base_name}")
+        string(REPLACE "/" "\\" target "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}")
+    else()
+        set(link "${CMAKE_CURRENT_BINARY_DIR}/${base_name}")
+        set(target "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}")
+    endif()
 
     if (NOT EXISTS ${link})
         if (CMAKE_HOST_UNIX)
@@ -118,32 +157,38 @@ if(CMAKE_COMPILER_IS_GNU)
     # note: starting with CMake 2.8 we could use CMAKE_C_COMPILER_VERSION
     execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
                     OUTPUT_VARIABLE GCC_VERSION)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -W -Wdeclaration-after-statement -Wwrite-strings")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings")
+    if (GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wvla")
+    endif()
     if (GCC_VERSION VERSION_GREATER 4.5 OR GCC_VERSION VERSION_EQUAL 4.5)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wlogical-op")
     endif()
     if (GCC_VERSION VERSION_GREATER 4.8 OR GCC_VERSION VERSION_EQUAL 4.8)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshadow")
     endif()
+    if (GCC_VERSION VERSION_GREATER 5.0)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat-signedness")
+    endif()
     set(CMAKE_C_FLAGS_RELEASE     "-O2")
     set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
     set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")
-    set(CMAKE_C_FLAGS_ASAN        "-Werror -fsanitize=address -fno-common -O3")
-    set(CMAKE_C_FLAGS_ASANDBG     "-Werror -fsanitize=address -fno-common -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls ")
-    set(CMAKE_C_FLAGS_CHECK       "-Werror -Os")
+    set(CMAKE_C_FLAGS_ASAN        "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O3")
+    set(CMAKE_C_FLAGS_ASANDBG     "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
+    set(CMAKE_C_FLAGS_CHECK       "-Os")
     set(CMAKE_C_FLAGS_CHECKFULL   "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
 endif(CMAKE_COMPILER_IS_GNU)
 
 if(CMAKE_COMPILER_IS_CLANG)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -W -Wdeclaration-after-statement -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla")
     set(CMAKE_C_FLAGS_RELEASE     "-O2")
     set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
     set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")
-    set(CMAKE_C_FLAGS_ASAN        "-Werror -fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O3")
-    set(CMAKE_C_FLAGS_ASANDBG     "-Werror -fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls ")
-    set(CMAKE_C_FLAGS_MEMSAN      "-Werror -fsanitize=memory -O3")
-    set(CMAKE_C_FLAGS_MEMSANDBG   "-Werror -fsanitize=memory -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2")
-    set(CMAKE_C_FLAGS_CHECK       "-Werror -Os")
+    set(CMAKE_C_FLAGS_ASAN        "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O3")
+    set(CMAKE_C_FLAGS_ASANDBG     "-fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
+    set(CMAKE_C_FLAGS_MEMSAN      "-fsanitize=memory -O3")
+    set(CMAKE_C_FLAGS_MEMSANDBG   "-fsanitize=memory -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2")
+    set(CMAKE_C_FLAGS_CHECK       "-Os")
 endif(CMAKE_COMPILER_IS_CLANG)
 
 if(CMAKE_COMPILER_IS_IAR)
@@ -151,10 +196,24 @@ if(CMAKE_COMPILER_IS_IAR)
 endif(CMAKE_COMPILER_IS_IAR)
 
 if(CMAKE_COMPILER_IS_MSVC)
-    # Strictest warnings, and treat as errors
+    # Strictest warnings
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
 endif(CMAKE_COMPILER_IS_MSVC)
+
+if(MBEDTLS_FATAL_WARNINGS)
+    if(CMAKE_COMPILER_IS_MSVC)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
+    endif(CMAKE_COMPILER_IS_MSVC)
+
+    if(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+        if(UNSAFE_BUILD)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error=cpp")
+            set(CMAKE_C_FLAGS_ASAN "${CMAKE_C_FLAGS_ASAN} -Wno-error=cpp")
+            set(CMAKE_C_FLAGS_ASANDBG "${CMAKE_C_FLAGS_ASANDBG} -Wno-error=cpp")
+        endif(UNSAFE_BUILD)
+    endif(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
+endif(MBEDTLS_FATAL_WARNINGS)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
     if(CMAKE_COMPILER_IS_GNU OR CMAKE_COMPILER_IS_CLANG)
@@ -167,8 +226,6 @@ else()
     set(LIB_INSTALL_DIR lib)
 endif()
 
-include_directories(include/)
-
 if(ENABLE_ZLIB_SUPPORT)
     find_package(ZLIB)
 
@@ -177,8 +234,35 @@ if(ENABLE_ZLIB_SUPPORT)
     endif(ZLIB_FOUND)
 endif(ENABLE_ZLIB_SUPPORT)
 
-add_subdirectory(library)
 add_subdirectory(include)
+
+add_subdirectory(3rdparty)
+list(APPEND libs ${thirdparty_lib})
+
+add_subdirectory(library)
+
+#
+# The C files in tests/src directory contain test code shared among test suites
+# and programs. This shared test code is compiled and linked to test suites and
+# programs objects as a set of compiled objects. The compiled objects are NOT
+# built into a library that the test suite and program objects would link
+# against as they link against the mbedcrypto, mbedx509 and mbedtls libraries.
+# The reason is that such library is expected to have mutual dependencies with
+# the aforementioned libraries and that there is as of today no portable way of
+# handling such dependencies (only toolchain specific solutions).
+#
+# Thus the below definition of the `mbedtls_test` CMake library of objects
+# target. This library of objects is used by tests and programs CMake files
+# to define the test executables.
+#
+if(ENABLE_TESTING OR ENABLE_PROGRAMS)
+    file(GLOB MBEDTLS_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c)
+    add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
+    target_include_directories(mbedtls_test
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library)
+endif()
 
 if(ENABLE_PROGRAMS)
     add_subdirectory(programs)
@@ -222,13 +306,13 @@ if(ENABLE_TESTING)
             COMMAND mv DartConfiguration.tcl.bak DartConfiguration.tcl
         )
     endif(UNIX)
-endif()
 
-# Make scripts needed for testing available in an out-of-source build.
-if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
-    link_to_source(scripts)
-    # Copy (don't link) DartConfiguration.tcl, needed for memcheck, to
-    # keep things simple with the sed commands in the memcheck target.
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DartConfiguration.tcl
-                   ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl COPYONLY)
+    # Make scripts needed for testing available in an out-of-source build.
+    if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+        link_to_source(scripts)
+        # Copy (don't link) DartConfiguration.tcl, needed for memcheck, to
+        # keep things simple with the sed commands in the memcheck target.
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DartConfiguration.tcl
+                    ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl COPYONLY)
+    endif()
 endif()

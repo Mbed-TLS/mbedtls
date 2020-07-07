@@ -28,11 +28,7 @@
 #define _POSIX_C_SOURCE 200112L
 #endif
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #include "mbedtls/platform_util.h"
 #include "mbedtls/platform.h"
@@ -72,7 +68,10 @@ static void * (* const volatile memset_func)( void *, int, size_t ) = memset;
 
 void mbedtls_platform_zeroize( void *buf, size_t len )
 {
-    memset_func( buf, 0, len );
+    MBEDTLS_INTERNAL_VALIDATE( len == 0 || buf != NULL );
+
+    if( len > 0 )
+        memset_func( buf, 0, len );
 }
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */
 

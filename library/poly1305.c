@@ -20,16 +20,13 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_POLY1305_C)
 
 #include "mbedtls/poly1305.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -58,10 +55,10 @@
 #define POLY1305_BLOCK_SIZE_BYTES ( 16U )
 
 #define BYTES_TO_U32_LE( data, offset )                           \
-    ( (uint32_t) data[offset]                                     \
-          | (uint32_t) ( (uint32_t) data[( offset ) + 1] << 8 )   \
-          | (uint32_t) ( (uint32_t) data[( offset ) + 2] << 16 )  \
-          | (uint32_t) ( (uint32_t) data[( offset ) + 3] << 24 )  \
+    ( (uint32_t) (data)[offset]                                     \
+          | (uint32_t) ( (uint32_t) (data)[( offset ) + 1] << 8 )   \
+          | (uint32_t) ( (uint32_t) (data)[( offset ) + 2] << 16 )  \
+          | (uint32_t) ( (uint32_t) (data)[( offset ) + 3] << 24 )  \
     )
 
 /*
@@ -423,7 +420,7 @@ int mbedtls_poly1305_mac( const unsigned char key[32],
                           unsigned char mac[16] )
 {
     mbedtls_poly1305_context ctx;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     POLY1305_VALIDATE_RET( key != NULL );
     POLY1305_VALIDATE_RET( mac != NULL );
     POLY1305_VALIDATE_RET( ilen == 0 || input != NULL );
@@ -529,7 +526,7 @@ int mbedtls_poly1305_self_test( int verbose )
 {
     unsigned char mac[16];
     unsigned i;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     for( i = 0U; i < 2U; i++ )
     {

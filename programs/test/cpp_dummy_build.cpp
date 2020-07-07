@@ -81,6 +81,7 @@
 #include "mbedtls/platform_time.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/poly1305.h"
+#include "mbedtls/psa_util.h"
 #include "mbedtls/ripemd160.h"
 #include "mbedtls/rsa.h"
 #include "mbedtls/rsa_internal.h"

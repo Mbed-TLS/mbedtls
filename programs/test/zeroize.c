@@ -4,12 +4,10 @@
  * This is a simple test application used for debugger-driven testing to check
  * whether calls to mbedtls_platform_zeroize() are being eliminated by compiler
  * optimizations. This application is used by the GDB script at
- * tests/scripts/test_zeroize.gdb under the assumption that the code does not
- * change often (as opposed to the library code) because the script sets a
- * breakpoint at the last return statement in the main() function of this
- * program. The debugger facilities are then used to manually inspect the
- * memory and verify that the call to mbedtls_platform_zeroize() was not
- * eliminated.
+ * tests/scripts/test_zeroize.gdb: the script sets a breakpoint at the last
+ * return statement in the main() function of this program. The debugger
+ * facilities are then used to manually inspect the memory and verify that the
+ * call to mbedtls_platform_zeroize() was not eliminated.
  *
  *  Copyright (C) 2018, Arm Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -42,6 +40,7 @@
 #else
 #include <stdlib.h>
 #define mbedtls_printf     printf
+#define mbedtls_exit       exit
 #define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
@@ -72,14 +71,14 @@ int main( int argc, char** argv )
     {
         mbedtls_printf( "This program takes exactly 1 agument\n" );
         usage();
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 
     fp = fopen( argv[1], "r" );
     if( fp == NULL )
     {
         mbedtls_printf( "Could not open file '%s'\n", argv[1] );
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 
     while( ( c = fgetc( fp ) ) != EOF && p < end - 1 )
@@ -97,5 +96,5 @@ int main( int argc, char** argv )
     fclose( fp );
     mbedtls_platform_zeroize( buf, sizeof( buf ) );
 
-    return( exit_code );
+    mbedtls_exit( exit_code ); // GDB_BREAK_HERE -- don't remove this comment!
 }

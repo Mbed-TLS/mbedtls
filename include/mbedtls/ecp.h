@@ -37,12 +37,12 @@
 #define MBEDTLS_ECP_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "bignum.h"
+#include "mbedtls/bignum.h"
 
 /*
  * ECP error codes
@@ -98,6 +98,16 @@ typedef enum
  * \note Montgomery curves are currently excluded.
  */
 #define MBEDTLS_ECP_DP_MAX     12
+
+/*
+ * Curve types
+ */
+typedef enum
+{
+    MBEDTLS_ECP_TYPE_NONE = 0,
+    MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS,    /* y^2 = x^3 + a x + b      */
+    MBEDTLS_ECP_TYPE_MONTGOMERY,           /* y^2 = x^3 + a x^2 + x    */
+} mbedtls_ecp_curve_type;
 
 /**
  * Curve information, for use by other modules.
@@ -417,10 +427,21 @@ void mbedtls_ecp_set_max_ops( unsigned max_ops );
 int mbedtls_ecp_restart_is_enabled( void );
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
+/*
+ * Get the type of a curve
+ */
+mbedtls_ecp_curve_type mbedtls_ecp_get_type( const mbedtls_ecp_group *grp );
+
 /**
  * \brief           This function retrieves the information defined in
  *                  mbedtls_ecp_curve_info() for all supported curves in order
  *                  of preference.
+ *
+ * \note            This function returns information about all curves
+ *                  supported by the library. Some curves may not be
+ *                  supported for all algorithms. Call mbedtls_ecdh_can_do()
+ *                  or mbedtls_ecdsa_can_do() to check if a curve is
+ *                  supported for ECDH or ECDSA.
  *
  * \return          A statically allocated array. The last entry is 0.
  */
@@ -430,6 +451,12 @@ const mbedtls_ecp_curve_info *mbedtls_ecp_curve_list( void );
  * \brief           This function retrieves the list of internal group
  *                  identifiers of all supported curves in the order of
  *                  preference.
+ *
+ * \note            This function returns information about all curves
+ *                  supported by the library. Some curves may not be
+ *                  supported for all algorithms. Call mbedtls_ecdh_can_do()
+ *                  or mbedtls_ecdsa_can_do() to check if a curve is
+ *                  supported for ECDH or ECDSA.
  *
  * \return          A statically allocated array,
  *                  terminated with MBEDTLS_ECP_DP_NONE.
@@ -482,7 +509,7 @@ void mbedtls_ecp_point_init( mbedtls_ecp_point *pt );
  *
  * \note            After this function is called, domain parameters
  *                  for various ECP groups can be loaded through the
- *                  mbedtls_ecp_load() or mbedtls_ecp_tls_read_group()
+ *                  mbedtls_ecp_group_load() or mbedtls_ecp_tls_read_group()
  *                  functions.
  */
 void mbedtls_ecp_group_init( mbedtls_ecp_group *grp );
@@ -626,6 +653,9 @@ int mbedtls_ecp_point_read_string( mbedtls_ecp_point *P, int radix,
  * \param P         The point to export. This must be initialized.
  * \param format    The point format. This must be either
  *                  #MBEDTLS_ECP_PF_COMPRESSED or #MBEDTLS_ECP_PF_UNCOMPRESSED.
+ *                  (For groups without these formats, this parameter is
+ *                  ignored. But it still has to be either of the above
+ *                  values.)
  * \param olen      The address at which to store the length of
  *                  the output in Bytes. This must not be \c NULL.
  * \param buf       The output buffer. This must be a writable buffer
@@ -635,11 +665,14 @@ int mbedtls_ecp_point_read_string( mbedtls_ecp_point *P, int radix,
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL if the output buffer
  *                  is too small to hold the point.
+ * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the point format
+ *                  or the export for the given group is not implemented.
  * \return          Another negative error code on other kinds of failure.
  */
-int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp, const mbedtls_ecp_point *P,
-                            int format, size_t *olen,
-                            unsigned char *buf, size_t buflen );
+int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
+                                    const mbedtls_ecp_point *P,
+                                    int format, size_t *olen,
+                                    unsigned char *buf, size_t buflen );
 
 /**
  * \brief           This function imports a point from unsigned binary data.
@@ -660,8 +693,8 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp, const mbedtls_
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if the input is invalid.
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
- * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the point format
- *                  is not implemented.
+ * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the import for the
+ *                  given group is not implemented.
  */
 int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp,
                                    mbedtls_ecp_point *P,
@@ -813,6 +846,9 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp,
  *                  intermediate results to prevent potential timing attacks
  *                  targeting these results. We recommend always providing
  *                  a non-NULL \p f_rng. The overhead is negligible.
+ *                  Note: unless #MBEDTLS_ECP_NO_INTERNAL_RNG is defined, when
+ *                  \p f_rng is NULL, an internal RNG (seeded from the value
+ *                  of \p m) will be used instead.
  *
  * \param grp       The ECP group to use.
  *                  This must be initialized and have group parameters
@@ -1093,6 +1129,26 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng );
 
+/**
+ * \brief           This function reads an elliptic curve private key.
+ *
+ * \param grp_id    The ECP group identifier.
+ * \param key       The destination key.
+ * \param buf       The the buffer containing the binary representation of the
+ *                  key. (Big endian integer for Weierstrass curves, byte
+ *                  string for Montgomery curves.)
+ * \param buflen    The length of the buffer in bytes.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_INVALID_KEY error if the key is
+ *                  invalid.
+ * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed.
+ * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the operation for
+ *                  the group is not implemented.
+ * \return          Another negative error code on different kinds of failure.
+ */
+int mbedtls_ecp_read_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
+                          const unsigned char *buf, size_t buflen );
 /**
  * \brief           This function checks that the keypair objects
  *                  \p pub and \p prv have the same group and the

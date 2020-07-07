@@ -19,16 +19,13 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 /* The compile time configuration of memory allocation via the macros
  * MBEDTLS_PLATFORM_{FREE/MALLOC/CALLOC/REALLOC}_MACRO takes precedence
@@ -131,7 +128,7 @@ int mbedtls_platform_set_malloc_calloc_realloc_free(
 #include <stdarg.h>
 int mbedtls_platform_win32_snprintf( char *s, size_t n, const char *fmt, ... )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     va_list argp;
 
     va_start( argp, fmt );
@@ -176,7 +173,7 @@ int mbedtls_platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
 #include <stdarg.h>
 int mbedtls_platform_win32_vsnprintf( char *s, size_t n, const char *fmt, va_list arg )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* Avoid calling the invalid parameter handler by checking ourselves */
     if( s == NULL || n == 0 || fmt == NULL )

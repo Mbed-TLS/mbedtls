@@ -66,6 +66,8 @@
 #else
 #include <stdio.h>
 #include <stdlib.h>
+#define mbedtls_calloc     calloc
+#define mbedtls_free       free
 #define mbedtls_printf     printf
 #define mbedtls_snprintf   snprintf
 #define mbedtls_exit       exit
@@ -77,17 +79,86 @@
 #include "mbedtls/memory_buffer_alloc.h"
 #endif
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
+
+#if defined MBEDTLS_SELF_TEST
+/* Sanity check for malloc. This is not expected to fail, and is rather
+ * intended to display potentially useful information about the platform,
+ * in particular the behavior of malloc(0). */
+static int calloc_self_test( int verbose )
 {
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+    int failures = 0;
+    void *empty1 = mbedtls_calloc( 0, 1 );
+    void *empty2 = mbedtls_calloc( 0, 1 );
+    void *buffer1 = mbedtls_calloc( 1, 1 );
+    void *buffer2 = mbedtls_calloc( 1, 1 );
+    uintptr_t old_buffer1;
+
+    if( empty1 == NULL && empty2 == NULL )
+    {
+        if( verbose )
+            mbedtls_printf( "  CALLOC(0): passed (NULL)\n" );
+    }
+    else if( empty1 == NULL || empty2 == NULL )
+    {
+        if( verbose )
+            mbedtls_printf( "  CALLOC(0): failed (mix of NULL and non-NULL)\n" );
+        ++failures;
+    }
+    else if( empty1 == empty2 )
+    {
+        if( verbose )
+            mbedtls_printf( "  CALLOC(0): passed (same non-null)\n" );
+    }
+    else
+    {
+        if( verbose )
+            mbedtls_printf( "  CALLOC(0): passed (distinct non-null)\n" );
+    }
+
+    if( buffer1 == NULL || buffer2 == NULL )
+    {
+        if( verbose )
+            mbedtls_printf( "  CALLOC(1): failed (NULL)\n" );
+        ++failures;
+    }
+    else if( buffer1 == buffer2 )
+    {
+        if( verbose )
+            mbedtls_printf( "  CALLOC(1): failed (same buffer twice)\n" );
+        ++failures;
+    }
+    else
+    {
+        if( verbose )
+            mbedtls_printf( "  CALLOC(1): passed\n" );
+    }
+
+    old_buffer1 = (uintptr_t) buffer1;
+    mbedtls_free( buffer1 );
+    buffer1 = mbedtls_calloc( 1, 1 );
+    if( buffer1 == NULL )
+    {
+        if( verbose )
+            mbedtls_printf( "  CALLOC(1 again): failed (NULL)\n" );
+        ++failures;
+    }
+    else
+    {
+        if( verbose )
+            mbedtls_printf( "  CALLOC(1 again): passed (%s address)\n",
+                            (uintptr_t) old_buffer1 == (uintptr_t) buffer1 ?
+                            "same" : "different" );
+    }
+
+    if( verbose )
+        mbedtls_printf( "\n" );
+    mbedtls_free( empty1 );
+    mbedtls_free( empty2 );
+    mbedtls_free( buffer1 );
+    mbedtls_free( buffer2 );
+    return( failures );
 }
-#endif
+#endif /* MBEDTLS_SELF_TEST */
 
 static int test_snprintf( size_t n, const char ref_buf[10], int ref_ret )
 {
@@ -185,6 +256,7 @@ typedef struct
 
 const selftest_t selftests[] =
 {
+    {"calloc", calloc_self_test},
 #if defined(MBEDTLS_MD2_C)
     {"md2", mbedtls_md2_self_test},
 #endif
@@ -428,7 +500,5 @@ int main( int argc, char *argv[] )
     if( suites_failed > 0)
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
 
-    /* return() is here to prevent compiler warnings */
-    return( MBEDTLS_EXIT_SUCCESS );
+    mbedtls_exit( MBEDTLS_EXIT_SUCCESS );
 }
-

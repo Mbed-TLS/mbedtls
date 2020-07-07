@@ -9390,6 +9390,54 @@ Decrypt CBC !EtM, AES SHA256 trunc, 0, maxpad
 depends_on:MBEDTLS_AES_C:MBEDTLS_SHA256_C
 ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA256:1:0:1
 
+Decrypt CBC !EtM, AES SHA256 !trunc, 1, minpad
+depends_on:MBEDTLS_AES_C:MBEDTLS_SHA256_C
+ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA256:0:1:0
+
+Decrypt CBC !EtM, AES SHA256 !trunc, 1, maxpad
+depends_on:MBEDTLS_AES_C:MBEDTLS_SHA256_C
+ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA256:0:1:1
+
+Decrypt CBC !EtM, AES SHA256 trunc, 1, minpad
+depends_on:MBEDTLS_AES_C:MBEDTLS_SHA256_C
+ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA256:1:1:0
+
+Decrypt CBC !EtM, AES SHA256 trunc, 1, maxpad
+depends_on:MBEDTLS_AES_C:MBEDTLS_SHA256_C
+ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA256:1:1:1
+
+Decrypt CBC !EtM, AES SHA256 !trunc, B-1, minpad
+depends_on:MBEDTLS_AES_C:MBEDTLS_SHA256_C
+ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA256:0:15:0
+
+Decrypt CBC !EtM, AES SHA256 !trunc, B-1, maxpad
+depends_on:MBEDTLS_AES_C:MBEDTLS_SHA256_C
+ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA256:0:15:1
+
+Decrypt CBC !EtM, AES SHA256 trunc, B-1, minpad
+depends_on:MBEDTLS_AES_C:MBEDTLS_SHA256_C
+ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA256:1:5:0
+
+Decrypt CBC !EtM, AES SHA256 trunc, B-1, maxpad
+depends_on:MBEDTLS_AES_C:MBEDTLS_SHA256_C
+ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA256:1:5:1
+
+Decrypt CBC !EtM, AES SHA256 !trunc, B, minpad
+depends_on:MBEDTLS_AES_C:MBEDTLS_SHA256_C
+ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA256:0:16:0
+
+Decrypt CBC !EtM, AES SHA256 !trunc, B, maxpad
+depends_on:MBEDTLS_AES_C:MBEDTLS_SHA256_C
+ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA256:0:16:1
+
+Decrypt CBC !EtM, AES SHA256 trunc, B, minpad
+depends_on:MBEDTLS_AES_C:MBEDTLS_SHA256_C
+ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA256:1:6:0
+
+Decrypt CBC !EtM, AES SHA256 trunc, B, maxpad
+depends_on:MBEDTLS_AES_C:MBEDTLS_SHA256_C
+ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA256:1:6:1
+
 SSL TLS_PRF MBEDTLS_SSL_TLS_PRF_NONE
 ssl_tls_prf:MBEDTLS_SSL_TLS_PRF_NONE:"":"":"test tls_prf label":"":MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE
 

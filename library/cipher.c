@@ -33,6 +33,7 @@
 
 #include "mbedtls/cipher.h"
 #include "mbedtls/cipher_internal.h"
+#include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 
 #include <stdlib.h>
@@ -351,6 +352,10 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 {
     int ret;
     size_t block_size;
+    volatile const unsigned char *input_dup = input;
+    volatile const unsigned char *output_dup = output;
+    volatile const size_t ilen_dup = ilen;
+    volatile const size_t *olen_dup = olen;
 
     CIPHER_VALIDATE_RET( ctx != NULL );
     CIPHER_VALIDATE_RET( ilen == 0 || input != NULL );
@@ -379,7 +384,12 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
             return( ret );
         }
 
-        return( 0 );
+        if( input_dup == input && output_dup == output &&
+            ilen_dup == ilen && olen_dup == olen )
+        {
+            return( 0 );
+        }
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 
 #if defined(MBEDTLS_GCM_C)
@@ -425,7 +435,12 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
                     ilen );
 
             ctx->unprocessed_len += ilen;
-            return( 0 );
+            if( input_dup == input && output_dup == output &&
+                ilen_dup == ilen && olen_dup == olen )
+            {
+                return( 0 );
+            }
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
         }
 
         /*
@@ -491,7 +506,11 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
             *olen += ilen;
         }
 
-        return( 0 );
+        if( olen_dup == olen )
+        {
+            return( 0 );
+        }
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -507,7 +526,12 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 
         *olen = ilen;
 
-        return( 0 );
+        if( input_dup == input && output_dup == output &&
+            ilen_dup == ilen && olen_dup == olen )
+        {
+            return( 0 );
+        }
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
@@ -522,7 +546,12 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 
         *olen = ilen;
 
-        return( 0 );
+        if( input_dup == input && output_dup == output &&
+            ilen_dup == ilen && olen_dup == olen )
+        {
+            return( 0 );
+        }
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 #endif /* MBEDTLS_CIPHER_MODE_OFB */
 
@@ -538,7 +567,12 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 
         *olen = ilen;
 
-        return( 0 );
+        if( input_dup == input && output_dup == output &&
+            ilen_dup == ilen && olen_dup == olen )
+        {
+            return( 0 );
+        }
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
@@ -559,7 +593,12 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 
         *olen = ilen;
 
-        return( 0 );
+        if( input_dup == input && output_dup == output &&
+            ilen_dup == ilen && olen_dup == olen )
+        {
+            return( 0 );
+        }
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
 
@@ -574,7 +613,12 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 
         *olen = ilen;
 
-        return( 0 );
+        if( input_dup == input && output_dup == output &&
+            ilen_dup == ilen && olen_dup == olen )
+        {
+            return( 0 );
+        }
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 #endif /* MBEDTLS_CIPHER_MODE_STREAM */
 

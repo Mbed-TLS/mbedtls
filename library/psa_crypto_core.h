@@ -43,12 +43,13 @@ typedef struct
     psa_core_key_attributes_t attr;
     union
     {
-        /* Raw-data key (key_type_is_raw_bytes() in psa_crypto.c) */
-        struct raw_data
+        /* Dynamically allocated key data buffer.
+         * Format as specified in psa_export_key(). */
+        struct key_data
         {
             uint8_t *data;
             size_t bytes;
-        } raw;
+        } key;
 #if defined(MBEDTLS_RSA_C)
         /* RSA public key or key pair */
         mbedtls_rsa_context *rsa;

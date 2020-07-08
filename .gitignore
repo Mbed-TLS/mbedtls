@@ -41,3 +41,9 @@ massif-*
 /GTAGS
 /TAGS
 /tags
+
+# idea
+.idea/
+*.iml
+*.ipr
+*.iws

@@ -1,0 +1,17 @@
+kind: pipeline
+name: default
+
+steps:
+  - name: Perform Build
+    image: ubuntu:20.04
+    commands:
+      - apt-get -qq update && apt-get -qq install -y cmake build-essential
+      - mkdir -p build
+      - cmake -B build -S .
+      - cmake --build ./build -j`nproc`
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+
+trigger:
+  ref:
+    - refs/heads/**

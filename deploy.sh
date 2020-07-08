@@ -2,14 +2,14 @@
 
 echo "Renaming asset to a descriptive filename"
 BUILD_TIME=`date +%F_%T`
-FILENAME=/opt/mbedtls-${DRONE_SOURCE_BRANCH}-${BUILD_TIME}-${DRONE_COMMIT_SHA:0:8}.tar.gz
+FILENAME=/opt/mbedtls-${TARGET}-${DRONE_SOURCE_BRANCH}-${BUILD_TIME}-${DRONE_COMMIT_SHA:0:8}.tar.gz
 
-mkdir -p artifact/include
-cp -R include/mbedtls/*.h artifact/include
-mkdir -p artifact/lib
-cp build/library/*.a artifact/lib
+mkdir -p mbedtls/include
+cp -R include/mbedtls/*.h mbedtls/include
+mkdir -p mbedtls/lib
+cp build/library/*.a mbedtls/lib
 
-tar -czvf mbedtls.tar.gz artifact/
+tar -czvf mbedtls.tar.gz mbedtls/
 cp mbedtls.tar.gz $FILENAME
 echo "New filename: " $FILENAME
 

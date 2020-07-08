@@ -14,7 +14,7 @@ steps:
       ANDROID_HOME: /opt/android-sdk-linux
       ANDROID_NDK_HOME: /opt/android-ndk-r20b
       ANDROID_NDK_VERSION: r20
-      PATH: /opt/android-sdk-linux/tools:/opt/android-sdk-linux/tools/bin:/opt/android-ndk-r20b/platform-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /opt/android-sdk-linux/cmake/3.6.4111459/bin:/opt/android-sdk-linux/tools:/opt/android-sdk-linux/tools/bin:/opt/android-ndk-r20b/platform-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 trigger:
   ref:

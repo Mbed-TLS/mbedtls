@@ -21,6 +21,7 @@ touch /root/.android/repositories.cfg
 yes | sdkmanager --licenses > /dev/null
 sdkmanager "tools" "platform-tools" "build-tools;25.0.3" "platforms;android-25" "add-ons;addon-google_apis-google-24" > /dev/null
 sdkmanager "extras;android;m2repository" "extras;google;google_play_services" "patcher;v4" > /dev/null
+sdkmanager "cmake;3.6.4111459" > /dev/null
 
 echo "Downloading and installing the Android NDK"
 DL_TARGET_NDK=/opt/android-ndk-r20b-linux-x86_64.zip

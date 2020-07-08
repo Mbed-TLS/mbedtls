@@ -2,8 +2,9 @@
 
 echo "Renaming asset to a descriptive filename"
 BUILD_TIME=`date +%F_%T`
-FILENAME=/opt/vhserver-${DRONE_SOURCE_BRANCH}-${BUILD_TIME}-${DRONE_COMMIT_SHA:0:8}.apk
-cp ./app/build/outputs/apk/release/app-release.apk $FILENAME
+FILENAME=/opt/mbedtls_2.16-${DRONE_SOURCE_BRANCH}-${BUILD_TIME}-${DRONE_COMMIT_SHA:0:8}.tar.gz
+tar -czvf mbedtls.tar.gz build/library/*.a include/mbedtls/*.h
+cp mbedtls.tar.gz $FILENAME
 echo "New filename: " $FILENAME
 
 echo "Some useful env info"

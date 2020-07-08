@@ -4903,7 +4903,7 @@ static int ssl_bitmask_check( unsigned char *mask, size_t len )
         if( ( mask[len / 8] & ( 1 << ( 7 - i ) ) ) == 0 )
             return( BITMASK_CHECK_FAILED );
 
-        return( 0 );
+    return( 0 );
 }
 
 /* msg_len does not include the handshake header */
@@ -7168,7 +7168,7 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
 
     digest_len = mbedtls_md_get_size( digest_info );
     if( digest_len > MBEDTLS_SSL_PEER_CERT_DIGEST_MAX_LEN )
-        return( 0x75555555 );
+        return( PEER_CRT_CHANGED );
 
     ret = mbedtls_md( digest_info, crt_buf, crt_buf_len, tmp_digest );
     if( ret != 0 )

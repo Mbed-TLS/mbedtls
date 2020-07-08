@@ -4,10 +4,9 @@ echo "Performing build"
 mkdir -p build
 cd build
 cmake -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=1 \
-  -DCMAKE_PREFIX_PATH=/opt/android-ndk-r20b/android-ndk-r20b/platforms/android-24/arch-arm64/usr \
-  -DCMAKE_LINKER=/opt/android-ndk-r20b/android-ndk-r20b/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-ld \
-  -DCMAKE_C_COMPILER=/opt/android-ndk-r20b/android-ndk-r20b/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang \
-  -DCMAKE_CXX_COMPILER=/opt/android-ndk-r20b/android-ndk-r20b/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++ \
+  -DCMAKE_TOOLCHAIN_FILE=/opt/android-ndk-r20b/android-ndk-r20b/build/cmake/android.toolchain.cmake \
+  -DANDROID_ABI=24 \
+  -DANDROID_NATIVE_API_LEVEL=25 \
   ..
 cd -
 cmake --build ./build -- -j`nproc`

@@ -10,6 +10,9 @@ steps:
       - ./build.sh
       - ./deploy.sh
     environment:
+      API: 25
+      TOOLCHAIN: /opt/android-ndk-r20b/android-ndk-r20b/toolchains/llvm/prebuilt/linux-x86_64
+      TARGET: aarch64-linux-android
       DEBIAN_FRONTEND: noninteractive
       ANDROID_HOME: /opt/android-sdk-linux
       ANDROID_NDK_HOME: /opt/android-ndk-r20b

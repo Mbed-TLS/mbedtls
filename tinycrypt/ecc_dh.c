@@ -153,6 +153,8 @@ int uECC_make_key(uint8_t *public_key, uint8_t *private_key)
 			if (private_key == private_key_dup && public_key == public_key_dup) {
 				return UECC_SUCCESS;
 			}
+			/* Erase key in case of FI */
+			mbedtls_platform_memset(public_key, 0, 2*NUM_ECC_BYTES);
 			return UECC_FAULT_DETECTED;
 		}
   	}
@@ -189,6 +191,8 @@ int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
 	/* erasing temporary buffer used to store secret: */
 	mbedtls_platform_zeroize(_private, sizeof(_private));
 	if (public_key_dup != public_key || private_key_dup != private_key || secret_dup != secret) {
+	    /* Erase secret in case of FI */
+	    mbedtls_platform_memset(secret, 0, NUM_ECC_BYTES);
 		return UECC_FAULT_DETECTED;
 	}
 

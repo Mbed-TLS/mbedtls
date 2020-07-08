@@ -212,6 +212,7 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     volatile const unsigned char *additional_dup = additional;
     volatile size_t len_dup = len;
+    int reseed_counter_backup = -1;
 
     if( use_nonce == HMAC_NONCE_NO )
         total_entropy_len = ctx->entropy_len;
@@ -269,6 +270,7 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
         goto exit;
 
     /* 3. Reset reseed_counter */
+    reseed_counter_backup = ctx->reseed_counter;
     ctx->reseed_counter = 1;
 
 exit:
@@ -278,6 +280,10 @@ exit:
 
     if( additional_dup != additional || len_dup != len )
     {
+        /* Rollback the reseed_counter in case of FI */
+        if( reseed_counter_backup != -1 )
+            ctx->reseed_counter = reseed_counter_backup;
+
         return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     }
 
@@ -290,6 +296,9 @@ exit:
         return ret;
     }
 
+    /* Rollback the reseed_counter in case of FI */
+    if( reseed_counter_backup != -1 )
+        ctx->reseed_counter = reseed_counter_backup;
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 

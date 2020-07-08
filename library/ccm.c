@@ -101,12 +101,14 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
         return( ret );
     }
 
-    if( keybits_dup != keybits || key_dup != key )
+    if( keybits_dup == keybits && key_dup == key )
     {
-        return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+        return( ret );
     }
 
-    return( ret );
+    // In case of a FI - clear the context
+    mbedtls_cipher_free( &ctx->cipher_ctx );
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 /*
@@ -336,6 +338,9 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         add_dup != add || add_len_dup != add_len || input_dup != input ||
         output_dup != output || tag_dup != tag || tag_len_dup != tag_len)
     {
+
+        // In case of a FI - clear the output
+        mbedtls_platform_memset( output, 0, length );
         return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     }
 

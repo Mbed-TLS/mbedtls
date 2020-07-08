@@ -165,11 +165,13 @@ int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,
 		r = uECC_sign_with_k(private_key, message_hash, hash_size, k, signature);
 		/* don't keep trying if a fault was detected */
 		if (r == UECC_FAULT_DETECTED) {
+		    mbedtls_platform_memset(signature, 0, 2*NUM_ECC_BYTES);
 			return r;
 		}
 		if (r == UECC_SUCCESS) {
 			if (private_key_dup != private_key || message_hash_dup != message_hash ||
 				hash_size_dup != hash_size || signature_dup != signature) {
+			    mbedtls_platform_memset(signature, 0, 2*NUM_ECC_BYTES);
 				return UECC_FAULT_DETECTED;
 			}
 			return UECC_SUCCESS;

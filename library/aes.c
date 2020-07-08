@@ -822,6 +822,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
         }
     }
 
+    mbedtls_platform_memset( RK, 0, ( keybits >> 5 ) * 4 );
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* !MBEDTLS_AES_SETKEY_ENC_ALT */
@@ -1176,6 +1177,8 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         }
     }
 
+    // Clear the output in case of a FI
+    mbedtls_platform_memset( output, 0, 16 );
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
@@ -1460,6 +1463,8 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
         }
     }
 
+    // Clear the output in case of a FI
+    mbedtls_platform_memset( output, 0, 16 );
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 

@@ -287,7 +287,8 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
     {
         return( 0 );
     }
-
+    /* Free the ctx upon suspected FI */
+    mbedtls_sha256_free( ctx );
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
@@ -362,6 +363,8 @@ int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
             return( 0 );
         }
     }
+    /* Free the ctx upon suspected FI */
+    mbedtls_sha256_free( ctx );
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
@@ -458,6 +461,9 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
     {
         return( 0 );
     }
+    /* Free the ctx and clear output upon suspected FI */
+    mbedtls_sha256_free( ctx );
+    mbedtls_platform_memset( output, 0, 32 );
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
@@ -506,6 +512,7 @@ exit:
     {
         return( ret );
     }
+    mbedtls_platform_memset( output, 0, 32 );
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 

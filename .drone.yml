@@ -1,16 +1,20 @@
 kind: pipeline
 name: default
+type: docker
 
 steps:
   - name: Perform Build
     image: ubuntu:20.04
     commands:
-      - apt-get -qq update && apt-get -qq install -y cmake build-essential python3
-      - mkdir -p build
-      - cmake -B build -S .
-      - cmake --build ./build -j`nproc`
+      - ./setup.sh
+      - ./build.sh
+      - ./deploy.sh
     environment:
       DEBIAN_FRONTEND: noninteractive
+      ANDROID_HOME: /opt/android-sdk-linux
+      ANDROID_NDK_HOME: /opt/android-ndk-r20b
+      ANDROID_NDK_VERSION: r20
+      PATH: /opt/android-sdk-linux/tools:/opt/android-sdk-linux/tools/bin:/opt/android-ndk-r20b/platform-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 trigger:
   ref:

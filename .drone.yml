@@ -11,13 +11,15 @@ steps:
       - ./deploy.sh
     environment:
       API: 25
-      TOOLCHAIN: /opt/android-ndk-r20b/android-ndk-r20b/toolchains/llvm/prebuilt/linux-x86_64
+      ANDROID_PLATFORM: 24
+      ANDROID_ABI: arm64-v8a
+      BUILD_TOOLS_VERSION: 28.0.3
+      NDK_VERSION: 20.1.5948944
+      CMAKE_VERSION: 3.10.2.4988404
       TARGET: aarch64-linux-android
       DEBIAN_FRONTEND: noninteractive
       ANDROID_HOME: /opt/android-sdk-linux
-      ANDROID_NDK_HOME: /opt/android-ndk-r20b
       ANDROID_NDK_VERSION: r20
-      PATH: /opt/android-ndk-r20b/android-ndk-r20b/prebuilt/linux-x86_64/bin:/opt/android-sdk-linux/cmake/3.10.2.4988404/bin:/opt/android-sdk-linux/tools:/opt/android-sdk-linux/tools/bin:/opt/android-ndk-r20b/platform-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       NEXUS_PWD:
         from_secret: NEXUS_PWD
 

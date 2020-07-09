@@ -31,7 +31,8 @@
 #include "common.h"
 #include "mbedtls/md.h"
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) && \
+#if defined(MBEDTLS_TEST_HOOKS) &&              \
+    defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) && \
     ( defined(MBEDTLS_SSL_PROTO_TLS1) ||        \
       defined(MBEDTLS_SSL_PROTO_TLS1_1) |       \
       defined(MBEDTLS_SSL_PROTO_TLS1_2) )
@@ -73,6 +74,6 @@ int mbedtls_ssl_cf_hmac(
         const unsigned char *data, size_t data_len_secret,
         size_t min_data_len, size_t max_data_len,
         unsigned char *output );
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC && TLS 1.0-1.2 */
+#endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_SSL_SOME_SUITES_USE_CBC && TLS 1.0-1.2 */
 
 #endif /* MBEDTLS_SSL_INVASIVE_H */

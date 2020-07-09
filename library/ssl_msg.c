@@ -1073,7 +1073,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 /*
  * Compute HMAC of variable-length data with constant flow.
  */
-int mbedtls_ssl_cf_hmac(
+MBEDTLS_STATIC_TESTABLE int mbedtls_ssl_cf_hmac(
         mbedtls_md_context_t *ctx,
         const unsigned char *add_data, size_t add_data_len,
         const unsigned char *data, size_t data_len_secret,

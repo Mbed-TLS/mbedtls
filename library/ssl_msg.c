@@ -609,10 +609,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 
     /* The PRNG is used for dynamic IV generation that's used
      * for CBC transformations in TLS 1.1 and TLS 1.2. */
-#if !( defined(MBEDTLS_CIPHER_MODE_CBC) &&                              \
-       ( defined(MBEDTLS_AES_C)  ||                                     \
-         defined(MBEDTLS_ARIA_C) ||                                     \
-         defined(MBEDTLS_CAMELLIA_C) ) &&                               \
+#if !( defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) && \
        ( defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_SSL_PROTO_TLS1_2) ) )
     ((void) f_rng);
     ((void) p_rng);
@@ -910,8 +907,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     }
     else
 #endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C */
-#if defined(MBEDTLS_CIPHER_MODE_CBC) &&                                    \
-    ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_CAMELLIA_C) || defined(MBEDTLS_ARIA_C) )
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC)
     if( mode == MBEDTLS_MODE_CBC )
     {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -1050,8 +1046,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
     }
     else
-#endif /* MBEDTLS_CIPHER_MODE_CBC &&
-          ( MBEDTLS_AES_C || MBEDTLS_CAMELLIA_C || MBEDTLS_ARIA_C ) */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC) */
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -1239,8 +1234,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
     }
     else
 #endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C */
-#if defined(MBEDTLS_CIPHER_MODE_CBC) &&                                    \
-    ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_CAMELLIA_C) || defined(MBEDTLS_ARIA_C) )
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC)
     if( mode == MBEDTLS_MODE_CBC )
     {
         size_t minlen = 0;
@@ -1493,8 +1487,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         rec->data_len -= padlen;
     }
     else
-#endif /* MBEDTLS_CIPHER_MODE_CBC &&
-          ( MBEDTLS_AES_C || MBEDTLS_CAMELLIA_C || MBEDTLS_ARIA_C ) */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC */
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );

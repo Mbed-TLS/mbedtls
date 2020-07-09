@@ -146,12 +146,16 @@
 #define MBEDTLS_SSL_COMPRESSION_ADD             0
 #endif
 
+#if defined(MBEDTLS_CIPHER_MODE_CBC) &&                               \
+    ( defined(MBEDTLS_AES_C)      ||                                  \
+      defined(MBEDTLS_CAMELLIA_C) ||                                  \
+      defined(MBEDTLS_ARIA_C)     ||                                  \
+      defined(MBEDTLS_DES_C) )
+#define MBEDTLS_SSL_SOME_SUITES_USE_CBC
+#endif
+
 #if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER) ||   \
-    ( defined(MBEDTLS_CIPHER_MODE_CBC) &&                               \
-      ( defined(MBEDTLS_AES_C)      ||                                  \
-        defined(MBEDTLS_CAMELLIA_C) ||                                  \
-        defined(MBEDTLS_ARIA_C)     ||                                  \
-        defined(MBEDTLS_DES_C) ) )
+    defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC)
 #define MBEDTLS_SSL_SOME_MODES_USE_MAC
 #endif
 

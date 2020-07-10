@@ -9,6 +9,8 @@
 
 #include <ssl_invasive.h>
 
+#include <test/constant_flow.h>
+
 typedef struct log_pattern
 {
     const char *pattern;
@@ -4115,10 +4117,13 @@ void ssl_cf_hmac( int hash )
                 data[i] = ( i & 0xff ) ^ rec_num;
 
             /* Get the function's result */
+            TEST_CF_SECRET( &in_len, sizeof( in_len ) );
             TEST_EQUAL( 0, mbedtls_ssl_cf_hmac( &ctx, add_data, sizeof( add_data ),
                                                 data, in_len,
                                                 min_in_len, max_in_len,
                                                 out ) );
+            TEST_CF_PUBLIC( &in_len, sizeof( in_len ) );
+            TEST_CF_PUBLIC( out, out_len );
 
             /* Compute the reference result */
             TEST_EQUAL( 0, mbedtls_md_hmac_update( &ref_ctx, add_data,

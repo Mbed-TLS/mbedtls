@@ -1074,6 +1074,18 @@ component_test_full_cmake_clang () {
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
+component_test_memsan_constant_flow () {
+    msg "build: cmake memsan, full config with constant flow testing"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN
+    scripts/config.py unset MBEDTLS_AESNI_C # memsan doesn't grok asm
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
+    make
+
+    msg "test: main suites (memsan constant flow)"
+    make test
+}
+
 component_test_default_no_deprecated () {
     # Test that removing the deprecated features from the default
     # configuration leaves something consistent.

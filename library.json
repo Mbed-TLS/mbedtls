@@ -1,0 +1,15 @@
+{
+    "name": "mbedtls",
+    "version": "2.23.0",
+    "description": "An open source, portable, easy to use, readable and flexible SSL library",
+    "keywords": "tls,ssl,crypto,cryptography-library",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ARMmbed/mbedtls.git"
+    },
+    "license": "Apache-2.0",
+    "build": {
+        "srcDir": "library",
+        "includeDir": "include"
+    }
+}

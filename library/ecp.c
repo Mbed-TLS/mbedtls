@@ -2999,23 +2999,18 @@ cleanup:
 /*
  * Write a private key.
  */
-int mbedtls_ecp_write_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
+int mbedtls_ecp_write_key( mbedtls_ecp_keypair *key,
                            unsigned char *buf, size_t buflen )
 {
-    int ret = 0;
+    int ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
 
-    ECP_VALIDATE_RET( key  != NULL );
-    ECP_VALIDATE_RET( buf  != NULL );
-
-    if( ( ret = mbedtls_ecp_group_load( &key->grp, grp_id ) ) != 0 )
-        return( ret );
-
-    ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+    ECP_VALIDATE_RET( key != NULL );
+    ECP_VALIDATE_RET( buf != NULL );
 
 #if defined(ECP_MONTGOMERY)
     if( mbedtls_ecp_get_type( &key->grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
     {
-        if( grp_id == MBEDTLS_ECP_DP_CURVE25519 )
+        if( key->grp.id == MBEDTLS_ECP_DP_CURVE25519 )
         {
             if( buflen < ECP_CURVE25519_KEY_SIZE )
                 return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;

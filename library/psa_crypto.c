@@ -1326,8 +1326,8 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
         if( bytes > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
         status = mbedtls_to_psa_error(
-            mbedtls_ecp_write_key(slot->data.ecp->grp.id, slot->data.ecp,
-                                  data, bytes) );
+            mbedtls_ecp_write_key( slot->data.ecp,
+                                   data, bytes ) );
         if( status != PSA_SUCCESS )
             return( status );
         memset( data + bytes, 0, data_size - bytes );

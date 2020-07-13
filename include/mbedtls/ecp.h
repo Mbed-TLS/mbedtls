@@ -1150,7 +1150,6 @@ int mbedtls_ecp_read_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 /**
  * \brief           This function exports an elliptic curve private key.
  *
- * \param grp_id    The ECP group identifier.
  * \param key       The private key.
  * \param buf       The output buffer for containing the binary representation
  *                  of the key. (Big endian integer for Weierstrass curves, byte
@@ -1164,7 +1163,7 @@ int mbedtls_ecp_read_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
  *                  the group is not implemented.
  * \return          Another negative error code on different kinds of failure.
  */
-int mbedtls_ecp_write_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
+int mbedtls_ecp_write_key( mbedtls_ecp_keypair *key,
                            unsigned char *buf, size_t buflen );
 
 /**

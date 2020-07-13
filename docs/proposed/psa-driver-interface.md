@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/07/13 08:07:14 GMT"
+Time-stamp: "2020/07/13 10:03:05 GMT"
 
 ## Introduction
 
@@ -452,7 +452,7 @@ For example, the following snippet creates an AES-GCM key which is only accessib
 ```
 psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
-        PSA_KEY_PERSISTENCE_DEFAULT, PSA_KEY_LOCATION_ACME_SECURE_ELEMENT));
+        PSA_KEY_PERSISTENCE_DEFAULT, PSA_KEY_LOCATION_acme));
 psa_set_key_identifer(&attributes, 42);
 psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
 psa_set_key_size(&attributes, 128);
@@ -462,7 +462,27 @@ psa_key_handle_t handle = 0;
 psa_generate_key(&attributes, &handle);
 ```
 
-TODO: how does the application know which location value to use?
+
+## Using opaque drivers from an application
+
+The  a compile-time constant for each opaque driver indicating its location called `PSA_KEY_LOCATION_`*prefix* where *prefix* is the value of the `"prefix"` property in the driver description. For convenience, Mbed TLS also declares a compile-time constant for the corresponding lifetime with the default persistence called `PSA_KEY_LIFETIME_`*prefix*. Therefore, to declare an opaque key in the location with the prefix `foo` with the default persistence, call `psa_set_key_lifetime` during the key creation as follows:
+```
+psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_foo);
+```
+
+To declare a volatile key:
+```
+psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+        PSA_KEY_LOCATION_foo,
+        PSA_KEY_PERSISTENCE_VOLATILE));
+```
+
+Generally speaking, to declare a key with a specified persistence:
+```
+psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+        PSA_KEY_LOCATION_foo,
+        persistence));
+```
 
 ## Open questions
 

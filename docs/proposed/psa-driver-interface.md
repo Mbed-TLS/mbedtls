@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/07/13 10:03:05 GMT"
+Time-stamp: "2020/07/13 11:19:35 GMT"
 
 ## Introduction
 
@@ -275,7 +275,7 @@ The driver functions for key management differs significantly between [transpare
 
 #### Driver initialization
 
-An opaque driver may declare an `"init"` function in a capability with no algorithm, key type or key size. If so, the driver calls this function once during the initialization of the PSA Crypto subsystem. If the init function of any driver fails, the initialization of the PSA Crypto subsystem fails.
+A driver may declare an `"init"` function in a capability with no algorithm, key type or key size. If so, the driver calls this function once during the initialization of the PSA Crypto subsystem. If the init function of any driver fails, the initialization of the PSA Crypto subsystem fails.
 
 When multiple drivers have an init function, the order in which they are called is unspecified. It is also unspecified whether other drivers' init functions are called if one or more init function fails.
 

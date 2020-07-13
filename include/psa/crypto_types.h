@@ -74,7 +74,7 @@ typedef uint16_t psa_key_type_t;
  * Values defined by this standard will never be in the range 0x80-0xff.
  * Vendors who define additional families must use an encoding in this range.
  */
-typedef uint8_t psa_ecc_curve_t;
+typedef uint8_t psa_ecc_family_t;
 
 /** The type of PSA Diffie-Hellman group family identifiers.
  *
@@ -85,7 +85,7 @@ typedef uint8_t psa_ecc_curve_t;
  * Values defined by this standard will never be in the range 0x80-0xff.
  * Vendors who define additional families must use an encoding in this range.
  */
-typedef uint8_t psa_dh_group_t;
+typedef uint8_t psa_dh_family_t;
 
 /** \brief Encoding of a cryptographic algorithm.
  *

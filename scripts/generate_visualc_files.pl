@@ -5,6 +5,23 @@
 #
 # Must be run from mbedTLS root or scripts directory.
 # Takes no argument.
+#
+# Copyright (C) 2013-2020, Arm Limited, All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 use warnings;
 use strict;
@@ -22,6 +39,8 @@ my $programs_dir = 'programs';
 my $mbedtls_header_dir = 'include/mbedtls';
 my $psa_header_dir = 'include/psa';
 my $source_dir = 'library';
+my $test_source_dir = 'tests/src';
+my $test_header_dir = 'tests/include/test';
 
 my @thirdparty_header_dirs = qw(
     3rdparty/everest/include/everest
@@ -41,8 +60,18 @@ my @include_directories = qw(
     3rdparty/everest/include/everest
     3rdparty/everest/include/everest/vs2010
     3rdparty/everest/include/everest/kremlib
+    tests/include
 );
 my $include_directories = join(';', map {"../../$_"} @include_directories);
+
+# Directories to add to the include path when building the library, but not
+# when building tests or applications.
+my @library_include_directories = qw(
+    library
+);
+my $library_include_directories =
+  join(';', map {"../../$_"} (@library_include_directories,
+                              @include_directories));
 
 my @excluded_files = qw(
     3rdparty/everest/library/Hacl_Curve25519.c
@@ -87,6 +116,8 @@ sub check_dirs {
         && -d $mbedtls_header_dir
         && -d $psa_header_dir
         && -d $source_dir
+        && -d $test_source_dir
+        && -d $test_header_dir
         && -d $programs_dir;
 }
 
@@ -180,7 +211,7 @@ sub gen_main_file {
     my $out = slurp_file( $main_tpl );
     $out =~ s/SOURCE_ENTRIES\r\n/$source_entries/m;
     $out =~ s/HEADER_ENTRIES\r\n/$header_entries/m;
-    $out =~ s/INCLUDE_DIRECTORIES\r\n/$include_directories/g;
+    $out =~ s/INCLUDE_DIRECTORIES\r\n/$library_include_directories/g;
 
     content_to_file( $out, $main_out );
 }
@@ -232,12 +263,14 @@ sub main {
     my @header_dirs = (
                        $mbedtls_header_dir,
                        $psa_header_dir,
+                       $test_header_dir,
                        $source_dir,
                        @thirdparty_header_dirs,
                       );
     my @headers = (map { <$_/*.h> } @header_dirs);
     my @source_dirs = (
                        $source_dir,
+                       $test_source_dir,
                        @thirdparty_source_dirs,
                       );
     my @sources = (map { <$_/*.c> } @source_dirs);

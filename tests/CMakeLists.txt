@@ -17,9 +17,8 @@ if(ENABLE_ZLIB_SUPPORT)
     set(libs ${libs} ${ZLIB_LIBRARIES})
 endif(ENABLE_ZLIB_SUPPORT)
 
-find_package(PythonInterp)
-if(NOT PYTHONINTERP_FOUND)
-    message(FATAL_ERROR "Cannot build test suites without Python 2 or 3")
+if(NOT MBEDTLS_PYTHON_EXECUTABLE)
+    message(FATAL_ERROR "Cannot build test suites without Python 3")
 endif()
 
 # Enable definition of various functions used throughout the testsuite
@@ -43,13 +42,20 @@ function(add_test_suite suite_name)
 
     add_custom_command(
         OUTPUT test_suite_${data_name}.c
-        COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_code.py -f ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function -d ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${data_name}.data -t ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function -p ${CMAKE_CURRENT_SOURCE_DIR}/suites/host_test.function -s ${CMAKE_CURRENT_SOURCE_DIR}/suites --helpers-file ${CMAKE_CURRENT_SOURCE_DIR}/suites/helpers.function -o .
+        COMMAND ${MBEDTLS_PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_code.py -f ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function -d ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${data_name}.data -t ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function -p ${CMAKE_CURRENT_SOURCE_DIR}/suites/host_test.function -s ${CMAKE_CURRENT_SOURCE_DIR}/suites --helpers-file ${CMAKE_CURRENT_SOURCE_DIR}/suites/helpers.function -o .
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_code.py mbedtls ${CMAKE_CURRENT_SOURCE_DIR}/suites/helpers.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/host_test.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${data_name}.data
     )
 
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-    add_executable(test_suite_${data_name} test_suite_${data_name}.c)
+    add_executable(test_suite_${data_name} test_suite_${data_name}.c $<TARGET_OBJECTS:mbedtls_test>)
     target_link_libraries(test_suite_${data_name} ${libs})
+    # Include test-specific header files from ./include and private header
+    # files (used by some invasive tests) from ../library. Public header
+    # files are automatically included because the library targets declare
+    # them as PUBLIC.
+    target_include_directories(test_suite_${data_name}
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../library)
+
     if(${data_name} MATCHES ${SKIP_TEST_SUITES_REGEX})
         message(STATUS "The test suite ${data_name} will not be executed.")
     else()

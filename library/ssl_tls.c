@@ -27,11 +27,7 @@
  *  http://www.ietf.org/rfc/rfc4346.txt
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_SSL_TLS_C)
 
@@ -973,15 +969,28 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
         transform->taglen =
             ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
 
-        /* All modes haves 96-bit IVs;
-         * GCM and CCM has 4 implicit and 8 explicit bytes
-         * ChachaPoly has all 12 bytes implicit
+        /* All modes haves 96-bit IVs, but the length of the static parts vary
+         * with mode and version:
+         * - For GCM and CCM in TLS 1.2, there's a static IV of 4 Bytes
+         *   (to be concatenated with a dynamically chosen IV of 8 Bytes)
+         * - For ChaChaPoly in TLS 1.2, and all modes in TLS 1.3, there's
+         *   a static IV of 12 Bytes (to be XOR'ed with the 8 Byte record
+         *   sequence number).
          */
         transform->ivlen = 12;
-        if( cipher_info->mode == MBEDTLS_MODE_CHACHAPOLY )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+        if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+        {
             transform->fixed_ivlen = 12;
+        }
         else
-            transform->fixed_ivlen = 4;
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+        {
+            if( cipher_info->mode == MBEDTLS_MODE_CHACHAPOLY )
+                transform->fixed_ivlen = 12;
+            else
+                transform->fixed_ivlen = 4;
+        }
 
         /* Minimum length of encrypted record */
         explicit_ivlen = transform->ivlen - transform->fixed_ivlen;
@@ -3673,11 +3682,13 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     /* If the buffers are too small - reallocate */
     {
         int modified = 0;
-        size_t written_in = 0;
-        size_t written_out = 0;
+        size_t written_in = 0, iv_offset_in = 0, len_offset_in = 0;
+        size_t written_out = 0, iv_offset_out = 0, len_offset_out = 0;
         if( ssl->in_buf != NULL )
         {
             written_in = ssl->in_msg - ssl->in_buf;
+            iv_offset_in = ssl->in_iv - ssl->in_buf;
+            len_offset_in = ssl->in_len - ssl->in_buf;
             if( ssl->in_buf_len < MBEDTLS_SSL_IN_BUFFER_LEN )
             {
                 if( resize_buffer( &ssl->in_buf, MBEDTLS_SSL_IN_BUFFER_LEN,
@@ -3696,6 +3707,8 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
         if( ssl->out_buf != NULL )
         {
             written_out = ssl->out_msg - ssl->out_buf;
+            iv_offset_out = ssl->out_iv - ssl->out_buf;
+            len_offset_out = ssl->out_len - ssl->out_buf;
             if( ssl->out_buf_len < MBEDTLS_SSL_OUT_BUFFER_LEN )
             {
                 if( resize_buffer( &ssl->out_buf, MBEDTLS_SSL_OUT_BUFFER_LEN,
@@ -3715,9 +3728,14 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
             /* Update pointers here to avoid doing it twice. */
             mbedtls_ssl_reset_in_out_pointers( ssl );
             /* Fields below might not be properly updated with record
-            * splitting, so they are manually updated here. */
+             * splitting or with CID, so they are manually updated here. */
             ssl->out_msg = ssl->out_buf + written_out;
+            ssl->out_len = ssl->out_buf + len_offset_out;
+            ssl->out_iv = ssl->out_buf + iv_offset_out;
+
             ssl->in_msg = ssl->in_buf + written_in;
+            ssl->in_len = ssl->in_buf + len_offset_in;
+            ssl->in_iv = ssl->in_buf + iv_offset_in;
         }
     }
 #endif
@@ -4652,7 +4670,9 @@ int mbedtls_ssl_conf_alpn_protocols( mbedtls_ssl_config *conf, const char **prot
         cur_len = strlen( *p );
         tot_len += cur_len;
 
-        if( cur_len == 0 || cur_len > 255 || tot_len > 65535 )
+        if( ( cur_len == 0 ) ||
+            ( cur_len > MBEDTLS_SSL_MAX_ALPN_NAME_LEN ) ||
+            ( tot_len > MBEDTLS_SSL_MAX_ALPN_LIST_LEN ) )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
@@ -5947,14 +5967,15 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
     {
         int modified = 0;
         uint32_t buf_len = mbedtls_ssl_get_input_buflen( ssl );
-        size_t written_in = 0;
-        size_t written_out = 0;
+        size_t written_in = 0, iv_offset_in = 0, len_offset_in = 0;
+        size_t written_out = 0, iv_offset_out = 0, len_offset_out = 0;
         if( ssl->in_buf != NULL )
         {
             written_in = ssl->in_msg - ssl->in_buf;
+            iv_offset_in = ssl->in_iv - ssl->in_buf;
+            len_offset_in = ssl->in_len - ssl->in_buf;
             if( ssl->in_buf_len > buf_len && ssl->in_left < buf_len )
             {
-                written_in = ssl->in_msg - ssl->in_buf;
                 if( resize_buffer( &ssl->in_buf, buf_len, &ssl->in_buf_len ) != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_MSG( 1, ( "input buffer resizing failed - out of memory" ) );
@@ -5972,6 +5993,8 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
         if(ssl->out_buf != NULL )
         {
             written_out = ssl->out_msg - ssl->out_buf;
+            iv_offset_out = ssl->out_iv - ssl->out_buf;
+            len_offset_out = ssl->out_len - ssl->out_buf;
             if( ssl->out_buf_len > mbedtls_ssl_get_output_buflen( ssl ) &&
                 ssl->out_left < buf_len )
             {
@@ -5991,9 +6014,14 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
             /* Update pointers here to avoid doing it twice. */
             mbedtls_ssl_reset_in_out_pointers( ssl );
             /* Fields below might not be properly updated with record
-             * splitting, so they are manually updated here. */
+             * splitting or with CID, so they are manually updated here. */
             ssl->out_msg = ssl->out_buf + written_out;
+            ssl->out_len = ssl->out_buf + len_offset_out;
+            ssl->out_iv = ssl->out_buf + iv_offset_out;
+
             ssl->in_msg = ssl->in_buf + written_in;
+            ssl->in_len = ssl->in_buf + len_offset_in;
+            ssl->in_iv = ssl->in_buf + iv_offset_in;
         }
     }
 #endif

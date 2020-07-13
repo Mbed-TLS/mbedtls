@@ -1,8 +1,21 @@
 # test_zeroize.gdb
 #
-# This file is part of Mbed TLS (https://tls.mbed.org)
-#
 # Copyright (c) 2018, Arm Limited, All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 #
 # Purpose
 #
@@ -31,19 +44,13 @@
 # the compiler potentially has a bug.
 #
 # Note: This test requires that the test program is compiled with -g3.
-#
-# WARNING: There does not seem to be a mechanism in GDB scripts to set a
-# breakpoint at the end of a function (probably because there are a lot of
-# complications as function can have multiple exit points, etc). Therefore, it
-# was necessary to hard-code the line number of the breakpoint in the zeroize.c
-# test app. The assumption is that zeroize.c is a simple test app that does not
-# change often (as opposed to the actual library code), so the breakpoint line
-# number does not need to be updated often.
 
 set confirm off
 
 file ./programs/test/zeroize
-break zeroize.c:100
+
+search GDB_BREAK_HERE
+break $_
 
 set args ./programs/test/zeroize.c
 run

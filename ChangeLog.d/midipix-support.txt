@@ -1,2 +1,0 @@
-Features
-   * Add support for midipix, a POSIX layer for Microsoft Windows.

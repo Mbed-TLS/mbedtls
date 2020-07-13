@@ -1,7 +1,7 @@
 /* BEGIN_HEADER */
 #include <stdint.h>
 
-#include "psa_crypto_helpers.h"
+#include "test/psa_crypto_helpers.h"
 #include "psa_crypto_storage.h"
 
 typedef enum
@@ -270,7 +270,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
             else
             {
                 TEST_EQUAL( psa_export_key( handle,
-                                            reexported, sizeof( reexported ),
+                                            NULL, 0,
                                             &reexported_length ),
                             PSA_ERROR_NOT_PERMITTED );
             }

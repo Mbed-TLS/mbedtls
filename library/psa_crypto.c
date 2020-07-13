@@ -1,7 +1,8 @@
 /*
  *  PSA crypto layer on top of Mbed TLS crypto
  */
-/*  Copyright (C) 2018, ARM Limited, All Rights Reserved
+/*
+ *  Copyright (C) 2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -19,11 +20,7 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
@@ -375,12 +372,12 @@ static inline int psa_key_slot_is_external( const psa_key_slot_t *slot )
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(MBEDTLS_ECP_C)
-mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
+mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
                                                size_t byte_length )
 {
     switch( curve )
     {
-        case PSA_ECC_CURVE_SECP_R1:
+        case PSA_ECC_FAMILY_SECP_R1:
             switch( byte_length )
             {
                 case PSA_BITS_TO_BYTES( 192 ):
@@ -398,7 +395,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
             }
             break;
 
-        case PSA_ECC_CURVE_BRAINPOOL_P_R1:
+        case PSA_ECC_FAMILY_BRAINPOOL_P_R1:
             switch( byte_length )
             {
                 case PSA_BITS_TO_BYTES( 256 ):
@@ -412,7 +409,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
             }
             break;
 
-        case PSA_ECC_CURVE_MONTGOMERY:
+        case PSA_ECC_FAMILY_MONTGOMERY:
             switch( byte_length )
             {
                 case PSA_BITS_TO_BYTES( 255 ):
@@ -424,7 +421,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
             }
             break;
 
-        case PSA_ECC_CURVE_SECP_K1:
+        case PSA_ECC_FAMILY_SECP_K1:
             switch( byte_length )
             {
                 case PSA_BITS_TO_BYTES( 192 ):
@@ -585,7 +582,7 @@ exit:
 #endif /* defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C) */
 
 #if defined(MBEDTLS_ECP_C)
-static psa_status_t psa_prepare_import_ec_key( psa_ecc_curve_t curve,
+static psa_status_t psa_prepare_import_ec_key( psa_ecc_family_t curve,
                                                size_t data_length,
                                                int is_public,
                                                mbedtls_ecp_keypair **p_ecp )
@@ -619,7 +616,7 @@ static psa_status_t psa_prepare_import_ec_key( psa_ecc_curve_t curve,
 
 /* Import a public key given as the uncompressed representation defined by SEC1
  * 2.3.3 as the content of an ECPoint. */
-static psa_status_t psa_import_ec_public_key( psa_ecc_curve_t curve,
+static psa_status_t psa_import_ec_public_key( psa_ecc_family_t curve,
                                               const uint8_t *data,
                                               size_t data_length,
                                               mbedtls_ecp_keypair **p_ecp )
@@ -658,7 +655,7 @@ exit:
 
 /* Import a private key given as a byte string which is the private value
  * in big-endian order. */
-static psa_status_t psa_import_ec_private_key( psa_ecc_curve_t curve,
+static psa_status_t psa_import_ec_private_key( psa_ecc_family_t curve,
                                                const uint8_t *data,
                                                size_t data_length,
                                                mbedtls_ecp_keypair **p_ecp )
@@ -764,14 +761,14 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( slot->attr.type ) )
     {
-        status = psa_import_ec_private_key( PSA_KEY_TYPE_GET_CURVE( slot->attr.type ),
+        status = psa_import_ec_private_key( PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type ),
                                             data, data_length,
                                             &slot->data.ecp );
     }
     else if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( slot->attr.type ) )
     {
         status = psa_import_ec_public_key(
-            PSA_KEY_TYPE_GET_CURVE( slot->attr.type ),
+            PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type ),
             data, data_length,
             &slot->data.ecp );
     }
@@ -1495,16 +1492,17 @@ static psa_status_t psa_validate_key_attributes(
     const psa_key_attributes_t *attributes,
     psa_se_drv_table_entry_t **p_drv )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
 
-    if( attributes->core.lifetime != PSA_KEY_LIFETIME_VOLATILE )
-    {
-        status = psa_validate_persistent_key_parameters(
-            attributes->core.lifetime, attributes->core.id,
-            p_drv, 1 );
-        if( status != PSA_SUCCESS )
-            return( status );
-    }
+    status = psa_validate_key_location( psa_get_key_lifetime( attributes ),
+                                        p_drv );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    status = psa_validate_key_persistence( psa_get_key_lifetime( attributes ),
+                                           psa_get_key_id( attributes ) );
+    if( status != PSA_SUCCESS )
+        return( status );
 
     status = psa_validate_key_policy( &attributes->core.policy );
     if( status != PSA_SUCCESS )
@@ -1590,11 +1588,14 @@ static psa_status_t psa_start_key_creation(
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* For a key in a secure element, we need to do three things
-     * when creating or registering a key:
+     * when creating or registering a persistent key:
      * create the key file in internal storage, create the
      * key inside the secure element, and update the driver's
-     * persistent data. Start a transaction that will encompass these
-     * three actions. */
+     * persistent data. This is done by starting a transaction that will
+     * encompass these three actions.
+     * For registering a volatile key, we just need to find an appropriate
+     * slot number inside the SE. Since the key is designated volatile, creating
+     * a transaction is not required. */
     /* The first thing to do is to find a slot number for the new key.
      * We save the slot number in persistent storage as part of the
      * transaction data. It will be needed to recover if the power
@@ -1609,15 +1610,19 @@ static psa_status_t psa_start_key_creation(
                                            &slot->data.se.slot_number );
         if( status != PSA_SUCCESS )
             return( status );
-        psa_crypto_prepare_transaction( PSA_CRYPTO_TRANSACTION_CREATE_KEY );
-        psa_crypto_transaction.key.lifetime = slot->attr.lifetime;
-        psa_crypto_transaction.key.slot = slot->data.se.slot_number;
-        psa_crypto_transaction.key.id = slot->attr.id;
-        status = psa_crypto_save_transaction( );
-        if( status != PSA_SUCCESS )
+
+        if( ! PSA_KEY_LIFETIME_IS_VOLATILE( attributes->core.lifetime ) )
         {
-            (void) psa_crypto_stop_transaction( );
-            return( status );
+            psa_crypto_prepare_transaction( PSA_CRYPTO_TRANSACTION_CREATE_KEY );
+            psa_crypto_transaction.key.lifetime = slot->attr.lifetime;
+            psa_crypto_transaction.key.slot = slot->data.se.slot_number;
+            psa_crypto_transaction.key.id = slot->attr.id;
+            status = psa_crypto_save_transaction( );
+            if( status != PSA_SUCCESS )
+            {
+                (void) psa_crypto_stop_transaction( );
+                return( status );
+            }
         }
     }
 
@@ -1657,7 +1662,7 @@ static psa_status_t psa_finish_key_creation(
     (void) driver;
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    if( slot->attr.lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    if( ! PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) )
     {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
         if( driver != NULL )
@@ -1705,8 +1710,8 @@ static psa_status_t psa_finish_key_creation(
     /* Finish the transaction for a key creation. This does not
      * happen when registering an existing key. Detect this case
      * by checking whether a transaction is in progress (actual
-     * creation of a key in a secure element requires a transaction,
-     * but registration doesn't use one). */
+     * creation of a persistent key in a secure element requires a transaction,
+     * but registration or volatile key creation doesn't use one). */
     if( driver != NULL &&
         psa_crypto_transaction.unknown.type == PSA_CRYPTO_TRANSACTION_CREATE_KEY )
     {
@@ -5263,7 +5268,7 @@ static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
     mbedtls_ecdh_context ecdh;
     psa_status_t status;
     size_t bits = 0;
-    psa_ecc_curve_t curve = mbedtls_ecc_group_to_psa( our_key->grp.id, &bits );
+    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa( our_key->grp.id, &bits );
     mbedtls_ecdh_init( &ecdh );
 
     status = psa_import_ec_public_key( curve,
@@ -5576,7 +5581,7 @@ static psa_status_t psa_generate_key_internal(
 #if defined(MBEDTLS_ECP_C)
     if ( PSA_KEY_TYPE_IS_ECC( type ) && PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
     {
-        psa_ecc_curve_t curve = PSA_KEY_TYPE_GET_CURVE( type );
+        psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( type );
         mbedtls_ecp_group_id grp_id =
             mbedtls_ecc_group_of_psa( curve, PSA_BITS_TO_BYTES( bits ) );
         const mbedtls_ecp_curve_info *curve_info =

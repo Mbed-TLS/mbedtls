@@ -136,54 +136,33 @@ void ecjpake_invalid_param( )
                             mbedtls_ecjpake_check( NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecjpake_write_round_one( NULL,
-                                                             buf, len,
-                                                             &olen,
-                                                             rnd_std_rand,
-                                                             NULL ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecjpake_write_round_one( &ctx,
-                                                             NULL, len,
-                                                             &olen,
-                                                             rnd_std_rand,
-                                                             NULL ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecjpake_write_round_one( &ctx,
-                                                             buf, len,
-                                                             NULL,
-                                                             rnd_std_rand,
-                                                             NULL ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecjpake_write_round_one( &ctx,
-                                                             buf, len,
-                                                             &olen,
-                                                             NULL,
-                                                             NULL ) );
+        mbedtls_ecjpake_write_round_one( NULL, buf, len, &olen,
+                                         mbedtls_test_rnd_std_rand, NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecjpake_write_round_two( NULL,
-                                                             buf, len,
-                                                             &olen,
-                                                             rnd_std_rand,
-                                                             NULL ) );
+        mbedtls_ecjpake_write_round_one( &ctx, NULL, len, &olen,
+                                         mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecjpake_write_round_two( &ctx,
-                                                             NULL, len,
-                                                             &olen,
-                                                             rnd_std_rand,
-                                                             NULL ) );
+        mbedtls_ecjpake_write_round_one( &ctx, buf, len, NULL,
+                                         mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecjpake_write_round_two( &ctx,
-                                                             buf, len,
-                                                             NULL,
-                                                             rnd_std_rand,
-                                                             NULL ) );
+        mbedtls_ecjpake_write_round_one( &ctx, buf, len, &olen, NULL, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecjpake_write_round_two( &ctx,
-                                                             buf, len,
-                                                             &olen,
-                                                             NULL,
-                                                             NULL ) );
+        mbedtls_ecjpake_write_round_two( NULL, buf, len, &olen,
+                                         mbedtls_test_rnd_std_rand, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+        mbedtls_ecjpake_write_round_two( &ctx, NULL, len, &olen,
+                                         mbedtls_test_rnd_std_rand, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+        mbedtls_ecjpake_write_round_two( &ctx, buf, len, NULL,
+                                         mbedtls_test_rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+        mbedtls_ecjpake_write_round_two( &ctx, buf, len, &olen, NULL, NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecjpake_read_round_one( NULL,
@@ -200,29 +179,19 @@ void ecjpake_invalid_param( )
                                                             NULL, len ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecjpake_derive_secret( NULL,
-                                                           buf, len,
-                                                           &olen,
-                                                           rnd_std_rand,
-                                                           NULL ) );
+        mbedtls_ecjpake_derive_secret( NULL, buf, len, &olen,
+                                       mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecjpake_derive_secret( &ctx,
-                                                           NULL, len,
-                                                           &olen,
-                                                           rnd_std_rand,
-                                                           NULL ) );
+        mbedtls_ecjpake_derive_secret( &ctx, NULL, len, &olen,
+                                       mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecjpake_derive_secret( &ctx,
-                                                           buf, len,
-                                                           NULL,
-                                                           rnd_std_rand,
-                                                           NULL ) );
+        mbedtls_ecjpake_derive_secret( &ctx, buf, len, NULL,
+                                       mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecjpake_derive_secret( &ctx,
-                                                           buf, len,
-                                                           &olen,
-                                                           NULL,
-                                                           NULL ) );
+        mbedtls_ecjpake_derive_secret( &ctx, buf, len, &olen, NULL, NULL ) );
 
 exit:
     return;

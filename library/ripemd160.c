@@ -25,11 +25,7 @@
  *  http://ehash.iaik.tugraz.at/wiki/RIPEMD-160
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_RIPEMD160_C)
 

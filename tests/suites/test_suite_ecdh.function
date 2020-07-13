@@ -19,7 +19,7 @@ exit:
 
 static int load_private_key( int grp_id, data_t *private_key,
                              mbedtls_ecp_keypair *ecp,
-                             rnd_pseudo_info *rnd_info )
+                             mbedtls_test_rnd_pseudo_info *rnd_info )
 {
     int ok = 0;
     TEST_ASSERT( mbedtls_ecp_read_key( grp_id, ecp,
@@ -29,7 +29,8 @@ static int load_private_key( int grp_id, data_t *private_key,
     /* Calculate the public key from the private key. */
     TEST_ASSERT( mbedtls_ecp_mul( &ecp->grp, &ecp->Q, &ecp->d,
                                   &ecp->grp.G,
-                                  &rnd_pseudo_rand, rnd_info ) == 0 );
+                                  &mbedtls_test_rnd_pseudo_rand,
+                                  rnd_info ) == 0 );
     ok = 1;
 exit:
     return( ok );
@@ -72,49 +73,54 @@ void ecdh_invalid_param( )
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecdh_gen_public( NULL, &m, &P,
-                                                     rnd_std_rand, NULL ) );
+                                                     mbedtls_test_rnd_std_rand,
+                                                     NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecdh_gen_public( &grp, NULL, &P,
-                                                     rnd_std_rand, NULL ) );
+                                                     mbedtls_test_rnd_std_rand,
+                                                     NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecdh_gen_public( &grp, &m, NULL,
-                                                     rnd_std_rand, NULL ) );
+                                                     mbedtls_test_rnd_std_rand,
+                                                     NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecdh_gen_public( &grp, &m, &P,
                                                      NULL, NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecdh_compute_shared( NULL, &m, &P, &m,
-                                                         rnd_std_rand, NULL ) );
+                                                     mbedtls_test_rnd_std_rand,
+                                                     NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecdh_compute_shared( &grp, NULL, &P, &m,
-                                                         rnd_std_rand, NULL ) );
+                                                     mbedtls_test_rnd_std_rand,
+                                                     NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecdh_compute_shared( &grp, &m, NULL, &m,
-                                                         rnd_std_rand, NULL ) );
+                                                     mbedtls_test_rnd_std_rand,
+                                                     NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecdh_compute_shared( &grp, &m, &P, NULL,
-                                                         rnd_std_rand, NULL ) );
+                                                     mbedtls_test_rnd_std_rand,
+                                                     NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecdh_setup( NULL, valid_grp ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecdh_make_params( NULL, &olen,
-                                                      buf, buflen,
-                                                      rnd_std_rand, NULL ) );
+         mbedtls_ecdh_make_params( NULL, &olen, buf, buflen,
+                                   mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecdh_make_params( &ctx, NULL,
-                                                      buf, buflen,
-                                                      rnd_std_rand, NULL ) );
+         mbedtls_ecdh_make_params( &ctx, NULL, buf, buflen,
+                                   mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecdh_make_params( &ctx, &olen,
-                                                      NULL, buflen,
-                                                      rnd_std_rand, NULL ) );
+         mbedtls_ecdh_make_params( &ctx, &olen, NULL, buflen,
+                                   mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecdh_make_params( &ctx, &olen,
-                                                      buf, buflen,
-                                                      NULL, NULL ) );
+         mbedtls_ecdh_make_params( &ctx, &olen, buf, buflen, NULL, NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecdh_read_params( NULL,
@@ -141,25 +147,19 @@ void ecdh_invalid_param( )
                                                      invalid_side ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecdh_make_public( NULL, &olen,
-                                                      buf, buflen,
-                                                      rnd_std_rand,
-                                                      NULL ) );
+         mbedtls_ecdh_make_public( NULL, &olen, buf, buflen,
+                                   mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecdh_make_public( &ctx, NULL,
-                                                      buf, buflen,
-                                                      rnd_std_rand,
-                                                      NULL ) );
+         mbedtls_ecdh_make_public( &ctx, NULL, buf, buflen,
+                                   mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecdh_make_public( &ctx, &olen,
-                                                      NULL, buflen,
-                                                      rnd_std_rand,
-                                                      NULL ) );
+         mbedtls_ecdh_make_public( &ctx, &olen, NULL, buflen,
+                                   mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecdh_make_public( &ctx, &olen,
-                                                      buf, buflen,
-                                                      NULL,
-                                                      NULL ) );
+         mbedtls_ecdh_make_public( &ctx, &olen, buf, buflen, NULL, NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecdh_read_public( NULL, buf, buflen ) );
@@ -167,17 +167,16 @@ void ecdh_invalid_param( )
                             mbedtls_ecdh_read_public( &ctx, NULL, buflen ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecdh_calc_secret( NULL, &olen, buf, buflen,
-                                                      rnd_std_rand,
-                                                      NULL ) );
+         mbedtls_ecdh_calc_secret( NULL, &olen, buf, buflen,
+                                   mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecdh_calc_secret( &ctx, NULL, buf, buflen,
-                                                      rnd_std_rand,
-                                                      NULL ) );
+         mbedtls_ecdh_calc_secret( &ctx, NULL, buf, buflen,
+                                   mbedtls_test_rnd_std_rand, NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecdh_calc_secret( &ctx, &olen, NULL, buflen,
-                                                      rnd_std_rand,
-                                                      NULL ) );
+         mbedtls_ecdh_calc_secret( &ctx, &olen, NULL, buflen,
+                                   mbedtls_test_rnd_std_rand, NULL ) );
 
 exit:
     return;
@@ -190,22 +189,25 @@ void ecdh_primitive_random( int id )
     mbedtls_ecp_group grp;
     mbedtls_ecp_point qA, qB;
     mbedtls_mpi dA, dB, zA, zB;
-    rnd_pseudo_info rnd_info;
+    mbedtls_test_rnd_pseudo_info rnd_info;
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &qA ); mbedtls_ecp_point_init( &qB );
     mbedtls_mpi_init( &dA ); mbedtls_mpi_init( &dB );
     mbedtls_mpi_init( &zA ); mbedtls_mpi_init( &zB );
-    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+    memset( &rnd_info, 0x00, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecdh_gen_public( &grp, &dA, &qA, &rnd_pseudo_rand, &rnd_info )
-                 == 0 );
-    TEST_ASSERT( mbedtls_ecdh_gen_public( &grp, &dB, &qB, &rnd_pseudo_rand, &rnd_info )
-                 == 0 );
+    TEST_ASSERT( mbedtls_ecdh_gen_public( &grp, &dA, &qA,
+                                          &mbedtls_test_rnd_pseudo_rand,
+                                          &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_ecdh_gen_public( &grp, &dB, &qB,
+                                          &mbedtls_test_rnd_pseudo_rand,
+                                          &rnd_info ) == 0 );
     TEST_ASSERT( mbedtls_ecdh_compute_shared( &grp, &zA, &qB, &dA,
-                                      &rnd_pseudo_rand, &rnd_info ) == 0 );
+                                              &mbedtls_test_rnd_pseudo_rand,
+                                              &rnd_info ) == 0 );
     TEST_ASSERT( mbedtls_ecdh_compute_shared( &grp, &zB, &qA, &dB,
                                       NULL, NULL ) == 0 );
 
@@ -227,7 +229,7 @@ void ecdh_primitive_testvec( int id, data_t * rnd_buf_A, char * xA_str,
     mbedtls_ecp_group grp;
     mbedtls_ecp_point qA, qB;
     mbedtls_mpi dA, dB, zA, zB, check;
-    rnd_buf_info rnd_info_A, rnd_info_B;
+    mbedtls_test_rnd_buf_info rnd_info_A, rnd_info_B;
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &qA ); mbedtls_ecp_point_init( &qB );
@@ -269,7 +271,8 @@ void ecdh_primitive_testvec( int id, data_t * rnd_buf_A, char * xA_str,
     }
 
     TEST_ASSERT( mbedtls_ecdh_gen_public( &grp, &dA, &qA,
-                                  rnd_buffer_rand, &rnd_info_A ) == 0 );
+                                          mbedtls_test_rnd_buffer_rand,
+                                          &rnd_info_A ) == 0 );
     TEST_ASSERT( ! mbedtls_ecp_is_zero( &qA ) );
     TEST_ASSERT( mbedtls_mpi_read_string( &check, 16, xA_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &qA.X, &check ) == 0 );
@@ -277,7 +280,8 @@ void ecdh_primitive_testvec( int id, data_t * rnd_buf_A, char * xA_str,
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &qA.Y, &check ) == 0 );
 
     TEST_ASSERT( mbedtls_ecdh_gen_public( &grp, &dB, &qB,
-                                  rnd_buffer_rand, &rnd_info_B ) == 0 );
+                                          mbedtls_test_rnd_buffer_rand,
+                                          &rnd_info_B ) == 0 );
     TEST_ASSERT( ! mbedtls_ecp_is_zero( &qB ) );
     TEST_ASSERT( mbedtls_mpi_read_string( &check, 16, xB_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &qB.X, &check ) == 0 );
@@ -305,28 +309,31 @@ void ecdh_exchange( int id )
     unsigned char buf[1000];
     const unsigned char *vbuf;
     size_t len;
-    rnd_pseudo_info rnd_info;
+    mbedtls_test_rnd_pseudo_info rnd_info;
     unsigned char res_buf[1000];
     size_t res_len;
 
     mbedtls_ecdh_init( &srv );
     mbedtls_ecdh_init( &cli );
-    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+    memset( &rnd_info, 0x00, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
     TEST_ASSERT( mbedtls_ecdh_setup( &srv, id ) == 0 );
 
     memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
     TEST_ASSERT( mbedtls_ecdh_make_params( &srv, &len, buf, 1000,
-                                           &rnd_pseudo_rand, &rnd_info ) == 0 );
+                                           &mbedtls_test_rnd_pseudo_rand,
+                                           &rnd_info ) == 0 );
     TEST_ASSERT( mbedtls_ecdh_read_params( &cli, &vbuf, buf + len ) == 0 );
 
     memset( buf, 0x00, sizeof( buf ) );
     TEST_ASSERT( mbedtls_ecdh_make_public( &cli, &len, buf, 1000,
-                                           &rnd_pseudo_rand, &rnd_info ) == 0 );
+                                           &mbedtls_test_rnd_pseudo_rand,
+                                           &rnd_info ) == 0 );
     TEST_ASSERT( mbedtls_ecdh_read_public( &srv, buf, len ) == 0 );
 
     TEST_ASSERT( mbedtls_ecdh_calc_secret( &srv, &len, buf, 1000,
-                                           &rnd_pseudo_rand, &rnd_info ) == 0 );
+                                           &mbedtls_test_rnd_pseudo_rand,
+                                           &rnd_info ) == 0 );
     TEST_ASSERT( mbedtls_ecdh_calc_secret( &cli, &res_len, res_buf, 1000,
                                            NULL, NULL ) == 0 );
     TEST_ASSERT( len == res_len );
@@ -339,7 +346,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
-void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
+void ecdh_restart( int id, data_t *dA, data_t *dB, data_t *z,
                    int enable, int max_ops, int min_restart, int max_restart )
 {
     int ret;
@@ -347,11 +354,7 @@ void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
     unsigned char buf[1000];
     const unsigned char *vbuf;
     size_t len;
-    unsigned char z[MBEDTLS_ECP_MAX_BYTES];
-    size_t z_len;
-    unsigned char rnd_buf_A[MBEDTLS_ECP_MAX_BYTES];
-    unsigned char rnd_buf_B[MBEDTLS_ECP_MAX_BYTES];
-    rnd_buf_info rnd_info_A, rnd_info_B;
+    mbedtls_test_rnd_buf_info rnd_info_A, rnd_info_B;
     int cnt_restart;
     mbedtls_ecp_group grp;
 
@@ -359,13 +362,11 @@ void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
     mbedtls_ecdh_init( &srv );
     mbedtls_ecdh_init( &cli );
 
-    z_len = unhexify( z, z_str );
+    rnd_info_A.buf = dA->x;
+    rnd_info_A.length = dA->len;
 
-    rnd_info_A.buf = rnd_buf_A;
-    rnd_info_A.length = unhexify( rnd_buf_A, dA_str );
-
-    rnd_info_B.buf = rnd_buf_B;
-    rnd_info_B.length = unhexify( rnd_buf_B, dB_str );
+    rnd_info_B.buf = dB->x;
+    rnd_info_B.length = dB->len;
 
     /* The ECDH context is not guaranteed ot have an mbedtls_ecp_group structure
      * in every configuration, therefore we load it separately. */
@@ -393,7 +394,8 @@ void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
     cnt_restart = 0;
     do {
         ret = mbedtls_ecdh_make_params( &srv, &len, buf, sizeof( buf ),
-                                        rnd_buffer_rand, &rnd_info_A );
+                                        mbedtls_test_rnd_buffer_rand,
+                                        &rnd_info_A );
     } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restart );
 
     TEST_ASSERT( ret == 0 );
@@ -411,7 +413,8 @@ void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
     cnt_restart = 0;
     do {
         ret = mbedtls_ecdh_make_public( &cli, &len, buf, sizeof( buf ),
-                                        rnd_buffer_rand, &rnd_info_B );
+                                        mbedtls_test_rnd_buffer_rand,
+                                        &rnd_info_B );
     } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restart );
 
     TEST_ASSERT( ret == 0 );
@@ -435,8 +438,8 @@ void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
     TEST_ASSERT( cnt_restart >= min_restart );
     TEST_ASSERT( cnt_restart <= max_restart );
 
-    TEST_ASSERT( len == z_len );
-    TEST_ASSERT( memcmp( buf, z, len ) == 0 );
+    TEST_ASSERT( len == z->len );
+    TEST_ASSERT( memcmp( buf, z->x, len ) == 0 );
 
     /* client computes shared secret */
     memset( buf, 0, sizeof( buf ) );
@@ -452,8 +455,8 @@ void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
     TEST_ASSERT( cnt_restart >= min_restart );
     TEST_ASSERT( cnt_restart <= max_restart );
 
-    TEST_ASSERT( len == z_len );
-    TEST_ASSERT( memcmp( buf, z, len ) == 0 );
+    TEST_ASSERT( len == z->len );
+    TEST_ASSERT( memcmp( buf, z->x, len ) == 0 );
 
 exit:
     mbedtls_ecp_group_free( &grp );
@@ -470,26 +473,29 @@ void ecdh_exchange_legacy( int id )
     const unsigned char *vbuf;
     size_t len;
 
-    rnd_pseudo_info rnd_info;
+    mbedtls_test_rnd_pseudo_info rnd_info;
 
     mbedtls_ecdh_init( &srv );
     mbedtls_ecdh_init( &cli );
-    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+    memset( &rnd_info, 0x00, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
     TEST_ASSERT( mbedtls_ecp_group_load( &srv.grp, id ) == 0 );
 
     memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
     TEST_ASSERT( mbedtls_ecdh_make_params( &srv, &len, buf, 1000,
-                                   &rnd_pseudo_rand, &rnd_info ) == 0 );
+                                           &mbedtls_test_rnd_pseudo_rand,
+                                           &rnd_info ) == 0 );
     TEST_ASSERT( mbedtls_ecdh_read_params( &cli, &vbuf, buf + len ) == 0 );
 
     memset( buf, 0x00, sizeof( buf ) );
     TEST_ASSERT( mbedtls_ecdh_make_public( &cli, &len, buf, 1000,
-                                           &rnd_pseudo_rand, &rnd_info ) == 0 );
+                                           &mbedtls_test_rnd_pseudo_rand,
+                                           &rnd_info ) == 0 );
     TEST_ASSERT( mbedtls_ecdh_read_public( &srv, buf, len ) == 0 );
 
     TEST_ASSERT( mbedtls_ecdh_calc_secret( &srv, &len, buf, 1000,
-                                           &rnd_pseudo_rand, &rnd_info ) == 0 );
+                                           &mbedtls_test_rnd_pseudo_rand,
+                                           &rnd_info ) == 0 );
     TEST_ASSERT( mbedtls_ecdh_calc_secret( &cli, &len, buf, 1000, NULL,
                                            NULL ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &srv.z, &cli.z ) == 0 );
@@ -507,14 +513,14 @@ void ecdh_exchange_calc_secret( int grp_id,
                                 int ours_first,
                                 data_t *expected )
 {
-    rnd_pseudo_info rnd_info;
+    mbedtls_test_rnd_pseudo_info rnd_info;
     mbedtls_ecp_keypair our_key;
     mbedtls_ecp_keypair their_key;
     mbedtls_ecdh_context ecdh;
     unsigned char shared_secret[MBEDTLS_ECP_MAX_BYTES];
     size_t shared_secret_length = 0;
 
-    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+    memset( &rnd_info, 0x00, sizeof( mbedtls_test_rnd_pseudo_info ) );
     mbedtls_ecdh_init( &ecdh );
     mbedtls_ecp_keypair_init( &our_key );
     mbedtls_ecp_keypair_init( &their_key );
@@ -545,7 +551,7 @@ void ecdh_exchange_calc_secret( int grp_id,
                      &ecdh,
                      &shared_secret_length,
                      shared_secret, sizeof( shared_secret ),
-                     &rnd_pseudo_rand, &rnd_info ) == 0 );
+                     &mbedtls_test_rnd_pseudo_rand, &rnd_info ) == 0 );
     TEST_ASSERT( shared_secret_length == expected->len );
     TEST_ASSERT( memcmp( expected->x, shared_secret,
                          shared_secret_length ) == 0 );
@@ -565,12 +571,12 @@ void ecdh_exchange_get_params_fail( int our_grp_id,
                                     int ours_first,
                                     int expected_ret )
 {
-    rnd_pseudo_info rnd_info;
+    mbedtls_test_rnd_pseudo_info rnd_info;
     mbedtls_ecp_keypair our_key;
     mbedtls_ecp_keypair their_key;
     mbedtls_ecdh_context ecdh;
 
-    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+    memset( &rnd_info, 0x00, sizeof( mbedtls_test_rnd_pseudo_info ) );
     mbedtls_ecdh_init( &ecdh );
     mbedtls_ecp_keypair_init( &our_key );
     mbedtls_ecp_keypair_init( &their_key );

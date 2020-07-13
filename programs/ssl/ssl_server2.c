@@ -70,6 +70,8 @@ int main( void )
 #include "mbedtls/psa_util.h"
 #endif
 
+#include <test/helpers.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1202,52 +1204,6 @@ int sni_callback( void *p_info, mbedtls_ssl_context *ssl,
 
 #endif /* SNI_OPTION */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED) || \
-    defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-
-#define HEX2NUM( c )                        \
-    do                                      \
-    {                                       \
-        if( (c) >= '0' && (c) <= '9' )      \
-            (c) -= '0';                     \
-        else if( (c) >= 'a' && (c) <= 'f' ) \
-            (c) -= 'a' - 10;                \
-        else if( (c) >= 'A' && (c) <= 'F' ) \
-            (c) -= 'A' - 10;                \
-        else                                \
-            return( -1 );                   \
-    } while( 0 )
-
-/*
- * Convert a hex string to bytes.
- * Return 0 on success, -1 on error.
- */
-int unhexify( unsigned char *output, const char *input, size_t *olen )
-{
-    unsigned char c;
-    size_t j;
-
-    *olen = strlen( input );
-    if( *olen % 2 != 0 || *olen / 2 > MBEDTLS_PSK_MAX_LEN )
-        return( -1 );
-    *olen /= 2;
-
-    for( j = 0; j < *olen * 2; j += 2 )
-    {
-        c = input[j];
-        HEX2NUM( c );
-        output[ j / 2 ] = c << 4;
-
-        c = input[j + 1];
-        HEX2NUM( c );
-        output[ j / 2 ] |= c;
-    }
-
-    return( 0 );
-}
-
-#endif
-
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 
 typedef struct _psk_entry psk_entry;
@@ -1319,7 +1275,8 @@ psk_entry *psk_parse( char *psk_string )
         GET_ITEM( new->name );
         GET_ITEM( key_hex );
 
-        if( unhexify( new->key, key_hex, &new->key_len ) != 0 )
+        if( mbedtls_test_unhexify( new->key, MBEDTLS_PSK_MAX_LEN,
+                                   key_hex, &new->key_len ) != 0 )
             goto error;
 
         new->next = cur;
@@ -2632,7 +2589,8 @@ int main( int argc, char *argv[] )
     }
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    if( unhexify( cid, opt.cid_val, &cid_len ) != 0 )
+    if( mbedtls_test_unhexify( cid, sizeof( cid ),
+                               opt.cid_val, &cid_len ) != 0 )
     {
         mbedtls_printf( "CID not valid hex\n" );
         goto exit;
@@ -2645,7 +2603,8 @@ int main( int argc, char *argv[] )
     if( opt.cid_val_renego == DFL_CID_VALUE_RENEGO )
         opt.cid_val_renego = opt.cid_val;
 
-    if( unhexify( cid_renego, opt.cid_val_renego, &cid_renego_len ) != 0 )
+    if( mbedtls_test_unhexify( cid_renego, sizeof( cid_renego ),
+                               opt.cid_val_renego, &cid_renego_len ) != 0 )
     {
         mbedtls_printf( "CID not valid hex\n" );
         goto exit;
@@ -2656,7 +2615,8 @@ int main( int argc, char *argv[] )
     /*
      * Unhexify the pre-shared key and parse the list if any given
      */
-    if( unhexify( psk, opt.psk, &psk_len ) != 0 )
+    if( mbedtls_test_unhexify( psk, sizeof( psk ),
+                               opt.psk, &psk_len ) != 0 )
     {
         mbedtls_printf( "pre-shared key not valid hex\n" );
         goto exit;
@@ -3718,7 +3678,7 @@ handshake:
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
                             (unsigned int) -ret );
-            goto exit;
+            goto reset;
         }
 
         mbedtls_printf( "    EAP-TLS key material is:" );
@@ -3739,7 +3699,7 @@ handshake:
          {
              mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
                              (unsigned int) -ret );
-             goto exit;
+             goto reset;
          }
 
         mbedtls_printf( "    EAP-TLS IV is:" );

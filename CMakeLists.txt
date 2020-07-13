@@ -1,3 +1,21 @@
+#
+# CMake build system design considerations:
+#
+# - Include directories:
+#   + Do not define include directories globally using the include_directories
+#     command but rather at the target level using the
+#     target_include_directories command. That way, it is easier to guarantee
+#     that targets are built using the proper list of include directories.
+#   + Use the PUBLIC and PRIVATE keywords to specifiy the scope of include
+#     directories. That way, a target linking to a library (using the
+#     target_link_librairies command) inherits from the library PUBLIC include
+#     directories and not from the PRIVATE ones.
+#   + Note: there is currently one remaining include_directories command in the
+#     CMake files. It is related to ZLIB support which is planned to be removed.
+#     When the support is removed, the associated include_directories command
+#     will be removed as well as this note.
+#
+
 cmake_minimum_required(VERSION 2.6)
 if(TEST_CPP)
     project("mbed TLS" C CXX)
@@ -51,18 +69,29 @@ set(CTR_DRBG_128_BIT_KEY_WARNING "${WARNING_BORDER}"
                          "${WARNING_BORDER}")
 
 # Python 3 is only needed here to check for configuration warnings.
-find_package(PythonInterp 3)
-if(PYTHONINTERP_FOUND)
+if(NOT CMAKE_VERSION VERSION_LESS 3.15.0)
+    set(Python3_FIND_STRATEGY LOCATION)
+    find_package(Python3 COMPONENTS Interpreter)
+    if(Python3_Interpreter_FOUND)
+        set(MBEDTLS_PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+    endif()
+else()
+    find_package(PythonInterp 3)
+    if(PYTHONINTERP_FOUND)
+        set(MBEDTLS_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
+    endif()
+endif()
+if(MBEDTLS_PYTHON_EXECUTABLE)
 
     # If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
-    execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+    execute_process(COMMAND ${MBEDTLS_PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
                         RESULT_VARIABLE result)
     if(${result} EQUAL 0)
         message(WARNING ${CTR_DRBG_128_BIT_KEY_WARNING})
     endif()
 
     # If NULL Entropy is configured, display an appropriate warning
-    execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_TEST_NULL_ENTROPY
+    execute_process(COMMAND ${MBEDTLS_PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_TEST_NULL_ENTROPY
                         RESULT_VARIABLE result)
     if(${result} EQUAL 0)
         message(WARNING ${NULL_ENTROPY_WARNING})
@@ -136,7 +165,10 @@ if(CMAKE_COMPILER_IS_GNU)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wlogical-op")
     endif()
     if (GCC_VERSION VERSION_GREATER 4.8 OR GCC_VERSION VERSION_EQUAL 4.8)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshadow -Wformat-signedness")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshadow")
+    endif()
+    if (GCC_VERSION VERSION_GREATER 5.0)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat-signedness")
     endif()
     set(CMAKE_C_FLAGS_RELEASE     "-O2")
     set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
@@ -194,9 +226,6 @@ else()
     set(LIB_INSTALL_DIR lib)
 endif()
 
-include_directories(include/)
-include_directories(library/)
-
 if(ENABLE_ZLIB_SUPPORT)
     find_package(ZLIB)
 
@@ -208,11 +237,32 @@ endif(ENABLE_ZLIB_SUPPORT)
 add_subdirectory(include)
 
 add_subdirectory(3rdparty)
-include_directories(${thirdparty_inc})
 list(APPEND libs ${thirdparty_lib})
-add_definitions(${thirdparty_def})
 
 add_subdirectory(library)
+
+#
+# The C files in tests/src directory contain test code shared among test suites
+# and programs. This shared test code is compiled and linked to test suites and
+# programs objects as a set of compiled objects. The compiled objects are NOT
+# built into a library that the test suite and program objects would link
+# against as they link against the mbedcrypto, mbedx509 and mbedtls libraries.
+# The reason is that such library is expected to have mutual dependencies with
+# the aforementioned libraries and that there is as of today no portable way of
+# handling such dependencies (only toolchain specific solutions).
+#
+# Thus the below definition of the `mbedtls_test` CMake library of objects
+# target. This library of objects is used by tests and programs CMake files
+# to define the test executables.
+#
+if(ENABLE_TESTING OR ENABLE_PROGRAMS)
+    file(GLOB MBEDTLS_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c)
+    add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
+    target_include_directories(mbedtls_test
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library)
+endif()
 
 if(ENABLE_PROGRAMS)
     add_subdirectory(programs)

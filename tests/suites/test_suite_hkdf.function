@@ -9,37 +9,36 @@
  */
 
 /* BEGIN_CASE */
-void test_hkdf( int md_alg, char *hex_ikm_string, char *hex_salt_string,
-                char *hex_info_string, char *hex_okm_string )
+void test_hkdf( int md_alg, data_t *ikm, data_t *salt, data_t *info,
+                data_t *expected_okm )
 {
     int ret;
-    size_t ikm_len, salt_len, info_len, okm_len;
-    unsigned char ikm[128] = { '\0' };
-    unsigned char salt[128] = { '\0' };
-    unsigned char info[128] = { '\0' };
-    unsigned char expected_okm[128] = { '\0' };
     unsigned char okm[128] = { '\0' };
     /*
-     * okm_hex is the string representation of okm,
-     * so its size is twice the size of okm, and an extra null-termination.
+     * okm_string and expected_okm_string are the ASCII string representations
+     * of km and expected_okm, so their size should be twice the size of
+     * okm and expected_okm, and an extra null-termination.
      */
-    unsigned char okm_hex[257] = { '\0' };
+    unsigned char okm_string[257] = { '\0' };
+    unsigned char expected_okm_string[257] = { '\0' };
 
     const mbedtls_md_info_t *md = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md != NULL );
 
-    ikm_len = unhexify( ikm, hex_ikm_string );
-    salt_len = unhexify( salt, hex_salt_string );
-    info_len = unhexify( info, hex_info_string );
-    okm_len = unhexify( expected_okm, hex_okm_string );
+    TEST_ASSERT( expected_okm->len <= sizeof( okm ) );
 
-    ret = mbedtls_hkdf( md, salt, salt_len, ikm, ikm_len, info, info_len, okm,
-                        okm_len);
+    ret = mbedtls_hkdf( md, salt->x, salt->len, ikm->x, ikm->len,
+                        info->x, info->len, okm, expected_okm->len );
     TEST_ASSERT( ret == 0 );
 
-    // Run hexify on it so that it looks nicer if the assertion fails
-    hexify( okm_hex, okm, okm_len );
-    TEST_ASSERT( !strcmp( (char *)okm_hex, hex_okm_string ) );
+    /*
+     * Run mbedtls_test_hexify on okm and expected_okm so that it looks nicer
+     * if the assertion fails.
+     */
+    mbedtls_test_hexify( okm_string, okm, expected_okm->len );
+    mbedtls_test_hexify( expected_okm_string,
+                         expected_okm->x, expected_okm->len );
+    TEST_ASSERT( !strcmp( (char *)okm_string, (char *)expected_okm_string ) );
 }
 /* END_CASE */
 
@@ -60,9 +59,9 @@ void test_hkdf_extract( int md_alg, char *hex_ikm_string,
     output_prk_len = mbedtls_md_get_size( md );
     output_prk = mbedtls_calloc( 1, output_prk_len );
 
-    ikm = unhexify_alloc( hex_ikm_string, &ikm_len );
-    salt = unhexify_alloc( hex_salt_string, &salt_len );
-    prk = unhexify_alloc( hex_prk_string, &prk_len );
+    ikm = mbedtls_test_unhexify_alloc( hex_ikm_string, &ikm_len );
+    salt = mbedtls_test_unhexify_alloc( hex_salt_string, &salt_len );
+    prk = mbedtls_test_unhexify_alloc( hex_prk_string, &prk_len );
     TEST_ASSERT( prk_len == output_prk_len );
 
     ret = mbedtls_hkdf_extract( md, salt, salt_len, ikm, ikm_len, output_prk );
@@ -95,9 +94,9 @@ void test_hkdf_expand( int md_alg, char *hex_info_string,
 
     output_okm = mbedtls_calloc( OKM_LEN, 1 );
 
-    prk = unhexify_alloc( hex_prk_string, &prk_len );
-    info = unhexify_alloc( hex_info_string, &info_len );
-    okm = unhexify_alloc( hex_okm_string, &okm_len );
+    prk = mbedtls_test_unhexify_alloc( hex_prk_string, &prk_len );
+    info = mbedtls_test_unhexify_alloc( hex_info_string, &info_len );
+    okm = mbedtls_test_unhexify_alloc( hex_okm_string, &okm_len );
     TEST_ASSERT( prk_len == mbedtls_md_get_size( md ) );
     TEST_ASSERT( okm_len < OKM_LEN );
 

@@ -31,11 +31,7 @@
  *  [SIRO] https://cabforum.org/wp-content/uploads/Chunghwatelecom201503cabforumV4.pdf
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 
@@ -888,11 +884,13 @@ static int x509_get_certificate_policies( unsigned char **p,
  */
 static int x509_get_crt_ext( unsigned char **p,
                              const unsigned char *end,
-                             mbedtls_x509_crt *crt )
+                             mbedtls_x509_crt *crt,
+                             mbedtls_x509_crt_ext_cb_t cb,
+                             void *p_ctx )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
-    unsigned char *end_ext_data, *end_ext_octet;
+    unsigned char *end_ext_data, *start_ext_octet, *end_ext_octet;
 
     if( *p == end )
         return( 0 );
@@ -938,6 +936,7 @@ static int x509_get_crt_ext( unsigned char **p,
                 MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
             return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
 
+        start_ext_octet = *p;
         end_ext_octet = *p + len;
 
         if( end_ext_octet != end_ext_data )
@@ -951,6 +950,16 @@ static int x509_get_crt_ext( unsigned char **p,
 
         if( ret != 0 )
         {
+            /* Give the callback (if any) a chance to handle the extension */
+            if( cb != NULL )
+            {
+                ret = cb( p_ctx, crt, &extn_oid, is_critical, *p, end_ext_octet );
+                if( ret != 0 && is_critical )
+                    return( ret );
+                *p = end_ext_octet;
+                continue;
+            }
+
             /* No parser found, skip extension */
             *p = end_ext_octet;
 
@@ -1013,6 +1022,13 @@ static int x509_get_crt_ext( unsigned char **p,
             if( ( ret = x509_get_certificate_policies( p, end_ext_octet,
                     &crt->certificate_policies ) ) != 0 )
             {
+                /* Give the callback (if any) a chance to handle the extension
+                 * if it contains unsupported policies */
+                if( ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE && cb != NULL &&
+                    cb( p_ctx, crt, &extn_oid, is_critical,
+                        start_ext_octet, end_ext_octet ) == 0 )
+                    break;
+
 #if !defined(MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION)
                 if( is_critical )
                     return( ret );
@@ -1057,7 +1073,9 @@ static int x509_get_crt_ext( unsigned char **p,
 static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
                                     const unsigned char *buf,
                                     size_t buflen,
-                                    int make_copy )
+                                    int make_copy,
+                                    mbedtls_x509_crt_ext_cb_t cb,
+                                    void *p_ctx )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
@@ -1256,7 +1274,7 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     if( crt->version == 3 )
 #endif
     {
-        ret = x509_get_crt_ext( &p, end, crt );
+        ret = x509_get_crt_ext( &p, end, crt, cb, p_ctx );
         if( ret != 0 )
         {
             mbedtls_x509_crt_free( crt );
@@ -1319,7 +1337,9 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
 static int mbedtls_x509_crt_parse_der_internal( mbedtls_x509_crt *chain,
                                                 const unsigned char *buf,
                                                 size_t buflen,
-                                                int make_copy )
+                                                int make_copy,
+                                                mbedtls_x509_crt_ext_cb_t cb,
+                                                void *p_ctx )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_x509_crt *crt = chain, *prev = NULL;
@@ -1351,7 +1371,8 @@ static int mbedtls_x509_crt_parse_der_internal( mbedtls_x509_crt *chain,
         crt = crt->next;
     }
 
-    if( ( ret = x509_crt_parse_der_core( crt, buf, buflen, make_copy ) ) != 0 )
+    ret = x509_crt_parse_der_core( crt, buf, buflen, make_copy, cb, p_ctx );
+    if( ret != 0 )
     {
         if( prev )
             prev->next = NULL;
@@ -1369,14 +1390,24 @@ int mbedtls_x509_crt_parse_der_nocopy( mbedtls_x509_crt *chain,
                                        const unsigned char *buf,
                                        size_t buflen )
 {
-    return( mbedtls_x509_crt_parse_der_internal( chain, buf, buflen, 0 ) );
+    return( mbedtls_x509_crt_parse_der_internal( chain, buf, buflen, 0, NULL, NULL ) );
+}
+
+int mbedtls_x509_crt_parse_der_with_ext_cb( mbedtls_x509_crt *chain,
+                                            const unsigned char *buf,
+                                            size_t buflen,
+                                            int make_copy,
+                                            mbedtls_x509_crt_ext_cb_t cb,
+                                            void *p_ctx )
+{
+    return( mbedtls_x509_crt_parse_der_internal( chain, buf, buflen, make_copy, cb, p_ctx ) );
 }
 
 int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain,
                                 const unsigned char *buf,
                                 size_t buflen )
 {
-    return( mbedtls_x509_crt_parse_der_internal( chain, buf, buflen, 1 ) );
+    return( mbedtls_x509_crt_parse_der_internal( chain, buf, buflen, 1, NULL, NULL ) );
 }
 
 /*

@@ -129,6 +129,7 @@
 #define MBEDTLS_ERR_SSL_UNEXPECTED_CID                    -0x6000  /**< An encrypted DTLS-frame with an unexpected CID was received. */
 #define MBEDTLS_ERR_SSL_VERSION_MISMATCH                  -0x5F00  /**< An operation failed due to an unexpected version or configuration. */
 #define MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS                -0x7000  /**< A cryptographic operation is in progress. Try again later. */
+#define MBEDTLS_ERR_SSL_BAD_CONFIG                        -0x5E80  /**< Invalid value in SSL config */
 
 /*
  * Various constants
@@ -138,11 +139,15 @@
 #define MBEDTLS_SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 */
 #define MBEDTLS_SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
 #define MBEDTLS_SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
+#define MBEDTLS_SSL_MINOR_VERSION_4             4   /*!< TLS v1.3 (experimental) */
 
 #define MBEDTLS_SSL_TRANSPORT_STREAM            0   /*!< TLS      */
 #define MBEDTLS_SSL_TRANSPORT_DATAGRAM          1   /*!< DTLS     */
 
 #define MBEDTLS_SSL_MAX_HOST_NAME_LEN           255 /*!< Maximum host name defined in RFC 1035 */
+#define MBEDTLS_SSL_MAX_ALPN_NAME_LEN           255 /*!< Maximum size in bytes of a protocol name in alpn ext., RFC 7301 */
+
+#define MBEDTLS_SSL_MAX_ALPN_LIST_LEN           65535 /*!< Maximum size in bytes of list in alpn ext., RFC 7301          */
 
 /* RFC 6066 section 4, see also mfl_code_to_length in ssl_tls.c
  * NONE must be zero so that memset()ing structure to zero works */
@@ -274,6 +279,10 @@
 
 #if !defined(MBEDTLS_SSL_CID_PADDING_GRANULARITY)
 #define MBEDTLS_SSL_CID_PADDING_GRANULARITY 16
+#endif
+
+#if !defined(MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY)
+#define MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY 1
 #endif
 
 /* \} name SECTION: Module settings */

@@ -58,8 +58,13 @@ int dummy_random( void *p_rng, unsigned char *output, size_t output_len )
     int ret;
     size_t i;
 
+#if defined(MBEDTLS_CTR_DRBG_C)
     //use mbedtls_ctr_drbg_random to find bugs in it
     ret = mbedtls_ctr_drbg_random(p_rng, output, output_len);
+#else
+    (void) p_rng;
+    ret = 0;
+#endif
     for (i=0; i<output_len; i++) {
         //replace result with pseudo random
         output[i] = (unsigned char) rand();

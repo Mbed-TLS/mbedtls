@@ -7,9 +7,13 @@ WARNING_CFLAGS ?= -Wall -Wextra
 WARNING_CXXFLAGS ?= -Wall -Wextra
 LDFLAGS ?=
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
+MBEDTLS_TEST_PATH:=../tests/src
+MBEDTLS_TEST_OBJS:=$(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/*.c))
+
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../tests/include -I../include -D_FILE_OFFSET_BITS=64
 LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I../include -D_FILE_OFFSET_BITS=64
-LOCAL_LDFLAGS = -L../library 			\
+LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
+		-L../library 			\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
@@ -18,10 +22,11 @@ include ../3rdparty/Makefile.inc
 LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 
 ifndef SHARED
-DEP=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
+MBEDLIBS=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
 else
-DEP=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
+MBEDLIBS=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
 endif
+DEP=${MBEDLIBS} ${MBEDTLS_TEST_OBJS}
 
 ifdef DEBUG
 LOCAL_CFLAGS += -g3
@@ -127,11 +132,14 @@ ifndef WINDOWS
 all: fuzz
 endif
 
-fuzz:
+fuzz: ${MBEDTLS_TEST_OBJS}
 	$(MAKE) -C fuzz THIRDPARTY_INCLUDES=$(THIRDPARTY_INCLUDES)
 
-$(DEP):
+$(MBEDLIBS):
 	$(MAKE) -C ../library
+
+${MBEDTLS_TEST_OBJS}:
+	$(MAKE) -C ../tests mbedtls_test
 
 ifdef WINDOWS
 EXTRA_GENERATED += psa\psa_constant_names_generated.c

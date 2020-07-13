@@ -70,12 +70,16 @@ uint8_t receive_byte()
 {
     uint8_t byte;
     uint8_t c[3];
-    char *endptr;
+    size_t len;
+
     c[0] = greentea_getc();
     c[1] = greentea_getc();
     c[2] = '\0';
 
-    TEST_HELPER_ASSERT( unhexify( &byte, c ) != 2 );
+    TEST_HELPER_ASSERT( mbedtls_test_unhexify( &byte, sizeof( byte ),
+                                               c, &len ) == 0 );
+    TEST_HELPER_ASSERT( len != 2 );
+
     return( byte );
 }
 
@@ -90,6 +94,7 @@ uint8_t receive_byte()
 uint32_t receive_uint32()
 {
     uint32_t value;
+    size_t len;
     const uint8_t c_be[8] = { greentea_getc(),
                               greentea_getc(),
                               greentea_getc(),
@@ -101,7 +106,11 @@ uint32_t receive_uint32()
                              };
     const uint8_t c[9] = { c_be[6], c_be[7], c_be[4], c_be[5], c_be[2],
                            c_be[3], c_be[0], c_be[1], '\0' };
-    TEST_HELPER_ASSERT( unhexify( (uint8_t*)&value, c ) != 8 );
+
+    TEST_HELPER_ASSERT( mbedtls_test_unhexify( (uint8_t*)&value, sizeof( value ),
+                                               c, &len ) == 0 );
+    TEST_HELPER_ASSERT( len != 8 );
+
     return( value );
 }
 

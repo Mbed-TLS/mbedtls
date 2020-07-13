@@ -782,6 +782,28 @@
 #define MBEDTLS_ECP_NIST_OPTIM
 
 /**
+ * \def MBEDTLS_ECP_NO_INTERNAL_RNG
+ *
+ * When this option is disabled, mbedtls_ecp_mul() will make use of an
+ * internal RNG when called with a NULL \c f_rng argument, in order to protect
+ * against some side-channel attacks.
+ *
+ * This protection introduces a dependency of the ECP module on one of the
+ * DRBG modules. For very constrained implementations that don't require this
+ * protection (for example, because you're only doing signature verification,
+ * so not manipulating any secret, or because local/physical side-channel
+ * attacks are outside your threat model), it might be desirable to get rid of
+ * that dependency.
+ *
+ * \warning Enabling this option makes some uses of ECP vulnerable to some
+ * side-channel attacks. Only enable it if you know that's not a problem for
+ * your use case.
+ *
+ * Uncomment this macro to disable some counter-measures in ECP.
+ */
+//#define MBEDTLS_ECP_NO_INTERNAL_RNG
+
+/**
  * \def MBEDTLS_ECP_RESTARTABLE
  *
  * Enable "non-blocking" ECC operations that can return early and be resumed.
@@ -1707,6 +1729,25 @@
 #define MBEDTLS_SSL_PROTO_TLS1_2
 
 /**
+ * \def MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+ *
+ * This macro is used to selectively enable experimental parts
+ * of the code that contribute to the ongoing development of
+ * the prototype TLS 1.3 and DTLS 1.3 implementation, and provide
+ * no other purpose.
+ *
+ * \warning TLS 1.3 and DTLS 1.3 aren't yet supported in Mbed TLS,
+ *          and no feature exposed through this macro is part of the
+ *          public API. In particular, features under the control
+ *          of this macro are experimental and don't come with any
+ *          stability guarantees.
+ *
+ * Uncomment this macro to enable experimental and partial
+ * functionality specific to TLS 1.3.
+ */
+//#define MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+
+/**
  * \def MBEDTLS_SSL_PROTO_DTLS
  *
  * Enable support for DTLS (all available versions).
@@ -1864,6 +1905,26 @@
  * Enable modifying the maximum I/O buffer size.
  */
 //#define MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+
+/**
+ * \def MBEDTLS_TEST_HOOKS
+ *
+ * Enable features for invasive testing such as introspection functions and
+ * hooks for fault injection. This enables additional unit tests.
+ *
+ * Merely enabling this feature should not change the behavior of the product.
+ * It only adds new code, and new branching points where the default behavior
+ * is the same as when this feature is disabled.
+ * However, this feature increases the attack surface: there is an added
+ * risk of vulnerabilities, and more gadgets that can make exploits easier.
+ * Therefore this feature must never be enabled in production.
+ *
+ * See `docs/architecture/testing/mbed-crypto-invasive-testing.md` for more
+ * information.
+ *
+ * Uncomment to enable invasive tests.
+ */
+//#define MBEDTLS_TEST_HOOKS
 
 /**
  * \def MBEDTLS_THREADING_ALT
@@ -3534,6 +3595,22 @@
  *
  */
 //#define MBEDTLS_SSL_CID_PADDING_GRANULARITY 16
+
+/** \def MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY
+ *
+ * This option controls the use of record plaintext padding
+ * in TLS 1.3.
+ *
+ * The padding will always be chosen so that the length of the
+ * padded plaintext is a multiple of the value of this option.
+ *
+ * Note: A value of \c 1 means that no padding will be used
+ *       for outgoing records.
+ *
+ * Note: On systems lacking division instructions,
+ *       a power of two should be preferred.
+ */
+//#define MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY 1
 
 /** \def MBEDTLS_SSL_OUT_CONTENT_LEN
  *

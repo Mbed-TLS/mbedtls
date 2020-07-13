@@ -1,3 +1,0 @@
-Changes
-   * Fix mbedtls_x509_dn_gets to escape non-ASCII characters as "?". 
-     Contributed by Koh M. Nakagawa in #3326.

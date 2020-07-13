@@ -25,11 +25,7 @@
  *  programming_guide.pdf
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_PADLOCK_C)
 
@@ -58,10 +54,10 @@ int mbedtls_padlock_has_support( int feature )
              "cpuid                     \n\t"
              "cmpl  $0xC0000001, %%eax  \n\t"
              "movl  $0, %%edx           \n\t"
-             "jb    unsupported         \n\t"
+             "jb    1f                  \n\t"
              "movl  $0xC0000001, %%eax  \n\t"
              "cpuid                     \n\t"
-             "unsupported:              \n\t"
+             "1:                        \n\t"
              "movl  %%edx, %1           \n\t"
              "movl  %2, %%ebx           \n\t"
              : "=m" (ebx), "=m" (edx)

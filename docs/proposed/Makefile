@@ -3,6 +3,7 @@ PANDOC = pandoc
 default: all
 
 all_markdown = \
+	       psa-driver-interface.md \
 	       # This line is intentionally left blank
 
 html: $(all_markdown:.md=.html)

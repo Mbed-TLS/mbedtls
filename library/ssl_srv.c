@@ -3269,19 +3269,13 @@ static int ssl_resume_server_key_exchange( mbedtls_ssl_context *ssl,
                            - sig_start );
     int ret = ssl->conf->f_async_resume( ssl,
                                          sig_start, signature_len, sig_max_len );
-    volatile size_t *signature_len_dup = signature_len;
     if( ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
     {
         ssl->handshake->async_in_progress = 0;
         mbedtls_ssl_set_async_operation_data( ssl, NULL );
     }
     MBEDTLS_SSL_DEBUG_RET( 2, "ssl_resume_server_key_exchange", ret );
-    /* Secure against buffer substitution */
-    if( signature_len_dup == signature_len )
-    {
-        return( ret );
-    }
-    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    return( ret );
 }
 #endif /* defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) &&
           defined(MBEDTLS_SSL_ASYNC_PRIVATE) */
@@ -3292,7 +3286,6 @@ static int ssl_resume_server_key_exchange( mbedtls_ssl_context *ssl,
 static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
                                             size_t *signature_len )
 {
-    volatile size_t *signature_len_dup = signature_len;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
@@ -3679,12 +3672,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
         }
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
-
-    if( signature_len_dup == signature_len )
-    {
-        return( 0 );
-    }
-    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    return( 0 );
 }
 
 /* Prepare the ServerKeyExchange message and send it. For ciphersuites
@@ -3832,8 +3820,6 @@ static int ssl_parse_client_dh_public( mbedtls_ssl_context *ssl, unsigned char *
                                        const unsigned char *end )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-    unsigned char ** volatile p_dup = p;
-    volatile const unsigned char *end_dup = end;
     size_t n;
 
     /*
@@ -3864,12 +3850,7 @@ static int ssl_parse_client_dh_public( mbedtls_ssl_context *ssl, unsigned char *
 
     MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: GY", &ssl->handshake->dhm_ctx.GY );
 
-    /* Secure against buffer substitution */
-    if( p_dup == p && end_dup == end )
-    {
-        return( ret );
-    }
-    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    return( ret );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
@@ -4236,8 +4217,6 @@ static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
     unsigned char *p, *end;
-    volatile unsigned char *buf_dup = buf;
-    volatile size_t buflen_dup = buflen;
 
     p = buf + mbedtls_ssl_hs_hdr_len( ssl );
     end = buf + buflen;
@@ -4432,11 +4411,7 @@ static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
-    if( buf_dup == buf && buflen_dup == buflen )
-    {
-        return( ret );
-    }
-    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    return( ret );
 }
 
 /* Update the handshake state */

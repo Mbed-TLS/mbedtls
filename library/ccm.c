@@ -187,7 +187,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     size_t olen;
     unsigned char b[16];
     unsigned char y[16];
-    unsigned char ctr[16];
+    unsigned char ctr[16], ctr_dup[16];
     const unsigned char *src;
     unsigned char *dst;
     volatile unsigned int flow_ctrl_local = 0;
@@ -305,6 +305,11 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     mbedtls_platform_memset( ctr + 1 + iv_len, 0, q );
     ctr[15] = 1;
 
+    ctr_dup[0] = q - 1;
+    mbedtls_platform_memcpy( ctr_dup + 1, iv, iv_len );
+    mbedtls_platform_memset( ctr_dup + 1 + iv_len, 0, q );
+    ctr_dup[15] = 1;
+
     /*
      * Authenticate and {en,de}crypt the message.
      *
@@ -355,6 +360,12 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         for( i = 0; i < q; i++ )
             if( ++ctr[15-i] != 0 )
                 break;
+        for( i = 0; i < q; i++ )
+            if( ++ctr_dup[15-i] != 0 )
+                break;
+
+        if( mbedtls_platform_memcmp( ctr_dup, ctr, 16 ) != 0 )
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 
     if( len_left > 0 )
@@ -369,6 +380,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     {
         flow_ctrl_local++;
         ctr[15-i] = 0;
+        ctr_dup[15-i] = 0;
     }
     CHECK_FLOW_CTRL( q, fc6 );
 
@@ -376,10 +388,11 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     CHECK_FLOW_CTRL( 16, fc7 );
     mbedtls_platform_memcpy( tag, y, tag_len );
 
+    if( mbedtls_platform_memcmp( ctr_dup, ctr, 16 ) != 0 )
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+
     if( ( fc0 | fc1 | fc2 | fc3 | fc4 | fc5 | fc6 | fc7 ) == 0 )
-    {
         return( ret );
-    }
     // In case of a FI - clear the output
     mbedtls_platform_memset( output, 0, length );
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );

@@ -1071,7 +1071,52 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
       defined(MBEDTLS_SSL_PROTO_TLS1_1) ||      \
       defined(MBEDTLS_SSL_PROTO_TLS1_2) )
 /*
+ * Constant-flow conditional memcpy:
+ *  - if c1 == c2, equivalent to memcpy(dst, src, len),
+ *  - otherwise, a no-op,
+ * but with execution flow independent of the values of c1 and c2.
+ *
+ * Use only bit operations to avoid branches that could be used by some
+ * compilers on some platforms to translate comparison operators.
+ */
+static void mbedtls_ssl_cf_memcpy_if_eq(unsigned char *dst,
+                                        const unsigned char *src,
+                                        size_t len,
+                                        size_t c1, size_t c2 )
+{
+    /* diff = 0 if c1 == c2, non-zero otherwise */
+    const size_t diff = c1 ^ c2;
+
+    /* MSVC has a warning about unary minus on unsigned integer types,
+     * but this is well-defined and precisely what we want to do here. */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
+
+    /* diff_msb's most significant bit is bit equal to c1 != c2 */
+    const size_t diff_msb = ( diff | -diff );
+
+    /* diff1 = c1 != c2 */
+    const size_t diff1 = diff_msb >> ( sizeof( diff_msb ) * 8 - 1 );
+
+    /* mask = c1 != c2 ? 0xff : 0x00 */
+    unsigned char mask = (unsigned char) -diff1;
+
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+
+    /* dst[i] = c1 != c2 ? dst[i] : src[i] */
+    for( size_t i = 0; i < len; i++ )
+        dst[i] = ( dst[i] & mask ) | ( src[i] & ~mask );
+}
+
+/*
  * Compute HMAC of variable-length data with constant flow.
+ *
+ * Only works with MD-5, SHA-1, SHA-256 and SHA-384.
+ * (Otherwise, computation of block_size needs to be adapted.)
  */
 MBEDTLS_STATIC_TESTABLE int mbedtls_ssl_cf_hmac(
         mbedtls_md_context_t *ctx,
@@ -1080,85 +1125,61 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ssl_cf_hmac(
         size_t min_data_len, size_t max_data_len,
         unsigned char *output )
 {
-    /* WORK IN PROGRESS - THIS IS ONLY PSEUDO-CONTANT-TIME */
-
     /*
-     * Process MAC and always update for padlen afterwards to make
-     * total time independent of padlen.
+     * This function breaks the HMAC abstraction and uses the md_clone()
+     * extension to the MD API in order to get constant-flow behaviour.
      *
-     * Known timing attacks:
-     *  - Lucky Thirteen (http://www.isg.rhul.ac.uk/tls/TLStiming.pdf)
+     * HMAC(msg) is defined as HASH(okey + HASH(ikey + msg)) where + means
+     * concatenation, and okey/ikey is the XOR of the key with some fix bit
+     * patterns (see RFC 2104, sec. 2), which are stored in ctx->hmac_ctx.
      *
-     * To compensate for different timings for the MAC calculation
-     * depending on how much padding was removed (which is determined
-     * by padlen), process extra_run more blocks through the hash
-     * function.
+     * We'll first compute inner_hash = HASH(ikey + msg) by hashing up to
+     * minlen, then cloning the context, and for each byte up to maxlen
+     * finishing up the hash computation, keeping only the correct result.
      *
-     * The formula in the paper is
-     *   extra_run = ceil( (L1-55) / 64 ) - ceil( (L2-55) / 64 )
-     * where L1 is the size of the header plus the decrypted message
-     * plus CBC padding and L2 is the size of the header plus the
-     * decrypted message. This is for an underlying hash function
-     * with 64-byte blocks.
-     * We use ( (Lx+8) / 64 ) to handle 'negative Lx' values
-     * correctly. We round down instead of up, so -56 is the correct
-     * value for our calculations instead of -55.
-     *
-     * Repeat the formula rather than defining a block_size variable.
-     * This avoids requiring division by a variable at runtime
-     * (which would be marginally less efficient and would require
-     * linking an extra division function in some builds).
+     * Then we only need to compute HASH(okey + inner_hash) and we're done.
      */
-    size_t j, extra_run = 0;
-    /* This size is enough to server either as input to
-     * md_process() or as output to md_finish() */
-    unsigned char tmp[MBEDTLS_MD_MAX_BLOCK_SIZE];
+    const mbedtls_md_type_t md_alg = mbedtls_md_get_type( ctx->md_info );
+    const size_t block_size = md_alg == MBEDTLS_MD_SHA384 ? 128 : 64;
+    const unsigned char * const ikey = (unsigned char *) ctx->hmac_ctx;
+    const unsigned char * const okey = ikey + block_size;
+    const size_t hash_size = mbedtls_md_get_size( ctx->md_info );
 
-    memset( tmp, 0, sizeof( tmp ) );
+    unsigned char aux_out[MBEDTLS_MD_MAX_SIZE];
+    mbedtls_md_context_t aux;
+    size_t offset;
 
-    switch( mbedtls_md_get_type( ctx->md_info ) )
+    mbedtls_md_init( &aux );
+    mbedtls_md_setup( &aux, ctx->md_info, 0 );
+
+    /* After hmac_start() of hmac_reset(), ikey has already been hashed,
+     * so we can start directly with the message */
+    mbedtls_md_update( ctx, add_data, add_data_len );
+    mbedtls_md_update( ctx, data, min_data_len );
+
+    /* For each possible length, compute the hash up to that point */
+    for( offset = min_data_len; offset <= max_data_len; offset++ )
     {
-#if defined(MBEDTLS_MD5_C) || defined(MBEDTLS_SHA1_C) || \
-defined(MBEDTLS_SHA256_C)
-        case MBEDTLS_MD_MD5:
-        case MBEDTLS_MD_SHA1:
-        case MBEDTLS_MD_SHA256:
-            /* 8 bytes of message size, 64-byte compression blocks */
-            extra_run = ( add_data_len + max_data_len       + 8 ) / 64 -
-                        ( add_data_len + data_len_secret    + 8 ) / 64;
-            break;
-#endif
-#if defined(MBEDTLS_SHA512_C)
-        case MBEDTLS_MD_SHA384:
-            /* 16 bytes of message size, 128-byte compression blocks */
-            extra_run = ( add_data_len + max_data_len       + 16 ) / 128 -
-                        ( add_data_len + data_len_secret    + 16 ) / 128;
-            break;
-#endif
-        default:
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        mbedtls_md_clone( &aux, ctx );
+        mbedtls_md_finish( &aux, aux_out );
+        /* Keep only the correct inner_hash in the output buffer */
+        mbedtls_ssl_cf_memcpy_if_eq( output, aux_out, hash_size,
+                                     offset, data_len_secret );
+
+        if( offset < max_data_len )
+            mbedtls_md_update( ctx, data + offset, 1 );
     }
 
-    mbedtls_md_hmac_update( ctx, add_data, add_data_len );
-    mbedtls_md_hmac_update( ctx, data, data_len_secret );
-    /* Make sure we access everything even when padlen > 0. This
-     * makes the synchronisation requirements for just-in-time
-     * Prime+Probe attacks much tighter and hopefully impractical. */
-    ssl_read_memory( data + min_data_len, max_data_len - min_data_len );
-    mbedtls_md_hmac_finish( ctx, output );
-
-    /* Dummy calls to compression function.
-     * Call mbedtls_md_process at least once due to cache attacks
-     * that observe whether md_process() was called of not.
-     * Respect the usual start-(process|update)-finish sequence for
-     * the sake of hardware accelerators that might require it. */
+    /* Now compute HASH(okey + inner_hash) */
     mbedtls_md_starts( ctx );
-    for( j = 0; j < extra_run + 1; j++ )
-        mbedtls_md_process( ctx, tmp );
-    mbedtls_md_finish( ctx, tmp );
+    mbedtls_md_update( ctx, okey, block_size );
+    mbedtls_md_update( ctx, output, hash_size );
+    mbedtls_md_finish( ctx, output );
 
+    /* Done, get ready for next time */
     mbedtls_md_hmac_reset( ctx );
 
+    mbedtls_md_free( &aux );
     return( 0 );
 }
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC && TLS 1.0-1.2 */

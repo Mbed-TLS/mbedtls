@@ -158,12 +158,12 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
  * given flag if the flow is as expected. In other case, return
  * MBEDTLS_ERR_PLATFORM_FAULT_DETECTED.
  */
-#define CHECK_FLOW_CTRL( len, flow_flag )                               \
+#define CHECK_FLOW_CTRL( len, flow_flag, flow_ctrl )                    \
     do                                                                  \
     {                                                                   \
-        if( flow_ctrl_local == len )                                    \
+        if( flow_ctrl == len )                                          \
         {                                                               \
-            flow_ctrl_local = 0;                                        \
+            flow_ctrl = 0;                                              \
             flow_flag = 0;                                              \
         }                                                               \
         else                                                            \
@@ -172,7 +172,12 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
 
 #define FLAG_ERROR 0x75555555
 /*
- * Authenticated encryption or decryption
+ * Authenticated encryption or decryption.
+ * This function uses multiple flow control flags (fc0 - fc7) to verify the
+ * flow of the function. Its behavior branches based on input data many times,
+ * and using only one flow counter would result in very complicated calculations
+ * of the desired flow counter at the end of the function, which would
+ * just repeat the flow of the function.
  */
 static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
                            const unsigned char *iv, size_t iv_len,
@@ -242,7 +247,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     /* Start CBC-MAC with first block */
     memset( y, 0, 16 );
     UPDATE_CBC_MAC;
-    CHECK_FLOW_CTRL( 16, fc0 );
+    CHECK_FLOW_CTRL( 16, fc0, flow_ctrl_local );
     /*
      * If there is additional data, update CBC-MAC with
      * add_len, add, 0 (padding to a block boundary)
@@ -263,7 +268,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         src += use_len;
 
         UPDATE_CBC_MAC;
-        CHECK_FLOW_CTRL( 16, fc1 );
+        CHECK_FLOW_CTRL( 16, fc1, flow_ctrl_local );
         if( len_left <= 0 )
         {
             fc2 = 0;
@@ -275,7 +280,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
             mbedtls_platform_memset( b, 0, 16 );
             mbedtls_platform_memcpy( b, src, use_len );
             UPDATE_CBC_MAC;
-            CHECK_FLOW_CTRL( 16, fc2 );
+            CHECK_FLOW_CTRL( 16, fc2, flow_ctrl_local );
 
             len_left -= use_len;
             src += use_len;
@@ -334,19 +339,19 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
             mbedtls_platform_memset( b, 0, 16 );
             mbedtls_platform_memcpy( b, src, use_len );
             UPDATE_CBC_MAC;
-            CHECK_FLOW_CTRL( 16, fc3 );
+            CHECK_FLOW_CTRL( 16, fc3, flow_ctrl_local );
             fc5 = 0;
         }
 
         CTR_CRYPT( dst, src, use_len );
-        CHECK_FLOW_CTRL( use_len, fc4 );
+        CHECK_FLOW_CTRL( use_len, fc4, flow_ctrl_local );
 
         if( mode == CCM_DECRYPT )
         {
             mbedtls_platform_memset( b, 0, 16 );
             mbedtls_platform_memcpy( b, dst, use_len );
             UPDATE_CBC_MAC;
-            CHECK_FLOW_CTRL( 16, fc5 );
+            CHECK_FLOW_CTRL( 16, fc5, flow_ctrl_local );
             fc3 = 0;
         }
 
@@ -381,7 +386,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     mbedtls_platform_memset( &ctr_dup[15 - q + 1], 0, q );
 
     CTR_CRYPT( y, y, 16 );
-    CHECK_FLOW_CTRL( 16, fc7 );
+    CHECK_FLOW_CTRL( 16, fc7, flow_ctrl_local );
     mbedtls_platform_memcpy( tag, y, tag_len );
 
     if( mbedtls_platform_memcmp( ctr_dup, ctr, sizeof( ctr ) ) != 0 )

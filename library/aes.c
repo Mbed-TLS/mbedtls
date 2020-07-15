@@ -725,6 +725,8 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
         return( mbedtls_aesni_setkey_enc( (unsigned char *) ctx->rk, key, keybits ) );
 #endif
 
+    /* Three least significant bits are truncated from keybits, which is
+     * expected to be a multiple of 8. */
     mbedtls_platform_memset( RK, 0, keybits >> 3 );
     offset = mbedtls_platform_random_in_range( keybits >> 5 );
 

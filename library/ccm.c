@@ -364,7 +364,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
             if( ++ctr_dup[15-i] != 0 )
                 break;
 
-        if( mbedtls_platform_memcmp( ctr_dup, ctr, 16 ) != 0 )
+        if( mbedtls_platform_memcmp( ctr_dup, ctr, sizeof( ctr ) ) != 0 )
             return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 
@@ -375,20 +375,16 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     /*
      * Authentication: reset counter and crypt/mask internal tag
      */
-    flow_ctrl_local = 0;
-    for( i = 0; i < q; i++ )
-    {
-        flow_ctrl_local++;
-        ctr[15-i] = 0;
-        ctr_dup[15-i] = 0;
-    }
-    CHECK_FLOW_CTRL( q, fc6 );
+
+    mbedtls_platform_memset( &ctr[15 - q + 1], 0, q );
+    fc6 = 0;
+    mbedtls_platform_memset( &ctr_dup[15 - q + 1], 0, q );
 
     CTR_CRYPT( y, y, 16 );
     CHECK_FLOW_CTRL( 16, fc7 );
     mbedtls_platform_memcpy( tag, y, tag_len );
 
-    if( mbedtls_platform_memcmp( ctr_dup, ctr, 16 ) != 0 )
+    if( mbedtls_platform_memcmp( ctr_dup, ctr, sizeof( ctr ) ) != 0 )
         return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 
     if( ( fc0 | fc1 | fc2 | fc3 | fc4 | fc5 | fc6 | fc7 ) == 0 )

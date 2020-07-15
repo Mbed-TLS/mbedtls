@@ -738,8 +738,9 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
  *   `PSA_ECC_FAMILY_CURVEXXX`), and in big-endian order for Weierstrass
  *   curves (curve types `PSA_ECC_FAMILY_SECTXXX`, `PSA_ECC_FAMILY_SECPXXX`
  *   and `PSA_ECC_FAMILY_BRAINPOOL_PXXX`).
- *   This is the content of the `privateKey` field of the `ECPrivateKey`
- *   format defined by RFC 5915.
+ *   For Weierstrass curves, this is the content of the `privateKey` field of
+ *   the `ECPrivateKey` format defined by RFC 5915.  For Montgomery curves,
+ *   the format is defined by RFC 7748, and output is masked according to §5.
  * - For Diffie-Hellman key exchange key pairs (key types for which
  *   #PSA_KEY_TYPE_IS_DH_KEY_PAIR is true), the
  *   format is the representation of the private key `x` as a big-endian byte

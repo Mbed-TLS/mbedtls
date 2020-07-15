@@ -667,16 +667,12 @@ static psa_status_t psa_import_ec_private_key( psa_ecc_family_t curve,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    /* Load the secret value. */
+    /* Load and validate the secret key */
     status = mbedtls_to_psa_error(
-        mbedtls_mpi_read_binary( &ecp->d, data, data_length ) );
+        mbedtls_ecp_read_key( ecp->grp.id, ecp, data, data_length ) );
     if( status != PSA_SUCCESS )
         goto exit;
-    /* Validate the private key. */
-    status = mbedtls_to_psa_error(
-        mbedtls_ecp_check_privkey( &ecp->grp, &ecp->d ) );
-    if( status != PSA_SUCCESS )
-        goto exit;
+
     /* Calculate the public key from the private key. */
     status = mbedtls_to_psa_error(
         mbedtls_ecp_mul( &ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G,
@@ -1327,7 +1323,8 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
         if( bytes > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
         status = mbedtls_to_psa_error(
-            mbedtls_mpi_write_binary( &slot->data.ecp->d, data, bytes ) );
+            mbedtls_ecp_write_key( slot->data.ecp,
+                                   data, bytes ) );
         if( status != PSA_SUCCESS )
             return( status );
         memset( data + bytes, 0, data_size - bytes );

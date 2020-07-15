@@ -686,6 +686,8 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     unsigned int flow_ctrl = 0;
     volatile unsigned int i = 0;
     volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    volatile const unsigned char *key_dup = key;
+    volatile unsigned int keybits_dup = keybits;
     uint32_t *RK;
     uint32_t offset = 0;
 
@@ -814,9 +816,13 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 #endif
     ) )
     {
-        return ret;
+        if( keybits_dup == keybits && key_dup == key )
+        {
+            return ret;
+        }
     }
 
+    mbedtls_platform_memset( RK, 0, ( keybits >> 5 ) * 4 );
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* !MBEDTLS_AES_SETKEY_ENC_ALT */
@@ -1063,6 +1069,8 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     aes_r_data_t *aes_data_table[2];    // pointers to real and fake data
     int round_ctrl_table_len = ctx->nr + 2 + AES_SCA_CM_ROUNDS;
     volatile int flow_control;
+    volatile const unsigned char *input_dup = input;
+    volatile unsigned char *output_dup = output;
     // control bytes for AES calculation rounds,
     // reserve based on max rounds + dummy rounds + 2 (for initial key addition)
     uint8_t round_ctrl_table[( 14 + AES_SCA_CM_ROUNDS + 2 )];
@@ -1163,9 +1171,14 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     if( flow_control == tindex + dummy_rounds + 8 )
     {
         /* Validate control path due possible fault injection */
-        return 0;
+        if( output_dup == output && input_dup == input )
+        {
+            return 0;
+        }
     }
 
+    // Clear the output in case of a FI
+    mbedtls_platform_memset( output, 0, 16 );
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
@@ -1342,6 +1355,8 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     aes_r_data_t *aes_data_table[2];    // pointers to real and fake data
     int round_ctrl_table_len = ctx->nr + 2 + AES_SCA_CM_ROUNDS;
     volatile int flow_control;
+    volatile const unsigned char *input_dup = input;
+    volatile unsigned char *output_dup = output;
     // control bytes for AES calculation rounds,
     // reserve based on max rounds + dummy rounds + 2 (for initial key addition)
     uint8_t round_ctrl_table[( 14 + AES_SCA_CM_ROUNDS + 2 )];
@@ -1442,9 +1457,14 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     if( flow_control == tindex + dummy_rounds + 8 )
     {
         /* Validate control path due possible fault injection */
-        return 0;
+        if( output_dup == output && input_dup == input )
+        {
+            return 0;
+        }
     }
 
+    // Clear the output in case of a FI
+    mbedtls_platform_memset( output, 0, 16 );
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 

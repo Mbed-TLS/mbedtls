@@ -69,6 +69,16 @@
 #include <string.h>
 #include "mbedtls/platform_util.h"
 
+#ifdef __CC_ARM
+#pragma diag_suppress 667 // strict diagnostic: "asm" function is nonstandard
+#endif
+
+#if defined MBEDTLS_HAVE_ASM
+#ifndef asm
+#define asm __asm
+#endif
+#endif
+
 /* Parameters for curve NIST P-256 aka secp256r1 */
 const uECC_word_t curve_p[NUM_ECC_WORDS] = {
 	BYTES_TO_WORDS_8(FF, FF, FF, FF, FF, FF, FF, FF),
@@ -322,6 +332,62 @@ uECC_word_t cond_set(uECC_word_t p_true, uECC_word_t p_false, unsigned int cond)
 
 /* Computes result = left - right, returning borrow, in constant time.
  * Can modify in place. */
+#if defined MBEDTLS_HAVE_ASM && defined __CC_ARM
+__asm uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
+                const uECC_word_t *right)
+{
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+#if defined __thumb__ &&  __TARGET_ARCH_THUMB < 4
+    PUSH    {r4-r6,lr}
+    FRAME   PUSH {r4-r6,lr}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    SUBS    r3,r5
+    SBCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    SBCS    r3,r5
+    SBCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    SBCS    r3,r5
+    SBCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    SBCS    r3,r5
+    SBCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    SBCS    r0,r0           // r0 := r0 - r0 - borrow = -borrow
+    RSBS    r0,r0,#0        // r0 := borrow
+    POP     {r4-r6,pc}
+#else
+    PUSH    {r4-r8,lr}
+    FRAME   PUSH {r4-r8,lr}
+    LDMIA   r1!,{r3-r6}
+    LDMIA   r2!,{r7,r8,r12,lr}
+    SUBS    r3,r7
+    SBCS    r4,r8
+    SBCS    r5,r12
+    SBCS    r6,lr
+    STMIA   r0!,{r3-r6}
+    LDMIA   r1!,{r3-r6}
+    LDMIA   r2!,{r7,r8,r12,lr}
+    SBCS    r3,r7
+    SBCS    r4,r8
+    SBCS    r5,r12
+    SBCS    r6,lr
+    STMIA   r0!,{r3-r6}
+    SBCS    r0,r0           // r0 := r0 - r0 - borrow = -borrow
+    RSBS    r0,r0,#0        // r0 := borrow
+    POP     {r4-r8,pc}
+#endif
+}
+#else
 uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
 			 const uECC_word_t *right)
 {
@@ -336,9 +402,66 @@ uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
 	}
 	return borrow;
 }
+#endif
 
 /* Computes result = left + right, returning carry, in constant time.
  * Can modify in place. */
+#if defined MBEDTLS_HAVE_ASM && defined __CC_ARM
+static __asm uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *left,
+                const uECC_word_t *right)
+{
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+#if defined __thumb__ &&  __TARGET_ARCH_THUMB < 4
+    PUSH    {r4-r6,lr}
+    FRAME   PUSH {r4-r6,lr}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    ADDS    r3,r5
+    ADCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    ADCS    r3,r5
+    ADCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    ADCS    r3,r5
+    ADCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    ADCS    r3,r5
+    ADCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    MOVS    r0,#0           // does not affect C flag
+    ADCS    r0,r0           // r0 := 0 + 0 + C = carry
+    POP     {r4-r6,pc}
+#else
+    PUSH    {r4-r8,lr}
+    FRAME   PUSH {r4-r8,lr}
+    LDMIA   r1!,{r3-r6}
+    LDMIA   r2!,{r7,r8,r12,lr}
+    ADDS    r3,r7
+    ADCS    r4,r8
+    ADCS    r5,r12
+    ADCS    r6,lr
+    STMIA   r0!,{r3-r6}
+    LDMIA   r1!,{r3-r6}
+    LDMIA   r2!,{r7,r8,r12,lr}
+    ADCS    r3,r7
+    ADCS    r4,r8
+    ADCS    r5,r12
+    ADCS    r6,lr
+    STMIA   r0!,{r3-r6}
+    MOVS    r0,#0           // does not affect C flag
+    ADCS    r0,r0           // r0 := 0 + 0 + C = carry
+    POP     {r4-r8,pc}
+#endif
+}
+#else
 static uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *left,
 				const uECC_word_t *right)
 {
@@ -352,6 +475,7 @@ static uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *left,
 	}
 	return carry;
 }
+#endif
 
 cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right)
 {
@@ -362,6 +486,46 @@ cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right)
 }
 
 /* Computes vli = vli >> 1. */
+#if defined MBEDTLS_HAVE_ASM && defined __CC_ARM
+static __asm void uECC_vli_rshift1(uECC_word_t *vli)
+{
+#if defined __thumb__ &&  __TARGET_ARCH_THUMB < 4
+// RRX instruction is not available, so although we
+// can use C flag, it's not that effective. Does at
+// least save one working register, meaning we don't need stack
+    MOVS    r3,#0           // initial carry = 0
+    MOVS    r2,#__cpp(4 * (NUM_ECC_WORDS - 1))
+01  LDR     r1,[r0,r2]
+    LSRS    r1,r1,#1        // r2 = word >> 1
+    ORRS    r1,r3           // merge in the previous carry
+    STR     r1,[r0,r2]
+    ADCS    r3,r3           // put C into bottom bit of r3
+    LSLS    r3,r3,#31       // shift it up to the top ready for next word
+    SUBS    r2,r2,#4
+    BPL     %B01
+    BX      lr
+#else
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+// Smooth multiword operation, lots of 32-bit instructions
+    ADDS    r0,#32
+    LDMDB   r0,{r1-r3,ip}
+    LSRS    ip,ip,#1
+    RRXS    r3,r3
+    RRXS    r2,r2
+    RRXS    r1,r1
+    STMDB   r0!,{r1-r3,ip}
+    LDMDB   r0,{r1-r3,ip}
+    RRXS    ip,ip
+    RRXS    r3,r3
+    RRXS    r2,r2
+    RRX     r1,r1
+    STMDB   r0!,{r1-r3,ip}
+    BX      lr
+#endif
+}
+#else
 static void uECC_vli_rshift1(uECC_word_t *vli)
 {
 	uECC_word_t *end = vli;
@@ -374,6 +538,7 @@ static void uECC_vli_rshift1(uECC_word_t *vli)
 		carry = temp << (uECC_WORD_BITS - 1);
 	}
 }
+#endif
 
 /* Compute a * b + r, where r is a double-word with high-order word r1 and
  * low-order word r0, and store the result in the same double-word (r1, r0),
@@ -385,6 +550,50 @@ static void uECC_vli_rshift1(uECC_word_t *vli)
  * [out] r0, r1: low and high-order words of the result
  * [out] r2: carry
  */
+#if defined MBEDTLS_HAVE_ASM && defined __CC_ARM
+static __asm void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t *r0,
+           uECC_word_t *r1, uECC_word_t *r2)
+{
+#if defined __thumb__ &&  __TARGET_ARCH_THUMB < 4
+    IMPORT  __ARM_common_ll_muluu
+    PRESERVE8
+    // have to save r4 to keep stack 8-byte aligned, but then
+    // may as well make use of it - helps a bit having it
+    PUSH    {r2,r3,r4,lr}
+    FRAME   SAVE {r4,lr},-8
+    FRAME   ADDRESS sp,16
+    BL      __ARM_common_ll_muluu
+    POP     {r2,r3}
+    FRAME   ADDRESS sp,8
+    LDR     r4,[r2]
+    ADDS    r4,r0
+    STR     r4,[r2]
+    LDR     r4,[r3]
+    ADCS    r4,r1
+    STR     r4,[r3]
+    LDR     r3,[sp,#8]
+    LDR     r4,[r3]
+    MOVS    r0,#0
+    ADCS    r4,r0
+    STR     r4,[r3]
+    POP     {r4,pc}
+#else
+    UMULL   r0,r1,r0,r1
+    LDR     ip,[r2]
+    ADDS    r0,r0,ip
+    STR     r0,[r2]
+    LDR     r0,[r3]
+    ADCS    r0,r1
+    STR     r0,[r3]
+    LDR     r3,[sp,#0]
+    LDR     r0,[r3]
+    ADC     r0,r0,#0
+    STR     r0,[r3]
+    BX      lr
+#endif
+
+}
+#else
 static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t *r0,
 		   uECC_word_t *r1, uECC_word_t *r2)
 {
@@ -397,6 +606,7 @@ static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t *r0,
 	*r0 = (uECC_word_t)r01;
 
 }
+#endif
 
 /* State for implementing random delays in uECC_vli_mult_rnd().
  *

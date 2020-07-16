@@ -27,6 +27,7 @@
 
 #include "psa_crypto_core.h"
 #include "psa_crypto_invasive.h"
+#include "psa_crypto_driver_wrappers.h"
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 #include "psa_crypto_se.h"
 #endif
@@ -3658,6 +3659,17 @@ psa_status_t psa_sign_hash( psa_key_handle_t handle,
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
+
+    /* Try any of the available accelerators first */
+    status = psa_driver_wrapper_sign_hash( slot,
+                                           alg,
+                                           hash,
+                                           hash_length,
+                                           signature,
+                                           signature_size,
+                                           signature_length );
+    if( status != PSA_ERROR_NOT_SUPPORTED )
+        goto exit;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )

@@ -1,0 +1,103 @@
+/*
+ *  Functions to delegate cryptographic operations to an available
+ *  and appropriate accelerator.
+ *  Warning: auto-generated file.
+ */
+/*  Copyright (C) 2020, ARM Limited, All Rights Reserved
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may
+ *  not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ *  This file is part of mbed TLS (https://tls.mbed.org)
+ */
+
+#include "psa_crypto_core.h"
+#include "psa_crypto_driver_wrappers.h"
+
+/* Include test driver definition when running tests */
+#if defined(MBEDTLS_TEST_HOOKS)
+#undef MBEDTLS_PSA_CRYPTO_DRIVER_PRESENT
+#define MBEDTLS_PSA_CRYPTO_DRIVER_PRESENT
+#include "drivers/test_driver.h"
+#endif
+
+/* Include driver definition file for each registered driver */
+
+/* Start delegation functions */
+psa_status_t psa_driver_wrapper_sign_hash( psa_key_slot_t *slot,
+                                           psa_algorithm_t alg,
+                                           const uint8_t *hash,
+                                           size_t hash_length,
+                                           uint8_t *signature,
+                                           size_t signature_size,
+                                           size_t *signature_length )
+{
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVER_PRESENT)
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime);
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+
+    switch( location )
+    {
+        case PSA_KEY_LOCATION_LOCAL_STORAGE:
+            /* Key is stored in the slot in export representation, so
+             * cycle through all known transparent accelerators */
+#if defined(MBEDTLS_TEST_HOOKS)
+            status = test_transparent_signature_sign_hash( &attributes,
+                                                           slot->data.key.data,
+                                                           slot->data.key.bytes,
+                                                           alg,
+                                                           hash,
+                                                           hash_length,
+                                                           signature,
+                                                           signature_size,
+                                                           signature_length );
+            /* Declared with fallback == true */
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return status;
+#endif /* MBEDTLS_TEST_HOOKS */
+            /* Fell through, meaning no accelerator supports this operation */
+            return PSA_ERROR_NOT_SUPPORTED;
+        /* Add cases for opaque driver here */
+#if defined(MBEDTLS_TEST_HOOKS)
+        case MBEDTLS_PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+            return( test_opaque_signature_sign_hash( &attributes,
+                                                     slot->data.key.data,
+                                                     slot->data.key.bytes,
+                                                     alg,
+                                                     hash,
+                                                     hash_length,
+                                                     signature,
+                                                     signature_size,
+                                                     signature_length ) );
+#endif /* MBEDTLS_TEST_HOOKS */
+        default:
+            /* Key is declared with a lifetime not known to us */
+            return status;
+    }
+#else /* MBEDTLS_PSA_CRYPTO_DRIVER_PRESENT */
+    (void)slot;
+    (void)alg;
+    (void)hash;
+    (void)hash_length;
+    (void)signature;
+    (void)signature_size;
+    (void)signature_length;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif /* MBEDTLS_PSA_CRYPTO_DRIVER_PRESENT */
+}
+
+/* End of automatically generated file. */

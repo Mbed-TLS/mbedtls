@@ -1656,6 +1656,17 @@ component_test_se_default () {
     make test
 }
 
+component_test_psa_crypto_drivers () {
+    msg "build: MBEDTLS_PSA_CRYPTO_DRIVERS, signature"
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    scripts/config.py set MBEDTLS_TEST_HOOKS
+    # Need to include the test driver header path in order to build
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: MBEDTLS_PSA_CRYPTO_DRIVERS, signature"
+    make test
+}
+
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
     make SHARED=1 all check

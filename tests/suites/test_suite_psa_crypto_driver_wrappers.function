@@ -1,0 +1,104 @@
+/* BEGIN_HEADER */
+#include "test/psa_crypto_helpers.h"
+
+#include "drivers/test_driver.h"
+
+uint8_t test_secp256r1_key_data[32] = {
+    0xab, 0x45, 0x43, 0x57, 0x12, 0x64, 0x9c, 0xb3,
+    0x0b, 0xbd, 0xda, 0xc4, 0x91, 0x97, 0xee, 0xbf,
+    0x27, 0x40, 0xff, 0xc7, 0xf8, 0x74, 0xd9, 0x24,
+    0x4c, 0x34, 0x60, 0xf5, 0x4f, 0x32, 0x2d, 0x3a,
+};
+uint8_t test_hash_32[32] = {
+    0x9a, 0xc4, 0x33, 0x5b, 0x46, 0x9b, 0xbd, 0x79,
+    0x14, 0x39, 0x24, 0x85, 0x04, 0xdd, 0x0d, 0x49,
+    0xc7, 0x13, 0x49, 0xa2, 0x95, 0xfe, 0xe5, 0xa1,
+    0xc6, 0x85, 0x07, 0xf4, 0x5a, 0x9e, 0x1c, 0x7b,
+};
+uint8_t test_signature_hash_32_with_secp256r1[64] = {
+    0x6a, 0x33, 0x99, 0xf6, 0x94, 0x21, 0xff, 0xe1,
+    0x49, 0x03, 0x77, 0xad, 0xf2, 0xea, 0x1f, 0x11,
+    0x7d, 0x81, 0xa6, 0x3c, 0xf5, 0xbf, 0x22, 0xe9,
+    0x18, 0xd5, 0x11, 0x75, 0xeb, 0x25, 0x91, 0x51,
+    0xce, 0x95, 0xd7, 0xc2, 0x6c, 0xc0, 0x4e, 0x25,
+    0x50, 0x3e, 0x2f, 0x7a, 0x1e, 0xc3, 0x57, 0x3e,
+    0x3c, 0x24, 0x12, 0x53, 0x4b, 0xb4, 0xa1, 0x9b,
+    0x3a, 0x78, 0x11, 0x74, 0x2f, 0x49, 0xf5, 0x0f,
+};
+
+uint8_t test_fake_output[] = "INJECTED OUTPUT";
+
+typedef enum
+{
+    EXPECT_FAILURE,
+    EXPECT_CORRECT_OUTPUT,
+    EXPECT_FAKE_OUTPUT,
+} expected_output_t;
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_PSA_CRYPTO_DRIVERS:MBEDTLS_TEST_HOOKS
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
+void ecdsa_sign( int force_status_arg,
+                 int fake_output,
+                 int expected_status_arg )
+{
+    psa_status_t force_status = force_status_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_handle_t handle = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_algorithm_t alg = PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 );
+    uint8_t signature[64];
+    size_t signature_length = 0xdeadbeef;
+    const uint8_t *expected_output;
+    size_t expected_output_length;
+    psa_status_t actual_status;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    psa_set_key_type( &attributes,
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_import_key( &attributes,
+                    test_secp256r1_key_data, sizeof( test_secp256r1_key_data ),
+                    &handle );
+
+    test_transparent_signature_sign_hash_hit = 0;
+    test_transparent_signature_sign_hash_status = force_status;
+    if( fake_output )
+    {
+        expected_output = test_driver_forced_output = test_fake_output;
+        expected_output_length = test_driver_forced_output_length =
+            sizeof( test_fake_output );
+    }
+    else
+    {
+        expected_output = test_signature_hash_32_with_secp256r1;
+        expected_output_length = sizeof( test_signature_hash_32_with_secp256r1 );
+    }
+
+    actual_status = psa_sign_hash( handle, alg,
+                                   test_hash_32, sizeof( test_hash_32 ),
+                                   signature, sizeof( signature ),
+                                   &signature_length );
+    TEST_EQUAL( actual_status, expected_status );
+    if( expected_status == PSA_SUCCESS )
+    {
+        ASSERT_COMPARE( signature, signature_length,
+                        expected_output, expected_output_length );
+    }
+    TEST_EQUAL( test_transparent_signature_sign_hash_hit, 1 );
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( handle );
+    PSA_DONE( );
+    test_transparent_signature_sign_hash_status = PSA_ERROR_NOT_SUPPORTED;
+    test_driver_forced_output = NULL;
+    test_driver_forced_output_length = 0;
+}
+/* END_CASE */

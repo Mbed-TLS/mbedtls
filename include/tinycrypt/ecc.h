@@ -98,10 +98,10 @@ extern "C" {
 #endif
 
 /* defining data types to store word and bit counts: */
-typedef int8_t wordcount_t;
-typedef int16_t bitcount_t;
+typedef int_fast8_t wordcount_t;
+typedef int_fast16_t bitcount_t;
 /* defining data type for comparison result: */
-typedef int8_t cmpresult_t;
+typedef int_fast8_t cmpresult_t;
 /* defining data type to store ECC coordinate/point in 32bits words: */
 typedef unsigned int uECC_word_t;
 /* defining data type to store an ECC coordinate/point in 64bits words: */

@@ -3475,6 +3475,7 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
     unsigned char add_data[13];
     unsigned char mac[MBEDTLS_MD_MAX_SIZE];
     int exp_ret;
+    const unsigned char pad_max_len = 255; /* Per the standard */
 
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_transform_init( &t0 );
@@ -3492,7 +3493,7 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
     if( padlen == block_size )
         padlen = 0;
     if( pad_long )
-        padlen += block_size * ( ( 255 - padlen ) / block_size );
+        padlen += block_size * ( ( pad_max_len - padlen ) / block_size );
 
     /* Prepare a buffer for record data */
     buflen = block_size
@@ -3606,7 +3607,7 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
      * (Start the loop with correct padding, just to double-check that record
      * saving did work, and that we're overwriting the correct bytes.)
      */
-    for( i = padlen; i <= 255; i++ )
+    for( i = padlen; i <= pad_max_len; i++ )
     {
         test_set_step( i );
 

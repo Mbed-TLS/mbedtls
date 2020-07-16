@@ -154,7 +154,7 @@ static int x509_get_hash_alg( const mbedtls_x509_buf *alg, mbedtls_md_type_t *md
         return( MBEDTLS_ERR_X509_INVALID_ALG +
                 MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
 
-    p = (unsigned char *) alg->p;
+    p = alg->p;
     end = p + alg->len;
 
     if( p >= end )

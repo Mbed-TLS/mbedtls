@@ -1239,8 +1239,6 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key)
 	int ret = UECC_FAULT_DETECTED;
 	uECC_word_t _private[NUM_ECC_WORDS];
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
-	volatile const uint8_t *private_key_dup = private_key;
-	volatile const uint8_t *public_key_dup = public_key;
 
 	uECC_vli_bytesToNative(
 	_private,
@@ -1266,8 +1264,6 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key)
 	uECC_vli_nativeToBytes(
 	public_key +
 	NUM_ECC_BYTES, NUM_ECC_BYTES, _public + NUM_ECC_WORDS);
-	if (private_key_dup != private_key || public_key_dup != public_key){
-		return UECC_FAULT_DETECTED;
-	}
+
 	return ret;
 }

@@ -1329,6 +1329,17 @@
  */
 #define MBEDTLS_PKCS1_V21
 
+/** \def MBEDTLS_PSA_CRYPTO_DRIVERS
+ *
+ * Enable support for the experimental PSA crypto driver interface.
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C.
+ *
+ * \warning This interface is experimental and may change or be removed
+ * without notice.
+ */
+//#define MBEDTLS_PSA_CRYPTO_DRIVERS
+
 /**
  * \def MBEDTLS_PSA_CRYPTO_SPM
  *

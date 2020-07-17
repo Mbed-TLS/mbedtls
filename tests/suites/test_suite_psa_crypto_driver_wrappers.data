@@ -9,3 +9,21 @@ ecdsa_sign:PSA_ERROR_GENERIC_ERROR:0:PSA_ERROR_GENERIC_ERROR
 
 sign_hash through transparent driver: fake
 ecdsa_sign:PSA_SUCCESS:1:PSA_SUCCESS
+
+verify_hash using private key through transparent driver: calculate in driver
+ecdsa_verify:PSA_SUCCESS:0:PSA_SUCCESS
+
+verify_hash using private key through transparent driver: fallback
+ecdsa_verify:PSA_ERROR_NOT_SUPPORTED:0:PSA_SUCCESS
+
+verify_hash using private key through transparent driver: error
+ecdsa_verify:PSA_ERROR_GENERIC_ERROR:0:PSA_ERROR_GENERIC_ERROR
+
+verify_hash using public key through transparent driver: calculate in driver
+ecdsa_verify:PSA_SUCCESS:1:PSA_SUCCESS
+
+verify_hash using public key through transparent driver: fallback
+ecdsa_verify:PSA_ERROR_NOT_SUPPORTED:1:PSA_SUCCESS
+
+verify_hash through transparent driver: error
+ecdsa_verify:PSA_ERROR_GENERIC_ERROR:1:PSA_ERROR_GENERIC_ERROR

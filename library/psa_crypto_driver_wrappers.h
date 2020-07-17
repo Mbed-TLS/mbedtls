@@ -35,6 +35,16 @@ psa_status_t psa_driver_wrapper_sign_hash( psa_key_slot_t *slot,
                                            size_t signature_size,
                                            size_t *signature_length );
 
+psa_status_t psa_driver_wrapper_verify_hash( psa_key_slot_t *slot,
+                                             psa_algorithm_t alg,
+                                             const uint8_t *hash,
+                                             size_t hash_length,
+                                             const uint8_t *signature,
+                                             size_t signature_length );
+
+psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attributes,
+                                              psa_key_slot_t *slot );
+
 #endif /* PSA_CRYPTO_DRIVER_WRAPPERS_H */
 
 /* End of automatically generated file. */

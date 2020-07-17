@@ -37,6 +37,9 @@ extern size_t test_driver_forced_output_length;
 extern psa_status_t test_transparent_signature_sign_hash_status;
 extern unsigned long test_transparent_signature_sign_hash_hit;
 
+extern psa_status_t test_transparent_signature_verify_hash_status;
+extern unsigned long test_transparent_signature_verify_hash_hit;
+
 psa_status_t test_transparent_signature_sign_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
@@ -50,6 +53,20 @@ psa_status_t test_opaque_signature_sign_hash(
     psa_algorithm_t alg,
     const uint8_t *hash, size_t hash_length,
     uint8_t *signature, size_t signature_size, size_t *signature_length );
+
+psa_status_t test_transparent_signature_verify_hash(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key, size_t key_length,
+    psa_algorithm_t alg,
+    const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length );
+
+psa_status_t test_opaque_signature_verify_hash(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key, size_t key_length,
+    psa_algorithm_t alg,
+    const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length );
 
 #endif /* MBEDTLS_TEST_HOOKS */
 #endif /* MBEDTLS_PSA_CRYPTO_TEST_DRIVERS_SIGNATURE_H */

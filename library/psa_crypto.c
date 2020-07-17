@@ -3754,29 +3754,21 @@ psa_status_t psa_verify_hash( psa_key_handle_t handle,
 {
     psa_key_slot_t *slot;
     psa_status_t status;
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    const psa_drv_se_t *drv;
-    psa_drv_se_context_t *drv_context;
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_VERIFY_HASH, alg );
     if( status != PSA_SUCCESS )
         return( status );
 
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )
-    {
-        if( drv->asymmetric == NULL ||
-            drv->asymmetric->p_verify == NULL )
-            return( PSA_ERROR_NOT_SUPPORTED );
-        return( drv->asymmetric->p_verify( drv_context,
-                                           slot->data.se.slot_number,
-                                           alg,
-                                           hash, hash_length,
-                                           signature, signature_length ) );
-    }
-    else
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+    /* Try any of the available accelerators first */
+    status = psa_driver_wrapper_verify_hash( slot,
+                                             alg,
+                                             hash,
+                                             hash_length,
+                                             signature,
+                                             signature_length );
+    if( status != PSA_ERROR_NOT_SUPPORTED )
+        return status;
+
 #if defined(MBEDTLS_RSA_C)
     if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
     {

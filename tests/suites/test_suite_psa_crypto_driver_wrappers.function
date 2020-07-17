@@ -25,6 +25,17 @@ uint8_t test_signature_hash_32_with_secp256r1[64] = {
     0x3c, 0x24, 0x12, 0x53, 0x4b, 0xb4, 0xa1, 0x9b,
     0x3a, 0x78, 0x11, 0x74, 0x2f, 0x49, 0xf5, 0x0f,
 };
+uint8_t test_secp256r1_public_key_data[65] = {
+    0x04,
+    0xde, 0xa5, 0xe4, 0x5d, 0x0e, 0xa3, 0x7f, 0xc5,
+    0x66, 0x23, 0x2a, 0x50, 0x8f, 0x4a, 0xd2, 0x0e,
+    0xa1, 0x3d, 0x47, 0xe4, 0xbf, 0x5f, 0xa4, 0xd5,
+    0x4a, 0x57, 0xa0, 0xba, 0x01, 0x20, 0x42, 0x08,
+    0x70, 0x97, 0x49, 0x6e, 0xfc, 0x58, 0x3f, 0xed,
+    0x8b, 0x24, 0xa5, 0xb9, 0xbe, 0x9a, 0x51, 0xde,
+    0x06, 0x3f, 0x5a, 0x00, 0xa8, 0xb6, 0x98, 0xa1,
+    0x6f, 0xd7, 0xf2, 0x9b, 0x54, 0x85, 0xf3, 0x20
+};
 
 uint8_t test_fake_output[] = "INJECTED OUTPUT";
 
@@ -92,6 +103,64 @@ void ecdsa_sign( int force_status_arg,
                         expected_output, expected_output_length );
     }
     TEST_EQUAL( test_transparent_signature_sign_hash_hit, 1 );
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( handle );
+    PSA_DONE( );
+    test_transparent_signature_sign_hash_status = PSA_ERROR_NOT_SUPPORTED;
+    test_driver_forced_output = NULL;
+    test_driver_forced_output_length = 0;
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
+void ecdsa_verify( int force_status_arg,
+                   int register_public_key,
+                   int expected_status_arg )
+{
+    psa_status_t force_status = force_status_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_handle_t handle = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_algorithm_t alg = PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 );
+    const uint8_t *expected_output;
+    size_t expected_output_length;
+    psa_status_t actual_status;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    if( register_public_key )
+    {
+        psa_set_key_type( &attributes,
+                      PSA_KEY_TYPE_ECC_PUBLIC_KEY( PSA_ECC_CURVE_SECP_R1 ) );
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
+        psa_set_key_algorithm( &attributes, alg );
+        psa_import_key( &attributes,
+                        test_secp256r1_public_key_data, sizeof( test_secp256r1_public_key_data ),
+                        &handle );
+    }
+    else
+    {
+        psa_set_key_type( &attributes,
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
+        psa_set_key_algorithm( &attributes, alg );
+        psa_import_key( &attributes,
+                        test_secp256r1_key_data, sizeof( test_secp256r1_key_data ),
+                        &handle );
+    }
+
+    test_transparent_signature_verify_hash_hit = 0;
+    test_transparent_signature_verify_hash_status = force_status;
+
+    expected_output = test_signature_hash_32_with_secp256r1;
+    expected_output_length = sizeof( test_signature_hash_32_with_secp256r1 );
+
+    actual_status = psa_verify_hash( handle, alg,
+                                     test_hash_32, sizeof( test_hash_32 ),
+                                     expected_output, expected_output_length );
+    TEST_EQUAL( actual_status, expected_status );
+    TEST_EQUAL( test_transparent_signature_verify_hash_hit, 1 );
 
 exit:
     psa_reset_key_attributes( &attributes );

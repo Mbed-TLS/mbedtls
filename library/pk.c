@@ -659,6 +659,7 @@ static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
         len += 1;
     }
 
+    /* Ensure that there is still space for len and ASN1_INTEGER */
     if( ( *p - start ) < 2 )
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 

@@ -1776,16 +1776,27 @@ static psa_status_t psa_validate_key_attributes(
     psa_se_drv_table_entry_t **p_drv )
 {
     psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+    psa_key_lifetime_t lifetime = psa_get_key_lifetime( attributes );
 
     status = psa_validate_key_location( psa_get_key_lifetime( attributes ),
                                         p_drv );
     if( status != PSA_SUCCESS )
         return( status );
 
-    status = psa_validate_key_persistence( psa_get_key_lifetime( attributes ),
-                                           psa_get_key_id( attributes ) );
+    status = psa_validate_key_persistence( lifetime );
     if( status != PSA_SUCCESS )
         return( status );
+
+    /* Validate the key identifier only in the case of a persistent key. */
+    if ( ! PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
+    {
+        status = psa_validate_key_id(
+            psa_get_key_id( attributes ),
+            psa_key_lifetime_is_external( lifetime ) );
+
+        if( status != PSA_SUCCESS )
+            return( status );
+    }
 
     status = psa_validate_key_policy( &attributes->core.policy );
     if( status != PSA_SUCCESS )

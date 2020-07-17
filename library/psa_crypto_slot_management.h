@@ -108,18 +108,25 @@ static inline int psa_key_lifetime_is_external( psa_key_lifetime_t lifetime )
 psa_status_t psa_validate_key_location( psa_key_lifetime_t lifetime,
                                         psa_se_drv_table_entry_t **p_drv );
 
-/** Validate that a key's persistence attributes are valid.
- *
- * This function checks whether a key's declared persistence level and key ID
- * attributes are valid and known to the PSA Core in its actual configuration.
+/** Validate the persistence of a key.
  *
  * \param[in] lifetime  The key lifetime attribute.
- * \param[in] key       The key identifier.
  *
  * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_INVALID_ARGUMENT The key is persistent but persistent
+ *         keys are not supported.
  */
-psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime,
-                                           mbedtls_svc_key_id_t key );
+psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime );
+
+/** Validate a key identifier.
+ *
+ * \param[in] key        The key identifier.
+ * \param[in] vendor_ok  Non-zero to indicate that key identifiers in the
+ *                       vendor range are allowed, \c 0 otherwise.
+ *
+ * \retval #PSA_SUCCESS The identifier is valid.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT The key identifier is not valid.
+ */
+psa_status_t psa_validate_key_id( mbedtls_svc_key_id_t key, int vendor_ok );
 
 #endif /* PSA_CRYPTO_SLOT_MANAGEMENT_H */

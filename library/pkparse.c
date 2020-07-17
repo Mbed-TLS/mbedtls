@@ -573,8 +573,10 @@ static int pk_get_ueccpubkey( unsigned char **p,
     mbedtls_uecc_keypair *uecc_keypair = (mbedtls_uecc_keypair *) pk_context;
     int ret;
 
-    ret = uecc_public_key_read_binary( uecc_keypair,
-                                       (const unsigned char *) *p, end - *p );
+    if( ( ret = uecc_public_key_read_binary( uecc_keypair,
+                                             (const unsigned char *) *p, end - *p ) )
+            != 0 )
+        return ret;
 
     /*
      * We know uecc_public_key_read_binary consumed all bytes or failed
@@ -1062,7 +1064,7 @@ static int pk_parse_key_sec1_der( mbedtls_ecp_keypair *eck,
                                   size_t keylen )
 {
     int ret;
-    int version, pubkey_done;
+    int version, pubkey_done = 0;
     size_t len;
     mbedtls_asn1_buf params;
     unsigned char *p = (unsigned char *) key;
@@ -1104,7 +1106,6 @@ static int pk_parse_key_sec1_der( mbedtls_ecp_keypair *eck,
 
     p += len;
 
-    pubkey_done = 0;
     if( p != end )
     {
         /*

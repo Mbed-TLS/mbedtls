@@ -28,7 +28,15 @@
 #if defined(MBEDTLS_TEST_HOOKS)
 #undef MBEDTLS_PSA_CRYPTO_DRIVER_PRESENT
 #define MBEDTLS_PSA_CRYPTO_DRIVER_PRESENT
+#undef MBEDTLS_PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT
+#define MBEDTLS_PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT
 #include "drivers/test_driver.h"
+#endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+#undef MBEDTLS_PSA_CRYPTO_DRIVER_PRESENT
+#define MBEDTLS_PSA_CRYPTO_DRIVER_PRESENT
+#include "psa_crypto_se.h"
 #endif
 
 /* Include driver definition file for each registered driver */
@@ -43,6 +51,30 @@ psa_status_t psa_driver_wrapper_sign_hash( psa_key_slot_t *slot,
                                            size_t *signature_length )
 {
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVER_PRESENT)
+    /* Try dynamically-registered SE interface first */
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    const psa_drv_se_t *drv;
+    psa_drv_se_context_t *drv_context;
+
+    if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )
+    {
+        if( drv->asymmetric == NULL ||
+            drv->asymmetric->p_sign == NULL )
+        {
+            /* Key is defined in SE, but we have no way to exercise it */
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+        return( drv->asymmetric->p_sign( drv_context,
+                                         slot->data.se.slot_number,
+                                         alg,
+                                         hash, hash_length,
+                                         signature, signature_size,
+                                         signature_length ) );
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
+    /* Then try accelerator API */
+#if defined(MBEDTLS_PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
     psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime);
     psa_key_attributes_t attributes = {
@@ -87,6 +119,9 @@ psa_status_t psa_driver_wrapper_sign_hash( psa_key_slot_t *slot,
             /* Key is declared with a lifetime not known to us */
             return status;
     }
+#else /* MBEDTLS_PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif /* MBEDTLS_PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 #else /* MBEDTLS_PSA_CRYPTO_DRIVER_PRESENT */
     (void)slot;
     (void)alg;

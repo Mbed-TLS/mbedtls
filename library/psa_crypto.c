@@ -1851,6 +1851,7 @@ static psa_status_t psa_start_key_creation(
     psa_se_drv_table_entry_t **p_drv )
 {
     psa_status_t status;
+    psa_key_id_t volatile_key_id;
     psa_key_slot_t *slot;
 
     (void) method;
@@ -1860,7 +1861,7 @@ static psa_status_t psa_start_key_creation(
     if( status != PSA_SUCCESS )
         return( status );
 
-    status = psa_get_empty_key_slot( handle, p_slot );
+    status = psa_get_empty_key_slot( handle, &volatile_key_id, p_slot );
     if( status != PSA_SUCCESS )
         return( status );
     slot = *p_slot;

@@ -62,6 +62,7 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_hmac_drbg_context ) );
 
+    ctx->prediction_resistance = MBEDTLS_HMAC_DRBG_PR_OFF;
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &ctx->mutex );
 #endif

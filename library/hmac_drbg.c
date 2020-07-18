@@ -390,9 +390,13 @@ void mbedtls_hmac_drbg_set_prediction_resistance( mbedtls_hmac_drbg_context *ctx
 /*
  * Set entropy length grabbed for seeding
  */
-void mbedtls_hmac_drbg_set_entropy_len( mbedtls_hmac_drbg_context *ctx, size_t len )
+int mbedtls_hmac_drbg_set_entropy_len( mbedtls_hmac_drbg_context *ctx, size_t len )
 {
+    if( len > MBEDTLS_HMAC_DRBG_MAX_INPUT )
+        return( MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG );
+
     ctx->entropy_len = len;
+    return 0;
 }
 
 /*

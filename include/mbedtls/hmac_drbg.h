@@ -228,9 +228,11 @@ void mbedtls_hmac_drbg_set_prediction_resistance( mbedtls_hmac_drbg_context *ctx
  *
  * \param ctx           The HMAC_DRBG context.
  * \param len           The amount of entropy to grab, in bytes.
+ *
+ * \return              \c 0 if \p len is valid, MBEDTLS_HMAC_DRBG_MAX_INPUT otherwise.
  */
-void mbedtls_hmac_drbg_set_entropy_len( mbedtls_hmac_drbg_context *ctx,
-                                size_t len );
+int mbedtls_hmac_drbg_set_entropy_len( mbedtls_hmac_drbg_context *ctx,
+                                       size_t len );
 
 /**
  * \brief               Set the reseed interval.

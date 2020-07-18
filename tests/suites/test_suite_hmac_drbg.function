@@ -94,12 +94,12 @@ void hmac_drbg_entropy_usage( int md_alg )
     TEST_ASSERT( entropy.len < last_len );
 
     /* Finally, check setting entropy_len */
-    mbedtls_hmac_drbg_set_entropy_len( &ctx, 42 );
+    TEST_ASSERT( mbedtls_hmac_drbg_set_entropy_len( &ctx, 42 ) == 0 );
     last_len = entropy.len;
     TEST_ASSERT( mbedtls_hmac_drbg_random( &ctx, out, sizeof( out ) ) == 0 );
     TEST_ASSERT( (int) last_len - entropy.len == 42 );
 
-    mbedtls_hmac_drbg_set_entropy_len( &ctx, 13 );
+    TEST_ASSERT( mbedtls_hmac_drbg_set_entropy_len( &ctx, 13 ) == 0 );
     last_len = entropy.len;
     TEST_ASSERT( mbedtls_hmac_drbg_random( &ctx, out, sizeof( out ) ) == 0 );
     TEST_ASSERT( (int) last_len - entropy.len == 13 );

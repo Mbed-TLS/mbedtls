@@ -35,6 +35,8 @@
 
 #if defined(MBEDTLS_TEST_MEMORY_WRAPPERS)
 
+#include <stddef.h>
+
 /** Hook to call immediately before starting to execute a test case.
  */
 void mbedtls_test_memory_setup( void );
@@ -43,6 +45,23 @@ void mbedtls_test_memory_setup( void );
  * its pass/fail status but before printing out the outcome.
  */
 void mbedtls_test_memory_teardown( void );
+
+/** Obtain statistics about allocations since the last call to
+ * mbedtls_test_memory_setup().
+ *
+ * \param allocations   The total number of calls to mbedtls_calloc()
+ *                      (excluding zero-sized allocations).
+ * \param bytes         The total number of allocated bytes.
+ *                      This is typically a lot larger than the total
+ *                      memory consumption.
+ * \param failed        The number of failed allocations.
+ * \param leaks         The number of calls to mbedtls_calloc() minus
+ *                      the number of calls to mbedtls_free()
+ *                      (excluding zero-sized allocations and calls to
+ *                      `mbedtls_free(NULL)`).
+ */
+void mbedtls_test_memory_get_stats( size_t *allocations, size_t *bytes,
+                                        size_t *failed, size_t *leaks );
 
 #else /* MBEDTLS_TEST_MEMORY_WRAPPERS */
 

@@ -77,6 +77,9 @@
 #define MBEDTLS_HMAC_DRBG_PR_OFF   0x55555555   /**< No prediction resistance       */
 #define MBEDTLS_HMAC_DRBG_PR_ON    0x2AAAAAAA   /**< Prediction resistance enabled  */
 
+#define MBEDTLS_HMAC_DRBG_RESEED    0x78547854   /**< Default environment, reseeding enabled */
+#define MBEDTLS_HMAC_DRBG_NO_RESEED 0x07AB87F0   /**< Reseeding disabled, no f_entropy required */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -91,7 +94,7 @@ typedef struct mbedtls_hmac_drbg_context
     mbedtls_md_context_t md_ctx;                    /*!< HMAC context (inc. K)  */
     unsigned char V[MBEDTLS_MD_MAX_SIZE];  /*!< V in the spec          */
     int reseed_counter;                     /*!< reseed counter         */
-
+    int reseed_flag;  /*!< disables reseeding if set to MBEDTLS_HMAC_DRBG_NO_RESEED */
     /* Administrative state */
     size_t entropy_len;         /*!< entropy bytes grabbed on each (re)seed */
     int prediction_resistance;  /*!< enable prediction resistance (Automatic
@@ -219,6 +222,20 @@ int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
  */
 void mbedtls_hmac_drbg_set_prediction_resistance( mbedtls_hmac_drbg_context *ctx,
                                           int resistance );
+
+/**
+ * \brief               This function turns reseeding on or off.
+ *                      Default value is on.
+ *
+ * \note                If set to MBEDTLS_HMAC_DRBG_NO_RESEED, this function
+ *                      disables reseeding, providing a no_reseed environment.
+ *                      f_entropy can then be null.
+ *
+ * \param ctx           The HMAC_DRBG context.
+ * \param reseed_flag   #MBEDTLS_HMAC_DRBG_NO_RESEED or #MBEDTLS_HMAC_DRBG_RESEED
+ */
+void mbedtls_hmac_drbg_set_reseeding( mbedtls_hmac_drbg_context *ctx,
+                                      int reseed_flag );
 
 /**
  * \brief               This function sets the amount of entropy grabbed on each

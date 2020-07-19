@@ -482,6 +482,7 @@ sign:
         mbedtls_hmac_drbg_context rng_ctx_blind;
 
         mbedtls_hmac_drbg_init( &rng_ctx_blind );
+        mbedtls_hmac_drbg_set_reseeding( &rng_ctx_blind, MBEDTLS_HMAC_DRBG_NO_RESEED );
         p_rng_blind_det = &rng_ctx_blind;
 
         mbedtls_hmac_drbg_seed_buf( p_rng_blind_det, md_info,
@@ -509,6 +510,7 @@ sign:
          * a valid ECDSA signature.
          */
         p_rng_blind_det = p_rng;
+        mbedtls_hmac_drbg_set_reseeding( p_rng_blind_det, MBEDTLS_HMAC_DRBG_NO_RESEED );
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
         /*

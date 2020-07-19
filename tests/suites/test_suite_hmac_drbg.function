@@ -149,6 +149,7 @@ void hmac_drbg_buf( int md_alg )
     TEST_ASSERT( mbedtls_hmac_drbg_seed_buf( &ctx, md_info, buf, sizeof( buf ) ) == 0 );
 
     /* Make sure it never tries to reseed (would segfault otherwise) */
+    mbedtls_hmac_drbg_set_reseeding( &ctx, MBEDTLS_HMAC_DRBG_NO_RESEED );
     mbedtls_hmac_drbg_set_reseed_interval( &ctx, 3 );
     mbedtls_hmac_drbg_set_prediction_resistance( &ctx, MBEDTLS_HMAC_DRBG_PR_ON );
 
@@ -172,7 +173,7 @@ void hmac_drbg_no_reseed( int md_alg, data_t * entropy,
     mbedtls_hmac_drbg_context ctx;
 
     mbedtls_hmac_drbg_init( &ctx );
-
+    mbedtls_hmac_drbg_set_reseeding( &ctx, MBEDTLS_HMAC_DRBG_NO_RESEED );
     p_entropy.p = entropy->x;
     p_entropy.len = entropy->len;
 
@@ -219,6 +220,7 @@ void hmac_drbg_nopr( int md_alg, data_t * entropy, data_t * custom,
     mbedtls_hmac_drbg_context ctx;
 
     mbedtls_hmac_drbg_init( &ctx );
+    mbedtls_hmac_drbg_set_reseeding( &ctx, MBEDTLS_HMAC_DRBG_NO_RESEED );
 
     p_entropy.p = entropy->x;
     p_entropy.len = entropy->len;

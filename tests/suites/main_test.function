@@ -31,6 +31,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#include "test/memory.h"
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -166,6 +168,8 @@ $dispatch_code
  */
 void execute_function_ptr(TestWrapper_t fp, void **params)
 {
+    mbedtls_test_memory_setup( );
+
 #if defined(MBEDTLS_CHECK_PARAMS)
     if ( setjmp( param_fail_jmp ) == 0 )
     {
@@ -181,6 +185,8 @@ void execute_function_ptr(TestWrapper_t fp, void **params)
 #else
     fp( params );
 #endif
+
+    mbedtls_test_memory_teardown( );
 }
 
 /**

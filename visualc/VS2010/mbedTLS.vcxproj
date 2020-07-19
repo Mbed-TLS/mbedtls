@@ -234,6 +234,7 @@
     <ClInclude Include="..\..\include\psa\crypto_values.h" />
     <ClInclude Include="..\..\tests\include\test\helpers.h" />
     <ClInclude Include="..\..\tests\include\test\macros.h" />
+    <ClInclude Include="..\..\tests\include\test\memory.h" />
     <ClInclude Include="..\..\tests\include\test\psa_crypto_helpers.h" />
     <ClInclude Include="..\..\tests\include\test\psa_helpers.h" />
     <ClInclude Include="..\..\tests\include\test\random.h" />

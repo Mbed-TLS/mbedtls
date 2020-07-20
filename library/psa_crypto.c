@@ -125,7 +125,7 @@ static psa_global_data_t global_data;
     if( global_data.initialized == 0 )  \
         return( PSA_ERROR_BAD_STATE );
 
-static psa_status_t mbedtls_to_psa_error( int ret )
+psa_status_t mbedtls_to_psa_error( int ret )
 {
     /* If there's both a high-level code and low-level code, dispatch on
      * the high-level code. */

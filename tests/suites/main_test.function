@@ -170,6 +170,7 @@ void execute_function_ptr(TestWrapper_t fp, void **params)
 {
     mbedtls_test_memory_setup( );
 
+    reset_test_failure( );
 #if defined(MBEDTLS_CHECK_PARAMS)
     if ( setjmp( param_fail_jmp ) == 0 )
     {

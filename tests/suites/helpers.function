@@ -445,6 +445,17 @@ void test_skip( const char *test, int line_no, const char* filename )
     test_info.filename = filename;
 }
 
+/** Reset test failure information.
+ *
+ * Call this function before running a test case.
+ */
+static void reset_test_failure( )
+{
+        test_info.result = TEST_RESULT_SUCCESS;
+        test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_IDLE;
+        test_info.step = (unsigned long)( -1 );
+}
+
 #if defined(MBEDTLS_CHECK_PARAMS)
 void mbedtls_param_failed( const char *failure_condition,
                            const char *file,

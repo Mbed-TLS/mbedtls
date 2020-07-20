@@ -384,8 +384,6 @@ int execute_tests( int args, const char ** argv )
     while ( 1 )
     {
         ret = 0;
-        test_info.result = TEST_RESULT_SUCCESS;
-        test_info.step = (unsigned long)( -1 );
         data_len = 0;
 
         data = receive_data( &data_len );

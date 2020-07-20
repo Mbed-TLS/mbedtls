@@ -204,7 +204,9 @@ foreach(target IN LISTS target_libraries)
     target_compile_definitions(${target}
         PRIVATE ${thirdparty_def})
     install(TARGETS ${target}
-            DESTINATION ${LIB_INSTALL_DIR}
+            LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+            ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
+            RUNTIME DESTINATION bin
             PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 endforeach(target)
 

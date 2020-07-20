@@ -27,3 +27,15 @@ ecdsa_verify:PSA_ERROR_NOT_SUPPORTED:1:PSA_SUCCESS
 
 verify_hash through transparent driver: error
 ecdsa_verify:PSA_ERROR_GENERIC_ERROR:1:PSA_ERROR_GENERIC_ERROR
+
+generate_key through transparent driver: fake
+generate_key:PSA_SUCCESS:1:PSA_SUCCESS
+
+generate_key through transparent driver: in-driver
+generate_key:PSA_SUCCESS:0:PSA_SUCCESS
+
+generate_key through transparent driver: fallback
+generate_key:PSA_ERROR_NOT_SUPPORTED:0:PSA_SUCCESS
+
+generate_key through transparent driver: error
+generate_key:PSA_ERROR_GENERIC_ERROR:0:PSA_ERROR_GENERIC_ERROR

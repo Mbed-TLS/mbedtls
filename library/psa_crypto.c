@@ -5987,29 +5987,15 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
     if( status != PSA_SUCCESS )
         goto exit;
 
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( driver != NULL )
-    {
-        const psa_drv_se_t *drv = psa_get_se_driver_methods( driver );
-        size_t pubkey_length = 0; /* We don't support this feature yet */
-        if( drv->key_management == NULL ||
-            drv->key_management->p_generate == NULL )
-        {
-            status = PSA_ERROR_NOT_SUPPORTED;
-            goto exit;
-        }
-        status = drv->key_management->p_generate(
-            psa_get_se_driver_context( driver ),
-            slot->data.se.slot_number, attributes,
-            NULL, 0, &pubkey_length );
-    }
-    else
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    {
-        status = psa_generate_key_internal(
-            slot, attributes->core.bits,
-            attributes->domain_parameters, attributes->domain_parameters_size );
-    }
+    status = psa_driver_wrapper_generate_key( attributes,
+                                              slot );
+    if( status != PSA_ERROR_NOT_SUPPORTED ||
+        psa_key_lifetime_is_external( attributes->core.lifetime ) )
+        goto exit;
+
+    status = psa_generate_key_internal(
+        slot, attributes->core.bits,
+        attributes->domain_parameters, attributes->domain_parameters_size );
 
 exit:
     if( status == PSA_SUCCESS )

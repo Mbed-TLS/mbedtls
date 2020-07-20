@@ -25,5 +25,6 @@
 #define MBEDTLS_PSA_CRYPTO_TEST_DRIVER_LIFETIME 0x7fffff
 
 #include "drivers/signature.h"
+#include "drivers/keygen.h"
 
 #endif /* MBEDTLS_PSA_CRYPTO_TEST_DRIVER_H */

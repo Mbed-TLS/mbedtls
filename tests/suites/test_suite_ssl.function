@@ -3454,7 +3454,7 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_AES_C:MBEDTLS_SSL_PROTO_TLS1_2 */
 void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
-                              int plaintext_len, int pad_long )
+                              int length_selector )
 {
     /*
      * Test record decryption for CBC without EtM, focused on the verification
@@ -3464,13 +3464,21 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
      * and either AES, ARIA, Camellia or DES, but since the test framework
      * doesn't support alternation in dependency statements, just depend on
      * TLS 1.2 and AES.
+     *
+     * The length_selector argument is interpreted as follows:
+     * - if it's -1, the plaintext length is 0 and minimal padding is applied
+     * - if it's -2, the plaintext length is 0 and maximal padding is applied
+     * - otherwise it must be in [0, 255] and is padding_length from RFC 5246:
+     *   it's the length of the rest of the padding, that is, excluding the
+     *   byte that encodes the length. The minimal non-zero plaintext length
+     *   that gives this padding_length is automatically selected.
      */
     mbedtls_ssl_context ssl; /* ONLY for debugging */
     mbedtls_ssl_transform t0, t1;
     mbedtls_record rec, rec_save;
     unsigned char *buf = NULL, *buf_save = NULL;
     size_t buflen, olen = 0;
-    size_t block_size, i;
+    size_t plaintext_len, block_size, i;
     unsigned char padlen;
     unsigned char add_data[13];
     unsigned char mac[MBEDTLS_MD_MAX_SIZE];
@@ -3487,13 +3495,27 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
                                    MBEDTLS_SSL_MINOR_VERSION_3,
                                    0 , 0 ) == 0 );
 
-    /* Determine padding length */
+    /* Determine padding/plaintext length */
+    TEST_ASSERT( length_selector >= -2 && length_selector <= 255 );
     block_size = t0.ivlen;
-    padlen = block_size - ( plaintext_len + t0.maclen + 1 ) % block_size;
-    if( padlen == block_size )
-        padlen = 0;
-    if( pad_long )
-        padlen += block_size * ( ( pad_max_len - padlen ) / block_size );
+    if( length_selector < 0 )
+    {
+        plaintext_len = 0;
+
+        /* Minimal padding */
+        padlen = block_size - ( t0.maclen + 1 ) % block_size;
+
+        /* Maximal padding? */
+        if( length_selector == -2 )
+            padlen += block_size * ( ( pad_max_len - padlen ) / block_size );
+    }
+    else
+    {
+        padlen = length_selector;
+
+        /* Minimal non-zero plaintext_length givin desired padding */
+        plaintext_len = block_size - ( padlen + t0.maclen + 1 ) % block_size;
+    }
 
     /* Prepare a buffer for record data */
     buflen = block_size

@@ -97,15 +97,15 @@
 /****************************************************************/
 
 /* Return the exact bit size given a curve family and a byte length. */
-static size_t ecc_curve_bits( psa_ecc_curve_t curve, size_t data_length )
+static size_t ecc_curve_bits( psa_ecc_family_t curve, size_t data_length )
 {
     switch( curve )
     {
-        case PSA_ECC_CURVE_SECP_R1:
+        case PSA_ECC_FAMILY_SECP_R1:
             if( data_length == PSA_BYTES_TO_BITS( 521 ) )
                 return( 521 );
             break;
-        case PSA_ECC_CURVE_MONTGOMERY:
+        case PSA_ECC_FAMILY_MONTGOMERY:
             if( data_length == PSA_BYTES_TO_BITS( 255 ) )
                 return( 255 );
     }
@@ -327,7 +327,7 @@ static psa_status_t ram_import( psa_drv_se_context_t *context,
         *bits = PSA_BYTES_TO_BITS( data_length );
     else if ( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( type ) )
     {
-        *bits = ecc_curve_bits( PSA_KEY_TYPE_GET_CURVE( type ), data_length );
+        *bits = ecc_curve_bits( PSA_KEY_TYPE_ECC_GET_FAMILY( type ), data_length );
         if( *bits == 0 )
             return( PSA_ERROR_DETECTED_BY_DRIVER );
     }

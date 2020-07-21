@@ -414,11 +414,11 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
 
 /** Custom Diffie-Hellman group.
  *
- * For keys of type #PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_GROUP_CUSTOM) or
- * #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_GROUP_CUSTOM), the group data comes
+ * For keys of type #PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_FAMILY_CUSTOM) or
+ * #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_FAMILY_CUSTOM), the group data comes
  * from domain parameters set by psa_set_key_domain_parameters().
  */
-#define PSA_DH_GROUP_CUSTOM             ((psa_dh_group_t) 0x7e)
+#define PSA_DH_FAMILY_CUSTOM             ((psa_dh_family_t) 0x7e)
 
 
 /**
@@ -448,8 +448,8 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  *   }
  *   ```
  * - For Diffie-Hellman key exchange keys
- *   (#PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_GROUP_CUSTOM) or
- *   #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_GROUP_CUSTOM)), the
+ *   (#PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_FAMILY_CUSTOM) or
+ *   #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_FAMILY_CUSTOM)), the
  *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
  *   ```
  *   DomainParameters ::= SEQUENCE {
@@ -575,53 +575,53 @@ psa_status_t psa_get_key_domain_parameters(
  * \param[out] bits     On success, the bit size of the curve.
  *
  * \return              The corresponding PSA elliptic curve identifier
- *                      (`PSA_ECC_CURVE_xxx`).
+ *                      (`PSA_ECC_FAMILY_xxx`).
  * \return              \c 0 on failure (\p grpid is not recognized).
  */
-static inline psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid,
+static inline psa_ecc_family_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid,
                                                         size_t *bits )
 {
     switch( grpid )
     {
         case MBEDTLS_ECP_DP_SECP192R1:
             *bits = 192;
-            return( PSA_ECC_CURVE_SECP_R1 );
+            return( PSA_ECC_FAMILY_SECP_R1 );
         case MBEDTLS_ECP_DP_SECP224R1:
             *bits = 224;
-            return( PSA_ECC_CURVE_SECP_R1 );
+            return( PSA_ECC_FAMILY_SECP_R1 );
         case MBEDTLS_ECP_DP_SECP256R1:
             *bits = 256;
-            return( PSA_ECC_CURVE_SECP_R1 );
+            return( PSA_ECC_FAMILY_SECP_R1 );
         case MBEDTLS_ECP_DP_SECP384R1:
             *bits = 384;
-            return( PSA_ECC_CURVE_SECP_R1 );
+            return( PSA_ECC_FAMILY_SECP_R1 );
         case MBEDTLS_ECP_DP_SECP521R1:
             *bits = 521;
-            return( PSA_ECC_CURVE_SECP_R1 );
+            return( PSA_ECC_FAMILY_SECP_R1 );
         case MBEDTLS_ECP_DP_BP256R1:
             *bits = 256;
-            return( PSA_ECC_CURVE_BRAINPOOL_P_R1 );
+            return( PSA_ECC_FAMILY_BRAINPOOL_P_R1 );
         case MBEDTLS_ECP_DP_BP384R1:
             *bits = 384;
-            return( PSA_ECC_CURVE_BRAINPOOL_P_R1 );
+            return( PSA_ECC_FAMILY_BRAINPOOL_P_R1 );
         case MBEDTLS_ECP_DP_BP512R1:
             *bits = 512;
-            return( PSA_ECC_CURVE_BRAINPOOL_P_R1 );
+            return( PSA_ECC_FAMILY_BRAINPOOL_P_R1 );
         case MBEDTLS_ECP_DP_CURVE25519:
             *bits = 255;
-            return( PSA_ECC_CURVE_MONTGOMERY );
+            return( PSA_ECC_FAMILY_MONTGOMERY );
         case MBEDTLS_ECP_DP_SECP192K1:
             *bits = 192;
-            return( PSA_ECC_CURVE_SECP_K1 );
+            return( PSA_ECC_FAMILY_SECP_K1 );
         case MBEDTLS_ECP_DP_SECP224K1:
             *bits = 224;
-            return( PSA_ECC_CURVE_SECP_K1 );
+            return( PSA_ECC_FAMILY_SECP_K1 );
         case MBEDTLS_ECP_DP_SECP256K1:
             *bits = 256;
-            return( PSA_ECC_CURVE_SECP_K1 );
+            return( PSA_ECC_FAMILY_SECP_K1 );
         case MBEDTLS_ECP_DP_CURVE448:
             *bits = 448;
-            return( PSA_ECC_CURVE_MONTGOMERY );
+            return( PSA_ECC_FAMILY_MONTGOMERY );
         default:
             *bits = 0;
             return( 0 );
@@ -634,7 +634,7 @@ static inline psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grp
  *       Mbed TLS and may be removed at any time without notice.
  *
  * \param curve         A PSA elliptic curve identifier
- *                      (`PSA_ECC_CURVE_xxx`).
+ *                      (`PSA_ECC_FAMILY_xxx`).
  * \param byte_length   The byte-length of a private key on \p curve.
  *
  * \return              The corresponding Mbed TLS elliptic curve identifier
@@ -643,7 +643,7 @@ static inline psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grp
  * \return              #MBEDTLS_ECP_DP_NONE if \p byte_length is not
  *                      correct for \p curve.
  */
-mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
+mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
                                                size_t byte_length );
 #endif /* MBEDTLS_ECP_C */
 

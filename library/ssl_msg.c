@@ -1066,10 +1066,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) && \
-    ( defined(MBEDTLS_SSL_PROTO_TLS1) ||        \
-      defined(MBEDTLS_SSL_PROTO_TLS1_1) ||      \
-      defined(MBEDTLS_SSL_PROTO_TLS1_2) )
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
 /*
  * Constant-flow conditional memcpy:
  *  - if c1 == c2, equivalent to memcpy(dst, src, len),
@@ -1182,7 +1179,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ssl_cf_hmac(
     mbedtls_md_free( &aux );
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC && TLS 1.0-1.2 */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 
 int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                              mbedtls_ssl_transform *transform,

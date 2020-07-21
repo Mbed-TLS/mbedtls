@@ -2562,7 +2562,6 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     /* Not using more secure mbedtls_platform_memcpy as cid is public */
     memcpy( rec->cid, transform->out_cid, transform->out_cid_len );
     MBEDTLS_SSL_DEBUG_BUF( 3, "CID", rec->cid, rec->cid_len );
-
     if( rec->cid_len != 0 )
     {
         int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
@@ -11221,8 +11220,6 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
 {
     int ret = mbedtls_ssl_get_max_out_record_payload( ssl );
     const size_t max_len = (size_t) ret;
-    volatile const unsigned char *buf_dup = buf;
-    volatile size_t len_dup = len;
 
     if( ret < 0 )
     {
@@ -11245,7 +11242,6 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS)
         {
             len = max_len;
-            len_dup = len;
         }
 #endif
     }
@@ -11271,22 +11267,40 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
          * copy the data into the internal buffers and setup the data structure
          * to keep track of partial writes
          */
-        ssl->out_msglen  = len;
+        ssl->out_msglen = len;
         ssl->out_msgtype = MBEDTLS_SSL_MSG_APPLICATION_DATA;
-        mbedtls_platform_memcpy( ssl->out_msg, buf, len );
+        mbedtls_platform_memcpy(ssl->out_msg, buf, len);
 
-        if( ( ret = mbedtls_ssl_write_record( ssl, SSL_FORCE_FLUSH ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
-            return( ret );
+#if defined(MBEDTLS_FI_COUNTERMEASURES) && !defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
+        /* Secure against buffer substitution */
+        if (buf == ssl->out_msg_dup &&
+            ssl->out_msglen == ssl->out_msglen_dup &&
+            ssl->out_msg_dup[0] == ssl->out_msg[0])
+        {/*write record only if data was copied from correct user pointer */
+#endif
+            if ((ret = mbedtls_ssl_write_record(ssl, SSL_FORCE_FLUSH)) != 0)
+            {
+                MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_record", ret);
+                return(ret);
+            }
+
+#if defined(MBEDTLS_FI_COUNTERMEASURES) && !defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
         }
+        else
+        {
+            return(MBEDTLS_ERR_PLATFORM_FAULT_DETECTED);
+        }
+#endif
     }
-    /* Secure against buffer substitution */
-    if( buf_dup == buf && len_dup == len )
+    if (ret == 0)
     {
-        return( (int) len );
+        return((int)len);
     }
-    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    else
+    {
+        return(MBEDTLS_ERR_PLATFORM_FAULT_DETECTED);
+    }
+
 }
 
 /*
@@ -11334,10 +11348,11 @@ static int ssl_write_split( mbedtls_ssl_context *ssl,
  */
 int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+#if defined(MBEDTLS_FI_COUNTERMEASURES) && !defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     volatile const unsigned char *buf_dup = buf;
     volatile size_t len_dup = len;
-
+#endif
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write" ) );
 
     if( ssl == NULL || ssl->conf == NULL )
@@ -11363,17 +11378,19 @@ int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     ret = ssl_write_split( ssl, buf, len );
 #else
+#if defined(MBEDTLS_FI_COUNTERMEASURES)
+    /*Add const user pointers to context. We will be able to check its validity before copy to context*/
+    ssl->out_msg_dup = (unsigned char*)buf_dup;
+    ssl->out_msglen_dup = len_dup;
+#endif //MBEDTLS_FI_COUNTERMEASURES
     ret = ssl_write_real( ssl, buf, len );
 #endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write" ) );
 
-    /* Secure against buffer substitution */
-    if( buf_dup == buf && len_dup == len )
-    {
-        return( ret );
-    }
-    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+
+    return( ret );
+
 }
 
 /*

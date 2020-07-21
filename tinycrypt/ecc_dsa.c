@@ -204,10 +204,6 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	bitcount_t i;
 	bitcount_t flow_control;
 	volatile uECC_word_t diff;
-	volatile const uint8_t *public_key_dup = public_key;
-	volatile const uint8_t *message_hash_dup = message_hash;
-	volatile unsigned hash_size_dup = hash_size;
-	volatile const uint8_t *signature_dup = signature;
 
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 	uECC_word_t r[NUM_ECC_WORDS], s[NUM_ECC_WORDS];
@@ -309,10 +305,6 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 		 * 1 (base value) + num_bits - 1 (from the loop) + 5 incrementations.
 		 */
 		if (diff == 0 && flow_control == (num_bits + 5)) {
-			if (public_key_dup != public_key || message_hash_dup != message_hash ||
-				hash_size_dup != hash_size || signature_dup != signature) {
-				return UECC_FAULT_DETECTED;
-			}
 			return UECC_SUCCESS;
 		}
 		else {

@@ -3295,6 +3295,9 @@ cleanup:
 
 #if defined(MBEDTLS_SELF_TEST)
 
+/* Adjust the exponent to be a valid private point for the specified curve.
+ * This is sometimes necessary because we use a single set of exponents
+ * for all curves but the validity of values depends on the curve. */
 static int self_test_adjust_exponent( const mbedtls_ecp_group *grp,
                                       mbedtls_mpi *m )
 {
@@ -3328,11 +3331,13 @@ cleanup:
     return( ret );
 }
 
+/* Calculate R = m.P for each m in exponents. Check that the number of
+ * basic operations doesn't depend on the value of m. */
 static int self_test_point( int verbose,
                             mbedtls_ecp_group *grp,
                             mbedtls_ecp_point *R,
                             mbedtls_mpi *m,
-                            mbedtls_ecp_point *P,
+                            const mbedtls_ecp_point *P,
                             const char *const *exponents,
                             size_t n_exponents )
 {
@@ -3407,6 +3412,9 @@ int mbedtls_ecp_self_test( int verbose )
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
     const char *m_exponents[] =
     {
+        /* Valid private values for Curve25519. In a build with Curve448
+         * but not Curve25519, they will be adjusted in
+         * self_test_adjust_exponent(). */
         "4000000000000000000000000000000000000000000000000000000000000000",
         "5C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C30",
         "5715ECCE24583F7A7023C24164390586842E816D7280A49EF6DF4EAE6B280BF8",

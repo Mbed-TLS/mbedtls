@@ -1423,6 +1423,10 @@ cleanup:
 /*
  * Populate a session structure for serialization tests.
  * Choose dummy values, mostly non-0 to distinguish from the init default.
+ *
+ * Call mbedtls_test_calloc_wrapper() to allocate substructures of session,
+ * to match the way they will be freed (mbedtls_free() called inside
+ * mbedtls_ssl_session_free()).
  */
 static int ssl_populate_session( mbedtls_ssl_session *session,
                                  int ticket_len,
@@ -1450,7 +1454,8 @@ static int ssl_populate_session( mbedtls_ssl_session *session,
 
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
         /* Move temporary CRT. */
-        session->peer_cert = mbedtls_calloc( 1, sizeof( *session->peer_cert ) );
+        session->peer_cert =
+            mbedtls_test_calloc_wrapper( 1, sizeof( *session->peer_cert ) );
         if( session->peer_cert == NULL )
             return( -1 );
         *session->peer_cert = tmp_crt;
@@ -1458,7 +1463,7 @@ static int ssl_populate_session( mbedtls_ssl_session *session,
 #else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
         /* Calculate digest of temporary CRT. */
         session->peer_cert_digest =
-            mbedtls_calloc( 1, MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN );
+            mbedtls_test_calloc_wrapper( 1, MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN );
         if( session->peer_cert_digest == NULL )
             return( -1 );
         ret = mbedtls_md( mbedtls_md_info_from_type(
@@ -1483,7 +1488,7 @@ static int ssl_populate_session( mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
     if( ticket_len != 0 )
     {
-        session->ticket = mbedtls_calloc( 1, ticket_len );
+        session->ticket = mbedtls_test_calloc_wrapper( 1, ticket_len );
         if( session->ticket == NULL )
             return( -1 );
         memset( session->ticket, 33, ticket_len );

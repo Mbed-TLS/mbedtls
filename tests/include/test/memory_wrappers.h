@@ -46,7 +46,10 @@
  * Note that you must also arrange for this header to be included in
  * the configuration file, so that the functions are declared.
  *
- * These wrappers are not meant to be enabled when compiling test code.
+ * This wrapper is not meant to be enabled when compiling test code.
+ * However test code must use this wrapper when allocating memory
+ * that will be freed by a call to mbedtls_free() inside the library.
+ *
  * The typical way to enable the memory wrappers are:
  * - Compile the library with `MBEDTLS_CONFIG_FILE` set to
  *   `"tests/configs/config-wrapper-test-memory.h"`.
@@ -58,6 +61,10 @@ void *mbedtls_test_calloc_wrapper( size_t n, size_t size );
  *
  * This wrapper must be used in conjunction with mbedtls_test_free_wrapper().
  * See the documentation of this function for details.
+ *
+ * This wrapper is not meant to be enabled when compiling test code.
+ * However test code must use this wrapper when free memory
+ * that has been allocated by a call to mbedtls_calloc() inside the library.
  */
 void mbedtls_test_free_wrapper( void *ptr );
 

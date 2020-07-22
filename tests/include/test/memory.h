@@ -63,11 +63,18 @@ void mbedtls_test_memory_teardown( void );
 void mbedtls_test_memory_get_stats( size_t *allocations, size_t *bytes,
                                         size_t *failed, size_t *leaks );
 
+#include "memory_wrappers.h"
+
 #else /* MBEDTLS_TEST_MEMORY_WRAPPERS */
 
 /* If the wrappers are disabled, define hooks that do nothing. */
 #define mbedtls_test_memory_setup( ) ( (void) 0 )
 #define mbedtls_test_memory_teardown( ) ( (void) 0 )
+
+/* Make the wrappers available for the sake of the few test cases that
+ * allocate memory that is freed in library code or vice versa. */
+#define mbedtls_test_calloc_wrapper( n, size ) mbedtls_calloc( n, size )
+#define mbedtls_test_free_wrapper( ptr ) mbedtls_free( ptr )
 
 #endif /* MBEDTLS_TEST_MEMORY_WRAPPERS */
 

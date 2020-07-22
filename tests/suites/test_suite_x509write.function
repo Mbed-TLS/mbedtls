@@ -347,7 +347,8 @@ exit:
     {
         parsed_prv = parsed_cur;
         parsed_cur = parsed_cur->next;
-        mbedtls_free( parsed_prv );
+        /* Allocated in mbedtls_x509_get_name() */
+        mbedtls_test_free_wrapper( parsed_prv );
     }
 }
 /* END_CASE */

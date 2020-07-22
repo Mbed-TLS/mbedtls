@@ -1140,7 +1140,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ssl_cf_hmac(
     /* TLS 1.0-1.2 only support SHA-384, SHA-256, SHA-1, MD-5,
      * all of which have the same block size except SHA-384. */
     const size_t block_size = md_alg == MBEDTLS_MD_SHA384 ? 128 : 64;
-    const unsigned char * const ikey = (unsigned char *) ctx->hmac_ctx;
+    const unsigned char * const ikey = ctx->hmac_ctx;
     const unsigned char * const okey = ikey + block_size;
     const size_t hash_size = mbedtls_md_get_size( ctx->md_info );
 

@@ -3479,7 +3479,7 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
     unsigned char *buf = NULL, *buf_save = NULL;
     size_t buflen, olen = 0;
     size_t plaintext_len, block_size, i;
-    unsigned char padlen;
+    unsigned char padlen; /* excluding the padding_length byte */
     unsigned char add_data[13];
     unsigned char mac[MBEDTLS_MD_MAX_SIZE];
     int exp_ret;
@@ -3502,7 +3502,8 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
     {
         plaintext_len = 0;
 
-        /* Minimal padding */
+        /* Minimal padding
+         * The +1 is for the padding_length byte, not counted in padlen. */
         padlen = block_size - ( t0.maclen + 1 ) % block_size;
 
         /* Maximal padding? */
@@ -3513,7 +3514,8 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
     {
         padlen = length_selector;
 
-        /* Minimal non-zero plaintext_length givin desired padding */
+        /* Minimal non-zero plaintext_length giving desired padding.
+         * The +1 is for the padding_length byte, not counted in padlen. */
         plaintext_len = block_size - ( padlen + t0.maclen + 1 ) % block_size;
     }
 

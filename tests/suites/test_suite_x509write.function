@@ -187,6 +187,7 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
 exit:
     mbedtls_x509write_csr_free( &req );
     mbedtls_pk_free( &key );
+    mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
 

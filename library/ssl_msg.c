@@ -1147,7 +1147,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ssl_cf_hmac(
     unsigned char aux_out[MBEDTLS_MD_MAX_SIZE];
     mbedtls_md_context_t aux;
     size_t offset;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     mbedtls_md_init( &aux );
 

@@ -105,7 +105,7 @@ int mbedtls_internal_ecp_init( const mbedtls_ecp_group *grp );
  */
 void mbedtls_internal_ecp_free( const mbedtls_ecp_group *grp );
 
-#if defined(ECP_SHORTWEIERSTRASS)
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 
 #if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT)
 /**
@@ -245,9 +245,9 @@ int mbedtls_internal_ecp_normalize_jac( const mbedtls_ecp_group *grp,
         mbedtls_ecp_point *pt );
 #endif
 
-#endif /* ECP_SHORTWEIERSTRASS */
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
-#if defined(ECP_MONTGOMERY)
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 
 #if defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT)
 int mbedtls_internal_ecp_double_add_mxz( const mbedtls_ecp_group *grp,
@@ -291,7 +291,7 @@ int mbedtls_internal_ecp_normalize_mxz( const mbedtls_ecp_group *grp,
         mbedtls_ecp_point *P );
 #endif
 
-#endif /* ECP_MONTGOMERY */
+#endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 

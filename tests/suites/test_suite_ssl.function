@@ -4103,7 +4103,7 @@ void ssl_cf_hmac( int hash )
         test_set_step( max_in_len * 10000 );
 
         /* Use allocated in buffer to catch overreads */
-        ASSERT_ALLOC( data, max_in_len != 0 ? max_in_len : 1 );
+        ASSERT_ALLOC( data, max_in_len );
 
         min_in_len = max_in_len > 255 ? max_in_len - 255 : 0;
         for( in_len = min_in_len; in_len <= max_in_len; in_len++ )

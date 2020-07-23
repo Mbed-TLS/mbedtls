@@ -330,7 +330,7 @@ typedef struct
     psa_key_type_t type;
     psa_key_bits_t bits;
     psa_key_lifetime_t lifetime;
-    psa_key_id_t id;
+    psa_key_file_id_t id;
     psa_key_policy_t policy;
     psa_key_attributes_flag_t flags;
 } psa_core_key_attributes_t;
@@ -360,14 +360,14 @@ static inline struct psa_key_attributes_s psa_key_attributes_init( void )
 }
 
 static inline void psa_set_key_id(psa_key_attributes_t *attributes,
-                                  psa_key_id_t id)
+                                  psa_key_file_id_t key)
 {
-    attributes->core.id = id;
+    attributes->core.id = key;
     if( attributes->core.lifetime == PSA_KEY_LIFETIME_VOLATILE )
         attributes->core.lifetime = PSA_KEY_LIFETIME_PERSISTENT;
 }
 
-static inline psa_key_id_t psa_get_key_id(
+static inline psa_key_file_id_t psa_get_key_id(
     const psa_key_attributes_t *attributes)
 {
     return( attributes->core.id );

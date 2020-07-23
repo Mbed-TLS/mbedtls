@@ -394,7 +394,7 @@ psa_status_t psa_load_persistent_key( psa_core_key_attributes_t *attr,
     psa_status_t status = PSA_SUCCESS;
     uint8_t *loaded_data;
     size_t storage_data_length = 0;
-    psa_key_id_t key = attr->id;
+    psa_key_file_id_t key = attr->id;
 
     status = psa_crypto_storage_get_data_length( key, &storage_data_length );
     if( status != PSA_SUCCESS )

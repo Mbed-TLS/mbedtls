@@ -204,7 +204,7 @@ psa_status_t psa_validate_key_location( psa_key_lifetime_t lifetime,
 }
 
 psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime,
-                                           psa_key_id_t key_id )
+                                           psa_key_file_id_t key )
 {
     if ( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
     {
@@ -215,19 +215,19 @@ psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime,
     {
         /* Persistent keys require storage support */
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-        if( psa_is_key_id_valid( key_id,
+        if( psa_is_key_id_valid( key,
                                  psa_key_lifetime_is_external( lifetime ) ) )
             return( PSA_SUCCESS );
         else
             return( PSA_ERROR_INVALID_ARGUMENT );
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
-        (void) key_id;
+        (void) key;
         return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* !MBEDTLS_PSA_CRYPTO_STORAGE_C */
     }
 }
 
-psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
+psa_status_t psa_open_key( psa_key_file_id_t key, psa_key_handle_t *handle )
 {
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     psa_status_t status;
@@ -235,7 +235,7 @@ psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
 
     *handle = 0;
 
-    if( ! psa_is_key_id_valid( id, 1 ) )
+    if( ! psa_is_key_id_valid( key, 1 ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_get_empty_key_slot( handle, &slot );
@@ -243,7 +243,7 @@ psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
         return( status );
 
     slot->attr.lifetime = PSA_KEY_LIFETIME_PERSISTENT;
-    slot->attr.id = id;
+    slot->attr.id = key;
 
     status = psa_load_persistent_key_into_slot( slot );
     if( status != PSA_SUCCESS )
@@ -254,7 +254,7 @@ psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
     return( status );
 
 #else /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
-    (void) id;
+    (void) key;
     *handle = 0;
     return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */

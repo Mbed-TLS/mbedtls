@@ -233,7 +233,7 @@ int check_key_attributes_sanity( psa_key_handle_t key )
     int ok = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_lifetime_t lifetime;
-    psa_key_id_t id;
+    psa_key_file_id_t id;
     psa_key_type_t type;
     psa_key_type_t bits;
 
@@ -1326,7 +1326,7 @@ void attributes_set_get( int id_arg, int lifetime_arg,
                          int type_arg, int bits_arg )
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_id_t id = id_arg;
+    psa_key_file_id_t id = psa_key_file_id_make( 1, id_arg );
     psa_key_lifetime_t lifetime = lifetime_arg;
     psa_key_usage_t usage_flags = usage_flags_arg;
     psa_algorithm_t alg = alg_arg;
@@ -1370,10 +1370,10 @@ void persistence_attributes( int id1_arg, int lifetime_arg, int id2_arg,
                              int expected_id_arg, int expected_lifetime_arg )
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_id_t id1 = id1_arg;
+    psa_key_file_id_t id1 = psa_key_file_id_make( 1, id1_arg );
     psa_key_lifetime_t lifetime = lifetime_arg;
-    psa_key_id_t id2 = id2_arg;
-    psa_key_id_t expected_id = expected_id_arg;
+    psa_key_file_id_t id2 = psa_key_file_id_make( 1, id2_arg );
+    psa_key_file_id_t expected_id = psa_key_file_id_make( 1, expected_id_arg );
     psa_key_lifetime_t expected_lifetime = expected_lifetime_arg;
 
     if( id1_arg != -1 )
@@ -5584,7 +5584,7 @@ void persistent_key_load_key_from_storage( data_t *data,
                                            int usage_flags_arg, int alg_arg,
                                            int generation_method )
 {
-    psa_key_id_t key_id = 1;
+    psa_key_file_id_t key_id = psa_key_file_id_make( 1, 1 );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_handle_t handle = 0;
     psa_key_handle_t base_key = 0;

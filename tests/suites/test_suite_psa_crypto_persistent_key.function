@@ -112,7 +112,7 @@ exit:
 /* BEGIN_CASE */
 void save_large_persistent_key( int data_length_arg, int expected_status )
 {
-    psa_key_id_t key_id = 42;
+    psa_key_file_id_t key_id = psa_key_file_id_make( 1, 42 );
     psa_key_handle_t handle = 0;
     uint8_t *data = NULL;
     size_t data_length = data_length_arg;
@@ -143,7 +143,7 @@ void persistent_key_destroy( int key_id_arg, int restart,
                              int first_type_arg, data_t *first_data,
                              int second_type_arg, data_t *second_data )
 {
-    psa_key_id_t key_id = key_id_arg;
+    psa_key_file_id_t key_id = psa_key_file_id_make( 1, key_id_arg );
     psa_key_handle_t handle = 0;
     psa_key_type_t first_type = (psa_key_type_t) first_type_arg;
     psa_key_type_t second_type = (psa_key_type_t) second_type_arg;
@@ -196,7 +196,7 @@ exit:
 void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
                             int restart, int expected_status )
 {
-    psa_key_id_t key_id = (psa_key_id_t) key_id_arg;
+    psa_key_file_id_t key_id = psa_key_file_id_make( 1, key_id_arg );
     psa_key_type_t type = (psa_key_type_t) type_arg;
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -245,7 +245,7 @@ void import_export_persistent_key( data_t *data, int type_arg,
                                    int expected_bits,
                                    int restart, int key_not_exist )
 {
-    psa_key_id_t key_id = 42;
+    psa_key_file_id_t key_id = psa_key_file_id_make( 1, 42 );
     psa_key_type_t type = (psa_key_type_t) type_arg;
     psa_key_handle_t handle = 0;
     unsigned char *exported = NULL;

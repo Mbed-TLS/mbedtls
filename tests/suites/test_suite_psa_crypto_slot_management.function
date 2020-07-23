@@ -34,11 +34,11 @@ typedef enum
  * code. */
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-static psa_key_id_t key_ids_used_in_test[9];
+static psa_key_file_id_t key_ids_used_in_test[9];
 static size_t num_key_ids_used;
 
 /* Record a key id as potentially used in a test case. */
-static int test_uses_key_id( psa_key_id_t key_id )
+static int test_uses_key_id( psa_key_file_id_t key_id )
 {
     size_t i;
     if( key_id > PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
@@ -178,7 +178,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
                                 int close_method_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
-    psa_key_id_t id = id_arg;
+    psa_key_file_id_t id = psa_key_file_id_make( 1, id_arg );
     psa_algorithm_t alg = alg_arg;
     psa_algorithm_t alg2 = alg2_arg;
     psa_key_usage_t usage_flags = usage_arg;
@@ -296,7 +296,7 @@ void create_existent( int lifetime_arg, int id_arg,
                       int reopen_policy_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
-    psa_key_id_t id = id_arg;
+    psa_key_file_id_t id = psa_key_file_id_make( 1, id_arg );
     psa_key_handle_t handle1 = 0, handle2 = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t type1 = PSA_KEY_TYPE_RAW_DATA;
@@ -363,7 +363,7 @@ exit:
 void open_fail( int id_arg,
                 int expected_status_arg )
 {
-    psa_key_id_t id = id_arg;
+    psa_key_file_id_t id = psa_key_file_id_make( 1, id_arg );
     psa_status_t expected_status = expected_status_arg;
     psa_key_handle_t handle = 0xdead;
 
@@ -382,7 +382,7 @@ void create_fail( int lifetime_arg, int id_arg,
                   int expected_status_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
-    psa_key_id_t id = id_arg;
+    psa_key_file_id_t id = psa_key_file_id_make( 1, id_arg );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t expected_status = expected_status_arg;
     psa_key_handle_t handle = 0xdead;
@@ -420,14 +420,14 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
                             int expected_alg_arg, int expected_alg2_arg )
 {
     psa_key_lifetime_t source_lifetime = source_lifetime_arg;
-    psa_key_id_t source_id = source_id_arg;
+    psa_key_file_id_t source_id = psa_key_file_id_make( 1, source_id_arg );
     psa_key_usage_t source_usage = source_usage_arg;
     psa_algorithm_t source_alg = source_alg_arg;
     psa_key_handle_t source_handle = 0;
     psa_key_attributes_t source_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t source_type = type_arg;
     psa_key_lifetime_t target_lifetime = target_lifetime_arg;
-    psa_key_id_t target_id = target_id_arg;
+    psa_key_file_id_t target_id = psa_key_file_id_make( 1, target_id_arg );
     psa_key_usage_t target_usage = target_usage_arg;
     psa_algorithm_t target_alg = target_alg_arg;
     psa_key_handle_t target_handle = 0;
@@ -534,13 +534,13 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
                        int target_type_arg, data_t *target_material )
 {
     psa_key_lifetime_t source_lifetime = source_lifetime_arg;
-    psa_key_id_t source_id = source_id_arg;
+    psa_key_file_id_t source_id = psa_key_file_id_make( 1, source_id_arg );
     psa_key_usage_t source_usage = source_usage_arg;
     psa_algorithm_t source_alg = source_alg_arg;
     psa_key_handle_t source_handle = 0;
     psa_key_type_t source_type = source_type_arg;
     psa_key_lifetime_t target_lifetime = target_lifetime_arg;
-    psa_key_id_t target_id = target_id_arg;
+    psa_key_file_id_t target_id = psa_key_file_id_make( 1, target_id_arg );
     psa_key_usage_t target_usage = target_usage_arg;
     psa_algorithm_t target_alg = target_alg_arg;
     psa_key_handle_t target_handle = 0;

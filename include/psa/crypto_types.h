@@ -37,6 +37,11 @@
 
 #include <stdint.h>
 
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
+#endif
+
 /** \defgroup error Error codes
  * @{
  */
@@ -125,7 +130,7 @@ typedef uint32_t psa_algorithm_t;
  * implementation-specific device management event occurs (for example,
  * a factory reset).
  *
- * Persistent keys have a key identifier of type #psa_key_id_t.
+ * Persistent keys have a key identifier of type #psa_key_file_id_t.
  * This identifier remains valid throughout the lifetime of the key,
  * even if the application instance that created the key terminates.
  * The application can call psa_open_key() to open a persistent key that
@@ -239,6 +244,19 @@ typedef psa_key_id_t psa_key_file_id_t;
 #define PSA_KEY_ID_INIT 0
 #define PSA_KEY_FILE_GET_KEY_ID( id ) ( id )
 
+/** Utility to initialize a key file identifier at runtime.
+ *
+ * \param unused  Unused parameter.
+ * \param key_id  Identifier of the key.
+ */
+static inline psa_key_file_id_t psa_key_file_id_make(
+    unsigned int unused, psa_key_id_t key_id )
+{
+    (void)unused;
+
+    return( key_id );
+}
+
 #else /* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER */
 typedef struct
 {
@@ -246,15 +264,20 @@ typedef struct
     psa_key_owner_id_t owner;
 } psa_key_file_id_t;
 
-/* Since crypto.h is used as part of the PSA Cryptography API specification,
- * it must use standard types for things like the argument of psa_open_key().
- * If it wasn't for that constraint, psa_open_key() would take a
- * `psa_key_file_id_t` argument. As a workaround, make `psa_key_id_t` an
- * alias for `psa_key_file_id_t` when building for a multi-client service. */
-typedef psa_key_file_id_t psa_key_id_t;
-
 #define PSA_KEY_ID_INIT {0, 0}
 #define PSA_KEY_FILE_GET_KEY_ID( file_id ) ( ( file_id ).key_id )
+
+/** Utility to initialize a key file identifier at runtime.
+ *
+ * \param owner_id Identifier of the key owner.
+ * \param key_id   Identifier of the key.
+ */
+static inline psa_key_file_id_t psa_key_file_id_make(
+    psa_key_owner_id_t owner_id, uint32_t key_id )
+{
+    return( (psa_key_file_id_t){ .key_id = key_id,
+                                 .owner = owner_id } );
+}
 
 #endif /* !MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER */
 

@@ -760,13 +760,13 @@ exit:
 #define MAX_KEY_ID_FOR_TEST 10
 static void psa_purge_storage( void )
 {
-    psa_key_id_t id;
+    psa_app_key_id_t id;
     psa_key_location_t location;
     /* The tests may have potentially created key ids from 1 to
      * MAX_KEY_ID_FOR_TEST. In addition, run the destroy function on key id
      * 0, which file-based storage uses as a temporary file. */
     for( id = 0; id <= MAX_KEY_ID_FOR_TEST; id++ )
-        psa_destroy_persistent_key( id );
+        psa_destroy_persistent_key( psa_key_file_id_make( 1, id ) );
     /* Purge the transaction file. */
     psa_crypto_stop_transaction( );
     /* Purge driver persistent data. */
@@ -853,7 +853,7 @@ void key_creation_import_export( int lifetime_arg, int min_slot, int restart )
     psa_drv_se_key_management_t key_management;
     psa_key_lifetime_t lifetime = (psa_key_lifetime_t) lifetime_arg;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
-    psa_key_id_t id = 1;
+    psa_key_file_id_t id = psa_key_file_id_make( 1, 1 );
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
@@ -985,7 +985,7 @@ void key_creation_in_chosen_slot( int slot_arg,
     psa_drv_se_key_management_t key_management;
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
-    psa_key_id_t id = 1;
+    psa_key_file_id_t id = psa_key_file_id_make( 1, 1 );
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
@@ -1067,7 +1067,7 @@ void import_key_smoke( int type_arg, int alg_arg,
     psa_drv_se_key_management_t key_management;
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
-    psa_key_id_t id = 1;
+    psa_key_file_id_t id = psa_key_file_id_make( 1, 1 );
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
@@ -1139,7 +1139,7 @@ void generate_key_not_supported( int type_arg, int bits_arg )
     psa_drv_se_key_management_t key_management;
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
-    psa_key_id_t id = 1;
+    psa_key_file_id_t id = psa_key_file_id_make( 1, 1 );
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
@@ -1178,7 +1178,7 @@ void generate_key_smoke( int type_arg, int bits_arg, int alg_arg )
     psa_drv_se_key_management_t key_management;
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
-    psa_key_id_t id = 1;
+    psa_key_file_id_t id = psa_key_file_id_make( 1, 1 );
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
@@ -1258,7 +1258,7 @@ void sign_verify( int flow,
 
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
-    psa_key_id_t id = 1;
+    psa_key_file_id_t id = psa_key_file_id_make( 1, 1 );
     psa_key_handle_t drv_handle = 0; /* key managed by the driver */
     psa_key_handle_t sw_handle = 0; /* transparent key */
     psa_key_attributes_t sw_attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -1420,7 +1420,7 @@ void register_key_smoke_test( int lifetime_arg,
     psa_drv_se_t driver;
     psa_drv_se_key_management_t key_management;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_id_t id = id_arg;
+    psa_key_file_id_t id = psa_key_file_id_make( 1, id_arg );
     size_t bit_size = 48;
     psa_key_slot_number_t wanted_slot = 0x123456789;
     psa_key_handle_t handle = 0;

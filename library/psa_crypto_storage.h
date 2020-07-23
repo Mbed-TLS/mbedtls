@@ -292,7 +292,7 @@ typedef union
         uint16_t unused1;
         psa_key_lifetime_t lifetime;
         psa_key_slot_number_t slot;
-        psa_key_id_t id;
+        psa_key_file_id_t id;
     } key;
 } psa_crypto_transaction_t;
 
@@ -361,7 +361,7 @@ psa_status_t psa_crypto_stop_transaction( void );
  *
  * 0xffffffNN = special file; 0x74 = 't' for transaction.
  */
-#define PSA_CRYPTO_ITS_TRANSACTION_UID ( (psa_key_id_t) 0xffffff74 )
+#define PSA_CRYPTO_ITS_TRANSACTION_UID ( (psa_app_key_id_t) 0xffffff74 )
 
 #endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
 

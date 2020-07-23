@@ -245,12 +245,12 @@ int check_key_attributes_sanity( psa_key_handle_t key )
 
     /* Persistence */
     if( lifetime == PSA_KEY_LIFETIME_VOLATILE )
-        TEST_ASSERT( id == 0 );
+        TEST_ASSERT( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( id ) == 0 );
     else
     {
         TEST_ASSERT(
-            ( PSA_KEY_ID_USER_MIN <= id && id <= PSA_KEY_ID_USER_MAX ) ||
-            ( PSA_KEY_ID_USER_MIN <= id && id <= PSA_KEY_ID_USER_MAX ) );
+            ( PSA_KEY_ID_USER_MIN <= MBEDTLS_SVC_KEY_ID_GET_KEY_ID( id ) ) &&
+            ( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( id ) <= PSA_KEY_ID_USER_MAX ) );
     }
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* randomly-generated 64-bit constant, should never appear in test data */
@@ -1178,17 +1178,21 @@ static psa_key_usage_t usage_to_exercise( psa_key_type_t type,
 static int test_operations_on_invalid_handle( psa_key_handle_t handle )
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make( 1, 0x6964 );
     uint8_t buffer[1];
     size_t length;
     int ok = 0;
 
-    psa_set_key_id( &attributes, 0x6964 );
+    psa_set_key_id( &attributes, key_id );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
     psa_set_key_algorithm( &attributes, PSA_ALG_CTR );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
     TEST_EQUAL( psa_get_key_attributes( handle, &attributes ),
                 PSA_ERROR_INVALID_HANDLE );
-    TEST_EQUAL( psa_get_key_id( &attributes ), 0 );
+    TEST_EQUAL(
+        MBEDTLS_SVC_KEY_ID_GET_KEY_ID( psa_get_key_id( &attributes ) ), 0 );
+    TEST_EQUAL(
+        MBEDTLS_SVC_KEY_ID_GET_OWNER_ID( psa_get_key_id( &attributes ) ), 0 );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), 0 );
@@ -1333,7 +1337,10 @@ void attributes_set_get( int id_arg, int lifetime_arg,
     psa_key_type_t type = type_arg;
     size_t bits = bits_arg;
 
-    TEST_EQUAL( psa_get_key_id( &attributes ), 0 );
+    TEST_EQUAL(
+        MBEDTLS_SVC_KEY_ID_GET_KEY_ID( psa_get_key_id( &attributes ) ), 0 );
+    TEST_EQUAL(
+        MBEDTLS_SVC_KEY_ID_GET_OWNER_ID( psa_get_key_id( &attributes ) ), 0 );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), 0 );
@@ -1347,7 +1354,8 @@ void attributes_set_get( int id_arg, int lifetime_arg,
     psa_set_key_type( &attributes, type );
     psa_set_key_bits( &attributes, bits );
 
-    TEST_EQUAL( psa_get_key_id( &attributes ), id );
+    TEST_ASSERT( mbedtls_svc_key_id_equal(
+                     psa_get_key_id( &attributes ), id ) );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ), lifetime );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage_flags );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
@@ -1356,7 +1364,10 @@ void attributes_set_get( int id_arg, int lifetime_arg,
 
     psa_reset_key_attributes( &attributes );
 
-    TEST_EQUAL( psa_get_key_id( &attributes ), 0 );
+    TEST_EQUAL(
+        MBEDTLS_SVC_KEY_ID_GET_KEY_ID( psa_get_key_id( &attributes ) ), 0 );
+    TEST_EQUAL(
+        MBEDTLS_SVC_KEY_ID_GET_OWNER_ID( psa_get_key_id( &attributes ) ), 0 );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), 0 );
@@ -1366,15 +1377,19 @@ void attributes_set_get( int id_arg, int lifetime_arg,
 /* END_CASE */
 
 /* BEGIN_CASE */
-void persistence_attributes( int id1_arg, int lifetime_arg, int id2_arg,
-                             int expected_id_arg, int expected_lifetime_arg )
+void persistence_attributes( int id1_arg, int owner_id1_arg, int lifetime_arg,
+                             int id2_arg, int owner_id2_arg,
+                             int expected_id_arg, int expected_owner_id_arg,
+                             int expected_lifetime_arg )
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    mbedtls_svc_key_id_t id1 = mbedtls_svc_key_id_make( 1, id1_arg );
+    mbedtls_svc_key_id_t id1 =
+        mbedtls_svc_key_id_make( owner_id1_arg, id1_arg );
     psa_key_lifetime_t lifetime = lifetime_arg;
-    mbedtls_svc_key_id_t id2 = mbedtls_svc_key_id_make( 1, id2_arg );
+    mbedtls_svc_key_id_t id2 =
+        mbedtls_svc_key_id_make( owner_id2_arg, id2_arg );
     mbedtls_svc_key_id_t expected_id =
-        mbedtls_svc_key_id_make( 1, expected_id_arg );
+        mbedtls_svc_key_id_make( expected_owner_id_arg, expected_id_arg );
     psa_key_lifetime_t expected_lifetime = expected_lifetime_arg;
 
     if( id1_arg != -1 )
@@ -1384,7 +1399,8 @@ void persistence_attributes( int id1_arg, int lifetime_arg, int id2_arg,
     if( id2_arg != -1 )
         psa_set_key_id( &attributes, id2 );
 
-    TEST_EQUAL( psa_get_key_id( &attributes ), expected_id );
+    TEST_ASSERT( mbedtls_svc_key_id_equal(
+                     psa_get_key_id( &attributes ), expected_id ) );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ), expected_lifetime );
 }
 /* END_CASE */
@@ -5677,7 +5693,8 @@ void persistent_key_load_key_from_storage( data_t *data,
     /* Check key slot still contains key data */
     PSA_ASSERT( psa_open_key( key_id, &handle ) );
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
-    TEST_EQUAL( psa_get_key_id( &attributes ), key_id );
+    TEST_ASSERT( mbedtls_svc_key_id_equal(
+                     psa_get_key_id( &attributes ), key_id ) );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ),
                 PSA_KEY_LIFETIME_PERSISTENT );
     TEST_EQUAL( psa_get_key_type( &attributes ), type );

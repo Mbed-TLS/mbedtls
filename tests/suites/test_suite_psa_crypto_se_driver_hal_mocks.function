@@ -91,11 +91,13 @@ static void psa_purge_storage( void )
 {
     psa_key_id_t id;
     psa_key_location_t location;
+
     /* The tests may have potentially created key ids from 1 to
      * MAX_KEY_ID_FOR_TEST. In addition, run the destroy function on key id
      * 0, which file-based storage uses as a temporary file. */
     for( id = 0; id <= MAX_KEY_ID_FOR_TEST; id++ )
         psa_destroy_persistent_key( mbedtls_svc_key_id_make( 1, id ) );
+
     /* Purge the transaction file. */
     psa_crypto_stop_transaction( );
     /* Purge driver persistent data. */
@@ -360,8 +362,20 @@ void mock_import( int mock_alloc_return_value,
     TEST_ASSERT( mock_allocate_data.called == 1 );
     TEST_ASSERT( mock_import_data.called ==
         ( mock_alloc_return_value == PSA_SUCCESS? 1 : 0 ) );
-    TEST_ASSERT( mock_import_data.attributes.core.id ==
-        ( mock_alloc_return_value == PSA_SUCCESS? id : 0 ) );
+
+    if( mock_alloc_return_value == PSA_SUCCESS )
+    {
+        TEST_ASSERT( mbedtls_svc_key_id_equal(
+                         mock_import_data.attributes.core.id, id ) );
+    }
+    else
+    {
+        TEST_ASSERT( MBEDTLS_SVC_KEY_ID_GET_KEY_ID(
+                         mock_import_data.attributes.core.id ) == 0 );
+        TEST_ASSERT( MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(
+                         mock_import_data.attributes.core.id ) == 0 );
+    }
+
     TEST_ASSERT( mock_import_data.attributes.core.lifetime ==
         ( mock_alloc_return_value == PSA_SUCCESS? lifetime : 0 ) );
     TEST_ASSERT( mock_import_data.attributes.core.policy.usage ==
@@ -467,8 +481,20 @@ void mock_generate( int mock_alloc_return_value,
     TEST_ASSERT( mock_allocate_data.called == 1 );
     TEST_ASSERT( mock_generate_data.called ==
         ( mock_alloc_return_value == PSA_SUCCESS? 1 : 0 ) );
-    TEST_ASSERT( mock_generate_data.attributes.core.id ==
-        ( mock_alloc_return_value == PSA_SUCCESS? id : 0 ) );
+
+    if( mock_alloc_return_value == PSA_SUCCESS )
+    {
+        TEST_ASSERT( mbedtls_svc_key_id_equal(
+                         mock_generate_data.attributes.core.id, id ) );
+    }
+    else
+    {
+        TEST_ASSERT( MBEDTLS_SVC_KEY_ID_GET_KEY_ID(
+                         mock_generate_data.attributes.core.id ) == 0 );
+        TEST_ASSERT( MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(
+                         mock_generate_data.attributes.core.id ) == 0 );
+    }
+
     TEST_ASSERT( mock_generate_data.attributes.core.lifetime ==
         ( mock_alloc_return_value == PSA_SUCCESS? lifetime : 0 ) );
     TEST_ASSERT( mock_generate_data.attributes.core.policy.usage ==

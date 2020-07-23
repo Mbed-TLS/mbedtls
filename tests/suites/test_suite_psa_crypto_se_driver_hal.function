@@ -532,8 +532,9 @@ static int check_key_attributes(
 
     PSA_ASSERT( psa_get_key_attributes( handle, &actual_attributes ) );
 
-    TEST_EQUAL( psa_get_key_id( &actual_attributes ),
-                psa_get_key_id( reference_attributes ) );
+    TEST_ASSERT( mbedtls_svc_key_id_equal(
+                     psa_get_key_id( &actual_attributes ),
+                     psa_get_key_id( reference_attributes ) ) );
     TEST_EQUAL( psa_get_key_lifetime( &actual_attributes ),
                 psa_get_key_lifetime( reference_attributes ) );
     TEST_EQUAL( psa_get_key_type( &actual_attributes ),
@@ -762,6 +763,7 @@ static void psa_purge_storage( void )
 {
     psa_key_id_t id;
     psa_key_location_t location;
+
     /* The tests may have potentially created key ids from 1 to
      * MAX_KEY_ID_FOR_TEST. In addition, run the destroy function on key id
      * 0, which file-based storage uses as a temporary file. */

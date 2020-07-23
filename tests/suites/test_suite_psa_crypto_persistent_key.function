@@ -224,7 +224,8 @@ void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
 
     psa_reset_key_attributes( &attributes );
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
-    TEST_EQUAL( psa_get_key_id( &attributes ), key_id );
+    TEST_ASSERT( mbedtls_svc_key_id_equal(
+                     psa_get_key_id( &attributes ), key_id ) );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ),
                 PSA_KEY_LIFETIME_PERSISTENT );
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
@@ -276,7 +277,8 @@ void import_export_persistent_key( data_t *data, int type_arg,
     /* Test the key information */
     psa_reset_key_attributes( &attributes );
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
-    TEST_EQUAL( psa_get_key_id( &attributes ), key_id );
+    TEST_ASSERT( mbedtls_svc_key_id_equal(
+                     psa_get_key_id( &attributes ), key_id ) );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ),
                 PSA_KEY_LIFETIME_PERSISTENT );
     TEST_EQUAL( psa_get_key_type( &attributes ), type );

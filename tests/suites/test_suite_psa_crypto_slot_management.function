@@ -41,14 +41,15 @@ static size_t num_key_ids_used;
 static int test_uses_key_id( mbedtls_svc_key_id_t key_id )
 {
     size_t i;
-    if( key_id > PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
+    if( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key_id ) >
+        PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
     {
         /* Don't touch key id values that designate non-key files. */
         return( 1 );
     }
     for( i = 0; i < num_key_ids_used ; i++ )
     {
-        if( key_id == key_ids_used_in_test[i] )
+        if( mbedtls_svc_key_id_equal( key_id, key_ids_used_in_test[i] ) )
             return( 1 );
     }
     if( num_key_ids_used == ARRAY_LENGTH( key_ids_used_in_test ) )
@@ -206,7 +207,8 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     TEST_ASSERT( handle != 0 );
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ), lifetime );
-    TEST_EQUAL( psa_get_key_id( &attributes ), id );
+    TEST_ASSERT( mbedtls_svc_key_id_equal(
+                     psa_get_key_id( &attributes ), id ) );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage_flags );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
     TEST_EQUAL( psa_get_key_enrollment_algorithm( &attributes ), alg2 );
@@ -217,7 +219,8 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     PSA_ASSERT( psa_open_key( id, &handle ) );
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ), lifetime );
-    TEST_EQUAL( psa_get_key_id( &attributes ), id );
+    TEST_ASSERT( mbedtls_svc_key_id_equal(
+                     psa_get_key_id( &attributes ), id ) );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage_flags );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
     TEST_EQUAL( psa_get_key_enrollment_algorithm( &attributes ), alg2 );
@@ -247,8 +250,9 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
             PSA_ASSERT( psa_get_key_attributes( handle, &read_attributes ) );
             TEST_EQUAL( psa_get_key_lifetime( &attributes ),
                         psa_get_key_lifetime( &read_attributes ) );
-            TEST_EQUAL( psa_get_key_id( &attributes ),
-                        psa_get_key_id( &read_attributes ) );
+            TEST_ASSERT( mbedtls_svc_key_id_equal(
+                             psa_get_key_id( &attributes ),
+                             psa_get_key_id( &read_attributes ) ) );
             TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage_flags );
             TEST_EQUAL( psa_get_key_algorithm( &attributes ),
                         psa_get_key_algorithm( &read_attributes ) );
@@ -338,7 +342,8 @@ void create_existent( int lifetime_arg, int id_arg,
     /* Check that the original key hasn't changed. */
     psa_reset_key_attributes( &attributes );
     PSA_ASSERT( psa_get_key_attributes( handle1, &attributes ) );
-    TEST_EQUAL( psa_get_key_id( &attributes ), id );
+    TEST_ASSERT( mbedtls_svc_key_id_equal(
+                     psa_get_key_id( &attributes ), id ) );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ), lifetime );
     TEST_EQUAL( psa_get_key_type( &attributes ), type1 );
     TEST_EQUAL( psa_get_key_bits( &attributes ), bits1 );
@@ -445,11 +450,9 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Populate the source slot. */
-    if( source_lifetime != PSA_KEY_LIFETIME_VOLATILE )
-    {
-        psa_set_key_id( &source_attributes, source_id );
-        psa_set_key_lifetime( &source_attributes, source_lifetime );
-    }
+    psa_set_key_id( &source_attributes, source_id );
+    psa_set_key_lifetime( &source_attributes, source_lifetime );
+
     psa_set_key_type( &source_attributes, source_type );
     psa_set_key_usage_flags( &source_attributes, source_usage );
     psa_set_key_algorithm( &source_attributes, source_alg );
@@ -461,11 +464,9 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     PSA_ASSERT( psa_get_key_attributes( source_handle, &source_attributes ) );
 
     /* Prepare the target slot. */
-    if( target_lifetime != PSA_KEY_LIFETIME_VOLATILE )
-    {
-        psa_set_key_id( &target_attributes, target_id );
-        psa_set_key_lifetime( &target_attributes, target_lifetime );
-    }
+    psa_set_key_id( &target_attributes, target_id );
+    psa_set_key_lifetime( &target_attributes, target_lifetime );
+
     psa_set_key_usage_flags( &target_attributes, target_usage );
     psa_set_key_algorithm( &target_attributes, target_alg );
     psa_set_key_enrollment_algorithm( &target_attributes, target_alg2_arg );
@@ -489,7 +490,20 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     /* Test that the target slot has the expected content. */
     psa_reset_key_attributes( &target_attributes );
     PSA_ASSERT( psa_get_key_attributes( target_handle, &target_attributes ) );
-    TEST_EQUAL( target_id, psa_get_key_id( &target_attributes ) );
+
+    if( target_lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    {
+        TEST_ASSERT( mbedtls_svc_key_id_equal(
+                         target_id, psa_get_key_id( &target_attributes ) ) );
+    }
+    else
+    {
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+        TEST_EQUAL( MBEDTLS_SVC_KEY_ID_GET_OWNER_ID( target_id ), 1 );
+#endif
+        TEST_EQUAL( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( target_id ), 0 );
+    }
+
     TEST_EQUAL( target_lifetime, psa_get_key_lifetime( &target_attributes ) );
     TEST_EQUAL( source_type, psa_get_key_type( &target_attributes ) );
     TEST_EQUAL( psa_get_key_bits( &source_attributes ),
@@ -574,7 +588,7 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
                                 &source_handle ) );
 
     /* Populate the target slot. */
-    if( target_id == source_id )
+    if( mbedtls_svc_key_id_equal( target_id, source_id ) )
     {
         target_handle = source_handle;
     }
@@ -601,8 +615,9 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
 
     /* Test that the target slot is unaffected. */
     PSA_ASSERT( psa_get_key_attributes( target_handle, &attributes2 ) );
-    TEST_EQUAL( psa_get_key_id( &attributes1 ),
-                psa_get_key_id( &attributes2 ) );
+    TEST_ASSERT( mbedtls_svc_key_id_equal(
+                     psa_get_key_id( &attributes1 ),
+                     psa_get_key_id( &attributes2 ) ) );
     TEST_EQUAL( psa_get_key_lifetime( &attributes1 ),
                 psa_get_key_lifetime( &attributes2 ) );
     TEST_EQUAL( psa_get_key_type( &attributes1 ),

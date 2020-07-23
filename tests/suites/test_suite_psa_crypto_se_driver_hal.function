@@ -760,7 +760,7 @@ exit:
 #define MAX_KEY_ID_FOR_TEST 10
 static void psa_purge_storage( void )
 {
-    psa_app_key_id_t id;
+    psa_key_id_t id;
     psa_key_location_t location;
     /* The tests may have potentially created key ids from 1 to
      * MAX_KEY_ID_FOR_TEST. In addition, run the destroy function on key id

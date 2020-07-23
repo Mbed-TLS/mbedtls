@@ -47,25 +47,6 @@
 /* Integral type representing a key handle. */
 typedef uint16_t psa_key_handle_t;
 
-/* This implementation distinguishes *application key identifiers*, which
- * are the key identifiers specified by the application, from
- * *key file identifiers*, which are the key identifiers that the library
- * sees internally. The two types can be different if there is a remote
- * call layer between the application and the library which supports
- * multiple client applications that do not have access to each others'
- * keys. The point of having different types is that the key file
- * identifier may encode not only the key identifier specified by the
- * application, but also the the identity of the application.
- *
- * Note that this is an internal concept of the library and the remote
- * call layer. The application itself never sees anything other than
- * #psa_app_key_id_t with its standard definition.
- */
-
-/* The application key identifier is always what the application sees as
- * #psa_key_id_t. */
-typedef uint32_t psa_app_key_id_t;
-
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER)
 
 #if defined(PSA_CRYPTO_SECURE)

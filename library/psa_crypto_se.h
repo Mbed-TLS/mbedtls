@@ -51,7 +51,7 @@
  * actually not used since it corresponds to #PSA_KEY_LOCATION_LOCAL_STORAGE
  * which doesn't have a driver.
  */
-#define PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE ( (psa_app_key_id_t) 0xfffffe00 )
+#define PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE ( (psa_key_id_t) 0xfffffe00 )
 
 /** The maximum number of registered secure element driver locations. */
 #define PSA_MAX_SE_DRIVERS 4

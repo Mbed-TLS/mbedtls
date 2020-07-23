@@ -233,14 +233,10 @@ typedef uint32_t psa_key_location_t;
  * - 0 is reserved as an invalid key identifier.
  * - Key identifiers outside these ranges are reserved for future use.
  */
-/* Implementation-specific quirk: The Mbed Crypto library can be built as
- * part of a multi-client service that exposes the PSA Crypto API in each
- * client and encodes the client identity in the key id argument of functions
- * such as psa_open_key(). */
-#if !defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER)
 typedef uint32_t psa_key_id_t;
-typedef psa_key_id_t psa_key_file_id_t;
 
+#if !defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER)
+typedef psa_key_id_t psa_key_file_id_t;
 #define PSA_KEY_ID_INIT 0
 #define PSA_KEY_FILE_GET_KEY_ID( id ) ( id )
 
@@ -258,9 +254,14 @@ static inline psa_key_file_id_t psa_key_file_id_make(
 }
 
 #else /* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER */
+/* Implementation-specific: The Mbed Crypto library can be built as
+ * part of a multi-client service that exposes the PSA Crypto API in each
+ * client and encodes the client identity in the key id argument of functions
+ * such as psa_open_key().
+ */
 typedef struct
 {
-    uint32_t key_id;
+    psa_key_id_t key_id;
     psa_key_owner_id_t owner;
 } psa_key_file_id_t;
 
@@ -273,7 +274,7 @@ typedef struct
  * \param key_id   Identifier of the key.
  */
 static inline psa_key_file_id_t psa_key_file_id_make(
-    psa_key_owner_id_t owner_id, uint32_t key_id )
+    psa_key_owner_id_t owner_id, psa_key_id_t key_id )
 {
     return( (psa_key_file_id_t){ .key_id = key_id,
                                  .owner = owner_id } );

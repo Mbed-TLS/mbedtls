@@ -361,7 +361,7 @@ psa_status_t psa_crypto_stop_transaction( void );
  *
  * 0xffffffNN = special file; 0x74 = 't' for transaction.
  */
-#define PSA_CRYPTO_ITS_TRANSACTION_UID ( (psa_app_key_id_t) 0xffffff74 )
+#define PSA_CRYPTO_ITS_TRANSACTION_UID ( (psa_key_id_t) 0xffffff74 )
 
 #endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
 

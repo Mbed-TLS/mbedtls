@@ -166,7 +166,7 @@ exit:
 static int psa_is_key_id_valid( psa_key_file_id_t file_id,
                                 int vendor_ok )
 {
-    psa_app_key_id_t key_id = PSA_KEY_FILE_GET_KEY_ID( file_id );
+    psa_key_id_t key_id = PSA_KEY_FILE_GET_KEY_ID( file_id );
     if( PSA_KEY_ID_USER_MIN <= key_id && key_id <= PSA_KEY_ID_USER_MAX )
         return( 1 );
     else if( vendor_ok &&
@@ -291,14 +291,14 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
             ++stats->volatile_slots;
         else if( slot->attr.lifetime == PSA_KEY_LIFETIME_PERSISTENT )
         {
-            psa_app_key_id_t id = PSA_KEY_FILE_GET_KEY_ID(slot->attr.id);
+            psa_key_id_t id = PSA_KEY_FILE_GET_KEY_ID(slot->attr.id);
             ++stats->persistent_slots;
             if( id > stats->max_open_internal_key_id )
                 stats->max_open_internal_key_id = id;
         }
         else
         {
-            psa_app_key_id_t id = PSA_KEY_FILE_GET_KEY_ID(slot->attr.id);
+            psa_key_id_t id = PSA_KEY_FILE_GET_KEY_ID(slot->attr.id);
             ++stats->external_slots;
             if( id > stats->max_open_external_key_id )
                 stats->max_open_external_key_id = id;

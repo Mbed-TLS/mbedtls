@@ -1525,8 +1525,21 @@ int mbedtls_mpi_sub_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint 
     return( mbedtls_mpi_sub_mpi( X, A, &_B ) );
 }
 
-/*
- * Helper for mbedtls_mpi multiplication
+/** Helper for mbedtls_mpi multiplication.
+ *
+ * Add \p b * \p s to \p d.
+ *
+ * \param i             The number of limbs of \p s.
+ * \param[in] s         A bignum to multiply, of size \p i.
+ *                      It may overlap with \p d, but only if
+ *                      \p d <= \p s.
+ *                      Its leading limb must not be \c 0.
+ * \param[in,out] d     The bignum to add to.
+ *                      It must be sufficiently large to store the
+ *                      result of the multiplication. This means
+ *                      \p i + 1 limbs if \p d[\p i - 1] started as 0 and \p b
+ *                      is not known a priori.
+ * \param b             A scalar to multiply.
  */
 static
 #if defined(__APPLE__) && defined(__arm__)
@@ -1536,7 +1549,10 @@ static
  */
 __attribute__ ((noinline))
 #endif
-void mpi_mul_hlp( size_t i, mbedtls_mpi_uint *s, mbedtls_mpi_uint *d, mbedtls_mpi_uint b )
+void mpi_mul_hlp( size_t i,
+                  const mbedtls_mpi_uint *s,
+                  mbedtls_mpi_uint *d,
+                  mbedtls_mpi_uint b )
 {
     mbedtls_mpi_uint c = 0, t = 0;
 

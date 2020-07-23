@@ -1676,6 +1676,14 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_uint 
 
     /* Calculate X*b as A + A*(b-1) to take advantage of mpi_mul_hlp */
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    /* In general, A * b requires 1 limb more than b. If
+     * A->p[n - 1] * b / b == A->p[n - 1], then A * b fits in the same
+     * number of limbs as A and the call to grow() is not required since
+     * copy() will take care of the growth. However, experimentally,
+     * making the call to grow() conditional causes slightly fewer
+     * calls to calloc() in ECP code, presumably because it reuses the
+     * same mpi for a while and this way the mpi is more likely to directly
+     * grow to its final size. */
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, n + 1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( X, A ) );
     mpi_mul_hlp( n, A->p, X->p, b - 1 );

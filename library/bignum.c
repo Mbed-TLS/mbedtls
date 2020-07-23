@@ -1658,17 +1658,30 @@ cleanup:
  */
 int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_uint b )
 {
-    mbedtls_mpi _B;
-    mbedtls_mpi_uint p[1];
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( A != NULL );
 
-    _B.s = 1;
-    _B.n = 1;
-    _B.p = p;
-    p[0] = b;
+    /* mpi_mul_hlp can't deal with a leading 0. */
+    size_t n = A->n;
+    while( n > 0 && A->p[n - 1] == 0 )
+        --n;
 
-    return( mbedtls_mpi_mul_mpi( X, A, &_B ) );
+    /* The general method below doesn't work if n==0 or b==0. By chance
+     * calculating the result is trivial in those cases. */
+    if( b == 0 || n == 0 )
+    {
+        mbedtls_mpi_lset( X, 0 );
+        return( 0 );
+    }
+
+    /* Calculate X*b as A + A*(b-1) to take advantage of mpi_mul_hlp */
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, n + 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( X, A ) );
+    mpi_mul_hlp( n, A->p, X->p, b - 1 );
+
+cleanup:
+    return( ret );
 }
 
 /*

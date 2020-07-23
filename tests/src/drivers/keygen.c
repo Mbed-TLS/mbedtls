@@ -25,7 +25,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(MBEDTLS_TEST_HOOKS)
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(MBEDTLS_PSA_CRYPTO_DRIVER_TEST)
 #include "psa/crypto.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/error.h"
@@ -126,4 +126,4 @@ psa_status_t test_opaque_generate_key(
     return( PSA_ERROR_NOT_SUPPORTED );
 }
 
-#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && MBEDTLS_TEST_HOOKS */
+#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && MBEDTLS_PSA_CRYPTO_DRIVER_TEST */

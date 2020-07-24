@@ -2,7 +2,7 @@ language: c
 compiler: gcc
 sudo: false
 cache: ccache
-for x in $(ldd $(which gnutls-cli) $(which gnutls-serv) | sed -n 's!.* \(/[^ ]*\).*!\1!p' | sort -u); do dpkg -S $x; done | sed 's/: .*//' | xargs dpkg-query --showformat='${Package} ${Version}\n' --show
+
 jobs:
   include:
     - name: gnutls test

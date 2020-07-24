@@ -546,8 +546,11 @@ static const mbedtls_ecp_curve_info ecp_supported_curves[] =
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
     { MBEDTLS_ECP_DP_SECP192K1,    18,     192,    "secp192k1"         },
 #endif
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) && defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
     { MBEDTLS_ECP_DP_CURVE25519,   29,     256,    "x25519"            },
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+    { MBEDTLS_ECP_DP_CURVE448,     30,     448,    "x448"              },
 #endif
     { MBEDTLS_ECP_DP_NONE,          0,     0,      NULL                },
 };

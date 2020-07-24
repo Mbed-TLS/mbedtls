@@ -585,8 +585,11 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
  * \param crt      The certificate chain to be verified.
  * \param trust_ca The list of trusted CAs.
  * \param ca_crl   The list of CRLs for trusted CAs.
- * \param cn       The expected Common Name. This may be \c NULL if the
- *                 CN need not be verified.
+ * \param cn       The expected Common Name. This will be checked to be
+ *                 present in the certificate's subjectAltNames extension or,
+ *                 if this extension is absent, as a CN component in its
+ *                 Subject name. Currently only DNS names are supported. This
+ *                 may be \c NULL if the CN need not be verified.
  * \param flags    The address at which to store the result of the verification.
  *                 If the verification couldn't be completed, the flag value is
  *                 set to (uint32_t) -1.

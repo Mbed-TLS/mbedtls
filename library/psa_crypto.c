@@ -441,9 +441,8 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
 }
 #endif /* defined(MBEDTLS_ECP_C) */
 
-static psa_status_t prepare_raw_data_slot( psa_key_type_t type,
-                                           size_t bits,
-                                           struct key_data *key )
+static psa_status_t validate_unstructured_key_bit_size( psa_key_type_t type,
+                                                        size_t bits )
 {
     /* Check that the bit size is acceptable for the key type */
     switch( type )
@@ -490,14 +489,6 @@ static psa_status_t prepare_raw_data_slot( psa_key_type_t type,
     if( bits % 8 != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    /* Allocate memory for the key */
-    key->bytes = PSA_BITS_TO_BYTES( bits );
-    key->data = mbedtls_calloc( 1, key->bytes );
-    if( key->data == NULL )
-    {
-        key->bytes = 0;
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-    }
     return( PSA_SUCCESS );
 }
 
@@ -740,22 +731,42 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
 {
     psa_status_t status = PSA_SUCCESS;
 
+    /* zero-length keys are never supported. */
+    if( data_length == 0 )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    /* Ensure that the bytes-to-bit conversion never overflows. */
+    if( data_length > SIZE_MAX / 8 )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
     if( key_type_is_raw_bytes( slot->attr.type ) )
     {
         size_t bit_size = PSA_BYTES_TO_BITS( data_length );
-        /* Ensure that the bytes-to-bit conversion didn't overflow. */
-        if( data_length > SIZE_MAX / 8 )
-            return( PSA_ERROR_NOT_SUPPORTED );
+
         /* Enforce a size limit, and in particular ensure that the bit
          * size fits in its representation type. */
         if( bit_size > PSA_MAX_KEY_BITS )
             return( PSA_ERROR_NOT_SUPPORTED );
-        status = prepare_raw_data_slot( slot->attr.type, bit_size,
-                                        &slot->data.key );
+
+        status = validate_unstructured_key_bit_size( slot->attr.type, bit_size );
         if( status != PSA_SUCCESS )
-            return( status );
-        if( data_length != 0 )
-            memcpy( slot->data.key.data, data, data_length );
+            return status;
+
+        /* Allocate memory for the key */
+        slot->data.key.data = mbedtls_calloc( 1, data_length );
+        if( slot->data.key.data == NULL )
+        {
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        }
+        slot->data.key.bytes = data_length;
+
+        /* copy key into allocated buffer */
+        memcpy(slot->data.key.data, data, data_length);
+
+        /* Write the actual key size to the slot.
+         * psa_start_key_creation() wrote the size declared by the
+         * caller, which may be 0 (meaning unspecified) or wrong. */
+        slot->attr.bits = (psa_key_bits_t) bit_size;
     }
     else
 #if defined(MBEDTLS_ECP_C)
@@ -5525,13 +5536,26 @@ static psa_status_t psa_generate_key_internal(
     if( key_type_is_raw_bytes( type ) )
     {
         psa_status_t status;
-        status = prepare_raw_data_slot( type, bits, &slot->data.key );
+
+        status = validate_unstructured_key_bit_size( slot->attr.type, bits );
         if( status != PSA_SUCCESS )
             return( status );
+
+        /* Allocate memory for the key */
+        slot->data.key.bytes = PSA_BITS_TO_BYTES( bits );
+        slot->data.key.data = mbedtls_calloc( 1, slot->data.key.bytes );
+        if( slot->data.key.data == NULL )
+        {
+            slot->data.key.bytes = 0;
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        }
+
         status = psa_generate_random( slot->data.key.data,
                                       slot->data.key.bytes );
         if( status != PSA_SUCCESS )
             return( status );
+
+        slot->attr.bits = (psa_key_bits_t) bits;
 #if defined(MBEDTLS_DES_C)
         if( type == PSA_KEY_TYPE_DES )
             psa_des_set_key_parity( slot->data.key.data,

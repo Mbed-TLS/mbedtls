@@ -1,6 +1,9 @@
 language: c
 compiler: gcc
-sudo: false
+sudo: true
+before_install:
+  - sudo apt-get update
+  - sudo apt-get -y upgrade
 cache: ccache
 
 jobs:
@@ -22,7 +25,6 @@ env:
 
 addons:
   apt:
-    update: true
     packages:
     - gnutls-bin
   coverity_scan:

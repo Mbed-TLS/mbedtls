@@ -951,22 +951,31 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
          * caller, which may be 0 (meaning unspecified) or wrong. */
         slot->attr.bits = (psa_key_bits_t) bit_size;
     }
-    else
+    else if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
+    {
 #if defined(MBEDTLS_ECP_C)
-    if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
+        status = psa_import_ecp_key( slot,
+                                     data, data_length );
+#else
+        /* No drivers have been implemented yet, so without mbed TLS backing
+         * there's no way to do ECP with the current library. */
+        return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* defined(MBEDTLS_ECP_C) */
+    }
+    else if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
     {
-        status = psa_import_ecp_key( slot, data, data_length );
+#if defined(MBEDTLS_RSA_C)
+        status = psa_import_rsa_key( slot,
+                                     data, data_length );
+#else
+        /* No drivers have been implemented yet, so without mbed TLS backing
+         * there's no way to do RSA with the current library. */
+        status = PSA_ERROR_NOT_SUPPORTED;
+#endif /* defined(MBEDTLS_RSA_C) */
     }
     else
-#endif /* MBEDTLS_ECP_C */
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C)
-    if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
     {
-        status = psa_import_rsa_key( slot, data, data_length );
-    }
-    else
-#endif /* defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C) */
-    {
+        /* Unknown key type */
         return( PSA_ERROR_NOT_SUPPORTED );
     }
 

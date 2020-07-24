@@ -19,8 +19,8 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#ifndef MBEDTLS_PSA_CRYPTO_TEST_DRIVERS_KEYGEN_H
-#define MBEDTLS_PSA_CRYPTO_TEST_DRIVERS_KEYGEN_H
+#ifndef PSA_CRYPTO_TEST_DRIVERS_KEYGEN_H
+#define PSA_CRYPTO_TEST_DRIVERS_KEYGEN_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -28,7 +28,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
 #include <psa/crypto_driver_common.h>
 
 extern void *test_driver_keygen_forced_output;
@@ -45,5 +45,5 @@ psa_status_t test_opaque_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key, size_t key_size, size_t *key_length );
 
-#endif /* MBEDTLS_PSA_CRYPTO_DRIVER_TEST */
-#endif /* MBEDTLS_PSA_CRYPTO_TEST_DRIVERS_KEYGEN_H */
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_TEST_DRIVERS_KEYGEN_H */

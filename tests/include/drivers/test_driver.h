@@ -19,12 +19,12 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#ifndef MBEDTLS_PSA_CRYPTO_TEST_DRIVER_H
-#define MBEDTLS_PSA_CRYPTO_TEST_DRIVER_H
+#ifndef PSA_CRYPTO_TEST_DRIVER_H
+#define PSA_CRYPTO_TEST_DRIVER_H
 
-#define MBEDTLS_PSA_CRYPTO_TEST_DRIVER_LIFETIME 0x7fffff
+#define PSA_CRYPTO_TEST_DRIVER_LIFETIME 0x7fffff
 
 #include "drivers/signature.h"
 #include "drivers/keygen.h"
 
-#endif /* MBEDTLS_PSA_CRYPTO_TEST_DRIVER_H */
+#endif /* PSA_CRYPTO_TEST_DRIVER_H */

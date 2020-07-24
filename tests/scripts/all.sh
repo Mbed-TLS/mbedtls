@@ -1660,7 +1660,7 @@ component_test_psa_crypto_drivers () {
     msg "build: MBEDTLS_PSA_CRYPTO_DRIVERS w/ driver hooks"
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DMBEDTLS_PSA_CRYPTO_DRIVER_TEST -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: MBEDTLS_PSA_CRYPTO_DRIVERS, signature"
     make test

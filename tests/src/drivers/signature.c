@@ -25,7 +25,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(MBEDTLS_PSA_CRYPTO_DRIVER_TEST)
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
 #include "psa/crypto.h"
 #include "mbedtls/ecp.h"
 
@@ -298,4 +298,4 @@ psa_status_t test_opaque_signature_verify_hash(
     return( PSA_ERROR_NOT_SUPPORTED );
 }
 
-#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && MBEDTLS_PSA_CRYPTO_DRIVER_TEST */
+#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

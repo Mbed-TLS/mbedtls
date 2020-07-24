@@ -19,8 +19,8 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#ifndef MBEDTLS_PSA_CRYPTO_TEST_DRIVERS_SIGNATURE_H
-#define MBEDTLS_PSA_CRYPTO_TEST_DRIVERS_SIGNATURE_H
+#ifndef PSA_CRYPTO_TEST_DRIVERS_SIGNATURE_H
+#define PSA_CRYPTO_TEST_DRIVERS_SIGNATURE_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -28,7 +28,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
 #include <psa/crypto_driver_common.h>
 
 extern void *test_driver_forced_output;
@@ -68,5 +68,5 @@ psa_status_t test_opaque_signature_verify_hash(
     const uint8_t *hash, size_t hash_length,
     const uint8_t *signature, size_t signature_length );
 
-#endif /* MBEDTLS_PSA_CRYPTO_DRIVER_TEST */
-#endif /* MBEDTLS_PSA_CRYPTO_TEST_DRIVERS_SIGNATURE_H */
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_TEST_DRIVERS_SIGNATURE_H */

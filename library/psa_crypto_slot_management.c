@@ -104,10 +104,11 @@ psa_status_t psa_initialize_key_slots( void )
 
 void psa_wipe_all_key_slots( void )
 {
-    psa_key_handle_t key;
-    for( key = 1; key <= PSA_KEY_SLOT_COUNT; key++ )
+    size_t slot_idx;
+
+    for( slot_idx = 0; slot_idx < PSA_KEY_SLOT_COUNT; slot_idx++ )
     {
-        psa_key_slot_t *slot = &global_data.key_slots[key - 1];
+        psa_key_slot_t *slot = &global_data.key_slots[ slot_idx ];
         (void) psa_wipe_key_slot( slot );
     }
     global_data.key_slots_initialized = 0;
@@ -117,15 +118,19 @@ psa_status_t psa_get_empty_key_slot( psa_key_handle_t *handle,
                                      psa_key_id_t *volatile_key_id,
                                      psa_key_slot_t **p_slot )
 {
+    size_t slot_idx;
+
     if( ! global_data.key_slots_initialized )
         return( PSA_ERROR_BAD_STATE );
 
-    for( *handle = PSA_KEY_SLOT_COUNT; *handle != 0; --( *handle ) )
+    for( slot_idx = PSA_KEY_SLOT_COUNT; slot_idx > 0; slot_idx-- )
     {
-        *p_slot = &global_data.key_slots[*handle - 1];
+        *p_slot = &global_data.key_slots[ slot_idx - 1 ];
         if( ! psa_is_key_slot_occupied( *p_slot ) )
         {
-            *volatile_key_id = PSA_KEY_ID_VOLATILE_MIN + ( *handle ) - 1;
+            *handle = (psa_key_handle_t)slot_idx;
+            *volatile_key_id = PSA_KEY_ID_VOLATILE_MIN +
+                               ( (psa_key_id_t)slot_idx ) - 1;
 
             return( PSA_SUCCESS );
         }
@@ -268,11 +273,13 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
 
 void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
 {
-    psa_key_handle_t key;
+    size_t slot_idx;
+
     memset( stats, 0, sizeof( *stats ) );
-    for( key = 1; key <= PSA_KEY_SLOT_COUNT; key++ )
+
+    for( slot_idx = 0; slot_idx < PSA_KEY_SLOT_COUNT; slot_idx++ )
     {
-        const psa_key_slot_t *slot = &global_data.key_slots[key - 1];
+        const psa_key_slot_t *slot = &global_data.key_slots[ slot_idx ];
         if( ! psa_is_key_slot_occupied( slot ) )
         {
             ++stats->empty_slots;

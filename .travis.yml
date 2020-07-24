@@ -10,7 +10,7 @@ jobs:
         - export
         - COLUMNS=200 dpkg -l
         - make
-        - tests/compat.sh -m tls1 -p GnuTLS -V NO
+        - tests/compat.sh -m tls1_2 -p GnuTLS -V NO
 
 after_failure:
 - tests/scripts/travis-log-failure.sh

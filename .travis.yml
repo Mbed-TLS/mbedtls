@@ -24,6 +24,7 @@ addons:
   apt:
     packages:
     - gnutls-bin
+    - libgnutls30
   coverity_scan:
     project:
       name: "ARMmbed/mbedtls"

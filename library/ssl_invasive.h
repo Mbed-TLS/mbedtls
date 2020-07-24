@@ -55,11 +55,11 @@
  *                          to a readable buffer of \p max_data_len bytes.
  * \param data_len_secret   The length of the data to process in \p data.
  *                          This must be no less than \p min_data_len and no
- *                          greated than \p max_data_len.
+ *                          greater than \p max_data_len.
  * \param min_data_len      The minimal length of \p data in bytes.
  * \param max_data_len      The maximal length of \p data in bytes.
  * \param output            The HMAC will be written here. This must point to
- *                          a writeable buffer of sufficient size to hold the
+ *                          a writable buffer of sufficient size to hold the
  *                          HMAC value.
  *
  * \retval 0

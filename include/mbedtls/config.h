@@ -1915,7 +1915,7 @@
  *
  * This setting requires compiling with clang -fsanitize=memory.
  *
- * Uncomment to enable testing of the constant-flow nature of seletected code.
+ * Uncomment to enable testing of the constant-flow nature of selected code.
  */
 //#define MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN
 

@@ -657,7 +657,7 @@ run_test() {
 
         # run the commands
         if [ -n "$PXY_CMD" ]; then
-            printf "# $NAME\n$PXY_CMD\n" > $PXY_OUT
+            printf "# %s\n%s\n" "$NAME" "$PXY_CMD" > $PXY_OUT
             $PXY_CMD >> $PXY_OUT 2>&1 &
             PXY_PID=$!
             wait_proxy_start "$PXY_PORT" "$PXY_PID"

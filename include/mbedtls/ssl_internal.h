@@ -144,6 +144,14 @@
 #define MBEDTLS_SSL_RETRANS_WAITING         2
 #define MBEDTLS_SSL_RETRANS_FINISHED        3
 
+/* For CBC-specific encrypt/decrypt code */
+#if defined(MBEDTLS_CIPHER_MODE_CBC) &&                               \
+    ( defined(MBEDTLS_AES_C)      ||                                  \
+      defined(MBEDTLS_CAMELLIA_C) ||                                  \
+      defined(MBEDTLS_DES_C) )
+#define MBEDTLS_SSL_SOME_SUITES_USE_CBC
+#endif
+
 /*
  * Allow extra bytes for record, authentication and encryption overhead:
  * counter (8) + header (5) + IV(16) + MAC (16-48) + padding (0-256)

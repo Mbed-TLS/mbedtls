@@ -152,6 +152,13 @@
 #define MBEDTLS_SSL_SOME_SUITES_USE_CBC
 #endif
 
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) && \
+    ( defined(MBEDTLS_SSL_PROTO_TLS1) ||        \
+      defined(MBEDTLS_SSL_PROTO_TLS1_1) ||      \
+      defined(MBEDTLS_SSL_PROTO_TLS1_2) )
+#define MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC
+#endif
+
 /*
  * Allow extra bytes for record, authentication and encryption overhead:
  * counter (8) + header (5) + IV(16) + MAC (16-48) + padding (0-256)
@@ -740,10 +747,7 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
           MBEDTLS_SSL_PROTO_TLS1_2 */
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) && \
-    ( defined(MBEDTLS_SSL_PROTO_TLS1) ||        \
-      defined(MBEDTLS_SSL_PROTO_TLS1_1) |       \
-      defined(MBEDTLS_SSL_PROTO_TLS1_2) )
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
 /** \brief Compute the HMAC of variable-length data with constant flow.
  *
  * This function computes the HMAC of the concatenation of \p add_data and \p
@@ -782,7 +786,7 @@ int mbedtls_ssl_cf_hmac(
         const unsigned char *data, size_t data_len_secret,
         size_t min_data_len, size_t max_data_len,
         unsigned char *output );
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC && TLS 1.0-1.2 */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 
 #ifdef __cplusplus
 }

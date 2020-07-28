@@ -173,13 +173,13 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
-void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
+void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
                                 int usage_arg, int alg_arg, int alg2_arg,
                                 int type_arg, data_t *key_data,
                                 int close_method_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
-    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, id_arg );
+    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( owner_id_arg, id_arg );
     psa_algorithm_t alg = alg_arg;
     psa_algorithm_t alg2 = alg2_arg;
     psa_key_usage_t usage_flags = usage_arg;
@@ -296,11 +296,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
-void create_existent( int lifetime_arg, int id_arg,
+void create_existent( int lifetime_arg, int owner_id_arg, int id_arg,
                       int reopen_policy_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
-    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, id_arg );
+    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( owner_id_arg, id_arg );
     psa_key_handle_t handle1 = 0, handle2 = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t type1 = PSA_KEY_TYPE_RAW_DATA;
@@ -414,19 +414,19 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
-                            int source_usage_arg,
+void copy_across_lifetimes( int source_lifetime_arg, int source_owner_id_arg,
+                            int source_id_arg, int source_usage_arg,
                             int source_alg_arg, int source_alg2_arg,
                             int type_arg, data_t *material,
-                            int target_lifetime_arg, int target_id_arg,
-                            int target_usage_arg,
+                            int target_lifetime_arg, int target_owner_id_arg,
+                            int target_id_arg, int target_usage_arg,
                             int target_alg_arg, int target_alg2_arg,
                             int expected_usage_arg,
                             int expected_alg_arg, int expected_alg2_arg )
 {
     psa_key_lifetime_t source_lifetime = source_lifetime_arg;
     mbedtls_svc_key_id_t source_id =
-        mbedtls_svc_key_id_make( 1, source_id_arg );
+        mbedtls_svc_key_id_make( source_owner_id_arg, source_id_arg );
     psa_key_usage_t source_usage = source_usage_arg;
     psa_algorithm_t source_alg = source_alg_arg;
     psa_key_handle_t source_handle = 0;
@@ -434,7 +434,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     psa_key_type_t source_type = type_arg;
     psa_key_lifetime_t target_lifetime = target_lifetime_arg;
     mbedtls_svc_key_id_t target_id =
-        mbedtls_svc_key_id_make( 1, target_id_arg );
+        mbedtls_svc_key_id_make( target_owner_id_arg, target_id_arg );
     psa_key_usage_t target_usage = target_usage_arg;
     psa_algorithm_t target_alg = target_alg_arg;
     psa_key_handle_t target_handle = 0;
@@ -499,7 +499,8 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     else
     {
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
-        TEST_EQUAL( MBEDTLS_SVC_KEY_ID_GET_OWNER_ID( target_id ), 1 );
+        TEST_EQUAL( MBEDTLS_SVC_KEY_ID_GET_OWNER_ID( target_id ),
+                    target_owner_id_arg );
 #endif
         TEST_EQUAL( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( target_id ), 0 );
     }

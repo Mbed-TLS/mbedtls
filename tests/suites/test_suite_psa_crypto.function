@@ -1325,12 +1325,12 @@ void static_checks( )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void attributes_set_get( int id_arg, int lifetime_arg,
+void attributes_set_get( int owner_id_arg, int id_arg, int lifetime_arg,
                          int usage_flags_arg, int alg_arg,
                          int type_arg, int bits_arg )
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, id_arg );
+    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( owner_id_arg, id_arg );
     psa_key_lifetime_t lifetime = lifetime_arg;
     psa_key_usage_t usage_flags = usage_flags_arg;
     psa_algorithm_t alg = alg_arg;

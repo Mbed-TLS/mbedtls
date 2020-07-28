@@ -2,7 +2,7 @@ PSA compile-time sanity checks
 static_checks:
 
 PSA key attributes structure
-attributes_set_get:0x6963:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT:PSA_ALG_CCM:PSA_KEY_TYPE_AES:128
+attributes_set_get:0xffff1234:0x6963:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT:PSA_ALG_CCM:PSA_KEY_TYPE_AES:128
 
 PSA key attributes: id only
 persistence_attributes:0x1234:0x5678:-1:-1:0:0x1234:0x5678:PSA_KEY_LIFETIME_PERSISTENT

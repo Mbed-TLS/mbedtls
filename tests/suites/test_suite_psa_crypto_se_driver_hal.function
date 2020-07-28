@@ -1448,6 +1448,7 @@ exit:
 
 /* BEGIN_CASE */
 void register_key_smoke_test( int lifetime_arg,
+                              int owner_id_arg,
                               int id_arg,
                               int validate,
                               int expected_status_arg )
@@ -1458,7 +1459,7 @@ void register_key_smoke_test( int lifetime_arg,
     psa_drv_se_t driver;
     psa_drv_se_key_management_t key_management;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, id_arg );
+    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( owner_id_arg, id_arg );
     size_t bit_size = 48;
     psa_key_slot_number_t wanted_slot = 0x123456789;
     psa_key_handle_t handle = 0;

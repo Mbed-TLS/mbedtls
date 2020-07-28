@@ -139,11 +139,12 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void persistent_key_destroy( int key_id_arg, int restart,
+void persistent_key_destroy( int owner_id_arg, int key_id_arg, int restart,
                              int first_type_arg, data_t *first_data,
                              int second_type_arg, data_t *second_data )
 {
-    mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make( 1, key_id_arg );
+    mbedtls_svc_key_id_t key_id =
+        mbedtls_svc_key_id_make( owner_id_arg, key_id_arg );
     psa_key_handle_t handle = 0;
     psa_key_type_t first_type = (psa_key_type_t) first_type_arg;
     psa_key_type_t second_type = (psa_key_type_t) second_type_arg;
@@ -193,10 +194,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
-                            int restart, int expected_status )
+void persistent_key_import( int owner_id_arg, int key_id_arg, int type_arg,
+                            data_t *data, int restart, int expected_status )
 {
-    mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make( 1, key_id_arg );
+    mbedtls_svc_key_id_t key_id =
+        mbedtls_svc_key_id_make( owner_id_arg, key_id_arg );
     psa_key_type_t type = (psa_key_type_t) type_arg;
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;

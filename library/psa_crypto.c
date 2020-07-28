@@ -4079,6 +4079,23 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
                               PSA_KEY_USAGE_ENCRYPT :
                               PSA_KEY_USAGE_DECRYPT );
 
+    status = psa_get_key_from_slot( handle, &slot, usage, alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    /* Try doing this through a driver before using software fallback */
+    if( cipher_operation == MBEDTLS_ENCRYPT )
+        status = psa_driver_wrapper_cipher_encrypt_setup( operation,
+                                                          slot,
+                                                          alg );
+    else
+        status = psa_driver_wrapper_cipher_decrypt_setup( operation,
+                                                          slot,
+                                                          alg );
+
+    if( status != PSA_ERROR_NOT_SUPPORTED )
+        goto exit;
+
     /* A context must be freshly initialized before it can be set up. */
     if( operation->alg != 0 )
     {

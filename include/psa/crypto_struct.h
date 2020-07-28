@@ -164,6 +164,12 @@ struct psa_cipher_operation_s
     {
         unsigned dummy; /* Enable easier initializing of the union. */
         mbedtls_cipher_context_t cipher;
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
+        struct {
+            unsigned int id;
+            void* ctx;
+        } driver;
+#endif
     } ctx;
 };
 

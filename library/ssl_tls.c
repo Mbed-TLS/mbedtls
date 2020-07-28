@@ -1805,6 +1805,32 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) && \
+    ( defined(MBEDTLS_SSL_PROTO_TLS1) ||        \
+      defined(MBEDTLS_SSL_PROTO_TLS1_1) ||      \
+      defined(MBEDTLS_SSL_PROTO_TLS1_2) )
+/*
+ * Compute HMAC of variable-length data with constant flow.
+ */
+int mbedtls_ssl_cf_hmac(
+        mbedtls_md_context_t *ctx,
+        const unsigned char *add_data, size_t add_data_len,
+        const unsigned char *data, size_t data_len_secret,
+        size_t min_data_len, size_t max_data_len,
+        unsigned char *output )
+{
+    /* WORK IN PROGRESS - THIS IS NOT CONSTANT FLOW AT ALL */
+    (void) min_data_len;
+    (void) max_data_len;
+    mbedtls_md_hmac_update( ctx, add_data, add_data_len );
+    mbedtls_md_hmac_update( ctx, data, data_len_secret );
+    mbedtls_md_hmac_finish( ctx, output );
+    mbedtls_md_hmac_reset( ctx );
+
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC && TLS 1.0-1.2 */
+
 static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
 {
     mbedtls_cipher_mode_t mode;

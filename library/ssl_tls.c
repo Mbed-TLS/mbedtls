@@ -1883,39 +1883,51 @@ int mbedtls_ssl_cf_hmac(
     unsigned char aux_out[MBEDTLS_MD_MAX_SIZE];
     mbedtls_md_context_t aux;
     size_t offset;
+    int ret;
 
     mbedtls_md_init( &aux );
-    mbedtls_md_setup( &aux, ctx->md_info, 0 );
+
+#define MD_CHK( func_call ) \
+    do {                    \
+        ret = (func_call);  \
+        if( ret != 0 )      \
+            goto cleanup;   \
+    } while( 0 )
+
+    MD_CHK( mbedtls_md_setup( &aux, ctx->md_info, 0 ) );
 
     /* After hmac_start() of hmac_reset(), ikey has already been hashed,
      * so we can start directly with the message */
-    mbedtls_md_update( ctx, add_data, add_data_len );
-    mbedtls_md_update( ctx, data, min_data_len );
+    MD_CHK( mbedtls_md_update( ctx, add_data, add_data_len ) );
+    MD_CHK( mbedtls_md_update( ctx, data, min_data_len ) );
 
     /* For each possible length, compute the hash up to that point */
     for( offset = min_data_len; offset <= max_data_len; offset++ )
     {
-        mbedtls_md_clone( &aux, ctx );
-        mbedtls_md_finish( &aux, aux_out );
+        MD_CHK( mbedtls_md_clone( &aux, ctx ) );
+        MD_CHK( mbedtls_md_finish( &aux, aux_out ) );
         /* Keep only the correct inner_hash in the output buffer */
         mbedtls_ssl_cf_memcpy_if_eq( output, aux_out, hash_size,
                                      offset, data_len_secret );
 
         if( offset < max_data_len )
-            mbedtls_md_update( ctx, data + offset, 1 );
+            MD_CHK( mbedtls_md_update( ctx, data + offset, 1 ) );
     }
 
     /* Now compute HASH(okey + inner_hash) */
-    mbedtls_md_starts( ctx );
-    mbedtls_md_update( ctx, okey, block_size );
-    mbedtls_md_update( ctx, output, hash_size );
-    mbedtls_md_finish( ctx, output );
+    MD_CHK( mbedtls_md_starts( ctx ) );
+    MD_CHK( mbedtls_md_update( ctx, okey, block_size ) );
+    MD_CHK( mbedtls_md_update( ctx, output, hash_size ) );
+    MD_CHK( mbedtls_md_finish( ctx, output ) );
 
     /* Done, get ready for next time */
-    mbedtls_md_hmac_reset( ctx );
+    MD_CHK( mbedtls_md_hmac_reset( ctx ) );
 
+#undef MD_CHK
+
+cleanup:
     mbedtls_md_free( &aux );
-    return( 0 );
+    return( ret );
 }
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 

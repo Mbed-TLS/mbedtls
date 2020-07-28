@@ -53,7 +53,7 @@ void ssl_set_hostname_twice( char *hostname0, char *hostname1 )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_AES_C:MBEDTLS_SSL_PROTO_TLS1_2 */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 void ssl_cf_hmac( int hash )
 {
     /*

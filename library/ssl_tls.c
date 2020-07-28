@@ -1830,14 +1830,14 @@ static void mbedtls_ssl_cf_memcpy_if_eq( unsigned char *dst,
 #pragma warning( disable : 4146 )
 #endif
 
-    /* diff_msb's most significant bit is bit equal to c1 != c2 */
+    /* diff_msb's most significant bit is equal to c1 != c2 */
     const size_t diff_msb = ( diff | -diff );
 
     /* diff1 = c1 != c2 */
     const size_t diff1 = diff_msb >> ( sizeof( diff_msb ) * 8 - 1 );
 
     /* mask = c1 != c2 ? 0xff : 0x00 */
-    unsigned char mask = (unsigned char) -diff1;
+    const unsigned char mask = (unsigned char) -diff1;
 
 #if defined(_MSC_VER)
 #pragma warning( pop )

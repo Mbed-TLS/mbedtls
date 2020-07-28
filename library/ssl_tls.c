@@ -1717,7 +1717,7 @@ int mbedtls_ssl_cf_hmac(
      * extension to the MD API in order to get constant-flow behaviour.
      *
      * HMAC(msg) is defined as HASH(okey + HASH(ikey + msg)) where + means
-     * concatenation, and okey/ikey is the XOR of the key with some fix bit
+     * concatenation, and okey/ikey are the XOR of the key with some fixed bit
      * patterns (see RFC 2104, sec. 2), which are stored in ctx->hmac_ctx.
      *
      * We'll first compute inner_hash = HASH(ikey + msg) by hashing up to
@@ -1727,6 +1727,8 @@ int mbedtls_ssl_cf_hmac(
      * Then we only need to compute HASH(okey + inner_hash) and we're done.
      */
     const mbedtls_md_type_t md_alg = mbedtls_md_get_type( ctx->md_info );
+    /* TLS 1.0-1.2 only support SHA-384, SHA-256, SHA-1, MD-5,
+     * all of which have the same block size except SHA-384. */
     const size_t block_size = md_alg == MBEDTLS_MD_SHA384 ? 128 : 64;
     const unsigned char * const ikey = (unsigned char *) ctx->hmac_ctx;
     const unsigned char * const okey = ikey + block_size;

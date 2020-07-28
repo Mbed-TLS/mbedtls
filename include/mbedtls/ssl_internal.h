@@ -757,9 +757,11 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
  * max_data_len bytes from \p data.
  *
  * \param ctx               The HMAC context. It must have keys configured
- *                          with mbedtls_md_hmac_starts(). It is reset using
- *                          mbedtls_md_hmac_reset() after the computation is
- *                          complete to prepare for the next computation.
+ *                          with mbedtls_md_hmac_starts() and use one of the
+ *                          following hashes: SHA-384, SHA-256, SHA-1 or MD-5.
+ *                          It is reset using mbedtls_md_hmac_reset() after
+ *                          the computation is complete to prepare for the
+ *                          next computation.
  * \param add_data          The additional data prepended to \p data. This
  *                          must point to a readable buffer of \p add_data_len
  *                          bytes.

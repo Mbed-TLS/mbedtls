@@ -1815,10 +1815,10 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
  * Use only bit operations to avoid branches that could be used by some
  * compilers on some platforms to translate comparison operators.
  */
-static void mbedtls_ssl_cf_memcpy_if_eq(unsigned char *dst,
-                                        const unsigned char *src,
-                                        size_t len,
-                                        size_t c1, size_t c2 )
+static void mbedtls_ssl_cf_memcpy_if_eq( unsigned char *dst,
+                                         const unsigned char *src,
+                                         size_t len,
+                                         size_t c1, size_t c2 )
 {
     /* diff = 0 if c1 == c2, non-zero otherwise */
     const size_t diff = c1 ^ c2;

@@ -1851,6 +1851,9 @@ static void mbedtls_ssl_cf_memcpy_if_eq( unsigned char *dst,
 
 /*
  * Compute HMAC of variable-length data with constant flow.
+ *
+ * Only works with MD-5, SHA-1, SHA-256 and SHA-384.
+ * (Otherwise, computation of block_size needs to be adapted.)
  */
 int mbedtls_ssl_cf_hmac(
         mbedtls_md_context_t *ctx,

@@ -1698,7 +1698,8 @@ static void mbedtls_ssl_cf_memcpy_if_eq( unsigned char *dst,
 #endif
 
     /* dst[i] = c1 != c2 ? dst[i] : src[i] */
-    for( size_t i = 0; i < len; i++ )
+    size_t i;
+    for( i = 0; i < len; i++ )
         dst[i] = ( dst[i] & mask ) | ( src[i] & ~mask );
 }
 

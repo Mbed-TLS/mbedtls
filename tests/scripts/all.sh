@@ -720,6 +720,11 @@ component_check_doxygen_warnings () {
 #### Build and test many configurations and targets
 ################################################################
 
+component_test_transparent_test_driver () {
+    msg "build+test: Transparent test driver test" # ~ 40s
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_TRANSPARENT_TEST_DRIVER' test
+}
+
 component_test_default_out_of_box () {
     msg "build: make, default config (out-of-box)" # ~1min
     make

@@ -1,0 +1,486 @@
+/* BEGIN_HEADER */
+#include "drivers/transparent_test_driver.h"
+#include "test/psa_crypto_helpers.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void transparent_test_driver_bad_param( )
+{
+    #define TEST_BUFSIZE ( 64U )
+    size_t out_key_len;
+    uint8_t in_key[16];
+    psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t out_key[TEST_BUFSIZE];
+
+    TEST_ASSERT( PSA_SUCCESS == psa_crypto_init() );
+
+    psa_set_key_type( &attr, PSA_KEY_TYPE_AES );
+    psa_set_key_bits( &attr, 128 );
+
+    /* Check validity of parameter set. */
+    TEST_ASSERT( PSA_SUCCESS == transparent_test_driver_generate_key( &attr,
+                                                            out_key,
+                                                            TEST_BUFSIZE,
+                                                            &out_key_len ) );
+    psa_set_key_bits( &attr, 0 );
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT == transparent_test_driver_generate_key(
+                                                          &attr,
+                                                          out_key,
+                                                          TEST_BUFSIZE,
+                                                          &out_key_len ) );
+    psa_set_key_bits( &attr, 128 );
+    psa_set_key_type( &attr, PSA_KEY_TYPE_ARC4 );
+    TEST_ASSERT( PSA_ERROR_NOT_SUPPORTED == transparent_test_driver_generate_key( &attr,
+                                                          out_key,
+                                                          TEST_BUFSIZE,
+                                                          &out_key_len ) );
+    psa_set_key_type( &attr, PSA_KEY_TYPE_AES );
+    TEST_ASSERT( PSA_ERROR_BUFFER_TOO_SMALL == transparent_test_driver_generate_key(
+                                                          &attr,
+                                                          out_key,
+                                                          27,
+                                                          &out_key_len ) );
+    psa_set_key_bits( &attr, 129 );
+    TEST_ASSERT( PSA_ERROR_NOT_SUPPORTED == transparent_test_driver_generate_key( &attr,
+                                                          out_key,
+                                                          TEST_BUFSIZE,
+                                                          &out_key_len ) );
+    psa_set_key_bits( &attr, 128 );
+
+    /* Check validity of parameter set. */
+    TEST_ASSERT( PSA_SUCCESS == transparent_test_driver_export_public_key(
+                                 &attr,
+                                 (uint8_t *) "Hello world 1234",
+                                 16,
+                                 out_key,
+                                 TEST_BUFSIZE,
+                                 &out_key_len ) );
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT == transparent_test_driver_export_public_key(
+                                 &attr,
+                                 (uint8_t* ) "Hello world 1234",
+                                 0,
+                                 out_key,
+                                 TEST_BUFSIZE,
+                                 &out_key_len ) );
+    TEST_ASSERT( PSA_ERROR_BUFFER_TOO_SMALL == transparent_test_driver_export_public_key(
+                                 &attr,
+                                 (uint8_t *) "Hello world 1234",
+                                 16,
+                                 out_key,
+                                 15,
+                                 &out_key_len ) );
+
+    /* Check validity of parameter set. */
+    psa_set_key_usage_flags( &attr, PSA_KEY_USAGE_SIGN_HASH |
+                                    PSA_KEY_USAGE_VERIFY_HASH );
+    psa_set_key_algorithm( &attr, PSA_ALG_ECDSA( PSA_ALG_SHA_256 ) );
+    psa_set_key_type( &attr,
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
+    psa_set_key_bits( &attr, 256 );
+    const uint8_t key[] =
+    {
+      0x4F, 0x50, 0x51, 0x54, 0x44, 0x4B, 0x48, 0x45, 0x41, 0x44, 0x45, 0x52,
+      0xab, 0x45, 0x43, 0x57, 0x12, 0x64, 0x9c, 0xb3, 0x0b, 0xbd, 0xda, 0xc4,
+      0x91, 0x97, 0xee, 0xbf,
+      0x27, 0x40, 0xff, 0xc7, 0xf8, 0x74, 0xd9, 0x24, 0x4c, 0x34, 0x60, 0xf5,
+      0x4f, 0x32, 0x2d, 0x3a
+    };
+    TEST_ASSERT( PSA_SUCCESS == transparent_test_driver_sign_hash(
+                                 &attr,
+                                 key,
+                                 32,
+                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                 in_key,
+                                 16,
+                                 out_key,
+                                 TEST_BUFSIZE,
+                                 &out_key_len ) );
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT == transparent_test_driver_sign_hash(
+                                 &attr,
+                                 key,
+                                 0,
+                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                 in_key,
+                                 16,
+                                 out_key,
+                                 TEST_BUFSIZE,
+                                 &out_key_len ) );
+    TEST_ASSERT( PSA_ERROR_BUFFER_TOO_SMALL == transparent_test_driver_sign_hash(
+                                 &attr,
+                                 key,
+                                 32,
+                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                 in_key,
+                                 16,
+                                 out_key,
+                                 63,
+                                 &out_key_len ) );
+
+    /* Check validity of parameter set. */
+    TEST_ASSERT( PSA_SUCCESS == transparent_test_driver_verify_hash(
+                                 &attr,
+                                 key,
+                                 32,
+                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                 in_key,
+                                 16,
+                                 out_key,
+                                 out_key_len ) );
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT == transparent_test_driver_verify_hash(
+                                 &attr,
+                                 key,
+                                 0,
+                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                 in_key,
+                                 16,
+                                 out_key,
+                                 out_key_len ) );
+exit:
+    psa_reset_key_attributes(&attr);
+    PSA_DONE( );
+    #undef TEST_BUFSIZE
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void transparent_test_driver_export_public_key( char *in, char *exp_out )
+{
+    #define TEST_BUFSIZE ( 32U )
+
+    size_t out_len;
+    uint8_t out[TEST_BUFSIZE];
+    psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
+
+    TEST_ASSERT( PSA_SUCCESS == psa_crypto_init() );
+
+    psa_set_key_type( &attr, PSA_KEY_TYPE_AES );
+    psa_set_key_bits( &attr, 128 );
+
+    TEST_ASSERT( PSA_SUCCESS == transparent_test_driver_export_public_key(
+                                    &attr,
+                                    (uint8_t *) in,
+                                    strlen(in),
+                                    out,
+                                    TEST_BUFSIZE,
+                                    &out_len));
+
+
+    TEST_ASSERT( 0 == mbedtls_test_hexcmp( out,
+                                           (uint8_t *) exp_out,
+                                           out_len,
+                                           strlen(exp_out) ) );
+exit:
+    PSA_DONE( );
+    #undef TEST_BUFSIZE
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void transparent_test_driver_generate_key( int type_arg, int bits_arg )
+{
+    #define TEST_BUFSIZE ( 32U )
+    size_t key_len = 0;
+    uint8_t key[TEST_BUFSIZE];
+    psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
+
+    TEST_ASSERT( PSA_SUCCESS == psa_crypto_init() );
+
+    psa_set_key_type( &attr, type_arg );
+    psa_set_key_bits( &attr, bits_arg );
+
+    TEST_ASSERT( PSA_SUCCESS == transparent_test_driver_generate_key( &attr,
+                                                            key,
+                                                            TEST_BUFSIZE,
+                                                            &key_len ) );
+exit:
+    psa_reset_key_attributes( &attr );
+    PSA_DONE( );
+    #undef TEST_BUFSIZE
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+void transparent_test_driver_invalid_param( )
+{
+    #define TEST_BUFSIZE (64U)
+    size_t out_key_len;
+    uint8_t in_key[16];
+    psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t out_key[TEST_BUFSIZE];
+
+    TEST_ASSERT( PSA_SUCCESS == psa_crypto_init() );
+
+    psa_set_key_type( &attr, PSA_KEY_TYPE_AES );
+    psa_set_key_bits( &attr, 128 );
+
+    /* Check validity of parameter set. */
+    TEST_ASSERT( PSA_SUCCESS == transparent_test_driver_generate_key( &attr,
+                                                            out_key,
+                                                            TEST_BUFSIZE,
+                                                            &out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_generate_key( NULL,
+                                                        out_key,
+                                                        TEST_BUFSIZE,
+                                                        &out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_generate_key( &attr,
+                                                        NULL,
+                                                        TEST_BUFSIZE,
+                                                        &out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_generate_key( &attr,
+                                                        out_key,
+                                                        TEST_BUFSIZE,
+                                                        NULL ) );
+
+    /* Check validity of parameter set. */
+    TEST_ASSERT( PSA_SUCCESS == transparent_test_driver_export_public_key(
+                                    &attr,
+                                    (uint8_t *) "Hello world 1234",
+                                    16,
+                                    out_key,
+                                    TEST_BUFSIZE,
+                                    &out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_export_public_key(
+                                    &attr,
+                                    NULL,
+                                    16,
+                                    out_key,
+                                    TEST_BUFSIZE,
+                                    &out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_export_public_key(
+                                    &attr,
+                                    (uint8_t *) "Hello world 1234",
+                                    16,
+                                    NULL,
+                                    TEST_BUFSIZE,
+                                    &out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_export_public_key(
+                                    &attr,
+                                    (uint8_t *) "Hello world 1234",
+                                    16,
+                                    out_key,
+                                    TEST_BUFSIZE,
+                                    NULL ) );
+
+    /* Check validity of parameter set. */
+    psa_set_key_usage_flags( &attr, PSA_KEY_USAGE_SIGN_HASH |
+                                    PSA_KEY_USAGE_VERIFY_HASH );
+    psa_set_key_algorithm( &attr, PSA_ALG_ECDSA( PSA_ALG_SHA_256 ) );
+    psa_set_key_type( &attr,
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
+    psa_set_key_bits( &attr, 256 );
+    const uint8_t key[] =
+    {
+      0x4F, 0x50, 0x51, 0x54, 0x44, 0x4B, 0x48, 0x45, 0x41, 0x44, 0x45, 0x52,
+      0xab, 0x45, 0x43, 0x57, 0x12, 0x64, 0x9c, 0xb3, 0x0b, 0xbd, 0xda, 0xc4,
+      0x91, 0x97, 0xee, 0xbf,
+      0x27, 0x40, 0xff, 0xc7, 0xf8, 0x74, 0xd9, 0x24, 0x4c, 0x34, 0x60, 0xf5,
+      0x4f, 0x32, 0x2d, 0x3a
+    };
+    TEST_ASSERT( PSA_SUCCESS == transparent_test_driver_sign_hash(
+                                    &attr,
+                                    key,
+                                    32,
+                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    in_key,
+                                    16,
+                                    out_key,
+                                    TEST_BUFSIZE,
+                                    &out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_sign_hash(
+                                    NULL,
+                                    key,
+                                    32,
+                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    in_key,
+                                    16,
+                                    out_key,
+                                    TEST_BUFSIZE,
+                                    &out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_sign_hash(
+                                    &attr,
+                                    NULL,
+                                    32,
+                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256),
+                                    in_key,
+                                    16,
+                                    out_key,
+                                    TEST_BUFSIZE,
+                                    &out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_sign_hash(
+                                    &attr,
+                                    key,
+                                    32,
+                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    NULL,
+                                    16,
+                                    out_key,
+                                    TEST_BUFSIZE,
+                                    &out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_sign_hash(
+                                    &attr,
+                                    key,
+                                    32,
+                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    in_key,
+                                    16,
+                                    NULL,
+                                    TEST_BUFSIZE,
+                                    &out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_sign_hash(
+                                    &attr,
+                                    key,
+                                    32,
+                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    in_key,
+                                    16,
+                                    out_key,
+                                    TEST_BUFSIZE,
+                                    NULL ) );
+
+    /* Check validity of parameter set. */
+    TEST_ASSERT(PSA_SUCCESS == transparent_test_driver_verify_hash(
+                                    &attr,
+                                    key,
+                                    32,
+                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    in_key,
+                                    16,
+                                    out_key,
+                                    out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_verify_hash(
+                                    NULL,
+                                    key,
+                                    32,
+                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    in_key,
+                                    16,
+                                    out_key,
+                                    out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_verify_hash(
+                                    &attr,
+                                    NULL,
+                                    32,
+                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    in_key,
+                                    16,
+                                    out_key,
+                                    out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_verify_hash(
+                                    &attr,
+                                    key,
+                                    32,
+                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    NULL,
+                                    16,
+                                    out_key,
+                                    out_key_len ) );
+    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+                            transparent_test_driver_verify_hash(
+                                   &attr,
+                                   key,
+                                   32,
+                                   PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                   in_key,
+                                   16,
+                                   NULL,
+                                   out_key_len ) );
+
+exit:
+    psa_reset_key_attributes(&attr);
+    PSA_DONE( );
+    #undef TEST_BUFSIZE
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void transparent_test_driver_sign_verify( int key_type_arg, data_t *key_data,
+                                int alg_arg, data_t *input_data )
+
+{
+    #define TEST_BUFSIZE 128U
+    size_t key_bits;
+    uint8_t sign[TEST_BUFSIZE];
+    size_t sign_size;
+    size_t sign_length = 0;
+    psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
+
+    TEST_ASSERT( PSA_SUCCESS == psa_crypto_init() );
+
+    psa_set_key_usage_flags( &attr, PSA_KEY_USAGE_SIGN_HASH |
+                                    PSA_KEY_USAGE_VERIFY_HASH);
+    psa_set_key_algorithm( &attr, alg_arg );
+    psa_set_key_type( &attr, key_type_arg );
+    psa_set_key_bits( &attr, PSA_BYTES_TO_BITS( key_data->len  ) );
+
+    /* Sign the data with the given key. */
+    TEST_ASSERT( PSA_SUCCESS == transparent_test_driver_sign_hash( &attr,
+                                                         key_data->x,
+                                                         key_data->len,
+                                                         alg_arg,
+                                                         input_data->x,
+                                                         input_data->len,
+                                                         sign,
+                                                         TEST_BUFSIZE,
+                                                         &sign_length ) );
+
+    key_bits = psa_get_key_bits( &attr );
+    sign_size = PSA_SIGN_OUTPUT_SIZE( key_type_arg, key_bits, alg_arg );
+
+    /* Check that the signature length looks sensible. */
+    TEST_ASSERT( sign_size != 0 );
+    TEST_ASSERT( sign_size <= PSA_SIGNATURE_MAX_SIZE );
+    TEST_ASSERT( sign_size <= TEST_BUFSIZE );
+    TEST_ASSERT( sign_length <= sign_size );
+    TEST_ASSERT( sign_length > 0 );
+
+    /* Verify that the signature is correct. */
+    TEST_ASSERT( PSA_SUCCESS == transparent_test_driver_verify_hash( &attr,
+                                                           key_data->x,
+                                                           key_data->len,
+                                                           alg_arg,
+                                                           input_data->x,
+                                                           input_data->len,
+                                                           sign,
+                                                           sign_length ) );
+
+    if( input_data->len != 0 )
+    {
+        /* Flip a bit in the input and verify that the signature is now
+         * detected as invalid. Flip a bit at the beginning, not at the end,
+         * because ECDSA may ignore the last few bits of the input. */
+        input_data->x[0] ^= 1;
+        TEST_ASSERT( PSA_ERROR_INVALID_SIGNATURE == transparent_test_driver_verify_hash(
+                                                        &attr,
+                                                        key_data->x,
+                                                        key_data->len,
+                                                        alg_arg,
+                                                        input_data->x,
+                                                        input_data->len,
+                                                        sign,
+                                                        sign_length ) );
+    }
+
+exit:
+    psa_reset_key_attributes( &attr );
+    PSA_DONE( );
+    #undef TEST_BUFSIZE
+}
+/* END_CASE */

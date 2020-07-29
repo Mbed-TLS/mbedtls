@@ -1503,6 +1503,12 @@ void register_key_smoke_test( int lifetime_arg,
         goto exit;
     PSA_ASSERT( psa_close_key( handle ) );
 
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+    mbedtls_svc_key_id_t invalid_id =
+        mbedtls_svc_key_id_make( owner_id_arg + 1, id_arg );
+    TEST_EQUAL( psa_open_key( invalid_id, &handle ), PSA_ERROR_DOES_NOT_EXIST );
+#endif
+
     /* Restart and try again. */
     PSA_DONE( );
     PSA_ASSERT( psa_register_se_driver( location, &driver ) );

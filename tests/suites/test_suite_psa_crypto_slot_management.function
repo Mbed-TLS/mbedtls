@@ -191,6 +191,12 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
     uint8_t *reexported = NULL;
     size_t reexported_length = -1;
 
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+    mbedtls_svc_key_id_t wrong_owner_id =
+        mbedtls_svc_key_id_make( owner_id_arg + 1, id_arg );
+    psa_key_handle_t invalid_handle = 0;
+#endif
+
     TEST_USES_KEY_ID( id );
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -205,6 +211,12 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &handle ) );
     TEST_ASSERT( handle != 0 );
+
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+    TEST_EQUAL( psa_open_key( wrong_owner_id, &invalid_handle ),
+                PSA_ERROR_DOES_NOT_EXIST );
+#endif
+
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ), lifetime );
     TEST_ASSERT( mbedtls_svc_key_id_equal(
@@ -216,6 +228,12 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
 
     /* Close the key and reopen it. */
     PSA_ASSERT( psa_close_key( handle ) );
+
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+    TEST_EQUAL( psa_open_key( wrong_owner_id, &invalid_handle ),
+                PSA_ERROR_DOES_NOT_EXIST );
+#endif
+
     PSA_ASSERT( psa_open_key( id, &handle ) );
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ), lifetime );

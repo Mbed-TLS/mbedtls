@@ -184,7 +184,6 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_NO_UDBL_DIVISION', # influences anything that uses bignum
     'MBEDTLS_PKCS11_C', # build dependency (libpkcs11-helper)
     'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS', # removes a feature
-    'MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER', # platform dependency (PSA SPM) (at this time)
     'MBEDTLS_PSA_CRYPTO_SPM', # platform dependency (PSA SPM)
     'MBEDTLS_PSA_INJECT_ENTROPY', # build dependency (hook functions)
     'MBEDTLS_REMOVE_3DES_CIPHERSUITES', # removes a feature
@@ -248,6 +247,7 @@ EXCLUDE_FROM_BAREMETAL = frozenset([
     'MBEDTLS_PLATFORM_TIME_ALT', # requires a clock and HAVE_TIME
     'MBEDTLS_PSA_CRYPTO_SE_C', # requires a filesystem and PSA_CRYPTO_STORAGE_C
     'MBEDTLS_PSA_CRYPTO_STORAGE_C', # requires a filesystem
+    'MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER', # requires a multi-client service
     'MBEDTLS_PSA_ITS_FILE_C', # requires a filesystem
     'MBEDTLS_THREADING_C', # requires a threading interface
     'MBEDTLS_THREADING_PTHREAD', # requires pthread

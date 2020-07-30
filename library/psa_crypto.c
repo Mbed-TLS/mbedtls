@@ -691,8 +691,7 @@ static psa_status_t psa_import_rsa_key( psa_key_slot_t *slot,
 exit:
     /* Always free the RSA object */
     mbedtls_rsa_free( rsa );
-    if( rsa != NULL )
-        mbedtls_free( rsa );
+    mbedtls_free( rsa );
 
     /* Free the allocated buffer only on error. */
     if( status != PSA_SUCCESS )
@@ -726,10 +725,7 @@ static psa_status_t psa_load_ecp_representation( const psa_key_slot_t *slot,
     mbedtls_ecp_group_id grp_id = MBEDTLS_ECP_DP_NONE;
     size_t data_length = slot->data.key.bytes;
     psa_status_t status;
-    mbedtls_ecp_keypair *ecp = mbedtls_calloc(1, sizeof(mbedtls_ecp_keypair));
-
-    if( ecp == NULL )
-        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    mbedtls_ecp_keypair *ecp = NULL;
 
     if( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->attr.type ) )
     {
@@ -744,19 +740,27 @@ static psa_status_t psa_load_ecp_representation( const psa_key_slot_t *slot,
         data_length = slot->data.key.bytes / 2;
     }
 
+    /* Allocate and initialize a key representation. */
+    ecp = mbedtls_calloc(1, sizeof(mbedtls_ecp_keypair));
+    if( ecp == NULL )
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
     mbedtls_ecp_keypair_init( ecp );
 
     /* Load the group. */
-    grp_id = mbedtls_ecc_group_of_psa( PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type),
+    grp_id = mbedtls_ecc_group_of_psa( PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type ),
                                        data_length );
     if( grp_id == MBEDTLS_ECP_DP_NONE )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+    {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+
     status = mbedtls_to_psa_error(
                 mbedtls_ecp_group_load( &ecp->grp, grp_id ) );
     if( status != PSA_SUCCESS )
-        return( status );
+        goto exit;
 
-    /* Load the key material */
+    /* Load the key material. */
     if( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->attr.type ) )
     {
         /* Load the public value. */
@@ -775,18 +779,13 @@ static psa_status_t psa_load_ecp_representation( const psa_key_slot_t *slot,
     }
     else
     {
-        /* Load the secret value. */
+        /* Load and validate the secret value. */
         status = mbedtls_to_psa_error(
             mbedtls_ecp_read_key( ecp->grp.id,
                                   ecp,
                                   slot->data.key.data,
                                   slot->data.key.bytes ) );
 
-        if( status != PSA_SUCCESS )
-            goto exit;
-        /* Validate the private key. */
-        status = mbedtls_to_psa_error(
-            mbedtls_ecp_check_privkey( &ecp->grp, &ecp->d ) );
         if( status != PSA_SUCCESS )
             goto exit;
     }
@@ -892,8 +891,7 @@ static psa_status_t psa_import_ecp_key( psa_key_slot_t *slot,
 exit:
     /* Always free the PK object (will also free contained ECP context) */
     mbedtls_ecp_keypair_free( ecp );
-    if( ecp != NULL )
-        mbedtls_free( ecp );
+    mbedtls_free( ecp );
 
     /* Free the allocated buffer only on error. */
     if( status != PSA_SUCCESS )
@@ -2003,12 +2001,12 @@ static psa_status_t psa_validate_optional_attributes(
         {
             mbedtls_rsa_context *rsa = NULL;
             mbedtls_mpi actual, required;
+            int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
             psa_status_t status = psa_load_rsa_representation( slot, &rsa );
             if( status != PSA_SUCCESS )
                 return status;
 
-            int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             mbedtls_mpi_init( &actual );
             mbedtls_mpi_init( &required );
             ret = mbedtls_rsa_export( rsa,
@@ -5592,8 +5590,7 @@ exit:
         mbedtls_platform_zeroize( shared_secret, shared_secret_size );
     mbedtls_ecdh_free( &ecdh );
     mbedtls_ecp_keypair_free( their_key );
-    if( their_key != NULL)
-        mbedtls_free( their_key );
+    mbedtls_free( their_key );
 
     return( status );
 }

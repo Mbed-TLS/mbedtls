@@ -732,19 +732,34 @@ static psa_status_t psa_load_ecp_representation( const uint8_t *buffer,
     mbedtls_ecp_group_id grp_id = MBEDTLS_ECP_DP_NONE;
     psa_status_t status;
     mbedtls_ecp_keypair *ecp = NULL;
-    size_t curve_size = size;
+    size_t curve_size;
 
     if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
     {
-        /* A public key is represented as:
-         * - The byte 0x04;
-         * - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
-         * - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
-         * So its data length is 2m+1 where n is the key size in bits.
-         */
-        if( ( size & 1 ) == 0 )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        curve_size = size / 2;
+        if( PSA_KEY_TYPE_ECC_GET_FAMILY( type ) == PSA_ECC_FAMILY_MONTGOMERY )
+        {
+            /* A Montgomery public key is represented as its raw
+             * compressed public point.
+             */
+            curve_size = size;
+        }
+        else
+        {
+            /* A Weierstrass public key is represented as:
+             * - The byte 0x04;
+             * - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
+             * - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
+             * So its data length is 2m+1 where n is the key size in bits.
+             */
+            if( ( size & 1 ) == 0 )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            curve_size = size / 2;
+        }
+    }
+    else
+    {
+        /* Private keys are represented as the raw private value */
+        curve_size = size;
     }
 
     /* Allocate and initialize a key representation. */

@@ -446,44 +446,51 @@ void mbedtls_param_failed( const char *failure_condition,
 #endif
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-static int redirect_output( FILE** out_stream, const char* path )
+static int redirect_output( FILE* out_stream, const char* path )
 {
-    int stdout_fd = dup( fileno( *out_stream ) );
+    int out_fd, dup_fd;
+    FILE* path_stream;
 
-    if( stdout_fd == -1 )
+    out_fd = fileno( out_stream );
+    dup_fd = dup( out_fd );
+
+    if( dup_fd == -1 )
     {
-        return -1;
+        return( -1 );
     }
 
-    fflush( *out_stream );
-    fclose( *out_stream );
-    *out_stream = fopen( path, "w" );
-
-    if( *out_stream == NULL )
+    path_stream = fopen( path, "w" );
+    if( path_stream == NULL )
     {
-        close( stdout_fd );
-        return -1;
+        close( dup_fd );
+        return( -1 );
     }
 
-    return stdout_fd;
+    fflush( out_stream );
+    if( dup2( fileno( path_stream ), out_fd ) == -1 )
+    {
+        close( dup_fd );
+        fclose( path_stream );
+        return( -1 );
+    }
+
+    fclose( path_stream );
+    return( dup_fd );
 }
 
-static int restore_output( FILE** out_stream, int old_fd )
+static int restore_output( FILE* out_stream, int dup_fd )
 {
-    fflush( *out_stream );
-    fclose( *out_stream );
+    int out_fd = fileno( out_stream );
 
-    *out_stream = fdopen( old_fd, "w" );
-    if( *out_stream == NULL )
+    fflush( out_stream );
+    if( dup2( dup_fd, out_fd ) == -1 )
     {
-        return -1;
+        close( out_fd );
+        close( dup_fd );
+        return( -1 );
     }
 
-    return 0;
-}
-
-static void close_output( FILE* out_stream )
-{
-    fclose( out_stream );
+    close( dup_fd );
+    return( 0 );
 }
 #endif /* __unix__ || __APPLE__ __MACH__ */

@@ -253,6 +253,12 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
     for( i = 0; i < 8; i++ )
         ctx->state[i] += A[i];
 
+    /* Zeroise buffers and variables to clear sensitive data from memory. */
+    mbedtls_platform_zeroize( &A, sizeof( A ) );
+    mbedtls_platform_zeroize( &W, sizeof( W ) );
+    mbedtls_platform_zeroize( &temp1, sizeof( temp1 ) );
+    mbedtls_platform_zeroize( &temp2, sizeof( temp2 ) );
+
     return( 0 );
 }
 

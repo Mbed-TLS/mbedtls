@@ -28,8 +28,8 @@ void chacha20_crypt( data_t *key_str,
      */
     TEST_ASSERT( mbedtls_chacha20_crypt( key_str->x, nonce_str->x, counter, src_str->len, src_str->x, output ) == 0 );
 
-    TEST_ASSERT( !memcmp( output, expected_output_str->x,
-                          expected_output_str->len ) );
+    ASSERT_COMPARE( output, expected_output_str->len,
+                    expected_output_str->x, expected_output_str->len );
 
     /*
      * Test the streaming API
@@ -43,8 +43,8 @@ void chacha20_crypt( data_t *key_str,
     memset( output, 0x00, sizeof( output ) );
     TEST_ASSERT( mbedtls_chacha20_update( &ctx, src_str->len, src_str->x, output ) == 0 );
 
-    TEST_ASSERT( !memcmp( output, expected_output_str->x,
-                          expected_output_str->len ) );
+    ASSERT_COMPARE( output, expected_output_str->len,
+                    expected_output_str->x, expected_output_str->len );
 
     /*
      * Test the streaming API again, piecewise
@@ -59,8 +59,8 @@ void chacha20_crypt( data_t *key_str,
     TEST_ASSERT( mbedtls_chacha20_update( &ctx, src_str->len - 1,
                                           src_str->x + 1, output + 1 ) == 0 );
 
-    TEST_ASSERT( !memcmp( output, expected_output_str->x,
-                          expected_output_str->len ) );
+    ASSERT_COMPARE( output, expected_output_str->len,
+                    expected_output_str->x, expected_output_str->len );
 
     mbedtls_chacha20_free( &ctx );
 }

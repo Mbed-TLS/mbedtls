@@ -197,7 +197,7 @@ exit:
 static psa_status_t generate( const char *key_file_name )
 {
     psa_status_t status = PSA_SUCCESS;
-    psa_key_handle_t key_handle = 0;
+    psa_key_handle_t key_handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     psa_set_key_usage_flags( &attributes,
@@ -232,7 +232,7 @@ static psa_status_t import_key_from_file( psa_key_usage_t usage,
     FILE *key_file = NULL;
     unsigned char extra_byte;
 
-    *master_key_handle = 0;
+    *master_key_handle = PSA_KEY_HANDLE_INIT;
 
     SYS_CHECK( ( key_file = fopen( key_file_name, "rb" ) ) != NULL );
     SYS_CHECK( ( key_size = fread( key_data, 1, sizeof( key_data ),
@@ -262,7 +262,7 @@ exit:
          * *master_key_handle is 0. psa_destroy_key(0) is guaranteed to do
          * nothing and return PSA_ERROR_INVALID_HANDLE. */
         (void) psa_destroy_key( *master_key_handle );
-        *master_key_handle = 0;
+        *master_key_handle = PSA_KEY_HANDLE_INIT;
     }
     return( status );
 }
@@ -304,7 +304,7 @@ static psa_status_t derive_key_ladder( const char *ladder[],
         /* When the parent key is not the master key, destroy it,
          * since it is no longer needed. */
         PSA_CHECK( psa_close_key( *key_handle ) );
-        *key_handle = 0;
+        *key_handle = PSA_KEY_HANDLE_INIT;
         /* Derive the next intermediate key from the parent key. */
         PSA_CHECK( psa_key_derivation_output_key( &attributes, &operation,
                                                   key_handle ) );
@@ -316,7 +316,7 @@ exit:
     if( status != PSA_SUCCESS )
     {
         psa_close_key( *key_handle );
-        *key_handle = 0;
+        *key_handle = PSA_KEY_HANDLE_INIT;
     }
     return( status );
 }
@@ -330,7 +330,7 @@ static psa_status_t derive_wrapping_key( psa_key_usage_t usage,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
 
-    *wrapping_key_handle = 0;
+    *wrapping_key_handle = PSA_KEY_HANDLE_INIT;
 
     /* Set up a key derivation operation from the key derived from
      * the master key. */
@@ -527,8 +527,8 @@ static psa_status_t run( enum program_mode mode,
                          const char *output_file_name )
 {
     psa_status_t status = PSA_SUCCESS;
-    psa_key_handle_t derivation_key_handle = 0;
-    psa_key_handle_t wrapping_key_handle = 0;
+    psa_key_handle_t derivation_key_handle = PSA_KEY_HANDLE_INIT;
+    psa_key_handle_t wrapping_key_handle = PSA_KEY_HANDLE_INIT;
 
     /* Initialize the PSA crypto library. */
     PSA_CHECK( psa_crypto_init( ) );

@@ -245,13 +245,13 @@ psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
     if( status != PSA_SUCCESS )
     {
         psa_wipe_key_slot( slot );
-        *handle = 0;
+        *handle = PSA_KEY_HANDLE_INIT;
     }
     return( status );
 
 #else /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
     (void) key;
-    *handle = 0;
+    *handle = PSA_KEY_HANDLE_INIT;
     return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 }

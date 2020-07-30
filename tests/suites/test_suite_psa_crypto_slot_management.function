@@ -141,7 +141,7 @@ void transient_slot_lifecycle( int usage_arg, int alg_arg,
     psa_key_usage_t usage_flags = usage_arg;
     psa_key_type_t type = type_arg;
     close_method_t close_method = close_method_arg;
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -185,7 +185,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
     psa_key_usage_t usage_flags = usage_arg;
     psa_key_type_t type = type_arg;
     close_method_t close_method = close_method_arg;
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t read_attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t *reexported = NULL;
@@ -194,7 +194,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
     mbedtls_svc_key_id_t wrong_owner_id =
         mbedtls_svc_key_id_make( owner_id_arg + 1, id_arg );
-    psa_key_handle_t invalid_handle = 0;
+    psa_key_handle_t invalid_handle = PSA_KEY_HANDLE_INIT;
 #endif
 
     TEST_USES_KEY_ID( id );
@@ -319,7 +319,8 @@ void create_existent( int lifetime_arg, int owner_id_arg, int id_arg,
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( owner_id_arg, id_arg );
-    psa_key_handle_t handle1 = 0, handle2 = 0;
+    psa_key_handle_t handle1 = PSA_KEY_HANDLE_INIT;
+    psa_key_handle_t handle2 = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t type1 = PSA_KEY_TYPE_RAW_DATA;
     const uint8_t material1[5] = "a key";
@@ -447,7 +448,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_owner_id_arg,
         mbedtls_svc_key_id_make( source_owner_id_arg, source_id_arg );
     psa_key_usage_t source_usage = source_usage_arg;
     psa_algorithm_t source_alg = source_alg_arg;
-    psa_key_handle_t source_handle = 0;
+    psa_key_handle_t source_handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t source_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t source_type = type_arg;
     psa_key_lifetime_t target_lifetime = target_lifetime_arg;
@@ -455,7 +456,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_owner_id_arg,
         mbedtls_svc_key_id_make( target_owner_id_arg, target_id_arg );
     psa_key_usage_t target_usage = target_usage_arg;
     psa_algorithm_t target_alg = target_alg_arg;
-    psa_key_handle_t target_handle = 0;
+    psa_key_handle_t target_handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t target_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_usage_t expected_usage = expected_usage_arg;
     psa_algorithm_t expected_alg = expected_alg_arg;
@@ -573,14 +574,14 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
         mbedtls_svc_key_id_make( 1, source_id_arg );
     psa_key_usage_t source_usage = source_usage_arg;
     psa_algorithm_t source_alg = source_alg_arg;
-    psa_key_handle_t source_handle = 0;
+    psa_key_handle_t source_handle = PSA_KEY_HANDLE_INIT;
     psa_key_type_t source_type = source_type_arg;
     psa_key_lifetime_t target_lifetime = target_lifetime_arg;
     mbedtls_svc_key_id_t target_id =
         mbedtls_svc_key_id_make( 1, target_id_arg );
     psa_key_usage_t target_usage = target_usage_arg;
     psa_algorithm_t target_alg = target_alg_arg;
-    psa_key_handle_t target_handle = 0;
+    psa_key_handle_t target_handle = PSA_KEY_HANDLE_INIT;
     psa_key_type_t target_type = target_type_arg;
     psa_key_handle_t new_handle = 0xdead;
     uint8_t *export_buffer = NULL;
@@ -674,8 +675,8 @@ exit:
 void invalid_handle( int handle_construction,
                      int close_status_arg, int usage_status_arg )
 {
-    psa_key_handle_t valid_handle = 0;
-    psa_key_handle_t invalid_handle = 0;
+    psa_key_handle_t valid_handle = PSA_KEY_HANDLE_INIT;
+    psa_key_handle_t invalid_handle = PSA_KEY_HANDLE_INIT;
     psa_status_t close_status = close_status_arg;
     psa_status_t usage_status = usage_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -696,7 +697,7 @@ void invalid_handle( int handle_construction,
     switch( handle_construction )
     {
         case INVALID_HANDLE_0:
-            invalid_handle = 0;
+            invalid_handle = PSA_KEY_HANDLE_INIT;
             break;
         case INVALID_HANDLE_UNOPENED:
             /* We can't easily construct a handle that's never been opened

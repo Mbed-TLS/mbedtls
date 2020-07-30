@@ -165,7 +165,7 @@ cipher_example_encrypt_decrypt_aes_cbc_nopad_1_block( void )
 
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle = 0;
+    psa_key_handle_t key_handle = PSA_KEY_HANDLE_INIT;
     size_t output_len = 0;
     uint8_t iv[block_size];
     uint8_t input[block_size];
@@ -215,7 +215,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( void )
 
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle = 0;
+    psa_key_handle_t key_handle = PSA_KEY_HANDLE_INIT;
     size_t output_len = 0;
     uint8_t iv[block_size], input[input_size],
             encrypt[input_size + block_size], decrypt[input_size + block_size];
@@ -262,7 +262,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_ctr_multi( void )
 
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle = 0;
+    psa_key_handle_t key_handle = PSA_KEY_HANDLE_INIT;
     size_t output_len = 0;
     uint8_t iv[block_size], input[input_size], encrypt[input_size],
             decrypt[input_size];

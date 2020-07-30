@@ -1207,7 +1207,7 @@ int main( int argc, char *argv[] )
     const char *pers = "ssl_client2";
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_handle_t slot = 0;
+    psa_key_handle_t slot = PSA_KEY_HANDLE_INIT;
     psa_algorithm_t alg = 0;
     psa_key_attributes_t key_attributes;
     psa_status_t status;
@@ -1232,7 +1232,7 @@ int main( int argc, char *argv[] )
     mbedtls_x509_crt clicert;
     mbedtls_pk_context pkey;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_handle_t key_slot = 0; /* invalid key slot */
+    psa_key_handle_t key_slot = PSA_KEY_HANDLE_INIT; /* invalid key slot */
 #endif
 #endif
     char *p, *q;

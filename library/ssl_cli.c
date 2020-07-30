@@ -3802,7 +3802,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         status = psa_destroy_key( handshake->ecdh_psa_privkey );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        handshake->ecdh_psa_privkey = 0;
+        handshake->ecdh_psa_privkey = PSA_KEY_HANDLE_INIT;
     }
     else
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&

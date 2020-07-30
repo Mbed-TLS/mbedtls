@@ -51,6 +51,7 @@
 
 /* Integral type representing a key handle. */
 typedef uint16_t psa_key_handle_t;
+#define PSA_KEY_HANDLE_INIT ( (psa_key_handle_t)0 )
 
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 

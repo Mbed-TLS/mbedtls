@@ -507,7 +507,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 {
     psa_status_t status;
     psa_algorithm_t alg;
-    psa_key_handle_t master_slot = 0;
+    psa_key_handle_t master_slot = PSA_KEY_HANDLE_INIT;
     psa_key_derivation_operation_t derivation =
         PSA_KEY_DERIVATION_OPERATION_INIT;
 
@@ -4348,7 +4348,7 @@ static void ssl_conf_remove_psk( mbedtls_ssl_config *conf )
     {
         /* The maintenance of the PSK key slot is the
          * user's responsibility. */
-        conf->psk_opaque = 0;
+        conf->psk_opaque = PSA_KEY_HANDLE_INIT;
     }
     /* This and the following branch should never
      * be taken simultaenously as we maintain the
@@ -4434,7 +4434,7 @@ static void ssl_remove_psk( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ssl->handshake->psk_opaque != 0 )
     {
-        ssl->handshake->psk_opaque = 0;
+        ssl->handshake->psk_opaque = PSA_KEY_HANDLE_INIT;
     }
     else
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

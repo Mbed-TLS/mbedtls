@@ -151,7 +151,7 @@ void pk_psa_utils(  )
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
-    TEST_ASSERT( mbedtls_pk_setup_opaque( &pk, 0 ) ==
+    TEST_ASSERT( mbedtls_pk_setup_opaque( &pk, PSA_KEY_HANDLE_INIT ) ==
                  MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     mbedtls_pk_free( &pk );

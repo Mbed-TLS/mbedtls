@@ -2185,7 +2185,7 @@ exit:
     if( status != PSA_SUCCESS )
     {
         psa_fail_key_creation( slot, driver );
-        *handle = 0;
+        *handle = PSA_KEY_HANDLE_INIT;
     }
     return( status );
 }
@@ -2197,7 +2197,7 @@ psa_status_t mbedtls_psa_register_se_key(
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
 
     /* Leaving attributes unspecified is not currently supported.
      * It could make sense to query the key type and size from the
@@ -2290,7 +2290,7 @@ exit:
     if( status != PSA_SUCCESS )
     {
         psa_fail_key_creation( target_slot, driver );
-        *target_handle = 0;
+        *target_handle = PSA_KEY_HANDLE_INIT;
     }
     return( status );
 }
@@ -5390,7 +5390,7 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
     if( status != PSA_SUCCESS )
     {
         psa_fail_key_creation( slot, driver );
-        *handle = 0;
+        *handle = PSA_KEY_HANDLE_INIT;
     }
     return( status );
 }
@@ -6232,7 +6232,7 @@ exit:
     if( status != PSA_SUCCESS )
     {
         psa_fail_key_creation( slot, driver );
-        *handle = 0;
+        *handle = PSA_KEY_HANDLE_INIT;
     }
     return( status );
 }

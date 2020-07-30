@@ -19,7 +19,7 @@ void ecdsa_sign( int force_status_arg,
 {
     psa_status_t force_status = force_status_arg;
     psa_status_t expected_status = expected_status_arg;
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg = PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 );
     uint8_t signature[64];
@@ -73,7 +73,7 @@ void ecdsa_verify( int force_status_arg,
 {
     psa_status_t force_status = force_status_arg;
     psa_status_t expected_status = expected_status_arg;
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg = PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 );
     psa_status_t actual_status;
@@ -124,7 +124,7 @@ void generate_key( int force_status_arg,
 {
     psa_status_t force_status = force_status_arg;
     psa_status_t expected_status = expected_status_arg;
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg = PSA_ALG_ECDSA( PSA_ALG_SHA_256 );
     const uint8_t *expected_output = NULL;
@@ -226,7 +226,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
                      int force_status_arg,
                      int expected_status_arg )
 {
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_status_t status;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
@@ -319,7 +319,7 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
                                int output1_length_arg, int output2_length_arg,
                                data_t *expected_output )
 {
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     size_t first_part_size = first_part_size_arg;
@@ -404,8 +404,7 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
                                int output1_length_arg, int output2_length_arg,
                                data_t *expected_output )
 {
-    psa_key_handle_t handle = 0;
-
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     size_t first_part_size = first_part_size_arg;
@@ -492,7 +491,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
                      int force_status_arg,
                      int expected_status_arg )
 {
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_status_t status;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
@@ -581,7 +580,7 @@ void cipher_entry_points( int alg_arg, int key_type_arg,
                           data_t *key, data_t *iv,
                           data_t *input )
 {
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_status_t status;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;

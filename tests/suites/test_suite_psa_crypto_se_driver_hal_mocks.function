@@ -333,7 +333,7 @@ void mock_import( int mock_alloc_return_value,
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
 
@@ -402,7 +402,7 @@ void mock_export( int mock_export_return_value, int expected_result )
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
     uint8_t exported[sizeof( key_material )];
@@ -456,7 +456,7 @@ void mock_generate( int mock_alloc_return_value,
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     mock_allocate_data.return_value = mock_alloc_return_value;
@@ -523,7 +523,7 @@ void mock_export_public( int mock_export_public_return_value,
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
     uint8_t exported[sizeof( key_material )];
@@ -573,7 +573,7 @@ void mock_sign( int mock_sign_return_value, int expected_result )
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
     psa_algorithm_t algorithm = PSA_ALG_ECDSA(PSA_ALG_SHA_256);
@@ -634,7 +634,7 @@ void mock_verify( int mock_verify_return_value, int expected_result )
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
-    psa_key_handle_t handle = 0;
+    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
     psa_algorithm_t algorithm = PSA_ALG_ECDSA(PSA_ALG_SHA_256);

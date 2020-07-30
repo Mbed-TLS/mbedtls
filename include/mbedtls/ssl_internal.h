@@ -1070,7 +1070,7 @@ static inline psa_key_handle_t mbedtls_ssl_get_opaque_psk(
     if( ssl->conf->psk_opaque != 0 )
         return( ssl->conf->psk_opaque );
 
-    return( 0 );
+    return( PSA_KEY_HANDLE_INIT );
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

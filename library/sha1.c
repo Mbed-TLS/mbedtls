@@ -300,6 +300,15 @@ int mbedtls_internal_sha1_process( mbedtls_sha1_context *ctx,
     ctx->state[3] += D;
     ctx->state[4] += E;
 
+    /* Zeroise buffers and variables to clear sensitive data from memory. */
+    mbedtls_zeroize( &A, sizeof( A ) );
+    mbedtls_zeroize( &B, sizeof( B ) );
+    mbedtls_zeroize( &C, sizeof( C ) );
+    mbedtls_zeroize( &D, sizeof( D ) );
+    mbedtls_zeroize( &E, sizeof( E ) );
+    mbedtls_zeroize( &W, sizeof( W ) );
+    mbedtls_zeroize( &temp, sizeof( temp ) );
+
     return( 0 );
 }
 

@@ -1,0 +1,5 @@
+Security
+   * Zeroising of local buffers and variables which are used for calculations
+     in mbedtls_pkcs5_pbkdf2_hmac() and mbedtls_internal_sha*_process()
+     functions to erase sensitive data from memory. Reported by
+     Johan Malmgren and Johan Uppman Bruce from Sectra.

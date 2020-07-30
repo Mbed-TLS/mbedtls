@@ -312,6 +312,10 @@ int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx, const unsigned char *p
                 break;
     }
 
+    /* Zeroise buffers to clear sensitive data from memory. */
+    mbedtls_platform_zeroize( work, MBEDTLS_MD_MAX_SIZE );
+    mbedtls_platform_zeroize( md1, MBEDTLS_MD_MAX_SIZE );
+
     return( 0 );
 }
 

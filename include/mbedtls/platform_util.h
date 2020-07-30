@@ -232,6 +232,18 @@ int mbedtls_platform_memmove( void *dst, const void *src, size_t num );
 int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num );
 
 /**
+ * \brief       RNG-function for getting a random 32-bit integer.
+ *
+ *
+ * \note        Currently the function is dependent of hardware providing an
+ *              rng with MBEDTLS_ENTROPY_HARDWARE_ALT. By default, 0 is
+ *              returned.
+ *
+ * \return      The generated random number.
+ */
+uint32_t mbedtls_platform_random_uint32( void );
+
+/**
  * \brief       RNG-function for getting a random in given range.
  *
  *              This function is meant to provide a global RNG to be used

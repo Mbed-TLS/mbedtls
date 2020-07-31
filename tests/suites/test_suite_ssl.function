@@ -59,10 +59,6 @@ void ssl_cf_hmac( int hash )
     /*
      * Test the function mbedtls_ssl_cf_hmac() against a reference
      * implementation.
-     *
-     * Note: the dependency is actually on TLS 1.0-1.2 and (AES or ARIA or
-     * Camellia or DES), but since the test framework doesn't support
-     * alternation in dependencies, just depend on the most common.
      */
     mbedtls_md_context_t ctx, ref_ctx;
     const mbedtls_md_info_t *md_info;

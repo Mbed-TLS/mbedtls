@@ -185,7 +185,7 @@ void validate_module_init_key_based( int count )
     psa_status_t status;
     uint8_t data[10] = { 0 };
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t handle = 0xdead;
+    psa_key_handle_t handle = mbedtls_svc_key_id_make( 0xdead, 0xdead );
     int i;
 
     for( i = 0; i < count; i++ )

@@ -247,6 +247,12 @@ typedef struct
 
 #endif /* !MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
 
+/*
+ * To support temporary both openless APIs and psa_open_key(), define
+ * psa_key_handle_t to be equal to mbedtls_svc_key_id_t.
+ */
+typedef mbedtls_svc_key_id_t psa_key_handle_t;
+
 /**@}*/
 
 /** \defgroup policy Key policies

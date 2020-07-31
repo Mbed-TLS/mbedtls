@@ -1861,7 +1861,7 @@ static psa_status_t psa_start_key_creation(
     if( status != PSA_SUCCESS )
         return( status );
 
-    status = psa_get_empty_key_slot( handle, &volatile_key_id, p_slot );
+    status = psa_get_empty_key_slot( &volatile_key_id, p_slot );
     if( status != PSA_SUCCESS )
         return( status );
     slot = *p_slot;
@@ -1870,9 +1870,19 @@ static psa_status_t psa_start_key_creation(
      * creation mechanism to verify that this information is correct.
      * It's automatically correct for mechanisms that use the bit-size as
      * an input (generate, device) but not for those where the bit-size
-     * is optional (import, copy). */
+     * is optional (import, copy). In case of a volatile key, assign it the
+     * volatile key identifier associated to the slot returned to contain its
+     * definition. */
 
     slot->attr = attributes->core;
+    if( PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) )
+    {
+#if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+        slot->attr.id = volatile_key_id;
+#else
+        slot->attr.id.key_id = volatile_key_id;
+#endif
+    }
 
     /* Erase external-only flags from the internal copy. To access
      * external-only flags, query `attributes`. Thanks to the check
@@ -1928,7 +1938,9 @@ static psa_status_t psa_start_key_creation(
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    return( status );
+    *handle = slot->attr.id;
+
+    return( PSA_SUCCESS );
 }
 
 /** Finalize the creation of a key once its key material has been set.

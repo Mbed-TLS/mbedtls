@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "test/psa_crypto_helpers.h"
+#include "psa_crypto_slot_management.h"
 #include "psa_crypto_storage.h"
 
 typedef enum
@@ -389,7 +390,7 @@ void open_fail( int id_arg,
 {
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, id_arg );
     psa_status_t expected_status = expected_status_arg;
-    psa_key_handle_t handle = 0xdead;
+    psa_key_handle_t handle = mbedtls_svc_key_id_make( 0xdead, 0xdead );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -409,7 +410,7 @@ void create_fail( int lifetime_arg, int id_arg,
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, id_arg );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t expected_status = expected_status_arg;
-    psa_key_handle_t handle = 0xdead;
+    psa_key_handle_t handle = mbedtls_svc_key_id_make( 0xdead, 0xdead );
     uint8_t material[1] = {'k'};
 
     TEST_USES_KEY_ID( id );
@@ -583,7 +584,7 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
     psa_algorithm_t target_alg = target_alg_arg;
     psa_key_handle_t target_handle = PSA_KEY_HANDLE_INIT;
     psa_key_type_t target_type = target_type_arg;
-    psa_key_handle_t new_handle = 0xdead;
+    psa_key_handle_t new_handle = mbedtls_svc_key_id_make( 0xdead, 0xdead );
     uint8_t *export_buffer = NULL;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t attributes1 = PSA_KEY_ATTRIBUTES_INIT;
@@ -677,6 +678,7 @@ void invalid_handle( int handle_construction,
 {
     psa_key_handle_t valid_handle = PSA_KEY_HANDLE_INIT;
     psa_key_handle_t invalid_handle = PSA_KEY_HANDLE_INIT;
+    psa_key_id_t key_id;
     psa_status_t close_status = close_status_arg;
     psa_status_t usage_status = usage_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -700,14 +702,26 @@ void invalid_handle( int handle_construction,
             invalid_handle = PSA_KEY_HANDLE_INIT;
             break;
         case INVALID_HANDLE_UNOPENED:
-            /* We can't easily construct a handle that's never been opened
-             * without knowing how the implementation constructs handle
-             * values. The current test code assumes that valid handles
-             * are in a range between 1 and some maximum. */
-            if( valid_handle == 1 )
-                invalid_handle = 2;
+
+            /*
+             * MBEDTLS_SVC_KEY_ID_GET_KEY_ID( valid_handle ) is a volatile
+             * key identifier as the imported key is a volatile key. Volatile
+             * key identifiers are in the range from PSA_KEY_ID_VOLATILE_MIN
+             * to PSA_KEY_ID_VOLATILE_MAX included. Thus pick a key identifier
+             * in the range from PSA_KEY_ID_VOLATILE_MIN to
+             * PSA_KEY_ID_VOLATILE_MAX different from
+             * MBEDTLS_SVC_KEY_ID_GET_KEY_ID( valid_handle ) to build an
+             * unopened and thus invalid identifier.
+             */
+
+            if( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( valid_handle ) ==
+                PSA_KEY_ID_VOLATILE_MIN )
+                key_id = PSA_KEY_ID_VOLATILE_MIN + 1;
             else
-                invalid_handle = valid_handle - 1;
+                key_id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( valid_handle ) - 1;
+
+            invalid_handle =
+                mbedtls_svc_key_id_make( 0, key_id );
             break;
         case INVALID_HANDLE_CLOSED:
             PSA_ASSERT( psa_import_key( &attributes,
@@ -716,7 +730,8 @@ void invalid_handle( int handle_construction,
             PSA_ASSERT( psa_destroy_key( invalid_handle ) );
             break;
         case INVALID_HANDLE_HUGE:
-            invalid_handle = (psa_key_handle_t) ( -1 );
+            invalid_handle =
+                mbedtls_svc_key_id_make( 0, PSA_KEY_ID_VENDOR_MAX + 1 );
             break;
         default:
             TEST_ASSERT( ! "unknown handle construction" );

@@ -4518,8 +4518,10 @@ exit:
         if( ( status != PSA_SUCCESS ) &&
             ( opt.query_config_mode == DFL_QUERY_CONFIG_MODE ) )
         {
-            mbedtls_printf( "Failed to destroy key slot %u - error was %d",
-                            (unsigned) psk_slot, (int) status );
+            mbedtls_printf( "Failed to destroy key slot %u-%u - error was %d",
+                            MBEDTLS_SVC_KEY_ID_GET_OWNER_ID( psk_slot ),
+                            MBEDTLS_SVC_KEY_ID_GET_KEY_ID( psk_slot ),
+                            (int) status );
         }
     }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED &&

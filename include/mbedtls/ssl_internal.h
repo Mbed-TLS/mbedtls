@@ -144,7 +144,7 @@
 #define MBEDTLS_SSL_RETRANS_WAITING         2
 #define MBEDTLS_SSL_RETRANS_FINISHED        3
 
-/* For CBC-specific encrypt/decrypt code */
+/* This macro determines whether CBC is supported. */
 #if defined(MBEDTLS_CIPHER_MODE_CBC) &&                               \
     ( defined(MBEDTLS_AES_C)      ||                                  \
       defined(MBEDTLS_CAMELLIA_C) ||                                  \
@@ -152,6 +152,8 @@
 #define MBEDTLS_SSL_SOME_SUITES_USE_CBC
 #endif
 
+/* This macro determines whether the CBC construct used in TLS 1.0-1.2 (as
+ * opposed to the very different CBC construct used in SSLv3) is supported. */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) && \
     ( defined(MBEDTLS_SSL_PROTO_TLS1) ||        \
       defined(MBEDTLS_SSL_PROTO_TLS1_1) ||      \

@@ -548,6 +548,7 @@ static size_t uecc_eckey_get_bitlen( const void *ctx )
     return( (size_t) ( NUM_ECC_BYTES * 8 ) );
 }
 
+/* This function compares public keys of two keypairs */
 static int uecc_eckey_check_pair( const void *pub, const void *prv )
 {
     const mbedtls_uecc_keypair *uecc_pub =
@@ -621,13 +622,12 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
                               size_t n_len )
 {
-    size_t len = 0;
+    size_t len = n_len;
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
-    if( (size_t)( *p - start ) < n_len )
+    if( (size_t)( *p - start ) < len )
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
-    len = n_len;
     *p -= len;
     ret = mbedtls_platform_memmove( *p, start, len );
     if( ret != 0 )
@@ -659,6 +659,10 @@ static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
         len += 1;
     }
 
+    /* Ensure that there is still space for len and ASN1_INTEGER */
+    if( ( *p - start ) < 2 )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
     /* The ASN.1 length encoding is just a single Byte containing the length,
      * as we assume that the total buffer length is smaller than 128 Bytes. */
     *--(*p) = len;
@@ -674,7 +678,7 @@ static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
  *
  * [in/out] sig: the signature pre- and post-transcoding
  * [in/out] sig_len: signature length pre- and post-transcoding
- * [int] buf_len: the available size the in/out buffer
+ * [in] buf_len: the available size the in/out buffer
  *
  * Warning: buf_len must be smaller than 128 Bytes.
  */
@@ -688,6 +692,9 @@ static int pk_ecdsa_sig_asn1_from_uecc( unsigned char *sig, size_t *sig_len,
 
     MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig + rs_len, rs_len ) );
     MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig, rs_len ) );
+
+    if( p - sig < 2 )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
     /* The ASN.1 length encoding is just a single Byte containing the length,
      * as we assume that the total buffer length is smaller than 128 Bytes. */

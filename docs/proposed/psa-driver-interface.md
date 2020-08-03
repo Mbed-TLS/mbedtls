@@ -388,45 +388,114 @@ If the key is stored in wrapped form outside the secure element, and the wrapped
 
 Transparent drivers may provide the following key management entry points:
 
-* `"allocate_key"`: called by `psa_import_key()`, `psa_generate_key()`, `psa_key_derivation_output_key()` or `psa_copy_key()` before creating a key in the location of this driver.
-* `"import_key"`: called by `psa_import_key()`, or by `psa_copy_key()` when copying a key from another location.
 * `"export_key"`: called by `psa_export_key()`, or by `psa_copy_key()` when copying a key from to location.
 * `"export_public_key"`: called by the core to obtain the public key of a key pair. The core may call this entry point at any time to obtain the public key, which can be for `psa_export_public_key()` but also at other times, including during a cryptographic operation that requires the public key such as a call to `psa_verify_message()` on a key pair object.
-* `"copy_key"`: called by `psa_copy_key()` when copying a key within the same location.
-* `"destroy_key"`: called by `psa_destroy_key()`.
+* `"import_key"`: called by `psa_import_key()`, or by `psa_copy_key()` when copying a key from another location.
 * `"generate_key"`: called by `psa_generate_key()`.
 * `"derive_key"`: called by `psa_key_derivation_output_key()`.
+* `"copy_key"`: called by `psa_copy_key()` when copying a key within the same location.
+
+In addition, secure elements that store the key material internally must provide the following two entry points:
+
+* `"allocate_key"`: called by `psa_import_key()`, `psa_generate_key()`, `psa_key_derivation_output_key()` or `psa_copy_key()` before creating a key in the location of this driver.
+* `"destroy_key"`: called by `psa_destroy_key()`.
 
 #### Key creation in a secure element without storage
 
-This section describes the key creation process for secure elements that do not store the key material. The driver must obtain a wrapped form of the key material which the core will store. A driver for such a secure element has no `"allocate_key"` entry point.
+This section describes the key creation process for secure elements that do not store the key material. The driver must obtain a wrapped form of the key material which the core will store. A driver for such a secure element has no `"allocate_key"` or `"destroy_key"` entry point.
 
-When creating a key with an opaque driver which does not have an `"allocate_key"` entry point:
+When creating a key with an opaque driver which does not have an `"allocate_key"` or `"destroy_key"` entry point:
 
 1. The core allocates memory for the key context.
 2. The core calls the driver's import, generate, derive or copy function.
 3. The core saves the resulting wrapped key material and any other data that the key context may contain.
 
-#### Key creation in a secure element with storage
+To destroy a key, the core simply destroys the wrapped key material, without invoking driver code.
 
-This section describes the key creation process for secure elements that have persistent storage for the key material. A driver for such a secure element has an `"allocate_key"` function whose intended purpose is to obtain an identifier for the key. This may be, for example, a unique label or a slot number.
+#### Key management in a secure element with storage
+
+This section describes the key creation and key destruction processes for secure elements that have persistent storage for the key material. A driver for such a secure element has two mandatory entry points:
+
+* `"allocate_key"`: this function obtains an internal identifier for the key. This may be, for example, a unique label or a slot number.
+* `"destroy_key"`: this function invalidates the internal identifier and destroys the associated key material.
+
+These functions have the following prototypes:
+```
+psa_status_t acme_allocate_key(const psa_key_attributes_t *attributes,
+                               uint8_t *key_buffer,
+                               size_t key_buffer_size);
+psa_status_t acme_destroy_key(const psa_key_attributes_t *attributes,
+                              const uint8_t *key_buffer,
+                              size_t key_buffer_size);
+```
 
 When creating a persistent key with an opaque driver which has an `"allocate_key"` entry point:
 
-1. The core calls the driver's `"allocate_key"` function. This function typically allocates an identifier for the key without modifying the state of the secure element and stores the identifier in the key context. This function should not modify the state of the secure element.
+1. The core calls the driver's `"allocate_key"` entry point. This function typically allocates an internal identifier for the key without modifying the state of the secure element and stores the identifier in the key context. This function should not modify the state of the secure element. It may modify the copy of the persistent state of the driver in memory.
 
 1. The core saves the key context to persistent storage.
 
-1. The core saves the driver's persistent state.
+1. The core calls the driver's key creation entry point.
 
-1. The core calls the driver's key creation function.
+1. The core saves the updated key context to persistent storage.
 
-If a failure occurs after the `"allocate_key"` step but before the call to the second driver function, the core will do one of the following:
+If a failure occurs after the `"allocate_key"` step but before the call to the second driver entry point, the core will do one of the following:
 
-* Fail the creation of the key without indicating this to the driver. This can happen, in particular, if the device loses power immediately after the key allocation function returns.
-* Call the driver's `"destroy_key"` function.
+* Fail the creation of the key without indicating this to the driver. This can happen, in particular, if the device loses power immediately after the key allocation entry point returns.
+* Call the driver's `"destroy_key"` entry point.
 
-TODO: explain the individual key management functions
+To destroy a key, the core calls the driver's `"destroy_key"` entry point.
+
+Note that the key allocation and destruction entry point must not rely solely on the key identifier in the key attributes to identify a key. Some implementations of the PSA Crypto API store keys on behalf of multiple clients, and different clients may use the same key identifier to designate different keys. The manner in which the core distinguishes keys that have the same identifier but are part of the key namespace for different clients is implementation-dependent and is not accessible to drivers. Some typical strategies to allocate an internal key identifier are:
+
+* Maintain a set of free slot numbers which is stored either in the secure element or in the driver's persistent storage. To allocate a key slot, find a free slot number, mark it as occupied and store the number in the key context. When the key is destroyed, mark the slot number as free.
+* Maintain a monotonic counter with a practically unbounded range in the secure element or in the driver's persistent storage. To allocate a key slot, increment the counter and store the current value in the key context. Destroying a key does not change the counter.
+
+TODO: explain constraints on how the driver updates its persistent state for resilience
+
+TODO: some of the above doesn't apply to volatile keys
+
+#### Key creation entry points in opaque drivers
+
+The key creation entry points have the following prototypes:
+
+```
+psa_status_t acme_import_key(const psa_key_attributes_t *attributes,
+                             const uint8_t *data,
+                             size_t data_length,
+                             uint8_t *key_buffer,
+                             size_t key_buffer_size);
+psa_status_t acme_generate_key(const psa_key_attributes_t *attributes,
+                               uint8_t *key_buffer,
+                               size_t key_buffer_size);
+```
+
+If the driver has an [`"allocate_key"` entry point](#key-management-in-a-secure-element-with-storage), the core calls the `"allocate_key"` entry point with the same attributes on the same key buffer before calling the key creation function.
+
+TODO: derivation, copy
+
+#### Key export entry points in opaque drivers
+
+The key export entry points have the following prototypes:
+
+```
+psa_status_t acme_export_key(const psa_key_attributes_t *attributes,
+                             const uint8_t *key_buffer,
+                             size_t key_buffer_size);
+                             uint8_t *data,
+                             size_t data_size,
+                             size_t *data_length);
+psa_status_t acme_export_public_key(const psa_key_attributes_t *attributes,
+                                    const uint8_t *key_buffer,
+                                    size_t key_buffer_size);
+                                    uint8_t *data,
+                                    size_t data_size,
+                                    size_t *data_length);
+```
+
+The core will only call `acme_export_public_key` on a private key. Drivers implementers may choose to store the public key in the key context buffer or to recalculate it on demand. If the key context includes the public key, it needs to have an adequate size; see [“Key format for opaque drivers”](#key-format-for-opaque-drivers).
+
+The core guarantees that the size of the output buffer (`data_size`) is sufficient to export any key with the given attributes. The driver must set `*data_length` to the exact size of the exported key.
 
 ### Opaque driver persistent state
 

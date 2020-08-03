@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/03 11:27:22 GMT"
+Time-stamp: "2020/08/03 11:42:58 GMT"
 
 ## Introduction
 
@@ -600,13 +600,11 @@ This concept, or some other way to reuse portable code such as specifying inner 
 
 How does `psa_key_derivation_output_key` work when the extraction part and the expansion part use different drivers?
 
-#### Public key not stored
+#### Public key calculation
 
-ECC key pairs are stored as the private key value only. The public key needs to be calculated from that.
+ECC key pairs are represented as the private key value only. The public key needs to be calculated from that. Both transparent drivers and opaque drivers provide a function to calculate the public key (`"export_public_key"`).
 
-It's fairly common for secure elements to also store only the private value. When a key is generated randomly or derived, the hardware reports the public key, and it is up to the software to store it. The current design makes this the job of the driver. Should it be the work of the core instead?
-
-Note that a solution also has to work for transparent keys, and when importing a private key into a secure element. If the core already has code to calculate the public key, it would make sense for the driver to be able to use it, especially in these cases.
+The specification doesn't mention when the public key might be calculated. The core may calculate it on creation, on demand, or anything in between. Opaque drivers have a choice of storing the public key in the key context or calculating it on demand and can convey whether the core should store the public key with the `"store_public_key"` property. Is this good enough or should the specification include non-functional requirements?
 
 ### Opaque drivers
 

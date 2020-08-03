@@ -75,7 +75,7 @@ A driver description is a JSON object containing the following properties:
 A list of **capabilities**. Each capability describes a family of functions that the driver implements for a certain class of cryptographic mechanisms.
 * `"key_context"` (not permitted for transparent drivers, mandatory for opaque drivers): information about the [representation of keys](#key-format-for-opaque-drivers).
 * `"persistent_state_size"` (not permitted for transparent drivers, optional for opaque drivers, integer or string). The size in bytes of the [persistent state of the driver](#opaque-driver-persistent-state). This may be either a non-negative integer or a C constant expression of type `size_t`.
-* `"location"` (not permitted for transparent drivers, optional for opaque drivers, integer or string). The location value for which this driver is invoked. This may be either a non-negative integer or a C constant expression of type `psa_key_location_t`.
+* `"location"` (not permitted for transparent drivers, optional for opaque drivers, integer or string). The location value for which this driver is invoked. In other words, this determines the lifetimes for which the driver is invoked. This may be either a non-negative integer or a C constant expression of type `psa_key_location_t`.
 
 #### Driver description capability
 
@@ -197,7 +197,7 @@ If a driver implements a multi-part operation but not the corresponding single-p
 
 #### Multi-part operation entry point family `"hash_multipart"`
 
-This family corresponds to the calculation of a hash in one multiple parts.
+This family corresponds to the calculation of a hash in multiple steps.
 
 This family applies to transparent drivers only.
 
@@ -292,7 +292,7 @@ For an opaque driver, if the init function succeeds, the core saves the updated 
 
 ### Combining multiple drivers
 
-To declare a cryproprocessor can handle both cleartext and plaintext keys, you need to provide two driver descriptions, one for a transparent driver and one for an opaque driver. You can use the mapping in capabilities' `"names"` property to arrange for driver entry points to map to the same C function.
+To declare a cryptoprocessor can handle both cleartext and plaintext keys, you need to provide two driver descriptions, one for a transparent driver and one for an opaque driver. You can use the mapping in capabilities' `"names"` property to arrange for multiple driver entry points to map to the same C function.
 
 ## Transparent drivers
 
@@ -411,7 +411,7 @@ When creating a key with an opaque driver which does not have an `"allocate_key"
 
 This section describes the key creation process for secure elements that have persistent storage for the key material. A driver for such a secure element has an `"allocate_key"` function whose intended purpose is to obtain an identifier for the key. This may be, for example, a unique label or a slot number.
 
-When creating a persistent key with an opaque driver which does not have an `"allocate_key"` function:
+When creating a persistent key with an opaque driver which has an `"allocate_key"` entry point:
 
 1. The core calls the driver's `"allocate_key"` function. This function typically allocates an identifier for the key without modifying the state of the secure element and stores the identifier in the key context. This function should not modify the state of the secure element.
 
@@ -461,7 +461,6 @@ psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRY
 psa_key_handle_t handle = 0;
 psa_generate_key(&attributes, &handle);
 ```
-
 
 ## Using opaque drivers from an application
 

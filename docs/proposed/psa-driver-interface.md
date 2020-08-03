@@ -129,30 +129,30 @@ PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1)
 PSA_KEY_TYPE_ECC_KEY_PAIR(_)
 ```
 
-### Driver functions
+### Driver entry points
 
-#### Overview of driver functions
+#### Overview of driver entry points
 
-Drivers define functions, each of which implements an aspect of a capability of a driver, such as a cryptographic operation, a part of a cryptographic operation, or a key management action. Most driver functions correspond to a particular function in the PSA Cryptography API. For example, if a call to `psa_sign_hash()` is dispatched to a driver, it invokes the driver's `sign_hash` function.
+Drivers define functions, each of which implements an aspect of a capability of a driver, such as a cryptographic operation, a part of a cryptographic operation, or a key management action. These functions are called the **entry points** of the driver. Most driver entry points correspond to a particular function in the PSA Cryptography API. For example, if a call to `psa_sign_hash()` is dispatched to a driver, it invokes the driver's `sign_hash` function.
 
-All driver functions return a status of type `psa_status_t` which should use the status codes documented for PSA services in general and for PSA Crypto in particular: `PSA_SUCCESS` indicates that the function succeeded, and `PSA_ERROR_xxx` values indicate that an error occurred.
+All driver entry points return a status of type `psa_status_t` which should use the status codes documented for PSA services in general and for PSA Crypto in particular: `PSA_SUCCESS` indicates that the function succeeded, and `PSA_ERROR_xxx` values indicate that an error occurred.
 
-The signature of a driver function generally looks like the signature of the PSA Crypto API that it implements, with some modifications. This section gives an overview of modifications that apply to whole classes of functions. Refer to the reference section for each function or function family for details.
+The signature of a driver entry point generally looks like the signature of the PSA Crypto API that it implements, with some modifications. This section gives an overview of modifications that apply to whole classes of entry points. Refer to the reference section for each entry point or entry point family for details.
 
-* For functions that operate on an existing key, the `psa_key_id_t` parameter is replaced by a sequence of three parameters that describe the key:
+* For entry points that operate on an existing key, the `psa_key_id_t` parameter is replaced by a sequence of three parameters that describe the key:
     1. `const psa_key_attributes_t *attributes`: the key attributes.
     2. `const uint8_t *key_buffer`: a key material or key context buffer.
     3. `size_t key_buffer_size`: the size of the key buffer in bytes.
 
     For transparent drivers, the key buffer contains the key material, in the same format as defined for `psa_export_key()` and `psa_export_public_key()` in the PSA Cryptography API. For opaque drivers, the content of the key buffer is entirely up to the driver.
 
-* For functions that involve a multi-part operation, the operation state type (`psa_XXX_operation_t`) is replaced by a driver-specific operation state type (*prefix*`_XXX_operation_t`).
+* For entry points that involve a multi-part operation, the operation state type (`psa_XXX_operation_t`) is replaced by a driver-specific operation state type (*prefix*`_XXX_operation_t`).
 
-Some functions are grouped in families that must be implemented as a whole. If a driver supports a function family, it must provide all the functions in the family.
+Some entry points are grouped in families that must be implemented as a whole. If a driver supports a entry point family, it must provide all the entry points in the family.
 
-#### General considerations on driver function parameters
+#### General considerations on driver entry point parameters
 
-Buffer parameters for driver functions obey the following conventions:
+Buffer parameters for driver entry points obey the following conventions:
 
 * An input buffer has the type `const uint8_t *` and is immediately followed by a parameter of type `size_t` that indicates the buffer size.
 * An output buffer has the type `uint8_t *` and is immediately followed by a parameter of type `size_t` that indicates the buffer size. A third parameter of type `size_t *` is provided to report the actual buffer size if the function succeeds.
@@ -162,40 +162,40 @@ Buffers of size 0 may be represented with either a null pointer or a non-null po
 
 Input buffers and other input-only parameters (`const` pointers) may be in read-only memory. Overlap is possible between input buffers, and between an input buffer and an output buffer, but not between two output buffers or between a non-buffer parameter and another parameter.
 
-#### Driver functions for single-part cryptographic operations
+#### Driver entry points for single-part cryptographic operations
 
-The following driver functions perform a cryptographic operation in one shot (single-part operation):
+The following driver entry points perform a cryptographic operation in one shot (single-part operation):
 
-* `"hash_compute"` (transparent drivers only): calculation of a hash. Called by `psa_hash_compute()` and `psa_hash_compare()`. To verify a hash with `psa_hash_compare()`, the core calls the driver's `"hash_compute"` function and compares the result with the reference hash value.
-* `"mac_compute"`: calculation of a MAC. Called by `psa_mac_compute()` and possibly `psa_mac_verify()`. To verify a mac with `psa_mac_verify()`, the core calls an applicable driver's `"mac_verify"` function if there is one, otherwise the core calls an applicable driver's `"mac_compute"` function and compares the result with the reference MAC value.
-* `"mac_verify"`: verification of a MAC. Called by `psa_mac_verify()`. This function is mainly useful for drivers of secure elements that verify a MAC without revealing the correct MAC. Although transparent drivers may implement this function in addition to `"mac_compute"`, it is generally not useful because the core can call the `"mac_compute"` function and compare with the expected MAC value.
+* `"hash_compute"` (transparent drivers only): calculation of a hash. Called by `psa_hash_compute()` and `psa_hash_compare()`. To verify a hash with `psa_hash_compare()`, the core calls the driver's `"hash_compute"` entry point and compares the result with the reference hash value.
+* `"mac_compute"`: calculation of a MAC. Called by `psa_mac_compute()` and possibly `psa_mac_verify()`. To verify a mac with `psa_mac_verify()`, the core calls an applicable driver's `"mac_verify"` entry point if there is one, otherwise the core calls an applicable driver's `"mac_compute"` entry point and compares the result with the reference MAC value.
+* `"mac_verify"`: verification of a MAC. Called by `psa_mac_verify()`. This entry point is mainly useful for drivers of secure elements that verify a MAC without revealing the correct MAC. Although transparent drivers may implement this entry point in addition to `"mac_compute"`, it is generally not useful because the core can call the `"mac_compute"` entry point and compare with the expected MAC value.
 * `"cipher_encrypt"`: unauthenticated symmetric cipher encryption. Called by `psa_cipher_encrypt()`.
 * `"cipher_decrypt"`: unauthenticated symmetric cipher decryption. Called by `psa_cipher_decrypt()`.
 * `"aead_encrypt"`: authenticated encryption with associated data. Called by `psa_aead_encrypt()`.
 * `"aead_decrypt"`: authenticated decryption with associated data. Called by `psa_aead_decrypt()`.
 * `"asymmetric_encrypt"`: asymmetric encryption. Called by `psa_asymmetric_encrypt()`.
 * `"asymmetric_decrypt"`: asymmetric decryption. Called by `psa_asymmetric_decrypt()`.
-* `"sign_hash"`: signature of an already calculated hash. Called by `psa_sign_hash()` and possibly `psa_sign_message()`. To sign a message with `psa_sign_message()`, the core calls an applicable driver's `"sign_message"` function if there is one, otherwise the core calls an applicable driver's `"hash_compute"` function followed by an applicable driver's `"sign_hash"` function.
-* `"verify_hash"`: verification of an already calculated hash. Called by `psa_verify_hash()` and possibly `psa_verify_message()`. To verify a message with `psa_verify_message()`, the core calls an applicable driver's `"verify_message"` function if there is one, otherwise the core calls an applicable driver's `"hash_compute"` function followed by an applicable driver's `"verify_hash"` function.
+* `"sign_hash"`: signature of an already calculated hash. Called by `psa_sign_hash()` and possibly `psa_sign_message()`. To sign a message with `psa_sign_message()`, the core calls an applicable driver's `"sign_message"` entry point if there is one, otherwise the core calls an applicable driver's `"hash_compute"` entry point followed by an applicable driver's `"sign_hash"` entry point.
+* `"verify_hash"`: verification of an already calculated hash. Called by `psa_verify_hash()` and possibly `psa_verify_message()`. To verify a message with `psa_verify_message()`, the core calls an applicable driver's `"verify_message"` entry point if there is one, otherwise the core calls an applicable driver's `"hash_compute"` entry point followed by an applicable driver's `"verify_hash"` entry point.
 * `"sign_message"`: signature of a message. Called by `psa_sign_message()`.
 * `"verify_message"`: verification of a message. Called by `psa_verify_message()`.
 * `"key_agreement"`: key agreement without a subsequent key derivation. Called by `psa_raw_key_agreement()` and possibly `psa_key_derivation_key_agreement()`.
 
-### Driver functions for multi-part operations
+### Driver entry points for multi-part operations
 
 #### General considerations on multi-part operations
 
-The functions that implement each step of a multi-part operation are grouped into a family. A driver that implements a multi-part operation must define all of the functions in this family as well as a type that represents the operation context. The lifecycle of a driver operation context is similar to the lifecycle of an API operation context:
+The entry points that implement each step of a multi-part operation are grouped into a family. A driver that implements a multi-part operation must define all of the entry points in this family as well as a type that represents the operation context. The lifecycle of a driver operation context is similar to the lifecycle of an API operation context:
 
 1. The core initializes operation context objects to either all-bits-zero or to logical zero (`{0}`), at its discretion.
-1. The core calls the `xxx_setup` function for this operation family. If this fails, the core destroys the operation context object without calling any other driver function on it.
-1. The core calls other functions that manipulate the operation context object, respecting the constraints.
-1. If any function fails, the core calls the driver's `xxx_abort` function for this operation family, then destroys the operation context object without calling any other driver function on it.
-1. If a “finish” function fails, the core destroys the operation context object without calling any other driver function on it. The finish functions are: *prefix*`_mac_sign_finish`, *prefix*`_mac_verify_finish`, *prefix*`_cipher_fnish`, *prefix*`_aead_finish`, *prefix*`_aead_verify`.
+1. The core calls the `xxx_setup` entry point for this operation family. If this fails, the core destroys the operation context object without calling any other driver entry point on it.
+1. The core calls other entry points that manipulate the operation context object, respecting the constraints.
+1. If any entry point fails, the core calls the driver's `xxx_abort` entry point for this operation family, then destroys the operation context object without calling any other driver entry point on it.
+1. If a “finish” entry point fails, the core destroys the operation context object without calling any other driver entry point on it. The finish entry points are: *prefix*`_mac_sign_finish`, *prefix*`_mac_verify_finish`, *prefix*`_cipher_fnish`, *prefix*`_aead_finish`, *prefix*`_aead_verify`.
 
-If a driver implements a multi-part operation but not the corresponding single-part operation, the core calls the driver's multipart operation functions to perform the single-part operation.
+If a driver implements a multi-part operation but not the corresponding single-part operation, the core calls the driver's multipart operation entry points to perform the single-part operation.
 
-#### Multi-part operation function family `"hash_multipart"`
+#### Multi-part operation entry point family `"hash_multipart"`
 
 This family corresponds to the calculation of a hash in one multiple parts.
 
@@ -209,9 +209,9 @@ This family requires the following type and functions:
 * `"hash_finish"`: called by `psa_hash_finish()` and `psa_hash_verify()`.
 * `"hash_abort"`: called by all multi-part hash functions.
 
-To verify a hash with `psa_hash_verify()`, the core calls the driver's *prefix`_hash_finish` function and compares the result with the reference hsah value.
+To verify a hash with `psa_hash_verify()`, the core calls the driver's *prefix`_hash_finish` entry point and compares the result with the reference hsah value.
 
-For example, a driver with the prefix `"acme"` that implements the `"hash_multipart"` function family must define the following type and functions (assuming that the capability does not use the `"names"` property to declare different type and function names):
+For example, a driver with the prefix `"acme"` that implements the `"hash_multipart"` entry point family must define the following type and entry points (assuming that the capability does not use the `"names"` property to declare different type and entry point names):
 
 ```
 typedef ... acme_hash_operation_t;
@@ -253,12 +253,12 @@ TODO
 
 #### Operation family `"key_derivation"`
 
-This family requires the following type and functions:
+This family requires the following type and entry points:
 
 * Type `"key_derivation_operation_t"`: the type of a key derivation operation context.
 * `"key_derivation_setup"`: called by `psa_key_derivation_setup()`.
 * `"key_derivation_set_capacity"`: called by `psa_key_derivation_set_capacity()`. The core will always enforce the capacity, therefore this function does not need to do anything for algorithms where the output stream only depends on the effective generated length and not on the capacity.
-* `"key_derivation_input_bytes"`: called by `psa_key_derivation_input_bytes()` and `psa_key_derivation_input_key()`. For transparent drivers, when processing a call to `psa_key_derivation_input_key()`, the core always calls the applicable driver's `"key_derivation_input_bytes"` function.
+* `"key_derivation_input_bytes"`: called by `psa_key_derivation_input_bytes()` and `psa_key_derivation_input_key()`. For transparent drivers, when processing a call to `psa_key_derivation_input_key()`, the core always calls the applicable driver's `"key_derivation_input_bytes"` entry point.
 * `"key_derivation_input_key"` (opaque drivers only)
 * `"key_derivation_output_bytes"`: called by `psa_key_derivation_output_bytes()`; also by `psa_key_derivation_output_key()` for transparent drivers.
 * `"key_derivation_abort"`: called by all key derivation functions.
@@ -267,17 +267,17 @@ TODO: key input and output for opaque drivers; deterministic key generation for 
 
 TODO
 
-### Driver functions for key management
+### Driver entry points for key management
 
-The driver functions for key management differs significantly between [transparent drivers](#key-management-with-transparent-drivers) and [opaque drivers](#key-management-with-transparent-drivers). Refer to the applicable section for each driver type.
+The driver entry points for key management differs significantly between [transparent drivers](#key-management-with-transparent-drivers) and [opaque drivers](#key-management-with-transparent-drivers). Refer to the applicable section for each driver type.
 
-### Miscellaneous driver functions
+### Miscellaneous driver entry points
 
 #### Driver initialization
 
-A driver may declare an `"init"` function in a capability with no algorithm, key type or key size. If so, the driver calls this function once during the initialization of the PSA Crypto subsystem. If the init function of any driver fails, the initialization of the PSA Crypto subsystem fails.
+A driver may declare an `"init"` entry point in a capability with no algorithm, key type or key size. If so, the driver calls this entry point once during the initialization of the PSA Crypto subsystem. If the init entry point of any driver fails, the initialization of the PSA Crypto subsystem fails.
 
-When multiple drivers have an init function, the order in which they are called is unspecified. It is also unspecified whether other drivers' init functions are called if one or more init function fails.
+When multiple drivers have an init entry point, the order in which they are called is unspecified. It is also unspecified whether other drivers' init functions are called if one or more init function fails.
 
 On platforms where the PSA Crypto implementation is a subsystem of a single application, the initialization of the PSA Crypto subsystem takes place during the call to `psa_crypto_init()`. On platforms where the PSA Crypto implementation is separate from the application or applications, the initialization the initialization of the PSA Crypto subsystem takes place before or during the first time an application calls `psa_crypto_init()`.
 
@@ -292,7 +292,7 @@ For an opaque driver, if the init function succeeds, the core saves the updated 
 
 ### Combining multiple drivers
 
-To declare a cryproprocessor can handle both cleartext and plaintext keys, you need to provide two driver descriptions, one for a transparent driver and one for an opaque driver. You can use the mapping in capabilities' `"names"` property to arrange for driver functions to map to the same C function.
+To declare a cryproprocessor can handle both cleartext and plaintext keys, you need to provide two driver descriptions, one for a transparent driver and one for an opaque driver. You can use the mapping in capabilities' `"names"` property to arrange for driver entry points to map to the same C function.
 
 ## Transparent drivers
 
@@ -302,7 +302,7 @@ The format of a key for transparent drivers is the same as in applications. Refe
 
 ### Key management with transparent drivers
 
-Transparent drivers may provide the following key management functions:
+Transparent drivers may provide the following key management entry points:
 
 * `"generate_key"`: called by `psa_generate_key()`, only when generating a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
 * `"derive_key"`: called by `psa_key_derivation_output_key()`, only when deriving a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
@@ -312,11 +312,11 @@ Transparent drivers are not involved when importing, exporting, copying or destr
 
 ### Fallback
 
-If a transparent driver function is part of a capability which has a true `"fallback"` property and returns `PSA_ERROR_NOT_SUPPORTED`, the built-in software implementation will be called instead. Any other value (`PSA_SUCCESS` or a different error code) is returned to the application.
+If a transparent driver entry point is part of a capability which has a true `"fallback"` property and returns `PSA_ERROR_NOT_SUPPORTED`, the built-in software implementation will be called instead. Any other value (`PSA_SUCCESS` or a different error code) is returned to the application.
 
 If there are multiple available transparent drivers, the core tries them in turn until one is declared without a true `"fallback"` property or returns a status other than `PSA_ERROR_NOT_SUPPORTED`.
 
-If a transparent driver function is part of a capability where the `"fallback"` property is false or omitted, the core should not include any other code for this capability, whether built in or in another transparent driver.
+If a transparent driver entry point is part of a capability where the `"fallback"` property is false or omitted, the core should not include any other code for this capability, whether built in or in another transparent driver.
 
 ## Opaque drivers
 
@@ -378,7 +378,7 @@ If the core does not support dynamic allocation for the key context or chooses n
 
 If the key is stored in the secure element and the driver only needs to store a label for the key, use `"base_size"` as the size of the label plus any other metadata that the driver needs to store, and omit the other properties.
 
-If the key is stored in the secure element, but the secure element does not store the public part of a key pair and cannot recompute it on demand, additionally use the `"store_public_key"` property with the value `true`. Note that this only influences the size of the key context: the driver code must copy the public key to the key context and retrieve it on demand in its `export_public_key` function.
+If the key is stored in the secure element, but the secure element does not store the public part of a key pair and cannot recompute it on demand, additionally use the `"store_public_key"` property with the value `true`. Note that this only influences the size of the key context: the driver code must copy the public key to the key context and retrieve it on demand in its `export_public_key` entry point.
 
 #### Key context size for a secure element without storage
 
@@ -386,12 +386,12 @@ If the key is stored in wrapped form outside the secure element, and the wrapped
 
 ### Key management with opaque drivers
 
-Transparent drivers may provide the following key management functions:
+Transparent drivers may provide the following key management entry points:
 
 * `"allocate_key"`: called by `psa_import_key()`, `psa_generate_key()`, `psa_key_derivation_output_key()` or `psa_copy_key()` before creating a key in the location of this driver.
 * `"import_key"`: called by `psa_import_key()`, or by `psa_copy_key()` when copying a key from another location.
 * `"export_key"`: called by `psa_export_key()`, or by `psa_copy_key()` when copying a key from to location.
-* `"export_public_key"`: called by the core to obtain the public key of a key pair. The core may call this function at any time to obtain the public key, which can be for `psa_export_public_key()` but also at other times, including during a cryptographic operation that requires the public key such as a call to `psa_verify_message()` on a key pair object.
+* `"export_public_key"`: called by the core to obtain the public key of a key pair. The core may call this entry point at any time to obtain the public key, which can be for `psa_export_public_key()` but also at other times, including during a cryptographic operation that requires the public key such as a call to `psa_verify_message()` on a key pair object.
 * `"copy_key"`: called by `psa_copy_key()` when copying a key within the same location.
 * `"destroy_key"`: called by `psa_destroy_key()`.
 * `"generate_key"`: called by `psa_generate_key()`.
@@ -399,9 +399,9 @@ Transparent drivers may provide the following key management functions:
 
 #### Key creation in a secure element without storage
 
-This section describes the key creation process for secure elements that do not store the key material. The driver must obtain a wrapped form of the key material which the core will store. A driver for such a secure element has no `"allocate_key"` function.
+This section describes the key creation process for secure elements that do not store the key material. The driver must obtain a wrapped form of the key material which the core will store. A driver for such a secure element has no `"allocate_key"` entry point.
 
-When creating a key with an opaque driver which does not have an `"allocate_key"` function:
+When creating a key with an opaque driver which does not have an `"allocate_key"` entry point:
 
 1. The core allocates memory for the key context.
 2. The core calls the driver's import, generate, derive or copy function.

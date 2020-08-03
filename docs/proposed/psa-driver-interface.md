@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/03 09:34:23 GMT"
+Time-stamp: "2020/08/03 11:27:22 GMT"
 
 ## Introduction
 
@@ -513,10 +513,6 @@ psa_status_t psa_crypto_driver_update_persistent_state(size_t from, size_t lengt
 In a multithreaded environment, the driver may only call these two functions from the thread that is executing the entry point.
 
 ## How to use drivers from an application
-
-### Declaring which cryptographic mechanism an application needs
-
-TODO: an application requirements description, broadly similar to driver capabilities.
 
 ### Using transparent drivers
 

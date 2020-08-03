@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/07/13 11:19:35 GMT"
+Time-stamp: "2020/08/03 09:34:23 GMT"
 
 ## Introduction
 
@@ -281,14 +281,7 @@ When multiple drivers have an init entry point, the order in which they are call
 
 On platforms where the PSA Crypto implementation is a subsystem of a single application, the initialization of the PSA Crypto subsystem takes place during the call to `psa_crypto_init()`. On platforms where the PSA Crypto implementation is separate from the application or applications, the initialization the initialization of the PSA Crypto subsystem takes place before or during the first time an application calls `psa_crypto_init()`.
 
-For transparent drivers, the init function does not take any parameter.
-
-For opaque drivers, the init function takes the following parameters:
-
-* `uint8_t *persistent_state`: the driver's persistent state. On the first boot of the device, this contains all-bits-zero. On subsequent boots, the core loads the last saved state.
-* `size_t persistent_state_size`: the size of the persistent state in bytes.
-
-For an opaque driver, if the init function succeeds, the core saves the updated persistent state. If the init function fails, the persistent state is unchanged.
+The init function does not take any parameter.
 
 ### Combining multiple drivers
 
@@ -501,7 +494,23 @@ The core guarantees that the size of the output buffer (`data_size`) is sufficie
 
 The core maintains persistent state on behalf of an opaque driver. This persistent state consists of a single byte array whose size is given by the `"persistent_state_size"` property in the [driver description](#driver-description-top-level-element).
 
-TODO: how the state is passed to the driver; which driver functions can modify the state and how; when the core saves the updated state
+The core loads the persistent state in memory before it calls the driver's [init entry point](#driver-initialization). It is adjusted to match the size declared by the driver, in case a driver upgrade changes the size:
+
+* The first time the driver is loaded on a system, the persistent state is all-bits-zero.
+* If the stored persistent state is smaller than the declared size, the core pads the persistent state with all-bits-zero at the end.
+* If the stored persistent state is larger than the declared size, the core truncates the persistent state to the declared size.
+
+The core provides the following callback functions, which an opaque driver may call while it is processing a call from the driver:
+```
+psa_status_t psa_crypto_driver_get_persistent_state(uint_8_t **persistent_state_ptr);
+psa_status_t psa_crypto_driver_update_persistent_state(size_t from, size_t length);
+```
+
+`psa_crypto_driver_get_persistent_state` sets `*persistent_state_ptr` to a pointer to the first byte of the persistent state. This pointer remains valid during a call to a driver entry point. Once the entry point returns, the pointer is no longer valid. The core guarantees that calls to `psa_crypto_driver_get_persistent_state` within the same entry point return the same address for the persistent state, but this address may change between calls to an entry point.
+
+`psa_crypto_driver_update_persistent_state` updates the persistent state in persistent storage. Only the portion at byte offsets `from` inclusive to `from + length` exclusive is guaranteed to be updated; it is unspecified whether changes made to other parts of the state are taken into account. The driver must call this function after updating the persistent state in memory and before returning from the entry point, otherwise it is unspecified whether the persistent state is updated.
+
+In a multithreaded environment, the driver may only call these two functions from the thread that is executing the entry point.
 
 ## How to use drivers from an application
 
@@ -607,7 +616,11 @@ Note that a solution also has to work for transparent keys, and when importing a
 
 #### Opaque driver persistent state
 
-Should the driver be able to update it at any time?
+The driver is allowed to update the state at any time. Is this ok?
+
+An example use case for updating the persistent state at arbitrary times is to renew a key that is used to encrypt communications between the application processor and the secure element.
+
+`psa_crypto_driver_get_persistent_state` does not identify the calling driver, so the driver needs to remember which driver it's calling. This may require a thread-local variable in a multithreaded core. Is this ok?
 
 <!--
 Local Variables:

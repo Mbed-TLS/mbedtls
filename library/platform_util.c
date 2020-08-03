@@ -255,6 +255,7 @@ uint32_t mbedtls_platform_random_in_range( uint32_t num )
 
 void mbedtls_platform_random_delay( void )
 {
+#if defined(MBEDTLS_FI_COUNTERMEASURES)
     uint32_t rn_1, rn_2, rn_3;
     volatile size_t i = 0;
     uint8_t shift;
@@ -276,6 +277,9 @@ void mbedtls_platform_random_delay( void )
             rn_3 = ( rn_3 << shift ) | ( rn_3 >> ( 32 - shift ) );
         rn_2 ^= rn_3;
     } while( i < rn_1 || rn_2 == 0 || rn_3 == 0 );
+
+#endif /* MBEDTLS_FI_COUNTERMEASURES */
+    return;
 }
 
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)

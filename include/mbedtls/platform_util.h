@@ -262,6 +262,10 @@ uint32_t mbedtls_platform_random_in_range( uint32_t num );
  *
  *              Duration of the delay is random as number of variable increments
  *              is randomized.
+ *
+ * \note        This function works only if the MBEDTLS_FI_COUNTERMEASURES flag
+ *              is defined in the configuration. Otherwise, the function does
+ *              nothing.
  */
 void mbedtls_platform_random_delay( void );
 

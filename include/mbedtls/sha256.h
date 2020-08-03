@@ -118,7 +118,7 @@ int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 );
  *                 and have a hash operation started.
  * \param input    The buffer holding the data. This must be a readable
  *                 buffer of length \p ilen Bytes.
- * \param ilen     The length of the input data in Bytes.
+ * \param ilen     The length of the input data in Bytes. At most UINT32_MAX.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.

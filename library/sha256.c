@@ -35,6 +35,7 @@
 #include "mbedtls/sha256.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/platform.h"
+#include <stdint.h>
 
 #include <string.h>
 
@@ -188,7 +189,7 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
 {
     uint32_t temp1, temp2, W[64];
     uint32_t A[8];
-    uint32_t flow_ctrl = 0;
+    volatile uint32_t flow_ctrl = 0;
     unsigned int i;
 
     SHA256_VALIDATE_RET( ctx != NULL );
@@ -212,11 +213,6 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
             W[i] = (uint32_t)mbedtls_platform_get_uint32_be( &data[4 * i] );
             flow_ctrl++;
         }
-    }
-
-    if( flow_ctrl != 16 )
-    {
-        return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     }
 
     for( i = 0; i < 64; i++ )
@@ -317,19 +313,22 @@ int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
     SHA256_VALIDATE_RET( ctx != NULL );
     SHA256_VALIDATE_RET( ilen == 0 || input != NULL );
 
-    if( ilen == 0 )
+    /* ilen_dup is used instead of ilen, to have it volatile for FI protection */
+    if( ilen_dup == 0 )
         return( 0 );
+
+    if( ilen_dup > UINT32_MAX )
+        return( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA );
 
     left = ctx->total[0] & 0x3F;
     fill = 64 - left;
 
-    ctx->total[0] += (uint32_t) ilen;
-    ctx->total[0] &= 0xFFFFFFFF;
+    ctx->total[0] += (uint32_t) ilen_dup;
 
-    if( ctx->total[0] < (uint32_t) ilen )
+    if( ctx->total[0] < (uint32_t) ilen_dup )
         ctx->total[1]++;
 
-    if( left && ilen >= fill )
+    if( left && ilen_dup >= fill )
     {
         mbedtls_platform_memcpy( (void *) (ctx->buffer + left), input, fill );
 
@@ -337,27 +336,27 @@ int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
             return( ret );
 
         input += fill;
-        ilen  -= fill;
+        ilen_dup  -= fill;
         left = 0;
     }
 
-    while( ilen >= 64 )
+    while( ilen_dup >= 64 )
     {
         if( ( ret = mbedtls_internal_sha256_process( ctx, input ) ) != 0 )
             return( ret );
 
         input += 64;
-        ilen  -= 64;
+        ilen_dup  -= 64;
     }
 
-    if( ilen > 0 )
-        mbedtls_platform_memcpy( (void *) (ctx->buffer + left), input, ilen );
+    if( ilen_dup > 0 )
+        mbedtls_platform_memcpy( (void *) (ctx->buffer + left), input, ilen_dup );
 
-    /* Re-check ilen to protect from a FI attack */
-    if( ilen < 64 )
+    /* Re-check ilen_dup to protect from a FI attack */
+    if( ilen_dup < 64 )
     {
         /* Re-check that the calculated offsets are correct */
-        ilen_change = ilen_dup - ilen;
+        ilen_change = ilen - ilen_dup;
         if( ( input_dup + ilen_change ) == input )
         {
             return( 0 );
@@ -387,7 +386,7 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
     uint32_t used;
     uint32_t high, low;
     uint32_t offset = 0;
-    uint32_t flow_ctrl = 0;
+    volatile uint32_t flow_ctrl = 0;
 
     SHA256_VALIDATE_RET( ctx != NULL );
     SHA256_VALIDATE_RET( (unsigned char *)output != NULL );

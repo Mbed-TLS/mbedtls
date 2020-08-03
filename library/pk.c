@@ -277,7 +277,7 @@ static int pk_restart_setup( mbedtls_pk_restart_ctx *ctx,
 /*
  * Verify a signature (restartable)
  */
-int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
+int mbedtls_pk_verify_restartable( const mbedtls_pk_context *ctx,
                mbedtls_md_type_t md_alg,
                const unsigned char *hash, size_t hash_len,
                const unsigned char *sig, size_t sig_len,
@@ -325,7 +325,7 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
 /*
  * Verify a signature
  */
-int mbedtls_pk_verify( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+int mbedtls_pk_verify( const mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                const unsigned char *hash, size_t hash_len,
                const unsigned char *sig, size_t sig_len )
 {
@@ -337,7 +337,7 @@ int mbedtls_pk_verify( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  * Verify a signature with options
  */
 int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
-                   mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+                   const mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,
                    const unsigned char *sig, size_t sig_len )
 {
@@ -399,7 +399,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
 /*
  * Make a signature (restartable)
  */
-int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
+int mbedtls_pk_sign_restartable( const mbedtls_pk_context *ctx,
              mbedtls_md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,
              unsigned char *sig, size_t *sig_len,
@@ -448,7 +448,7 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
 /*
  * Make a signature
  */
-int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+int mbedtls_pk_sign( const mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,
              unsigned char *sig, size_t *sig_len,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )

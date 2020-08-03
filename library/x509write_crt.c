@@ -78,13 +78,13 @@ void mbedtls_x509write_crt_set_md_alg( mbedtls_x509write_cert *ctx,
 }
 
 void mbedtls_x509write_crt_set_subject_key( mbedtls_x509write_cert *ctx,
-                                            mbedtls_pk_context *key )
+                                            const mbedtls_pk_context *key )
 {
     ctx->subject_key = key;
 }
 
 void mbedtls_x509write_crt_set_issuer_key( mbedtls_x509write_cert *ctx,
-                                           mbedtls_pk_context *key )
+                                           const mbedtls_pk_context *key )
 {
     ctx->issuer_key = key;
 }
@@ -328,7 +328,7 @@ static int x509_write_time( unsigned char **p, unsigned char *start,
     return( (int) len );
 }
 
-int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
+int mbedtls_x509write_crt_der( const mbedtls_x509write_cert *ctx,
                                unsigned char *buf, size_t size,
                                int (*f_rng)(void *, unsigned char *, size_t),
                                void *p_rng )
@@ -522,7 +522,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
 #define PEM_END_CRT             "-----END CERTIFICATE-----\n"
 
 #if defined(MBEDTLS_PEM_WRITE_C)
-int mbedtls_x509write_crt_pem( mbedtls_x509write_cert *crt,
+int mbedtls_x509write_crt_pem( const mbedtls_x509write_cert *crt,
                                unsigned char *buf, size_t size,
                                int (*f_rng)(void *, unsigned char *, size_t),
                                void *p_rng )

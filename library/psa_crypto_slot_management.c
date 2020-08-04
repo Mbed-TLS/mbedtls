@@ -306,6 +306,21 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
     return( psa_wipe_key_slot( slot ) );
 }
 
+psa_status_t psa_purge_key( mbedtls_svc_key_id_t key )
+{
+    psa_status_t status;
+    psa_key_slot_t *slot;
+
+    status = psa_get_key_slot( key, &slot );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    if( slot->attr.lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        return PSA_SUCCESS;
+
+    return( psa_wipe_key_slot( slot ) );
+}
+
 void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
 {
     size_t slot_idx;

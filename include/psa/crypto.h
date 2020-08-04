@@ -387,6 +387,29 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  * @{
  */
 
+/** Remove non-essential copies of key material from memory.
+ *
+ * If the key identifier designates a volatile key, this functions does not do
+ * anything and returns successfully.
+ *
+ * If the key identifier designates a persistent key, then this function will
+ * free all resources associated with the key in volatile memory. The key
+ * data in persistent storage is not affected and the key can still be used.
+ *
+ * \param key Identifier of the key to purge.
+ *
+ * \retval #PSA_SUCCESS
+ *         The key material will have been removed from memory if it is not
+ *         currently required.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not a valid key identifier.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_purge_key(mbedtls_svc_key_id_t key);
+
 /** Make a copy of a key.
  *
  * Copy key material from one location to another.

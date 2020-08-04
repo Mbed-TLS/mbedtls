@@ -164,5 +164,5 @@ invalid_handle:INVALID_HANDLE_CLOSED:PSA_ERROR_DOES_NOT_EXIST:PSA_ERROR_DOES_NOT
 invalid handle: huge
 invalid_handle:INVALID_HANDLE_HUGE:PSA_ERROR_INVALID_HANDLE:PSA_ERROR_INVALID_HANDLE
 
-Open many transient handles
-many_transient_handles:42
+Open many transient keys
+many_transient_keys:42

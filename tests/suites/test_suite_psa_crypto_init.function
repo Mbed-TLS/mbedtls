@@ -185,7 +185,7 @@ void validate_module_init_key_based( int count )
     psa_status_t status;
     uint8_t data[10] = { 0 };
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t handle = mbedtls_svc_key_id_make( 0xdead, 0xdead );
+    mbedtls_svc_key_id_t key = mbedtls_svc_key_id_make( 0xdead, 0xdead );
     int i;
 
     for( i = 0; i < count; i++ )
@@ -195,9 +195,9 @@ void validate_module_init_key_based( int count )
         PSA_DONE( );
     }
     psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
-    status = psa_import_key( &attributes, data, sizeof( data ), &handle );
+    status = psa_import_key( &attributes, data, sizeof( data ), &key );
     TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
-    TEST_ASSERT( psa_key_handle_is_null( handle ) );
+    TEST_ASSERT( mbedtls_svc_key_id_is_null( key ) );
 }
 /* END_CASE */
 

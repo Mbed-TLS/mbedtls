@@ -100,7 +100,7 @@ Resources include:
 
 * Memory.
 * Files in storage (PSA API only — in the Mbed TLS API, black-box unit tests are sufficient).
-* Key handles (PSA API only).
+* Key slots (PSA API only).
 * Key slots in a secure element (PSA SE HAL).
 * Communication handles (PSA crypto service only).
 
@@ -116,7 +116,7 @@ When code should clean up resources, how do we know that they have truly been cl
 
 * Zeroization of confidential data after use.
 * Freeing memory.
-* Closing key handles.
+* Freeing key slots.
 * Freeing key slots in a secure element.
 * Deleting files in storage (PSA API only).
 

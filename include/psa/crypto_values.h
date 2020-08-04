@@ -108,7 +108,7 @@
  * as applicable.
  *
  * Implementations shall not return this error code to indicate that a
- * key handle is invalid, but shall return #PSA_ERROR_INVALID_HANDLE
+ * key identifier is invalid, but shall return #PSA_ERROR_INVALID_HANDLE
  * instead. */
 #define PSA_ERROR_BAD_STATE             ((psa_status_t)-137)
 
@@ -118,7 +118,7 @@
  * combination of parameters are recognized as invalid.
  *
  * Implementations shall not return this error code to indicate that a
- * key handle is invalid, but shall return #PSA_ERROR_INVALID_HANDLE
+ * key identifier is invalid, but shall return #PSA_ERROR_INVALID_HANDLE
  * instead.
  */
 #define PSA_ERROR_INVALID_ARGUMENT      ((psa_status_t)-135)
@@ -266,7 +266,7 @@
  * to read from a resource. */
 #define PSA_ERROR_INSUFFICIENT_DATA     ((psa_status_t)-143)
 
-/** The key handle is not valid. See also :ref:\`key-handles\`.
+/** The key identifier is not valid. See also :ref:\`key-handles\`.
  */
 #define PSA_ERROR_INVALID_HANDLE        ((psa_status_t)-136)
 
@@ -769,9 +769,9 @@
  *   an algorithm built from `PSA_xxx_SIGNATURE` and a specific hash. Each
  *   call to sign or verify a message may use a different hash.
  *   ```
- *   psa_sign_hash(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA_256), ...);
- *   psa_sign_hash(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA_512), ...);
- *   psa_sign_hash(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA3_256), ...);
+ *   psa_sign_hash(key, PSA_xxx_SIGNATURE(PSA_ALG_SHA_256), ...);
+ *   psa_sign_hash(key, PSA_xxx_SIGNATURE(PSA_ALG_SHA_512), ...);
+ *   psa_sign_hash(key, PSA_xxx_SIGNATURE(PSA_ALG_SHA3_256), ...);
  *   ```
  *
  * This value may not be used to build other algorithms that are
@@ -1561,7 +1561,7 @@
 
 /** The default lifetime for volatile keys.
  *
- * A volatile key only exists as long as the handle to it is not closed.
+ * A volatile key only exists as long as the identifier to it is not destroyed.
  * The key material is guaranteed to be erased on a power reset.
  *
  * A key with this lifetime is typically stored in the RAM area of the
@@ -1755,32 +1755,6 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 }
 
 #endif /* !MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
-
-#define PSA_KEY_HANDLE_INIT MBEDTLS_SVC_KEY_ID_INIT
-
-/** Compare two handles.
- *
- * \param handle1  First handle.
- * \param handle2  Second handle.
- *
- * \return Non-zero if the two handles are equal, zero otherwise.
- */
-static inline int psa_key_handle_equal( psa_key_handle_t handle1,
-                                        psa_key_handle_t handle2 )
-{
-    return( mbedtls_svc_key_id_equal( handle1, handle2 ) );
-}
-
-/** Check wether an handle is null.
- *
- * \param handle  Handle
- *
- * \return Non-zero if the handle is null, zero otherwise.
- */
-static inline int psa_key_handle_is_null( psa_key_handle_t handle )
-{
-    return( mbedtls_svc_key_id_is_null( handle ) );
-}
 
 /**@}*/
 

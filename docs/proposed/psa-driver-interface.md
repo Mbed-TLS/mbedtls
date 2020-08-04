@@ -580,8 +580,8 @@ psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
 psa_set_key_size(&attributes, 128);
 psa_set_key_algorithm(&attributes, PSA_ALG_GCM);
 psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT);
-psa_key_handle_t handle = 0;
-psa_generate_key(&attributes, &handle);
+psa_key_id_t key;
+psa_generate_key(&attributes, &key);
 ```
 
 ## Using opaque drivers from an application

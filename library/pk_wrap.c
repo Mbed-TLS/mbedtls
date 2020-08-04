@@ -543,7 +543,7 @@ static int ecdsa_verify_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
     mbedtls_ecdsa_context *ctx = ctx_arg;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle = PSA_KEY_HANDLE_INIT;
+    psa_key_id_t key_id = 0;
     psa_status_t status;
     mbedtls_pk_context key;
     int key_len;
@@ -576,7 +576,7 @@ static int ecdsa_verify_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
 
     status = psa_import_key( &attributes,
                              buf + sizeof( buf ) - key_len, key_len,
-                             &key_handle );
+                             &key_id );
     if( status != PSA_SUCCESS )
     {
         ret = mbedtls_psa_err_translate_pk( status );
@@ -598,7 +598,7 @@ static int ecdsa_verify_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
         goto cleanup;
     }
 
-    if( psa_verify_hash( key_handle, psa_sig_md,
+    if( psa_verify_hash( key_id, psa_sig_md,
                          hash, hash_len,
                          buf, 2 * signature_part_size )
          != PSA_SUCCESS )
@@ -615,7 +615,7 @@ static int ecdsa_verify_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
     ret = 0;
 
 cleanup:
-    psa_destroy_key( key_handle );
+    psa_destroy_key( key_id );
     return( ret );
 }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
@@ -870,7 +870,7 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 
 static void *pk_opaque_alloc_wrap( void )
 {
-    void *ctx = mbedtls_calloc( 1, sizeof( psa_key_handle_t ) );
+    void *ctx = mbedtls_calloc( 1, sizeof( psa_key_id_t ) );
 
     /* no _init() function to call, an calloc() already zeroized */
 
@@ -879,13 +879,13 @@ static void *pk_opaque_alloc_wrap( void )
 
 static void pk_opaque_free_wrap( void *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( psa_key_handle_t ) );
+    mbedtls_platform_zeroize( ctx, sizeof( psa_key_id_t ) );
     mbedtls_free( ctx );
 }
 
 static size_t pk_opaque_get_bitlen( const void *ctx )
 {
-    const psa_key_handle_t *key = (const psa_key_handle_t *) ctx;
+    const psa_key_id_t *key = (const psa_key_id_t *) ctx;
     size_t bits;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
@@ -1008,7 +1008,7 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     ((void) p_rng);
     return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 #else /* !MBEDTLS_ECDSA_C */
-    const psa_key_handle_t *key = (const psa_key_handle_t *) ctx;
+    const psa_key_id_t *key = (const psa_key_id_t *) ctx;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg = PSA_ALG_ECDSA( mbedtls_psa_translate_md( md_alg ) );
     size_t buf_len;

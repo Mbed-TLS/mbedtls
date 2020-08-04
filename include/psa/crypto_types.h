@@ -247,12 +247,6 @@ typedef struct
 
 #endif /* !MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
 
-/*
- * To support temporary both openless APIs and psa_open_key(), define
- * psa_key_handle_t to be equal to mbedtls_svc_key_id_t.
- */
-typedef mbedtls_svc_key_id_t psa_key_handle_t;
-
 /**@}*/
 
 /** \defgroup policy Key policies
@@ -358,7 +352,7 @@ typedef uint32_t psa_key_usage_t;
  * -# Call a key creation function: psa_import_key(), psa_generate_key(),
  *    psa_key_derivation_output_key() or psa_copy_key(). This function reads
  *    the attribute structure, creates a key with these attributes, and
- *    outputs a handle to the newly created key.
+ *    outputs a key identifier to the newly created key.
  * -# The attribute structure is now no longer necessary.
  *    You may call psa_reset_key_attributes(), although this is optional
  *    with the workflow presented here because the attributes currently

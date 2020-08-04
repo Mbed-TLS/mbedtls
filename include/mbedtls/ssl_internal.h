@@ -443,7 +443,7 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_type_t ecdh_psa_type;
     uint16_t ecdh_bits;
-    psa_key_handle_t ecdh_psa_privkey;
+    psa_key_id_t ecdh_psa_privkey;
     unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t ecdh_psa_peerkey_len;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -462,7 +462,7 @@ struct mbedtls_ssl_handshake_params
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_handle_t psk_opaque;        /*!< Opaque PSK from the callback   */
+    psa_key_id_t psk_opaque;            /*!< Opaque PSK from the callback   */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     unsigned char *psk;                 /*!<  PSK from the callback         */
     size_t psk_len;                     /*!<  Length of PSK from callback   */
@@ -1061,16 +1061,16 @@ static inline int mbedtls_ssl_get_psk( const mbedtls_ssl_context *ssl,
  * 2. static PSK configured by \c mbedtls_ssl_conf_psk_opaque()
  * Return an opaque PSK
  */
-static inline psa_key_handle_t mbedtls_ssl_get_opaque_psk(
+static inline psa_key_id_t mbedtls_ssl_get_opaque_psk(
     const mbedtls_ssl_context *ssl )
 {
-    if( ! psa_key_handle_is_null( ssl->handshake->psk_opaque ) )
+    if( ! mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
         return( ssl->handshake->psk_opaque );
 
-    if( ! psa_key_handle_is_null( ssl->conf->psk_opaque ) )
+    if( ! mbedtls_svc_key_id_is_null( ssl->conf->psk_opaque ) )
         return( ssl->conf->psk_opaque );
 
-    return( PSA_KEY_HANDLE_INIT );
+    return( MBEDTLS_SVC_KEY_ID_INIT );
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

@@ -157,7 +157,7 @@ static int ssl_conf_has_psk_or_cb( mbedtls_ssl_config const *conf )
         return( 1 );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( ! psa_key_handle_is_null( conf->psk_opaque ) )
+    if( ! mbedtls_svc_key_id_is_null( conf->psk_opaque ) )
         return( 1 );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
@@ -172,13 +172,13 @@ static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
         /* If we've used a callback to select the PSK,
          * the static configuration is irrelevant. */
 
-        if( ! psa_key_handle_is_null( ssl->handshake->psk_opaque ) )
+        if( ! mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
             return( 1 );
 
         return( 0 );
     }
 
-    if( ! psa_key_handle_is_null( ssl->conf->psk_opaque ) )
+    if( ! mbedtls_svc_key_id_is_null( ssl->conf->psk_opaque ) )
         return( 1 );
 
     return( 0 );

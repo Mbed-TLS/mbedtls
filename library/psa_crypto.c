@@ -1190,7 +1190,7 @@ static psa_status_t psa_restrict_key_policy(
 /** Retrieve a slot which must contain a key. The key must have allow all the
  * usage flags set in \p usage. If \p alg is nonzero, the key must allow
  * operations with this algorithm. */
-static psa_status_t psa_get_key_from_slot( psa_key_handle_t handle,
+static psa_status_t psa_get_key_from_slot( mbedtls_svc_key_id_t key,
                                            psa_key_slot_t **p_slot,
                                            psa_key_usage_t usage,
                                            psa_algorithm_t alg )
@@ -1200,7 +1200,7 @@ static psa_status_t psa_get_key_from_slot( psa_key_handle_t handle,
 
     *p_slot = NULL;
 
-    status = psa_get_key_slot( handle, &slot );
+    status = psa_get_key_slot( key, &slot );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -1230,12 +1230,12 @@ static psa_status_t psa_get_key_from_slot( psa_key_handle_t handle,
  * until secure element support is fully implemented.
  */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-static psa_status_t psa_get_transparent_key( psa_key_handle_t handle,
+static psa_status_t psa_get_transparent_key( mbedtls_svc_key_id_t key,
                                              psa_key_slot_t **p_slot,
                                              psa_key_usage_t usage,
                                              psa_algorithm_t alg )
 {
-    psa_status_t status = psa_get_key_from_slot( handle, p_slot, usage, alg );
+    psa_status_t status = psa_get_key_from_slot( key, p_slot, usage, alg );
     if( status != PSA_SUCCESS )
         return( status );
     if( psa_key_slot_is_external( *p_slot ) )
@@ -1247,8 +1247,8 @@ static psa_status_t psa_get_transparent_key( psa_key_handle_t handle,
 }
 #else /* MBEDTLS_PSA_CRYPTO_SE_C */
 /* With no secure element support, all keys are transparent. */
-#define psa_get_transparent_key( handle, p_slot, usage, alg )   \
-    psa_get_key_from_slot( handle, p_slot, usage, alg )
+#define psa_get_transparent_key( key, p_slot, usage, alg )   \
+    psa_get_key_from_slot( key, p_slot, usage, alg )
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 /** Wipe key data from a slot. Preserve metadata such as the policy. */
@@ -1291,7 +1291,7 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
     return( status );
 }
 
-psa_status_t psa_destroy_key( psa_key_handle_t handle )
+psa_status_t psa_destroy_key( mbedtls_svc_key_id_t key )
 {
     psa_key_slot_t *slot;
     psa_status_t status; /* status of the last operation */
@@ -1300,10 +1300,10 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
     psa_se_drv_table_entry_t *driver;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    if( psa_key_handle_is_null( handle ) )
+    if( mbedtls_svc_key_id_is_null( key ) )
         return( PSA_SUCCESS );
 
-    status = psa_get_key_slot( handle, &slot );
+    status = psa_get_key_slot( key, &slot );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -1470,7 +1470,7 @@ exit:
 
 /** Retrieve all the publicly-accessible attributes of a key.
  */
-psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
+psa_status_t psa_get_key_attributes( mbedtls_svc_key_id_t key,
                                      psa_key_attributes_t *attributes )
 {
     psa_key_slot_t *slot;
@@ -1478,7 +1478,7 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
 
     psa_reset_key_attributes( attributes );
 
-    status = psa_get_key_from_slot( handle, &slot, 0, 0 );
+    status = psa_get_key_from_slot( key, &slot, 0, 0 );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -1683,7 +1683,7 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
     }
 }
 
-psa_status_t psa_export_key( psa_key_handle_t handle,
+psa_status_t psa_export_key( mbedtls_svc_key_id_t key,
                              uint8_t *data,
                              size_t data_size,
                              size_t *data_length )
@@ -1700,14 +1700,14 @@ psa_status_t psa_export_key( psa_key_handle_t handle,
     /* Export requires the EXPORT flag. There is an exception for public keys,
      * which don't require any flag, but psa_get_key_from_slot takes
      * care of this. */
-    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_EXPORT, 0 );
+    status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_EXPORT, 0 );
     if( status != PSA_SUCCESS )
         return( status );
     return( psa_internal_export_key( slot, data, data_size,
                                      data_length, 0 ) );
 }
 
-psa_status_t psa_export_public_key( psa_key_handle_t handle,
+psa_status_t psa_export_public_key( mbedtls_svc_key_id_t key,
                                     uint8_t *data,
                                     size_t data_size,
                                     size_t *data_length )
@@ -1722,7 +1722,7 @@ psa_status_t psa_export_public_key( psa_key_handle_t handle,
     *data_length = 0;
 
     /* Exporting a public key doesn't require a usage flag. */
-    status = psa_get_key_from_slot( handle, &slot, 0, 0 );
+    status = psa_get_key_from_slot( key, &slot, 0, 0 );
     if( status != PSA_SUCCESS )
         return( status );
     return( psa_internal_export_key( slot, data, data_size,
@@ -1825,7 +1825,8 @@ static psa_status_t psa_validate_key_attributes(
  *
  * This function is intended to be used as follows:
  * -# Call psa_start_key_creation() to allocate a key slot, prepare
- *    it with the specified attributes, and assign it a handle.
+ *    it with the specified attributes, and in case of a volatile key assign it
+ *    a volatile key identifier.
  * -# Populate the slot with the key material.
  * -# Call psa_finish_key_creation() to finalize the creation of the slot.
  * In case of failure at any step, stop the sequence and call
@@ -1833,7 +1834,7 @@ static psa_status_t psa_validate_key_attributes(
  *
  * \param method            An identification of the calling function.
  * \param[in] attributes    Key attributes for the new key.
- * \param[out] handle       On success, a handle for the allocated slot.
+ * \param[out] key          On success, identifier of the key.
  * \param[out] p_slot       On success, a pointer to the prepared slot.
  * \param[out] p_drv        On any return, the driver for the key, if any.
  *                          NULL for a transparent key.
@@ -1846,7 +1847,7 @@ static psa_status_t psa_validate_key_attributes(
 static psa_status_t psa_start_key_creation(
     psa_key_creation_method_t method,
     const psa_key_attributes_t *attributes,
-    psa_key_handle_t *handle,
+    mbedtls_svc_key_id_t *key,
     psa_key_slot_t **p_slot,
     psa_se_drv_table_entry_t **p_drv )
 {
@@ -1938,7 +1939,7 @@ static psa_status_t psa_start_key_creation(
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    *handle = slot->attr.id;
+    *key = slot->attr.id;
 
     return( PSA_SUCCESS );
 }
@@ -1956,7 +1957,7 @@ static psa_status_t psa_start_key_creation(
  *                      or NULL for a transparent key.
  *
  * \retval #PSA_SUCCESS
- *         The key was successfully created. The handle is now valid.
+ *         The key was successfully created.
  * \return If this function fails, the key slot is an invalid state.
  *         You must call psa_fail_key_creation() to wipe and free the slot.
  */
@@ -2138,7 +2139,7 @@ static psa_status_t psa_validate_optional_attributes(
 psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
                              const uint8_t *data,
                              size_t data_length,
-                             psa_key_handle_t *handle )
+                             mbedtls_svc_key_id_t *key )
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
@@ -2151,7 +2152,7 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_start_key_creation( PSA_KEY_CREATION_IMPORT, attributes,
-                                     handle, &slot, &driver );
+                                     key, &slot, &driver );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -2197,7 +2198,7 @@ exit:
     if( status != PSA_SUCCESS )
     {
         psa_fail_key_creation( slot, driver );
-        *handle = PSA_KEY_HANDLE_INIT;
+        *key = MBEDTLS_SVC_KEY_ID_INIT;
     }
     return( status );
 }
@@ -2209,7 +2210,7 @@ psa_status_t mbedtls_psa_register_se_key(
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
-    psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
 
     /* Leaving attributes unspecified is not currently supported.
      * It could make sense to query the key type and size from the
@@ -2221,7 +2222,7 @@ psa_status_t mbedtls_psa_register_se_key(
         return( PSA_ERROR_NOT_SUPPORTED );
 
     status = psa_start_key_creation( PSA_KEY_CREATION_REGISTER, attributes,
-                                     &handle, &slot, &driver );
+                                     &key, &slot, &driver );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -2233,7 +2234,7 @@ exit:
         psa_fail_key_creation( slot, driver );
     }
     /* Registration doesn't keep the key in RAM. */
-    psa_close_key( handle );
+    psa_close_key( key );
     return( status );
 }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
@@ -2253,9 +2254,9 @@ static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_copy_key( psa_key_handle_t source_handle,
+psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
                            const psa_key_attributes_t *specified_attributes,
-                           psa_key_handle_t *target_handle )
+                           mbedtls_svc_key_id_t *target_key )
 {
     psa_status_t status;
     psa_key_slot_t *source_slot = NULL;
@@ -2263,7 +2264,7 @@ psa_status_t psa_copy_key( psa_key_handle_t source_handle,
     psa_key_attributes_t actual_attributes = *specified_attributes;
     psa_se_drv_table_entry_t *driver = NULL;
 
-    status = psa_get_transparent_key( source_handle, &source_slot,
+    status = psa_get_transparent_key( source_key, &source_slot,
                                       PSA_KEY_USAGE_COPY, 0 );
     if( status != PSA_SUCCESS )
         goto exit;
@@ -2280,7 +2281,7 @@ psa_status_t psa_copy_key( psa_key_handle_t source_handle,
 
     status = psa_start_key_creation( PSA_KEY_CREATION_COPY,
                                      &actual_attributes,
-                                     target_handle, &target_slot, &driver );
+                                     target_key, &target_slot, &driver );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -2302,7 +2303,7 @@ exit:
     if( status != PSA_SUCCESS )
     {
         psa_fail_key_creation( target_slot, driver );
-        *target_handle = PSA_KEY_HANDLE_INIT;
+        *target_key = MBEDTLS_SVC_KEY_ID_INIT;
     }
     return( status );
 }
@@ -3086,7 +3087,7 @@ cleanup:
 #endif /* MBEDTLS_MD_C */
 
 static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
-                                   psa_key_handle_t handle,
+                                   mbedtls_svc_key_id_t key,
                                    psa_algorithm_t alg,
                                    int is_sign )
 {
@@ -3110,7 +3111,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     if( is_sign )
         operation->is_sign = 1;
 
-    status = psa_get_transparent_key( handle, &slot, usage, alg );
+    status = psa_get_transparent_key( key, &slot, usage, alg );
     if( status != PSA_SUCCESS )
         goto exit;
     key_bits = psa_get_key_slot_bits( slot );
@@ -3203,17 +3204,17 @@ exit:
 }
 
 psa_status_t psa_mac_sign_setup( psa_mac_operation_t *operation,
-                                 psa_key_handle_t handle,
+                                 mbedtls_svc_key_id_t key,
                                  psa_algorithm_t alg )
 {
-    return( psa_mac_setup( operation, handle, alg, 1 ) );
+    return( psa_mac_setup( operation, key, alg, 1 ) );
 }
 
 psa_status_t psa_mac_verify_setup( psa_mac_operation_t *operation,
-                                   psa_key_handle_t handle,
+                                   mbedtls_svc_key_id_t key,
                                    psa_algorithm_t alg )
 {
-    return( psa_mac_setup( operation, handle, alg, 0 ) );
+    return( psa_mac_setup( operation, key, alg, 0 ) );
 }
 
 psa_status_t psa_mac_update( psa_mac_operation_t *operation,
@@ -3688,7 +3689,7 @@ cleanup:
 }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA */
 
-psa_status_t psa_sign_hash( psa_key_handle_t handle,
+psa_status_t psa_sign_hash( mbedtls_svc_key_id_t key,
                             psa_algorithm_t alg,
                             const uint8_t *hash,
                             size_t hash_length,
@@ -3707,7 +3708,7 @@ psa_status_t psa_sign_hash( psa_key_handle_t handle,
     if( signature_size == 0 )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
-    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_SIGN_HASH, alg );
+    status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_SIGN_HASH, alg );
     if( status != PSA_SUCCESS )
         goto exit;
     if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->attr.type ) )
@@ -3806,7 +3807,7 @@ exit:
     return( status );
 }
 
-psa_status_t psa_verify_hash( psa_key_handle_t handle,
+psa_status_t psa_verify_hash( mbedtls_svc_key_id_t key,
                               psa_algorithm_t alg,
                               const uint8_t *hash,
                               size_t hash_length,
@@ -3816,7 +3817,8 @@ psa_status_t psa_verify_hash( psa_key_handle_t handle,
     psa_key_slot_t *slot;
     psa_status_t status;
 
-    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_VERIFY_HASH, alg );
+    status = psa_get_key_from_slot( key, &slot,
+                                    PSA_KEY_USAGE_VERIFY_HASH, alg );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -3897,7 +3899,7 @@ static void psa_rsa_oaep_set_padding_mode( psa_algorithm_t alg,
 }
 #endif /* defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21) */
 
-psa_status_t psa_asymmetric_encrypt( psa_key_handle_t handle,
+psa_status_t psa_asymmetric_encrypt( mbedtls_svc_key_id_t key,
                                      psa_algorithm_t alg,
                                      const uint8_t *input,
                                      size_t input_length,
@@ -3921,7 +3923,7 @@ psa_status_t psa_asymmetric_encrypt( psa_key_handle_t handle,
     if( ! PSA_ALG_IS_RSA_OAEP( alg ) && salt_length != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    status = psa_get_transparent_key( handle, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
+    status = psa_get_transparent_key( key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
     if( ! ( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->attr.type ) ||
@@ -3993,7 +3995,7 @@ rsa_exit:
     }
 }
 
-psa_status_t psa_asymmetric_decrypt( psa_key_handle_t handle,
+psa_status_t psa_asymmetric_decrypt( mbedtls_svc_key_id_t key,
                                      psa_algorithm_t alg,
                                      const uint8_t *input,
                                      size_t input_length,
@@ -4017,7 +4019,7 @@ psa_status_t psa_asymmetric_decrypt( psa_key_handle_t handle,
     if( ! PSA_ALG_IS_RSA_OAEP( alg ) && salt_length != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    status = psa_get_transparent_key( handle, &slot, PSA_KEY_USAGE_DECRYPT, alg );
+    status = psa_get_transparent_key( key, &slot, PSA_KEY_USAGE_DECRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
     if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->attr.type ) )
@@ -4095,7 +4097,7 @@ rsa_exit:
 /****************************************************************/
 
 static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
-                                      psa_key_handle_t handle,
+                                      mbedtls_svc_key_id_t key,
                                       psa_algorithm_t alg,
                                       mbedtls_operation_t cipher_operation )
 {
@@ -4117,7 +4119,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     /* Fetch key material from key storage. */
-    status = psa_get_key_from_slot( handle, &slot, usage, alg );
+    status = psa_get_key_from_slot( key, &slot, usage, alg );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -4248,17 +4250,17 @@ exit:
 }
 
 psa_status_t psa_cipher_encrypt_setup( psa_cipher_operation_t *operation,
-                                       psa_key_handle_t handle,
+                                       mbedtls_svc_key_id_t key,
                                        psa_algorithm_t alg )
 {
-    return( psa_cipher_setup( operation, handle, alg, MBEDTLS_ENCRYPT ) );
+    return( psa_cipher_setup( operation, key, alg, MBEDTLS_ENCRYPT ) );
 }
 
 psa_status_t psa_cipher_decrypt_setup( psa_cipher_operation_t *operation,
-                                       psa_key_handle_t handle,
+                                       mbedtls_svc_key_id_t key,
                                        psa_algorithm_t alg )
 {
-    return( psa_cipher_setup( operation, handle, alg, MBEDTLS_DECRYPT ) );
+    return( psa_cipher_setup( operation, key, alg, MBEDTLS_DECRYPT ) );
 }
 
 psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
@@ -4643,7 +4645,7 @@ static void psa_aead_abort_internal( aead_operation_t *operation )
 }
 
 static psa_status_t psa_aead_setup( aead_operation_t *operation,
-                                    psa_key_handle_t handle,
+                                    mbedtls_svc_key_id_t key,
                                     psa_key_usage_t usage,
                                     psa_algorithm_t alg )
 {
@@ -4651,7 +4653,7 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
     size_t key_bits;
     mbedtls_cipher_id_t cipher_id;
 
-    status = psa_get_transparent_key( handle, &operation->slot, usage, alg );
+    status = psa_get_transparent_key( key, &operation->slot, usage, alg );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -4737,7 +4739,7 @@ cleanup:
     return( status );
 }
 
-psa_status_t psa_aead_encrypt( psa_key_handle_t handle,
+psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
                                psa_algorithm_t alg,
                                const uint8_t *nonce,
                                size_t nonce_length,
@@ -4755,7 +4757,7 @@ psa_status_t psa_aead_encrypt( psa_key_handle_t handle,
 
     *ciphertext_length = 0;
 
-    status = psa_aead_setup( &operation, handle, PSA_KEY_USAGE_ENCRYPT, alg );
+    status = psa_aead_setup( &operation, key, PSA_KEY_USAGE_ENCRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -4851,7 +4853,7 @@ static psa_status_t psa_aead_unpadded_locate_tag( size_t tag_length,
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_aead_decrypt( psa_key_handle_t handle,
+psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
                                psa_algorithm_t alg,
                                const uint8_t *nonce,
                                size_t nonce_length,
@@ -4869,7 +4871,7 @@ psa_status_t psa_aead_decrypt( psa_key_handle_t handle,
 
     *plaintext_length = 0;
 
-    status = psa_aead_setup( &operation, handle, PSA_KEY_USAGE_DECRYPT, alg );
+    status = psa_aead_setup( &operation, key, PSA_KEY_USAGE_DECRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -5368,7 +5370,7 @@ exit:
 
 psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attributes,
                                        psa_key_derivation_operation_t *operation,
-                                       psa_key_handle_t *handle )
+                                       mbedtls_svc_key_id_t *key )
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
@@ -5383,7 +5385,7 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
         return( PSA_ERROR_NOT_PERMITTED );
 
     status = psa_start_key_creation( PSA_KEY_CREATION_DERIVE,
-                                     attributes, handle, &slot, &driver );
+                                     attributes, key, &slot, &driver );
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( driver != NULL )
     {
@@ -5402,7 +5404,7 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
     if( status != PSA_SUCCESS )
     {
         psa_fail_key_creation( slot, driver );
-        *handle = PSA_KEY_HANDLE_INIT;
+        *key = MBEDTLS_SVC_KEY_ID_INIT;
     }
     return( status );
 }
@@ -5765,14 +5767,13 @@ psa_status_t psa_key_derivation_input_bytes(
 psa_status_t psa_key_derivation_input_key(
     psa_key_derivation_operation_t *operation,
     psa_key_derivation_step_t step,
-    psa_key_handle_t handle )
+    mbedtls_svc_key_id_t key )
 {
     psa_key_slot_t *slot;
     psa_status_t status;
 
-    status = psa_get_transparent_key( handle, &slot,
-                                      PSA_KEY_USAGE_DERIVE,
-                                      operation->alg );
+    status = psa_get_transparent_key( key, &slot,
+                                      PSA_KEY_USAGE_DERIVE, operation->alg );
     if( status != PSA_SUCCESS )
     {
         psa_key_derivation_abort( operation );
@@ -5931,7 +5932,7 @@ exit:
 
 psa_status_t psa_key_derivation_key_agreement( psa_key_derivation_operation_t *operation,
                                                psa_key_derivation_step_t step,
-                                               psa_key_handle_t private_key,
+                                               mbedtls_svc_key_id_t private_key,
                                                const uint8_t *peer_key,
                                                size_t peer_key_length )
 {
@@ -5959,7 +5960,7 @@ psa_status_t psa_key_derivation_key_agreement( psa_key_derivation_operation_t *o
 }
 
 psa_status_t psa_raw_key_agreement( psa_algorithm_t alg,
-                                    psa_key_handle_t private_key,
+                                    mbedtls_svc_key_id_t private_key,
                                     const uint8_t *peer_key,
                                     size_t peer_key_length,
                                     uint8_t *output,
@@ -6212,7 +6213,7 @@ static psa_status_t psa_generate_key_internal(
 }
 
 psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
-                               psa_key_handle_t *handle )
+                               mbedtls_svc_key_id_t *key )
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
@@ -6224,7 +6225,7 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_start_key_creation( PSA_KEY_CREATION_GENERATE,
-                                     attributes, handle, &slot, &driver );
+                                     attributes, key, &slot, &driver );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -6244,7 +6245,7 @@ exit:
     if( status != PSA_SUCCESS )
     {
         psa_fail_key_creation( slot, driver );
-        *handle = PSA_KEY_HANDLE_INIT;
+        *key = MBEDTLS_SVC_KEY_ID_INIT;
     }
     return( status );
 }

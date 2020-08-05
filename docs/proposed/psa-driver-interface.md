@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/03 11:42:58 GMT"
+Time-stamp: "2020/08/05 20:16:11 GMT"
 
 ## Introduction
 
@@ -22,7 +22,7 @@ Functions in the PSA Cryptography API invoke functions in the core. Code from th
 The PSA Cryptography driver interface supports two types of cryptoprocessors, and accordingly two types of drivers.
 
 * **Transparent** drivers implement cryptographic operations on keys that are provided in cleartext at the beginning of each operation. They are typically used for hardware **accelerators**. When a transparent driver is available for a particular combination of parameters (cryptographic algorithm, key type and size, etc.), it is used instead of the default software implementation. Transparent drivers can also be pure software implementations that are distributed as plug-ins to a PSA Crypto implementation.
-* **Opaque** drivers implement cryptographic operations on keys that can only be used inside a protected environment such as a **secure element**, a hardware security module, a smartcard, a secure enclave, etc. An opaque driver is invoked for the specific key location that the driver is registered for: the dispatch is based on the key's lifetime.
+* **Opaque** drivers implement cryptographic operations on keys that can only be used inside a protected environment such as a **secure element**, a hardware security module, a smartcard, a secure enclave, etc. An opaque driver is invoked for the specific [key location](#lifetimes-and-locations) that the driver is registered for: the dispatch is based on the key's lifetime.
 
 ### Requirements
 
@@ -75,7 +75,7 @@ A driver description is a JSON object containing the following properties:
 A list of **capabilities**. Each capability describes a family of functions that the driver implements for a certain class of cryptographic mechanisms.
 * `"key_context"` (not permitted for transparent drivers, mandatory for opaque drivers): information about the [representation of keys](#key-format-for-opaque-drivers).
 * `"persistent_state_size"` (not permitted for transparent drivers, optional for opaque drivers, integer or string). The size in bytes of the [persistent state of the driver](#opaque-driver-persistent-state). This may be either a non-negative integer or a C constant expression of type `size_t`.
-* `"location"` (not permitted for transparent drivers, optional for opaque drivers, integer or string). The location value for which this driver is invoked. In other words, this determines the lifetimes for which the driver is invoked. This may be either a non-negative integer or a C constant expression of type `psa_key_location_t`.
+* `"location"` (not permitted for transparent drivers, optional for opaque drivers, integer or string). The [location value](#lifetimes-and-locations) for which this driver is invoked. In other words, this determines the lifetimes for which the driver is invoked. This may be either a non-negative integer or a C constant expression of type `psa_key_location_t`.
 
 #### Driver description capability
 
@@ -381,12 +381,12 @@ If the key is stored in wrapped form outside the secure element, and the wrapped
 
 Transparent drivers may provide the following key management entry points:
 
-* `"export_key"`: called by `psa_export_key()`, or by `psa_copy_key()` when copying a key from to location.
+* `"export_key"`: called by `psa_export_key()`, or by `psa_copy_key()` when copying a key from to [location](#lifetimes-and-locations).
 * `"export_public_key"`: called by the core to obtain the public key of a key pair. The core may call this entry point at any time to obtain the public key, which can be for `psa_export_public_key()` but also at other times, including during a cryptographic operation that requires the public key such as a call to `psa_verify_message()` on a key pair object.
 * `"import_key"`: called by `psa_import_key()`, or by `psa_copy_key()` when copying a key from another location.
 * `"generate_key"`: called by `psa_generate_key()`.
 * `"derive_key"`: called by `psa_key_derivation_output_key()`.
-* `"copy_key"`: called by `psa_copy_key()` when copying a key within the same location.
+* `"copy_key"`: called by `psa_copy_key()` when copying a key within the same [location](#lifetimes-and-locations).
 
 In addition, secure elements that store the key material internally must provide the following two entry points:
 
@@ -520,7 +520,7 @@ Transparent drivers linked into the library are automatically used for the mecha
 
 ### Using opaque drivers
 
-Each opaque driver is assigned a location. The driver is invoked for all actions that use a key in that location. A key's location is indicated by its lifetime. The application chooses the key's lifetime when it creates the key.
+Each opaque driver is assigned a [location](#lifetimes-and-locations). The driver is invoked for all actions that use a key in that location. A key's location is indicated by its lifetime. The application chooses the key's lifetime when it creates the key.
 
 For example, the following snippet creates an AES-GCM key which is only accessible inside a secure element.
 ```
@@ -537,6 +537,17 @@ psa_generate_key(&attributes, &handle);
 ```
 
 ## Using opaque drivers from an application
+
+### Lifetimes and locations
+
+The PSA Cryptography API, version 1.0.0, defines [lifetimes](https://armmbed.github.io/mbed-crypto/html/api/keys/attributes.html?highlight=psa_key_lifetime_t#c.psa_key_lifetime_t) as an attribute of a key that indicates where the key is stored and which application and system actions will create and destroy it. The lifetime is expressed as a 32-bit value (`typedef uint32_t psa_key_lifetime_t`). An upcoming version of the PSA Cryptography API defines more structure for lifetime values to separate these two aspects of the lifetime:
+
+* Bits 0–7 are a _persistence level_. This value indicates what device management actions can cause it to be destroyed. In particular, it indicates whether the key is volatile or persistent.
+* Bits 8–31 are a _location indicator_. This value indicates where the key material is stored and where operations on the key are performed. Location values can be stored in a variable of type `psa_key_location_t`.
+
+An opaque driver is attached to a specific location. Keys in the default location (`PSA_KEY_LOCATION_LOCAL_STORAGE = 0`) are transparent: the core has direct access to the key material. For keys in a location that is managed by an opaque driver, only the secure element has access to the key material and can perform operations on the key, while the core only manipulates a wrapped form of the key or an identifier of the key.
+
+### Creating a key in a secure element
 
 The  a compile-time constant for each opaque driver indicating its location called `PSA_KEY_LOCATION_`*prefix* where *prefix* is the value of the `"prefix"` property in the driver description. For convenience, Mbed TLS also declares a compile-time constant for the corresponding lifetime with the default persistence called `PSA_KEY_LIFETIME_`*prefix*. Therefore, to declare an opaque key in the location with the prefix `foo` with the default persistence, call `psa_set_key_lifetime` during the key creation as follows:
 ```

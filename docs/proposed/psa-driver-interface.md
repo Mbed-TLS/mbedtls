@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/05 20:16:11 GMT"
+Time-stamp: "2020/08/05 20:18:29 GMT"
 
 ## Introduction
 
@@ -90,7 +90,7 @@ A capability is a JSON object containing the following properties:
 * `"names"` (optional, object). A mapping from function names described by the `"functions"` property, to the name of the C function in the driver that implements the corresponding function. If a function is not listed here, name of the driver function that implements it is the driver's prefix followed by an underscore (`_`) followed by the function name. If this property is omitted, it is equivalent to an empty object (so each function *suffix* is implemented by a function with called *prefix*`_`*suffix*).
 * `"fallback"` (optional for transparent drivers, not permitted for opaque drivers, boolean). If present and true, the driver may return `PSA_ERROR_NOT_SUPPORTED`, in which case the core should call another driver or use built-in code to perform this operation. If absent or false, the core should not include built-in code to perform this particular cryptographic mechanism.
 
-Example: the following capability declares that the driver can perform deterministic ECDSA signatures using SHA-256 or SHA-384 with a SECP256R1 or SECP384R1 private key (with either hash being possible in combinatio with either curve). If the prefix of this driver is `"acme"`, the function that performs the signature is called `acme_sign_hash`.
+Example: the following capability declares that the driver can perform deterministic ECDSA signatures using SHA-256 or SHA-384 with a SECP256R1 or SECP384R1 private key (with either hash being possible in combination with either curve). If the prefix of this driver is `"acme"`, the function that performs the signature is called `acme_sign_hash`.
 ```
 {
     "functions": ["sign_hash"],
@@ -209,7 +209,7 @@ This family requires the following type and functions:
 * `"hash_finish"`: called by `psa_hash_finish()` and `psa_hash_verify()`.
 * `"hash_abort"`: called by all multi-part hash functions.
 
-To verify a hash with `psa_hash_verify()`, the core calls the driver's *prefix`_hash_finish` entry point and compares the result with the reference hsah value.
+To verify a hash with `psa_hash_verify()`, the core calls the driver's *prefix`_hash_finish` entry point and compares the result with the reference hash value.
 
 For example, a driver with the prefix `"acme"` that implements the `"hash_multipart"` entry point family must define the following type and entry points (assuming that the capability does not use the `"names"` property to declare different type and entry point names):
 
@@ -381,7 +381,7 @@ If the key is stored in wrapped form outside the secure element, and the wrapped
 
 Transparent drivers may provide the following key management entry points:
 
-* `"export_key"`: called by `psa_export_key()`, or by `psa_copy_key()` when copying a key from to [location](#lifetimes-and-locations).
+* `"export_key"`: called by `psa_export_key()`, or by `psa_copy_key()` when copying a key from or to a different [location](#lifetimes-and-locations).
 * `"export_public_key"`: called by the core to obtain the public key of a key pair. The core may call this entry point at any time to obtain the public key, which can be for `psa_export_public_key()` but also at other times, including during a cryptographic operation that requires the public key such as a call to `psa_verify_message()` on a key pair object.
 * `"import_key"`: called by `psa_import_key()`, or by `psa_copy_key()` when copying a key from another location.
 * `"generate_key"`: called by `psa_generate_key()`.
@@ -549,7 +549,7 @@ An opaque driver is attached to a specific location. Keys in the default locatio
 
 ### Creating a key in a secure element
 
-The  a compile-time constant for each opaque driver indicating its location called `PSA_KEY_LOCATION_`*prefix* where *prefix* is the value of the `"prefix"` property in the driver description. For convenience, Mbed TLS also declares a compile-time constant for the corresponding lifetime with the default persistence called `PSA_KEY_LIFETIME_`*prefix*. Therefore, to declare an opaque key in the location with the prefix `foo` with the default persistence, call `psa_set_key_lifetime` during the key creation as follows:
+The core defines a compile-time constant for each opaque driver indicating its location called `PSA_KEY_LOCATION_`*prefix* where *prefix* is the value of the `"prefix"` property in the driver description. For convenience, Mbed TLS also declares a compile-time constant for the corresponding lifetime with the default persistence called `PSA_KEY_LIFETIME_`*prefix*. Therefore, to declare an opaque key in the location with the prefix `foo` with the default persistence, call `psa_set_key_lifetime` during the key creation as follows:
 ```
 psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_foo);
 ```

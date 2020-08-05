@@ -657,10 +657,10 @@
 /**
  * \def MBEDTLS_FI_COUNTERMEASURES
  *
- * Add countermeasures against possible  FI attack.
+ * Add countermeasures against a possible FI attack.
  *
- * Uncommenting this macro inrease sode size and slow performence,
- * it peforms double calls and double result checks of some crypto functions
+ * Uncommenting this macro increases code size and slows performance,
+ * it performs double calls and double result checks of some crypto functions
  */
 //#define MBEDTLS_FI_COUNTERMEASURES
 

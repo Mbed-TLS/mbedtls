@@ -11269,36 +11269,36 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
          */
         ssl->out_msglen = len;
         ssl->out_msgtype = MBEDTLS_SSL_MSG_APPLICATION_DATA;
-        mbedtls_platform_memcpy(ssl->out_msg, buf, len);
+        mbedtls_platform_memcpy( ssl->out_msg, buf, len );
 
 #if defined(MBEDTLS_FI_COUNTERMEASURES) && !defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
         /* Secure against buffer substitution */
         if (buf == ssl->out_msg_dup &&
             ssl->out_msglen == ssl->out_msglen_dup &&
-            ssl->out_msg_dup[0] == ssl->out_msg[0])
+            ssl->out_msg_dup[0] == ssl->out_msg[0] )
         {/*write record only if data was copied from correct user pointer */
 #endif
-            if ((ret = mbedtls_ssl_write_record(ssl, SSL_FORCE_FLUSH)) != 0)
+            if ( ( ret = mbedtls_ssl_write_record( ssl, SSL_FORCE_FLUSH ) ) != 0 )
             {
-                MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_record", ret);
-                return(ret);
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
+                return( ret );
             }
 
 #if defined(MBEDTLS_FI_COUNTERMEASURES) && !defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
         }
         else
         {
-            return(MBEDTLS_ERR_PLATFORM_FAULT_DETECTED);
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
         }
 #endif
     }
-    if (ret == 0)
+    if ( ret == 0 )
     {
-        return((int)len);
+        return( (int) len );
     }
     else
     {
-        return(MBEDTLS_ERR_PLATFORM_FAULT_DETECTED);
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 
 }

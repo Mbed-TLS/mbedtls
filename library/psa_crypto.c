@@ -863,9 +863,9 @@ static psa_status_t psa_export_ecp_key( psa_key_type_t type,
                                            data,
                                            PSA_BITS_TO_BYTES( ecp->grp.nbits ) ) );
         if( status == PSA_SUCCESS )
-        {
             *data_length = PSA_BITS_TO_BYTES( ecp->grp.nbits );
-        }
+        else
+            memset( data, 0, data_size );
 
         return( status );
     }
@@ -5974,8 +5974,10 @@ static psa_status_t psa_generate_key_internal(
             mbedtls_ecp_write_key( &ecp, slot->data.key.data, bytes ) );
 
         mbedtls_ecp_keypair_free( &ecp );
-        if( status != PSA_SUCCESS )
+        if( status != PSA_SUCCESS ) {
+            memset( slot->data.key.data, 0, bytes );
             psa_remove_key_data_from_memory( slot );
+        }
         return( status );
     }
     else

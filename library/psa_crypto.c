@@ -1204,23 +1204,14 @@ static psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
     }
     else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    if( slot->attr.type == PSA_KEY_TYPE_NONE )
     {
-        /* No key material to clean. */
-    }
-    else if( key_type_is_raw_bytes( slot->attr.type ) ||
-             PSA_KEY_TYPE_IS_RSA( slot->attr.type ) ||
-             PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
-    {
+        /* Data pointer will always be either a valid pointer or NULL in an
+         * initialized slot, so we can just free it. */
+        if( slot->data.key.data != NULL )
+            mbedtls_platform_zeroize( slot->data.key.data, slot->data.key.bytes);
         mbedtls_free( slot->data.key.data );
         slot->data.key.data = NULL;
         slot->data.key.bytes = 0;
-    }
-    else
-    {
-        /* Shouldn't happen: the key type is not any type that we
-         * put in. */
-        return( PSA_ERROR_CORRUPTION_DETECTED );
     }
 
     return( PSA_SUCCESS );

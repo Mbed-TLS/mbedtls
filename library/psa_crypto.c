@@ -5586,7 +5586,7 @@ static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
                                             size_t shared_secret_size,
                                             size_t *shared_secret_length )
 {
-    mbedtls_ecp_keypair *their_key;
+    mbedtls_ecp_keypair *their_key = NULL;
     mbedtls_ecdh_context ecdh;
     psa_status_t status;
     size_t bits = 0;

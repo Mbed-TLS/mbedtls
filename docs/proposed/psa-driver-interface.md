@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/05 20:32:28 GMT"
+Time-stamp: "2020/08/05 20:37:24 GMT"
 
 ## Introduction
 
@@ -503,12 +503,14 @@ The core loads the persistent state in memory before it calls the driver's [init
 The core provides the following callback functions, which an opaque driver may call while it is processing a call from the driver:
 ```
 psa_status_t psa_crypto_driver_get_persistent_state(uint_8_t **persistent_state_ptr);
-psa_status_t psa_crypto_driver_update_persistent_state(size_t from, size_t length);
+psa_status_t psa_crypto_driver_commit_persistent_state(size_t from, size_t length);
 ```
 
 `psa_crypto_driver_get_persistent_state` sets `*persistent_state_ptr` to a pointer to the first byte of the persistent state. This pointer remains valid during a call to a driver entry point. Once the entry point returns, the pointer is no longer valid. The core guarantees that calls to `psa_crypto_driver_get_persistent_state` within the same entry point return the same address for the persistent state, but this address may change between calls to an entry point.
 
-`psa_crypto_driver_update_persistent_state` updates the persistent state in persistent storage. Only the portion at byte offsets `from` inclusive to `from + length` exclusive is guaranteed to be updated; it is unspecified whether changes made to other parts of the state are taken into account. The driver must call this function after updating the persistent state in memory and before returning from the entry point, otherwise it is unspecified whether the persistent state is updated.
+`psa_crypto_driver_commit_persistent_state` updates the persistent state in persistent storage. Only the portion at byte offsets `from` inclusive to `from + length` exclusive is guaranteed to be updated; it is unspecified whether changes made to other parts of the state are taken into account. The driver must call this function after updating the persistent state in memory and before returning from the entry point, otherwise it is unspecified whether the persistent state is updated.
+
+The core will not update the persistent state in storage while an entry point is running except when the entry point calls `psa_crypto_driver_commit_persistent_state`. It may update the persistent state in storage after an entry point returns.
 
 In a multithreaded environment, the driver may only call these two functions from the thread that is executing the entry point.
 

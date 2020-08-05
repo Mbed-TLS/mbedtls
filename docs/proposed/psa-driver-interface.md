@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/05 20:24:07 GMT"
+Time-stamp: "2020/08/05 20:32:28 GMT"
 
 ## Introduction
 
@@ -307,7 +307,7 @@ Transparent drivers are not involved when importing, exporting, copying or destr
 
 If a transparent driver entry point is part of a capability which has a true `"fallback"` property and returns `PSA_ERROR_NOT_SUPPORTED`, the built-in software implementation will be called instead. Any other value (`PSA_SUCCESS` or a different error code) is returned to the application.
 
-If there are multiple available transparent drivers, the core tries them in turn until one is declared without a true `"fallback"` property or returns a status other than `PSA_ERROR_NOT_SUPPORTED`.
+If there are multiple available transparent drivers, the core tries them in turn until one is declared without a true `"fallback"` property or returns a status other than `PSA_ERROR_NOT_SUPPORTED`. The order in which the drivers are called is unspecified and may be different for different entry points.
 
 If a transparent driver entry point is part of a capability where the `"fallback"` property is false or omitted, the core should not include any other code for this capability, whether built in or in another transparent driver.
 

@@ -11272,13 +11272,17 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
         mbedtls_platform_memcpy( ssl->out_msg, buf, len );
 
 #if defined(MBEDTLS_FI_COUNTERMEASURES) && !defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
+        /*
+         * Buffer pointer and size duplication cannot be supported with MBEDTLS_SSL_CBC_RECORD_SPLITTING.
+         * After splitting pointers and data size will not be the same as initaly provides by user.
+         */
         /* Secure against buffer substitution */
-        if (buf == ssl->out_msg_dup &&
+        if( buf == ssl->out_msg_dup &&
             ssl->out_msglen == ssl->out_msglen_dup &&
             ssl->out_msg_dup[0] == ssl->out_msg[0] )
         {/*write record only if data was copied from correct user pointer */
 #endif
-            if ( ( ret = mbedtls_ssl_write_record( ssl, SSL_FORCE_FLUSH ) ) != 0 )
+            if( ( ret = mbedtls_ssl_write_record( ssl, SSL_FORCE_FLUSH ) ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
                 return( ret );
@@ -11350,6 +11354,10 @@ int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_
 {
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 #if defined(MBEDTLS_FI_COUNTERMEASURES) && !defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
+    /*
+     * Buffer pointer and size duplication cannot be supported with MBEDTLS_SSL_CBC_RECORD_SPLITTING.
+     * After splitting pointers and data size will not be the same as initaly provides by user.
+     */
     volatile const unsigned char *buf_dup = buf;
     volatile size_t len_dup = len;
 #endif
@@ -11379,7 +11387,7 @@ int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_
     ret = ssl_write_split( ssl, buf, len );
 #else
 #if defined(MBEDTLS_FI_COUNTERMEASURES)
-    /*Add const user pointers to context. We will be able to check its validity before copy to context*/
+    /* Add const user pointers to context. We will be able to check its validity before copy to context */
     ssl->out_msg_dup = (unsigned char*)buf_dup;
     ssl->out_msglen_dup = len_dup;
 #endif //MBEDTLS_FI_COUNTERMEASURES

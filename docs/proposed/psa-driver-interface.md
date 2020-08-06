@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/06 19:22:52 GMT"
+Time-stamp: "2020/08/06 20:13:43 GMT"
 
 ## Introduction
 
@@ -261,6 +261,7 @@ This family requires the following type and entry points:
 * `"key_derivation_input_bytes"`: called by `psa_key_derivation_input_bytes()` and `psa_key_derivation_input_key()`. For transparent drivers, when processing a call to `psa_key_derivation_input_key()`, the core always calls the applicable driver's `"key_derivation_input_bytes"` entry point.
 * `"key_derivation_input_key"` (opaque drivers only)
 * `"key_derivation_output_bytes"`: called by `psa_key_derivation_output_bytes()`; also by `psa_key_derivation_output_key()` for transparent drivers.
+* `"key_derivation_output_key"`: called by `psa_key_derivation_output_key()` for transparent drivers when deriving an asymmetric key pair, and also for opaque drivers.
 * `"key_derivation_abort"`: called by all key derivation functions of the PSA Cryptography API.
 
 TODO: key input and output for opaque drivers; deterministic key generation for transparent drivers
@@ -298,7 +299,7 @@ The format of a key for transparent drivers is the same as in applications. Refe
 Transparent drivers may provide the following key management entry points:
 
 * `"generate_key"`: called by `psa_generate_key()`, only when generating a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
-* `"derive_key"`: called by `psa_key_derivation_output_key()`, only when deriving a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
+* `"key_derivation_output_key"`: called by `psa_key_derivation_output_key()`, only when deriving a key pair (key such that `PSA_KEY_TYPE_IS_ASYMMETRIC` is true).
 * `"export_public_key"`: called by the core to obtain the public key of a key pair. The core may call this function at any time to obtain the public key, which can be for `psa_export_public_key()` but also at other times, including during a cryptographic operation that requires the public key such as a call to `psa_verify_message()` on a key pair object.
 
 Transparent drivers are not involved when importing, exporting, copying or destroying keys, or when generating or deriving symmetric keys.
@@ -385,7 +386,7 @@ Opaque drivers may provide the following key management entry points:
 * `"export_public_key"`: called by the core to obtain the public key of a key pair. The core may call this entry point at any time to obtain the public key, which can be for `psa_export_public_key()` but also at other times, including during a cryptographic operation that requires the public key such as a call to `psa_verify_message()` on a key pair object.
 * `"import_key"`: called by `psa_import_key()`, or by `psa_copy_key()` when copying a key from another location.
 * `"generate_key"`: called by `psa_generate_key()`.
-* `"derive_key"`: called by `psa_key_derivation_output_key()`.
+* `"key_derivation_output_key"`: called by `psa_key_derivation_output_key()`.
 * `"copy_key"`: called by `psa_copy_key()` when copying a key within the same [location](#lifetimes-and-locations).
 
 In addition, secure elements that store the key material internally must provide the following two entry points:

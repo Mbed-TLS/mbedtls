@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/05 20:37:24 GMT"
+Time-stamp: "2020/08/06 18:52:00 GMT"
 
 ## Introduction
 
@@ -26,7 +26,7 @@ The PSA Cryptography driver interface supports two types of cryptoprocessors, an
 
 ### Requirements
 
-The present specification was designed to fulfil the following high-level requirements.
+The present specification was designed to fulfill the following high-level requirements.
 
 [Req.plugins] It is possible to combine multiple drivers from different providers into the same implementation, without any prior arrangement other than choosing certain names and values from disjoint namespaces.
 
@@ -34,7 +34,7 @@ The present specification was designed to fulfil the following high-level requir
 
 [Req.types] Support drivers for the following types of hardware: accelerators that operate on keys in cleartext; cryptoprocessors that can wrap keys with a built-in keys but not store user keys; and cryptoprocessors that store key material.
 
-[Req.portable] The interface between drivers and the core does not involve any platform-specific consideration. Driver calls are simple C functions. Interactions between driver code and hardware happen inside the driver (and in fact a driver need not involve any hardware at all).
+[Req.portable] The interface between drivers and the core does not involve any platform-specific consideration. Driver calls are simple C function calls. Interactions between driver code and hardware happen only inside the driver (and in fact a driver need not involve any hardware at all).
 
 [Req.location] Applications can tell which location values correspond to which secure element drivers.
 
@@ -53,8 +53,8 @@ The concrete syntax for a driver description file is JSON. The structure of this
 A driver therefore consists of:
 
 * A driver description file (in JSON format).
-* C header files defining the types required by the driver description. The names of these header files is declared in the driver description file.
-* An object file compiled for the target platform defining the functions required by the driver description. Implementations may allow drivers to be provided as source files and compiled with the core instead of being pre-compiled.
+* C header files defining the types required by the driver description. The names of these header files are declared in the driver description file.
+* An object file compiled for the target platform defining the entry point functions specified by the driver description. Implementations may allow drivers to be provided as source files and compiled with the core instead of being pre-compiled.
 
 How to provide the driver description file, the C header files and the object code is implementation-dependent.
 
@@ -148,15 +148,15 @@ The signature of a driver entry point generally looks like the signature of the 
 
 * For entry points that involve a multi-part operation, the operation state type (`psa_XXX_operation_t`) is replaced by a driver-specific operation state type (*prefix*`_XXX_operation_t`).
 
-Some entry points are grouped in families that must be implemented as a whole. If a driver supports a entry point family, it must provide all the entry points in the family.
+Some entry points are grouped in families that must be implemented as a whole. If a driver supports an entry point family, it must provide all the entry points in the family.
 
 #### General considerations on driver entry point parameters
 
 Buffer parameters for driver entry points obey the following conventions:
 
 * An input buffer has the type `const uint8_t *` and is immediately followed by a parameter of type `size_t` that indicates the buffer size.
-* An output buffer has the type `uint8_t *` and is immediately followed by a parameter of type `size_t` that indicates the buffer size. A third parameter of type `size_t *` is provided to report the actual buffer size if the function succeeds.
-* An in-out buffer has the type `uint8_t *` and is immediately followed by a parameter of type `size_t` that indicates the buffer size. Note that the buffer size does not change.
+* An output buffer has the type `uint8_t *` and is immediately followed by a parameter of type `size_t` that indicates the buffer size. A third parameter of type `size_t *` is provided to report the actual length of the data written in the buffer if the function succeeds.
+* An in-out buffer has the type `uint8_t *` and is immediately followed by a parameter of type `size_t` that indicates the buffer size. In-out buffers are only used when the input and the output have the same length.
 
 Buffers of size 0 may be represented with either a null pointer or a non-null pointer.
 
@@ -209,7 +209,7 @@ This family requires the following type and functions:
 * `"hash_finish"`: called by `psa_hash_finish()` and `psa_hash_verify()`.
 * `"hash_abort"`: called by all multi-part hash functions.
 
-To verify a hash with `psa_hash_verify()`, the core calls the driver's *prefix`_hash_finish` entry point and compares the result with the reference hash value.
+To verify a hash with `psa_hash_verify()`, the core calls the driver's *prefix*`_hash_finish` entry point and compares the result with the reference hash value.
 
 For example, a driver with the prefix `"acme"` that implements the `"hash_multipart"` entry point family must define the following type and entry points (assuming that the capability does not use the `"names"` property to declare different type and entry point names):
 
@@ -275,7 +275,7 @@ The driver entry points for key management differs significantly between [transp
 
 #### Driver initialization
 
-A driver may declare an `"init"` entry point in a capability with no algorithm, key type or key size. If so, the driver calls this entry point once during the initialization of the PSA Crypto subsystem. If the init entry point of any driver fails, the initialization of the PSA Crypto subsystem fails.
+A driver may declare an `"init"` entry point in a capability with no algorithm, key type or key size. If so, the core calls this entry point once during the initialization of the PSA Crypto subsystem. If the init entry point of any driver fails, the initialization of the PSA Crypto subsystem fails.
 
 When multiple drivers have an init entry point, the order in which they are called is unspecified. It is also unspecified whether other drivers' init functions are called if one or more init function fails.
 
@@ -285,7 +285,7 @@ The init function does not take any parameter.
 
 ### Combining multiple drivers
 
-To declare a cryptoprocessor can handle both cleartext and plaintext keys, you need to provide two driver descriptions, one for a transparent driver and one for an opaque driver. You can use the mapping in capabilities' `"names"` property to arrange for multiple driver entry points to map to the same C function.
+To declare a cryptoprocessor can handle both cleartext and wrapped keys, you need to provide two driver descriptions, one for a transparent driver and one for an opaque driver. You can use the mapping in capabilities' `"names"` property to arrange for multiple driver entry points to map to the same C function.
 
 ## Transparent drivers
 
@@ -379,7 +379,7 @@ If the key is stored in wrapped form outside the secure element, and the wrapped
 
 ### Key management with opaque drivers
 
-Transparent drivers may provide the following key management entry points:
+Opaque drivers may provide the following key management entry points:
 
 * `"export_key"`: called by `psa_export_key()`, or by `psa_copy_key()` when copying a key from or to a different [location](#lifetimes-and-locations).
 * `"export_public_key"`: called by the core to obtain the public key of a key pair. The core may call this entry point at any time to obtain the public key, which can be for `psa_export_public_key()` but also at other times, including during a cryptographic operation that requires the public key such as a call to `psa_verify_message()` on a key pair object.
@@ -439,7 +439,7 @@ If a failure occurs after the `"allocate_key"` step but before the call to the s
 
 To destroy a key, the core calls the driver's `"destroy_key"` entry point.
 
-Note that the key allocation and destruction entry point must not rely solely on the key identifier in the key attributes to identify a key. Some implementations of the PSA Crypto API store keys on behalf of multiple clients, and different clients may use the same key identifier to designate different keys. The manner in which the core distinguishes keys that have the same identifier but are part of the key namespace for different clients is implementation-dependent and is not accessible to drivers. Some typical strategies to allocate an internal key identifier are:
+Note that the key allocation and destruction entry points must not rely solely on the key identifier in the key attributes to identify a key. Some implementations of the PSA Crypto API store keys on behalf of multiple clients, and different clients may use the same key identifier to designate different keys. The manner in which the core distinguishes keys that have the same identifier but are part of the key namespace for different clients is implementation-dependent and is not accessible to drivers. Some typical strategies to allocate an internal key identifier are:
 
 * Maintain a set of free slot numbers which is stored either in the secure element or in the driver's persistent storage. To allocate a key slot, find a free slot number, mark it as occupied and store the number in the key context. When the key is destroyed, mark the slot number as free.
 * Maintain a monotonic counter with a practically unbounded range in the secure element or in the driver's persistent storage. To allocate a key slot, increment the counter and store the current value in the key context. Destroying a key does not change the counter.

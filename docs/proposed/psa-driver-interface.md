@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/06 19:10:09 GMT"
+Time-stamp: "2020/08/06 19:22:52 GMT"
 
 ## Introduction
 
@@ -291,7 +291,7 @@ To declare a cryptoprocessor can handle both cleartext and wrapped keys, you nee
 
 ### Key format for transparent drivers
 
-The format of a key for transparent drivers is the same as in applications. Refer to the documentation of `psa_export_key()` and `psa_export_public_key()`.
+The format of a key for transparent drivers is the same as in applications. Refer to the documentation of [`psa_export_key()`](https://armmbed.github.io/mbed-crypto/html/api/keys/management.html#c.psa_export_key) and [`psa_export_public_key()`](https://armmbed.github.io/mbed-crypto/html/api/keys/management.html#c.psa_export_public_key) in the PSA Cryptography API specification. For custom key types defined by an implementation, refer to the documentation of that implementation.
 
 ### Key management with transparent drivers
 

@@ -413,7 +413,7 @@ This section describes the key creation and key destruction processes for secure
 * `"allocate_key"`: this function obtains an internal identifier for the key. This may be, for example, a unique label or a slot number.
 * `"destroy_key"`: this function invalidates the internal identifier and destroys the associated key material.
 
-These functions have the following prototypes:
+These functions have the following prototypes for a driver with the prefix `"acme"`:
 ```
 psa_status_t acme_allocate_key(const psa_key_attributes_t *attributes,
                                uint8_t *key_buffer,
@@ -451,7 +451,7 @@ TODO: some of the above doesn't apply to volatile keys
 
 #### Key creation entry points in opaque drivers
 
-The key creation entry points have the following prototypes:
+The key creation entry points have the following prototypes for a driver with the prefix `"acme"`:
 
 ```
 psa_status_t acme_import_key(const psa_key_attributes_t *attributes,
@@ -470,7 +470,7 @@ TODO: derivation, copy
 
 #### Key export entry points in opaque drivers
 
-The key export entry points have the following prototypes:
+The key export entry points have the following prototypes for a driver with the prefix `"acme"`:
 
 ```
 psa_status_t acme_export_key(const psa_key_attributes_t *attributes,
@@ -525,7 +525,7 @@ Transparent drivers linked into the library are automatically used for the mecha
 
 Each opaque driver is assigned a [location](#lifetimes-and-locations). The driver is invoked for all actions that use a key in that location. A key's location is indicated by its lifetime. The application chooses the key's lifetime when it creates the key.
 
-For example, the following snippet creates an AES-GCM key which is only accessible inside a secure element.
+For example, the following snippet creates an AES-GCM key which is only accessible inside the secure element designated by the location `PSA_KEY_LOCATION_acme`.
 ```
 psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(

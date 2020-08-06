@@ -1460,6 +1460,10 @@ struct mbedtls_ssl_context
      *  after an initial handshake. */
     unsigned char own_cid[ MBEDTLS_SSL_CID_IN_LEN_MAX ];
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+#if defined(MBEDTLS_FI_COUNTERMEASURES)
+    unsigned char *out_msg_dup;     /*!< out msg ptr duplication  */
+    size_t out_msglen_dup;          /*!< out msg size duplication */
+#endif
 };
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)

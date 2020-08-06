@@ -146,6 +146,9 @@
 
 #define MBEDTLS_DEPRECATED_REMOVED
 
+/* Fault Injection Countermeasures */
+#define MBEDTLS_FI_COUNTERMEASURES
+
 #if defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE
 #endif

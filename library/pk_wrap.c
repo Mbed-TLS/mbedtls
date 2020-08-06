@@ -210,7 +210,9 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
     NULL,
     NULL,
 #endif
+#if defined(MBEDTLS_DEBUG_C)
     rsa_debug,
+#endif
 };
 #endif /* MBEDTLS_RSA_C */
 
@@ -437,7 +439,9 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     eckey_rs_alloc,
     eckey_rs_free,
 #endif
+#if defined(MBEDTLS_DEBUG_C)
     eckey_debug,
+#endif
 };
 
 /*
@@ -469,7 +473,9 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
     NULL,
     NULL,
 #endif
+#if defined(MBEDTLS_DEBUG_C)
     eckey_debug,            /* Same underlying key structure */
+#endif
 };
 #endif /* MBEDTLS_ECP_C */
 
@@ -739,7 +745,9 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     ecdsa_rs_alloc,
     ecdsa_rs_free,
 #endif
+#if defined(MBEDTLS_DEBUG_C)
     eckey_debug,        /* Compatible key structures */
+#endif
 };
 #endif /* MBEDTLS_ECDSA_C */
 
@@ -867,7 +875,9 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
     NULL,
     NULL,
 #endif
+#if defined(MBEDTLS_DEBUG_C)
     NULL,
+#endif
 };
 
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */

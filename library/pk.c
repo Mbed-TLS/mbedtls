@@ -543,6 +543,7 @@ size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx )
     return( ctx->pk_info->get_bitlen( ctx->pk_ctx ) );
 }
 
+#if defined(MBEDTLS_DEBUG_C)
 /*
  * Export debug information
  */
@@ -558,6 +559,7 @@ int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *item
     ctx->pk_info->debug_func( ctx->pk_ctx, items );
     return( 0 );
 }
+#endif /* MBEDTLS_DEBUG_C */
 
 /*
  * Access the PK type name

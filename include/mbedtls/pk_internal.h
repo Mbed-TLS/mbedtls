@@ -103,8 +103,10 @@ struct mbedtls_pk_info_t
     void (*rs_free_func)( void *rs_ctx );
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
+#if defined(MBEDTLS_DEBUG_C)
     /** Interface with the debug module */
     void (*debug_func)( const void *ctx, mbedtls_pk_debug_item *items );
+#endif /* MBEDTLS_DEBUG_C */
 
 };
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)

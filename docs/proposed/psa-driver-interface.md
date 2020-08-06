@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/06 18:58:29 GMT"
+Time-stamp: "2020/08/06 19:10:09 GMT"
 
 ## Introduction
 
@@ -83,7 +83,7 @@ A capability declares a family of functions that the driver implements for a cer
 
 A capability is a JSON object containing the following properties:
 
-* `"functions"` (optional, list of strings). Each element is the name of a [driver function](#driver-functions) or driver function family. If specified, the core will invoke this capability of the driver only when performing one of the specified operations. If omitted, the `"algorithms"` property is mandatory and the core will invoke this capability of the driver for all operations that are applicable to the specified algorithms. The driver must implement all the specified or implied functions, as well as the types if applicable.
+* `"functions"` (optional, list of strings). Each element is the name of a [driver entry point](#driver-entry-point) or driver entry point family. An entry point is a function defined by the driver. If specified, the core will invoke this capability of the driver only when performing one of the specified operations. If omitted, the `"algorithms"` property is mandatory and the core will invoke this capability of the driver for all operations that are applicable to the specified algorithms. The driver must implement all the specified or implied entry points, as well as the types if applicable.
 * `"algorithms"` (optional, list of strings). Each element is an [algorithm specification](#algorithm-specifications). If specified, the core will invoke this capability of the driver only when performing one of the specified algorithms. If omitted, the core will invoke this capability for all applicable algorithms.
 * `"key_types"` (optional, list of strings). Each element is a [key type specification](#key-type-specifications). If specified, the core will invoke this capability of the driver only for operations involving a key with one of the specified key types. If omitted, the core will invoke this capability of the driver for all applicable key types.
 * `"key_sizes"` (optional, list of integers). If specified, the core will invoke this capability of the driver only for operations involving a key with one of the specified key sizes. If omitted, the core will invoke this capability of the driver for all applicable key sizes. Key sizes are expressed in bits.
@@ -201,13 +201,13 @@ This family corresponds to the calculation of a hash in multiple steps.
 
 This family applies to transparent drivers only.
 
-This family requires the following type and functions:
+This family requires the following type and entry points:
 
 * Type `"hash_operation_t"`: the type of a hash operation context. It must be possible to copy a hash operation context byte by byte, therefore hash operation contexts must not contain any embedded pointers (except pointers to global data that do not change after the setup step).
 * `"hash_setup"`: called by `psa_hash_setup()`.
 * `"hash_update"`: called by `psa_hash_update()`.
 * `"hash_finish"`: called by `psa_hash_finish()` and `psa_hash_verify()`.
-* `"hash_abort"`: called by all multi-part hash functions.
+* `"hash_abort"`: called by all multi-part hash functions of the PSA Cryptography API.
 
 To verify a hash with `psa_hash_verify()`, the core calls the driver's *prefix*`_hash_finish` entry point and compares the result with the reference hash value.
 
@@ -261,7 +261,7 @@ This family requires the following type and entry points:
 * `"key_derivation_input_bytes"`: called by `psa_key_derivation_input_bytes()` and `psa_key_derivation_input_key()`. For transparent drivers, when processing a call to `psa_key_derivation_input_key()`, the core always calls the applicable driver's `"key_derivation_input_bytes"` entry point.
 * `"key_derivation_input_key"` (opaque drivers only)
 * `"key_derivation_output_bytes"`: called by `psa_key_derivation_output_bytes()`; also by `psa_key_derivation_output_key()` for transparent drivers.
-* `"key_derivation_abort"`: called by all key derivation functions.
+* `"key_derivation_abort"`: called by all key derivation functions of the PSA Cryptography API.
 
 TODO: key input and output for opaque drivers; deterministic key generation for transparent drivers
 
@@ -277,11 +277,11 @@ The driver entry points for key management differs significantly between [transp
 
 A driver may declare an `"init"` entry point in a capability with no algorithm, key type or key size. If so, the core calls this entry point once during the initialization of the PSA Crypto subsystem. If the init entry point of any driver fails, the initialization of the PSA Crypto subsystem fails.
 
-When multiple drivers have an init entry point, the order in which they are called is unspecified. It is also unspecified whether other drivers' init functions are called if one or more init function fails.
+When multiple drivers have an init entry point, the order in which they are called is unspecified. It is also unspecified whether other drivers' `"init"` entry points are called if one or more init entry point fails.
 
 On platforms where the PSA Crypto implementation is a subsystem of a single application, the initialization of the PSA Crypto subsystem takes place during the call to `psa_crypto_init()`. On platforms where the PSA Crypto implementation is separate from the application or applications, the initialization the initialization of the PSA Crypto subsystem takes place before or during the first time an application calls `psa_crypto_init()`.
 
-The init function does not take any parameter.
+The init entry point does not take any parameter.
 
 ### Combining multiple drivers
 
@@ -400,7 +400,7 @@ This section describes the key creation process for secure elements that do not 
 When creating a key with an opaque driver which does not have an `"allocate_key"` or `"destroy_key"` entry point:
 
 1. The core allocates memory for the key context.
-2. The core calls the driver's import, generate, derive or copy function.
+2. The core calls the driver's import, generate, derive or copy entry point.
 3. The core saves the resulting wrapped key material and any other data that the key context may contain.
 
 To destroy a key, the core simply destroys the wrapped key material, without invoking driver code.
@@ -463,7 +463,7 @@ psa_status_t acme_generate_key(const psa_key_attributes_t *attributes,
                                size_t key_buffer_size);
 ```
 
-If the driver has an [`"allocate_key"` entry point](#key-management-in-a-secure-element-with-storage), the core calls the `"allocate_key"` entry point with the same attributes on the same key buffer before calling the key creation function.
+If the driver has an [`"allocate_key"` entry point](#key-management-in-a-secure-element-with-storage), the core calls the `"allocate_key"` entry point with the same attributes on the same key buffer before calling the key creation entry point.
 
 TODO: derivation, copy
 

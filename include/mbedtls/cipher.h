@@ -227,9 +227,22 @@ enum {
 };
 
 /** Maximum length of any IV, in Bytes. */
+/* This should ideally be derived automatically from list of ciphers. */
 #define MBEDTLS_MAX_IV_LENGTH      16
+
 /** Maximum block size of any cipher, in Bytes. */
+/* This should ideally be derived automatically from list of ciphers. */
 #define MBEDTLS_MAX_BLOCK_LENGTH   16
+
+/** Maximum key length, in Bytes. */
+/* This should ideally be derived automatically from list of ciphers.
+ * For now, only check whether XTS is enabled which uses 64 Byte keys,
+ * and use 32 Bytes as an upper bound for the maximum key length otherwise. */
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+#define MBEDTLS_MAX_KEY_LENGTH     64
+#else
+#define MBEDTLS_MAX_KEY_LENGTH     32
+#endif /* MBEDTLS_CIPHER_MODE_XTS */
 
 /**
  * Base cipher information (opaque struct).

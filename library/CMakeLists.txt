@@ -20,6 +20,7 @@ set(src_crypto
     cipher.c
     cipher_wrap.c
     cmac.c
+    crc.c
     ctr_drbg.c
     des.c
     dhm.c

@@ -137,6 +137,7 @@
 
 #define MBEDTLS_OID_C
 #define MBEDTLS_PLATFORM_C
+#define MBEDTLS_CRC_C
 
 /* I/O buffer configuration */
 #define MBEDTLS_SSL_MAX_CONTENT_LEN             2048

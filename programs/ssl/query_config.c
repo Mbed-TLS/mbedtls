@@ -1866,6 +1866,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_ERROR_C */
 
+#if defined(MBEDTLS_CRC_C)
+    if( strcmp( "MBEDTLS_CRC_C", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_CRC_C );
+        return( 0 );
+    }
+#endif /* MBEDTLS_CRC_C */
+
 #if defined(MBEDTLS_GCM_C)
     if( strcmp( "MBEDTLS_GCM_C", config ) == 0 )
     {

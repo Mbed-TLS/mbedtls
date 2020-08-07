@@ -58,11 +58,13 @@ A driver therefore consists of:
 
 How to provide the driver description file, the C header files and the object code is implementation-dependent.
 
-Implementations should support multiple drivers.
-
 ### Driver description syntax
 
 The concrete syntax for a driver description file is JSON.
+
+#### Driver specification list
+
+PSA Cryptography core implementations should support multiple drivers. The driver description files are passed to the implementation as an ordered list in an unspecified manner. This may be, for example, a list of file names passed on a command line, or a JSON list whose elements are individual driver specifications.
 
 #### Driver description top-level element
 
@@ -114,7 +116,9 @@ A driver is considered available for a cryptographic mechanism that invokes a gi
 
 If a driver includes multiple applicable capabilities for a given combination of entry point, algorithm, key type and key size, and all the capabilities map the entry point to the same function name, the driver is considered available for this cryptographic mechanism. If a driver includes multiple applicable capabilities for a given combination of entry point, algorithm, key type and key size, and at least two of these capabilities map the entry point to the different function names, the driver specification is invalid.
 
-If multiple transparent drivers have applicable capabilities for a given combination of entry point, algorithm, key type and key size, which driver is invoked (or which drivers are invoked, if some of those capabilities have [fallback](#fallback) enabled) is unspecified. If multiple opaque driver have the same location, the list of driver specifications is invalid.
+If multiple transparent drivers have applicable capabilities for a given combination of entry point, algorithm, key type and key size, the first matching driver in the [specification list](#Driver specification list) is invoked. If the capability has [fallback](#fallback) enabled and the first driver returns `PSA_ERROR_NOT_SUPPORTED`, the next matching driver is invoked, and so on.
+
+If multiple opaque driver have the same location, the list of driver specifications is invalid.
 
 #### Capability examples
 
@@ -337,11 +341,10 @@ Transparent drivers are not involved when importing, exporting, copying or destr
 Sometimes cryptographic accelerators only support certain cryptographic mechanisms partially. The capability description language allows specifying some restrictions, including restrictions on key sizes, but it cannot cover all the possibilities that may arise in practice. Furthermore, it may be desirable to deploy the same binary image on different devices, only some of which have a cryptographic accelerators.
 For these purposes, a transparent driver can declare that it only supports a [capability](#driver-description-capability) partially, by setting the capability's `"fallback"` property to true.
 
-If a transparent driver entry point is part of a capability which has a true `"fallback"` property and returns `PSA_ERROR_NOT_SUPPORTED`, the core will call the next transparent driver that supports the mechanism, if there is one. If all the available driver have fallback enabled and return `PSA_ERROR_NOT_SUPPORTED`, the core will perform the operation using built-in code.
+If a transparent driver entry point is part of a capability which has a true `"fallback"` property and returns `PSA_ERROR_NOT_SUPPORTED`, the core will call the next transparent driver that supports the mechanism, if there is one. The core considers drivers in the order given by the [driver description list](#driver-description-list).
 
+If all the available driver have fallback enabled and return `PSA_ERROR_NOT_SUPPORTED`, the core will perform the operation using built-in code.
 As soon as a driver returns any value other than `PSA_ERROR_NOT_SUPPORTED` (`PSA_SUCCESS` or a different error code), this value is returned to the application, without attempting to call any other driver or built-in code.
-
-The order in which the drivers are called is unspecified and may be different for different entry points.
 
 If a transparent driver entry point is part of a capability where the `"fallback"` property is false or omitted, the core should not include any other code for this capability, whether built in or in another transparent driver.
 

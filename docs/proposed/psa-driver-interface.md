@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/07 21:22:01 GMT"
+Time-stamp: "2020/08/07 21:30:02 GMT"
 
 ## Introduction
 
@@ -111,6 +111,10 @@ A driver is considered available for a cryptographic mechanism that invokes a gi
 * If the mechanism involves a key:
     * either the capability does not have a `"key_sizes"` property;
     * or the value of the capability's `"key_sizes"` property includes the key's size.
+
+If a driver includes multiple applicable capabilities for a given combination of entry point, algorithm, key type and key size, and all the capabilities map the entry point to the same function name, the driver is considered available for this cryptographic mechanism. If a driver includes multiple applicable capabilities for a given combination of entry point, algorithm, key type and key size, and at least two of these capabilities map the entry point to the different function names, the driver specification is invalid.
+
+If multiple transparent drivers have applicable capabilities for a given combination of entry point, algorithm, key type and key size, which driver is invoked (or which drivers are invoked, if some of those capabilities have [fallback](#fallback) enabled) is unspecified. If multiple opaque driver have the same location, the list of driver specifications is invalid.
 
 #### Capability examples
 

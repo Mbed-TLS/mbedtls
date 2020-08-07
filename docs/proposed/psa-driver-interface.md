@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/07 21:30:02 GMT"
+Time-stamp: "2020/08/07 21:40:41 GMT"
 
 ## Introduction
 
@@ -122,7 +122,15 @@ If multiple opaque driver have the same location, the list of driver specificati
 
 #### Capability examples
 
-The following capability declares that the driver can perform deterministic ECDSA signatures using SHA-256 or SHA-384 with a SECP256R1 or SECP384R1 private key (with either hash being possible in combination with either curve). If the prefix of this driver is `"acme"`, the function that performs the signature is called `acme_sign_hash`.
+Example 1: the following capability declares that the driver can perform deterministic ECDSA signatures (but not signature verification) using any hash algorithm and any curve that the core supports. If the prefix of this driver is `"acme"`, the function that performs the signature is called `acme_sign_hash`.
+```
+{
+    "entry_points": ["sign_hash"],
+    "algorithms": ["PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_ANY_HASH)"],
+}
+```
+
+Example 2: the following capability declares that the driver can perform deterministic ECDSA signatures using SHA-256 or SHA-384 with a SECP256R1 or SECP384R1 private key (with either hash being possible in combination with either curve). If the prefix of this driver is `"acme"`, the function that performs the signature is called `acme_sign_hash`.
 ```
 {
     "entry_points": ["sign_hash"],
@@ -137,7 +145,7 @@ The following capability declares that the driver can perform deterministic ECDS
 
 #### Algorithm specifications
 
-An algorithm specification is a string consisting of a `PSA_ALG_xxx` macro that specifies a cryptographic algorithm defined by the PSA Cryptography API. If the macro takes arguments, the string must have the syntax of a C macro call and each argument must be an algorithm specification or a decimal or hexadecimal literal with no suffix, depending on the expected type of argument.
+An algorithm specification is a string consisting of a `PSA_ALG_xxx` macro that specifies a cryptographic algorithm or an algorithm wildcard policy defined by the PSA Cryptography API. If the macro takes arguments, the string must have the syntax of a C macro call and each argument must be an algorithm specification or a decimal or hexadecimal literal with no suffix, depending on the expected type of argument.
 
 Spaces are optional after commas. Whether other whitespace is permitted is implementation-specific.
 
@@ -146,6 +154,7 @@ Valid examples:
 PSA_ALG_SHA_256
 PSA_ALG_HMAC(PSA_ALG_SHA_256)
 PSA_ALG_KEY_AGREEMENT(PSA_ALG_ECDH, PSA_ALG_HKDF(PSA_ALG_SHA_256))
+PSA_ALG_RSA_PSS(PSA_ALG_ANY_HASH)
 ```
 
 #### Key type specifications

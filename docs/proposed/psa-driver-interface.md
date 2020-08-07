@@ -5,15 +5,15 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/06 20:48:44 GMT"
+Time-stamp: "2020/08/07 11:51:18 GMT"
 
 ## Introduction
 
 ### Purpose of the driver interface
 
-The PSA Cryptography API defines an interface that allows applications to perform cryptographic operations in a uniform way regardless of how the operations are performed. Under the hood, different keys may be processed in different hardware or in different logical partitions, and different algorithms may involve different hardware or software components.
+The PSA Cryptography API defines an interface that allows applications to perform cryptographic operations in a uniform way regardless of how the operations are performed. Under the hood, different keys may be stored and used in different hardware or in different logical partitions, and different algorithms may involve different hardware or software components.
 
-The driver interface allows implementations of the PSA Crypytography API to be built compositionally. An implementation of the PSA Cryptography API is composed of a **core** and zero or more **drivers**. The core handles key management, enforces key usage policies, and dispatches cryptographic operations either to the applicable driver or to built-in code.
+The driver interface allows implementations of the PSA Cryptography API to be built compositionally. An implementation of the PSA Cryptography API is composed of a **core** and zero or more **drivers**. The core handles key management, enforces key usage policies, and dispatches cryptographic operations either to the applicable driver or to built-in code.
 
 Functions in the PSA Cryptography API invoke functions in the core. Code from the core calls drivers as described in the present document.
 
@@ -21,7 +21,7 @@ Functions in the PSA Cryptography API invoke functions in the core. Code from th
 
 The PSA Cryptography driver interface supports two types of cryptoprocessors, and accordingly two types of drivers.
 
-* **Transparent** drivers implement cryptographic operations on keys that are provided in cleartext at the beginning of each operation. They are typically used for hardware **accelerators**. When a transparent driver is available for a particular combination of parameters (cryptographic algorithm, key type and size, etc.), it is used instead of the default software implementation. Transparent drivers can also be pure software implementations that are distributed as plug-ins to a PSA Crypto implementation (for example, an alternative implementation with different performance characteristics, or a certified implementation).
+* **Transparent** drivers implement cryptographic operations on keys that are provided in cleartext at the beginning of each operation. They are typically used for hardware **accelerators**. When a transparent driver is available for a particular combination of parameters (cryptographic algorithm, key type and size, etc.), it is used instead of the default software implementation. Transparent drivers can also be pure software implementations that are distributed as plug-ins to a PSA Cryptography implementation (for example, an alternative implementation with different performance characteristics, or a certified implementation).
 * **Opaque** drivers implement cryptographic operations on keys that can only be used inside a protected environment such as a **secure element**, a hardware security module, a smartcard, a secure enclave, etc. An opaque driver is invoked for the specific [key location](#lifetimes-and-locations) that the driver is registered for: the dispatch is based on the key's lifetime.
 
 ### Requirements
@@ -135,9 +135,9 @@ PSA_KEY_TYPE_ECC_KEY_PAIR(_)
 
 Drivers define functions, each of which implements an aspect of a capability of a driver, such as a cryptographic operation, a part of a cryptographic operation, or a key management action. These functions are called the **entry points** of the driver. Most driver entry points correspond to a particular function in the PSA Cryptography API. For example, if a call to `psa_sign_hash()` is dispatched to a driver, it invokes the driver's `sign_hash` function.
 
-All driver entry points return a status of type `psa_status_t` which should use the status codes documented for PSA services in general and for PSA Crypto in particular: `PSA_SUCCESS` indicates that the function succeeded, and `PSA_ERROR_xxx` values indicate that an error occurred.
+All driver entry points return a status of type `psa_status_t` which should use the status codes documented for PSA services in general and for PSA Cryptography in particular: `PSA_SUCCESS` indicates that the function succeeded, and `PSA_ERROR_xxx` values indicate that an error occurred.
 
-The signature of a driver entry point generally looks like the signature of the PSA Crypto API that it implements, with some modifications. This section gives an overview of modifications that apply to whole classes of entry points. Refer to the reference section for each entry point or entry point family for details.
+The signature of a driver entry point generally looks like the signature of the PSA Cryptography API that it implements, with some modifications. This section gives an overview of modifications that apply to whole classes of entry points. Refer to the reference section for each entry point or entry point family for details.
 
 * For entry points that operate on an existing key, the `psa_key_id_t` parameter is replaced by a sequence of three parameters that describe the key:
     1. `const psa_key_attributes_t *attributes`: the key attributes.
@@ -276,11 +276,11 @@ The driver entry points for key management differs significantly between [transp
 
 #### Driver initialization
 
-A driver may declare an `"init"` entry point in a capability with no algorithm, key type or key size. If so, the core calls this entry point once during the initialization of the PSA Crypto subsystem. If the init entry point of any driver fails, the initialization of the PSA Crypto subsystem fails.
+A driver may declare an `"init"` entry point in a capability with no algorithm, key type or key size. If so, the core calls this entry point once during the initialization of the PSA Cryptography subsystem. If the init entry point of any driver fails, the initialization of the PSA Cryptography subsystem fails.
 
 When multiple drivers have an init entry point, the order in which they are called is unspecified. It is also unspecified whether other drivers' `"init"` entry points are called if one or more init entry point fails.
 
-On platforms where the PSA Crypto implementation is a subsystem of a single application, the initialization of the PSA Crypto subsystem takes place during the call to `psa_crypto_init()`. On platforms where the PSA Crypto implementation is separate from the application or applications, the initialization the initialization of the PSA Crypto subsystem takes place before or during the first time an application calls `psa_crypto_init()`.
+On platforms where the PSA Cryptography implementation is a subsystem of a single application, the initialization of the PSA Cryptography subsystem takes place during the call to `psa_crypto_init()`. On platforms where the PSA Cryptography implementation is separate from the application or applications, the initialization the initialization of the PSA Cryptography subsystem takes place before or during the first time an application calls `psa_crypto_init()`.
 
 The init entry point does not take any parameter.
 
@@ -445,7 +445,7 @@ If a failure occurs after the `"allocate_key"` step but before the call to the s
 
 To destroy a key, the core calls the driver's `"destroy_key"` entry point.
 
-Note that the key allocation and destruction entry points must not rely solely on the key identifier in the key attributes to identify a key. Some implementations of the PSA Crypto API store keys on behalf of multiple clients, and different clients may use the same key identifier to designate different keys. The manner in which the core distinguishes keys that have the same identifier but are part of the key namespace for different clients is implementation-dependent and is not accessible to drivers. Some typical strategies to allocate an internal key identifier are:
+Note that the key allocation and destruction entry points must not rely solely on the key identifier in the key attributes to identify a key. Some implementations of the PSA Cryptography API store keys on behalf of multiple clients, and different clients may use the same key identifier to designate different keys. The manner in which the core distinguishes keys that have the same identifier but are part of the key namespace for different clients is implementation-dependent and is not accessible to drivers. Some typical strategies to allocate an internal key identifier are:
 
 * Maintain a set of free slot numbers which is stored either in the secure element or in the driver's persistent storage. To allocate a key slot, find a free slot number, mark it as occupied and store the number in the key context. When the key is destroyed, mark the slot number as free.
 * Maintain a monotonic counter with a practically unbounded range in the secure element or in the driver's persistent storage. To allocate a key slot, increment the counter and store the current value in the key context. Destroying a key does not change the counter.

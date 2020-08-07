@@ -1061,7 +1061,9 @@ const mbedtls_pk_info_t mbedtls_pk_opaque_info = {
     NULL, /* restart alloc - not relevant */
     NULL, /* restart free - not relevant */
 #endif
+#if defined(MBEDTLS_DEBUG_C)
     NULL, /* debug - could be done later, or even left NULL */
+#endif
 };
 
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

@@ -12,7 +12,7 @@ The build command is "make -DRECORD_PSA_STATUS_COVERAGE_LOG", which is
 only supported with make (as opposed to CMake or other build methods).
 """
 
-# Copyright (C) 2019, Arm Limited, All Rights Reserved
+# Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -26,8 +26,6 @@ only supported with make (as opposed to CMake or other build methods).
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# This file is part of Mbed TLS (https://tls.mbed.org)
 
 import argparse
 import os

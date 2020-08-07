@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/07 11:53:09 GMT"
+Time-stamp: "2020/08/07 21:22:01 GMT"
 
 ## Introduction
 
@@ -77,7 +77,9 @@ A list of **capabilities**. Each capability describes a family of functions that
 * `"persistent_state_size"` (not permitted for transparent drivers, optional for opaque drivers, integer or string). The size in bytes of the [persistent state of the driver](#opaque-driver-persistent-state). This may be either a non-negative integer or a C constant expression of type `size_t`.
 * `"location"` (not permitted for transparent drivers, optional for opaque drivers, integer or string). The [location value](#lifetimes-and-locations) for which this driver is invoked. In other words, this determines the lifetimes for which the driver is invoked. This may be either a non-negative integer or a C constant expression of type `psa_key_location_t`.
 
-#### Driver description capability
+### Driver description capability
+
+#### Capability syntax
 
 A capability declares a family of functions that the driver implements for a certain class of cryptographic mechanisms. The capability specifies which key types and algorithms are covered and the names of the types and functions that implement it.
 
@@ -90,7 +92,29 @@ A capability is a JSON object containing the following properties:
 * `"names"` (optional, object). A mapping from entry point names described by the `"entry_points"` property, to the name of the C function in the driver that implements the corresponding function. If a function is not listed here, name of the driver function that implements it is the driver's prefix followed by an underscore (`_`) followed by the function name. If this property is omitted, it is equivalent to an empty object (so each entry point *suffix* is implemented by a function called *prefix*`_`*suffix*).
 * `"fallback"` (optional for transparent drivers, not permitted for opaque drivers, boolean). If present and true, the driver may return `PSA_ERROR_NOT_SUPPORTED`, in which case the core should call another driver or use built-in code to perform this operation. If absent or false, the driver is expected to fully support the mechanisms described by this capabilit. See the section “[Fallback](#fallback)” for more information.
 
-Example: the following capability declares that the driver can perform deterministic ECDSA signatures using SHA-256 or SHA-384 with a SECP256R1 or SECP384R1 private key (with either hash being possible in combination with either curve). If the prefix of this driver is `"acme"`, the function that performs the signature is called `acme_sign_hash`.
+#### Capability semantics
+
+When the PSA Cryptography implementation performs a cryptographic mechanism, it invokes available driver entry points as described in the section [“Driver entry points”](#driver-entry-point).
+
+A driver is considered available for a cryptographic mechanism that invokes a given entry point if all of the following conditions are met:
+
+* The driver specification includes a capability whose `"entry_points"` list either includes the entry point or includes an entry point family that includes the entry point.
+* If the mechanism involves an algorithm:
+    * either the capability does not have an `"algorithms"` property;
+    * or the value of the capability's `"algorithms"` property includes an [algorithm specification](#algorithm-specifications) that matches this algorithm.
+* If the mechanism involves a key:
+    * either the key is transparent (its location is `PSA_KEY_LOCATION_LOCAL_STORAGE`), and the driver is transparent;
+    * or the key is opaque (its location is not `PSA_KEY_LOCATION_LOCAL_STORAGE`) and the driver is an opaque driver whose location is the key's location.
+* If the mechanism involves a key:
+    * either the capability does not have a `"key_types"` property;
+    * or the value of the capability's `"key_types"` property includes a [key type specification](#key-type-specifications) that matches this algorithm.
+* If the mechanism involves a key:
+    * either the capability does not have a `"key_sizes"` property;
+    * or the value of the capability's `"key_sizes"` property includes the key's size.
+
+#### Capability examples
+
+The following capability declares that the driver can perform deterministic ECDSA signatures using SHA-256 or SHA-384 with a SECP256R1 or SECP384R1 private key (with either hash being possible in combination with either curve). If the prefix of this driver is `"acme"`, the function that performs the signature is called `acme_sign_hash`.
 ```
 {
     "entry_points": ["sign_hash"],

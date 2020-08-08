@@ -20,4 +20,6 @@
 The features in this module are tailored towards generating glue code
 between Mbed TLS and PSA Crypto drivers. Suitability for any other purpose
 is coincidental.
+
+Unit tests are in ../tests/scripts/test_c_generator.py
 """

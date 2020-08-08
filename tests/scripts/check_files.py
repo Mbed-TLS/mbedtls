@@ -172,6 +172,53 @@ class PermissionIssueTracker(FileIssueTracker):
             self.files_with_issues[filepath] = None
 
 
+class ShebangIssueTracker(FileIssueTracker):
+    """Track files with a bad, missing or extraneous shebang line.
+
+    Executable scripts must start with a valid shebang (#!) line.
+    """
+
+    heading = "Invalid shebang line:"
+
+    # Allow either /bin/sh, /bin/bash, or /usr/bin/env.
+    # Allow at most one argument (this is a Linux limitation).
+    # For sh and bash, the argument if present must be options.
+    # For env, the argument must be the base name of the interpeter.
+    _shebang_re = re.compile(rb'^#! ?(?:/bin/(bash|sh)(?: -[^\n ]*)?'
+                             rb'|/usr/bin/env ([^\n /]+))$')
+    _extensions = {
+        b'bash': 'sh',
+        b'perl': 'pl',
+        b'python3': 'py',
+        b'sh': 'sh',
+    }
+
+    def is_valid_shebang(self, first_line, filepath):
+        m = re.match(self._shebang_re, first_line)
+        if not m:
+            return False
+        interpreter = m.group(1) or m.group(2)
+        if interpreter not in self._extensions:
+            return False
+        if not filepath.endswith('.' + self._extensions[interpreter]):
+            return False
+        return True
+
+    def check_file_for_issue(self, filepath):
+        is_executable = os.access(filepath, os.X_OK)
+        with open(filepath, "rb") as f:
+            first_line = f.readline()
+        if first_line.startswith(b'#!'):
+            if not is_executable:
+                # Shebang on a non-executable file
+                self.files_with_issues[filepath] = None
+            elif not self.is_valid_shebang(first_line, filepath):
+                self.files_with_issues[filepath] = [1]
+        elif is_executable:
+            # Executable without a shebang
+            self.files_with_issues[filepath] = None
+
+
 class EndOfFileNewlineIssueTracker(FileIssueTracker):
     """Track files that end with an incomplete line
     (no newline character at the end of the last line)."""
@@ -292,6 +339,7 @@ class IntegrityChecker:
         self.setup_logger(log_file)
         self.issues_to_check = [
             PermissionIssueTracker(),
+            ShebangIssueTracker(),
             EndOfFileNewlineIssueTracker(),
             Utf8BomIssueTracker(),
             UnixLineEndingIssueTracker(),

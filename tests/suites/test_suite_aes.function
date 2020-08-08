@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/aes.h"
+#include "mbedtls/platform.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -363,6 +364,60 @@ void aes_encrypt_ofb( int fragment_size, char *hex_key_string,
         if( in_buffer_len < fragment_size )
             fragment_size = in_buffer_len;
     }
+
+exit:
+    mbedtls_aes_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY:MBEDTLS_AES_SCA_COUNTERMEASURES:!MBEDTLS_AES_SETKEY_ENC_ALT:!MBEDTLS_AESNI_C */
+void aes_encrypt_ecb_crc( data_t * key_str, data_t * src_str,
+                          data_t * hex_dst_string, unsigned int crc, int crypt_result, int check_crc )
+{
+    unsigned char output[100];
+    mbedtls_aes_context ctx;
+
+    memset(output, 0x00, 100);
+
+    mbedtls_aes_init( &ctx );
+
+    TEST_ASSERT( mbedtls_aes_setkey_enc( &ctx, key_str->x, key_str->len * 8 ) == 0 );
+
+    if( check_crc )
+        TEST_ASSERT( ctx.crc == crc );
+    else
+        ctx.crc = crc;
+
+    TEST_ASSERT( mbedtls_aes_crypt_ecb( &ctx, MBEDTLS_AES_ENCRYPT, src_str->x, output ) == crypt_result );
+
+    TEST_ASSERT( hexcmp( output, hex_dst_string->x, 16, hex_dst_string->len ) == 0 );
+
+exit:
+    mbedtls_aes_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY:MBEDTLS_AES_SCA_COUNTERMEASURES:!MBEDTLS_AES_SETKEY_ENC_ALT:!MBEDTLS_AESNI_C */
+void aes_decrypt_ecb_crc( data_t * key_str, data_t * src_str,
+                          data_t * hex_dst_string, unsigned int crc, int crypt_result, int check_crc )
+{
+    unsigned char output[100];
+    mbedtls_aes_context ctx;
+
+    memset(output, 0x00, 100);
+
+    mbedtls_aes_init( &ctx );
+
+    TEST_ASSERT( mbedtls_aes_setkey_dec( &ctx, key_str->x, key_str->len * 8 ) == 0 );
+
+    if( check_crc )
+        TEST_ASSERT( ctx.crc == crc );
+    else
+        ctx.crc = crc;
+
+    TEST_ASSERT( mbedtls_aes_crypt_ecb( &ctx, MBEDTLS_AES_DECRYPT, src_str->x, output ) == crypt_result );
+
+    TEST_ASSERT( hexcmp( output, hex_dst_string->x, 16, hex_dst_string->len ) == 0 );
 
 exit:
     mbedtls_aes_free( &ctx );

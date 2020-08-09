@@ -4643,13 +4643,16 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     }
 
     ret = mbedtls_pk_verify( peer_pk,
-                                      md_alg, hash_start, hashlen,
-                                      ssl->in_msg + i, sig_len );
+                             md_alg, hash_start, hashlen,
+                             ssl->in_msg + i, sig_len );
 
     if( ret == 0 )
     {
         mbedtls_platform_random_delay();
 
+        ret = mbedtls_pk_verify( peer_pk,
+                                 md_alg, hash_start, hashlen,
+                                 ssl->in_msg + i, sig_len );
         if( ret == 0 )
         {
             mbedtls_ssl_update_handshake_status( ssl );

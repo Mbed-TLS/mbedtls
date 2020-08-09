@@ -3100,6 +3100,11 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         {
             mbedtls_platform_random_delay();
 
+            if( rs_ctx == NULL )
+            {
+                ret = mbedtls_pk_verify_restartable( peer_pk,
+                        md_alg, hash, hashlen, p, sig_len, rs_ctx );
+            }
             if( ret == 0 )
             {
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)

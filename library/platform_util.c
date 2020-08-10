@@ -127,20 +127,29 @@ void *mbedtls_platform_memset( void *ptr, int value, size_t num )
     start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
     rnd_data = (char) mbedtls_platform_random_in_range( 256 );
 
-    /* Start from a random location */
+    /* Perform a memset operations with random data and start from a random
+     * location */
+    for( i = start_offset; i < num; ++i )
+    {
+        b[i] = rnd_data;
+        flow_counter++;
+    }
+
+    /* Start from a random location with target data */
     for( i = start_offset; i < num; ++i )
     {
         b[i] = value;
         flow_counter++;
     }
 
-    /* Perform a memset operations with random data */
+    /* Second memset operation with random data */
     for( i = 0; i < start_offset; ++i )
     {
         b[i] = rnd_data;
+        flow_counter++;
     }
 
-    /* Finish a memset operations with correct data */
+    /* Finish memset operation with correct data */
     for( i = 0; i < start_offset; ++i )
     {
         b[i] = value;
@@ -148,10 +157,10 @@ void *mbedtls_platform_memset( void *ptr, int value, size_t num )
     }
 
     /* check the correct number of iterations */
-    if( flow_counter == num )
+    if( flow_counter == 2 * num )
     {
         mbedtls_platform_random_delay();
-        if( flow_counter == num )
+        if( flow_counter == 2 * num )
         {
             return ptr;
         }
@@ -161,33 +170,61 @@ void *mbedtls_platform_memset( void *ptr, int value, size_t num )
 
 void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
 {
-    /* Randomize start offset. */
-    size_t start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
-    /* Randomize initial data to prevent leakage while copying */
-    uint32_t data = mbedtls_platform_random_in_range( 256 );
+    size_t i;
+    volatile size_t flow_counter = 0;
 
-    /* Use memset with random value at first to increase security - memset is
-       not normally part of the memcpy function and here can be useed
-       with regular, unsecured implementation */
-    memset( (void *) dst, data, num );
-    memcpy( (void *) ( (unsigned char *) dst + start_offset ),
-            (void *) ( (unsigned char *) src + start_offset ),
-            ( num - start_offset ) );
-    return( memcpy( (void *) dst, (void *) src, start_offset ) );
+    if( num > 0 )
+    {
+        /* Randomize start offset. */
+        size_t start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
+        /* Randomize initial data to prevent leakage while copying */
+        uint32_t data = mbedtls_platform_random_in_range( 256 );
+
+        /* Use memset with random value at first to increase security - memset is
+        not normally part of the memcpy function and here can be useed
+        with regular, unsecured implementation */
+        memset( (void *) dst, data, num );
+
+        /* Make a copy starting from a random location. */
+        i = start_offset;
+        do
+        {
+            ( (char*) dst )[i] = ( (char*) src )[i];
+            flow_counter++;
+        }
+        while( ( i = ( i + 1 ) % num ) != start_offset );
+    }
+
+    /* check the correct number of iterations */
+    if( flow_counter == num )
+    {
+        mbedtls_platform_random_delay();
+        if( flow_counter == num )
+        {
+            return dst;
+        }
+    }
+    return NULL;
 }
 
 int mbedtls_platform_memmove( void *dst, const void *src, size_t num )
 {
+    void *ret1 = NULL;
+    void *ret2 = NULL;
     /* The buffers can have a common part, so we cannot do a copy from a random
      * location. By using a temporary buffer we can do so, but the cost of it
      * is using more memory and longer transfer time. */
     void *tmp = mbedtls_calloc( 1, num );
     if( tmp != NULL )
     {
-        mbedtls_platform_memcpy( tmp, src, num );
-        mbedtls_platform_memcpy( dst, tmp, num );
+        ret1 = mbedtls_platform_memcpy( tmp, src, num );
+        ret2 = mbedtls_platform_memcpy( dst, tmp, num );
         mbedtls_free( tmp );
-        return 0;
+        if( ret1 == tmp && ret2 == dst )
+        {
+            return 0;
+        }
+        return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     }
 
     return MBEDTLS_ERR_PLATFORM_ALLOC_FAILED;

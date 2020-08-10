@@ -197,6 +197,7 @@ void *mbedtls_platform_memset( void *ptr, int value, size_t num );
  * \param num   The length of the buffers in bytes.
  *
  * \return      The value of \p dst.
+ * \return      NULL if a potential FI attack was detected.
  */
 void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num );
 

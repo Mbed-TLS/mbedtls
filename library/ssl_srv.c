@@ -4456,7 +4456,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 #else /* !MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
 static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 {
-    volatile int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     size_t i, sig_len;
     unsigned char hash[48];
     unsigned char *hash_start = hash;

@@ -37,6 +37,7 @@ The following snippet classes are available:
 * `Return`: a ``return`` statement (with or without a value).
 * `Block`: a block which is put between braces.
 * `Comment`: a comment. It may contain multiple lines.
+* `Directive`: a preprocessor directive.
 
 Unit tests are in ``../tests/scripts/test_c_generator.py``.
 """
@@ -103,6 +104,26 @@ class Comment(Snippet):
             for line in self.lines[1:]:
                 self.output_line(stream, indent, ' * ', line)
             self.output_line(stream, indent, ' */')
+
+
+class Directive(Snippet):
+    """A preprocessor directive."""
+
+    def __init__(self, *parts: str) -> None:
+        """A preprocessor directive.
+
+        The arguments are joined with spaces. Typically the first argument is
+        the directive and subsequent arguments are its parameters.
+
+        Any newline character in an argument is replaced with backslash-newline.
+        """
+        super().__init__()
+        self.parts = parts
+
+    def output(self, stream: Writable,
+               options: Options = DEFAULT_OPTIONS, indent: str = '') -> None: # pylint: disable=bad-whitespace
+        text = ' '.join(self.parts)
+        self.output_line(stream, '', '#' + text.replace('\n', '\\\n'))
 
 
 class Simple(Snippet):

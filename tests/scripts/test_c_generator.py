@@ -175,6 +175,45 @@ class SnippetTest(unittest.TestCase):
 }
         """)
 
+    def test_directive_foo(self):
+        self.assertSnippet(C.Directive('foo'),
+                           '#foo\n')
+
+    def test_directive_define(self):
+        self.assertSnippet(C.Directive('define', 'FOO', '42'),
+                           '#define FOO 42\n')
+
+    def test_directive_multiline(self):
+        self.assertSnippet(
+            C.Directive('define', 'FOO', 'one \ntwo\nthree'),
+            """
+#define FOO one \\
+two\\
+three
+            """)
+
+    def test_block_directive(self):
+        self.assertSnippet(C.Block(C.Directive('foo'), C.Simple('hello')), """
+{
+#foo
+    hello;
+}
+        """)
+
+    def test_block_directive_multiline(self):
+        self.assertSnippet(
+            C.Block(C.Directive('define', 'FOO', 'one \ntwo\nthree'),
+                    C.Simple('hello')),
+            """
+{
+#define FOO one \\
+two\\
+three
+    hello;
+}
+            """)
+
+
 
 def load_module():
     """Load the c_generator module.

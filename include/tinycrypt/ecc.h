@@ -85,9 +85,9 @@ extern "C" {
 /* Return values for functions, chosen with large Hamming distances between
  * them (especially to SUCESS) to mitigate the impact of fault injection
  * attacks flipping a low number of bits. */
-#define UECC_SUCCESS            0x00FFAAAA
-#define UECC_FAILURE            0x75555555
-#define UECC_FAULT_DETECTED     0x7aaaaaaa
+#define UECC_SUCCESS            0xCD
+#define UECC_FAILURE            0x52
+#define UECC_FAULT_DETECTED     0x3B
 
 /* Word size (4 bytes considering 32-bits architectures) */
 #define uECC_WORD_SIZE 4

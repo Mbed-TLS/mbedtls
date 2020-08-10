@@ -104,6 +104,12 @@ class SnippetTest(unittest.TestCase):
     def test_simple_trailing_space(self):
         self.assertSnippet(C.Simple('hello '), 'hello;\n')
 
+    def test_return_none(self):
+        self.assertSnippet(C.Return(None), 'return;\n')
+
+    def test_return_value(self):
+        self.assertSnippet(C.Return('foo'), 'return( foo );\n')
+
     def test_block_empty(self):
         self.assertSnippet(C.Block(), """
 {

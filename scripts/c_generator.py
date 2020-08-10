@@ -34,6 +34,7 @@ more times to write the C code as a string.
 The following snippet classes are available:
 * `Simple`: a simple statement, or something like it such as a variable
   declaration. This can be anything that C terminates with a semicolon.
+* `Return`: a ``return`` statement (with or without a value).
 * `Block`: a block which is put between braces.
 
 Unit tests are in ``../tests/scripts/test_c_generator.py``.
@@ -110,6 +111,22 @@ class Simple(Snippet):
     def output(self, stream: Writable,
                options: Options = DEFAULT_OPTIONS, indent: str = '') -> None: # pylint: disable=bad-whitespace
         self.output_line(stream, indent, self.content, ';')
+
+
+class Return(Simple):
+    """A return statement."""
+
+    def __init__(self, what: Optional[str]) -> None:
+        """A return statement.
+
+        Pass a string containing the expression to calculate the return value,
+        or `None` to return void.
+        """
+        if what is None:
+            content = 'return'
+        else:
+            content = 'return( ' + what.strip() + ' )'
+        super().__init__(content)
 
 
 class Block(Snippet):

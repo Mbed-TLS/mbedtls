@@ -62,6 +62,8 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_hmac_drbg_context ) );
 
+    ctx->prediction_resistance = MBEDTLS_HMAC_DRBG_PR_OFF;
+    ctx->reseed_flag = MBEDTLS_HMAC_DRBG_RESEED;
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &ctx->mutex );
 #endif
@@ -210,7 +212,7 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
     size_t seedlen = 0;
     size_t total_entropy_len;
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
-    volatile const unsigned char *additional_dup = additional;
+    const unsigned char * volatile additional_dup = additional;
     volatile size_t len_dup = len;
     int reseed_counter_backup = -1;
 
@@ -388,11 +390,24 @@ void mbedtls_hmac_drbg_set_prediction_resistance( mbedtls_hmac_drbg_context *ctx
 }
 
 /*
+ * Set the reseeding flag
+ */
+void mbedtls_hmac_drbg_set_reseeding( mbedtls_hmac_drbg_context *ctx,
+                                      int reseed_flag )
+{
+    ctx->reseed_flag = reseed_flag;
+}
+
+/*
  * Set entropy length grabbed for seeding
  */
-void mbedtls_hmac_drbg_set_entropy_len( mbedtls_hmac_drbg_context *ctx, size_t len )
+int mbedtls_hmac_drbg_set_entropy_len( mbedtls_hmac_drbg_context *ctx, size_t len )
 {
+    if( len > MBEDTLS_HMAC_DRBG_MAX_INPUT )
+        return( MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG );
+
     ctx->entropy_len = len;
+    return 0;
 }
 
 /*
@@ -417,7 +432,7 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
     mbedtls_hmac_drbg_context *ctx = (mbedtls_hmac_drbg_context *) p_rng;
     size_t md_len = mbedtls_md_get_size(
         mbedtls_md_get_handle( &ctx->md_ctx ) );
-    size_t left = out_len;
+    volatile size_t left = out_len;
     unsigned char *out = output;
 
     /* II. Check request length */
@@ -429,14 +444,20 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
         return( MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG );
 
     /* 1. (aka VII and IX) Check reseed counter and PR */
-    if( ctx->f_entropy != NULL && /* For no-reseeding instances */
+    if( ctx->reseed_flag != MBEDTLS_HMAC_DRBG_NO_RESEED &&
         ( ctx->prediction_resistance == MBEDTLS_HMAC_DRBG_PR_ON ||
           ctx->reseed_counter > ctx->reseed_interval ) )
     {
-        if( ( ret = mbedtls_hmac_drbg_reseed( ctx, additional, add_len ) ) != 0 )
-            return( ret );
-
-        add_len = 0; /* VII.4 */
+            if( ctx->f_entropy == NULL )
+            {
+                return( MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED );
+            }
+            else
+            {
+                if( ( ret = mbedtls_hmac_drbg_reseed( ctx, additional, add_len ) ) != 0 )
+                    return( ret );
+                add_len = 0; /* VII.4 */
+            }
     }
 
     /* 2. Use additional data if any */

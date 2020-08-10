@@ -1907,6 +1907,22 @@
 //#define MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
 
 /**
+ * \def MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN
+ *
+ * Enable testing of the constant-flow nature of some sensitive functions with
+ * clang's MemorySanitizer. This causes some existing tests to also test
+ * non-functional properties of the code under test.
+ *
+ * This setting requires compiling with clang -fsanitize=memory.
+ *
+ * \warning This macro is only used for extended testing; it is not considered
+ * part of the library's API, so it may change or disappear at any time.
+ *
+ * Uncomment to enable testing of the constant-flow nature of selected code.
+ */
+//#define MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN
+
+/**
  * \def MBEDTLS_TEST_HOOKS
  *
  * Enable features for invasive testing such as introspection functions and

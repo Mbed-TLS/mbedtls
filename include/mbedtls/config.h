@@ -2742,12 +2742,11 @@
 /**
  * \def MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY
  *
- * Enable validation of AES keys by checking their CRC
+ * Enable validation of AES keys by checking their hash
  * during every encryption/decryption.
  *
  * Module:  library/aes.c
  *
- * Requires: MBEDTLS_CRC_C
  */
 //#define MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY
 

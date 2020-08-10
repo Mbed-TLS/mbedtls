@@ -137,7 +137,6 @@
 
 #define MBEDTLS_OID_C
 #define MBEDTLS_PLATFORM_C
-#define MBEDTLS_CRC_C
 #define MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY
 
 /* I/O buffer configuration */

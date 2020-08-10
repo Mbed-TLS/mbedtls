@@ -986,10 +986,6 @@
 #error "MBEDTLS_HAVE_INT32/MBEDTLS_HAVE_INT64 and MBEDTLS_HAVE_ASM cannot be defined simultaneously"
 #endif /* (MBEDTLS_HAVE_INT32 || MBEDTLS_HAVE_INT64) && MBEDTLS_HAVE_ASM */
 
-#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY) && ( !defined(MBEDTLS_CRC_C) )
-#error "MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY defined, but not MBEDTLS_CRC_C"
-#endif
-
 /*
  * Avoid warning from -pedantic. This is a convenient place for this
  * workaround since this is included by every single file before the

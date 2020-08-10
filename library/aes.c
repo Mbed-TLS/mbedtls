@@ -45,10 +45,6 @@
 #include "mbedtls/aesni.h"
 #endif
 
-#if defined(MBEDTLS_CRC_C) && defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-#include "mbedtls/crc.h"
-#endif
-
 #if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -89,6 +85,19 @@
 }
 #endif
 
+#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
+static uint32_t mbedtls_hash( const void *data, size_t data_len_bytes )
+{
+    uint32_t result = 0;
+    size_t i;
+    /* data_len_bytes - only multiples of 4 are considered, rest is truncated */
+    for( i = 0; i < data_len_bytes >> 2; i++ )
+    {
+        result ^= ( (uint32_t*) data )[i];
+    }
+    return result;
+}
+#endif
 /*
  * Data structure for AES round data
  */
@@ -835,7 +844,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     ) )
     {
 #if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-        ctx->crc = mbedtls_crc_update( 0, ctx->rk, keybits >> 3 );
+        ctx->hash = mbedtls_hash( ctx->rk, keybits >> 3 );
 #endif
         return 0;
     }
@@ -933,7 +942,7 @@ exit:
     else if( ( i == 0 ) && ( j == 4 ) )
     {
 #if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-        ctx->crc = mbedtls_crc_update( 0, ctx->rk, keybits >> 3 );
+        ctx->hash = mbedtls_hash( ctx->rk, keybits >> 3 );
 #endif
         return( ret );
     }
@@ -1099,7 +1108,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 
 #if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
     unsigned key_bytes = 0;
-    uint16_t check_crc = 0;
+    uint32_t check_hash = 0;
     switch( ctx->nr )
     {
         case 10: key_bytes = 16; break;
@@ -1109,7 +1118,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 #endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
         default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
     }
-    check_crc = mbedtls_crc_update( 0, ctx->rk, key_bytes );
+    check_hash = mbedtls_hash( ctx->rk, key_bytes );
 #endif
 
     aes_data_real.rk_ptr = ctx->rk;
@@ -1209,13 +1218,13 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     /* Double negation is used to silence an "extraneous parentheses" warning */
     if( ! ( flow_control != tindex + dummy_rounds + 8 )
 #if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-         && check_crc == ctx->crc
+         && check_hash == ctx->hash
 #endif
       )
     {
 #if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
         mbedtls_platform_random_delay();
-        if( mbedtls_crc_update( 0, ctx->rk, key_bytes ) == ctx->crc )
+        if( mbedtls_hash( ctx->rk, key_bytes ) == ctx->hash )
 #endif
         {
             return 0;
@@ -1406,7 +1415,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
 
 #if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
     unsigned key_bytes = 0;
-    uint16_t check_crc = 0;
+    uint32_t check_hash = 0;
     switch( ctx->nr )
     {
         case 10: key_bytes = 16; break;
@@ -1416,7 +1425,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
 #endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
         default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
     }
-    check_crc = mbedtls_crc_update( 0, ctx->rk, key_bytes );
+    check_hash = mbedtls_hash( ctx->rk, key_bytes );
 #endif
 
     aes_data_real.rk_ptr = ctx->rk;
@@ -1516,13 +1525,13 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     /* Double negation is used to silence an "extraneous parentheses" warning */
     if( ! ( flow_control != tindex + dummy_rounds + 8 )
 #if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-         && check_crc == ctx->crc
+         && check_hash == ctx->hash
 #endif
       )
     {
 #if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
         mbedtls_platform_random_delay();
-        if( mbedtls_crc_update( 0, ctx->rk, key_bytes ) == ctx->crc )
+        if( mbedtls_hash( ctx->rk, key_bytes ) == ctx->hash )
 #endif
         {
             return 0;

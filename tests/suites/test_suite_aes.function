@@ -371,8 +371,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY:MBEDTLS_AES_SCA_COUNTERMEASURES:!MBEDTLS_AES_SETKEY_ENC_ALT:!MBEDTLS_AESNI_C */
-void aes_encrypt_ecb_crc( data_t * key_str, data_t * src_str,
-                          data_t * hex_dst_string, unsigned int crc, int crypt_result, int check_crc )
+void aes_encrypt_ecb_hash( data_t * key_str, data_t * src_str,
+                           data_t * hex_dst_string, unsigned int hash, int crypt_result, int check_hash )
 {
     unsigned char output[100];
     mbedtls_aes_context ctx;
@@ -383,10 +383,10 @@ void aes_encrypt_ecb_crc( data_t * key_str, data_t * src_str,
 
     TEST_ASSERT( mbedtls_aes_setkey_enc( &ctx, key_str->x, key_str->len * 8 ) == 0 );
 
-    if( check_crc )
-        TEST_ASSERT( ctx.crc == crc );
+    if( check_hash )
+        TEST_ASSERT( ctx.hash == hash );
     else
-        ctx.crc = crc;
+        ctx.hash = hash;
 
     TEST_ASSERT( mbedtls_aes_crypt_ecb( &ctx, MBEDTLS_AES_ENCRYPT, src_str->x, output ) == crypt_result );
 
@@ -398,8 +398,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY:MBEDTLS_AES_SCA_COUNTERMEASURES:!MBEDTLS_AES_SETKEY_ENC_ALT:!MBEDTLS_AESNI_C */
-void aes_decrypt_ecb_crc( data_t * key_str, data_t * src_str,
-                          data_t * hex_dst_string, unsigned int crc, int crypt_result, int check_crc )
+void aes_decrypt_ecb_hash( data_t * key_str, data_t * src_str,
+                           data_t * hex_dst_string, unsigned int hash, int crypt_result, int check_hash )
 {
     unsigned char output[100];
     mbedtls_aes_context ctx;
@@ -410,10 +410,10 @@ void aes_decrypt_ecb_crc( data_t * key_str, data_t * src_str,
 
     TEST_ASSERT( mbedtls_aes_setkey_dec( &ctx, key_str->x, key_str->len * 8 ) == 0 );
 
-    if( check_crc )
-        TEST_ASSERT( ctx.crc == crc );
+    if( check_hash )
+        TEST_ASSERT( ctx.hash == hash );
     else
-        ctx.crc = crc;
+        ctx.hash = hash;
 
     TEST_ASSERT( mbedtls_aes_crypt_ecb( &ctx, MBEDTLS_AES_DECRYPT, src_str->x, output ) == crypt_result );
 

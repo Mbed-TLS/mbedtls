@@ -36,6 +36,7 @@ The following snippet classes are available:
   declaration. This can be anything that C terminates with a semicolon.
 * `Return`: a ``return`` statement (with or without a value).
 * `Block`: a block which is put between braces.
+* `Comment`: a comment. It may contain multiple lines.
 
 Unit tests are in ``../tests/scripts/test_c_generator.py``.
 """
@@ -81,6 +82,27 @@ class Snippet:
     def output(self, stream: Writable,
                options: Options = DEFAULT_OPTIONS, indent: str = '') -> None: # pylint: disable=bad-whitespace
         raise NotImplementedError
+
+
+class Comment(Snippet):
+    """A comment with its own line(s)."""
+
+    def __init__(self, *lines: str) -> None:
+        """A comment. Each argument is placed on its own line."""
+        super().__init__()
+        self.lines = [line.rstrip() for line in lines]
+
+    def output(self, stream: Writable,
+               options: Options = DEFAULT_OPTIONS, indent: str = '') -> None: # pylint: disable=bad-whitespace
+        if len(self.lines) == 0:
+            return
+        elif len(self.lines) == 1:
+            self.output_line(stream, indent, '/* ', self.lines[0].lstrip(), ' */')
+        else:
+            self.output_line(stream, indent, '/* ', self.lines[0])
+            for line in self.lines[1:]:
+                self.output_line(stream, indent, ' * ', line)
+            self.output_line(stream, indent, ' */')
 
 
 class Simple(Snippet):
@@ -135,7 +157,8 @@ class Block(Snippet):
     def __init__(self, *content) -> None:
         """A block statement.
 
-        The arguments are the statements to put inside the block.
+        The arguments are the statements or pseudo-statements to put inside
+        the block.
         """
         super().__init__()
         self.content = list(content)

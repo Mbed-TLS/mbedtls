@@ -153,6 +153,27 @@ class SnippetTest(unittest.TestCase):
 }
         """)
 
+    def test_comment_empty(self):
+        self.assertSnippet(C.Comment(), '')
+
+    def test_comment_1(self):
+        self.assertSnippet(C.Comment('hello'), '/* hello */\n')
+
+    def test_comment_2(self):
+        self.assertSnippet(C.Comment('hello', 'world'), """
+/* hello
+ * world
+ */
+        """)
+
+    def test_block_comment(self):
+        self.assertSnippet(C.Block(C.Comment('hello', 'world')), """
+{
+    /* hello
+     * world
+     */
+}
+        """)
 
 
 def load_module():

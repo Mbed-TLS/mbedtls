@@ -20,17 +20,133 @@
 """Unit tests for ../scripts/test_c_generator.py"""
 
 import importlib
+import io
 import os
 import sys
 import unittest
 
+# The file c_generator.py is not in the same directory. To make this testing
+# program self-contained, go and look for it in ../../scripts. This is done
+# below with C = load_module().
+# # import c_generator as C
 
-class SmokeTest(unittest.TestCase):
-    """Test that we seem to have loaded the right module."""
-    # pylint: disable=missing-docstring
 
-    def test_docstring(self):
-        self.assertTrue(len(c_generator.__doc__) > 0)
+class OptionsTest(unittest.TestCase):
+    """Test the exact rendering of a snippet under varying options."""
+    # pylint: disable=invalid-name,missing-docstring
+
+    def assertSnippet(self, snippet, presented_output, **kwargs):
+        stream = io.StringIO()
+        snippet.output(stream, **kwargs)
+        expected_output = presented_output.lstrip('\n').rstrip(' ')
+        self.assertEqual(stream.getvalue(), expected_output)
+
+    def test_default_line(self):
+        self.assertSnippet(C.Simple('hello'), 'hello;\n')
+
+    def test_indent_spaces(self):
+        self.assertSnippet(C.Simple('hello'), '    hello;\n', indent='    ')
+
+    def test_indent_tab(self):
+        self.assertSnippet(C.Simple('hello'), '\thello;\n', indent='\t')
+
+    def test_default_block(self):
+        self.assertSnippet(C.Block(C.Simple('hello'), C.Simple('world')), """
+{
+    hello;
+    world;
+}
+        """)
+
+    def test_option_indent(self):
+        self.assertSnippet(C.Block(C.Simple('hello'), C.Simple('world')), """
+{
+   hello;
+   world;
+}
+        """, options=C.Options(indent=3))
+
+    def test_option_indent_nested(self):
+        self.assertSnippet(C.Block(C.Block(C.Simple('hello'))), """
+{
+   {
+      hello;
+   }
+}
+        """, options=C.Options(indent=3))
+
+    def test_indent_and_option_indent(self):
+        self.assertSnippet(C.Block(C.Block(C.Simple('hello'))), """
+  {
+     {
+        hello;
+     }
+  }
+        """, options=C.Options(indent=3), indent='  ')
+
+
+class SnippetTest(unittest.TestCase):
+    """Test the exact rendering of a snippet under default options."""
+    # pylint: disable=invalid-name,missing-docstring
+
+    def assertSnippet(self, snippet, presented_output):
+        stream = io.StringIO()
+        snippet.output(stream)
+        expected_output = presented_output.lstrip('\n').rstrip(' ')
+        self.assertEqual(stream.getvalue(), expected_output)
+
+    def test_simple(self):
+        self.assertSnippet(C.Simple('hello'), 'hello;\n')
+
+    def test_simple_leading_space(self):
+        self.assertSnippet(C.Simple(' hello'), 'hello;\n')
+
+    def test_simple_trailing_space(self):
+        self.assertSnippet(C.Simple('hello '), 'hello;\n')
+
+    def test_block_empty(self):
+        self.assertSnippet(C.Block(), """
+{
+}
+        """)
+
+    def test_block_simple(self):
+        self.assertSnippet(C.Block(C.Simple('hello'), C.Simple('world')), """
+{
+    hello;
+    world;
+}
+        """)
+
+    def test_block_nested(self):
+        self.assertSnippet(C.Block(C.Simple('hello'),
+                                   C.Block(C.Simple('nested')),
+                                   C.Simple('world')), """
+{
+    hello;
+    {
+        nested;
+    }
+    world;
+}
+        """)
+
+    def test_block_multiple(self):
+        self.assertSnippet(C.Block(C.Block(C.Simple('nested')),
+                                   C.Block(C.Simple('again')),
+                                   C.Block()), """
+{
+    {
+        nested;
+    }
+    {
+        again;
+    }
+    {
+    }
+}
+        """)
+
 
 
 def load_module():
@@ -47,11 +163,10 @@ def load_module():
     try:
         # pylint: disable=invalid-name,global-variable-undefined
         sys.path = [scripts_dir] + sys.path
-        global c_generator
-        c_generator = importlib.import_module('c_generator')
+        return importlib.import_module('c_generator')
     finally:
         sys.path = save_sys_path
 
 if __name__ == '__main__':
-    load_module()
+    C = load_module()
     unittest.main()

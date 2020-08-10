@@ -92,7 +92,11 @@ int mbedtls_ssl_ecdh_read_peerkey( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    mbedtls_platform_memcpy( ssl->handshake->ecdh_peerkey, *p + 2, 2 * NUM_ECC_BYTES );
+    if( mbedtls_platform_memcpy( ssl->handshake->ecdh_peerkey, *p + 2, 2 * NUM_ECC_BYTES ) !=
+                                 ssl->handshake->ecdh_peerkey )
+    {
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    }
 
     *p += secp256r1_uncompressed_point_length;
     return( 0 );
@@ -1886,7 +1890,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
         return( ret );
     }
 
-    if( handshake->premaster == mbedtls_platform_zeroize( 
+    if( handshake->premaster == mbedtls_platform_zeroize(
                     handshake->premaster, sizeof(handshake->premaster) ) )
     {
         return( 0 );
@@ -2293,7 +2297,10 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     if( end < p || (size_t)( end - p ) < psk_len )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    mbedtls_platform_memcpy( p, psk, psk_len );
+    if( mbedtls_platform_memcpy( p, psk, psk_len ) != p )
+    {
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    }
     p += psk_len;
 
     ssl->handshake->pmslen = p - ssl->handshake->premaster;
@@ -4495,8 +4502,16 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
 
             /* Handshake hashes are computed without fragmentation,
              * so set frag_offset = 0 and frag_len = hs_len for now */
-            mbedtls_platform_memset( ssl->out_msg + 6, 0x00, 3 );
-            mbedtls_platform_memcpy( ssl->out_msg + 9, ssl->out_msg + 1, 3 );
+            if( mbedtls_platform_memset( ssl->out_msg + 6, 0x00, 3 ) !=
+                                         ssl->out_msg + 6 )
+            {
+                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+            }
+            if( mbedtls_platform_memcpy( ssl->out_msg + 9, ssl->out_msg + 1, 3 ) !=
+                                         ssl->out_msg + 9 )
+            {
+                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+            }
         }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
@@ -6127,9 +6142,24 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
 
                 /* Prepare final header: copy msg_type, length and message_seq,
                  * then add standardised fragment_offset and fragment_length */
-                mbedtls_platform_memcpy( hs_buf->data, ssl->in_msg, 6 );
-                mbedtls_platform_memset( hs_buf->data + 6, 0, 3 );
-                mbedtls_platform_memcpy( hs_buf->data + 9, hs_buf->data + 1, 3 );
+                if( mbedtls_platform_memcpy( hs_buf->data, ssl->in_msg, 6 ) !=
+                                             hs_buf->data )
+                {
+                    ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+                    goto exit;
+                }
+                if( mbedtls_platform_memset( hs_buf->data + 6, 0, 3 ) !=
+                                             hs_buf->data + 6 )
+                {
+                    ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+                    goto exit;
+                }
+                if( mbedtls_platform_memcpy( hs_buf->data + 9, hs_buf->data + 1, 3 ) !=
+                                             hs_buf->data + 9 )
+                {
+                    ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+                    goto exit;
+                }
 
                 hs_buf->is_valid = 1;
 
@@ -11179,11 +11209,19 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
     n = ( len < ssl->in_msglen )
         ? len : ssl->in_msglen;
 
-    mbedtls_platform_memcpy( buf, ssl->in_offt, n );
+    if( mbedtls_platform_memcpy( buf, ssl->in_offt, n ) !=
+                                 buf )
+    {
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    }
     ssl->in_msglen -= n;
 
     // clear incoming data after it's copied to buffer
-    mbedtls_platform_memset(ssl->in_offt, 0, n);
+    if( mbedtls_platform_memset( ssl->in_offt, 0, n ) !=
+                                 ssl->in_offt )
+    {
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    }
 
     if( ssl->in_msglen == 0 )
     {
@@ -11273,7 +11311,10 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
          */
         ssl->out_msglen = len;
         ssl->out_msgtype = MBEDTLS_SSL_MSG_APPLICATION_DATA;
-        mbedtls_platform_memcpy( ssl->out_msg, buf, len );
+        if( mbedtls_platform_memcpy( ssl->out_msg, buf, len ) != ssl->out_msg )
+        {
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+        }
 
 #if defined(MBEDTLS_FI_COUNTERMEASURES) && !defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
         /*

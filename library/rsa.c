@@ -60,9 +60,9 @@
 #include <stdlib.h>
 #endif
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
+
+#if !defined(MBEDTLS_PLATFORM_C)
 #include <stdio.h>
 #define mbedtls_printf printf
 #define mbedtls_calloc calloc
@@ -1974,8 +1974,11 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
     /* Are we signing raw data? */
     if( md_alg == MBEDTLS_MD_NONE )
     {
-        mbedtls_platform_memcpy( p, hash, hashlen );
-        return( 0 );
+        if( mbedtls_platform_memcpy( p, hash, hashlen ) == p )
+        {
+            return( 0 );
+        }
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
 
     /* Signing hashed data, add corresponding ASN.1 structure
@@ -2003,7 +2006,10 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
     *p++ = 0x00;
     *p++ = MBEDTLS_ASN1_OCTET_STRING;
     *p++ = (unsigned char) hashlen;
-    mbedtls_platform_memcpy( p, hash, hashlen );
+    if( mbedtls_platform_memcpy( p, hash, hashlen ) != p )
+    {
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    }
     p += hashlen;
 
     /* Just a sanity-check, should be automatic
@@ -2029,7 +2035,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
                                const unsigned char *hash,
                                unsigned char *sig )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     unsigned char *sig_try = NULL, *verif = NULL;
 
     RSA_VALIDATE_RET( ctx != NULL );
@@ -2087,7 +2093,10 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
         goto cleanup;
     }
 
-    mbedtls_platform_memcpy( sig, sig_try, ctx->len );
+    if( mbedtls_platform_memcpy( sig, sig_try, ctx->len ) != sig )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    }
 
 cleanup:
     mbedtls_free( sig_try );

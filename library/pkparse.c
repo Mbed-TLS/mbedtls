@@ -561,9 +561,13 @@ static int uecc_public_key_read_binary( mbedtls_uecc_keypair *uecc_keypair,
     if( buf[0] != 0x04 )
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 
-    mbedtls_platform_memcpy( uecc_keypair->public_key, buf + 1, 2 * NUM_ECC_BYTES );
+    if( mbedtls_platform_memcpy( uecc_keypair->public_key, buf + 1, 2 * NUM_ECC_BYTES ) ==
+                                 uecc_keypair->public_key )
+    {
+        return( 0 );
+    }
 
-    return( 0 );
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 static int pk_get_ueccpubkey( unsigned char **p,
@@ -976,7 +980,11 @@ static int pk_parse_key_sec1_der( mbedtls_uecc_keypair *keypair,
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
 
-    mbedtls_platform_memcpy( keypair->private_key, p, len );
+    if( mbedtls_platform_memcpy( keypair->private_key, p, len ) !=
+                                 keypair->private_key )
+    {
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    }
 
     p += len;
 

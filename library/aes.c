@@ -675,6 +675,18 @@ void mbedtls_aes_xts_free( mbedtls_aes_xts_context *ctx )
 }
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
 
+#if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
+static void mbedtls_generate_fake_key( unsigned int keybits, mbedtls_aes_context *ctx )
+{
+    unsigned int qword;
+
+    for( qword = keybits >> 5; qword > 0; qword-- )
+    {
+        ctx->frk[ qword - 1 ] = mbedtls_platform_random_uint32();
+    }
+}
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
+
 /*
  * AES key schedule (encryption)
  */
@@ -719,6 +731,9 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     else
 #endif
     ctx->rk = RK = ctx->buf;
+#if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
+    mbedtls_generate_fake_key( keybits, ctx );
+#endif
 
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
@@ -858,6 +873,9 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
     else
 #endif
     ctx->rk = RK = ctx->buf;
+#if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
+    mbedtls_generate_fake_key( keybits, ctx );
+#endif
 
     /* Also checks keybits */
     if( ( ret = mbedtls_aes_setkey_enc( &cty, key, keybits ) ) != 0 )
@@ -1071,7 +1089,8 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     uint8_t round_ctrl_table[( 14 + AES_SCA_CM_ROUNDS + 2 )];
 
     aes_data_real.rk_ptr = ctx->rk;
-    aes_data_fake.rk_ptr = ctx->rk;
+    aes_data_fake.rk_ptr = ctx->frk;
+
     aes_data_table[0] = &aes_data_real;
     aes_data_table[1] = &aes_data_fake;
 
@@ -1351,7 +1370,8 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     uint8_t round_ctrl_table[( 14 + AES_SCA_CM_ROUNDS + 2 )];
 
     aes_data_real.rk_ptr = ctx->rk;
-    aes_data_fake.rk_ptr = ctx->rk;
+    aes_data_fake.rk_ptr = ctx->frk;
+
     aes_data_table[0] = &aes_data_real;
     aes_data_table[1] = &aes_data_fake;
 

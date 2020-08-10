@@ -741,6 +741,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_ECP_NORMALIZE_MXZ_ALT */
 
+#if defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+    if( strcmp( "MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN );
+        return( 0 );
+    }
+#endif /* MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN */
+
 #if defined(MBEDTLS_TEST_NULL_ENTROPY)
     if( strcmp( "MBEDTLS_TEST_NULL_ENTROPY", config ) == 0 )
     {

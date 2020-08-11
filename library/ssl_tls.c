@@ -2081,7 +2081,8 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-    size_t i=0, n;
+    size_t i=0;
+    size_t n=0;
     const mbedtls_x509_crt *crt;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
@@ -2142,7 +2143,6 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
           ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY ) )
     {
         mbedtls_pk_context *key;
-        size_t n;
         unsigned char keybuf[512];
 
         key = mbedtls_ssl_own_key( ssl );

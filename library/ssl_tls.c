@@ -2313,6 +2313,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
     }
 
     /* In case we tried to reuse a session but it failed */
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     if( ssl->session_negotiate->peer_cert != NULL )
     {
         mbedtls_x509_crt_free( ssl->session_negotiate->peer_cert );
@@ -2330,6 +2331,8 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
     }
 
     mbedtls_x509_crt_init( ssl->session_negotiate->peer_cert );
+#endif
+
 #if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
     if( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
           ssl->handshake->client_cert_type == MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY ) ||

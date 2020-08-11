@@ -29,6 +29,10 @@ import codecs
 import re
 import subprocess
 import sys
+try:
+    from typing import FrozenSet, Optional, Pattern # pylint: disable=unused-import
+except ImportError:
+    pass
 
 
 class FileIssueTracker:
@@ -48,8 +52,8 @@ class FileIssueTracker:
     ``heading``: human-readable description of the issue
     """
 
-    suffix_exemptions = frozenset()
-    path_exemptions = None
+    suffix_exemptions = frozenset() #type: FrozenSet[str]
+    path_exemptions = None #type: Optional[Pattern[str]]
     # heading must be defined in derived classes.
     # pylint: disable=no-member
 

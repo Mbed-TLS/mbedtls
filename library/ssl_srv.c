@@ -162,7 +162,7 @@ static int ssl_parse_renegotiation_info( mbedtls_ssl_context *ssl,
         /* Check verify-data in constant-time. The length OTOH is no secret */
         if( len    != 1 + ssl->verify_data_len ||
             buf[0] !=     ssl->verify_data_len ||
-            mbedtls_platform_memcmp( buf + 1, ssl->peer_verify_data,
+            mbedtls_platform_memequal( buf + 1, ssl->peer_verify_data,
                           ssl->verify_data_len ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "non-matching renegotiation info" ) );
@@ -711,7 +711,7 @@ static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
             cur_len = *theirs++;
 
             if( cur_len == ours_len &&
-                mbedtls_platform_memcmp( theirs, *ours, cur_len ) == 0 )
+                mbedtls_platform_memequal( theirs, *ours, cur_len ) == 0 )
             {
                 ssl->alpn_chosen = *ours;
                 return( 0 );
@@ -1228,7 +1228,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_UNSET;
     memset( ssl->handshake->randbytes, 0, 64 );
     mbedtls_platform_memcpy( ssl->handshake->randbytes + 32 - chal_len, p, chal_len );
-    if( mbedtls_platform_memcmp( ssl->handshake->randbytes + 32 - chal_len, p, chal_len ) == 0 )
+    if( mbedtls_platform_memequal( ssl->handshake->randbytes + 32 - chal_len, p, chal_len ) == 0 )
     {
         ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_SET;
     }
@@ -1628,7 +1628,7 @@ read_record_header:
          * fragment_offset == 0 and fragment_length == length
          */
         if( ssl->in_msg[6] != 0 || ssl->in_msg[7] != 0 || ssl->in_msg[8] != 0 ||
-            mbedtls_platform_memcmp( ssl->in_msg + 1, ssl->in_msg + 9, 3 ) != 0 )
+            mbedtls_platform_memequal( ssl->in_msg + 1, ssl->in_msg + 9, 3 ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "ClientHello fragmentation not supported" ) );
             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
@@ -1728,7 +1728,7 @@ read_record_header:
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes", buf + 2, 32 );
 
     mbedtls_platform_memcpy( ssl->handshake->randbytes, buf + 2, 32 );
-    if( mbedtls_platform_memcmp( ssl->handshake->randbytes, buf + 2, 32 ) == 0 )
+    if( mbedtls_platform_memequal( ssl->handshake->randbytes, buf + 2, 32 ) == 0 )
     {
         ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_SET;
     }
@@ -2827,7 +2827,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     p += 28;
     ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_UNSET;
     mbedtls_platform_memcpy( ssl->handshake->randbytes + 32, buf + 6, 32 );
-    if( mbedtls_platform_memcmp( ssl->handshake->randbytes + 32, buf + 6, 32 ) == 0 )
+    if( mbedtls_platform_memequal( ssl->handshake->randbytes + 32, buf + 6, 32 ) == 0 )
     {
         ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_SET;
     }
@@ -4119,7 +4119,7 @@ static int ssl_parse_client_psk_identity( mbedtls_ssl_context *ssl, unsigned cha
         /* Identity is not a big secret since clients send it in the clear,
          * but treat it carefully anyway, just in case */
         if( n != ssl->conf->psk_identity_len ||
-            mbedtls_platform_memcmp( ssl->conf->psk_identity, *p, n ) != 0 )
+            mbedtls_platform_memequal( ssl->conf->psk_identity, *p, n ) != 0 )
         {
             ret = MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY;
         }

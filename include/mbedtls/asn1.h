@@ -130,11 +130,11 @@
  */
 #define MBEDTLS_OID_CMP(oid_str, oid_buf)                                   \
         ( ( MBEDTLS_OID_SIZE(oid_str) != (oid_buf)->len ) ||                \
-          mbedtls_platform_memcmp( (oid_str), (oid_buf)->p, (oid_buf)->len) != 0 )
+          mbedtls_platform_memequal( (oid_str), (oid_buf)->p, (oid_buf)->len) != 0 )
 
 #define MBEDTLS_OID_CMP_RAW(oid_str, oid_buf, oid_buf_len)                  \
         ( ( MBEDTLS_OID_SIZE(oid_str) != (oid_buf_len) ) ||                 \
-          mbedtls_platform_memcmp( (oid_str), (oid_buf), (oid_buf_len) ) != 0 )
+          mbedtls_platform_memequal( (oid_str), (oid_buf), (oid_buf_len) ) != 0 )
 
 #ifdef __cplusplus
 extern "C" {

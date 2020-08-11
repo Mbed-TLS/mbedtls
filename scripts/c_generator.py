@@ -173,9 +173,21 @@ class Return(Simple):
 
 
 class Block(Snippet):
-    """A code block (statements between braces)."""
+    """A code block (statements between braces).
 
-    def __init__(self, *content) -> None:
+    Code blocks behave mostly like lists of statements (or more precisely
+    snippets, including pseudo-statements such as comments). You can access or
+    modify the ``N``th (pseudo-)statement (counting from 0) in the block
+    ``b`` through ``b[N]``.
+
+    If you add a block to another block, the trailing block is spliced into
+    the original block: ``Block(a,b,c) + Block(d,e)`` is equivalent to
+    ``Block(a,b,c,d,e)``, not to ``Block(a,b,c, Block(d,e))``. This doesn't
+    happen with the ``append`` method or with assignment to a block element.
+    Adding a snippet that isn't a block is equivalent to appending the snippet.
+    """
+
+    def __init__(self, *content: Snippet) -> None:
         """A block statement.
 
         The arguments are the statements or pseudo-statements to put inside
@@ -183,6 +195,53 @@ class Block(Snippet):
         """
         super().__init__()
         self.content = list(content)
+
+    def copy(self) -> 'Block':
+        """Make a shallow copy of this block.
+
+        The copy is not modified if the block itself is modified, but is
+        modified if subblocks are modified.
+        """
+        return Block(*self.content)
+
+    def __len__(self) -> int:
+        return len(self.content)
+
+    def __getitem__(self, key: int) -> Snippet:
+        return self.content[key]
+
+    def __setitem__(self, key: int, value: Snippet) -> None:
+        self.content[key] = value
+
+    def __delitem__(self, key: int) -> None:
+        del self.content[key]
+
+    def __add__(self, other: Snippet) -> 'Block':
+        """Return a new block containing both arguments' content.
+
+        If ``other`` is a `Block`, return a new block containing the elements
+        of ``self`` followed by the elements of ``other``.
+        Otherwise return a new block containing the elements of ``self``
+        followed by ``other``.
+        """
+        new_block = self.copy()
+        new_block += other
+        return new_block
+
+    def __iadd__(self, other: Snippet) -> 'Block':
+        """Add a block's content or a snippet to this block in place.
+
+        If ``other`` is a `Block`, add its element to our list of elements.
+        Otherwise append ``other`` to our list of elements.
+        """
+        if isinstance(other, Block):
+            self.content += other.content
+        else:
+            self.content.append(other)
+        return self
+
+    def append(self, elt: Snippet) -> None:
+        self.content.append(elt)
 
     def output(self, stream: Writable,
                options: Options = DEFAULT_OPTIONS, indent: str = '') -> None: # pylint: disable=bad-whitespace

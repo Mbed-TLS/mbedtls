@@ -507,6 +507,85 @@ three
 }
             """)
 
+    def test_pp_if(self):
+        ppc = C.PreprocessorConditional()
+        ppc.add_case('first', C.Simple('one'))
+        self.assertSnippet(ppc, """
+#if first
+one;
+#endif /* first */
+        """)
+
+    def test_pp_if_else(self):
+        ppc = C.PreprocessorConditional()
+        ppc.add_case('first', C.Simple('one'))
+        ppc.set_default(C.Simple('something'))
+        self.assertSnippet(ppc, """
+#if first
+one;
+#else /* !first */
+something;
+#endif /* !first */
+        """)
+
+    def test_pp_if_elif(self):
+        ppc = C.PreprocessorConditional()
+        ppc.add_case('first', C.Simple('one'))
+        ppc.add_case('second', C.Simple('two'))
+        ppc.add_case('third', C.Simple('three'))
+        self.assertSnippet(ppc, """
+#if first
+one;
+#elif second
+two;
+#elif third
+three;
+#endif /* third */
+        """)
+
+    def test_pp_if_elif_else(self):
+        ppc = C.PreprocessorConditional()
+        ppc.add_case('first', C.Simple('one'))
+        ppc.add_case('second', C.Simple('two'))
+        ppc.add_case('third', C.Simple('three'))
+        ppc.set_default(C.Simple('something'))
+        self.assertSnippet(ppc, """
+#if first
+one;
+#elif second
+two;
+#elif third
+three;
+#else /* !first && !second && !third */
+something;
+#endif /* !first && !second && !third */
+        """)
+
+    def test_pp_else_only(self):
+        ppc = C.PreprocessorConditional()
+        ppc.set_default(C.Simple('something'))
+        self.assertSnippet(ppc, """
+something;
+        """)
+
+    def test_pp_nothing(self):
+        ppc = C.PreprocessorConditional()
+        self.assertSnippet(ppc, '')
+
+    def test_pp_multiline(self):
+        ppc = C.PreprocessorConditional()
+        ppc.add_case('hello\nworld', C.Simple('one'))
+        ppc.add_case('foo\nbar\nqux', C.Simple('two'))
+        self.assertSnippet(ppc, """
+#if hello\\
+    world
+one;
+#elif foo\\
+      bar\\
+      qux
+two;
+#endif /* foo bar qux */
+        """)
 
 
 def load_module():

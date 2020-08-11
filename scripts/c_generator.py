@@ -38,10 +38,12 @@ The following snippet classes are available:
 * `Block`: a block which is put between braces.
 * `Comment`: a comment. It may contain multiple lines.
 * `Directive`: a preprocessor directive.
+* `PreprocessorConditional`: conditionally compiled code fragments.
 
 Unit tests are in ``../tests/scripts/test_c_generator.py``.
 """
 
+import re
 from typing import List, Optional, Sequence, Tuple # pylint: disable=unused-import
 
 
@@ -250,3 +252,81 @@ class Block(Snippet):
         for item in self.content:
             item.output(stream, options, more_indent)
         self.output_line(stream, indent, '}')
+
+
+class PreprocessorConditional(Snippet):
+    """Code guarded by conditional compilation directives."""
+
+    def __init__(self) -> None:
+        """Start a conditionally compiled snippet (``#if ... #endif``)."""
+        super().__init__()
+        self.cases = [] #type: List[Tuple[str, Snippet]]
+        self.default = None #type: Optional[Snippet]
+        self.endif_comment = None #type: Optional[str]
+
+    def add_case(self, condition: str, code: Snippet) -> None:
+        """Append a case to the preprocessor if-else chain.
+
+        * ``condition``: A preprocessor expression which is used as an
+          ``#if`` condition.
+        * ``code``: the code to use if ``condition`` is true.
+        """
+        self.cases.append((condition.strip(), code))
+
+    def set_default(self, code: Snippet) -> None:
+        """The code to execute in the ``#else`` part."""
+        self.default = code
+
+    def set_endif_comment(self, text: Optional[str]) -> None:
+        """The text to use in a comment in ``#else`` and ``#endif``.
+
+        If omitted or ``None``, the comment is taken from the conditions.
+        """
+        self.endif_comment = text
+
+    @staticmethod
+    def negate_condition(condition: str) -> str:
+        """Return a slightly prettyfied version of ``!(condition)``."""
+        m = re.match(r'(!\s*)?(\w+|defined *\( *\w+ *\)|defined +\w+)\Z',
+                     condition)
+        if m:
+            if m.group(1):
+                return m.group(2)
+            else:
+                return '!' + condition
+        else:
+            return '!(' + condition + ')'
+
+    def output(self, stream: Writable,
+               options: Options = DEFAULT_OPTIONS, indent: str = '') -> None: # pylint: disable=bad-whitespace
+        if not self.cases:
+            if self.default is not None:
+                self.default.output(stream, options, indent)
+            return
+        condition, code = self.cases[0]
+        self.output_line(stream, '',
+                         '#if ' +
+                         condition.replace('\n', '\\\n    '))
+        code.output(stream, options, indent)
+        for condition, code in self.cases[1:]:
+            self.output_line(stream, '',
+                             '#elif ' +
+                             condition.replace('\n', '\\\n      '))
+            code.output(stream, options, indent)
+        if self.endif_comment is None:
+            if self.default is None:
+                condition = self.cases[-1][0]
+            else:
+                condition = ' && '.join([self.negate_condition(cond)
+                                         for cond, _code in self.cases])
+            endif_comment = (' /* ' +
+                             re.sub(r'\s*\n\s*', ' ', condition) +
+                             ' */')
+        else:
+            endif_comment = self.endif_comment.strip()
+            if endif_comment:
+                endif_comment = ' /* ' + endif_comment + ' */'
+        if self.default is not None:
+            self.output_line(stream, '', '#else' + endif_comment)
+            self.default.output(stream, options, indent)
+        self.output_line(stream, '', '#endif' + endif_comment)

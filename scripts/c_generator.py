@@ -330,3 +330,41 @@ class PreprocessorConditional(Snippet):
             self.output_line(stream, '', '#else' + endif_comment)
             self.default.output(stream, options, indent)
         self.output_line(stream, '', '#endif' + endif_comment)
+
+
+class Switch(Snippet):
+    """A switch statement.
+
+    Fallthrough between cases is not supported.
+    """
+
+    def __init__(self, value: str) -> None:
+        super().__init__()
+        self.value = value
+        self.cases = [] #type: List[Tuple[Sequence[str], Snippet]]
+        self.default = None #type: Optional[Snippet]
+
+    def add_case(self, values: Sequence[str], code: Snippet) -> None:
+        self.cases.append(([value.strip() for value in values], code))
+
+    def set_default(self, code: Snippet) -> None:
+        self.default = code
+
+    def output(self, stream: Writable,
+               options: Options = DEFAULT_OPTIONS, indent: str = '') -> None: # pylint: disable=bad-whitespace
+        case_indent = indent + ' ' * options.indent
+        code_indent = case_indent + ' ' * options.indent
+        self.output_line(stream, indent,
+                         'switch( ', self.value.strip(), ' )')
+        self.output_line(stream, indent, '{')
+        items = [(['case ' + value for value in values], code)
+                 for values, code in self.cases]
+        if self.default is not None:
+            items.append((['default'], self.default))
+        for labels, code in items:
+            for label in labels:
+                self.output_line(stream, case_indent, label)
+            self.output_line(stream, case_indent, '{')
+            code.output(stream, options, code_indent)
+            self.output_line(stream, case_indent, '}')
+        self.output_line(stream, indent, '}')

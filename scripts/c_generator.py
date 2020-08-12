@@ -39,7 +39,7 @@ The following snippet classes are available:
 Unit tests are in ``../tests/scripts/test_c_generator.py``.
 """
 
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple # pylint: disable=unused-import
 
 
 class Writable:
@@ -53,7 +53,7 @@ class Options:
     """Options for code generation."""
     # pylint: disable=too-few-public-methods
 
-    def __init__(self, indent: int = 4) -> None:
+    def __init__(self, indent: int = 4) -> None: # pylint: disable=bad-whitespace
         """Set options for code generation.
 
         indent: the basic indent level.
@@ -77,8 +77,8 @@ class Snippet:
         else:
             stream.write('\n')
 
-    def output(self, stream: Writable, options: Options = DEFAULT_OPTIONS,
-               indent: str = '') -> None:
+    def output(self, stream: Writable,
+               options: Options = DEFAULT_OPTIONS, indent: str = '') -> None: # pylint: disable=bad-whitespace
         raise NotImplementedError
 
 
@@ -107,8 +107,8 @@ class Simple(Snippet):
     def set_content(self, content: str) -> None:
         self.content = content.strip()
 
-    def output(self, stream: Writable, options: Options = DEFAULT_OPTIONS,
-               indent: str = '') -> None:
+    def output(self, stream: Writable,
+               options: Options = DEFAULT_OPTIONS, indent: str = '') -> None: # pylint: disable=bad-whitespace
         self.output_line(stream, indent, self.content, ';')
 
 
@@ -123,8 +123,8 @@ class Block(Snippet):
         super().__init__()
         self.content = list(content)
 
-    def output(self, stream: Writable, options: Options = DEFAULT_OPTIONS,
-               indent: str = '') -> None:
+    def output(self, stream: Writable,
+               options: Options = DEFAULT_OPTIONS, indent: str = '') -> None: # pylint: disable=bad-whitespace
         more_indent = indent + ' ' * options.indent
         self.output_line(stream, indent, '{')
         for item in self.content:

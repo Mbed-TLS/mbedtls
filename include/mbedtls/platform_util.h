@@ -167,11 +167,10 @@ void mbedtls_platform_zeroize( void *buf, size_t len );
 /**
  * \brief       Secure memset
  *
- *              This is a constant-time version of memset(). If
- *              MBEDTLS_ENTROPY_HARDWARE_ALT is defined, the buffer is
- *              initialised with random data and the order is also
- *              randomised using the hardware RNG in order to further harden
- *              against side-channel attacks.
+ *              This is a constant-time version of memset(). The buffer is
+ *              initialised with random data and the order is also randomised
+ *              using the RNG in order to further harden against side-channel
+ *              attacks.
  *
  * \param ptr   Buffer to be set.
  * \param value Value to be used when setting the buffer.
@@ -184,11 +183,10 @@ void *mbedtls_platform_memset( void *ptr, int value, size_t num );
 /**
  * \brief       Secure memcpy
  *
- *              This is a constant-time version of memcpy(). If
- *              MBEDTLS_ENTROPY_HARDWARE_ALT is defined, the buffer is
- *              initialised with random data and the order is also
- *              randomised using the hardware RNG in order to further harden
- *              against side-channel attacks.
+ *              This is a constant-time version of memcpy(). The buffer is
+ *              initialised with random data and the order is also randomised
+ *              using the RNG in order to further harden against side-channel
+ *              attacks.
  *
  * \param dst   Destination buffer where the data is being copied to.
  * \param src   Source buffer where the data is being copied from.
@@ -218,9 +216,8 @@ int mbedtls_platform_memmove( void *dst, const void *src, size_t num );
  * \brief       Secure check if the buffers have the same data.
  *
  *              This is a constant-time version of memcmp(), but without checking
- *              if the bytes are greater or lower. If MBEDTLS_ENTROPY_HARDWARE_ALT
- *              is defined, the order is also randomised using the hardware RNG in
- *              order to further harden against side-channel attacks.
+ *              if the bytes are greater or lower. The order is also randomised
+ *              using the RNG in order to further harden against side-channel attacks.
  *
  * \param buf1  First buffer to compare.
  * \param buf2  Second buffer to compare against.
@@ -233,11 +230,6 @@ int mbedtls_platform_memequal( const void *buf1, const void *buf2, size_t num );
 
 /**
  * \brief       RNG-function for getting a random 32-bit integer.
- *
- *
- * \note        Currently the function is dependent of hardware providing an
- *              rng with MBEDTLS_ENTROPY_HARDWARE_ALT. By default, 0 is
- *              returned.
  *
  * \return      The generated random number.
  */
@@ -253,10 +245,6 @@ uint32_t mbedtls_platform_random_uint32( void );
  *              cryptographically secure RNG, but provide an RNG for utility
  *              functions.
  *
- * \note        Currently the function is dependent of hardware providing an
- *              rng with MBEDTLS_ENTROPY_HARDWARE_ALT. By default, 0 is
- *              returned.
- *
  * \note        If the given range is [0, 0), 0 is returned.
  *
  * \param num   Max-value for the generated random number, exclusive.
@@ -264,7 +252,7 @@ uint32_t mbedtls_platform_random_uint32( void );
  *
  * \return      The generated random number.
  */
-uint32_t mbedtls_platform_random_in_range( size_t num );
+uint32_t mbedtls_platform_random_in_range( uint32_t num );
 
 /**
  * \brief       Random delay function.
@@ -275,8 +263,9 @@ uint32_t mbedtls_platform_random_in_range( size_t num );
  *              Duration of the delay is random as number of variable increments
  *              is randomized.
  *
- * \note        Currently the function is dependent of hardware providing an
- *              rng with MBEDTLS_ENTROPY_HARDWARE_ALT.
+ * \note        This function works only if the MBEDTLS_FI_COUNTERMEASURES flag
+ *              is defined in the configuration. Otherwise, the function does
+ *              nothing.
  */
 void mbedtls_platform_random_delay( void );
 

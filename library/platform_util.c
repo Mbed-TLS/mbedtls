@@ -51,8 +51,19 @@
 #include <stddef.h>
 #include <string.h>
 
-/* Max number of loops for mbedtls_platform_random_delay */
+/* Max number of loops for mbedtls_platform_random_delay. */
 #define MAX_RAND_DELAY  100
+
+/* Parameters for the linear congruential generator used as a non-cryptographic
+ * random number generator. The same parameters are used by e.g. ANSI C. */
+#define RAND_MULTIPLIER 1103515245
+#define RAND_INCREMENT  12345
+#define RAND_MODULUS    0x80000000
+
+/* The number of iterations after which the seed of the non-cryptographic
+ * random number generator will be changed. This is used only if the
+ * MBEDTLS_ENTROPY_HARDWARE_ALT option is enabled. */
+#define RAND_SEED_LIFE  10000
 
 #if !defined(MBEDTLS_PLATFORM_ZEROIZE_ALT)
 /*
@@ -96,7 +107,7 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
 void *mbedtls_platform_memset( void *ptr, int value, size_t num )
 {
     /* Randomize start offset. */
-    size_t start_offset = (size_t) mbedtls_platform_random_in_range( num );
+    size_t start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
     /* Randomize data */
     uint32_t data = mbedtls_platform_random_in_range( 256 );
 
@@ -113,7 +124,7 @@ void *mbedtls_platform_memset( void *ptr, int value, size_t num )
 void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
 {
     /* Randomize start offset. */
-    size_t start_offset = (size_t) mbedtls_platform_random_in_range( num );
+    size_t start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
     /* Randomize initial data to prevent leakage while copying */
     uint32_t data = mbedtls_platform_random_in_range( 256 );
 
@@ -152,7 +163,7 @@ int mbedtls_platform_memequal( const void *buf1, const void *buf2, size_t num )
 
     /* Start from a random location and check the correct number of iterations */
     size_t i, flow_counter = 0;
-    size_t start_offset = (size_t) mbedtls_platform_random_in_range( num );
+    size_t start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
 
     for( i = start_offset; i < num; i++ )
     {
@@ -172,51 +183,80 @@ int mbedtls_platform_memequal( const void *buf1, const void *buf2, size_t num )
     return( (int) diff | (int) ( flow_counter ^ num ) );
 }
 
-uint32_t mbedtls_platform_random_uint32( )
+/* This function implements a non-cryptographic random number generator based
+ * on the linear congruential generator algorithm. Additionally, if the
+ * MBEDTLS_ENTROPY_HARDWARE_ALT flag is defined, the seed is set at the first
+ * call of this function with using a hardware random number generator and
+ * changed every RAND_SEED_LIFE number of iterations.
+ *
+ * The value of the returned number is in the range [0; 0xffff].
+ *
+ * Note: The range of values with a 16-bit precision is related to the modulo
+ * parameter of the generator and the fact that the function does not return the
+ * full value of the internal state of the generator.
+ */
+static uint32_t mbedtls_platform_random_uint16( void )
 {
-#if !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
-    return 0;
-#else
-    uint32_t result = 0;
-    size_t olen = 0;
+    /* Set random_state - the first random value should not be zero. */
+    static uint32_t random_state = RAND_INCREMENT;
 
-    mbedtls_hardware_poll( NULL, (unsigned char *) &result, sizeof( result ),
-                           &olen );
-    return( result );
-#endif
+#if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+
+    static uint32_t random_seed_life = 0;
+
+    if( 0 < random_seed_life )
+    {
+        --random_seed_life;
+    }
+    else
+    {
+        size_t olen = 0;
+        uint32_t hw_random;
+        mbedtls_hardware_poll( NULL,
+                               (unsigned char *) &hw_random, sizeof( hw_random ),
+                               &olen );
+        if( olen == sizeof( hw_random ) )
+        {
+            random_state ^= hw_random;
+            random_seed_life = RAND_SEED_LIFE;
+        }
+    }
+
+#endif /* MBEDTLS_ENTROPY_HARDWARE_ALT */
+
+    random_state = ( ( random_state * RAND_MULTIPLIER ) + RAND_INCREMENT ) % RAND_MODULUS;
+
+    /* Do not return the entire random_state to hide generator predictability for
+     * the next iteration */
+    return( ( random_state >> 15 ) & 0xffff );
 }
 
-uint32_t mbedtls_platform_random_in_range( size_t num )
+uint32_t mbedtls_platform_random_uint32( void )
 {
-#if !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
-    (void) num;
-    return 0;
-#else
-    uint32_t result = 0;
-    size_t olen = 0;
+    return( ( mbedtls_platform_random_uint16() << 16 ) |
+              mbedtls_platform_random_uint16() );
+}
 
-    mbedtls_hardware_poll( NULL, (unsigned char *) &result, sizeof( result ),
-                           &olen );
+uint32_t mbedtls_platform_random_in_range( uint32_t num )
+{
+    uint32_t result;
 
-    if( num == 0 )
+    if( num <= 1 )
     {
         result = 0;
     }
     else
     {
-        result %= num;
+        result = mbedtls_platform_random_uint32() % num;
     }
 
     return( result );
-#endif
 }
 
 void mbedtls_platform_random_delay( void )
 {
-#if !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
-    return;
-#else
-    size_t rn_1, rn_2, rn_3;
+#if defined(MBEDTLS_FI_COUNTERMEASURES)
+    uint32_t rn_1, rn_2, rn_3;
     volatile size_t i = 0;
     uint8_t shift;
 
@@ -229,17 +269,17 @@ void mbedtls_platform_random_delay( void )
         i++;
         /* Dummy calculations to increase the time between iterations and
          * make side channel attack more difficult by reducing predictability
-         * of its behaviour */
-        shift = rn_2 & 0x07;
+         * of its behaviour. */
+        shift = ( rn_2 & 0x07 ) + 1;
         if ( i % 2 )
-            rn_2 = (uint32_t)( rn_2 >> shift | rn_2 << ( 32 - shift ) );
+            rn_2 = ( rn_2 >> shift ) | ( rn_2 << ( 32 - shift ) );
         else
-            rn_3 = (uint32_t)( rn_3 << shift | rn_3 >> ( 32 - shift ) );
+            rn_3 = ( rn_3 << shift ) | ( rn_3 >> ( 32 - shift ) );
         rn_2 ^= rn_3;
     } while( i < rn_1 || rn_2 == 0 || rn_3 == 0 );
 
+#endif /* MBEDTLS_FI_COUNTERMEASURES */
     return;
-#endif /* !MBEDTLS_ENTROPY_HARDWARE_ALT */
 }
 
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)

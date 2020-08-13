@@ -161,8 +161,11 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  * \param buf   Buffer to be zeroized
  * \param len   Length of the buffer in bytes
  *
+ * \return      The value of \p buf if the operation was successful.
+ * \return      NULL if a potential FI attack was detected or input parameters
+ *              are not valid.
  */
-void mbedtls_platform_zeroize( void *buf, size_t len );
+void *mbedtls_platform_zeroize( void *buf, size_t len );
 
 /**
  * \brief       Secure memset
@@ -176,7 +179,8 @@ void mbedtls_platform_zeroize( void *buf, size_t len );
  * \param value Value to be used when setting the buffer.
  * \param num   The length of the buffer in bytes.
  *
- * \return      The value of \p ptr.
+ * \return      The value of \p ptr if the operation was successful.
+ * \return      NULL if a potential FI attack was detected.
  */
 void *mbedtls_platform_memset( void *ptr, int value, size_t num );
 
@@ -193,6 +197,7 @@ void *mbedtls_platform_memset( void *ptr, int value, size_t num );
  * \param num   The length of the buffers in bytes.
  *
  * \return      The value of \p dst.
+ * \return      NULL if a potential FI attack was detected.
  */
 void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num );
 

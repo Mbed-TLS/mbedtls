@@ -400,7 +400,12 @@ run_test "Wrong base64 format" \
          "def_bad_b64.txt" \
          -m "ERROR" \
          -u "The length of the base64 code found should be a multiple of 4" \
-         -n "bytes left to analyze from context"
+         -n "bytes left to analyze from context" \
+
+run_test "EOF base64 format" \
+         "def_bad_b64_eof.txt" \
+         -m "Finished. No valid base64 code found" \
+         -n "ERROR" \
 
 run_test "Too much data at the beginning of base64 code" \
          "def_b64_too_big_1.txt" \

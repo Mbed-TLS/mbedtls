@@ -51,6 +51,10 @@
  * Harmless on other platforms. */
 #define _POSIX_C_SOURCE 200112L
 
+#if defined(__NetBSD__)
+#define _XOPEN_SOURCE 600 /* sockaddr_storage */
+#endif
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -345,8 +349,9 @@ int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
 
     struct sockaddr_storage client_addr;
 
-#if defined(__socklen_t_defined) || defined(_SOCKLEN_T) ||  \
-    defined(_SOCKLEN_T_DECLARED) || defined(__DEFINED_socklen_t)
+#if defined(__socklen_t_defined) || defined(_SOCKLEN_T) || \
+    defined(_SOCKLEN_T_DECLARED) || defined(__DEFINED_socklen_t) || \
+    ( defined(__NetBSD__) && defined(socklen_t) )
     socklen_t n = (socklen_t) sizeof( client_addr );
     socklen_t type_len = (socklen_t) sizeof( type );
 #else

@@ -1,0 +1,3 @@
+Bugfix
+   * read_next_b64_code() isn't correctly checking against EOF because it checks against 'char' rather than 'int'. This is identified via type-limit warning reported by gcc.
+     Reported and fix contributed by naynajain in #3449.

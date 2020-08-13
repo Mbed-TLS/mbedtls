@@ -83,9 +83,9 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		base64.o	bignum.o	blowfish.o	\
 		camellia.o	ccm.o		chacha20.o	\
 		chachapoly.o	cipher.o	cipher_wrap.o	\
-		cmac.o		ctr_drbg.o	des.o		\
-		dhm.o		ecdh.o		ecdsa.o		\
-		ecjpake.o	ecp.o				\
+		cmac.o		crc.o		ctr_drbg.o	\
+		des.o		dhm.o		ecdh.o		\
+		ecdsa.o		ecjpake.o	ecp.o		\
 		ecp_curves.o	entropy.o	entropy_poll.o	\
 		error.o		gcm.o		havege.o	\
 		hkdf.o						\
@@ -100,6 +100,7 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		sha1.o		sha256.o	sha512.o	\
 		threading.o	timing.o	version.o	\
 		version_features.o		xtea.o
+
 
 OBJS_X509=	certs.o		pkcs11.o	x509.o
 

@@ -1,0 +1,26 @@
+/* BEGIN_HEADER */
+#include "mbedtls/crc.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_CRC_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void compute_crc( data_t *input, unsigned int crc )
+{
+    uint16_t result = mbedtls_crc_update( 0, input->x, input->len );
+    uint32_t len = input->len;
+    TEST_ASSERT( crc == result );
+
+    result = 0;
+    while( len > 0 )
+    {
+        uint8_t cur_len = ( len > 8 ? 8 : len );
+        result = mbedtls_crc_update( result, &input->x[ input->len - len ], cur_len );
+        len -= cur_len;
+    }
+    TEST_ASSERT( crc == result );
+}
+/* END_CASE */

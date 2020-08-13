@@ -166,6 +166,7 @@
     <ClInclude Include="..\..\include\mbedtls\cmac.h" />
     <ClInclude Include="..\..\include\mbedtls\compat-1.3.h" />
     <ClInclude Include="..\..\include\mbedtls\config.h" />
+    <ClInclude Include="..\..\include\mbedtls\crc.h" />
     <ClInclude Include="..\..\include\mbedtls\ctr_drbg.h" />
     <ClInclude Include="..\..\include\mbedtls\debug.h" />
     <ClInclude Include="..\..\include\mbedtls\des.h" />
@@ -243,6 +244,7 @@
     <ClCompile Include="..\..\library\cipher.c" />
     <ClCompile Include="..\..\library\cipher_wrap.c" />
     <ClCompile Include="..\..\library\cmac.c" />
+    <ClCompile Include="..\..\library\crc.c" />
     <ClCompile Include="..\..\library\ctr_drbg.c" />
     <ClCompile Include="..\..\library\debug.c" />
     <ClCompile Include="..\..\library\des.c" />

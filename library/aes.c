@@ -45,6 +45,10 @@
 #include "mbedtls/aesni.h"
 #endif
 
+#if defined(MBEDTLS_CRC_C) && defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
+#include "mbedtls/crc.h"
+#endif
+
 #if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -703,6 +707,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 
     AES_VALIDATE_RET( ctx != NULL );
     AES_VALIDATE_RET( key != NULL );
+    (void) ret;
 
     switch( keybits )
     {
@@ -821,8 +826,6 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 #endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
     }
 
-    ret = 0;
-
     /* Validate execution path */
     if( ( flow_ctrl == keybits >> 5 ) && ( ( ctx->nr == 10 && i == 10 )
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
@@ -831,7 +834,10 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 #endif
     ) )
     {
-        return ret;
+#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
+        ctx->crc = mbedtls_crc_update( 0, ctx->rk, keybits >> 3 );
+#endif
+        return 0;
     }
 
     mbedtls_platform_memset( RK, 0, ( keybits >> 5 ) * 4 );
@@ -926,6 +932,9 @@ exit:
     }
     else if( ( i == 0 ) && ( j == 4 ) )
     {
+#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
+        ctx->crc = mbedtls_crc_update( 0, ctx->rk, keybits >> 3 );
+#endif
         return( ret );
     }
     else
@@ -1088,6 +1097,21 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     // reserve based on max rounds + dummy rounds + 2 (for initial key addition)
     uint8_t round_ctrl_table[( 14 + AES_SCA_CM_ROUNDS + 2 )];
 
+#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
+    unsigned key_bytes = 0;
+    uint16_t check_crc = 0;
+    switch( ctx->nr )
+    {
+        case 10: key_bytes = 16; break;
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+        case 12: key_bytes = 24; break;
+        case 14: key_bytes = 32; break;
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
+    }
+    check_crc = mbedtls_crc_update( 0, ctx->rk, key_bytes );
+#endif
+
     aes_data_real.rk_ptr = ctx->rk;
     aes_data_fake.rk_ptr = ctx->frk;
 
@@ -1182,9 +1206,20 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         flow_control++;
     } while( ( i = ( i + 1 ) % 4 ) != offset );
 
-    if( flow_control == tindex + dummy_rounds + 8 )
+    /* Double negation is used to silence an "extraneous parentheses" warning */
+    if( ! ( flow_control != tindex + dummy_rounds + 8 )
+#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
+         && check_crc == ctx->crc
+#endif
+      )
     {
-        return 0;
+#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
+        mbedtls_platform_random_delay();
+        if( mbedtls_crc_update( 0, ctx->rk, key_bytes ) == ctx->crc )
+#endif
+        {
+            return 0;
+        }
     }
 
     // Clear the output in case of a FI
@@ -1369,6 +1404,21 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     // reserve based on max rounds + dummy rounds + 2 (for initial key addition)
     uint8_t round_ctrl_table[( 14 + AES_SCA_CM_ROUNDS + 2 )];
 
+#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
+    unsigned key_bytes = 0;
+    uint16_t check_crc = 0;
+    switch( ctx->nr )
+    {
+        case 10: key_bytes = 16; break;
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+        case 12: key_bytes = 24; break;
+        case 14: key_bytes = 32; break;
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
+    }
+    check_crc = mbedtls_crc_update( 0, ctx->rk, key_bytes );
+#endif
+
     aes_data_real.rk_ptr = ctx->rk;
     aes_data_fake.rk_ptr = ctx->frk;
 
@@ -1463,9 +1513,20 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
         flow_control++;
     } while( ( i = ( i + 1 ) % 4 ) != offset );
 
-    if( flow_control == tindex + dummy_rounds + 8 )
+    /* Double negation is used to silence an "extraneous parentheses" warning */
+    if( ! ( flow_control != tindex + dummy_rounds + 8 )
+#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
+         && check_crc == ctx->crc
+#endif
+      )
     {
-        return 0;
+#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
+        mbedtls_platform_random_delay();
+        if( mbedtls_crc_update( 0, ctx->rk, key_bytes ) == ctx->crc )
+#endif
+        {
+            return 0;
+        }
     }
 
     // Clear the output in case of a FI

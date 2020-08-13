@@ -2729,6 +2729,29 @@
 #define MBEDTLS_ERROR_C
 
 /**
+ * \def MBEDTLS_CRC_C
+ *
+ * Enable the CRC calculating module
+ *
+ * Module:  library/crc.c
+ *
+ * This module enables mbedtls_crc_update().
+ */
+//#define MBEDTLS_CRC_C
+
+/**
+ * \def MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY
+ *
+ * Enable validation of AES keys by checking their CRC
+ * during every encryption/decryption.
+ *
+ * Module:  library/aes.c
+ *
+ * Requires: MBEDTLS_CRC_C
+ */
+//#define MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY
+
+/**
  * \def MBEDTLS_GCM_C
  *
  * Enable the Galois/Counter Mode (GCM) for AES.

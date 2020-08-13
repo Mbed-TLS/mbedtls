@@ -684,6 +684,12 @@ static const char *features[] = {
 #if defined(MBEDTLS_ERROR_C)
     "MBEDTLS_ERROR_C",
 #endif /* MBEDTLS_ERROR_C */
+#if defined(MBEDTLS_CRC_C)
+    "MBEDTLS_CRC_C",
+#endif /* MBEDTLS_CRC_C */
+#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
+    "MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY",
+#endif /* MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY */
 #if defined(MBEDTLS_GCM_C)
     "MBEDTLS_GCM_C",
 #endif /* MBEDTLS_GCM_C */

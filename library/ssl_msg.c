@@ -1637,6 +1637,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
     if( auth_done == 0 )
     {
         unsigned char mac_expect[MBEDTLS_SSL_MAC_ADD];
+        unsigned char mac_peer[MBEDTLS_SSL_MAC_ADD];
 
         /* If the initial value of padlen was such that
          * data_len < maclen + padlen + 1, then padlen
@@ -1663,6 +1664,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                      data, rec->data_len,
                      rec->ctr, rec->type,
                      mac_expect );
+            memcpy( mac_peer, data + rec->data_len, transform->maclen );
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
@@ -1699,6 +1701,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
              * attacks much tighter and hopefully impractical. */
             ssl_read_memory( data + min_len,
                              max_len - min_len + transform->maclen );
+            memcpy( mac_peer, data + rec->data_len, transform->maclen );
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
@@ -1710,10 +1713,10 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
         MBEDTLS_SSL_DEBUG_BUF( 4, "expected mac", mac_expect, transform->maclen );
-        MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", data + rec->data_len, transform->maclen );
+        MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", mac_peer, transform->maclen );
 #endif
 
-        if( mbedtls_ssl_safer_memcmp( data + rec->data_len, mac_expect,
+        if( mbedtls_ssl_safer_memcmp( mac_peer, mac_expect,
                                       transform->maclen ) != 0 )
         {
 #if defined(MBEDTLS_SSL_DEBUG_ALL)

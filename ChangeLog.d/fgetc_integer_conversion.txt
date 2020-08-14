@@ -1,0 +1,3 @@
+Bugfix
+    * Fix type conversion bug in ssl_context_info example program
+      which lead to compiler warnings on some platforms.

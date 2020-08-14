@@ -1,2 +1,2 @@
 Features
-    * ARMv8 Crypto Extensions: Faster AES and GCM
+    * Support ARMv8 Cryptography Extensions for AES and GCM.

@@ -46,10 +46,10 @@
  * Requires support for asm() in compiler.
  *
  * Used in:
+ *      library/armv8ce_aes.c
  *      library/aria.c
  *      library/timing.c
  *      include/mbedtls/bn_mul.h
- *		library/armv8ce_aes.c
  *
  * Required by:
  *      MBEDTLS_AESNI_C

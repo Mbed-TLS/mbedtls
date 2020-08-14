@@ -2155,7 +2155,7 @@
  *
  * Enable ARMv8 Crypto Extensions for AES and GCM
  *
- * Module:  library/aesni.c
+ * Module:  library/armv8ce_aes.c
  * Caller:  library/aes.c
  *          library/gcm.c
  *

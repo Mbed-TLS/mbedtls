@@ -3008,6 +3008,25 @@ static int x509_crt_check_cn( const mbedtls_x509_buf *name,
 }
 
 /*
+ * Check for SAN match, see RFC 5280 Section 4.2.1.6
+ */
+static int x509_crt_check_san( const mbedtls_x509_buf *name,
+                               const char *cn, size_t cn_len )
+{
+    const unsigned char san_type = (unsigned char) name->tag &
+                                   MBEDTLS_ASN1_TAG_VALUE_MASK;
+
+    /* dNSName */
+    if( san_type == MBEDTLS_X509_SAN_DNS_NAME )
+        return( x509_crt_check_cn( name, cn, cn_len ) );
+
+    /* (We may handle other types here later.) */
+
+    /* Unrecognized type */
+    return( -1 );
+}
+
+/*
  * Verify the requested CN - only call this if cn is not NULL!
  */
 static void x509_crt_verify_name( const mbedtls_x509_crt *crt,
@@ -3022,7 +3041,7 @@ static void x509_crt_verify_name( const mbedtls_x509_crt *crt,
     {
         for( cur = &crt->subject_alt_names; cur != NULL; cur = cur->next )
         {
-            if( x509_crt_check_cn( &cur->buf, cn, cn_len ) == 0 )
+            if( x509_crt_check_san( &cur->buf, cn, cn_len ) == 0 )
                 break;
         }
 

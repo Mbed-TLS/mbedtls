@@ -35,7 +35,7 @@
 #endif
 
 /*
- *  [ARMv8 Crypto Extensions]  AES-ECB block en(de)cryption
+ *  [Armv8 Cryptography Extensions]  AES-ECB block en(de)cryption
  */
 
 #if defined(MBEDTLS_AES_C)
@@ -90,7 +90,7 @@ int mbedtls_armv8ce_aes_crypt_ecb( mbedtls_aes_context *ctx,
 
 
 /*
- *  [ARMv8 Crypto Extensions]  Multiply in GF(2^128) for GCM
+ *  [Armv8 Cryptography Extensions]  Multiply in GF(2^128) for GCM
  */
 
 #if defined(MBEDTLS_GCM_C)
@@ -140,4 +140,3 @@ void mbedtls_armv8ce_gcm_mult( unsigned char c[16],
 #endif /* MBEDTLS_GCM_C */
 
 #endif /* MBEDTLS_ARMV8CE_AES_C */
-

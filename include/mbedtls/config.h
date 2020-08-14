@@ -2161,7 +2161,7 @@
  *
  * Requires: MBEDTLS_HAVE_ASM
  *
- * This module utilizes ARMv8 Crypto Extensions for AES and GCM
+ * This module adds support for Armv8 Cryptography Extensions for AES and GCM.
  */
 //#define MBEDTLS_ARMV8CE_AES_C
 

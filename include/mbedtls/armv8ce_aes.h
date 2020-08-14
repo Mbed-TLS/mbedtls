@@ -2,6 +2,9 @@
  * \file armv8ce_aes.h
  *
  * \brief ARMv8 Cryptography Extensions -- Optimized code for AES and GCM
+ */
+
+/*
  *
  *  Copyright (C) 2006-2017, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0

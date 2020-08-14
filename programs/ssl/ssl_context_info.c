@@ -379,13 +379,14 @@ size_t read_next_b64_code( uint8_t **b64, size_t *max_len )
     int valid_balance = 0;  /* balance between valid and invalid characters */
     size_t len = 0;
     char pad = 0;
-    char c = 0;
+    int cur_char;
 
-    while( EOF != c )
+    while( ( cur_char = fgetc( b64_file ) ) != EOF )
     {
-        char c_valid = 0;
+        char c;
+        int c_valid = 0;
 
-        c = (char) fgetc( b64_file );
+        c = (char) cur_char;
 
         if( pad > 0 )
         {

@@ -1,0 +1,8 @@
+Changes
+   * Add the command line parameter key_pwd to the ssl_client2 and ssl_server2
+     example applications which allows to provide a password for the key file
+     specified through the existing key_file argument. This allows the use of
+     these applications with password-protected key files. Analogously but for
+     ssl_server2 only, add the command line parameter key_pwd2 which allows to
+     set a password for the key file provided through the existing key_file2
+     argument.

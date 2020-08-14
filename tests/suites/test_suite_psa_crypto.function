@@ -961,14 +961,23 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
 #if defined(MBEDTLS_ECP_C)
         if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( type ) )
         {
-            /* The representation of an ECC public key is:
-             *      - The byte 0x04;
-             *      - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
-             *      - `y_P` as a `ceiling(m/8)`-byte string, big-endian;
-             *      - where m is the bit size associated with the curve.
-             */
-            TEST_EQUAL( p + 1 + 2 * PSA_BITS_TO_BYTES( bits ), end );
-            TEST_EQUAL( p[0], 4 );
+            if( PSA_KEY_TYPE_ECC_GET_FAMILY( type ) == PSA_ECC_FAMILY_MONTGOMERY )
+            {
+                /* The representation of an ECC Montgomery public key is
+                 * the raw compressed point */
+                 TEST_EQUAL( p + PSA_BITS_TO_BYTES( bits ), end );
+            }
+            else
+            {
+                /* The representation of an ECC Weierstrass public key is:
+                 *      - The byte 0x04;
+                 *      - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
+                 *      - `y_P` as a `ceiling(m/8)`-byte string, big-endian;
+                 *      - where m is the bit size associated with the curve.
+                 */
+                TEST_EQUAL( p + 1 + 2 * PSA_BITS_TO_BYTES( bits ), end );
+                TEST_EQUAL( p[0], 4 );
+            }
         }
         else
 #endif /* MBEDTLS_ECP_C */

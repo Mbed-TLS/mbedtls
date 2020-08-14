@@ -1,0 +1,3 @@
+Bugfix
+   * PSA key import will now correctly import a Curve25519/Curve448 public key
+     instead of erroring out. Contributed by Steven Cooreman in #3492.

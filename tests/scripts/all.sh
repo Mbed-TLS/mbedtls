@@ -1001,6 +1001,25 @@ component_test_everest () {
     if_build_succeeded tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
 }
 
+component_test_everest_curve25519_only () {
+    msg "build: Everest ECDH context, only Curve25519" # ~ 6 min
+    scripts/config.py unset MBEDTLS_ECDH_LEGACY_CONTEXT
+    scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+    # Disable all curves
+    for c in $(sed -n 's/#define \(MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED\).*/\1/p' <"$CONFIG_H"); do
+        scripts/config.py unset "$c"
+    done
+    scripts/config.py set MBEDTLS_ECP_DP_CURVE25519_ENABLED
+
+    make CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: Everest ECDH context, only Curve25519" # ~ 50s
+    make test
+}
+
 component_test_small_ssl_out_content_len () {
     msg "build: small SSL_OUT_CONTENT_LEN (ASan build)"
     scripts/config.py set MBEDTLS_SSL_IN_CONTENT_LEN 16384

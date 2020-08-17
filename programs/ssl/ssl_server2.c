@@ -501,8 +501,6 @@ int main( void )
     "    cert_req_ca_list=%%d default: 1 (send ca list)\n"  \
     "                        options: 1 (send ca list), 0 (don't send)\n" \
     USAGE_IO                                                \
-    USAGE_SSL_ASYNC                                         \
-    USAGE_SNI                                               \
     "\n"                                                    \
     USAGE_PSK                                               \
     USAGE_CA_CALLBACK                                       \
@@ -527,6 +525,8 @@ int main( void )
     USAGE_CURVES                                            \
     "\n"
 #define USAGE4 \
+    USAGE_SSL_ASYNC                                         \
+    USAGE_SNI                                               \
     "    arc4=%%d             default: (library default: 0)\n" \
     "    allow_sha1=%%d       default: 0\n"                             \
     "    min_version=%%s      default: (library default: tls1)\n"       \

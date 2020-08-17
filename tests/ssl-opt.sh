@@ -1121,6 +1121,12 @@ run_test    "Default, DTLS" \
             -s "Protocol is DTLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256"
 
+run_test    "TLS client auth: required" \
+            "$P_SRV auth_mode=required" \
+            "$P_CLI" \
+            0 \
+            -s "Verifying peer X.509 certificate... ok"
+
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C

@@ -24,6 +24,15 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
+/*
+ * for arc4random_buf() from <stdlib.h>
+ */
+#if defined(__NetBSD__)
+#define _NETBSD_SOURCE 1
+#elif defined(__OpenBSD__)
+#define _BSD_SOURCE 1
+#endif
+
 #include <test/macros.h>
 #include <test/random.h>
 #include <string.h>

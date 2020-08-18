@@ -1,0 +1,5 @@
+Features
+   * Support building on e2k (Elbrus) architecture: correctly enable
+     -Wformat-signedness, and pass -Wno-signed-one-bit-field and
+     -Wno-sign-compare to get rid of excess warnings. Contributed by
+     makise-homura (Igor Molchanov) <akemi_homura@kurisa.ch>.

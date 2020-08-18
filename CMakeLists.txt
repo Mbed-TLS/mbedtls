@@ -152,6 +152,8 @@ endfunction(link_to_source)
 
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 
+include(CheckCCompilerFlag)
+
 if(CMAKE_COMPILER_IS_GNU)
     # some warnings we want are not available with old GCC versions
     # note: starting with CMake 2.8 we could use CMAKE_C_COMPILER_VERSION
@@ -168,7 +170,18 @@ if(CMAKE_COMPILER_IS_GNU)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshadow")
     endif()
     if (GCC_VERSION VERSION_GREATER 5.0)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat-signedness")
+        CHECK_C_COMPILER_FLAG("-Wformat-signedness" C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS)
+        if(C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat-signedness")
+        endif()
+    endif()
+    CHECK_C_COMPILER_FLAG("-Wno-signed-one-bit-field" C_COMPILER_SUPPORTS_WSIGNED_ONE_BIT_FIELD)
+    if(C_COMPILER_SUPPORTS_WSIGNED_ONE_BIT_FIELD)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-signed-one-bit-field")
+    endif()
+    CHECK_C_COMPILER_FLAG("-Wno-sign-compare" C_COMPILER_SUPPORTS_WSIGN_COMPARE)
+    if(C_COMPILER_SUPPORTS_WSIGN_COMPARE)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-sign-compare")
     endif()
     set(CMAKE_C_FLAGS_RELEASE     "-O2")
     set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")

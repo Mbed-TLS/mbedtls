@@ -115,8 +115,9 @@ typedef uint32_t psa_algorithm_t;
  *   whether the key is _volatile_ or _persistent_.
  *   See ::psa_key_persistence_t for more information.
  * - Bits 8-31 (#PSA_KEY_LIFETIME_GET_LOCATION(\c lifetime)):
- *   location indicator. This value indicates where the key is stored
- *   and where operations on the key are performed.
+ *   location indicator. This value indicates where the key material is stored
+ *   (or at least where it is accessible in cleartext) and where operations
+ *   on the key are performed.
  *   See ::psa_key_location_t for more information.
  *
  * Volatile keys are automatically destroyed when the application instance

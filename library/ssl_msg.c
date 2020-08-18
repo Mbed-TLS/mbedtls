@@ -1193,6 +1193,24 @@ cleanup:
     mbedtls_md_free( &aux );
     return( ret );
 }
+
+/*
+ * Constant-flow memcpy from variable position in buffer.
+ * - functionally equivalent to memcpy(dst, src + offset_secret, len)
+ * - but with execution flow independant from the value of offset_secret.
+ */
+MBEDTLS_STATIC_TESTABLE void mbedtls_ssl_cf_memcpy_offset(
+                                   unsigned char *dst,
+                                   const unsigned char *src_base,
+                                   size_t offset_secret,
+                                   size_t offset_min, size_t offset_max,
+                                   size_t len )
+{
+    /* WIP - THIS IS NOT ACTUALLY CONSTANT-FLOW!
+     * This is just to be able to write tests and check they work. */
+    ssl_read_memory( src_base + offset_min, offset_max - offset_min + len );
+    memcpy( dst, src_base + offset_secret, len );
+}
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 
 int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
@@ -1674,7 +1692,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         {
             /*
              * The next two sizes are the minimum and maximum values of
-             * in_msglen over all padlen values.
+             * data_len over all padlen values.
              *
              * They're independent of padlen, since we previously did
              * data_len -= padlen.
@@ -1695,13 +1713,10 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                 return( ret );
             }
 
-            /* Make sure we access all the memory that could contain the MAC,
-             * before we check it in the next code block. This makes the
-             * synchronisation requirements for just-in-time Prime+Probe
-             * attacks much tighter and hopefully impractical. */
-            ssl_read_memory( data + min_len,
-                             max_len - min_len + transform->maclen );
-            memcpy( mac_peer, data + rec->data_len, transform->maclen );
+            mbedtls_ssl_cf_memcpy_offset( mac_peer, data,
+                                          rec->data_len,
+                                          min_len, max_len,
+                                          transform->maclen );
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \

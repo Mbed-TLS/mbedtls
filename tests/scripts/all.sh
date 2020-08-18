@@ -1184,6 +1184,12 @@ component_test_depends_hashes () {
     record_status tests/scripts/depends-hashes.pl
 }
 
+component_test_depends_pkalgs_psa () {
+    msg "test/build: depends-pkalgs.pl with MBEDTLS_USE_PSA_CRYPTO defined (gcc)"
+    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
+    record_status tests/scripts/depends-pkalgs.pl
+}
+
 component_test_depends_pkalgs () {
     msg "test/build: depends-pkalgs.pl (gcc)" # ~ 2 min
     record_status tests/scripts/depends-pkalgs.pl

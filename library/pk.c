@@ -593,6 +593,9 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
                                psa_algorithm_t hash_alg )
 {
 #if !defined(MBEDTLS_ECP_C)
+    ((void) pk);
+    ((void) handle);
+    ((void) hash_alg);
     return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
 #else
     const mbedtls_ecp_keypair *ec;

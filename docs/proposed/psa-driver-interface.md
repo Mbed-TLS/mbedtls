@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/19 19:40:40 GMT"
+Time-stamp: "2020/08/19 19:43:30 GMT"
 
 ## Introduction
 
@@ -620,9 +620,9 @@ psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION
 
 ### Driver declarations
 
-#### Declaring driver functions
+#### Declaring driver entry points
 
-The core may want to provide declarations for the driver functions so that it can compile code using them. At the time of writing this paragraph, the driver headers must define types but there is no obligation for them to declare functions. The core knows what the function names and argument types are, so it can generate prototypes.
+The core may want to provide declarations for the driver entry points so that it can compile code using them. At the time of writing this paragraph, the driver headers must define types but there is no obligation for them to declare functions. The core knows what the function names and argument types are, so it can generate prototypes.
 
 It should be ok for driver functions to be function-like macros or function pointers.
 
@@ -632,9 +632,13 @@ How does a driver author decide which location values to use? It should be possi
 
 Can the driver assembly process generate distinct location values as needed? This can be convenient, but it's also risky: if you upgrade a device, you need the location values to be the same between builds.
 
+The current plan is for Arm to maintain a registry of vendors and assign a location namespace to each vendor. Parts of the namespace would be reserved for implementations and integrators.
+
 #### Multiple transparent drivers
 
 When multiple transparent drivers implement the same mechanism, which one is called? The first one? The last one? Unspecified? Or is this an error (excluding capabilities with fallback enabled)?
+
+The current choice is that the first one is used, which allows having a preference order on drivers, but may mask integration errors.
 
 ### Driver function interfaces
 

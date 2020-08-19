@@ -1,0 +1,6 @@
+Changes
+   * Update copyright notices to use Linux Foundation guidance. As a result,
+     the copyright of contributors other than Arm is now acknowledged, and the
+     years of publishing are no longer tracked in the source files. This also
+     eliminates the need for the lines declaring the files to be part of
+     MbedTLS. Fixes #3457.

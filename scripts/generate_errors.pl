@@ -5,7 +5,7 @@
 # Usage: ./generate_errors.pl or scripts/generate_errors.pl without arguments,
 # or generate_errors.pl include_dir data_dir error_file
 #
-# Copyright (C) 2011-2018, Arm Limited, All Rights Reserved
+# Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
 # This file is provided under the Apache License 2.0, or the
@@ -46,8 +46,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # **********
-#
-# This file is part of Mbed TLS (https://tls.mbed.org)
 
 use strict;
 

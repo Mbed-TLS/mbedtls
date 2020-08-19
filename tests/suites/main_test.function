@@ -15,8 +15,6 @@
  *      Test suite file     : $test_case_file
  *      Test suite data     : $test_case_data_file
  *
- *
- *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))

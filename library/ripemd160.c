@@ -328,6 +328,19 @@ int mbedtls_internal_ripemd160_process( mbedtls_ripemd160_context *ctx,
     ctx->state[4] = ctx->state[0] + B + Cp;
     ctx->state[0] = C;
 
+    /* Zeroise variables to clear sensitive data from memory. */
+    mbedtls_platform_zeroize( &A, sizeof( A ) );
+    mbedtls_platform_zeroize( &B, sizeof( B ) );
+    mbedtls_platform_zeroize( &C, sizeof( C ) );
+    mbedtls_platform_zeroize( &D, sizeof( D ) );
+    mbedtls_platform_zeroize( &E, sizeof( E ) );
+    mbedtls_platform_zeroize( &Ap, sizeof( Ap ) );
+    mbedtls_platform_zeroize( &Bp, sizeof( Bp ) );
+    mbedtls_platform_zeroize( &Cp, sizeof( Cp ) );
+    mbedtls_platform_zeroize( &Dp, sizeof( Dp ) );
+    mbedtls_platform_zeroize( &Ep, sizeof( Ep ) );
+    mbedtls_platform_zeroize( &X, sizeof( X ) );
+
     return( 0 );
 }
 

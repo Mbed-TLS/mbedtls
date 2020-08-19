@@ -259,6 +259,13 @@ int mbedtls_internal_md4_process( mbedtls_md4_context *ctx,
     ctx->state[2] += C;
     ctx->state[3] += D;
 
+    /* Zeroise variables to clear sensitive data from memory. */
+    mbedtls_platform_zeroize( &X, sizeof( X ) );
+    mbedtls_platform_zeroize( &A, sizeof( A ) );
+    mbedtls_platform_zeroize( &B, sizeof( B ) );
+    mbedtls_platform_zeroize( &C, sizeof( C ) );
+    mbedtls_platform_zeroize( &D, sizeof( D ) );
+
     return( 0 );
 }
 

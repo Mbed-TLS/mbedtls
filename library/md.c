@@ -413,6 +413,10 @@ int mbedtls_md_setup( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_inf
     if( md_info == NULL || ctx == NULL )
         return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
 
+    ctx->md_info = md_info;
+    ctx->md_ctx = NULL;
+    ctx->hmac_ctx = NULL;
+
     switch( md_info->type )
     {
 #if defined(MBEDTLS_MD2_C)
@@ -467,8 +471,6 @@ int mbedtls_md_setup( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_inf
             return( MBEDTLS_ERR_MD_ALLOC_FAILED );
         }
     }
-
-    ctx->md_info = md_info;
 
     return( 0 );
 }

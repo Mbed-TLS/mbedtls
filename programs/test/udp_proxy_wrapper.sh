@@ -2,7 +2,7 @@
 # -*-sh-basic-offset: 4-*-
 # Usage: udp_proxy_wrapper.sh [PROXY_PARAM...] -- [SERVER_PARAM...]
 #
-# Copyright (C) 2017, Arm Limited, All Rights Reserved
+# Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
 # This file is provided under the Apache License 2.0, or the
@@ -43,8 +43,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # **********
-#
-# This file is part of Mbed TLS (https://tls.mbed.org)
 
 set -u
 

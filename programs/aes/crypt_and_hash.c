@@ -2,7 +2,7 @@
  *  \brief  Generic file encryption program using generic wrappers for configured
  *          security.
  *
- *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  *
  *  This file is provided under the Apache License 2.0, or the
@@ -43,8 +43,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  *  **********
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
 /* Enable definition of fileno() even when compiling with -std=c99. Must be

@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/19 19:43:30 GMT"
+Time-stamp: "2020/08/19 19:47:39 GMT"
 
 ## Introduction
 
@@ -62,9 +62,9 @@ How to provide the driver description file, the C header files and the object co
 
 The concrete syntax for a driver description file is JSON.
 
-#### Driver specification list
+#### Driver description list
 
-PSA Cryptography core implementations should support multiple drivers. The driver description files are passed to the implementation as an ordered list in an unspecified manner. This may be, for example, a list of file names passed on a command line, or a JSON list whose elements are individual driver specifications.
+PSA Cryptography core implementations should support multiple drivers. The driver description files are passed to the implementation as an ordered list in an unspecified manner. This may be, for example, a list of file names passed on a command line, or a JSON list whose elements are individual driver descriptions.
 
 #### Driver description top-level element
 
@@ -87,7 +87,7 @@ A capability declares a family of functions that the driver implements for a cer
 
 A capability is a JSON object containing the following properties:
 
-* `"entry_points"` (mandatory, list of strings). Each element is the name of a [driver entry point](#driver-entry-point) or driver entry point family. An entry point is a function defined by the driver. If specified, the core will invoke this capability of the driver only when performing one of the specified operations. The driver must implement all the specified entry points, as well as the types if applicable.
+* `"entry_points"` (mandatory, list of strings). Each element is the name of a [driver entry point](#driver-entry-points) or driver entry point family. An entry point is a function defined by the driver. If specified, the core will invoke this capability of the driver only when performing one of the specified operations. The driver must implement all the specified entry points, as well as the types if applicable.
 * `"algorithms"` (optional, list of strings). Each element is an [algorithm specification](#algorithm-specifications). If specified, the core will invoke this capability of the driver only when performing one of the specified algorithms. If omitted, the core will invoke this capability for all applicable algorithms.
 * `"key_types"` (optional, list of strings). Each element is a [key type specification](#key-type-specifications). If specified, the core will invoke this capability of the driver only for operations involving a key with one of the specified key types. If omitted, the core will invoke this capability of the driver for all applicable key types.
 * `"key_sizes"` (optional, list of integers). If specified, the core will invoke this capability of the driver only for operations involving a key with one of the specified key sizes. If omitted, the core will invoke this capability of the driver for all applicable key sizes. Key sizes are expressed in bits.
@@ -96,7 +96,7 @@ A capability is a JSON object containing the following properties:
 
 #### Capability semantics
 
-When the PSA Cryptography implementation performs a cryptographic mechanism, it invokes available driver entry points as described in the section [“Driver entry points”](#driver-entry-point).
+When the PSA Cryptography implementation performs a cryptographic mechanism, it invokes available driver entry points as described in the section [“Driver entry points”](#driver-entry-points).
 
 A driver is considered available for a cryptographic mechanism that invokes a given entry point if all of the following conditions are met:
 
@@ -116,7 +116,7 @@ A driver is considered available for a cryptographic mechanism that invokes a gi
 
 If a driver includes multiple applicable capabilities for a given combination of entry point, algorithm, key type and key size, and all the capabilities map the entry point to the same function name, the driver is considered available for this cryptographic mechanism. If a driver includes multiple applicable capabilities for a given combination of entry point, algorithm, key type and key size, and at least two of these capabilities map the entry point to the different function names, the driver specification is invalid.
 
-If multiple transparent drivers have applicable capabilities for a given combination of entry point, algorithm, key type and key size, the first matching driver in the [specification list](#Driver specification list) is invoked. If the capability has [fallback](#fallback) enabled and the first driver returns `PSA_ERROR_NOT_SUPPORTED`, the next matching driver is invoked, and so on.
+If multiple transparent drivers have applicable capabilities for a given combination of entry point, algorithm, key type and key size, the first matching driver in the [specification list](#driver-description-list) is invoked. If the capability has [fallback](#fallback) enabled and the first driver returns `PSA_ERROR_NOT_SUPPORTED`, the next matching driver is invoked, and so on.
 
 If multiple opaque drivers have the same location, the list of driver specifications is invalid.
 

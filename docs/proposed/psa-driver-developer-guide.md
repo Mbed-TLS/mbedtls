@@ -34,7 +34,7 @@ A driver therefore consists of:
 
 ## Driver C interfaces
 
-Mbed TLS calls [driver functions as specified in the PSA Cryptography Driver Interface specification](psa-driver-interface.html#driver-entry-points) except as otherwise indicated in this section.
+Mbed TLS calls driver entry points [as specified in the PSA Cryptography Driver Interface specification](psa-driver-interface.html#driver-entry-points) except as otherwise indicated in this section.
 
 ### Key handles
 

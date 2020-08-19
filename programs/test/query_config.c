@@ -1546,6 +1546,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN */
 
+#if defined(MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND)
+    if( strcmp( "MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND );
+        return( 0 );
+    }
+#endif /* MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND */
+
 #if defined(MBEDTLS_TEST_HOOKS)
     if( strcmp( "MBEDTLS_TEST_HOOKS", config ) == 0 )
     {

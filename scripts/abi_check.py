@@ -11,7 +11,7 @@ Returns 0 on success, 1 on ABI/API non-compliance, and 2 if there is an error
 while running the script. Note: must be run from Mbed TLS root.
 """
 
-# Copyright (c) 2018, Arm Limited, All Rights Reserved
+# Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
 # This file is provided under the Apache License 2.0, or the
@@ -52,8 +52,6 @@ while running the script. Note: must be run from Mbed TLS root.
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # **********
-#
-# This file is part of Mbed TLS (https://tls.mbed.org)
 
 import os
 import sys

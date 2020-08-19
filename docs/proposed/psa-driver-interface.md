@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/07 21:40:41 GMT"
+Time-stamp: "2020/08/19 19:40:40 GMT"
 
 ## Introduction
 
@@ -34,7 +34,7 @@ The present specification was designed to fulfill the following high-level requi
 
 [Req.types] Support drivers for the following types of hardware: accelerators that operate on keys in cleartext; cryptoprocessors that can wrap keys with a built-in keys but not store user keys; and cryptoprocessors that store key material.
 
-[Req.portable] The interface between drivers and the core does not involve any platform-specific consideration. Driver calls are simple C function calls. Interactions between driver code and hardware happen only inside the driver (and in fact a driver need not involve any hardware at all).
+[Req.portable] The interface between drivers and the core does not involve any platform-specific consideration. Driver calls are simple C function calls. Interactions with platform-specific hardware happen only inside the driver (and in fact a driver need not involve any hardware at all).
 
 [Req.location] Applications can tell which location values correspond to which secure element drivers.
 
@@ -92,7 +92,7 @@ A capability is a JSON object containing the following properties:
 * `"key_types"` (optional, list of strings). Each element is a [key type specification](#key-type-specifications). If specified, the core will invoke this capability of the driver only for operations involving a key with one of the specified key types. If omitted, the core will invoke this capability of the driver for all applicable key types.
 * `"key_sizes"` (optional, list of integers). If specified, the core will invoke this capability of the driver only for operations involving a key with one of the specified key sizes. If omitted, the core will invoke this capability of the driver for all applicable key sizes. Key sizes are expressed in bits.
 * `"names"` (optional, object). A mapping from entry point names described by the `"entry_points"` property, to the name of the C function in the driver that implements the corresponding function. If a function is not listed here, name of the driver function that implements it is the driver's prefix followed by an underscore (`_`) followed by the function name. If this property is omitted, it is equivalent to an empty object (so each entry point *suffix* is implemented by a function called *prefix*`_`*suffix*).
-* `"fallback"` (optional for transparent drivers, not permitted for opaque drivers, boolean). If present and true, the driver may return `PSA_ERROR_NOT_SUPPORTED`, in which case the core should call another driver or use built-in code to perform this operation. If absent or false, the driver is expected to fully support the mechanisms described by this capabilit. See the section “[Fallback](#fallback)” for more information.
+* `"fallback"` (optional for transparent drivers, not permitted for opaque drivers, boolean). If present and true, the driver may return `PSA_ERROR_NOT_SUPPORTED`, in which case the core should call another driver or use built-in code to perform this operation. If absent or false, the driver is expected to fully support the mechanisms described by this capability. See the section “[Fallback](#fallback)” for more information.
 
 #### Capability semantics
 
@@ -105,7 +105,7 @@ A driver is considered available for a cryptographic mechanism that invokes a gi
     * either the capability does not have an `"algorithms"` property;
     * or the value of the capability's `"algorithms"` property includes an [algorithm specification](#algorithm-specifications) that matches this algorithm.
 * If the mechanism involves a key:
-    * either the key is transparent (its location is `PSA_KEY_LOCATION_LOCAL_STORAGE`), and the driver is transparent;
+    * either the key is transparent (its location is `PSA_KEY_LOCATION_LOCAL_STORAGE`) and the driver is transparent;
     * or the key is opaque (its location is not `PSA_KEY_LOCATION_LOCAL_STORAGE`) and the driver is an opaque driver whose location is the key's location.
 * If the mechanism involves a key:
     * either the capability does not have a `"key_types"` property;
@@ -118,7 +118,7 @@ If a driver includes multiple applicable capabilities for a given combination of
 
 If multiple transparent drivers have applicable capabilities for a given combination of entry point, algorithm, key type and key size, the first matching driver in the [specification list](#Driver specification list) is invoked. If the capability has [fallback](#fallback) enabled and the first driver returns `PSA_ERROR_NOT_SUPPORTED`, the next matching driver is invoked, and so on.
 
-If multiple opaque driver have the same location, the list of driver specifications is invalid.
+If multiple opaque drivers have the same location, the list of driver specifications is invalid.
 
 #### Capability examples
 
@@ -321,7 +321,7 @@ A driver may declare an `"init"` entry point in a capability with no algorithm, 
 
 When multiple drivers have an init entry point, the order in which they are called is unspecified. It is also unspecified whether other drivers' `"init"` entry points are called if one or more init entry point fails.
 
-On platforms where the PSA Cryptography implementation is a subsystem of a single application, the initialization of the PSA Cryptography subsystem takes place during the call to `psa_crypto_init()`. On platforms where the PSA Cryptography implementation is separate from the application or applications, the initialization the initialization of the PSA Cryptography subsystem takes place before or during the first time an application calls `psa_crypto_init()`.
+On platforms where the PSA Cryptography implementation is a subsystem of a single application, the initialization of the PSA Cryptography subsystem takes place during the call to `psa_crypto_init()`. On platforms where the PSA Cryptography implementation is separate from the application or applications, the initialization of the PSA Cryptography subsystem takes place before or during the first time an application calls `psa_crypto_init()`.
 
 The init entry point does not take any parameter.
 
@@ -352,7 +352,7 @@ For these purposes, a transparent driver can declare that it only supports a [ca
 
 If a transparent driver entry point is part of a capability which has a true `"fallback"` property and returns `PSA_ERROR_NOT_SUPPORTED`, the core will call the next transparent driver that supports the mechanism, if there is one. The core considers drivers in the order given by the [driver description list](#driver-description-list).
 
-If all the available driver have fallback enabled and return `PSA_ERROR_NOT_SUPPORTED`, the core will perform the operation using built-in code.
+If all the available drivers have fallback enabled and return `PSA_ERROR_NOT_SUPPORTED`, the core will perform the operation using built-in code.
 As soon as a driver returns any value other than `PSA_ERROR_NOT_SUPPORTED` (`PSA_SUCCESS` or a different error code), this value is returned to the application, without attempting to call any other driver or built-in code.
 
 If a transparent driver entry point is part of a capability where the `"fallback"` property is false or omitted, the core should not include any other code for this capability, whether built in or in another transparent driver.

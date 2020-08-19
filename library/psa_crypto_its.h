@@ -2,7 +2,7 @@
  * \brief Interface of trusted storage that crypto is built on.
  */
 /*
- *  Copyright (C) 2019, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may

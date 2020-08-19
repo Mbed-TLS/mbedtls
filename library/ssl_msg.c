@@ -314,27 +314,6 @@ int (*mbedtls_ssl_hw_record_read)( mbedtls_ssl_context *ssl ) = NULL;
 int (*mbedtls_ssl_hw_record_finish)( mbedtls_ssl_context *ssl ) = NULL;
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 
-/* The function below is only used in the Lucky 13 counter-measure in
- * mbedtls_ssl_decrypt_buf(). These are the defines that guard the call site. */
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC) && \
-    ( defined(MBEDTLS_SSL_PROTO_TLS1) || \
-      defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-      defined(MBEDTLS_SSL_PROTO_TLS1_2) )
-/* This function makes sure every byte in the memory region is accessed
- * (in ascending addresses order) */
-static void ssl_read_memory( const unsigned char *p, size_t len )
-{
-    unsigned char acc = 0;
-    volatile unsigned char force;
-
-    for( ; len != 0; p++, len-- )
-        acc ^= *p;
-
-    force = acc;
-    (void) force;
-}
-#endif /* SSL_SOME_MODES_USE_MAC && ( TLS1 || TLS1_1 || TLS1_2 ) */
-
 /*
  * Encryption/decryption functions
  */
@@ -1206,10 +1185,13 @@ MBEDTLS_STATIC_TESTABLE void mbedtls_ssl_cf_memcpy_offset(
                                    size_t offset_min, size_t offset_max,
                                    size_t len )
 {
-    /* WIP - THIS IS NOT ACTUALLY CONSTANT-FLOW!
-     * This is just to be able to write tests and check they work. */
-    ssl_read_memory( src_base + offset_min, offset_max - offset_min + len );
-    memcpy( dst, src_base + offset_secret, len );
+    size_t offset;
+
+    for( offset = offset_min; offset <= offset_max; offset++ )
+    {
+        mbedtls_ssl_cf_memcpy_if_eq( dst, src_base + offset, len,
+                                     offset, offset_secret );
+    }
 }
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 

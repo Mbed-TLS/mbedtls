@@ -1,0 +1,11 @@
+Security
+   * Fix a vulnerability in the verification of X.509 certificates when
+     matching the expected common name (the cn argument of
+     mbedtls_x509_crt_verify()) with the actual certificate name: when the
+     subjecAltName extension is present, the expected name was compared to any
+     name in that extension regardless of its type. This means that an
+     attacker could for example impersonate a 4-bytes or 16-byte domain by
+     getting a certificate for the corresponding IPv4 or IPv6 (this would
+     require the attacker to control that IP address, though). Similar attacks
+     using other subjectAltName name types might be possible. Found and
+     reported by kFYatek in #3498.

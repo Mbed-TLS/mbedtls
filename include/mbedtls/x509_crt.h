@@ -4,7 +4,7 @@
  * \brief X.509 certificate parsing and writing
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -18,8 +18,6 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_X509_CRT_H
 #define MBEDTLS_X509_CRT_H
@@ -585,8 +583,11 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
  * \param crt      The certificate chain to be verified.
  * \param trust_ca The list of trusted CAs.
  * \param ca_crl   The list of CRLs for trusted CAs.
- * \param cn       The expected Common Name. This may be \c NULL if the
- *                 CN need not be verified.
+ * \param cn       The expected Common Name. This will be checked to be
+ *                 present in the certificate's subjectAltNames extension or,
+ *                 if this extension is absent, as a CN component in its
+ *                 Subject name. Currently only DNS names are supported. This
+ *                 may be \c NULL if the CN need not be verified.
  * \param flags    The address at which to store the result of the verification.
  *                 If the verification couldn't be completed, the flag value is
  *                 set to (uint32_t) -1.

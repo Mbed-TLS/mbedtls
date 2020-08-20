@@ -3,7 +3,7 @@
  *
  * \brief ChaCha20-Poly1305 AEAD construction based on RFC 7539.
  *
- *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -17,8 +17,6 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #include "common.h"
 
@@ -471,6 +469,9 @@ static const unsigned char test_mac[1][16] =
         0x7e, 0x90, 0x2e, 0xcb, 0xd0, 0x60, 0x06, 0x91
     }
 };
+
+/* Make sure no other definition is already present. */
+#undef ASSERT
 
 #define ASSERT( cond, args )            \
     do                                  \

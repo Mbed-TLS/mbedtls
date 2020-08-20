@@ -2,7 +2,7 @@
 
 # compat.sh
 #
-# Copyright (c) 2012-2016, ARM Limited, All Rights Reserved
+# Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -16,8 +16,6 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# This file is part of Mbed TLS (https://tls.mbed.org)
 #
 # Purpose
 #
@@ -1232,7 +1230,7 @@ run_client() {
             cp $CLI_OUT c-cli-${TESTS}.log
             echo "  ! outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
 
-            if [ "X${USER:-}" = Xbuildbot -o "X${LOGNAME:-}" = Xbuildbot -o "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
+            if [ "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
                 echo "  ! server output:"
                 cat c-srv-${TESTS}.log
                 echo "  ! ==================================================="

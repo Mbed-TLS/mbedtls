@@ -10398,6 +10398,24 @@ Decrypt CBC !EtM, 3DES SHA384 trunc, padlen=255
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA512_C:!MBEDTLS_SHA512_NO_SHA384
 ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_DES_EDE3_CBC:MBEDTLS_MD_SHA384:1:255
 
+SSL TLS 1.3 Key schedule: Secret evolution #1
+# Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
+# Initial secret to Early Secret
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+ssl_tls1_3_key_evolution:MBEDTLS_MD_SHA256:"":"":"33ad0a1c607ec03b09e6cd9893680ce210adf300aa1f2660e1b22e10f170f92a"
+
+SSL TLS 1.3 Key schedule: Secret evolution #2
+# Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
+# Early secret to Handshake Secret
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+ssl_tls1_3_key_evolution:MBEDTLS_MD_SHA256:"33ad0a1c607ec03b09e6cd9893680ce210adf300aa1f2660e1b22e10f170f92a":"df4a291baa1eb7cfa6934b29b474baad2697e29f1f920dcc77c8a0a088447624":"fb9fc80689b3a5d02c33243bf69a1b1b20705588a794304a6e7120155edf149a"
+
+SSL TLS 1.3 Key schedule: Secret evolution #3
+# Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
+# Handshake secret to Master Secret
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+ssl_tls1_3_key_evolution:MBEDTLS_MD_SHA256:"fb9fc80689b3a5d02c33243bf69a1b1b20705588a794304a6e7120155edf149a":"":"7f2882bb9b9a46265941653e9c2f19067118151e21d12e57a7b6aca1f8150c8d"
+
 SSL TLS 1.3 Key schedule: HKDF Expand Label #1
 # Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
 # Server handshake traffic secret -> Server traffic key

@@ -3769,6 +3769,24 @@ void ssl_tls1_3_derive_secret( int hash_alg,
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+void ssl_tls1_3_key_evolution( int hash_alg,
+                               data_t *secret,
+                               data_t *input,
+                               data_t *expected )
+{
+    unsigned char secret_new[ MBEDTLS_MD_MAX_SIZE ];
+
+    TEST_ASSERT( mbedtls_ssl_tls1_3_evolve_secret(
+                      (mbedtls_md_type_t) hash_alg,
+                      secret->len ? secret->x : NULL,
+                      input->len ? input->x : NULL, input->len,
+                      secret_new ) == 0 );
+
+    TEST_ASSERT( memcmp( secret_new, expected->x, expected->len ) == 0 );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void ssl_tls_prf( int type, data_t * secret, data_t * random,
                   char *label, data_t *result_hex_str, int exp_ret )

@@ -1179,6 +1179,12 @@ component_test_depends_curves () {
     record_status tests/scripts/curves.pl
 }
 
+component_test_depends_curves_psa () {
+    msg "test/build: curves.pl with MBEDTLS_USE_PSA_CRYPTO defined (gcc)"
+    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
+    record_status tests/scripts/curves.pl
+}
+
 component_test_depends_hashes () {
     msg "test/build: depends-hashes.pl (gcc)" # ~ 2 min
     record_status tests/scripts/depends-hashes.pl

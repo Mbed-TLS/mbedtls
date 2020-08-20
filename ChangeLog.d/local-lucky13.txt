@@ -1,0 +1,9 @@
+Security
+   * Fix a local timing side channel vulnerability in (D)TLS record decryption
+     when using a CBC ciphersuites without the Encrypt-then-Mac extension. In
+     those circumstances, a local attacker able to observe the state of the
+     cache could use well-chosen functions to measure the exact computation
+     time of the HMAC, and follow up with the usual range of Lucky 13 attacks,
+     including plaintext recovery and key recovery. Found and reported by Tuba
+     Yavuz, Farhaan Fowze, Ken (Yihan) Bai, Grant Hernandez, and Kevin Butler
+     (University of Florida) and Dave Tian (Purdue University).

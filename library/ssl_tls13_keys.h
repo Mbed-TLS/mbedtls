@@ -182,6 +182,79 @@ int mbedtls_ssl_tls1_3_derive_secret(
                    int context_already_hashed,
                    unsigned char *dstbuf, size_t buflen );
 
+/**
+ * \brief Compute the next secret in the TLS 1.3 key schedule
+ *
+ * The TLS 1.3 key schedule proceeds as follows to compute
+ * the three main secrets during the handshake: The early
+ * secret for early data, the handshake secret for all
+ * other encrypted handshake messages, and the master
+ * secret for all application traffic.
+ *
+ * <tt>
+ *                    0
+ *                    |
+ *                    v
+ *     PSK ->  HKDF-Extract = Early Secret
+ *                    |
+ *                    v
+ *     Derive-Secret( ., "derived", "" )
+ *                    |
+ *                    v
+ *  (EC)DHE -> HKDF-Extract = Handshake Secret
+ *                    |
+ *                    v
+ *     Derive-Secret( ., "derived", "" )
+ *                    |
+ *                    v
+ *     0 -> HKDF-Extract = Master Secret
+ * </tt>
+ *
+ * Each of the three secrets in turn is the basis for further
+ * key derivations, such as the derivation of traffic keys and IVs;
+ * see e.g. mbedtls_ssl_tls1_3_make_traffic_keys().
+ *
+ * This function implements one step in this evolution of secrets:
+ *
+ * <tt>
+ *                old_secret
+ *                    |
+ *                    v
+ *     Derive-Secret( ., "derived", "" )
+ *                    |
+ *                    v
+ *     input -> HKDF-Extract = new_secret
+ * </tt>
+ *
+ * \param hash_alg    The identifier for the hash function used for the
+ *                    applications of HKDF.
+ * \param secret_old  The address of the buffer holding the old secret
+ *                    on function entry. If not \c NULL, this must be a
+ *                    readable buffer whose size matches the output size
+ *                    of the hash function represented by \p hash_alg.
+ *                    If \c NULL, an all \c 0 array will be used instead.
+ * \param input       The address of the buffer holding the additional
+ *                    input for the key derivation (e.g., the PSK or the
+ *                    ephemeral (EC)DH secret). If not \c NULL, this must be
+ *                    a readable buffer whose size \p input_len Bytes.
+ *                    If \c NULL, an all \c 0 array will be used instead.
+ * \param input_len   The length of \p input in Bytes.
+ * \param secret_new  The address of the buffer holding the new secret
+ *                    on function exit. This must be a writable buffer
+ *                    whose size matches the output size of the hash
+ *                    function represented by \p hash_alg.
+ *                    This may be the same as \p secret_old.
+ *
+ * \returns           \c 0 on success.
+ * \returns           A negative error code on failure.
+ */
+
+int mbedtls_ssl_tls1_3_evolve_secret(
+                   mbedtls_md_type_t hash_alg,
+                   const unsigned char *secret_old,
+                   const unsigned char *input, size_t input_len,
+                   unsigned char *secret_new );
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

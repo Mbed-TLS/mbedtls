@@ -285,4 +285,66 @@ int mbedtls_ssl_tls1_3_derive_secret(
                                                   dstbuf, buflen ) );
 }
 
+int mbedtls_ssl_tls1_3_evolve_secret(
+                   mbedtls_md_type_t hash_alg,
+                   const unsigned char *secret_old,
+                   const unsigned char *input, size_t input_len,
+                   unsigned char *secret_new )
+{
+    int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    size_t hlen, ilen;
+    unsigned char _secret[ MBEDTLS_MD_MAX_SIZE ] = { 0 };
+    unsigned char _input [ MBEDTLS_MD_MAX_SIZE ] = { 0 };
+
+    const mbedtls_md_info_t *md;
+    md = mbedtls_md_info_from_type( hash_alg );
+    if( md == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    hlen = mbedtls_md_get_size( md );
+
+    /* For non-initial runs, call Derive-Secret( ., "derived", "")
+     * on the old secreet. */
+    if( secret_old != NULL )
+    {
+        ret = mbedtls_ssl_tls1_3_derive_secret(
+                   hash_alg,
+                   secret_old, hlen,
+                   MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( derived ),
+                   NULL, 0, /* context */
+                   MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED,
+                   _secret, hlen );
+        if( ret != 0 )
+            goto cleanup;
+    }
+
+    if( input != NULL )
+    {
+        memcpy( _input, input, input_len );
+        ilen = input_len;
+    }
+    else
+    {
+        ilen = hlen;
+    }
+
+    /* HKDF-Extract takes a salt and input key material.
+     * The salt is the old secret, and the input key material
+     * is the input secret (PSK / ECDHE). */
+    ret = mbedtls_hkdf_extract( md,
+                    _secret, hlen,
+                    _input, ilen,
+                    secret_new );
+    if( ret != 0 )
+        goto cleanup;
+
+    ret = 0;
+
+ cleanup:
+
+    mbedtls_platform_zeroize( _secret, sizeof(_secret) );
+    mbedtls_platform_zeroize( _input,  sizeof(_input)  );
+    return( ret );
+}
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */

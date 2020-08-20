@@ -5,11 +5,19 @@
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/rsa.h"
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
+#include "test/psa_crypto_helpers.h"
+#define PSA_INIT( ) PSA_ASSERT( psa_crypto_init( ) )
+#else
+/* Define empty macros so that we can use them in the preamble and teardown
+ * of every test function that uses PSA conditionally based on
+ * MBEDTLS_USE_PSA_CRYPTO. */
+#define PSA_INIT( ) ( (void) 0 )
+#define PSA_DONE( ) ( (void) 0 )
 #endif
-
 
 #if defined(MBEDTLS_RSA_C)
 int mbedtls_rsa_decrypt_func( void *ctx, int mode, size_t *olen,
@@ -156,7 +164,7 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
     const char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
     mbedtls_test_rnd_pseudo_info rnd_info;
 
-    psa_crypto_init();
+    PSA_INIT( );
     memset( &rnd_info, 0x2a, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
     md_alg_psa = mbedtls_psa_translate_md( (mbedtls_md_type_t) md_type );
@@ -184,9 +192,12 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
     buf[pem_len] = '\0';
     TEST_ASSERT( x509_crt_verifycsr( buf, pem_len + 1 ) == 0 );
 
+
 exit:
     mbedtls_x509write_csr_free( &req );
     mbedtls_pk_free( &key );
+    psa_destroy_key( slot );
+    PSA_DONE( );
 }
 /* END_CASE */
 

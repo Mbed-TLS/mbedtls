@@ -3742,6 +3742,33 @@ void ssl_tls1_3_traffic_key_generation( int hash_alg,
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+void ssl_tls1_3_derive_secret( int hash_alg,
+                               data_t *secret,
+                               data_t *label,
+                               data_t *ctx,
+                               int desired_length,
+                               int already_hashed,
+                               data_t *expected )
+{
+    unsigned char dst[ 100 ];
+
+    /* Check sanity of test parameters. */
+    TEST_ASSERT( (size_t) desired_length <= sizeof(dst) );
+    TEST_ASSERT( (size_t) desired_length == expected->len );
+
+    TEST_ASSERT( mbedtls_ssl_tls1_3_derive_secret(
+                      (mbedtls_md_type_t) hash_alg,
+                      secret->x, secret->len,
+                      label->x, label->len,
+                      ctx->x, ctx->len,
+                      already_hashed,
+                      dst, desired_length ) == 0 );
+
+    TEST_ASSERT( memcmp( dst, expected->x, desired_length ) == 0 );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void ssl_tls_prf( int type, data_t * secret, data_t * random,
                   char *label, data_t *result_hex_str, int exp_ret )

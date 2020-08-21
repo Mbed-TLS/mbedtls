@@ -5,52 +5,12 @@ cache: ccache
 
 jobs:
   include:
-    - name: basic checks and reference configurations
-      addons:
-        apt:
-          packages:
-          - gnutls-bin
-          - doxygen
-          - graphviz
-          - gcc-arm-none-eabi
-          - libnewlib-arm-none-eabi
-      language: python # Needed to get pip for Python 3
-      python: 3.5 # version from Ubuntu 16.04
-      install:
-        - pip install pylint==2.4.4
+    - name: gnutls test
       script:
-        - tests/scripts/all.sh -k 'check_*'
-        - tests/scripts/all.sh -k test_default_out_of_box
-        - tests/scripts/test-ref-configs.pl
-        - tests/scripts/all.sh -k build_arm_none_eabi_gcc_arm5vte build_arm_none_eabi_gcc_m0plus
-
-    - name: full configuration
-      script:
-        - tests/scripts/all.sh -k test_full_cmake_gcc_asan
-
-    - name: check compilation guards
-      script:
-        - tests/scripts/all.sh -k 'test_depends_*' 'build_key_exchanges'
-
-    - name: macOS
-      os: osx
-      compiler: clang
-      script:
-        - tests/scripts/all.sh -k test_default_out_of_box
-
-    - name: Windows
-      os: windows
-      before_install:
-        - choco install python --version=3.5.4
-      env:
-        # Add the directory where the Choco package goes
-        - PATH=/c/Python35:/c/Python35/Scripts:$PATH
-      script:
-        - type python; python --version
-        - python scripts/generate_psa_constants.py
-        # Logs appear out of sequence on Windows. Give time to catch up.
-        - sleep 5
-        - scripts/windows_msbuild.bat v141 # Visual Studio 2017
+        - export
+        - COLUMNS=200 dpkg -l
+        - make
+        - tests/compat.sh -m tls1_2 -p GnuTLS -V NO -t PSK
 
 after_failure:
 - tests/scripts/travis-log-failure.sh

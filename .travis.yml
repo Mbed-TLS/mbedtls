@@ -63,7 +63,13 @@ env:
 addons:
   apt:
     packages:
-    - gnutls-bin
+    # The version of GnuTLS in an up-to-date Ubuntu 16.04 (3.4.10-4ubuntu1.8)
+    # fails compat.sh. As a workaround until we fix this or decide that this
+    # is a bug in the Ubuntu package, downgrade GnuTLS to the same upstream
+    # version, but as originally released in Ubuntu 16.04, without the latest
+    # Ubuntu packages.
+    - libgnutls30=3.4.10-4ubuntu1
+    - gnutls-bin=3.4.10-4ubuntu1
   coverity_scan:
     project:
       name: "ARMmbed/mbedtls"

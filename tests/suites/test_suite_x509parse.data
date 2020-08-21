@@ -20,7 +20,7 @@ x509_cert_info:"data_files/cert_md4.crt":"cert. version     \: 3\nserial number 
 
 X509 Certificate information MD5 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD5_C
-x509_cert_info:"data_files/cert_md5.crt":"cert. version     \: 3\nserial number     \: 06\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD5\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with MD5\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/cert_md5.crt":"cert. version     \: 3\nserial number     \: 06\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD5\nissued  on        \: 2000-01-01 12\:12\:12\nexpires on        \: 2030-01-01 12\:12\:12\nsigned using      \: RSA with MD5\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information SHA1 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C

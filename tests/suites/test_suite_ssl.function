@@ -6,6 +6,7 @@
 #include <mbedtls/certs.h>
 #include <mbedtls/timing.h>
 #include <mbedtls/debug.h>
+#include <../library/ssl_tls13_keys.h>
 
 #include <ssl_invasive.h>
 
@@ -3666,6 +3667,32 @@ exit:
     mbedtls_ssl_transform_free( &t1 );
     mbedtls_free( buf );
     mbedtls_free( buf_save );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+void ssl_tls1_3_hkdf_expand_label( int hash_alg,
+                                   data_t *secret,
+                                   data_t *label,
+                                   data_t *ctx,
+                                   int desired_length,
+                                   data_t *expected )
+{
+    unsigned char dst[ 100 ];
+
+
+    /* Check sanity of test parameters. */
+    TEST_ASSERT( (size_t) desired_length <= sizeof(dst) );
+    TEST_ASSERT( (size_t) desired_length == expected->len );
+
+    TEST_ASSERT( mbedtls_ssl_tls1_3_hkdf_expand_label(
+                      (mbedtls_md_type_t) hash_alg,
+                      secret->x, secret->len,
+                      label->x, label->len,
+                      ctx->x, ctx->len,
+                      dst, desired_length ) == 0 );
+
+    TEST_ASSERT( memcmp( dst, expected->x, desired_length ) == 0 );
 }
 /* END_CASE */
 

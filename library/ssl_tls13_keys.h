@@ -101,6 +101,42 @@ int mbedtls_ssl_tls1_3_hkdf_expand_label(
                      const unsigned char *ctx, size_t clen,
                      unsigned char *buf, size_t blen );
 
+/**
+ * \brief           This function is part of the TLS 1.3 key schedule.
+ *                  It extracts key and IV for the actual client/server traffic
+ *                  from the client/server traffic secrets.
+ *
+ * From RFC 8446:
+ *
+ * <tt>
+ *   [sender]_write_key = HKDF-Expand-Label(Secret, "key", "", key_length)
+ *   [sender]_write_iv  = HKDF-Expand-Label(Secret, "iv", "", iv_length)*
+ * </tt>
+ *
+ * \param hash_alg      The identifier for the hash algorithm to be used
+ *                      for the HKDF-based expansion of the secret.
+ * \param client_secret The client traffic secret.
+ *                      This must be a readable buffer of size \p slen Bytes
+ * \param server_secret The server traffic secret.
+ *                      This must be a readable buffer of size \p slen Bytes
+ * \param slen          Length of the secrets \p client_secret and
+ *                      \p server_secret in Bytes.
+ * \param keyLen        The desired length of the key to be extracted in Bytes.
+ * \param ivLen         The desired length of the IV to be extracted in Bytes.
+ * \param keys          The address of the structure holding the generated
+ *                      keys and IVs.
+ *
+ * \returns             \c 0 on success.
+ * \returns             A negative error code on failure.
+ */
+
+int mbedtls_ssl_tls1_3_make_traffic_keys(
+                     mbedtls_md_type_t hash_alg,
+                     const unsigned char *client_secret,
+                     const unsigned char *server_secret,
+                     size_t slen, size_t keyLen, size_t ivLen,
+                     mbedtls_ssl_key_set *keys );
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

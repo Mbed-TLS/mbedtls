@@ -26,6 +26,7 @@
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
 #include "mbedtls/hkdf.h"
+#include "mbedtls/ssl_internal.h"
 #include "ssl_tls13_keys.h"
 
 #include <stdint.h>
@@ -177,6 +178,69 @@ int mbedtls_ssl_tls1_3_hkdf_expand_label(
                                  secret, slen,
                                  hkdf_label, hkdf_label_len,
                                  buf, blen ) );
+}
+
+/*
+ * The traffic keying material is generated from the following inputs:
+ *
+ *  - One secret value per sender.
+ *  - A purpose value indicating the specific value being generated
+ *  - The desired lengths of key and IV.
+ *
+ * The expansion itself is based on HKDF:
+ *
+ *   [sender]_write_key = HKDF-Expand-Label( Secret, "key", "", key_length )
+ *   [sender]_write_iv  = HKDF-Expand-Label( Secret, "iv" , "", iv_length )
+ *
+ * [sender] denotes the sending side and the Secret value is provided
+ * by the function caller. Note that we generate server and client side
+ * keys in a single function call.
+ */
+int mbedtls_ssl_tls1_3_make_traffic_keys(
+                     mbedtls_md_type_t hash_alg,
+                     const unsigned char *client_secret,
+                     const unsigned char *server_secret,
+                     size_t slen, size_t keyLen, size_t ivLen,
+                     mbedtls_ssl_key_set *keys )
+{
+    int ret = 0;
+
+    ret = mbedtls_ssl_tls1_3_hkdf_expand_label( hash_alg,
+                    client_secret, slen,
+                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( key ),
+                    NULL, 0,
+                    keys->client_write_key, keyLen );
+    if( ret != 0 )
+        return( ret );
+
+    ret = mbedtls_ssl_tls1_3_hkdf_expand_label( hash_alg,
+                    server_secret, slen,
+                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( key ),
+                    NULL, 0,
+                    keys->server_write_key, keyLen );
+    if( ret != 0 )
+        return( ret );
+
+    ret = mbedtls_ssl_tls1_3_hkdf_expand_label( hash_alg,
+                    client_secret, slen,
+                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( iv ),
+                    NULL, 0,
+                    keys->client_write_iv, ivLen );
+    if( ret != 0 )
+        return( ret );
+
+    ret = mbedtls_ssl_tls1_3_hkdf_expand_label( hash_alg,
+                    server_secret, slen,
+                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( iv ),
+                    NULL, 0,
+                    keys->server_write_iv, ivLen );
+    if( ret != 0 )
+        return( ret );
+
+    keys->keyLen = keyLen;
+    keys->ivLen = ivLen;
+
+    return( 0 );
 }
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */

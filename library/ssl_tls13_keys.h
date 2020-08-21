@@ -137,6 +137,51 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
                      size_t slen, size_t keyLen, size_t ivLen,
                      mbedtls_ssl_key_set *keys );
 
+/**
+ * \brief The \c Derive-Secret function from the TLS 1.3 standard RFC 8446.
+ *
+ * <tt>
+ *   Derive-Secret( Secret, Label, Messages ) =
+ *      HKDF-Expand-Label( Secret, Label,
+ *                         Hash( Messages ),
+ *                         Hash.Length ) )
+ * </tt>
+ *
+ * Note: In this implementation of the function we assume that
+ * the parameter message contains the already hashed value and
+ * the Derive-Secret function does not need to hash it again.
+ *
+ * \param hash_alg The identifier for the hash function used for the
+ *                 applications of HKDF.
+ * \param secret   The \c Secret argument to the \c Derive-Secret function.
+ *                 This must be a readable buffer of length \p slen Bytes.
+ * \param slen     The length of \p secret in Bytes.
+ * \param label    The \c Label argument to the \c Derive-Secret function.
+ *                 This must be a readable buffer of length \p llen Bytes.
+ * \param llen     The length of \p label in Bytes.
+ * \param hash     The hash of the \c Messages argument to the \c Derive-Secret
+ *                 function. This must be a readable buffer of length \p mlen
+ *                 hlen Bytes.
+ * \param hlen     The length of \p hash.
+ * \param dstbuf   The target buffer to write the output of \c Derive-Secret to.
+ *                 This must be a writable buffer of size \p buflen Bytes.
+ * \param buflen   The length of \p dstbuf in Bytes.
+ *
+ * \returns        \c 0 on success.
+ * \returns        A negative error code on failure.
+ */
+
+#define MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED 0
+#define MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED   1
+
+int mbedtls_ssl_tls1_3_derive_secret(
+                   mbedtls_md_type_t hash_alg,
+                   const unsigned char *secret, size_t slen,
+                   const unsigned char *label, size_t llen,
+                   const unsigned char *ctx, size_t clen,
+                   int context_already_hashed,
+                   unsigned char *dstbuf, size_t buflen );
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

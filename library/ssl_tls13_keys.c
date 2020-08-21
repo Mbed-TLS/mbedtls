@@ -243,4 +243,46 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
     return( 0 );
 }
 
+int mbedtls_ssl_tls1_3_derive_secret(
+                   mbedtls_md_type_t hash_alg,
+                   const unsigned char *secret, size_t slen,
+                   const unsigned char *label, size_t llen,
+                   const unsigned char *ctx, size_t clen,
+                   int context_already_hashed,
+                   unsigned char *dstbuf, size_t buflen )
+{
+    int ret;
+    unsigned char hashed_context[ MBEDTLS_MD_MAX_SIZE ];
+
+    const mbedtls_md_info_t *md;
+    md = mbedtls_md_info_from_type( hash_alg );
+    if( md == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    if( context_already_hashed == MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED )
+    {
+        ret = mbedtls_md( md, ctx, clen, hashed_context );
+        if( ret != 0 )
+            return( ret );
+        clen = mbedtls_md_get_size( md );
+    }
+    else
+    {
+        /* This should never happen since this function is internal
+         * and the code sets `context_already_hashed` correctly.
+         * Let's double-check nonetheless to not run at the risk
+         * of getting a stack overflow. */
+        if( clen > sizeof(hashed_context) )
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+
+        memcpy( hashed_context, ctx, clen );
+    }
+
+    return( mbedtls_ssl_tls1_3_hkdf_expand_label( hash_alg,
+                                                  secret, slen,
+                                                  label, llen,
+                                                  hashed_context, clen,
+                                                  dstbuf, buflen ) );
+}
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */

@@ -1,0 +1,28 @@
+Transparent driver - Invalid parameters
+transparent_test_driver_invalid_param:
+
+Transparent driver - Bad parameters
+transparent_test_driver_bad_param:
+
+Transparent driver - Generate key #1 - AES-128
+transparent_test_driver_generate_key:PSA_KEY_TYPE_AES:128
+
+Transparent driver - Generate key #2 - AES-192
+transparent_test_driver_generate_key:PSA_KEY_TYPE_AES:192
+
+Transparent driver - Generate key #3 - AES-256
+transparent_test_driver_generate_key:PSA_KEY_TYPE_AES:256
+
+Transparent driver - Generate key #4 - ECC P256
+transparent_test_driver_generate_key:PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ):256
+
+Transparent driver - Export public key #1
+transparent_test_driver_export_public_key:"Hello world 5678":"Hello world 5678"
+
+Transparent driver - Sign & Verify hash, deterministic ECDSA SECP256R1 SHA-256
+depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_MD_C:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C
+transparent_test_driver_sign_verify:PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ):"ab45435712649cb30bbddac49197eebf2740ffc7f874d9244c3460f54f322d3a":PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 ):"9ac4335b469bbd791439248504dd0d49c71349a295fee5a1c68507f45a9e1c7b"
+
+Transparent driver - Sign & Verify hash, deterministic ECDSA SECP256R1 SHA-384
+depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECDSA_C:MBEDTLS_SHA512_C:!MBEDTLS_SHA512_NO_SHA384
+transparent_test_driver_sign_verify:PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ):"ab45435712649cb30bbddac49197eebf2740ffc7f874d9244c3460f54f322d3a":PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_384 ):"59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"

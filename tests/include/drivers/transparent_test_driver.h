@@ -35,34 +35,6 @@
 #include "psa/crypto.h"
 
 /**
- * \brief Export a public key from an transparent key.
- *
- * The output of this function can be passed to transparent_driver_import_key() to
- * create an object that is equivalent to the public key.
- *
- * \param[in]  attributes   The attributes for the new key.
- * \param[out] key          Buffer where the key data is to be written.
- * \param[in]  key_size     Size of the \p key data buffer in bytes.
- * \param[out] data          Buffer where the exported key data is to be written.
- * \param[in]  data_size     Size of the \p out data buffer in bytes.
- * \param[out] data_length   On success, the number of bytes that make up the
- *                          exported key data.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The \p in key is not recognized as an transparent key.
- * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         The size of the \p out data buffer is too small.
- */
-psa_status_t transparent_test_driver_export_public_key(
-    const psa_key_attributes_t *attributes,                                                                 
-    uint8_t *key,
-    size_t key_size,
-    uint8_t *data,
-    size_t data_size,
-    size_t *data_length);
-
-/**
  * \brief Generate an transparent key.
  *
  * \param[in]  attributes   The attributes for the new key.
@@ -83,6 +55,34 @@ psa_status_t transparent_test_driver_generate_key( const psa_key_attributes_t *a
                                          uint8_t *key,
                                          size_t key_size,
                                          size_t *key_length );
+
+/**
+ * \brief Export a public key from an transparent key.
+ *
+ * The output of this function can be passed to transparent_driver_import_key() to
+ * create an object that is equivalent to the public key.
+ *
+ * \param[in]  attributes   The attributes for the new key.
+ * \param[out] key          Buffer where the key data is to be written.
+ * \param[in]  key_size     Size of the \p key data buffer in bytes.
+ * \param[out] data          Buffer where the exported key data is to be written.
+ * \param[in]  data_size     Size of the \p out data buffer in bytes.
+ * \param[out] data_length   On success, the number of bytes that make up the
+ *                          exported key data.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The \p in key is not recognized as an transparent key.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p out data buffer is too small.
+ */
+psa_status_t transparent_test_driver_export_public_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key,
+    size_t key_size,
+    uint8_t *data,
+    size_t data_size,
+    size_t *data_length);
 
 /**
  * \brief Sign a hash or short message with an transparent key.

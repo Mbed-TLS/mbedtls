@@ -1,6 +1,30 @@
 /* BEGIN_HEADER */
 #include "drivers/transparent_test_driver.h"
 #include "test/psa_crypto_helpers.h"
+
+uint8_t test_secp256r1_key_data[32] = {
+    0xab, 0x45, 0x43, 0x57, 0x12, 0x64, 0x9c, 0xb3,
+    0x0b, 0xbd, 0xda, 0xc4, 0x91, 0x97, 0xee, 0xbf,
+    0x27, 0x40, 0xff, 0xc7, 0xf8, 0x74, 0xd9, 0x24,
+    0x4c, 0x34, 0x60, 0xf5, 0x4f, 0x32, 0x2d, 0x3a,
+};
+uint8_t test_hash_32[32] = {
+    0x9a, 0xc4, 0x33, 0x5b, 0x46, 0x9b, 0xbd, 0x79,
+    0x14, 0x39, 0x24, 0x85, 0x04, 0xdd, 0x0d, 0x49,
+    0xc7, 0x13, 0x49, 0xa2, 0x95, 0xfe, 0xe5, 0xa1,
+    0xc6, 0x85, 0x07, 0xf4, 0x5a, 0x9e, 0x1c, 0x7b,
+};
+uint8_t test_signature_hash_32_with_secp256r1[64] = {
+    0x6a, 0x33, 0x99, 0xf6, 0x94, 0x21, 0xff, 0xe1,
+    0x49, 0x03, 0x77, 0xad, 0xf2, 0xea, 0x1f, 0x11,
+    0x7d, 0x81, 0xa6, 0x3c, 0xf5, 0xbf, 0x22, 0xe9,
+    0x18, 0xd5, 0x11, 0x75, 0xeb, 0x25, 0x91, 0x51,
+    0xce, 0x95, 0xd7, 0xc2, 0x6c, 0xc0, 0x4e, 0x25,
+    0x50, 0x3e, 0x2f, 0x7a, 0x1e, 0xc3, 0x57, 0x3e,
+    0x3c, 0x24, 0x12, 0x53, 0x4b, 0xb4, 0xa1, 0x9b,
+    0x3a, 0x78, 0x11, 0x74, 0x2f, 0x49, 0xf5, 0x0f,
+ };
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -27,18 +51,13 @@ void transparent_test_driver_bad_param( )
                                                             TEST_BUFSIZE,
                                                             &out_key_len ) );
     psa_set_key_bits( &attr, 0 );
-    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT == transparent_test_driver_generate_key(
+    TEST_ASSERT( PSA_ERROR_NOT_SUPPORTED == transparent_test_driver_generate_key(
                                                           &attr,
                                                           out_key,
                                                           TEST_BUFSIZE,
                                                           &out_key_len ) );
-    psa_set_key_bits( &attr, 128 );
-    psa_set_key_type( &attr, PSA_KEY_TYPE_ARC4 );
-    TEST_ASSERT( PSA_ERROR_NOT_SUPPORTED == transparent_test_driver_generate_key( &attr,
-                                                          out_key,
-                                                          TEST_BUFSIZE,
-                                                          &out_key_len ) );
     psa_set_key_type( &attr, PSA_KEY_TYPE_AES );
+    psa_set_key_bits( &attr, 256 );
     TEST_ASSERT( PSA_ERROR_BUFFER_TOO_SMALL == transparent_test_driver_generate_key(
                                                           &attr,
                                                           out_key,
@@ -77,23 +96,18 @@ void transparent_test_driver_bad_param( )
     /* Check validity of parameter set. */
     psa_set_key_usage_flags( &attr, PSA_KEY_USAGE_SIGN_HASH |
                                     PSA_KEY_USAGE_VERIFY_HASH );
-    psa_set_key_algorithm( &attr, PSA_ALG_ECDSA( PSA_ALG_SHA_256 ) );
+    psa_algorithm_t alg = PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 );
+    psa_set_key_algorithm( &attr, alg );
     psa_set_key_type( &attr,
                       PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
     psa_set_key_bits( &attr, 256 );
-    const uint8_t key[] =
-    {
-      0x4F, 0x50, 0x51, 0x54, 0x44, 0x4B, 0x48, 0x45, 0x41, 0x44, 0x45, 0x52,
-      0xab, 0x45, 0x43, 0x57, 0x12, 0x64, 0x9c, 0xb3, 0x0b, 0xbd, 0xda, 0xc4,
-      0x91, 0x97, 0xee, 0xbf,
-      0x27, 0x40, 0xff, 0xc7, 0xf8, 0x74, 0xd9, 0x24, 0x4c, 0x34, 0x60, 0xf5,
-      0x4f, 0x32, 0x2d, 0x3a
-    };
+    const uint8_t *key = test_secp256r1_key_data;
+
     TEST_ASSERT( PSA_SUCCESS == transparent_test_driver_sign_hash(
                                  &attr,
                                  key,
                                  32,
-                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                 alg,
                                  in_key,
                                  16,
                                  out_key,
@@ -103,7 +117,7 @@ void transparent_test_driver_bad_param( )
                                  &attr,
                                  key,
                                  0,
-                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                 alg,
                                  in_key,
                                  16,
                                  out_key,
@@ -113,7 +127,7 @@ void transparent_test_driver_bad_param( )
                                  &attr,
                                  key,
                                  32,
-                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                 alg,
                                  in_key,
                                  16,
                                  out_key,
@@ -125,20 +139,20 @@ void transparent_test_driver_bad_param( )
                                  &attr,
                                  key,
                                  32,
-                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
-                                 in_key,
-                                 16,
-                                 out_key,
-                                 out_key_len ) );
+                                 alg,
+                                 test_hash_32,
+                                 sizeof(test_hash_32),
+                                 test_signature_hash_32_with_secp256r1,
+                                 sizeof(test_signature_hash_32_with_secp256r1) ) );
     TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT == transparent_test_driver_verify_hash(
                                  &attr,
                                  key,
                                  0,
-                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
-                                 in_key,
-                                 16,
-                                 out_key,
-                                 out_key_len ) );
+                                 alg,
+                                 test_hash_32,
+                                 sizeof(test_hash_32),
+                                 test_signature_hash_32_with_secp256r1,
+                                 sizeof(test_signature_hash_32_with_secp256r1) ) );
 exit:
     psa_reset_key_attributes(&attr);
     PSA_DONE( );
@@ -208,7 +222,7 @@ void transparent_test_driver_invalid_param( )
 {
     #define TEST_BUFSIZE (64U)
     size_t out_key_len;
-    uint8_t in_key[16];
+    uint8_t in_key[32];
     psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t out_key[TEST_BUFSIZE];
 
@@ -272,27 +286,22 @@ void transparent_test_driver_invalid_param( )
                                     NULL ) );
 
     /* Check validity of parameter set. */
+    psa_algorithm_t alg = PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 );
     psa_set_key_usage_flags( &attr, PSA_KEY_USAGE_SIGN_HASH |
                                     PSA_KEY_USAGE_VERIFY_HASH );
-    psa_set_key_algorithm( &attr, PSA_ALG_ECDSA( PSA_ALG_SHA_256 ) );
+    psa_set_key_algorithm( &attr, alg );
     psa_set_key_type( &attr,
                       PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
     psa_set_key_bits( &attr, 256 );
-    const uint8_t key[] =
-    {
-      0x4F, 0x50, 0x51, 0x54, 0x44, 0x4B, 0x48, 0x45, 0x41, 0x44, 0x45, 0x52,
-      0xab, 0x45, 0x43, 0x57, 0x12, 0x64, 0x9c, 0xb3, 0x0b, 0xbd, 0xda, 0xc4,
-      0x91, 0x97, 0xee, 0xbf,
-      0x27, 0x40, 0xff, 0xc7, 0xf8, 0x74, 0xd9, 0x24, 0x4c, 0x34, 0x60, 0xf5,
-      0x4f, 0x32, 0x2d, 0x3a
-    };
+    const uint8_t *key = test_secp256r1_key_data;
+
     TEST_ASSERT( PSA_SUCCESS == transparent_test_driver_sign_hash(
                                     &attr,
                                     key,
-                                    32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    sizeof(test_secp256r1_key_data),
+                                    alg,
                                     in_key,
-                                    16,
+                                    32,
                                     out_key,
                                     TEST_BUFSIZE,
                                     &out_key_len ) );
@@ -301,9 +310,9 @@ void transparent_test_driver_invalid_param( )
                                     NULL,
                                     key,
                                     32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    alg,
                                     in_key,
-                                    16,
+                                    32,
                                     out_key,
                                     TEST_BUFSIZE,
                                     &out_key_len ) );
@@ -314,7 +323,7 @@ void transparent_test_driver_invalid_param( )
                                     32,
                                     PSA_ALG_ECDSA( PSA_ALG_SHA_256),
                                     in_key,
-                                    16,
+                                    32,
                                     out_key,
                                     TEST_BUFSIZE,
                                     &out_key_len ) );
@@ -323,9 +332,9 @@ void transparent_test_driver_invalid_param( )
                                     &attr,
                                     key,
                                     32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    alg,
                                     NULL,
-                                    16,
+                                    32,
                                     out_key,
                                     TEST_BUFSIZE,
                                     &out_key_len ) );
@@ -334,9 +343,9 @@ void transparent_test_driver_invalid_param( )
                                     &attr,
                                     key,
                                     32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    alg,
                                     in_key,
-                                    16,
+                                    32,
                                     NULL,
                                     TEST_BUFSIZE,
                                     &out_key_len ) );
@@ -345,9 +354,9 @@ void transparent_test_driver_invalid_param( )
                                     &attr,
                                     key,
                                     32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    alg,
                                     in_key,
-                                    16,
+                                    32,
                                     out_key,
                                     TEST_BUFSIZE,
                                     NULL ) );
@@ -357,51 +366,51 @@ void transparent_test_driver_invalid_param( )
                                     &attr,
                                     key,
                                     32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
-                                    in_key,
-                                    16,
-                                    out_key,
-                                    out_key_len ) );
+                                    alg,
+                                    test_hash_32,
+                                    sizeof(test_hash_32),
+                                    test_signature_hash_32_with_secp256r1,
+                                    sizeof(test_signature_hash_32_with_secp256r1) ) );
     TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
                             transparent_test_driver_verify_hash(
                                     NULL,
                                     key,
                                     32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
-                                    in_key,
-                                    16,
-                                    out_key,
-                                    out_key_len ) );
+                                    alg,
+                                    test_hash_32,
+                                    sizeof(test_hash_32),
+                                    test_signature_hash_32_with_secp256r1,
+                                    sizeof(test_signature_hash_32_with_secp256r1) ) );
     TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
                             transparent_test_driver_verify_hash(
                                     &attr,
                                     NULL,
                                     32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
-                                    in_key,
-                                    16,
-                                    out_key,
-                                    out_key_len ) );
+                                    alg,
+                                    test_hash_32,
+                                    sizeof(test_hash_32),
+                                    test_signature_hash_32_with_secp256r1,
+                                    sizeof(test_signature_hash_32_with_secp256r1) ) );
     TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
                             transparent_test_driver_verify_hash(
                                     &attr,
                                     key,
                                     32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    alg,
                                     NULL,
-                                    16,
-                                    out_key,
-                                    out_key_len ) );
+                                    sizeof(test_hash_32),
+                                    test_signature_hash_32_with_secp256r1,
+                                    sizeof(test_signature_hash_32_with_secp256r1) ) );
     TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
                             transparent_test_driver_verify_hash(
-                                   &attr,
-                                   key,
-                                   32,
-                                   PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
-                                   in_key,
-                                   16,
-                                   NULL,
-                                   out_key_len ) );
+                                    &attr,
+                                    key,
+                                    32,
+                                    alg,
+                                    test_hash_32,
+                                    sizeof(test_hash_32),
+                                    NULL,
+                                    sizeof(test_signature_hash_32_with_secp256r1) ) );
 
 exit:
     psa_reset_key_attributes(&attr);

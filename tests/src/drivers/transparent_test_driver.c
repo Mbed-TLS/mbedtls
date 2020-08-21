@@ -68,6 +68,10 @@
 
 #include <string.h>
 
+/* Parameter validation macros */
+#define _VALIDATE_RET( cond ) \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, PSA_ERROR_INVALID_ARGUMENT )
+
 /****************************************************************/
 /* static forward declarations                                  */
 /****************************************************************/
@@ -84,24 +88,40 @@ static psa_status_t psa_import_ec_private_key( psa_ecc_family_t curve,
 /****************************************************************/
 /* Transparent Driver Interface functions               */
 /****************************************************************/
-
 psa_status_t transparent_test_driver_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key, size_t key_size, size_t *key_length )
 {
+    _VALIDATE_RET( attributes != NULL );
+    _VALIDATE_RET( key != NULL );
+    _VALIDATE_RET( key_length != NULL );
+
+    size_t key_bits = psa_get_key_bits( attributes );
     psa_key_type_t type = attributes->core.type;
 
     if( key_type_is_raw_bytes( type ) )
     {
         psa_status_t status;
+        switch( key_bits )
+        {
+            case 128:
+            case 192:
+            case 256:
+                break;
+            default:
+               return( PSA_ERROR_NOT_SUPPORTED );
+        }
 
+        if ( key_bits/8 > key_size ) {
+          return PSA_ERROR_BUFFER_TOO_SMALL;
+        }
         status = psa_generate_random( key, key_size );
 
         if( status != PSA_SUCCESS )
             return( status );
     }
     else
-      
+
     /* Copied from psa_crypto.c */
 #if defined(MBEDTLS_ECP_C)
     if ( PSA_KEY_TYPE_IS_ECC( type ) && PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
@@ -152,20 +172,30 @@ psa_status_t transparent_test_driver_generate_key(
     }
     else
 #endif /* MBEDTLS_ECP_C */
+    {
         return( PSA_ERROR_NOT_SUPPORTED );
-
+    }
     return( PSA_SUCCESS );
 }
 
 psa_status_t transparent_test_driver_export_public_key(
-    const psa_key_attributes_t *attributes,                                                                 
-    uint8_t *key,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key,
     size_t key_size,
     uint8_t *data,
     size_t data_size,
     size_t *data_length)
 {
+    _VALIDATE_RET( attributes != NULL );
+    _VALIDATE_RET( key != NULL );
+    _VALIDATE_RET( data != NULL );
+    _VALIDATE_RET( data_length != NULL );
+
     psa_key_type_t type = attributes->core.type;
+
+    if ( key_size == 0 ) {
+      return PSA_ERROR_INVALID_ARGUMENT;
+    }
 
     if( key_type_is_raw_bytes( type ) )
     {
@@ -225,7 +255,6 @@ psa_status_t transparent_test_driver_export_public_key(
 #else
     return( PSA_ERROR_NOT_SUPPORTED );
 #endif
-    
 }
 
 psa_status_t transparent_test_driver_sign_hash(
@@ -237,14 +266,24 @@ psa_status_t transparent_test_driver_sign_hash(
 {
     psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
 
+    _VALIDATE_RET( attributes != NULL );
+    _VALIDATE_RET( key != NULL );
+    _VALIDATE_RET( hash != NULL );
+    _VALIDATE_RET( signature != NULL );
+    _VALIDATE_RET( signature_length != NULL );
+
+    if ( key_length == 0 ) {
+      return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) && \
-    defined(MBEDTLS_SHA256_C)
-    if( alg != PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 ) )
-        return( PSA_ERROR_NOT_SUPPORTED );
+  ( defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C) )
+
     mbedtls_ecp_group_id grp_id;
     switch( psa_get_key_type( attributes ) )
     {
-        case PSA_ECC_CURVE_SECP_R1:
+        case PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ):
+
             switch( psa_get_key_bits( attributes ) )
             {
                 case 256:
@@ -264,6 +303,19 @@ psa_status_t transparent_test_driver_sign_hash(
             return( PSA_ERROR_NOT_SUPPORTED );
     }
 
+    mbedtls_md_type_t md_alg;
+    switch( alg )
+    {
+        case PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 ):
+            md_alg = MBEDTLS_MD_SHA256;
+            break;
+        case PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_384 ):
+            md_alg = MBEDTLS_MD_SHA384;
+            break;
+        default:
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
     /* Beyond this point, the driver is actually doing the work of
      * calculating the signature. */
 
@@ -274,19 +326,18 @@ psa_status_t transparent_test_driver_sign_hash(
     mbedtls_mpi_init( &s );
     mbedtls_ecp_keypair ecp;
     mbedtls_ecp_keypair_init( &ecp );
-    size_t curve_bytes = PSA_BITS_TO_BYTES( ecp.grp.pbits );
-    
     MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &ecp.grp, grp_id ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary( &ecp.grp, &ecp.Q,
-                                                    key, key_length ) );
+    size_t curve_bytes = PSA_BITS_TO_BYTES( ecp.grp.pbits );
+
+    MBEDTLS_MPI_CHK( mbedtls_ecp_read_key( grp_id, &ecp, key, key_length ) );
 
     /* Code adapted from psa_ecdsa_sign() in psa_crypto.c. */
-    mbedtls_md_type_t md_alg = MBEDTLS_MD_SHA256;
     if( signature_size < 2 * curve_bytes )
     {
-        status = PSA_ERROR_BUFFER_TOO_SMALL;
+        ret = status = PSA_ERROR_BUFFER_TOO_SMALL;
         goto cleanup;
     }
+
     MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_det( &ecp.grp, &r, &s, &ecp.d,
                                   hash, hash_length, md_alg ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &r,
@@ -296,8 +347,6 @@ psa_status_t transparent_test_driver_sign_hash(
                                                signature + curve_bytes,
                                                curve_bytes ) );
 cleanup:
-    /* There's no easy way to translate the error code except through a
-     * library function that's not exported. Use a debugger. */
     if( ret == 0 )
         status = PSA_SUCCESS;
     mbedtls_mpi_free( &r );
@@ -306,7 +355,7 @@ cleanup:
     if( status == PSA_SUCCESS )
         *signature_length = 2 * curve_bytes;
 #else /* defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) && \
-         defined(MBEDTLS_SHA256_C) */
+         ( defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C) ) */
     (void) attributes;
     (void) key;
     (void) key_length;
@@ -314,7 +363,7 @@ cleanup:
     (void) hash;
     (void) hash_length;
 #endif /* defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) && \
-          defined(MBEDTLS_SHA256_C) */
+         ( defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C) ) */
 
     return( status );
 }
@@ -328,14 +377,22 @@ psa_status_t transparent_test_driver_verify_hash(
 {
     psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
 
+    _VALIDATE_RET( attributes != NULL );
+    _VALIDATE_RET( key != NULL );
+    _VALIDATE_RET( hash != NULL );
+    _VALIDATE_RET( signature != NULL );
+
+    if ( key_length == 0 ) {
+      return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) && \
-    defined(MBEDTLS_SHA256_C)
-    if( alg != PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 ) )
-        return( PSA_ERROR_NOT_SUPPORTED );
+  ( defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C) )
+
     mbedtls_ecp_group_id grp_id;
     switch( psa_get_key_type( attributes ) )
     {
-        case PSA_ECC_CURVE_SECP_R1:
+        case PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ):
             switch( psa_get_key_bits( attributes ) )
             {
                 case 256:
@@ -350,6 +407,15 @@ psa_status_t transparent_test_driver_verify_hash(
                 default:
                     return( PSA_ERROR_NOT_SUPPORTED );
             }
+            break;
+        default:
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+    switch( alg )
+    {
+        case PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 ):
+        case PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_384 ):
             break;
         default:
             return( PSA_ERROR_NOT_SUPPORTED );
@@ -367,14 +433,15 @@ psa_status_t transparent_test_driver_verify_hash(
     mbedtls_ecp_keypair_init( &ecp );
     mbedtls_test_rnd_pseudo_info rnd_info;
     memset( &rnd_info, 0x5A, sizeof( mbedtls_test_rnd_pseudo_info ) );
-    size_t curve_bytes = PSA_BITS_TO_BYTES( ecp.grp.pbits );
 
     MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &ecp.grp, grp_id ) );
+
+    size_t curve_bytes = PSA_BITS_TO_BYTES( ecp.grp.pbits );
 
     /* Code adapted from psa_ecdsa_verify() in psa_crypto.c. */
     if( signature_length < 2 * curve_bytes )
     {
-        status = PSA_ERROR_BUFFER_TOO_SMALL;
+        ret = status = PSA_ERROR_BUFFER_TOO_SMALL;
         goto cleanup;
     }
 
@@ -385,30 +452,29 @@ psa_status_t transparent_test_driver_verify_hash(
                                               signature + curve_bytes,
                                               curve_bytes ) );
 
-    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( psa_get_key_type( attributes ) ) )
+    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( psa_get_key_type( attributes ) ) ) {
         MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary( &ecp.grp, &ecp.Q,
                                                     key, key_length ) );
-    else
-    {
+    } else {
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ecp.d, key, key_length ) );
         MBEDTLS_MPI_CHK(
             mbedtls_ecp_mul( &ecp.grp, &ecp.Q, &ecp.d, &ecp.grp.G,
                              &mbedtls_test_rnd_pseudo_rand,
                              &rnd_info ) );
     }
-
+    // Preset status
+    // status will be set to PSA_SUCCESS if mbedtls_ecdsa_verify returns 0.
+    status = PSA_ERROR_INVALID_SIGNATURE;
     MBEDTLS_MPI_CHK( mbedtls_ecdsa_verify( &ecp.grp, hash, hash_length,
                                 &ecp.Q, &r, &s ) );
 cleanup:
-    /* There's no easy way to translate the error code except through a
-     * library function that's not exported. Use a debugger. */
     if( ret == 0 )
         status = PSA_SUCCESS;
     mbedtls_mpi_free( &r );
     mbedtls_mpi_free( &s );
     mbedtls_ecp_keypair_free( &ecp );
 #else /* defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) && \
-         defined(MBEDTLS_SHA256_C) */
+         ( defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C) ) */
     (void) attributes;
     (void) key;
     (void) key_length;
@@ -416,7 +482,7 @@ cleanup:
     (void) hash;
     (void) hash_length;
 #endif /* defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) && \
-          defined(MBEDTLS_SHA256_C) */
+         ( defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C) ) */
 
     return( status );
 }

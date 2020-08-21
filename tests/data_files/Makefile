@@ -833,10 +833,6 @@ server1_ca.crt: server1.crt $(test_ca_crt)
 	cat server1.crt $(test_ca_crt) > $@
 all_final += server1_ca.crt
 
-cert_md5.crt: server1.key
-	$(MBEDTLS_CERT_WRITE) subject_key=server1.key subject_name="C=NL, O=PolarSSL, CN=PolarSSL Cert MD5" serial=6 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=MD5 version=3 output_file=$@
-all_final += cert_md5.crt
-
 cert_sha1.crt: server1.key
 	$(MBEDTLS_CERT_WRITE) subject_key=server1.key subject_name="C=NL, O=PolarSSL, CN=PolarSSL Cert SHA1" serial=7 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
 all_final += cert_sha1.crt

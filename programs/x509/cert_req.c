@@ -100,9 +100,8 @@ int main( void )
     "                          Add NsCertType even if it is empty\n"    \
     "    md=%%s               default: SHA256\n"       \
     "                          possible values:\n"     \
-    "                          MD2, MD4, MD5, SHA1\n"  \
-    "                          SHA224, SHA256\n"       \
-    "                          SHA384, SHA512\n"       \
+    "                          MD2, MD4, MD5, RIPEMD160, SHA1,\n" \
+    "                          SHA224, SHA256, SHA384, SHA512\n" \
     "\n"
 
 
@@ -217,58 +216,14 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "md" ) == 0 )
         {
-            if( strcmp( q, "SHA256" ) == 0 )
+            const mbedtls_md_info_t *md_info =
+                mbedtls_md_info_from_string( q );
+            if( md_info == NULL )
             {
-                opt.md_alg = MBEDTLS_MD_SHA256;
-            }
-            else if( strcmp( q, "SHA224" ) == 0 )
-            {
-                opt.md_alg = MBEDTLS_MD_SHA224;
-            }
-            else
-#if defined(MBEDTLS_MD5_C)
-            if( strcmp( q, "MD5" ) == 0 )
-            {
-                opt.md_alg = MBEDTLS_MD_MD5;
-            }
-            else
-#endif /* MBEDTLS_MD5_C */
-#if defined(MBEDTLS_MD4_C)
-            if( strcmp( q, "MD4" ) == 0 )
-            {
-                opt.md_alg = MBEDTLS_MD_MD4;
-            }
-            else
-#endif /* MBEDTLS_MD5_C */
-#if defined(MBEDTLS_MD2_C)
-            if( strcmp( q, "MD2" ) == 0 )
-            {
-                opt.md_alg = MBEDTLS_MD_MD2;
-            }
-            else
-#endif /* MBEDTLS_MD2_C */
-#if defined(MBEDTLS_SHA1_C)
-            if( strcmp( q, "SHA1" ) == 0 )
-            {
-                opt.md_alg = MBEDTLS_MD_SHA1;
-            }
-            else
-#endif /* MBEDTLS_SHA1_C */
-#if defined(MBEDTLS_SHA512_C)
-            if( strcmp( q, "SHA384" ) == 0 )
-            {
-                opt.md_alg = MBEDTLS_MD_SHA384;
-            }
-            else
-            if( strcmp( q, "SHA512" ) == 0 )
-            {
-                opt.md_alg = MBEDTLS_MD_SHA512;
-            }
-            else
-#endif /* MBEDTLS_SHA512_C */
-            {
+                mbedtls_printf( "Invalid argument for option %s\n", p );
                 goto usage;
             }
+            opt.md_alg = mbedtls_md_get_type( md_info );
         }
         else if( strcmp( p, "key_usage" ) == 0 )
         {

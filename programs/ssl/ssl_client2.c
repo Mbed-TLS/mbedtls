@@ -1195,6 +1195,7 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
     unsigned char mki[MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH];
+    size_t mki_len=0;
 #endif
 
     const char *pers = "ssl_client2";

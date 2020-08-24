@@ -2048,7 +2048,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
             if( ret < 0 )
                 return( ret );
 
-            if ( (size_t)ret > len || ( INT_MAX > SIZE_MAX && (size_t)ret > SIZE_MAX ) )
+            if ( (size_t)ret > len || ( INT_MAX > SIZE_MAX && ret > (int)SIZE_MAX ) )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1,
                     ( "f_recv returned %d bytes but only %lu were requested",
@@ -2102,7 +2102,7 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
         if( ret <= 0 )
             return( ret );
 
-        if( (size_t)ret > ssl->out_left || ( INT_MAX > SIZE_MAX && (size_t)ret > SIZE_MAX ) )
+        if( (size_t)ret > ssl->out_left || ( INT_MAX > SIZE_MAX && ret > (int)SIZE_MAX ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1,
                 ( "f_send returned %d bytes but only %lu bytes were sent",

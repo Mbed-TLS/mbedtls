@@ -223,7 +223,8 @@ int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
                        unsigned int iteration_count,
                        uint32_t key_length, unsigned char *output )
 {
-    int ret = 0, j;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int j;
     unsigned int i;
     unsigned char md1[MBEDTLS_MD_MAX_SIZE];
     unsigned char work[MBEDTLS_MD_MAX_SIZE];

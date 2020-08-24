@@ -122,8 +122,10 @@ int main( void )
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
 #define DFL_KEY_FILE            ""
+#define DFL_KEY_PWD             ""
 #define DFL_CRT_FILE2           ""
 #define DFL_KEY_FILE2           ""
+#define DFL_KEY_PWD2            ""
 #define DFL_ASYNC_OPERATIONS    "-"
 #define DFL_ASYNC_PRIVATE_DELAY1 ( -1 )
 #define DFL_ASYNC_PRIVATE_DELAY2 ( -1 )
@@ -216,11 +218,15 @@ int main( void )
     "    crt_file=%%s         Your own cert and chain (in bottom to top order, top may be omitted)\n" \
     "                        default: see note after key_file2\n" \
     "    key_file=%%s         default: see note after key_file2\n" \
+    "    key_pwd=%%s          Password for key specified by key_file argument\n"\
+    "                        default: none\n" \
     "    crt_file2=%%s        Your second cert and chain (in bottom to top order, top may be omitted)\n" \
     "                        default: see note after key_file2\n" \
     "    key_file2=%%s        default: see note below\n" \
     "                        note: if neither crt_file/key_file nor crt_file2/key_file2 are used,\n" \
     "                              preloaded certificate(s) and key(s) are used if available\n" \
+    "    key_pwd2=%%s         Password for key specified by key_file2 argument\n"\
+    "                        default: none\n" \
     "    dhm_file=%%s        File containing Diffie-Hellman parameters\n" \
     "                       default: preloaded parameters\n"
 #else
@@ -493,8 +499,6 @@ int main( void )
     "    cert_req_ca_list=%%d default: 1 (send ca list)\n"  \
     "                        options: 1 (send ca list), 0 (don't send)\n" \
     USAGE_IO                                                \
-    USAGE_SSL_ASYNC                                         \
-    USAGE_SNI                                               \
     "\n"                                                    \
     USAGE_PSK                                               \
     USAGE_CA_CALLBACK                                       \
@@ -519,6 +523,8 @@ int main( void )
     USAGE_CURVES                                            \
     "\n"
 #define USAGE4 \
+    USAGE_SSL_ASYNC                                         \
+    USAGE_SNI                                               \
     "    arc4=%%d             default: (library default: 0)\n" \
     "    allow_sha1=%%d       default: 0\n"                             \
     "    min_version=%%s      default: (library default: tls1)\n"       \
@@ -570,8 +576,10 @@ struct options
     const char *ca_path;        /* the path with the CA certificate(s) reside */
     const char *crt_file;       /* the file with the server certificate     */
     const char *key_file;       /* the file with the server key             */
+    const char *key_pwd;        /* the password for the server key          */
     const char *crt_file2;      /* the file with the 2nd server certificate */
     const char *key_file2;      /* the file with the 2nd server key         */
+    const char *key_pwd2;       /* the password for the 2nd server key      */
     const char *async_operations; /* supported SSL asynchronous operations  */
     int async_private_delay1;   /* number of times f_async_resume needs to be called for key 1, or -1 for no async */
     int async_private_delay2;   /* number of times f_async_resume needs to be called for key 2, or -1 for no async */
@@ -1905,8 +1913,10 @@ int main( int argc, char *argv[] )
     opt.ca_path             = DFL_CA_PATH;
     opt.crt_file            = DFL_CRT_FILE;
     opt.key_file            = DFL_KEY_FILE;
+    opt.key_pwd             = DFL_KEY_PWD;
     opt.crt_file2           = DFL_CRT_FILE2;
     opt.key_file2           = DFL_KEY_FILE2;
+    opt.key_pwd2            = DFL_KEY_PWD2;
     opt.async_operations    = DFL_ASYNC_OPERATIONS;
     opt.async_private_delay1 = DFL_ASYNC_PRIVATE_DELAY1;
     opt.async_private_delay2 = DFL_ASYNC_PRIVATE_DELAY2;
@@ -2026,10 +2036,14 @@ int main( int argc, char *argv[] )
             opt.crt_file = q;
         else if( strcmp( p, "key_file" ) == 0 )
             opt.key_file = q;
+        else if( strcmp( p, "key_pwd" ) == 0 )
+            opt.key_pwd = q;
         else if( strcmp( p, "crt_file2" ) == 0 )
             opt.crt_file2 = q;
         else if( strcmp( p, "key_file2" ) == 0 )
             opt.key_file2 = q;
+        else if( strcmp( p, "key_pwd2" ) == 0 )
+            opt.key_pwd2 = q;
         else if( strcmp( p, "dhm_file" ) == 0 )
             opt.dhm_file = q;
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
@@ -2815,7 +2829,8 @@ int main( int argc, char *argv[] )
     if( strlen( opt.key_file ) && strcmp( opt.key_file, "none" ) != 0 )
     {
         key_cert_init++;
-        if( ( ret = mbedtls_pk_parse_keyfile( &pkey, opt.key_file, "" ) ) != 0 )
+        if( ( ret = mbedtls_pk_parse_keyfile( &pkey, opt.key_file,
+                                              opt.key_pwd ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%x\n\n", (unsigned int) -ret );
             goto exit;
@@ -2840,7 +2855,8 @@ int main( int argc, char *argv[] )
     if( strlen( opt.key_file2 ) && strcmp( opt.key_file2, "none" ) != 0 )
     {
         key_cert_init2++;
-        if( ( ret = mbedtls_pk_parse_keyfile( &pkey2, opt.key_file2, "" ) ) != 0 )
+        if( ( ret = mbedtls_pk_parse_keyfile( &pkey2, opt.key_file2,
+                                              opt.key_pwd2 ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile(2) returned -0x%x\n\n",
                             (unsigned int) -ret );

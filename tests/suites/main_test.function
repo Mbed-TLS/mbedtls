@@ -434,7 +434,7 @@ int main(int argc, const char *argv[])
                  */
                 if( !option_verbose )
                 {
-                    stdout_fd = redirect_output( &stdout, "/dev/null" );
+                    stdout_fd = redirect_output( stdout, "/dev/null" );
                     if( stdout_fd == -1 )
                     {
                         /* Redirection has failed with no stdout so exit */
@@ -446,7 +446,7 @@ int main(int argc, const char *argv[])
                 ret = dispatch_test( cnt, params );
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-                if( !option_verbose && restore_output( &stdout, stdout_fd ) )
+                if( !option_verbose && restore_output( stdout, stdout_fd ) )
                 {
                         /* Redirection has failed with no stdout so exit */
                         exit( 1 );
@@ -540,11 +540,6 @@ int main(int argc, const char *argv[])
 #endif
     mbedtls_memory_buffer_alloc_free();
 #endif
-
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-    if( stdout_fd != -1 )
-        close_output( stdout );
-#endif /* __unix__ || __APPLE__ __MACH__ */
 
     return( total_errors != 0 );
 }

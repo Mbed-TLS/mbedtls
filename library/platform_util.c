@@ -230,6 +230,13 @@ int mbedtls_platform_memmove( void *dst, const void *src, size_t num )
     return MBEDTLS_ERR_PLATFORM_ALLOC_FAILED;
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )
+{
+    return( mbedtls_platform_memequal( buf1, buf2, num ) );
+}
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+
 int mbedtls_platform_memequal( const void *buf1, const void *buf2, size_t num )
 {
     volatile const unsigned char *A = (volatile const unsigned char *) buf1;

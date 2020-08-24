@@ -217,6 +217,32 @@ void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num );
  */
 int mbedtls_platform_memmove( void *dst, const void *src, size_t num );
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
+/**
+ * \brief       Secure memcmp
+ *
+ *              This is a constant-time version of memcmp(), but without checking
+ *              if the bytes are greater or lower. The order is also randomised
+ *              using the RNG in order to further harden against side-channel attacks.
+ *
+ * \param buf1  First buffer to compare.
+ * \param buf2  Second buffer to compare against.
+ * \param num   The length of the buffers in bytes.
+ *
+ * \deprecated  Superseded by mbedtls_platform_memequal(), and is only an alias to it.
+ *
+ * \return      0 if the buffers were equal or an unspecified non-zero value
+ *              otherwise.
+ */
+int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num );
+
+#endif
 /**
  * \brief       Secure check if the buffers have the same data.
  *

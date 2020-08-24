@@ -1176,7 +1176,7 @@ cleanup:
 /*
  * Constant-flow memcpy from variable position in buffer.
  * - functionally equivalent to memcpy(dst, src + offset_secret, len)
- * - but with execution flow independant from the value of offset_secret.
+ * - but with execution flow independent from the value of offset_secret.
  */
 MBEDTLS_STATIC_TESTABLE void mbedtls_ssl_cf_memcpy_offset(
                                    unsigned char *dst,

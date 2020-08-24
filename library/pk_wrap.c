@@ -996,7 +996,7 @@ static int pk_ecdsa_sig_asn1_from_psa( unsigned char *sig, size_t *sig_len,
     return( 0 );
 }
 
-#endif
+#endif /* MBEDTLS_ECDSA_C */
 
 static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,

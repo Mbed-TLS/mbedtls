@@ -34,7 +34,7 @@
 #include "mbedtls/ecp.h"
 #endif
 
-#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_ECDSA_C)
 #include "mbedtls/ecdsa.h"
 #endif
 
@@ -1012,8 +1012,8 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     ((void) sig_len);
     ((void) f_rng);
     ((void) p_rng);
-    return( PSA_ERROR_NOT_SUPPORTED );
-#else
+    return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+#else /* !MBEDTLS_ECDSA_C */
     const psa_key_handle_t *key = (const psa_key_handle_t *) ctx;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg = PSA_ALG_ECDSA( mbedtls_psa_translate_md( md_alg ) );
@@ -1044,7 +1044,7 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
     /* transcode it to ASN.1 sequence */
     return( pk_ecdsa_sig_asn1_from_psa( sig, sig_len, buf_len ) );
-#endif
+#endif /* !MBEDTLS_ECDSA_C */
 }
 
 const mbedtls_pk_info_t mbedtls_pk_opaque_info = {

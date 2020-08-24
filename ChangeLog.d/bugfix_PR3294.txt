@@ -1,8 +1,4 @@
 Bugfix
-   * Add guards in pk_wrap.c to ensure if ECDSA is not defined, errors are
-     returned. Remove warnings in pk.c for unused variables. Add new test
-     (test_depends_pkalgs_psa) to all.sh to confirm when USE_PSA_CRYPTO 
-     is defined that features are working properly. Fixes issue reported in
-     #3294 where undefined reference errors occur when using USE_PSA_CRYPTO
-     and removing ECDSA support.
+   * Fix build failure in configurations where MBEDTLS_USE_PSA_CRYPTO is
+     enabled but ECDSA is disabled. Contributed by jdurkop. Fixes #3294.
 

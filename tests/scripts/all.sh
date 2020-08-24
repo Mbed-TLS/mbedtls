@@ -722,7 +722,7 @@ component_check_doxygen_warnings () {
 
 component_test_transparent_test_driver () {
     msg "build+test: Transparent test driver test" # ~ 40s
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_TRANSPARENT_TEST_DRIVER' test
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_TRANSPARENT_TEST_DRIVER -DMBEDTLS_CHECK_PARAMS' test
 }
 
 component_test_default_out_of_box () {

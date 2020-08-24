@@ -1913,9 +1913,10 @@
  *
  * Enable testing of the constant-flow nature of some sensitive functions with
  * clang's MemorySanitizer. This causes some existing tests to also test
- * non-functional properties of the code under test.
+ * this non-functional property of the code under test.
  *
- * This setting requires compiling with clang -fsanitize=memory.
+ * This setting requires compiling with clang -fsanitize=memory. The test
+ * suites can then be run normally.
  *
  * \warning This macro is only used for extended testing; it is not considered
  * part of the library's API, so it may change or disappear at any time.
@@ -1929,10 +1930,12 @@
  *
  * Enable testing of the constant-flow nature of some sensitive functions with
  * valgrind's memcheck tool. This causes some existing tests to also test
- * non-functional properties of the code under test.
+ * this non-functional property of the code under test.
  *
  * This setting requires valgrind headers for building, and is only useful for
- * testing if the tests suites are run with valgrind's memcheck.
+ * testing if the tests suites are run with valgrind's memcheck. This can be
+ * done for an individual test suite with 'valgrind ./test_suite_xxx', or when
+ * using CMake, this can be done for all test suites with 'make memcheck'.
  *
  * \warning This macro is only used for extended testing; it is not considered
  * part of the library's API, so it may change or disappear at any time.

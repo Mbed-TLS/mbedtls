@@ -1146,7 +1146,7 @@ static void mbedtls_ssl_cf_memcpy_if_eq( unsigned char *dst,
 {
     /* mask = c1 == c2 ? 0xff : 0x00 */
     const size_t equal = mbedtls_ssl_cf_bool_eq( c1, c2 );
-    const unsigned char mask = mbedtls_ssl_cf_mask_from_bit( equal );
+    const unsigned char mask = (unsigned char) mbedtls_ssl_cf_mask_from_bit( equal );
 
     /* dst[i] = c1 != c2 ? dst[i] : src[i] */
     for( size_t i = 0; i < len; i++ )

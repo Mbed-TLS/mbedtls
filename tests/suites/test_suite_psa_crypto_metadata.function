@@ -58,7 +58,7 @@
 
 /* Check the parity of value.
  * Return 0 if value has even parity and a nonzero value otherwise. */
-int test_parity( uint32_t value )
+int check_parity( uint32_t value )
 {
     value ^= value >> 16;
     value ^= value >> 8;
@@ -66,7 +66,7 @@ int test_parity( uint32_t value )
     return( 0x9669 & 1 << ( value & 0xf ) );
 }
 #define TEST_PARITY( value )                    \
-    TEST_ASSERT( test_parity( value ) )
+    TEST_ASSERT( check_parity( value ) )
 
 void algorithm_classification( psa_algorithm_t alg, unsigned flags )
 {
@@ -497,7 +497,7 @@ void ecc_key_family( int curve_arg )
     psa_key_type_t public_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
     psa_key_type_t pair_type = PSA_KEY_TYPE_ECC_KEY_PAIR( curve );
 
-    test_parity( curve );
+    TEST_PARITY( curve );
 
     test_key_type( public_type, KEY_TYPE_IS_ECC | KEY_TYPE_IS_PUBLIC_KEY );
     test_key_type( pair_type, KEY_TYPE_IS_ECC | KEY_TYPE_IS_KEY_PAIR );
@@ -514,7 +514,7 @@ void dh_key_family( int group_arg )
     psa_key_type_t public_type = PSA_KEY_TYPE_DH_PUBLIC_KEY( group );
     psa_key_type_t pair_type = PSA_KEY_TYPE_DH_KEY_PAIR( group );
 
-    test_parity( group );
+    TEST_PARITY( group );
 
     test_key_type( public_type, KEY_TYPE_IS_DH | KEY_TYPE_IS_PUBLIC_KEY );
     test_key_type( pair_type, KEY_TYPE_IS_DH | KEY_TYPE_IS_KEY_PAIR );

@@ -32,6 +32,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(TRANSPARENT_TEST_DRIVER)
+
 #include "psa/crypto.h"
 
 /**
@@ -140,5 +142,7 @@ psa_status_t transparent_test_driver_verify_hash( const psa_key_attributes_t *at
                                         size_t hash_length,
                                         const uint8_t *signature,
                                         size_t signature_length );
+
+#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && TRANSPARENT_TEST_DRIVER */
 
 #endif /* #ifndef TRANSPARENT_TEST_DRIVER_H */

@@ -25,6 +25,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(TRANSPARENT_TEST_DRIVER)
+
 #include "psa/crypto.h"
 
 #include "mbedtls/arc4.h"
@@ -811,3 +813,5 @@ static psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_GENERIC_ERROR );
     }
 }
+
+#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && TRANSPARENT_TEST_DRIVER */

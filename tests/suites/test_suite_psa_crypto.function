@@ -3038,7 +3038,8 @@ void mac_sign( int key_type_arg,
 
     memset( actual_mac, '+', sizeof( actual_mac ) );
     TEST_ASSERT( mac_buffer_size <= PSA_MAC_MAX_SIZE );
-    TEST_ASSERT( expected_mac->len <= mac_buffer_size );
+    /* We expect PSA_MAC_FINAL_SIZE to be exact. */
+    TEST_ASSERT( expected_mac->len == mac_buffer_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
 

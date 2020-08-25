@@ -783,7 +783,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
 {
     mbedtls_ssl_srtp_profile client_protection = MBEDTLS_SRTP_UNSET_PROFILE;
     size_t i,j;
-    size_t profile_length;
+    size_t profile_length,mki_length;
     const mbedtls_ssl_srtp_profile_info *profile_info;
     /*! 2 bytes for profile length and 1 byte for mki len */
     const size_t size_of_lengths = 3;
@@ -809,8 +809,9 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
     /*
      * Min length is 5: at least one protection profile(2 bytes)
      *                  and length(2 bytes) + srtp_mki length(1 byte)
+     * Check here that we have at least 2 bytes of protection profiles length
      */
-    if( len < size_of_lengths + 2 )
+    if( len < 2 )
     {
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
@@ -821,8 +822,11 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
 
     /* first 2 bytes are protection profile length(in bytes) */
     profile_length = ( buf[0] << 8 ) | buf[1];
+    buf += 2;
 
-    if( profile_length > len - size_of_lengths )
+    /* check the buffer size: at least profiles + profile and mki length */
+    if( profile_length + size_of_lengths > len ||
+        profile_length % 2 != 0 ) /* profiles are 2 bytes long, so the length must be even */
     {
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
@@ -834,8 +838,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
      */
     for( j=0; j < profile_length; j += 2 )
     {
-        /* + 2 to skip the length field */
-        uint16_t protection_profile_value = buf[j + 2] << 8 | buf[j+3];
+        uint16_t protection_profile_value = buf[j] << 8 | buf[j+1];
         client_protection = mbedtls_ssl_get_srtp_profile_value( protection_profile_value );
 
         profile_info = mbedtls_ssl_dtls_srtp_profile_info_from_id( client_protection );
@@ -860,29 +863,34 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
         if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE )
             break;
     }
-    if( ( ssl->conf->dtls_srtp_mki_support == MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED ) &&
-        ( len > ( profile_length + 2 ) ) )
-    {
-        ssl->dtls_srtp_info.mki_len = buf[profile_length + 2];
-        if( ssl->dtls_srtp_info.mki_len > MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH ||
-            ssl->dtls_srtp_info.mki_len + profile_length + size_of_lengths != len )
-        {
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                            MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
-            ssl->dtls_srtp_info.mki_len = 0;
-            return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
-        }
+    buf += profile_length; /* buf points to the mki length */
+    mki_length = *buf;
+    buf++;
 
-        for( i=0; i < ssl->dtls_srtp_info.mki_len; i++ )
+    if( mki_length > MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH ||
+        mki_length + profile_length + size_of_lengths != len )
+    {
+        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                        MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    /* Parse the mki only if present and mki is supported locally */
+    if( ssl->conf->dtls_srtp_mki_support == MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED &&
+          mki_length > 0 )
+    {
+        ssl->dtls_srtp_info.mki_len = mki_length;
+
+        for( i=0; i < mki_length; i++ )
         {
-            ssl->dtls_srtp_info.mki_value[i] = buf[profile_length + 2 + 1 + i];
+            ssl->dtls_srtp_info.mki_value[i] = buf[i];
         }
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "using mki",  ssl->dtls_srtp_info.mki_value,
                                                 ssl->dtls_srtp_info.mki_len );
     }
 
-     return( 0 );
+    return( 0 );
 }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 

@@ -1,2 +1,2 @@
 Features
-   * Added support for AES-ECB to the PSA Crypto cipher API.
+   * Add support for ECB to the PSA cipher API.

@@ -3749,9 +3749,12 @@ static psa_status_t psa_cipher_init( psa_cipher_operation_t *operation,
     operation->alg = alg;
     operation->key_set = 0;
     operation->iv_set = 0;
-    if( alg == PSA_ALG_ECB_NO_PADDING ) {
+    if( alg == PSA_ALG_ECB_NO_PADDING )
+    {
         operation->iv_required = 0;
-    } else {
+    }
+    else
+    {
         operation->iv_required = 1;
     }
     operation->iv_size = 0;
@@ -3844,7 +3847,8 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     operation->key_set = 1;
     operation->block_size = ( PSA_ALG_IS_STREAM_CIPHER( alg ) ? 1 :
                               PSA_BLOCK_CIPHER_BLOCK_SIZE( slot->attr.type ) );
-    if( alg & PSA_ALG_CIPHER_FROM_BLOCK_FLAG && alg != PSA_ALG_ECB_NO_PADDING )
+    if( ( alg & PSA_ALG_CIPHER_FROM_BLOCK_FLAG ) != 0 &&
+        alg != PSA_ALG_ECB_NO_PADDING )
     {
         operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( slot->attr.type );
     }
@@ -4002,7 +4006,8 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
     {
         if( operation->alg == PSA_ALG_ECB_NO_PADDING ||
             ( operation->alg == PSA_ALG_CBC_NO_PADDING &&
-              operation->ctx.cipher.operation == MBEDTLS_ENCRYPT ) ) {
+              operation->ctx.cipher.operation == MBEDTLS_ENCRYPT ) )
+        {
             status = PSA_ERROR_INVALID_ARGUMENT;
             goto error;
         }

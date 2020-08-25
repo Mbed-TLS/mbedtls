@@ -1303,27 +1303,6 @@ static void ssl_mac( mbedtls_md_context_t *md_ctx,
 #define SSL_SOME_MODES_USE_MAC
 #endif
 
-/* The function below is only used in the Lucky 13 counter-measure in
- * ssl_decrypt_buf(). These are the defines that guard the call site. */
-#if defined(SSL_SOME_MODES_USE_MAC) && \
-    ( defined(MBEDTLS_SSL_PROTO_TLS1) || \
-      defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-      defined(MBEDTLS_SSL_PROTO_TLS1_2) )
-/* This function makes sure every byte in the memory region is accessed
- * (in ascending addresses order) */
-static void ssl_read_memory( const unsigned char *p, size_t len )
-{
-    unsigned char acc = 0;
-    volatile unsigned char force;
-
-    for( ; len != 0; p++, len-- )
-        acc ^= *p;
-
-    force = acc;
-    (void) force;
-}
-#endif /* SSL_SOME_MODES_USE_MAC && ( TLS1 || TLS1_1 || TLS1_2 ) */
-
 /*
  * Encryption/decryption functions
  */
@@ -1785,6 +1764,26 @@ cleanup:
     mbedtls_md_free( &aux );
     return( ret );
 }
+
+/*
+ * Constant-flow memcpy from variable position in buffer.
+ * - functionally equivalent to memcpy(dst, src + offset_secret, len)
+ * - but with execution flow independent from the value of offset_secret.
+ */
+void mbedtls_ssl_cf_memcpy_offset( unsigned char *dst,
+                                   const unsigned char *src_base,
+                                   size_t offset_secret,
+                                   size_t offset_min, size_t offset_max,
+                                   size_t len )
+{
+    size_t offset;
+
+    for( offset = offset_min; offset <= offset_max; offset++ )
+    {
+        mbedtls_ssl_cf_memcpy_if_eq( dst, src_base + offset, len,
+                                     offset, offset_secret );
+    }
+}
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 
 static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
@@ -2142,6 +2141,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
     if( auth_done == 0 )
     {
         unsigned char mac_expect[MBEDTLS_SSL_MAC_ADD];
+        unsigned char mac_peer[MBEDTLS_SSL_MAC_ADD];
 
         ssl->in_msglen -= ssl->transform_in->maclen;
 
@@ -2156,6 +2156,8 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
                       ssl->in_msg, ssl->in_msglen,
                       ssl->in_ctr, ssl->in_msgtype,
                       mac_expect );
+            memcpy( mac_peer, ssl->in_msg + ssl->in_msglen,
+                              ssl->transform_in->maclen );
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
@@ -2194,12 +2196,10 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
                 return( ret );
             }
 
-            /* Make sure we access all the memory that could contain the MAC,
-             * before we check it in the next code block. This makes the
-             * synchronisation requirements for just-in-time Prime+Probe
-             * attacks much tighter and hopefully impractical. */
-            ssl_read_memory( ssl->in_msg + min_len,
-                                 max_len - min_len + ssl->transform_in->maclen );
+            mbedtls_ssl_cf_memcpy_offset( mac_peer, ssl->in_msg,
+                                          ssl->in_msglen,
+                                          min_len, max_len,
+                                          ssl->transform_in->maclen );
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
@@ -2211,11 +2211,10 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
         MBEDTLS_SSL_DEBUG_BUF( 4, "expected mac", mac_expect, ssl->transform_in->maclen );
-        MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", ssl->in_msg + ssl->in_msglen,
-                               ssl->transform_in->maclen );
+        MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", mac_peer, ssl->transform_in->maclen );
 #endif
 
-        if( mbedtls_ssl_safer_memcmp( ssl->in_msg + ssl->in_msglen, mac_expect,
+        if( mbedtls_ssl_safer_memcmp( mac_peer, mac_expect,
                                       ssl->transform_in->maclen ) != 0 )
         {
 #if defined(MBEDTLS_SSL_DEBUG_ALL)

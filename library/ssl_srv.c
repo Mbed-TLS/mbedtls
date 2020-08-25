@@ -791,7 +791,9 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
     /* If use_srtp is not configured, just ignore the extension */
     if( ssl->conf->dtls_srtp_profile_list == NULL ||
         ssl->conf->dtls_srtp_profile_list_len == 0 )
+    {
         return( 0 );
+    }
 
     /* RFC5764 section 4.1.1
      * uint8 SRTPProtectionProfile[2];
@@ -841,6 +843,10 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "found srtp profile: %s", profile_info->name ) );
         }
+        else
+        {
+            continue;
+        }
         /* check if suggested profile is in our list */
         for( i = 0; i < ssl->conf->dtls_srtp_profile_list_len; i++)
         {
@@ -858,7 +864,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
         ( len > ( profile_length + 2 ) ) )
     {
         ssl->dtls_srtp_info.mki_len = buf[profile_length + 2];
-        if( ssl->dtls_srtp_info.mki_len > MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH ||
+        if( ssl->dtls_srtp_info.mki_len > MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH ||
             ssl->dtls_srtp_info.mki_len + profile_length + size_of_lengths != len )
         {
             mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,

@@ -4749,7 +4749,7 @@ int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
                                          unsigned char *mki_value,
                                          size_t mki_len )
 {
-    if ( mki_len > MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH )
+    if ( mki_len > MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH )
     {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }

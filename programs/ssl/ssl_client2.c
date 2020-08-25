@@ -1194,7 +1194,7 @@ int main( int argc, char *argv[] )
     const mbedtls_ecp_curve_info *curve_cur;
 #endif
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-    unsigned char mki[MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH];
+    unsigned char mki[MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH];
     size_t mki_len=0;
 #endif
 
@@ -1242,7 +1242,7 @@ int main( int argc, char *argv[] )
     eap_tls_keys eap_tls_keying;
 #if defined( MBEDTLS_SSL_DTLS_SRTP )
     /*! master keys and master salt for SRTP generated during handshake */
-     unsigned char dtls_srtp_key_material[MBEDTLS_DTLS_SRTP_MAX_KEY_MATERIAL_LENGTH];
+     unsigned char dtls_srtp_key_material[MBEDTLS_TLS_SRTP_MAX_KEY_MATERIAL_LENGTH];
      const char* dtls_srtp_label = "EXTRACTOR-dtls_srtp";
      dtls_srtp_keys dtls_srtp_keying;
 #endif /* MBEDTLS_SSL_DTLS_SRTP */

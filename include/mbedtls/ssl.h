@@ -418,10 +418,10 @@
  * Use_srtp extension protection profiles values as defined in
  * http://www.iana.org/assignments/srtp-protection/srtp-protection.xhtml
  */
-#define MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80_IANA_VALUE     0x0001
-#define MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32_IANA_VALUE     0x0002
-#define MBEDTLS_SRTP_NULL_HMAC_SHA1_80_IANA_VALUE          0x0005
-#define MBEDTLS_SRTP_NULL_HMAC_SHA1_32_IANA_VALUE          0x0006
+#define MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80     0x0001
+#define MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32     0x0002
+#define MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80          0x0005
+#define MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32          0x0006
 
 /*
  * Size defines
@@ -867,8 +867,8 @@ typedef void mbedtls_ssl_async_cancel_t( mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 
-#define MBEDTLS_DTLS_SRTP_MAX_KEY_MATERIAL_LENGTH    60
-#define MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH             255
+#define MBEDTLS_TLS_SRTP_MAX_KEY_MATERIAL_LENGTH    60
+#define MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH             255
 /*
  * List of SRTP profiles for DTLS-SRTP
  */
@@ -894,7 +894,7 @@ typedef struct mbedtls_dtls_srtp_info_t
     /*! The SRTP profile that was negotiated*/
     mbedtls_ssl_srtp_profile chosen_dtls_srtp_profile;
     /*! The mki_value used, with max size of 256 bytes */
-    unsigned char mki_value[MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH];
+    unsigned char mki_value[MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH];
     /*! The length of mki_value */
     size_t                 mki_len;
 }
@@ -3190,7 +3190,9 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 /**
- * \brief                   Add support for mki value in use_srtp extension.
+ * \brief                   Add support for mki(master key id) value in use_srtp extension.
+ *                          MKI is an optional part of SRTP used for key management and
+ *                          re-keying. See RFC3711 section 3.1 for details
  *                          The default value is
  *                          #MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED.
  *
@@ -3210,7 +3212,8 @@ void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf,
  *                          in decreasing preference order.
  * \param profiles_number   Number of supported profiles.
  *
- * \return                  0 on success, or #MBEDTLS_ERR_SSL_BAD_INPUT_DATA.
+ * \return                  0 on success
+ * \return                  #MBEDTLS_ERR_SSL_BAD_INPUT_DATA when the list of protection profiles is incorrect
  */
 int mbedtls_ssl_conf_dtls_srtp_protection_profiles
                                ( mbedtls_ssl_config *conf,
@@ -3224,8 +3227,9 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles
  * \param mki_value        The MKI value to set.
  * \param mki_len          The length of the MKI value.
  *
- * \return         0 on success, #MBEDTLS_ERR_SSL_BAD_INPUT_DATA
- *                 or #MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE on failure
+ * \return                 0 on success
+ * \return                 #MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+ * \return                 #MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE
  */
 int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
                                          unsigned char *mki_value,
@@ -3235,10 +3239,11 @@ int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
  *                 This function should be called after the handshake is
  *                 completed.
  *
- * \param ssl      SSL context
+ * \param ssl      The SSL context to query
  *
- * \return         Protection Profile enum member,
- *                 #MBEDTLS_SRTP_UNSET_PROFILE if no protocol was negotiated.
+ * \return         The DTLS SRTP protection profile in use
+ * \return         #MBEDTLS_SRTP_UNSET_PROFILE if no protocol was negotiated or the handshake is still on
+ *                 early stage
  */
 mbedtls_ssl_srtp_profile mbedtls_ssl_get_dtls_srtp_protection_profile
                                              ( const mbedtls_ssl_context *ssl );
@@ -3246,10 +3251,11 @@ mbedtls_ssl_srtp_profile mbedtls_ssl_get_dtls_srtp_protection_profile
 /**
  * \brief                  Utility function to get information on DTLS-SRTP profile.
  *
- * \param profile          The dtls-srtp profile id to get info on.
+ * \param profile          The DTLS-SRTP profile id to get info on.
  *
  * \return                 Address of the SRTP profile information structure on
- *                         success,NULL if not found.
+ *                         success
+ * \return                 \c NULL if not found.
  */
 const mbedtls_ssl_srtp_profile_info *mbedtls_ssl_dtls_srtp_profile_info_from_id
                                            ( mbedtls_ssl_srtp_profile profile );

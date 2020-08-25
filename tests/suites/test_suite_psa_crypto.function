@@ -3028,15 +3028,11 @@ void mac_sign( int key_type_arg,
     psa_algorithm_t alg = alg_arg;
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    /* Leave a little extra room in the output buffer. At the end of the
-     * test, we'll check that the implementation didn't overwrite onto
-     * this extra room. */
-    uint8_t actual_mac[PSA_MAC_MAX_SIZE + 10];
+    uint8_t *actual_mac = NULL;
     size_t mac_buffer_size =
         PSA_MAC_FINAL_SIZE( key_type, PSA_BYTES_TO_BITS( key->len ), alg );
     size_t mac_length = 0;
 
-    memset( actual_mac, '+', sizeof( actual_mac ) );
     TEST_ASSERT( mac_buffer_size <= PSA_MAC_MAX_SIZE );
     /* We expect PSA_MAC_FINAL_SIZE to be exact. */
     TEST_ASSERT( expected_mac->len == mac_buffer_size );
@@ -3048,6 +3044,8 @@ void mac_sign( int key_type_arg,
     psa_set_key_type( &attributes, key_type );
 
     PSA_ASSERT( psa_import_key( &attributes, key->x, key->len, &handle ) );
+
+    ASSERT_ALLOC( actual_mac, mac_buffer_size );
 
     /* Calculate the MAC. */
     PSA_ASSERT( psa_mac_sign_setup( &operation,
@@ -3062,13 +3060,10 @@ void mac_sign( int key_type_arg,
     ASSERT_COMPARE( expected_mac->x, expected_mac->len,
                     actual_mac, mac_length );
 
-    /* Verify that the end of the buffer is untouched. */
-    TEST_ASSERT( mem_is_char( actual_mac + mac_length, '+',
-                              sizeof( actual_mac ) - mac_length ) );
-
 exit:
     psa_destroy_key( handle );
     PSA_DONE( );
+    mbedtls_free( actual_mac );
 }
 /* END_CASE */
 

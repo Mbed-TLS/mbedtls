@@ -3114,7 +3114,6 @@ void mac_verify( int key_type_arg,
 
     PSA_ASSERT( psa_mac_verify_setup( &operation,
                                       handle, alg ) );
-    PSA_ASSERT( psa_destroy_key( handle ) );
     PSA_ASSERT( psa_mac_update( &operation,
                                 input->x, input->len ) );
     PSA_ASSERT( psa_mac_verify_finish( &operation,

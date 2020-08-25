@@ -1785,6 +1785,23 @@ cleanup:
     mbedtls_md_free( &aux );
     return( ret );
 }
+
+/*
+ * Constant-flow memcpy from variable position in buffer.
+ * - functionally equivalent to memcpy(dst, src + offset_secret, len)
+ * - but with execution flow independant from the value of offset_secret.
+ */
+void mbedtls_ssl_cf_memcpy_offset( unsigned char *dst,
+                                   const unsigned char *src_base,
+                                   size_t offset_secret,
+                                   size_t offset_min, size_t offset_max,
+                                   size_t len )
+{
+    /* WIP - THIS IS NOT ACTUALLY CONSTANT-FLOW!
+     * This is just to be able to write tests and check they work. */
+    ssl_read_memory( src_base + offset_min, offset_max - offset_min + len );
+    memcpy( dst, src_base + offset_secret, len );
+}
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 
 static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
@@ -2197,14 +2214,10 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
                 return( ret );
             }
 
-            /* Make sure we access all the memory that could contain the MAC,
-             * before we check it in the next code block. This makes the
-             * synchronisation requirements for just-in-time Prime+Probe
-             * attacks much tighter and hopefully impractical. */
-            ssl_read_memory( ssl->in_msg + min_len,
-                                 max_len - min_len + ssl->transform_in->maclen );
-            memcpy( mac_peer, ssl->in_msg + ssl->in_msglen,
-                              ssl->transform_in->maclen );
+            mbedtls_ssl_cf_memcpy_offset( mac_peer, ssl->in_msg,
+                                          ssl->in_msglen,
+                                          min_len, max_len,
+                                          ssl->transform_in->maclen );
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \

@@ -233,7 +233,12 @@ exit:
         if( rename_replace_existing( PSA_ITS_STORAGE_TEMP, filename ) != 0 )
             status = PSA_ERROR_STORAGE_FAILURE;
     }
-    remove( PSA_ITS_STORAGE_TEMP );
+    /* The temporary file may still exist, but only in failure cases where
+     * we're already reporting an error. So there's nothing we can do on
+     * failure. If the function succeeded, and in some error cases, the
+     * temporary file doesn't exist and so remove() is expected to fail.
+     * Thus we just ignore the return status of remove(). */
+    (void) remove( PSA_ITS_STORAGE_TEMP );
     return( status );
 }
 

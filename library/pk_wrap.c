@@ -553,11 +553,12 @@ static int ecdsa_verify_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
     unsigned char buf[30 + 2 * MBEDTLS_ECP_MAX_BYTES];
     unsigned char *p;
     mbedtls_pk_info_t pk_info = mbedtls_eckey_info;
-    psa_algorithm_t psa_sig_md, psa_md;
+    psa_algorithm_t psa_sig_md = PSA_ALG_ECDSA_ANY;
     size_t curve_bits;
     psa_ecc_family_t curve =
         mbedtls_ecc_group_to_psa( ctx->grp.id, &curve_bits );
     const size_t signature_part_size = ( ctx->grp.nbits + 7 ) / 8;
+    ((void) md_alg);
 
     if( curve == 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
@@ -570,11 +571,6 @@ static int ecdsa_verify_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
     key_len = mbedtls_pk_write_pubkey( &p, buf, &key );
     if( key_len <= 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-
-    psa_md = mbedtls_psa_translate_md( md_alg );
-    if( psa_md == 0 )
-        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-    psa_sig_md = PSA_ALG_ECDSA( psa_md );
 
     psa_set_key_type( &attributes, PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve ) );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );

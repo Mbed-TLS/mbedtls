@@ -5651,7 +5651,7 @@ exit:
         /* In case there was a test failure after creating the persistent key
          * but while it was not open, try to re-open the persistent key
          * to delete it. */
-        psa_open_key( key_id, &handle );
+        (void) psa_open_key( key_id, &handle );
     }
     psa_destroy_key( handle );
     PSA_DONE();

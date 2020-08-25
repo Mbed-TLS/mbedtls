@@ -161,7 +161,7 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
                                  int cert_type )
 {
     mbedtls_pk_context key;
-    psa_key_handle_t slot;
+    psa_key_handle_t slot = 0;
     psa_algorithm_t md_alg_psa;
     mbedtls_x509write_csr req;
     unsigned char buf[4096];

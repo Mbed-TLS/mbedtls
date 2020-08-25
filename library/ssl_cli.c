@@ -3469,20 +3469,8 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 
     if( ssl->client_auth == 0 )
     {
-#if defined(MBEDTLS_SSL_DTLS_SRTP)
-        /* check if we have a chosen srtp protection profile */
-        if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE )
-        {
-            ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
-        }
-        else
-        {
-#endif /* MBEDTLS_SSL_DTLS_SRTP */
-            /* Current message is probably the ServerHelloDone */
-            ssl->keep_current_message = 1;
-#if defined(MBEDTLS_SSL_DTLS_SRTP)
-        }
-#endif
+        /* Current message is probably the ServerHelloDone */
+        ssl->keep_current_message = 1;
         goto exit;
     }
 
@@ -4129,45 +4117,9 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
 
     if( ssl->client_auth == 0 || mbedtls_ssl_own_cert( ssl ) == NULL )
     {
-#if defined(MBEDTLS_SSL_DTLS_SRTP)
-        /*
-         * Check if we have a chosen srtp protection profile.
-         * According to RFC 5764 section 4.1 client certificate in dtls srtp
-         * is mandatory:
-         *        Client                               Server
-         *
-         *   ClientHello + use_srtp   -------->
-         *                                 ServerHello + use_srtp
-         *                                           Certificate*
-         *                                     ServerKeyExchange*
-         *                                     ertificateRequest*
-         *                            <--------   ServerHelloDone
-         *   Certificate*
-         *   ClientKeyExchange
-         *   CertificateVerify*
-         *   [ChangeCipherSpec]
-         *   Finished                 -------->
-         *                                     [ChangeCipherSpec]
-         *                            <--------          Finished
-         *   SRTP packets             <------->      SRTP packets
-         *
-         * Note that '*' indicates messages that are not always sent in DTLS.
-         * The CertificateRequest, client and server Certificates, and
-         * CertificateVerify will be sent in DTLS-SRTP.
-         */
-        if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE )
-        {
-            return ( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
-        }
-        else
-        {
-#endif /* MBEDTLS_SSL_DTLS_SRTP */
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
-            ssl->state++;
-            return( 0 );
-#if defined(MBEDTLS_SSL_DTLS_SRTP)
-        }
-#endif
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
+        ssl->state++;
+        return( 0 );
     }
 
     if( mbedtls_ssl_own_key( ssl ) == NULL )

@@ -136,7 +136,7 @@ server2.crt: server2-rsa.csr
 	$(MBEDTLS_CERT_WRITE) request_file=server2-rsa.csr issuer_crt=test-ca-sha256.crt issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) serial=4 not_before=20190410141727 not_after=20290410141727 md=SHA1 version=3 output_file=$@
 all_final += server2.crt
 server2-sha256.crt: server2-rsa.csr
-	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA test-ca-sha256.crt -CAkey $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 4 -days 3653 -sha256 -in server2-rsa.csr -out $@
+	$(MBEDTLS_CERT_WRITE) request_file=server2-rsa.csr serial=2 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
 all_final += server2-sha256.crt
 
 test_ca_int_rsa1 = test-int-ca.crt

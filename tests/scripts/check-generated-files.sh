@@ -1,6 +1,6 @@
 #! /usr/bin/env sh
 
-# Copyright (c) 2018, ARM Limited, All Rights Reserved
+# Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
 # This file is provided under the Apache License 2.0, or the
@@ -42,17 +42,33 @@
 #
 # **********
 #
-# This file is part of Mbed TLS (https://tls.mbed.org)
-#
 # Purpose
 #
 # Check if generated files are up-to-date.
 
 set -eu
 
+if [ $# -ne 0 ] && [ "$1" = "--help" ]; then
+    cat <<EOF
+$0 [-u]
+This script checks that all generated file are up-to-date. If some aren't, by
+default the scripts reports it and exits in error; with the -u option, it just
+updates them instead.
+
+  -u    Update the files rather than return an error for out-of-date files.
+EOF
+    exit
+fi
+
 if [ -d library -a -d include -a -d tests ]; then :; else
     echo "Must be run from mbed TLS root" >&2
     exit 1
+fi
+
+UPDATE=
+if [ $# -ne 0 ] && [ "$1" = "-u" ]; then
+    shift
+    UPDATE='y'
 fi
 
 check()
@@ -80,9 +96,15 @@ check()
     for FILE in $FILES; do
         if ! diff $FILE $FILE.bak >/dev/null 2>&1; then
             echo "'$FILE' was either modified or deleted by '$SCRIPT'"
-            exit 1
+            if [ -z "$UPDATE" ]; then
+                exit 1
+            fi
         fi
-        mv $FILE.bak $FILE
+        if [ -z "$UPDATE" ]; then
+            mv $FILE.bak $FILE
+        else
+            rm $FILE.bak
+        fi
 
         if [ -d $TO_CHECK ]; then
             # Create a grep regular expression that we can check against the
@@ -99,7 +121,9 @@ check()
         # Check if there are any new files
         if ls -1 $TO_CHECK | grep -v "$PATTERN" >/dev/null 2>&1; then
             echo "Files were created by '$SCRIPT'"
-            exit 1
+            if [ -z "$UPDATE" ]; then
+                exit 1
+            fi
         fi
     fi
 }

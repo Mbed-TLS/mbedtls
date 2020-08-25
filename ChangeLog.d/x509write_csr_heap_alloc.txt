@@ -1,0 +1,4 @@
+Bugfix
+   * Reduce the stack consumption of mbedtls_x509write_csr_der() which
+     previously could lead to stack overflow on constrained devices.
+     Contributed by Doru Gucea and Simon Leet in #3464.

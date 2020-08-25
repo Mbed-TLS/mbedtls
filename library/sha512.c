@@ -234,8 +234,11 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
                                      const unsigned char data[128] )
 {
     int i;
-    uint64_t temp1, temp2, W[80];
-    uint64_t A[8];
+    struct
+    {
+        uint64_t temp1, temp2, W[80];
+        uint64_t A[8];
+    } local;
 
     SHA512_VALIDATE_RET( ctx != NULL );
     SHA512_VALIDATE_RET( (const unsigned char *)data != NULL );
@@ -252,70 +255,79 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
 #define F0(x,y,z) (((x) & (y)) | ((z) & ((x) | (y))))
 #define F1(x,y,z) ((z) ^ ((x) & ((y) ^ (z))))
 
-#define P(a,b,c,d,e,f,g,h,x,K)                                  \
-    do                                                          \
-    {                                                           \
-        temp1 = (h) + S3(e) + F1((e),(f),(g)) + (K) + (x);      \
-        temp2 = S2(a) + F0((a),(b),(c));                        \
-        (d) += temp1; (h) = temp1 + temp2;                      \
+#define P(a,b,c,d,e,f,g,h,x,K)                                      \
+    do                                                              \
+    {                                                               \
+        local.temp1 = (h) + S3(e) + F1((e),(f),(g)) + (K) + (x);    \
+        local.temp2 = S2(a) + F0((a),(b),(c));                      \
+        (d) += local.temp1; (h) = local.temp1 + local.temp2;        \
     } while( 0 )
 
     for( i = 0; i < 8; i++ )
-        A[i] = ctx->state[i];
+        local.A[i] = ctx->state[i];
 
 #if defined(MBEDTLS_SHA512_SMALLER)
     for( i = 0; i < 80; i++ )
     {
         if( i < 16 )
         {
-            GET_UINT64_BE( W[i], data, i << 3 );
+            GET_UINT64_BE( local.W[i], data, i << 3 );
         }
         else
         {
-            W[i] = S1(W[i -  2]) + W[i -  7] +
-                   S0(W[i - 15]) + W[i - 16];
+            local.W[i] = S1(local.W[i -  2]) + local.W[i -  7] +
+                   S0(local.W[i - 15]) + local.W[i - 16];
         }
 
-        P( A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], W[i], K[i] );
+        P( local.A[0], local.A[1], local.A[2], local.A[3], local.A[4],
+           local.A[5], local.A[6], local.A[7], local.W[i], K[i] );
 
-        temp1 = A[7]; A[7] = A[6]; A[6] = A[5]; A[5] = A[4]; A[4] = A[3];
-        A[3] = A[2]; A[2] = A[1]; A[1] = A[0]; A[0] = temp1;
+        local.temp1 = local.A[7]; local.A[7] = local.A[6];
+        local.A[6] = local.A[5]; local.A[5] = local.A[4];
+        local.A[4] = local.A[3]; local.A[3] = local.A[2];
+        local.A[2] = local.A[1]; local.A[1] = local.A[0];
+        local.A[0] = local.temp1;
     }
 #else /* MBEDTLS_SHA512_SMALLER */
     for( i = 0; i < 16; i++ )
     {
-        GET_UINT64_BE( W[i], data, i << 3 );
+        GET_UINT64_BE( local.W[i], data, i << 3 );
     }
 
     for( ; i < 80; i++ )
     {
-        W[i] = S1(W[i -  2]) + W[i -  7] +
-               S0(W[i - 15]) + W[i - 16];
+        local.W[i] = S1(local.W[i -  2]) + local.W[i -  7] +
+               S0(local.W[i - 15]) + local.W[i - 16];
     }
 
     i = 0;
     do
     {
-        P( A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], W[i], K[i] ); i++;
-        P( A[7], A[0], A[1], A[2], A[3], A[4], A[5], A[6], W[i], K[i] ); i++;
-        P( A[6], A[7], A[0], A[1], A[2], A[3], A[4], A[5], W[i], K[i] ); i++;
-        P( A[5], A[6], A[7], A[0], A[1], A[2], A[3], A[4], W[i], K[i] ); i++;
-        P( A[4], A[5], A[6], A[7], A[0], A[1], A[2], A[3], W[i], K[i] ); i++;
-        P( A[3], A[4], A[5], A[6], A[7], A[0], A[1], A[2], W[i], K[i] ); i++;
-        P( A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], W[i], K[i] ); i++;
-        P( A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], W[i], K[i] ); i++;
+        P( local.A[0], local.A[1], local.A[2], local.A[3], local.A[4],
+           local.A[5], local.A[6], local.A[7], local.W[i], K[i] ); i++;
+        P( local.A[7], local.A[0], local.A[1], local.A[2], local.A[3],
+           local.A[4], local.A[5], local.A[6], local.W[i], K[i] ); i++;
+        P( local.A[6], local.A[7], local.A[0], local.A[1], local.A[2],
+           local.A[3], local.A[4], local.A[5], local.W[i], K[i] ); i++;
+        P( local.A[5], local.A[6], local.A[7], local.A[0], local.A[1],
+           local.A[2], local.A[3], local.A[4], local.W[i], K[i] ); i++;
+        P( local.A[4], local.A[5], local.A[6], local.A[7], local.A[0],
+           local.A[1], local.A[2], local.A[3], local.W[i], K[i] ); i++;
+        P( local.A[3], local.A[4], local.A[5], local.A[6], local.A[7],
+           local.A[0], local.A[1], local.A[2], local.W[i], K[i] ); i++;
+        P( local.A[2], local.A[3], local.A[4], local.A[5], local.A[6],
+           local.A[7], local.A[0], local.A[1], local.W[i], K[i] ); i++;
+        P( local.A[1], local.A[2], local.A[3], local.A[4], local.A[5],
+           local.A[6], local.A[7], local.A[0], local.W[i], K[i] ); i++;
     }
     while( i < 80 );
 #endif /* MBEDTLS_SHA512_SMALLER */
 
     for( i = 0; i < 8; i++ )
-        ctx->state[i] += A[i];
+        ctx->state[i] += local.A[i];
 
     /* Zeroise buffers and variables to clear sensitive data from memory. */
-    mbedtls_platform_zeroize( &A, sizeof( A ) );
-    mbedtls_platform_zeroize( &W, sizeof( W ) );
-    mbedtls_platform_zeroize( &temp1, sizeof( temp1 ) );
-    mbedtls_platform_zeroize( &temp2, sizeof( temp2 ) );
+    mbedtls_platform_zeroize( &local, sizeof( local ) );
 
     return( 0 );
 }

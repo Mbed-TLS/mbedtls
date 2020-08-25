@@ -796,8 +796,6 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     mbedtls_zeroize( &Y2, sizeof( Y2 ) );
     mbedtls_zeroize( &Y3, sizeof( Y3 ) );
 
-    mbedtls_zeroize( &RK, sizeof( RK ) );
-
     return( 0 );
 }
 #endif /* !MBEDTLS_AES_ENCRYPT_ALT */
@@ -875,8 +873,6 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     mbedtls_zeroize( &Y1, sizeof( Y1 ) );
     mbedtls_zeroize( &Y2, sizeof( Y2 ) );
     mbedtls_zeroize( &Y3, sizeof( Y3 ) );
-
-    mbedtls_zeroize( &RK, sizeof( RK ) );
 
     return( 0 );
 }

@@ -3101,6 +3101,7 @@ void mac_verify( int key_type_arg,
     psa_algorithm_t alg = alg_arg;
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t *perturbed_mac = NULL;
 
     TEST_ASSERT( expected_mac->len <= PSA_MAC_MAX_SIZE );
 
@@ -3112,6 +3113,7 @@ void mac_verify( int key_type_arg,
 
     PSA_ASSERT( psa_import_key( &attributes, key->x, key->len, &handle ) );
 
+    /* Test the correct MAC. */
     PSA_ASSERT( psa_mac_verify_setup( &operation,
                                       handle, alg ) );
     PSA_ASSERT( psa_mac_update( &operation,
@@ -3120,9 +3122,48 @@ void mac_verify( int key_type_arg,
                                        expected_mac->x,
                                        expected_mac->len ) );
 
+    /* Test a MAC that's too short. */
+    PSA_ASSERT( psa_mac_verify_setup( &operation,
+                                      handle, alg ) );
+    PSA_ASSERT( psa_mac_update( &operation,
+                                input->x, input->len ) );
+    TEST_EQUAL( psa_mac_verify_finish( &operation,
+                                       expected_mac->x,
+                                       expected_mac->len - 1 ),
+                PSA_ERROR_INVALID_SIGNATURE );
+
+    /* Test a MAC that's too long. */
+    ASSERT_ALLOC( perturbed_mac, expected_mac->len + 1 );
+    memcpy( perturbed_mac, expected_mac->x, expected_mac->len );
+    PSA_ASSERT( psa_mac_verify_setup( &operation,
+                                      handle, alg ) );
+    PSA_ASSERT( psa_mac_update( &operation,
+                                input->x, input->len ) );
+    TEST_EQUAL( psa_mac_verify_finish( &operation,
+                                       perturbed_mac,
+                                       expected_mac->len + 1 ),
+                PSA_ERROR_INVALID_SIGNATURE );
+
+    /* Test changing one byte. */
+    for( size_t i = 0; i < expected_mac->len; i++ )
+    {
+        test_set_step( i );
+        perturbed_mac[i] ^= 1;
+        PSA_ASSERT( psa_mac_verify_setup( &operation,
+                                          handle, alg ) );
+        PSA_ASSERT( psa_mac_update( &operation,
+                                    input->x, input->len ) );
+        TEST_EQUAL( psa_mac_verify_finish( &operation,
+                                           perturbed_mac,
+                                           expected_mac->len ),
+                    PSA_ERROR_INVALID_SIGNATURE );
+        perturbed_mac[i] ^= 1;
+    }
+
 exit:
     psa_destroy_key( handle );
     PSA_DONE( );
+    mbedtls_free( perturbed_mac );
 }
 /* END_CASE */
 

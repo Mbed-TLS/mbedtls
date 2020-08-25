@@ -20,7 +20,7 @@ x509_cert_info:"data_files/cert_md4.crt":"cert. version     \: 3\nserial number 
 
 X509 Certificate information MD5 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD5_C
-x509_cert_info:"data_files/cert_md5.crt":"cert. version     \: 3\nserial number     \: 06\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD5\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with MD5\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/cert_md5.crt":"cert. version     \: 3\nserial number     \: 06\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD5\nissued  on        \: 2000-01-01 12\:12\:12\nexpires on        \: 2030-01-01 12\:12\:12\nsigned using      \: RSA with MD5\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information SHA1 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
@@ -830,6 +830,14 @@ x509_verify:"data_files/cert_sha224.crt":"data_files/test-ca.crt":"data_files/cr
 X509 Certificate verification #97 (next profile Valid Cert SHA256 Digest)
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_ECDSA_C:MBEDTLS_SHA1_C
 x509_verify:"data_files/cert_sha256.crt":"data_files/test-ca.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"next":"NULL"
+
+X509 Certificate verification: domain identical to IPv4 in SubjectAltName
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"abcd":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
+
+X509 Certificate verification: domain identical to IPv6 in SubjectAltName
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"abcd.example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
 
 X509 Certificate verification callback: bad name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED

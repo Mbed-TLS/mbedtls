@@ -254,7 +254,7 @@ print_name() {
     fi
 
     LINE="$LINE$1"
-    printf "$LINE "
+    printf "%s " "$LINE"
     LEN=$(( 72 - `echo "$LINE" | wc -c` ))
     for i in `seq 1 $LEN`; do printf '.'; done
     printf ' '
@@ -518,12 +518,12 @@ run_test() {
         fi
 
         check_osrv_dtls
-        printf "# $NAME\n$SRV_CMD\n" > $SRV_OUT
+        printf '# %s\n%s\n' "$NAME" "$SRV_CMD" > $SRV_OUT
         provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
         SRV_PID=$!
         wait_server_start "$SRV_PORT" "$SRV_PID"
 
-        printf "# $NAME\n$CLI_CMD\n" > $CLI_OUT
+        printf '# %s\n%s\n' "$NAME" "$CLI_CMD" > $CLI_OUT
         eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
         wait_client_done
 
@@ -1699,14 +1699,14 @@ MAX_CONTENT_LEN_EXPECT='16384'
 MAX_CONTENT_LEN_CONFIG=$( ../scripts/config.pl get MBEDTLS_SSL_MAX_CONTENT_LEN)
 
 if [ -n "$MAX_CONTENT_LEN_CONFIG" ] && [ "$MAX_CONTENT_LEN_CONFIG" -ne "$MAX_CONTENT_LEN_EXPECT" ]; then
-    printf "The ${CONFIG_H} file contains a value for the configuration of\n"
-    printf "MBEDTLS_SSL_MAX_CONTENT_LEN that is different from the script’s\n"
-    printf "test value of ${MAX_CONTENT_LEN_EXPECT}. \n"
-    printf "\n"
-    printf "The tests assume this value and if it changes, the tests in this\n"
-    printf "script should also be adjusted.\n"
-    printf "\n"
+  cat <<EOF
+The ${CONFIG_H} file contains a value for the configuration of
+MBEDTLS_SSL_MAX_CONTENT_LEN that is different from the script’s
+test value of ${MAX_CONTENT_LEN_EXPECT}.
 
+The tests assume this value and if it changes, the tests in this
+script should also be adjusted.
+EOF
     exit 1
 fi
 
@@ -2644,14 +2644,14 @@ MAX_IM_CA='8'
 MAX_IM_CA_CONFIG=$( ../scripts/config.pl get MBEDTLS_X509_MAX_INTERMEDIATE_CA)
 
 if [ -n "$MAX_IM_CA_CONFIG" ] && [ "$MAX_IM_CA_CONFIG" -ne "$MAX_IM_CA" ]; then
-    printf "The ${CONFIG_H} file contains a value for the configuration of\n"
-    printf "MBEDTLS_X509_MAX_INTERMEDIATE_CA that is different from the script’s\n"
-    printf "test value of ${MAX_IM_CA}. \n"
-    printf "\n"
-    printf "The tests assume this value and if it changes, the tests in this\n"
-    printf "script should also be adjusted.\n"
-    printf "\n"
+    cat <<EOF
+${CONFIG_H} contains a value for the configuration of
+MBEDTLS_X509_MAX_INTERMEDIATE_CA that is different from the script's
+test value of ${MAX_IM_CA}.
 
+The tests assume this value and if it changes, the tests in this
+script should also be adjusted.
+EOF
     exit 1
 fi
 

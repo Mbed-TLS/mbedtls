@@ -765,10 +765,10 @@ static void psa_purge_storage( void )
     psa_key_location_t location;
 
     /* The tests may have potentially created key ids from 1 to
-     * MAX_KEY_ID_FOR_TEST. In addition, run the destroy function on key id
-     * 0, which file-based storage uses as a temporary file. */
-    for( id = 0; id <= MAX_KEY_ID_FOR_TEST; id++ )
+     * MAX_KEY_ID_FOR_TEST. */
+    for( id = 1; id <= MAX_KEY_ID_FOR_TEST; id++ )
         psa_destroy_persistent_key( mbedtls_svc_key_id_make( 1, id ) );
+
     /* Purge the transaction file. */
     psa_crypto_stop_transaction( );
     /* Purge driver persistent data. */

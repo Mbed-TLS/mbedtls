@@ -758,16 +758,40 @@ exit:
     return( ok );
 }
 
-#define MAX_KEY_ID_FOR_TEST 10
+static mbedtls_svc_key_id_t key_ids_used_in_test[10];
+static size_t num_key_ids_used;
+
+/* Record a key id as potentially used in a test case. */
+static int test_uses_key_id( mbedtls_svc_key_id_t key_id )
+{
+    size_t i;
+
+    for( i = 0; i < num_key_ids_used ; i++ )
+    {
+        if( mbedtls_svc_key_id_equal( key_id, key_ids_used_in_test[i] ) )
+            return( 1 );
+    }
+
+    if( num_key_ids_used >= ARRAY_LENGTH( key_ids_used_in_test ) )
+        return( 0 );
+
+    key_ids_used_in_test[num_key_ids_used] = key_id;
+    ++num_key_ids_used;
+
+    return( 1 );
+}
+
+#define TEST_USES_KEY_ID( key_id )                       \
+    TEST_ASSERT( test_uses_key_id( key_id ) )
+
 static void psa_purge_storage( void )
 {
-    psa_key_id_t id;
+    size_t i;
     psa_key_location_t location;
 
-    /* The tests may have potentially created key ids from 1 to
-     * MAX_KEY_ID_FOR_TEST. */
-    for( id = 1; id <= MAX_KEY_ID_FOR_TEST; id++ )
-        psa_destroy_persistent_key( mbedtls_svc_key_id_make( 1, id ) );
+    for( i = 0; i < num_key_ids_used; i++ )
+        psa_destroy_persistent_key( key_ids_used_in_test[i] );
+    num_key_ids_used = 0;
 
     /* Purge the transaction file. */
     psa_crypto_stop_transaction( );
@@ -861,6 +885,8 @@ void key_creation_import_export( int lifetime_arg, int min_slot, int restart )
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
     uint8_t exported[sizeof( key_material )];
     size_t exported_length;
+
+    TEST_USES_KEY_ID( id );
 
     memset( &driver, 0, sizeof( driver ) );
     memset( &key_management, 0, sizeof( key_management ) );
@@ -992,6 +1018,8 @@ void key_creation_in_chosen_slot( int slot_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
 
+    TEST_USES_KEY_ID( id );
+
     memset( &driver, 0, sizeof( driver ) );
     memset( &key_management, 0, sizeof( key_management ) );
     driver.hal_version = PSA_DRV_SE_HAL_VERSION;
@@ -1073,6 +1101,8 @@ void import_key_smoke( int type_arg, int alg_arg,
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
+    TEST_USES_KEY_ID( id );
+
     memset( &driver, 0, sizeof( driver ) );
     memset( &key_management, 0, sizeof( key_management ) );
     driver.hal_version = PSA_DRV_SE_HAL_VERSION;
@@ -1145,6 +1175,8 @@ void generate_key_not_supported( int type_arg, int bits_arg )
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
+    TEST_USES_KEY_ID( id );
+
     memset( &driver, 0, sizeof( driver ) );
     memset( &key_management, 0, sizeof( key_management ) );
     driver.hal_version = PSA_DRV_SE_HAL_VERSION;
@@ -1183,6 +1215,8 @@ void generate_key_smoke( int type_arg, int bits_arg, int alg_arg )
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    TEST_USES_KEY_ID( id );
 
     memset( &driver, 0, sizeof( driver ) );
     memset( &key_management, 0, sizeof( key_management ) );
@@ -1267,6 +1301,8 @@ void sign_verify( int flow,
     psa_key_attributes_t drv_attributes;
     uint8_t signature[PSA_SIGNATURE_MAX_SIZE];
     size_t signature_length;
+
+    TEST_USES_KEY_ID( id );
 
     memset( &driver, 0, sizeof( driver ) );
     memset( &key_management, 0, sizeof( key_management ) );
@@ -1427,6 +1463,8 @@ void register_key_smoke_test( int lifetime_arg,
     psa_key_slot_number_t wanted_slot = 0x123456789;
     psa_key_handle_t handle = 0;
     psa_status_t status;
+
+    TEST_USES_KEY_ID( id );
 
     memset( &driver, 0, sizeof( driver ) );
     driver.hal_version = PSA_DRV_SE_HAL_VERSION;

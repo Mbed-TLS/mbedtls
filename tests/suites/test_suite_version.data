@@ -1,8 +1,8 @@
 Check compiletime library version
-check_compiletime_version:"2.16.7"
+check_compiletime_version:"2.16.8"
 
 Check runtime library version
-check_runtime_version:"2.16.7"
+check_runtime_version:"2.16.8"
 
 Check for MBEDTLS_VERSION_C
 check_feature:"MBEDTLS_VERSION_C":0

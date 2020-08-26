@@ -1,4 +1,0 @@
-Bugfix
-   * Fix bug in redirection of unit test outputs on platforms where stdout is
-     defined as a macro. First reported in #2311 and fix contributed in #3528.
-     Adopted for LTS branch 2.7 in #3600.

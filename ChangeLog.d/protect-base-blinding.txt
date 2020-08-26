@@ -1,6 +1,0 @@
-Security
-   * Fix side channel in RSA private key operations and static (finite-field)
-     Diffie-Hellman. An adversary with precise enough timing and memory access
-     information (typically an untrusted operating system attacking a secure
-     enclave) could bypass an existing counter-measure (base blinding) and
-     potentially fully recover the private key.

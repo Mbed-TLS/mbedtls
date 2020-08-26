@@ -1,9 +1,0 @@
-API changes
-   * In the PSA API, rename the types of elliptic curve and Diffie-Hellman group families to
-     psa_ecc_family_t and psa_dh_family_t, in line with the PSA Crypto API specification version 1.0.0.
-     Rename associated macros as well:
-     PSA_ECC_CURVE_xxx renamed to PSA_ECC_FAMILY_xxx
-     PSA_DH_GROUP_xxx renamed to PSA_DH_FAMILY_xxx
-     PSA_KEY_TYPE_GET_CURVE renamed to to PSA_KEY_TYPE_ECC_GET_FAMILY
-     PSA_KEY_TYPE_GET_GROUP renamed to PSA_KEY_TYPE_DH_GET_FAMILY
-

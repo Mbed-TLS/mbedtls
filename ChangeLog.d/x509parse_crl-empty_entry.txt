@@ -1,4 +1,0 @@
-Security
-   * Fix a 1-byte buffer overread in mbedtls_x509_crl_parse_der().
-     Credit to OSS-Fuzz for detecting the problem and to Philippe Antoine
-     for pinpointing the problematic code.

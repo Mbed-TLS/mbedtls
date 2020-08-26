@@ -1,9 +1,0 @@
-Features
-   * The new function mbedtls_ecp_write_key() exports private ECC keys back to
-     a byte buffer. It is the inverse of the existing mbedtls_ecp_read_key().
-
-Bugfix
-   * Fix the endianness of Curve25519 keys imported/exported through the PSA
-     APIs. psa_import_key and psa_export_key will now correctly expect/output
-     Montgomery keys in little-endian as defined by RFC7748. Contributed by
-     Steven Cooreman in #3425.

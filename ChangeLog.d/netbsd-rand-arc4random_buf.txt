@@ -1,3 +1,0 @@
-Bugfix
-   * Use arc4random_buf on NetBSD instead of rand implementation with cyclical
-     lower bits. Fix contributed in #3540.

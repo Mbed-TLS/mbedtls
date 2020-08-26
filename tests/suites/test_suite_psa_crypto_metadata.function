@@ -67,7 +67,7 @@
  *
  * The expected parity is even so that 0 is considered a valid encoding.
  *
- * Return 0 if value has even parity and a nonzero value otherwise. */
+ * Return a nonzero value if value has even parity and 0 otherwise. */
 int has_even_parity( uint32_t value )
 {
     value ^= value >> 16;

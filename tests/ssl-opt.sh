@@ -130,8 +130,8 @@ print_usage() {
     echo "Usage: $0 [options]"
     printf "  -h|--help\tPrint this help.\n"
     printf "  -m|--memcheck\tCheck memory leaks and errors.\n"
-    printf "  -f|--filter\tOnly matching tests are executed (BRE)\n"
-    printf "  -e|--exclude\tMatching tests are excluded (BRE)\n"
+    printf "  -f|--filter\tOnly matching tests are executed (substring or BRE)\n"
+    printf "  -e|--exclude\tMatching tests are excluded (substring or BRE)\n"
     printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
     printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
     printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
@@ -580,8 +580,7 @@ run_test() {
     NAME="$1"
     shift 1
 
-    if echo "$NAME" | grep "$FILTER" | grep -v "$EXCLUDE" >/dev/null; then :
-    else
+    if is_excluded "$NAME"; then
         SKIP_NEXT="NO"
         return
     fi
@@ -849,6 +848,46 @@ cleanup() {
 #
 
 get_options "$@"
+
+# Optimize filters: if $FILTER and $EXCLUDE can be expressed as shell
+# patterns rather than regular expressions, use a case statement instead
+# of calling grep. To keep the optimizer simple, it is incomplete and only
+# detects simple cases: plain substring, everything, nothing.
+#
+# As an exception, the character '.' is treated as an ordinary character
+# if it is the only special character in the string. This is because it's
+# rare to need "any one character", but needing a literal '.' is common
+# (e.g. '-f "DTLS 1.2"').
+need_grep=
+case "$FILTER" in
+    '^$') simple_filter=;;
+    '.*') simple_filter='*';;
+    *[][\$^+*?{|}]*) # Regexp special characters (other than .), we need grep
+        need_grep=1;;
+    *) # No regexp or shell-pattern special character
+        simple_filter="*$FILTER*";;
+esac
+case "$EXCLUDE" in
+    '^$') simple_exclude=;;
+    '.*') simple_exclude='*';;
+    *[][\$^+*?{|}]*) # Regexp special characters (other than .), we need grep
+        need_grep=1;;
+    *) # No regexp or shell-pattern special character
+        simple_exclude="*$EXCLUDE*";;
+esac
+if [ -n "$need_grep" ]; then
+    is_excluded () {
+        ! echo "$1" | grep "$FILTER" | grep -q -v "$EXCLUDE"
+    }
+else
+    is_excluded () {
+        case "$1" in
+            $simple_exclude) true;;
+            $simple_filter) false;;
+            *) true;;
+        esac
+    }
+fi
 
 # sanity checks, avoid an avalanche of errors
 P_SRV_BIN="${P_SRV%%[  ]*}"

@@ -178,15 +178,15 @@ endif(USE_STATIC_MBEDTLS_LIBRARY)
 
 if(USE_SHARED_MBEDTLS_LIBRARY)
     add_library(mbedcrypto SHARED ${src_crypto})
-    set_target_properties(mbedcrypto PROPERTIES VERSION 2.23.0 SOVERSION 5)
+    set_target_properties(mbedcrypto PROPERTIES VERSION 2.24.0 SOVERSION 5)
     target_link_libraries(mbedcrypto ${libs})
 
     add_library(mbedx509 SHARED ${src_x509})
-    set_target_properties(mbedx509 PROPERTIES VERSION 2.23.0 SOVERSION 1)
+    set_target_properties(mbedx509 PROPERTIES VERSION 2.24.0 SOVERSION 1)
     target_link_libraries(mbedx509 ${libs} mbedcrypto)
 
     add_library(mbedtls SHARED ${src_tls})
-    set_target_properties(mbedtls PROPERTIES VERSION 2.23.0 SOVERSION 13)
+    set_target_properties(mbedtls PROPERTIES VERSION 2.24.0 SOVERSION 13)
     target_link_libraries(mbedtls ${libs} mbedx509)
 endif(USE_SHARED_MBEDTLS_LIBRARY)
 

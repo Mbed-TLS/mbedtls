@@ -23,6 +23,7 @@ if [ -d include/mbedtls ]; then :; else
 fi
 
 HEADERS=$( ls include/mbedtls/*.h include/psa/*.h | egrep -v 'compat-1\.3\.h' )
+HEADERS="$HEADERS library/*.h"
 HEADERS="$HEADERS 3rdparty/everest/include/everest/everest.h 3rdparty/everest/include/everest/x25519.h"
 
 sed -n -e 's/.*#define \([a-zA-Z0-9_]*\).*/\1/p' $HEADERS \

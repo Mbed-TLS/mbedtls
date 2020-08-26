@@ -799,6 +799,10 @@ hash_compute_fail:PSA_ALG_ANY_HASH:"":32:PSA_ERROR_NOT_SUPPORTED
 PSA hash compute: bad algorithm (not a hash)
 hash_compute_fail:PSA_ALG_HMAC(PSA_ALG_SHA_256):"":32:PSA_ERROR_INVALID_ARGUMENT
 
+PSA hash compute: output buffer empty
+depends_on:MBEDTLS_SHA256_C
+hash_compute_fail:PSA_ALG_SHA_256:"":0:PSA_ERROR_BUFFER_TOO_SMALL
+
 PSA hash compute: output buffer too small
 depends_on:MBEDTLS_SHA256_C
 hash_compute_fail:PSA_ALG_SHA_256:"":31:PSA_ERROR_BUFFER_TOO_SMALL
@@ -827,6 +831,10 @@ hash_compare_fail:PSA_ALG_SHA_256:"":"e3b0c44298fc1c149afbf4c8996fb92427ae41e464
 PSA hash compare: truncated hash
 depends_on:MBEDTLS_SHA256_C
 hash_compare_fail:PSA_ALG_SHA_256:"":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8":PSA_ERROR_INVALID_SIGNATURE
+
+PSA hash compare: empty hash
+depends_on:MBEDTLS_SHA256_C
+hash_compare_fail:PSA_ALG_SHA_256:"":"":PSA_ERROR_INVALID_SIGNATURE
 
 PSA hash compare: good
 depends_on:MBEDTLS_SHA256_C

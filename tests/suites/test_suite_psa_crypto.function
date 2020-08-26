@@ -3083,6 +3083,7 @@ void mac_sign( int key_type_arg,
     }
 
 exit:
+    psa_mac_abort( &operation );
     psa_destroy_key( handle );
     PSA_DONE( );
     mbedtls_free( actual_mac );
@@ -3161,6 +3162,7 @@ void mac_verify( int key_type_arg,
     }
 
 exit:
+    psa_mac_abort( &operation );
     psa_destroy_key( handle );
     PSA_DONE( );
     mbedtls_free( perturbed_mac );
@@ -3241,6 +3243,7 @@ void cipher_setup( int key_type_arg,
 #endif
 
 exit:
+    psa_cipher_abort( &operation );
     PSA_DONE( );
 }
 /* END_CASE */
@@ -3393,6 +3396,7 @@ void cipher_bad_order( )
     PSA_ASSERT( psa_destroy_key( handle ) );
 
 exit:
+    psa_cipher_abort( &operation );
     PSA_DONE( );
 }
 /* END_CASE */
@@ -3451,6 +3455,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     }
 
 exit:
+    psa_cipher_abort( &operation );
     mbedtls_free( output );
     psa_destroy_key( handle );
     PSA_DONE( );
@@ -3519,6 +3524,7 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
                     output, total_output_length );
 
 exit:
+    psa_cipher_abort( &operation );
     mbedtls_free( output );
     psa_destroy_key( handle );
     PSA_DONE( );
@@ -3590,6 +3596,7 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
                     output, total_output_length );
 
 exit:
+    psa_cipher_abort( &operation );
     mbedtls_free( output );
     psa_destroy_key( handle );
     PSA_DONE( );
@@ -3651,6 +3658,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     }
 
 exit:
+    psa_cipher_abort( &operation );
     mbedtls_free( output );
     psa_destroy_key( handle );
     PSA_DONE( );
@@ -3732,6 +3740,8 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
     ASSERT_COMPARE( input->x, input->len, output2, output2_length );
 
 exit:
+    psa_cipher_abort( &operation1 );
+    psa_cipher_abort( &operation2 );
     mbedtls_free( output1 );
     mbedtls_free( output2 );
     psa_destroy_key( handle );
@@ -3835,6 +3845,8 @@ void cipher_verify_output_multipart( int alg_arg,
     ASSERT_COMPARE( input->x, input->len, output2, output2_length );
 
 exit:
+    psa_cipher_abort( &operation1 );
+    psa_cipher_abort( &operation2 );
     mbedtls_free( output1 );
     mbedtls_free( output2 );
     psa_destroy_key( handle );
@@ -5697,7 +5709,7 @@ exit:
         /* In case there was a test failure after creating the persistent key
          * but while it was not open, try to re-open the persistent key
          * to delete it. */
-        psa_open_key( key_id, &handle );
+        (void) psa_open_key( key_id, &handle );
     }
     psa_destroy_key( handle );
     PSA_DONE();

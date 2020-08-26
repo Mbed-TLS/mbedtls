@@ -31,6 +31,7 @@ void hash_finish( int alg_arg, data_t *input, data_t *expected_hash )
                     actual_hash, actual_hash_length );
 
 exit:
+    psa_hash_abort( &operation );
     PSA_DONE( );
 }
 /* END_CASE */
@@ -52,6 +53,7 @@ void hash_verify( int alg_arg, data_t *input, data_t *expected_hash )
                                  expected_hash->len ) );
 
 exit:
+    psa_hash_abort( &operation );
     PSA_DONE( );
 }
 /* END_CASE */
@@ -95,6 +97,8 @@ void hash_multi_part( int alg_arg, data_t *input, data_t *expected_hash )
     } while( len++ != input->len );
 
 exit:
+    psa_hash_abort( &operation );
+    psa_hash_abort( &operation2 );
     PSA_DONE( );
 }
 /* END_CASE */

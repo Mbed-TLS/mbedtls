@@ -174,7 +174,13 @@ static psa_status_t psa_crypto_storage_store( const psa_key_file_id_t key,
 
 exit:
     if( status != PSA_SUCCESS )
-        psa_its_remove( data_identifier );
+    {
+        /* Remove the file in case we managed to create it but something
+         * went wrong. It's ok if the file doesn't exist. If the file exists
+         * but the removal fails, we're already reporting an error so there's
+         * nothing else we can do. */
+        (void) psa_its_remove( data_identifier );
+    }
     return( status );
 }
 

@@ -40,16 +40,23 @@ static psa_storage_uid_t uid_max = 0;
 
 static void cleanup( void )
 {
+    /* Call remove() on all the files that a test might have created.
+     * We ignore the error if the file exists but remove() fails because
+     * it can't be checked portably (except by attempting to open the file
+     * first, which is needlessly slow and complicated here). A failure of
+     * remove() on an existing file is very unlikely anyway and would not
+     * have significant consequences other than perhaps failing the next
+     * test case. */
     char filename[PSA_ITS_STORAGE_FILENAME_LENGTH];
     psa_storage_uid_t uid;
     for( uid = 0; uid < uid_max; uid++ )
     {
         psa_its_fill_filename( uid, filename );
-        remove( filename );
+        (void) remove( filename );
     }
     psa_its_fill_filename( (psa_storage_uid_t)( -1 ), filename );
-    remove( filename );
-    remove( PSA_ITS_STORAGE_TEMP );
+    (void) remove( filename );
+    (void) remove( PSA_ITS_STORAGE_TEMP );
     uid_max = 0;
 }
 

@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.16.8 branch released 2020-09-01
 
 Features
    * Support building on e2k (Elbrus) architecture: correctly enable

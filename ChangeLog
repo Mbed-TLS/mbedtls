@@ -1,10 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.24.0 branch released 2020-09-01
 
 API changes
-   * In the PSA API, rename the types of elliptic curve and Diffie-Hellman group families to
-     psa_ecc_family_t and psa_dh_family_t, in line with the PSA Crypto API specification version 1.0.0.
+   * In the PSA API, rename the types of elliptic curve and Diffie-Hellman
+     group families to psa_ecc_family_t and psa_dh_family_t, in line with the
+     PSA Crypto API specification version 1.0.0.
      Rename associated macros as well:
      PSA_ECC_CURVE_xxx renamed to PSA_ECC_FAMILY_xxx
      PSA_DH_GROUP_xxx renamed to PSA_DH_FAMILY_xxx
@@ -70,7 +71,8 @@ Security
 Bugfix
    * Library files installed after a CMake build no longer have execute
      permission.
-   * Use local labels in mbedtls_padlock_has_support() to fix an invalid symbol redefinition if the function is inlined.
+   * Use local labels in mbedtls_padlock_has_support() to fix an invalid symbol
+     redefinition if the function is inlined.
      Reported in #3451 and fix contributed in #3452 by okhowang.
    * Fix the endianness of Curve25519 keys imported/exported through the PSA
      APIs. psa_import_key and psa_export_key will now correctly expect/output

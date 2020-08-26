@@ -180,6 +180,16 @@
 #error "MBEDTLS_ENTROPY_FORCE_SHA256 defined, but not all prerequisites"
 #endif
 
+#if defined(__has_feature)
+#if __has_feature(memory_sanitizer)
+#define MBEDTLS_HAS_MEMSAN
+#endif
+#endif
+#if defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN) &&  !defined(MBEDTLS_HAS_MEMSAN)
+#error "MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN requires building with MemorySanitizer"
+#endif
+#undef MBEDTLS_HAS_MEMSAN
+
 #if defined(MBEDTLS_TEST_NULL_ENTROPY) && \
     ( !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES) )
 #error "MBEDTLS_TEST_NULL_ENTROPY defined, but not all prerequisites"

@@ -65,7 +65,7 @@ fi
 diff macros identifiers | sed -n -e 's/< //p' > actual-macros
 
 for THING in actual-macros enum-consts; do
-    printf "Names of $THING: "
+    printf 'Names of %s: ' "$THING"
     test -r $THING
     BAD=$( grep -E -v '^(MBEDTLS|PSA)_[0-9A-Z_]*[0-9A-Z]$' $THING || true )
     UNDERSCORES=$( grep -E '.*__.*' $THING || true )
@@ -81,7 +81,7 @@ for THING in actual-macros enum-consts; do
 done
 
 for THING in identifiers; do
-    printf "Names of $THING: "
+    printf 'Names of %s: ' "$THING"
     test -r $THING
     BAD=$( grep -E -v '^(mbedtls|psa)_[0-9a-z_]*[0-9a-z]$' $THING || true )
     if [ "x$BAD" = "x" ]; then

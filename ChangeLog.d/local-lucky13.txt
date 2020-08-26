@@ -1,0 +1,11 @@
+Security
+   * In (D)TLS record decryption, when using a CBC ciphersuites without the
+     Encrypt-then-Mac extension, use constant code flow memory access patterns
+     to extract and check the MAC. This is an improvement to the existing
+     countermeasure against Lucky 13 attacks. The previous countermeasure was
+     effective against network-based attackers, but less so against local
+     attackers. The new countermeasure defends against local attackers, even
+     if they have access to fine-grained measurements. In particular, this
+     fixes a local Lucky 13 cache attack found and reported by Tuba Yavuz,
+     Farhaan Fowze, Ken (Yihan) Bai, Grant Hernandez, and Kevin Butler
+     (University of Florida) and Dave Tian (Purdue University).

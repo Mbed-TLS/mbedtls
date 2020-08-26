@@ -68,7 +68,7 @@
  * The expected parity is even so that 0 is considered a valid encoding.
  *
  * Return 0 if value has even parity and a nonzero value otherwise. */
-int check_parity( uint32_t value )
+int has_even_parity( uint32_t value )
 {
     value ^= value >> 16;
     value ^= value >> 8;
@@ -76,7 +76,7 @@ int check_parity( uint32_t value )
     return( 0x9669 & 1 << ( value & 0xf ) );
 }
 #define TEST_PARITY( value )                    \
-    TEST_ASSERT( check_parity( value ) )
+    TEST_ASSERT( has_even_parity( value ) )
 
 void algorithm_classification( psa_algorithm_t alg, unsigned flags )
 {

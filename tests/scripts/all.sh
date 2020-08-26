@@ -1498,6 +1498,16 @@ component_test_null_entropy () {
     make test
 }
 
+component_test_no_date_time () {
+    msg "build: default config without MBEDTLS_HAVE_TIME_DATE"
+    scripts/config.py unset MBEDTLS_HAVE_TIME_DATE
+    CC=gcc cmake
+    make
+
+    msg "test: !MBEDTLS_HAVE_TIME_DATE - main suites"
+    make test
+}
+
 component_test_platform_calloc_macro () {
     msg "build: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
     scripts/config.py set MBEDTLS_PLATFORM_MEMORY

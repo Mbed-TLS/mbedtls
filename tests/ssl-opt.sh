@@ -159,16 +159,17 @@ get_options() {
 
 # skip next test if the flag is not enabled in config.h
 requires_config_enabled() {
-    if grep "^#define $1" $CONFIG_H > /dev/null; then :; else
-        SKIP_NEXT="YES"
-    fi
+    case $CONFIGS_ENABLED in
+        *" $1 "*) :;;
+        *) SKIP_NEXT="YES";;
+    esac
 }
 
 # skip next test if the flag is enabled in config.h
 requires_config_disabled() {
-    if grep "^#define $1" $CONFIG_H > /dev/null; then
-        SKIP_NEXT="YES"
-    fi
+    case $CONFIGS_ENABLED in
+        *" $1 "*) SKIP_NEXT="YES";;
+    esac
 }
 
 # skip next test if OpenSSL doesn't support FALLBACK_SCSV
@@ -292,17 +293,21 @@ fail() {
 
 # is_polar <cmd_line>
 is_polar() {
-    echo "$1" | grep 'ssl_server2\|ssl_client2' > /dev/null
+    case "$1" in
+        *ssl_client2*) true;;
+        *ssl_server2*) true;;
+        *) false;;
+    esac
 }
 
 # openssl s_server doesn't have -www with DTLS
 check_osrv_dtls() {
-    if echo "$SRV_CMD" | grep 's_server.*-dtls' >/dev/null; then
-        NEEDS_INPUT=1
-        SRV_CMD="$( echo $SRV_CMD | sed s/-www// )"
-    else
-        NEEDS_INPUT=0
-    fi
+    case "$SRV_CMD" in
+        *s_server*-dtls*)
+            NEEDS_INPUT=1
+            SRV_CMD="$( echo $SRV_CMD | sed s/-www// )";;
+        *) NEEDS_INPUT=0;;
+    esac
 }
 
 # provide input to commands that need it
@@ -418,11 +423,10 @@ wait_client_done() {
 
 # check if the given command uses dtls and sets global variable DTLS
 detect_dtls() {
-    if echo "$1" | grep 'dtls=1\|-dtls1\|-u' >/dev/null; then
-        DTLS=1
-    else
-        DTLS=0
-    fi
+    case "$1" in
+        *dtls=1*|-dtls|-u) DTLS=1;;
+        *) DTLS=0;;
+    esac
 }
 
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
@@ -447,10 +451,11 @@ run_test() {
     print_name "$NAME"
 
     # Do we only run numbered tests?
-    if [ "X$RUN_TEST_NUMBER" = "X" ]; then :
-    elif echo ",$RUN_TEST_NUMBER," | grep ",$TESTS," >/dev/null; then :
-    else
-        SKIP_NEXT="YES"
+    if [ -n "$RUN_TEST_NUMBER" ]; then
+        case ",$RUN_TEST_NUMBER," in
+            *",$TESTS,"*) :;;
+            *) SKIP_NEXT="YES";;
+        esac
     fi
 
     # should we skip?

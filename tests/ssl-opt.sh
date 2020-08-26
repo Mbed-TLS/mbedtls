@@ -951,7 +951,7 @@ run_test_psa_force_curve() {
 run_test_memory_after_hanshake_with_mfl()
 {
     # The test passes if the difference is around 2*(16k-MFL)
-    local MEMORY_USAGE_LIMIT="$(( $2 - ( 2 * ( 16384 - $1 )) ))"
+    MEMORY_USAGE_LIMIT="$(( $2 - ( 2 * ( 16384 - $1 )) ))"
 
     # Leave some margin for robustness
     MEMORY_USAGE_LIMIT="$(( ( MEMORY_USAGE_LIMIT * 110 ) / 100 ))"

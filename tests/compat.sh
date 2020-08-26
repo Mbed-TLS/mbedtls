@@ -117,12 +117,12 @@ PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
 print_usage() {
     echo "Usage: $0"
     printf "  -h|--help\tPrint this help.\n"
-    printf "  -f|--filter\tOnly matching ciphersuites are tested (Default: '$FILTER')\n"
-    printf "  -e|--exclude\tMatching ciphersuites are excluded (Default: '$EXCLUDE')\n"
-    printf "  -m|--modes\tWhich modes to perform (Default: '$MODES')\n"
-    printf "  -t|--types\tWhich key exchange type to perform (Default: '$TYPES')\n"
-    printf "  -V|--verify\tWhich verification modes to perform (Default: '$VERIFIES')\n"
-    printf "  -p|--peers\tWhich peers to use (Default: '$PEERS')\n"
+    printf "  -f|--filter\tOnly matching ciphersuites are tested (Default: '%s')\n" "$FILTER"
+    printf "  -e|--exclude\tMatching ciphersuites are excluded (Default: '%s')\n" "$EXCLUDE"
+    printf "  -m|--modes\tWhich modes to perform (Default: '%s')\n" "$MODES"
+    printf "  -t|--types\tWhich key exchange type to perform (Default: '%s')\n" "$TYPES"
+    printf "  -V|--verify\tWhich verification modes to perform (Default: '%s')\n" "$VERIFIES"
+    printf "  -p|--peers\tWhich peers to use (Default: '%s')\n" "$PEERS"
     printf "            \tAlso available: GnuTLS (needs v3.2.15 or higher)\n"
     printf "  -M|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -v|--verbose\tSet verbose output.\n"
@@ -1134,7 +1134,7 @@ run_client() {
     VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
     TITLE="`echo $1 | head -c1`->`echo $SERVER_NAME | head -c1`"
     TITLE="$TITLE $MODE,$VERIF $2"
-    printf "$TITLE "
+    printf "%s " "$TITLE"
     LEN=$(( 72 - `echo "$TITLE" | wc -c` ))
     for i in `seq 1 $LEN`; do printf '.'; done; printf ' '
 

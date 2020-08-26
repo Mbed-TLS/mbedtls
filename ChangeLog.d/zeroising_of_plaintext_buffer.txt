@@ -1,0 +1,4 @@
+Security
+   * Zeroising of plaintext buffers in mbedtls_ssl_read() to erase unused
+     application data from memory. Reported in #689 by
+     Johan Uppman Bruce of Sectra.

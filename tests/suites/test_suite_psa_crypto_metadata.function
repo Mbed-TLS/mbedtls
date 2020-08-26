@@ -57,6 +57,16 @@
     TEST_ASSERT( PSA_##flag( alg ) == !! ( ( flags ) & flag ) )
 
 /* Check the parity of value.
+ *
+ * There are several numerical encodings for which the PSA Cryptography API
+ * specification deliberately defines encodings that all have the same
+ * parity. This way, a data glitch that flips one bit in the data cannot
+ * possibly turn a valid encoding into another valid encoding. Here in
+ * the tests, we check that the values (including Mbed TLS vendor-specific
+ * values) have the expected parity.
+ *
+ * The expected parity is even so that 0 is considered a valid encoding.
+ *
  * Return 0 if value has even parity and a nonzero value otherwise. */
 int check_parity( uint32_t value )
 {

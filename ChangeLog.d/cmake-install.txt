@@ -1,3 +1,0 @@
-Bugfix
-   * Library files installed after a CMake build no longer have execute
-     permission.

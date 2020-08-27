@@ -1,3 +1,0 @@
-Changes
-   * Undefine the ASSERT macro before defining it locally, in case it is defined
-     in a platform header. Contributed by Abdelatif Guettouche in #3557.

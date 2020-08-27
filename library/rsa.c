@@ -776,6 +776,9 @@ static int rsa_prepare_blinding( mbedtls_rsa_context *ctx,
                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret, count = 0;
+    mbedtls_mpi R;
+
+    mbedtls_mpi_init( &R );
 
     if( ctx->Vf.p != NULL )
     {
@@ -791,18 +794,41 @@ static int rsa_prepare_blinding( mbedtls_rsa_context *ctx,
     /* Unblinding value: Vf = random number, invertible mod N */
     do {
         if( count++ > 10 )
-            return( MBEDTLS_ERR_RSA_RNG_FAILED );
+        {
+            ret = MBEDTLS_ERR_RSA_RNG_FAILED;
+            goto cleanup;
+        }
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &ctx->Vf, ctx->len - 1, f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_gcd( &ctx->Vi, &ctx->Vf, &ctx->N ) );
-    } while( mbedtls_mpi_cmp_int( &ctx->Vi, 1 ) != 0 );
 
-    /* Blinding value: Vi =  Vf^(-e) mod N */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &ctx->Vi, &ctx->Vf, &ctx->N ) );
+        /* Compute Vf^-1 as R * (R Vf)^-1 to avoid leaks from inv_mod. */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &R, ctx->len - 1, f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->Vi, &ctx->Vf, &R ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->Vi, &ctx->Vi, &ctx->N ) );
+
+        /* At this point, Vi is invertible mod N if and only if both Vf and R
+         * are invertible mod N. If one of them isn't, we don't need to know
+         * which one, we just loop and choose new values for both of them.
+         * (Each iteration succeeds with overwhelming probability.) */
+        ret = mbedtls_mpi_inv_mod( &ctx->Vi, &ctx->Vi, &ctx->N );
+        if( ret == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
+            continue;
+        if( ret != 0 )
+            goto cleanup;
+
+        /* Finish the computation of Vf^-1 = R * (R Vf)^-1 */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->Vi, &ctx->Vi, &R ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->Vi, &ctx->Vi, &ctx->N ) );
+    } while( 0 );
+
+    /* Blinding value: Vi = Vf^(-e) mod N
+     * (Vi already contains Vf^-1 at this point) */
     MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &ctx->Vi, &ctx->Vi, &ctx->E, &ctx->N, &ctx->RN ) );
 
 
 cleanup:
+    mbedtls_mpi_free( &R );
+
     return( ret );
 }
 

@@ -1,5 +1,118 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.24.0 branch released 2020-09-01
+
+API changes
+   * In the PSA API, rename the types of elliptic curve and Diffie-Hellman
+     group families to psa_ecc_family_t and psa_dh_family_t, in line with the
+     PSA Crypto API specification version 1.0.0.
+     Rename associated macros as well:
+     PSA_ECC_CURVE_xxx renamed to PSA_ECC_FAMILY_xxx
+     PSA_DH_GROUP_xxx renamed to PSA_DH_FAMILY_xxx
+     PSA_KEY_TYPE_GET_CURVE renamed to to PSA_KEY_TYPE_ECC_GET_FAMILY
+     PSA_KEY_TYPE_GET_GROUP renamed to PSA_KEY_TYPE_DH_GET_FAMILY
+
+Default behavior changes
+   * Stop storing persistent information about externally stored keys created
+     through PSA Crypto with a volatile lifetime. Reported in #3288 and
+     contributed by Steven Cooreman in #3382.
+
+Features
+   * The new function mbedtls_ecp_write_key() exports private ECC keys back to
+     a byte buffer. It is the inverse of the existing mbedtls_ecp_read_key().
+   * Support building on e2k (Elbrus) architecture: correctly enable
+     -Wformat-signedness, and fix the code that causes signed-one-bit-field
+     and sign-compare warnings. Contributed by makise-homura (Igor Molchanov)
+     <akemi_homura@kurisa.ch>.
+
+Security
+   * Fix a vulnerability in the verification of X.509 certificates when
+     matching the expected common name (the cn argument of
+     mbedtls_x509_crt_verify()) with the actual certificate name: when the
+     subjecAltName extension is present, the expected name was compared to any
+     name in that extension regardless of its type. This means that an
+     attacker could for example impersonate a 4-bytes or 16-byte domain by
+     getting a certificate for the corresponding IPv4 or IPv6 (this would
+     require the attacker to control that IP address, though). Similar attacks
+     using other subjectAltName name types might be possible. Found and
+     reported by kFYatek in #3498.
+   * When checking X.509 CRLs, a certificate was only considered as revoked if
+     its revocationDate was in the past according to the local clock if
+     available. In particular, on builds without MBEDTLS_HAVE_TIME_DATE,
+     certificates were never considered as revoked. On builds with
+     MBEDTLS_HAVE_TIME_DATE, an attacker able to control the local clock (for
+     example, an untrusted OS attacking a secure enclave) could prevent
+     revocation of certificates via CRLs. Fixed by no longer checking the
+     revocationDate field, in accordance with RFC 5280. Reported by
+     yuemonangong in #3340. Reported independently and fixed by
+     Raoul Strackx and Jethro Beekman in #3433.
+   * In (D)TLS record decryption, when using a CBC ciphersuites without the
+     Encrypt-then-Mac extension, use constant code flow memory access patterns
+     to extract and check the MAC. This is an improvement to the existing
+     countermeasure against Lucky 13 attacks. The previous countermeasure was
+     effective against network-based attackers, but less so against local
+     attackers. The new countermeasure defends against local attackers, even
+     if they have access to fine-grained measurements. In particular, this
+     fixes a local Lucky 13 cache attack found and reported by Tuba Yavuz,
+     Farhaan Fowze, Ken (Yihan) Bai, Grant Hernandez, and Kevin Butler
+     (University of Florida) and Dave Tian (Purdue University).
+   * Fix side channel in RSA private key operations and static (finite-field)
+     Diffie-Hellman. An adversary with precise enough timing and memory access
+     information (typically an untrusted operating system attacking a secure
+     enclave) could bypass an existing counter-measure (base blinding) and
+     potentially fully recover the private key.
+   * Fix a 1-byte buffer overread in mbedtls_x509_crl_parse_der().
+     Credit to OSS-Fuzz for detecting the problem and to Philippe Antoine
+     for pinpointing the problematic code.
+   * Zeroising of plaintext buffers in mbedtls_ssl_read() to erase unused
+     application data from memory. Reported in #689 by
+     Johan Uppman Bruce of Sectra.
+
+Bugfix
+   * Library files installed after a CMake build no longer have execute
+     permission.
+   * Use local labels in mbedtls_padlock_has_support() to fix an invalid symbol
+     redefinition if the function is inlined.
+     Reported in #3451 and fix contributed in #3452 by okhowang.
+   * Fix the endianness of Curve25519 keys imported/exported through the PSA
+     APIs. psa_import_key and psa_export_key will now correctly expect/output
+     Montgomery keys in little-endian as defined by RFC7748. Contributed by
+     Steven Cooreman in #3425.
+   * Fix build errors when the only enabled elliptic curves are Montgomery
+     curves. Raised by signpainter in #941 and by Taiki-San in #1412. This
+     also fixes missing declarations reported by Steven Cooreman in #1147.
+   * Fix self-test failure when the only enabled short Weierstrass elliptic
+     curve is secp192k1. Fixes #2017.
+   * PSA key import will now correctly import a Curve25519/Curve448 public key
+     instead of erroring out. Contributed by Steven Cooreman in #3492.
+   * Use arc4random_buf on NetBSD instead of rand implementation with cyclical
+     lower bits. Fix contributed in #3540.
+   * Fix a memory leak in mbedtls_md_setup() when using HMAC under low memory
+     conditions. Reported and fix suggested by Guido Vranken in #3486.
+   * Fix bug in redirection of unit test outputs on platforms where stdout is
+     defined as a macro. First reported in #2311 and fix contributed in #3528.
+
+Changes
+   * Only pass -Wformat-signedness to versions of GCC that support it. Reported
+     in #3478 and fix contributed in #3479 by okhowang.
+   * Reduce the stack consumption of mbedtls_x509write_csr_der() which
+     previously could lead to stack overflow on constrained devices.
+     Contributed by Doru Gucea and Simon Leet in #3464.
+   * Undefine the ASSERT macro before defining it locally, in case it is defined
+     in a platform header. Contributed by Abdelatif Guettouche in #3557.
+   * Update copyright notices to use Linux Foundation guidance. As a result,
+     the copyright of contributors other than Arm is now acknowledged, and the
+     years of publishing are no longer tracked in the source files. This also
+     eliminates the need for the lines declaring the files to be part of
+     MbedTLS. Fixes #3457.
+   * Add the command line parameter key_pwd to the ssl_client2 and ssl_server2
+     example applications which allows to provide a password for the key file
+     specified through the existing key_file argument. This allows the use of
+     these applications with password-protected key files. Analogously but for
+     ssl_server2 only, add the command line parameter key_pwd2 which allows to
+     set a password for the key file provided through the existing key_file2
+     argument.
+
 = mbed TLS 2.23.0 branch released 2020-07-01
 
 Default behavior changes

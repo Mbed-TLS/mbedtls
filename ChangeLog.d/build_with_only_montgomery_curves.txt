@@ -1,6 +1,0 @@
-Bugfix
-   * Fix build errors when the only enabled elliptic curves are Montgomery
-     curves. Raised by signpainter in #941 and by Taiki-San in #1412. This
-     also fixes missing declarations reported by Steven Cooreman in #1147.
-   * Fix self-test failure when the only enabled short Weierstrass elliptic
-     curve is secp192k1. Fixes #2017.

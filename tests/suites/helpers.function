@@ -180,6 +180,30 @@ typedef enum
     }                                                             \
     while( 0 )
 
+/** Similar to ASSERT_ALLOC, but if the test memory wrappers are active,
+ * go through the wrapper. Use this for an allocation which will be
+ * freed via a call to mbedtls_free() inside the library. Call
+ * mbedtls_test_wrapper_alloc() to free the block in the test cleanup.
+ */
+#if defined(MBEDTLS_TEST_MEMORY_WRAPPERS)
+#define ASSERT_ALLOC_VIA_WRAPPER( pointer, length )               \
+    do                                                            \
+    {                                                             \
+        TEST_ASSERT( ( pointer ) == NULL );                       \
+        if( ( length ) != 0 )                                     \
+        {                                                         \
+            ( pointer ) = mbedtls_test_calloc_wrapper(            \
+                sizeof( *( pointer ) ),                           \
+                ( length ) );                                     \
+            TEST_ASSERT( ( pointer ) != NULL );                   \
+        }                                                         \
+    }                                                             \
+    while( 0 )
+#else
+#define ASSERT_ALLOC_VIA_WRAPPER( pointer, length )     \
+    ASSERT_ALLOC( pointer, length )
+#endif
+
 /** Compare two buffers and fail the test case if they differ.
  *
  * This macro expands to an instruction, not an expression.
@@ -419,6 +443,17 @@ void test_skip( const char *test, int line_no, const char* filename )
     test_info.test = test;
     test_info.line_no = line_no;
     test_info.filename = filename;
+}
+
+/** Reset test failure information.
+ *
+ * Call this function before running a test case.
+ */
+static void reset_test_failure( )
+{
+        test_info.result = TEST_RESULT_SUCCESS;
+        test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_IDLE;
+        test_info.step = (unsigned long)( -1 );
 }
 
 #if defined(MBEDTLS_CHECK_PARAMS)

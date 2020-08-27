@@ -1542,6 +1542,24 @@ component_test_malloc_0_null () {
     if_build_succeeded tests/ssl-opt.sh -e 'proxy'
 }
 
+component_test_memory_wrappers () {
+    msg "build: library with test memory wrappers"
+    scripts/config.py full
+    # The library needs to be built with MBEDTLS_PLATFORM_MEMORY, but
+    # config-wrapper-test-memory.h will take care of that. The tests must
+    # not be built with MBEDTLS_PLATFORM_MEMORY since we want to use the
+    # native calloc/free in the wrapper code and for allocations made by
+    # test code.
+    scripts/config.py unset MBEDTLS_PLATFORM_MEMORY
+    make CC=gcc CFLAGS="'-DMBEDTLS_CONFIG_FILE=\"$PWD/tests/configs/config-wrapper-test-memory.h\"' $ASAN_CFLAGS -O3" LDFLAGS="$ASAN_CFLAGS" lib
+
+    msg "build: tests with test memory wrappers"
+    make CC=gcc CFLAGS="-DMBEDTLS_TEST_MEMORY_WRAPPERS $ASAN_CFLAGS -O3" LDFLAGS="$ASAN_CFLAGS" tests
+
+    msg "test: with memory wrappers"
+    make test
+}
+
 component_test_aes_fewer_tables () {
     msg "build: default config with AES_FEWER_TABLES enabled"
     scripts/config.py set MBEDTLS_AES_FEWER_TABLES

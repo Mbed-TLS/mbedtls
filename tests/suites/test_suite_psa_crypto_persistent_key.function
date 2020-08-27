@@ -105,7 +105,8 @@ void parse_storage_data_check( data_t *file_data,
                     key_data, key_data_length );
 
 exit:
-    mbedtls_free( key_data );
+    /* Allocated in psa_parse_key_data_from_storage() */
+    mbedtls_test_free_wrapper( key_data );
 }
 /* END_CASE */
 

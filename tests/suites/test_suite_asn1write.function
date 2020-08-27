@@ -379,8 +379,9 @@ void store_named_data_find( data_t *oid0, data_t *oid1,
 exit:
     if( found != NULL && found == head && found != pointers[from] )
     {
-        mbedtls_free( found->oid.p );
-        mbedtls_free( found );
+        /* Allocated in mbedtls_asn1_store_named_data() */
+        mbedtls_test_free_wrapper( found->oid.p );
+        mbedtls_test_free_wrapper( found );
     }
     for( i = 0; i < ARRAY_LENGTH( nd ); i++ )
         mbedtls_free( nd[i].oid.p );
@@ -399,7 +400,8 @@ void store_named_data_val_found( int old_len, int new_len )
 
     if( old_len != 0 )
     {
-        ASSERT_ALLOC( nd.val.p, (size_t) old_len );
+        /* Old data that mbedtls_asn1_store_named_data() will free */
+        ASSERT_ALLOC_VIA_WRAPPER( nd.val.p, (size_t) old_len );
         old_val = nd.val.p;
         nd.val.len = old_len;
         memset( old_val, 'x', old_len );
@@ -426,7 +428,8 @@ void store_named_data_val_found( int old_len, int new_len )
         TEST_ASSERT( found->val.p != old_val );
 
 exit:
-    mbedtls_free( nd.val.p );
+    /* Copy allocated by mbedtls_asn1_store_named_data() */
+    mbedtls_test_free_wrapper( nd.val.p );
 }
 /* END_CASE */
 
@@ -463,11 +466,12 @@ void store_named_data_val_new( int new_len )
     }
 
 exit:
+    /* Copies allocated by mbedtls_asn1_store_named_data() */
     if( found != NULL )
     {
-        mbedtls_free( found->oid.p );
-        mbedtls_free( found->val.p );
+        mbedtls_test_free_wrapper( found->oid.p );
+        mbedtls_test_free_wrapper( found->val.p );
     }
-    mbedtls_free( found );
+    mbedtls_test_free_wrapper( found );
 }
 /* END_CASE */

@@ -187,6 +187,7 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
 exit:
     mbedtls_x509write_csr_free( &req );
     mbedtls_pk_free( &key );
+    mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
 
@@ -347,7 +348,8 @@ exit:
     {
         parsed_prv = parsed_cur;
         parsed_cur = parsed_cur->next;
-        mbedtls_free( parsed_prv );
+        /* Allocated in mbedtls_x509_get_name() */
+        mbedtls_test_free_wrapper( parsed_prv );
     }
 }
 /* END_CASE */

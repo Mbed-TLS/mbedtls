@@ -234,6 +234,8 @@
     <ClInclude Include="..\..\include\psa\crypto_values.h" />
     <ClInclude Include="..\..\tests\include\test\helpers.h" />
     <ClInclude Include="..\..\tests\include\test\macros.h" />
+    <ClInclude Include="..\..\tests\include\test\memory.h" />
+    <ClInclude Include="..\..\tests\include\test\memory_wrappers.h" />
     <ClInclude Include="..\..\tests\include\test\psa_crypto_helpers.h" />
     <ClInclude Include="..\..\tests\include\test\psa_helpers.h" />
     <ClInclude Include="..\..\tests\include\test\random.h" />
@@ -336,6 +338,7 @@
     <ClCompile Include="..\..\library\x509write_csr.c" />
     <ClCompile Include="..\..\library\xtea.c" />
     <ClCompile Include="..\..\tests\src\helpers.c" />
+    <ClCompile Include="..\..\tests\src\memory.c" />
     <ClCompile Include="..\..\tests\src\random.c" />
     <ClCompile Include="..\..\3rdparty\everest\library\everest.c" />
     <ClCompile Include="..\..\3rdparty\everest\library\Hacl_Curve25519_joined.c" />

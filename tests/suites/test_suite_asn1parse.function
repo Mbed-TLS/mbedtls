@@ -749,10 +749,11 @@ void free_named_data( int with_oid, int with_val, int with_next )
     mbedtls_asn1_named_data head =
         { {0x06, 0, NULL}, {0, 0, NULL}, NULL, 0 };
 
+    /* These allocations should be freed in mbedtls_asn1_free_named_data(). */
     if( with_oid )
-        ASSERT_ALLOC( head.oid.p, 1 );
+        ASSERT_ALLOC_VIA_WRAPPER( head.oid.p, 1 );
     if( with_val )
-        ASSERT_ALLOC( head.val.p, 1 );
+        ASSERT_ALLOC_VIA_WRAPPER( head.val.p, 1 );
     if( with_next )
         head.next = &next;
 
@@ -768,7 +769,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_TEST_MEMORY_WRAPPERS */
 void free_named_data_list( int length )
 {
     mbedtls_asn1_named_data *head = NULL;
@@ -777,7 +778,8 @@ void free_named_data_list( int length )
     for( i = 0; i < length; i++ )
     {
         mbedtls_asn1_named_data *new = NULL;
-        ASSERT_ALLOC( new, sizeof( mbedtls_asn1_named_data ) );
+        /* Should be freed in mbedtls_asn1_free_named_data_list() */
+        ASSERT_ALLOC_VIA_WRAPPER( new, sizeof( mbedtls_asn1_named_data ) );
         new->next = head;
         head = new;
     }

@@ -374,6 +374,35 @@ static int run_test_snprintf( void )
             test_snprintf( 5, "123",         3 ) != 0 );
 }
 
+#if defined(MBEDTLS_TEST_MEMORY_WRAPPERS)
+/** \brief Report memory statistics for this test case.
+ *
+ * \param total_errors  Incremented if there was a memory leak.
+ */
+void report_memory_stats( unsigned *total_errors )
+{
+    size_t allocations;
+    size_t bytes;
+    size_t failed;
+    size_t leaks;
+    mbedtls_test_memory_get_stats( &allocations, &bytes, &failed, &leaks );
+    if( allocations != 0 )
+    {
+        mbedtls_fprintf( stdout, "  %zu allocations", allocations );
+        if( failed != 0 )
+            mbedtls_fprintf( stdout, " (%zu failed)", failed );
+        mbedtls_fprintf( stdout, ", %zu total bytes\n", bytes );
+    }
+    if( leaks != 0 )
+    {
+        ++( *total_errors );
+        mbedtls_fprintf( stdout,
+                         "  FAIL: There were %zu leaked allocations.\n",
+                         leaks );
+    }
+}
+#endif
+
 /** \brief Write the description of the test case to the outcome CSV file.
  *
  * \param outcome_file  The file to write to.
@@ -682,10 +711,6 @@ int execute_tests( int argc , const char ** argv )
             // If there are no unmet dependencies execute the test
             if( unmet_dep_count == 0 )
             {
-                test_info.result = TEST_RESULT_SUCCESS;
-                test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_IDLE;
-                test_info.step = (unsigned long)( -1 );
-
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
                 /* Suppress all output from the library unless we're verbose
                  * mode
@@ -777,6 +802,9 @@ int execute_tests( int argc , const char ** argv )
                     mbedtls_fprintf( stdout, "line %d, %s",
                                      test_info.line_no, test_info.filename );
                 }
+#if defined(MBEDTLS_TEST_MEMORY_WRAPPERS)
+                report_memory_stats( &total_errors );
+#endif
                 fflush( stdout );
             }
             else if( ret == DISPATCH_INVALID_TEST_DATA )

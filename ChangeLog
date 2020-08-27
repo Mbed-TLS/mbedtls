@@ -1,5 +1,64 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.7.17 branch released 2020-09-01
+
+Features
+   * Support building on e2k (Elbrus) architecture: correctly enable
+     -Wformat-signedness, and fix the code that causes signed-one-bit-field
+     and sign-compare warnings. Contributed by makise-homura (Igor Molchanov)
+     <akemi_homura@kurisa.ch>.
+
+Security
+   * When checking X.509 CRLs, a certificate was only considered as revoked if
+     its revocationDate was in the past according to the local clock if
+     available. In particular, on builds without MBEDTLS_HAVE_TIME_DATE,
+     certificates were never considered as revoked. On builds with
+     MBEDTLS_HAVE_TIME_DATE, an attacker able to control the local clock (for
+     example, an untrusted OS attacking a secure enclave) could prevent
+     revocation of certificates via CRLs. Fixed by no longer checking the
+     revocationDate field, in accordance with RFC 5280. Reported by
+     yuemonangong in #3340. Reported independently and fixed by
+     Raoul Strackx and Jethro Beekman in #3433.
+   * In (D)TLS record decryption, when using a CBC ciphersuites without the
+     Encrypt-then-Mac extension, use constant code flow memory access patterns
+     to extract and check the MAC. This is an improvement to the existing
+     countermeasure against Lucky 13 attacks. The previous countermeasure was
+     effective against network-based attackers, but less so against local
+     attackers. The new countermeasure defends against local attackers, even
+     if they have access to fine-grained measurements. In particular, this
+     fixes a local Lucky 13 cache attack found and reported by Tuba Yavuz,
+     Farhaan Fowze, Ken (Yihan) Bai, Grant Hernandez, and Kevin Butler
+     (University of Florida) and Dave Tian (Purdue University).
+   * Fix side channel in RSA private key operations and static (finite-field)
+     Diffie-Hellman. An adversary with precise enough timing and memory access
+     information (typically an untrusted operating system attacking a secure
+     enclave) could bypass an existing counter-measure (base blinding) and
+     potentially fully recover the private key.
+   * Fix a 1-byte buffer overread in mbedtls_x509_crl_parse_der().
+     Credit to OSS-Fuzz for detecting the problem and to Philippe Antoine
+     for pinpointing the problematic code.
+   * Zeroising of plaintext buffers in mbedtls_ssl_read() to erase unused
+     application data from memory. Reported in #689 by
+     Johan Uppman Bruce of Sectra.
+
+Bugfix
+   * Use arc4random_buf on NetBSD instead of rand implementation with cyclical
+     lower bits. Fix contributed in #3540.
+   * Fix building library/net_sockets.c on NetBSD. NetBSD conditionals were
+     added for the backport to avoid the risk of breaking a platform. Original
+     fix contributed by Nia Alarie in #3422. Adopted for long-term support
+     branch 2.7 in #3570.
+   * Fix bug in redirection of unit test outputs on platforms where stdout is
+     defined as a macro. First reported in #2311 and fix contributed in #3528.
+     Adopted for LTS branch 2.7 in #3600.
+
+Changes
+   * Update copyright notices to use Linux Foundation guidance. As a result,
+     the copyright of contributors other than Arm is now acknowledged, and the
+     years of publishing are no longer tracked in the source files. This also
+     eliminates the need for the lines declaring the files to be part of
+     MbedTLS. Fixes #3457.
+
 = mbed TLS 2.7.16 branch released 2020-07-01
 
 Security

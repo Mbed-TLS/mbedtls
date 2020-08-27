@@ -1,5 +1,0 @@
-Bugfix
-   * Fix building library/net_sockets.c on NetBSD. NetBSD conditionals were
-     added for the backport to avoid the risk of breaking a platform. Original
-     fix contributed by Nia Alarie in #3422. Adopted for long-term support
-     branch 2.7 in #3570.

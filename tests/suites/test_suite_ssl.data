@@ -57,3 +57,31 @@ ssl_dtls_replay:"abcd12340000,abcd12340100":"abcd123400ff":0
 
 SSL SET_HOSTNAME memory leak: call ssl_set_hostname twice
 ssl_set_hostname_twice:"server0":"server1"
+
+Constant-flow HMAC: MD5
+depends_on:MBEDTLS_MD5_C
+ssl_cf_hmac:MBEDTLS_MD_MD5
+
+Constant-flow HMAC: SHA1
+depends_on:MBEDTLS_SHA1_C
+ssl_cf_hmac:MBEDTLS_MD_SHA1
+
+Constant-flow HMAC: SHA256
+depends_on:MBEDTLS_SHA256_C
+ssl_cf_hmac:MBEDTLS_MD_SHA256
+
+Constant-flow HMAC: SHA384
+depends_on:MBEDTLS_SHA512_C:!MBEDTLS_SHA512_NO_SHA384
+ssl_cf_hmac:MBEDTLS_MD_SHA384
+
+# these are the numbers we'd get with an empty plaintext and truncated HMAC
+Constant-flow memcpy from offset: small
+ssl_cf_memcpy_offset:0:5:10
+
+# we could get this with 255-bytes plaintext and untruncated SHA-256
+Constant-flow memcpy from offset: medium
+ssl_cf_memcpy_offset:0:255:32
+
+# we could get this with 355-bytes plaintext and untruncated SHA-384
+Constant-flow memcpy from offset: large
+ssl_cf_memcpy_offset:100:339:48

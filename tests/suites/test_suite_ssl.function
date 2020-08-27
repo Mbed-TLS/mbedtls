@@ -52,3 +52,128 @@ void ssl_set_hostname_twice( char *hostname0, char *hostname1 )
     mbedtls_ssl_free( &ssl );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+void ssl_cf_hmac( int hash )
+{
+    /*
+     * Test the function mbedtls_ssl_cf_hmac() against a reference
+     * implementation.
+     */
+    mbedtls_md_context_t ctx, ref_ctx;
+    const mbedtls_md_info_t *md_info;
+    size_t out_len, block_size;
+    size_t min_in_len, in_len, max_in_len, i;
+    /* TLS additional data is 13 bytes (hence the "lucky 13" name) */
+    unsigned char add_data[13];
+    unsigned char ref_out[MBEDTLS_MD_MAX_SIZE];
+    unsigned char *data = NULL;
+    unsigned char *out = NULL;
+    unsigned char rec_num = 0;
+
+    mbedtls_md_init( &ctx );
+    mbedtls_md_init( &ref_ctx );
+
+    md_info = mbedtls_md_info_from_type( hash );
+    TEST_ASSERT( md_info != NULL );
+    out_len = mbedtls_md_get_size( md_info );
+    TEST_ASSERT( out_len != 0 );
+    block_size = hash == MBEDTLS_MD_SHA384 ? 128 : 64;
+
+    /* Use allocated out buffer to catch overwrites */
+    out = mbedtls_calloc( 1, out_len );
+    TEST_ASSERT( out != NULL );
+
+    /* Set up contexts with the given hash and a dummy key */
+    TEST_ASSERT( 0 == mbedtls_md_setup( &ctx, md_info, 1 ) );
+    TEST_ASSERT( 0 == mbedtls_md_setup( &ref_ctx, md_info, 1 ) );
+    memset( ref_out, 42, sizeof( ref_out ) );
+    TEST_ASSERT( 0 == mbedtls_md_hmac_starts( &ctx, ref_out, out_len ) );
+    TEST_ASSERT( 0 == mbedtls_md_hmac_starts( &ref_ctx, ref_out, out_len ) );
+    memset( ref_out, 0, sizeof( ref_out ) );
+
+    /*
+     * Test all possible lengths up to a point. The difference between
+     * max_in_len and min_in_len is at most 255, and make sure they both vary
+     * by at least one block size.
+     */
+    for( max_in_len = 0; max_in_len <= 255 + block_size; max_in_len++ )
+    {
+        /* Use allocated in buffer to catch overreads */
+        data = mbedtls_calloc( 1, max_in_len );
+        TEST_ASSERT( data != NULL || max_in_len == 0 );
+
+        min_in_len = max_in_len > 255 ? max_in_len - 255 : 0;
+        for( in_len = min_in_len; in_len <= max_in_len; in_len++ )
+        {
+            /* Set up dummy data and add_data */
+            rec_num++;
+            memset( add_data, rec_num, sizeof( add_data ) );
+            for( i = 0; i < in_len; i++ )
+                data[i] = ( i & 0xff ) ^ rec_num;
+
+            /* Get the function's result */
+            TEST_CF_SECRET( &in_len, sizeof( in_len ) );
+            TEST_ASSERT( 0 == mbedtls_ssl_cf_hmac( &ctx, add_data, sizeof( add_data ),
+                                                   data, in_len,
+                                                   min_in_len, max_in_len,
+                                                   out ) );
+            TEST_CF_PUBLIC( &in_len, sizeof( in_len ) );
+            TEST_CF_PUBLIC( out, out_len );
+
+            /* Compute the reference result */
+            TEST_ASSERT( 0 == mbedtls_md_hmac_update( &ref_ctx, add_data,
+                                                      sizeof( add_data ) ) );
+            TEST_ASSERT( 0 == mbedtls_md_hmac_update( &ref_ctx, data, in_len ) );
+            TEST_ASSERT( 0 == mbedtls_md_hmac_finish( &ref_ctx, ref_out ) );
+            TEST_ASSERT( 0 == mbedtls_md_hmac_reset( &ref_ctx ) );
+
+            /* Compare */
+            TEST_ASSERT( 0 == memcmp( out, ref_out, out_len ) );
+        }
+
+        mbedtls_free( data );
+        data = NULL;
+    }
+
+exit:
+    mbedtls_md_free( &ref_ctx );
+    mbedtls_md_free( &ctx );
+
+    mbedtls_free( data );
+    mbedtls_free( out );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+void ssl_cf_memcpy_offset( int offset_min, int offset_max, int len )
+{
+    unsigned char *dst = NULL;
+    unsigned char *src = NULL;
+    size_t src_len = offset_max + len;
+    size_t secret;
+
+    dst = mbedtls_calloc( 1, len );
+    TEST_ASSERT( dst != NULL );
+    src = mbedtls_calloc( 1, src_len );
+    TEST_ASSERT( src != NULL );
+
+    /* Fill src in a way that we can detect if we copied the right bytes */
+    rnd_std_rand( NULL, src, src_len );
+
+    for( secret = offset_min; secret <= (size_t) offset_max; secret++ )
+    {
+        TEST_CF_SECRET( &secret, sizeof( secret ) );
+        mbedtls_ssl_cf_memcpy_offset( dst, src, secret,
+                                      offset_min, offset_max, len );
+        TEST_CF_PUBLIC( &secret, sizeof( secret ) );
+        TEST_CF_PUBLIC( dst, len );
+
+        TEST_ASSERT( memcmp( dst, src + secret, len ) == 0 );
+    }
+
+exit:
+    mbedtls_free( dst );
+    mbedtls_free( src );
+}
+/* END_CASE */

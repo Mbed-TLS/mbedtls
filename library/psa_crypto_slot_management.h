@@ -120,7 +120,6 @@ psa_status_t psa_validate_key_location( psa_key_lifetime_t lifetime,
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  */
 psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime,
-                                           psa_key_file_id_t key );
-
+                                           mbedtls_svc_key_id_t key );
 
 #endif /* PSA_CRYPTO_SLOT_MANAGEMENT_H */

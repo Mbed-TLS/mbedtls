@@ -95,7 +95,7 @@ static void psa_purge_storage( void )
      * MAX_KEY_ID_FOR_TEST. In addition, run the destroy function on key id
      * 0, which file-based storage uses as a temporary file. */
     for( id = 0; id <= MAX_KEY_ID_FOR_TEST; id++ )
-        psa_destroy_persistent_key( psa_key_file_id_make( 1, id ) );
+        psa_destroy_persistent_key( mbedtls_svc_key_id_make( 1, id ) );
     /* Purge the transaction file. */
     psa_crypto_stop_transaction( );
     /* Purge driver persistent data. */
@@ -330,7 +330,7 @@ void mock_import( int mock_alloc_return_value,
     psa_drv_se_key_management_t key_management;
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
-    psa_key_file_id_t id = psa_key_file_id_make( 1, 1 );
+    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
@@ -387,7 +387,7 @@ void mock_export( int mock_export_return_value, int expected_result )
     psa_drv_se_key_management_t key_management;
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
-    psa_key_file_id_t id = psa_key_file_id_make( 1, 1 );
+    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
@@ -441,7 +441,7 @@ void mock_generate( int mock_alloc_return_value,
     psa_drv_se_key_management_t key_management;
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
-    psa_key_file_id_t id = psa_key_file_id_make( 1, 1 );
+    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
@@ -496,7 +496,7 @@ void mock_export_public( int mock_export_public_return_value,
     psa_drv_se_key_management_t key_management;
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
-    psa_key_file_id_t id = psa_key_file_id_make( 1, 1 );
+    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
@@ -546,7 +546,7 @@ void mock_sign( int mock_sign_return_value, int expected_result )
     psa_drv_se_asymmetric_t asymmetric;
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
-    psa_key_file_id_t id = psa_key_file_id_make( 1, 1 );
+    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
@@ -607,7 +607,7 @@ void mock_verify( int mock_verify_return_value, int expected_result )
     psa_drv_se_asymmetric_t asymmetric;
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
-    psa_key_file_id_t id = psa_key_file_id_make( 1, 1 );
+    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};

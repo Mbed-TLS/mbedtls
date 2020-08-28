@@ -130,7 +130,7 @@ typedef uint32_t psa_algorithm_t;
  * implementation-specific device management event occurs (for example,
  * a factory reset).
  *
- * Persistent keys have a key identifier of type #psa_key_file_id_t.
+ * Persistent keys have a key identifier of type #mbedtls_svc_key_id_t.
  * This identifier remains valid throughout the lifetime of the key,
  * even if the application instance that created the key terminates.
  * The application can call psa_open_key() to open a persistent key that
@@ -235,17 +235,18 @@ typedef uint32_t psa_key_location_t;
  */
 typedef uint32_t psa_key_id_t;
 
-#if !defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER)
-typedef psa_key_id_t psa_key_file_id_t;
-#define PSA_KEY_ID_INIT 0
-#define PSA_KEY_FILE_GET_KEY_ID( id ) ( id )
+#if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+typedef psa_key_id_t mbedtls_svc_key_id_t;
 
-/** Utility to initialize a key file identifier at runtime.
+#define MBEDTLS_SVC_KEY_ID_INIT ( (psa_key_id_t)0 )
+#define MBEDTLS_SVC_KEY_ID_GET_KEY_ID( id ) ( id )
+
+/** Utility to initialize a key identifier at runtime.
  *
  * \param unused  Unused parameter.
  * \param key_id  Identifier of the key.
  */
-static inline psa_key_file_id_t psa_key_file_id_make(
+static inline mbedtls_svc_key_id_t mbedtls_svc_key_id_make(
     unsigned int unused, psa_key_id_t key_id )
 {
     (void)unused;
@@ -253,34 +254,34 @@ static inline psa_key_file_id_t psa_key_file_id_make(
     return( key_id );
 }
 
-#else /* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER */
-/* Implementation-specific: The Mbed Crypto library can be built as
- * part of a multi-client service that exposes the PSA Crypto API in each
- * client and encodes the client identity in the key id argument of functions
- * such as psa_open_key().
+#else /* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
+/* Implementation-specific: The Mbed Cryptography library can be built as
+ * part of a multi-client service that exposes the PSA Cryptograpy API in each
+ * client and encodes the client identity in the key identifier argument of
+ * functions such as psa_open_key().
  */
 typedef struct
 {
     psa_key_id_t key_id;
     mbedtls_key_owner_id_t owner;
-} psa_key_file_id_t;
+} mbedtls_svc_key_id_t;
 
-#define PSA_KEY_ID_INIT {0, 0}
-#define PSA_KEY_FILE_GET_KEY_ID( file_id ) ( ( file_id ).key_id )
+#define MBEDTLS_SVC_KEY_ID_INIT ( (mbedtls_svc_key_id_t){ 0, 0 } )
+#define MBEDTLS_SVC_KEY_ID_GET_KEY_ID( id ) ( ( id ).key_id )
 
-/** Utility to initialize a key file identifier at runtime.
+/** Utility to initialize a key identifier at runtime.
  *
  * \param owner_id Identifier of the key owner.
  * \param key_id   Identifier of the key.
  */
-static inline psa_key_file_id_t psa_key_file_id_make(
+static inline mbedtls_svc_key_id_t mbedtls_svc_key_id_make(
     mbedtls_key_owner_id_t owner_id, psa_key_id_t key_id )
 {
-    return( (psa_key_file_id_t){ .key_id = key_id,
-                                 .owner = owner_id } );
+    return( (mbedtls_svc_key_id_t){ .key_id = key_id,
+                                    .owner = owner_id } );
 }
 
-#endif /* !MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER */
+#endif /* !MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
 
 /**@}*/
 

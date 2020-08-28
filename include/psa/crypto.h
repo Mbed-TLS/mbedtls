@@ -149,8 +149,8 @@ static psa_key_attributes_t psa_key_attributes_init(void);
  * \param[out] attributes  The attribute structure to write to.
  * \param key              The persistent identifier for the key.
  */
-static void psa_set_key_id(psa_key_attributes_t *attributes,
-                           psa_key_file_id_t key);
+static void psa_set_key_id( psa_key_attributes_t *attributes,
+                            mbedtls_svc_key_id_t key );
 
 /** Set the location of a persistent key.
  *
@@ -192,7 +192,8 @@ static void psa_set_key_lifetime(psa_key_attributes_t *attributes,
  *         This value is unspecified if the attribute structure declares
  *         the key as volatile.
  */
-static psa_key_file_id_t psa_get_key_id(const psa_key_attributes_t *attributes);
+static mbedtls_svc_key_id_t psa_get_key_id(
+    const psa_key_attributes_t *attributes);
 
 /** Retrieve the lifetime from key attributes.
  *
@@ -437,8 +438,8 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_open_key(psa_key_file_id_t key, psa_key_handle_t *handle);
-
+psa_status_t psa_open_key( mbedtls_svc_key_id_t key,
+                           psa_key_handle_t *handle );
 
 /** Close a key handle.
  *

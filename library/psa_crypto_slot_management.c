@@ -157,16 +157,15 @@ exit:
  * past released version must remain valid, unless a migration path
  * is provided.
  *
- * \param file_id       The key identifier to check.
- * \param vendor_ok     Nonzero to allow key ids in the vendor range.
- *                      0 to allow only key ids in the application range.
+ * \param key        The key identifier to check.
+ * \param vendor_ok  Nonzero to allow key ids in the vendor range.
+ *                   0 to allow only key ids in the application range.
  *
- * \return              1 if \p file_id is acceptable, otherwise 0.
+ * \return           1 if \p key is acceptable, otherwise 0.
  */
-static int psa_is_key_id_valid( psa_key_file_id_t file_id,
-                                int vendor_ok )
+static int psa_is_key_id_valid( mbedtls_svc_key_id_t key, int vendor_ok )
 {
-    psa_key_id_t key_id = PSA_KEY_FILE_GET_KEY_ID( file_id );
+    psa_key_id_t key_id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key );
     if( PSA_KEY_ID_USER_MIN <= key_id && key_id <= PSA_KEY_ID_USER_MAX )
         return( 1 );
     else if( vendor_ok &&
@@ -204,7 +203,7 @@ psa_status_t psa_validate_key_location( psa_key_lifetime_t lifetime,
 }
 
 psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime,
-                                           psa_key_file_id_t key )
+                                           mbedtls_svc_key_id_t key )
 {
     if ( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
     {
@@ -227,7 +226,7 @@ psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime,
     }
 }
 
-psa_status_t psa_open_key( psa_key_file_id_t key, psa_key_handle_t *handle )
+psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
 {
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     psa_status_t status;
@@ -291,14 +290,14 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
             ++stats->volatile_slots;
         else if( slot->attr.lifetime == PSA_KEY_LIFETIME_PERSISTENT )
         {
-            psa_key_id_t id = PSA_KEY_FILE_GET_KEY_ID(slot->attr.id);
+            psa_key_id_t id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( slot->attr.id );
             ++stats->persistent_slots;
             if( id > stats->max_open_internal_key_id )
                 stats->max_open_internal_key_id = id;
         }
         else
         {
-            psa_key_id_t id = PSA_KEY_FILE_GET_KEY_ID(slot->attr.id);
+            psa_key_id_t id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( slot->attr.id );
             ++stats->external_slots;
             if( id > stats->max_open_external_key_id )
                 stats->max_open_external_key_id = id;

@@ -47,7 +47,7 @@
 /* Integral type representing a key handle. */
 typedef uint16_t psa_key_handle_t;
 
-#if defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER)
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 
 #if defined(PSA_CRYPTO_SECURE)
 /* Building for the PSA Crypto service on a PSA platform. */
@@ -55,6 +55,6 @@ typedef uint16_t psa_key_handle_t;
 typedef int32_t mbedtls_key_owner_id_t;
 #endif
 
-#endif /* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER */
+#endif /* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
 
 #endif /* PSA_CRYPTO_PLATFORM_H */

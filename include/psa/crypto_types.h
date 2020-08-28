@@ -33,6 +33,8 @@
 #ifndef PSA_CRYPTO_TYPES_H
 #define PSA_CRYPTO_TYPES_H
 
+#include "crypto_platform.h"
+
 #include <stdint.h>
 
 /** \defgroup error Error codes
@@ -229,12 +231,32 @@ typedef uint32_t psa_key_location_t;
 /* Implementation-specific quirk: The Mbed Crypto library can be built as
  * part of a multi-client service that exposes the PSA Crypto API in each
  * client and encodes the client identity in the key id argument of functions
- * such as psa_open_key(). In this build configuration, we define
- * psa_key_id_t in crypto_platform.h instead of here. */
+ * such as psa_open_key(). */
 #if !defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER)
 typedef uint32_t psa_key_id_t;
+typedef psa_key_id_t psa_key_file_id_t;
+
 #define PSA_KEY_ID_INIT 0
-#endif
+#define PSA_KEY_FILE_GET_KEY_ID( id ) ( id )
+
+#else /* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER */
+typedef struct
+{
+    uint32_t key_id;
+    psa_key_owner_id_t owner;
+} psa_key_file_id_t;
+
+/* Since crypto.h is used as part of the PSA Cryptography API specification,
+ * it must use standard types for things like the argument of psa_open_key().
+ * If it wasn't for that constraint, psa_open_key() would take a
+ * `psa_key_file_id_t` argument. As a workaround, make `psa_key_id_t` an
+ * alias for `psa_key_file_id_t` when building for a multi-client service. */
+typedef psa_key_file_id_t psa_key_id_t;
+
+#define PSA_KEY_ID_INIT {0, 0}
+#define PSA_KEY_FILE_GET_KEY_ID( file_id ) ( ( file_id ).key_id )
+
+#endif /* !MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER */
 
 /**@}*/
 

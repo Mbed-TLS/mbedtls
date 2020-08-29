@@ -336,6 +336,12 @@ jmp_buf jmp_tmp;
 
 void test_fail( const char *test, int line_no, const char* filename )
 {
+    if( test_info.result == TEST_RESULT_FAILED )
+    {
+        /* We've already recorded the test as having failed. Don't
+         * overwrite any previous information about the failure. */
+        return;
+    }
     test_info.result = TEST_RESULT_FAILED;
     test_info.test = test;
     test_info.line_no = line_no;

@@ -1,0 +1,4 @@
+Bugfix
+   * Fix bug on sparc64 platforms where the TICK register is read with an
+     instruction only available to privileged software. Contributed in #3620.
+     Adopted for LTS branch 2.7 in #3622.

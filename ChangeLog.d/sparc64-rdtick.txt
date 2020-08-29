@@ -1,0 +1,3 @@
+Bugfix
+   * Fix bug on sparc64 platforms where a privileged instruction is used to
+     access the TICK register. Contributed in #3620.

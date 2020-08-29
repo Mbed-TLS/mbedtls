@@ -139,18 +139,14 @@ unsigned long mbedtls_timing_hardclock( void )
 #if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
     defined(__GNUC__) && defined(__sparc64__)
 
-#if defined(__OpenBSD__)
-#warning OpenBSD does not allow access to tick register using software version instead
-#else
 #define HAVE_HARDCLOCK
 
 unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long tick;
-    asm volatile( "rdpr %%tick, %0;" : "=&r" (tick) );
+    asm volatile( "rd %%tick, %0;" : "=&r" (tick) );
     return( tick );
 }
-#endif /* __OpenBSD__ */
 #endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && __sparc64__ */
 

@@ -99,6 +99,39 @@ struct _hr_time
 
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 
+#if !defined(HAVE_HARDCLOCK_PRIVILEGE) && defined(MBEDTLS_HAVE_ASM) && \
+    defined(__NetBSD__) && ( defined(__i386__) || defined(__amd64__) || \
+    defined(__x86_64__) )
+
+#define HAVE_HARDCLOCK_PRIVILEGE
+
+#include <sys/sysctl.h>
+static int hardclock_privilege( void )
+{
+    static int pr = -1;
+    size_t len;
+    if( pr == -1 )
+    {
+        len = sizeof( pr );
+        if( sysctlbyname( "machdep.tsc_user_enable", &pr, &len, NULL, 0 ) )
+        {
+            pr = 1;
+        }
+    }
+    return( pr );
+}
+
+static unsigned long hardclock_fallback( void )
+{
+    struct timespec ts;
+    clock_gettime( CLOCK_MONOTONIC, &ts );
+
+    return( ts.tv_sec * 1000000000
+          + ts.tv_nsec );
+}
+#endif /* !HAVE_HARDCLOCK_PRIVILEGE && MBEDTLS_HAVE_ASM &&
+          __NetBSD__ && ( __i386__ || __amd64__ || __x86_64__ ) */
+
 #if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
     ( defined(_MSC_VER) && defined(_M_IX86) ) || defined(__WATCOMC__)
 
@@ -124,6 +157,10 @@ unsigned long mbedtls_timing_hardclock( void )
 unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long lo, hi;
+#if defined(HAVE_HARDCLOCK_PRIVILEGE)
+    if( !hardclock_privilege() )
+        return( hardclock_fallback() );
+#endif
     asm volatile( "rdtsc" : "=a" (lo), "=d" (hi) );
     return( lo );
 }
@@ -138,6 +175,10 @@ unsigned long mbedtls_timing_hardclock( void )
 unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long lo, hi;
+#if defined(HAVE_HARDCLOCK_PRIVILEGE)
+    if( !hardclock_privilege() )
+        return( hardclock_fallback() );
+#endif
     asm volatile( "rdtsc" : "=a" (lo), "=d" (hi) );
     return( lo | ( hi << 32 ) );
 }

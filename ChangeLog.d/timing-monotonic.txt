@@ -1,0 +1,3 @@
+Bugfix
+   * Use monotonic time instead of wall time throughout the timing module.
+     Contributed in #3620.

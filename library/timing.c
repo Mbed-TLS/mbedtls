@@ -63,11 +63,6 @@
 #include <windows.h>
 #include <process.h>
 
-struct _hr_time
-{
-    LARGE_INTEGER start;
-};
-
 #else
 
 #include <unistd.h>
@@ -75,11 +70,6 @@ struct _hr_time
 #include <sys/time.h>
 #include <signal.h>
 #include <time.h>
-
-struct _hr_time
-{
-    struct timeval start;
-};
 
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 
@@ -267,12 +257,31 @@ unsigned long mbedtls_timing_hardclock( void )
 
 #define HAVE_HARDCLOCK
 
-static int hardclock_init = 0;
-static struct timeval tv_init;
-
 unsigned long mbedtls_timing_hardclock( void )
 {
+    static int hardclock_init = 0;
+    static struct timeval tv_init;
+#if defined(_POSIX_TIMERS) && defined(_POSIX_MONOTONIC_CLOCK) && \
+    defined(CLOCK_MONOTONIC)
+    static int monotonic = -1;
+    struct timespec ts;
+#endif
     struct timeval tv_cur;
+
+#if defined(_POSIX_TIMERS) && defined(_POSIX_MONOTONIC_CLOCK) && \
+    defined(CLOCK_MONOTONIC)
+    if( monotonic == -1 )
+    {
+        monotonic = !clock_gettime( CLOCK_MONOTONIC, &ts );
+    }
+    if( monotonic )
+    {
+        clock_gettime( CLOCK_MONOTONIC, &ts );
+
+        return( ts.tv_sec * 1000000000u
+              + ts.tv_nsec );
+    }
+#endif
 
     if( hardclock_init == 0 )
     {
@@ -292,11 +301,11 @@ volatile int mbedtls_timing_alarmed = 0;
 
 unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int reset )
 {
-    struct _hr_time *t = (struct _hr_time *) val;
+    LARGE_INTEGER *t = (LARGE_INTEGER *)val;
 
     if( reset )
     {
-        QueryPerformanceCounter( &t->start );
+        QueryPerformanceCounter( t );
         return( 0 );
     }
     else
@@ -305,7 +314,7 @@ unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int 
         LARGE_INTEGER now, hfreq;
         QueryPerformanceCounter(  &now );
         QueryPerformanceFrequency( &hfreq );
-        delta = (unsigned long)( ( now.QuadPart - t->start.QuadPart ) * 1000ul
+        delta = (unsigned long)( ( now.QuadPart - t->QuadPart ) * 1000ul
                                  / hfreq.QuadPart );
         return( delta );
     }
@@ -342,20 +351,50 @@ void mbedtls_set_alarm( int seconds )
 
 unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int reset )
 {
-    struct _hr_time *t = (struct _hr_time *) val;
+#if defined(_POSIX_TIMERS) && defined(_POSIX_MONOTONIC_CLOCK) && \
+    defined(CLOCK_MONOTONIC)
+    static int monotonic = -1;
+    struct timespec ts;
+#endif
+    struct timeval tv;
+    unsigned long delta;
+
+#if defined(_POSIX_TIMERS) && defined(_POSIX_MONOTONIC_CLOCK) && \
+    defined(CLOCK_MONOTONIC)
+    if( monotonic == -1 )
+    {
+        monotonic = !clock_gettime( CLOCK_MONOTONIC, &ts );
+    }
+#endif
 
     if( reset )
     {
-        gettimeofday( &t->start, NULL );
+#if defined(_POSIX_TIMERS) && defined(_POSIX_MONOTONIC_CLOCK) && \
+    defined(CLOCK_MONOTONIC)
+        if( monotonic )
+        {
+            clock_gettime( CLOCK_MONOTONIC, (struct timespec *)val );
+            return( 0 );
+        }
+#endif
+        gettimeofday( (struct timeval *)val, NULL );
         return( 0 );
     }
     else
     {
-        unsigned long delta;
-        struct timeval now;
-        gettimeofday( &now, NULL );
-        delta = ( now.tv_sec  - t->start.tv_sec  ) * 1000ul
-              + ( now.tv_usec - t->start.tv_usec ) / 1000;
+#if defined(_POSIX_TIMERS) && defined(_POSIX_MONOTONIC_CLOCK) && \
+    defined(CLOCK_MONOTONIC)
+        if( monotonic )
+        {
+            clock_gettime( CLOCK_MONOTONIC, &ts );
+            delta = ( ts.tv_sec  - ((struct timespec *)val)->tv_sec  ) * 1000ul
+                  + ( ts.tv_nsec - ((struct timespec *)val)->tv_nsec ) / 1000000;
+            return( delta );
+        }
+#endif
+        gettimeofday( &tv, NULL );
+        delta = ( tv.tv_sec  - ((struct timeval *)val)->tv_sec  ) * 1000ul
+              + ( tv.tv_usec - ((struct timeval *)val)->tv_usec ) / 1000;
         return( delta );
     }
 }

@@ -1,5 +1,5 @@
 
-# To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
+# To compile on SunOS: add "-lrt -lsocket -lnsl" to LDFLAGS
 # To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
 
 CFLAGS	?= -O2

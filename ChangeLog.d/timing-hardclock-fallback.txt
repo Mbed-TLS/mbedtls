@@ -1,3 +1,4 @@
 Bugfix
    * Add support for hardened systems with restricted access to the CPU cycle
-     counter. Currently supported: NetBSD. Contributed in #3620.
+     counter. Currently supported: NetBSD. Contributed in #3620. Adopted for LTS
+     branch 2.7 in #3622.

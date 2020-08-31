@@ -86,6 +86,69 @@ For parametrized algorithms, the `PSA_WANT_ALG_xxx` symbol indicates whether the
 
 ## Implementation
 
+### Additional non-public symbols
+
+#### Accounting for transparent drivers
+
+In addition to the [configuration symbols](#psa-crypto-configuration-symbols), we need two parallel or mostly parallel sets of symbols:
+
+* **`MBEDTLS_PSA_ACCEL_xxx`** indicates whether a fully-featured, fallback-free transparent driver is available.
+* **`MBEDTLS_PSA_BUILTIN_xxx`** indicates whether the software implementation is needed.
+
+`MBEDTLS_PSA_ACCEL_xxx` is one of the outputs of the transpilation of a driver description, alongside the glue code for calling the drivers.
+
+`MBEDTLS_PSA_BUILTIN_xxx` is enabled when `PSA_WANT_xxx` is enabled and `MBEDTLS_PSA_ACCEL_xxx` is disabled.
+
+These symbols are not part of the public interface of Mbed TLS towards applications or to drivers, regardless of whether the symbols are actually visible.
+
+### Architecture of symbol definitions
+
+#### Definition of internal inclusion symbols
+
+The header file `mbedtls/config.h` needs to define all the `MBEDTLS_xxx_C` configuration symbols, including the ones deduced from the PSA crypto configuration. It does this by including the new header file **`mbedtls/config_psa.h`**, which defines the `MBEDTLS_PSA_BUILTIN_xxx` symbols and deduces the corresponding `MBEDTLS_xxx_C` (and other) symbols.
+
+#### Visibility of internal symbols
+
+Ideally, the `MBEDTLS_PSA_ACCEL_xxx` and `MBEDTLS_PSA_BUILTIN_xxx` symbols should not be visible to application code or driver code, since they are not part of the public interface of the library. However these symbols are needed to deduce whether to include library modules (for example `MBEDTLS_AES_C` has to be enabled if `MBEDTLS_PSA_BUILTIN_KEY_TYPE_AES` is enabled), which makes it difficult to keep them private.
+
+#### Compile-time checks
+
+The header file **`library/psa_check_config.h`** applies sanity checks to the configuration, throwing `#error` if something is wrong.
+
+A mechanism similar to `mbedtls/check_config.h` detects errors such as enabling ECDSA but no curve.
+
+Since configuration symbols must be undefined or 1, any other value should trigger an `#error`.
+
+#### Automatic generation of preprocessor symbol manipulations
+
+A lot of the preprocessor symbol manipulation is systematic calculations that analyze the configuration. `mbedtls/config_psa.h` and `library/psa_check_config.h` should be generated automatically, in the same manner as `version_features.c`.
+
+### Structure of PSA crypto library code
+
+#### Conditional inclusion of library entry points
+
+An entry point can be eliminated entirely if no algorithm requires it.
+
+#### Conditional inclusion of mechanism-specific code
+
+Code that is specific to certain key types or to certain algorithms must be guarded by the applicable symbols: `PSA_WANT_xxx` for code that is independent of the application, and `MBEDTLS_PSA_BUILTIN_xxx` for code that calls an Mbed TLS software implementation.
+
+## PSA standardization
+
+### JSON configuration mechanism
+
+At the time of writing, the preferred configuration mechanism for a PSA service is in JSON syntax. The translation from JSON to build instructions is not specified by PSA.
+
+For PSA Crypto, the preferred configuration mechanism would be similar to capability specifications of transparent drivers. The same JSON properties that are used to mean “this driver can perform that mechanism” in a driver description would be used to mean “the application wants to perform that mechanism” in the application configuration.
+
+### From JSON to C
+
+The JSON capability language allows a more fine-grained selection than the C mechanism proposed here. For example, it allows requesting only single-part mechanisms, only certain key sizes, or only certain combinations of algorithms and key types.
+
+The JSON capability language can be translated approximately to the boolean symbol mechanism proposed here. The approximation considers a feature to be enabled if any part of it is enabled. For example, if there is a capability for AES-CTR and one for CAMELLIA-GCM, the translation to boolean symbols will also include AES-GCM and CAMELLIA-CTR. If there is a capability for AES-128, the translation will also include AES-192 and AES-256.
+
+The boolean symbol mechanism proposed here can be translated to a list of JSON capabilities: for each included algorithm, include a capability with that algorithm, the key types that apply to that algorithm, no size restriction, and all the entry points that apply to that algorithm.
+
 ## Open questions
 
 ### Open questions about the interface
@@ -93,6 +156,10 @@ For parametrized algorithms, the `PSA_WANT_ALG_xxx` symbol indicates whether the
 #### Naming of symbols
 
 The names of [elliptic curve symbols](#configuration-symbols-for-curves) are a bit weird: `SECP_R1_256` instead of `SECP256R1`. Should we make them more classical, but less systematic?
+
+#### Impossible combinations
+
+What does it mean to have `PSA_WANT_ALG_ECDSA` enabled but with only Curve25519? Is it a mandatory error?
 
 #### Diffie-Hellman
 

@@ -1439,6 +1439,15 @@ component_build_crypto_baremetal () {
   are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }
 support_build_crypto_baremetal () {
+    support_build_baremetal "$@"
+}
+
+component_build_baremetal () {
+  msg "build: make, baremetal config"
+  scripts/config.py baremetal
+  make CFLAGS="-O1 -Werror -I$(pwd)/tests/include/baremetal-override/"
+}
+support_build_baremetal () {
     # Older Glibc versions include time.h from other headers such as stdlib.h,
     # which makes the no-time.h-in-baremetal check fail. Ubuntu 16.04 has this
     # problem, Ubuntu 18.04 is ok.

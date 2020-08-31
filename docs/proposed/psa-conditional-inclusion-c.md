@@ -41,6 +41,8 @@ This is difficult to adapt to the PSA interface for several reasons. The `MBEDTL
 
 [Limitation.size] There is no requirement to include only support for certain key sizes.
 
+[Limitation.multipart] Where there are multiple ways to perform an operation, for example single-part and multi-part, there is no mechanism to select only one or a subset of the possible ways.
+
 ## Interface
 
 ### PSA Crypto configuration file

@@ -5,7 +5,7 @@ This document is a proposed interface for deciding at build time which cryptogra
 
 This is currently a proposal for Mbed TLS. It is not currently on track for standardization in PSA.
 
-Time-stamp: "2020/08/31 14:01:46 CEST gilpes01@e120160-lin.cambridge.arm.com"
+Time-stamp: "2020/08/31 13:40:49 GMT"
 
 ## Introduction
 
@@ -117,3 +117,13 @@ This is especially relevant to suppress a mechanism completely if there is no ma
 #### Testability
 
 Is this proposal decently testable? There are a lot of combinations. What combinations should we test?
+
+<!--
+Local Variables:
+time-stamp-line-limit: 40
+time-stamp-start: "Time-stamp: *\""
+time-stamp-end: "\""
+time-stamp-format: "%04Y/%02m/%02d %02H:%02M:%02S %Z"
+time-stamp-time-zone: "GMT"
+End:
+-->

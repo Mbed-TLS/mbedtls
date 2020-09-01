@@ -35,11 +35,10 @@ uint8_t test_signature_hash_32_with_secp256r1[64] = {
 /* BEGIN_CASE */
 void transparent_test_driver_bad_param( )
 {
-    #define TEST_BUFSIZE ( 64U )
     size_t out_key_len;
     uint8_t in_key[16];
     psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
-    uint8_t out_key[TEST_BUFSIZE];
+    uint8_t out_key[64U];
 
     PSA_ASSERT( psa_crypto_init() );
 
@@ -49,13 +48,13 @@ void transparent_test_driver_bad_param( )
     /* Check validity of parameter set. */
     PSA_ASSERT( transparent_test_driver_generate_key( &attr,
                                                       out_key,
-                                                      TEST_BUFSIZE,
+                                                      sizeof(out_key),
                                                       &out_key_len ) );
     psa_set_key_bits( &attr, 0 );
     TEST_EQUAL( PSA_ERROR_NOT_SUPPORTED,
                 transparent_test_driver_generate_key( &attr,
                                                       out_key,
-                                                      TEST_BUFSIZE,
+                                                      sizeof(out_key),
                                                       &out_key_len ) );
     psa_set_key_type( &attr, PSA_KEY_TYPE_AES );
     psa_set_key_bits( &attr, 256 );
@@ -68,7 +67,7 @@ void transparent_test_driver_bad_param( )
     TEST_EQUAL( PSA_ERROR_NOT_SUPPORTED,
                 transparent_test_driver_generate_key( &attr,
                                                       out_key,
-                                                      TEST_BUFSIZE,
+                                                      sizeof(out_key),
                                                       &out_key_len ) );
     psa_set_key_bits( &attr, 128 );
 
@@ -78,7 +77,7 @@ void transparent_test_driver_bad_param( )
                                  (uint8_t *) "Hello world 1234",
                                  16,
                                  out_key,
-                                 TEST_BUFSIZE,
+                                 sizeof(out_key),
                                  &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_export_public_key(
@@ -86,7 +85,7 @@ void transparent_test_driver_bad_param( )
                                  (uint8_t* ) "Hello world 1234",
                                  0,
                                  out_key,
-                                 TEST_BUFSIZE,
+                                 sizeof(out_key),
                                  &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_BUFFER_TOO_SMALL,
                 transparent_test_driver_export_public_key(
@@ -114,7 +113,7 @@ void transparent_test_driver_bad_param( )
                                                    in_key,
                                                    16,
                                                    out_key,
-                                                   TEST_BUFSIZE,
+                                                   sizeof(out_key),
                                                    &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_sign_hash( &attr,
@@ -124,7 +123,7 @@ void transparent_test_driver_bad_param( )
                                                    in_key,
                                                    16,
                                                    out_key,
-                                                   TEST_BUFSIZE,
+                                                   sizeof(out_key),
                                                    &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_BUFFER_TOO_SMALL,
                 transparent_test_driver_sign_hash( &attr,
@@ -160,17 +159,14 @@ void transparent_test_driver_bad_param( )
 exit:
     psa_reset_key_attributes(&attr);
     PSA_DONE( );
-    #undef TEST_BUFSIZE
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void transparent_test_driver_export_public_key( char *in, char *exp_out )
+void transparent_test_driver_export_public_key( char *in_key, char *exp_out_key )
 {
-    #define TEST_BUFSIZE ( 32U )
-
-    size_t out_len;
-    uint8_t out[TEST_BUFSIZE];
+    size_t out_key_len;
+    uint8_t out_key[32U];
     psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init() );
@@ -179,30 +175,28 @@ void transparent_test_driver_export_public_key( char *in, char *exp_out )
     psa_set_key_bits( &attr, 128 );
 
     PSA_ASSERT( transparent_test_driver_export_public_key( &attr,
-                                                           (uint8_t *) in,
-                                                           strlen(in),
-                                                           out,
-                                                           TEST_BUFSIZE,
-                                                           &out_len));
+                                                           (uint8_t *) in_key,
+                                                           strlen(in_key),
+                                                           out_key,
+                                                           sizeof(out_key),
+                                                           &out_key_len));
 
 
     TEST_EQUAL( 0,
-                mbedtls_test_hexcmp( out,
-                                     (uint8_t *) exp_out,
-                                     out_len,
-                                     strlen(exp_out) ) );
+                mbedtls_test_hexcmp( out_key,
+                                     (uint8_t *) exp_out_key,
+                                     out_key_len,
+                                     strlen(exp_out_key) ) );
 exit:
     PSA_DONE( );
-    #undef TEST_BUFSIZE
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
 void transparent_test_driver_generate_key( int type_arg, int bits_arg )
 {
-    #define TEST_BUFSIZE ( 32U )
     size_t key_len = 0;
-    uint8_t key[TEST_BUFSIZE];
+    uint8_t key[32U];
     psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init() );
@@ -212,23 +206,21 @@ void transparent_test_driver_generate_key( int type_arg, int bits_arg )
 
     PSA_ASSERT( transparent_test_driver_generate_key( &attr,
                                                       key,
-                                                      TEST_BUFSIZE,
+                                                      sizeof(key),
                                                       &key_len ) );
 exit:
     psa_reset_key_attributes( &attr );
     PSA_DONE( );
-    #undef TEST_BUFSIZE
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
 void transparent_test_driver_invalid_param( )
 {
-    #define TEST_BUFSIZE (64U)
     size_t out_key_len;
     uint8_t in_key[32];
     psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
-    uint8_t out_key[TEST_BUFSIZE];
+    uint8_t out_key[64U];
 
     PSA_ASSERT( psa_crypto_init() );
 
@@ -238,22 +230,22 @@ void transparent_test_driver_invalid_param( )
     /* Check validity of parameter set. */
     PSA_ASSERT( transparent_test_driver_generate_key( &attr,
                                                       out_key,
-                                                      TEST_BUFSIZE,
+                                                      sizeof(out_key),
                                                       &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_generate_key( NULL,
                                                       out_key,
-                                                      TEST_BUFSIZE,
+                                                      sizeof(out_key),
                                                       &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_generate_key( &attr,
                                                       NULL,
-                                                      TEST_BUFSIZE,
+                                                      sizeof(out_key),
                                                       &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_generate_key( &attr,
                                                       out_key,
-                                                      TEST_BUFSIZE,
+                                                      sizeof(out_key),
                                                       NULL ) );
 
     /* Check validity of parameter set. */
@@ -262,7 +254,7 @@ void transparent_test_driver_invalid_param( )
                                     (uint8_t *) "Hello world 1234",
                                     16,
                                     out_key,
-                                    TEST_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_export_public_key(
@@ -270,7 +262,7 @@ void transparent_test_driver_invalid_param( )
                                     NULL,
                                     16,
                                     out_key,
-                                    TEST_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_export_public_key(
@@ -278,7 +270,7 @@ void transparent_test_driver_invalid_param( )
                                     (uint8_t *) "Hello world 1234",
                                     16,
                                     NULL,
-                                    TEST_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_export_public_key(
@@ -286,7 +278,7 @@ void transparent_test_driver_invalid_param( )
                                     (uint8_t *) "Hello world 1234",
                                     16,
                                     out_key,
-                                    TEST_BUFSIZE,
+                                    sizeof(out_key),
                                     NULL ) );
 
     /* Check validity of parameter set. */
@@ -307,7 +299,7 @@ void transparent_test_driver_invalid_param( )
                                     in_key,
                                     32,
                                     out_key,
-                                    TEST_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_sign_hash(
@@ -318,7 +310,7 @@ void transparent_test_driver_invalid_param( )
                                     in_key,
                                     32,
                                     out_key,
-                                    TEST_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_sign_hash(
@@ -329,7 +321,7 @@ void transparent_test_driver_invalid_param( )
                                     in_key,
                                     32,
                                     out_key,
-                                    TEST_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_sign_hash(
@@ -340,7 +332,7 @@ void transparent_test_driver_invalid_param( )
                                     NULL,
                                     32,
                                     out_key,
-                                    TEST_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_sign_hash(
@@ -351,7 +343,7 @@ void transparent_test_driver_invalid_param( )
                                     in_key,
                                     32,
                                     NULL,
-                                    TEST_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_sign_hash(
@@ -362,7 +354,7 @@ void transparent_test_driver_invalid_param( )
                                     in_key,
                                     32,
                                     out_key,
-                                    TEST_BUFSIZE,
+                                    sizeof(out_key),
                                     NULL ) );
 
     /* Check validity of parameter set. */
@@ -419,7 +411,6 @@ void transparent_test_driver_invalid_param( )
 exit:
     psa_reset_key_attributes(&attr);
     PSA_DONE( );
-    #undef TEST_BUFSIZE
 }
 /* END_CASE */
 
@@ -428,9 +419,8 @@ void transparent_test_driver_sign_verify( int key_type_arg, data_t *key_data,
                                 int alg_arg, data_t *input_data )
 
 {
-    #define TEST_BUFSIZE 128U
     size_t key_bits;
-    uint8_t sign[TEST_BUFSIZE];
+    uint8_t sign[128U];
     size_t sign_size;
     size_t sign_length = 0;
     psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
@@ -451,7 +441,7 @@ void transparent_test_driver_sign_verify( int key_type_arg, data_t *key_data,
                                                    input_data->x,
                                                    input_data->len,
                                                    sign,
-                                                   TEST_BUFSIZE,
+                                                   sizeof(sign),
                                                    &sign_length ) );
 
     key_bits = psa_get_key_bits( &attr );
@@ -460,7 +450,7 @@ void transparent_test_driver_sign_verify( int key_type_arg, data_t *key_data,
     /* Check that the signature length looks sensible. */
     TEST_ASSERT( sign_size != 0 );
     TEST_ASSERT( sign_size <= PSA_SIGNATURE_MAX_SIZE );
-    TEST_ASSERT( sign_size <= TEST_BUFSIZE );
+    TEST_ASSERT( sign_size <= sizeof(sign) );
     TEST_ASSERT( sign_length <= sign_size );
     TEST_ASSERT( sign_length > 0 );
 
@@ -494,6 +484,5 @@ void transparent_test_driver_sign_verify( int key_type_arg, data_t *key_data,
 exit:
     psa_reset_key_attributes( &attr );
     PSA_DONE( );
-    #undef TEST_BUFSIZE
 }
 /* END_CASE */

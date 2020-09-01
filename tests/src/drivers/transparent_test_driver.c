@@ -68,9 +68,14 @@
 
 #include <string.h>
 
-/* Parameter validation macros */
-#define _VALIDATE_RET( cond ) \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, PSA_ERROR_INVALID_ARGUMENT )
+/* Parameter validation macro */
+#define _VALIDATE_PARAM( cond )  \
+    do {                                            \
+        if( !(cond) )                               \
+        {                                           \
+            return( PSA_ERROR_INVALID_ARGUMENT );   \
+        }                                           \
+    } while( 0 )
 
 /****************************************************************/
 /* static forward declarations                                  */
@@ -92,9 +97,9 @@ psa_status_t transparent_test_driver_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key, size_t key_size, size_t *key_length )
 {
-    _VALIDATE_RET( attributes != NULL );
-    _VALIDATE_RET( key != NULL );
-    _VALIDATE_RET( key_length != NULL );
+    _VALIDATE_PARAM( attributes != NULL );
+    _VALIDATE_PARAM( key != NULL );
+    _VALIDATE_PARAM( key_length != NULL );
 
     size_t key_bits = psa_get_key_bits( attributes );
     psa_key_type_t type = attributes->core.type;
@@ -186,10 +191,10 @@ psa_status_t transparent_test_driver_export_public_key(
     size_t data_size,
     size_t *data_length)
 {
-    _VALIDATE_RET( attributes != NULL );
-    _VALIDATE_RET( key != NULL );
-    _VALIDATE_RET( data != NULL );
-    _VALIDATE_RET( data_length != NULL );
+    _VALIDATE_PARAM( attributes != NULL );
+    _VALIDATE_PARAM( key != NULL );
+    _VALIDATE_PARAM( data != NULL );
+    _VALIDATE_PARAM( data_length != NULL );
 
     psa_key_type_t type = attributes->core.type;
 
@@ -266,11 +271,11 @@ psa_status_t transparent_test_driver_sign_hash(
 {
     psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
 
-    _VALIDATE_RET( attributes != NULL );
-    _VALIDATE_RET( key != NULL );
-    _VALIDATE_RET( hash != NULL );
-    _VALIDATE_RET( signature != NULL );
-    _VALIDATE_RET( signature_length != NULL );
+    _VALIDATE_PARAM( attributes != NULL );
+    _VALIDATE_PARAM( key != NULL );
+    _VALIDATE_PARAM( hash != NULL );
+    _VALIDATE_PARAM( signature != NULL );
+    _VALIDATE_PARAM( signature_length != NULL );
 
     if ( key_length == 0 ) {
       return PSA_ERROR_INVALID_ARGUMENT;
@@ -377,10 +382,10 @@ psa_status_t transparent_test_driver_verify_hash(
 {
     psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
 
-    _VALIDATE_RET( attributes != NULL );
-    _VALIDATE_RET( key != NULL );
-    _VALIDATE_RET( hash != NULL );
-    _VALIDATE_RET( signature != NULL );
+    _VALIDATE_PARAM( attributes != NULL );
+    _VALIDATE_PARAM( key != NULL );
+    _VALIDATE_PARAM( hash != NULL );
+    _VALIDATE_PARAM( signature != NULL );
 
     if ( key_length == 0 ) {
       return PSA_ERROR_INVALID_ARGUMENT;

@@ -218,7 +218,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+/* BEGIN_CASE */
 void transparent_test_driver_invalid_param( )
 {
     #define TEST_BUFSIZE (64U)
@@ -237,17 +237,17 @@ void transparent_test_driver_invalid_param( )
                                                             out_key,
                                                             TEST_BUFSIZE,
                                                             &out_key_len ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_generate_key( NULL,
                                                         out_key,
                                                         TEST_BUFSIZE,
                                                         &out_key_len ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_generate_key( &attr,
                                                         NULL,
                                                         TEST_BUFSIZE,
                                                         &out_key_len ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_generate_key( &attr,
                                                         out_key,
                                                         TEST_BUFSIZE,
@@ -261,7 +261,7 @@ void transparent_test_driver_invalid_param( )
                                     out_key,
                                     TEST_BUFSIZE,
                                     &out_key_len ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_export_public_key(
                                     &attr,
                                     NULL,
@@ -269,7 +269,7 @@ void transparent_test_driver_invalid_param( )
                                     out_key,
                                     TEST_BUFSIZE,
                                     &out_key_len ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_export_public_key(
                                     &attr,
                                     (uint8_t *) "Hello world 1234",
@@ -277,7 +277,7 @@ void transparent_test_driver_invalid_param( )
                                     NULL,
                                     TEST_BUFSIZE,
                                     &out_key_len ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_export_public_key(
                                     &attr,
                                     (uint8_t *) "Hello world 1234",
@@ -306,7 +306,7 @@ void transparent_test_driver_invalid_param( )
                                     out_key,
                                     TEST_BUFSIZE,
                                     &out_key_len ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_sign_hash(
                                     NULL,
                                     key,
@@ -317,7 +317,7 @@ void transparent_test_driver_invalid_param( )
                                     out_key,
                                     TEST_BUFSIZE,
                                     &out_key_len ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_sign_hash(
                                     &attr,
                                     NULL,
@@ -328,7 +328,7 @@ void transparent_test_driver_invalid_param( )
                                     out_key,
                                     TEST_BUFSIZE,
                                     &out_key_len ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_sign_hash(
                                     &attr,
                                     key,
@@ -339,7 +339,7 @@ void transparent_test_driver_invalid_param( )
                                     out_key,
                                     TEST_BUFSIZE,
                                     &out_key_len ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_sign_hash(
                                     &attr,
                                     key,
@@ -350,7 +350,7 @@ void transparent_test_driver_invalid_param( )
                                     NULL,
                                     TEST_BUFSIZE,
                                     &out_key_len ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_sign_hash(
                                     &attr,
                                     key,
@@ -372,7 +372,7 @@ void transparent_test_driver_invalid_param( )
                                     sizeof(test_hash_32),
                                     test_signature_hash_32_with_secp256r1,
                                     sizeof(test_signature_hash_32_with_secp256r1) ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_verify_hash(
                                     NULL,
                                     key,
@@ -382,7 +382,7 @@ void transparent_test_driver_invalid_param( )
                                     sizeof(test_hash_32),
                                     test_signature_hash_32_with_secp256r1,
                                     sizeof(test_signature_hash_32_with_secp256r1) ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_verify_hash(
                                     &attr,
                                     NULL,
@@ -392,7 +392,7 @@ void transparent_test_driver_invalid_param( )
                                     sizeof(test_hash_32),
                                     test_signature_hash_32_with_secp256r1,
                                     sizeof(test_signature_hash_32_with_secp256r1) ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_verify_hash(
                                     &attr,
                                     key,
@@ -402,7 +402,7 @@ void transparent_test_driver_invalid_param( )
                                     sizeof(test_hash_32),
                                     test_signature_hash_32_with_secp256r1,
                                     sizeof(test_signature_hash_32_with_secp256r1) ) );
-    TEST_INVALID_PARAM_RET( PSA_ERROR_INVALID_ARGUMENT,
+    TEST_ASSERT( PSA_ERROR_INVALID_ARGUMENT ==
                             transparent_test_driver_verify_hash(
                                     &attr,
                                     key,

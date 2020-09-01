@@ -723,8 +723,8 @@ component_check_doxygen_warnings () {
 component_test_transparent_test_driver () {
     msg "build+test: Transparent test driver test" # ~ ?0s
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
-    scripts/config.py set MBEDTLS_CHECK_PARAMS
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DTRANSPARENT_TEST_DRIVER" LDFLAGS="$ASAN_CFLAGS" test
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -DTRANSPARENT_TEST_DRIVER" LDFLAGS="$ASAN_CFLAGS"
+    make test
 }
 
 component_test_default_out_of_box () {

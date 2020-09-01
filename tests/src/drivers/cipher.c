@@ -40,6 +40,8 @@
 void *test_driver_cipher_forced_output = NULL;
 size_t test_driver_cipher_forced_output_length = 0;
 
+/* Test driver, if not explicitly setup, returns 'PSA_ERROR_NOT_SUPPORTED' by default,
+ * causing regular test suites to pass since the core will go into fallback mode. */
 psa_status_t test_transparent_cipher_status = PSA_ERROR_NOT_SUPPORTED;
 unsigned long test_transparent_cipher_hit = 0;
 

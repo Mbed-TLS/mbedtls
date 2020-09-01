@@ -158,6 +158,7 @@ struct psa_cipher_operation_s
     unsigned int key_set : 1;
     unsigned int iv_required : 1;
     unsigned int iv_set : 1;
+    unsigned int accelerator_set : 1;
     uint8_t iv_size;
     uint8_t block_size;
     union
@@ -173,7 +174,7 @@ struct psa_cipher_operation_s
     } ctx;
 };
 
-#define PSA_CIPHER_OPERATION_INIT {0, 0, 0, 0, 0, 0, {0}}
+#define PSA_CIPHER_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, {0}}
 static inline struct psa_cipher_operation_s psa_cipher_operation_init( void )
 {
     const struct psa_cipher_operation_s v = PSA_CIPHER_OPERATION_INIT;

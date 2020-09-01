@@ -4059,9 +4059,9 @@ static psa_status_t psa_cipher_init( psa_cipher_operation_t *operation,
     {
         operation->iv_required = 1;
     }
+    operation->accelerator_set = 0;
     operation->iv_size = 0;
     operation->block_size = 0;
-    mbedtls_cipher_init( &operation->ctx.cipher );
     return( PSA_SUCCESS );
 }
 
@@ -4083,6 +4083,14 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     if( status != PSA_SUCCESS )
         goto exit;
 
+    /* A context must be freshly initialized before it can be set up. */
+    if( operation->alg != 0 )
+        return( PSA_ERROR_BAD_STATE );
+
+    status = psa_cipher_init( operation, alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
     /* Try doing this through a driver before using software fallback */
     if( cipher_operation == MBEDTLS_ENCRYPT )
         status = psa_driver_wrapper_cipher_encrypt_setup( operation,
@@ -4093,18 +4101,19 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
                                                           slot,
                                                           alg );
 
-    if( status != PSA_ERROR_NOT_SUPPORTED )
-        goto exit;
-
-    /* A context must be freshly initialized before it can be set up. */
-    if( operation->alg != 0 )
+    if( status == PSA_SUCCESS )
     {
-        return( PSA_ERROR_BAD_STATE );
+        operation->accelerator_set = 1;
+        operation->key_set = 1;
     }
 
-    status = psa_cipher_init( operation, alg );
-    if( status != PSA_SUCCESS )
-        return( status );
+    if( status != PSA_ERROR_NOT_SUPPORTED ||
+        psa_key_lifetime_is_external( slot->attr.lifetime ) )
+        goto exit;
+
+    /* Proceed with initializing mbed TLS cipher context if no accelerator is
+     * available for the given algorithm & key. */
+    mbedtls_cipher_init( &operation->ctx.cipher );
 
     status = psa_get_transparent_key( handle, &slot, usage, alg);
     if( status != PSA_SUCCESS )
@@ -4206,7 +4215,14 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
 {
     psa_status_t status;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    if( operation->iv_set || ! operation->iv_required )
+
+    if( operation->accelerator_set == 1 )
+        return( psa_driver_wrapper_cipher_generate_iv( operation,
+                                                       iv,
+                                                       iv_size,
+                                                       iv_length ) );
+
+    if( operation->iv_set || ! operation->iv_required || ! operation->key_set )
     {
         return( PSA_ERROR_BAD_STATE );
     }
@@ -4238,7 +4254,13 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
 {
     psa_status_t status;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    if( operation->iv_set || ! operation->iv_required )
+
+    if( operation->accelerator_set == 1 )
+        return( psa_driver_wrapper_cipher_set_iv( operation,
+                                                  iv,
+                                                  iv_length ) );
+
+    if( operation->iv_set || ! operation->iv_required || ! operation->key_set )
     {
         return( PSA_ERROR_BAD_STATE );
     }
@@ -4355,7 +4377,15 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t expected_output_size;
 
-    if( operation->alg == 0 )
+    if( operation->accelerator_set == 1 )
+        return( psa_driver_wrapper_cipher_update( operation,
+                                               input,
+                                               input_length,
+                                               output,
+                                               output_size,
+                                               output_length ) );
+
+    if( operation->alg == 0 || ! operation->key_set )
     {
         return( PSA_ERROR_BAD_STATE );
     }
@@ -4413,6 +4443,12 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     int cipher_ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     uint8_t temp_output_buffer[MBEDTLS_MAX_BLOCK_LENGTH];
+
+    if( operation->accelerator_set == 1 )
+        return( psa_driver_wrapper_cipher_finish( operation,
+                                                  output,
+                                                  output_size,
+                                                  output_length ) );
 
     if( ! operation->key_set )
     {
@@ -4483,11 +4519,15 @@ psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
     if( ! PSA_ALG_IS_CIPHER( operation->alg ) )
         return( PSA_ERROR_BAD_STATE );
 
-    mbedtls_cipher_free( &operation->ctx.cipher );
+    if( operation->accelerator_set == 1 )
+        psa_driver_wrapper_cipher_abort( operation );
+    else
+        mbedtls_cipher_free( &operation->ctx.cipher );
 
     operation->alg = 0;
     operation->key_set = 0;
     operation->iv_set = 0;
+    operation->accelerator_set = 0;
     operation->iv_size = 0;
     operation->block_size = 0;
     operation->iv_required = 0;

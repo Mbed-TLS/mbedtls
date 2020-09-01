@@ -64,6 +64,19 @@ static inline int psa_key_handle_is_null( psa_key_handle_t handle )
     return( handle == 0 );
 }
 
+/** Compare two handles.
+ *
+ * \param handle1  First handle.
+ * \param handle2  Second handle.
+ *
+ * \return Non-zero if the two handles are equal, zero otherwise.
+ */
+static inline int psa_key_handle_equal( psa_key_handle_t handle1,
+                                        psa_key_handle_t handle2 )
+{
+    return( handle1 == handle2 );
+}
+
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 
 /* Building for the PSA Crypto service on a PSA platform, a key owner is a PSA

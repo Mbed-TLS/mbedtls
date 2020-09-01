@@ -659,7 +659,7 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
     }
 
     PSA_ASSERT( psa_destroy_key( source_handle ) );
-    if( target_handle != source_handle )
+    if( ! psa_key_handle_equal( target_handle, source_handle ) )
         PSA_ASSERT( psa_destroy_key( target_handle ) );
 
 exit:
@@ -768,7 +768,7 @@ void many_transient_handles( int max_handles_arg )
         PSA_ASSERT( status );
         TEST_ASSERT( ! psa_key_handle_is_null( handles[i] ) );
         for( j = 0; j < i; j++ )
-            TEST_ASSERT( handles[i] != handles[j] );
+            TEST_ASSERT( ! psa_key_handle_equal( handles[i], handles[j] ) );
     }
     max_handles = i;
 

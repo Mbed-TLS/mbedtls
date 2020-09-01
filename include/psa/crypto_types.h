@@ -262,7 +262,7 @@ static inline psa_key_file_id_t psa_key_file_id_make(
 typedef struct
 {
     psa_key_id_t key_id;
-    psa_key_owner_id_t owner;
+    mbedtls_key_owner_id_t owner;
 } psa_key_file_id_t;
 
 #define PSA_KEY_ID_INIT {0, 0}
@@ -274,7 +274,7 @@ typedef struct
  * \param key_id   Identifier of the key.
  */
 static inline psa_key_file_id_t psa_key_file_id_make(
-    psa_key_owner_id_t owner_id, psa_key_id_t key_id )
+    mbedtls_key_owner_id_t owner_id, psa_key_id_t key_id )
 {
     return( (psa_key_file_id_t){ .key_id = key_id,
                                  .owner = owner_id } );

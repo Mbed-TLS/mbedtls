@@ -52,7 +52,7 @@ typedef uint16_t psa_key_handle_t;
 #if defined(PSA_CRYPTO_SECURE)
 /* Building for the PSA Crypto service on a PSA platform. */
 /* A key owner is a PSA partition identifier. */
-typedef int32_t psa_key_owner_id_t;
+typedef int32_t mbedtls_key_owner_id_t;
 #endif
 
 #endif /* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER */

@@ -152,7 +152,7 @@ void transient_slot_lifecycle( int usage_arg, int alg_arg,
     psa_set_key_type( &attributes, type );
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &handle ) );
-    TEST_ASSERT( handle != 0 );
+    TEST_ASSERT( ! psa_key_handle_is_null( handle ) );
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
 
@@ -210,7 +210,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
     psa_set_key_enrollment_algorithm( &attributes, alg2 );
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &handle ) );
-    TEST_ASSERT( handle != 0 );
+    TEST_ASSERT( ! psa_key_handle_is_null( handle ) );
 
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
     TEST_EQUAL( psa_open_key( wrong_owner_id, &invalid_handle ),
@@ -342,7 +342,7 @@ void create_existent( int lifetime_arg, int owner_id_arg, int id_arg,
     psa_set_key_algorithm( &attributes, 0 );
     PSA_ASSERT( psa_import_key( &attributes, material1, sizeof( material1 ),
                                 &handle1 ) );
-    TEST_ASSERT( handle1 != 0 );
+    TEST_ASSERT( ! psa_key_handle_is_null( handle1 ) );
 
     if( reopen_policy == CLOSE_BEFORE )
         PSA_ASSERT( psa_close_key( handle1 ) );
@@ -351,7 +351,7 @@ void create_existent( int lifetime_arg, int owner_id_arg, int id_arg,
     TEST_EQUAL( psa_import_key( &attributes, material2, sizeof( material2 ),
                                 &handle2 ),
                 PSA_ERROR_ALREADY_EXISTS );
-    TEST_EQUAL( handle2, 0 );
+    TEST_ASSERT( psa_key_handle_is_null( handle2 ) );
 
     if( reopen_policy == CLOSE_AFTER )
         PSA_ASSERT( psa_close_key( handle1 ) );
@@ -394,7 +394,7 @@ void open_fail( int id_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     TEST_EQUAL( psa_open_key( id, &handle ), expected_status );
-    TEST_EQUAL( handle, 0 );
+    TEST_ASSERT( psa_key_handle_is_null( handle ) );
 
 exit:
     PSA_DONE( );
@@ -422,7 +422,7 @@ void create_fail( int lifetime_arg, int id_arg,
     TEST_EQUAL( psa_import_key( &attributes, material, sizeof( material ),
                                 &handle ),
                 expected_status );
-    TEST_EQUAL( handle, 0 );
+    TEST_ASSERT( psa_key_handle_is_null( handle ) );
 
 exit:
     PSA_DONE( );
@@ -631,7 +631,7 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
     TEST_EQUAL( psa_copy_key( source_handle,
                               &attributes, &new_handle ),
                 PSA_ERROR_ALREADY_EXISTS );
-    TEST_EQUAL( new_handle , 0 );
+    TEST_ASSERT( psa_key_handle_is_null( new_handle ) );
 
     /* Test that the target slot is unaffected. */
     PSA_ASSERT( psa_get_key_attributes( target_handle, &attributes2 ) );
@@ -691,7 +691,7 @@ void invalid_handle( int handle_construction,
     PSA_ASSERT( psa_import_key( &attributes,
                                 material, sizeof( material ),
                                 &valid_handle ) );
-    TEST_ASSERT( valid_handle != 0 );
+    TEST_ASSERT( ! psa_key_handle_is_null( valid_handle ) );
 
     /* Construct an invalid handle as specified in the test case data. */
     switch( handle_construction )
@@ -766,7 +766,7 @@ void many_transient_handles( int max_handles_arg )
         if( status == PSA_ERROR_INSUFFICIENT_MEMORY )
             break;
         PSA_ASSERT( status );
-        TEST_ASSERT( handles[i] != 0 );
+        TEST_ASSERT( ! psa_key_handle_is_null( handles[i] ) );
         for( j = 0; j < i; j++ )
             TEST_ASSERT( handles[i] != handles[j] );
     }

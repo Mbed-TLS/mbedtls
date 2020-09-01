@@ -674,7 +674,7 @@ static int smoke_test_key( psa_key_handle_t handle )
                                          buffer, sizeof( buffer ), &length ) );
 
     SMOKE_ASSERT( psa_copy_key( handle, &attributes, &handle2 ) );
-    if( handle2 != 0 )
+    if( ! psa_key_handle_is_null( handle2 ) )
         PSA_ASSERT( psa_close_key( handle2 ) );
 
     SMOKE_ASSERT( psa_mac_sign_setup( &mac_operation, handle, PSA_ALG_CMAC ) );

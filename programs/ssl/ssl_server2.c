@@ -1303,7 +1303,7 @@ int psk_free( psk_entry *head )
         psa_status_t status;
         psa_key_handle_t const slot = head->slot;
 
-        if( slot != 0 )
+        if( ! psa_key_handle_is_null( slot ) )
         {
             status = psa_destroy_key( slot );
             if( status != PSA_SUCCESS )
@@ -1376,7 +1376,7 @@ int psk_callback( void *p_info, mbedtls_ssl_context *ssl,
             memcmp( name, cur->name, name_len ) == 0 )
         {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-            if( cur->slot != 0 )
+            if( ! psa_key_handle_is_null( cur->slot ) )
                 return( mbedtls_ssl_set_hs_psk_opaque( ssl, cur->slot ) );
             else
 #endif

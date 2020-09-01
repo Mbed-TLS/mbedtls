@@ -197,7 +197,7 @@ void validate_module_init_key_based( int count )
     psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
     status = psa_import_key( &attributes, data, sizeof( data ), &handle );
     TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
-    TEST_EQUAL( handle, 0 );
+    TEST_ASSERT( psa_key_handle_is_null( handle ) );
 }
 /* END_CASE */
 

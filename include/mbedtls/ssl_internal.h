@@ -1064,10 +1064,10 @@ static inline int mbedtls_ssl_get_psk( const mbedtls_ssl_context *ssl,
 static inline psa_key_handle_t mbedtls_ssl_get_opaque_psk(
     const mbedtls_ssl_context *ssl )
 {
-    if( ssl->handshake->psk_opaque != 0 )
+    if( ! psa_key_handle_is_null( ssl->handshake->psk_opaque ) )
         return( ssl->handshake->psk_opaque );
 
-    if( ssl->conf->psk_opaque != 0 )
+    if( ! psa_key_handle_is_null( ssl->conf->psk_opaque ) )
         return( ssl->conf->psk_opaque );
 
     return( PSA_KEY_HANDLE_INIT );

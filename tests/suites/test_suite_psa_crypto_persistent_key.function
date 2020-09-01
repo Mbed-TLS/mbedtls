@@ -177,7 +177,7 @@ void persistent_key_destroy( int owner_id_arg, int key_id_arg, int restart,
     /* Check key slot storage is removed */
     TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 0 );
     TEST_EQUAL( psa_open_key( key_id, &handle ), PSA_ERROR_DOES_NOT_EXIST );
-    TEST_EQUAL( handle, 0 );
+    TEST_ASSERT( psa_key_handle_is_null( handle ) );
 
     /* Shutdown and restart */
     PSA_DONE();

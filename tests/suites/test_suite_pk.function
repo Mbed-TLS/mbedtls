@@ -158,7 +158,7 @@ void pk_psa_utils(  )
     mbedtls_pk_init( &pk );
 
     key = pk_psa_genkey();
-    if( key == 0 )
+    if( psa_key_handle_is_null( key ) )
         goto exit;
 
     TEST_ASSERT( mbedtls_pk_setup_opaque( &pk, key ) == 0 );

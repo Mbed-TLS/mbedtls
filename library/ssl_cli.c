@@ -63,7 +63,7 @@ static int ssl_conf_has_static_psk( mbedtls_ssl_config const *conf )
         return( 1 );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( conf->psk_opaque != 0 )
+    if( ! psa_key_handle_is_null( conf->psk_opaque ) )
         return( 1 );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

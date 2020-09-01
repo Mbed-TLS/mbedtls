@@ -81,7 +81,8 @@ psa_status_t psa_get_key_slot( psa_key_handle_t handle,
     /* 0 is not a valid handle under any circumstance. This
      * implementation provides slots number 1 to N where N is the
      * number of available slots. */
-    if( handle == 0 || handle > ARRAY_LENGTH( global_data.key_slots ) )
+    if( psa_key_handle_is_null( handle ) || 
+        ( handle > ARRAY_LENGTH( global_data.key_slots ) ) )
         return( PSA_ERROR_INVALID_HANDLE );
     slot = &global_data.key_slots[handle - 1];
 
@@ -261,7 +262,7 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
     psa_status_t status;
     psa_key_slot_t *slot;
 
-    if( handle == 0 )
+    if( psa_key_handle_is_null( handle ) )
         return( PSA_SUCCESS );
 
     status = psa_get_key_slot( handle, &slot );

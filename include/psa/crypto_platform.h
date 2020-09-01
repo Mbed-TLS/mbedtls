@@ -53,6 +53,17 @@
 typedef uint16_t psa_key_handle_t;
 #define PSA_KEY_HANDLE_INIT ( (psa_key_handle_t)0 )
 
+/** Check whether a handle is null.
+ *
+ * \param handle  Key handle.
+ *
+ * \return Non-zero if the key handle is null, zero otherwise.
+ */
+static inline int psa_key_handle_is_null( psa_key_handle_t handle )
+{
+    return( handle == 0 );
+}
+
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 
 /* Building for the PSA Crypto service on a PSA platform, a key owner is a PSA

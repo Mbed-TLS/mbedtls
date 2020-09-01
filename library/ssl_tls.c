@@ -466,7 +466,7 @@ static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* de
         if( status != PSA_SUCCESS )
             return( status );
 
-        if( slot == 0 )
+        if( psa_key_handle_is_null( slot ) )
         {
             status = psa_key_derivation_input_bytes(
                 derivation, PSA_KEY_DERIVATION_INPUT_SECRET,
@@ -563,7 +563,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     }
 
-    if( master_slot != 0 )
+    if( ! psa_key_handle_is_null( master_slot ) )
         status = psa_destroy_key( master_slot );
     if( status != PSA_SUCCESS )
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
@@ -707,13 +707,13 @@ static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
     {
         /* If we've used a callback to select the PSK,
          * the static configuration is irrelevant. */
-        if( ssl->handshake->psk_opaque != 0 )
+        if( ! psa_key_handle_is_null( ssl->handshake->psk_opaque ) )
             return( 1 );
 
         return( 0 );
     }
 
-    if( ssl->conf->psk_opaque != 0 )
+    if( ! psa_key_handle_is_null( ssl->conf->psk_opaque ) )
         return( 1 );
 
     return( 0 );
@@ -4344,7 +4344,7 @@ static void ssl_conf_remove_psk( mbedtls_ssl_config *conf )
 {
     /* Remove reference to existing PSK, if any. */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( conf->psk_opaque != 0 )
+    if( ! psa_key_handle_is_null( conf->psk_opaque ) )
     {
         /* The maintenance of the PSK key slot is the
          * user's responsibility. */
@@ -4432,7 +4432,7 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
 static void ssl_remove_psk( mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( ssl->handshake->psk_opaque != 0 )
+    if( ! psa_key_handle_is_null( ssl->handshake->psk_opaque ) )
     {
         ssl->handshake->psk_opaque = PSA_KEY_HANDLE_INIT;
     }
@@ -4478,7 +4478,7 @@ int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,
     ssl_conf_remove_psk( conf );
 
     /* Check and set opaque PSK */
-    if( psk_slot == 0 )
+    if( psa_key_handle_is_null( psk_slot ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     conf->psk_opaque = psk_slot;
 
@@ -4494,7 +4494,8 @@ int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,
 int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
                                    psa_key_handle_t psk_slot )
 {
-    if( psk_slot == 0 || ssl->handshake == NULL )
+    if( ( psa_key_handle_is_null( psk_slot ) ) ||
+        ( ssl->handshake == NULL ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     ssl_remove_psk( ssl );

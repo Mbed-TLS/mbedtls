@@ -2634,10 +2634,12 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
 {
     size_t mki_len = 0, ext_len = 0;
     uint16_t profile_value = 0;
+    const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
+
+    *olen = 0;
 
     if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile == MBEDTLS_SRTP_UNSET_PROFILE )
     {
-        *olen = 0;
         return;
     }
 
@@ -2647,6 +2649,12 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
         ssl->dtls_srtp_info.mki_len != 0 )
     {
         mki_len = ssl->dtls_srtp_info.mki_len;
+    }
+
+    if( end < buf + mki_len + 9 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return;
     }
 
     /* extension */
@@ -2671,7 +2679,7 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
     }
     else
     {
-        *olen = 0;
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "use_srtp extension invalid profile" ) );
         return;
     }
 

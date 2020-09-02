@@ -141,8 +141,6 @@ psa_status_t transparent_test_driver_generate_key(
         memset( &rnd_info, 0x5A, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-        if( attributes->domain_parameters_size != 0 )
-            return( PSA_ERROR_NOT_SUPPORTED );
         if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
         if( curve_info->bit_size != attributes->core.bits )

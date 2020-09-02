@@ -130,7 +130,7 @@ static unsigned long hardclock_fallback( void )
     struct timespec ts;
     clock_gettime( CLOCK_MONOTONIC, &ts );
 
-    return( ts.tv_sec * 1000000000
+    return( ts.tv_sec * 1000000000u
           + ts.tv_nsec );
 }
 #endif /* !HAVE_HARDCLOCK_PRIVILEGE && MBEDTLS_HAVE_ASM &&
@@ -293,7 +293,7 @@ unsigned long mbedtls_timing_hardclock( void )
     struct timespec ts;
     clock_gettime( CLOCK_MONOTONIC, &ts );
 
-    return( ts.tv_sec * 1000000000
+    return( ts.tv_sec * 1000000000u
           + ts.tv_nsec );
 }
 #endif /* !HAVE_HARDCLOCK && _POSIX_TIMERS && _POSIX_MONOTONIC_CLOCK */

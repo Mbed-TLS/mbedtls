@@ -466,7 +466,7 @@ int mbedtls_entropy_update_nv_seed( mbedtls_entropy_context *ctx )
 #if defined(MBEDTLS_FS_IO)
 int mbedtls_entropy_write_seed_file( mbedtls_entropy_context *ctx, const char *path )
 {
-    int ret = 0;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     FILE *f = NULL;
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
@@ -487,6 +487,8 @@ int mbedtls_entropy_write_seed_file( mbedtls_entropy_context *ctx, const char *p
         ret = MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR;
         goto exit;
     }
+
+    ret = 0;
 
 exit:
     mbedtls_platform_zeroize( buf, sizeof( buf ) );

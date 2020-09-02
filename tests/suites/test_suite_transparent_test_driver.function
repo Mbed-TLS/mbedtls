@@ -441,11 +441,7 @@ void transparent_test_driver_sign_verify( int key_type_arg, data_t *key_data,
     sign_size = PSA_SIGN_OUTPUT_SIZE( key_type_arg, key_bits, alg_arg );
 
     /* Check that the signature length looks sensible. */
-    TEST_ASSERT( sign_size != 0 );
-    TEST_ASSERT( sign_size <= PSA_SIGNATURE_MAX_SIZE );
-    TEST_ASSERT( sign_size <= sizeof(sign) );
-    TEST_ASSERT( sign_length <= sign_size );
-    TEST_ASSERT( sign_length > 0 );
+    TEST_EQUAL( sign_size, sign_length );
 
     /* Verify that the signature is correct. */
     PSA_ASSERT( transparent_test_driver_verify_hash( &attr,

@@ -84,7 +84,7 @@
 static psa_status_t mbedtls_to_psa_error( int ret );
 static int pk_write_pubkey_simple( mbedtls_pk_context *key,
                                    unsigned char *buf, size_t size );
-static int key_type_is_raw_bytes( psa_key_type_t type );
+static int key_type_is_raw_bytes( psa_key_type_t key_type );
 static psa_status_t psa_import_ec_private_key( psa_ecc_family_t curve,
                                                const uint8_t *data,
                                                size_t data_length,
@@ -102,9 +102,9 @@ psa_status_t transparent_test_driver_generate_key(
     _VALIDATE_PARAM( key_length != NULL );
 
     size_t key_bits = psa_get_key_bits( attributes );
-    psa_key_type_t type = attributes->core.type;
+    psa_key_type_t key_type = psa_get_key_type( attributes );
 
-    if( key_type_is_raw_bytes( type ) )
+    if( key_type_is_raw_bytes( key_type ) )
     {
         psa_status_t status;
         switch( key_bits )
@@ -129,11 +129,11 @@ psa_status_t transparent_test_driver_generate_key(
 
     /* Copied from psa_crypto.c */
 #if defined(MBEDTLS_ECP_C)
-    if ( PSA_KEY_TYPE_IS_ECC( type ) && PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
+    if ( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( key_type ) )
     {
-        psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( type );
+        psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( key_type );
         mbedtls_ecp_group_id grp_id =
-            mbedtls_ecc_group_of_psa( curve, PSA_BITS_TO_BYTES( attributes->core.bits ) );
+            mbedtls_ecc_group_of_psa( curve, PSA_BITS_TO_BYTES( key_bits ) );
         const mbedtls_ecp_curve_info *curve_info =
             mbedtls_ecp_curve_info_from_grp_id( grp_id );
         mbedtls_ecp_keypair ecp;
@@ -143,7 +143,7 @@ psa_status_t transparent_test_driver_generate_key(
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
-        if( curve_info->bit_size != attributes->core.bits )
+        if( curve_info->bit_size != key_bits )
             return( PSA_ERROR_INVALID_ARGUMENT );
         mbedtls_ecp_keypair_init( &ecp );
         ret = mbedtls_ecp_gen_key( grp_id, &ecp,
@@ -156,7 +156,7 @@ psa_status_t transparent_test_driver_generate_key(
         }
 
         /* Make sure to use export representation */
-        size_t bytes = PSA_BITS_TO_BYTES( attributes->core.bits );
+        size_t bytes = PSA_BITS_TO_BYTES( key_bits );
         if( key_size < bytes )
         {
             mbedtls_ecp_keypair_free( &ecp );
@@ -194,13 +194,13 @@ psa_status_t transparent_test_driver_export_public_key(
     _VALIDATE_PARAM( data != NULL );
     _VALIDATE_PARAM( data_length != NULL );
 
-    psa_key_type_t type = attributes->core.type;
+    psa_key_type_t key_type = psa_get_key_type( attributes );
 
     if ( key_size == 0 ) {
       return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    if( key_type_is_raw_bytes( type ) )
+    if( key_type_is_raw_bytes( key_type ) )
     {
         if( key_size > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
@@ -217,7 +217,7 @@ psa_status_t transparent_test_driver_export_public_key(
     mbedtls_ecp_keypair ecp;
     mbedtls_ecp_keypair *p_ecp = &ecp;
 
-    status = psa_import_ec_private_key( PSA_KEY_TYPE_ECC_GET_FAMILY( type ),
+    status = psa_import_ec_private_key( PSA_KEY_TYPE_ECC_GET_FAMILY( key_type ),
                                         key, key_size,
                                         &p_ecp );
     if( status != PSA_SUCCESS )
@@ -227,7 +227,7 @@ psa_status_t transparent_test_driver_export_public_key(
     pk.pk_info = &mbedtls_eckey_info;
     pk.pk_ctx = p_ecp;
 
-    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
+    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( key_type ) )
     {
         ret = pk_write_pubkey_simple( &pk, data, data_size );
     }
@@ -378,12 +378,13 @@ psa_status_t transparent_test_driver_verify_hash(
     const uint8_t *hash, size_t hash_length,
     const uint8_t *signature, size_t signature_length )
 {
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-
     _VALIDATE_PARAM( attributes != NULL );
     _VALIDATE_PARAM( key != NULL );
     _VALIDATE_PARAM( hash != NULL );
     _VALIDATE_PARAM( signature != NULL );
+
+    psa_key_type_t key_type = psa_get_key_type( attributes );
+    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
 
     if ( key_length == 0 ) {
       return PSA_ERROR_INVALID_ARGUMENT;
@@ -393,7 +394,7 @@ psa_status_t transparent_test_driver_verify_hash(
   ( defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C) )
 
     mbedtls_ecp_group_id grp_id;
-    switch( psa_get_key_type( attributes ) )
+    switch( key_type )
     {
         case PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ):
             switch( psa_get_key_bits( attributes ) )
@@ -455,7 +456,7 @@ psa_status_t transparent_test_driver_verify_hash(
                                               signature + curve_bytes,
                                               curve_bytes ) );
 
-    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( psa_get_key_type( attributes ) ) ) {
+    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( key_type ) ) {
         MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary( &ecp.grp, &ecp.Q,
                                                     key, key_length ) );
     } else {
@@ -490,9 +491,9 @@ cleanup:
     return( status );
 }
 
-static int key_type_is_raw_bytes( psa_key_type_t type )
+static int key_type_is_raw_bytes( psa_key_type_t key_type )
 {
-    return( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) );
+    return( PSA_KEY_TYPE_IS_UNSTRUCTURED( key_type ) );
 }
 
 #if defined(MBEDTLS_ECP_C)

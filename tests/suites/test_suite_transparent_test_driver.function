@@ -72,29 +72,26 @@ void transparent_test_driver_bad_param( )
     psa_set_key_bits( &attr, 128 );
 
     /* Check validity of parameter set. */
-    PSA_ASSERT( transparent_test_driver_export_public_key(
-                                 &attr,
-                                 (uint8_t *) "Hello world 1234",
-                                 16,
-                                 out_key,
-                                 sizeof(out_key),
-                                 &out_key_len ) );
+    PSA_ASSERT( transparent_test_driver_export_public_key( &attr,
+                                                           in_key,
+                                                           sizeof(in_key),
+                                                           out_key,
+                                                           sizeof(out_key),
+                                                           &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
-                transparent_test_driver_export_public_key(
-                                 &attr,
-                                 (uint8_t* ) "Hello world 1234",
-                                 0,
-                                 out_key,
-                                 sizeof(out_key),
-                                 &out_key_len ) );
+                transparent_test_driver_export_public_key( &attr,
+                                                           in_key,
+                                                           0,
+                                                           out_key,
+                                                           sizeof(out_key),
+                                                           &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_BUFFER_TOO_SMALL,
-                transparent_test_driver_export_public_key(
-                                 &attr,
-                                 (uint8_t *) "Hello world 1234",
-                                 16,
-                                 out_key,
-                                 15,
-                                 &out_key_len ) );
+                transparent_test_driver_export_public_key( &attr,
+                                                           in_key,
+                                                           sizeof(in_key),
+                                                           out_key,
+                                                           15,
+                                                           &out_key_len ) );
 
     /* Check validity of parameter set. */
     psa_set_key_usage_flags( &attr, PSA_KEY_USAGE_SIGN_HASH |
@@ -249,37 +246,33 @@ void transparent_test_driver_invalid_param( )
                                                       NULL ) );
 
     /* Check validity of parameter set. */
-    PSA_ASSERT( transparent_test_driver_export_public_key(
-                                    &attr,
-                                    (uint8_t *) "Hello world 1234",
-                                    16,
-                                    out_key,
-                                    sizeof(out_key),
-                                    &out_key_len ) );
+    PSA_ASSERT( transparent_test_driver_export_public_key( &attr,
+                                                           in_key,
+                                                           sizeof(in_key),
+                                                           out_key,
+                                                           sizeof(out_key),
+                                                           &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
-                transparent_test_driver_export_public_key(
-                                    &attr,
-                                    NULL,
-                                    16,
-                                    out_key,
-                                    sizeof(out_key),
-                                    &out_key_len ) );
+                transparent_test_driver_export_public_key( &attr,
+                                                           NULL,
+                                                           sizeof(in_key),
+                                                           out_key,
+                                                           sizeof(out_key),
+                                                           &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
-                transparent_test_driver_export_public_key(
-                                    &attr,
-                                    (uint8_t *) "Hello world 1234",
-                                    16,
-                                    NULL,
-                                    sizeof(out_key),
-                                    &out_key_len ) );
+                transparent_test_driver_export_public_key( &attr,
+                                                           in_key,
+                                                           sizeof(in_key),
+                                                           NULL,
+                                                           sizeof(out_key),
+                                                           &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
-                transparent_test_driver_export_public_key(
-                                    &attr,
-                                    (uint8_t *) "Hello world 1234",
-                                    16,
-                                    out_key,
-                                    sizeof(out_key),
-                                    NULL ) );
+                transparent_test_driver_export_public_key( &attr,
+                                                           in_key,
+                                                           sizeof(in_key),
+                                                           out_key,
+                                                           sizeof(out_key),
+                                                           NULL ) );
 
     /* Check validity of parameter set. */
     psa_algorithm_t alg = PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 );

@@ -21,11 +21,6 @@ if(NOT MBEDTLS_PYTHON_EXECUTABLE)
     message(FATAL_ERROR "Cannot build test suites without Python 3")
 endif()
 
-# Enable definition of various functions used throughout the testsuite
-# (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless
-# on non-POSIX platforms.
-add_definitions("-D_POSIX_C_SOURCE=200809L")
-
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 # "foo" as a skip pattern skips "test_suite_foo" and "test_suite_foo.bar"
 # but not "test_suite_foobar".

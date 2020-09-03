@@ -18,11 +18,6 @@ LOCAL_LDFLAGS = -L../library			\
 include ../3rdparty/Makefile.inc
 LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 
-# Enable definition of various functions used throughout the testsuite
-# (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless
-# on non-POSIX platforms.
-LOCAL_CFLAGS += -D_POSIX_C_SOURCE=200809L
-
 ifndef SHARED
 MBEDLIBS=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
 else

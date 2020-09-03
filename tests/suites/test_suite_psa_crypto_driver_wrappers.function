@@ -183,3 +183,322 @@ exit:
     test_driver_keygen_hooks = test_driver_keygen_hooks_init();
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void cipher_encrypt( int alg_arg, int key_type_arg,
+                     data_t *key, data_t *iv,
+                     data_t *input, data_t *expected_output,
+                     int expected_status_arg )
+{
+    psa_key_handle_t handle = 0;
+    psa_status_t status;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t expected_status = expected_status_arg;
+    unsigned char *output = NULL;
+    size_t output_buffer_size = 0;
+    size_t function_output_length = 0;
+    size_t total_output_length = 0;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    test_transparent_cipher_hit = 0;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key->x, key->len, &handle ) );
+
+    PSA_ASSERT( psa_cipher_encrypt_setup( &operation,
+                                          handle, alg ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 1);
+    test_transparent_cipher_hit = 0;
+
+    PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 1);
+    test_transparent_cipher_hit = 0;
+
+    output_buffer_size = ( (size_t) input->len +
+                           PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
+    ASSERT_ALLOC( output, output_buffer_size );
+
+    PSA_ASSERT( psa_cipher_update( &operation,
+                                   input->x, input->len,
+                                   output, output_buffer_size,
+                                   &function_output_length ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 1);
+    test_transparent_cipher_hit = 0;
+
+    total_output_length += function_output_length;
+    status = psa_cipher_finish( &operation,
+                                output + total_output_length,
+                                output_buffer_size - total_output_length,
+                                &function_output_length );
+    TEST_EQUAL( test_transparent_cipher_hit, 2);
+    test_transparent_cipher_hit = 0;
+
+    total_output_length += function_output_length;
+
+    TEST_EQUAL( status, expected_status );
+    if( expected_status == PSA_SUCCESS )
+    {
+        PSA_ASSERT( psa_cipher_abort( &operation ) );
+        // driver function should've been called as part of the finish() core routine
+        TEST_EQUAL( test_transparent_cipher_hit, 0);
+        test_transparent_cipher_hit = 0;
+        ASSERT_COMPARE( expected_output->x, expected_output->len,
+                        output, total_output_length );
+    }
+
+exit:
+    psa_cipher_abort( &operation );
+    mbedtls_free( output );
+    psa_destroy_key( handle );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
+                               data_t *key, data_t *iv,
+                               data_t *input,
+                               int first_part_size_arg,
+                               int output1_length_arg, int output2_length_arg,
+                               data_t *expected_output )
+{
+    psa_key_handle_t handle = 0;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t first_part_size = first_part_size_arg;
+    size_t output1_length = output1_length_arg;
+    size_t output2_length = output2_length_arg;
+    unsigned char *output = NULL;
+    size_t output_buffer_size = 0;
+    size_t function_output_length = 0;
+    size_t total_output_length = 0;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    test_transparent_cipher_hit = 0;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key->x, key->len, &handle ) );
+
+    PSA_ASSERT( psa_cipher_encrypt_setup( &operation,
+                                          handle, alg ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 1);
+    test_transparent_cipher_hit = 0;
+
+    PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 1);
+    test_transparent_cipher_hit = 0;
+
+    output_buffer_size = ( (size_t) input->len +
+                           PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
+    ASSERT_ALLOC( output, output_buffer_size );
+
+    TEST_ASSERT( first_part_size <= input->len );
+    PSA_ASSERT( psa_cipher_update( &operation, input->x, first_part_size,
+                                   output, output_buffer_size,
+                                   &function_output_length ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 1);
+    test_transparent_cipher_hit = 0;
+
+    TEST_ASSERT( function_output_length == output1_length );
+    total_output_length += function_output_length;
+    PSA_ASSERT( psa_cipher_update( &operation,
+                                   input->x + first_part_size,
+                                   input->len - first_part_size,
+                                   output + total_output_length,
+                                   output_buffer_size - total_output_length,
+                                   &function_output_length ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 1);
+    test_transparent_cipher_hit = 0;
+    TEST_ASSERT( function_output_length == output2_length );
+    total_output_length += function_output_length;
+    PSA_ASSERT( psa_cipher_finish( &operation,
+                                   output + total_output_length,
+                                   output_buffer_size - total_output_length,
+                                   &function_output_length ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 2);
+    test_transparent_cipher_hit = 0;
+    total_output_length += function_output_length;
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 0);
+
+    ASSERT_COMPARE( expected_output->x, expected_output->len,
+                    output, total_output_length );
+
+exit:
+    psa_cipher_abort( &operation );
+    mbedtls_free( output );
+    psa_destroy_key( handle );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
+                               data_t *key, data_t *iv,
+                               data_t *input,
+                               int first_part_size_arg,
+                               int output1_length_arg, int output2_length_arg,
+                               data_t *expected_output )
+{
+    psa_key_handle_t handle = 0;
+
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t first_part_size = first_part_size_arg;
+    size_t output1_length = output1_length_arg;
+    size_t output2_length = output2_length_arg;
+    unsigned char *output = NULL;
+    size_t output_buffer_size = 0;
+    size_t function_output_length = 0;
+    size_t total_output_length = 0;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    test_transparent_cipher_hit = 0;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key->x, key->len, &handle ) );
+
+    PSA_ASSERT( psa_cipher_decrypt_setup( &operation,
+                                          handle, alg ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 1);
+    test_transparent_cipher_hit = 0;
+
+    PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 1);
+    test_transparent_cipher_hit = 0;
+
+    output_buffer_size = ( (size_t) input->len +
+                           PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
+    ASSERT_ALLOC( output, output_buffer_size );
+
+    TEST_ASSERT( first_part_size <= input->len );
+    PSA_ASSERT( psa_cipher_update( &operation,
+                                   input->x, first_part_size,
+                                   output, output_buffer_size,
+                                   &function_output_length ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 1);
+    test_transparent_cipher_hit = 0;
+
+    TEST_ASSERT( function_output_length == output1_length );
+    total_output_length += function_output_length;
+    PSA_ASSERT( psa_cipher_update( &operation,
+                                   input->x + first_part_size,
+                                   input->len - first_part_size,
+                                   output + total_output_length,
+                                   output_buffer_size - total_output_length,
+                                   &function_output_length ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 1);
+    test_transparent_cipher_hit = 0;
+
+    TEST_ASSERT( function_output_length == output2_length );
+    total_output_length += function_output_length;
+    PSA_ASSERT( psa_cipher_finish( &operation,
+                                   output + total_output_length,
+                                   output_buffer_size - total_output_length,
+                                   &function_output_length ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 2);
+    test_transparent_cipher_hit = 0;
+    total_output_length += function_output_length;
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 0);
+
+    ASSERT_COMPARE( expected_output->x, expected_output->len,
+                    output, total_output_length );
+
+exit:
+    psa_cipher_abort( &operation );
+    mbedtls_free( output );
+    psa_destroy_key( handle );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void cipher_decrypt( int alg_arg, int key_type_arg,
+                     data_t *key, data_t *iv,
+                     data_t *input, data_t *expected_output,
+                     int expected_status_arg )
+{
+    psa_key_handle_t handle = 0;
+    psa_status_t status;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t expected_status = expected_status_arg;
+    unsigned char *output = NULL;
+    size_t output_buffer_size = 0;
+    size_t function_output_length = 0;
+    size_t total_output_length = 0;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    test_transparent_cipher_hit = 0;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key->x, key->len, &handle ) );
+
+    PSA_ASSERT( psa_cipher_decrypt_setup( &operation,
+                                          handle, alg ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 1);
+    test_transparent_cipher_hit = 0;
+
+    PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 1);
+    test_transparent_cipher_hit = 0;
+
+    output_buffer_size = ( (size_t) input->len +
+                           PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
+    ASSERT_ALLOC( output, output_buffer_size );
+
+    PSA_ASSERT( psa_cipher_update( &operation,
+                                   input->x, input->len,
+                                   output, output_buffer_size,
+                                   &function_output_length ) );
+    TEST_EQUAL( test_transparent_cipher_hit, 1);
+    test_transparent_cipher_hit = 0;
+
+    total_output_length += function_output_length;
+    status = psa_cipher_finish( &operation,
+                                output + total_output_length,
+                                output_buffer_size - total_output_length,
+                                &function_output_length );
+    TEST_EQUAL( test_transparent_cipher_hit, 2);
+    test_transparent_cipher_hit = 0;
+
+    total_output_length += function_output_length;
+    TEST_EQUAL( status, expected_status );
+
+    if( expected_status == PSA_SUCCESS )
+    {
+        PSA_ASSERT( psa_cipher_abort( &operation ) );
+        TEST_EQUAL( test_transparent_cipher_hit, 0);
+        ASSERT_COMPARE( expected_output->x, expected_output->len,
+                        output, total_output_length );
+    }
+
+exit:
+    psa_cipher_abort( &operation );
+    mbedtls_free( output );
+    psa_destroy_key( handle );
+    PSA_DONE( );
+}
+/* END_CASE */

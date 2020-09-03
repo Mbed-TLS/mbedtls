@@ -46,7 +46,7 @@ use Pod::Usage;
 my $verbose = 0;
 my @skip_patterns = ();
 GetOptions(
-           'skip=s' => \@skip_patterns,
+           'skip:s' => \@skip_patterns,
            'verbose|v:1' => \$verbose,
           ) or die;
 

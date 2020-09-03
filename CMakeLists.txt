@@ -170,6 +170,8 @@ string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 
 include(CheckCCompilerFlag)
 
+set(CMAKE_C_STANDARD 99)
+
 if(CMAKE_COMPILER_IS_GNU)
     # some warnings we want are not available with old GCC versions
     # note: starting with CMake 2.8 we could use CMAKE_C_COMPILER_VERSION

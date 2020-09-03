@@ -1,0 +1,4 @@
+Features
+   * Partial implementation of the new PSA Crypto accelerator APIs for
+     enabling symmetric cipher acceleration through crypto accelerators.
+     Contributed by Steven Cooreman in #3644.

@@ -44,12 +44,26 @@ void transparent_test_driver_bad_param( )
 
     psa_set_key_type( &attr, PSA_KEY_TYPE_AES );
     psa_set_key_bits( &attr, 128 );
+    psa_set_key_lifetime( &attr, PSA_KEY_LIFETIME_VOLATILE);
 
     /* Check validity of parameter set. */
     PSA_ASSERT( transparent_test_driver_generate_key( &attr,
                                                       out_key,
                                                       sizeof(out_key),
                                                       &out_key_len ) );
+
+    /* set unsupported lifetime */
+    psa_set_key_lifetime( &attr,
+                          PSA_KEY_LIFETIME_PERSISTENT |
+                          PSA_KEY_LOCATION_VENDOR_FLAG);
+    TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
+                transparent_test_driver_generate_key( &attr,
+                                                      out_key,
+                                                      sizeof(out_key),
+                                                      &out_key_len ) );
+    /* reset to valid lifetime */
+    psa_set_key_lifetime( &attr, PSA_KEY_LIFETIME_VOLATILE );
+
     psa_set_key_bits( &attr, 0 );
     TEST_EQUAL( PSA_ERROR_NOT_SUPPORTED,
                 transparent_test_driver_generate_key( &attr,
@@ -78,6 +92,21 @@ void transparent_test_driver_bad_param( )
                                                            out_key,
                                                            sizeof(out_key),
                                                            &out_key_len ) );
+
+    /* set unsupported lifetime */
+    psa_set_key_lifetime( &attr,
+                          PSA_KEY_LIFETIME_PERSISTENT |
+                          PSA_KEY_LOCATION_VENDOR_FLAG);
+    TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
+                transparent_test_driver_export_public_key( &attr,
+                                                           in_key,
+                                                           sizeof(in_key),
+                                                           out_key,
+                                                           sizeof(out_key),
+                                                           &out_key_len ) );
+    /* reset to valid lifetime */
+    psa_set_key_lifetime( &attr, PSA_KEY_LIFETIME_VOLATILE );
+
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_export_public_key( &attr,
                                                            in_key,
@@ -112,6 +141,24 @@ void transparent_test_driver_bad_param( )
                                                    out_key,
                                                    sizeof(out_key),
                                                    &out_key_len ) );
+
+    /* set unsupported lifetime */
+    psa_set_key_lifetime( &attr,
+                          PSA_KEY_LIFETIME_PERSISTENT |
+                          PSA_KEY_LOCATION_VENDOR_FLAG);
+    TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
+                transparent_test_driver_sign_hash( &attr,
+                                                   key,
+                                                   32,
+                                                   alg,
+                                                   in_key,
+                                                   16,
+                                                   out_key,
+                                                   sizeof(out_key),
+                                                   &out_key_len ) );
+    /* reset to valid lifetime */
+    psa_set_key_lifetime( &attr, PSA_KEY_LIFETIME_VOLATILE );
+
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_sign_hash( &attr,
                                                    key,
@@ -143,6 +190,25 @@ void transparent_test_driver_bad_param( )
                                  sizeof(test_hash_32),
                                  test_signature_hash_32_with_secp256r1,
                                  sizeof(test_signature_hash_32_with_secp256r1) ) );
+
+    /* set unsupported lifetime */
+    psa_set_key_lifetime( &attr,
+                          PSA_KEY_LIFETIME_PERSISTENT |
+                          PSA_KEY_LOCATION_VENDOR_FLAG);
+    TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
+                transparent_test_driver_verify_hash(
+                                 &attr,
+                                 key,
+                                 32,
+                                 alg,
+                                 test_hash_32,
+                                 sizeof(test_hash_32),
+                                 test_signature_hash_32_with_secp256r1,
+                                 sizeof(test_signature_hash_32_with_secp256r1) ) );
+    /* reset to valid lifetime */
+    psa_set_key_lifetime( &attr, PSA_KEY_LIFETIME_VOLATILE );
+
+
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 transparent_test_driver_verify_hash(
                                  &attr,
@@ -168,6 +234,7 @@ void transparent_test_driver_export_public_key( char *in_key, char *exp_out_key 
 
     PSA_ASSERT( psa_crypto_init() );
 
+    psa_set_key_lifetime( &attr, PSA_KEY_LIFETIME_VOLATILE);
     psa_set_key_type( &attr, PSA_KEY_TYPE_AES );
     psa_set_key_bits( &attr, 128 );
 
@@ -198,6 +265,7 @@ void transparent_test_driver_generate_key( int type_arg, int bits_arg )
 
     PSA_ASSERT( psa_crypto_init() );
 
+    psa_set_key_lifetime( &attr, PSA_KEY_LIFETIME_VOLATILE);
     psa_set_key_type( &attr, type_arg );
     psa_set_key_bits( &attr, bits_arg );
 
@@ -223,6 +291,7 @@ void transparent_test_driver_invalid_param( )
 
     psa_set_key_type( &attr, PSA_KEY_TYPE_AES );
     psa_set_key_bits( &attr, 128 );
+    psa_set_key_lifetime( &attr, PSA_KEY_LIFETIME_VOLATILE);
 
     /* Check validity of parameter set. */
     PSA_ASSERT( transparent_test_driver_generate_key( &attr,
@@ -425,6 +494,7 @@ void transparent_test_driver_sign_verify( int key_type_arg, data_t *key_data,
     psa_set_key_algorithm( &attr, alg_arg );
     psa_set_key_type( &attr, key_type_arg );
     psa_set_key_bits( &attr, PSA_BYTES_TO_BITS( key_data->len  ) );
+    psa_set_key_lifetime( &attr, PSA_KEY_LIFETIME_VOLATILE);
 
     /* Sign the data with the given key. */
     PSA_ASSERT( transparent_test_driver_sign_hash( &attr,

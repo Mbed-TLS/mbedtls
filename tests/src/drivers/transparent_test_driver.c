@@ -104,6 +104,12 @@ psa_status_t transparent_test_driver_generate_key(
     size_t key_bits = psa_get_key_bits( attributes );
     psa_key_type_t key_type = psa_get_key_type( attributes );
 
+    if( PSA_KEY_LIFETIME_GET_LOCATION( psa_get_key_lifetime( attributes ) )
+        != PSA_KEY_LOCATION_LOCAL_STORAGE )
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
     if( key_type_is_raw_bytes( key_type ) )
     {
         psa_status_t status;
@@ -196,8 +202,15 @@ psa_status_t transparent_test_driver_export_public_key(
 
     psa_key_type_t key_type = psa_get_key_type( attributes );
 
-    if ( key_size == 0 ) {
-      return PSA_ERROR_INVALID_ARGUMENT;
+    if( PSA_KEY_LIFETIME_GET_LOCATION( psa_get_key_lifetime( attributes ) )
+        != PSA_KEY_LOCATION_LOCAL_STORAGE )
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
+    if ( key_size == 0 )
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
     if( key_type_is_raw_bytes( key_type ) )
@@ -275,8 +288,15 @@ psa_status_t transparent_test_driver_sign_hash(
     _VALIDATE_PARAM( signature != NULL );
     _VALIDATE_PARAM( signature_length != NULL );
 
-    if ( key_length == 0 ) {
-      return PSA_ERROR_INVALID_ARGUMENT;
+    if( PSA_KEY_LIFETIME_GET_LOCATION( psa_get_key_lifetime( attributes ) )
+        != PSA_KEY_LOCATION_LOCAL_STORAGE )
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
+    if ( key_length == 0 )
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) && \
@@ -386,8 +406,14 @@ psa_status_t transparent_test_driver_verify_hash(
     psa_key_type_t key_type = psa_get_key_type( attributes );
     psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
 
+    if( PSA_KEY_LIFETIME_GET_LOCATION( psa_get_key_lifetime( attributes ) )
+        != PSA_KEY_LOCATION_LOCAL_STORAGE )
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
     if ( key_length == 0 ) {
-      return PSA_ERROR_INVALID_ARGUMENT;
+        return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) && \

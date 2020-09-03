@@ -397,7 +397,10 @@ int main( void )
         goto exit;
     }
 
-    exit_code = MBEDTLS_EXIT_SUCCESS;
+    /*
+     * not reached: suppress warning by wrapping in comment (Solaris Studio)
+     */
+    /* exit_code = MBEDTLS_EXIT_SUCCESS; */
 
 exit:
     mbedtls_net_free( &client_fd );

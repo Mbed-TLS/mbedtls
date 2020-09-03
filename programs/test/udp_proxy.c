@@ -989,7 +989,10 @@ accept:
 
     }
 
-    exit_code = MBEDTLS_EXIT_SUCCESS;
+    /*
+     * not reached: suppress warning by wrapping in comment (Solaris Studio)
+     */
+    /* exit_code = MBEDTLS_EXIT_SUCCESS; */
 
 exit:
 

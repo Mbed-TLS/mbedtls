@@ -1391,7 +1391,6 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
             break;
         default:
             return( 1 );
-            break;
     }
 
     /* Setup IV's */

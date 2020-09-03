@@ -4217,10 +4217,13 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( operation->accelerator_set == 1 )
-        return( psa_driver_wrapper_cipher_generate_iv( operation,
-                                                       iv,
-                                                       iv_size,
-                                                       iv_length ) );
+    {
+        status = psa_driver_wrapper_cipher_generate_iv( operation,
+                                                        iv,
+                                                        iv_size,
+                                                        iv_length );
+        goto exit;
+    }
 
     if( operation->iv_set || ! operation->iv_required || ! operation->key_set )
     {
@@ -4256,9 +4259,12 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( operation->accelerator_set == 1 )
-        return( psa_driver_wrapper_cipher_set_iv( operation,
-                                                  iv,
-                                                  iv_length ) );
+    {
+        status = psa_driver_wrapper_cipher_set_iv( operation,
+                                                   iv,
+                                                   iv_length );
+        goto exit;
+    }
 
     if( operation->iv_set || ! operation->iv_required || ! operation->key_set )
     {
@@ -4378,12 +4384,15 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
     size_t expected_output_size;
 
     if( operation->accelerator_set == 1 )
-        return( psa_driver_wrapper_cipher_update( operation,
-                                               input,
-                                               input_length,
-                                               output,
-                                               output_size,
-                                               output_length ) );
+    {
+        status = psa_driver_wrapper_cipher_update( operation,
+                                                   input,
+                                                   input_length,
+                                                   output,
+                                                   output_size,
+                                                   output_length );
+        goto exit;
+    }
 
     if( operation->alg == 0 || ! operation->key_set )
     {
@@ -4445,10 +4454,17 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
     uint8_t temp_output_buffer[MBEDTLS_MAX_BLOCK_LENGTH];
 
     if( operation->accelerator_set == 1 )
-        return( psa_driver_wrapper_cipher_finish( operation,
-                                                  output,
-                                                  output_size,
-                                                  output_length ) );
+    {
+        status = psa_driver_wrapper_cipher_finish( operation,
+                                                   output,
+                                                   output_size,
+                                                   output_length );
+        if( status != PSA_SUCCESS )
+            goto error;
+
+        (void) psa_cipher_abort( operation );
+        return( status );
+    }
 
     if( ! operation->key_set )
     {

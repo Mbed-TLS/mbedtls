@@ -67,7 +67,7 @@ if(MSVC)
 endif(MSVC)
 
 add_test_suite(aes aes.ecb)
-add_test_suite(aes aes.ecb.crc)
+add_test_suite(aes aes.ecb.hash)
 add_test_suite(aes aes.cbc)
 add_test_suite(aes aes.cfb)
 add_test_suite(aes aes.ofb)

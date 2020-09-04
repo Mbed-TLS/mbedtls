@@ -1,7 +1,7 @@
 /*
  *  Functions to delegate cryptographic operations to an available
  *  and appropriate accelerator.
- *  Warning: auto-generated file.
+ *  Warning: This file will be auto-generated in the future.
  */
 /*  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -27,20 +27,26 @@
 
 /* Include test driver definition when running tests */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-#undef PSA_CRYPTO_DRIVER_PRESENT
+#ifndef PSA_CRYPTO_DRIVER_PRESENT
 #define PSA_CRYPTO_DRIVER_PRESENT
-#undef PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT
+#endif
+#ifndef PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT
 #define PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT
+#endif
 #include "drivers/test_driver.h"
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 
-/* Include driver definition file for each registered driver here */
+/* Repeat above block for each JSON-declared driver during autogeneration */
+
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
 
 /* Support the 'old' SE interface when asked to */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-#undef PSA_CRYPTO_DRIVER_PRESENT
+/* PSA_CRYPTO_DRIVER_PRESENT is defined when either a new-style or old-style
+ * SE driver is present, to avoid unused argument errors at compile time. */
+#ifndef PSA_CRYPTO_DRIVER_PRESENT
 #define PSA_CRYPTO_DRIVER_PRESENT
+#endif
 #include "psa_crypto_se.h"
 #endif
 
@@ -65,7 +71,7 @@ psa_status_t psa_driver_wrapper_sign_hash( psa_key_slot_t *slot,
             drv->asymmetric->p_sign == NULL )
         {
             /* Key is defined in SE, but we have no way to exercise it */
-            return PSA_ERROR_INVALID_ARGUMENT;
+            return( PSA_ERROR_NOT_SUPPORTED );
         }
         return( drv->asymmetric->p_sign( drv_context,
                                          slot->data.se.slot_number,
@@ -101,10 +107,10 @@ psa_status_t psa_driver_wrapper_sign_hash( psa_key_slot_t *slot,
                                                            signature_length );
             /* Declared with fallback == true */
             if( status != PSA_ERROR_NOT_SUPPORTED )
-                return status;
+                return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
             /* Fell through, meaning no accelerator supports this operation */
-            return PSA_ERROR_NOT_SUPPORTED;
+            return( PSA_ERROR_NOT_SUPPORTED );
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
@@ -120,10 +126,10 @@ psa_status_t psa_driver_wrapper_sign_hash( psa_key_slot_t *slot,
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is declared with a lifetime not known to us */
-            return status;
+            return( status );
     }
 #else /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void)slot;
@@ -134,7 +140,7 @@ psa_status_t psa_driver_wrapper_sign_hash( psa_key_slot_t *slot,
     (void)signature_size;
     (void)signature_length;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
@@ -157,7 +163,7 @@ psa_status_t psa_driver_wrapper_verify_hash( psa_key_slot_t *slot,
             drv->asymmetric->p_verify == NULL )
         {
             /* Key is defined in SE, but we have no way to exercise it */
-            return PSA_ERROR_INVALID_ARGUMENT;
+            return( PSA_ERROR_NOT_SUPPORTED );
         }
         return( drv->asymmetric->p_verify( drv_context,
                                            slot->data.se.slot_number,
@@ -191,10 +197,10 @@ psa_status_t psa_driver_wrapper_verify_hash( psa_key_slot_t *slot,
                                                              signature_length );
             /* Declared with fallback == true */
             if( status != PSA_ERROR_NOT_SUPPORTED )
-                return status;
+                return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
             /* Fell through, meaning no accelerator supports this operation */
-            return PSA_ERROR_NOT_SUPPORTED;
+            return( PSA_ERROR_NOT_SUPPORTED );
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
@@ -209,10 +215,10 @@ psa_status_t psa_driver_wrapper_verify_hash( psa_key_slot_t *slot,
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is declared with a lifetime not known to us */
-            return status;
+            return( status );
     }
 #else /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void)slot;
@@ -222,56 +228,45 @@ psa_status_t psa_driver_wrapper_verify_hash( psa_key_slot_t *slot,
     (void)signature;
     (void)signature_length;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+/** Calculate the size to allocate for buffering a key with given attributes.
+ *
+ * This function provides a way to get the expected size for storing a key with
+ * the given attributes. This will be the size of the export representation for
+ * cleartext keys, and a driver-defined size for keys stored by opaque drivers.
+ *
+ * \param[in] attributes        The key attribute structure of the key to store.
+ * \param[out] expected_size    On success, a byte size large enough to contain
+ *                              the declared key.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ */
 static psa_status_t get_expected_key_size( const psa_key_attributes_t *attributes,
                                            size_t *expected_size )
 {
+    size_t buffer_size = 0;
     if( PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime ) == PSA_KEY_LOCATION_LOCAL_STORAGE )
     {
-        if( PSA_KEY_TYPE_IS_UNSTRUCTURED( attributes->core.type ) )
-        {
-            *expected_size = PSA_BITS_TO_BYTES( attributes->core.bits );
-            return PSA_SUCCESS;
-        }
+        buffer_size = PSA_KEY_EXPORT_MAX_SIZE( attributes->core.type,
+                                               attributes->core.bits );
 
-        if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
-        {
-            if( PSA_KEY_TYPE_IS_KEY_PAIR( attributes->core.type ) )
-            {
-                *expected_size = PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE( attributes->core.bits );
-                return PSA_SUCCESS;
-            }
-            else
-            {
-                *expected_size = PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE( attributes->core.bits );
-                return PSA_SUCCESS;
-            }
-        }
+        if( buffer_size == 0 )
+            return( PSA_ERROR_NOT_SUPPORTED );
 
-        if( PSA_KEY_TYPE_IS_RSA( attributes->core.type ) )
-        {
-            if( PSA_KEY_TYPE_IS_KEY_PAIR( attributes->core.type ) )
-            {
-                *expected_size = PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE( attributes->core.bits );
-                return PSA_SUCCESS;
-            }
-            else
-            {
-                *expected_size = PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE( attributes->core.bits );
-                return PSA_SUCCESS;
-            }
-        }
-
-        return PSA_ERROR_NOT_SUPPORTED;
+        *expected_size = buffer_size;
+        return( PSA_SUCCESS );
     }
     else
     {
-        /* TBD: opaque driver support, need to calculate size through driver-defined size function */
-        return PSA_ERROR_NOT_SUPPORTED;
+        /* TBD: opaque driver support: need to calculate size through a
+         * driver-defined size function, since the size of an opaque (wrapped)
+         * key will be different for each implementation. */
+        return( PSA_ERROR_NOT_SUPPORTED );
     }
 }
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
@@ -292,7 +287,7 @@ psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attrib
             drv->key_management->p_generate == NULL )
         {
             /* Key is defined as being in SE, but we have no way to generate it */
-            return PSA_ERROR_NOT_SUPPORTED;
+            return( PSA_ERROR_NOT_SUPPORTED );
         }
         return( drv->key_management->p_generate(
             drv_context,
@@ -309,11 +304,11 @@ psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attrib
 
     status = get_expected_key_size( attributes, &export_size );
     if( status != PSA_SUCCESS )
-        return status;
+        return( status );
 
     slot->data.key.data = mbedtls_calloc(1, export_size);
     if( slot->data.key.data == NULL )
-        return PSA_ERROR_INSUFFICIENT_MEMORY;
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
     slot->data.key.bytes = export_size;
 
     switch( location )
@@ -365,13 +360,13 @@ psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attrib
 
     return( status );
 #else /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void) attributes;
     (void) slot;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 

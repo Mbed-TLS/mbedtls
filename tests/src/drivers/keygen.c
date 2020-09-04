@@ -1,5 +1,6 @@
 /*
- * Test driver for signature functions
+ * Test driver for generating keys.
+ * Currently only supports generating ECC keys.
  */
 /*  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -63,11 +64,12 @@ psa_status_t test_transparent_generate_key(
 
     /* Copied from psa_crypto.c */
 #if defined(MBEDTLS_ECP_C)
-    if ( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) && PSA_KEY_TYPE_IS_KEY_PAIR( attributes->core.type ) )
+    if ( PSA_KEY_TYPE_IS_ECC( psa_get_key_type( attributes ) )
+         && PSA_KEY_TYPE_IS_KEY_PAIR( psa_get_key_type( attributes ) ) )
     {
-        psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( attributes->core.type );
+        psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( psa_get_key_type( attributes ) );
         mbedtls_ecp_group_id grp_id =
-            mbedtls_ecc_group_of_psa( curve, PSA_BITS_TO_BYTES( attributes->core.bits ) );
+            mbedtls_ecc_group_of_psa( curve, PSA_BITS_TO_BYTES( psa_get_key_bits( attributes ) ) );
         const mbedtls_ecp_curve_info *curve_info =
             mbedtls_ecp_curve_info_from_grp_id( grp_id );
         mbedtls_ecp_keypair ecp;
@@ -79,7 +81,7 @@ psa_status_t test_transparent_generate_key(
             return( PSA_ERROR_NOT_SUPPORTED );
         if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
-        if( curve_info->bit_size != attributes->core.bits )
+        if( curve_info->bit_size != psa_get_key_bits( attributes ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
         mbedtls_ecp_keypair_init( &ecp );
         ret = mbedtls_ecp_gen_key( grp_id, &ecp,
@@ -92,7 +94,7 @@ psa_status_t test_transparent_generate_key(
         }
 
         /* Make sure to use export representation */
-        size_t bytes = PSA_BITS_TO_BYTES( attributes->core.bits );
+        size_t bytes = PSA_BITS_TO_BYTES( psa_get_key_bits( attributes ) );
         if( key_size < bytes )
         {
             mbedtls_ecp_keypair_free( &ecp );

@@ -1,7 +1,7 @@
 /*
  *  Function signatures for functionality that can be provided by
  *  cryptographic accelerators.
- *  Warning: auto-generated file.
+ *  Warning: This file will be auto-generated in the future.
  */
 /*  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0

@@ -1,5 +1,7 @@
 /*
- * Test driver for signature functions
+ * Test driver for signature functions.
+ * Currently supports signing and verifying precalculated hashes, using
+ * only deterministic ECDSA on curves secp256r1, secp384r1 and secp521r1.
  */
 /*  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -130,10 +132,7 @@ psa_status_t test_transparent_signature_sign_hash(
                                                signature + curve_bytes,
                                                curve_bytes ) );
 cleanup:
-    /* There's no easy way to translate the error code except through a
-     * library function that's not exported. Use a debugger. */
-    if( ret == 0 )
-        status = PSA_SUCCESS;
+    status = mbedtls_to_psa_error( ret );
     mbedtls_mpi_free( &r );
     mbedtls_mpi_free( &s );
     mbedtls_ecp_keypair_free( &ecp );
@@ -258,10 +257,7 @@ psa_status_t test_transparent_signature_verify_hash(
     MBEDTLS_MPI_CHK( mbedtls_ecdsa_verify( &ecp.grp, hash, hash_length,
                                 &ecp.Q, &r, &s ) );
 cleanup:
-    /* There's no easy way to translate the error code except through a
-     * library function that's not exported. Use a debugger. */
-    if( ret == 0 )
-        status = PSA_SUCCESS;
+    status = mbedtls_to_psa_error( ret );
     mbedtls_mpi_free( &r );
     mbedtls_mpi_free( &s );
     mbedtls_ecp_keypair_free( &ecp );

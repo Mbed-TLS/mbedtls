@@ -64,11 +64,14 @@
 
 #include <string.h>
 
-/* Parameter validation macros */
-#define OPQTD_VALIDATE_RET( cond ) \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, PSA_ERROR_INVALID_ARGUMENT )
-#define OPQTD_VALIDATE( cond ) \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
+/* Parameter validation macro */
+#define OPQTD_VALIDATE_RET( cond )                  \
+    do {                                            \
+        if( !(cond) )                               \
+        {                                           \
+            return( PSA_ERROR_INVALID_ARGUMENT );   \
+        }                                           \
+    } while( 0 )
 
 static psa_status_t mbedtls_to_psa_error( int ret );
 static void rot13( const uint8_t *in,

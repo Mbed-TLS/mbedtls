@@ -3664,7 +3664,8 @@ psa_status_t psa_sign_hash( psa_key_handle_t handle,
                                            signature,
                                            signature_size,
                                            signature_length );
-    if( status != PSA_ERROR_NOT_SUPPORTED )
+    if( status != PSA_ERROR_NOT_SUPPORTED ||
+        psa_key_lifetime_is_external( slot->attr.lifetime ) )
         goto exit;
 
     /* If the operation was not supported by any accelerator, try fallback. */
@@ -3766,7 +3767,8 @@ psa_status_t psa_verify_hash( psa_key_handle_t handle,
                                              hash_length,
                                              signature,
                                              signature_length );
-    if( status != PSA_ERROR_NOT_SUPPORTED )
+    if( status != PSA_ERROR_NOT_SUPPORTED ||
+        psa_key_lifetime_is_external( slot->attr.lifetime ) )
         return status;
 
 #if defined(MBEDTLS_RSA_C)

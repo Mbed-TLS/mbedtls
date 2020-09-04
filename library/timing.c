@@ -387,22 +387,6 @@ static void busy_msleep( unsigned long msec )
     (void) j;
 }
 
-#define FAIL    do                                                      \
-    {                                                                   \
-        if( verbose != 0 )                                              \
-        {                                                               \
-            mbedtls_printf( "failed at line %d\n", __LINE__ );          \
-            mbedtls_printf( " cycles=%lu ratio=%lu millisecs=%lu secs=%lu hardfail=%d a=%lu b=%lu\n", \
-                            cycles, ratio, millisecs, secs, hardfail,   \
-                            (unsigned long) a, (unsigned long) b );     \
-            mbedtls_printf( " elapsed(hires)=%lu elapsed(ctx)=%lu status(ctx)=%d\n", \
-                            mbedtls_timing_get_timer( &hires, 0 ),      \
-                            mbedtls_timing_get_timer( &ctx.timer, 0 ),  \
-                            mbedtls_timing_get_delay( &ctx ) );         \
-        }                                                               \
-        return( 1 );                                                    \
-    } while( 0 )
-
 /*
  * Checkup routine
  *
@@ -417,6 +401,7 @@ int mbedtls_timing_self_test( int verbose )
     struct mbedtls_timing_hr_time hires;
     uint32_t a = 0, b = 0;
     mbedtls_timing_delay_context ctx;
+    int line;
 
     if( verbose != 0 )
         mbedtls_printf( "  TIMING tests note: will take some time!\n" );
@@ -434,11 +419,13 @@ int mbedtls_timing_self_test( int verbose )
             ;
 
         millisecs = mbedtls_timing_get_timer( &hires, 0 );
-
         /* For some reason on Windows it looks like alarm has an extra delay
          * (maybe related to creating a new thread). Allow some room here. */
         if( millisecs < 800 * secs || millisecs > 1200 * secs + 300 )
-            FAIL;
+        {
+            line = __LINE__;
+            goto fail;
+        }
     }
 
     if( verbose != 0 )
@@ -454,21 +441,33 @@ int mbedtls_timing_self_test( int verbose )
 
         busy_msleep( a - a / 4 );                      /* T = a - a/4 */
         if( mbedtls_timing_get_delay( &ctx ) != 0 )
-            FAIL;
+        {
+            line = __LINE__;
+            goto fail;
+        }
 
         busy_msleep( a / 4 + b / 4 );                  /* T = a + b/4 */
         if( mbedtls_timing_get_delay( &ctx ) != 1 )
-            FAIL;
+        {
+            line = __LINE__;
+            goto fail;
+        }
 
         busy_msleep( b );                          /* T = a + b + b/4 */
         if( mbedtls_timing_get_delay( &ctx ) != 2 )
-            FAIL;
+        {
+            line = __LINE__;
+            goto fail;
+        }
     }
 
     mbedtls_timing_set_delay( &ctx, 0, 0 );
     busy_msleep( 200 );
     if( mbedtls_timing_get_delay( &ctx ) != -1 )
-        FAIL;
+    {
+        line = __LINE__;
+        goto fail;
+    }
 
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
@@ -523,6 +522,20 @@ hard_test_done:
         mbedtls_printf( "\n" );
 
     return( 0 );
+
+fail:
+    if( verbose != 0 )
+    {
+        mbedtls_printf( "failed at line %d\n", line );
+        mbedtls_printf( " cycles=%lu ratio=%lu millisecs=%lu secs=%lu hardfail=%d a=%lu b=%lu\n",
+                        cycles, ratio, millisecs, secs, hardfail,
+                        (unsigned long) a, (unsigned long) b );
+        mbedtls_printf( " elapsed(hires)=%lu elapsed(ctx)=%lu status(ctx)=%d\n",
+                        mbedtls_timing_get_timer( &hires, 0 ),
+                        mbedtls_timing_get_timer( &ctx.timer, 0 ),
+                        mbedtls_timing_get_delay( &ctx ) );
+    }
+    return( 1 );
 }
 
 #endif /* MBEDTLS_SELF_TEST */

@@ -1734,7 +1734,6 @@ int main( int argc, char *argv[] )
     psa_algorithm_t alg = 0;
     psa_key_handle_t psk_slot = 0;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-    int psk_free_ret = 0;
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
     size_t psk_len = 0;
     psk_entry *psk_info = NULL;
@@ -4259,17 +4258,17 @@ close_notify:
      * Cleanup and exit
      */
 exit:
-    if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
-    {
 #ifdef MBEDTLS_ERROR_C
-        if( ret != 0 )
-        {
-            char error_buf[100];
-            mbedtls_strerror( ret, error_buf, 100 );
-            mbedtls_printf("Last error was: -0x%X - %s\n\n", (unsigned int) -ret, error_buf );
-        }
+    if( ret != 0 )
+    {
+        char error_buf[100];
+        mbedtls_strerror( ret, error_buf, 100 );
+        mbedtls_printf("Last error was: -0x%X - %s\n\n", (unsigned int) -ret, error_buf );
+    }
 #endif
 
+    if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
+    {
         mbedtls_printf( "  . Cleaning up..." );
         fflush( stdout );
     }
@@ -4302,8 +4301,9 @@ exit:
     sni_free( sni_info );
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-    if( ( psk_free_ret = psk_free( psk_info ) ) != 0 )
-        mbedtls_printf( "Failed to list of opaque PSKs - error was %d\n", psk_free_ret );
+    ret = psk_free( psk_info );
+    if( ( ret != 0 ) && ( opt.query_config_mode == DFL_QUERY_CONFIG_MODE ) )
+        mbedtls_printf( "Failed to list of opaque PSKs - error was %d\n", ret );
 #endif
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
     mbedtls_dhm_free( &dhm );
@@ -4318,7 +4318,8 @@ exit:
          * immediately because of bad cmd line params,
          * for example). */
         status = psa_destroy_key( psk_slot );
-        if( status != PSA_SUCCESS )
+        if( ( status != PSA_SUCCESS ) &&
+            ( opt.query_config_mode == DFL_QUERY_CONFIG_MODE ) )
         {
             mbedtls_printf( "Failed to destroy key slot %u - error was %d",
                             (unsigned) psk_slot, (int) status );

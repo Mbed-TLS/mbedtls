@@ -3313,7 +3313,7 @@ reconnect:
      */
 exit:
 #ifdef MBEDTLS_ERROR_C
-    if( ret != 0 && opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
+    if( ret != 0 )
     {
         char error_buf[100];
         mbedtls_strerror( ret, error_buf, 100 );
@@ -3354,7 +3354,8 @@ exit:
          * immediately because of bad cmd line params,
          * for example). */
         status = psa_destroy_key( slot );
-        if( status != PSA_SUCCESS )
+        if( ( status != PSA_SUCCESS ) &&
+            ( opt.query_config_mode == DFL_QUERY_CONFIG_MODE ) )
         {
             mbedtls_printf( "Failed to destroy key slot %u - error was %d",
                             (unsigned) slot, (int) status );
@@ -3372,13 +3373,13 @@ exit:
     mbedtls_memory_buffer_alloc_free();
 #endif
 
+#if defined(_WIN32)
     if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
     {
-#if defined(_WIN32)
         mbedtls_printf( "  + Press Enter to exit this program.\n" );
         fflush( stdout ); getchar();
-#endif
     }
+#endif
 
     // Shell can not handle large exit numbers -> 1 for errors
     if( ret < 0 )

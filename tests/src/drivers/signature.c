@@ -25,6 +25,7 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
 #include "psa/crypto.h"
+#include "psa_crypto_core.h"
 #include "mbedtls/ecp.h"
 
 #include "drivers/signature.h"

@@ -645,17 +645,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
                                                size_t byte_length );
 #endif /* MBEDTLS_ECP_C */
 
-/** Convert an mbed TLS error code to a PSA error code
- *
- * \note This function is provided solely for the convenience of
- *       Mbed TLS and may be removed at any time without notice.
- *
- * \param ret           An mbed TLS-thrown error code
- *
- * \return              The corresponding PSA error code
- */
-psa_status_t mbedtls_to_psa_error( int ret );
-
 /**@}*/
 
 #ifdef __cplusplus

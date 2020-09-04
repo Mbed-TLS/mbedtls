@@ -722,7 +722,8 @@ component_check_doxygen_warnings () {
 
 component_test_opaque_test_driver () {
     msg "build+test: Opaque test driver test" # ~ 40s
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_OPAQUE_TEST_DRIVER_C' test
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -DMBEDTLS_OPAQUE_TEST_DRIVER_C" LDFLAGS="$ASAN_CFLAGS"
+    make test
 }
 
 component_test_default_out_of_box () {

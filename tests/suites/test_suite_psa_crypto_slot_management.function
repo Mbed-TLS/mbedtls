@@ -188,7 +188,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t read_attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t *reexported = NULL;
-    size_t reexported_length = -1;
+    size_t reexported_length = ~(size_t)0;
 
     TEST_USES_KEY_ID( id );
 

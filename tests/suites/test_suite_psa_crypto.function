@@ -21,7 +21,7 @@
 #include "psa/crypto.h"
 
 /** An invalid export length that will never be set by psa_export_key(). */
-static const size_t INVALID_EXPORT_LENGTH = ~0U;
+static const size_t INVALID_EXPORT_LENGTH = ~(size_t)0;
 
 /* A hash algorithm that is known to be supported.
  *
@@ -4336,7 +4336,7 @@ void asymmetric_encrypt( int key_type_arg,
     size_t key_bits;
     unsigned char *output = NULL;
     size_t output_size;
-    size_t output_length = ~0;
+    size_t output_length = ~(size_t)0;
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -4369,7 +4369,7 @@ void asymmetric_encrypt( int key_type_arg,
      * in label->x. Test that a null pointer works as well. */
     if( label->len == 0 )
     {
-        output_length = ~0;
+        output_length = ~(size_t)0;
         if( output_size != 0 )
             memset( output, 0, output_size );
         actual_status = psa_asymmetric_encrypt( handle, alg,
@@ -4402,10 +4402,10 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
     size_t key_bits;
     unsigned char *output = NULL;
     size_t output_size;
-    size_t output_length = ~0;
+    size_t output_length = ~(size_t)0;
     unsigned char *output2 = NULL;
     size_t output2_size;
-    size_t output2_length = ~0;
+    size_t output2_length = ~(size_t)0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -4467,7 +4467,7 @@ void asymmetric_decrypt( int key_type_arg,
     psa_algorithm_t alg = alg_arg;
     unsigned char *output = NULL;
     size_t output_size = 0;
-    size_t output_length = ~0;
+    size_t output_length = ~(size_t)0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     output_size = expected_data->len;
@@ -4495,7 +4495,7 @@ void asymmetric_decrypt( int key_type_arg,
      * in label->x. Test that a null pointer works as well. */
     if( label->len == 0 )
     {
-        output_length = ~0;
+        output_length = ~(size_t)0;
         if( output_size != 0 )
             memset( output, 0, output_size );
         PSA_ASSERT( psa_asymmetric_decrypt( handle, alg,
@@ -4530,7 +4530,7 @@ void asymmetric_decrypt_fail( int key_type_arg,
     psa_algorithm_t alg = alg_arg;
     unsigned char *output = NULL;
     size_t output_size = output_size_arg;
-    size_t output_length = ~0;
+    size_t output_length = ~(size_t)0;
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -4558,7 +4558,7 @@ void asymmetric_decrypt_fail( int key_type_arg,
      * in label->x. Test that a null pointer works as well. */
     if( label->len == 0 )
     {
-        output_length = ~0;
+        output_length = ~(size_t)0;
         if( output_size != 0 )
             memset( output, 0, output_size );
         actual_status = psa_asymmetric_decrypt( handle, alg,
@@ -5232,7 +5232,7 @@ void raw_key_agreement( int alg_arg,
     psa_key_type_t our_key_type = our_key_type_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     unsigned char *output = NULL;
-    size_t output_length = ~0;
+    size_t output_length = ~(size_t)0;
 
     ASSERT_ALLOC( output, expected_output->len );
     PSA_ASSERT( psa_crypto_init( ) );

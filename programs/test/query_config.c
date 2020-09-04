@@ -124,6 +124,8 @@
  */
 #pragma warning(push)
 #pragma warning(disable:4003)
+#elif defined(__SUNPRO_C)
+#pragma error_messages(off, E_TOKENLESS_MACRO)
 #endif /* _MSC_VER */
 
 int query_config( const char *config )
@@ -2750,4 +2752,6 @@ int query_config( const char *config )
 
 #if defined(_MSC_VER)
 #pragma warning(pop)
+#elif defined(__SUNPRO_C)
+#pragma error_messages(default, E_TOKENLESS_MACRO)
 #endif /* _MSC_VER */

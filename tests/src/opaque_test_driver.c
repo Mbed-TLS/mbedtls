@@ -78,15 +78,15 @@ static void rot13( const uint8_t *in,
                    size_t len,
                    uint8_t *out )
 {
-    char c;
+    uint8_t c;
     for(; len ; len--, in++, out++)
     {
-        c = (char) *in;
+        c = *in;
         if (c >= 'a' && c <= 'm') { *out = c + 13; continue; }
         if (c >= 'A' && c <= 'M') { *out = c + 13; continue; }
         if (c >= 'n' && c <= 'z') { *out = c - 13; continue; }
         if (c >= 'N' && c <= 'Z') { *out = c - 13; continue; }
-        *out = *in;
+        *out = c;
     }
 }
 

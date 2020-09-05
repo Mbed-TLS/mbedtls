@@ -211,6 +211,12 @@ test_info;
 
 void test_fail( const char *test, int line_no, const char* filename )
 {
+    if( test_info.failed )
+    {
+        /* We've already recorded the test as having failed. Don't
+         * overwrite any previous information about the failure. */
+        return;
+    }
     test_info.failed = 1;
     test_info.test = test;
     test_info.line_no = line_no;

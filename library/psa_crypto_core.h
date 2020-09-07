@@ -161,4 +161,16 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
                                        const uint8_t *data,
                                        size_t data_length );
 
+
+/** Convert an mbed TLS error code to a PSA error code
+ *
+ * \note This function is provided solely for the convenience of
+ *       Mbed TLS and may be removed at any time without notice.
+ *
+ * \param ret           An mbed TLS-thrown error code
+ *
+ * \return              The corresponding PSA error code
+ */
+psa_status_t mbedtls_to_psa_error( int ret );
+
 #endif /* PSA_CRYPTO_CORE_H */

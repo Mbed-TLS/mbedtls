@@ -37,6 +37,7 @@ foreach(exe IN LISTS executables_libs executables_mbedcrypto)
     endif()
 endforeach()
 
+target_link_libraries(query_compile_time_config mbedtls)
 target_sources(query_compile_time_config PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/query_config.c)
 
 install(TARGETS ${executables_libs} ${executables_mbedcrypto}

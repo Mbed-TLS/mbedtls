@@ -1,0 +1,3 @@
+Changes
+   * Reduce stack usage significantly during sliding window exponentiation.
+     Reported in #3591 and fix contributed in #3592 by Daniel Otte.

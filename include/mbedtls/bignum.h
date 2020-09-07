@@ -93,7 +93,7 @@
  *
  * Reduction in size, reduces speed.
  */
-#define MBEDTLS_MPI_WINDOW_SIZE                           6        /**< Maximum windows size used. */
+#define MBEDTLS_MPI_WINDOW_SIZE                           6        /**< Maximum window size used. */
 #endif /* !MBEDTLS_MPI_WINDOW_SIZE */
 
 #if !defined(MBEDTLS_MPI_MAX_SIZE)

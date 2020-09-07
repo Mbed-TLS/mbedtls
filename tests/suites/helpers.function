@@ -45,7 +45,8 @@ typedef UINT32 uint32_t;
 
 #include <string.h>
 
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#if defined(__unix__) || defined(__unix) || defined(unix) || \
+    ( defined(__APPLE__) && defined(__MACH__) )
 #include <unistd.h>
 #include <strings.h>
 #endif
@@ -451,7 +452,8 @@ void mbedtls_param_failed( const char *failure_condition,
 }
 #endif
 
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#if defined(__unix__) || defined(__unix) || defined(unix) || \
+    ( defined(__APPLE__) && defined(__MACH__) )
 static int redirect_output( FILE* out_stream, const char* path )
 {
     int out_fd, dup_fd;
@@ -499,4 +501,4 @@ static int restore_output( FILE* out_stream, int dup_fd )
     close( dup_fd );
     return( 0 );
 }
-#endif /* __unix__ || __APPLE__ __MACH__ */
+#endif /* __unix__ || __unix || unix ||  __APPLE__ __MACH__ */

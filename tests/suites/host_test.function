@@ -524,9 +524,10 @@ int execute_tests( int argc , const char ** argv )
     /* Store for proccessed integer params. */
     int int_params[50];
     void *pointer;
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#if defined(__unix__) || defined(__unix) || defined(unix) || \
+    ( defined(__APPLE__) && defined(__MACH__) )
     int stdout_fd = -1;
-#endif /* __unix__ || __APPLE__ __MACH__ */
+#endif /* __unix__ || __unix || unix || __APPLE__ __MACH__ */
     const char *outcome_file_name = getenv( "MBEDTLS_TEST_OUTCOME_FILE" );
     FILE *outcome_file = NULL;
 
@@ -686,7 +687,8 @@ int execute_tests( int argc , const char ** argv )
                 test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_IDLE;
                 test_info.step = (unsigned long)( -1 );
 
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#if defined(__unix__) || defined(__unix) || defined(unix) || \
+    ( defined(__APPLE__) && defined(__MACH__) )
                 /* Suppress all output from the library unless we're verbose
                  * mode
                  */
@@ -699,7 +701,7 @@ int execute_tests( int argc , const char ** argv )
                         exit( 1 );
                     }
                 }
-#endif /* __unix__ || __APPLE__ __MACH__ */
+#endif /* __unix__ || __unix || unix || __APPLE__ __MACH__ */
 
                 function_id = strtoul( params[0], NULL, 10 );
                 if ( (ret = check_test( function_id )) == DISPATCH_TEST_SUCCESS )
@@ -711,13 +713,14 @@ int execute_tests( int argc , const char ** argv )
                     }
                 }
 
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#if defined(__unix__) || defined(__unix) || defined(unix) || \
+    ( defined(__APPLE__) && defined(__MACH__) )
                 if( !option_verbose && restore_output( stdout, stdout_fd ) )
                 {
                         /* Redirection has failed with no stdout so exit */
                         exit( 1 );
                 }
-#endif /* __unix__ || __APPLE__ __MACH__ */
+#endif /* __unix__ || __unix || unix || __APPLE__ __MACH__ */
 
             }
 

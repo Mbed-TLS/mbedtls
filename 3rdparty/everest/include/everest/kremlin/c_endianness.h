@@ -34,7 +34,7 @@
 #  define be32toh(x) OSSwapBigToHostInt32(x)
 
 /* ... for Solaris */
-#elif defined(__sun__)
+#elif defined(__sun__) || defined(__sun)
 #  include <sys/byteorder.h>
 #  define htole64(x) LE_64(x)
 #  define le64toh(x) LE_64(x)

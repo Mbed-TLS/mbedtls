@@ -39,15 +39,8 @@
 
 #include <string.h>
 
-/* If non-null, on success, copy this to the output. */
-void *test_driver_forced_output = NULL;
-size_t test_driver_forced_output_length = 0;
-
-psa_status_t test_transparent_signature_sign_hash_status = PSA_ERROR_NOT_SUPPORTED;
-unsigned long test_transparent_signature_sign_hash_hit = 0;
-
-psa_status_t test_transparent_signature_verify_hash_status = PSA_ERROR_NOT_SUPPORTED;
-unsigned long test_transparent_signature_verify_hash_hit = 0;
+test_driver_signature_hooks_t test_driver_signature_sign_hooks = TEST_DRIVER_SIGNATURE_INIT;
+test_driver_signature_hooks_t test_driver_signature_verify_hooks = TEST_DRIVER_SIGNATURE_INIT;
 
 psa_status_t test_transparent_signature_sign_hash(
     const psa_key_attributes_t *attributes,
@@ -56,18 +49,18 @@ psa_status_t test_transparent_signature_sign_hash(
     const uint8_t *hash, size_t hash_length,
     uint8_t *signature, size_t signature_size, size_t *signature_length )
 {
-    ++test_transparent_signature_sign_hash_hit;
+    ++test_driver_signature_sign_hooks.hits;
 
-    if( test_transparent_signature_sign_hash_status != PSA_SUCCESS )
-        return( test_transparent_signature_sign_hash_status );
+    if( test_driver_signature_sign_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_signature_sign_hooks.forced_status );
 
-    if( test_driver_forced_output != NULL )
+    if( test_driver_signature_sign_hooks.forced_output != NULL )
     {
-        if( test_driver_forced_output_length > signature_size )
+        if( test_driver_signature_sign_hooks.forced_output_length > signature_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
-        memcpy( signature, test_driver_forced_output,
-                test_driver_forced_output_length );
-        *signature_length = test_driver_forced_output_length;
+        memcpy( signature, test_driver_signature_sign_hooks.forced_output,
+                test_driver_signature_sign_hooks.forced_output_length );
+        *signature_length = test_driver_signature_sign_hooks.forced_output_length;
         return( PSA_SUCCESS );
     }
 
@@ -178,10 +171,10 @@ psa_status_t test_transparent_signature_verify_hash(
     const uint8_t *hash, size_t hash_length,
     const uint8_t *signature, size_t signature_length )
 {
-    ++test_transparent_signature_verify_hash_hit;
+    ++test_driver_signature_verify_hooks.hits;
 
-    if( test_transparent_signature_verify_hash_status != PSA_SUCCESS )
-        return( test_transparent_signature_verify_hash_status );
+    if( test_driver_signature_verify_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_signature_verify_hooks.forced_status );
 
     psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
 

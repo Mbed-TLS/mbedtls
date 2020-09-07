@@ -36,29 +36,24 @@
 
 #include <string.h>
 
-/* If non-null, on success, copy this to the output. */
-void *test_driver_keygen_forced_output = NULL;
-size_t test_driver_keygen_forced_output_length = 0;
-
-psa_status_t test_transparent_keygen_status = PSA_ERROR_NOT_SUPPORTED;
-unsigned long test_transparent_keygen_hit = 0;
+test_driver_keygen_hooks_t test_driver_keygen_hooks = TEST_DRIVER_KEYGEN_INIT;
 
 psa_status_t test_transparent_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key, size_t key_size, size_t *key_length )
 {
-    ++test_transparent_keygen_hit;
+    ++test_driver_keygen_hooks.hits;
 
-    if( test_transparent_keygen_status != PSA_SUCCESS )
-        return( test_transparent_keygen_status );
+    if( test_driver_keygen_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_keygen_hooks.forced_status );
 
-    if( test_driver_keygen_forced_output != NULL )
+    if( test_driver_keygen_hooks.forced_output != NULL )
     {
-        if( test_driver_keygen_forced_output_length > key_size )
+        if( test_driver_keygen_hooks.forced_output_length > key_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
-        memcpy( key, test_driver_keygen_forced_output,
-                test_driver_keygen_forced_output_length );
-        *key_length = test_driver_keygen_forced_output_length;
+        memcpy( key, test_driver_keygen_hooks.forced_output,
+                test_driver_keygen_hooks.forced_output_length );
+        *key_length = test_driver_keygen_hooks.forced_output_length;
         return( PSA_SUCCESS );
     }
 

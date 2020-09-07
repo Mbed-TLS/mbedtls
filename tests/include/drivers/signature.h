@@ -29,14 +29,26 @@
 #if defined(PSA_CRYPTO_DRIVER_TEST)
 #include <psa/crypto_driver_common.h>
 
-extern void *test_driver_forced_output;
-extern size_t test_driver_forced_output_length;
+typedef struct {
+    /* If non-null, on success, copy this to the output. */
+    void *forced_output;
+    size_t forced_output_length;
+    /* If not PSA_SUCCESS, return this error code instead of processing the
+     * function call. */
+    psa_status_t forced_status;
+    /* Count the amount of times one of the keygen driver functions is called. */
+    unsigned long hits;
+} test_driver_signature_hooks_t;
 
-extern psa_status_t test_transparent_signature_sign_hash_status;
-extern unsigned long test_transparent_signature_sign_hash_hit;
+#define TEST_DRIVER_SIGNATURE_INIT { NULL, 0, PSA_ERROR_NOT_SUPPORTED, 0 }
+static inline test_driver_signature_hooks_t test_driver_signature_hooks_init( void )
+{
+    const test_driver_signature_hooks_t v = TEST_DRIVER_SIGNATURE_INIT;
+    return( v );
+}
 
-extern psa_status_t test_transparent_signature_verify_hash_status;
-extern unsigned long test_transparent_signature_verify_hash_hit;
+extern test_driver_signature_hooks_t test_driver_signature_sign_hooks;
+extern test_driver_signature_hooks_t test_driver_signature_verify_hooks;
 
 psa_status_t test_transparent_signature_sign_hash(
     const psa_key_attributes_t *attributes,

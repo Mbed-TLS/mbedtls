@@ -5,7 +5,7 @@ This document is a proposed interface for deciding at build time which cryptogra
 
 This is currently a proposal for Mbed TLS. It is not currently on track for standardization in PSA.
 
-Time-stamp: "2020/08/31 13:40:49 GMT"
+Time-stamp: "2020/09/07 07:41:23 GMT"
 
 ## Introduction
 
@@ -17,7 +17,7 @@ The present document proposes a way for an application using the PSA cryptograph
 
 ### Current situation
 
-Mbed TLS offers a way to select which cryptographic mechanisms are included in a build through its configuration file (`config.h`). This mechanism is based on two main sets of symbols: `MBEDTLS_xxx_C` controls the availability of the mechanism to the application, and `MBEDTLS_xxx_ALT` controls the availability of an alternative implementation, so the software implementation is only included if ``MBEDTLS_xxx_C` is defined but not `MBEDTLS_xxx_ALT`.
+Mbed TLS offers a way to select which cryptographic mechanisms are included in a build through its configuration file (`config.h`). This mechanism is based on two main sets of symbols: `MBEDTLS_xxx_C` controls the availability of the mechanism to the application, and `MBEDTLS_xxx_ALT` controls the availability of an alternative implementation, so the software implementation is only included if `MBEDTLS_xxx_C` is defined but not `MBEDTLS_xxx_ALT`.
 
 This is difficult to adapt to the PSA interface for several reasons. The `MBEDTLS_xxx_ALT` symbols are somewhat inconsistent, and in particular do not work well for asymmetric cryptography. For example, many parts of the ECC code have no `MBEDTLS_xxx_ALT` symbol, so a platform with ECC acceleration that can perform all ECDSA and ECDH operations in the accelerator would still embark the `bignum` module and large parts of the `ecp_curves`, `ecp` and `ecdsa` modules. Also the availability of a transparent driver for a mechanism does not translate directly to `MBEDTLS_xxx` symbols.
 

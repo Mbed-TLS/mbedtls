@@ -3938,6 +3938,94 @@ exit:
     return( status );
 }
 
+/* Process input for which the algorithm is set to ECB mode. This requires
+ * manual processing, since the PSA API is defined as being able to process
+ * arbitrary-length calls to psa_cipher_update() with ECB mode, but the
+ * underlying mbedtls_cipher_update only takes full blocks. */
+static psa_status_t psa_cipher_update_ecb_internal(
+    mbedtls_cipher_context_t *ctx,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t block_size = ctx->cipher_info->block_size;
+    size_t internal_output_length = 0;
+    *output_length = 0;
+
+    if( input_length == 0 )
+    {
+        status = PSA_SUCCESS;
+        goto exit;
+    }
+
+    if( ctx->unprocessed_len > 0 )
+    {
+        /* Fill up to block size, and run the block if there's a full one. */
+        size_t bytes_to_copy = block_size - ctx->unprocessed_len;
+
+        if( input_length < bytes_to_copy )
+            bytes_to_copy = input_length;
+
+        memcpy( &( ctx->unprocessed_data[ctx->unprocessed_len] ),
+                input, bytes_to_copy );
+        input_length -= bytes_to_copy;
+        input += bytes_to_copy;
+        ctx->unprocessed_len += bytes_to_copy;
+
+        if( ctx->unprocessed_len == block_size )
+        {
+            status = mbedtls_to_psa_error(
+                mbedtls_cipher_update( ctx,
+                                       ctx->unprocessed_data,
+                                       block_size,
+                                       output, &internal_output_length ) );
+
+            if( status != PSA_SUCCESS )
+                goto exit;
+
+            output += internal_output_length;
+            output_size -= internal_output_length;
+            *output_length += internal_output_length;
+            ctx->unprocessed_len = 0;
+        }
+    }
+
+    while( input_length >= block_size )
+    {
+        /* Run all full blocks we have, one by one */
+        status = mbedtls_to_psa_error(
+            mbedtls_cipher_update( ctx, input,
+                                   block_size,
+                                   output, &internal_output_length ) );
+
+        if( status != PSA_SUCCESS )
+            goto exit;
+
+        input_length -= block_size;
+        input += block_size;
+
+        output += internal_output_length;
+        output_size -= internal_output_length;
+        *output_length += internal_output_length;
+    }
+
+    if( input_length > 0 )
+    {
+        /* Save unprocessed bytes for later processing */
+        memcpy( &( ctx->unprocessed_data[ctx->unprocessed_len] ),
+                input, input_length );
+        ctx->unprocessed_len += input_length;
+    }
+
+    status = PSA_SUCCESS;
+
+exit:
+    return( status );
+}
+
 psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
                                 const uint8_t *input,
                                 size_t input_length,
@@ -3947,7 +4035,6 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t expected_output_size;
-    size_t internal_output_length;
 
     if( operation->alg == 0 )
     {
@@ -3980,71 +4067,12 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
         /* mbedtls_cipher_update has an API inconsistency: it will only
         * process a single block at a time in ECB mode. Abstract away that
         * inconsistency here to match the PSA API behaviour. */
-        *output_length = 0;
-
-        if( input_length == 0 )
-        {
-            status = PSA_SUCCESS;
-            goto exit;
-        }
-
-        if( expected_output_size > 0 )
-        {
-            size_t ctx_bytes = operation->ctx.cipher.unprocessed_len;
-            if( ctx_bytes > 0 )
-            {
-                /* Fill up to block size and run the block */
-                size_t bytes_to_copy = operation->block_size - ctx_bytes;
-                memcpy( &( operation->ctx.cipher.unprocessed_data[ctx_bytes] ),
-                        input, bytes_to_copy );
-                input_length -= bytes_to_copy;
-                input += bytes_to_copy;
-                operation->ctx.cipher.unprocessed_len = 0;
-
-                status = mbedtls_to_psa_error(
-                    mbedtls_cipher_update( &operation->ctx.cipher,
-                                           operation->ctx.cipher.unprocessed_data,
-                                           operation->block_size,
-                                           output, &internal_output_length ) );
-
-                if( status != PSA_SUCCESS )
-                    goto exit;
-
-                output += internal_output_length;
-                output_size -= internal_output_length;
-                *output_length += internal_output_length;
-            }
-
-            size_t blocks = input_length / operation->block_size;
-            for( ; blocks > 0; blocks-- )
-            {
-                /* Run all full blocks we have, one by one */
-                status = mbedtls_to_psa_error(
-                    mbedtls_cipher_update( &operation->ctx.cipher, input,
-                                           operation->block_size,
-                                           output, &internal_output_length ) );
-
-                if( status != PSA_SUCCESS )
-                    goto exit;
-
-                input_length -= operation->block_size;
-                input += operation->block_size;
-
-                output += internal_output_length;
-                output_size -= internal_output_length;
-                *output_length += internal_output_length;
-            }
-        }
-
-        if( input_length > 0 )
-        {
-            /* Save unprocessed bytes for later processing */
-            memcpy( &( operation->ctx.cipher.unprocessed_data[operation->ctx.cipher.unprocessed_len] ),
-                    input, input_length );
-            operation->ctx.cipher.unprocessed_len += input_length;
-        }
-
-        status = PSA_SUCCESS;
+        status = psa_cipher_update_ecb_internal( &operation->ctx.cipher,
+                                                 input,
+                                                 input_length,
+                                                 output,
+                                                 output_size,
+                                                 output_length );
     }
     else
     {

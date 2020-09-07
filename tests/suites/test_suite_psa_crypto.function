@@ -3487,7 +3487,8 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
     PSA_ASSERT( psa_cipher_decrypt_setup( &operation,
                                           handle, alg ) );
 
-    if( iv->len > 0 ) {
+    if( iv->len > 0 )
+    {
         PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
     }
 
@@ -3556,7 +3557,8 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     PSA_ASSERT( psa_cipher_decrypt_setup( &operation,
                                           handle, alg ) );
 
-    if( iv->len > 0 ) {
+    if( iv->len > 0 )
+    {
         PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
     }
 
@@ -3625,7 +3627,8 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
     PSA_ASSERT( psa_cipher_decrypt_setup( &operation2,
                                           handle, alg ) );
 
-    if( alg != PSA_ALG_ECB_NO_PADDING ) {
+    if( alg != PSA_ALG_ECB_NO_PADDING )
+    {
         PSA_ASSERT( psa_cipher_generate_iv( &operation1,
                                             iv, iv_size,
                                             &iv_length ) );
@@ -3649,7 +3652,8 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
     output2_size = output1_length;
     ASSERT_ALLOC( output2, output2_size );
 
-    if( iv_length > 0 ) {
+    if( iv_length > 0 )
+    {
         PSA_ASSERT( psa_cipher_set_iv( &operation2,
                                        iv, iv_length ) );
     }
@@ -3715,7 +3719,8 @@ void cipher_verify_output_multipart( int alg_arg,
     PSA_ASSERT( psa_cipher_decrypt_setup( &operation2,
                                           handle, alg ) );
 
-    if( alg != PSA_ALG_ECB_NO_PADDING ) {
+    if( alg != PSA_ALG_ECB_NO_PADDING )
+    {
         PSA_ASSERT( psa_cipher_generate_iv( &operation1,
                                             iv, iv_size,
                                             &iv_length ) );
@@ -3750,7 +3755,8 @@ void cipher_verify_output_multipart( int alg_arg,
     output2_buffer_size = output1_length;
     ASSERT_ALLOC( output2, output2_buffer_size );
 
-    if( iv_length > 0 ) {
+    if( iv_length > 0 )
+    {
         PSA_ASSERT( psa_cipher_set_iv( &operation2,
                                        iv, iv_length ) );
     }

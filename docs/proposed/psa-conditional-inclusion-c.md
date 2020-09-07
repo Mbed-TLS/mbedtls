@@ -5,7 +5,7 @@ This document is a proposed interface for deciding at build time which cryptogra
 
 This is currently a proposal for Mbed TLS. It is not currently on track for standardization in PSA.
 
-Time-stamp: "2020/09/07 07:41:23 GMT"
+Time-stamp: "2020/09/07 08:27:32 GMT"
 
 ## Introduction
 
@@ -15,11 +15,15 @@ The [PSA Cryptography API specification](https://armmbed.github.io/mbed-crypto/p
 
 The present document proposes a way for an application using the PSA cryptography interface to declare which mechanisms it requires.
 
-### Current situation
+### Conditional inclusion of legacy cryptography modules
 
 Mbed TLS offers a way to select which cryptographic mechanisms are included in a build through its configuration file (`config.h`). This mechanism is based on two main sets of symbols: `MBEDTLS_xxx_C` controls the availability of the mechanism to the application, and `MBEDTLS_xxx_ALT` controls the availability of an alternative implementation, so the software implementation is only included if `MBEDTLS_xxx_C` is defined but not `MBEDTLS_xxx_ALT`.
 
-This is difficult to adapt to the PSA interface for several reasons. The `MBEDTLS_xxx_ALT` symbols are somewhat inconsistent, and in particular do not work well for asymmetric cryptography. For example, many parts of the ECC code have no `MBEDTLS_xxx_ALT` symbol, so a platform with ECC acceleration that can perform all ECDSA and ECDH operations in the accelerator would still embark the `bignum` module and large parts of the `ecp_curves`, `ecp` and `ecdsa` modules. Also the availability of a transparent driver for a mechanism does not translate directly to `MBEDTLS_xxx` symbols.
+### PSA evolution
+
+In the PSA cryptography interface, the **core** (built-in implementations of cryptographic mechanisms) can be augmented with drivers. **Transparent drivers** replace the built-in implementation of a cryptographic mechanism (or, with **fallback**, the built-in implementation is tried if the driver only has partial support for the mechanism). **Opaque drivers** implement cryptographic mechanisms on keys which are stored in a separate domain such as a secure element, for which the core only does key management and dispatch using wrapped key blobs or key identifiers.
+
+The current model is difficult to adapt to the PSA interface for several reasons. The `MBEDTLS_xxx_ALT` symbols are somewhat inconsistent, and in particular do not work well for asymmetric cryptography. For example, many parts of the ECC code have no `MBEDTLS_xxx_ALT` symbol, so a platform with ECC acceleration that can perform all ECDSA and ECDH operations in the accelerator would still embark the `bignum` module and large parts of the `ecp_curves`, `ecp` and `ecdsa` modules. Also the availability of a transparent driver for a mechanism does not translate directly to `MBEDTLS_xxx` symbols.
 
 ### Requirements
 

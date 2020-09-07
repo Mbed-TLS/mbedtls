@@ -32,6 +32,20 @@
 #define OPAQUE_TEST_DRIVER_KEYHEADER_SIZE 12U
 
 /**
+ * \brief Register lifetime of the opaque test driver.
+ *
+ * The output of this function can be passed to opaque_test_driver_import_key()
+ * to create an object that is equivalent to the public key.
+ *
+ * \param[in]  lifetime   The attributes for the key.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The \p in lifetime is not supported
+ */
+psa_status_t opaque_test_driver_set_key_lifetime(const psa_key_lifetime_t lifetime);
+
+/**
  * \brief Export a public key from an opaque key.
  *
  * The output of this function can be passed to opaque_test_driver_import_key()

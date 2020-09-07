@@ -1,6 +1,47 @@
 /* BEGIN_HEADER */
 #include "opaque_test_driver.h"
 #include "test/psa_crypto_helpers.h"
+
+#define PSA_KEY_LOCATION_OPAQUE_TEST_DRIVER ((psa_key_location_t) 0x5E)
+
+uint8_t test_secp256r1_key_data[32] = {
+    0xab, 0x45, 0x43, 0x57, 0x12, 0x64, 0x9c, 0xb3,
+    0x0b, 0xbd, 0xda, 0xc4, 0x91, 0x97, 0xee, 0xbf,
+    0x27, 0x40, 0xff, 0xc7, 0xf8, 0x74, 0xd9, 0x24,
+    0x4c, 0x34, 0x60, 0xf5, 0x4f, 0x32, 0x2d, 0x3a,
+};
+uint8_t test_hash_32[32] = {
+    0x9a, 0xc4, 0x33, 0x5b, 0x46, 0x9b, 0xbd, 0x79,
+    0x14, 0x39, 0x24, 0x85, 0x04, 0xdd, 0x0d, 0x49,
+    0xc7, 0x13, 0x49, 0xa2, 0x95, 0xfe, 0xe5, 0xa1,
+    0xc6, 0x85, 0x07, 0xf4, 0x5a, 0x9e, 0x1c, 0x7b,
+};
+uint8_t test_signature_hash_32_with_secp256r1[64] = {
+    0x6a, 0x33, 0x99, 0xf6, 0x94, 0x21, 0xff, 0xe1,
+    0x49, 0x03, 0x77, 0xad, 0xf2, 0xea, 0x1f, 0x11,
+    0x7d, 0x81, 0xa6, 0x3c, 0xf5, 0xbf, 0x22, 0xe9,
+    0x18, 0xd5, 0x11, 0x75, 0xeb, 0x25, 0x91, 0x51,
+    0xce, 0x95, 0xd7, 0xc2, 0x6c, 0xc0, 0x4e, 0x25,
+    0x50, 0x3e, 0x2f, 0x7a, 0x1e, 0xc3, 0x57, 0x3e,
+    0x3c, 0x24, 0x12, 0x53, 0x4b, 0xb4, 0xa1, 0x9b,
+    0x3a, 0x78, 0x11, 0x74, 0x2f, 0x49, 0xf5, 0x0f,
+ };
+
+static void rot13( const uint8_t *in,
+                   size_t len,
+                   uint8_t *out )
+{
+    uint8_t c;
+    for(; len ; len--, in++, out++)
+    {
+        c = *in;
+        if (c >= 'a' && c <= 'm') { *out = c + 13; continue; }
+        if (c >= 'A' && c <= 'M') { *out = c + 13; continue; }
+        if (c >= 'n' && c <= 'z') { *out = c - 13; continue; }
+        if (c >= 'N' && c <= 'Z') { *out = c - 13; continue; }
+        *out = c;
+    }
+}
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -21,6 +62,16 @@ void opaque_test_driver_bad_param( )
 
     psa_set_key_type( &attr, PSA_KEY_TYPE_AES );
     psa_set_key_bits( &attr, 128 );
+
+    psa_set_key_lifetime( &attr,
+                          PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                              PSA_KEY_PERSISTENCE_VOLATILE,
+                              PSA_KEY_LOCATION_OPAQUE_TEST_DRIVER));
+
+    opaque_test_driver_set_key_lifetime(
+                          PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                              PSA_KEY_PERSISTENCE_VOLATILE,
+                              PSA_KEY_LOCATION_OPAQUE_TEST_DRIVER));
 
     /* Check validity of parameter set. */
     PSA_ASSERT( opaque_test_driver_import_key( &attr,
@@ -122,23 +173,26 @@ void opaque_test_driver_bad_param( )
     /* Check validity of parameter set. */
     psa_set_key_usage_flags( &attr, PSA_KEY_USAGE_SIGN_HASH |
                                     PSA_KEY_USAGE_VERIFY_HASH );
-    psa_set_key_algorithm( &attr, PSA_ALG_ECDSA( PSA_ALG_SHA_256 ) );
+    psa_algorithm_t alg = PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 );
+    psa_set_key_algorithm( &attr, alg );
     psa_set_key_type( &attr,
                       PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
     psa_set_key_bits( &attr, 256 );
-    const uint8_t key[] =
+    uint8_t key[OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32] =
     {
-      0x4F, 0x50, 0x51, 0x54, 0x44, 0x4B, 0x48, 0x45, 0x41, 0x44, 0x45, 0x52,
-      0xab, 0x45, 0x43, 0x57, 0x12, 0x64, 0x9c, 0xb3, 0x0b, 0xbd, 0xda, 0xc4,
-      0x91, 0x97, 0xee, 0xbf,
-      0x27, 0x40, 0xff, 0xc7, 0xf8, 0x74, 0xd9, 0x24, 0x4c, 0x34, 0x60, 0xf5,
-      0x4f, 0x32, 0x2d, 0x3a
+      /* Header */
+      'O', 'P', 'Q', 'T', 'D', 'K', 'H', 'E', 'A', 'D', 'E', 'R',
+      /* 0x4F, 0x50, 0x51, 0x54, 0x44, 0x4B, 0x48, 0x45, 0x41, 0x44, 0x45, 0x52, */
     };
+    /* Encode the raw test vector key with ROT13. */
+    rot13(test_secp256r1_key_data, sizeof(test_secp256r1_key_data),
+          key + OPAQUE_TEST_DRIVER_KEYHEADER_SIZE);
+
     PSA_ASSERT( opaque_test_driver_sign_hash(
                                  &attr,
                                  key,
                                  OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32,
-                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                 alg,
                                  in_key,
                                  16,
                                  out_key,
@@ -149,7 +203,7 @@ void opaque_test_driver_bad_param( )
                                  &attr,
                                  key,
                                  OPAQUE_TEST_DRIVER_KEYHEADER_SIZE,
-                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                 alg,
                                  in_key,
                                  16,
                                  out_key,
@@ -160,7 +214,7 @@ void opaque_test_driver_bad_param( )
                                  &attr,
                                  key,
                                  OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32,
-                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                 alg,
                                  in_key,
                                  16,
                                  out_key,
@@ -172,21 +226,21 @@ void opaque_test_driver_bad_param( )
                                  &attr,
                                  key,
                                  OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32,
-                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
-                                 in_key,
-                                 16,
-                                 out_key,
-                                 out_key_len ) );
+                                 alg,
+                                 test_hash_32,
+                                 sizeof(test_hash_32),
+                                 test_signature_hash_32_with_secp256r1,
+                                 sizeof(test_signature_hash_32_with_secp256r1) ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 opaque_test_driver_verify_hash(
                                  &attr,
                                  key,
                                  OPAQUE_TEST_DRIVER_KEYHEADER_SIZE,
-                                 PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
-                                 in_key,
-                                 16,
-                                 out_key,
-                                 out_key_len ) );
+                                 alg,
+                                 test_hash_32,
+                                 sizeof(test_hash_32),
+                                 test_signature_hash_32_with_secp256r1,
+                                 sizeof(test_signature_hash_32_with_secp256r1) ) );
 exit:
     psa_reset_key_attributes(&attr);
     PSA_DONE( );
@@ -204,6 +258,16 @@ void opaque_test_driver_export_public_key( char *in, char *exp_out )
     uint8_t out[OPQ_BUFSIZE];
 
     PSA_ASSERT( psa_crypto_init() );
+
+    psa_set_key_lifetime( &attr,
+                          PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                              PSA_KEY_PERSISTENCE_VOLATILE,
+                              PSA_KEY_LOCATION_OPAQUE_TEST_DRIVER));
+
+    opaque_test_driver_set_key_lifetime(
+                          PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                              PSA_KEY_PERSISTENCE_VOLATILE,
+                              PSA_KEY_LOCATION_OPAQUE_TEST_DRIVER));
 
     PSA_ASSERT( opaque_test_driver_export_public_key(
                                     &attr,
@@ -238,6 +302,16 @@ void opaque_test_driver_generate_key( int type_arg, int bits_arg )
     psa_set_key_type( &attr, type_arg );
     psa_set_key_bits( &attr, bits_arg );
 
+    psa_set_key_lifetime( &attr,
+                          PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                              PSA_KEY_PERSISTENCE_VOLATILE,
+                              PSA_KEY_LOCATION_OPAQUE_TEST_DRIVER));
+
+    opaque_test_driver_set_key_lifetime(
+                          PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                              PSA_KEY_PERSISTENCE_VOLATILE,
+                              PSA_KEY_LOCATION_OPAQUE_TEST_DRIVER));
+
     PSA_ASSERT( opaque_test_driver_generate_key( &attr,
                                                                  key,
                                                                  OPQ_BUFSIZE,
@@ -264,6 +338,16 @@ void opaque_test_driver_import_key( char *key_material )
     psa_set_key_bits( &attr, PSA_BYTES_TO_BITS( strlen( key_material) ) );
 
     TEST_ASSERT( strlen( key_material ) <= 32 );
+
+    psa_set_key_lifetime( &attr,
+                          PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                              PSA_KEY_PERSISTENCE_VOLATILE,
+                              PSA_KEY_LOCATION_OPAQUE_TEST_DRIVER));
+
+    opaque_test_driver_set_key_lifetime(
+                          PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                              PSA_KEY_PERSISTENCE_VOLATILE,
+                              PSA_KEY_LOCATION_OPAQUE_TEST_DRIVER));
 
     /* Import key. */
     PSA_ASSERT( opaque_test_driver_import_key( &attr,
@@ -318,6 +402,16 @@ void opaque_test_driver_invalid_param( )
 
     psa_set_key_type( &attr, PSA_KEY_TYPE_AES );
     psa_set_key_bits( &attr, 128 );
+
+    psa_set_key_lifetime( &attr,
+                          PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                              PSA_KEY_PERSISTENCE_VOLATILE,
+                              PSA_KEY_LOCATION_OPAQUE_TEST_DRIVER));
+
+    opaque_test_driver_set_key_lifetime(
+                          PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                              PSA_KEY_PERSISTENCE_VOLATILE,
+                              PSA_KEY_LOCATION_OPAQUE_TEST_DRIVER));
 
     /* Check validity of parameter set. */
     PSA_ASSERT( opaque_test_driver_import_key( &attr,
@@ -428,23 +522,26 @@ void opaque_test_driver_invalid_param( )
     /* Check validity of parameter set. */
     psa_set_key_usage_flags( &attr, PSA_KEY_USAGE_SIGN_HASH |
                                     PSA_KEY_USAGE_VERIFY_HASH );
-    psa_set_key_algorithm( &attr, PSA_ALG_ECDSA( PSA_ALG_SHA_256 ) );
+    psa_algorithm_t alg = PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 );
+    psa_set_key_algorithm( &attr, alg );
     psa_set_key_type( &attr,
                       PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
     psa_set_key_bits( &attr, 256 );
-    const uint8_t key[] =
+    uint8_t key[OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32] =
     {
-      0x4F, 0x50, 0x51, 0x54, 0x44, 0x4B, 0x48, 0x45, 0x41, 0x44, 0x45, 0x52,
-      0xab, 0x45, 0x43, 0x57, 0x12, 0x64, 0x9c, 0xb3, 0x0b, 0xbd, 0xda, 0xc4,
-      0x91, 0x97, 0xee, 0xbf,
-      0x27, 0x40, 0xff, 0xc7, 0xf8, 0x74, 0xd9, 0x24, 0x4c, 0x34, 0x60, 0xf5,
-      0x4f, 0x32, 0x2d, 0x3a
+      /* Header */
+      'O', 'P', 'Q', 'T', 'D', 'K', 'H', 'E', 'A', 'D', 'E', 'R',
+      /* 0x4F, 0x50, 0x51, 0x54, 0x44, 0x4B, 0x48, 0x45, 0x41, 0x44, 0x45, 0x52, */
     };
+    /* Encode the raw test vector key with ROT13. */
+    rot13(test_secp256r1_key_data, sizeof(test_secp256r1_key_data),
+          key + OPAQUE_TEST_DRIVER_KEYHEADER_SIZE);
+
     PSA_ASSERT( opaque_test_driver_sign_hash(
                                     &attr,
                                     key,
                                     OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    alg,
                                     in_key,
                                     16,
                                     out_key,
@@ -455,7 +552,7 @@ void opaque_test_driver_invalid_param( )
                                     NULL,
                                     key,
                                     OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    alg,
                                     in_key,
                                     16,
                                     out_key,
@@ -466,7 +563,7 @@ void opaque_test_driver_invalid_param( )
                                     &attr,
                                     NULL,
                                     OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256),
+                                    alg,
                                     in_key,
                                     16,
                                     out_key,
@@ -477,7 +574,7 @@ void opaque_test_driver_invalid_param( )
                                     &attr,
                                     key,
                                     OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    alg,
                                     NULL,
                                     16,
                                     out_key,
@@ -488,7 +585,7 @@ void opaque_test_driver_invalid_param( )
                                     &attr,
                                     key,
                                     OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    alg,
                                     in_key,
                                     16,
                                     NULL,
@@ -499,7 +596,7 @@ void opaque_test_driver_invalid_param( )
                                     &attr,
                                     key,
                                     OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    alg,
                                     in_key,
                                     16,
                                     out_key,
@@ -511,51 +608,51 @@ void opaque_test_driver_invalid_param( )
                                     &attr,
                                     key,
                                     OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
-                                    in_key,
-                                    16,
-                                    out_key,
-                                    out_key_len ) );
+                                    alg,
+                                    test_hash_32,
+                                    sizeof(test_hash_32),
+                                    test_signature_hash_32_with_secp256r1,
+                                    sizeof(test_signature_hash_32_with_secp256r1) ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 opaque_test_driver_verify_hash(
                                     NULL,
                                     key,
                                     OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
-                                    in_key,
-                                    16,
-                                    out_key,
-                                    out_key_len ) );
+                                    alg,
+                                    test_hash_32,
+                                    sizeof(test_hash_32),
+                                    test_signature_hash_32_with_secp256r1,
+                                    sizeof(test_signature_hash_32_with_secp256r1) ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 opaque_test_driver_verify_hash(
                                     &attr,
                                     NULL,
                                     OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
-                                    in_key,
-                                    16,
-                                    out_key,
-                                    out_key_len ) );
+                                    alg,
+                                    test_hash_32,
+                                    sizeof(test_hash_32),
+                                    test_signature_hash_32_with_secp256r1,
+                                    sizeof(test_signature_hash_32_with_secp256r1) ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_verify_hash(
                                     &attr,
                                     key,
                                     OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32,
-                                    PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                    alg,
                                     NULL,
-                                    16,
-                                    out_key,
-                                    out_key_len ) );
+                                    sizeof(test_hash_32),
+                                    test_signature_hash_32_with_secp256r1,
+                                    sizeof(test_signature_hash_32_with_secp256r1) ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_verify_hash(
                                    &attr,
                                    key,
                                    OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + 32,
-                                   PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
-                                   in_key,
-                                   16,
+                                   alg,
+                                   test_hash_32,
+                                   sizeof(test_hash_32),
                                    NULL,
-                                   out_key_len ) );
+                                   sizeof(test_signature_hash_32_with_secp256r1) ) );
 
 exit:
     psa_reset_key_attributes(&attr);
@@ -584,6 +681,16 @@ void opaque_test_driver_sign_verify( int key_type_arg, data_t *key_data,
     psa_set_key_type( &attr, key_type_arg );
     psa_set_key_bits( &attr, PSA_BYTES_TO_BITS( key_data->len -
                                  OPAQUE_TEST_DRIVER_KEYHEADER_SIZE ) );
+
+    psa_set_key_lifetime( &attr,
+                          PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                              PSA_KEY_PERSISTENCE_VOLATILE,
+                              PSA_KEY_LOCATION_OPAQUE_TEST_DRIVER));
+
+    opaque_test_driver_set_key_lifetime(
+                          PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                              PSA_KEY_PERSISTENCE_VOLATILE,
+                              PSA_KEY_LOCATION_OPAQUE_TEST_DRIVER));
 
     /* Sign the data with the given key. */
     PSA_ASSERT( opaque_test_driver_sign_hash( &attr,

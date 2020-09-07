@@ -39,7 +39,7 @@ my $psa_header_dir = 'include/psa';
 my $source_dir = 'library';
 my $test_source_dir = 'tests/src';
 my $test_header_dir = 'tests/include/test';
-my $test_drivers_header_dir = 'tests/include/drivers';
+my $test_drivers_header_dir = 'tests/include/test/drivers';
 
 my @thirdparty_header_dirs = qw(
     3rdparty/everest/include/everest

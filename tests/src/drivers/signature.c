@@ -30,7 +30,7 @@
 #include "psa_crypto_core.h"
 #include "mbedtls/ecp.h"
 
-#include "drivers/signature.h"
+#include "test/drivers/signature.h"
 
 #include "mbedtls/md.h"
 #include "mbedtls/ecdsa.h"

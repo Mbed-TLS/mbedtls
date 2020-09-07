@@ -1,7 +1,7 @@
 /* BEGIN_HEADER */
 #include "test/psa_crypto_helpers.h"
 
-#include "drivers/test_driver.h"
+#include "test/drivers/test_driver.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

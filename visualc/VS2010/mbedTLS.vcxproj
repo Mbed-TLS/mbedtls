@@ -238,9 +238,9 @@
     <ClInclude Include="..\..\tests\include\test\psa_crypto_helpers.h" />
     <ClInclude Include="..\..\tests\include\test\psa_helpers.h" />
     <ClInclude Include="..\..\tests\include\test\random.h" />
-    <ClInclude Include="..\..\tests\include\drivers\keygen.h" />
-    <ClInclude Include="..\..\tests\include\drivers\signature.h" />
-    <ClInclude Include="..\..\tests\include\drivers\test_driver.h" />
+    <ClInclude Include="..\..\tests\include\test\drivers\keygen.h" />
+    <ClInclude Include="..\..\tests\include\test\drivers\signature.h" />
+    <ClInclude Include="..\..\tests\include\test\drivers\test_driver.h" />
     <ClInclude Include="..\..\library\common.h" />
     <ClInclude Include="..\..\library\psa_crypto_core.h" />
     <ClInclude Include="..\..\library\psa_crypto_driver_wrappers.h" />

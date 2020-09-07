@@ -30,7 +30,7 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/error.h"
 
-#include "drivers/keygen.h"
+#include "test/drivers/keygen.h"
 
 #include "test/random.h"
 

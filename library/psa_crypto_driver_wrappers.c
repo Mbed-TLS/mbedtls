@@ -33,7 +33,7 @@
 #ifndef PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT
 #define PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT
 #endif
-#include "drivers/test_driver.h"
+#include "test/drivers/test_driver.h"
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 
 /* Repeat above block for each JSON-declared driver during autogeneration */

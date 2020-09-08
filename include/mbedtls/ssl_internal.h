@@ -395,10 +395,10 @@ struct mbedtls_ssl_key_set
     /*! The IV  for server->client records. */
     unsigned char server_write_iv[ MBEDTLS_MAX_IV_LENGTH ];
 
-    size_t keyLen; /*!< The length of client_write_key and
-                    *   server_write_key, in Bytes. */
-    size_t ivLen;  /*!< The length of client_write_iv and
-                    *   server_write_iv, in Bytes. */
+    size_t key_len; /*!< The length of client_write_key and
+                     *   server_write_key, in Bytes. */
+    size_t iv_len;  /*!< The length of client_write_iv and
+                     *   server_write_iv, in Bytes. */
 };
 typedef struct mbedtls_ssl_key_set mbedtls_ssl_key_set;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */

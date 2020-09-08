@@ -185,7 +185,7 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
                      mbedtls_md_type_t hash_alg,
                      const unsigned char *client_secret,
                      const unsigned char *server_secret,
-                     size_t slen, size_t keyLen, size_t ivLen,
+                     size_t slen, size_t key_len, size_t iv_len,
                      mbedtls_ssl_key_set *keys )
 {
     int ret = 0;
@@ -194,7 +194,7 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
                     client_secret, slen,
                     MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( key ),
                     NULL, 0,
-                    keys->client_write_key, keyLen );
+                    keys->client_write_key, key_len );
     if( ret != 0 )
         return( ret );
 
@@ -202,7 +202,7 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
                     server_secret, slen,
                     MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( key ),
                     NULL, 0,
-                    keys->server_write_key, keyLen );
+                    keys->server_write_key, key_len );
     if( ret != 0 )
         return( ret );
 
@@ -210,7 +210,7 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
                     client_secret, slen,
                     MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( iv ),
                     NULL, 0,
-                    keys->client_write_iv, ivLen );
+                    keys->client_write_iv, iv_len );
     if( ret != 0 )
         return( ret );
 
@@ -218,12 +218,12 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
                     server_secret, slen,
                     MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( iv ),
                     NULL, 0,
-                    keys->server_write_iv, ivLen );
+                    keys->server_write_iv, iv_len );
     if( ret != 0 )
         return( ret );
 
-    keys->keyLen = keyLen;
-    keys->ivLen = ivLen;
+    keys->key_len = key_len;
+    keys->iv_len = iv_len;
 
     return( 0 );
 }

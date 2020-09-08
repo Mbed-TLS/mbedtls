@@ -129,8 +129,8 @@ int mbedtls_ssl_tls1_3_hkdf_expand_label(
  *                      This must be a readable buffer of size \p slen Bytes
  * \param slen          Length of the secrets \p client_secret and
  *                      \p server_secret in Bytes.
- * \param keyLen        The desired length of the key to be extracted in Bytes.
- * \param ivLen         The desired length of the IV to be extracted in Bytes.
+ * \param key_len       The desired length of the key to be extracted in Bytes.
+ * \param iv_len        The desired length of the IV to be extracted in Bytes.
  * \param keys          The address of the structure holding the generated
  *                      keys and IVs.
  *
@@ -142,7 +142,7 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
                      mbedtls_md_type_t hash_alg,
                      const unsigned char *client_secret,
                      const unsigned char *server_secret,
-                     size_t slen, size_t keyLen, size_t ivLen,
+                     size_t slen, size_t key_len, size_t iv_len,
                      mbedtls_ssl_key_set *keys );
 
 /**

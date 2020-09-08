@@ -3726,19 +3726,19 @@ void ssl_tls1_3_traffic_key_generation( int hash_alg,
                      &keys ) == 0 );
 
     ASSERT_COMPARE( keys.client_write_key,
-                    keys.keyLen,
+                    keys.key_len,
                     expected_client_write_key->x,
                     (size_t) desired_key_len );
     ASSERT_COMPARE( keys.server_write_key,
-                    keys.keyLen,
+                    keys.key_len,
                     expected_server_write_key->x,
                     (size_t) desired_key_len );
     ASSERT_COMPARE( keys.client_write_iv,
-                    keys.ivLen,
+                    keys.iv_len,
                     expected_client_write_iv->x,
                     (size_t) desired_iv_len );
     ASSERT_COMPARE( keys.server_write_iv,
-                    keys.ivLen,
+                    keys.iv_len,
                     expected_server_write_iv->x,
                     (size_t) desired_iv_len );
 }

@@ -3692,7 +3692,8 @@ void ssl_tls1_3_hkdf_expand_label( int hash_alg,
                       ctx->x, ctx->len,
                       dst, desired_length ) == 0 );
 
-    TEST_ASSERT( memcmp( dst, expected->x, desired_length ) == 0 );
+    ASSERT_COMPARE( dst, (size_t) desired_length,
+                    expected->x, (size_t) expected->len );
 }
 /* END_CASE */
 
@@ -3724,21 +3725,22 @@ void ssl_tls1_3_traffic_key_generation( int hash_alg,
                      desired_key_len, desired_iv_len,
                      &keys ) == 0 );
 
-    TEST_ASSERT( keys.keyLen == (size_t) desired_key_len );
-    TEST_ASSERT( keys.ivLen  == (size_t) desired_iv_len  );
-
-    TEST_ASSERT( memcmp( keys.client_write_key,
-                         expected_client_write_key->x,
-                         desired_key_len ) == 0 );
-    TEST_ASSERT( memcmp( keys.server_write_key,
-                         expected_server_write_key->x,
-                         desired_key_len ) == 0 );
-    TEST_ASSERT( memcmp( keys.client_write_iv,
-                         expected_client_write_iv->x,
-                         desired_iv_len ) == 0 );
-    TEST_ASSERT( memcmp( keys.server_write_iv,
-                         expected_server_write_iv->x,
-                         desired_iv_len ) == 0 );
+    ASSERT_COMPARE( keys.client_write_key,
+                    keys.keyLen,
+                    expected_client_write_key->x,
+                    (size_t) desired_key_len );
+    ASSERT_COMPARE( keys.server_write_key,
+                    keys.keyLen,
+                    expected_server_write_key->x,
+                    (size_t) desired_key_len );
+    ASSERT_COMPARE( keys.client_write_iv,
+                    keys.ivLen,
+                    expected_client_write_iv->x,
+                    (size_t) desired_iv_len );
+    ASSERT_COMPARE( keys.server_write_iv,
+                    keys.ivLen,
+                    expected_server_write_iv->x,
+                    (size_t) desired_iv_len );
 }
 /* END_CASE */
 
@@ -3765,7 +3767,8 @@ void ssl_tls1_3_derive_secret( int hash_alg,
                       already_hashed,
                       dst, desired_length ) == 0 );
 
-    TEST_ASSERT( memcmp( dst, expected->x, desired_length ) == 0 );
+    ASSERT_COMPARE( dst, desired_length,
+                    expected->x, desired_length );
 }
 /* END_CASE */
 
@@ -3783,7 +3786,8 @@ void ssl_tls1_3_key_evolution( int hash_alg,
                       input->len ? input->x : NULL, input->len,
                       secret_new ) == 0 );
 
-    TEST_ASSERT( memcmp( secret_new, expected->x, expected->len ) == 0 );
+    ASSERT_COMPARE( secret_new, (size_t) expected->len,
+                    expected->x, (size_t) expected->len );
 }
 /* END_CASE */
 

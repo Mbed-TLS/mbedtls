@@ -111,7 +111,7 @@ static void ssl_tls1_3_hkdf_encode_label(
 
     /* Add context value */
     *p++ = (unsigned char)( clen & 0xFF );
-    if( ctx != NULL )
+    if( clen != 0 )
         memcpy( p, ctx, clen );
 
     /* Return total length to the caller.  */

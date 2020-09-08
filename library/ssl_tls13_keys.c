@@ -73,12 +73,17 @@ struct mbedtls_ssl_tls1_3_labels_struct const mbedtls_ssl_tls1_3_labels =
  *         the HkdfLabel structure on success.
  */
 
-#define SSL_TLS1_3_KEY_SCHEDULE_MAX_HKDF_LABEL_LEN \
+#define SSL_TLS1_3_KEY_SCHEDULE_HKDF_LABEL_LEN( label_len, context_len ) \
     (   2                  /* expansion length           */ \
       + 1                  /* label length               */ \
-      + MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_LABEL_LEN       \
+      + label_len                                           \
       + 1                  /* context length             */ \
-      + MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_CONTEXT_LEN )
+      + context_len )
+
+#define SSL_TLS1_3_KEY_SCHEDULE_MAX_HKDF_LABEL_LEN                      \
+    SSL_TLS1_3_KEY_SCHEDULE_HKDF_LABEL_LEN(                             \
+                     MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_LABEL_LEN,     \
+                     MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_CONTEXT_LEN )
 
 static void ssl_tls1_3_hkdf_encode_label(
                             size_t desired_length,
@@ -89,11 +94,7 @@ static void ssl_tls1_3_hkdf_encode_label(
     const char label_prefix[6] = { 't', 'l', 's', '1', '3', ' ' };
     size_t total_label_len = sizeof( label_prefix ) + llen;
     size_t total_hkdf_lbl_len =
-          2                  /* length of expanded key material */
-        + 1                  /* label length                    */
-        + total_label_len    /* actual label, incl. prefix      */
-        + 1                  /* context length                  */
-        + clen;              /* actual context                  */
+        SSL_TLS1_3_KEY_SCHEDULE_HKDF_LABEL_LEN( total_label_len, clen );
 
     unsigned char *p = dst;
 

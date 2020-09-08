@@ -139,42 +139,44 @@ psa_status_t opaque_test_driver_generate_key(
                                         size_t *key_length )
 {
     psa_status_t status;
-    uint8_t key_buffer[32];
+    uint8_t key_buffer[OPAQUE_TEST_DRIVER_KEY_BITS_MAX/8];
     size_t key_buffer_length;
 
     OPQTD_VALIDATE_RET( attributes != NULL );
     OPQTD_VALIDATE_RET( key != NULL );
     OPQTD_VALIDATE_RET( key_length != NULL );
     OPQTD_VALIDATE_RET( opqtd_lifetime == psa_get_key_lifetime( attributes ) );
-    OPQTD_VALIDATE_RET( psa_get_key_bits( attributes ) != 0 );
-
-    if( psa_get_key_type( attributes ) != PSA_KEY_TYPE_AES )
-        return( PSA_ERROR_NOT_SUPPORTED );
-
-    if( ( psa_get_key_bits( attributes ) != 128 ) &&      // AES-128
-        ( psa_get_key_bits( attributes ) != 192 ) &&      // AES-192
-        ( psa_get_key_bits( attributes ) != 256 ) )       // AES-256
-        return( PSA_ERROR_NOT_SUPPORTED );
+    size_t key_bits = psa_get_key_bits( attributes );
+    OPQTD_VALIDATE_RET( key_bits != 0 );
+    psa_key_type_t key_type = psa_get_key_type( attributes );
 
     if( OPAQUE_TEST_DRIVER_KEYHEADER_SIZE +
-        PSA_BITS_TO_BYTES( psa_get_key_bits( attributes ) ) > key_size )
+        PSA_BITS_TO_BYTES( key_bits ) > key_size )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
     /* Generate key data. */
-    if( PSA_KEY_TYPE_IS_UNSTRUCTURED( attributes->core.type ) )
+    if( PSA_KEY_TYPE_IS_UNSTRUCTURED( key_type ) )
     {
-        key_buffer_length = PSA_BITS_TO_BYTES( psa_get_key_bits( attributes ) );
+        if( ( key_type == PSA_KEY_TYPE_AES ) &&
+            ( key_bits != 128 ) && ( key_bits != 192 ) && ( key_bits != 256 ) )
+            return( PSA_ERROR_NOT_SUPPORTED );
+
+        key_buffer_length = PSA_BITS_TO_BYTES( key_bits );
         status = psa_generate_random( key_buffer, key_buffer_length );
         if( status != PSA_SUCCESS )
             return( status );
     }
     else
 #if defined(MBEDTLS_ECP_C)
-    if ( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) && PSA_KEY_TYPE_IS_KEY_PAIR( attributes->core.type ) )
+    if ( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( key_type ) )
     {
-        psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( attributes->core.type );
+        if( ( key_bits != 256 ) && ( key_bits != 384 ) && ( key_bits != 521 ) )
+        {
+            return( PSA_ERROR_NOT_SUPPORTED );
+        }
+        psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( key_type );
         mbedtls_ecp_group_id grp_id =
-            mbedtls_ecc_group_of_psa( curve, PSA_BITS_TO_BYTES( attributes->core.bits ) );
+            mbedtls_ecc_group_of_psa( curve, PSA_BITS_TO_BYTES( key_bits ) );
         const mbedtls_ecp_curve_info *curve_info =
             mbedtls_ecp_curve_info_from_grp_id( grp_id );
         mbedtls_ecp_keypair ecp;
@@ -186,7 +188,7 @@ psa_status_t opaque_test_driver_generate_key(
             return( PSA_ERROR_NOT_SUPPORTED );
         if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
-        if( curve_info->bit_size != attributes->core.bits )
+        if( curve_info->bit_size != key_bits )
             return( PSA_ERROR_INVALID_ARGUMENT );
         mbedtls_ecp_keypair_init( &ecp );
         ret = mbedtls_ecp_gen_key( grp_id, &ecp,
@@ -199,20 +201,20 @@ psa_status_t opaque_test_driver_generate_key(
         }
 
         /* Make sure to use export representation */
-        size_t bytes = PSA_BITS_TO_BYTES( attributes->core.bits );
+        size_t bytes = PSA_BITS_TO_BYTES( key_bits );
         if( key_size < bytes )
         {
             mbedtls_ecp_keypair_free( &ecp );
             return( PSA_ERROR_BUFFER_TOO_SMALL );
         }
         psa_status_t status = mbedtls_to_psa_error(
-            mbedtls_mpi_write_binary( &ecp.d, key, bytes ) );
+            mbedtls_mpi_write_binary( &ecp.d, key_buffer, bytes ) );
+        if( status != PSA_SUCCESS )
+            return( status );
 
-        if( status == PSA_SUCCESS )
-            *key_length = bytes;
+        key_buffer_length = PSA_BITS_TO_BYTES( key_bits );
 
         mbedtls_ecp_keypair_free( &ecp );
-        return( status );
     }
 
     else
@@ -243,7 +245,7 @@ psa_status_t opaque_test_driver_import_key(
 
     if( ( psa_get_key_type( attributes ) != PSA_KEY_TYPE_AES ) &&
         ( psa_get_key_type( attributes ) !=
-          PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) ) )
+          PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) ) )
         return( PSA_ERROR_NOT_SUPPORTED );
 
     if( ( psa_get_key_bits( attributes ) != 128 ) &&      // AES-128
@@ -303,7 +305,7 @@ psa_status_t opaque_test_driver_sign_hash(
     mbedtls_ecp_group_id grp_id;
     switch( psa_get_key_type( attributes ) )
     {
-        case PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ):
+        case PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ):
 
             switch( psa_get_key_bits( attributes ) )
             {
@@ -426,7 +428,7 @@ psa_status_t opaque_test_driver_verify_hash(
     mbedtls_ecp_group_id grp_id;
     switch( psa_get_key_type( attributes ) )
     {
-        case PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ):
+        case PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ):
             switch( psa_get_key_bits( attributes ) )
             {
                 case 256:

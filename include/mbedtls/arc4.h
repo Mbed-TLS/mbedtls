@@ -7,7 +7,7 @@
  *            security risk. We recommend considering stronger ciphers instead.
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -22,20 +22,19 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  This file is part of mbed TLS (https://tls.mbed.org)
- *
  */
 #ifndef MBEDTLS_ARC4_H
 #define MBEDTLS_ARC4_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
 #include <stddef.h>
 
+/* MBEDTLS_ERR_ARC4_HW_ACCEL_FAILED is deprecated and should not be used. */
 #define MBEDTLS_ERR_ARC4_HW_ACCEL_FAILED                  -0x0019  /**< ARC4 hardware accelerator failed. */
 
 #ifdef __cplusplus
@@ -53,7 +52,7 @@ extern "C" {
  *            security risk. We recommend considering stronger ciphers instead.
  *
  */
-typedef struct
+typedef struct mbedtls_arc4_context
 {
     int x;                      /*!< permutation index */
     int y;                      /*!< permutation index */
@@ -122,6 +121,8 @@ void mbedtls_arc4_setup( mbedtls_arc4_context *ctx, const unsigned char *key,
 int mbedtls_arc4_crypt( mbedtls_arc4_context *ctx, size_t length, const unsigned char *input,
                 unsigned char *output );
 
+#if defined(MBEDTLS_SELF_TEST)
+
 /**
  * \brief          Checkup routine
  *
@@ -133,6 +134,8 @@ int mbedtls_arc4_crypt( mbedtls_arc4_context *ctx, size_t length, const unsigned
  *
  */
 int mbedtls_arc4_self_test( int verbose );
+
+#endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus
 }

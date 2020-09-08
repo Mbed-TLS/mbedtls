@@ -1,0 +1,51 @@
+set(libs
+    mbedtls
+)
+
+if(USE_PKCS11_HELPER_LIBRARY)
+    set(libs ${libs} pkcs11-helper)
+endif(USE_PKCS11_HELPER_LIBRARY)
+
+if(ENABLE_ZLIB_SUPPORT)
+    set(libs ${libs} ${ZLIB_LIBRARIES})
+endif(ENABLE_ZLIB_SUPPORT)
+
+find_library(FUZZINGENGINE_LIB FuzzingEngine)
+if(FUZZINGENGINE_LIB)
+    project(fuzz CXX)
+endif()
+
+set(executables_no_common_c
+    fuzz_privkey
+    fuzz_pubkey
+    fuzz_x509crl
+    fuzz_x509crt
+    fuzz_x509csr
+)
+
+set(executables_with_common_c
+    fuzz_client
+    fuzz_dtlsclient
+    fuzz_dtlsserver
+    fuzz_server
+)
+
+foreach(exe IN LISTS executables_no_common_c executables_with_common_c)
+
+    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>)
+
+    if (NOT FUZZINGENGINE_LIB)
+        target_link_libraries(${exe} ${libs})
+        target_sources(${exe} PRIVATE onefile.c)
+    else()
+        target_link_libraries(${exe} ${libs} FuzzingEngine)
+        SET_TARGET_PROPERTIES(${exe} PROPERTIES LINKER_LANGUAGE CXX)
+    endif()
+
+    # This emulates "if ( ... IN_LIST ... )" which becomes available in CMake 3.3
+    list(FIND executables_with_common_c ${exe} exe_index)
+    if (${exe_index} GREATER -1)
+        target_sources(${exe} PRIVATE common.c)
+    endif()
+
+endforeach()

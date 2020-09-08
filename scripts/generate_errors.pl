@@ -1,9 +1,24 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # Generate error.c
 #
 # Usage: ./generate_errors.pl or scripts/generate_errors.pl without arguments,
 # or generate_errors.pl include_dir data_dir error_file
+#
+# Copyright The Mbed TLS Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 use strict;
 
@@ -29,10 +44,10 @@ if( @ARGV ) {
 
 my $error_format_file = $data_dir.'/error.fmt';
 
-my @low_level_modules = qw( AES ARC4 ASN1 BASE64 BIGNUM BLOWFISH
-                            CAMELLIA CCM CMAC CTR_DRBG DES
-                            ENTROPY GCM HMAC_DRBG MD2 MD4 MD5
-                            NET OID PADLOCK PBKDF2 RIPEMD160
+my @low_level_modules = qw( AES ARC4 ARIA ASN1 BASE64 BIGNUM BLOWFISH
+                            CAMELLIA CCM CHACHA20 CHACHAPOLY CMAC CTR_DRBG DES
+                            ENTROPY ERROR GCM HKDF HMAC_DRBG MD2 MD4 MD5
+                            NET OID PADLOCK PBKDF2 PLATFORM POLY1305 RIPEMD160
                             SHA1 SHA256 SHA512 THREADING XTEA );
 my @high_level_modules = qw( CIPHER DHM ECP MD
                              PEM PK PKCS12 PKCS5
@@ -48,12 +63,16 @@ close(FORMAT_FILE);
 $/ = $line_separator;
 
 my @files = <$include_dir/*.h>;
+my @necessary_include_files;
 my @matches;
 foreach my $file (@files) {
     open(FILE, "$file");
     my @grep_res = grep(/^\s*#define\s+MBEDTLS_ERR_\w+\s+\-0x[0-9A-Fa-f]+/, <FILE>);
     push(@matches, @grep_res);
     close FILE;
+    my $include_name = $file;
+    $include_name =~ s!.*/!!;
+    push @necessary_include_files, $include_name if @grep_res;
 }
 
 my $ll_old_define = "";
@@ -63,9 +82,9 @@ my $ll_code_check = "";
 my $hl_code_check = "";
 
 my $headers = "";
+my %included_headers;
 
 my %error_codes_seen;
-
 
 foreach my $line (@matches)
 {
@@ -97,10 +116,11 @@ foreach my $line (@matches)
 
     my $include_name = $module_name;
     $include_name =~ tr/A-Z/a-z/;
-    $include_name = "" if ($include_name eq "asn1");
 
     # Fix faulty ones
     $include_name = "net_sockets" if ($module_name eq "NET");
+
+    $included_headers{"${include_name}.h"} = $module_name;
 
     my $found_ll = grep $_ eq $module_name, @low_level_modules;
     my $found_hl = grep $_ eq $module_name, @high_level_modules;
@@ -119,7 +139,7 @@ foreach my $line (@matches)
     {
         $code_check = \$ll_code_check;
         $old_define = \$ll_old_define;
-        $white_space = '    ';
+        $white_space = '        ';
     }
     else
     {
@@ -160,19 +180,8 @@ foreach my $line (@matches)
         ${$old_define} = $define_name;
     }
 
-    if ($error_name eq "MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE")
-    {
-        ${$code_check} .= "${white_space}if( use_ret == -($error_name) )\n".
-                          "${white_space}\{\n".
-                          "${white_space}    mbedtls_snprintf( buf, buflen, \"$module_name - $description\" );\n".
-                          "${white_space}    return;\n".
-                          "${white_space}}\n"
-    }
-    else
-    {
-        ${$code_check} .= "${white_space}if( use_ret == -($error_name) )\n".
-                          "${white_space}    mbedtls_snprintf( buf, buflen, \"$module_name - $description\" );\n"
-    }
+    ${$code_check} .= "${white_space}case -($error_name):\n".
+                      "${white_space}    return( \"$module_name - $description\" );\n"
 };
 
 if ($ll_old_define ne "")
@@ -205,3 +214,15 @@ $error_format =~ s/HIGH_LEVEL_CODE_CHECKS\n/$hl_code_check/g;
 open(ERROR_FILE, ">$error_file") or die "Opening destination file '$error_file': $!";
 print ERROR_FILE $error_format;
 close(ERROR_FILE);
+
+my $errors = 0;
+for my $include_name (@necessary_include_files)
+{
+    if (not $included_headers{$include_name})
+    {
+        print STDERR "The header file \"$include_name\" defines error codes but has not been included!\n";
+        ++$errors;
+    }
+}
+
+exit !!$errors;

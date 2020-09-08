@@ -1,7 +1,7 @@
 Note: This is just a template, so feel free to use/remove the unnecessary things
 
 ### Description
-- Type: Bug | Enhancement\Feature Request | Question
+- Type: Bug | Enhancement\Feature Request
 - Priority: Blocker | Major | Minor
 
 ---------------------------------------------------------------
@@ -38,4 +38,4 @@ Version:
 
 ## Question
 
-**Please first check for answers in the [Mbed TLS knowledge Base](https://tls.mbed.org/kb), and preferably file an issue in the [Mbed TLS support forum](https://tls.mbed.org/discussions)**  
+**Please first check for answers in the [Mbed TLS knowledge Base](https://tls.mbed.org/kb). If you can't find the answer you're looking for then please use the [Mbed TLS mailing list](https://lists.trustedfirmware.org/mailman/listinfo/mbed-tls)**

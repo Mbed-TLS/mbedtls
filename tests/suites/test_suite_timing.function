@@ -1,50 +1,13 @@
 /* BEGIN_HEADER */
 
-/* This test module exercises the timing module. One of the expected failure
-   modes is for timers to never expire, which could lead to an infinite loop.
-   The function timing_timer_simple is protected against this failure mode and
-   checks that timers do expire. Other functions will terminate if their
-   timers do expire. Therefore it is recommended to run timing_timer_simple
-   first and run other test functions only if that timing_timer_simple
-   succeeded. */
+/* This test module exercises the timing module. Since, depending on the
+ * underlying operating system, the timing routines are not always reliable,
+ * this suite only performs very basic sanity checks of the timing API.
+ */
 
 #include <limits.h>
 
 #include "mbedtls/timing.h"
-
-/* Wait this many milliseconds for a short timing test. This duration
-   should be large enough that, in practice, if you read the timer
-   value twice in a row, it won't have jumped by that much. */
-#define TIMING_SHORT_TEST_MS 100
-
-/* A loop that waits TIMING_SHORT_TEST_MS must not take more than this many
-   iterations. This value needs to be large enough to accommodate fast
-   platforms (e.g. at 4GHz and 10 cycles/iteration a CPU can run through 20
-   million iterations in 50ms). The only motivation to keep this value low is
-   to avoid having an infinite loop if the timer functions are not implemented
-   correctly. Ideally this value should be based on the processor speed but we
-   don't have this information! */
-#define TIMING_SHORT_TEST_ITERATIONS_MAX 1e8
-
-/* alarm(0) must fire in no longer than this amount of time. */
-#define TIMING_ALARM_0_DELAY_MS TIMING_SHORT_TEST_MS
-
-static int expected_delay_status( uint32_t int_ms, uint32_t fin_ms,
-                                  unsigned long actual_ms )
-{
-    return( fin_ms == 0 ? -1 :
-            actual_ms >= fin_ms ? 2 :
-            actual_ms >= int_ms ? 1 :
-            0 );
-}
-
-/* Some conditions in timing_timer_simple suggest that timers are unreliable.
-   Most other test cases rely on timers to terminate, and could loop
-   indefinitely if timers are too broken. So if timing_timer_simple detected a
-   timer that risks not terminating (going backwards, or not reaching the
-   desired count in the alloted clock cycles), set this flag to immediately
-   fail those other tests without running any timers. */
-static int timers_are_badly_broken = 0;
 
 /* END_HEADER */
 
@@ -54,350 +17,58 @@ static int timers_are_badly_broken = 0;
  */
 
 /* BEGIN_CASE */
-void timing_timer_simple( )
+void timing_hardclock( )
 {
-    struct mbedtls_timing_hr_time timer;
-    unsigned long millis = 0;
-    unsigned long new_millis = 0;
-    unsigned long iterations = 0;
-    /* Start the timer. */
-    (void) mbedtls_timing_get_timer( &timer, 1 );
-    /* Busy-wait loop for a few milliseconds. */
-    do
-    {
-        new_millis = mbedtls_timing_get_timer( &timer, 0 );
-        ++iterations;
-        /* Check that the timer didn't go backwards */
-        TEST_ASSERT( new_millis >= millis );
-        millis = new_millis;
-    }
-    while( millis < TIMING_SHORT_TEST_MS &&
-           iterations <= TIMING_SHORT_TEST_ITERATIONS_MAX );
-    /* The wait duration should have been large enough for at least a
-       few runs through the loop, even on the slowest realistic platform. */
-    TEST_ASSERT( iterations >= 2 );
-    /* The wait duration shouldn't have overflowed the iteration count. */
-    TEST_ASSERT( iterations < TIMING_SHORT_TEST_ITERATIONS_MAX );
-    return;
-
-exit:
-    if( iterations >= TIMING_SHORT_TEST_ITERATIONS_MAX ||
-        new_millis < millis )
-    {
-        /* The timer was very unreliable: it didn't increment and the loop ran
-           out, or it went backwards. Other tests that use timers might go
-           into an infinite loop, so we'll skip them. */
-        timers_are_badly_broken = 1;
-    }
-
-    /* No cleanup needed, but show some diagnostic iterations, because timing
-       problems can be hard to reproduce. */
-    mbedtls_fprintf( stdout, "  Finished with millis=%lu new_millis=%lu get(timer)<=%lu iterations=%lu\n",
-                     millis, new_millis, mbedtls_timing_get_timer( &timer, 0 ),
-                     iterations );
+    (void) mbedtls_timing_hardclock();
+    /* This goto is added to avoid warnings from the generated code. */
+    goto exit;
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void timing_timer_reset( )
+void timing_get_timer( )
 {
-    struct mbedtls_timing_hr_time timer;
-    unsigned long millis = 0;
-    unsigned long iterations = 0;
-
-    /* Skip this test if it looks like timers don't work at all, to avoid an
-       infinite loop below. */
-    TEST_ASSERT( !timers_are_badly_broken );
-
-    /* Start the timer. Timers are always reset to 0. */
-    TEST_ASSERT( mbedtls_timing_get_timer( &timer, 1 ) == 0 );
-    /* Busy-wait loop for a few milliseconds */
-    do
-    {
-        ++iterations;
-        millis = mbedtls_timing_get_timer( &timer, 0 );
-    }
-    while( millis < TIMING_SHORT_TEST_MS );
-
-    /* Reset the timer and check that it has restarted. */
-    TEST_ASSERT( mbedtls_timing_get_timer( &timer, 1 ) == 0 );
-    /* Read the timer immediately after reset. It should be 0 or close
-       to it. */
-    TEST_ASSERT( mbedtls_timing_get_timer( &timer, 0 ) < TIMING_SHORT_TEST_MS );
-    return;
-
-exit:
-    /* No cleanup needed, but show some diagnostic information, because timing
-       problems can be hard to reproduce. */
-    if( !timers_are_badly_broken )
-        mbedtls_fprintf( stdout, "  Finished with millis=%lu get(timer)<=%lu iterations=%lu\n",
-                         millis, mbedtls_timing_get_timer( &timer, 0 ),
-                         iterations );
+    struct mbedtls_timing_hr_time time;
+    (void) mbedtls_timing_get_timer( &time, 1 );
+    (void) mbedtls_timing_get_timer( &time, 0 );
+    /* This goto is added to avoid warnings from the generated code. */
+    goto exit;
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void timing_two_timers( int delta )
+void timing_set_alarm( int seconds )
 {
-    struct mbedtls_timing_hr_time timer1, timer2;
-    unsigned long millis1 = 0, millis2 = 0;
-
-    /* Skip this test if it looks like timers don't work at all, to avoid an
-       infinite loop below. */
-    TEST_ASSERT( !timers_are_badly_broken );
-
-    /* Start the first timer and wait for a short time. */
-    (void) mbedtls_timing_get_timer( &timer1, 1 );
-    do
+    if( seconds == 0 )
     {
-        millis1 = mbedtls_timing_get_timer( &timer1, 0 );
-    }
-    while( millis1 < TIMING_SHORT_TEST_MS );
-
-    /* Do a short busy-wait, so that the difference between timer1 and timer2
-       doesn't practically always end up being very close to a whole number of
-       milliseconds. */
-    while( delta > 0 )
-        --delta;
-
-    /* Start the second timer and compare it with the first. */
-    mbedtls_timing_get_timer( &timer2, 1 );
-    do
-    {
-        millis1 = mbedtls_timing_get_timer( &timer1, 0 );
-        millis2 = mbedtls_timing_get_timer( &timer2, 0 );
-        /* The first timer should always be ahead of the first. */
-        TEST_ASSERT( millis1 > millis2 );
-        /* The timers shouldn't drift apart, i.e. millis2-millis1 should stay
-           roughly constant, but this is hard to test reliably, especially in
-           a busy environment such as an overloaded continuous integration
-           system, so we don't test it it. */
-    }
-    while( millis2 < TIMING_SHORT_TEST_MS );
-
-    return;
-
-exit:
-    /* No cleanup needed, but show some diagnostic iterations, because timing
-       problems can be hard to reproduce. */
-    if( !timers_are_badly_broken )
-        mbedtls_fprintf( stdout, "  Finished with millis1=%lu get(timer1)<=%lu millis2=%lu get(timer2)<=%lu\n",
-                         millis1, mbedtls_timing_get_timer( &timer1, 0 ),
-                         millis2, mbedtls_timing_get_timer( &timer2, 0 ) );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void timing_alarm( int seconds )
-{
-    struct mbedtls_timing_hr_time timer;
-    unsigned long millis = 0;
-    /* We check that about the desired number of seconds has elapsed. Be
-       slightly liberal with the lower bound, so as to allow platforms where
-       the alarm (with second resolution) and the timer (with millisecond
-       resolution) are based on different clocks. Be very liberal with the
-       upper bound, because the platform might be busy. */
-    unsigned long millis_min = ( seconds > 0 ?
-                                 seconds * 900 :
-                                 0 );
-    unsigned long millis_max = ( seconds > 0 ?
-                                 seconds * 1100 + 400 :
-                                 TIMING_ALARM_0_DELAY_MS );
-    unsigned long iterations = 0;
-
-    /* Skip this test if it looks like timers don't work at all, to avoid an
-       infinite loop below. */
-    TEST_ASSERT( !timers_are_badly_broken );
-
-    /* Set an alarm and count how long it takes with a timer. */
-    (void) mbedtls_timing_get_timer( &timer, 1 );
-    mbedtls_set_alarm( seconds );
-
-    if( seconds > 0 )
-    {
-        /* We set the alarm for at least 1 second. It should not have fired
-           immediately, even on a slow and busy platform. */
-        TEST_ASSERT( !mbedtls_timing_alarmed );
-    }
-    /* A 0-second alarm should fire quickly, but we don't guarantee that it
-       fires immediately, so mbedtls_timing_alarmed may or may not be set at
-       this point. */
-
-    /* Busy-wait until the alarm rings */
-    do
-    {
-        ++iterations;
-        millis = mbedtls_timing_get_timer( &timer, 0 );
-    }
-    while( !mbedtls_timing_alarmed && millis <= millis_max );
-
-    TEST_ASSERT( mbedtls_timing_alarmed );
-    TEST_ASSERT( millis >= millis_min );
-    TEST_ASSERT( millis <= millis_max );
-
-    mbedtls_timing_alarmed = 0;
-    return;
-
-exit:
-    /* Show some diagnostic iterations, because timing
-       problems can be hard to reproduce. */
-    if( !timers_are_badly_broken )
-        mbedtls_fprintf( stdout, "  Finished with alarmed=%d millis=%lu get(timer)<=%lu iterations=%lu\n",
-                         mbedtls_timing_alarmed,
-                         millis, mbedtls_timing_get_timer( &timer, 0 ),
-                         iterations );
-    /* Cleanup */
-    mbedtls_timing_alarmed = 0;
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void timing_delay( int int_ms, int fin_ms )
-{
-    /* This function assumes that if int_ms is nonzero then it is large
-       enough that we have time to read all timers at least once in an
-       interval of time lasting int_ms milliseconds, and likewise for (fin_ms
-       - int_ms). So don't call it with arguments that are too small. */
-
-    mbedtls_timing_delay_context delay;
-    struct mbedtls_timing_hr_time timer;
-    unsigned long delta = 0; /* delay started between timer=0 and timer=delta */
-    unsigned long before = 0, after = 0;
-    unsigned long iterations = 0;
-    int status = -2;
-    int saw_status_1 = 0;
-    int warn_inconclusive = 0;
-
-    assert( int_ms >= 0 );
-    assert( fin_ms >= 0 );
-
-    /* Skip this test if it looks like timers don't work at all, to avoid an
-       infinite loop below. */
-    TEST_ASSERT( !timers_are_badly_broken );
-
-    /* Start a reference timer. Program a delay, and verify that the status of
-       the delay is consistent with the time given by the reference timer. */
-    (void) mbedtls_timing_get_timer( &timer, 1 );
-    mbedtls_timing_set_delay( &delay, int_ms, fin_ms );
-    /* Set delta to an upper bound for the interval between the start of timer
-       and the start of delay. Reading timer after starting delay gives us an
-       upper bound for the interval, rounded to a 1ms precision. Since this
-       might have been rounded down, but we need an upper bound, we add 1. */
-    delta = mbedtls_timing_get_timer( &timer, 0 ) + 1;
-
-    status = mbedtls_timing_get_delay( &delay );
-    if( fin_ms == 0 )
-    {
-        /* Cancelled timer. Just check the correct status for this case. */
-        TEST_ASSERT( status == -1 );
-        return;
-    }
-
-    /* Initially, none of the delays must be passed yet if they're nonzero.
-       This could fail for very small values of int_ms and fin_ms, where "very
-       small" depends how fast and how busy the platform is. */
-    if( int_ms > 0 )
-    {
-        TEST_ASSERT( status == 0 );
+        mbedtls_set_alarm( seconds );
+        TEST_ASSERT( mbedtls_timing_alarmed == 1 );
     }
     else
     {
-        TEST_ASSERT( status == 1 );
+        mbedtls_set_alarm( seconds );
+        TEST_ASSERT( mbedtls_timing_alarmed == 0 ||
+                     mbedtls_timing_alarmed == 1 );
     }
-
-    do
-    {
-        unsigned long delay_min, delay_max;
-        int status_min, status_max;
-        ++iterations;
-        before = mbedtls_timing_get_timer( &timer, 0 );
-        status = mbedtls_timing_get_delay( &delay );
-        after = mbedtls_timing_get_timer( &timer, 0 );
-        /* At a time between before and after, the delay's status was status.
-           Check that this is consistent given that the delay was started
-           between times 0 and delta. */
-        delay_min = ( before > delta ? before - delta : 0 );
-        status_min = expected_delay_status( int_ms, fin_ms, delay_min );
-        delay_max = after;
-        status_max = expected_delay_status( int_ms, fin_ms, delay_max );
-        TEST_ASSERT( status >= status_min );
-        TEST_ASSERT( status <= status_max );
-        if( status == 1 )
-            saw_status_1 = 1;
-    }
-    while ( before <= fin_ms + delta && status != 2 );
-
-    /* Since we've waited at least fin_ms, the delay must have fully
-       expired. */
-    TEST_ASSERT( status == 2 );
-
-    /* If the second delay is more than the first, then there must have been a
-       point in time when the first delay was passed but not the second delay.
-       This could fail for very small values of (fin_ms - int_ms), where "very
-       small" depends how fast and how busy the platform is. In practice, this
-       is the test that's most likely to fail on a heavily loaded machine. */
-    if( fin_ms > int_ms )
-    {
-        warn_inconclusive = 1;
-        TEST_ASSERT( saw_status_1 );
-    }
-
-    return;
-
-exit:
-    /* No cleanup needed, but show some diagnostic iterations, because timing
-       problems can be hard to reproduce. */
-    if( !timers_are_badly_broken )
-        mbedtls_fprintf( stdout, "  Finished with delta=%lu before=%lu after=%lu status=%d iterations=%lu\n",
-                         delta, before, after, status, iterations );
-    if( warn_inconclusive )
-        mbedtls_fprintf( stdout, "  Inconclusive test, try running it on a less heavily loaded machine.\n" );
- }
+}
 /* END_CASE */
 
 /* BEGIN_CASE */
-void timing_hardclock( )
+void timing_delay( int fin_ms )
 {
-    /* We make very few guarantees about mbedtls_timing_hardclock: its rate is
-       platform-dependent, it can wrap around. So there isn't much we can
-       test. But we do at least test that it doesn't crash, stall or return
-       completely nonsensical values. */
-
-    struct mbedtls_timing_hr_time timer;
-    unsigned long hardclock0 = -1, hardclock1 = -1, delta1 = -1;
-
-    /* Skip this test if it looks like timers don't work at all, to avoid an
-       infinite loop below. */
-    TEST_ASSERT( !timers_are_badly_broken );
-
-    hardclock0 = mbedtls_timing_hardclock( );
-    /* Wait 2ms to ensure a nonzero delay. Since the timer interface has 1ms
-       resolution and unspecified precision, waiting 1ms might be a very small
-       delay that's rounded up. */
-    (void) mbedtls_timing_get_timer( &timer, 1 );
-    while( mbedtls_timing_get_timer( &timer, 0 ) < 2 )
-        /*busy-wait loop*/;
-    hardclock1 = mbedtls_timing_hardclock( );
-
-    /* Although the hardclock counter can wrap around, the difference
-       (hardclock1 - hardclock0) is taken modulo the type size, so it is
-       correct as long as the counter only wrapped around at most once. We
-       further require the difference to be nonzero (after a wait of more than
-       1ms, the counter must have changed), and not to be overly large (after
-       a wait of less than 3ms, plus time lost because other processes were
-       scheduled on the CPU). If the hardclock counter runs at 4GHz, then
-       1000000000 (which is 1/4 of the counter wraparound on a 32-bit machine)
-       allows 250ms. */
-    delta1 = hardclock1 - hardclock0;
-    TEST_ASSERT( delta1 > 0 );
-    TEST_ASSERT( delta1 < 1000000000 );
-    return;
-
-exit:
-    /* No cleanup needed, but show some diagnostic iterations, because timing
-       problems can be hard to reproduce. */
-    if( !timers_are_badly_broken )
-        mbedtls_fprintf( stdout, "  Finished with hardclock=%lu,%lu\n",
-                         hardclock0, hardclock1 );
+    mbedtls_timing_delay_context ctx;
+    int result;
+    if( fin_ms == 0 )
+    {
+        mbedtls_timing_set_delay( &ctx, 0, 0 );
+        result = mbedtls_timing_get_delay( &ctx );
+        TEST_ASSERT( result == -1 );
+    }
+    else
+    {
+        mbedtls_timing_set_delay( &ctx, fin_ms / 2, fin_ms );
+        result = mbedtls_timing_get_delay( &ctx );
+        TEST_ASSERT( result >= 0 && result <= 2 );
+    }
 }
 /* END_CASE */

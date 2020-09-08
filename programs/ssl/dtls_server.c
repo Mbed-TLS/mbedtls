@@ -1,7 +1,7 @@
 /*
  *  Simple DTLS server demonstration program
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,8 +15,6 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -29,9 +27,22 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
+#include <stdlib.h>
 #define mbedtls_printf     printf
 #define mbedtls_fprintf    fprintf
 #define mbedtls_time_t     time_t
+#define mbedtls_exit            exit
+#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
+#endif
+
+/* Uncomment out the following line to default to IPv4 and disable IPv6 */
+//#define FORCE_IPV4
+
+#ifdef FORCE_IPV4
+#define BIND_IP     "0.0.0.0"     /* Forces IPv4 */
+#else
+#define BIND_IP     "::"
 #endif
 
 #if !defined(MBEDTLS_SSL_SRV_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) ||    \
@@ -49,7 +60,7 @@ int main( void )
             "MBEDTLS_X509_CRT_PARSE_C and/or MBEDTLS_RSA_C and/or "
             "MBEDTLS_CERTS_C and/or MBEDTLS_PEM_PARSE_C and/or "
             "MBEDTLS_TIMING_C not defined.\n" );
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -78,6 +89,7 @@ int main( void )
 
 #define READ_TIMEOUT_MS 10000   /* 5 seconds */
 #define DEBUG_LEVEL 0
+
 
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
@@ -170,7 +182,7 @@ int main( void )
     printf( "  . Bind on udp/*/4433 ..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_net_bind( &listen_fd, NULL, "4433", MBEDTLS_NET_PROTO_UDP ) ) != 0 )
+    if( ( ret = mbedtls_net_bind( &listen_fd, BIND_IP, "4433", MBEDTLS_NET_PROTO_UDP ) ) != 0 )
     {
         printf( " failed\n  ! mbedtls_net_bind returned %d\n\n", ret );
         goto exit;
@@ -278,7 +290,7 @@ reset:
                     client_ip, cliip_len ) ) != 0 )
     {
         printf( " failed\n  ! "
-                "mbedtls_ssl_set_client_transport_id() returned -0x%x\n\n", -ret );
+                "mbedtls_ssl_set_client_transport_id() returned -0x%x\n\n", (unsigned int) -ret );
         goto exit;
     }
 
@@ -305,7 +317,7 @@ reset:
     }
     else if( ret != 0 )
     {
-        printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", -ret );
+        printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", (unsigned int) -ret );
         goto reset;
     }
 
@@ -338,7 +350,7 @@ reset:
                 goto close_notify;
 
             default:
-                printf( " mbedtls_ssl_read returned -0x%x\n\n", -ret );
+                printf( " mbedtls_ssl_read returned -0x%x\n\n", (unsigned int) -ret );
                 goto reset;
         }
     }
@@ -417,7 +429,7 @@ exit:
     if( ret < 0 )
         ret = 1;
 
-    return( ret );
+    mbedtls_exit( ret );
 }
 #endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_PROTO_DTLS &&
           MBEDTLS_SSL_COOKIE_C && MBEDTLS_NET_C && MBEDTLS_ENTROPY_C &&

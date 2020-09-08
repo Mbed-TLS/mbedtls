@@ -5,7 +5,7 @@
  *
  * \author Mathias Olsson <mathias@kompetensum.com>
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -19,8 +19,6 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 /*
  * PKCS#5 includes PBKDF2 and more
@@ -29,15 +27,12 @@
  * http://tools.ietf.org/html/rfc6070 (Test vectors)
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_PKCS5_C)
 
 #include "mbedtls/pkcs5.h"
+#include "mbedtls/error.h"
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
 #include "mbedtls/asn1.h"
@@ -54,27 +49,12 @@
 #define mbedtls_printf printf
 #endif
 
-#if !defined(MBEDTLS_ASN1_PARSE_C)
-int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
-                 const unsigned char *pwd,  size_t pwdlen,
-                 const unsigned char *data, size_t datalen,
-                 unsigned char *output )
-{
-    ((void) pbe_params);
-    ((void) mode);
-    ((void) pwd);
-    ((void) pwdlen);
-    ((void) data);
-    ((void) datalen);
-    ((void) output);
-    return( MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE );
-}
-#else
+#if defined(MBEDTLS_ASN1_PARSE_C)
 static int pkcs5_parse_pbkdf2_params( const mbedtls_asn1_buf *params,
                                       mbedtls_asn1_buf *salt, int *iterations,
                                       int *keylen, mbedtls_md_type_t *md_type )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_asn1_buf prf_alg_oid;
     unsigned char *p = params->p;
     const unsigned char *end = params->p + params->len;
@@ -91,7 +71,8 @@ static int pkcs5_parse_pbkdf2_params( const mbedtls_asn1_buf *params,
      *  }
      *
      */
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &salt->len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &salt->len,
+                                      MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
         return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT + ret );
 
     salt->p = p;
@@ -156,7 +137,8 @@ int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
         return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT +
                 MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
 
-    if( ( ret = mbedtls_asn1_get_alg( &p, end, &kdf_alg_oid, &kdf_alg_params ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_alg( &p, end, &kdf_alg_oid,
+                                      &kdf_alg_params ) ) != 0 )
         return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT + ret );
 
     // Only PBKDF2 supported at the moment
@@ -217,7 +199,8 @@ int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
     if( ( ret = mbedtls_cipher_setup( &cipher_ctx, cipher_info ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_cipher_setkey( &cipher_ctx, key, 8 * keylen, (mbedtls_operation_t) mode ) ) != 0 )
+    if( ( ret = mbedtls_cipher_setkey( &cipher_ctx, key, 8 * keylen,
+                                       (mbedtls_operation_t) mode ) ) != 0 )
         goto exit;
 
     if( ( ret = mbedtls_cipher_crypt( &cipher_ctx, iv, enc_scheme_params.len,
@@ -232,7 +215,8 @@ exit:
 }
 #endif /* MBEDTLS_ASN1_PARSE_C */
 
-int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx, const unsigned char *password,
+int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
+                       const unsigned char *password,
                        size_t plen, const unsigned char *salt, size_t slen,
                        unsigned int iteration_count,
                        uint32_t key_length, unsigned char *output )
@@ -249,16 +233,17 @@ int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx, const unsigned char *p
     memset( counter, 0, 4 );
     counter[3] = 1;
 
+#if UINT_MAX > 0xFFFFFFFF
     if( iteration_count > 0xFFFFFFFF )
         return( MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA );
+#endif
 
+    if( ( ret = mbedtls_md_hmac_starts( ctx, password, plen ) ) != 0 )
+        return( ret );
     while( key_length )
     {
         // U1 ends up in work
         //
-        if( ( ret = mbedtls_md_hmac_starts( ctx, password, plen ) ) != 0 )
-            return( ret );
-
         if( ( ret = mbedtls_md_hmac_update( ctx, salt, slen ) ) != 0 )
             return( ret );
 
@@ -268,19 +253,22 @@ int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx, const unsigned char *p
         if( ( ret = mbedtls_md_hmac_finish( ctx, work ) ) != 0 )
             return( ret );
 
+        if( ( ret = mbedtls_md_hmac_reset( ctx ) ) != 0 )
+           return( ret );
+
         memcpy( md1, work, md_size );
 
         for( i = 1; i < iteration_count; i++ )
         {
             // U2 ends up in md1
             //
-            if( ( ret = mbedtls_md_hmac_starts( ctx, password, plen ) ) != 0 )
-                return( ret );
-
             if( ( ret = mbedtls_md_hmac_update( ctx, md1, md_size ) ) != 0 )
                 return( ret );
 
             if( ( ret = mbedtls_md_hmac_finish( ctx, md1 ) ) != 0 )
+                return( ret );
+
+            if( ( ret = mbedtls_md_hmac_reset( ctx ) ) != 0 )
                 return( ret );
 
             // U1 xor U2
@@ -317,10 +305,10 @@ int mbedtls_pkcs5_self_test( int verbose )
 
 #define MAX_TESTS   6
 
-static const size_t plen[MAX_TESTS] =
+static const size_t plen_test_data[MAX_TESTS] =
     { 8, 8, 8, 24, 9 };
 
-static const unsigned char password[MAX_TESTS][32] =
+static const unsigned char password_test_data[MAX_TESTS][32] =
 {
     "password",
     "password",
@@ -329,10 +317,10 @@ static const unsigned char password[MAX_TESTS][32] =
     "pass\0word",
 };
 
-static const size_t slen[MAX_TESTS] =
+static const size_t slen_test_data[MAX_TESTS] =
     { 4, 4, 4, 36, 5 };
 
-static const unsigned char salt[MAX_TESTS][40] =
+static const unsigned char salt_test_data[MAX_TESTS][40] =
 {
     "salt",
     "salt",
@@ -341,13 +329,13 @@ static const unsigned char salt[MAX_TESTS][40] =
     "sa\0lt",
 };
 
-static const uint32_t it_cnt[MAX_TESTS] =
+static const uint32_t it_cnt_test_data[MAX_TESTS] =
     { 1, 2, 4096, 4096, 4096 };
 
-static const uint32_t key_len[MAX_TESTS] =
+static const uint32_t key_len_test_data[MAX_TESTS] =
     { 20, 20, 20, 25, 16 };
 
-static const unsigned char result_key[MAX_TESTS][32] =
+static const unsigned char result_key_test_data[MAX_TESTS][32] =
 {
     { 0x0c, 0x60, 0xc8, 0x0f, 0x96, 0x1f, 0x0e, 0x71,
       0xf3, 0xa9, 0xb5, 0x24, 0xaf, 0x60, 0x12, 0x06,
@@ -393,10 +381,12 @@ int mbedtls_pkcs5_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  PBKDF2 (SHA1) #%d: ", i );
 
-        ret = mbedtls_pkcs5_pbkdf2_hmac( &sha1_ctx, password[i], plen[i], salt[i],
-                                  slen[i], it_cnt[i], key_len[i], key );
+        ret = mbedtls_pkcs5_pbkdf2_hmac( &sha1_ctx, password_test_data[i],
+                                         plen_test_data[i], salt_test_data[i],
+                                         slen_test_data[i], it_cnt_test_data[i],
+                                         key_len_test_data[i], key );
         if( ret != 0 ||
-            memcmp( result_key[i], key, key_len[i] ) != 0 )
+            memcmp( result_key_test_data[i], key, key_len_test_data[i] ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );

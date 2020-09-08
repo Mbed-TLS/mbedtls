@@ -1,7 +1,7 @@
 /*
  *  Error message information
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,18 +15,11 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
-#if defined(MBEDTLS_ERROR_C) || defined(MBEDTLS_ERROR_STRERROR_DUMMY)
-#include "mbedtls/error.h"
+#if defined(MBEDTLS_ERROR_STRERROR_DUMMY)
 #include <string.h>
 #endif
 
@@ -43,10 +36,58 @@
 
 HEADER_INCLUDED
 
+const char * mbedtls_high_level_strerr( int error_code )
+{
+    int high_level_error_code;
+
+    if( error_code < 0 )
+        error_code = -error_code;
+
+    /* Extract the high-level part from the error code. */
+    high_level_error_code = error_code & 0xFF80;
+
+    switch( high_level_error_code )
+    {
+        /* Begin Auto-Generated Code. */
+HIGH_LEVEL_CODE_CHECKS
+        /* End Auto-Generated Code. */
+
+        default:
+            break;
+    }
+
+    return( NULL );
+}
+
+const char * mbedtls_low_level_strerr( int error_code )
+{
+    int low_level_error_code;
+
+    if( error_code < 0 )
+        error_code = -error_code;
+
+    /* Extract the low-level part from the error code. */
+    low_level_error_code = error_code & ~0xFF80;
+
+    switch( low_level_error_code )
+    {
+        /* Begin Auto-Generated Code. */
+LOW_LEVEL_CODE_CHECKS
+        /* End Auto-Generated Code. */
+
+        default:
+            break;
+    }
+
+    return( NULL );
+}
+
 void mbedtls_strerror( int ret, char *buf, size_t buflen )
 {
     size_t len;
     int use_ret;
+    const char * high_level_error_description = NULL;
+    const char * low_level_error_description = NULL;
 
     if( buflen == 0 )
         return;
@@ -60,14 +101,20 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     {
         use_ret = ret & 0xFF80;
 
-        // High level error codes
-        //
-        // BEGIN generated code
-HIGH_LEVEL_CODE_CHECKS
-        // END generated code
+        // Translate high level error code.
+        high_level_error_description = mbedtls_high_level_strerr( ret );
 
-        if( strlen( buf ) == 0 )
-            mbedtls_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
+        if( high_level_error_description == NULL )
+            mbedtls_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", (unsigned int) use_ret );
+        else
+            mbedtls_snprintf( buf, buflen, "%s", high_level_error_description );
+
+#if defined(MBEDTLS_SSL_TLS_C)
+        // Early return in case of a fatal error - do not try to translate low
+        // level code.
+        if(use_ret == -(MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE))
+            return;
+#endif /* MBEDTLS_SSL_TLS_C */
     }
 
     use_ret = ret & ~0xFF80;
@@ -91,16 +138,13 @@ HIGH_LEVEL_CODE_CHECKS
         buflen -= len + 3;
     }
 
-    // Low level error codes
-    //
-    // BEGIN generated code
-LOW_LEVEL_CODE_CHECKS
-    // END generated code
+    // Translate low level error code.
+    low_level_error_description = mbedtls_low_level_strerr( ret );
 
-    if( strlen( buf ) != 0 )
-        return;
-
-    mbedtls_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
+    if( low_level_error_description == NULL )
+        mbedtls_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", (unsigned int) use_ret );
+    else
+        mbedtls_snprintf( buf, buflen, "%s", low_level_error_description );
 }
 
 #else /* MBEDTLS_ERROR_C */

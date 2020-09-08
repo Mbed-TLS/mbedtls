@@ -1,8 +1,5 @@
 Notes:
-* Pull requests cannot be accepted until:
--  The submitter has [accepted the online agreement here with a click through](https://developer.mbed.org/contributor_agreement/) 
-   or for companies or those that do not wish to create an mbed account, a slightly different agreement can be found [here](https://www.mbed.com/en/about-mbed/contributor-license-agreements/)
-- The PR follows the [mbed TLS coding standards](https://tls.mbed.org/kb/development/mbedtls-coding-standards)
+* Pull requests cannot be accepted until the PR follows the [contributing guidelines](../CONTRIBUTING.md). In particular, each commit must have at least one `Signed-off-by:` line from the committer to certify that the contribution is made under the terms of the [Developer Certificate of Origin](../dco.txt).
 * This is just a template, so feel free to use/remove the unnecessary things
 ## Description
 A few sentences describing the overall goals of the pull request's commits.

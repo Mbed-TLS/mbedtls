@@ -1,7 +1,7 @@
 /*
  *  Key generation application
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,8 +15,6 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -29,8 +27,12 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define mbedtls_printf     printf
-#endif
+#include <stdlib.h>
+#define mbedtls_printf          printf
+#define mbedtls_exit            exit
+#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
+#endif /* MBEDTLS_PLATFORM_C */
 
 #if defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_FS_IO) && \
     defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_CTR_DRBG_C)
@@ -129,9 +131,11 @@ int main( void )
             "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
             "MBEDTLS_PEM_WRITE_C"
             "not defined.\n" );
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
+
+
 /*
  * global options
  */
@@ -186,7 +190,8 @@ static int write_private_key( mbedtls_pk_context *key, const char *output_file )
 
 int main( int argc, char *argv[] )
 {
-    int ret = 0;
+    int ret = 1;
+    int exit_code = MBEDTLS_EXIT_FAILURE;
     mbedtls_pk_context key;
     char buf[1024];
     int i;
@@ -214,7 +219,6 @@ int main( int argc, char *argv[] )
     if( argc == 0 )
     {
     usage:
-        ret = 1;
         mbedtls_printf( USAGE );
 #if defined(MBEDTLS_ECP_C)
         mbedtls_printf( " available ec_curve values:\n" );
@@ -222,7 +226,7 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "    %s (default)\n", curve_info->name );
         while( ( ++curve_info )->name != NULL )
             mbedtls_printf( "    %s\n", curve_info->name );
-#endif
+#endif /* MBEDTLS_ECP_C */
         goto exit;
     }
 
@@ -296,7 +300,7 @@ int main( int argc, char *argv[] )
                                         NULL, DEV_RANDOM_THRESHOLD,
                                         MBEDTLS_ENTROPY_SOURCE_STRONG ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_entropy_add_source returned -0x%04x\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_entropy_add_source returned -0x%04x\n", (unsigned int) -ret );
             goto exit;
         }
 
@@ -309,7 +313,7 @@ int main( int argc, char *argv[] )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%04x\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%04x\n", (unsigned int) -ret );
         goto exit;
     }
 
@@ -319,9 +323,10 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Generating the private key ..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_pk_setup( &key, mbedtls_pk_info_from_type( opt.type ) ) ) != 0 )
+    if( ( ret = mbedtls_pk_setup( &key,
+            mbedtls_pk_info_from_type( (mbedtls_pk_type_t) opt.type ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_pk_setup returned -0x%04x", -ret );
+        mbedtls_printf( " failed\n  !  mbedtls_pk_setup returned -0x%04x", (unsigned int) -ret );
         goto exit;
     }
 
@@ -332,7 +337,7 @@ int main( int argc, char *argv[] )
                                    opt.rsa_keysize, 65537 );
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_rsa_gen_key returned -0x%04x", -ret );
+            mbedtls_printf( " failed\n  !  mbedtls_rsa_gen_key returned -0x%04x", (unsigned int) -ret );
             goto exit;
         }
     }
@@ -341,11 +346,12 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_ECP_C)
     if( opt.type == MBEDTLS_PK_ECKEY )
     {
-        ret = mbedtls_ecp_gen_key( opt.ec_curve, mbedtls_pk_ec( key ),
+        ret = mbedtls_ecp_gen_key( (mbedtls_ecp_group_id) opt.ec_curve,
+                                   mbedtls_pk_ec( key ),
                                    mbedtls_ctr_drbg_random, &ctr_drbg );
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_ecp_gen_key returned -0x%04x", -ret );
+            mbedtls_printf( " failed\n  !  mbedtls_ecp_gen_key returned -0x%04x", (unsigned int) -ret );
             goto exit;
         }
     }
@@ -411,9 +417,11 @@ int main( int argc, char *argv[] )
 
     mbedtls_printf( " ok\n" );
 
+    exit_code = MBEDTLS_EXIT_SUCCESS;
+
 exit:
 
-    if( ret != 0 && ret != 1)
+    if( exit_code != MBEDTLS_EXIT_SUCCESS )
     {
 #ifdef MBEDTLS_ERROR_C
         mbedtls_strerror( ret, buf, sizeof( buf ) );
@@ -436,7 +444,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( ret );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_PK_WRITE_C && MBEDTLS_PEM_WRITE_C && MBEDTLS_FS_IO &&
         * MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */

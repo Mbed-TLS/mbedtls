@@ -45,7 +45,6 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>Windows7.1SDK</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -81,12 +80,11 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MBEDTLS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_USRDLL;MBEDTLS_EXPORTS;KRML_VERIFIED_UINT128;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>
+../../library;../../include;../../3rdparty/everest/include/;../../3rdparty/everest/include/everest;../../3rdparty/everest/include/everest/vs2010;../../3rdparty/everest/include/everest/kremlib;../../tests/include      </AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
@@ -96,12 +94,11 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MBEDTLS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_USRDLL;MBEDTLS_EXPORTS;KRML_VERIFIED_UINT128;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>
+../../library;../../include;../../3rdparty/everest/include/;../../3rdparty/everest/include/everest;../../3rdparty/everest/include/everest/vs2010;../../3rdparty/everest/include/everest/kremlib;../../tests/include      </AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
@@ -112,13 +109,12 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MBEDTLS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;_USRDLL;MBEDTLS_EXPORTS;KRML_VERIFIED_UINT128;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>
+../../library;../../include;../../3rdparty/everest/include/;../../3rdparty/everest/include/everest;../../3rdparty/everest/include/everest/vs2010;../../3rdparty/everest/include/everest/kremlib;../../tests/include      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -130,13 +126,12 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN64;NDEBUG;_WINDOWS;_USRDLL;MBEDTLS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN64;NDEBUG;_WINDOWS;_USRDLL;MBEDTLS_EXPORTS;KRML_VERIFIED_UINT128;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>
+../../library;../../include;../../3rdparty/everest/include/;../../3rdparty/everest/include/everest;../../3rdparty/everest/include/everest/vs2010;../../3rdparty/everest/include/everest/kremlib;../../tests/include      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -149,6 +144,7 @@
     <ClInclude Include="..\..\include\mbedtls\aes.h" />
     <ClInclude Include="..\..\include\mbedtls\aesni.h" />
     <ClInclude Include="..\..\include\mbedtls\arc4.h" />
+    <ClInclude Include="..\..\include\mbedtls\aria.h" />
     <ClInclude Include="..\..\include\mbedtls\asn1.h" />
     <ClInclude Include="..\..\include\mbedtls\asn1write.h" />
     <ClInclude Include="..\..\include\mbedtls\base64.h" />
@@ -158,6 +154,8 @@
     <ClInclude Include="..\..\include\mbedtls\camellia.h" />
     <ClInclude Include="..\..\include\mbedtls\ccm.h" />
     <ClInclude Include="..\..\include\mbedtls\certs.h" />
+    <ClInclude Include="..\..\include\mbedtls\chacha20.h" />
+    <ClInclude Include="..\..\include\mbedtls\chachapoly.h" />
     <ClInclude Include="..\..\include\mbedtls\check_config.h" />
     <ClInclude Include="..\..\include\mbedtls\cipher.h" />
     <ClInclude Include="..\..\include\mbedtls\cipher_internal.h" />
@@ -178,6 +176,7 @@
     <ClInclude Include="..\..\include\mbedtls\error.h" />
     <ClInclude Include="..\..\include\mbedtls\gcm.h" />
     <ClInclude Include="..\..\include\mbedtls\havege.h" />
+    <ClInclude Include="..\..\include\mbedtls\hkdf.h" />
     <ClInclude Include="..\..\include\mbedtls\hmac_drbg.h" />
     <ClInclude Include="..\..\include\mbedtls\md.h" />
     <ClInclude Include="..\..\include\mbedtls\md2.h" />
@@ -187,6 +186,7 @@
     <ClInclude Include="..\..\include\mbedtls\memory_buffer_alloc.h" />
     <ClInclude Include="..\..\include\mbedtls\net.h" />
     <ClInclude Include="..\..\include\mbedtls\net_sockets.h" />
+    <ClInclude Include="..\..\include\mbedtls\nist_kw.h" />
     <ClInclude Include="..\..\include\mbedtls\oid.h" />
     <ClInclude Include="..\..\include\mbedtls\padlock.h" />
     <ClInclude Include="..\..\include\mbedtls\pem.h" />
@@ -198,6 +198,8 @@
     <ClInclude Include="..\..\include\mbedtls\platform.h" />
     <ClInclude Include="..\..\include\mbedtls\platform_time.h" />
     <ClInclude Include="..\..\include\mbedtls\platform_util.h" />
+    <ClInclude Include="..\..\include\mbedtls\poly1305.h" />
+    <ClInclude Include="..\..\include\mbedtls\psa_util.h" />
     <ClInclude Include="..\..\include\mbedtls\ripemd160.h" />
     <ClInclude Include="..\..\include\mbedtls\rsa.h" />
     <ClInclude Include="..\..\include\mbedtls\rsa_internal.h" />
@@ -218,11 +220,43 @@
     <ClInclude Include="..\..\include\mbedtls\x509_crt.h" />
     <ClInclude Include="..\..\include\mbedtls\x509_csr.h" />
     <ClInclude Include="..\..\include\mbedtls\xtea.h" />
+    <ClInclude Include="..\..\include\psa\crypto.h" />
+    <ClInclude Include="..\..\include\psa\crypto_accel_driver.h" />
+    <ClInclude Include="..\..\include\psa\crypto_compat.h" />
+    <ClInclude Include="..\..\include\psa\crypto_driver_common.h" />
+    <ClInclude Include="..\..\include\psa\crypto_entropy_driver.h" />
+    <ClInclude Include="..\..\include\psa\crypto_extra.h" />
+    <ClInclude Include="..\..\include\psa\crypto_platform.h" />
+    <ClInclude Include="..\..\include\psa\crypto_se_driver.h" />
+    <ClInclude Include="..\..\include\psa\crypto_sizes.h" />
+    <ClInclude Include="..\..\include\psa\crypto_struct.h" />
+    <ClInclude Include="..\..\include\psa\crypto_types.h" />
+    <ClInclude Include="..\..\include\psa\crypto_values.h" />
+    <ClInclude Include="..\..\tests\include\test\constant_flow.h" />
+    <ClInclude Include="..\..\tests\include\test\helpers.h" />
+    <ClInclude Include="..\..\tests\include\test\macros.h" />
+    <ClInclude Include="..\..\tests\include\test\psa_crypto_helpers.h" />
+    <ClInclude Include="..\..\tests\include\test\psa_helpers.h" />
+    <ClInclude Include="..\..\tests\include\test\random.h" />
+    <ClInclude Include="..\..\library\common.h" />
+    <ClInclude Include="..\..\library\psa_crypto_core.h" />
+    <ClInclude Include="..\..\library\psa_crypto_invasive.h" />
+    <ClInclude Include="..\..\library\psa_crypto_its.h" />
+    <ClInclude Include="..\..\library\psa_crypto_se.h" />
+    <ClInclude Include="..\..\library\psa_crypto_service_integration.h" />
+    <ClInclude Include="..\..\library\psa_crypto_slot_management.h" />
+    <ClInclude Include="..\..\library\psa_crypto_storage.h" />
+    <ClInclude Include="..\..\library\ssl_invasive.h" />
+    <ClInclude Include="..\..\3rdparty\everest\include\everest\everest.h" />
+    <ClInclude Include="..\..\3rdparty\everest\include\everest\Hacl_Curve25519.h" />
+    <ClInclude Include="..\..\3rdparty\everest\include\everest\kremlib.h" />
+    <ClInclude Include="..\..\3rdparty\everest\include\everest\x25519.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\library\aes.c" />
     <ClCompile Include="..\..\library\aesni.c" />
     <ClCompile Include="..\..\library\arc4.c" />
+    <ClCompile Include="..\..\library\aria.c" />
     <ClCompile Include="..\..\library\asn1parse.c" />
     <ClCompile Include="..\..\library\asn1write.c" />
     <ClCompile Include="..\..\library\base64.c" />
@@ -231,6 +265,8 @@
     <ClCompile Include="..\..\library\camellia.c" />
     <ClCompile Include="..\..\library\ccm.c" />
     <ClCompile Include="..\..\library\certs.c" />
+    <ClCompile Include="..\..\library\chacha20.c" />
+    <ClCompile Include="..\..\library\chachapoly.c" />
     <ClCompile Include="..\..\library\cipher.c" />
     <ClCompile Include="..\..\library\cipher_wrap.c" />
     <ClCompile Include="..\..\library\cmac.c" />
@@ -248,14 +284,15 @@
     <ClCompile Include="..\..\library\error.c" />
     <ClCompile Include="..\..\library\gcm.c" />
     <ClCompile Include="..\..\library\havege.c" />
+    <ClCompile Include="..\..\library\hkdf.c" />
     <ClCompile Include="..\..\library\hmac_drbg.c" />
     <ClCompile Include="..\..\library\md.c" />
     <ClCompile Include="..\..\library\md2.c" />
     <ClCompile Include="..\..\library\md4.c" />
     <ClCompile Include="..\..\library\md5.c" />
-    <ClCompile Include="..\..\library\md_wrap.c" />
     <ClCompile Include="..\..\library\memory_buffer_alloc.c" />
     <ClCompile Include="..\..\library\net_sockets.c" />
+    <ClCompile Include="..\..\library\nist_kw.c" />
     <ClCompile Include="..\..\library\oid.c" />
     <ClCompile Include="..\..\library\padlock.c" />
     <ClCompile Include="..\..\library\pem.c" />
@@ -268,6 +305,12 @@
     <ClCompile Include="..\..\library\pkwrite.c" />
     <ClCompile Include="..\..\library\platform.c" />
     <ClCompile Include="..\..\library\platform_util.c" />
+    <ClCompile Include="..\..\library\poly1305.c" />
+    <ClCompile Include="..\..\library\psa_crypto.c" />
+    <ClCompile Include="..\..\library\psa_crypto_se.c" />
+    <ClCompile Include="..\..\library\psa_crypto_slot_management.c" />
+    <ClCompile Include="..\..\library\psa_crypto_storage.c" />
+    <ClCompile Include="..\..\library\psa_its_file.c" />
     <ClCompile Include="..\..\library\ripemd160.c" />
     <ClCompile Include="..\..\library\rsa.c" />
     <ClCompile Include="..\..\library\rsa_internal.c" />
@@ -278,6 +321,7 @@
     <ClCompile Include="..\..\library\ssl_ciphersuites.c" />
     <ClCompile Include="..\..\library\ssl_cli.c" />
     <ClCompile Include="..\..\library\ssl_cookie.c" />
+    <ClCompile Include="..\..\library\ssl_msg.c" />
     <ClCompile Include="..\..\library\ssl_srv.c" />
     <ClCompile Include="..\..\library\ssl_ticket.c" />
     <ClCompile Include="..\..\library\ssl_tls.c" />
@@ -293,6 +337,14 @@
     <ClCompile Include="..\..\library\x509write_crt.c" />
     <ClCompile Include="..\..\library\x509write_csr.c" />
     <ClCompile Include="..\..\library\xtea.c" />
+    <ClCompile Include="..\..\tests\src\helpers.c" />
+    <ClCompile Include="..\..\tests\src\random.c" />
+    <ClCompile Include="..\..\3rdparty\everest\library\everest.c" />
+    <ClCompile Include="..\..\3rdparty\everest\library\Hacl_Curve25519_joined.c" />
+    <ClCompile Include="..\..\3rdparty\everest\library\x25519.c" />
+    <ClCompile Include="..\..\3rdparty\everest\library\kremlib\FStar_UInt128_extracted.c" />
+    <ClCompile Include="..\..\3rdparty\everest\library\kremlib\FStar_UInt64_FStar_UInt32_FStar_UInt16_FStar_UInt8.c" />
+    <ClCompile Include="..\..\3rdparty\everest\library\legacy\Hacl_Curve25519.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

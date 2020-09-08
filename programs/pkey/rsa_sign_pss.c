@@ -1,7 +1,7 @@
 /*
  *  RSASSA-PSS/SHA-256 signature creation program
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,8 +15,6 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -29,9 +27,13 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define mbedtls_snprintf   snprintf
-#define mbedtls_printf     printf
-#endif
+#include <stdlib.h>
+#define mbedtls_snprintf        snprintf
+#define mbedtls_printf          printf
+#define mbedtls_exit            exit
+#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
+#endif /* MBEDTLS_PLATFORM_C */
 
 #if !defined(MBEDTLS_MD_C) || !defined(MBEDTLS_ENTROPY_C) ||  \
     !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_SHA256_C) ||        \
@@ -43,7 +45,7 @@ int main( void )
            "MBEDTLS_RSA_C and/or MBEDTLS_SHA256_C and/or "
            "MBEDTLS_PK_PARSE_C and/or MBEDTLS_FS_IO and/or "
            "MBEDTLS_CTR_DRBG_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -51,16 +53,17 @@ int main( void )
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/md.h"
 #include "mbedtls/rsa.h"
-#include "mbedtls/md.h"
-#include "mbedtls/x509.h"
+#include "mbedtls/pk.h"
 
 #include <stdio.h>
 #include <string.h>
+
 
 int main( int argc, char *argv[] )
 {
     FILE *f;
     int ret = 1;
+    int exit_code = MBEDTLS_EXIT_FAILURE;
     mbedtls_pk_context pk;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
@@ -101,7 +104,6 @@ int main( int argc, char *argv[] )
 
     if( ( ret = mbedtls_pk_parse_keyfile( &pk, argv[1], "" ) ) != 0 )
     {
-        ret = 1;
         mbedtls_printf( " failed\n  ! Could not read key from '%s'\n", argv[1] );
         mbedtls_printf( "  ! mbedtls_pk_parse_public_keyfile returned %d\n\n", ret );
         goto exit;
@@ -109,7 +111,6 @@ int main( int argc, char *argv[] )
 
     if( !mbedtls_pk_can_do( &pk, MBEDTLS_PK_RSA ) )
     {
-        ret = 1;
         mbedtls_printf( " failed\n  ! Key is not an RSA key\n" );
         goto exit;
     }
@@ -145,7 +146,6 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( filename, "wb+" ) ) == NULL )
     {
-        ret = 1;
         mbedtls_printf( " failed\n  ! Could not create %s\n\n", filename );
         goto exit;
     }
@@ -161,6 +161,8 @@ int main( int argc, char *argv[] )
 
     mbedtls_printf( "\n  . Done (created \"%s\")\n\n", filename );
 
+    exit_code = MBEDTLS_EXIT_SUCCESS;
+
 exit:
     mbedtls_pk_free( &pk );
     mbedtls_ctr_drbg_free( &ctr_drbg );
@@ -171,7 +173,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( ret );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_RSA_C &&
           MBEDTLS_SHA256_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO &&

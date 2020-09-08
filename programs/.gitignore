@@ -12,8 +12,8 @@ hash/sha2sum
 pkey/dh_client
 pkey/dh_genprime
 pkey/dh_server
-pkey/ecdsa
 pkey/ecdh_curve25519
+pkey/ecdsa
 pkey/gen_key
 pkey/key_app
 pkey/key_app_writer
@@ -29,21 +29,28 @@ pkey/rsa_sign
 pkey/rsa_sign_pss
 pkey/rsa_verify
 pkey/rsa_verify_pss
+psa/crypto_examples
+psa/key_ladder_demo
+psa/psa_constant_names
+psa/psa_constant_names_generated.c
 random/gen_entropy
 random/gen_random_ctr_drbg
 random/gen_random_havege
 ssl/dtls_client
 ssl/dtls_server
+ssl/mini_client
 ssl/ssl_client1
 ssl/ssl_client2
+ssl/ssl_context_info
 ssl/ssl_fork_server
 ssl/ssl_mail_client
 ssl/ssl_pthread_server
 ssl/ssl_server
 ssl/ssl_server2
-ssl/mini_client
 test/benchmark
+test/cpp_dummy_build
 test/ecp-bench
+test/query_compile_time_config
 test/selftest
 test/ssl_cert_test
 test/udp_proxy
@@ -52,8 +59,8 @@ util/pem2der
 util/strerror
 x509/cert_app
 x509/cert_req
-x509/crl_app
 x509/cert_write
+x509/crl_app
 x509/req_app
 
 # generated files

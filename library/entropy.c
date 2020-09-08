@@ -1,7 +1,7 @@
 /*
  *  Entropy accumulator implementation
  *
- *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,15 +15,9 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_ENTROPY_C)
 
@@ -36,6 +30,7 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -236,7 +231,7 @@ cleanup:
 int mbedtls_entropy_update_manual( mbedtls_entropy_context *ctx,
                            const unsigned char *data, size_t len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
@@ -258,7 +253,9 @@ int mbedtls_entropy_update_manual( mbedtls_entropy_context *ctx,
  */
 static int entropy_gather_internal( mbedtls_entropy_context *ctx )
 {
-    int ret, i, have_one_strong = 0;
+    int ret = MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
+    int i;
+    int have_one_strong = 0;
     unsigned char buf[MBEDTLS_ENTROPY_MAX_GATHER];
     size_t olen;
 
@@ -306,7 +303,7 @@ cleanup:
  */
 int mbedtls_entropy_gather( mbedtls_entropy_context *ctx )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
@@ -325,7 +322,8 @@ int mbedtls_entropy_gather( mbedtls_entropy_context *ctx )
 
 int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
 {
-    int ret, count = 0, i, done;
+    int ret, count = 0, i, thresholds_reached;
+    size_t strong_size;
     mbedtls_entropy_context *ctx = (mbedtls_entropy_context *) data;
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
@@ -363,12 +361,17 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
         if( ( ret = entropy_gather_internal( ctx ) ) != 0 )
             goto exit;
 
-        done = 1;
+        thresholds_reached = 1;
+        strong_size = 0;
         for( i = 0; i < ctx->source_count; i++ )
+        {
             if( ctx->source[i].size < ctx->source[i].threshold )
-                done = 0;
+                thresholds_reached = 0;
+            if( ctx->source[i].strong == MBEDTLS_ENTROPY_SOURCE_STRONG )
+                strong_size += ctx->source[i].size;
+        }
     }
-    while( ! done );
+    while( ! thresholds_reached || strong_size < MBEDTLS_ENTROPY_BLOCK_SIZE );
 
     memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
 

@@ -1,7 +1,7 @@
 /*
  *  PKCS#12 Personal Information Exchange Syntax
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,8 +15,6 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 /*
  *  The PKCS #12 Personal Information Exchange Syntax Standard v1.1
@@ -25,11 +23,7 @@
  *  ftp://ftp.rsasecurity.com/pub/pkcs/pkcs-12/pkcs-12v1-1.asn
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_PKCS12_C)
 
@@ -37,6 +31,7 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/cipher.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -48,10 +43,12 @@
 #include "mbedtls/des.h"
 #endif
 
+#if defined(MBEDTLS_ASN1_PARSE_C)
+
 static int pkcs12_parse_pbe_params( mbedtls_asn1_buf *params,
                                     mbedtls_asn1_buf *salt, int *iterations )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char **p = &params->p;
     const unsigned char *end = params->p + params->len;
 
@@ -143,7 +140,7 @@ int mbedtls_pkcs12_pbe_sha1_rc4_128( mbedtls_asn1_buf *pbe_params, int mode,
     ((void) output);
     return( MBEDTLS_ERR_PKCS12_FEATURE_UNAVAILABLE );
 #else
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char key[16];
     mbedtls_arc4_context ctx;
     ((void) mode);
@@ -226,6 +223,8 @@ exit:
     return( ret );
 }
 
+#endif /* MBEDTLS_ASN1_PARSE_C */
+
 static void pkcs12_fill_buffer( unsigned char *data, size_t data_len,
                                 const unsigned char *filler, size_t fill_len )
 {
@@ -246,7 +245,7 @@ int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
                        const unsigned char *salt, size_t saltlen,
                        mbedtls_md_type_t md_type, int id, int iterations )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned int j;
 
     unsigned char diversifier[128];

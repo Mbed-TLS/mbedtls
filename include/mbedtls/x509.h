@@ -4,7 +4,7 @@
  * \brief X.509 generic defines and structures
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -18,23 +18,21 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_X509_H
 #define MBEDTLS_X509_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "asn1.h"
-#include "pk.h"
+#include "mbedtls/asn1.h"
+#include "mbedtls/pk.h"
 
 #if defined(MBEDTLS_RSA_C)
-#include "rsa.h"
+#include "mbedtls/rsa.h"
 #endif
 
 /**
@@ -77,7 +75,7 @@
 #define MBEDTLS_ERR_X509_ALLOC_FAILED                     -0x2880  /**< Allocation of memory failed. */
 #define MBEDTLS_ERR_X509_FILE_IO_ERROR                    -0x2900  /**< Read/write of file failed. */
 #define MBEDTLS_ERR_X509_BUFFER_TOO_SMALL                 -0x2980  /**< Destination buffer is too small. */
-#define MBEDTLS_ERR_X509_FATAL_ERROR                      -0x3000  /**< A fatal error occured, eg the chain is too long or the vrfy callback failed. */
+#define MBEDTLS_ERR_X509_FATAL_ERROR                      -0x3000  /**< A fatal error occurred, eg the chain is too long or the vrfy callback failed. */
 /* \} name */
 
 /**
@@ -108,6 +106,28 @@
 
 /* \} name */
 /* \} addtogroup x509_module */
+
+/*
+ * X.509 v3 Subject Alternative Name types.
+ *      otherName                       [0]     OtherName,
+ *      rfc822Name                      [1]     IA5String,
+ *      dNSName                         [2]     IA5String,
+ *      x400Address                     [3]     ORAddress,
+ *      directoryName                   [4]     Name,
+ *      ediPartyName                    [5]     EDIPartyName,
+ *      uniformResourceIdentifier       [6]     IA5String,
+ *      iPAddress                       [7]     OCTET STRING,
+ *      registeredID                    [8]     OBJECT IDENTIFIER
+ */
+#define MBEDTLS_X509_SAN_OTHER_NAME                      0
+#define MBEDTLS_X509_SAN_RFC822_NAME                     1
+#define MBEDTLS_X509_SAN_DNS_NAME                        2
+#define MBEDTLS_X509_SAN_X400_ADDRESS_NAME               3
+#define MBEDTLS_X509_SAN_DIRECTORY_NAME                  4
+#define MBEDTLS_X509_SAN_EDI_PARTY_NAME                  5
+#define MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER     6
+#define MBEDTLS_X509_SAN_IP_ADDRESS                      7
+#define MBEDTLS_X509_SAN_REGISTERED_ID                   8
 
 /*
  * X.509 v3 Key Usage Extension flags
@@ -142,24 +162,26 @@
  *
  * Comments refer to the status for using certificates. Status can be
  * different for writing certificates or reading CRLs or CSRs.
+ *
+ * Those are defined in oid.h as oid.c needs them in a data structure. Since
+ * these were previously defined here, let's have aliases for compatibility.
  */
-#define MBEDTLS_X509_EXT_AUTHORITY_KEY_IDENTIFIER    (1 << 0)
-#define MBEDTLS_X509_EXT_SUBJECT_KEY_IDENTIFIER      (1 << 1)
-#define MBEDTLS_X509_EXT_KEY_USAGE                   (1 << 2)
-#define MBEDTLS_X509_EXT_CERTIFICATE_POLICIES        (1 << 3)
-#define MBEDTLS_X509_EXT_POLICY_MAPPINGS             (1 << 4)
-#define MBEDTLS_X509_EXT_SUBJECT_ALT_NAME            (1 << 5)    /* Supported (DNS) */
-#define MBEDTLS_X509_EXT_ISSUER_ALT_NAME             (1 << 6)
-#define MBEDTLS_X509_EXT_SUBJECT_DIRECTORY_ATTRS     (1 << 7)
-#define MBEDTLS_X509_EXT_BASIC_CONSTRAINTS           (1 << 8)    /* Supported */
-#define MBEDTLS_X509_EXT_NAME_CONSTRAINTS            (1 << 9)
-#define MBEDTLS_X509_EXT_POLICY_CONSTRAINTS          (1 << 10)
-#define MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE          (1 << 11)
-#define MBEDTLS_X509_EXT_CRL_DISTRIBUTION_POINTS     (1 << 12)
-#define MBEDTLS_X509_EXT_INIHIBIT_ANYPOLICY          (1 << 13)
-#define MBEDTLS_X509_EXT_FRESHEST_CRL                (1 << 14)
-
-#define MBEDTLS_X509_EXT_NS_CERT_TYPE                (1 << 16)
+#define MBEDTLS_X509_EXT_AUTHORITY_KEY_IDENTIFIER MBEDTLS_OID_X509_EXT_AUTHORITY_KEY_IDENTIFIER
+#define MBEDTLS_X509_EXT_SUBJECT_KEY_IDENTIFIER   MBEDTLS_OID_X509_EXT_SUBJECT_KEY_IDENTIFIER
+#define MBEDTLS_X509_EXT_KEY_USAGE                MBEDTLS_OID_X509_EXT_KEY_USAGE
+#define MBEDTLS_X509_EXT_CERTIFICATE_POLICIES     MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES
+#define MBEDTLS_X509_EXT_POLICY_MAPPINGS          MBEDTLS_OID_X509_EXT_POLICY_MAPPINGS
+#define MBEDTLS_X509_EXT_SUBJECT_ALT_NAME         MBEDTLS_OID_X509_EXT_SUBJECT_ALT_NAME         /* Supported (DNS) */
+#define MBEDTLS_X509_EXT_ISSUER_ALT_NAME          MBEDTLS_OID_X509_EXT_ISSUER_ALT_NAME
+#define MBEDTLS_X509_EXT_SUBJECT_DIRECTORY_ATTRS  MBEDTLS_OID_X509_EXT_SUBJECT_DIRECTORY_ATTRS
+#define MBEDTLS_X509_EXT_BASIC_CONSTRAINTS        MBEDTLS_OID_X509_EXT_BASIC_CONSTRAINTS        /* Supported */
+#define MBEDTLS_X509_EXT_NAME_CONSTRAINTS         MBEDTLS_OID_X509_EXT_NAME_CONSTRAINTS
+#define MBEDTLS_X509_EXT_POLICY_CONSTRAINTS       MBEDTLS_OID_X509_EXT_POLICY_CONSTRAINTS
+#define MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE       MBEDTLS_OID_X509_EXT_EXTENDED_KEY_USAGE
+#define MBEDTLS_X509_EXT_CRL_DISTRIBUTION_POINTS  MBEDTLS_OID_X509_EXT_CRL_DISTRIBUTION_POINTS
+#define MBEDTLS_X509_EXT_INIHIBIT_ANYPOLICY       MBEDTLS_OID_X509_EXT_INIHIBIT_ANYPOLICY
+#define MBEDTLS_X509_EXT_FRESHEST_CRL             MBEDTLS_OID_X509_EXT_FRESHEST_CRL
+#define MBEDTLS_X509_EXT_NS_CERT_TYPE             MBEDTLS_OID_X509_EXT_NS_CERT_TYPE
 
 /*
  * Storage format identifiers
@@ -250,7 +272,7 @@ int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *se
  *
  * \param to       mbedtls_x509_time to check
  *
- * \return         1 if the given time is in the past or an error occured,
+ * \return         1 if the given time is in the past or an error occurred,
  *                 0 otherwise.
  */
 int mbedtls_x509_time_is_past( const mbedtls_x509_time *to );
@@ -264,10 +286,12 @@ int mbedtls_x509_time_is_past( const mbedtls_x509_time *to );
  *
  * \param from     mbedtls_x509_time to check
  *
- * \return         1 if the given time is in the future or an error occured,
+ * \return         1 if the given time is in the future or an error occurred,
  *                 0 otherwise.
  */
 int mbedtls_x509_time_is_future( const mbedtls_x509_time *from );
+
+#if defined(MBEDTLS_SELF_TEST)
 
 /**
  * \brief          Checkup routine
@@ -275,6 +299,8 @@ int mbedtls_x509_time_is_future( const mbedtls_x509_time *from );
  * \return         0 if successful, or 1 if the test failed
  */
 int mbedtls_x509_self_test( int verbose );
+
+#endif /* MBEDTLS_SELF_TEST */
 
 /*
  * Internal module functions. You probably do not want to use these unless you

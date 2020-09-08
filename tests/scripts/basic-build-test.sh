@@ -2,9 +2,20 @@
 
 # basic-build-tests.sh
 #
-# This file is part of mbed TLS (https://tls.mbed.org)
+# Copyright The Mbed TLS Contributors
+# SPDX-License-Identifier: Apache-2.0
 #
-# Copyright (c) 2016, ARM Limited, All Rights Reserved
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # Purpose
 #
@@ -43,6 +54,14 @@ fi
 : ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
 : ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
 
+# Used to make ssl-opt.sh deterministic.
+#
+# See also RELEASE_SEED in all.sh. Debugging is easier if both values are kept
+# in sync. If you change the value here because it breaks some tests, you'll
+# definitely want to change it in all.sh as well.
+: ${SEED:=1}
+export SEED
+
 # To avoid setting OpenSSL and GnuTLS for each call to compat.sh and ssl-opt.sh
 # we just export the variables they require
 export OPENSSL_CMD="$OPENSSL"
@@ -64,40 +83,69 @@ echo
 
 # Step 1 - Make and instrumented build for code coverage
 export CFLAGS=' --coverage -g3 -O0 '
+export LDFLAGS=' --coverage'
 make clean
 cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
+scripts/config.py full
 make -j
 
 
 # Step 2 - Execute the tests
 TEST_OUTPUT=out_${PPID}
 cd tests
-
-# Step 2a - Unit Tests
-perl scripts/run-test-suites.pl -v |tee unit-test-$TEST_OUTPUT
+if [ ! -f "seedfile" ]; then
+    dd if=/dev/urandom of="seedfile" bs=64 count=1
+fi
 echo
 
-# Step 2b - System Tests
+# Step 2a - Unit Tests (keep going even if some tests fail)
+echo '################ Unit tests ################'
+perl scripts/run-test-suites.pl -v 2 |tee unit-test-$TEST_OUTPUT
+echo '^^^^^^^^^^^^^^^^ Unit tests ^^^^^^^^^^^^^^^^'
+echo
+
+# Step 2b - System Tests (keep going even if some tests fail)
+echo
+echo '################ ssl-opt.sh ################'
 sh ssl-opt.sh |tee sys-test-$TEST_OUTPUT
+echo '^^^^^^^^^^^^^^^^ ssl-opt.sh ^^^^^^^^^^^^^^^^'
 echo
 
-# Step 2c - Compatibility tests
-sh compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2' | \
-    tee compat-test-$TEST_OUTPUT
-OPENSSL_CMD="$OPENSSL_LEGACY"                               \
-    sh compat.sh -m 'ssl3' |tee -a compat-test-$TEST_OUTPUT
-OPENSSL_CMD="$OPENSSL_LEGACY"                                       \
-    GNUTLS_CLI="$GNUTLS_LEGACY_CLI"                                 \
-    GNUTLS_SERV="$GNUTLS_LEGACY_SERV"                               \
-    sh compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR' | \
-    tee -a compat-test-$TEST_OUTPUT
+# Step 2c - Compatibility tests (keep going even if some tests fail)
+echo '################ compat.sh ################'
+{
+    echo '#### compat.sh: Default versions'
+    sh compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
+    echo
+
+    echo '#### compat.sh: legacy (SSLv3)'
+    OPENSSL_CMD="$OPENSSL_LEGACY" sh compat.sh -m 'ssl3'
+    echo
+
+    echo '#### compat.sh: legacy (null, DES, RC4)'
+    OPENSSL_CMD="$OPENSSL_LEGACY" \
+    GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" \
+    sh compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
+    echo
+
+    echo '#### compat.sh: next (ARIA, ChaCha)'
+    OPENSSL_CMD="$OPENSSL_NEXT" sh compat.sh -e '^$' -f 'ARIA\|CHACHA'
+    echo
+} | tee compat-test-$TEST_OUTPUT
+echo '^^^^^^^^^^^^^^^^ compat.sh ^^^^^^^^^^^^^^^^'
 echo
 
 # Step 3 - Process the coverage report
 cd ..
-make lcov |tee tests/cov-$TEST_OUTPUT
+{
+    make lcov
+    echo SUCCESS
+} | tee tests/cov-$TEST_OUTPUT
+
+if [ "$(tail -n1 tests/cov-$TEST_OUTPUT)" != "SUCCESS" ]; then
+    echo >&2 "Fatal: 'make lcov' failed"
+    exit 2
+fi
 
 
 # Step 4 - Summarise the test report
@@ -189,10 +237,12 @@ echo
 # Step 4e - Coverage
 echo "Coverage"
 
-LINES_TESTED=$(tail -n3 cov-$TEST_OUTPUT|sed -n -e 's/  lines......: [0-9]*.[0-9]% (\([0-9]*\) of [0-9]* lines)/\1/p')
-LINES_TOTAL=$(tail -n3 cov-$TEST_OUTPUT|sed -n -e 's/  lines......: [0-9]*.[0-9]% ([0-9]* of \([0-9]*\) lines)/\1/p')
-FUNCS_TESTED=$(tail -n3 cov-$TEST_OUTPUT|sed -n -e 's/  functions..: [0-9]*.[0-9]% (\([0-9]*\) of [0-9]* functions)$/\1/p')
-FUNCS_TOTAL=$(tail -n3 cov-$TEST_OUTPUT|sed -n -e 's/  functions..: [0-9]*.[0-9]% ([0-9]* of \([0-9]*\) functions)$/\1/p')
+LINES_TESTED=$(tail -n4 cov-$TEST_OUTPUT|sed -n -e 's/  lines......: [0-9]*.[0-9]% (\([0-9]*\) of [0-9]* lines)/\1/p')
+LINES_TOTAL=$(tail -n4 cov-$TEST_OUTPUT|sed -n -e 's/  lines......: [0-9]*.[0-9]% ([0-9]* of \([0-9]*\) lines)/\1/p')
+FUNCS_TESTED=$(tail -n4 cov-$TEST_OUTPUT|sed -n -e 's/  functions..: [0-9]*.[0-9]% (\([0-9]*\) of [0-9]* functions)$/\1/p')
+FUNCS_TOTAL=$(tail -n4 cov-$TEST_OUTPUT|sed -n -e 's/  functions..: [0-9]*.[0-9]% ([0-9]* of \([0-9]*\) functions)$/\1/p')
+BRANCHES_TESTED=$(tail -n4 cov-$TEST_OUTPUT|sed -n -e 's/  branches...: [0-9]*.[0-9]% (\([0-9]*\) of [0-9]* branches)$/\1/p')
+BRANCHES_TOTAL=$(tail -n4 cov-$TEST_OUTPUT|sed -n -e 's/  branches...: [0-9]*.[0-9]% ([0-9]* of \([0-9]*\) branches)$/\1/p')
 
 LINES_PERCENT=$((1000*$LINES_TESTED/$LINES_TOTAL))
 LINES_PERCENT="$(($LINES_PERCENT/10)).$(($LINES_PERCENT-($LINES_PERCENT/10)*10))"
@@ -200,10 +250,13 @@ LINES_PERCENT="$(($LINES_PERCENT/10)).$(($LINES_PERCENT-($LINES_PERCENT/10)*10))
 FUNCS_PERCENT=$((1000*$FUNCS_TESTED/$FUNCS_TOTAL))
 FUNCS_PERCENT="$(($FUNCS_PERCENT/10)).$(($FUNCS_PERCENT-($FUNCS_PERCENT/10)*10))"
 
+BRANCHES_PERCENT=$((1000*$BRANCHES_TESTED/$BRANCHES_TOTAL))
+BRANCHES_PERCENT="$(($BRANCHES_PERCENT/10)).$(($BRANCHES_PERCENT-($BRANCHES_PERCENT/10)*10))"
+
 echo "Lines Tested       : $LINES_TESTED of $LINES_TOTAL $LINES_PERCENT%"
 echo "Functions Tested   : $FUNCS_TESTED of $FUNCS_TOTAL $FUNCS_PERCENT%"
+echo "Branches Tested    : $BRANCHES_TESTED of $BRANCHES_TOTAL $BRANCHES_PERCENT%"
 echo
-
 
 rm unit-test-$TEST_OUTPUT
 rm sys-test-$TEST_OUTPUT
@@ -216,4 +269,8 @@ make clean
 
 if [ -f "$CONFIG_BAK" ]; then
     mv "$CONFIG_BAK" "$CONFIG_H"
+fi
+
+if [ $TOTAL_FAIL -ne 0 ]; then
+    exit 1
 fi

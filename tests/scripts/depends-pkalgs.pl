@@ -1,8 +1,21 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # depends-pkalgs.pl
 #
-# Copyright (c) 2017, ARM Limited, All Rights Reserved
+# Copyright The Mbed TLS Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # Purpose
 #
@@ -35,7 +48,8 @@ my $config_h = 'include/mbedtls/config.h';
 # Some algorithms can't be disabled on their own as others depend on them, so
 # we list those reverse-dependencies here to keep check_config.h happy.
 my %algs = (
-    'MBEDTLS_ECDSA_C'   => ['MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED'],
+    'MBEDTLS_ECDSA_C'   => ['MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
+                            'MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED'],
     'MBEDTLS_ECP_C'     => ['MBEDTLS_ECDSA_C',
                             'MBEDTLS_ECDH_C',
                             'MBEDTLS_ECJPAKE_C',
@@ -53,6 +67,7 @@ my %algs = (
     'MBEDTLS_RSA_C'     => ['MBEDTLS_X509_RSASSA_PSS_SUPPORT',
                             'MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED',
                             'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
+                            'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED',
                             'MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED',
                             'MBEDTLS_KEY_EXCHANGE_RSA_ENABLED'],
 );
@@ -72,11 +87,12 @@ while( my ($alg, $extras) = each %algs ) {
     print "\n******************************************\n";
     print "* Testing without alg: $alg\n";
     print "******************************************\n";
+    $ENV{MBEDTLS_TEST_CONFIGURATION} = "-$alg";
 
-    system( "scripts/config.pl unset $alg" )
+    system( "scripts/config.py unset $alg" )
         and abort "Failed to disable $alg\n";
     for my $opt (@$extras) {
-        system( "scripts/config.pl unset $opt" )
+        system( "scripts/config.py unset $opt" )
             and abort "Failed to disable $opt\n";
     }
 

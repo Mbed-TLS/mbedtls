@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#define LABEL( name, string ) \
+#define MBEDTLS_SSL_TLS1_3_LABEL( name, string ) \
     .name = string,
 
 struct mbedtls_ssl_tls1_3_labels_struct const mbedtls_ssl_tls1_3_labels =
@@ -38,7 +38,7 @@ struct mbedtls_ssl_tls1_3_labels_struct const mbedtls_ssl_tls1_3_labels =
     MBEDTLS_SSL_TLS1_3_LABEL_LIST
 };
 
-#undef LABEL
+#undef MBEDTLS_SSL_TLS1_3_LABEL
 
 /*
  * This function creates a HkdfLabel structure used in the TLS 1.3 key schedule.

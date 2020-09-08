@@ -21,29 +21,30 @@
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
-/* This requires LABEL( name, string ) to be defined at the point of use.
- * See e.g. the definition of mbedtls_ssl_tls1_3_labels_union below. */
+/* This requires MBEDTLS_SSL_TLS1_3_LABEL( name, string ) to be defined at
+ * the point of use. See e.g. the definition of mbedtls_ssl_tls1_3_labels_union
+ * below. */
 #define MBEDTLS_SSL_TLS1_3_LABEL_LIST                               \
-    LABEL( finished    , "finished"     )                           \
-    LABEL( resumption  , "resumption"   )                           \
-    LABEL( traffic_upd , "traffic upd"  )                           \
-    LABEL( export      , "exporter"     )                           \
-    LABEL( key         , "key"          )                           \
-    LABEL( iv          , "iv"           )                           \
-    LABEL( sn          , "sn"           )                           \
-    LABEL( c_hs_traffic, "c hs traffic" )                           \
-    LABEL( c_ap_traffic, "c ap traffic" )                           \
-    LABEL( c_e_traffic , "c e traffic"  )                           \
-    LABEL( s_hs_traffic, "s hs traffic" )                           \
-    LABEL( s_ap_traffic, "s ap traffic" )                           \
-    LABEL( s_e_traffic , "s e traffic"  )                           \
-    LABEL( exp_master  , "exp master"   )                           \
-    LABEL( res_master  , "res master"   )                           \
-    LABEL( ext_binder  , "ext binder"   )                           \
-    LABEL( res_binder  , "res binder"   )                           \
-    LABEL( derived     , "derived"      )
+    MBEDTLS_SSL_TLS1_3_LABEL( finished    , "finished"     )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( resumption  , "resumption"   )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( traffic_upd , "traffic upd"  )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( export      , "exporter"     )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( key         , "key"          )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( iv          , "iv"           )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( sn          , "sn"           )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( c_hs_traffic, "c hs traffic" )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( c_ap_traffic, "c ap traffic" )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( c_e_traffic , "c e traffic"  )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( s_hs_traffic, "s hs traffic" )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( s_ap_traffic, "s ap traffic" )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( s_e_traffic , "s e traffic"  )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( exp_master  , "exp master"   )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( res_master  , "res master"   )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( ext_binder  , "ext binder"   )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( res_binder  , "res binder"   )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( derived     , "derived"      )
 
-#define LABEL( name, string ) \
+#define MBEDTLS_SSL_TLS1_3_LABEL( name, string ) \
     const unsigned char name    [ sizeof(string) - 1 ];
 
 union mbedtls_ssl_tls1_3_labels_union
@@ -54,7 +55,7 @@ struct mbedtls_ssl_tls1_3_labels_struct
 {
     MBEDTLS_SSL_TLS1_3_LABEL_LIST
 };
-#undef LABEL
+#undef MBEDTLS_SSL_TLS1_3_LABEL
 
 extern const struct mbedtls_ssl_tls1_3_labels_struct mbedtls_ssl_tls1_3_labels;
 

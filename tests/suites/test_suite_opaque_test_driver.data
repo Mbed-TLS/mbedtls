@@ -25,11 +25,8 @@ opaque_test_driver_generate_key:PSA_KEY_TYPE_AES:256
 Opaque test driver - Generate key ECC P256
 opaque_test_driver_generate_key:PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ):256
 
-Opaque test driver - Export public key #1
-opaque_test_driver_export_public_key:"OPQTDKHEADERUryyb jbeyq 5678":"Hello world 5678"
-
-Opaque test driver - Export public key #2
-opaque_test_driver_export_public_key:"OPQTDKHEADERHello world 1234":"Uryyb jbeyq 1234"
+Opaque test driver - Export key ECC P256
+opaque_test_driver_export_public_key:PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ):256:1:"4F505154444B48454144455235f542bac4e4c702209d3267e27c815ec27adc2abe598cfe70da37e322d412f9":"04da2376a18d8ae2417480fe50236d7503dbe3b63d33883b66d19c8f479f96f356c84f8d2b83be566ae6f5f4ccd615c9411bced00e8e88d18195282de2546d6dfa"
 
 Opaque test driver - Sign & Verify hash, deterministic ECDSA SECP256R1 SHA-256
 depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_MD_C:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C

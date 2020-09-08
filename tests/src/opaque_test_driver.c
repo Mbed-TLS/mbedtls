@@ -64,8 +64,8 @@
 
 #include <string.h>
 
-/* Max supported key size - 256 bits */
-#define OPAQUE_TEST_DRIVER_KEY_BITS_MAX  (256)
+/* Max supported key size - 521 bits  ( +7 bits for byte alignment ) */
+#define OPAQUE_TEST_DRIVER_KEY_BITS_MAX  (521 + 7)
 
 /* Parameter validation macro */
 #define OPQTD_VALIDATE_RET( cond )                  \
@@ -122,14 +122,76 @@ psa_status_t opaque_test_driver_export_public_key(
     OPQTD_VALIDATE_RET( out_length != NULL );
     OPQTD_VALIDATE_RET( in_length > OPAQUE_TEST_DRIVER_KEYHEADER_SIZE );
     OPQTD_VALIDATE_RET( opqtd_lifetime == psa_get_key_lifetime( attributes ) );
+    psa_key_type_t key_type = psa_get_key_type( attributes );
+    OPQTD_VALIDATE_RET( PSA_KEY_TYPE_IS_ASYMMETRIC( key_type ) );
 
-    if( in_length - OPAQUE_TEST_DRIVER_KEYHEADER_SIZE > out_size )
+    size_t key_bits = psa_get_key_bits( attributes );
+    size_t key_buffer_length = in_length - OPAQUE_TEST_DRIVER_KEYHEADER_SIZE;
+    OPQTD_VALIDATE_RET( key_bits != 0 );
+    OPQTD_VALIDATE_RET( key_buffer_length == PSA_BITS_TO_BYTES(key_bits) );
+
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status;
+    uint8_t key_buffer[OPAQUE_TEST_DRIVER_KEY_BITS_MAX/8];
+    mbedtls_ecp_group_id grp_id;
+    mbedtls_ecp_keypair ecp;
+    mbedtls_test_rnd_pseudo_info rnd_info;
+    memset( &rnd_info, 0x5A, sizeof( mbedtls_test_rnd_pseudo_info ) );
+
+    switch( key_type )
+    {
+        case PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ):
+            switch( key_bits )
+            {
+                case 256:
+                    grp_id = MBEDTLS_ECP_DP_SECP256R1;
+                    break;
+                case 384:
+                    grp_id = MBEDTLS_ECP_DP_SECP384R1;
+                    break;
+                case 521:
+                    grp_id = MBEDTLS_ECP_DP_SECP521R1;
+                    break;
+                default:
+                    return( PSA_ERROR_NOT_SUPPORTED );
+            }
+            break;
+        default:
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+    /* Verify output buffer size is big enough to hold an ECC public key. */
+    if( out_size < 2*key_buffer_length+1 )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
-    *out_length = in_length - OPAQUE_TEST_DRIVER_KEYHEADER_SIZE;
-    rot13( in + OPAQUE_TEST_DRIVER_KEYHEADER_SIZE, *out_length, out );
+    mbedtls_ecp_keypair_init( &ecp );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &ecp.grp, grp_id ) );
 
-    return( PSA_SUCCESS );
+    /* Un-rot13 the encoded/encrypted input private ECC key. */
+    rot13( in + OPAQUE_TEST_DRIVER_KEYHEADER_SIZE, key_buffer_length, key_buffer );
+
+    /* Read private key into ecp key pair representation */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ecp.d,
+                                              key_buffer,
+                                              key_buffer_length ) );
+    /* Generate public key */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &ecp.grp, &ecp.Q, &ecp.d, &ecp.grp.G,
+                                      &mbedtls_test_rnd_pseudo_rand,
+                                      &rnd_info ) );
+
+    /* Write the public point to the output buffer. */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_point_write_binary( &ecp.grp,
+                                                     &ecp.Q,
+                                                     MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                                     out_length,
+                                                     out,
+                                                     out_size ) );
+ cleanup:
+    if (ret != 0)
+        status = mbedtls_to_psa_error(ret);
+
+    mbedtls_ecp_keypair_free( &ecp );
+    return( status );
 }
 
 psa_status_t opaque_test_driver_generate_key(
@@ -166,9 +228,7 @@ psa_status_t opaque_test_driver_generate_key(
         if( status != PSA_SUCCESS )
             return( status );
     }
-    else
-#if defined(MBEDTLS_ECP_C)
-    if ( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( key_type ) )
+    else if ( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( key_type ) )
     {
         if( ( key_bits != 256 ) && ( key_bits != 384 ) && ( key_bits != 521 ) )
         {
@@ -216,9 +276,7 @@ psa_status_t opaque_test_driver_generate_key(
 
         mbedtls_ecp_keypair_free( &ecp );
     }
-
     else
-#endif /* MBEDTLS_ECP_C */
         return( PSA_ERROR_NOT_SUPPORTED );
 
     return( opaque_test_driver_import_key( attributes,
@@ -243,17 +301,23 @@ psa_status_t opaque_test_driver_import_key(
     OPQTD_VALIDATE_RET( out_length != NULL );
     OPQTD_VALIDATE_RET( opqtd_lifetime == psa_get_key_lifetime( attributes ) );
 
-    if( ( psa_get_key_type( attributes ) != PSA_KEY_TYPE_AES ) &&
-        ( psa_get_key_type( attributes ) !=
-          PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) ) )
+    psa_key_type_t key_type = psa_get_key_type( attributes );
+    size_t key_bits = psa_get_key_bits( attributes );
+
+    if ( key_type == PSA_KEY_TYPE_AES )
+    {
+        if( ( key_bits != 128 ) && ( key_bits != 192 ) && ( key_bits != 256 ) )
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+    else if ( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( key_type ) )
+    {
+        if( ( key_bits != 256 ) && ( key_bits != 384 ) && ( key_bits != 521 ) )
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+    else
         return( PSA_ERROR_NOT_SUPPORTED );
 
-    if( ( psa_get_key_bits( attributes ) != 128 ) &&      // AES-128
-        ( psa_get_key_bits( attributes ) != 192 ) &&      // AES-192
-        ( psa_get_key_bits( attributes ) != 256 ) )       // AES-256
-        return( PSA_ERROR_NOT_SUPPORTED );
-
-    if( psa_get_key_bits( attributes ) != PSA_BYTES_TO_BITS( in_length ) )
+    if( key_bits != PSA_BYTES_TO_BITS( in_length ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     if( OPAQUE_TEST_DRIVER_KEYHEADER_SIZE + in_length > out_size )
@@ -291,6 +355,8 @@ psa_status_t opaque_test_driver_sign_hash(
     OPQTD_VALIDATE_RET( signature_length != NULL );
     OPQTD_VALIDATE_RET( opqtd_lifetime == psa_get_key_lifetime( attributes ) );
     OPQTD_VALIDATE_RET( key_length > OPAQUE_TEST_DRIVER_KEYHEADER_SIZE );
+    size_t key_bits = psa_get_key_bits( attributes );
+    OPQTD_VALIDATE_RET( key_buffer_length == PSA_BITS_TO_BYTES( key_bits) );
     OPQTD_VALIDATE_RET( key_buffer_length <= sizeof(key_buffer) );
     OPQTD_VALIDATE_RET( memcmp( key,
                                 OPAQUE_TEST_DRIVER_KEYHEADER,
@@ -307,7 +373,7 @@ psa_status_t opaque_test_driver_sign_hash(
     {
         case PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ):
 
-            switch( psa_get_key_bits( attributes ) )
+            switch( key_bits )
             {
                 case 256:
                     grp_id = MBEDTLS_ECP_DP_SECP256R1;
@@ -413,6 +479,8 @@ psa_status_t opaque_test_driver_verify_hash(
     OPQTD_VALIDATE_RET( signature != NULL );
     OPQTD_VALIDATE_RET( opqtd_lifetime == psa_get_key_lifetime( attributes ) );
     OPQTD_VALIDATE_RET( key_length > OPAQUE_TEST_DRIVER_KEYHEADER_SIZE );
+    size_t key_bits = psa_get_key_bits( attributes );
+    OPQTD_VALIDATE_RET( key_buffer_length == PSA_BITS_TO_BYTES( key_bits) );
     OPQTD_VALIDATE_RET( key_buffer_length <= sizeof(key_buffer) );
     OPQTD_VALIDATE_RET( memcmp( key,
                                 OPAQUE_TEST_DRIVER_KEYHEADER,
@@ -429,7 +497,7 @@ psa_status_t opaque_test_driver_verify_hash(
     switch( psa_get_key_type( attributes ) )
     {
         case PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ):
-            switch( psa_get_key_bits( attributes ) )
+            switch( key_bits )
             {
                 case 256:
                     grp_id = MBEDTLS_ECP_DP_SECP256R1;

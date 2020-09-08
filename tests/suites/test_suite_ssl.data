@@ -10463,7 +10463,7 @@ SSL TLS 1.3 Key schedule: HKDF Expand Label #8 (RFC 8448)
 ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"b3eddb126e067f35a780b3abf45e2d8f3b1a950738f52e9600746a0e27a55a21":"6b6579":"":16:"dbfaa693d1762c5b666af5d950258d01"
 
 SSL TLS 1.3 Key schedule: Traffic key generation #1
-# Vector from TLS 1.3 Byte by Byte ((https://tls13.ulfheim.net/)
+# Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
 # Client/Server handshake traffic secrets -> Client/Server traffic {Key,IV}
 ssl_tls1_3_traffic_key_generation:MBEDTLS_MD_SHA256:"a2067265e7f0652a923d5d72ab0467c46132eeb968b6a32d311c805868548814":"ff0e5b965291c608c1e8cd267eefc0afcc5e98a2786373f0db47b04786d72aea":12:16:"844780a7acad9f980fa25c114e43402a":"4c042ddc120a38d1417fc815":"7154f314e6be7dc008df2c832baa1d39":"71abc2cae4c699d47c600268"
 

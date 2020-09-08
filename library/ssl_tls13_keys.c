@@ -91,7 +91,7 @@ static void ssl_tls1_3_hkdf_encode_label(
                             const unsigned char *ctx, size_t clen,
                             unsigned char *dst, size_t *dlen )
 {
-    const char label_prefix[6] = { 't', 'l', 's', '1', '3', ' ' };
+    const char label_prefix[6] = "tls13 ";
     size_t total_label_len = sizeof( label_prefix ) + llen;
     size_t total_hkdf_lbl_len =
         SSL_TLS1_3_KEY_SCHEDULE_HKDF_LABEL_LEN( total_label_len, clen );

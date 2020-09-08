@@ -6,7 +6,7 @@
 #include <mbedtls/certs.h>
 #include <mbedtls/timing.h>
 #include <mbedtls/debug.h>
-#include <../library/ssl_tls13_keys.h>
+#include <ssl_tls13_keys.h>
 
 #include <ssl_invasive.h>
 

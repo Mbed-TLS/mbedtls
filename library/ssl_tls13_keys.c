@@ -62,6 +62,8 @@ struct mbedtls_ssl_tls1_3_labels_struct const mbedtls_ssl_tls1_3_labels =
  *                  The label length MUST be
  *                  <= MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_LABEL_LEN
  *                  It is the caller's responsiblity to ensure this.
+ *                  All (label, label length) pairs used in TLS 1.3
+ *                  can be obtained via MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN().
  * - (ctx, clen): context + context length
  *                The context length MUST be
  *                <= MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_CONTEXT_LEN

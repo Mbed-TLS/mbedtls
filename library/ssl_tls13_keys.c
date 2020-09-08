@@ -28,29 +28,17 @@
 #include <stdint.h>
 #include <string.h>
 
+#define LABEL( name, string ) \
+    .name = string,
+
 struct mbedtls_ssl_tls1_3_labels_struct const mbedtls_ssl_tls1_3_labels =
 {
     /* This seems to work in C, despite the string literal being one
      * character too long due to the 0-termination. */
-    .finished     = "finished",
-    .resumption   = "resumption",
-    .traffic_upd  = "traffic upd",
-    .exporter     = "exporter",
-    .key          = "key",
-    .iv           = "iv",
-    .sn           = "sn",
-    .c_hs_traffic = "c hs traffic",
-    .c_ap_traffic = "c ap traffic",
-    .c_e_traffic  = "c e traffic",
-    .s_hs_traffic = "s hs traffic",
-    .s_ap_traffic = "s ap traffic",
-    .s_e_traffic  = "s e traffic",
-    .exp_master   = "exp master",
-    .res_master   = "res master",
-    .ext_binder   = "ext binder",
-    .res_binder   = "res binder",
-    .derived      = "derived"
+    MBEDTLS_SSL_TLS1_3_LABEL_LIST
 };
+
+#undef LABEL
 
 /*
  * This function creates a HkdfLabel structure used in the TLS 1.3 key schedule.

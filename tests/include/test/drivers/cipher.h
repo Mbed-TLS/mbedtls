@@ -45,11 +45,25 @@ typedef struct{
     test_transparent_cipher_operation_t ctx;
 } test_opaque_cipher_operation_t;
 
-extern void *test_driver_cipher_forced_output;
-extern size_t test_driver_cipher_forced_output_length;
+typedef struct {
+    /* If non-null, on success, copy this to the output. */
+    void *forced_output;
+    size_t forced_output_length;
+    /* If not PSA_SUCCESS, return this error code instead of processing the
+     * function call. */
+    psa_status_t forced_status;
+    /* Count the amount of times one of the keygen driver functions is called. */
+    unsigned long hits;
+} test_driver_cipher_hooks_t;
 
-extern psa_status_t test_transparent_cipher_status;
-extern unsigned long test_transparent_cipher_hit;
+#define TEST_DRIVER_CIPHER_INIT { NULL, 0, PSA_SUCCESS, 0 }
+static inline test_driver_cipher_hooks_t test_driver_cipher_hooks_init( void )
+{
+    const test_driver_cipher_hooks_t v = TEST_DRIVER_CIPHER_INIT;
+    return( v );
+}
+
+extern test_driver_cipher_hooks_t test_driver_cipher_hooks;
 
 psa_status_t test_transparent_cipher_encrypt(
     const psa_key_attributes_t *attributes,

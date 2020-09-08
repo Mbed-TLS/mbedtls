@@ -201,7 +201,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     size_t total_output_length = 0;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    test_transparent_cipher_hit = 0;
+    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -213,12 +213,12 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
 
     PSA_ASSERT( psa_cipher_encrypt_setup( &operation,
                                           handle, alg ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 1);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    test_driver_cipher_hooks.hits = 0;
 
     PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 1);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    test_driver_cipher_hooks.hits = 0;
 
     output_buffer_size = ( (size_t) input->len +
                            PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
@@ -228,16 +228,16 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
                                    input->x, input->len,
                                    output, output_buffer_size,
                                    &function_output_length ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 1);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    test_driver_cipher_hooks.hits = 0;
 
     total_output_length += function_output_length;
     status = psa_cipher_finish( &operation,
                                 output + total_output_length,
                                 output_buffer_size - total_output_length,
                                 &function_output_length );
-    TEST_EQUAL( test_transparent_cipher_hit, 2);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
+    test_driver_cipher_hooks.hits = 0;
 
     total_output_length += function_output_length;
 
@@ -246,8 +246,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     {
         PSA_ASSERT( psa_cipher_abort( &operation ) );
         // driver function should've been called as part of the finish() core routine
-        TEST_EQUAL( test_transparent_cipher_hit, 0);
-        test_transparent_cipher_hit = 0;
+        TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
         ASSERT_COMPARE( expected_output->x, expected_output->len,
                         output, total_output_length );
     }
@@ -257,6 +256,7 @@ exit:
     mbedtls_free( output );
     psa_destroy_key( handle );
     PSA_DONE( );
+    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
 }
 /* END_CASE */
 
@@ -280,7 +280,7 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
     size_t total_output_length = 0;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    test_transparent_cipher_hit = 0;
+    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -292,12 +292,12 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
 
     PSA_ASSERT( psa_cipher_encrypt_setup( &operation,
                                           handle, alg ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 1);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    test_driver_cipher_hooks.hits = 0;
 
     PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 1);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    test_driver_cipher_hooks.hits = 0;
 
     output_buffer_size = ( (size_t) input->len +
                            PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
@@ -307,8 +307,8 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
     PSA_ASSERT( psa_cipher_update( &operation, input->x, first_part_size,
                                    output, output_buffer_size,
                                    &function_output_length ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 1);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    test_driver_cipher_hooks.hits = 0;
 
     TEST_ASSERT( function_output_length == output1_length );
     total_output_length += function_output_length;
@@ -318,19 +318,19 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
                                    output + total_output_length,
                                    output_buffer_size - total_output_length,
                                    &function_output_length ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 1);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    test_driver_cipher_hooks.hits = 0;
     TEST_ASSERT( function_output_length == output2_length );
     total_output_length += function_output_length;
     PSA_ASSERT( psa_cipher_finish( &operation,
                                    output + total_output_length,
                                    output_buffer_size - total_output_length,
                                    &function_output_length ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 2);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
+    test_driver_cipher_hooks.hits = 0 ;
     total_output_length += function_output_length;
     PSA_ASSERT( psa_cipher_abort( &operation ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 0);
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
 
     ASSERT_COMPARE( expected_output->x, expected_output->len,
                     output, total_output_length );
@@ -340,6 +340,7 @@ exit:
     mbedtls_free( output );
     psa_destroy_key( handle );
     PSA_DONE( );
+    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
 }
 /* END_CASE */
 
@@ -364,7 +365,7 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
     size_t total_output_length = 0;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    test_transparent_cipher_hit = 0;
+    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -376,12 +377,12 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
 
     PSA_ASSERT( psa_cipher_decrypt_setup( &operation,
                                           handle, alg ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 1);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    test_driver_cipher_hooks.hits = 0;
 
     PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 1);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    test_driver_cipher_hooks.hits = 0;
 
     output_buffer_size = ( (size_t) input->len +
                            PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
@@ -392,8 +393,8 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
                                    input->x, first_part_size,
                                    output, output_buffer_size,
                                    &function_output_length ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 1);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    test_driver_cipher_hooks.hits = 0;
 
     TEST_ASSERT( function_output_length == output1_length );
     total_output_length += function_output_length;
@@ -403,8 +404,8 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
                                    output + total_output_length,
                                    output_buffer_size - total_output_length,
                                    &function_output_length ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 1);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    test_driver_cipher_hooks.hits = 0;
 
     TEST_ASSERT( function_output_length == output2_length );
     total_output_length += function_output_length;
@@ -412,11 +413,11 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
                                    output + total_output_length,
                                    output_buffer_size - total_output_length,
                                    &function_output_length ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 2);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
+    test_driver_cipher_hooks.hits = 0;
     total_output_length += function_output_length;
     PSA_ASSERT( psa_cipher_abort( &operation ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 0);
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
 
     ASSERT_COMPARE( expected_output->x, expected_output->len,
                     output, total_output_length );
@@ -426,6 +427,7 @@ exit:
     mbedtls_free( output );
     psa_destroy_key( handle );
     PSA_DONE( );
+    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
 }
 /* END_CASE */
 
@@ -446,7 +448,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     size_t total_output_length = 0;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    test_transparent_cipher_hit = 0;
+    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -458,12 +460,12 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
 
     PSA_ASSERT( psa_cipher_decrypt_setup( &operation,
                                           handle, alg ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 1);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    test_driver_cipher_hooks.hits = 0;
 
     PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 1);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    test_driver_cipher_hooks.hits = 0;
 
     output_buffer_size = ( (size_t) input->len +
                            PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
@@ -473,16 +475,16 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
                                    input->x, input->len,
                                    output, output_buffer_size,
                                    &function_output_length ) );
-    TEST_EQUAL( test_transparent_cipher_hit, 1);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    test_driver_cipher_hooks.hits = 0;
 
     total_output_length += function_output_length;
     status = psa_cipher_finish( &operation,
                                 output + total_output_length,
                                 output_buffer_size - total_output_length,
                                 &function_output_length );
-    TEST_EQUAL( test_transparent_cipher_hit, 2);
-    test_transparent_cipher_hit = 0;
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
+    test_driver_cipher_hooks.hits = 0;
 
     total_output_length += function_output_length;
     TEST_EQUAL( status, expected_status );
@@ -490,7 +492,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     if( expected_status == PSA_SUCCESS )
     {
         PSA_ASSERT( psa_cipher_abort( &operation ) );
-        TEST_EQUAL( test_transparent_cipher_hit, 0);
+        TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
         ASSERT_COMPARE( expected_output->x, expected_output->len,
                         output, total_output_length );
     }
@@ -500,5 +502,6 @@ exit:
     mbedtls_free( output );
     psa_destroy_key( handle );
     PSA_DONE( );
+    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
 }
 /* END_CASE */

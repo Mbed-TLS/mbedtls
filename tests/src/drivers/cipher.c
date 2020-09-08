@@ -26,25 +26,21 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
 #include "psa/crypto.h"
+#include "psa_crypto_core.h"
 #include "mbedtls/cipher.h"
 
-#include "drivers/cipher.h"
+#include "test/drivers/cipher.h"
 
 #include "test/random.h"
 
 #include <string.h>
 
-/* If non-null, on success, copy this to the output. */
-void *test_driver_cipher_forced_output = NULL;
-size_t test_driver_cipher_forced_output_length = 0;
-
 /* Test driver implements AES-CTR by default when it's status is not overridden.
- * Set test_transparent_cipher_status to PSA_ERROR_NOT_SUPPORTED to use fallback
- * even for AES-CTR.
- * Keep in mind this code is only exercised during the crypto drivers test target,
- * meaning the other test runs will still test only the non-driver implementation. */
-psa_status_t test_transparent_cipher_status = PSA_SUCCESS;
-unsigned long test_transparent_cipher_hit = 0;
+ * Set test_driver_cipher_hooks.forced_status to PSA_ERROR_NOT_SUPPORTED to use
+ * fallback even for AES-CTR.
+ * Keep in mind this code is only exercised with the crypto drivers test target,
+ * meaning the other test runs will only test the non-driver implementation. */
+test_driver_cipher_hooks_t test_driver_cipher_hooks = TEST_DRIVER_CIPHER_INIT;
 
 psa_status_t test_transparent_cipher_encrypt(
     const psa_key_attributes_t *attributes,
@@ -59,17 +55,19 @@ psa_status_t test_transparent_cipher_encrypt(
     (void) alg;
     (void) input;
     (void) input_length;
-    test_transparent_cipher_hit++;
+    test_driver_cipher_hooks.hits++;
 
-    if( test_transparent_cipher_status != PSA_SUCCESS )
-        return test_transparent_cipher_status;
-    if( output_size < test_driver_cipher_forced_output_length )
-        return PSA_ERROR_BUFFER_TOO_SMALL;
+    if( test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_cipher_hooks.forced_status );
+    if( output_size < test_driver_cipher_hooks.forced_output_length )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
 
-    memcpy(output, test_driver_cipher_forced_output, test_driver_cipher_forced_output_length);
-    *output_length = test_driver_cipher_forced_output_length;
+    memcpy( output,
+            test_driver_cipher_hooks.forced_output,
+            test_driver_cipher_hooks.forced_output_length );
+    *output_length = test_driver_cipher_hooks.forced_output_length;
 
-    return test_transparent_cipher_status;
+    return( test_driver_cipher_hooks.forced_status );
 }
 
 psa_status_t test_transparent_cipher_decrypt(
@@ -85,17 +83,19 @@ psa_status_t test_transparent_cipher_decrypt(
     (void) alg;
     (void) input;
     (void) input_length;
-    test_transparent_cipher_hit++;
+    test_driver_cipher_hooks.hits++;
 
-    if( test_transparent_cipher_status != PSA_SUCCESS )
-        return test_transparent_cipher_status;
-    if( output_size < test_driver_cipher_forced_output_length )
-        return PSA_ERROR_BUFFER_TOO_SMALL;
+    if( test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_cipher_hooks.forced_status );
+    if( output_size < test_driver_cipher_hooks.forced_output_length )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
 
-    memcpy(output, test_driver_cipher_forced_output, test_driver_cipher_forced_output_length);
-    *output_length = test_driver_cipher_forced_output_length;
+    memcpy( output,
+            test_driver_cipher_hooks.forced_output,
+            test_driver_cipher_hooks.forced_output_length );
+    *output_length = test_driver_cipher_hooks.forced_output_length;
 
-    return test_transparent_cipher_status;
+    return( test_driver_cipher_hooks.forced_status );
 }
 
 psa_status_t test_transparent_cipher_encrypt_setup(
@@ -107,19 +107,20 @@ psa_status_t test_transparent_cipher_encrypt_setup(
     const mbedtls_cipher_info_t *cipher_info = NULL;
     int ret = 0;
 
-    test_transparent_cipher_hit++;
+    test_driver_cipher_hooks.hits++;
 
     if( operation->alg != 0 )
-        return PSA_ERROR_BAD_STATE;
+        return( PSA_ERROR_BAD_STATE );
 
     /* write our struct, this will trigger memory corruption failures
      * in test when we go outside of bounds, or when the function is called
      * without first destroying the context object. */
-    memset(operation, 0, sizeof(test_transparent_cipher_operation_t));
+    memset( operation, 0, sizeof( test_transparent_cipher_operation_t ) );
 
     /* Test driver supports AES-CTR only, to verify operation calls. */
-    if( alg != PSA_ALG_CTR || psa_get_key_type( attributes ) != PSA_KEY_TYPE_AES )
-        return PSA_ERROR_NOT_SUPPORTED;
+    if( alg != PSA_ALG_CTR ||
+        psa_get_key_type( attributes ) != PSA_KEY_TYPE_AES )
+        return( PSA_ERROR_NOT_SUPPORTED );
 
     operation->alg = alg;
     operation->iv_size = 16;
@@ -129,14 +130,14 @@ psa_status_t test_transparent_cipher_encrypt_setup(
                                                    key_length * 8,
                                                    MBEDTLS_MODE_CTR );
     if( cipher_info == NULL )
-        return PSA_ERROR_NOT_SUPPORTED;
+        return( PSA_ERROR_NOT_SUPPORTED );
 
     mbedtls_cipher_init( &operation->cipher );
 
     ret = mbedtls_cipher_setup( &operation->cipher, cipher_info );
     if( ret != 0 ) {
         mbedtls_cipher_free( &operation->cipher );
-        return mbedtls_to_psa_error( ret );
+        return( mbedtls_to_psa_error( ret ) );
     }
 
     ret = mbedtls_cipher_setkey( &operation->cipher,
@@ -144,7 +145,7 @@ psa_status_t test_transparent_cipher_encrypt_setup(
                                  key_length * 8, MBEDTLS_ENCRYPT );
     if( ret != 0 ) {
         mbedtls_cipher_free( &operation->cipher );
-        return mbedtls_to_psa_error( ret );
+        return( mbedtls_to_psa_error( ret ) );
     }
 
     operation->iv_set = 0;
@@ -152,10 +153,10 @@ psa_status_t test_transparent_cipher_encrypt_setup(
     operation->key_set = 1;
 
     /* Allow overriding return value for testing purposes */
-    if( test_transparent_cipher_status != PSA_SUCCESS )
+    if( test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
         mbedtls_cipher_free( &operation->cipher );
 
-    return test_transparent_cipher_status;
+    return( test_driver_cipher_hooks.forced_status );
 }
 
 psa_status_t test_transparent_cipher_decrypt_setup(
@@ -164,18 +165,18 @@ psa_status_t test_transparent_cipher_decrypt_setup(
     const uint8_t *key, size_t key_length,
     psa_algorithm_t alg)
 {
-const mbedtls_cipher_info_t *cipher_info = NULL;
+    const mbedtls_cipher_info_t *cipher_info = NULL;
     int ret = 0;
 
-    test_transparent_cipher_hit++;
+    test_driver_cipher_hooks.hits++;
 
     if( operation->alg != 0 )
-        return PSA_ERROR_BAD_STATE;
+        return( PSA_ERROR_BAD_STATE );
 
     /* write our struct, this will trigger memory corruption failures
      * in test when we go outside of bounds, or when the function is called
      * without first destroying the context object. */
-    memset(operation, 0, sizeof(test_transparent_cipher_operation_t));
+    memset( operation, 0, sizeof( test_transparent_cipher_operation_t ) );
 
     /* Test driver supports AES-CTR only, to verify operation calls. */
     if( alg != PSA_ALG_CTR || psa_get_key_type( attributes ) != PSA_KEY_TYPE_AES )
@@ -195,23 +196,23 @@ const mbedtls_cipher_info_t *cipher_info = NULL;
 
     ret = mbedtls_cipher_setup( &operation->cipher, cipher_info );
     if( ret != 0 )
-        return mbedtls_to_psa_error( ret );
+        return( mbedtls_to_psa_error( ret ) );
 
     ret = mbedtls_cipher_setkey( &operation->cipher,
                                  key,
                                  key_length * 8, MBEDTLS_DECRYPT );
     if( ret != 0 )
-        return mbedtls_to_psa_error( ret );
+        return( mbedtls_to_psa_error( ret ) );
 
     operation->iv_set = 0;
     operation->iv_required = 1;
     operation->key_set = 1;
 
     /* Allow overriding return value for testing purposes */
-    if( test_transparent_cipher_status != PSA_SUCCESS )
+    if( test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
         mbedtls_cipher_free( &operation->cipher );
 
-    return test_transparent_cipher_status;
+    return( test_driver_cipher_hooks.forced_status );
 }
 
 psa_status_t test_transparent_cipher_abort(
@@ -226,10 +227,10 @@ psa_status_t test_transparent_cipher_abort(
 
     /* write our struct, this will trigger memory corruption failures
      * in test when we go outside of bounds. */
-    memset(operation, 0, sizeof(test_transparent_cipher_operation_t));
+    memset( operation, 0, sizeof( test_transparent_cipher_operation_t ) );
 
-    test_transparent_cipher_hit++;
-    return PSA_SUCCESS;
+    test_driver_cipher_hooks.hits++;
+    return( PSA_SUCCESS );
 }
 
 psa_status_t test_transparent_cipher_generate_iv(
@@ -242,7 +243,7 @@ psa_status_t test_transparent_cipher_generate_iv(
     mbedtls_test_rnd_pseudo_info rnd_info;
     memset( &rnd_info, 0x5A, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
-    test_transparent_cipher_hit++;
+    test_driver_cipher_hooks.hits++;
 
     if( operation->alg != PSA_ALG_CTR )
         return( PSA_ERROR_BAD_STATE );
@@ -258,12 +259,12 @@ psa_status_t test_transparent_cipher_generate_iv(
                                       iv,
                                       operation->iv_size ) );
     if( status != PSA_SUCCESS )
-        return status;
+        return( status );
 
     *iv_length = operation->iv_size;
     status = test_transparent_cipher_set_iv( operation, iv, *iv_length );
 
-    return status;
+    return( status );
 }
 
 psa_status_t test_transparent_cipher_set_iv(
@@ -273,10 +274,10 @@ psa_status_t test_transparent_cipher_set_iv(
 {
     psa_status_t status;
 
-    test_transparent_cipher_hit++;
+    test_driver_cipher_hooks.hits++;
 
     if( operation->alg != PSA_ALG_CTR )
-        return PSA_ERROR_BAD_STATE;
+        return( PSA_ERROR_BAD_STATE );
 
     if( operation->iv_set || ! operation->iv_required )
         return( PSA_ERROR_BAD_STATE );
@@ -290,7 +291,7 @@ psa_status_t test_transparent_cipher_set_iv(
     if( status == PSA_SUCCESS )
         operation->iv_set = 1;
 
-    return status;
+    return( status );
 }
 
 psa_status_t test_transparent_cipher_update(
@@ -304,7 +305,7 @@ psa_status_t test_transparent_cipher_update(
     size_t expected_output_size;
     psa_status_t status;
 
-    test_transparent_cipher_hit++;
+    test_driver_cipher_hooks.hits++;
 
     if( operation->alg != PSA_ALG_CTR )
         return( PSA_ERROR_BAD_STATE );
@@ -322,16 +323,18 @@ psa_status_t test_transparent_cipher_update(
     if( status != PSA_SUCCESS )
         return status;
 
-    if( test_driver_cipher_forced_output != NULL )
+    if( test_driver_cipher_hooks.forced_output != NULL )
     {
-        if( output_size < test_driver_cipher_forced_output_length )
+        if( output_size < test_driver_cipher_hooks.forced_output_length )
             return PSA_ERROR_BUFFER_TOO_SMALL;
 
-        memcpy(output, test_driver_cipher_forced_output, test_driver_cipher_forced_output_length);
-        *output_length = test_driver_cipher_forced_output_length;
+        memcpy( output,
+                test_driver_cipher_hooks.forced_output,
+                test_driver_cipher_hooks.forced_output_length );
+        *output_length = test_driver_cipher_hooks.forced_output_length;
     }
 
-    return test_transparent_cipher_status;
+    return( test_driver_cipher_hooks.forced_status );
 }
 
 psa_status_t test_transparent_cipher_finish(
@@ -343,7 +346,7 @@ psa_status_t test_transparent_cipher_finish(
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     uint8_t temp_output_buffer[MBEDTLS_MAX_BLOCK_LENGTH];
 
-    test_transparent_cipher_hit++;
+    test_driver_cipher_hooks.hits++;
 
     if( operation->alg != PSA_ALG_CTR )
         return( PSA_ERROR_BAD_STATE );
@@ -372,16 +375,18 @@ psa_status_t test_transparent_cipher_finish(
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
 
-    if( test_driver_cipher_forced_output != NULL )
+    if( test_driver_cipher_hooks.forced_output != NULL )
     {
-        if( output_size < test_driver_cipher_forced_output_length )
+        if( output_size < test_driver_cipher_hooks.forced_output_length )
             return PSA_ERROR_BUFFER_TOO_SMALL;
 
-        memcpy(output, test_driver_cipher_forced_output, test_driver_cipher_forced_output_length);
-        *output_length = test_driver_cipher_forced_output_length;
+        memcpy( output,
+                test_driver_cipher_hooks.forced_output,
+                test_driver_cipher_hooks.forced_output_length );
+        *output_length = test_driver_cipher_hooks.forced_output_length;
     }
 
-    return test_transparent_cipher_status;
+    return( test_driver_cipher_hooks.forced_status );
 }
 
 /*
@@ -403,7 +408,7 @@ psa_status_t test_opaque_cipher_encrypt(
     (void) output;
     (void) output_size;
     (void) output_length;
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t test_opaque_cipher_decrypt(
@@ -422,7 +427,7 @@ psa_status_t test_opaque_cipher_decrypt(
     (void) output;
     (void) output_size;
     (void) output_length;
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t test_opaque_cipher_encrypt_setup(
@@ -436,7 +441,7 @@ psa_status_t test_opaque_cipher_encrypt_setup(
     (void) key;
     (void) key_length;
     (void) alg;
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t test_opaque_cipher_decrypt_setup(
@@ -450,14 +455,14 @@ psa_status_t test_opaque_cipher_decrypt_setup(
     (void) key;
     (void) key_length;
     (void) alg;
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t test_opaque_cipher_abort(
     test_opaque_cipher_operation_t *operation)
 {
     (void) operation;
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t test_opaque_cipher_generate_iv(
@@ -470,7 +475,7 @@ psa_status_t test_opaque_cipher_generate_iv(
     (void) iv;
     (void) iv_size;
     (void) iv_length;
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t test_opaque_cipher_set_iv(
@@ -481,7 +486,7 @@ psa_status_t test_opaque_cipher_set_iv(
     (void) operation;
     (void) iv;
     (void) iv_length;
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t test_opaque_cipher_update(
@@ -498,7 +503,7 @@ psa_status_t test_opaque_cipher_update(
     (void) output;
     (void) output_size;
     (void) output_length;
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t test_opaque_cipher_finish(
@@ -511,6 +516,6 @@ psa_status_t test_opaque_cipher_finish(
     (void) output;
     (void) output_size;
     (void) output_length;
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

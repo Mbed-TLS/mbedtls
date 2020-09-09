@@ -31,19 +31,18 @@
     MBEDTLS_SSL_TLS1_3_LABEL( 3,  exporter    , "exporter"     ) \
     MBEDTLS_SSL_TLS1_3_LABEL( 4,  key         , "key"          ) \
     MBEDTLS_SSL_TLS1_3_LABEL( 5,  iv          , "iv"           ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 6,  sn          , "sn"           ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 7,  c_hs_traffic, "c hs traffic" ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 8,  c_ap_traffic, "c ap traffic" ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 9,  c_e_traffic , "c e traffic"  ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 10, s_hs_traffic, "s hs traffic" ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 11, s_ap_traffic, "s ap traffic" ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 12, s_e_traffic , "s e traffic"  ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 13, e_exp_master, "e exp master" ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 14, res_master  , "res master"   ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 15, exp_master  , "exp master"   ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 16, ext_binder  , "ext binder"   ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 17, res_binder  , "res binder"   ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 18, derived     , "derived"      )
+    MBEDTLS_SSL_TLS1_3_LABEL( 6,  c_hs_traffic, "c hs traffic" ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 7,  c_ap_traffic, "c ap traffic" ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 8,  c_e_traffic , "c e traffic"  ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 9,  s_hs_traffic, "s hs traffic" ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 10, s_ap_traffic, "s ap traffic" ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 11, s_e_traffic , "s e traffic"  ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 12, e_exp_master, "e exp master" ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 13, res_master  , "res master"   ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 14, exp_master  , "exp master"   ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 15, ext_binder  , "ext binder"   ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 16, res_binder  , "res binder"   ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 17, derived     , "derived"      )
 
 #define MBEDTLS_SSL_TLS1_3_LABEL( idx, name, string )       \
     const unsigned char name    [ sizeof(string) - 1 ];

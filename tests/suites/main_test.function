@@ -268,7 +268,7 @@ int main(int argc, const char *argv[])
     /* Other Local variables */
     int arg_index = 1;
     const char *next_arg;
-    size_t testfile_index, i, cnt;
+    size_t testfile_index, i, cnt, len;
     int ret;
     unsigned total_errors = 0, total_tests = 0, total_skipped = 0;
     FILE *file;
@@ -400,14 +400,18 @@ int main(int argc, const char *argv[])
                         {
                             if( 0 != option_verbose )
                             {
+                                len = strlen( params[i] );
                                 unmet_dependencies[unmet_dep_count] =
-                                    strdup( params[i] );
+                                    malloc( len + 1 );
                                 if( unmet_dependencies[unmet_dep_count] == NULL )
                                 {
                                     mbedtls_fprintf( stderr,
                                                      "FATAL: Out of memory\n" );
                                     mbedtls_exit( MBEDTLS_EXIT_FAILURE );
                                 }
+                                strncpy( unmet_dependencies[unmet_dep_count],
+                                    params[i], len );
+                                unmet_dependencies[unmet_dep_count][len] = '\0';
                             }
                             unmet_dep_count++;
                         }

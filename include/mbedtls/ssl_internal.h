@@ -392,7 +392,7 @@ typedef int  mbedtls_ssl_tls_prf_cb( const unsigned char *secret, size_t slen,
  *
  * Since the current definitions of MBEDTLS_MAX_{KEY|BLOCK|IV}_LENGTH
  * in cipher.h are rough overapproximations of the real maxima, here
- * we content ourselves with defining replicating those overapproximations
+ * we content ourselves with replicating those overapproximations
  * for the maximum block and IV length, and excluding XTS from the
  * computation of the maximum key length. */
 #define MBEDTLS_SSL_MAX_BLOCK_LENGTH 16

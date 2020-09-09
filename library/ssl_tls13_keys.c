@@ -255,12 +255,14 @@ int mbedtls_ssl_tls1_3_derive_secret(
     }
     else
     {
-        /* This should never happen since this function is internal
-         * and the code sets `context_already_hashed` correctly.
-         * Let's double-check nonetheless to not run at the risk
-         * of getting a stack overflow. */
         if( clen > sizeof(hashed_context) )
+        {
+            /* This should never happen since this function is internal
+             * and the code sets `context_already_hashed` correctly.
+             * Let's double-check nonetheless to not run at the risk
+             * of getting a stack overflow. */
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
 
         memcpy( hashed_context, ctx, clen );
     }

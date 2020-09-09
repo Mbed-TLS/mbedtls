@@ -4093,11 +4093,11 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
 
     /* Try doing this through a driver before using software fallback */
     if( cipher_operation == MBEDTLS_ENCRYPT )
-        status = psa_driver_wrapper_cipher_encrypt_setup( operation,
+        status = psa_driver_wrapper_cipher_encrypt_setup( &operation->ctx.driver,
                                                           slot,
                                                           alg );
     else
-        status = psa_driver_wrapper_cipher_decrypt_setup( operation,
+        status = psa_driver_wrapper_cipher_decrypt_setup( &operation->ctx.driver,
                                                           slot,
                                                           alg );
 
@@ -4218,7 +4218,7 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
 
     if( operation->accelerator_set == 1 )
     {
-        status = psa_driver_wrapper_cipher_generate_iv( operation,
+        status = psa_driver_wrapper_cipher_generate_iv( &operation->ctx.driver,
                                                         iv,
                                                         iv_size,
                                                         iv_length );
@@ -4260,7 +4260,7 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
 
     if( operation->accelerator_set == 1 )
     {
-        status = psa_driver_wrapper_cipher_set_iv( operation,
+        status = psa_driver_wrapper_cipher_set_iv( &operation->ctx.driver,
                                                    iv,
                                                    iv_length );
         goto exit;
@@ -4385,7 +4385,7 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
 
     if( operation->accelerator_set == 1 )
     {
-        status = psa_driver_wrapper_cipher_update( operation,
+        status = psa_driver_wrapper_cipher_update( &operation->ctx.driver,
                                                    input,
                                                    input_length,
                                                    output,
@@ -4459,7 +4459,7 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
 
     if( operation->accelerator_set == 1 )
     {
-        status = psa_driver_wrapper_cipher_finish( operation,
+        status = psa_driver_wrapper_cipher_finish( &operation->ctx.driver,
                                                    output,
                                                    output_size,
                                                    output_length );
@@ -4536,7 +4536,7 @@ psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
         return( PSA_ERROR_BAD_STATE );
 
     if( operation->accelerator_set == 1 )
-        psa_driver_wrapper_cipher_abort( operation );
+        psa_driver_wrapper_cipher_abort( &operation->ctx.driver );
     else
         mbedtls_cipher_free( &operation->ctx.cipher );
 

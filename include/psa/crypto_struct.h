@@ -77,6 +77,16 @@ extern "C" {
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 
+typedef struct {
+    /** Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_driver_wrappers.h */
+    unsigned int id;
+    /** Context structure for the assigned driver, when id is not zero. */
+    void* ctx;
+} psa_operation_driver_context_t;
+
 struct psa_hash_operation_s
 {
     psa_algorithm_t alg;
@@ -165,12 +175,7 @@ struct psa_cipher_operation_s
     {
         unsigned dummy; /* Enable easier initializing of the union. */
         mbedtls_cipher_context_t cipher;
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
-        struct {
-            unsigned int id;
-            void* ctx;
-        } driver;
-#endif
+        psa_operation_driver_context_t driver;
     } ctx;
 };
 

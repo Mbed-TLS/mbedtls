@@ -1,0 +1,2 @@
+Bugfix
+   * Fix build issues with the Sun C compiler. Contributed in #3648.

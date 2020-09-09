@@ -1,0 +1,3 @@
+Bugfix
+   * Fix test suites issue with an older version of perl distributed with
+     Solaris 10. Contributed in #3648.

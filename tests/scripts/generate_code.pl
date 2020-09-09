@@ -222,6 +222,19 @@ print TEST_FILE << "END";
  *
  */
 
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#define _POSIX_C_SOURCE 200112L // for fileno() from <stdio.h>
+#endif
+
+/*
+ * for arc4random_buf() from <stdlib.h>
+ */
+#if defined(__NetBSD__)
+#define _NETBSD_SOURCE 1
+#elif defined(__OpenBSD__)
+#define _BSD_SOURCE 1
+#endif
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include <mbedtls/config.h>
 #else

@@ -12,10 +12,13 @@
 
 #include <test/constant_flow.h>
 
-#define MBEDTLS_SSL_TLS1_3_LABEL( idx, name, string )   \
-    const int tls1_3_label_ ## name = idx;
+enum
+{
+#define MBEDTLS_SSL_TLS1_3_LABEL( name, string )   \
+     tls1_3_label_ ## name,
 MBEDTLS_SSL_TLS1_3_LABEL_LIST
 #undef MBEDTLS_SSL_TLS1_3_LABEL
+};
 
 typedef struct log_pattern
 {
@@ -3687,8 +3690,8 @@ void ssl_tls1_3_hkdf_expand_label( int hash_alg,
 
     unsigned char const *lbl = NULL;
     size_t lbl_len;
-#define MBEDTLS_SSL_TLS1_3_LABEL( idx, name, string )                   \
-    if( label_idx == tls1_3_label_ ## name )                            \
+#define MBEDTLS_SSL_TLS1_3_LABEL( name, string )                        \
+    if( label_idx == (int) tls1_3_label_ ## name )                      \
     {                                                                   \
         lbl = mbedtls_ssl_tls1_3_labels.name;                           \
         lbl_len = sizeof( mbedtls_ssl_tls1_3_labels.name );             \
@@ -3773,8 +3776,8 @@ void ssl_tls1_3_derive_secret( int hash_alg,
 
     unsigned char const *lbl = NULL;
     size_t lbl_len;
-#define MBEDTLS_SSL_TLS1_3_LABEL( idx, name, string )                   \
-    if( label_idx == tls1_3_label_ ## name )                            \
+#define MBEDTLS_SSL_TLS1_3_LABEL( name, string )                        \
+    if( label_idx == (int) tls1_3_label_ ## name )                      \
     {                                                                   \
         lbl = mbedtls_ssl_tls1_3_labels.name;                           \
         lbl_len = sizeof( mbedtls_ssl_tls1_3_labels.name );             \

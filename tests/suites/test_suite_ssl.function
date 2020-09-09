@@ -12,6 +12,11 @@
 
 #include <test/constant_flow.h>
 
+#define MBEDTLS_SSL_TLS1_3_LABEL( idx, name, string )   \
+    const int tls1_3_label_ ## name = idx;
+MBEDTLS_SSL_TLS1_3_LABEL_LIST
+#undef MBEDTLS_SSL_TLS1_3_LABEL
+
 typedef struct log_pattern
 {
     const char *pattern;
@@ -3673,13 +3678,24 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 void ssl_tls1_3_hkdf_expand_label( int hash_alg,
                                    data_t *secret,
-                                   data_t *label,
+                                   int label_idx,
                                    data_t *ctx,
                                    int desired_length,
                                    data_t *expected )
 {
     unsigned char dst[ 100 ];
 
+    unsigned char const *lbl = NULL;
+    size_t lbl_len;
+#define MBEDTLS_SSL_TLS1_3_LABEL( idx, name, string )                   \
+    if( label_idx == tls1_3_label_ ## name )                            \
+    {                                                                   \
+        lbl = mbedtls_ssl_tls1_3_labels.name;                           \
+        lbl_len = sizeof( mbedtls_ssl_tls1_3_labels.name );             \
+    }
+MBEDTLS_SSL_TLS1_3_LABEL_LIST
+#undef MBEDTLS_SSL_TLS1_3_LABEL
+    TEST_ASSERT( lbl != NULL );
 
     /* Check sanity of test parameters. */
     TEST_ASSERT( (size_t) desired_length <= sizeof(dst) );
@@ -3688,7 +3704,7 @@ void ssl_tls1_3_hkdf_expand_label( int hash_alg,
     TEST_ASSERT( mbedtls_ssl_tls1_3_hkdf_expand_label(
                       (mbedtls_md_type_t) hash_alg,
                       secret->x, secret->len,
-                      label->x, label->len,
+                      lbl, lbl_len,
                       ctx->x, ctx->len,
                       dst, desired_length ) == 0 );
 
@@ -3747,13 +3763,25 @@ void ssl_tls1_3_traffic_key_generation( int hash_alg,
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 void ssl_tls1_3_derive_secret( int hash_alg,
                                data_t *secret,
-                               data_t *label,
+                               int label_idx,
                                data_t *ctx,
                                int desired_length,
                                int already_hashed,
                                data_t *expected )
 {
     unsigned char dst[ 100 ];
+
+    unsigned char const *lbl = NULL;
+    size_t lbl_len;
+#define MBEDTLS_SSL_TLS1_3_LABEL( idx, name, string )                   \
+    if( label_idx == tls1_3_label_ ## name )                            \
+    {                                                                   \
+        lbl = mbedtls_ssl_tls1_3_labels.name;                           \
+        lbl_len = sizeof( mbedtls_ssl_tls1_3_labels.name );             \
+    }
+MBEDTLS_SSL_TLS1_3_LABEL_LIST
+#undef MBEDTLS_SSL_TLS1_3_LABEL
+    TEST_ASSERT( lbl != NULL );
 
     /* Check sanity of test parameters. */
     TEST_ASSERT( (size_t) desired_length <= sizeof(dst) );
@@ -3762,7 +3790,7 @@ void ssl_tls1_3_derive_secret( int hash_alg,
     TEST_ASSERT( mbedtls_ssl_tls1_3_derive_secret(
                       (mbedtls_md_type_t) hash_alg,
                       secret->x, secret->len,
-                      label->x, label->len,
+                      lbl, lbl_len,
                       ctx->x, ctx->len,
                       already_hashed,
                       dst, desired_length ) == 0 );

@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#define MBEDTLS_SSL_TLS1_3_LABEL( name, string ) \
+#define MBEDTLS_SSL_TLS1_3_LABEL( idx, name, string )       \
     .name = string,
 
 struct mbedtls_ssl_tls1_3_labels_struct const mbedtls_ssl_tls1_3_labels =

@@ -10418,49 +10418,49 @@ SSL TLS 1.3 Key schedule: HKDF Expand Label #1
 # Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
 # Server handshake traffic secret -> Server traffic key
 # HKDF-Expand-Label(server_handshake_secret, "key", "", 16)
-ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"a2067265e7f0652a923d5d72ab0467c46132eeb968b6a32d311c805868548814":"6b6579":"":16:"844780a7acad9f980fa25c114e43402a"
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"a2067265e7f0652a923d5d72ab0467c46132eeb968b6a32d311c805868548814":tls1_3_label_key:"":16:"844780a7acad9f980fa25c114e43402a"
 
 SSL TLS 1.3 Key schedule: HKDF Expand Label #2
 # Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
 # Server handshake traffic secret -> Server traffic IV
 # HKDF-Expand-Label(server_handshake_secret, "iv", "", 12)
-ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"a2067265e7f0652a923d5d72ab0467c46132eeb968b6a32d311c805868548814":"6976":"":12:"4c042ddc120a38d1417fc815"
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"a2067265e7f0652a923d5d72ab0467c46132eeb968b6a32d311c805868548814":tls1_3_label_iv:"":12:"4c042ddc120a38d1417fc815"
 
 SSL TLS 1.3 Key schedule: HKDF Expand Label #3
 # Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
 # Client handshake traffic secret -> Client traffic key
 # HKDF-Expand-Label(client_handshake_secret, "key", "", 16)
-ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"ff0e5b965291c608c1e8cd267eefc0afcc5e98a2786373f0db47b04786d72aea":"6b6579":"":16:"7154f314e6be7dc008df2c832baa1d39"
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"ff0e5b965291c608c1e8cd267eefc0afcc5e98a2786373f0db47b04786d72aea":tls1_3_label_key:"":16:"7154f314e6be7dc008df2c832baa1d39"
 
 SSL TLS 1.3 Key schedule: HKDF Expand Label #4
 # Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
 # Client handshake traffic secret -> Client traffic IV
 # HKDF-Expand-Label(client_handshake_secret, "iv", "", 12)
-ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"ff0e5b965291c608c1e8cd267eefc0afcc5e98a2786373f0db47b04786d72aea":"6976":"":12:"71abc2cae4c699d47c600268"
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"ff0e5b965291c608c1e8cd267eefc0afcc5e98a2786373f0db47b04786d72aea":tls1_3_label_iv:"":12:"71abc2cae4c699d47c600268"
 
 SSL TLS 1.3 Key schedule: HKDF Expand Label #5 (RFC 8448)
 # Vector from RFC 8448
 # Server handshake traffic secret -> Server traffic IV
 # HKDF-Expand-Label(server_handshake_secret, "iv", "", 12)
-ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"b67b7d690cc16c4e75e54213cb2d37b4e9c912bcded9105d42befd59d391ad38":"6976":"":12:"5d313eb2671276ee13000b30"
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"b67b7d690cc16c4e75e54213cb2d37b4e9c912bcded9105d42befd59d391ad38":tls1_3_label_iv:"":12:"5d313eb2671276ee13000b30"
 
 SSL TLS 1.3 Key schedule: HKDF Expand Label #6 (RFC 8448)
 # Vector from RFC 8448
 # Server handshake traffic secret -> Server traffic Key
 # HKDF-Expand-Label(server_handshake_secret, "key", "", 16)
-ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"b67b7d690cc16c4e75e54213cb2d37b4e9c912bcded9105d42befd59d391ad38":"6b6579":"":16:"3fce516009c21727d0f2e4e86ee403bc"
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"b67b7d690cc16c4e75e54213cb2d37b4e9c912bcded9105d42befd59d391ad38":tls1_3_label_key:"":16:"3fce516009c21727d0f2e4e86ee403bc"
 
 SSL TLS 1.3 Key schedule: HKDF Expand Label #7 (RFC 8448)
 # Vector from RFC 8448
 # Client handshake traffic secret -> Client traffic IV
 # HKDF-Expand-Label(client_handshake_secret, "iv", "", 12)
-ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"b3eddb126e067f35a780b3abf45e2d8f3b1a950738f52e9600746a0e27a55a21":"6976":"":12:"5bd3c71b836e0b76bb73265f"
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"b3eddb126e067f35a780b3abf45e2d8f3b1a950738f52e9600746a0e27a55a21":tls1_3_label_iv:"":12:"5bd3c71b836e0b76bb73265f"
 
 SSL TLS 1.3 Key schedule: HKDF Expand Label #8 (RFC 8448)
 # Vector from RFC 8448
 # Client handshake traffic secret -> Client traffic Key
 # HKDF-Expand-Label(client_handshake_secret, "key", "", 16)
-ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"b3eddb126e067f35a780b3abf45e2d8f3b1a950738f52e9600746a0e27a55a21":"6b6579":"":16:"dbfaa693d1762c5b666af5d950258d01"
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"b3eddb126e067f35a780b3abf45e2d8f3b1a950738f52e9600746a0e27a55a21":tls1_3_label_key:"":16:"dbfaa693d1762c5b666af5d950258d01"
 
 SSL TLS 1.3 Key schedule: Traffic key generation #1
 # Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
@@ -10477,14 +10477,13 @@ SSL TLS 1.3 Key schedule: Derive-Secret( ., "derived", "")
 # Derive-Secret( Early-Secret, "derived", "")
 # Tests the case where context isn't yet hashed (empty string here,
 # but still needs to be hashed)
-# 64657269766564 = hex("derived")
-ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"33ad0a1c607ec03b09e6cd9893680ce210adf300aa1f2660e1b22e10f170f92a":"64657269766564":"":32:0:"6f2615a108c702c5678f54fc9dbab69716c076189c48250cebeac3576c3611ba"
+ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"33ad0a1c607ec03b09e6cd9893680ce210adf300aa1f2660e1b22e10f170f92a":tls1_3_label_derived:"":32:0:"6f2615a108c702c5678f54fc9dbab69716c076189c48250cebeac3576c3611ba"
 
 SSL TLS 1.3 Key schedule: Derive-Secret( ., "s ap traffic", hash)
 # Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
 # Derive-Secret( MasterSecret, "s ap traffic", hash)
 # Tests the case where context is already hashed
-ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"7f2882bb9b9a46265941653e9c2f19067118151e21d12e57a7b6aca1f8150c8d":"732061702074726166666963":"22844b930e5e0a59a09d5ac35fc032fc91163b193874a265236e568077378d8b":32:1:"3fc35ea70693069a277956afa23b8f4543ce68ac595f2aace05cd7a1c92023d5"
+ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"7f2882bb9b9a46265941653e9c2f19067118151e21d12e57a7b6aca1f8150c8d":tls1_3_label_s_ap_traffic:"22844b930e5e0a59a09d5ac35fc032fc91163b193874a265236e568077378d8b":32:1:"3fc35ea70693069a277956afa23b8f4543ce68ac595f2aace05cd7a1c92023d5"
 
 SSL TLS_PRF MBEDTLS_SSL_TLS_PRF_NONE
 ssl_tls_prf:MBEDTLS_SSL_TLS_PRF_NONE:"":"":"test tls_prf label":"":MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE

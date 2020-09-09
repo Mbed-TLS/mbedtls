@@ -10456,7 +10456,7 @@ SSL TLS 1.3 Key schedule: HKDF Expand Label #7 (RFC 8448)
 # HKDF-Expand-Label(client_handshake_secret, "iv", "", 12)
 ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"b3eddb126e067f35a780b3abf45e2d8f3b1a950738f52e9600746a0e27a55a21":tls1_3_label_iv:"":12:"5bd3c71b836e0b76bb73265f"
 
-SSL TLS 1.3 Key schedule: HKDF Expand Label (RFC 8448)
+SSL TLS 1.3 Key schedule: HKDF Expand Label #8 (RFC 8448)
 # Vector from RFC 8448
 # Client handshake traffic secret -> Client traffic Key
 # HKDF-Expand-Label(client_handshake_secret, "key", "", 16)

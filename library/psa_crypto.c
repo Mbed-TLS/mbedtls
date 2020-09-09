@@ -4112,11 +4112,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
      * available for the given algorithm & key. */
     mbedtls_cipher_init( &operation->ctx.cipher );
 
-    status = psa_get_transparent_key( handle, &slot, usage, alg);
-    if( status != PSA_SUCCESS )
-        goto exit;
     key_bits = psa_get_key_slot_bits( slot );
-
     cipher_info = mbedtls_cipher_info_from_psa( alg, slot->attr.type, key_bits, NULL );
     if( cipher_info == NULL )
     {

@@ -525,10 +525,6 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
       .core = slot->attr
     };
 
-    /* Check for operation already allocated */
-    if( operation->ctx != NULL || operation->id != 0 )
-        return( PSA_ERROR_BAD_STATE );
-
     switch( location )
     {
         case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -549,6 +545,9 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
                 operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
             else
             {
+                mbedtls_platform_zeroize(
+                    operation->ctx,
+                    sizeof( test_transparent_cipher_operation_t ) );
                 mbedtls_free( operation->ctx );
                 operation->ctx = NULL;
             }
@@ -573,6 +572,9 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
                 operation->id = PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID;
             else
             {
+                mbedtls_platform_zeroize(
+                    operation->ctx,
+                    sizeof( test_opaque_cipher_operation_t ) );
                 mbedtls_free( operation->ctx );
                 operation->ctx = NULL;
             }
@@ -604,10 +606,6 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
       .core = slot->attr
     };
 
-    /* Check for operation already allocated */
-    if( operation->ctx != NULL )
-        return( PSA_ERROR_BAD_STATE );
-
     switch( location )
     {
         case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -628,6 +626,9 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
                 operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
             else
             {
+                mbedtls_platform_zeroize(
+                    operation->ctx,
+                    sizeof( test_transparent_cipher_operation_t ) );
                 mbedtls_free( operation->ctx );
                 operation->ctx = NULL;
             }
@@ -652,6 +653,9 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
                 operation->id = PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID;
             else
             {
+                mbedtls_platform_zeroize(
+                    operation->ctx,
+                    sizeof( test_opaque_cipher_operation_t ) );
                 mbedtls_free( operation->ctx );
                 operation->ctx = NULL;
             }
@@ -678,10 +682,6 @@ psa_status_t psa_driver_wrapper_cipher_generate_iv(
     size_t *iv_length )
 {
 #if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-    /* Check for operation already allocated */
-    if( operation->ctx == NULL )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
     switch( operation->id )
     {
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -718,10 +718,6 @@ psa_status_t psa_driver_wrapper_cipher_set_iv(
     size_t iv_length )
 {
 #if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-    /* Check for operation already allocated */
-    if( operation->ctx == NULL )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
     switch( operation->id )
     {
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -758,10 +754,6 @@ psa_status_t psa_driver_wrapper_cipher_update(
     size_t *output_length )
 {
 #if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-    /* Check for operation already allocated */
-    if( operation->ctx == NULL )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
     switch( operation->id )
     {
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -805,10 +797,6 @@ psa_status_t psa_driver_wrapper_cipher_finish(
     size_t *output_length )
 {
 #if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-    /* Check for operation already allocated */
-    if( operation->ctx == NULL )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
     switch( operation->id )
     {
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -844,16 +832,20 @@ psa_status_t psa_driver_wrapper_cipher_abort(
 {
 #if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
     psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
-    /* Check for operation already allocated */
-    if( operation->ctx == NULL )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    /* The object has (apparently) been initialized but it is not in use. It's
+     * ok to call abort on such an object, and there's nothing to do. */
+    if( operation->ctx == NULL && operation->id == 0 )
+        return( PSA_SUCCESS );
 
     switch( operation->id )
     {
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
             status = test_transparent_cipher_abort( operation->ctx );
-
+            mbedtls_platform_zeroize(
+                operation->ctx,
+                sizeof( test_transparent_cipher_operation_t ) );
             mbedtls_free( operation->ctx );
             operation->ctx = NULL;
             operation->id = 0;
@@ -863,8 +855,12 @@ psa_status_t psa_driver_wrapper_cipher_abort(
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID:
             status = test_opaque_cipher_abort( operation->ctx );
+            mbedtls_platform_zeroize(
+                operation->ctx,
+                sizeof( test_opaque_cipher_operation_t ) );
             mbedtls_free( operation->ctx );
             operation->ctx = NULL;
+            operation->id = 0;
 
             return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */

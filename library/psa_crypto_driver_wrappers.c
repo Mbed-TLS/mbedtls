@@ -545,23 +545,15 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
                                                             slot->data.key.bytes,
                                                             alg );
             /* Declared with fallback == true */
-            if( status != PSA_ERROR_NOT_SUPPORTED )
-            {
-                if( status == PSA_SUCCESS )
-                    operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
-                else
-                {
-                    mbedtls_free( operation->ctx );
-                    operation->ctx = NULL;
-                }
-
-                return( status );
-            }
+            if( status == PSA_SUCCESS )
+                operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
             else
             {
                 mbedtls_free( operation->ctx );
                 operation->ctx = NULL;
             }
+
+            return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
             /* Fell through, meaning no accelerator supports this operation */
             return( PSA_ERROR_NOT_SUPPORTED );
@@ -632,23 +624,15 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
                                                             slot->data.key.bytes,
                                                             alg );
             /* Declared with fallback == true */
-            if( status != PSA_ERROR_NOT_SUPPORTED )
-            {
-                if( status == PSA_SUCCESS )
-                    operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
-                else
-                {
-                    mbedtls_free( operation->ctx );
-                    operation->ctx = NULL;
-                }
-
-                return( status );
-            }
+            if( status == PSA_SUCCESS )
+                operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
             else
             {
                 mbedtls_free( operation->ctx );
                 operation->ctx = NULL;
             }
+
+            return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
             /* Fell through, meaning no accelerator supports this operation */
             return( PSA_ERROR_NOT_SUPPORTED );

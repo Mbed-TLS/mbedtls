@@ -1,0 +1,2 @@
+Features
+   * Allow builds with -std=c99. Contributed in #3656.

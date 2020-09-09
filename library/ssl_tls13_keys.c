@@ -280,8 +280,8 @@ int mbedtls_ssl_tls1_3_evolve_secret(
 {
     int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     size_t hlen, ilen;
-    unsigned char _secret[ MBEDTLS_MD_MAX_SIZE ] = { 0 };
-    unsigned char _input [ MBEDTLS_MD_MAX_SIZE ] = { 0 };
+    unsigned char tmp_secret[ MBEDTLS_MD_MAX_SIZE ] = { 0 };
+    unsigned char tmp_input [ MBEDTLS_MD_MAX_SIZE ] = { 0 };
 
     const mbedtls_md_info_t *md;
     md = mbedtls_md_info_from_type( hash_alg );
@@ -300,14 +300,14 @@ int mbedtls_ssl_tls1_3_evolve_secret(
                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( derived ),
                    NULL, 0, /* context */
                    MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED,
-                   _secret, hlen );
+                   tmp_secret, hlen );
         if( ret != 0 )
             goto cleanup;
     }
 
     if( input != NULL )
     {
-        memcpy( _input, input, input_len );
+        memcpy( tmp_input, input, input_len );
         ilen = input_len;
     }
     else
@@ -319,8 +319,8 @@ int mbedtls_ssl_tls1_3_evolve_secret(
      * The salt is the old secret, and the input key material
      * is the input secret (PSK / ECDHE). */
     ret = mbedtls_hkdf_extract( md,
-                    _secret, hlen,
-                    _input, ilen,
+                    tmp_secret, hlen,
+                    tmp_input, ilen,
                     secret_new );
     if( ret != 0 )
         goto cleanup;
@@ -329,8 +329,8 @@ int mbedtls_ssl_tls1_3_evolve_secret(
 
  cleanup:
 
-    mbedtls_platform_zeroize( _secret, sizeof(_secret) );
-    mbedtls_platform_zeroize( _input,  sizeof(_input)  );
+    mbedtls_platform_zeroize( tmp_secret, sizeof(tmp_secret) );
+    mbedtls_platform_zeroize( tmp_input,  sizeof(tmp_input)  );
     return( ret );
 }
 

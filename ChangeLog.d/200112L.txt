@@ -1,0 +1,3 @@
+Bugfix
+   * Set _POSIX_C_SOURCE to at least 200112L in C99 code. Reported in #3420 and
+     fix submitted in #3421 by Nia Alarie. Adopted for LTS branch 2.16 in #3658.

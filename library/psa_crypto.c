@@ -4101,12 +4101,18 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
                                                           slot,
                                                           alg );
 
-    if( status == PSA_SUCCESS )
-        operation->accelerator_set = 1;
-
     if( status != PSA_ERROR_NOT_SUPPORTED ||
         psa_key_lifetime_is_external( slot->attr.lifetime ) )
+    {
+        /* Indicate this operation is bound to an accelerator. When the driver
+         * setup succeeded, this indicates to the core to not call any mbedtls_
+         * functions for this operation (contexts are not interoperable).
+         * In case the drivers couldn't setup and there's no way to fallback,
+         * indicate to the core to not call mbedtls_cipher_free on an
+         * uninitialised mbed TLS cipher context. */
+        operation->accelerator_set = 1;
         goto exit;
+    }
 
     /* Proceed with initializing mbed TLS cipher context if no accelerator is
      * available for the given algorithm & key. */

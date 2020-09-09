@@ -4225,7 +4225,7 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
         goto exit;
     }
 
-    if( operation->iv_set || ! operation->iv_required || ! operation->key_set )
+    if( operation->iv_set || ! operation->iv_required )
     {
         return( PSA_ERROR_BAD_STATE );
     }
@@ -4266,7 +4266,7 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
         goto exit;
     }
 
-    if( operation->iv_set || ! operation->iv_required || ! operation->key_set )
+    if( operation->iv_set || ! operation->iv_required )
     {
         return( PSA_ERROR_BAD_STATE );
     }
@@ -4394,7 +4394,11 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
         goto exit;
     }
 
-    if( operation->alg == 0 || ! operation->key_set )
+    if( operation->alg == 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+    if( operation->iv_required && ! operation->iv_set )
     {
         return( PSA_ERROR_BAD_STATE );
     }
@@ -4466,10 +4470,6 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
         return( status );
     }
 
-    if( ! operation->key_set )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
     if( operation->iv_required && ! operation->iv_set )
     {
         return( PSA_ERROR_BAD_STATE );

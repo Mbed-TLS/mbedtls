@@ -35,11 +35,11 @@
 
 #include <string.h>
 
-/* Test driver implements AES-CTR by default when it's status is not overridden.
+/* Test driver implements AES-CTR only. Its default behaviour (when its return
+ * status is not overridden through the hooks) is to take care of all AES-CTR
+ * operations, and return PSA_ERROR_NOT_SUPPORTED for all others.
  * Set test_driver_cipher_hooks.forced_status to PSA_ERROR_NOT_SUPPORTED to use
- * fallback even for AES-CTR.
- * Keep in mind this code is only exercised with the crypto drivers test target,
- * meaning the other test runs will only test the non-driver implementation. */
+ * fallback even for AES-CTR. */
 test_driver_cipher_hooks_t test_driver_cipher_hooks = TEST_DRIVER_CIPHER_INIT;
 
 psa_status_t test_transparent_cipher_encrypt(
@@ -112,10 +112,11 @@ psa_status_t test_transparent_cipher_encrypt_setup(
     if( operation->alg != 0 )
         return( PSA_ERROR_BAD_STATE );
 
-    /* write our struct, this will trigger memory corruption failures
-     * in test when we go outside of bounds, or when the function is called
-     * without first destroying the context object. */
-    memset( operation, 0, sizeof( test_transparent_cipher_operation_t ) );
+    /* Wiping the entire struct here, instead of member-by-member. This is useful
+     * for the test suite, since it gives a chance of catching memory corruption
+     * errors should the core not have allocated (enough) memory for our context
+     * struct. */
+    memset( operation, 0, sizeof( *operation ) );
 
     /* Test driver supports AES-CTR only, to verify operation calls. */
     if( alg != PSA_ALG_CTR ||
@@ -173,10 +174,11 @@ psa_status_t test_transparent_cipher_decrypt_setup(
     if( operation->alg != 0 )
         return( PSA_ERROR_BAD_STATE );
 
-    /* write our struct, this will trigger memory corruption failures
-     * in test when we go outside of bounds, or when the function is called
-     * without first destroying the context object. */
-    memset( operation, 0, sizeof( test_transparent_cipher_operation_t ) );
+    /* Wiping the entire struct here, instead of member-by-member. This is useful
+     * for the test suite, since it gives a chance of catching memory corruption
+     * errors should the core not have allocated (enough) memory for our context
+     * struct. */
+    memset( operation, 0, sizeof( *operation ) );
 
     /* Test driver supports AES-CTR only, to verify operation calls. */
     if( alg != PSA_ALG_CTR || psa_get_key_type( attributes ) != PSA_KEY_TYPE_AES )
@@ -225,9 +227,11 @@ psa_status_t test_transparent_cipher_abort(
 
     mbedtls_cipher_free( &operation->cipher );
 
-    /* write our struct, this will trigger memory corruption failures
-     * in test when we go outside of bounds. */
-    memset( operation, 0, sizeof( test_transparent_cipher_operation_t ) );
+    /* Wiping the entire struct here, instead of member-by-member. This is useful
+     * for the test suite, since it gives a chance of catching memory corruption
+     * errors should the core not have allocated (enough) memory for our context
+     * struct. */
+    memset( operation, 0, sizeof( *operation ) );
 
     test_driver_cipher_hooks.hits++;
     return( PSA_SUCCESS );

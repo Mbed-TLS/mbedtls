@@ -411,10 +411,10 @@ psa_status_t psa_driver_wrapper_cipher_encrypt(
                                                       output_length );
             /* Declared with fallback == true */
             if( status != PSA_ERROR_NOT_SUPPORTED )
-                return status;
+                return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
             /* Fell through, meaning no accelerator supports this operation */
-            return PSA_ERROR_NOT_SUPPORTED;
+            return( PSA_ERROR_NOT_SUPPORTED );
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
@@ -430,7 +430,7 @@ psa_status_t psa_driver_wrapper_cipher_encrypt(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is declared with a lifetime not known to us */
-            return status;
+            return( status );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void) slot;
@@ -441,7 +441,7 @@ psa_status_t psa_driver_wrapper_cipher_encrypt(
     (void) output_size;
     (void) output_length;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
@@ -478,10 +478,10 @@ psa_status_t psa_driver_wrapper_cipher_decrypt(
                                                       output_length );
             /* Declared with fallback == true */
             if( status != PSA_ERROR_NOT_SUPPORTED )
-                return status;
+                return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
             /* Fell through, meaning no accelerator supports this operation */
-            return PSA_ERROR_NOT_SUPPORTED;
+            return( PSA_ERROR_NOT_SUPPORTED );
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
@@ -497,7 +497,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is declared with a lifetime not known to us */
-            return status;
+            return( status );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void) slot;
@@ -508,7 +508,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt(
     (void) output_size;
     (void) output_length;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
@@ -526,7 +526,7 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
 
     /* Check for operation already allocated */
     if( operation->ctx.driver.ctx != NULL )
-        return PSA_ERROR_BAD_STATE;
+        return( PSA_ERROR_BAD_STATE );
 
     switch( location )
     {
@@ -554,7 +554,7 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
                     operation->ctx.driver.ctx = NULL;
                 }
 
-                return status;
+                return( status );
             }
             else
             {
@@ -563,13 +563,13 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
             }
 #endif /* PSA_CRYPTO_DRIVER_TEST */
             /* Fell through, meaning no accelerator supports this operation */
-            return PSA_ERROR_NOT_SUPPORTED;
+            return( PSA_ERROR_NOT_SUPPORTED );
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
             operation->ctx.driver.ctx = mbedtls_calloc( 1, sizeof(test_opaque_cipher_operation_t) );
             if( operation->ctx.driver.ctx == NULL )
-                return PSA_ERROR_INSUFFICIENT_MEMORY;
+                return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
             status = test_opaque_cipher_encrypt_setup( operation->ctx.driver.ctx,
                                                        &attributes,
@@ -584,18 +584,18 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
                 operation->ctx.driver.ctx = NULL;
             }
 
-            return status;
+            return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is declared with a lifetime not known to us */
-            return PSA_ERROR_BAD_STATE;
+            return( PSA_ERROR_BAD_STATE );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void)slot;
     (void)alg;
     (void)operation;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
@@ -613,7 +613,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
 
     /* Check for operation already allocated */
     if( operation->ctx.driver.ctx != NULL )
-        return PSA_ERROR_BAD_STATE;
+        return( PSA_ERROR_BAD_STATE );
 
     switch( location )
     {
@@ -623,7 +623,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
 #if defined(PSA_CRYPTO_DRIVER_TEST)
             operation->ctx.driver.ctx = mbedtls_calloc( 1, sizeof(test_transparent_cipher_operation_t) );
             if( operation->ctx.driver.ctx == NULL )
-                return PSA_ERROR_INSUFFICIENT_MEMORY;
+                return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
             status = test_transparent_cipher_decrypt_setup( operation->ctx.driver.ctx,
                                                             &attributes,
@@ -641,7 +641,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
                     operation->ctx.driver.ctx = NULL;
                 }
 
-                return status;
+                return( status );
             }
             else
             {
@@ -650,7 +650,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
             }
 #endif /* PSA_CRYPTO_DRIVER_TEST */
             /* Fell through, meaning no accelerator supports this operation */
-            return PSA_ERROR_NOT_SUPPORTED;
+            return( PSA_ERROR_NOT_SUPPORTED );
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
@@ -671,18 +671,18 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
                 operation->ctx.driver.ctx = NULL;
             }
 
-            return status;
+            return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is declared with a lifetime not known to us */
-            return PSA_ERROR_BAD_STATE;
+            return( PSA_ERROR_BAD_STATE );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void)slot;
     (void)alg;
     (void)operation;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
@@ -695,7 +695,7 @@ psa_status_t psa_driver_wrapper_cipher_generate_iv(
 #if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
     /* Check for operation already allocated */
     if( operation->ctx.driver.ctx == NULL )
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     switch( operation->ctx.driver.id )
     {
@@ -715,7 +715,7 @@ psa_status_t psa_driver_wrapper_cipher_generate_iv(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is attached to a driver not known to us */
-            return PSA_ERROR_BAD_STATE;
+            return( PSA_ERROR_BAD_STATE );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void) operation;
@@ -723,7 +723,7 @@ psa_status_t psa_driver_wrapper_cipher_generate_iv(
     (void) iv_size;
     (void) iv_length;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
@@ -735,7 +735,7 @@ psa_status_t psa_driver_wrapper_cipher_set_iv(
 #if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
     /* Check for operation already allocated */
     if( operation->ctx.driver.ctx == NULL )
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     switch( operation->ctx.driver.id )
     {
@@ -753,14 +753,14 @@ psa_status_t psa_driver_wrapper_cipher_set_iv(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is attached to a driver not known to us */
-            return PSA_ERROR_BAD_STATE;
+            return( PSA_ERROR_BAD_STATE );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void) operation;
     (void) iv;
     (void) iv_length;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
@@ -775,7 +775,7 @@ psa_status_t psa_driver_wrapper_cipher_update(
 #if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
     /* Check for operation already allocated */
     if( operation->ctx.driver.ctx == NULL )
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     switch( operation->ctx.driver.id )
     {
@@ -799,7 +799,7 @@ psa_status_t psa_driver_wrapper_cipher_update(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is attached to a driver not known to us */
-            return PSA_ERROR_BAD_STATE;
+            return( PSA_ERROR_BAD_STATE );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void) operation;
@@ -809,7 +809,7 @@ psa_status_t psa_driver_wrapper_cipher_update(
     (void) output_length;
     (void) output_size;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
@@ -822,7 +822,7 @@ psa_status_t psa_driver_wrapper_cipher_finish(
 #if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
     /* Check for operation already allocated */
     if( operation->ctx.driver.ctx == NULL )
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     switch( operation->ctx.driver.id )
     {
@@ -842,7 +842,7 @@ psa_status_t psa_driver_wrapper_cipher_finish(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is attached to a driver not known to us */
-            return PSA_ERROR_BAD_STATE;
+            return( PSA_ERROR_BAD_STATE );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void) operation;
@@ -850,7 +850,7 @@ psa_status_t psa_driver_wrapper_cipher_finish(
     (void) output_size;
     (void) output_length;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
@@ -861,7 +861,7 @@ psa_status_t psa_driver_wrapper_cipher_abort(
     psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
     /* Check for operation already allocated */
     if( operation->ctx.driver.ctx == NULL )
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     switch( operation->ctx.driver.id )
     {
@@ -873,7 +873,7 @@ psa_status_t psa_driver_wrapper_cipher_abort(
             operation->ctx.driver.ctx = NULL;
             operation->ctx.driver.id = 0;
 
-            return status;
+            return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID:
@@ -881,16 +881,16 @@ psa_status_t psa_driver_wrapper_cipher_abort(
             mbedtls_free( operation->ctx.driver.ctx );
             operation->ctx.driver.ctx = NULL;
 
-            return status;
+            return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Operation is attached to a driver not known to us */
-            return PSA_ERROR_BAD_STATE;
+            return( PSA_ERROR_BAD_STATE );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void)operation;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 

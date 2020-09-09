@@ -236,6 +236,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
                                 output + total_output_length,
                                 output_buffer_size - total_output_length,
                                 &function_output_length );
+    /* Finish will have called abort as well, so expecting two hits here */
     TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
     test_driver_cipher_hooks.hits = 0;
 
@@ -326,6 +327,7 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
                                    output + total_output_length,
                                    output_buffer_size - total_output_length,
                                    &function_output_length ) );
+    /* Finish will have called abort as well, so expecting two hits here */
     TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
     test_driver_cipher_hooks.hits = 0 ;
     total_output_length += function_output_length;
@@ -413,6 +415,7 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
                                    output + total_output_length,
                                    output_buffer_size - total_output_length,
                                    &function_output_length ) );
+    /* Finish will have called abort as well, so expecting two hits here */
     TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
     test_driver_cipher_hooks.hits = 0;
     total_output_length += function_output_length;
@@ -483,6 +486,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
                                 output + total_output_length,
                                 output_buffer_size - total_output_length,
                                 &function_output_length );
+    /* Finish will have called abort as well, so expecting two hits here */
     TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
     test_driver_cipher_hooks.hits = 0;
 

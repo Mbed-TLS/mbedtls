@@ -52,7 +52,7 @@ static void rot13( const uint8_t *in,
 /* BEGIN_CASE */
 void opaque_test_driver_bad_param( )
 {
-    #define OPQ_BUFSIZE ( 64U + OPAQUE_TEST_DRIVER_KEYHEADER_SIZE )
+#define OPQ_BUFSIZE ( 64U + OPAQUE_TEST_DRIVER_KEYHEADER_SIZE )
     size_t out_key_len;
     uint8_t in_key[16];
     psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
@@ -78,7 +78,7 @@ void opaque_test_driver_bad_param( )
                                                in_key,
                                                16,
                                                out_key,
-                                               OPQ_BUFSIZE,
+                                               sizeof(out_key),
                                                &out_key_len ) );
     psa_set_key_type( &attr, PSA_KEY_TYPE_ARC4 );
     TEST_EQUAL( PSA_ERROR_NOT_SUPPORTED,
@@ -86,7 +86,7 @@ void opaque_test_driver_bad_param( )
                                                in_key,
                                                16,
                                                out_key,
-                                               OPQ_BUFSIZE,
+                                               sizeof(out_key),
                                                &out_key_len ) );
     psa_set_key_type( &attr, PSA_KEY_TYPE_AES );
     psa_set_key_bits( &attr, 129 );
@@ -95,7 +95,7 @@ void opaque_test_driver_bad_param( )
                                                in_key,
                                                16,
                                                out_key,
-                                               OPQ_BUFSIZE,
+                                               sizeof(out_key),
                                                &out_key_len ) );
     psa_set_key_bits( &attr, 128 );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
@@ -103,7 +103,7 @@ void opaque_test_driver_bad_param( )
                                                in_key,
                                                17,
                                                out_key,
-                                               OPQ_BUFSIZE,
+                                               sizeof(out_key),
                                                &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_BUFFER_TOO_SMALL,
                 opaque_test_driver_import_key( &attr,
@@ -116,20 +116,20 @@ void opaque_test_driver_bad_param( )
     /* Check validity of parameter set. */
     PSA_ASSERT( opaque_test_driver_generate_key( &attr,
                                                  out_key,
-                                                 OPQ_BUFSIZE,
+                                                 sizeof(out_key),
                                                  &out_key_len ) );
     psa_set_key_bits( &attr, 0 );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 opaque_test_driver_generate_key( &attr,
                                                  out_key,
-                                                 OPQ_BUFSIZE,
+                                                 sizeof(out_key),
                                                  &out_key_len ) );
     psa_set_key_bits( &attr, 128 );
     psa_set_key_type( &attr, PSA_KEY_TYPE_ARC4 );
     TEST_EQUAL( PSA_ERROR_NOT_SUPPORTED,
                 opaque_test_driver_generate_key( &attr,
                                                  out_key,
-                                                 OPQ_BUFSIZE,
+                                                 sizeof(out_key),
                                                  &out_key_len ) );
     psa_set_key_type( &attr, PSA_KEY_TYPE_AES );
     TEST_EQUAL( PSA_ERROR_BUFFER_TOO_SMALL,
@@ -141,7 +141,7 @@ void opaque_test_driver_bad_param( )
     TEST_EQUAL( PSA_ERROR_NOT_SUPPORTED,
                 opaque_test_driver_generate_key( &attr,
                                                  out_key,
-                                                 OPQ_BUFSIZE,
+                                                 sizeof(out_key),
                                                  &out_key_len ) );
     /* Check validity of parameter set. */
     psa_set_key_type( &attr,
@@ -163,7 +163,7 @@ void opaque_test_driver_bad_param( )
                                     key,
                                     key_size,
                                     out_key,
-                                    OPQ_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 opaque_test_driver_export_public_key(
@@ -171,7 +171,7 @@ void opaque_test_driver_bad_param( )
                                     key,
                                     key_size-1, // key too short
                                     out_key,
-                                    OPQ_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_BUFFER_TOO_SMALL,
                 opaque_test_driver_export_public_key(
@@ -196,7 +196,7 @@ void opaque_test_driver_bad_param( )
                                  in_key,
                                  16,
                                  out_key,
-                                 OPQ_BUFSIZE,
+                                 sizeof(out_key),
                                  &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 opaque_test_driver_sign_hash(
@@ -207,7 +207,7 @@ void opaque_test_driver_bad_param( )
                                  in_key,
                                  16,
                                  out_key,
-                                 OPQ_BUFSIZE,
+                                 sizeof(out_key),
                                  &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_BUFFER_TOO_SMALL,
                 opaque_test_driver_sign_hash(
@@ -244,7 +244,7 @@ void opaque_test_driver_bad_param( )
 exit:
     psa_reset_key_attributes(&attr);
     PSA_DONE( );
-    #undef OPQ_BUFSIZE
+#undef OPQ_BUFSIZE
 }
 /* END_CASE */
 
@@ -309,7 +309,7 @@ exit:
 /* BEGIN_CASE */
 void opaque_test_driver_generate_key( int type_arg, int bits_arg )
 {
-    #define OPQ_BUFSIZE ( 32U + OPAQUE_TEST_DRIVER_KEYHEADER_SIZE )
+#define OPQ_BUFSIZE ( 32U + OPAQUE_TEST_DRIVER_KEYHEADER_SIZE )
     size_t key_len = 0;
     uint8_t key[OPQ_BUFSIZE];
     psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
@@ -330,20 +330,20 @@ void opaque_test_driver_generate_key( int type_arg, int bits_arg )
                               PSA_KEY_LOCATION_OPAQUE_TEST_DRIVER));
 
     PSA_ASSERT( opaque_test_driver_generate_key( &attr,
-                                                                 key,
-                                                                 OPQ_BUFSIZE,
-                                                                 &key_len ) );
+                                                 key,
+                                                 sizeof(key),
+                                                 &key_len ) );
 exit:
     psa_reset_key_attributes( &attr );
     PSA_DONE( );
-    #undef OPQ_BUFSIZE
+#undef OPQ_BUFSIZE
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
 void opaque_test_driver_import_key( char *key_material )
 {
-    #define OPQ_BUFSIZE ( 32U + OPAQUE_TEST_DRIVER_KEYHEADER_SIZE )
+#define OPQ_BUFSIZE ( 32U + OPAQUE_TEST_DRIVER_KEYHEADER_SIZE )
     size_t out_key_len = 0;
     psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t out_key1[OPQ_BUFSIZE + 1];
@@ -371,7 +371,7 @@ void opaque_test_driver_import_key( char *key_material )
                                                (uint8_t *) key_material,
                                                strlen( key_material ),
                                                out_key1,
-                                               OPQ_BUFSIZE + 1,
+                                               sizeof(out_key1),
                                                &out_key_len ) );
 
     TEST_EQUAL( strlen( key_material ) + OPAQUE_TEST_DRIVER_KEYHEADER_SIZE,
@@ -386,7 +386,7 @@ void opaque_test_driver_import_key( char *key_material )
                                     strlen( (char *) out_key1 +
                                         OPAQUE_TEST_DRIVER_KEYHEADER_SIZE ),
                                     out_key2,
-                                    OPQ_BUFSIZE + 1,
+                                    sizeof(out_key2),
                                     &out_key_len ) );
 
     TEST_EQUAL( strlen( (char *) out_key1 ), out_key_len );
@@ -402,14 +402,14 @@ void opaque_test_driver_import_key( char *key_material )
 exit:
     psa_reset_key_attributes( &attr );
     PSA_DONE( );
-    #undef OPQ_BUFSIZE
+#undef OPQ_BUFSIZE
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
 void opaque_test_driver_invalid_param( )
 {
-    #define OPQ_BUFSIZE (64U + OPAQUE_TEST_DRIVER_KEYHEADER_SIZE)
+#define OPQ_BUFSIZE (64U + OPAQUE_TEST_DRIVER_KEYHEADER_SIZE)
     size_t out_key_len;
     uint8_t in_key[16];
     psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
@@ -435,7 +435,7 @@ void opaque_test_driver_invalid_param( )
                                                in_key,
                                                16,
                                                out_key,
-                                               OPQ_BUFSIZE,
+                                               sizeof(out_key),
                                                &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_import_key(
@@ -443,7 +443,7 @@ void opaque_test_driver_invalid_param( )
                                                       in_key,
                                                       16,
                                                       out_key,
-                                                      OPQ_BUFSIZE,
+                                                      sizeof(out_key),
                                                       &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_import_key(
@@ -451,7 +451,7 @@ void opaque_test_driver_invalid_param( )
                                                       NULL,
                                                       16,
                                                       out_key,
-                                                      OPQ_BUFSIZE,
+                                                      sizeof(out_key),
                                                       &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_import_key(
@@ -459,7 +459,7 @@ void opaque_test_driver_invalid_param( )
                                                       in_key,
                                                       16,
                                                       NULL,
-                                                      OPQ_BUFSIZE,
+                                                      sizeof(out_key),
                                                       &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_import_key(
@@ -467,32 +467,32 @@ void opaque_test_driver_invalid_param( )
                                                       in_key,
                                                       16,
                                                       out_key,
-                                                      OPQ_BUFSIZE,
+                                                      sizeof(out_key),
                                                       NULL ) );
 
     /* Check validity of parameter set. */
     PSA_ASSERT( opaque_test_driver_generate_key(
                                                       &attr,
                                                       out_key,
-                                                      OPQ_BUFSIZE,
+                                                      sizeof(out_key),
                                                       &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_generate_key(
                                                       NULL,
                                                       out_key,
-                                                      OPQ_BUFSIZE,
+                                                      sizeof(out_key),
                                                       &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_generate_key(
                                                       &attr,
                                                       NULL,
-                                                      OPQ_BUFSIZE,
+                                                      sizeof(out_key),
                                                       &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_generate_key(
                                                       &attr,
                                                       out_key,
-                                                      OPQ_BUFSIZE,
+                                                      sizeof(out_key),
                                                       NULL ) );
 
     /* Check validity of parameter set. */
@@ -515,7 +515,7 @@ void opaque_test_driver_invalid_param( )
                                     key,
                                     key_size,
                                     out_key,
-                                    OPQ_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_export_public_key(
@@ -523,7 +523,7 @@ void opaque_test_driver_invalid_param( )
                                     key,
                                     key_size,
                                     out_key,
-                                    OPQ_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_export_public_key(
@@ -531,7 +531,7 @@ void opaque_test_driver_invalid_param( )
                                     NULL,
                                     key_size,
                                     out_key,
-                                    OPQ_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_export_public_key(
@@ -539,7 +539,7 @@ void opaque_test_driver_invalid_param( )
                                     key,
                                     key_size,
                                     NULL,
-                                    OPQ_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_export_public_key(
@@ -547,7 +547,7 @@ void opaque_test_driver_invalid_param( )
                                     key,
                                     key_size,
                                     out_key,
-                                    OPQ_BUFSIZE,
+                                    sizeof(out_key),
                                     NULL ) );
 
     /* Check validity of parameter set. */
@@ -564,7 +564,7 @@ void opaque_test_driver_invalid_param( )
                                     in_key,
                                     16,
                                     out_key,
-                                    OPQ_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_sign_hash(
@@ -575,7 +575,7 @@ void opaque_test_driver_invalid_param( )
                                     in_key,
                                     16,
                                     out_key,
-                                    OPQ_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_sign_hash(
@@ -586,7 +586,7 @@ void opaque_test_driver_invalid_param( )
                                     in_key,
                                     16,
                                     out_key,
-                                    OPQ_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_sign_hash(
@@ -597,7 +597,7 @@ void opaque_test_driver_invalid_param( )
                                     NULL,
                                     16,
                                     out_key,
-                                    OPQ_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                             opaque_test_driver_sign_hash(
@@ -608,7 +608,7 @@ void opaque_test_driver_invalid_param( )
                                     in_key,
                                     16,
                                     NULL,
-                                    OPQ_BUFSIZE,
+                                    sizeof(out_key),
                                     &out_key_len ) );
     TEST_EQUAL( PSA_ERROR_INVALID_ARGUMENT,
                 opaque_test_driver_sign_hash(
@@ -619,7 +619,7 @@ void opaque_test_driver_invalid_param( )
                                     in_key,
                                     16,
                                     out_key,
-                                    OPQ_BUFSIZE,
+                                    sizeof(out_key),
                                     NULL ) );
 
     /* Check validity of parameter set. */
@@ -676,7 +676,7 @@ void opaque_test_driver_invalid_param( )
 exit:
     psa_reset_key_attributes(&attr);
     PSA_DONE( );
-    #undef OPQ_BUFSIZE
+#undef OPQ_BUFSIZE
 }
 /* END_CASE */
 
@@ -685,7 +685,7 @@ void opaque_test_driver_sign_verify( int key_type_arg, data_t *key_data,
                                      int alg_arg, data_t *input_data )
 
 {
-    #define OPQ_BUFSIZE 128U
+#define OPQ_BUFSIZE 128U
     size_t key_bits;
     uint8_t sign[OPQ_BUFSIZE];
     size_t sign_size;
@@ -719,7 +719,7 @@ void opaque_test_driver_sign_verify( int key_type_arg, data_t *key_data,
                                               input_data->x,
                                               input_data->len,
                                               sign,
-                                              OPQ_BUFSIZE,
+                                              sizeof(sign),
                                               &sign_length ) );
 
     key_bits = psa_get_key_bits( &attr );
@@ -758,6 +758,6 @@ void opaque_test_driver_sign_verify( int key_type_arg, data_t *key_data,
 exit:
     psa_reset_key_attributes( &attr );
     PSA_DONE( );
-    #undef OPQ_BUFSIZE
+#undef OPQ_BUFSIZE
 }
 /* END_CASE */

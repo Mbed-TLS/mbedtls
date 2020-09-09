@@ -144,6 +144,10 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
                      size_t slen, size_t key_len, size_t iv_len,
                      mbedtls_ssl_key_set *keys );
 
+
+#define MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED 0
+#define MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED   1
+
 /**
  * \brief The \c Derive-Secret function from the TLS 1.3 standard RFC 8446.
  *
@@ -177,10 +181,6 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
  * \returns        \c 0 on success.
  * \returns        A negative error code on failure.
  */
-
-#define MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED 0
-#define MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED   1
-
 int mbedtls_ssl_tls1_3_derive_secret(
                    mbedtls_md_type_t hash_alg,
                    const unsigned char *secret, size_t slen,

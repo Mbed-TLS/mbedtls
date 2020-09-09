@@ -10487,7 +10487,7 @@ SSL TLS 1.3 Key schedule: Derive-Secret( ., "derived", "")
 # but still needs to be hashed)
 ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"33ad0a1c607ec03b09e6cd9893680ce210adf300aa1f2660e1b22e10f170f92a":tls1_3_label_derived:"":32:MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED:"6f2615a108c702c5678f54fc9dbab69716c076189c48250cebeac3576c3611ba"
 
-SSL TLS 1.3 Key schedule: Derive-Secret( ., "s ap traffic", hash)
+SSL TLS 1.3 Key schedule: Derive-Secret( ., "s ap traffic", hash) #1
 # Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
 # Derive-Secret( MasterSecret, "s ap traffic", hash)
 # Tests the case where context is already hashed
@@ -10513,7 +10513,7 @@ SSL TLS 1.3 Key schedule: Derive-Secret( ., "c ap traffic", hash)
 # Vector from RFC 8448
 ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"e2d32d4ed66dd37897a0e80c84107503ce58bf8aad4cb55a5002d77ecb890ece":tls1_3_label_c_ap_traffic:"b0aeffc46a2cfe33114e6fd7d51f9f04b1ca3c497dab08934a774a9d9ad7dbf3":32:MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED:"2abbf2b8e381d23dbebe1dd2a7d16a8bf484cb4950d23fb7fb7fa8547062d9a1"
 
-SSL TLS 1.3 Key schedule: Derive-Secret( ., "s ap traffic", hash)
+SSL TLS 1.3 Key schedule: Derive-Secret( ., "s ap traffic", hash) #2
 # Vector from RFC 8448
 ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"e2d32d4ed66dd37897a0e80c84107503ce58bf8aad4cb55a5002d77ecb890ece":tls1_3_label_s_ap_traffic:"b0aeffc46a2cfe33114e6fd7d51f9f04b1ca3c497dab08934a774a9d9ad7dbf3":32:MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED:"cc21f1bf8feb7dd5fa505bd9c4b468a9984d554a993dc49e6d285598fb672691"
 

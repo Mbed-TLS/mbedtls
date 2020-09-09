@@ -38,11 +38,12 @@
     MBEDTLS_SSL_TLS1_3_LABEL( 10, s_hs_traffic, "s hs traffic" ) \
     MBEDTLS_SSL_TLS1_3_LABEL( 11, s_ap_traffic, "s ap traffic" ) \
     MBEDTLS_SSL_TLS1_3_LABEL( 12, s_e_traffic , "s e traffic"  ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 13, exp_master  , "exp master"   ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 13, e_exp_master, "e exp master" ) \
     MBEDTLS_SSL_TLS1_3_LABEL( 14, res_master  , "res master"   ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 15, ext_binder  , "ext binder"   ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 16, res_binder  , "res binder"   ) \
-    MBEDTLS_SSL_TLS1_3_LABEL( 17, derived     , "derived"      )
+    MBEDTLS_SSL_TLS1_3_LABEL( 15, exp_master  , "exp master"   ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 16, ext_binder  , "ext binder"   ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 17, res_binder  , "res binder"   ) \
+    MBEDTLS_SSL_TLS1_3_LABEL( 18, derived     , "derived"      )
 
 #define MBEDTLS_SSL_TLS1_3_LABEL( idx, name, string )       \
     const unsigned char name    [ sizeof(string) - 1 ];

@@ -399,9 +399,6 @@ typedef int  mbedtls_ssl_tls_prf_cb( const unsigned char *secret, size_t slen,
 #define MBEDTLS_SSL_MAX_IV_LENGTH    16
 #define MBEDTLS_SSL_MAX_KEY_LENGTH   32
 
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-
 /**
  * \brief   The data structure holding the cryptographic material (key and IV)
  *          used for record protection in TLS 1.3.
@@ -423,7 +420,6 @@ struct mbedtls_ssl_key_set
                      *   server_write_iv, in Bytes. */
 };
 typedef struct mbedtls_ssl_key_set mbedtls_ssl_key_set;
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 /*
  * This structure contains the parameters only needed during handshake.

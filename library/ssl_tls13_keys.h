@@ -28,7 +28,7 @@
     MBEDTLS_SSL_TLS1_3_LABEL( finished    , "finished"     )        \
     MBEDTLS_SSL_TLS1_3_LABEL( resumption  , "resumption"   )        \
     MBEDTLS_SSL_TLS1_3_LABEL( traffic_upd , "traffic upd"  )        \
-    MBEDTLS_SSL_TLS1_3_LABEL( export      , "exporter"     )        \
+    MBEDTLS_SSL_TLS1_3_LABEL( exporter    , "exporter"     )        \
     MBEDTLS_SSL_TLS1_3_LABEL( key         , "key"          )        \
     MBEDTLS_SSL_TLS1_3_LABEL( iv          , "iv"           )        \
     MBEDTLS_SSL_TLS1_3_LABEL( sn          , "sn"           )        \

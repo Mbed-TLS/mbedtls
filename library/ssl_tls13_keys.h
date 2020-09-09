@@ -158,10 +158,6 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
  *                         Hash.Length ) )
  * </tt>
  *
- * Note: In this implementation of the function we assume that
- * the parameter message contains the already hashed value and
- * the Derive-Secret function does not need to hash it again.
- *
  * \param hash_alg   The identifier for the hash function used for the
  *                   applications of HKDF.
  * \param secret     The \c Secret argument to the \c Derive-Secret function.

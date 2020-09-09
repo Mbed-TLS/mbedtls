@@ -4102,10 +4102,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
                                                           alg );
 
     if( status == PSA_SUCCESS )
-    {
         operation->accelerator_set = 1;
-        operation->key_set = 1;
-    }
 
     if( status != PSA_ERROR_NOT_SUPPORTED ||
         psa_key_lifetime_is_external( slot->attr.lifetime ) )
@@ -4172,7 +4169,6 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
         goto exit;
 #endif //MBEDTLS_CIPHER_MODE_WITH_PADDING
 
-    operation->key_set = 1;
     operation->block_size = ( PSA_ALG_IS_STREAM_CIPHER( alg ) ? 1 :
                               PSA_BLOCK_CIPHER_BLOCK_SIZE( slot->attr.type ) );
     if( ( alg & PSA_ALG_CIPHER_FROM_BLOCK_FLAG ) != 0 &&
@@ -4186,10 +4182,17 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
         operation->iv_size = 12;
 #endif
 
+    status = PSA_SUCCESS;
+
 exit:
-    if( status == 0 )
+    if( ret != 0 )
         status = mbedtls_to_psa_error( ret );
-    if( status != 0 )
+    if( status == PSA_SUCCESS )
+    {
+        /* Update operation flags for both driver and software implementations */
+        operation->key_set = 1;
+    }
+    else
         psa_cipher_abort( operation );
     return( status );
 }
@@ -4215,6 +4218,10 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
 {
     psa_status_t status;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    if( operation->iv_set || ! operation->iv_required )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
 
     if( operation->accelerator_set == 1 )
     {
@@ -4225,10 +4232,6 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
         goto exit;
     }
 
-    if( operation->iv_set || ! operation->iv_required )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
     if( iv_size < operation->iv_size )
     {
         status = PSA_ERROR_BUFFER_TOO_SMALL;
@@ -4246,7 +4249,9 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
     status = psa_cipher_set_iv( operation, iv, *iv_length );
 
 exit:
-    if( status != PSA_SUCCESS )
+    if( status == PSA_SUCCESS )
+        operation->iv_set = 1;
+    else
         psa_cipher_abort( operation );
     return( status );
 }
@@ -4257,6 +4262,10 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
 {
     psa_status_t status;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    if( operation->iv_set || ! operation->iv_required )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
 
     if( operation->accelerator_set == 1 )
     {
@@ -4266,10 +4275,6 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
         goto exit;
     }
 
-    if( operation->iv_set || ! operation->iv_required )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
     if( iv_length != operation->iv_size )
     {
         status = PSA_ERROR_INVALID_ARGUMENT;
@@ -4382,6 +4387,14 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t expected_output_size;
+    if( operation->alg == 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+    if( operation->iv_required && ! operation->iv_set )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
 
     if( operation->accelerator_set == 1 )
     {
@@ -4392,15 +4405,6 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
                                                    output_size,
                                                    output_length );
         goto exit;
-    }
-
-    if( operation->alg == 0 )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
-    if( operation->iv_required && ! operation->iv_set )
-    {
-        return( PSA_ERROR_BAD_STATE );
     }
 
     if( ! PSA_ALG_IS_STREAM_CIPHER( operation->alg ) )
@@ -4456,6 +4460,14 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     int cipher_ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     uint8_t temp_output_buffer[MBEDTLS_MAX_BLOCK_LENGTH];
+    if( operation->alg == 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+    if( operation->iv_required && ! operation->iv_set )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
 
     if( operation->accelerator_set == 1 )
     {
@@ -4468,11 +4480,6 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
 
         (void) psa_cipher_abort( operation );
         return( status );
-    }
-
-    if( operation->iv_required && ! operation->iv_set )
-    {
-        return( PSA_ERROR_BAD_STATE );
     }
 
     if( operation->ctx.cipher.unprocessed_len != 0 )

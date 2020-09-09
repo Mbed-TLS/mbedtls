@@ -162,21 +162,29 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
  * the parameter message contains the already hashed value and
  * the Derive-Secret function does not need to hash it again.
  *
- * \param hash_alg The identifier for the hash function used for the
- *                 applications of HKDF.
- * \param secret   The \c Secret argument to the \c Derive-Secret function.
- *                 This must be a readable buffer of length \p slen Bytes.
- * \param slen     The length of \p secret in Bytes.
- * \param label    The \c Label argument to the \c Derive-Secret function.
- *                 This must be a readable buffer of length \p llen Bytes.
- * \param llen     The length of \p label in Bytes.
- * \param hash     The hash of the \c Messages argument to the \c Derive-Secret
- *                 function. This must be a readable buffer of length \p mlen
- *                 hlen Bytes.
- * \param hlen     The length of \p hash.
- * \param dstbuf   The target buffer to write the output of \c Derive-Secret to.
- *                 This must be a writable buffer of size \p buflen Bytes.
- * \param buflen   The length of \p dstbuf in Bytes.
+ * \param hash_alg   The identifier for the hash function used for the
+ *                   applications of HKDF.
+ * \param secret     The \c Secret argument to the \c Derive-Secret function.
+ *                   This must be a readable buffer of length \p slen Bytes.
+ * \param slen       The length of \p secret in Bytes.
+ * \param label      The \c Label argument to the \c Derive-Secret function.
+ *                   This must be a readable buffer of length \p llen Bytes.
+ * \param llen       The length of \p label in Bytes.
+ * \param ctx        The hash of the \c Messages argument to the
+ *                   \c Derive-Secret function, or the \c Messages argument
+ *                   itself, depending on \p context_already_hashed.
+ * \param clen       The length of \p hash.
+ * \param ctx_hashed This indicates whether the \p ctx contains the hash of
+ *                   the \c Messages argument in the application of the
+ *                   \c Derive-Secret function
+ *                   (value MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED), or whether
+ *                   it is the content of \c Messages itself, in which case
+ *                   the function takes care of the hashing
+ *                   (value MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED).
+ * \param dstbuf     The target buffer to write the output of
+ *                   \c Derive-Secret to. This must be a writable buffer of
+ *                   size \p buflen Bytes.
+ * \param buflen     The length of \p dstbuf in Bytes.
  *
  * \returns        \c 0 on success.
  * \returns        A negative error code on failure.
@@ -186,7 +194,7 @@ int mbedtls_ssl_tls1_3_derive_secret(
                    const unsigned char *secret, size_t slen,
                    const unsigned char *label, size_t llen,
                    const unsigned char *ctx, size_t clen,
-                   int context_already_hashed,
+                   int ctx_hashed,
                    unsigned char *dstbuf, size_t buflen );
 
 /**

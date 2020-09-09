@@ -235,7 +235,7 @@ int mbedtls_ssl_tls1_3_derive_secret(
                    const unsigned char *secret, size_t slen,
                    const unsigned char *label, size_t llen,
                    const unsigned char *ctx, size_t clen,
-                   int context_already_hashed,
+                   int ctx_hashed,
                    unsigned char *dstbuf, size_t buflen )
 {
     int ret;
@@ -246,7 +246,7 @@ int mbedtls_ssl_tls1_3_derive_secret(
     if( md == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    if( context_already_hashed == MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED )
+    if( ctx_hashed == MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED )
     {
         ret = mbedtls_md( md, ctx, clen, hashed_context );
         if( ret != 0 )
@@ -258,7 +258,7 @@ int mbedtls_ssl_tls1_3_derive_secret(
         if( clen > sizeof(hashed_context) )
         {
             /* This should never happen since this function is internal
-             * and the code sets `context_already_hashed` correctly.
+             * and the code sets `ctx_hashed` correctly.
              * Let's double-check nonetheless to not run at the risk
              * of getting a stack overflow. */
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );

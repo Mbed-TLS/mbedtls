@@ -38,6 +38,8 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 
+#include "x509_invasive.h"
+
 #include <string.h>
 
 #if defined(MBEDTLS_PEM_PARSE_C)
@@ -2978,7 +2980,7 @@ find_parent:
  * parse ipv4 address from canonical string form into bytes.
  * return 0 if success, -1 otherwise
  */
-static int x509_parse_ipv4( const char *h, unsigned char *addr )
+MBEDTLS_STATIC_TESTABLE int x509_parse_ipv4( const char *h, unsigned char *addr )
 {
     int i;
     const char *strt = h;
@@ -3012,7 +3014,7 @@ static int x509_parse_ipv4( const char *h, unsigned char *addr )
  * parse ipv6 address from canonical string form into bytes.
  * return 0 if success, -1 otherwise
  */
-static int x509_parse_ipv6( const char *h, size_t hlen, unsigned char *addr )
+MBEDTLS_STATIC_TESTABLE int x509_parse_ipv6( const char *h, size_t hlen, unsigned char *addr )
 {
     const char *hend = h + hlen;
     unsigned char ip[16];
@@ -3029,9 +3031,11 @@ static int x509_parse_ipv6( const char *h, size_t hlen, unsigned char *addr )
         if( *strt != ':' ) {
             return( -1 );
         }
+        strt++;
+        colonp = ipp;
     }
 
-    while( endp < hend )
+    while( endp < hend && ipp < ip + sizeof( ip ))
     {
         /* ended with a single colon */
         if( strt == hend )

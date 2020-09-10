@@ -188,6 +188,7 @@ exit:
 void cipher_encrypt( int alg_arg, int key_type_arg,
                      data_t *key, data_t *iv,
                      data_t *input, data_t *expected_output,
+                     int force_status_arg,
                      int expected_status_arg )
 {
     psa_key_handle_t handle = 0;
@@ -195,6 +196,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
+    psa_status_t force_status = force_status_arg;
     unsigned char *output = NULL;
     size_t output_buffer_size = 0;
     size_t function_output_length = 0;
@@ -202,6 +204,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     test_driver_cipher_hooks = test_driver_cipher_hooks_init();
+    test_driver_cipher_hooks.forced_status = force_status;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -217,7 +220,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     test_driver_cipher_hooks.hits = 0;
 
     PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    TEST_EQUAL( test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 1 : 0 ) );
     test_driver_cipher_hooks.hits = 0;
 
     output_buffer_size = ( (size_t) input->len +
@@ -228,7 +231,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
                                    input->x, input->len,
                                    output, output_buffer_size,
                                    &function_output_length ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    TEST_EQUAL( test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 1 : 0 ) );
     test_driver_cipher_hooks.hits = 0;
 
     total_output_length += function_output_length;
@@ -237,7 +240,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
                                 output_buffer_size - total_output_length,
                                 &function_output_length );
     /* Finish will have called abort as well, so expecting two hits here */
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
+    TEST_EQUAL( test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 2 : 0 ) );
     test_driver_cipher_hooks.hits = 0;
 
     total_output_length += function_output_length;
@@ -438,6 +441,7 @@ exit:
 void cipher_decrypt( int alg_arg, int key_type_arg,
                      data_t *key, data_t *iv,
                      data_t *input, data_t *expected_output,
+                     int force_status_arg,
                      int expected_status_arg )
 {
     psa_key_handle_t handle = 0;
@@ -445,6 +449,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
+    psa_status_t force_status = force_status_arg;
     unsigned char *output = NULL;
     size_t output_buffer_size = 0;
     size_t function_output_length = 0;
@@ -452,6 +457,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     test_driver_cipher_hooks = test_driver_cipher_hooks_init();
+    test_driver_cipher_hooks.forced_status = force_status;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -467,7 +473,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     test_driver_cipher_hooks.hits = 0;
 
     PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    TEST_EQUAL( test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 1 : 0 ) );
     test_driver_cipher_hooks.hits = 0;
 
     output_buffer_size = ( (size_t) input->len +
@@ -478,7 +484,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
                                    input->x, input->len,
                                    output, output_buffer_size,
                                    &function_output_length ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
+    TEST_EQUAL( test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 1 : 0 ) );
     test_driver_cipher_hooks.hits = 0;
 
     total_output_length += function_output_length;
@@ -487,7 +493,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
                                 output_buffer_size - total_output_length,
                                 &function_output_length );
     /* Finish will have called abort as well, so expecting two hits here */
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
+    TEST_EQUAL( test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 2 : 0 ) );
     test_driver_cipher_hooks.hits = 0;
 
     total_output_length += function_output_length;

@@ -1,0 +1,4 @@
+Bugfix
+   * Fix build failure in configurations where MBEDTLS_USE_PSA_CRYPTO is
+     enabled but ECDSA is disabled. Contributed by jdurkop. Fixes #3294.
+

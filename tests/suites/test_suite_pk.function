@@ -775,8 +775,8 @@ void pk_ec_test_vec( int type, int id, data_t * key, data_t * hash,
     TEST_ASSERT( mbedtls_ecp_point_read_binary( &eckey->grp, &eckey->Q,
                                         key->x, key->len ) == 0 );
 
-    // MBEDTLS_MD_SHA1 is a dummy - it is ignored, but has to be other than MBEDTLS_MD_NONE.
-    TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA1,
+    // MBEDTLS_MD_NONE is used since it will be ignored.
+    TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_NONE,
                             hash->x, hash->len, sig->x, sig->len ) == ret );
 
 exit:

@@ -4037,34 +4037,6 @@ rsa_exit:
 /* Symmetric cryptography */
 /****************************************************************/
 
-/* Initialize the cipher operation structure. Once this function has been
- * called, psa_cipher_abort can run and will do the right thing. */
-static psa_status_t psa_cipher_init( psa_cipher_operation_t *operation,
-                                     psa_algorithm_t alg )
-{
-    if( ! PSA_ALG_IS_CIPHER( alg ) )
-    {
-        memset( operation, 0, sizeof( *operation ) );
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    }
-
-    operation->alg = alg;
-    operation->key_set = 0;
-    operation->iv_set = 0;
-    if( alg == PSA_ALG_ECB_NO_PADDING )
-    {
-        operation->iv_required = 0;
-    }
-    else
-    {
-        operation->iv_required = 1;
-    }
-    operation->accelerator_set = 0;
-    operation->iv_size = 0;
-    operation->block_size = 0;
-    return( PSA_SUCCESS );
-}
-
 static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
                                       psa_key_handle_t handle,
                                       psa_algorithm_t alg,
@@ -4079,19 +4051,36 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
                               PSA_KEY_USAGE_ENCRYPT :
                               PSA_KEY_USAGE_DECRYPT );
 
-    status = psa_get_key_from_slot( handle, &slot, usage, alg );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
     /* A context must be freshly initialized before it can be set up. */
     if( operation->alg != 0 )
         return( PSA_ERROR_BAD_STATE );
 
-    status = psa_cipher_init( operation, alg );
-    if( status != PSA_SUCCESS )
-        return( status );
+    /* The requested algorithm must be one that can be processed by cipher. */
+    if( ! PSA_ALG_IS_CIPHER( alg ) )
+    {
+        memset( operation, 0, sizeof( *operation ) );
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
 
-    /* Try doing this through a driver before using software fallback */
+    /* Reset the operation members to their initial state, except for alg. The
+     * alg member is used as an indicator that psa_cipher_abort needs to free
+     * allocated resources, which doesn't happen until later. */
+    operation->key_set = 0;
+    operation->iv_set = 0;
+    operation->driver_in_use = 0;
+    operation->iv_size = 0;
+    operation->block_size = 0;
+    if( alg == PSA_ALG_ECB_NO_PADDING )
+        operation->iv_required = 0;
+    else
+        operation->iv_required = 1;
+
+    /* Fetch key material from key storage. */
+    status = psa_get_key_from_slot( handle, &slot, usage, alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    /* Try doing the operation through a driver before using software fallback. */
     if( cipher_operation == MBEDTLS_ENCRYPT )
         status = psa_driver_wrapper_cipher_encrypt_setup( &operation->ctx.driver,
                                                           slot,
@@ -4104,19 +4093,29 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     if( status != PSA_ERROR_NOT_SUPPORTED ||
         psa_key_lifetime_is_external( slot->attr.lifetime ) )
     {
-        /* Indicate this operation is bound to an accelerator. When the driver
-         * setup succeeded, this indicates to the core to not call any mbedtls_
+        /* Indicate this operation is bound to a driver. When the driver setup
+         * succeeded, this indicates to the core to not call any mbedtls_
          * functions for this operation (contexts are not interoperable).
          * In case the drivers couldn't setup and there's no way to fallback,
          * indicate to the core to not call mbedtls_cipher_free on an
          * uninitialised mbed TLS cipher context. */
-        operation->accelerator_set = 1;
+        operation->driver_in_use = 1;
+
+        /* If the wrapper call succeeded, it allocated resources that need to be
+         * freed using psa_cipher_abort. Indicate this through setting alg. */
+        if( status == PSA_SUCCESS )
+            operation->alg = alg;
+
         goto exit;
     }
 
-    /* Proceed with initializing mbed TLS cipher context if no accelerator is
+    /* Proceed with initializing an mbed TLS cipher context if no driver is
      * available for the given algorithm & key. */
     mbedtls_cipher_init( &operation->ctx.cipher );
+
+    /* Once the cipher context is initialised, it needs to be freed using
+     * psa_cipher_abort. Indicate this through setting alg. */
+    operation->alg = alg;
 
     key_bits = psa_get_key_slot_bits( slot );
     cipher_info = mbedtls_cipher_info_from_psa( alg, slot->attr.type, key_bits, NULL );
@@ -4225,7 +4224,7 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    if( operation->accelerator_set == 1 )
+    if( operation->driver_in_use == 1 )
     {
         status = psa_driver_wrapper_cipher_generate_iv( &operation->ctx.driver,
                                                         iv,
@@ -4269,7 +4268,7 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    if( operation->accelerator_set == 1 )
+    if( operation->driver_in_use == 1 )
     {
         status = psa_driver_wrapper_cipher_set_iv( &operation->ctx.driver,
                                                    iv,
@@ -4398,7 +4397,7 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    if( operation->accelerator_set == 1 )
+    if( operation->driver_in_use == 1 )
     {
         status = psa_driver_wrapper_cipher_update( &operation->ctx.driver,
                                                    input,
@@ -4471,7 +4470,7 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    if( operation->accelerator_set == 1 )
+    if( operation->driver_in_use == 1 )
     {
         status = psa_driver_wrapper_cipher_finish( &operation->ctx.driver,
                                                    output,
@@ -4533,7 +4532,7 @@ psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
 {
     if( operation->alg == 0 )
     {
-        /* The object has (apparently) been initialized but it is not
+        /* The object has (apparently) been initialized but it is not (yet)
          * in use. It's ok to call abort on such an object, and there's
          * nothing to do. */
         return( PSA_SUCCESS );
@@ -4544,7 +4543,7 @@ psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
     if( ! PSA_ALG_IS_CIPHER( operation->alg ) )
         return( PSA_ERROR_BAD_STATE );
 
-    if( operation->accelerator_set == 1 )
+    if( operation->driver_in_use == 1 )
         psa_driver_wrapper_cipher_abort( &operation->ctx.driver );
     else
         mbedtls_cipher_free( &operation->ctx.cipher );
@@ -4552,7 +4551,7 @@ psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
     operation->alg = 0;
     operation->key_set = 0;
     operation->iv_set = 0;
-    operation->accelerator_set = 0;
+    operation->driver_in_use = 0;
     operation->iv_size = 0;
     operation->block_size = 0;
     operation->iv_required = 0;

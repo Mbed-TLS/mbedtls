@@ -125,16 +125,7 @@ static psa_global_data_t global_data;
     if( global_data.initialized == 0 )  \
         return( PSA_ERROR_BAD_STATE );
 
-/** Convert an mbed TLS error code to a PSA error code
- *
- * \note This function is provided solely for the convenience of
- *       Mbed TLS and may be removed at any time without notice.
- *
- * \param ret           An mbed TLS-thrown error code
- *
- * \return              The corresponding PSA error code
- */
-static psa_status_t mbedtls_to_psa_error( int ret )
+psa_status_t mbedtls_to_psa_error( int ret )
 {
     /* If there's both a high-level code and low-level code, dispatch on
      * the high-level code. */

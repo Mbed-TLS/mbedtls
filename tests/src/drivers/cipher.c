@@ -296,6 +296,8 @@ psa_status_t test_transparent_cipher_decrypt_setup(
 psa_status_t test_transparent_cipher_abort(
     test_transparent_cipher_operation_t *operation)
 {
+    test_driver_cipher_hooks.hits++;
+
     if( operation->alg == 0 )
         return( PSA_SUCCESS );
     if( operation->alg != PSA_ALG_CTR )
@@ -309,7 +311,6 @@ psa_status_t test_transparent_cipher_abort(
      * struct. */
     memset( operation, 0, sizeof( *operation ) );
 
-    test_driver_cipher_hooks.hits++;
     return( PSA_SUCCESS );
 }
 
@@ -324,6 +325,9 @@ psa_status_t test_transparent_cipher_generate_iv(
     memset( &rnd_info, 0x5A, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
     test_driver_cipher_hooks.hits++;
+
+    if( test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_cipher_hooks.forced_status );
 
     if( operation->alg != PSA_ALG_CTR )
         return( PSA_ERROR_BAD_STATE );
@@ -356,6 +360,9 @@ psa_status_t test_transparent_cipher_set_iv(
 
     test_driver_cipher_hooks.hits++;
 
+    if( test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_cipher_hooks.forced_status );
+
     if( operation->alg != PSA_ALG_CTR )
         return( PSA_ERROR_BAD_STATE );
 
@@ -385,6 +392,9 @@ psa_status_t test_transparent_cipher_update(
     psa_status_t status;
 
     test_driver_cipher_hooks.hits++;
+
+    if( test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_cipher_hooks.forced_status );
 
     if( operation->alg != PSA_ALG_CTR )
         return( PSA_ERROR_BAD_STATE );
@@ -424,6 +434,9 @@ psa_status_t test_transparent_cipher_finish(
     uint8_t temp_output_buffer[MBEDTLS_MAX_BLOCK_LENGTH];
 
     test_driver_cipher_hooks.hits++;
+
+    if( test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_cipher_hooks.forced_status );
 
     if( operation->alg != PSA_ALG_CTR )
         return( PSA_ERROR_BAD_STATE );

@@ -1,0 +1,2 @@
+Changes
+   * Fix comment typo in documentation of mbedtls_ssl_set_bio.

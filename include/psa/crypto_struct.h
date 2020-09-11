@@ -168,7 +168,7 @@ struct psa_cipher_operation_s
     unsigned int key_set : 1;
     unsigned int iv_required : 1;
     unsigned int iv_set : 1;
-    unsigned int driver_in_use : 1; /* Indicates a driver is used instead of software fallback. */
+    unsigned int mbedtls_in_use : 1; /* Indicates mbed TLS is handling the operation. */
     uint8_t iv_size;
     uint8_t block_size;
     union

@@ -225,6 +225,10 @@ static psa_status_t test_transparent_cipher_setup(
      * struct. */
     memset( operation, 0, sizeof( *operation ) );
 
+    /* Allow overriding return value for testing purposes */
+    if( test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_cipher_hooks.forced_status );
+
     /* Test driver supports AES-CTR only, to verify operation calls. */
     if( alg != PSA_ALG_CTR ||
         psa_get_key_type( attributes ) != PSA_KEY_TYPE_AES )
@@ -257,10 +261,6 @@ static psa_status_t test_transparent_cipher_setup(
     operation->iv_set = 0;
     operation->iv_required = 1;
     operation->key_set = 1;
-
-    /* Allow overriding return value for testing purposes */
-    if( test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
-        mbedtls_cipher_free( &operation->cipher );
 
     return( test_driver_cipher_hooks.forced_status );
 }

@@ -558,6 +558,9 @@ void cipher_entry_points( int alg_arg, int key_type_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     test_driver_cipher_hooks = test_driver_cipher_hooks_init();
 
+    ASSERT_ALLOC( output, input->len + 16 );
+    output_buffer_size = input->len + 16;
+
     PSA_ASSERT( psa_crypto_init( ) );
 
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
@@ -574,6 +577,9 @@ void cipher_entry_points( int alg_arg, int key_type_arg,
     TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
     TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
     test_driver_cipher_hooks.hits = 0;
+    status = psa_cipher_set_iv( &operation, iv->x, iv->len );
+    TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
 
     /* Test setup call failure, decrypt */
     status = psa_cipher_decrypt_setup( &operation,
@@ -582,6 +588,9 @@ void cipher_entry_points( int alg_arg, int key_type_arg,
     TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
     TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
     test_driver_cipher_hooks.hits = 0;
+    status = psa_cipher_set_iv( &operation, iv->x, iv->len );
+    TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
 
     /* Test IV setting failure */
     test_driver_cipher_hooks.forced_status = PSA_SUCCESS;
@@ -596,8 +605,15 @@ void cipher_entry_points( int alg_arg, int key_type_arg,
     /* When setting the IV fails, it should call abort too */
     TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
     TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
-    psa_cipher_abort( &operation );
+    /* Failure should prevent further operations from executing on the driver */
     test_driver_cipher_hooks.hits = 0;
+    status = psa_cipher_update( &operation,
+                                input->x, input->len,
+                                output, output_buffer_size,
+                                &function_output_length );
+    TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
+    psa_cipher_abort( &operation );
 
     /* Test IV generation failure */
     test_driver_cipher_hooks.forced_status = PSA_SUCCESS;
@@ -608,15 +624,19 @@ void cipher_entry_points( int alg_arg, int key_type_arg,
     test_driver_cipher_hooks.hits = 0;
 
     test_driver_cipher_hooks.forced_status = PSA_ERROR_GENERIC_ERROR;
-    ASSERT_ALLOC( output, 16 );
-    status = psa_cipher_generate_iv( &operation, output, 16, &output_buffer_size );
-    /* When setting the IV fails, it should call abort too */
+    status = psa_cipher_generate_iv( &operation, output, 16, &function_output_length );
+    /* When generating the IV fails, it should call abort too */
     TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
     TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
-    mbedtls_free( output );
-    output = NULL;
-    psa_cipher_abort( &operation );
+    /* Failure should prevent further operations from executing on the driver */
     test_driver_cipher_hooks.hits = 0;
+    status = psa_cipher_update( &operation,
+                                input->x, input->len,
+                                output, output_buffer_size,
+                                &function_output_length );
+    TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
+    psa_cipher_abort( &operation );
 
     /* Test update failure */
     test_driver_cipher_hooks.forced_status = PSA_SUCCESS;
@@ -632,8 +652,6 @@ void cipher_entry_points( int alg_arg, int key_type_arg,
     test_driver_cipher_hooks.hits = 0;
 
     test_driver_cipher_hooks.forced_status = PSA_ERROR_GENERIC_ERROR;
-    ASSERT_ALLOC( output, input->len + 16 );
-    output_buffer_size = input->len + 16;
     status = psa_cipher_update( &operation,
                                 input->x, input->len,
                                 output, output_buffer_size,
@@ -641,10 +659,15 @@ void cipher_entry_points( int alg_arg, int key_type_arg,
     /* When the update call fails, it should call abort too */
     TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
     TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
-    mbedtls_free( output );
-    output = NULL;
-    psa_cipher_abort( &operation );
+    /* Failure should prevent further operations from executing on the driver */
     test_driver_cipher_hooks.hits = 0;
+    status = psa_cipher_update( &operation,
+                                input->x, input->len,
+                                output, output_buffer_size,
+                                &function_output_length );
+    TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
+    psa_cipher_abort( &operation );
 
     /* Test finish failure */
     test_driver_cipher_hooks.forced_status = PSA_SUCCESS;
@@ -659,8 +682,6 @@ void cipher_entry_points( int alg_arg, int key_type_arg,
     TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
     test_driver_cipher_hooks.hits = 0;
 
-    ASSERT_ALLOC( output, input->len + 16 );
-    output_buffer_size = input->len + 16;
     status = psa_cipher_update( &operation,
                                 input->x, input->len,
                                 output, output_buffer_size,
@@ -677,10 +698,15 @@ void cipher_entry_points( int alg_arg, int key_type_arg,
     /* When the finish call fails, it should call abort too */
     TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
     TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
-    mbedtls_free( output );
-    output = NULL;
-    psa_cipher_abort( &operation );
+    /* Failure should prevent further operations from executing on the driver */
     test_driver_cipher_hooks.hits = 0;
+    status = psa_cipher_update( &operation,
+                                input->x, input->len,
+                                output, output_buffer_size,
+                                &function_output_length );
+    TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
+    psa_cipher_abort( &operation );
 
 exit:
     psa_cipher_abort( &operation );

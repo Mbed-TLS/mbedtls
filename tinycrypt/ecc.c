@@ -67,6 +67,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/sha256.h"
 #include <string.h>
+#include "mbedtls/platform_util.h"
 
 /* Parameters for curve NIST P-256 aka secp256r1 */
 const uECC_word_t curve_p[NUM_ECC_WORDS] = {
@@ -427,7 +428,7 @@ void ecc_wait_state_reset(ecc_wait_state_t *ws)
 		return;
 
 	ws->i = 0;
-	g_rng_function(ws->delays, sizeof(ws->delays));
+	mbedtls_platform_random_buf(ws->delays, sizeof(ws->delays));
 }
 
 /* Computes result = left * right. Result must be 2 * num_words long.

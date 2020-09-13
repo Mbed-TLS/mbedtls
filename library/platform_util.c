@@ -319,6 +319,23 @@ uint32_t mbedtls_platform_random_uint32( void )
               mbedtls_platform_random_uint16() );
 }
 
+void mbedtls_platform_random_buf( uint8_t *buf, size_t buf_size)
+{
+    uint32_t i;
+    uint16_t *buf_uint16 = (uint16_t*)buf;
+    size_t buf_size16 = buf_size/2;
+    
+    for(i = 0; i< buf_size16; i++)
+    {
+        buf_uint16[i] = mbedtls_platform_random_uint16();
+    }
+    if (buf_size%2 != 0)
+    {
+        buf[buf_size-1] = (uint8_t)mbedtls_platform_random_uint16();
+    }
+    return;
+}
+
 uint32_t mbedtls_platform_random_in_range( uint32_t num )
 {
     uint32_t result;

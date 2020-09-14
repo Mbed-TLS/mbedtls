@@ -247,7 +247,6 @@ EXCLUDE_FROM_BAREMETAL = frozenset([
     'MBEDTLS_PLATFORM_TIME_ALT', # requires a clock and HAVE_TIME
     'MBEDTLS_PSA_CRYPTO_SE_C', # requires a filesystem and PSA_CRYPTO_STORAGE_C
     'MBEDTLS_PSA_CRYPTO_STORAGE_C', # requires a filesystem
-    'MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER', # requires a multi-client service
     'MBEDTLS_PSA_ITS_FILE_C', # requires a filesystem
     'MBEDTLS_THREADING_C', # requires a threading interface
     'MBEDTLS_THREADING_PTHREAD', # requires pthread

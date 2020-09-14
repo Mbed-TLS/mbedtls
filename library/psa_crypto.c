@@ -4088,9 +4088,11 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
                                                           alg );
 
     if( status == PSA_SUCCESS )
+    {
         /* Once the driver context is initialised, it needs to be freed using
         * psa_cipher_abort. Indicate this through setting alg. */
         operation->alg = alg;
+    }
 
     if( status != PSA_ERROR_NOT_SUPPORTED ||
         psa_key_lifetime_is_external( slot->attr.lifetime ) )
@@ -4491,10 +4493,7 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
     else if( output_size >= *output_length )
         memcpy( output, temp_output_buffer, *output_length );
     else
-    {
         status = PSA_ERROR_BUFFER_TOO_SMALL;
-        goto exit;
-    }
 
 exit:
     if( operation->mbedtls_in_use == 1 )
@@ -4505,8 +4504,6 @@ exit:
     else
     {
         *output_length = 0;
-
-        mbedtls_platform_zeroize( temp_output_buffer, sizeof( temp_output_buffer ) );
         (void) psa_cipher_abort( operation );
 
         return( status );

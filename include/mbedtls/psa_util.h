@@ -83,6 +83,8 @@ static inline psa_algorithm_t mbedtls_psa_translate_cipher_mode(
 {
     switch( mode )
     {
+        case MBEDTLS_MODE_ECB:
+            return( PSA_ALG_ECB_NO_PADDING );
         case MBEDTLS_MODE_GCM:
             return( PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, taglen ) );
         case MBEDTLS_MODE_CCM:

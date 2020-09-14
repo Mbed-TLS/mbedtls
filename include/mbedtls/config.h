@@ -1262,11 +1262,8 @@
  *
  * Enable key identifiers that encode a key owner identifier.
  *
- * This is only meaningful when building the library as part of a
- * multi-client service. When you activate this option, you must provide an
- * implementation of the type mbedtls_key_owner_id_t and a translation from
- * mbedtls_svc_key_id_t to file name in all the storage backends that you
- * you wish to support.
+ * The owner of a key is identified by a value of type ::mbedtls_key_owner_id_t
+ * which is currently hard-coded to be int32_t.
  *
  * Note that this option is meant for internal use only and may be removed
  * without notice.

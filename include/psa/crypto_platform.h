@@ -54,8 +54,15 @@ typedef uint16_t psa_key_handle_t;
 
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 
-/* Building for the PSA Crypto service on a PSA platform. */
-/* A key owner is a PSA partition identifier. */
+/* Building for the PSA Crypto service on a PSA platform, a key owner is a PSA
+ * partition identifier.
+ *
+ * The function psa_its_identifier_of_slot() in psa_crypto_storage.c that
+ * translates a key identifier to a key storage file name assumes that
+ * mbedtls_key_owner_id_t is an 32 bits integer. This function thus needs
+ * reworking if mbedtls_key_owner_id_t is not defined as a 32 bits integer
+ * here anymore.
+ */
 typedef int32_t mbedtls_key_owner_id_t;
 
 /** Compare two key owner identifiers.

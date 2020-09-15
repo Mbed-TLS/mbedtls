@@ -37,11 +37,6 @@
 
 #include <stdint.h>
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
-    !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
-
 /** \defgroup error Error codes
  * @{
  */

@@ -25,6 +25,9 @@
 #include "psa/crypto.h"
 #include "psa/crypto_driver_common.h"
 
+/*
+ * Signature functions
+ */
 psa_status_t psa_driver_wrapper_sign_hash( psa_key_slot_t *slot,
                                            psa_algorithm_t alg,
                                            const uint8_t *hash,
@@ -42,6 +45,65 @@ psa_status_t psa_driver_wrapper_verify_hash( psa_key_slot_t *slot,
 
 psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attributes,
                                               psa_key_slot_t *slot );
+
+/*
+ * Cipher functions
+ */
+psa_status_t psa_driver_wrapper_cipher_encrypt(
+    psa_key_slot_t *slot,
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length );
+
+psa_status_t psa_driver_wrapper_cipher_decrypt(
+    psa_key_slot_t *slot,
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length );
+
+psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
+    psa_operation_driver_context_t *operation,
+    psa_key_slot_t *slot,
+    psa_algorithm_t alg );
+
+psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
+    psa_operation_driver_context_t *operation,
+    psa_key_slot_t *slot,
+    psa_algorithm_t alg );
+
+psa_status_t psa_driver_wrapper_cipher_generate_iv(
+    psa_operation_driver_context_t *operation,
+    uint8_t *iv,
+    size_t iv_size,
+    size_t *iv_length );
+
+psa_status_t psa_driver_wrapper_cipher_set_iv(
+    psa_operation_driver_context_t *operation,
+    const uint8_t *iv,
+    size_t iv_length );
+
+psa_status_t psa_driver_wrapper_cipher_update(
+    psa_operation_driver_context_t *operation,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length );
+
+psa_status_t psa_driver_wrapper_cipher_finish(
+    psa_operation_driver_context_t *operation,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length );
+
+psa_status_t psa_driver_wrapper_cipher_abort(
+    psa_operation_driver_context_t *operation );
 
 #endif /* PSA_CRYPTO_DRIVER_WRAPPERS_H */
 

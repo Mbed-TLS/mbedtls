@@ -45,7 +45,7 @@
 /** The base of the range of ITS file identifiers for secure element
  * driver persistent data.
  *
- * We use a slice of the implemenation reserved range 0xffff0000..0xffffffff,
+ * We use a slice of the implementation reserved range 0xffff0000..0xffffffff,
  * specifically the range 0xfffffe00..0xfffffeff. The length of this range
  * drives the value of #PSA_MAX_SE_LOCATION. The identifier 0xfffffe00 is
  * actually not used since it corresponds to #PSA_KEY_LOCATION_LOCAL_STORAGE

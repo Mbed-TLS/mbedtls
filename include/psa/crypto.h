@@ -146,11 +146,11 @@ static psa_key_attributes_t psa_key_attributes_init(void);
  * linkage). This function may be provided as a function-like macro,
  * but in this case it must evaluate each of its arguments exactly once.
  *
- * \param[out] attributes       The attribute structure to write to.
- * \param id                    The persistent identifier for the key.
+ * \param[out] attributes  The attribute structure to write to.
+ * \param key              The persistent identifier for the key.
  */
-static void psa_set_key_id(psa_key_attributes_t *attributes,
-                           psa_key_id_t id);
+static void psa_set_key_id( psa_key_attributes_t *attributes,
+                            mbedtls_svc_key_id_t key );
 
 /** Set the location of a persistent key.
  *
@@ -192,7 +192,8 @@ static void psa_set_key_lifetime(psa_key_attributes_t *attributes,
  *         This value is unspecified if the attribute structure declares
  *         the key as volatile.
  */
-static psa_key_id_t psa_get_key_id(const psa_key_attributes_t *attributes);
+static mbedtls_svc_key_id_t psa_get_key_id(
+    const psa_key_attributes_t *attributes);
 
 /** Retrieve the lifetime from key attributes.
  *
@@ -392,8 +393,9 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  * with a lifetime other than #PSA_KEY_LIFETIME_VOLATILE. A persistent key
  * always has a nonzero key identifier, set with psa_set_key_id() when
  * creating the key. Implementations may provide additional pre-provisioned
- * keys that can be opened with psa_open_key(). Such keys have a key identifier
- * in the vendor range, as documented in the description of #psa_key_id_t.
+ * keys that can be opened with psa_open_key(). Such keys have an application
+ * key identifier in the vendor range, as documented in the description of
+ * #psa_key_id_t.
  *
  * The application must eventually close the handle with psa_close_key() or
  * psa_destroy_key() to release associated resources. If the application dies
@@ -408,7 +410,7 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  * portable to implementations that only permit a single key handle to be
  * opened. See also :ref:\`key-handles\`.
  *
- * \param id            The persistent identifier of the key.
+ * \param key           The persistent identifier of the key.
  * \param[out] handle   On success, a handle to the key.
  *
  * \retval #PSA_SUCCESS
@@ -436,9 +438,8 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_open_key(psa_key_id_t id,
-                          psa_key_handle_t *handle);
-
+psa_status_t psa_open_key( mbedtls_svc_key_id_t key,
+                           psa_key_handle_t *handle );
 
 /** Close a key handle.
  *

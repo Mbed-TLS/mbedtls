@@ -1258,20 +1258,17 @@
  */
 //#define MBEDTLS_ENTROPY_NV_SEED
 
-/* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
+/* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
  *
- * In PSA key storage, encode the owner of the key.
+ * Enable key identifiers that encode a key owner identifier.
  *
- * This is only meaningful when building the library as part of a
- * multi-client service. When you activate this option, you must provide
- * an implementation of the type psa_key_owner_id_t and a translation
- * from psa_key_file_id_t to file name in all the storage backends that
- * you wish to support.
+ * The owner of a key is identified by a value of type ::mbedtls_key_owner_id_t
+ * which is currently hard-coded to be int32_t.
  *
  * Note that this option is meant for internal use only and may be removed
  * without notice.
  */
-//#define MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
+//#define MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
 
 /**
  * \def MBEDTLS_MEMORY_DEBUG

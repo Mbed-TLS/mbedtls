@@ -103,7 +103,14 @@ static void ssl_tls1_3_hkdf_encode_label(
 
     unsigned char *p = dst;
 
-    /* Add total length. */
+    /* Add the size of the expanded key material.
+     * We're hardcoding the high byte to 0 here assuming that we never use
+     * TLS 1.3 HKDF key expansion to more than 255 Bytes. */
+#if MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_EXPANSION_LEN > 255
+#error "The implementation of ssl_tls1_3_hkdf_encode_label() is not fit for the \
+        value of MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_EXPANSION_LEN"
+#endif
+
     *p++ = 0;
     *p++ = (unsigned char)( ( desired_length >> 0 ) & 0xFF );
 

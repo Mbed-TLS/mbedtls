@@ -71,7 +71,12 @@ extern const struct mbedtls_ssl_tls1_3_labels_struct mbedtls_ssl_tls1_3_labels;
     MBEDTLS_MD_MAX_SIZE
 
 /* Maximum desired length for expanded key material generated
- * by HKDF-Expand-Label. */
+ * by HKDF-Expand-Label.
+ *
+ * Warning: If this ever needs to be increased, the implementation
+ * ssl_tls1_3_hkdf_encode_label() in ssl_tls13_keys.c needs to be
+ * adjusted since it currently assumes that HKDF key expansion
+ * is never used with more than 255 Bytes of output. */
 #define MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_EXPANSION_LEN 255
 
 /**

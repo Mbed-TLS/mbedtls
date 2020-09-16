@@ -42,12 +42,14 @@
 
 #if !defined(MBEDTLS_ENTROPY_C) || \
     !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_CLI_C) || \
-    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C)
+    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
+    defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main( void )
 {
-    mbedtls_printf("MBEDTLS_ENTROPY_C and/or "
+    mbedtls_printf( "MBEDTLS_ENTROPY_C and/or "
            "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_CLI_C and/or "
-           "MBEDTLS_NET_C and/or MBEDTLS_CTR_DRBG_C and/or not defined.\n");
+           "MBEDTLS_NET_C and/or MBEDTLS_CTR_DRBG_C and/or not defined "
+           " and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\n" );
     mbedtls_exit( 0 );
 }
 #else
@@ -1207,7 +1209,7 @@ int main( int argc, char *argv[] )
     const char *pers = "ssl_client2";
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_handle_t slot = PSA_KEY_HANDLE_INIT;
+    psa_key_id_t slot = 0;
     psa_algorithm_t alg = 0;
     psa_key_attributes_t key_attributes;
     psa_status_t status;
@@ -1232,7 +1234,7 @@ int main( int argc, char *argv[] )
     mbedtls_x509_crt clicert;
     mbedtls_pk_context pkey;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_handle_t key_slot = PSA_KEY_HANDLE_INIT; /* invalid key slot */
+    psa_key_id_t key_slot = 0; /* invalid key slot */
 #endif
 #endif
     char *p, *q;
@@ -3577,10 +3579,8 @@ exit:
         if( ( status != PSA_SUCCESS ) &&
             ( opt.query_config_mode == DFL_QUERY_CONFIG_MODE ) )
         {
-            mbedtls_printf( "Failed to destroy key slot %u-%u - error was %d",
-                            MBEDTLS_SVC_KEY_ID_GET_OWNER_ID( slot ),
-                            MBEDTLS_SVC_KEY_ID_GET_KEY_ID( slot ),
-                            (int) status );
+            mbedtls_printf( "Failed to destroy key slot %u - error was %d",
+                            (int) slot, (int) status );
             if( ret == 0 )
                 ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
         }

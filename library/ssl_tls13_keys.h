@@ -64,7 +64,7 @@ extern const struct mbedtls_ssl_tls1_3_labels_struct mbedtls_ssl_tls1_3_labels;
 #define MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_LABEL_LEN  \
     sizeof( union mbedtls_ssl_tls1_3_labels_union )
 
-/* The maximum length of HKDF contexts used in the TLS 1.3 standad.
+/* The maximum length of HKDF contexts used in the TLS 1.3 standard.
  * Since contexts are always hashes of message transcripts, this can
  * be approximated from above by the maximum hash size. */
 #define MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_CONTEXT_LEN  \
@@ -94,7 +94,7 @@ extern const struct mbedtls_ssl_tls1_3_labels_struct mbedtls_ssl_tls1_3_labels;
  *                  This must be a readable buffer of length \p clen Bytes.
  * \param clen      The length of \p context in Bytes.
  * \param buf       The destination buffer to hold the expanded secret.
- *                  This must be a writable buffe of length \p blen Bytes.
+ *                  This must be a writable buffer of length \p blen Bytes.
  * \param blen      The desired size of the expanded secret in Bytes.
  *
  * \returns         \c 0 on success.

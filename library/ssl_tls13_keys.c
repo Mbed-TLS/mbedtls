@@ -59,15 +59,15 @@ struct mbedtls_ssl_tls1_3_labels_struct const mbedtls_ssl_tls1_3_labels =
  *                   255. This allows us to save a few Bytes of code by
  *                   hardcoding the writing of the high bytes.
  * - (label, llen): label + label length, without "tls13 " prefix
- *                  The label length MUST be
- *                  <= MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_LABEL_LEN
- *                  It is the caller's responsiblity to ensure this.
+ *                  The label length MUST be less than or equal to
+ *                  MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_LABEL_LEN
+ *                  It is the caller's responsibility to ensure this.
  *                  All (label, label length) pairs used in TLS 1.3
  *                  can be obtained via MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN().
  * - (ctx, clen): context + context length
- *                The context length MUST be
- *                <= MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_CONTEXT_LEN
- *                It is the caller's responsiblity to ensure this.
+ *                The context length MUST be less than or equal to
+ *                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_CONTEXT_LEN
+ *                It is the caller's responsibility to ensure this.
  * - dst: Target buffer for HkdfLabel structure,
  *        This MUST be a writable buffer of size
  *        at least SSL_TLS1_3_KEY_SCHEDULE_MAX_HKDF_LABEL_LEN Bytes.
@@ -296,7 +296,7 @@ int mbedtls_ssl_tls1_3_evolve_secret(
     hlen = mbedtls_md_get_size( md );
 
     /* For non-initial runs, call Derive-Secret( ., "derived", "")
-     * on the old secreet. */
+     * on the old secret. */
     if( secret_old != NULL )
     {
         ret = mbedtls_ssl_tls1_3_derive_secret(

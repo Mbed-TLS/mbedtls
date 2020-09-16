@@ -379,7 +379,7 @@ typedef int  mbedtls_ssl_tls_prf_cb( const unsigned char *secret, size_t slen,
                                      const unsigned char *random, size_t rlen,
                                      unsigned char *dstbuf, size_t dlen );
 
-/* cipher.h exports the maximum IV, key and block length from all
+/* cipher.h exports the maximum IV, key and block length from
  * all ciphers enabled in the config, regardless of whether those
  * ciphers are actually usable in SSL/TLS. Notably, XTS is enabled
  * in the default configuration and uses 64 Byte keys, but it is

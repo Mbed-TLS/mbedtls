@@ -300,6 +300,15 @@ uint32_t mbedtls_platform_random_in_range( uint32_t num );
  */
 void mbedtls_platform_random_delay( void );
 
+/**
+ * \brief       RNG-function for getting a random buffer.
+ *
+ * \param buf   Buffer for random data
+ * \param len   Length of the buffer in bytes
+ *
+ */
+void mbedtls_platform_random_buf( uint8_t *buf, size_t len);
+
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /**
  * \brief      Platform-specific implementation of gmtime_r()

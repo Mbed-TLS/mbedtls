@@ -227,6 +227,7 @@ mbedtls_ecp_point;
 typedef struct mbedtls_ecp_group
 {
     mbedtls_ecp_group_id id;    /*!< An internal group identifier. */
+    int abi_change;
     mbedtls_mpi P;              /*!< The prime modulus of the base field. */
     mbedtls_mpi A;              /*!< For Short Weierstrass: \p A in the equation. For
                                      Montgomery curves: <code>(A + 2) / 4</code>. */

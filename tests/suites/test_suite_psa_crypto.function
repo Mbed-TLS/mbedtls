@@ -1188,7 +1188,7 @@ static int test_operations_on_invalid_handle( psa_key_handle_t handle )
     psa_set_key_algorithm( &attributes, PSA_ALG_CTR );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
     TEST_EQUAL( psa_get_key_attributes( handle, &attributes ),
-                PSA_ERROR_INVALID_HANDLE );
+                PSA_ERROR_DOES_NOT_EXIST );
     TEST_EQUAL(
         MBEDTLS_SVC_KEY_ID_GET_KEY_ID( psa_get_key_id( &attributes ) ), 0 );
     TEST_EQUAL(
@@ -1201,10 +1201,10 @@ static int test_operations_on_invalid_handle( psa_key_handle_t handle )
 
     TEST_EQUAL( psa_export_key( handle,
                                 buffer, sizeof( buffer ), &length ),
-                PSA_ERROR_INVALID_HANDLE );
+                PSA_ERROR_DOES_NOT_EXIST );
     TEST_EQUAL( psa_export_public_key( handle,
                                        buffer, sizeof( buffer ), &length ),
-                PSA_ERROR_INVALID_HANDLE );
+                PSA_ERROR_DOES_NOT_EXIST );
 
     ok = 1;
 

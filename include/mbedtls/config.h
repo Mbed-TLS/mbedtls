@@ -3285,6 +3285,20 @@
 #define MBEDTLS_SSL_TLS_C
 
 /**
+ * \def MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS
+ * Use one cipher context for both decryption and encryption in ssl transforms.
+ *
+ * This change saves some RAM, but makes the operations last longer:
+ * before every encryption and decryption a key is set on the context.
+ *
+ * This change will not work with MBEDTLS_ARC4_C, since it requires an
+ * additional table and offsets to be saved between cipher calls, and this
+ * contradicts key resetting before each use.
+ *
+ */
+//#define MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS
+
+/**
  * \def MBEDTLS_THREADING_C
  *
  * Enable the threading abstraction layer.

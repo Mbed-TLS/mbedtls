@@ -756,9 +756,15 @@ struct mbedtls_ssl_transform
     z_stream ctx_inflate;               /*!<  decompression context   */
 #endif
 
+#if defined(MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS)
+    unsigned char *key_enc;
+    unsigned char *key_dec;
+    unsigned int key_bitlen;
+    mbedtls_cipher_context_t cipher_ctx;        /*!<  encryption/decryption context */
+#else
     mbedtls_cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
     mbedtls_cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
-
+#endif
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     /* We need the Hello random bytes in order to re-derive keys from the
      * Master Secret and other session info, see ssl_populate_transform() */

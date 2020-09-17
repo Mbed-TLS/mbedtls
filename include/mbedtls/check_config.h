@@ -672,6 +672,11 @@
 #error "MBEDTLS_SSL_TLS_C defined, but neither TLS or DTLS is active"
 #endif
 
+#if defined(MBEDTLS_SSL_TLS_C) && defined(MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS) && \
+    defined(MBEDTLS_ARC4_C)
+#error "MBEDTLS_ARC4_C cannot be defined with MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS on"
+#endif
+
 #if defined(MBEDTLS_SSL_TLS_C) && (defined(MBEDTLS_SSL_PROTO_SSL3) && \
     defined(MBEDTLS_SSL_PROTO_TLS1_1) && !defined(MBEDTLS_SSL_PROTO_TLS1))
 #error "Illegal protocol selection"

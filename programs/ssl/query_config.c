@@ -2154,6 +2154,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_TLS_C */
 
+#if defined(MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS)
+    if( strcmp( "MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS */
+
 #if defined(MBEDTLS_THREADING_C)
     if( strcmp( "MBEDTLS_THREADING_C", config ) == 0 )
     {

@@ -148,7 +148,7 @@ Key registration: not supported
 register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:1:-1:PSA_ERROR_NOT_SUPPORTED
 
 Key registration: key id out of range
-register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VENDOR_MAX+1:-1:PSA_ERROR_INVALID_ARGUMENT
+register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VENDOR_MAX+1:-1:PSA_ERROR_INVALID_HANDLE
 
 Key registration: key id in vendor range
 register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VENDOR_MAX:1:PSA_SUCCESS

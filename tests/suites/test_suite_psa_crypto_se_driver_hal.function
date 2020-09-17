@@ -972,6 +972,7 @@ void key_creation_import_export( int lifetime_arg, int min_slot, int restart )
     psa_set_key_bits( &attributes,
                       PSA_BYTES_TO_BITS( sizeof( key_material ) ) );
     psa_set_key_slot_number( &attributes, min_slot );
+    psa_set_key_id( &attributes, handle );
     if( ! check_key_attributes( handle, &attributes ) )
         goto exit;
 

@@ -1679,7 +1679,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             if( padlen > 0 && correct == 0 )
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad padding byte detected" ) );
 #endif
-            padlen &= correct * 0x1FF;
+            padlen &= mbedtls_ssl_cf_mask_from_bit( correct );
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \

@@ -85,19 +85,7 @@
 }
 #endif
 
-#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-static uint32_t mbedtls_hash( const void *data, size_t data_len_bytes )
-{
-    uint32_t result = 0;
-    size_t i;
-    /* data_len_bytes - only multiples of 4 are considered, rest is truncated */
-    for( i = 0; i < data_len_bytes >> 2; i++ )
-    {
-        result ^= ( (uint32_t*) data )[i];
-    }
-    return result;
-}
-#endif
+
 /*
  * Data structure for AES round data
  */
@@ -843,9 +831,6 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 #endif
     ) )
     {
-#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-        ctx->hash = mbedtls_hash( ctx->rk, keybits >> 3 );
-#endif
         return 0;
     }
 
@@ -941,9 +926,6 @@ exit:
     }
     else if( ( i == 0 ) && ( j == 4 ) )
     {
-#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-        ctx->hash = mbedtls_hash( ctx->rk, keybits >> 3 );
-#endif
         return( ret );
     }
     else
@@ -1106,21 +1088,6 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     // reserve based on max rounds + dummy rounds + 2 (for initial key addition)
     uint8_t round_ctrl_table[( 14 + AES_SCA_CM_ROUNDS + 2 )];
 
-#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-    unsigned key_bytes = 0;
-    uint32_t check_hash = 0;
-    switch( ctx->nr )
-    {
-        case 10: key_bytes = 16; break;
-#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
-        case 12: key_bytes = 24; break;
-        case 14: key_bytes = 32; break;
-#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
-        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
-    }
-    check_hash = mbedtls_hash( ctx->rk, key_bytes );
-#endif
-
     aes_data_real.rk_ptr = ctx->rk;
     aes_data_fake.rk_ptr = ctx->frk;
 
@@ -1217,18 +1184,9 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 
     /* Double negation is used to silence an "extraneous parentheses" warning */
     if( ! ( flow_control != tindex + dummy_rounds + 8 )
-#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-         && check_hash == ctx->hash
-#endif
       )
     {
-#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-        mbedtls_platform_random_delay();
-        if( mbedtls_hash( ctx->rk, key_bytes ) == ctx->hash )
-#endif
-        {
-            return 0;
-        }
+        return 0;
     }
 
     // Clear the output in case of a FI
@@ -1413,21 +1371,6 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     // reserve based on max rounds + dummy rounds + 2 (for initial key addition)
     uint8_t round_ctrl_table[( 14 + AES_SCA_CM_ROUNDS + 2 )];
 
-#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-    unsigned key_bytes = 0;
-    uint32_t check_hash = 0;
-    switch( ctx->nr )
-    {
-        case 10: key_bytes = 16; break;
-#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
-        case 12: key_bytes = 24; break;
-        case 14: key_bytes = 32; break;
-#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
-        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
-    }
-    check_hash = mbedtls_hash( ctx->rk, key_bytes );
-#endif
-
     aes_data_real.rk_ptr = ctx->rk;
     aes_data_fake.rk_ptr = ctx->frk;
 
@@ -1523,19 +1466,9 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     } while( ( i = ( i + 1 ) % 4 ) != offset );
 
     /* Double negation is used to silence an "extraneous parentheses" warning */
-    if( ! ( flow_control != tindex + dummy_rounds + 8 )
-#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-         && check_hash == ctx->hash
-#endif
-      )
+    if( flow_control == tindex + dummy_rounds + 8 )
     {
-#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-        mbedtls_platform_random_delay();
-        if( mbedtls_hash( ctx->rk, key_bytes ) == ctx->hash )
-#endif
-        {
-            return 0;
-        }
+        return 0;
     }
 
     // Clear the output in case of a FI

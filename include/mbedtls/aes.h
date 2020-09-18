@@ -90,9 +90,6 @@ typedef struct mbedtls_aes_context
 #if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
     uint32_t frk[8];            /*!< Fake AES round keys. */
 #endif
-#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-    uint32_t hash;               /*!< hash of the set key */
-#endif
 #if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH) && !defined(MBEDTLS_PADLOCK_C)
     uint32_t buf[44];           /*!< Unaligned data buffer */
 #else /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */

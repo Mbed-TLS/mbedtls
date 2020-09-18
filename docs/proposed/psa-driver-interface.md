@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/19 19:47:39 GMT"
+Time-stamp: "2020/09/18 20:35:28 GMT"
 
 ## Introduction
 
@@ -520,13 +520,13 @@ The key export entry points have the following prototypes for a driver with the 
 ```
 psa_status_t acme_export_key(const psa_key_attributes_t *attributes,
                              const uint8_t *key_buffer,
-                             size_t key_buffer_size);
+                             size_t key_buffer_size,
                              uint8_t *data,
                              size_t data_size,
                              size_t *data_length);
 psa_status_t acme_export_public_key(const psa_key_attributes_t *attributes,
                                     const uint8_t *key_buffer,
-                                    size_t key_buffer_size);
+                                    size_t key_buffer_size,
                                     uint8_t *data,
                                     size_t data_size,
                                     size_t *data_length);

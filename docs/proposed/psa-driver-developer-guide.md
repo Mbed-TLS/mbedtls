@@ -5,7 +5,7 @@ PSA Cryptoprocessor driver developer's guide
 
 This document describes how to write drivers of cryptoprocessors such as accelerators and secure elements for the PSA cryptography subsystem of Mbed TLS.
 
-This document focuses on behavior that is specific to Mbed TLS. For a reference of the interface between Mbed TLS and drivers, refer to the [PSA Cryptoprocessor Driver Interface specification](architecture/psa-driver-interface.md).
+This document focuses on behavior that is specific to Mbed TLS. For a reference of the interface between Mbed TLS and drivers, refer to the [PSA Cryptoprocessor Driver Interface specification](psa-driver-interface.html).
 
 The interface is not fully implemented in Mbed TLS yet and is disabled by default. You can enable the experimental work in progress by setting `MBEDTLS_PSA_CRYPTO_DRIVERS` in the compile-time configuration. Please note that the interface may still change: until further notice, we do not guarantee backward compatibility with existing driver code when `MBEDTLS_PSA_CRYPTO_DRIVERS` is enabled.
 
@@ -24,7 +24,7 @@ There are two types of drivers:
 
 To write a driver, you need to implement some functions with C linkage, and to declare these functions in a **driver description file**. The driver description file declares which functions the driver implements and what cryptographic mechanisms they support. Depending on the driver type, you may also need to define some C types and macros in a header file.
 
-The concrete syntax for a driver description file is JSON. The structure of this JSON file is specified in the section [“Driver description syntax”](architecture/psa-driver-interface.md#driver-description-syntax) of the PSA cryptography driver interface specification.
+The concrete syntax for a driver description file is JSON. The structure of this JSON file is specified in the section [“Driver description syntax”](psa-driver-interface.html#driver-description-syntax) of the PSA cryptography driver interface specification.
 
 A driver therefore consists of:
 
@@ -34,7 +34,7 @@ A driver therefore consists of:
 
 ## Driver C interfaces
 
-Mbed TLS calls [driver functions as specified in the PSA Cryptography Driver Interface specification](architecture/psa-driver-interface.md#) except as otherwise indicated in this section.
+Mbed TLS calls driver entry points [as specified in the PSA Cryptography Driver Interface specification](psa-driver-interface.html#driver-entry-points) except as otherwise indicated in this section.
 
 ### Key handles
 

@@ -1874,13 +1874,13 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_CRC_C */
 
-#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-    if( strcmp( "MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY", config ) == 0 )
+#if defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
+    if( strcmp( "MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY", config ) == 0 )
     {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY );
+        MACRO_EXPANSION_TO_STR( MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY );
         return( 0 );
     }
-#endif /* MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY */
+#endif /* MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY */
 
 #if defined(MBEDTLS_GCM_C)
     if( strcmp( "MBEDTLS_GCM_C", config ) == 0 )

@@ -25,6 +25,20 @@
 #define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_OUT_LEN_MAX
 #endif
 
+#if defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
+static uint32_t mbedtls_hash( const void *data, size_t data_len_bytes )
+{
+    uint32_t result = 0;
+    size_t i;
+    /* data_len_bytes - only multiples of 4 are considered, rest is truncated */
+    for( i = 0; i < data_len_bytes >> 2; i++ )
+    {
+        result ^= ( (uint32_t*) data )[i];
+    }
+    return result;
+}
+#endif
+
 static int build_transforms( mbedtls_ssl_transform *t_in,
                              mbedtls_ssl_transform *t_out,
                              int cipher_type, int hash_id,
@@ -82,6 +96,14 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     memcpy( t_out->key_enc, key1, keylen);
     memcpy( t_out->key_dec, key0, keylen);
     t_out->key_bitlen = cipher_info->key_bitlen;
+
+#if defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
+    t_in->key_enc_hash = mbedtls_hash( t_in->key_enc, t_in->key_bitlen >> 3 );
+    t_in->key_dec_hash = mbedtls_hash( t_in->key_dec, t_in->key_bitlen >> 3 );
+
+    t_out->key_enc_hash = mbedtls_hash( t_out->key_enc, t_out->key_bitlen >> 3 );
+    t_out->key_dec_hash = mbedtls_hash( t_out->key_dec, t_out->key_bitlen >> 3 );
+#endif
 
     /* Setup cipher contexts */
     CHK( mbedtls_cipher_setup( &t_in->cipher_ctx,  cipher_info ) == 0 );

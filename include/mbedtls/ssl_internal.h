@@ -760,7 +760,11 @@ struct mbedtls_ssl_transform
     unsigned char *key_enc;
     unsigned char *key_dec;
     unsigned int key_bitlen;
-    mbedtls_cipher_context_t cipher_ctx;        /*!<  encryption/decryption context */
+    mbedtls_cipher_context_t cipher_ctx;    /*!<  encryption/decryption context */
+#if defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
+    uint32_t key_enc_hash;                  /*!< hash of the encryption key */
+    uint32_t key_dec_hash;                  /*!< hash of the decryption key */
+#endif
 #else
     mbedtls_cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
     mbedtls_cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */

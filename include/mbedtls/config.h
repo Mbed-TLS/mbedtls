@@ -2020,6 +2020,15 @@
 //#define MBEDTLS_USE_PSA_CRYPTO
 
 /**
+ * \def MBEDTLS_PSA_CRYPTO_CONFIG
+ *
+ * This setting should be used to allow for conditional inclusion of PSA features.
+ *
+ * Uncomment this to enable use of PSA Crypto configuration settings.
+ */
+//#define MBEDTLS_PSA_CRYPTO_CONFIG
+
+/**
  * \def MBEDTLS_VERSION_FEATURES
  *
  * Allow run-time checking of compile-time enabled features. Thus allowing users
@@ -3810,6 +3819,15 @@
 #if defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
+
+/**
+ * \name SECTION: PSA Crypto settings
+ *
+ */
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#include "mbedtls/config_psa.h"
+#endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
+
 
 #include "mbedtls/check_config.h"
 

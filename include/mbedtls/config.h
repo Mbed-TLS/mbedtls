@@ -1330,7 +1330,7 @@
  *
  * Enable support for the experimental PSA crypto driver interface.
  *
- * Requires: MBEDTLS_PSA_CRYPTO_C.
+ * Requires: MBEDTLS_PSA_CRYPTO_C or MBEDTLS_PSA_CRYPTO_CONFIG
  *
  * \warning This interface is experimental and may change or be removed
  * without notice.

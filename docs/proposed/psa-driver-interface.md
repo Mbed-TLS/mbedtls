@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/09/18 20:35:28 GMT"
+Time-stamp: "2020/09/18 22:34:47 GMT"
 
 ## Introduction
 
@@ -503,10 +503,12 @@ psa_status_t acme_import_key(const psa_key_attributes_t *attributes,
                              const uint8_t *data,
                              size_t data_length,
                              uint8_t *key_buffer,
-                             size_t key_buffer_size);
+                             size_t key_buffer_size,
+                             size_t *key_buffer_length);
 psa_status_t acme_generate_key(const psa_key_attributes_t *attributes,
                                uint8_t *key_buffer,
-                               size_t key_buffer_size);
+                               size_t key_buffer_size,
+                               size_t *key_buffer_length);
 ```
 
 If the driver has an [`"allocate_key"` entry point](#key-management-in-a-secure-element-with-storage), the core calls the `"allocate_key"` entry point with the same attributes on the same key buffer before calling the key creation entry point.

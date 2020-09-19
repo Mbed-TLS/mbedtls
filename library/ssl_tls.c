@@ -63,12 +63,14 @@ static int mbedtls_ssl_switch_key( mbedtls_ssl_transform *transform,
                                    const mbedtls_operation_t operation )
 {
     unsigned char * key;
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    int flow_ctrl = 0;
 #if defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
     uint32_t hash;
 #endif
     if( operation == MBEDTLS_ENCRYPT )
     {
+        flow_ctrl++;
         key = transform->key_enc;
 #if defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
         hash = transform->key_enc_hash;
@@ -76,6 +78,7 @@ static int mbedtls_ssl_switch_key( mbedtls_ssl_transform *transform,
     }
     else if ( operation == MBEDTLS_DECRYPT )
     {
+        flow_ctrl++;
         key = transform->key_dec;
 #if defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
         hash = transform->key_dec_hash;
@@ -91,6 +94,12 @@ static int mbedtls_ssl_switch_key( mbedtls_ssl_transform *transform,
     {
         return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
     }
+    else
+    {
+        flow_ctrl++;
+    }
+#else
+    flow_ctrl++;
 #endif
     if( operation != transform->cipher_ctx.operation )
     {
@@ -102,7 +111,11 @@ static int mbedtls_ssl_switch_key( mbedtls_ssl_transform *transform,
             return( ret );
         }
     }
-    return( 0 );
+    if( flow_ctrl == 2 )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif
 

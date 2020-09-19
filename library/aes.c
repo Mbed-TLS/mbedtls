@@ -85,19 +85,6 @@
 }
 #endif
 
-#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)
-static uint32_t mbedtls_hash( const void *data, size_t data_len_bytes )
-{
-    uint32_t result = 0;
-    size_t i;
-    /* data_len_bytes - only multiples of 4 are considered, rest is truncated */
-    for( i = 0; i < data_len_bytes >> 2; i++ )
-    {
-        result ^= ( (uint32_t*) data )[i];
-    }
-    return result;
-}
-#endif
 /*
  * Data structure for AES round data
  */

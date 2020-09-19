@@ -442,6 +442,20 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
 }
 #endif /* MBEDTLS_HAVE_TIME_DATE && MBEDTLS_PLATFORM_GMTIME_R_ALT */
 
+#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY) || defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
+uint32_t mbedtls_hash( const void *data, size_t data_len_bytes )
+{
+    uint32_t result = 0;
+    size_t i;
+    /* data_len_bytes - only multiples of 4 are considered, rest is truncated */
+    for( i = 0; i < data_len_bytes >> 2; i++ )
+    {
+        result ^= ( (uint32_t*) data )[i];
+    }
+    return result;
+}
+#endif
+
 unsigned char* mbedtls_platform_put_uint32_be( unsigned char *buf,
                                                size_t num )
 {

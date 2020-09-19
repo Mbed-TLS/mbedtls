@@ -4457,6 +4457,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 {
     volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    volatile int ret_fi = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     size_t i, sig_len;
     unsigned char hash[48];
     unsigned char *hash_start = hash;
@@ -4650,10 +4651,10 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     {
         mbedtls_platform_random_delay();
 
-        ret = mbedtls_pk_verify( peer_pk,
-                                 md_alg, hash_start, hashlen,
-                                 ssl->in_msg + i, sig_len );
-        if( ret == 0 )
+        ret_fi = mbedtls_pk_verify( peer_pk,
+                                    md_alg, hash_start, hashlen,
+                                    ssl->in_msg + i, sig_len );
+        if( ret == 0 && ret_fi == 0 )
         {
             mbedtls_ssl_update_handshake_status( ssl );
 

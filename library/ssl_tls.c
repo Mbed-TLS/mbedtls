@@ -56,7 +56,7 @@
 #include "mbedtls/oid.h"
 #endif
 
-#define PROPER_HS_FRAGMENT 0x75555555
+#define PROPER_HS_FRAGMENT 0x75
 
 #if defined(MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS)
 static int mbedtls_ssl_switch_key( mbedtls_ssl_transform *transform,

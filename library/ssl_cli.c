@@ -101,7 +101,7 @@ static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
     unsigned char *p = buf;
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
     size_t hostname_len;
-
+    int ret;
     *olen = 0;
 
     if( ssl->hostname == NULL )
@@ -117,6 +117,12 @@ static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;
     }
+    ret = mbedtls_ssl_confirm_content_len( ssl, 1, buf - ssl->out_buf  +
+                                            hostname_len + 9 );
+    if ( ret )
+         return ret;
+
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, hostname_len + 9 );
 
     /*
      * Sect. 3, RFC 6066 (TLS Extensions Definitions)
@@ -811,7 +817,8 @@ static int ssl_validate_ciphersuite( const mbedtls_ssl_ciphersuite_t * suite_inf
 static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 {
     int ret;
-    size_t i, n, olen, ext_len = 0;
+    size_t i, n, olen, ext_len = 0, pofs;
+
     unsigned char *buf;
     unsigned char *p, *q;
     unsigned char offer_compress;
@@ -844,6 +851,23 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
                             "consider using mbedtls_ssl_config_defaults()" ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
+
+    ret = mbedtls_ssl_confirm_content_len( ssl, 1, MBEDTLS_SSL_BUFFER_MIN + 1024 );
+     if( ret )
+         return( ret );
+
+    buf = ssl->out_msg;
+    end = buf + ssl->out_max_content_len;
+
+    /*
+     * Check if there's enough space for the first part of the ClientHello
+     * consisting of the 38 bytes described below, the session identifier (at
+     * most 32 bytes) and its length (1 byte).
+     *
+     * Use static upper bounds instead of the actual values
+     * to allow the compiler to optimize this away.
+     */
+    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 38 + 1 + 32 );
 
     /*
      *     0  .   0   handshake type
@@ -1048,8 +1072,11 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         *p++ = MBEDTLS_SSL_COMPRESS_NULL;
     }
 
-    // First write extensions, then the total length
-    //
+    pofs = p - ssl->out_buf;
+    /* First write extensions, then the total length */
+
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
+
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     ssl_write_hostname_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
@@ -1111,12 +1138,25 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    ssl_write_session_ticket_ext( ssl, p + 2 + ext_len, &olen );
+
+    ret = mbedtls_ssl_confirm_content_len( ssl, 1, pofs + 2 + ext_len +
+        ssl->session_negotiate->ticket_len + 4 + 3 );
+     if( ret )
+         return ret;
+     p = ssl->out_buf + pofs;
+
+    if( ( ret = ssl_write_session_ticket_ext( ssl, p + 2 + ext_len,
+                                             &olen ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_session_ticket_ext", ret );
+        return( ret );
+    }
     ext_len += olen;
 #endif
 
     /* olen unused if all extensions are disabled */
     ((void) olen);
+    ((void) pofs);
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %d",
                    ext_len ) );
@@ -1586,6 +1626,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
+    buf = ssl->in_msg;
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
@@ -1625,7 +1667,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      * 38+n . 39+n  extensions length (optional)
      * 40+n .  ..   extensions
      */
-    buf += mbedtls_ssl_hs_hdr_len( ssl );
+    buf = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, version", buf + 0, 2 );
     mbedtls_ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
@@ -2267,7 +2309,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
     unsigned char *p = ssl->handshake->premaster + pms_offset;
     mbedtls_pk_context * peer_pk;
 
-    if( offset + len_bytes > MBEDTLS_SSL_OUT_CONTENT_LEN )
+    if( offset + len_bytes > ssl->out_max_content_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small for encrypted pms" ) );
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
@@ -2315,7 +2357,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
     if( ( ret = mbedtls_pk_encrypt( peer_pk,
                             p, ssl->handshake->pmslen,
                             ssl->out_msg + offset + len_bytes, olen,
-                            MBEDTLS_SSL_OUT_CONTENT_LEN - offset - len_bytes,
+                            ssl->out_max_content_len - offset - len_bytes,
                             ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_rsa_pkcs1_encrypt", ret );
@@ -3304,7 +3346,7 @@ ecdh_calc_secret:
         header_len = 4;
         content_len = ssl->conf->psk_identity_len;
 
-        if( header_len + 2 + content_len > MBEDTLS_SSL_OUT_CONTENT_LEN )
+        if( header_len + 2 + content_len > ssl->out_max_content_len )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "psk identity too long or "
                                         "SSL buffer too short" ) );
@@ -3355,8 +3397,7 @@ ecdh_calc_secret:
              */
             content_len = ssl->handshake->dhm_ctx.len;
 
-            if( header_len + 2 + content_len >
-                MBEDTLS_SSL_OUT_CONTENT_LEN )
+            if( header_len + 2 + content_len > ssl->out_max_content_len )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "psk identity or DHM size too long"
                                             " or SSL buffer too short" ) );
@@ -3393,7 +3434,7 @@ ecdh_calc_secret:
             ret = mbedtls_ecdh_make_public( &ssl->handshake->ecdh_ctx,
                     &content_len,
                     &ssl->out_msg[header_len],
-                    MBEDTLS_SSL_OUT_CONTENT_LEN - header_len,
+                    ssl->out_max_content_len - header_len,
                     ssl->conf->f_rng, ssl->conf->p_rng );
             if( ret != 0 )
             {
@@ -3448,7 +3489,7 @@ ecdh_calc_secret:
 
         ret = mbedtls_ecjpake_write_round_two( &ssl->handshake->ecjpake_ctx,
                 ssl->out_msg + header_len,
-                MBEDTLS_SSL_OUT_CONTENT_LEN - header_len,
+                ssl->out_max_content_len - header_len,
                 &content_len,
                 ssl->conf->f_rng, ssl->conf->p_rng );
         if( ret != 0 )

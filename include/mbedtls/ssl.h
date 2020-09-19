@@ -225,6 +225,17 @@
 #define MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
 #endif
 
+
+/*
+  * The default minimum allocation for fragment buffers.
+  * Making it larger trades off memory against the number of
+  * reallocations needed to make it big enough for cases where
+  * it needs to be bigger
+  */
+ #if !defined(MBEDTLS_SSL_BUFFER_MIN)
+ #define MBEDTLS_SSL_BUFFER_MIN 512
+ #endif
+
 /*
  * Maximum fragment length in bytes,
  * determines the size of each of the two internal I/O buffers.
@@ -1140,6 +1151,8 @@ struct mbedtls_ssl_context
     int in_msgtype;             /*!< record header: message type      */
     size_t in_msglen;           /*!< record header: message length    */
     size_t in_left;             /*!< amount of data read so far       */
+    uint16_t in_max_content_len;            /*!< allocated size of .buf, minus
+                                    MBEDTLS_SSL_BUFFER_OVERHEAD */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     uint16_t in_epoch;          /*!< DTLS epoch for incoming records  */
     size_t next_record_offset;  /*!< offset of the next record in datagram
@@ -1171,11 +1184,13 @@ struct mbedtls_ssl_context
     unsigned char *out_len;     /*!< two-bytes message length field   */
     unsigned char *out_iv;      /*!< ivlen-byte IV                    */
     unsigned char *out_msg;     /*!< message contents (out_iv+ivlen)  */
+    unsigned char *out_offt;     /*!< read offset in application data  */
 
     int out_msgtype;            /*!< record header: message type      */
     size_t out_msglen;          /*!< record header: message length    */
     size_t out_left;            /*!< amount of data not yet written   */
-
+    uint16_t out_max_content_len;            /*!< allocated size of .buf, minus
+                                    MBEDTLS_SSL_BUFFER_OVERHEAD */
     unsigned char cur_out_ctr[8]; /*!<  Outgoing record sequence  number. */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

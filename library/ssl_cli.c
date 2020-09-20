@@ -2794,6 +2794,7 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
      * structural change to provide default flow assumes failure
      */
     volatile int ret = 0;
+    volatile int ret_fi = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     unsigned char *p;
     unsigned char *end;
 
@@ -2931,6 +2932,7 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
     {
         ((void) ret);
+        ((void) ret_fi);
         ((void) p);
         ((void) end);
         ((void) ciphersuite_info);
@@ -3102,10 +3104,14 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
 
             if( rs_ctx == NULL )
             {
-                ret = mbedtls_pk_verify_restartable( peer_pk,
+                ret_fi = mbedtls_pk_verify_restartable( peer_pk,
                         md_alg, hash, hashlen, p, sig_len, rs_ctx );
             }
-            if( ret == 0 )
+            else
+            {
+                ret_fi = 0;
+            }
+            if( ret == 0 && ret_fi == 0 )
             {
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
                 /* We don't need the peer's public key anymore. Free it,

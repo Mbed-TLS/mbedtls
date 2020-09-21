@@ -4778,12 +4778,6 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    mbedtls_free( conf->dtls_srtp_profile_list );
-    conf->dtls_srtp_profile_list =
-            (mbedtls_ssl_srtp_profile*)mbedtls_calloc(1,
-             profiles_number * sizeof( mbedtls_ssl_srtp_profile ) );
-    if( conf->dtls_srtp_profile_list == NULL )
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
     for( i=0; i < profiles_number; i++ ) {
         switch( profiles[i] ) {
@@ -4791,17 +4785,15 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
             case MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32:
             case MBEDTLS_SRTP_NULL_HMAC_SHA1_80:
             case MBEDTLS_SRTP_NULL_HMAC_SHA1_32:
-                conf->dtls_srtp_profile_list[i] = profiles[i];
                 break;
             default:
-                mbedtls_free( conf->dtls_srtp_profile_list );
                 conf->dtls_srtp_profile_list = NULL;
                 conf->dtls_srtp_profile_list_len = 0;
                 return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
         }
     }
 
-    /* assign array length */
+    conf->dtls_srtp_profile_list = profiles;
     conf->dtls_srtp_profile_list_len = profiles_number;
 
     return( 0 );
@@ -7162,10 +7154,6 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     ssl_key_cert_free( conf->key_cert );
-#endif
-
-#if defined (MBEDTLS_SSL_DTLS_SRTP)
-    mbedtls_free( conf->dtls_srtp_profile_list );
 #endif
 
     mbedtls_platform_zeroize( conf, sizeof( mbedtls_ssl_config ) );

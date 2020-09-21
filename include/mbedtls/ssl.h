@@ -891,12 +891,12 @@ mbedtls_ssl_srtp_profile_info;
 
 typedef struct mbedtls_dtls_srtp_info_t
 {
-    /*! The SRTP profile that was negotiated*/
+    /*! The SRTP profile that was negotiated. */
     mbedtls_ssl_srtp_profile chosen_dtls_srtp_profile;
-    /*! The mki_value used, with max size of 256 bytes */
+    /*! The mki_value used, with max size of 256 bytes. */
     unsigned char mki_value[MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH];
-    /*! The length of mki_value */
-    size_t                 mki_len;
+    /*! The length of mki_value. */
+    size_t mki_len;
 }
 mbedtls_dtls_srtp_info;
 
@@ -1110,7 +1110,7 @@ struct mbedtls_ssl_config
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
     /*! ordered list of supported srtp profile */
-    mbedtls_ssl_srtp_profile *dtls_srtp_profile_list;
+    const mbedtls_ssl_srtp_profile *dtls_srtp_profile_list;
     /*! number of supported profiles */
     size_t dtls_srtp_profile_list_len;
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
@@ -3190,13 +3190,14 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 /**
- * \brief                   Add support for mki(master key id) value in use_srtp extension.
- *                          MKI is an optional part of SRTP used for key management and
- *                          re-keying. See RFC3711 section 3.1 for details
+ * \brief                   Manage support for mki(master key id) value
+ *                          in use_srtp extension.
+ *                          MKI is an optional part of SRTP used for key management
+ *                          and re-keying. See RFC3711 section 3.1 for details.
  *                          The default value is
  *                          #MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED.
  *
- * \param conf              SSL configuration
+ * \param conf              The SSL configuration to manage mki support.
  * \param support_mki_value Enable or disable mki usage. Values are
  *                          #MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED
  *                          or #MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED.
@@ -3210,10 +3211,15 @@ void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf,
  * \param conf              SSL configuration
  * \param profiles          List of supported protection profiles,
  *                          in decreasing preference order.
+ *                          The pointer to the list is
+ *                          recorded by the library for later reference as required,
+ *                          so the lifetime of the table must be at least as long
+ *                          as the lifetime of the SSL configuration structure.
  * \param profiles_number   Number of supported profiles.
  *
  * \return                  0 on success
- * \return                  #MBEDTLS_ERR_SSL_BAD_INPUT_DATA when the list of protection profiles is incorrect
+ * \return                  #MBEDTLS_ERR_SSL_BAD_INPUT_DATA when the list of
+ *                          protection profiles is incorrect.
  */
 int mbedtls_ssl_conf_dtls_srtp_protection_profiles
                                ( mbedtls_ssl_config *conf,
@@ -3239,11 +3245,11 @@ int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
  *                 This function should be called after the handshake is
  *                 completed.
  *
- * \param ssl      The SSL context to query
+ * \param ssl      The SSL context to query.
  *
- * \return         The DTLS SRTP protection profile in use
- * \return         #MBEDTLS_SRTP_UNSET_PROFILE if no protocol was negotiated or the handshake is still on
- *                 early stage
+ * \return         The DTLS SRTP protection profile in use.
+ * \return         #MBEDTLS_SRTP_UNSET_PROFILE if the use of SRTP was not negotiated
+ *                 or peer's Hello packet was not parsed yet.
  */
 mbedtls_ssl_srtp_profile mbedtls_ssl_get_dtls_srtp_protection_profile
                                              ( const mbedtls_ssl_context *ssl );
@@ -3253,9 +3259,9 @@ mbedtls_ssl_srtp_profile mbedtls_ssl_get_dtls_srtp_protection_profile
  *
  * \param profile          The DTLS-SRTP profile id to get info on.
  *
- * \return                 Address of the SRTP profile information structure on
- *                         success
- * \return                 \c NULL if not found.
+ * \return                 The address of the SRTP profile information structure on
+ *                         success.
+ * \return                 \c NULL if the protection profile \p profile was not found.
  */
 const mbedtls_ssl_srtp_profile_info *mbedtls_ssl_dtls_srtp_profile_info_from_id
                                            ( mbedtls_ssl_srtp_profile profile );

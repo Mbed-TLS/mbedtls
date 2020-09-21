@@ -788,8 +788,7 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
      * } UseSRTPData;
      * SRTPProtectionProfile SRTPProtectionProfiles<2..2^16-1>;
      */
-    if( ssl->conf->dtls_srtp_mki_support == MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED &&
-        ssl->dtls_srtp_info.mki_len != 0 )
+    if( ssl->conf->dtls_srtp_mki_support == MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED )
     {
         mki_len = ssl->dtls_srtp_info.mki_len;
     }

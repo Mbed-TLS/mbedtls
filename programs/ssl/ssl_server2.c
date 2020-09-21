@@ -331,7 +331,7 @@ int main( void )
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 #define USAGE_SRTP \
     "    use_srtp=%%d         default: 0 (disabled)\n" \
-    "    srtp_force_profile=%%d  default: all enabled\n"   \
+    "    srtp_force_profile=%%d  default: 0 (all enabled)\n"   \
     "                        available profiles:\n"       \
     "                        1 - SRTP_AES128_CM_HMAC_SHA1_80\n"  \
     "                        2 - SRTP_AES128_CM_HMAC_SHA1_32\n"  \
@@ -809,9 +809,9 @@ static int dtls_srtp_key_derivation( void *p_expkey,
 
     if( opt.debug_level > 2 )
     {
-        mbedtls_printf("exported maclen is %u\n", (unsigned)maclen);
-        mbedtls_printf("exported keylen is %u\n", (unsigned)keylen);
-        mbedtls_printf("exported ivlen is %u\n", (unsigned)ivlen);
+        mbedtls_printf( "exported maclen is %u\n", (unsigned) maclen );
+        mbedtls_printf( "exported keylen is %u\n", (unsigned) keylen );
+        mbedtls_printf( "exported ivlen is %u\n", (unsigned) ivlen );
     }
     return( 0 );
 }
@@ -1876,6 +1876,12 @@ int main( int argc, char *argv[] )
      unsigned char dtls_srtp_key_material[MBEDTLS_TLS_SRTP_MAX_KEY_MATERIAL_LENGTH];
      const char* dtls_srtp_label = "EXTRACTOR-dtls_srtp";
      dtls_srtp_keys dtls_srtp_keying;
+     const mbedtls_ssl_srtp_profile default_profiles[] = {
+         MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80,
+         MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32,
+         MBEDTLS_SRTP_NULL_HMAC_SHA1_80,
+         MBEDTLS_SRTP_NULL_HMAC_SHA1_32
+     };
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
@@ -3136,9 +3142,9 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-    if( opt.use_srtp != DFL_USE_SRTP )
+    if( opt.use_srtp == 1 )
     {
-        if( opt.force_srtp_profile != DFL_SRTP_FORCE_PROFILE )
+        if( opt.force_srtp_profile != 0 )
         {
             const mbedtls_ssl_srtp_profile forced_profile[] = { opt.force_srtp_profile };
             ret = mbedtls_ssl_conf_dtls_srtp_protection_profiles( &conf,
@@ -3147,10 +3153,6 @@ int main( int argc, char *argv[] )
         }
         else
         {
-            const mbedtls_ssl_srtp_profile default_profiles[] = { MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80,
-                                                                  MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32,
-                                                                  MBEDTLS_SRTP_NULL_HMAC_SHA1_80,
-                                                                  MBEDTLS_SRTP_NULL_HMAC_SHA1_32 };
             ret = mbedtls_ssl_conf_dtls_srtp_protection_profiles( &conf,
                                                                   default_profiles,
                                                                   sizeof( default_profiles ) / sizeof( mbedtls_ssl_srtp_profile ) );
@@ -3168,7 +3170,7 @@ int main( int argc, char *argv[] )
                                                    MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED );
 
     }
-    else if( opt.force_srtp_profile != DFL_SRTP_FORCE_PROFILE )
+    else if( opt.force_srtp_profile != 0 )
     {
         mbedtls_printf( " failed\n  ! must enable use_srtp to force srtp profile\n\n" );
         goto exit;
@@ -3861,30 +3863,39 @@ handshake:
     {
         size_t j = 0;
 
-        if( ( ret = mbedtls_ssl_tls_prf( dtls_srtp_keying.tls_prf_type,
-                                         dtls_srtp_keying.master_secret,
-                                         sizeof( dtls_srtp_keying.master_secret ),
-                                         dtls_srtp_label,
-                                         dtls_srtp_keying.randbytes,
-                                         sizeof( dtls_srtp_keying.randbytes ),
-                                         dtls_srtp_key_material,
-                                         sizeof( dtls_srtp_key_material ) ) )
-                                         != 0 )
+        if( (mbedtls_ssl_get_dtls_srtp_protection_profile( &ssl )
+             == MBEDTLS_SRTP_UNSET_PROFILE ) )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
-                            (unsigned int) -ret );
-            goto exit;
+            mbedtls_printf( "    DTLS-SRTP unable to negotiate "
+                            "protection profile\n" );
         }
-
-        mbedtls_printf( "    DTLS-SRTP key material is:" );
-        for( j = 0; j < sizeof( dtls_srtp_key_material ); j++ )
+        else
         {
-            if( j % 8 == 0 )
-                mbedtls_printf("\n    ");
-            mbedtls_printf("%02x ", dtls_srtp_key_material[j] );
-        }
+            if( ( ret = mbedtls_ssl_tls_prf( dtls_srtp_keying.tls_prf_type,
+                                             dtls_srtp_keying.master_secret,
+                                             sizeof( dtls_srtp_keying.master_secret ),
+                                             dtls_srtp_label,
+                                             dtls_srtp_keying.randbytes,
+                                             sizeof( dtls_srtp_keying.randbytes ),
+                                             dtls_srtp_key_material,
+                                             sizeof( dtls_srtp_key_material ) ) )
+                                             != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
+                                (unsigned int) -ret );
+                goto exit;
+            }
 
-        mbedtls_printf("\n");
+            mbedtls_printf( "    DTLS-SRTP key material is:" );
+            for( j = 0; j < sizeof( dtls_srtp_key_material ); j++ )
+            {
+                if( j % 8 == 0 )
+                    mbedtls_printf("\n    ");
+                mbedtls_printf("%02x ", dtls_srtp_key_material[j] );
+            }
+
+            mbedtls_printf("\n");
+        }
     }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */

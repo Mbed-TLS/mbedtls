@@ -2651,6 +2651,14 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
         mki_len = ssl->dtls_srtp_info.mki_len;
     }
 
+    /* The extension total size is 9 bytes :
+     * - 2 bytes for the extension tag
+     * - 2 bytes for the total size
+     * - 2 bytes for the protection profile length
+     * - 2 bytes for the protection profile
+     * - 1 byte for the mki length
+     * +  the actual mki length
+     * Check we have enough room in the output buffer */
     if( end < buf + mki_len + 9 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );

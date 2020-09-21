@@ -2256,7 +2256,7 @@ exit:
 /* Message digests */
 /****************************************************************/
 
-#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_DETERMINISTIC)
+#if defined(MBEDTLS_RSA_C) || defined(PSA_WANT_ALG_ECDSA_DETERMINISTIC)
 static const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
 {
     switch( alg )
@@ -3530,7 +3530,7 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
 }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(PSA_WANT_ALG_ECDSA)
 /* `ecp` cannot be const because `ecp->grp` needs to be non-const
  * for mbedtls_ecdsa_sign() and mbedtls_ecdsa_sign_det()
  * (even though these functions don't modify it). */
@@ -3554,7 +3554,7 @@ static psa_status_t psa_ecdsa_sign( mbedtls_ecp_keypair *ecp,
         goto cleanup;
     }
 
-#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+#if defined(PSA_WANT_ALG_ECDSA_DETERMINISTIC)
     if( PSA_ALG_DSA_IS_DETERMINISTIC( alg ) )
     {
         psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
@@ -3567,7 +3567,7 @@ static psa_status_t psa_ecdsa_sign( mbedtls_ecp_keypair *ecp,
                                                      &global_data.ctr_drbg ) );
     }
     else
-#endif /* MBEDTLS_ECDSA_DETERMINISTIC */
+#endif /* PSA_WANT_ALG_ECDSA_DETERMINISTIC */
     {
         (void) alg;
         MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign( &ecp->grp, &r, &s, &ecp->d,
@@ -3629,7 +3629,7 @@ cleanup:
     mbedtls_mpi_free( &s );
     return( mbedtls_to_psa_error( ret ) );
 }
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* PSA_WANT_ALG_ECDSA */
 
 psa_status_t psa_sign_hash( psa_key_handle_t handle,
                             psa_algorithm_t alg,
@@ -3698,9 +3698,9 @@ psa_status_t psa_sign_hash( psa_key_handle_t handle,
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
     {
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(PSA_WANT_ALG_ECDSA)
         if(
-#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+#if defined(PSA_WANT_ALG_ECDSA_DETERMINISTIC)
             PSA_ALG_IS_ECDSA( alg )
 #else
             PSA_ALG_IS_RANDOMIZED_ECDSA( alg )
@@ -3723,7 +3723,7 @@ psa_status_t psa_sign_hash( psa_key_handle_t handle,
             mbedtls_free( ecp );
         }
         else
-#endif /* defined(MBEDTLS_ECDSA_C) */
+#endif /* defined(PSA_WANT_ALG_ECDSA) */
         {
             status = PSA_ERROR_INVALID_ARGUMENT;
         }
@@ -3799,7 +3799,7 @@ psa_status_t psa_verify_hash( psa_key_handle_t handle,
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
     {
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(PSA_WANT_ALG_ECDSA)
         if( PSA_ALG_IS_ECDSA( alg ) )
         {
             mbedtls_ecp_keypair *ecp = NULL;
@@ -3817,7 +3817,7 @@ psa_status_t psa_verify_hash( psa_key_handle_t handle,
             return( status );
         }
         else
-#endif /* defined(MBEDTLS_ECDSA_C) */
+#endif /* defined(PSA_WANT_ALG_ECDSA) */
         {
             return( PSA_ERROR_INVALID_ARGUMENT );
         }

@@ -781,10 +781,9 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
                                    const unsigned char *buf,
                                    size_t len )
 {
-    mbedtls_ssl_srtp_profile client_protection = MBEDTLS_SRTP_UNSET_PROFILE;
+    mbedtls_ssl_srtp_profile client_protection = MBEDTLS_TLS_SRTP_UNSET;
     size_t i,j;
     size_t profile_length,mki_length;
-    const mbedtls_ssl_srtp_profile_info *profile_info;
     /*! 2 bytes for profile length and 1 byte for mki len */
     const size_t size_of_lengths = 3;
 
@@ -818,7 +817,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
-   ssl->dtls_srtp_info.chosen_dtls_srtp_profile = MBEDTLS_SRTP_UNSET_PROFILE;
+   ssl->dtls_srtp_info.chosen_dtls_srtp_profile = MBEDTLS_TLS_SRTP_UNSET;
 
     /* first 2 bytes are protection profile length(in bytes) */
     profile_length = ( buf[0] << 8 ) | buf[1];
@@ -839,12 +838,13 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
     for( j=0; j < profile_length; j += 2 )
     {
         uint16_t protection_profile_value = buf[j] << 8 | buf[j+1];
-        client_protection = mbedtls_ssl_get_srtp_profile_value( protection_profile_value );
+        client_protection = mbedtls_ssl_check_srtp_profile_value( protection_profile_value );
 
-        profile_info = mbedtls_ssl_dtls_srtp_profile_info_from_id( client_protection );
-        if( profile_info != NULL )
+        if( client_protection != MBEDTLS_TLS_SRTP_UNSET )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "found srtp profile: %s", profile_info->name ) );
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "found srtp profile: %s",
+                                    mbedtls_ssl_get_srtp_profile_as_string(
+                                            client_protection ) ) );
         }
         else
         {
@@ -856,11 +856,13 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
             if( client_protection == ssl->conf->dtls_srtp_profile_list[i] )
             {
                 ssl->dtls_srtp_info.chosen_dtls_srtp_profile = ssl->conf->dtls_srtp_profile_list[i];
-                MBEDTLS_SSL_DEBUG_MSG( 3, ( "selected srtp profile: %s", profile_info->name ) );
+                MBEDTLS_SSL_DEBUG_MSG( 3, ( "selected srtp profile: %s",
+                                            mbedtls_ssl_get_srtp_profile_as_string(
+                                                    client_protection ) ) );
                 break;
             }
         }
-        if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE )
+        if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_TLS_SRTP_UNSET )
             break;
     }
     buf += profile_length; /* buf points to the mki length */
@@ -2639,7 +2641,7 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
 
     *olen = 0;
 
-    if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile == MBEDTLS_SRTP_UNSET_PROFILE )
+    if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile == MBEDTLS_TLS_SRTP_UNSET )
     {
         return;
     }
@@ -2679,9 +2681,9 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
     /* protection profile length: 2 */
     buf[4] = 0x00;
     buf[5] = 0x02;
-    profile_value = mbedtls_ssl_get_srtp_profile_iana_value(
+    profile_value = mbedtls_ssl_check_srtp_profile_value(
                                 ssl->dtls_srtp_info.chosen_dtls_srtp_profile );
-    if( profile_value != 0xFFFF )
+    if( profile_value != MBEDTLS_TLS_SRTP_UNSET )
     {
         buf[6] = (unsigned char)( ( profile_value >> 8 ) & 0xFF );
         buf[7] = (unsigned char)( profile_value & 0xFF );

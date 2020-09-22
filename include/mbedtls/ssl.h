@@ -414,6 +414,7 @@
 
 #define MBEDTLS_TLS_EXT_RENEGOTIATION_INFO      0xFF01
 
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
 /*
  * Use_srtp extension protection profiles values as defined in
  * http://www.iana.org/assignments/srtp-protection/srtp-protection.xhtml
@@ -422,6 +423,9 @@
 #define MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32     0x0002
 #define MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80          0x0005
 #define MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32          0x0006
+/* This one is not iana defined, but for code readability. */
+#define MBEDTLS_TLS_SRTP_UNSET                      0x0000
+#endif /* MBEDTLS_SSL_DTLS_SRTP*/
 
 /*
  * Size defines
@@ -870,24 +874,15 @@ typedef void mbedtls_ssl_async_cancel_t( mbedtls_ssl_context *ssl );
 #define MBEDTLS_TLS_SRTP_MAX_KEY_MATERIAL_LENGTH    60
 #define MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH             255
 /*
- * List of SRTP profiles for DTLS-SRTP
+ * For code readability use a typedef for DTLS-SRTP profiles
+ * The supported profiles are defines as macro above:
+ * MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80
+ * MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32
+ * MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80
+ * MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32
+ * MBEDTLS_TLS_SRTP_UNSET
  */
-typedef enum
-{
-    MBEDTLS_SRTP_UNSET_PROFILE,
-    MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80,
-    MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32,
-    MBEDTLS_SRTP_NULL_HMAC_SHA1_80,
-    MBEDTLS_SRTP_NULL_HMAC_SHA1_32,
-}
-mbedtls_ssl_srtp_profile;
-
-typedef struct
-{
-    const mbedtls_ssl_srtp_profile   profile;
-    const char                      *name;
-}
-mbedtls_ssl_srtp_profile_info;
+typedef uint16_t mbedtls_ssl_srtp_profile;
 
 typedef struct mbedtls_dtls_srtp_info_t
 {
@@ -3248,23 +3243,11 @@ int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
  * \param ssl      The SSL context to query.
  *
  * \return         The DTLS SRTP protection profile in use.
- * \return         #MBEDTLS_SRTP_UNSET_PROFILE if the use of SRTP was not negotiated
+ * \return         #MBEDTLS_TLS_SRTP_UNSET if the use of SRTP was not negotiated
  *                 or peer's Hello packet was not parsed yet.
  */
 mbedtls_ssl_srtp_profile mbedtls_ssl_get_dtls_srtp_protection_profile
                                              ( const mbedtls_ssl_context *ssl );
-
-/**
- * \brief                  Utility function to get information on DTLS-SRTP profile.
- *
- * \param profile          The DTLS-SRTP profile id to get info on.
- *
- * \return                 The address of the SRTP profile information structure on
- *                         success.
- * \return                 \c NULL if the protection profile \p profile was not found.
- */
-const mbedtls_ssl_srtp_profile_info *mbedtls_ssl_dtls_srtp_profile_info_from_id
-                                           ( mbedtls_ssl_srtp_profile profile );
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
 /**

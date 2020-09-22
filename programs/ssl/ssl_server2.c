@@ -1877,10 +1877,10 @@ int main( int argc, char *argv[] )
      const char* dtls_srtp_label = "EXTRACTOR-dtls_srtp";
      dtls_srtp_keys dtls_srtp_keying;
      const mbedtls_ssl_srtp_profile default_profiles[] = {
-         MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80,
-         MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32,
-         MBEDTLS_SRTP_NULL_HMAC_SHA1_80,
-         MBEDTLS_SRTP_NULL_HMAC_SHA1_32
+         MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80,
+         MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32,
+         MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80,
+         MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32
      };
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
@@ -3864,7 +3864,7 @@ handshake:
         size_t j = 0;
 
         if( ( mbedtls_ssl_get_dtls_srtp_protection_profile( &ssl )
-                                == MBEDTLS_SRTP_UNSET_PROFILE ) )
+                                == MBEDTLS_TLS_SRTP_UNSET ) )
         {
             mbedtls_printf( "    Unable to negotiate "
                             "the use of DTLS-SRTP\n" );

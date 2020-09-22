@@ -811,9 +811,9 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
          protection_profiles_index < ssl->conf->dtls_srtp_profile_list_len;
          protection_profiles_index++ )
     {
-        profile_value = mbedtls_ssl_get_srtp_profile_iana_value
+        profile_value = mbedtls_ssl_check_srtp_profile_value
                 ( ssl->conf->dtls_srtp_profile_list[protection_profiles_index] );
-        if( profile_value != 0xFFFF )
+        if( profile_value != MBEDTLS_TLS_SRTP_UNSET )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "ssl_write_use_srtp_ext, add profile: %04x",
                                         profile_value ) );
@@ -1823,10 +1823,9 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
                                    const unsigned char *buf,
                                    size_t len )
 {
-    mbedtls_ssl_srtp_profile server_protection = MBEDTLS_SRTP_UNSET_PROFILE;
+    mbedtls_ssl_srtp_profile server_protection = MBEDTLS_TLS_SRTP_UNSET;
     size_t i, mki_len = 0;
     uint16_t server_protection_profile_value = 0;
-    const mbedtls_ssl_srtp_profile_info * profile_info;
 
     /* If use_srtp is not configured, just ignore the extension */
     if( ssl->conf->dtls_srtp_profile_list == NULL ||
@@ -1870,14 +1869,16 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
 
     server_protection_profile_value = ( buf[2] << 8 ) | buf[3];
-    server_protection = mbedtls_ssl_get_srtp_profile_value( server_protection_profile_value );
-    profile_info = mbedtls_ssl_dtls_srtp_profile_info_from_id( server_protection );
-    if( profile_info != NULL )
+    server_protection = mbedtls_ssl_check_srtp_profile_value(
+                    server_protection_profile_value );
+    if( server_protection != MBEDTLS_TLS_SRTP_UNSET )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "found srtp profile: %s", profile_info->name ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "found srtp profile: %s",
+                                      mbedtls_ssl_get_srtp_profile_as_string(
+                                              server_protection ) ) );
     }
 
-    ssl->dtls_srtp_info.chosen_dtls_srtp_profile = MBEDTLS_SRTP_UNSET_PROFILE;
+    ssl->dtls_srtp_info.chosen_dtls_srtp_profile = MBEDTLS_TLS_SRTP_UNSET;
 
     /*
      * Check we have the server profile in our list
@@ -1886,13 +1887,15 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
     {
         if( server_protection == ssl->conf->dtls_srtp_profile_list[i] ) {
             ssl->dtls_srtp_info.chosen_dtls_srtp_profile = ssl->conf->dtls_srtp_profile_list[i];
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "selected srtp profile: %s", profile_info->name ) );
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "selected srtp profile: %s",
+                                      mbedtls_ssl_get_srtp_profile_as_string(
+                                              server_protection ) ) );
             break;
         }
     }
 
     /* If no match was found : server problem, it shall never answer with incompatible profile */
-    if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile == MBEDTLS_SRTP_UNSET_PROFILE )
+    if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile == MBEDTLS_TLS_SRTP_UNSET )
     {
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );

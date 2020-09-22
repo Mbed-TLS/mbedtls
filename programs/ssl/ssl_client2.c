@@ -2608,7 +2608,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-    if( opt.use_srtp != DFL_USE_SRTP && strlen( opt.mki ) != 0 )
+    if( opt.use_srtp != 0 && strlen( opt.mki ) != 0 )
     {
         if( mbedtls_test_unhexify( mki, sizeof( mki ),
                                    opt.mki,&mki_len ) != 0 )
@@ -2754,11 +2754,11 @@ int main( int argc, char *argv[] )
     {
         size_t j = 0;
 
-        if( (mbedtls_ssl_get_dtls_srtp_protection_profile( &ssl )
-             == MBEDTLS_SRTP_UNSET_PROFILE ) )
+        if( ( mbedtls_ssl_get_dtls_srtp_protection_profile( &ssl )
+                                == MBEDTLS_SRTP_UNSET_PROFILE ) )
         {
-            mbedtls_printf( "    DTLS-SRTP unable to negotiate "
-                            "protection profile\n" );
+            mbedtls_printf( "    Unable to negotiate "
+                            "the use of DTLS-SRTP\n" );
         }
         else
         {
@@ -2781,11 +2781,11 @@ int main( int argc, char *argv[] )
             for( j = 0; j < sizeof( dtls_srtp_key_material ); j++ )
             {
                 if( j % 8 == 0 )
-                    mbedtls_printf("\n    ");
-                mbedtls_printf("%02x ", dtls_srtp_key_material[j] );
+                    mbedtls_printf( "\n    " );
+                mbedtls_printf( "%02x ", dtls_srtp_key_material[j] );
             }
 
-            mbedtls_printf("\n");
+            mbedtls_printf( "\n" );
         }
     }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */

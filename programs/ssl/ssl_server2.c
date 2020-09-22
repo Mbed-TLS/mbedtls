@@ -3863,11 +3863,11 @@ handshake:
     {
         size_t j = 0;
 
-        if( (mbedtls_ssl_get_dtls_srtp_protection_profile( &ssl )
-             == MBEDTLS_SRTP_UNSET_PROFILE ) )
+        if( ( mbedtls_ssl_get_dtls_srtp_protection_profile( &ssl )
+                                == MBEDTLS_SRTP_UNSET_PROFILE ) )
         {
-            mbedtls_printf( "    DTLS-SRTP unable to negotiate "
-                            "protection profile\n" );
+            mbedtls_printf( "    Unable to negotiate "
+                            "the use of DTLS-SRTP\n" );
         }
         else
         {
@@ -3890,11 +3890,11 @@ handshake:
             for( j = 0; j < sizeof( dtls_srtp_key_material ); j++ )
             {
                 if( j % 8 == 0 )
-                    mbedtls_printf("\n    ");
-                mbedtls_printf("%02x ", dtls_srtp_key_material[j] );
+                    mbedtls_printf( "\n    " );
+                mbedtls_printf( "%02x ", dtls_srtp_key_material[j] );
             }
 
-            mbedtls_printf("\n");
+            mbedtls_printf( "\n" );
         }
     }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */

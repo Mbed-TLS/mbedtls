@@ -4751,12 +4751,12 @@ int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
 {
     if ( mki_len > MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH )
     {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
     if( ssl->conf->dtls_srtp_mki_support == MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED )
     {
-        return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
     memcpy( ssl->dtls_srtp_info.mki_value, mki_value, mki_len );
@@ -4779,8 +4779,10 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
     }
 
 
-    for( i=0; i < profiles_number; i++ ) {
-        switch( profiles[i] ) {
+    for( i=0; i < profiles_number; i++ )
+    {
+        switch( profiles[i] )
+        {
             case MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80:
             case MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32:
             case MBEDTLS_SRTP_NULL_HMAC_SHA1_80:

@@ -2063,6 +2063,7 @@ read_record_header:
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
             case MBEDTLS_TLS_EXT_USE_SRTP:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found use_srtp extension" ) );
+
                 ret = ssl_parse_use_srtp_ext( ssl, ext + 4, ext_size );
                 if ( ret != 0 )
                     return( ret );
@@ -2645,8 +2646,7 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, adding use_srtp extension" ) );
 
-    if( ssl->conf->dtls_srtp_mki_support == MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED &&
-        ssl->dtls_srtp_info.mki_len != 0 )
+    if( ssl->conf->dtls_srtp_mki_support == MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED )
     {
         mki_len = ssl->dtls_srtp_info.mki_len;
     }
@@ -2659,7 +2659,7 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
      * - 1 byte for the mki length
      * +  the actual mki length
      * Check we have enough room in the output buffer */
-    if( end < buf + mki_len + 9 )
+    if( (size_t)( end - buf ) < mki_len + 9 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
         return;
@@ -2679,7 +2679,8 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
     /* protection profile length: 2 */
     buf[4] = 0x00;
     buf[5] = 0x02;
-    profile_value = mbedtls_ssl_get_srtp_profile_iana_value( ssl->dtls_srtp_info.chosen_dtls_srtp_profile );
+    profile_value = mbedtls_ssl_get_srtp_profile_iana_value(
+                                ssl->dtls_srtp_info.chosen_dtls_srtp_profile );
     if( profile_value != 0xFFFF )
     {
         buf[6] = (unsigned char)( ( profile_value >> 8 ) & 0xFF );

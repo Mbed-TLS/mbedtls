@@ -4690,25 +4690,6 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_ALPN */
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-#if defined(MBEDTLS_DEBUG_C)
-const char *mbedtls_ssl_get_srtp_profile_as_string ( mbedtls_ssl_srtp_profile profile )
-{
-    switch( profile )
-    {
-        case MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80:
-            return "MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80";
-        case MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32:
-            return "MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32";
-        case MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80:
-            return "MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80";
-        case MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32:
-            return "MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32";
-        default: break;
-    }
-    return( "" );
-}
-#endif /* MBEDTLS_DEBUG_C */
-
 void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf,
                                                 int support_mki_value )
 {

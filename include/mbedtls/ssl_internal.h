@@ -1096,10 +1096,6 @@ int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-#if defined(MBEDTLS_DEBUG_C)
-const char *mbedtls_ssl_get_srtp_profile_as_string ( mbedtls_ssl_srtp_profile profile );
-#endif /* MBEDTLS_DEBUG_C */
-
 static inline mbedtls_ssl_srtp_profile mbedtls_ssl_check_srtp_profile_value
                                                     ( const uint16_t srtp_profile_value )
 {

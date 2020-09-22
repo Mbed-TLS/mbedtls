@@ -757,8 +757,10 @@ static int ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_ALPN */
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
-                                    unsigned char *buf, size_t *olen )
+static int ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
+                                    unsigned char *buf,
+                                    const unsigned char *end,
+                                    size_t *olen )
 {
     unsigned char *p = buf;
     size_t protection_profiles_index = 0, ext_len = 0;
@@ -769,13 +771,8 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
     if( ( ssl->conf->dtls_srtp_profile_list == NULL ) ||
         ( ssl->conf->dtls_srtp_profile_list_len == 0  ) )
     {
-        return;
+        return( 0 );
     }
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding use_srtp extension" ) );
-
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_USE_SRTP >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_USE_SRTP      ) & 0xFF );
 
     /* RFC 5764 section 4.1.1
      * uint8 SRTPProtectionProfile[2];
@@ -795,6 +792,18 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
      *                    1 byte for srtp_mki vector length and the mki_len value
      */
     ext_len = 2 + 2 * ( ssl->conf->dtls_srtp_profile_list_len ) + 1 + mki_len;
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding use_srtp extension" ) );
+
+    /* Check there is room in the buffer for the extension + 4 bytes
+     * - the extension tag (2 bytes)
+     * - the extension length (2 bytes)
+     */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, ext_len + 4 );
+
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_USE_SRTP >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_USE_SRTP      ) & 0xFF );
+
 
     *p++ = (unsigned char)( ( ( ext_len & 0xFF00 ) >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ext_len & 0xFF );
@@ -860,6 +869,8 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
      *                         + mki value
      */
     *olen = p - buf;
+
+    return( 0 );
 }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
@@ -1387,7 +1398,12 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        ssl_write_use_srtp_ext( ssl, p + 2 + ext_len, &olen );
+        if( ( ret = ssl_write_use_srtp_ext( ssl, p + 2 + ext_len,
+                                       end, &olen ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_use_srtp_ext", ret );
+            return( ret );
+        }
         ext_len += olen;
     }
 #endif

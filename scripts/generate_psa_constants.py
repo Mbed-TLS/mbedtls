@@ -411,7 +411,7 @@ def generate_psa_constants(header_file_names, output_file_name):
     temp_file_name = output_file_name + '.tmp'
     with open(temp_file_name, 'w') as output_file:
         collector.write_file(output_file)
-    os.rename(temp_file_name, output_file_name)
+    os.replace(temp_file_name, output_file_name)
 
 if __name__ == '__main__':
     if not os.path.isdir('programs') and os.path.isdir('../programs'):

@@ -800,9 +800,9 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
     *p++ = (unsigned char)( ext_len & 0xFF );
 
     /* protection profile length: 2*(ssl->conf->dtls_srtp_profile_list_len) */
-    *p++ = (unsigned char)( ( ( 2 * (ssl->conf->dtls_srtp_profile_list_len) )
+    *p++ = (unsigned char)( ( ( 2 * ssl->conf->dtls_srtp_profile_list_len )
                               >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( 2 * (ssl->conf->dtls_srtp_profile_list_len) )
+    *p++ = (unsigned char)( ( 2 * ssl->conf->dtls_srtp_profile_list_len )
                             & 0xFF );
 
     for( protection_profiles_index=0;
@@ -824,8 +824,11 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
              * Note: we shall never arrive here as protection profiles
              * is checked by ssl_set_dtls_srtp_protection_profiles function
              */
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, ignore illegal DTLS-SRTP protection profile %d",
-                                        ssl->conf->dtls_srtp_profile_list[protection_profiles_index] ) );
+            MBEDTLS_SSL_DEBUG_MSG( 3,
+                    ( "client hello, "
+                      "ignore illegal DTLS-SRTP protection profile %d",
+                      ssl->conf->dtls_srtp_profile_list[protection_profiles_index]
+                    ) );
         }
     }
 

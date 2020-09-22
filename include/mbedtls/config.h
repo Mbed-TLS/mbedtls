@@ -1817,8 +1817,8 @@
  *
  * Enable support for DTLS-SRTP, RFC5764, use_srtp extension.
  * \note Only the dtls-srtp key material negotiation is supported.
- * Once negotiated, the key should be extracted, and data should be transmitted
- * via an SRTP stack.
+ * Once negotiated, the key should be extracted using mbedtls_ssl_tls_prf()
+ * and data should be transmitted via an SRTP stack.
  *
  * Requires: MBEDTLS_SSL_PROTO_DTLS
  *

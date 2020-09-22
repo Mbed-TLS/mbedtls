@@ -783,7 +783,8 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
 {
     mbedtls_ssl_srtp_profile client_protection = MBEDTLS_TLS_SRTP_UNSET;
     size_t i,j;
-    size_t profile_length,mki_length;
+    size_t profile_length;
+    uint16_t mki_length;
     /*! 2 bytes for profile length and 1 byte for mki len */
     const size_t size_of_lengths = 3;
 

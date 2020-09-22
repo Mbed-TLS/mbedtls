@@ -888,10 +888,10 @@ typedef struct mbedtls_dtls_srtp_info_t
 {
     /*! The SRTP profile that was negotiated. */
     mbedtls_ssl_srtp_profile chosen_dtls_srtp_profile;
+    /*! The length of mki_value. */
+    uint16_t mki_len;
     /*! The mki_value used, with max size of 256 bytes. */
     unsigned char mki_value[MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH];
-    /*! The length of mki_value. */
-    size_t mki_len;
 }
 mbedtls_dtls_srtp_info;
 
@@ -3233,7 +3233,7 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles
  */
 int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
                                          unsigned char *mki_value,
-                                         size_t mki_len );
+                                         uint16_t mki_len );
 /**
  * \brief          Get the negotiated DTLS-SRTP Protection Profile.
  *                 This function should be called after the handshake is

@@ -4717,7 +4717,7 @@ void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf,
 
 int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
                                          unsigned char *mki_value,
-                                         size_t mki_len )
+                                         uint16_t mki_len )
 {
     if ( mki_len > MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH )
     {

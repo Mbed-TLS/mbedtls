@@ -1880,7 +1880,8 @@ int main( int argc, char *argv[] )
          MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80,
          MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32,
          MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80,
-         MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32
+         MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32,
+         MBEDTLS_TLS_SRTP_UNSET
      };
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
@@ -3146,16 +3147,12 @@ int main( int argc, char *argv[] )
     {
         if( opt.force_srtp_profile != 0 )
         {
-            const mbedtls_ssl_srtp_profile forced_profile[] = { opt.force_srtp_profile };
-            ret = mbedtls_ssl_conf_dtls_srtp_protection_profiles( &conf,
-                                                                  forced_profile,
-                                                                  sizeof( forced_profile ) / sizeof( mbedtls_ssl_srtp_profile ) );
+            const mbedtls_ssl_srtp_profile forced_profile[] = { opt.force_srtp_profile, MBEDTLS_TLS_SRTP_UNSET };
+            ret = mbedtls_ssl_conf_dtls_srtp_protection_profiles( &conf, forced_profile );
         }
         else
         {
-            ret = mbedtls_ssl_conf_dtls_srtp_protection_profiles( &conf,
-                                                                  default_profiles,
-                                                                  sizeof( default_profiles ) / sizeof( mbedtls_ssl_srtp_profile ) );
+            ret = mbedtls_ssl_conf_dtls_srtp_protection_profiles( &conf, default_profiles );
         }
 
         if( ret != 0 )

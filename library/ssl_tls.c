@@ -4735,38 +4735,36 @@ int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
 }
 
 int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
-                                                    const mbedtls_ssl_srtp_profile *profiles,
-                                                    size_t profiles_number )
+                                                    const mbedtls_ssl_srtp_profile *profiles )
 {
-    size_t i;
-    /*
-     * Check input validity : must be a list of profiles from enumeration.
-     * Maximum length is 4 as only 4 protection profiles are defined.
-     */
-    if( profiles_number > 4 )
-    {
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
+    const mbedtls_ssl_srtp_profile *p;
+    size_t list_size = 0;
 
-
-    for( i=0; i < profiles_number; i++ )
+    /* check the profiles list: all entry must be valid,
+     * its size cannot be more than the total number of supported profiles, currently 4 */
+    for( p = profiles; *p != MBEDTLS_TLS_SRTP_UNSET && list_size < 5; p++ )
     {
-        switch( profiles[i] )
+        switch( *p )
         {
             case MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80:
             case MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32:
             case MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80:
             case MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32:
+                    list_size++;
                 break;
-            default:
-                conf->dtls_srtp_profile_list = NULL;
-                conf->dtls_srtp_profile_list_len = 0;
-                return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+            default: /* unsupported value, stop parsing and set the size to an error value */
+                list_size = 5;
         }
     }
 
+    if ( list_size > 4 ) {
+                conf->dtls_srtp_profile_list = NULL;
+                conf->dtls_srtp_profile_list_len = 0;
+                return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
     conf->dtls_srtp_profile_list = profiles;
-    conf->dtls_srtp_profile_list_len = profiles_number;
+    conf->dtls_srtp_profile_list_len = list_size;
 
     return( 0 );
 }

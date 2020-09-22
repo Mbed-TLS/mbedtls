@@ -3204,13 +3204,13 @@ void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf,
  * \brief                   Set the supported DTLS-SRTP protection profiles.
  *
  * \param conf              SSL configuration
- * \param profiles          List of supported protection profiles,
+ * \param profiles          Pointer to a List of MBEDTLS_TLS_SRTP_UNSET terminated
+ *                          supported protection profiles
  *                          in decreasing preference order.
- *                          The pointer to the list is
- *                          recorded by the library for later reference as required,
- *                          so the lifetime of the table must be at least as long
- *                          as the lifetime of the SSL configuration structure.
- * \param profiles_number   Number of supported profiles.
+ *                          The pointer to the list is recorded by the library
+ *                          for later reference as required, so the lifetime
+ *                          of the table must be at least as long as the lifetime
+ *                          of the SSL configuration structure.
  *
  * \return                  0 on success
  * \return                  #MBEDTLS_ERR_SSL_BAD_INPUT_DATA when the list of
@@ -3218,8 +3218,7 @@ void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf,
  */
 int mbedtls_ssl_conf_dtls_srtp_protection_profiles
                                ( mbedtls_ssl_config *conf,
-                                 const mbedtls_ssl_srtp_profile *profiles,
-                                 size_t profiles_number );
+                                 const mbedtls_ssl_srtp_profile *profiles );
 
 /**
  * \brief                  Set the mki_value for the current DTLS-SRTP session.

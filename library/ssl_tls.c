@@ -4723,7 +4723,7 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
 
     /* check the profiles list: all entry must be valid,
      * its size cannot be more than the total number of supported profiles, currently 4 */
-    for( p = profiles; *p != MBEDTLS_TLS_SRTP_UNSET && list_size < 5; p++ )
+    for( p = profiles; *p != MBEDTLS_TLS_SRTP_UNSET && list_size <= MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH; p++ )
     {
         switch( *p )
         {
@@ -4734,11 +4734,11 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
                     list_size++;
                 break;
             default: /* unsupported value, stop parsing and set the size to an error value */
-                list_size = 5;
+                list_size = MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH+1;
         }
     }
 
-    if ( list_size > 4 ) {
+    if ( list_size > MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH ) {
                 conf->dtls_srtp_profile_list = NULL;
                 conf->dtls_srtp_profile_list_len = 0;
                 return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );

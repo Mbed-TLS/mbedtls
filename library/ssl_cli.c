@@ -800,8 +800,14 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
     *p++ = (unsigned char)( ext_len & 0xFF );
 
     /* protection profile length: 2*(ssl->conf->dtls_srtp_profile_list_len) */
-    *p++ = (unsigned char)( ( ( 2 * ssl->conf->dtls_srtp_profile_list_len )
-                              >> 8 ) & 0xFF );
+    /* micro-optimization:
+     * the list size is limited to MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH
+     * which is lower than 127, so the upper byte of the length is always 0
+     * For the documentation, the more generic code is left in comments
+     * *p++ = (unsigned char)( ( ( 2 * ssl->conf->dtls_srtp_profile_list_len )
+     *                        >> 8 ) & 0xFF );
+     */
+    *p++ = 0;
     *p++ = (unsigned char)( ( 2 * ssl->conf->dtls_srtp_profile_list_len )
                             & 0xFF );
 

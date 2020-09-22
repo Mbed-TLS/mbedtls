@@ -873,6 +873,7 @@ typedef void mbedtls_ssl_async_cancel_t( mbedtls_ssl_context *ssl );
 
 #define MBEDTLS_TLS_SRTP_MAX_KEY_MATERIAL_LENGTH    60
 #define MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH             255
+#define MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH    4
 /*
  * For code readability use a typedef for DTLS-SRTP profiles
  * The supported profiles are defines as macro above:
@@ -3185,7 +3186,7 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 #if defined(MBEDTLS_DEBUG_C)
-static inline const char *mbedtls_ssl_get_srtp_profile_as_string ( mbedtls_ssl_srtp_profile profile )
+static inline const char *mbedtls_ssl_get_srtp_profile_as_string( mbedtls_ssl_srtp_profile profile )
 {
     switch( profile )
     {
@@ -3229,6 +3230,8 @@ void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf,
  *                          for later reference as required, so the lifetime
  *                          of the table must be at least as long as the lifetime
  *                          of the SSL configuration structure.
+ *                          The list must not hold more than
+ *                          MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH elements
  *
  * \return                  0 on success
  * \return                  #MBEDTLS_ERR_SSL_BAD_INPUT_DATA when the list of

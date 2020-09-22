@@ -256,23 +256,51 @@ static psa_status_t get_expected_key_size( const psa_key_attributes_t *attribute
                                            size_t *expected_size )
 {
     size_t buffer_size = 0;
-    if( PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime ) == PSA_KEY_LOCATION_LOCAL_STORAGE )
-    {
-        buffer_size = PSA_KEY_EXPORT_MAX_SIZE( attributes->core.type,
-                                               attributes->core.bits );
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
+    psa_key_type_t key_type = attributes->core.type;
+    size_t key_bits = attributes->core.bits;
 
-        if( buffer_size == 0 )
+    switch( location )
+    {
+        case PSA_KEY_LOCATION_LOCAL_STORAGE:
+            buffer_size = PSA_KEY_EXPORT_MAX_SIZE( key_type, key_bits );
+
+            if( buffer_size == 0 )
+                return( PSA_ERROR_NOT_SUPPORTED );
+
+            *expected_size = buffer_size;
+            return( PSA_SUCCESS );
+
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+            /* TBD: opaque driver support: need to calculate size through a
+             * driver-defined size function, since the size of an opaque (wrapped)
+             * key will be different for each implementation. */
+#ifdef TEST_KEY_CONTEXT_SIZE_FUNCTION
+            *expected_size = test_size_function( key_type, key_bits );
+            return( PSA_SUCCESS );
+#else /* TEST_DRIVER_KEY_CONTEXT_SIZE_FUNCTION */
+            if( PSA_KEY_TYPE_IS_KEY_PAIR( key_type ) )
+            {
+                *expected_size = TEST_DRIVER_KEY_CONTEXT_BASE_SIZE
+                                 + TEST_DRIVER_KEY_CONTEXT_PUBLIC_KEY_SIZE;
+            }
+            else if( PSA_KEY_TYPE_IS_PUBLIC_KEY( attributes->core.type ) )
+            {
+                *expected_size = TEST_DRIVER_KEY_CONTEXT_BASE_SIZE
+                                 + TEST_DRIVER_KEY_CONTEXT_SYMMETRIC_FACTOR
+                                 * ( ( key_bits + 7 ) / 8 );
+            }
+            else
+            {
+                return( PSA_ERROR_NOT_SUPPORTED );
+            }
+            return( PSA_SUCCESS );
+#endif /* TEST_DRIVER_KEY_CONTEXT_SIZE_FUNCTION */
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+
+        default:
             return( PSA_ERROR_NOT_SUPPORTED );
-
-        *expected_size = buffer_size;
-        return( PSA_SUCCESS );
-    }
-    else
-    {
-        /* TBD: opaque driver support: need to calculate size through a
-         * driver-defined size function, since the size of an opaque (wrapped)
-         * key will be different for each implementation. */
-        return( PSA_ERROR_NOT_SUPPORTED );
     }
 }
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */

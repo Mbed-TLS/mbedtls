@@ -758,9 +758,9 @@ static int ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 static int ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
-                                    unsigned char *buf,
-                                    const unsigned char *end,
-                                    size_t *olen )
+                                   unsigned char *buf,
+                                   const unsigned char *end,
+                                   size_t *olen )
 {
     unsigned char *p = buf;
     size_t protection_profiles_index = 0, ext_len = 0;
@@ -1399,7 +1399,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         if( ( ret = ssl_write_use_srtp_ext( ssl, p + 2 + ext_len,
-                                       end, &olen ) ) != 0 )
+                                            end, &olen ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_use_srtp_ext", ret );
             return( ret );

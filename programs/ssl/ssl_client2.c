@@ -2614,7 +2614,7 @@ int main( int argc, char *argv[] )
 
         mbedtls_ssl_conf_srtp_mki_value_supported( &conf, MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED );
         if( ( ret = mbedtls_ssl_dtls_srtp_set_mki_value( &ssl, mki,
-                                                         strlen( opt.mki ) / 2 ) ) != 0 )
+                                                         (uint16_t) strlen( opt.mki ) / 2 ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_dtls_srtp_set_mki_value returned %d\n\n", ret );
             goto exit;

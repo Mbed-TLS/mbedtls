@@ -3232,6 +3232,7 @@ void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf,
  *                          of the SSL configuration structure.
  *                          The list must not hold more than
  *                          MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH elements
+ *                          (excluding the terminating MBEDTLS_TLS_SRTP_UNSET).
  *
  * \return                  0 on success
  * \return                  #MBEDTLS_ERR_SSL_BAD_INPUT_DATA when the list of

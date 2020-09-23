@@ -68,15 +68,41 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     memset( key0, 0x1, keylen );
     memset( key1, 0x2, keylen );
 
+#if defined(MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS)
+    t_in->key_enc = mbedtls_calloc( 1, keylen );
+    t_in->key_dec = mbedtls_calloc( 1, keylen );
+
+    t_out->key_enc = mbedtls_calloc( 1, keylen );
+    t_out->key_dec = mbedtls_calloc( 1, keylen );
+
+    memcpy( t_in->key_enc, key0, keylen);
+    memcpy( t_in->key_dec, key1, keylen);
+    t_in->key_bitlen = cipher_info->key_bitlen;
+
+    memcpy( t_out->key_enc, key1, keylen);
+    memcpy( t_out->key_dec, key0, keylen);
+    t_out->key_bitlen = cipher_info->key_bitlen;
+
+    /* Setup cipher contexts */
+    CHK( mbedtls_cipher_setup( &t_in->cipher_ctx,  cipher_info ) == 0 );
+    CHK( mbedtls_cipher_setup( &t_out->cipher_ctx, cipher_info ) == 0 );
+#else
     /* Setup cipher contexts */
     CHK( mbedtls_cipher_setup( &t_in->cipher_ctx_enc,  cipher_info ) == 0 );
     CHK( mbedtls_cipher_setup( &t_in->cipher_ctx_dec,  cipher_info ) == 0 );
     CHK( mbedtls_cipher_setup( &t_out->cipher_ctx_enc, cipher_info ) == 0 );
     CHK( mbedtls_cipher_setup( &t_out->cipher_ctx_dec, cipher_info ) == 0 );
+#endif
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     if( cipher_info->mode == MBEDTLS_MODE_CBC )
     {
+#if defined(MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS)
+        CHK( mbedtls_cipher_set_padding_mode( &t_in->cipher_ctx,
+                                              MBEDTLS_PADDING_NONE ) == 0 );
+        CHK( mbedtls_cipher_set_padding_mode( &t_out->cipher_ctx,
+                                              MBEDTLS_PADDING_NONE ) == 0 );
+#else
         CHK( mbedtls_cipher_set_padding_mode( &t_in->cipher_ctx_enc,
                                               MBEDTLS_PADDING_NONE ) == 0 );
         CHK( mbedtls_cipher_set_padding_mode( &t_in->cipher_ctx_dec,
@@ -85,9 +111,11 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
                                               MBEDTLS_PADDING_NONE ) == 0 );
         CHK( mbedtls_cipher_set_padding_mode( &t_out->cipher_ctx_dec,
                                               MBEDTLS_PADDING_NONE ) == 0 );
+#endif
     }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
+#if !defined(MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS)
     CHK( mbedtls_cipher_setkey( &t_in->cipher_ctx_enc, key0,
                                 keylen << 3, MBEDTLS_ENCRYPT ) == 0 );
     CHK( mbedtls_cipher_setkey( &t_in->cipher_ctx_dec, key1,
@@ -96,7 +124,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
                                 keylen << 3, MBEDTLS_ENCRYPT ) == 0 );
     CHK( mbedtls_cipher_setkey( &t_out->cipher_ctx_dec, key0,
                                 keylen << 3, MBEDTLS_DECRYPT ) == 0 );
-
+#endif
     /* Setup MAC contexts */
 #if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
     if( cipher_info->mode == MBEDTLS_MODE_CBC ||

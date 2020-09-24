@@ -14,7 +14,7 @@
 OPENSSL ?= openssl
 FAKETIME ?= faketime
 
-TOP_DIR = $(dir $(firstword $(MAKEFILE_LIST)))/../..
+TOP_DIR = ../..
 MBEDTLS_CERT_WRITE ?= $(TOP_DIR)/programs/x509/cert_write
 MBEDTLS_CERT_REQ ?= $(TOP_DIR)/programs/x509/cert_req
 

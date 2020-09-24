@@ -3824,10 +3824,7 @@
  * \name SECTION: PSA Crypto settings
  *
  */
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 #include "mbedtls/config_psa.h"
-#endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
-
 
 #include "mbedtls/check_config.h"
 

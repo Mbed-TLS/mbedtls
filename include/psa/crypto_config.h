@@ -30,6 +30,13 @@
 extern "C" {
 #endif
 
+#define PSA_WANT_ALG_ECDSA
+
+#define PSA_WANT_ALG_ECDSA_DETERMINISTIC
+
+//#define MBEDTLS_PSA_ACCEL_ALG_ECDSA
+//#define MBEDTLS_PSA_ACCEL_ALG_ECDSA_DETERMINISTIC
+
 #ifdef __cplusplus
 }
 #endif

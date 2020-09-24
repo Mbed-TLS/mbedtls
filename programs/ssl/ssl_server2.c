@@ -3890,7 +3890,17 @@ handshake:
                     mbedtls_printf( "\n    " );
                 mbedtls_printf( "%02x ", dtls_srtp_key_material[j] );
             }
+            mbedtls_printf( "\n" );
 
+            /* produce a less readable output used to perform automatic checks
+             * - compare client and server output
+             * - interop test with openssl which client produces this kind of output
+             */
+            mbedtls_printf( "    Keying material: " );
+            for( j = 0; j < sizeof( dtls_srtp_key_material ); j++ )
+            {
+                mbedtls_printf( "%02X", dtls_srtp_key_material[j] );
+            }
             mbedtls_printf( "\n" );
         }
     }

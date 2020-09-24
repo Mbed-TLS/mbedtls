@@ -634,6 +634,23 @@ detect_dtls() {
     fi
 }
 
+# Compare file content
+# Usage: find_in_both pattern file1 file2
+# extract from file1 the first line matching the pattern
+# check in file2 that the same line can be found
+find_in_both() {
+        srv_pattern=$(grep -m 1 "$1" "$2");
+        if [ -z "$srv_pattern" ]; then
+                return 1;
+        fi
+
+        if grep "$srv_pattern" $3 >/dev/null; then :
+                       return 0;
+        else
+                return 1;
+        fi
+}
+
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
@@ -643,6 +660,7 @@ detect_dtls() {
 #           -C pattern  pattern that must be absent in client output
 #           -U pattern  lines after pattern must be unique in server output
 #           -F call shell function on server output
+#           -g call shell function on server and client output
 run_test() {
     NAME="$1"
     shift 1
@@ -862,6 +880,12 @@ run_test() {
             "-f")
                 if ! $2 "$CLI_OUT"; then
                     fail "function call to '$2' failed on Client output"
+                    return
+                fi
+                ;;
+            "-g")
+                if ! eval "$2 '$SRV_OUT' '$CLI_OUT'"; then
+                    fail "function call to '$2' failed on Server and Client output"
                     return
                 fi
                 ;;
@@ -8729,7 +8753,9 @@ run_test  "DTLS-SRTP all profiles supported" \
           -c "found srtp profile" \
           -c "selected srtp profile" \
           -c "DTLS-SRTP key material is"\
+          -g "find_in_both '^ *Keying material: [0-9A-F]*$'"\
           -C "error"
+
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 run_test  "DTLS-SRTP server supports all profiles. Client supports one profile." \
@@ -8746,6 +8772,7 @@ run_test  "DTLS-SRTP server supports all profiles. Client supports one profile."
           -c "found srtp profile: MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80" \
           -c "selected srtp profile" \
           -c "DTLS-SRTP key material is"\
+          -g "find_in_both '^ *Keying material: [0-9A-F]*$'"\
           -C "error"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
@@ -8763,6 +8790,7 @@ run_test  "DTLS-SRTP server supports one profile. Client supports all profiles."
           -c "found srtp profile: MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32" \
           -c "selected srtp profile" \
           -c "DTLS-SRTP key material is"\
+          -g "find_in_both '^ *Keying material: [0-9A-F]*$'"\
           -C "error"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
@@ -8780,6 +8808,7 @@ run_test  "DTLS-SRTP server and Client support only one matching profile." \
           -c "found srtp profile: MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32" \
           -c "selected srtp profile" \
           -c "DTLS-SRTP key material is"\
+          -g "find_in_both '^ *Keying material: [0-9A-F]*$'"\
           -C "error"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
@@ -8832,6 +8861,7 @@ run_test  "DTLS-SRTP all profiles supported. mki used" \
           -c "dumping 'sending mki' (8 bytes)" \
           -c "dumping 'received mki' (8 bytes)" \
           -c "DTLS-SRTP key material is"\
+          -g "find_in_both '^ *Keying material: [0-9A-F]*$'"\
           -C "error"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
@@ -8850,6 +8880,7 @@ run_test  "DTLS-SRTP all profiles supported. server doesn't support mki." \
           -c "found srtp profile" \
           -c "selected srtp profile" \
           -c "DTLS-SRTP key material is"\
+          -g "find_in_both '^ *Keying material: [0-9A-F]*$'"\
           -c "dumping 'sending mki' (8 bytes)" \
           -C "dumping 'received mki' (8 bytes)" \
           -C "error"
@@ -8864,6 +8895,7 @@ run_test  "DTLS-SRTP all profiles supported. openssl client." \
           -s "selected srtp profile" \
           -s "server hello, adding use_srtp extension" \
           -s "DTLS-SRTP key material is"\
+          -g "find_in_both '^ *Keying material: [0-9A-F]*$'"\
           -c "SRTP Extension negotiated, profile=SRTP_AES128_CM_SHA1_80"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
@@ -8876,6 +8908,7 @@ run_test  "DTLS-SRTP server supports all profiles. Client supports all profiles,
           -s "selected srtp profile" \
           -s "server hello, adding use_srtp extension" \
           -s "DTLS-SRTP key material is"\
+          -g "find_in_both '^ *Keying material: [0-9A-F]*$'"\
           -c "SRTP Extension negotiated, profile=SRTP_AES128_CM_SHA1_32"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
@@ -8888,6 +8921,7 @@ run_test  "DTLS-SRTP server supports all profiles. Client supports one profile. 
           -s "selected srtp profile" \
           -s "server hello, adding use_srtp extension" \
           -s "DTLS-SRTP key material is"\
+          -g "find_in_both '^ *Keying material: [0-9A-F]*$'"\
           -c "SRTP Extension negotiated, profile=SRTP_AES128_CM_SHA1_32"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
@@ -8900,6 +8934,7 @@ run_test  "DTLS-SRTP server supports one profile. Client supports all profiles. 
           -s "selected srtp profile" \
           -s "server hello, adding use_srtp extension" \
           -s "DTLS-SRTP key material is"\
+          -g "find_in_both '^ *Keying material: [0-9A-F]*$'"\
           -c "SRTP Extension negotiated, profile=SRTP_AES128_CM_SHA1_32"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
@@ -8912,6 +8947,7 @@ run_test  "DTLS-SRTP server and Client support only one matching profile. openss
           -s "selected srtp profile" \
           -s "server hello, adding use_srtp extension" \
           -s "DTLS-SRTP key material is"\
+          -g "find_in_both '^ *Keying material: [0-9A-F]*$'"\
           -c "SRTP Extension negotiated, profile=SRTP_AES128_CM_SHA1_32"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP

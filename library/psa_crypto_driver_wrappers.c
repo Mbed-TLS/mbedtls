@@ -273,9 +273,6 @@ static psa_status_t get_expected_key_size( const psa_key_attributes_t *attribute
 
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
-            /* TBD: opaque driver support: need to calculate size through a
-             * driver-defined size function, since the size of an opaque (wrapped)
-             * key will be different for each implementation. */
 #ifdef TEST_KEY_CONTEXT_SIZE_FUNCTION
             *expected_size = test_size_function( key_type, key_bits );
             return( PSA_SUCCESS );

@@ -147,7 +147,7 @@ void mbedtls_test_param_failed_expect_call( void );
 int mbedtls_test_param_failed_check_expected_call( void );
 
 /**
- * \brief   Get a pointer to the object of type jmp_buf holding the execution
+ * \brief   Get the address of the object of type jmp_buf holding the execution
  *          state information used by mbedtls_param_failed() to do a long jump.
  *
  * \note    If a call to mbedtls_param_failed() is not expected in the sense
@@ -156,9 +156,19 @@ int mbedtls_test_param_failed_check_expected_call( void );
  *          execution to the state stored in the jmp_buf object whose address
  *          is returned by the present function.
  *
- * \note    The returned pointer is of type void* as its type is opaque,
- *          implementation dependent (jmp_buf is an array type not the type of
- *          one element of an array).
+ * \note    This function is intended to provide the parameter of the
+ *          setjmp() function to set-up where mbedtls_param_failed() should
+ *          long-jump if it has to. It is foreseen to be used as:
+ *
+ *          setjmp( mbedtls_test_param_failed_get_state_buf() ).
+ *
+ * \note    The type of the returned value is not jmp_buf as jmp_buf is an
+ *          an array type (C specification) and a function cannot return an
+ *          array type.
+ *
+ * \note    The type of the returned value is not jmp_buf* as then the return
+ *          value couldn't be used by setjmp(), as its parameter's type is
+ *          jmp_buf.
  *
  * \return  Address of the object of type jmp_buf holding the execution state
  *          information used by mbedtls_param_failed() to do a long jump.

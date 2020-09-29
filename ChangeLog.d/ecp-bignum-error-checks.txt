@@ -1,0 +1,5 @@
+Bugfix
+   * Fix a memory leak in mbedtls_mpi_sub_abs() when the result was negative
+     (an error condition) and the second operand was aliased to the result.
+   * Fix a case in elliptic curve arithmetic where an out-of-memory condition
+     could go undetected, resulting in an incorrect result.

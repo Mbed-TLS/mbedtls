@@ -712,7 +712,7 @@ need_grep=
 case "$FILTER" in
     '^$') simple_filter=;;
     '.*') simple_filter='*';;
-    *[][\$^+*?{|}]*) # Regexp special characters (other than .), we need grep
+    *[][$+*?\\^{\|}]*) # Regexp special characters (other than .), we need grep
         need_grep=1;;
     *) # No regexp or shell-pattern special character
         simple_filter="*$FILTER*";;
@@ -720,7 +720,7 @@ esac
 case "$EXCLUDE" in
     '^$') simple_exclude=;;
     '.*') simple_exclude='*';;
-    *[][\$^+*?{|}]*) # Regexp special characters (other than .), we need grep
+    *[][$+*?\\^{\|}]*) # Regexp special characters (other than .), we need grep
         need_grep=1;;
     *) # No regexp or shell-pattern special character
         simple_exclude="*$EXCLUDE*";;

@@ -540,71 +540,75 @@ static void uECC_vli_rshift1(uECC_word_t *vli)
 }
 #endif
 
-/* Compute a * b + r, where r is a double-word with high-order word r1 and
- * low-order word r0, and store the result in the same double-word (r1, r0),
- * with the carry bit stored in r2.
+/* Compute a * b + r, where r is a triple-word with high-order word r[2] and
+ * low-order word r[0], and store the result in the same triple-word.
  *
- * (r2, r1, r0) = a * b + (r1, r0):
+ * r[2..0] = a * b + r[2..0]:
  * [in] a, b: operands to be multiplied
- * [in] r0, r1: low and high-order words of operand to add
- * [out] r0, r1: low and high-order words of the result
- * [out] r2: carry
+ * [in] r: 3 words of operand to add
+ * [out] r: 3 words of result
  */
 #if defined MBEDTLS_HAVE_ASM && defined __CC_ARM
-static __asm void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t *r0,
-           uECC_word_t *r1, uECC_word_t *r2)
+static __asm void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
 {
 #if defined __thumb__ &&  __TARGET_ARCH_THUMB < 4
-    IMPORT  __ARM_common_ll_muluu
-    PRESERVE8
-    // have to save r4 to keep stack 8-byte aligned, but then
-    // may as well make use of it - helps a bit having it
-    PUSH    {r2,r3,r4,lr}
-    FRAME   SAVE {r4,lr},-8
-    FRAME   ADDRESS sp,16
-    BL      __ARM_common_ll_muluu
-    POP     {r2,r3}
-    FRAME   ADDRESS sp,8
-    LDR     r4,[r2]
-    ADDS    r4,r0
-    STR     r4,[r2]
-    LDR     r4,[r3]
+    PUSH    {r4-r5}
+    FRAME   PUSH {r4-r5}
+    // __ARM_common_mul_uu replacement - inline, faster, don't touch R2
+    // Separate operands into halfwords
+    UXTH    r3,r0               // r3 := a.lo
+    LSRS    r4,r0,#16           // r4 := a.hi
+    UXTH    r5,r1               // r5 := b.lo
+    LSRS    r1,r1,#16           // r1 := b.hi
+    // Multiply halfword pairs
+    MOVS    r0,r3
+    MULS    r0,r5,r0            // r0 := a.lo * b.lo
+    MULS    r3,r1,r3            // r3 := a.lo * b.hi
+    MULS    r5,r4,r5            // r5 := a.hi * b.lo
+    MULS    r1,r4,r1            // r1 := a.hi * b.hi
+    // Split, shift and add a.lo * b.hi
+    LSRS    r4,r3,#16           // r4 := (a.lo * b.hi).hi
+    LSLS    r3,r3,#16           // r3 := (a.lo * b.hi).lo
+    ADDS    r0,r0,r3            // r0 := a.lo * b.lo + (a.lo * b.hi).lo
+    ADCS    r1,r4               // r1 := a.hi * b.hi + (a.lo * b.hi).hi + carry
+    // Split, shift and add a.hi * b.lo
+    LSRS    r4,r5,#16           // r4 := (a.hi * b.lo).hi
+    LSLS    r5,r5,#16           // r5 := (a.hi * b.lo).lo
+    ADDS    r0,r0,r5            // r0 := a.lo * b.lo + (a.lo * b.hi).lo + (a.hi * b.lo).lo
+    ADCS    r1,r4               // r1 := a.hi * b.hi + (a.lo * b.hi).hi + (a.hi * b.lo).hi + carries
+    // Finally add r[]
+    LDMIA   r2!,{r3,r4,r5}
+    ADDS    r3,r3,r0
     ADCS    r4,r1
-    STR     r4,[r3]
-    LDR     r3,[sp,#8]
-    LDR     r4,[r3]
     MOVS    r0,#0
-    ADCS    r4,r0
-    STR     r4,[r3]
-    POP     {r4,pc}
+    ADCS    r5,r0
+    SUBS    r2,#12
+    STMIA   r2!,{r3,r4,r5}
+    POP     {r4-r5}
+    FRAME   POP {r4-r5}
+    BX      lr
 #else
-    UMULL   r0,r1,r0,r1
-    LDR     ip,[r2]
-    ADDS    r0,r0,ip
-    STR     r0,[r2]
-    LDR     r0,[r3]
-    ADCS    r0,r1
-    STR     r0,[r3]
-    LDR     r3,[sp,#0]
-    LDR     r0,[r3]
-    ADC     r0,r0,#0
-    STR     r0,[r3]
+    UMULL   r3,ip,r0,r1 // pre-ARMv6 requires Rd[Lo|Hi] != Rn
+    LDMIA   r2,{r0,r1}
+    ADDS    r0,r0,r3
+    LDR     r3,[r2,#8]
+    ADCS    r1,r1,ip
+    ADC     r3,r3,#0
+    STMIA   r2!,{r0,r1,r3}
     BX      lr
 #endif
 
 }
 #else
-static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t *r0,
-		   uECC_word_t *r1, uECC_word_t *r2)
+static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
 {
 
 	uECC_dword_t p = (uECC_dword_t)a * b;
-	uECC_dword_t r01 = ((uECC_dword_t)(*r1) << uECC_WORD_BITS) | *r0;
+	uECC_dword_t r01 = ((uECC_dword_t)(r[1]) << uECC_WORD_BITS) | r[0];
 	r01 += p;
-	*r2 += (r01 < p);
-	*r1 = r01 >> uECC_WORD_BITS;
-	*r0 = (uECC_word_t)r01;
-
+	r[2] += (r01 < p);
+	r[1] = r01 >> uECC_WORD_BITS;
+	r[0] = (uECC_word_t)r01;
 }
 #endif
 
@@ -663,16 +667,14 @@ static void uECC_vli_mult_rnd(uECC_word_t *result, const uECC_word_t *left,
 				  const uECC_word_t *right, ecc_wait_state_t *s)
 {
 
-	uECC_word_t r0 = 0;
-	uECC_word_t r1 = 0;
-	uECC_word_t r2 = 0;
+	uECC_word_t r[3] = { 0, 0, 0 };
 	wordcount_t i, k;
 	const uint8_t num_words = NUM_ECC_WORDS;
 
 	/* Fetch 8 bit worth of delay from the state; 0 if we have no state */
 	uint8_t delays = s ? s->delays[s->i++] : 0;
-	uECC_word_t rr0 = 0, rr1 = 0;
-	volatile uECC_word_t r;
+	uECC_word_t rr[3] = { 0, 0, 0 };
+	volatile uECC_word_t rdummy;
 
 	/* Mimic start of next loop: k in [0, 3] */
 	k = 0 + (delays & 0x03);
@@ -680,24 +682,23 @@ static void uECC_vli_mult_rnd(uECC_word_t *result, const uECC_word_t *left,
 	/* k = 0 -> i in [1, 0] -> 0 extra muladd;
 	 * k = 3 -> i in [1, 3] -> 3 extra muladd */
 	for (i = 1; i <= k; ++i) {
-		muladd(left[i], right[k - i], &rr0, &rr1, &r2);
+		muladd(left[i], right[k - i], rr);
 	}
-	r = rr0;
-	rr0 = rr1;
-	rr1 = r2;
-	r2 = 0;
+	rdummy = rr[0];
+	rr[0] = rr[1];
+	rr[1] = rr[2];
+	rr[2] = 0;
 
 	/* Compute each digit of result in sequence, maintaining the carries. */
 	for (k = 0; k < num_words; ++k) {
-
 		for (i = 0; i <= k; ++i) {
-			muladd(left[i], right[k - i], &r0, &r1, &r2);
+			muladd(left[i], right[k - i], r);
 		}
 
-		result[k] = r0;
-		r0 = r1;
-		r1 = r2;
-		r2 = 0;
+		result[k] = r[0];
+		r[0] = r[1];
+		r[1] = r[2];
+		r[2] = 0;
 	}
 
 	/* Mimic end of previous loop: k in [4, 7] */
@@ -706,12 +707,12 @@ static void uECC_vli_mult_rnd(uECC_word_t *result, const uECC_word_t *left,
 	/* k = 4 -> i in [5, 4] -> 0 extra muladd;
 	 * k = 7 -> i in [5, 7] -> 3 extra muladd */
 	for (i = 5; i <= k; ++i) {
-		muladd(left[i], right[k - i], &rr0, &rr1, &r2);
+		muladd(left[i], right[k - i], rr);
 	}
-	r = rr0;
-	rr0 = rr1;
-	rr1 = r2;
-	r2 = 0;
+	rdummy = rr[0];
+	rr[0] = rr[1];
+	rr[1] = rr[2];
+	rr[2] = 0;
 
 	/* Mimic start of next loop: k in [8, 11] */
 	k = 11 - (delays & 0x03);
@@ -719,25 +720,25 @@ static void uECC_vli_mult_rnd(uECC_word_t *result, const uECC_word_t *left,
 	/* k =  8 -> i in [5, 7] -> 3 extra muladd;
 	 * k = 11 -> i in [8, 7] -> 0 extra muladd */
 	for (i = (k + 5) - num_words; i < num_words; ++i) {
-		muladd(left[i], right[k - i], &rr0, &rr1, &r2);
+		muladd(left[i], right[k - i], rr);
 	}
-	r = rr0;
-	rr0 = rr1;
-	rr1 = r2;
-	r2 = 0;
+	rdummy = rr[0];
+	rr[0] = rr[1];
+	rr[1] = rr[2];
+	rr[2] = 0;
 
 	for (k = num_words; k < num_words * 2 - 1; ++k) {
 
 		for (i = (k + 1) - num_words; i < num_words; ++i) {
-			muladd(left[i], right[k - i], &r0, &r1, &r2);
+			muladd(left[i], right[k - i], r);
 		}
-		result[k] = r0;
-		r0 = r1;
-		r1 = r2;
-		r2 = 0;
+		result[k] = r[0];
+		r[0] = r[1];
+		r[1] = r[2];
+		r[2] = 0;
 	}
 
-	result[num_words * 2 - 1] = r0;
+	result[num_words * 2 - 1] = r[0];
 
 	/* Mimic end of previous loop: k in [12, 15] */
 	k = 15 - (delays & 0x03);
@@ -745,15 +746,15 @@ static void uECC_vli_mult_rnd(uECC_word_t *result, const uECC_word_t *left,
 	/* k = 12 -> i in [5, 7] -> 3 extra muladd;
 	 * k = 15 -> i in [8, 7] -> 0 extra muladd */
 	for (i = (k + 1) - num_words; i < num_words; ++i) {
-		muladd(left[i], right[k - i], &rr0, &rr1, &r2);
+		muladd(left[i], right[k - i], rr);
 	}
-	r = rr0;
-	rr0 = rr1;
-	rr1 = r2;
-	r2 = 0;
+	rdummy = rr[0];
+	rr[0] = rr[1];
+	rr[1] = rr[2];
+	rr[2] = 0;
 
-	/* avoid warning that r is set but not used */
-	(void) r;
+	/* avoid warning that rdummy is set but not used */
+	(void) rdummy;
 }
 
 void uECC_vli_modAdd(uECC_word_t *result, const uECC_word_t *left,

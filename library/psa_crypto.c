@@ -3558,6 +3558,12 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
 {
     psa_status_t status;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if( operation->alg == 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+
     if( operation->iv_set || ! operation->iv_required )
     {
         return( PSA_ERROR_BAD_STATE );
@@ -3602,6 +3608,12 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
 {
     psa_status_t status;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if( operation->alg == 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+
     if( operation->iv_set || ! operation->iv_required )
     {
         return( PSA_ERROR_BAD_STATE );

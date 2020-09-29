@@ -779,7 +779,7 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is declared with a lifetime not known to us */
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void)slot;
@@ -860,7 +860,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is declared with a lifetime not known to us */
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void)slot;
@@ -896,7 +896,7 @@ psa_status_t psa_driver_wrapper_cipher_generate_iv(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is attached to a driver not known to us */
-            return( PSA_ERROR_BAD_STATE );
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void) operation;
@@ -930,7 +930,7 @@ psa_status_t psa_driver_wrapper_cipher_set_iv(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is attached to a driver not known to us */
-            return( PSA_ERROR_BAD_STATE );
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void) operation;
@@ -972,7 +972,7 @@ psa_status_t psa_driver_wrapper_cipher_update(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is attached to a driver not known to us */
-            return( PSA_ERROR_BAD_STATE );
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void) operation;
@@ -1011,7 +1011,7 @@ psa_status_t psa_driver_wrapper_cipher_finish(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is attached to a driver not known to us */
-            return( PSA_ERROR_BAD_STATE );
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void) operation;
@@ -1062,7 +1062,7 @@ psa_status_t psa_driver_wrapper_cipher_abort(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Operation is attached to a driver not known to us */
-            return( PSA_ERROR_BAD_STATE );
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void)operation;

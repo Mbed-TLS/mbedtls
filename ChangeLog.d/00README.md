@@ -49,8 +49,7 @@ Include GitHub issue numbers where relevant. Use the format “#1234” for an
 Mbed TLS issue. Add other external references such as CVE numbers where
 applicable.
 
-Credit the author of the contribution if the contribution is not a member of
-the Mbed TLS development team. Also credit bug reporters where applicable.
+Credit bug reporters where applicable.
 
 **Explain why, not how**. Remember that the audience is the users of the
 library, not its developers. In particular, for a bug fix, explain the

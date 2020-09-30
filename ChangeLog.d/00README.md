@@ -22,7 +22,7 @@ We generally don't include changelog entries for:
 * Changes to parts of the code base that users don't interact with directly,
   such as test code and test data.
 
-Prior to Mbed TLS 2.24, we required changelog entries in more cases.
+Until Mbed TLS 2.24.0, we required changelog entries in more cases.
 Looking at older changelog entries is good practice for how to write a
 changelog entry, but not for deciding whether to write one.
 

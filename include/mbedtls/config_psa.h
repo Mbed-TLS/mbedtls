@@ -26,7 +26,9 @@
 #ifndef MBEDTLS_CONFIG_PSA_H
 #define MBEDTLS_CONFIG_PSA_H
 
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 #include "psa/crypto_config.h"
+#endif /* defined(MBEDTLS_PSAY_CRYPTO_CONFIG) */
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,13 +44,27 @@ extern "C" {
 #endif /* !defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) */
 #endif /* defined(PSA_WANT_ALG_ECDSA) */
 
-#if defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)
+#if defined(PSA_WANT_ALG_ECDSA_DETERMINISTIC)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA_DETERMINISTIC)
 #define MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA
 #else /*  && !defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA_DETERMINISTIC) */
 #define MBEDTLS_ECDSA_DETERMINISTIC
 #endif /* !defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA_DETERMINISTIC) */
 #endif /* defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA) */
+
+#else /* MBEDTLS_PSA_CRYPTO_CONFIG */
+
+/*
+ * Ensure PSA_WANT_* defines are setup properly if MBEDTLS_PSA_CRYPTO_CONFIG
+ * is not defined
+ */
+#ifdef MBEDTLS_ECDSA_C
+#define PSA_WANT_ALG_ECDSA
+#endif /* MBEDTLS_ECDSA_C */
+
+#ifdef MBEDTLS_ECDSA_DETERMINISTIC
+#define PSA_WANT_ALG_ECDSA_DETERMINISTIC
+#endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
 

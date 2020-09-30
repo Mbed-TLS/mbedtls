@@ -18,14 +18,8 @@
  */
 
 #if defined(__linux__)
-#if !defined(_GNU_SOURCE)
 /* Ensure that syscall() is available even when compiling with -std=c99 */
 #define _GNU_SOURCE
-#endif
-#include <features.h>
-#if __GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 25)
-#define HAVE_SYS_RANDOM 1
-#endif
 #endif
 
 #include "common.h"
@@ -92,16 +86,10 @@ int mbedtls_platform_entropy_poll( void *data, unsigned char *output, size_t len
 
 /*
  * Test for Linux getrandom() support.
- * When the C library is GNU libc and its version is greater than 2.25,
- * include sys/random.h to use getrandom(),
- * otherwise use the generic use the generic syscall wrapper
+ * Since there is no wrapper in the libc yet, use the generic syscall wrapper
  * available in GNU libc and compatible libc's (eg uClibc).
  */
-#if HAVE_SYS_RANDOM
-#include <sys/random.h>
-#include <errno.h>
-#define HAVE_GETRANDOM
-#elif (defined(__linux__) && defined(__GLIBC__)) || defined(__midipix__)
+#if ((defined(__linux__) && defined(__GLIBC__)) || defined(__midipix__))
 #include <unistd.h>
 #include <sys/syscall.h>
 #if defined(SYS_getrandom)
@@ -167,11 +155,7 @@ int mbedtls_platform_entropy_poll( void *data,
     ((void) data);
 
 #if defined(HAVE_GETRANDOM)
-#if HAVE_SYS_RANDOM
-    ret = getrandom(output, len, 0);
-#else
     ret = getrandom_wrapper( output, len, 0 );
-#endif
     if( ret >= 0 )
     {
         *olen = ret;

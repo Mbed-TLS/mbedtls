@@ -1,0 +1,2 @@
+Changes
+   Use glibc's getrandom() instead of syscall when glibc > 2.25.

@@ -7,9 +7,10 @@ to the changelog file ([`../ChangeLog`](../ChangeLog)).
 
 Write a changelog entry if there is a user-visible change. This includes:
 
-* Bug fixes: fixing a security hole, fixing broken behavior, fixing
-  the build in some configuration or on some platform, ...
-* New features in the library or new platform support.
+* Bug fixes in the library or in sample programs: fixing a security hole,
+  fixing broken behavior, fixing the build in some configuration or on some
+  platform, etc.
+* New features in the library, new sample programs, or new platform support.
 * Changes in existing behavior. These should be rare. Changes in features
   that are documented as experimental may or may not be announced, depending
   on the extent of the change and how widely we expect the feature to be used.
@@ -18,8 +19,8 @@ We generally don't include changelog entries for:
 
 * Documentation improvements.
 * Performance improvements, unless they are particularly significant.
-* Changes that don't impact library users directly, for example new tests or
-  changes to the test framework.
+* Changes to parts of the code base that users don't interact with directly,
+  such as test code and test data.
 
 Until Mbed TLS 2.16.8, we required changelog entries in more cases.
 Looking at older changelog entries is good practice for how to write a

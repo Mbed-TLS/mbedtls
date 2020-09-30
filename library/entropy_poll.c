@@ -91,8 +91,16 @@ int mbedtls_platform_entropy_poll( void *data, unsigned char *output, size_t len
 #if defined(__linux__) || defined(__midipix__)
 #include <unistd.h>
 #include <sys/syscall.h>
+
 #if defined(SYS_getrandom)
 #define HAVE_GETRANDOM
+#elif defined(__NR_getrandom)
+#define HAVE_GETRANDOM
+#define SYS_getrandom __NR_getrandom
+#endif
+#endif /* __linux__ || __midipix__ */
+
+#if defined(HAVE_GETRANDOM)
 #include <errno.h>
 
 static int getrandom_wrapper( void *buf, size_t buflen, unsigned int flags )
@@ -105,8 +113,7 @@ static int getrandom_wrapper( void *buf, size_t buflen, unsigned int flags )
 #endif
     return( syscall( SYS_getrandom, buf, buflen, flags ) );
 }
-#endif /* SYS_getrandom */
-#endif /* __linux__ || __midipix__ */
+#endif /* HAVE_GETRANDOM */
 
 /*
  * Some BSD systems provide KERN_ARND.

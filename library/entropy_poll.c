@@ -85,11 +85,10 @@ int mbedtls_platform_entropy_poll( void *data, unsigned char *output, size_t len
 #else /* _WIN32 && !EFIX64 && !EFI32 */
 
 /*
- * Test for Linux getrandom() support.
- * Since there is no wrapper in the libc yet, use the generic syscall wrapper
- * available in GNU libc and compatible libc's (eg uClibc).
+ * Test for Linux getrandom() support. Since many libc implementations on
+ * Linux don't have a wrapper for getrandom(), issue the system call directly.
  */
-#if ((defined(__linux__) && defined(__GLIBC__)) || defined(__midipix__))
+#if defined(__linux__) || defined(__midipix__)
 #include <unistd.h>
 #include <sys/syscall.h>
 #if defined(SYS_getrandom)

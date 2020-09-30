@@ -597,7 +597,63 @@ static __asm void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
     STMIA   r2!,{r0,r1,r3}
     BX      lr
 #endif
-
+}
+#elif defined MBEDTLS_HAVE_ASM && (defined __GNUC__ || defined __clang__) && defined __arm__
+static __attribute__((__naked__))
+void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
+{
+    asm(
+#if defined __thumb__ && !defined(__thumb2__)
+    ".syntax unified             \n\t"
+    "PUSH    {r4-r5}             \n\t"
+    ".cfi_remember_state         \n\t"
+    ".cfi_adjust_cfa_offset 8    \n\t"
+    ".cfi_rel_offset r4,0        \n\t"
+    ".cfi_rel_offset r5,4        \n\t"
+    // __ARM_common_mul_uu replacement - inline, faster, don't touch R2
+    // Separate operands into halfwords
+    "UXTH    r3,r0               \n\t" // r3 := a.lo
+    "LSRS    r4,r0,#16           \n\t" // r4 := a.hi
+    "UXTH    r5,r1               \n\t" // r5 := b.lo
+    "LSRS    r1,r1,#16           \n\t" // r1 := b.hi
+    // Multiply halfword pairs
+    "MOVS    r0,r3               \n\t"
+    "MULS    r0,r5,r0            \n\t" // r0 := a.lo * b.lo
+    "MULS    r3,r1,r3            \n\t" // r3 := a.lo * b.hi
+    "MULS    r5,r4,r5            \n\t" // r5 := a.hi * b.lo
+    "MULS    r1,r4,r1            \n\t" // r1 := a.hi * b.hi
+    // Split, shift and add a.lo * b.hi
+    "LSRS    r4,r3,#16           \n\t" // r4 := (a.lo * b.hi).hi
+    "LSLS    r3,r3,#16           \n\t" // r3 := (a.lo * b.hi).lo
+    "ADDS    r0,r0,r3            \n\t" // r0 := a.lo * b.lo + (a.lo * b.hi).lo
+    "ADCS    r1,r4               \n\t" // r1 := a.hi * b.hi + (a.lo * b.hi).hi + carry
+    // Split, shift and add a.hi * b.lo
+    "LSRS    r4,r5,#16           \n\t" // r4 := (a.hi * b.lo).hi
+    "LSLS    r5,r5,#16           \n\t" // r5 := (a.hi * b.lo).lo
+    "ADDS    r0,r0,r5            \n\t" // r0 := a.lo * b.lo + (a.lo * b.hi).lo + (a.hi * b.lo).lo
+    "ADCS    r1,r4               \n\t" // r1 := a.hi * b.hi + (a.lo * b.hi).hi + (a.hi * b.lo).hi + carries
+    // Finally add r[]
+    "LDMIA   r2!,{r3,r4,r5}      \n\t"
+    "ADDS    r3,r3,r0            \n\t"
+    "ADCS    r4,r1               \n\t"
+    "MOVS    r0,#0               \n\t"
+    "ADCS    r5,r0               \n\t"
+    "SUBS    r2,#12              \n\t"
+    "STMIA   r2!,{r3,r4,r5}      \n\t"
+    "POP     {r4-r5}             \n\t"
+    ".cfi_restore_state          \n\t"
+    "BX      lr                  \n\t"
+#else
+    "UMULL   r3,ip,r0,r1         \n\t" // pre-ARMv6 requires Rd[Lo|Hi] != Rn
+    "LDMIA   r2,{r0,r1}          \n\t"
+    "ADDS    r0,r0,r3            \n\t"
+    "LDR     r3,[r2,#8]          \n\t"
+    "ADCS    r1,r1,ip            \n\t"
+    "ADC     r3,r3,#0            \n\t"
+    "STMIA   r2!,{r0,r1,r3}      \n\t"
+    "BX      lr                  \n\t"
+#endif
+    );
 }
 #else
 static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])

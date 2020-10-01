@@ -189,9 +189,11 @@
 #endif
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
-#define MBEDTLS_SSL_PADDING_ADD            256
+#define MBEDTLS_SSL_PADDING_ADD_OUT         16 /* Currently we're always using minimal padding */
+#define MBEDTLS_SSL_PADDING_ADD_IN          256
 #else
-#define MBEDTLS_SSL_PADDING_ADD              0
+#define MBEDTLS_SSL_PADDING_ADD_OUT         0
+#define MBEDTLS_SSL_PADDING_ADD_IN          0
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -203,14 +205,15 @@
 #define MBEDTLS_SSL_PAYLOAD_OVERHEAD ( MBEDTLS_SSL_COMPRESSION_ADD +    \
                                        MBEDTLS_MAX_IV_LENGTH +          \
                                        MBEDTLS_SSL_MAC_ADD +            \
-                                       MBEDTLS_SSL_PADDING_ADD +        \
                                        MBEDTLS_SSL_MAX_CID_EXPANSION    \
                                        )
 
-#define MBEDTLS_SSL_IN_PAYLOAD_LEN ( MBEDTLS_SSL_PAYLOAD_OVERHEAD + \
-                                     ( MBEDTLS_SSL_IN_CONTENT_LEN ) )
+#define MBEDTLS_SSL_IN_PAYLOAD_LEN ( MBEDTLS_SSL_PAYLOAD_OVERHEAD +    \
+                                     MBEDTLS_SSL_PADDING_ADD_IN +      \
+                                    ( MBEDTLS_SSL_IN_CONTENT_LEN ) )
 
 #define MBEDTLS_SSL_OUT_PAYLOAD_LEN ( MBEDTLS_SSL_PAYLOAD_OVERHEAD + \
+                                      MBEDTLS_SSL_PADDING_ADD_OUT +  \
                                       ( MBEDTLS_SSL_OUT_CONTENT_LEN ) )
 
 /* The maximum number of buffered handshake messages. */

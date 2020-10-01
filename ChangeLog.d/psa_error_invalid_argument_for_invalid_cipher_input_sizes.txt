@@ -1,0 +1,3 @@
+Bugfix
+   * Consistently return PSA_ERROR_INVALID_ARGUMENT on invalid cipher input
+     sizes, as opposed to PSA_ERROR_BAD_STATE in some cases.

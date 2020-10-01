@@ -83,4 +83,127 @@ psa_status_t mbedtls_psa_cipher_decrypt_setup(
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg );
 
+/** Generate an IV for a symmetric encryption operation.
+ *
+ * This function generates a random IV (initialization vector), nonce
+ * or initial counter value for the encryption operation as appropriate
+ * for the chosen algorithm, key type and key size.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       cipher_generate_iv entry point. This function behaves as a
+ *       cipher_generate_iv entry point as defined in the PSA driver
+ *       interface specification for transparent drivers.
+ *
+ * \param[in,out] operation     Active cipher operation.
+ * \param[out] iv               Buffer where the generated IV is to be written.
+ * \param[in]  iv_size          Size of the \p iv buffer in bytes.
+ * \param[out] iv_length        On success, the number of bytes of the
+ *                              generated IV.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p iv buffer is too small.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+psa_status_t mbedtls_psa_cipher_generate_iv(
+    psa_cipher_operation_t *operation,
+    uint8_t *iv, size_t iv_size, size_t *iv_length );
+
+/** Set the IV for a symmetric encryption or decryption operation.
+ *
+ * This function sets the IV (initialization vector), nonce
+ * or initial counter value for the encryption or decryption operation.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       cipher_set_iv entry point. This function behaves as a
+ *       cipher_set_iv entry point as defined in the PSA driver
+ *       interface specification for transparent drivers.
+ *
+ * \param[in,out] operation     Active cipher operation.
+ * \param[in] iv                Buffer containing the IV to use.
+ * \param[in] iv_length         Size of the IV in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The size of \p iv is not acceptable for the chosen algorithm,
+ *         or the chosen algorithm does not use an IV.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+psa_status_t mbedtls_psa_cipher_set_iv(
+    psa_cipher_operation_t *operation,
+    const uint8_t *iv, size_t iv_length );
+
+/** Encrypt or decrypt a message fragment in an active cipher operation.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       cipher_update entry point. This function behaves as a
+ *       cipher_update entry point as defined in the PSA driver
+ *       interface specification for transparent drivers.
+ *
+ * \param[in,out] operation     Active cipher operation.
+ * \param[in] input             Buffer containing the message fragment to
+ *                              encrypt or decrypt.
+ * \param[in] input_length      Size of the \p input buffer in bytes.
+ * \param[out] output           Buffer where the output is to be written.
+ * \param[in]  output_size      Size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the returned output.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p output buffer is too small.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+psa_status_t mbedtls_psa_cipher_update(
+    psa_cipher_operation_t *operation,
+    const uint8_t *input, size_t input_length,
+    uint8_t *output, size_t output_size, size_t *output_length );
+
+/** Finish encrypting or decrypting a message in a cipher operation.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       cipher_finish entry point. This function behaves as a
+ *       cipher_finish entry point as defined in the PSA driver
+ *       interface specification for transparent drivers.
+ *
+ * \param[in,out] operation     Active cipher operation.
+ * \param[out] output           Buffer where the output is to be written.
+ * \param[in]  output_size      Size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the returned output.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total input size passed to this operation is not valid for
+ *         this particular algorithm. For example, the algorithm is a based
+ *         on block cipher and requires a whole number of blocks, but the
+ *         total input size is not a multiple of the block size.
+ * \retval #PSA_ERROR_INVALID_PADDING
+ *         This is a decryption operation for an algorithm that includes
+ *         padding, and the ciphertext does not contain valid padding.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p output buffer is too small.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+psa_status_t mbedtls_psa_cipher_finish(
+    psa_cipher_operation_t *operation,
+    uint8_t *output, size_t output_size, size_t *output_length );
+
+/** Abort a cipher operation.
+ *
+ * Aborting an operation frees all associated resources except for the
+ * \p operation structure itself. Once aborted, the operation object
+ * can be reused for another operation.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       cipher_abort entry point. This function behaves as a
+ *       cipher_abort entry point as defined in the PSA driver
+ *       interface specification for transparent drivers.
+ *
+ * \param[in,out] operation     Initialized cipher operation.
+ *
+ * \retval #PSA_SUCCESS
+ */
+psa_status_t mbedtls_psa_cipher_abort( psa_cipher_operation_t *operation );
+
 #endif /* PSA_CRYPTO_CIPHER_H */

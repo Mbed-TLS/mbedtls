@@ -1,3 +1,4 @@
 Bugfix
    * Consistently return PSA_ERROR_INVALID_ARGUMENT on invalid cipher input
-     sizes, as opposed to PSA_ERROR_BAD_STATE in some cases.
+     sizes (instead of PSA_ERROR_BAD_STATE in some cases) to make the
+     psa_cipher_* functions compliant with the PSA Crypto API specification.

@@ -3,6 +3,29 @@
 This directory contains changelog entries that have not yet been merged
 to the changelog file ([`../ChangeLog`](../ChangeLog)).
 
+## What requires a changelog entry?
+
+Write a changelog entry if there is a user-visible change. This includes:
+
+* Bug fixes in the library or in sample programs: fixing a security hole,
+  fixing broken behavior, fixing the build in some configuration or on some
+  platform, etc.
+* New features in the library, new sample programs, or new platform support.
+* Changes in existing behavior. These should be rare. Changes in features
+  that are documented as experimental may or may not be announced, depending
+  on the extent of the change and how widely we expect the feature to be used.
+
+We generally don't include changelog entries for:
+
+* Documentation improvements.
+* Performance improvements, unless they are particularly significant.
+* Changes to parts of the code base that users don't interact with directly,
+  such as test code and test data.
+
+Until Mbed TLS 2.16.8, we required changelog entries in more cases.
+Looking at older changelog entries is good practice for how to write a
+changelog entry, but not for deciding whether to write one.
+
 ## Changelog entry file format
 
 A changelog entry file must have the extension `*.txt` and must have the
@@ -33,8 +56,7 @@ The permitted changelog entry categories are as follows:
     Bugfix
     Changes
 
-Use “Changes” for anything that doesn't fit in the other categories, such as
-performance, documentation and test improvements.
+Use “Changes” for anything that doesn't fit in the other categories.
 
 ## How to write a changelog entry
 
@@ -49,8 +71,7 @@ Include GitHub issue numbers where relevant. Use the format “#1234” for an
 Mbed TLS issue. Add other external references such as CVE numbers where
 applicable.
 
-Credit the author of the contribution if the contribution is not a member of
-the Mbed TLS development team. Also credit bug reporters where applicable.
+Credit bug reporters where applicable.
 
 **Explain why, not how**. Remember that the audience is the users of the
 library, not its developers. In particular, for a bug fix, explain the

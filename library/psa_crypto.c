@@ -3441,6 +3441,12 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
         psa_key_lifetime_is_external( slot->attr.lifetime ) )
         goto exit;
 
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+    const uint8_t *key_buffer = slot->key.data;
+    psa_key_type_t key_type = attributes.core.type;
+
     /* Proceed with initializing an mbed TLS cipher context if no driver is
      * available for the given algorithm & key. */
     mbedtls_cipher_init( &operation->ctx.cipher );
@@ -3452,8 +3458,9 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     operation->alg = alg;
     operation->mbedtls_in_use = 1;
 
-    key_bits = psa_get_key_slot_bits( slot );
-    cipher_info = mbedtls_cipher_info_from_psa( alg, slot->attr.type, key_bits, NULL );
+    key_bits = attributes.core.bits;
+    cipher_info = mbedtls_cipher_info_from_psa( alg, key_type,
+                                                key_bits, NULL );
     if( cipher_info == NULL )
     {
         status = PSA_ERROR_NOT_SUPPORTED;
@@ -3465,12 +3472,12 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
         goto exit;
 
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
-    if( slot->attr.type == PSA_KEY_TYPE_DES && key_bits == 128 )
+    if( key_type == PSA_KEY_TYPE_DES && key_bits == 128 )
     {
         /* Two-key Triple-DES is 3-key Triple-DES with K1=K3 */
         uint8_t keys[24];
-        memcpy( keys, slot->key.data, 16 );
-        memcpy( keys + 16, slot->key.data, 8 );
+        memcpy( keys, key_buffer, 16 );
+        memcpy( keys + 16, key_buffer, 8 );
         ret = mbedtls_cipher_setkey( &operation->ctx.cipher,
                                      keys,
                                      192, cipher_operation );
@@ -3478,8 +3485,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     else
 #endif
     {
-        ret = mbedtls_cipher_setkey( &operation->ctx.cipher,
-                                     slot->key.data,
+        ret = mbedtls_cipher_setkey( &operation->ctx.cipher, key_buffer,
                                      (int) key_bits, cipher_operation );
     }
     if( ret != 0 )
@@ -3507,15 +3513,16 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING || MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7 */
 
     operation->block_size = ( PSA_ALG_IS_STREAM_CIPHER( alg ) ? 1 :
-                              PSA_BLOCK_CIPHER_BLOCK_LENGTH( slot->attr.type ) );
+                              PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
     if( ( alg & PSA_ALG_CIPHER_FROM_BLOCK_FLAG ) != 0 &&
         alg != PSA_ALG_ECB_NO_PADDING )
     {
-        operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH( slot->attr.type );
+        operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type );
     }
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_CHACHA20)
     else
-    if( alg == PSA_ALG_STREAM_CIPHER && slot->attr.type == PSA_KEY_TYPE_CHACHA20 )
+    if( ( alg == PSA_ALG_STREAM_CIPHER ) &&
+        ( key_type == PSA_KEY_TYPE_CHACHA20 ) )
         operation->iv_size = 12;
 #endif
 

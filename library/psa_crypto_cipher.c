@@ -24,7 +24,10 @@
 
 #include <psa_crypto_cipher.h>
 #include "psa_crypto_core.h"
+#include "psa_crypto_random_impl.h"
+
 #include "mbedtls/cipher.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -143,4 +146,220 @@ psa_status_t mbedtls_psa_cipher_decrypt_setup(
                           key_buffer, key_buffer_size,
                           alg, MBEDTLS_DECRYPT ) );
 }
+
+psa_status_t mbedtls_psa_cipher_generate_iv(
+    psa_cipher_operation_t *operation,
+    uint8_t *iv, size_t iv_size, size_t *iv_length )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if( iv_size < operation->iv_size )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+    ret = mbedtls_psa_get_random( MBEDTLS_PSA_RANDOM_STATE,
+                                  iv, operation->iv_size );
+    if( ret != 0 )
+        return( mbedtls_to_psa_error( ret ) );
+
+    *iv_length = operation->iv_size;
+
+    return( mbedtls_psa_cipher_set_iv( operation, iv, *iv_length ) );
+}
+
+psa_status_t mbedtls_psa_cipher_set_iv( psa_cipher_operation_t *operation,
+                                        const uint8_t *iv,
+                                        size_t iv_length )
+{
+    if( iv_length != operation->iv_size )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    return( mbedtls_to_psa_error(
+                mbedtls_cipher_set_iv( &operation->ctx.cipher,
+                                       iv, iv_length ) ) );
+}
+
+/* Process input for which the algorithm is set to ECB mode. This requires
+ * manual processing, since the PSA API is defined as being able to process
+ * arbitrary-length calls to psa_cipher_update() with ECB mode, but the
+ * underlying mbedtls_cipher_update only takes full blocks. */
+static psa_status_t psa_cipher_update_ecb(
+    mbedtls_cipher_context_t *ctx,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t block_size = ctx->cipher_info->block_size;
+    size_t internal_output_length = 0;
+    *output_length = 0;
+
+    if( input_length == 0 )
+    {
+        status = PSA_SUCCESS;
+        goto exit;
+    }
+
+    if( ctx->unprocessed_len > 0 )
+    {
+        /* Fill up to block size, and run the block if there's a full one. */
+        size_t bytes_to_copy = block_size - ctx->unprocessed_len;
+
+        if( input_length < bytes_to_copy )
+            bytes_to_copy = input_length;
+
+        memcpy( &( ctx->unprocessed_data[ctx->unprocessed_len] ),
+                input, bytes_to_copy );
+        input_length -= bytes_to_copy;
+        input += bytes_to_copy;
+        ctx->unprocessed_len += bytes_to_copy;
+
+        if( ctx->unprocessed_len == block_size )
+        {
+            status = mbedtls_to_psa_error(
+                mbedtls_cipher_update( ctx,
+                                       ctx->unprocessed_data,
+                                       block_size,
+                                       output, &internal_output_length ) );
+
+            if( status != PSA_SUCCESS )
+                goto exit;
+
+            output += internal_output_length;
+            output_size -= internal_output_length;
+            *output_length += internal_output_length;
+            ctx->unprocessed_len = 0;
+        }
+    }
+
+    while( input_length >= block_size )
+    {
+        /* Run all full blocks we have, one by one */
+        status = mbedtls_to_psa_error(
+            mbedtls_cipher_update( ctx, input,
+                                   block_size,
+                                   output, &internal_output_length ) );
+
+        if( status != PSA_SUCCESS )
+            goto exit;
+
+        input_length -= block_size;
+        input += block_size;
+
+        output += internal_output_length;
+        output_size -= internal_output_length;
+        *output_length += internal_output_length;
+    }
+
+    if( input_length > 0 )
+    {
+        /* Save unprocessed bytes for later processing */
+        memcpy( &( ctx->unprocessed_data[ctx->unprocessed_len] ),
+                input, input_length );
+        ctx->unprocessed_len += input_length;
+    }
+
+    status = PSA_SUCCESS;
+
+exit:
+    return( status );
+}
+
+psa_status_t mbedtls_psa_cipher_update( psa_cipher_operation_t *operation,
+                                        const uint8_t *input,
+                                        size_t input_length,
+                                        uint8_t *output,
+                                        size_t output_size,
+                                        size_t *output_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t expected_output_size;
+
+    if( ! PSA_ALG_IS_STREAM_CIPHER( operation->alg ) )
+    {
+        /* Take the unprocessed partial block left over from previous
+         * update calls, if any, plus the input to this call. Remove
+         * the last partial block, if any. You get the data that will be
+         * output in this call. */
+        expected_output_size =
+            ( operation->ctx.cipher.unprocessed_len + input_length )
+            / operation->block_size * operation->block_size;
+    }
+    else
+    {
+        expected_output_size = input_length;
+    }
+
+    if( output_size < expected_output_size )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+    if( operation->alg == PSA_ALG_ECB_NO_PADDING )
+    {
+        /* mbedtls_cipher_update has an API inconsistency: it will only
+        * process a single block at a time in ECB mode. Abstract away that
+        * inconsistency here to match the PSA API behaviour. */
+        status = psa_cipher_update_ecb( &operation->ctx.cipher,
+                                        input,
+                                        input_length,
+                                        output,
+                                        output_size,
+                                        output_length );
+    }
+    else
+    {
+        status = mbedtls_to_psa_error(
+            mbedtls_cipher_update( &operation->ctx.cipher, input,
+                                   input_length, output, output_length ) );
+    }
+
+    return( status );
+}
+
+psa_status_t mbedtls_psa_cipher_finish( psa_cipher_operation_t *operation,
+                                        uint8_t *output,
+                                        size_t output_size,
+                                        size_t *output_length )
+{
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    uint8_t temp_output_buffer[MBEDTLS_MAX_BLOCK_LENGTH];
+
+    if( operation->ctx.cipher.unprocessed_len != 0 )
+    {
+        if( operation->alg == PSA_ALG_ECB_NO_PADDING ||
+            operation->alg == PSA_ALG_CBC_NO_PADDING )
+        {
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            goto exit;
+        }
+    }
+
+    status = mbedtls_to_psa_error(
+        mbedtls_cipher_finish( &operation->ctx.cipher,
+                               temp_output_buffer,
+                               output_length ) );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    if( *output_length == 0 )
+        ; /* Nothing to copy. Note that output may be NULL in this case. */
+    else if( output_size >= *output_length )
+        memcpy( output, temp_output_buffer, *output_length );
+    else
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+
+exit:
+    mbedtls_platform_zeroize( temp_output_buffer,
+                              sizeof( temp_output_buffer ) );
+
+    return( status );
+}
+
+psa_status_t mbedtls_psa_cipher_abort( psa_cipher_operation_t *operation )
+{
+    mbedtls_cipher_free( &operation->ctx.cipher );
+
+    return( PSA_SUCCESS );
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

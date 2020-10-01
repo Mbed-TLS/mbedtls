@@ -1,3 +1,0 @@
-Changes
-   * Fixes a typo in the example code located in
-     program/pkey/ecdh_curve25519.c

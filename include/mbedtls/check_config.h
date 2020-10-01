@@ -819,6 +819,16 @@
 #error "MBEDTLS_SSL_NO_SESSION_CACHE needs to be defined with MBEDTLS_SSL_NO_SESSION_RESUMPTION"
 #endif
 
+#if defined(MBEDTLS_SSL_CONF_PADDING_IN) &&  \
+    !defined(MBEDTLS_CIPHER_MODE_CBC)
+#error "MBEDTLS_SSL_CONF_PADDING_IN is only useful with MBEDTLS_CIPHER_MODE_CBC"
+#endif
+
+#if defined(MBEDTLS_SSL_CONF_PADDING_IN) &&  \
+    (MBEDTLS_SSL_CONF_PADDING_IN < 16)
+#error "MBEDTLS_SSL_CONF_PADDING_IN can't be smaller than a block size"
+#endif
+
 #if defined(MBEDTLS_THREADING_PTHREAD)
 #if !defined(MBEDTLS_THREADING_C) || defined(MBEDTLS_THREADING_IMPL)
 #error "MBEDTLS_THREADING_PTHREAD defined, but not all prerequisites"

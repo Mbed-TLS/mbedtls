@@ -190,7 +190,11 @@
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 #define MBEDTLS_SSL_PADDING_ADD_OUT         16 /* Currently we're always using minimal padding */
+#if defined(MBEDTLS_SSL_CONF_PADDING_IN)
+#define MBEDTLS_SSL_PADDING_ADD_IN          (MBEDTLS_SSL_CONF_PADDING_IN)
+#else
 #define MBEDTLS_SSL_PADDING_ADD_IN          256
+#endif /* MBEDTLS_SSL_CONF_PADDING_IN */
 #else
 #define MBEDTLS_SSL_PADDING_ADD_OUT         0
 #define MBEDTLS_SSL_PADDING_ADD_IN          0

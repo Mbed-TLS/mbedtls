@@ -525,6 +525,32 @@ static __asm void uECC_vli_rshift1(uECC_word_t *vli)
     BX      lr
 #endif
 }
+#elif defined MBEDTLS_HAVE_ASM && defined __GNUC__ && defined __arm__ && defined __thumb2__
+static void uECC_vli_rshift1(uECC_word_t *vli)
+{
+    register uECC_word_t *r0 asm ("r0") = vli;
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+    asm volatile (
+    "ADDS    r0,#32           \n\t"
+    "LDMDB   r0,{r1-r3,ip}    \n\t"
+    "LSRS    ip,ip,#1         \n\t"
+    "RRXS    r3,r3            \n\t"
+    "RRXS    r2,r2            \n\t"
+    "RRXS    r1,r1            \n\t"
+    "STMDB   r0!,{r1-r3,ip}   \n\t"
+    "LDMDB   r0,{r1-r3,ip}    \n\t"
+    "RRXS    ip,ip            \n\t"
+    "RRXS    r3,r3            \n\t"
+    "RRXS    r2,r2            \n\t"
+    "RRX     r1,r1            \n\t"
+    "STMDB   r0!,{r1-r3,ip}   \n\t"
+    : "+r" (r0)
+    :
+    : "r1", "r2", "r3", "ip", "cc", "memory"
+    );
+}
 #else
 static void uECC_vli_rshift1(uECC_word_t *vli)
 {

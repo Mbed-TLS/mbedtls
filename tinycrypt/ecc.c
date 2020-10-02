@@ -598,18 +598,15 @@ static __asm void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
     BX      lr
 #endif
 }
-#elif defined MBEDTLS_HAVE_ASM && (defined __GNUC__ || defined __clang__) && defined __arm__
-static __attribute__((__naked__))
-void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
+#elif defined MBEDTLS_HAVE_ASM && defined __GNUC__ && defined __arm__
+static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
 {
-    asm(
+    register uECC_word_t r0 asm ("r0") = a;
+    register uECC_word_t r1 asm ("r1") = b;
+    register uECC_word_t *r2 asm ("r2") = r;
+    asm volatile (
 #if defined __thumb__ && !defined(__thumb2__)
     ".syntax unified             \n\t"
-    "PUSH    {r4-r5}             \n\t"
-    ".cfi_remember_state         \n\t"
-    ".cfi_adjust_cfa_offset 8    \n\t"
-    ".cfi_rel_offset r4,0        \n\t"
-    ".cfi_rel_offset r5,4        \n\t"
     // __ARM_common_mul_uu replacement - inline, faster, don't touch R2
     // Separate operands into halfwords
     "UXTH    r3,r0               \n\t" // r3 := a.lo
@@ -640,9 +637,9 @@ void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
     "ADCS    r5,r0               \n\t"
     "SUBS    r2,#12              \n\t"
     "STMIA   r2!,{r3,r4,r5}      \n\t"
-    "POP     {r4-r5}             \n\t"
-    ".cfi_restore_state          \n\t"
-    "BX      lr                  \n\t"
+    : "+r" (r0), "+r" (r1), "+r" (r2)
+    :
+    : "r3", "r4", "r5", "ip", "cc", "memory"
 #else
     "UMULL   r3,ip,r0,r1         \n\t" // pre-ARMv6 requires Rd[Lo|Hi] != Rn
     "LDMIA   r2,{r0,r1}          \n\t"
@@ -651,7 +648,9 @@ void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
     "ADCS    r1,r1,ip            \n\t"
     "ADC     r3,r3,#0            \n\t"
     "STMIA   r2!,{r0,r1,r3}      \n\t"
-    "BX      lr                  \n\t"
+    : "+r" (r0), "+r" (r1), "+r" (r2)
+    :
+    : "r3", "ip", "cc", "memory"
 #endif
     );
 }

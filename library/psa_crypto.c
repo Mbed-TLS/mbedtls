@@ -6043,27 +6043,46 @@ static psa_status_t psa_get_key_buffer_size(
     return( PSA_SUCCESS );
 }
 
+/**
+ * \brief Generate a key.
+ *
+ * \note The signature of the function is that of a PSA driver generate_key
+ *       entry point.
+ *
+ * \param[in]  attributes         The attributes for the key to generate.
+ * \param[out] key_buffer         Buffer where the key data is to be written.
+ * \param[in]  key_buffer_size    Size of \p key_buffer in bytes.
+ * \param[out] key_buffer_length  On success, the number of bytes written in
+ *                                \p key_buffer.
+ *
+ * \retval #PSA_SUCCESS
+ *         The key was generated successfully.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         Key size in bits or type not supported.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of \p key_buffer is too small.
+ */
 static psa_status_t psa_generate_key_internal(
-    psa_key_slot_t *slot, size_t bits,
-    const uint8_t *domain_parameters, size_t domain_parameters_size )
+    const psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_type_t type = slot->attr.type;
+    psa_key_type_t type = attributes->core.type;
 
-    if( domain_parameters == NULL && domain_parameters_size != 0 )
+    if( ( attributes->domain_parameters == NULL ) &&
+        ( attributes->domain_parameters_size != 0 ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     if( key_type_is_raw_bytes( type ) )
     {
-        status = psa_generate_random( slot->key.data,
-                                      slot->key.bytes );
+        status = psa_generate_random( key_buffer, key_buffer_size );
         if( status != PSA_SUCCESS )
             return( status );
 
 #if defined(MBEDTLS_DES_C)
         if( type == PSA_KEY_TYPE_DES )
-            psa_des_set_key_parity( slot->key.data,
-                                    slot->key.bytes );
+            psa_des_set_key_parity( key_buffer, key_buffer_size );
 #endif /* MBEDTLS_DES_C */
     }
     else
@@ -6075,8 +6094,8 @@ static psa_status_t psa_generate_key_internal(
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         int exponent;
 
-        status = psa_read_rsa_exponent( domain_parameters,
-                                        domain_parameters_size,
+        status = psa_read_rsa_exponent( attributes->domain_parameters,
+                                        attributes->domain_parameters_size,
                                         &exponent );
         if( status != PSA_SUCCESS )
             return( status );
@@ -6085,16 +6104,16 @@ static psa_status_t psa_generate_key_internal(
         ret = mbedtls_rsa_gen_key( &rsa,
                                    mbedtls_psa_get_random,
                                    MBEDTLS_PSA_RANDOM_STATE,
-                                   (unsigned int) bits,
+                                   (unsigned int) attributes->core.bits,
                                    exponent );
         if( ret != 0 )
             return( mbedtls_to_psa_error( ret ) );
 
         status = mbedtls_psa_rsa_export_key( type,
                                              &rsa,
-                                             slot->key.data,
-                                             slot->key.bytes,
-                                             &slot->key.bytes );
+                                             key_buffer,
+                                             key_buffer_size,
+                                             key_buffer_length );
         mbedtls_rsa_free( &rsa );
 
         return( status );
@@ -6107,15 +6126,17 @@ static psa_status_t psa_generate_key_internal(
     {
         psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( type );
         mbedtls_ecp_group_id grp_id =
-            mbedtls_ecc_group_of_psa( curve, bits, 0 );
+            mbedtls_ecc_group_of_psa( curve, attributes->core.bits, 0 );
+
         const mbedtls_ecp_curve_info *curve_info =
             mbedtls_ecp_curve_info_from_grp_id( grp_id );
         mbedtls_ecp_keypair ecp;
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-        if( domain_parameters_size != 0 )
+        if( attributes->domain_parameters_size != 0 )
             return( PSA_ERROR_NOT_SUPPORTED );
         if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
+
         mbedtls_ecp_keypair_init( &ecp );
         ret = mbedtls_ecp_gen_key( grp_id, &ecp,
                                    mbedtls_psa_get_random,
@@ -6127,15 +6148,19 @@ static psa_status_t psa_generate_key_internal(
         }
 
         status = mbedtls_to_psa_error(
-            mbedtls_ecp_write_key( &ecp, slot->key.data, slot->key.bytes ) );
+            mbedtls_ecp_write_key( &ecp, key_buffer, key_buffer_size ) );
 
         mbedtls_ecp_keypair_free( &ecp );
+
+        if( status == PSA_SUCCESS )
+            *key_buffer_length = key_buffer_size;
 
         return( status );
     }
     else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) */
     {
+        (void)key_buffer_length;
         return( PSA_ERROR_NOT_SUPPORTED );
     }
 
@@ -6179,8 +6204,7 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
         goto exit;
 
     status = psa_generate_key_internal(
-        slot, attributes->core.bits,
-        attributes->domain_parameters, attributes->domain_parameters_size );
+        attributes, slot->key.data, slot->key.bytes, &slot->key.bytes );
 
     if( status != PSA_SUCCESS )
         psa_remove_key_data_from_memory( slot );
@@ -6193,8 +6217,6 @@ exit:
 
     return( status );
 }
-
-
 
 /****************************************************************/
 /* Module setup */

@@ -5988,6 +5988,7 @@ static psa_status_t psa_generate_key_internal(
     psa_key_slot_t *slot, size_t bits,
     const uint8_t *domain_parameters, size_t domain_parameters_size )
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_type_t type = slot->attr.type;
 
     if( domain_parameters == NULL && domain_parameters_size != 0 )
@@ -5995,9 +5996,7 @@ static psa_status_t psa_generate_key_internal(
 
     if( key_type_is_raw_bytes( type ) )
     {
-        psa_status_t status;
-
-        status = validate_unstructured_key_bit_size( slot->attr.type, bits );
+        status = validate_unstructured_key_bit_size( type, bits );
         if( status != PSA_SUCCESS )
             return( status );
 
@@ -6011,7 +6010,6 @@ static psa_status_t psa_generate_key_internal(
         if( status != PSA_SUCCESS )
             return( status );
 
-        slot->attr.bits = (psa_key_bits_t) bits;
 #if defined(MBEDTLS_DES_C)
         if( type == PSA_KEY_TYPE_DES )
             psa_des_set_key_parity( slot->key.data,
@@ -6026,7 +6024,6 @@ static psa_status_t psa_generate_key_internal(
         mbedtls_rsa_context rsa;
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         int exponent;
-        psa_status_t status;
         if( bits > PSA_VENDOR_RSA_MAX_KEY_BITS )
             return( PSA_ERROR_NOT_SUPPORTED );
         /* Accept only byte-aligned keys, for the same reasons as
@@ -6097,7 +6094,7 @@ static psa_status_t psa_generate_key_internal(
 
         /* Make sure to always have an export representation available */
         size_t bytes = PSA_BITS_TO_BYTES( bits );
-        psa_status_t status = psa_allocate_buffer_to_slot( slot, bytes );
+        status = psa_allocate_buffer_to_slot( slot, bytes );
         if( status != PSA_SUCCESS )
         {
             mbedtls_ecp_keypair_free( &ecp );

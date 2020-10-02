@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/09/21 11:53:38 GMT"
+Time-stamp: "2020/10/02 15:59:46 GMT"
 
 ## Introduction
 
@@ -360,10 +360,22 @@ To avoid delayed problems caused by imported invalid keys, an implementation tha
 
 A driver can provide code to perform the required validation by providing a `"validate_key"` entry point. This entry points returns `PSA_SUCCESS` if the key is valid or an applicable error code if it isn't.
 
+The `"validate_key"` entry point has an additional role, which is to determine the size of a key.
+The PSA Cryptography API exposes the key size as part of the key attributes.
+When importing a key, the key size recorded in the key attributes may be `0`, which indicates that the size must be calculated from the data.
+In this case, the core will call the `"validate_key"` entry point with an `attributes` structure such that `psa_get_key_bits(attributes)` returns 0, and the `"validate_key"` entry point must return the actual key size in the `bits` output parameter.
+The semantics of `bits` is as follows:
+
+* The core sets `*bits` to `psa_get_key_bits(attributes)` before calling the `"validate_key"` entry point.
+* If `*bits == 0`, the driver must determine the key size from the data, and return `PSA_ERROR_INVALID_ARGUMENT` if this is not possible.
+* If `*bits != 0`, the driver may either determine the key size from the data and store it in `*bits`, or check the value of `*bits*` against the data and return an error if it does not match.
+* If the `"validate_key"` entry point returns `PSA_SUCCESS`, but `psa_get_key_bits(attributes) != 0` and `psa_get_key_bits(attributes) != *bits` on output, the core considers the key as invalid due to the size mismatch.
+
 ```
-psa_status_t psa_validate_key(const psa_key_attributes_t *attributes,
-                              const uint8_t *data,
-                              size_t data_length);
+psa_status_t acme_validate_key(const psa_key_attributes_t *attributes,
+                               const uint8_t *data,
+                               size_t data_length,
+                               size_t *bits);
 ```
 
 ### Fallback
@@ -525,7 +537,8 @@ psa_status_t acme_import_key(const psa_key_attributes_t *attributes,
                              size_t data_length,
                              uint8_t *key_buffer,
                              size_t key_buffer_size,
-                             size_t *key_buffer_length);
+                             size_t *key_buffer_length,
+                             size_t *bits);
 psa_status_t acme_generate_key(const psa_key_attributes_t *attributes,
                                uint8_t *key_buffer,
                                size_t key_buffer_size,
@@ -535,6 +548,21 @@ psa_status_t acme_generate_key(const psa_key_attributes_t *attributes,
 If the driver has an [`"allocate_key"` entry point](#key-management-in-a-secure-element-with-storage), the core calls the `"allocate_key"` entry point with the same attributes on the same key buffer before calling the key creation entry point.
 
 TODO: derivation, copy
+
+#### Key validation and size on import
+
+The `"import_key"` entry point must validate the key so that if a key is imported successfully, permitted operations on the key will succeed if the input data is valid and enough resources are available. For key types that are defined in the PSA Cryptography specification, opaque drivers must guarantee the properties that transparent drivers guarantee if [`"validate_key"`](#key-validation-with-transparent-drivers) succeeds.
+
+Rationale: The key must be validated on import to provide in-time feedback when attempting to inject a bad key. The minimum requirement for validation is the same as for `"validate_key"` to set a minimum security baseline (especially for operations such as key agreement where accepting an invalid key could result in leaking secret material).
+
+The `"import_key"` entry point may need to determine the key size.
+The PSA Cryptography API exposes the key size as part of the key attributes.
+When importing a key, the key size recorded in the key attributes may be `0`, which indicates that the size must be calculated from the data.
+In this case, the core will call the `"import_key"` entry point with an `attributes` structure such that `psa_get_key_bits(attributes)` returns 0, and the `"import_key"` entry point must return the actual key size in the `bits` output parameter. The semantics of `bits` is as follows:
+
+* The core sets `*bits` to `psa_get_key_bits(attributes)` before calling the `"import_key"` entry point.
+* If `*bits == 0`, the driver must determine the key size from the data, and return `PSA_ERROR_INVALID_ARGUMENT` if this is not possible.
+* If `*bits != 0`, the driver must check the value of `*bits*` against the data and return an error if it does not match.
 
 #### Key export entry points in opaque drivers
 
@@ -699,10 +727,6 @@ The specification doesn't mention when the public key might be calculated. The c
 #### Symmetric key validation with transparent drivers
 
 Should the entry point be called for symmetric keys as well?
-
-#### Key validation with opaque drivers
-
-Are there mandatory validations that an opaque driver must perform on import?
 
 ### Opaque drivers
 

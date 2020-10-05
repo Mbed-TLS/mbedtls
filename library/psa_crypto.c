@@ -6049,21 +6049,12 @@ static psa_status_t psa_generate_key_internal(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_type_t type = slot->attr.type;
-    size_t key_buffer_size;
 
     if( domain_parameters == NULL && domain_parameters_size != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    status = psa_get_key_buffer_size( slot->attr.type, bits, &key_buffer_size );
-    if( status != PSA_SUCCESS )
-        return( status );
-
     if( key_type_is_raw_bytes( type ) )
     {
-        status = psa_allocate_buffer_to_slot( slot, key_buffer_size );
-        if( status != PSA_SUCCESS )
-            return( status );
-
         status = psa_generate_random( slot->key.data,
                                       slot->key.bytes );
         if( status != PSA_SUCCESS )
@@ -6089,6 +6080,7 @@ static psa_status_t psa_generate_key_internal(
                                         &exponent );
         if( status != PSA_SUCCESS )
             return( status );
+
         mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_NONE );
         ret = mbedtls_rsa_gen_key( &rsa,
                                    mbedtls_psa_get_random,
@@ -6098,21 +6090,13 @@ static psa_status_t psa_generate_key_internal(
         if( ret != 0 )
             return( mbedtls_to_psa_error( ret ) );
 
-        status = psa_allocate_buffer_to_slot( slot, key_buffer_size );
-        if( status != PSA_SUCCESS )
-        {
-            mbedtls_rsa_free( &rsa );
-            return( status );
-        }
-
         status = mbedtls_psa_rsa_export_key( type,
                                              &rsa,
                                              slot->key.data,
                                              slot->key.bytes,
                                              &slot->key.bytes );
         mbedtls_rsa_free( &rsa );
-        if( status != PSA_SUCCESS )
-            psa_remove_key_data_from_memory( slot );
+
         return( status );
     }
     else
@@ -6142,23 +6126,11 @@ static psa_status_t psa_generate_key_internal(
             return( mbedtls_to_psa_error( ret ) );
         }
 
-
-        /* Make sure to always have an export representation available */
-        status = psa_allocate_buffer_to_slot( slot, key_buffer_size );
-        if( status != PSA_SUCCESS )
-        {
-            mbedtls_ecp_keypair_free( &ecp );
-            return( status );
-        }
-
         status = mbedtls_to_psa_error(
             mbedtls_ecp_write_key( &ecp, slot->key.data, slot->key.bytes ) );
 
         mbedtls_ecp_keypair_free( &ecp );
-        if( status != PSA_SUCCESS ) {
-            memset( slot->key.data, 0, slot->key.bytes );
-            psa_remove_key_data_from_memory( slot );
-        }
+
         return( status );
     }
     else
@@ -6176,6 +6148,7 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
+    size_t key_buffer_size;
 
     *key = MBEDTLS_SVC_KEY_ID_INIT;
 
@@ -6195,9 +6168,22 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
         psa_key_lifetime_is_external( attributes->core.lifetime ) )
         goto exit;
 
+    status = psa_get_key_buffer_size( attributes->core.type,
+                                      attributes->core.bits,
+                                      &key_buffer_size );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_allocate_buffer_to_slot( slot, key_buffer_size );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
     status = psa_generate_key_internal(
         slot, attributes->core.bits,
         attributes->domain_parameters, attributes->domain_parameters_size );
+
+    if( status != PSA_SUCCESS )
+        psa_remove_key_data_from_memory( slot );
 
 exit:
     if( status == PSA_SUCCESS )

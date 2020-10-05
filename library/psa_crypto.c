@@ -1084,6 +1084,14 @@ static int psa_key_algorithm_permits( psa_algorithm_t policy_alg,
         return( ( policy_alg & ~PSA_ALG_HASH_MASK ) ==
                 ( requested_alg & ~PSA_ALG_HASH_MASK ) );
     }
+    /* If policy_alg is a generic key agreement operation, then using it for
+     * a key derivation with that key agreement is also compliant. */
+    if( PSA_ALG_IS_RAW_KEY_AGREEMENT( policy_alg ) &&
+        PSA_ALG_IS_KEY_AGREEMENT( requested_alg ) )
+    {
+        return( PSA_ALG_KEY_AGREEMENT_GET_BASE( requested_alg ) ==
+                policy_alg );
+    }
     /* If it isn't permitted, it's forbidden. */
     return( 0 );
 }

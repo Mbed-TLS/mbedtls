@@ -2208,13 +2208,15 @@ void agreement_key_policy( int policy_usage,
                            int policy_alg,
                            int key_type_arg,
                            data_t *key_data,
-                           int exercise_alg )
+                           int exercise_alg,
+                           int expected_status_arg )
 {
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t key_type = key_type_arg;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
     psa_status_t status;
+    psa_status_t expected_status = expected_status_arg;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -2228,11 +2230,7 @@ void agreement_key_policy( int policy_usage,
     PSA_ASSERT( psa_key_derivation_setup( &operation, exercise_alg ) );
     status = key_agreement_with_self( &operation, handle );
 
-    if( policy_alg == exercise_alg &&
-        ( policy_usage & PSA_KEY_USAGE_DERIVE ) != 0 )
-        PSA_ASSERT( status );
-    else
-        TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+    TEST_EQUAL( status, expected_status );
 
 exit:
     psa_key_derivation_abort( &operation );
@@ -2283,13 +2281,15 @@ void raw_agreement_key_policy( int policy_usage,
                                int policy_alg,
                                int key_type_arg,
                                data_t *key_data,
-                               int exercise_alg )
+                               int exercise_alg,
+                               int expected_status_arg )
 {
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t key_type = key_type_arg;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
     psa_status_t status;
+    psa_status_t expected_status = expected_status_arg;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -2302,11 +2302,7 @@ void raw_agreement_key_policy( int policy_usage,
 
     status = raw_key_agreement_with_self( exercise_alg, handle );
 
-    if( policy_alg == exercise_alg &&
-        ( policy_usage & PSA_KEY_USAGE_DERIVE ) != 0 )
-        PSA_ASSERT( status );
-    else
-        TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+    TEST_EQUAL( status, expected_status );
 
 exit:
     psa_key_derivation_abort( &operation );
@@ -5220,12 +5216,13 @@ exit:
 
 /* BEGIN_CASE */
 void key_agreement_setup( int alg_arg,
-                          int our_key_type_arg, data_t *our_key_data,
-                          data_t *peer_key_data,
+                          int our_key_type_arg, int our_key_alg_arg,
+                          data_t *our_key_data, data_t *peer_key_data,
                           int expected_status_arg )
 {
     psa_key_handle_t our_key = 0;
     psa_algorithm_t alg = alg_arg;
+    psa_algorithm_t key_alg = our_key_alg_arg;
     psa_key_type_t our_key_type = our_key_type_arg;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -5235,7 +5232,7 @@ void key_agreement_setup( int alg_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
-    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_algorithm( &attributes, key_alg );
     psa_set_key_type( &attributes, our_key_type );
     PSA_ASSERT( psa_import_key( &attributes,
                                 our_key_data->x, our_key_data->len,

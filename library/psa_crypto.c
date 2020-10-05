@@ -6043,27 +6043,7 @@ static psa_status_t psa_get_key_buffer_size(
     return( PSA_SUCCESS );
 }
 
-/**
- * \brief Generate a key.
- *
- * \note The signature of the function is that of a PSA driver generate_key
- *       entry point.
- *
- * \param[in]  attributes         The attributes for the key to generate.
- * \param[out] key_buffer         Buffer where the key data is to be written.
- * \param[in]  key_buffer_size    Size of \p key_buffer in bytes.
- * \param[out] key_buffer_length  On success, the number of bytes written in
- *                                \p key_buffer.
- *
- * \retval #PSA_SUCCESS
- *         The key was generated successfully.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         Key size in bits or type not supported.
- * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         The size of \p key_buffer is too small.
- */
-static psa_status_t psa_generate_key_internal(
+psa_status_t psa_generate_key_internal(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
 {

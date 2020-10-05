@@ -4729,9 +4729,20 @@ void derive_input( int alg_arg,
             PSA_ASSERT( psa_import_key( &attributes,
                                         inputs[i]->x, inputs[i]->len,
                                         &handles[i] ) );
-            TEST_EQUAL( psa_key_derivation_input_key( &operation, steps[i],
-                                                      handles[i] ),
-                        expected_statuses[i] );
+            if( PSA_KEY_TYPE_IS_KEY_PAIR( key_types[i] ) &&
+                steps[i] == PSA_KEY_DERIVATION_INPUT_SECRET )
+            {
+                // When taking a private key as secret input, use key agreement
+                // to add the shared secret to the derivation
+                TEST_EQUAL( key_agreement_with_self( &operation, handles[i] ),
+                            expected_statuses[i] );
+            }
+            else
+            {
+                TEST_EQUAL( psa_key_derivation_input_key( &operation, steps[i],
+                                                          handles[i] ),
+                            expected_statuses[i] );
+            }
         }
         else
         {

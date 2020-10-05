@@ -5877,6 +5877,11 @@ static psa_status_t psa_key_agreement_internal( psa_key_derivation_operation_t *
                                                 shared_secret,
                                                 shared_secret_length );
 
+    /* If a private key has been added as SECRET, we allow the derived
+     * key material to be used as a key in PSA Crypto. */
+    if( step == PSA_KEY_DERIVATION_INPUT_SECRET )
+        operation->can_output_key = 1;
+
 exit:
     mbedtls_platform_zeroize( shared_secret, shared_secret_length );
     return( status );

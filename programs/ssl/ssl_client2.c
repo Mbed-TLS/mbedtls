@@ -149,6 +149,7 @@ int main( void )
 #define DFL_NSS_KEYLOG          0
 #define DFL_NSS_KEYLOG_FILE     NULL
 #define DFL_SKIP_CLOSE_NOTIFY   0
+#define DFL_QUERY_CONFIG_MODE   0
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
@@ -539,6 +540,7 @@ struct options
                                  * after renegotiation                      */
     int reproducible;           /* make communication reproducible          */
     int skip_close_notify;      /* skip sending the close_notify alert      */
+    int query_config_mode;      /* whether to read config                   */
 } opt;
 
 int query_config( const char *config );
@@ -1102,6 +1104,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, tail_len, i, written, frags, retry_left;
+    int query_config_ret = 0;
     mbedtls_net_context server_fd;
     io_ctx_t io_ctx;
 
@@ -1300,6 +1303,7 @@ int main( int argc, char *argv[] )
     opt.nss_keylog          = DFL_NSS_KEYLOG;
     opt.nss_keylog_file     = DFL_NSS_KEYLOG_FILE;
     opt.skip_close_notify   = DFL_SKIP_CLOSE_NOTIFY;
+    opt.query_config_mode   = DFL_QUERY_CONFIG_MODE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -1686,7 +1690,9 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "query_config" ) == 0 )
         {
-            mbedtls_exit( query_config( q ) );
+            opt.query_config_mode = 1;
+            query_config_ret = query_config( q );
+            goto exit;
         }
         else if( strcmp( p, "serialize") == 0 )
         {
@@ -2685,7 +2691,7 @@ int main( int argc, char *argv[] )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_cid returned %d\n\n",
                             ret );
-            return( ret );
+            goto exit;
         }
     }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
@@ -3348,7 +3354,8 @@ exit:
          * immediately because of bad cmd line params,
          * for example). */
         status = psa_destroy_key( slot );
-        if( status != PSA_SUCCESS )
+        if( ( status != PSA_SUCCESS ) &&
+            ( opt.query_config_mode == DFL_QUERY_CONFIG_MODE ) )
         {
             mbedtls_printf( "Failed to destroy key slot %u - error was %d",
                             (unsigned) slot, (int) status );
@@ -3367,15 +3374,21 @@ exit:
 #endif
 
 #if defined(_WIN32)
-    mbedtls_printf( "  + Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
+    if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
+    {
+        mbedtls_printf( "  + Press Enter to exit this program.\n" );
+        fflush( stdout ); getchar();
+    }
 #endif
 
     // Shell can not handle large exit numbers -> 1 for errors
     if( ret < 0 )
         ret = 1;
 
-    mbedtls_exit( ret );
+    if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
+        mbedtls_exit( ret );
+    else
+        mbedtls_exit( query_config_ret );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&
           MBEDTLS_SSL_CLI_C && MBEDTLS_NET_C && MBEDTLS_RSA_C &&

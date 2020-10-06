@@ -493,7 +493,7 @@ uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right)
 
 uECC_word_t cond_set(uECC_word_t p_true, uECC_word_t p_false, unsigned int cond)
 {
-	return (p_true*(cond)) | (p_false*(!cond));
+	return (p_true*(cond)) | (p_false*(cond ^ 1));
 }
 
 /* Computes result = left - right, returning borrow, in constant time.
@@ -768,9 +768,9 @@ static uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *left,
 cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right)
 {
 	uECC_word_t tmp[NUM_ECC_WORDS];
-	uECC_word_t neg = !!uECC_vli_sub(tmp, left, right);
+	uECC_word_t neg = uECC_vli_sub(tmp, left, right);
 	uECC_word_t equal = uECC_vli_isZero(tmp);
-	return (!equal - 2 * neg);
+	return ((equal ^ 1) - 2 * neg);
 }
 
 /* Computes vli = vli >> 1. */

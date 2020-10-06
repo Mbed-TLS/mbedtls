@@ -83,6 +83,14 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     memcpy( t_out->key_dec, key0, keylen);
     t_out->key_bitlen = cipher_info->key_bitlen;
 
+#if defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
+    t_in->key_enc_hash = mbedtls_hash( t_in->key_enc, t_in->key_bitlen >> 3 );
+    t_in->key_dec_hash = mbedtls_hash( t_in->key_dec, t_in->key_bitlen >> 3 );
+
+    t_out->key_enc_hash = mbedtls_hash( t_out->key_enc, t_out->key_bitlen >> 3 );
+    t_out->key_dec_hash = mbedtls_hash( t_out->key_dec, t_out->key_bitlen >> 3 );
+#endif
+
     /* Setup cipher contexts */
     CHK( mbedtls_cipher_setup( &t_in->cipher_ctx,  cipher_info ) == 0 );
     CHK( mbedtls_cipher_setup( &t_out->cipher_ctx, cipher_info ) == 0 );

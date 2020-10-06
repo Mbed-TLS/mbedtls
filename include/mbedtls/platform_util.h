@@ -340,6 +340,18 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
                                       struct tm *tm_buf );
 #endif /* MBEDTLS_HAVE_TIME_DATE */
 
+#if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY) || defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
+/**
+ * \brief      Calculate a hash from the given data.
+ *
+ * \param data            Data from which the hash is calculated.
+ * \param data_len_bytes  Length of the data in bytes.
+ *
+ * \return     A hash calculated from the provided data.
+ */
+uint32_t mbedtls_hash( const void *data, size_t data_len_bytes );
+#endif
+
 /**
  * \brief      Convert a 32-bit number to the big endian format and write it to
  *             the given buffer.

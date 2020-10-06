@@ -56,7 +56,68 @@
 #include "mbedtls/oid.h"
 #endif
 
-#define PROPER_HS_FRAGMENT 0x75555555
+#define PROPER_HS_FRAGMENT 0x75
+
+#if defined(MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS)
+static int mbedtls_ssl_switch_key( mbedtls_ssl_transform *transform,
+                                   const mbedtls_operation_t operation )
+{
+    unsigned char * key;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    int flow_ctrl = 0;
+#if defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
+    uint32_t hash;
+#endif
+    if( operation == MBEDTLS_ENCRYPT )
+    {
+        flow_ctrl++;
+        key = transform->key_enc;
+#if defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
+        hash = transform->key_enc_hash;
+#endif
+    }
+    else if ( operation == MBEDTLS_DECRYPT )
+    {
+        flow_ctrl++;
+        key = transform->key_dec;
+#if defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
+        hash = transform->key_dec_hash;
+#endif
+    }
+    else
+    {
+        return ( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+#if defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
+    /* Check hash */
+    if( hash != mbedtls_hash( key, transform->key_bitlen >> 3 ) )
+    {
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    }
+    else
+    {
+        flow_ctrl++;
+    }
+#else
+    flow_ctrl++;
+#endif
+    if( operation != transform->cipher_ctx.operation )
+    {
+        if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx,
+                                           key,
+                                           transform->key_bitlen,
+                                           operation ) ) != 0 )
+        {
+            return( ret );
+        }
+    }
+    if( flow_ctrl == 2 )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+}
+#endif
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
 static int uecc_rng_wrapper( uint8_t *dest, unsigned int size )
@@ -1577,6 +1638,11 @@ int ssl_populate_transform( mbedtls_ssl_transform *transform,
     memcpy( transform->key_dec, key2, cipher_info->key_bitlen >> 3 );
 
     transform->key_bitlen = cipher_info->key_bitlen;
+#if defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
+    transform->key_enc_hash = mbedtls_hash( transform->key_enc, transform->key_bitlen >> 3 );
+    transform->key_dec_hash = mbedtls_hash( transform->key_dec, transform->key_bitlen >> 3 );
+#endif
+
 #else
     if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_enc,
                                  cipher_info ) ) != 0 )
@@ -2697,12 +2763,10 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                                     "including %d bytes of padding",
                                     rec->data_len, 0 ) );
 #if defined(MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS)
-        if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx,
-                                           transform->key_enc,
-                                           transform->key_bitlen,
-                                           MBEDTLS_ENCRYPT ) ) != 0 )
+        if( ( ret = mbedtls_ssl_switch_key( transform, MBEDTLS_ENCRYPT ) )
+                != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_switch_key", ret );
             return( ret );
         }
 
@@ -2798,12 +2862,10 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
          * Encrypt and authenticate
          */
 #if defined(MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS)
-        if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx,
-                                           transform->key_enc,
-                                           transform->key_bitlen,
-                                           MBEDTLS_ENCRYPT ) ) != 0 )
+        if( ( ret = mbedtls_ssl_switch_key( transform, MBEDTLS_ENCRYPT ) )
+                != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_switch_key", ret );
             return( ret );
         }
 
@@ -2905,12 +2967,10 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                             rec->data_len, transform->ivlen,
                             padlen + 1 ) );
 #if defined(MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS)
-        if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx,
-                                           transform->key_enc,
-                                           transform->key_bitlen,
-                                           MBEDTLS_ENCRYPT ) ) != 0 )
+        if( ( ret = mbedtls_ssl_switch_key( transform, MBEDTLS_ENCRYPT ) )
+             != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_switch_key", ret );
             return( ret );
         }
 
@@ -3076,12 +3136,10 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
     {
         padlen = 0;
 #if defined(MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS)
-        if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx,
-                                           transform->key_dec,
-                                           transform->key_bitlen,
-                                           MBEDTLS_DECRYPT ) ) != 0 )
+        if( ( ret = mbedtls_ssl_switch_key( transform, MBEDTLS_DECRYPT ) )
+                != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_switch_key", ret );
             return( ret );
         }
         if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx,
@@ -3192,12 +3250,10 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
          * Decrypt and authenticate
          */
 #if defined(MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS)
-        if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx,
-                                           transform->key_dec,
-                                           transform->key_bitlen,
-                                           MBEDTLS_DECRYPT ) ) != 0 )
+        if( ( ret = mbedtls_ssl_switch_key( transform, MBEDTLS_DECRYPT ) )
+                != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_switch_key", ret );
             return( ret );
         }
         if( ( ret = mbedtls_cipher_auth_decrypt( &transform->cipher_ctx,
@@ -3376,14 +3432,13 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 
         /* We still have data_len % ivlen == 0 and data_len >= ivlen here. */
 #if defined(MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS)
-        if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx,
-                                           transform->key_dec,
-                                           transform->key_bitlen,
-                                           MBEDTLS_DECRYPT ) ) != 0 )
+        if( ( ret = mbedtls_ssl_switch_key( transform, MBEDTLS_DECRYPT ) )
+                != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_switch_key", ret );
             return( ret );
         }
+
         if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx,
                                    transform->iv_dec, transform->ivlen,
                                    data, rec->data_len, data, &olen ) ) != 0 )

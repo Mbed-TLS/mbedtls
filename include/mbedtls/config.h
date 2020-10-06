@@ -2740,6 +2740,18 @@
 //#define MBEDTLS_CRC_C
 
 /**
+ * \def MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY
+ *
+ * Enable validation of ssl keys by checking their hash
+ * during every encryption/decryption.
+ *
+ * Module:  library/ssl_tls.c
+ *
+ * Requires: MBEDTLS_SSL_TRANSFORM_OPTIMIZE_CIPHERS
+ */
+//#define MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY
+
+/**
  * \def MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY
  *
  * Enable validation of AES keys by checking their hash

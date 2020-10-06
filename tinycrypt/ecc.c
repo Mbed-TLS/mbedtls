@@ -1028,10 +1028,7 @@ static void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 static uECC_word_t regularize_k(const uECC_word_t * const k, uECC_word_t *k0,
 			 uECC_word_t *k1)
 {
-	bitcount_t num_n_bits = NUM_ECC_BITS;
-
-	uECC_word_t carry = uECC_vli_add(k0, k, curve_n) ||
-				 uECC_vli_testBit(k0, num_n_bits);
+	uECC_word_t carry = uECC_vli_add(k0, k, curve_n);
 
 	uECC_vli_add(k1, k0, curve_n);
 

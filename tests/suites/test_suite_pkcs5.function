@@ -24,7 +24,8 @@ void pbkdf2_hmac( int hash, data_t * pw_str, data_t * salt_str,
     TEST_ASSERT( mbedtls_pkcs5_pbkdf2_hmac( &ctx, pw_str->x, pw_str->len, salt_str->x, salt_str->len,
                                      it_cnt, key_len, key ) == 0 );
 
-    TEST_ASSERT( hexcmp( key, result_key_string->x, key_len, result_key_string->len ) == 0 );
+    TEST_ASSERT( mbedtls_test_hexcmp( key, result_key_string->x,
+                                      key_len, result_key_string->len ) == 0 );
 
 exit:
     mbedtls_md_free( &ctx );

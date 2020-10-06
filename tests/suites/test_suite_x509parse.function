@@ -804,21 +804,21 @@ void x509_get_time( int tag, char * time_str, int ret, int year, int mon,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT */
-void x509_parse_rsassa_pss_params( data_t * hex_params, int params_tag,
+void x509_parse_rsassa_pss_params( data_t * params, int params_tag,
                                    int ref_msg_md, int ref_mgf_md,
                                    int ref_salt_len, int ref_ret )
 {
     int my_ret;
-    mbedtls_x509_buf params;
+    mbedtls_x509_buf buf;
     mbedtls_md_type_t my_msg_md, my_mgf_md;
     int my_salt_len;
 
-    params.p = hex_params->x;
-    params.len = hex_params->len;
-    params.tag = params_tag;
+    buf.p = params->x;
+    buf.len = params->len;
+    buf.tag = params_tag;
 
-    my_ret = mbedtls_x509_get_rsassa_pss_params( &params, &my_msg_md, &my_mgf_md,
-                                         &my_salt_len );
+    my_ret = mbedtls_x509_get_rsassa_pss_params( &buf, &my_msg_md, &my_mgf_md,
+                                                 &my_salt_len );
 
     TEST_ASSERT( my_ret == ref_ret );
 

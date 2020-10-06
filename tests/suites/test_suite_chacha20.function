@@ -17,13 +17,6 @@ void chacha20_crypt( data_t *key_str,
     unsigned char output[375];
     mbedtls_chacha20_context ctx;
 
-    /*
-     * Buffers to store the ASCII string representation of output and
-     * expected_output_str.
-     */
-    unsigned char output_string[751] = { '\0' };
-    unsigned char expected_output_string[751] = { '\0' };
-
     memset( output, 0x00, sizeof( output ) );
 
     TEST_ASSERT( src_str->len   == expected_output_str->len );
@@ -35,12 +28,8 @@ void chacha20_crypt( data_t *key_str,
      */
     TEST_ASSERT( mbedtls_chacha20_crypt( key_str->x, nonce_str->x, counter, src_str->len, src_str->x, output ) == 0 );
 
-    mbedtls_test_hexify( expected_output_string,
-                         expected_output_str->x,
-                         expected_output_str->len);
-    mbedtls_test_hexify( output_string, output, src_str->len );
-    TEST_ASSERT( strcmp( (char *)output_string,
-                         (char *)expected_output_string ) == 0 );
+    ASSERT_COMPARE( output, expected_output_str->len,
+                    expected_output_str->x, expected_output_str->len );
 
     /*
      * Test the streaming API
@@ -54,9 +43,8 @@ void chacha20_crypt( data_t *key_str,
     memset( output, 0x00, sizeof( output ) );
     TEST_ASSERT( mbedtls_chacha20_update( &ctx, src_str->len, src_str->x, output ) == 0 );
 
-    mbedtls_test_hexify( output_string, output, src_str->len );
-    TEST_ASSERT( strcmp( (char *)output_string,
-                         (char *)expected_output_string ) == 0 );
+    ASSERT_COMPARE( output, expected_output_str->len,
+                    expected_output_str->x, expected_output_str->len );
 
     /*
      * Test the streaming API again, piecewise
@@ -71,9 +59,8 @@ void chacha20_crypt( data_t *key_str,
     TEST_ASSERT( mbedtls_chacha20_update( &ctx, src_str->len - 1,
                                           src_str->x + 1, output + 1 ) == 0 );
 
-    mbedtls_test_hexify( output_string, output, src_str->len );
-    TEST_ASSERT( strcmp( (char *)output_string,
-                         (char *)expected_output_string ) == 0 );
+    ASSERT_COMPARE( output, expected_output_str->len,
+                    expected_output_str->x, expected_output_str->len );
 
     mbedtls_chacha20_free( &ctx );
 }

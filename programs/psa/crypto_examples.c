@@ -317,18 +317,6 @@ static void cipher_examples( void )
         printf( "\tsuccess!\r\n" );
 }
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    exit( EXIT_FAILURE );
-}
-#endif
-
 int main( void )
 {
     ASSERT( psa_crypto_init( ) == PSA_SUCCESS );

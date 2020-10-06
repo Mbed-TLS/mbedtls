@@ -207,14 +207,12 @@ exit:
 
 /* BEGIN_CASE */
 void aria_encrypt_ecb( data_t *key_str, data_t *src_str,
-                       char *hex_dst_string, int setkey_result )
+                       data_t *expected_output, int setkey_result )
 {
-    unsigned char dst_str[ARIA_MAX_DATA_STR];
     unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
     size_t i;
 
-    memset( dst_str, 0x00, sizeof( dst_str ) );
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
@@ -227,9 +225,9 @@ void aria_encrypt_ecb( data_t *key_str, data_t *src_str,
             TEST_ASSERT( mbedtls_aria_crypt_ecb( &ctx, src_str->x + i,
                                                  output + i ) == 0 );
         }
-        mbedtls_test_hexify( dst_str, output, src_str->len );
 
-        TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
+        ASSERT_COMPARE( output, expected_output->len,
+                        expected_output->x, expected_output->len );
     }
 
 exit:
@@ -239,14 +237,12 @@ exit:
 
 /* BEGIN_CASE */
 void aria_decrypt_ecb( data_t *key_str, data_t *src_str,
-                       char *hex_dst_string, int setkey_result )
+                       data_t *expected_output, int setkey_result )
 {
-    unsigned char dst_str[ARIA_MAX_DATA_STR];
     unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
     size_t i;
 
-    memset( dst_str, 0x00, sizeof( dst_str ) );
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
@@ -259,9 +255,9 @@ void aria_decrypt_ecb( data_t *key_str, data_t *src_str,
             TEST_ASSERT( mbedtls_aria_crypt_ecb( &ctx, src_str->x + i,
                                                  output + i ) == 0 );
         }
-        mbedtls_test_hexify( dst_str, output, src_str->len );
 
-        TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
+        ASSERT_COMPARE( output, expected_output->len,
+                        expected_output->x, expected_output->len );
     }
 
 exit:
@@ -271,14 +267,12 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
 void aria_encrypt_cbc( data_t *key_str, data_t *iv_str,
-                       data_t *src_str, char *hex_dst_string,
+                       data_t *src_str, data_t *expected_output,
                        int cbc_result )
 {
-    unsigned char dst_str[ARIA_MAX_DATA_STR];
     unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
 
-    memset( dst_str, 0x00, sizeof( dst_str ) );
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
@@ -288,9 +282,8 @@ void aria_encrypt_cbc( data_t *key_str, data_t *iv_str,
                                          output ) == cbc_result );
     if( cbc_result == 0 )
     {
-        mbedtls_test_hexify( dst_str, output, src_str->len );
-
-        TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
+        ASSERT_COMPARE( output, expected_output->len,
+                        expected_output->x, expected_output->len );
     }
 
 exit:
@@ -300,14 +293,12 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
 void aria_decrypt_cbc( data_t *key_str, data_t *iv_str,
-                       data_t *src_str, char *hex_dst_string,
+                       data_t *src_str, data_t *expected_output,
                        int cbc_result )
 {
-    unsigned char dst_str[ARIA_MAX_DATA_STR];
     unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
 
-    memset( dst_str, 0x00, sizeof( dst_str ) );
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
@@ -317,9 +308,8 @@ void aria_decrypt_cbc( data_t *key_str, data_t *iv_str,
                                          output ) == cbc_result );
     if( cbc_result == 0 )
     {
-        mbedtls_test_hexify( dst_str, output, src_str->len );
-
-        TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
+        ASSERT_COMPARE( output, expected_output->len,
+                        expected_output->x, expected_output->len );
     }
 
 exit:
@@ -329,15 +319,13 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CFB */
 void aria_encrypt_cfb128( data_t *key_str, data_t *iv_str,
-                          data_t *src_str, char *hex_dst_string,
+                          data_t *src_str, data_t *expected_output,
                           int result )
 {
-    unsigned char dst_str[ARIA_MAX_DATA_STR];
     unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
     size_t iv_offset = 0;
 
-    memset( dst_str, 0x00, sizeof( dst_str ) );
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
@@ -346,9 +334,9 @@ void aria_encrypt_cfb128( data_t *key_str, data_t *iv_str,
                                             src_str->len, &iv_offset,
                                             iv_str->x, src_str->x, output )
                  == result );
-    mbedtls_test_hexify( dst_str, output, src_str->len );
 
-    TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
+    ASSERT_COMPARE( output, expected_output->len,
+                    expected_output->x, expected_output->len );
 
 exit:
     mbedtls_aria_free( &ctx );
@@ -357,15 +345,13 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CFB */
 void aria_decrypt_cfb128( data_t *key_str, data_t *iv_str,
-                          data_t *src_str, char *hex_dst_string,
+                          data_t *src_str, data_t *expected_output,
                           int result  )
 {
-    unsigned char dst_str[ARIA_MAX_DATA_STR];
     unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
     size_t iv_offset = 0;
 
-    memset( dst_str, 0x00, sizeof( dst_str ) );
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
@@ -374,9 +360,9 @@ void aria_decrypt_cfb128( data_t *key_str, data_t *iv_str,
                                             src_str->len, &iv_offset,
                                             iv_str->x, src_str->x, output )
                  == result );
-    mbedtls_test_hexify( dst_str, output, src_str->len );
 
-    TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
+    ASSERT_COMPARE( output, expected_output->len,
+                    expected_output->x, expected_output->len );
 
 exit:
     mbedtls_aria_free( &ctx );
@@ -385,16 +371,14 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CTR */
 void aria_encrypt_ctr( data_t *key_str, data_t *iv_str,
-                       data_t *src_str, char *hex_dst_string,
+                       data_t *src_str, data_t *expected_output,
                        int result )
 {
-    unsigned char dst_str[ARIA_MAX_DATA_STR];
     unsigned char output[ARIA_MAX_DATASIZE];
     unsigned char blk[MBEDTLS_ARIA_BLOCKSIZE];
     mbedtls_aria_context ctx;
     size_t iv_offset = 0;
 
-    memset( dst_str, 0x00, sizeof( dst_str ) );
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
@@ -402,9 +386,9 @@ void aria_encrypt_ctr( data_t *key_str, data_t *iv_str,
     TEST_ASSERT( mbedtls_aria_crypt_ctr( &ctx, src_str->len, &iv_offset,
                                          iv_str->x, blk, src_str->x, output )
                  == result );
-    mbedtls_test_hexify( dst_str, output, src_str->len );
 
-    TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
+    ASSERT_COMPARE( output, expected_output->len,
+                    expected_output->x, expected_output->len );
 
 exit:
     mbedtls_aria_free( &ctx );
@@ -413,16 +397,14 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CTR */
 void aria_decrypt_ctr( data_t *key_str, data_t *iv_str,
-                       data_t *src_str, char *hex_dst_string,
+                       data_t *src_str, data_t *expected_output,
                        int result )
 {
-    unsigned char dst_str[ARIA_MAX_DATA_STR];
     unsigned char output[ARIA_MAX_DATASIZE];
     unsigned char blk[MBEDTLS_ARIA_BLOCKSIZE];
     mbedtls_aria_context ctx;
     size_t iv_offset = 0;
 
-    memset( dst_str, 0x00, sizeof( dst_str ) );
     memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
@@ -430,9 +412,9 @@ void aria_decrypt_ctr( data_t *key_str, data_t *iv_str,
     TEST_ASSERT( mbedtls_aria_crypt_ctr( &ctx, src_str->len, &iv_offset,
                                          iv_str->x, blk, src_str->x, output )
                  == result );
-    mbedtls_test_hexify( dst_str, output, src_str->len );
 
-    TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
+    ASSERT_COMPARE( output, expected_output->len,
+                    expected_output->x, expected_output->len );
 
 exit:
     mbedtls_aria_free( &ctx );

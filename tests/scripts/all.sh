@@ -1295,9 +1295,7 @@ component_test_check_params_functionality () {
     scripts/config.py full # includes CHECK_PARAMS
     # Make MBEDTLS_PARAM_FAILED call mbedtls_param_failed().
     scripts/config.py unset MBEDTLS_CHECK_PARAMS_ASSERT
-    # Only build and run tests. Do not build sample programs, because
-    # they don't have a mbedtls_param_failed() function.
-    make CC=gcc CFLAGS='-Werror -O1' lib test
+    make CC=gcc CFLAGS='-Werror -O1' all test
 }
 
 component_test_check_params_without_platform () {

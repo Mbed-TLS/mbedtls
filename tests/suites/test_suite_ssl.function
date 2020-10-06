@@ -3824,11 +3824,11 @@ void ssl_tls1_3_key_evolution( int hash_alg,
 
 /* BEGIN_CASE */
 void ssl_tls_prf( int type, data_t * secret, data_t * random,
-                  char *label, data_t *result_hex_str, int exp_ret )
+                  char *label, data_t *result_str, int exp_ret )
 {
     unsigned char *output;
 
-    output = mbedtls_calloc( 1, result_hex_str->len );
+    output = mbedtls_calloc( 1, result_str->len );
     if( output == NULL )
         goto exit;
 
@@ -3838,12 +3838,12 @@ void ssl_tls_prf( int type, data_t * secret, data_t * random,
 
     TEST_ASSERT( mbedtls_ssl_tls_prf( type, secret->x, secret->len,
                                       label, random->x, random->len,
-                                      output, result_hex_str->len ) == exp_ret );
+                                      output, result_str->len ) == exp_ret );
 
     if( exp_ret == 0 )
     {
-        TEST_ASSERT( mbedtls_test_hexcmp( output, result_hex_str->x,
-                     result_hex_str->len, result_hex_str->len ) == 0 );
+        TEST_ASSERT( mbedtls_test_hexcmp( output, result_str->x,
+                     result_str->len, result_str->len ) == 0 );
     }
 exit:
 

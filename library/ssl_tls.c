@@ -2601,6 +2601,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     unsigned char add_data[13 + 1 + MBEDTLS_SSL_CID_OUT_LEN_MAX ];
     size_t add_data_len;
     size_t post_avail;
+    int encryption_status = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
     /* The SSL context is only used for debugging purposes! */
 #if !defined(MBEDTLS_DEBUG_C)
@@ -2770,7 +2771,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( ret );
         }
 
-        if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx,
+        if( ( ret = encryption_status = mbedtls_cipher_crypt( &transform->cipher_ctx,
                                    transform->iv_enc, transform->ivlen,
                                    data, rec->data_len,
                                    data, &olen ) ) != 0 )
@@ -2779,7 +2780,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( ret );
         }
 #else
-        if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx_enc,
+        if( ( ret = encryption_status = mbedtls_cipher_crypt( &transform->cipher_ctx_enc,
                                    transform->iv_enc, transform->ivlen,
                                    data, rec->data_len,
                                    data, &olen ) ) != 0 )
@@ -2869,7 +2870,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( ret );
         }
 
-        if( ( ret = mbedtls_cipher_auth_encrypt( &transform->cipher_ctx,
+        if( ( ret = encryption_status = mbedtls_cipher_auth_encrypt( &transform->cipher_ctx,
                    iv, transform->ivlen,
                    add_data, add_data_len,       /* add data     */
                    data, rec->data_len,          /* source       */
@@ -2880,7 +2881,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( ret );
         }
 #else
-        if( ( ret = mbedtls_cipher_auth_encrypt( &transform->cipher_ctx_enc,
+        if( ( ret = encryption_status = mbedtls_cipher_auth_encrypt( &transform->cipher_ctx_enc,
                    iv, transform->ivlen,
                    add_data, add_data_len,       /* add data     */
                    data, rec->data_len,          /* source       */
@@ -2891,6 +2892,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( ret );
         }
 #endif
+
         MBEDTLS_SSL_DEBUG_BUF( 4, "after encrypt: tag",
                                data + rec->data_len, transform->taglen );
 
@@ -2974,7 +2976,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( ret );
         }
 
-        if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx,
+        if( ( ret = encryption_status = mbedtls_cipher_crypt( &transform->cipher_ctx,
                                    transform->iv_enc,
                                    transform->ivlen,
                                    data, rec->data_len,
@@ -2984,7 +2986,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( ret );
         }
 #else
-        if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx_enc,
+        if( ( ret = encryption_status = mbedtls_cipher_crypt( &transform->cipher_ctx_enc,
                                    transform->iv_enc,
                                    transform->ivlen,
                                    data, rec->data_len,
@@ -2994,6 +2996,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( ret );
         }
 #endif
+
         if( rec->data_len != olen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
@@ -3082,7 +3085,11 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= encrypt buf" ) );
 
-    return( 0 );
+    if( encryption_status == 0 )
+    {
+        return( 0 );
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,

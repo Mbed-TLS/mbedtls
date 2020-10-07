@@ -15,6 +15,7 @@ OPENSSL ?= openssl
 FAKETIME ?= faketime
 MBEDTLS_CERT_WRITE ?= $(PWD)/../../programs/x509/cert_write
 MBEDTLS_CERT_REQ ?= $(PWD)/../../programs/x509/cert_req
+MBEDTLS_GEN_KEY ?= $(PWD)/../../programs/pkey/gen_key
 
 
 ## Build the generated test data. Note that since the final outputs
@@ -388,6 +389,32 @@ rsa_pkcs1_4096_aes256.pem: rsa_pkcs1_4096_clear.pem
 	$(OPENSSL) rsa -aes256 -in $< -out $@ -passout "pass:$(keys_rsa_basic_pwd)"
 all_final += rsa_pkcs1_4096_aes256.pem
 keys_rsa_enc_basic_4096: rsa_pkcs1_4096_des.pem rsa_pkcs1_4096_3des.pem rsa_pkcs1_4096_aes128.pem rsa_pkcs1_4096_aes192.pem rsa_pkcs1_4096_aes256.pem
+
+###
+### PKCS8 encoded, decrypted RSA keys
+###
+server1_pkcs8.key: server1.key
+	$(OPENSSL) pkcs8 -in $< -out $@ -nocrypt -outform PEM -inform PEM -topk8
+all_final += server1_pkcs8.key
+rsa4096_pkcs8_prv.pem: rsa4096_prv.pem
+	$(OPENSSL) pkcs8 -in $< -out $@ -nocrypt -outform PEM -inform PEM -topk8
+all_final += rsa4096_pkcs8_prv.pem
+keys_rsa_nonenc_pkcs8: server1_pkcs8.key rsa4096_pkcs8_prv.pem
+
+###
+### PKCS8 encoded, decrypted EC keys
+###
+
+ec_192_prv_pkcs8.pem:
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=secp192r1 format=pem syntax=pkcs8 filename=$@
+all_final += ec_192_prv_pkcs8.pem
+ec_521_prv_pkcs8.pem:
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=secp521r1 format=pem syntax=pkcs8 filename=$@
+all_final += ec_521_prv_pkcs8.pem
+ec_bp512_prv_pkcs8.pem:
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=brainpoolP512r1 format=pem syntax=pkcs8 filename=$@
+all_final += ec_bp512_prv_pkcs8.pem
+keys_ec_nonenc_pkcs8: ec_192_prv_pkcs8 ec_521_prv_pkcs8 ec_bp512_prv_pkcs8
 
 ###
 ### PKCS8-v1 encoded, encrypted RSA keys

@@ -658,6 +658,8 @@ Features
    * Add MBEDTLS_REMOVE_3DES_CIPHERSUITES to allow removing 3DES ciphersuites
      from the default list (enabled by default). See
      https://sweet32.info/SWEET32_CCS16.pdf.
+   * Add support for writing unencrypted PKCS#8 private keys in PEM and DER
+     format. Contributed by mvgalen.
 
 API Changes
    * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.

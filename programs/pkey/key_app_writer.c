@@ -77,12 +77,18 @@
 #define OUTPUT_FORMAT_PEM              0
 #define OUTPUT_FORMAT_DER              1
 
+#define SYNTAX_PKCS1            0
+#define SYNTAX_PKCS8            1
+
+#define DFL_OUTPUT_SYNTAX       SYNTAX_PKCS1
+
 #define USAGE \
     "\n usage: key_app_writer param=<>...\n"            \
     "\n acceptable parameters:\n"                       \
     "    mode=private|public default: none\n"           \
     "    filename=%%s         default: keyfile.key\n"   \
     "    output_mode=private|public default: none\n"    \
+    "    output_syntax=pkcs1|pkcs8  default: pkcs1\n"   \
     USAGE_OUT                                           \
     "\n"
 
@@ -107,6 +113,7 @@ struct options
     int output_mode;            /* the output mode to use               */
     const char *output_file;    /* where to store the constructed key file  */
     int output_format;          /* the output format to use             */
+    int output_syntax;          /* the output syntax (only for private keys) */
 } opt;
 
 static int write_public_key( mbedtls_pk_context *key, const char *output_file )
@@ -151,32 +158,63 @@ static int write_public_key( mbedtls_pk_context *key, const char *output_file )
     return( 0 );
 }
 
-static int write_private_key( mbedtls_pk_context *key, const char *output_file )
+#define KEY_OUTPUT_BUFFER_LEN       16000
+
+static int write_private_key( mbedtls_pk_context *key,
+                              const char *output_file )
 {
     int ret;
     FILE *f;
-    unsigned char output_buf[16000];
+    unsigned char output_buf[KEY_OUTPUT_BUFFER_LEN];
     unsigned char *c = output_buf;
     size_t len = 0;
 
-    memset(output_buf, 0, 16000);
+    memset( output_buf, 0, sizeof( output_buf ) );
 
 #if defined(MBEDTLS_PEM_WRITE_C)
     if( opt.output_format == OUTPUT_FORMAT_PEM )
     {
-        if( ( ret = mbedtls_pk_write_key_pem( key, output_buf, 16000 ) ) != 0 )
-            return( ret );
+        if( opt.output_syntax == SYNTAX_PKCS1 )
+        {
+            ret = mbedtls_pk_write_key_pem( key,
+                                            output_buf,
+                                            sizeof( output_buf ) );
+            if( ret != 0 )
+                return( ret );
+        }
+        else
+        {
+            ret = mbedtls_pkcs8_write_unencrypted_key_pem( key,
+                                                        output_buf,
+                                                        sizeof( output_buf ) );
+            if( ret != 0 )
+                return( ret );
+        }
 
         len = strlen( (char *) output_buf );
     }
     else
-#endif
+#endif /* MBEDTLS_PEM_WRITE_C */
     {
-        if( ( ret = mbedtls_pk_write_key_der( key, output_buf, 16000 ) ) < 0 )
-            return( ret );
+        if( opt.output_syntax == SYNTAX_PKCS1 )
+        {
+            ret = mbedtls_pk_write_key_der( key,
+                                            output_buf,
+                                            sizeof( output_buf ) );
+            if( ret < 0 )
+                return( ret );
+        }
+        else
+        {
+            ret = mbedtls_pkcs8_write_unencrypted_key_der( key,
+                                                        output_buf,
+                                                        sizeof( output_buf ) );
+            if( ret < 0 )
+                return( ret );
+        }
 
         len = ret;
-        c = output_buf + sizeof(output_buf) - len;
+        c = output_buf + sizeof( output_buf ) - len;
     }
 
     if( ( f = fopen( output_file, "w" ) ) == NULL )
@@ -226,6 +264,7 @@ int main( int argc, char *argv[] )
     opt.output_mode         = DFL_OUTPUT_MODE;
     opt.output_file         = DFL_OUTPUT_FILENAME;
     opt.output_format       = DFL_OUTPUT_FORMAT;
+    opt.output_syntax       = DFL_OUTPUT_SYNTAX;
 
     for( i = 1; i < argc; i++ )
     {
@@ -240,6 +279,15 @@ int main( int argc, char *argv[] )
                 opt.mode = MODE_PRIVATE;
             else if( strcmp( q, "public" ) == 0 )
                 opt.mode = MODE_PUBLIC;
+            else
+                goto usage;
+        }
+        else if( strcmp( p, "output_syntax" ) == 0 )
+        {
+            if( strcmp( q, "pkcs1" ) == 0 )
+                opt.output_syntax = SYNTAX_PKCS1;
+            else if( strcmp( q, "pkcs8" ) == 0 )
+                opt.output_syntax = SYNTAX_PKCS8;
             else
                 goto usage;
         }

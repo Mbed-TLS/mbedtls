@@ -310,6 +310,62 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
     return( (int) len );
 }
 
+int mbedtls_pkcs8_write_unencrypted_key_der( mbedtls_pk_context *key,
+                                             unsigned char *buf,
+                                             size_t size )
+{
+    int ret;
+    size_t len;
+    unsigned char *c;
+    const char *oid;
+    size_t oid_len, par_len = 0;
+
+    PK_VALIDATE_RET( key != NULL );
+    PK_VALIDATE_RET( buf != NULL || size == 0 );
+
+    if( ( ret = mbedtls_pk_write_key_der( key, buf, size ) ) < 0 )
+        return( ret );
+
+    len = ret;
+    c = buf + size - len;
+
+    /* Wrap PKCS1 key in OCTET STRING */
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len,
+                mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_OCTET_STRING ) );
+
+    /* privateKeyAlgorithm */
+    ret = mbedtls_oid_get_oid_by_pk_alg( mbedtls_pk_get_type( key ),
+                                         &oid,
+                                         &oid_len );
+    if( ret != 0 )
+        return ret;
+
+#if defined(MBEDTLS_ECP_C)
+    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
+    {
+        MBEDTLS_ASN1_CHK_ADD( par_len,
+                        pk_write_ec_param( &c, buf, mbedtls_pk_ec( *key ) ) );
+    }
+#endif /* MBEDTLS_ECP_C */
+
+    MBEDTLS_ASN1_CHK_ADD( len,
+                        mbedtls_asn1_write_algorithm_identifier( &c, buf,
+                                                                 oid, oid_len,
+                                                                 par_len ) );
+
+    /* version */
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_int( &c, buf, 0 ) );
+
+    /* sequence and length */
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len,
+            mbedtls_asn1_write_tag( &c,
+                    buf, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
+
+    return( (int)len );
+}
+
 int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_t size )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -465,6 +521,9 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
 #define PEM_BEGIN_PUBLIC_KEY    "-----BEGIN PUBLIC KEY-----\n"
 #define PEM_END_PUBLIC_KEY      "-----END PUBLIC KEY-----\n"
 
+#define PEM_BEGIN_PRIVATE_KEY   "-----BEGIN PRIVATE KEY-----\n"
+#define PEM_END_PRIVATE_KEY     "-----END PRIVATE KEY-----\n"
+
 #define PEM_BEGIN_PRIVATE_KEY_RSA   "-----BEGIN RSA PRIVATE KEY-----\n"
 #define PEM_END_PRIVATE_KEY_RSA     "-----END RSA PRIVATE KEY-----\n"
 #define PEM_BEGIN_PRIVATE_KEY_EC    "-----BEGIN EC PRIVATE KEY-----\n"
@@ -553,6 +612,17 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
 #define PRV_DER_MAX_BYTES   RSA_PRV_DER_MAX_BYTES > ECP_PRV_DER_MAX_BYTES ? \
                             RSA_PRV_DER_MAX_BYTES : ECP_PRV_DER_MAX_BYTES
 
+/*
+ * PKCS8 envelope:
+ * PrivateKeyInfo ::= SEQUENCE {                                    1 + 3
+ *       version                   Version,                         1 + 1 + 1
+ *       privateKeyAlgorithm       PrivateKeyAlgorithmIdentifier,   1 + 1 + 22
+ *       privateKey                PrivateKey,
+ *       attributes           [0]  IMPLICIT Attributes OPTIONAL }
+ * }
+ */
+#define PRV_PKCS8_DER_MAX_BYTES   ( 31 + ( PRV_DER_MAX_BYTES ) )
+
 int mbedtls_pk_write_pubkey_pem( mbedtls_pk_context *key, unsigned char *buf, size_t size )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -617,6 +687,36 @@ int mbedtls_pk_write_key_pem( mbedtls_pk_context *key, unsigned char *buf, size_
     }
 
     return( 0 );
+}
+
+int mbedtls_pkcs8_write_unencrypted_key_pem( mbedtls_pk_context *key,
+                                             unsigned char *buf,
+                                             size_t size )
+{
+    int ret;
+    unsigned char output_buf[PRV_PKCS8_DER_MAX_BYTES];
+    const char *begin = PEM_BEGIN_PRIVATE_KEY;
+    const char *end = PEM_END_PRIVATE_KEY;
+    size_t olen = 0;
+    size_t len = 0;
+
+    ret = mbedtls_pkcs8_write_unencrypted_key_der( key,
+                                                   output_buf,
+                                                   sizeof( output_buf ) );
+    if( ret < 0 )
+        return( ret );
+
+    len = (size_t)ret;
+
+    ret = mbedtls_pem_write_buffer( begin,
+                                    end,
+                                    output_buf + sizeof( output_buf ) - len,
+                                    len,
+                                    buf,
+                                    size,
+                                    &olen );
+
+    return( ret );
 }
 #endif /* MBEDTLS_PEM_WRITE_C */
 

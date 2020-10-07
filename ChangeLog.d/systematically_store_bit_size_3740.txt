@@ -1,0 +1,7 @@
+Changes
+   * Always store key bits attribute in PSA key storage. Previously stored
+     keys should be augmented with the bits value to be compatible with the
+     updated version. #3740
+   * Removes the stored bits field from the storage format for the
+     dynamic Secure Element driver. Previously stored keys must be updated to
+     remove the stored bits field. #3740

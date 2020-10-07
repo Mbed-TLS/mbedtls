@@ -204,6 +204,7 @@ Integrated in Mbed OS TBD.
 
 * The layout of a key file now has a lifetime field before the type field.
 * Key files can store references to keys in a secure element. In such key files, the key material contains the slot number.
+* The type field has been split into a type and a bits field of 2 bytes each.
 
 ### File namespace on a PSA platform on TBD
 
@@ -244,13 +245,15 @@ The layout of a key file is:
 * magic (8 bytes): `"PSA\0KEY\0"`.
 * version (4 bytes): 0.
 * lifetime (4 bytes): `psa_key_lifetime_t` value.
-* type (4 bytes): `psa_key_type_t` value.
+* type (2 bytes): `psa_key_type_t` value.
+* bits (2 bytes): `psa_key_bits_t` value.
 * policy usage flags (4 bytes): `psa_key_usage_t` value.
 * policy usage algorithm (4 bytes): `psa_algorithm_t` value.
 * policy enrollment algorithm (4 bytes): `psa_algorithm_t` value.
 * key material length (4 bytes).
 * key material:
     * For a transparent key: output of `psa_export_key`.
+    * For an opaque key (unified driver interface): driver-specific opaque key blob.
     * For an opaque key (key in a secure element): slot number (8 bytes), in platform endianness.
 * Any trailing data is rejected on load.
 

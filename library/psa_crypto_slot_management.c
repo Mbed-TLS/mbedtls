@@ -137,8 +137,6 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *slot )
         data = (psa_se_key_data_storage_t *) key_data;
         memcpy( &slot->data.se.slot_number, &data->slot_number,
                 sizeof( slot->data.se.slot_number ) );
-        memcpy( &slot->attr.bits, &data->bits,
-                sizeof( slot->attr.bits ) );
     }
     else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */

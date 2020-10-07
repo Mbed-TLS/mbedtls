@@ -41,7 +41,7 @@ typedef struct {
 /* BEGIN_CASE */
 void format_storage_data_check( data_t *key_data,
                                 data_t *expected_file_data,
-                                int key_lifetime, int key_type,
+                                int key_lifetime, int key_type, int key_bits,
                                 int key_usage, int key_alg, int key_alg2 )
 {
     uint8_t *file_data = NULL;
@@ -51,6 +51,7 @@ void format_storage_data_check( data_t *key_data,
 
     psa_set_key_lifetime( &attributes, key_lifetime );
     psa_set_key_type( &attributes, key_type );
+    psa_set_key_bits( &attributes, key_bits );
     psa_set_key_usage_flags( &attributes, key_usage );
     psa_set_key_algorithm( &attributes, key_alg );
     psa_set_key_enrollment_algorithm( &attributes, key_alg2 );
@@ -73,6 +74,7 @@ void parse_storage_data_check( data_t *file_data,
                                data_t *expected_key_data,
                                int expected_key_lifetime,
                                int expected_key_type,
+                               int expected_key_bits,
                                int expected_key_usage,
                                int expected_key_alg,
                                int expected_key_alg2,
@@ -95,6 +97,8 @@ void parse_storage_data_check( data_t *file_data,
                 (psa_key_type_t) expected_key_lifetime );
     TEST_EQUAL( psa_get_key_type( &attributes ),
                 (psa_key_type_t) expected_key_type );
+    TEST_EQUAL( psa_get_key_bits( &attributes ),
+                (psa_key_bits_t) expected_key_bits );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ),
                 (uint32_t) expected_key_usage );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ),

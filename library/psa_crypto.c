@@ -199,7 +199,7 @@ psa_status_t mbedtls_to_psa_error( int ret )
         case MBEDTLS_ERR_CIPHER_INVALID_PADDING:
             return( PSA_ERROR_INVALID_PADDING );
         case MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED:
-            return( PSA_ERROR_BAD_STATE );
+            return( PSA_ERROR_INVALID_ARGUMENT );
         case MBEDTLS_ERR_CIPHER_AUTH_FAILED:
             return( PSA_ERROR_INVALID_SIGNATURE );
         case MBEDTLS_ERR_CIPHER_INVALID_CONTEXT:
@@ -4473,8 +4473,7 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
     if( operation->ctx.cipher.unprocessed_len != 0 )
     {
         if( operation->alg == PSA_ALG_ECB_NO_PADDING ||
-            ( operation->alg == PSA_ALG_CBC_NO_PADDING &&
-              operation->ctx.cipher.operation == MBEDTLS_ENCRYPT ) )
+            operation->alg == PSA_ALG_CBC_NO_PADDING )
         {
             status = PSA_ERROR_INVALID_ARGUMENT;
             goto exit;

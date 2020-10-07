@@ -252,6 +252,7 @@ void uECC_vli_clear(uECC_word_t *vli)
     "STMIA   r0!,{r1,r2}        \n\t"
     "STMIA   r0!,{r1,r2}        \n\t"
     "STMIA   r0!,{r1,r2}        \n\t"
+    ".syntax divided            \n\t"
     : "+r" (r0)
     : "r" (r1), "r" (r2)
     : "memory"
@@ -347,6 +348,7 @@ uECC_word_t uECC_vli_isZero(const uECC_word_t *vli)
     "RSBS    %[r1],%[r1],#0                \n\t"     // C set if zero
     "MOVS    %[ret],#0                     \n\t"
     "ADCS    %[ret],r0                     \n\t"
+    ".syntax divided                       \n\t"
     : [ret]"=r" (ret), [r1]"=r" (r1), [r2]"=r" (r2), [r3]"=r" (r3)
     : [vli]"[ret]" (vli)
     : "cc", "memory"
@@ -588,6 +590,7 @@ uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
     "STMIA   r0!,{r3,r4}     \n\t"
     "SBCS    r0,r0           \n\t" // r0 := r0 - r0 - borrow = -borrow
     "RSBS    r0,r0,#0        \n\t" // r0 := borrow
+    ".syntax divided         \n\t"
     : "+r" (r0), "+r" (r1), "+r" (r2)
     :
     : "r3", "r4", "r5", "r6", "cc", "memory"
@@ -722,6 +725,7 @@ static uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *left,
     "STMIA   r0!,{r3,r4}     \n\t"
     "MOVS    r0,#0           \n\t"  // does not affect C flag
     "ADCS    r0,r0           \n\t"  // r0 := 0 + 0 + C = carry
+    ".syntax divided         \n\t"
     : "+r" (r0), "+r" (r1), "+r" (r2)
     :
     : "r3", "r4", "r5", "r6", "cc", "memory"
@@ -951,6 +955,7 @@ static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
     "ADCS    r5,r0               \n\t"
     "SUBS    r2,#12              \n\t"
     "STMIA   r2!,{r3,r4,r5}      \n\t"
+    ".syntax divided             \n\t"
     : "+r" (r0), "+r" (r1), "+r" (r2)
     :
     : "r3", "r4", "r5", "ip", "cc", "memory"

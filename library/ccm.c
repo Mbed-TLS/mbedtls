@@ -175,7 +175,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     if( iv_len < 7 || iv_len > 13 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
 
-    if( add_len > 0xFF00 )
+    if( add_len >= 0xFF00 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
 
     q = 16 - 1 - (unsigned char) iv_len;

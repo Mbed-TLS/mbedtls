@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/19 19:47:39 GMT"
+Time-stamp: "2020/10/08 12:59:21 GMT"
 
 ## Introduction
 
@@ -78,6 +78,7 @@ A list of **capabilities**. Each capability describes a family of functions that
 * `"key_context"` (not permitted for transparent drivers, mandatory for opaque drivers): information about the [representation of keys](#key-format-for-opaque-drivers).
 * `"persistent_state_size"` (not permitted for transparent drivers, optional for opaque drivers, integer or string). The size in bytes of the [persistent state of the driver](#opaque-driver-persistent-state). This may be either a non-negative integer or a C constant expression of type `size_t`.
 * `"location"` (not permitted for transparent drivers, optional for opaque drivers, integer or string). The [location value](#lifetimes-and-locations) for which this driver is invoked. In other words, this determines the lifetimes for which the driver is invoked. This may be either a non-negative integer or a C constant expression of type `psa_key_location_t`.
+* `"builtin_keys"` (not permitted for transparent drivers, optional for opaque drivers, array of [key definitions](#builtin-keys-for-opaque-drivers)): information about factory-provisioned keys accessible through an opaque driver.
 
 ### Driver description capability
 
@@ -535,6 +536,37 @@ psa_status_t acme_export_public_key(const psa_key_attributes_t *attributes,
 The core will only call `acme_export_public_key` on a private key. Drivers implementers may choose to store the public key in the key context buffer or to recalculate it on demand. If the key context includes the public key, it needs to have an adequate size; see [“Key format for opaque drivers”](#key-format-for-opaque-drivers).
 
 The core guarantees that the size of the output buffer (`data_size`) is sufficient to export any key with the given attributes. The driver must set `*data_length` to the exact size of the exported key.
+
+### Builtin keys for opaque drivers
+
+An opaque driver can be pre-provisioned from the factory with keys. These keys are never seen by the PSA Crypto core, but in order to be able to use these keys, they need to be declared to the core.
+
+An opaque driver can declare such keys in its JSON descriptor file. The declaration is an array of strings, where each string is the name of a preprovisioned key, e.g.:
+```
+{
+    "builtin_keys": ["pre_key_1", "pre_key_2"]
+}
+```
+
+The key names need to be compatible with C language variable naming constraints, i.e. they cannot contain spaces and cannot start with a digit.
+
+For each declared key, the respective driver needs to define and externally declare the corresponding PSA Crypto key attributes (`psa_key_attributes_t`). The name of this variable, for each key, is `{prefix}_builtin_{keyname}_attributes`, where `{prefix}` is the implementing driver's prefix (lowercase), and `{keyname}` is the lowercase name of the key from the `builtin_keys` array.
+
+E.g. for a key called `"identity"`, a driver called `"acme"` would need to expose:
+```
+extern psa_core_key_attributes_t acme_builtin_identity_attributes;
+
+psa_key_attributes_t acme_builtin_identity_attributes = {
+    ...
+};
+```
+
+In order to use these keys, the JSON conversion process will generate a preprocessor symbol for each key, called `{PREFIX}_BUILTIN_{KEYNAME}_ID`, where `{PREFIX}` is the uppercase driver prefix, and `{KEYNAME}` the uppercase name of the key. This symbol yields a `psa_key_id_t` from the PSA key ID vendor range, and can be supplied as an argument to `psa_open_key()` to get a handle to access the builtin key.
+
+For the same `"identity"` key, this would cause the user to be able to get a handle for that key with the following call:
+```
+status = psa_open_key(ACME_BUILTIN_IDENTITY_ID, &handle);
+```
 
 ### Opaque driver persistent state
 

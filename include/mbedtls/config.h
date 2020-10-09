@@ -2152,7 +2152,7 @@
  * and other functions/constants only used by these functions, thus reducing
  * the code footprint by several KB.
  */
-//#define MBEDTLS_X509_REMOVE_INFO
+#define MBEDTLS_X509_REMOVE_INFO
 
 /**
  * \def MBEDTLS_X509_RSASSA_PSS_SUPPORT

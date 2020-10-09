@@ -523,16 +523,52 @@ struct options
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static unsigned char peer_crt_info[1024];
 
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
+int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
+                          uint32_t flags )
+{
+    return( mbedtls_x509_crt_verify_info( buf, size, prefix, flags ) );
+}
+#else /* !MBEDTLS_X509_REMOVE_INFO */
+int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
+                          uint32_t flags )
+{
+    int ret;
+    char *p = buf;
+    size_t n = size;
+
+#define X509_CRT_ERROR_INFO( err, err_str, info )                      \
+    if( ( flags & err ) != 0 )                                         \
+    {                                                                  \
+        ret = mbedtls_snprintf( p, n, "%s%s\n", prefix, info );        \
+        MBEDTLS_X509_SAFE_SNPRINTF;                                    \
+        flags ^= err;                                                  \
+    }
+
+    MBEDTLS_X509_CRT_ERROR_INFO_LIST
+#undef X509_CRT_ERROR_INFO
+
+    if( flags != 0 )
+    {
+        ret = mbedtls_snprintf( p, n, "%sUnknown reason "
+                                       "(this should not happen)\n", prefix );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+    }
+
+    return( (int) ( size - n ) );
+}
+#endif /* MBEDTLS_X509_REMOVE_INFO */
+
 /*
  * Enabled if debug_level > 1 in code below
  */
 static int my_verify( void *data, mbedtls_x509_crt *crt,
                       int depth, uint32_t *flags )
 {
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
     char buf[1024];
-#endif
     ((void) data);
+
+    mbedtls_printf( "\nVerify requested for (Depth %d):\n", depth );
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
     mbedtls_x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
@@ -542,7 +578,6 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
     if( opt.debug_level == 0 )
         return( 0 );
 
-    mbedtls_printf( "\nVerify requested for (Depth %d):\n", depth );
     mbedtls_printf( "%s", buf );
 #else
     ((void) crt);
@@ -553,10 +588,8 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
         mbedtls_printf( "  This certificate has no flags\n" );
     else
     {
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
-        mbedtls_x509_crt_verify_info( buf, sizeof( buf ), "  ! ", *flags );
+        x509_crt_verify_info( buf, sizeof( buf ), "  ! ", *flags );
         mbedtls_printf( "%s\n", buf );
-#endif
     }
 
     return( 0 );
@@ -2284,18 +2317,13 @@ int main( int argc, char *argv[] )
 
     if( ( flags = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
     {
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
         char vrfy_buf[512];
-#endif
-
         mbedtls_printf( " failed\n" );
 
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
-        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ),
+        x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ),
                                       "  ! ", flags );
 
         mbedtls_printf( "%s\n", vrfy_buf );
-#endif
     }
     else
         mbedtls_printf( " ok\n" );

@@ -176,6 +176,74 @@ mbedtls_x509_crt_profile;
 #define MBEDTLS_X509_MAX_FILE_PATH_LEN 512
 #endif
 
+/* This macro unfolds to the concatenation of macro invocations
+ * X509_CRT_ERROR_INFO( error code,
+ *                             error code as string,
+ *                             human readable description )
+ * where X509_CRT_ERROR_INFO is defined by the user.
+ * See x509_crt.c for an example of how to use this. */
+#define MBEDTLS_X509_CRT_ERROR_INFO_LIST                                  \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCERT_EXPIRED,            \
+                         "MBEDTLS_X509_BADCERT_EXPIRED",          \
+                         "The certificate validity has expired" ) \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCERT_REVOKED,            \
+                         "MBEDTLS_X509_BADCERT_REVOKED",          \
+                         "The certificate has been revoked (is on a CRL)" ) \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCERT_CN_MISMATCH,                  \
+                         "MBEDTLS_X509_BADCERT_CN_MISMATCH",                \
+                         "The certificate Common Name (CN) does not match with the expected CN" ) \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCERT_NOT_TRUSTED,                             \
+                         "MBEDTLS_X509_BADCERT_NOT_TRUSTED",                           \
+                         "The certificate is not correctly signed by the trusted CA" ) \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCRL_NOT_TRUSTED,                      \
+                         "MBEDTLS_X509_BADCRL_NOT_TRUSTED",                    \
+                         "The CRL is not correctly signed by the trusted CA" ) \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCRL_EXPIRED,    \
+                         "MBEDTLS_X509_BADCRL_EXPIRED",  \
+                         "The CRL is expired" )          \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCERT_MISSING,   \
+                         "MBEDTLS_X509_BADCERT_MISSING", \
+                         "Certificate was missing" )     \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCERT_SKIP_VERIFY,         \
+                         "MBEDTLS_X509_BADCERT_SKIP_VERIFY",       \
+                         "Certificate verification was skipped" )  \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCERT_OTHER,                          \
+                         "MBEDTLS_X509_BADCERT_OTHER",                        \
+                         "Other reason (can be used by verify callback)" )    \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCERT_FUTURE,                         \
+                         "MBEDTLS_X509_BADCERT_FUTURE",                       \
+                         "The certificate validity starts in the future" )    \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCRL_FUTURE,     \
+                         "MBEDTLS_X509_BADCRL_FUTURE",   \
+                         "The CRL is from the future" )  \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCERT_KEY_USAGE,                      \
+                         "MBEDTLS_X509_BADCERT_KEY_USAGE",                    \
+                         "Usage does not match the keyUsage extension" )      \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCERT_EXT_KEY_USAGE,                       \
+                         "MBEDTLS_X509_BADCERT_EXT_KEY_USAGE",                     \
+                         "Usage does not match the extendedKeyUsage extension" )   \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCERT_NS_CERT_TYPE,                        \
+                         "MBEDTLS_X509_BADCERT_NS_CERT_TYPE",                      \
+                         "Usage does not match the nsCertType extension" )         \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCERT_BAD_MD,                              \
+                         "MBEDTLS_X509_BADCERT_BAD_MD",                            \
+                         "The certificate is signed with an unacceptable hash." )  \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCERT_BAD_PK,                                                  \
+                         "MBEDTLS_X509_BADCERT_BAD_PK",                                                \
+                         "The certificate is signed with an unacceptable PK alg (eg RSA vs ECDSA)." )  \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCERT_BAD_KEY,                                                            \
+                         "MBEDTLS_X509_BADCERT_BAD_KEY",                                                          \
+                         "The certificate is signed with an unacceptable key (eg bad curve, RSA too short)." )    \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCRL_BAD_MD,                          \
+                         "MBEDTLS_X509_BADCRL_BAD_MD",                        \
+                         "The CRL is signed with an unacceptable hash." )     \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCRL_BAD_PK,                                            \
+                         "MBEDTLS_X509_BADCRL_BAD_PK",                                          \
+                         "The CRL is signed with an unacceptable PK alg (eg RSA vs ECDSA)." )   \
+    X509_CRT_ERROR_INFO( MBEDTLS_X509_BADCRL_BAD_KEY,                                                    \
+                         "MBEDTLS_X509_BADCRL_BAD_KEY",                                                  \
+                         "The CRL is signed with an unacceptable key (eg bad curve, RSA too short)." )
+
 /**
  * Container for writing a certificate (CRT)
  */

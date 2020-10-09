@@ -623,6 +623,42 @@ struct options
 
 #include "ssl_test_common_source.c"
 
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
+int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
+                          uint32_t flags )
+{
+    return( mbedtls_x509_crt_verify_info( buf, size, prefix, flags ) );
+}
+#else /* !MBEDTLS_X509_REMOVE_INFO */
+int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
+                          uint32_t flags )
+{
+    int ret;
+    char *p = buf;
+    size_t n = size;
+
+#define X509_CRT_ERROR_INFO( err, err_str, info )                      \
+    if( ( flags & err ) != 0 )                                         \
+    {                                                                  \
+        ret = mbedtls_snprintf( p, n, "%s%s\n", prefix, info );        \
+        MBEDTLS_X509_SAFE_SNPRINTF;                                    \
+        flags ^= err;                                                  \
+    }
+
+    MBEDTLS_X509_CRT_ERROR_INFO_LIST
+#undef X509_CRT_ERROR_INFO
+
+    if( flags != 0 )
+    {
+        ret = mbedtls_snprintf( p, n, "%sUnknown reason "
+                                       "(this should not happen)\n", prefix );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+    }
+
+    return( (int) ( size - n ) );
+}
+#endif /* MBEDTLS_X509_REMOVE_INFO */
+
 /*
  * Return authmode from string, or -1 on error
  */
@@ -3134,13 +3170,13 @@ handshake:
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", (unsigned int) -ret );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
         if( ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED )
         {
             char vrfy_buf[512];
             flags = mbedtls_ssl_get_verify_result( &ssl );
 
-            mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
+            x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
 
             mbedtls_printf( "%s\n", vrfy_buf );
         }
@@ -3188,17 +3224,12 @@ handshake:
 
     if( ( flags = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
     {
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
         char vrfy_buf[512];
-#endif
 
         mbedtls_printf( " failed\n" );
 
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
-        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
-
+        x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
         mbedtls_printf( "%s\n", vrfy_buf );
-#endif
     }
     else
         mbedtls_printf( " ok\n" );

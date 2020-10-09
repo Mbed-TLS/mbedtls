@@ -830,6 +830,8 @@ void x509parse_crt( data_t * buf, char * result_str, int result )
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
     unsigned char output[2000];
     int res;
+#else
+    ((void) result_str);
 #endif
 
     mbedtls_x509_crt_init( &crt );
@@ -844,15 +846,11 @@ void x509parse_crt( data_t * buf, char * result_str, int result )
 
         TEST_ASSERT( strcmp( (char *) output, result_str ) == 0 );
     }
-#else
-    ((void) result_str);
+    memset( output, 0, 2000 );
 #endif
 
     mbedtls_x509_crt_free( &crt );
     mbedtls_x509_crt_init( &crt );
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
-    memset( output, 0, 2000 );
-#endif
 
     TEST_ASSERT( mbedtls_x509_crt_parse_der_nocopy( &crt, buf->x, buf->len ) == ( result ) );
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
@@ -867,15 +865,14 @@ void x509parse_crt( data_t * buf, char * result_str, int result )
 
         TEST_ASSERT( strcmp( (char *) output, result_str ) == 0 );
     }
-#else
-    ((void)result_str);
-#endif
+    memset( output, 0, 2000 );
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
     mbedtls_x509_crt_free( &crt );
     mbedtls_x509_crt_init( &crt );
-    memset( output, 0, 2000 );
 
     TEST_ASSERT( mbedtls_x509_crt_parse_der_with_ext_cb( &crt, buf->x, buf->len, 0, NULL, NULL ) == ( result ) );
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
     if( ( result ) == 0 )
     {
         res = mbedtls_x509_crt_info( (char *) output, 2000, "", &crt );
@@ -885,12 +882,14 @@ void x509parse_crt( data_t * buf, char * result_str, int result )
 
         TEST_ASSERT( strcmp( (char *) output, result_str ) == 0 );
     }
+    memset( output, 0, 2000 );
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
     mbedtls_x509_crt_free( &crt );
     mbedtls_x509_crt_init( &crt );
-    memset( output, 0, 2000 );
 
     TEST_ASSERT( mbedtls_x509_crt_parse_der_with_ext_cb( &crt, buf->x, buf->len, 1, NULL, NULL ) == ( result ) );
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
     if( ( result ) == 0 )
     {
         res = mbedtls_x509_crt_info( (char *) output, 2000, "", &crt );
@@ -900,6 +899,7 @@ void x509parse_crt( data_t * buf, char * result_str, int result )
 
         TEST_ASSERT( strcmp( (char *) output, result_str ) == 0 );
     }
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
 exit:
     mbedtls_x509_crt_free( &crt );

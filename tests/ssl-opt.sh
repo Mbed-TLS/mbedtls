@@ -645,7 +645,7 @@ find_in_both() {
         fi
 
         if grep "$srv_pattern" $3 >/dev/null; then :
-                       return 0;
+                return 0;
         else
                 return 1;
         fi

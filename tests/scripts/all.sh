@@ -2410,6 +2410,7 @@ component_test_no_64bit_multiplication () {
     make test
 }
 
+<<<<<<< HEAD
 component_test_no_strings () {
     msg "build: no strings" # ~10s
     scripts/config.py full
@@ -2422,6 +2423,20 @@ component_test_no_strings () {
 
     msg "test: no strings" # ~ 10s
     make test
+}
+
+component_test_no_x509_info () {
+    msg "build: full + MBEDTLS_X509_REMOVE_INFO" # ~ 10s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.pl set MBEDTLS_X509_REMOVE_INFO
+    make CFLAGS='-Werror -O1'
+
+    msg "test: full + MBEDTLS_X509_REMOVE_INFO" # ~ 10s
+    make test
+
+    msg "test: ssl-opt.sh, full + MBEDTLS_X509_REMOVE_INFO" # ~ 1 min
+    if_build_succeeded tests/ssl-opt.sh
 }
 
 component_build_arm_none_eabi_gcc () {

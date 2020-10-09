@@ -213,6 +213,63 @@ int uECC_curve_public_key_size(void)
 	return 2 * NUM_ECC_BYTES;
 }
 
+#if defined MBEDTLS_HAVE_ASM && defined __CC_ARM
+__asm void uECC_vli_clear(uECC_word_t *vli)
+{
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+#if !defined __thumb__ || __TARGET_ARCH_THUMB < 4
+    MOVS    r1,#0
+    MOVS    r2,#0
+    STMIA   r0!,{r1,r2}
+    STMIA   r0!,{r1,r2}
+    STMIA   r0!,{r1,r2}
+    STMIA   r0!,{r1,r2}
+    BX      lr
+#else
+    MOVS    r1,#0
+    STRD    r1,r1,[r0,#0]       // Only Thumb2 STRD can store same reg twice, not ARM
+    STRD    r1,r1,[r0,#8]
+    STRD    r1,r1,[r0,#16]
+    STRD    r1,r1,[r0,#24]
+    BX      lr
+#endif
+}
+#elif defined MBEDTLS_HAVE_ASM && defined __GNUC__ && defined __arm__
+void uECC_vli_clear(uECC_word_t *vli)
+{
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+#if !defined __thumb__ || !defined __thumb2__
+    register uECC_word_t *r0 asm("r0") = vli;
+    register uECC_word_t r1 asm("r1") = 0;
+    register uECC_word_t r2 asm("r2") = 0;
+    asm volatile (
+    ".syntax unified            \n\t"
+    "STMIA   r0!,{r1,r2}        \n\t"
+    "STMIA   r0!,{r1,r2}        \n\t"
+    "STMIA   r0!,{r1,r2}        \n\t"
+    "STMIA   r0!,{r1,r2}        \n\t"
+    : "+r" (r0)
+    : "r" (r1), "r" (r2)
+    : "memory"
+#else
+    register uECC_word_t *r0 asm("r0") = vli;
+    register uECC_word_t r1 asm("r1") = 0;
+    asm volatile (
+    "STRD    r1,r1,[r0,#0]      \n\t" // Only Thumb2 STRD can store same reg twice, not ARM
+    "STRD    r1,r1,[r0,#8]      \n\t"
+    "STRD    r1,r1,[r0,#16]     \n\t"
+    "STRD    r1,r1,[r0,#24]     \n\t"
+    :
+    : "r" (r0), "r" (r1)
+    : "memory"
+#endif
+    );
+}
+#else
 void uECC_vli_clear(uECC_word_t *vli)
 {
 	wordcount_t i;
@@ -220,7 +277,111 @@ void uECC_vli_clear(uECC_word_t *vli)
 		 vli[i] = 0;
 	}
 }
+#endif
 
+#if defined MBEDTLS_HAVE_ASM && defined __CC_ARM
+__asm uECC_word_t uECC_vli_isZero(const uECC_word_t *vli)
+{
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+#if defined __thumb__ &&  __TARGET_ARCH_THUMB < 4
+    LDMIA   r0!,{r1,r2,r3}
+    ORRS    r1,r2
+    ORRS    r1,r3
+    LDMIA   r0!,{r2,r3}
+    ORRS    r1,r2
+    ORRS    r1,r3
+    LDMIA   r0,{r0,r2,r3}
+    ORRS    r1,r0
+    ORRS    r1,r2
+    ORRS    r1,r3
+    RSBS    r1,r1,#0      // C set if zero
+    MOVS    r0,#0
+    ADCS    r0,r0
+    BX      lr
+#else
+    LDMIA   r0!,{r1,r2,r3,ip}
+    ORRS    r1,r2
+    ORRS    r1,r3
+    ORRS    r1,ip
+    LDMIA   r0,{r0,r2,r3,ip}
+    ORRS    r1,r0
+    ORRS    r1,r2
+    ORRS    r1,r3
+    ORRS    r1,ip
+#ifdef __ARM_FEATURE_CLZ
+    CLZ     r0,r1           // 32 if zero
+    LSRS    r0,r0,#5
+#else
+    RSBS    r1,r1,#0      // C set if zero
+    MOVS    r0,#0
+    ADCS    r0,r0
+#endif
+    BX      lr
+#endif
+}
+#elif defined MBEDTLS_HAVE_ASM && defined __GNUC__ && defined __arm__
+uECC_word_t uECC_vli_isZero(const uECC_word_t *vli)
+{
+    uECC_word_t ret;
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+#if defined __thumb__ && !defined __thumb2__
+    register uECC_word_t r1 asm ("r1");
+    register uECC_word_t r2 asm ("r2");
+    register uECC_word_t r3 asm ("r3");
+    asm volatile (
+    ".syntax unified                       \n\t"
+    "LDMIA   %[vli]!,{%[r1],%[r2],%[r3]}   \n\t"
+    "ORRS    %[r1],%[r2]                   \n\t"
+    "ORRS    %[r1],%[r3]                   \n\t"
+    "LDMIA   %[vli]!,{%[r2],%[r3]}         \n\t"
+    "ORRS    %[r1],%[r2]                   \n\t"
+    "ORRS    %[r1],%[r3]                   \n\t"
+    "LDMIA   %[vli],{%[vli],%[r2],%[r3]}   \n\t"
+    "ORRS    %[r1],%[vli]                  \n\t"
+    "ORRS    %[r1],%[r2]                   \n\t"
+    "ORRS    %[r1],%[r3]                   \n\t"
+    "RSBS    %[r1],%[r1],#0                \n\t"     // C set if zero
+    "MOVS    %[ret],#0                     \n\t"
+    "ADCS    %[ret],r0                     \n\t"
+    : [ret]"=r" (ret), [r1]"=r" (r1), [r2]"=r" (r2), [r3]"=r" (r3)
+    : [vli]"[ret]" (vli)
+    : "cc", "memory"
+    );
+#else
+     register uECC_word_t r1 asm ("r1");
+     register uECC_word_t r2 asm ("r2");
+     register uECC_word_t r3 asm ("r3");
+     register uECC_word_t ip asm ("ip");
+     asm volatile (
+    "LDMIA   %[vli]!,{%[r1],%[r2],%[r3],%[ip]}\n\t"
+    "ORRS    %[r1],%[r2]                      \n\t"
+    "ORRS    %[r1],%[r3]                      \n\t"
+    "ORRS    %[r1],%[ip]                      \n\t"
+    "LDMIA   %[vli],{%[vli],%[r2],%[r3],%[ip]}\n\t"
+    "ORRS    %[r1],%[vli]                     \n\t"
+    "ORRS    %[r1],%[r2]                      \n\t"
+    "ORRS    %[r1],%[r3]                      \n\t"
+    "ORRS    %[r1],%[ip]                      \n\t"
+#if __ARM_ARCH >= 5
+    "CLZ     %[ret],%[r1]                     \n\t"     // r0 = 32 if zero
+    "LSRS    %[ret],%[ret],#5                 \n\t"
+#else
+    "RSBS    %[r1],%[r1],#0                   \n\t"     // C set if zero
+    "MOVS    %[ret],#0                        \n\t"
+    "ADCS    %[ret],r0                        \n\t"
+#endif
+    : [ret]"=r" (ret), [r1]"=r" (r1), [r2]"=r" (r2), [r3]"=r" (r3), [ip]"=r" (ip)
+    : [vli]"[ret]" (vli)
+    : "cc", "memory"
+    );
+#endif
+    return ret;
+}
+#else
 uECC_word_t uECC_vli_isZero(const uECC_word_t *vli)
 {
 	uECC_word_t bits = 0;
@@ -230,6 +391,7 @@ uECC_word_t uECC_vli_isZero(const uECC_word_t *vli)
 	}
 	return (bits == 0);
 }
+#endif
 
 uECC_word_t uECC_vli_testBit(const uECC_word_t *vli, bitcount_t bit)
 {

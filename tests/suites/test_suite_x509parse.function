@@ -828,7 +828,7 @@ void x509parse_crt( data_t * buf, char * result_str, int result )
 {
     mbedtls_x509_crt   crt;
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
-    unsigned char output[2000];
+    unsigned char output[2000] = { 0 };
     int res;
 #else
     ((void) result_str);
@@ -911,17 +911,22 @@ void x509parse_crt_cb( data_t * buf, char * result_str, int result )
 {
     mbedtls_x509_crt   crt;
     mbedtls_x509_buf   oid;
-    unsigned char output[2000];
+
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
+    unsigned char output[2000] = { 0 };
     int res;
+#else
+    ((void) result_str);
+#endif
 
     oid.tag = MBEDTLS_ASN1_OID;
     oid.len = MBEDTLS_OID_SIZE(MBEDTLS_OID_PKIX "\x01\x1F");
     oid.p = (unsigned char *)MBEDTLS_OID_PKIX "\x01\x1F";
 
     mbedtls_x509_crt_init( &crt );
-    memset( output, 0, 2000 );
 
     TEST_ASSERT( mbedtls_x509_crt_parse_der_with_ext_cb( &crt, buf->x, buf->len, 0, parse_crt_ext_cb, &oid ) == ( result ) );
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
     if( ( result ) == 0 )
     {
         res = mbedtls_x509_crt_info( (char *) output, 2000, "", &crt );
@@ -931,12 +936,15 @@ void x509parse_crt_cb( data_t * buf, char * result_str, int result )
 
         TEST_ASSERT( strcmp( (char *) output, result_str ) == 0 );
     }
+    memset( output, 0, 2000 );
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
     mbedtls_x509_crt_free( &crt );
     mbedtls_x509_crt_init( &crt );
-    memset( output, 0, 2000 );
+
 
     TEST_ASSERT( mbedtls_x509_crt_parse_der_with_ext_cb( &crt, buf->x, buf->len, 1, parse_crt_ext_cb, &oid ) == ( result ) );
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
     if( ( result ) == 0 )
     {
         res = mbedtls_x509_crt_info( (char *) output, 2000, "", &crt );
@@ -946,6 +954,7 @@ void x509parse_crt_cb( data_t * buf, char * result_str, int result )
 
         TEST_ASSERT( strcmp( (char *) output, result_str ) == 0 );
     }
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
 exit:
     mbedtls_x509_crt_free( &crt );

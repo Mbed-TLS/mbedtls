@@ -134,7 +134,7 @@ int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, s
 int mbedtls_x509_crl_parse_file( mbedtls_x509_crl *chain, const char *path );
 #endif /* MBEDTLS_FS_IO */
 
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief          Returns an informational string about the CRL.
  *

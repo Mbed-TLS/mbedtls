@@ -3134,7 +3134,7 @@ handshake:
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", (unsigned int) -ret );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_X509_INFO)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_INFO)
         if( ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED )
         {
             char vrfy_buf[512];
@@ -3188,13 +3188,13 @@ handshake:
 
     if( ( flags = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
     {
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
         char vrfy_buf[512];
 #endif
 
         mbedtls_printf( " failed\n" );
 
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
         mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
 
         mbedtls_printf( "%s\n", vrfy_buf );
@@ -3203,7 +3203,7 @@ handshake:
     else
         mbedtls_printf( " ok\n" );
 
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
     if( mbedtls_ssl_get_peer_cert( &ssl ) != NULL )
     {
         char crt_buf[512];
@@ -3213,7 +3213,7 @@ handshake:
                        mbedtls_ssl_get_peer_cert( &ssl ) );
         mbedtls_printf( "%s\n", crt_buf );
     }
-#endif /* MBEDTLS_X509_INFO */
+#endif /* MBEDTLS_X509_REMOVE_INFO */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)

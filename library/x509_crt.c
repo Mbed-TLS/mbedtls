@@ -2251,7 +2251,7 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
 
     return( (int) ( size - n ) );
 }
-#endif /* MBEDTLS_X509_INFO */
+#endif /* MBEDTLS_X509_REMOVE_INFO */
 
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
 int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,

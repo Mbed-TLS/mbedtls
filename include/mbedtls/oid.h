@@ -441,7 +441,7 @@ typedef struct mbedtls_oid_descriptor_t
 {
     const char *asn1;               /*!< OID ASN.1 representation       */
     size_t asn1_len;                /*!< length of asn1                 */
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
     const char *name;               /*!< official name (e.g. from RFC)  */
     const char *description;        /*!< human friendly description     */
 #endif
@@ -584,7 +584,7 @@ int mbedtls_oid_get_md_alg( const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_a
 int mbedtls_oid_get_md_hmac( const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_hmac );
 #endif /* MBEDTLS_MD_C */
 
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief          Translate Extended Key Usage OID into description
  *

@@ -510,7 +510,7 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
 int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
                                          mbedtls_x509_subject_alternative_name *san );
 
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief          Returns an informational string about the
  *                 certificate.
@@ -527,7 +527,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
                    const mbedtls_x509_crt *crt );
 #endif
 
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief          Returns an informational string about the
  *                 verification status of a certificate.

@@ -1643,13 +1643,13 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 
-#if defined(MBEDTLS_X509_INFO)
-    if( strcmp( "MBEDTLS_X509_INFO", config ) == 0 )
+#if defined(MBEDTLS_X509_REMOVE_INFO)
+    if( strcmp( "MBEDTLS_X509_REMOVE_INFO", config ) == 0 )
     {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_X509_INFO );
+        MACRO_EXPANSION_TO_STR( MBEDTLS_X509_REMOVE_INFO );
         return( 0 );
     }
-#endif /* MBEDTLS_X509_INFO */
+#endif /* MBEDTLS_X509_REMOVE_INFO */
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     if( strcmp( "MBEDTLS_X509_RSASSA_PSS_SUPPORT", config ) == 0 )

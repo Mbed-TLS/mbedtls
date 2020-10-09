@@ -44,7 +44,7 @@
 /*
  * Macro to generate mbedtls_oid_descriptor_t
  */
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 #define OID_DESCRIPTOR(s, name, description)  { ADD_LEN(s), name, description }
 #define NULL_OID_DESCRIPTOR                   { NULL, 0, NULL, NULL }
 #else
@@ -75,7 +75,7 @@
         return( NULL );                                                 \
     }
 
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 /*
  * Macro to generate a function for retrieving a single attribute from the
  * descriptor of an mbedtls_oid_descriptor_t wrapper.
@@ -88,7 +88,7 @@ int FN_NAME( const mbedtls_asn1_buf *oid, ATTR1_TYPE * ATTR1 )                  
     *ATTR1 = data->descriptor.ATTR1;                                    \
     return( 0 );                                                        \
 }
-#endif /* MBEDTLS_X509_INFO */
+#endif /* MBEDTLS_X509_REMOVE_INFO */
 
 /*
  * Macro to generate a function for retrieving a single attribute from an
@@ -297,7 +297,7 @@ static const oid_x509_ext_t oid_x509_ext[] =
 FN_OID_TYPED_FROM_ASN1(oid_x509_ext_t, x509_ext, oid_x509_ext)
 FN_OID_GET_ATTR1(mbedtls_oid_get_x509_ext_type, oid_x509_ext_t, x509_ext, int, ext_type)
 
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 static const mbedtls_oid_descriptor_t oid_ext_key_usage[] =
 {
     OID_DESCRIPTOR( MBEDTLS_OID_SERVER_AUTH,      "id-kp-serverAuth",      "TLS Web Server Authentication" ),
@@ -321,7 +321,7 @@ static const mbedtls_oid_descriptor_t oid_certificate_policies[] =
 
 FN_OID_TYPED_FROM_ASN1(mbedtls_oid_descriptor_t, certificate_policies, oid_certificate_policies)
 FN_OID_GET_ATTR1(mbedtls_oid_get_certificate_policies, mbedtls_oid_descriptor_t, certificate_policies, const char *, description)
-#endif /* MBEDTLS_X509_INFO */
+#endif /* MBEDTLS_X509_REMOVE_INFO */
 
 #if defined(MBEDTLS_MD_C)
 /*
@@ -429,7 +429,7 @@ static const oid_sig_alg_t oid_sig_alg[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_sig_alg_t, sig_alg, oid_sig_alg)
 
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 FN_OID_GET_DESCRIPTOR_ATTR1(mbedtls_oid_get_sig_alg_desc, oid_sig_alg_t, sig_alg, const char *, description)
 #endif
 

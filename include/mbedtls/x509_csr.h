@@ -121,7 +121,7 @@ int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, siz
 int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path );
 #endif /* MBEDTLS_FS_IO */
 
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief          Returns an informational string about the
  *                 CSR.

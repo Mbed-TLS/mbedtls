@@ -241,13 +241,13 @@ int main( int argc, char *argv[] )
      * MBEDTLS_SSL_VERIFY_OPTIONAL, we would bail out here if ret != 0 */
     if( ( flags = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
     {
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
         char vrfy_buf[512];
 #endif
 
         mbedtls_printf( " failed\n" );
 
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
         mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
 
         mbedtls_printf( "%s\n", vrfy_buf );

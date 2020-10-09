@@ -623,6 +623,7 @@ struct options
 
 #include "ssl_test_common_source.c"
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
 int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
                           uint32_t flags )
@@ -658,6 +659,7 @@ int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
     return( (int) ( size - n ) );
 }
 #endif /* MBEDTLS_X509_REMOVE_INFO */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /*
  * Return authmode from string, or -1 on error

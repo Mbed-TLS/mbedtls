@@ -38,20 +38,26 @@ typedef struct {
  * This macro returns the base size for the key context. It should include
  * the size for any driver context information stored with each key.
  */
-#define TEST_DRIVER_KEY_CONTEXT_BASE_SIZE          sizeof(test_driver_key_context_t)
+#define TEST_DRIVER_KEY_CONTEXT_BASE_SIZE          sizeof( test_driver_key_context_t )
 
 /** \def TEST_DRIVER_KEY_CONTEXT_KEY_PAIR_SIZE
  *
  * Number of bytes included in every key context for a key pair.
+ *
+ * This pair size is for an ECC 256-bit private/public key pair.
+ * Based on this value, the size of the private key can be derived by
+ * subtracting the public key size below from this one.
  */
 
-#define TEST_DRIVER_KEY_CONTEXT_KEY_PAIR_SIZE      0
+#define TEST_DRIVER_KEY_CONTEXT_KEY_PAIR_SIZE      65
 
 /** \def TEST_DRIVER_KEY_CONTEXT_PUBLIC_KEY_SIZE
  *
  * Number of bytes included in every key context for a public key.
+ *
+ * For ECC public keys, it needs 257 bits so 33 bytes.
  */
-#define TEST_DRIVER_KEY_CONTEXT_PUBLIC_KEY_SIZE    0
+#define TEST_DRIVER_KEY_CONTEXT_PUBLIC_KEY_SIZE    33
 
 /** \def TEST_DRIVER_KEY_CONTEXT_SYMMETRIC_FACTOR
  *
@@ -63,8 +69,10 @@ typedef struct {
  *
  * If this is true for a key pair, the key context includes space for the public key.
  * If this is false, no additional space is added for the public key.
+ *
+ * For this instance, store the public key with the private one.
  */
-#define TEST_DRIVER_KEY_CONTEXT_STORE_PUBLIC_KEY   0
+#define TEST_DRIVER_KEY_CONTEXT_STORE_PUBLIC_KEY   1
 
 /** \def TEST_DRIVER_KEY_CONTEXT_SIZE_FUNCTION
  *

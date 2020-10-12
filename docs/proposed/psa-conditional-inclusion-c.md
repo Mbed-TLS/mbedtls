@@ -5,7 +5,7 @@ This document is a proposed interface for deciding at build time which cryptogra
 
 This is currently a proposal for Mbed TLS. It is not currently on track for standardization in PSA.
 
-Time-stamp: "2020/09/21 18:07:09 GMT"
+Time-stamp: "2020/10/12 21:23:39 GMT"
 
 ## Introduction
 
@@ -129,7 +129,7 @@ Symbols                    With `MBEDTLS_PSA_CRYPTO_CONFIG`  Without `MBEDTLS_PS
 -------------------------  --------------------------------  -----------------------------------
 `MBEDTLS_xxx_C`            `mbedtls/config.h` (U) or         `mbedtls/config.h` (U)
                            `mbedtls/config_psa.h` (D)
-`PSA_WANT_xxx`             `psa/crypto_config.h` (U)         N/A
+`PSA_WANT_xxx`             `psa/crypto_config.h` (U)         `mbedtls/config_psa.h (D)
 `MBEDTLS_PSA_BUILTIN_xxx`  `mbedtls/config_psa.h` (D)        `mbedtls/config_psa.h` (D)
 `MBEDTLS_PSA_ACCEL_xxx`    `mbedtls/crypto_drivers` (G)      N/A
 ------------------------------------------------------------------------------------------------

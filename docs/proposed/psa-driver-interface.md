@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/10/02 15:59:46 GMT"
+Time-stamp: "2020/10/12 21:34:43 GMT"
 
 ## Introduction
 
@@ -348,9 +348,9 @@ Transparent drivers are not involved when exporting, copying or destroying keys,
 
 #### Key validation with transparent drivers
 
-When a driver creates a key, it is responsible for ensuring that the key is valid. But when a key is imported, no processing of the key happens: the implementation just stores the key material. (It may store it in an encoded form, but this is an implementation choice which is not visible at the level of PSA specifications.) It is important to validate the incoming key material, to avoid storing a key that will later be unacceptable for operations or that could even cause functional or security issues during operations.
+When a driver creates a key, it is responsible for ensuring that the key is valid. But when a key is imported, no processing of the key happens: the PSA Cryptography implementation just stores the key material. (It may store it in an encoded form, but this is an implementation choice which is not visible at the level of PSA specifications.) It is important to validate the incoming key material, to avoid storing a key that will later be unacceptable for operations or that could even cause functional or security issues during operations.
 
-To avoid delayed problems caused by imported invalid keys, an implementation that supports transparent drivers must validate transparent keys on import. For supported key types, this means:
+To avoid delayed problems caused by imported invalid keys, a PSA Cryptography implementation that supports transparent drivers must validate transparent keys on import. For supported key types, this means:
 
 * For symmetric key types, check that the key size is suitable for the type.
 * For DES (`PSA_KEY_TYPE_DES`), additionally verify the parity bits.
@@ -358,7 +358,7 @@ To avoid delayed problems caused by imported invalid keys, an implementation tha
 * For elliptic curve private keys (`PSA_KEY_TYPE_ECC_KEY_PAIR`), check the size and range. TODO: what else?
 * For elliptic curve public keys (``), check the size and range, and that the point is on the curve. TODO: what else?
 
-A driver can provide code to perform the required validation by providing a `"validate_key"` entry point. This entry points returns `PSA_SUCCESS` if the key is valid or an applicable error code if it isn't.
+A driver can provide code to perform the required validation by providing a `"validate_key"` entry point. This entry point returns `PSA_SUCCESS` if the key is valid or an applicable error code if it isn't.
 
 The `"validate_key"` entry point has an additional role, which is to determine the size of a key.
 The PSA Cryptography API exposes the key size as part of the key attributes.

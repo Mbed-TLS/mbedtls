@@ -2,9 +2,13 @@
  * \file mbedtls/config_psa.h
  * \brief PSA crypto configuration options (set of defines)
  *
- *  This set of compile-time options may be used to enable
- *  or disable PSA crypto features selectively. This will aid
- *  in reducing the size of the library by removing unused code.
+ *  This set of compile-time options takes settings defined in
+ *  include/mbedtls/config.h and include/psa/crypto_config.h and uses
+ *  those definitions to define symbols used in the library code.
+ *
+ *  Users and integrators should not edit this file, please edit
+ *  include/mbedtls/config.h for MBETLS_XXX settings or
+ *  include/psa/crypto_config.h for PSA_WANT_XXX settings.
  */
 /*
  *  Copyright The Mbed TLS Contributors
@@ -38,19 +42,17 @@ extern "C" {
 
 #if defined(PSA_WANT_ALG_ECDSA)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA)
-#define MBEDTLS_PSA_BUILTIN_ALG_ECDSA
-#else /* !defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) */
+#define MBEDTLS_PSA_BUILTIN_ALG_ECDSA                   1
 #define MBEDTLS_ECDSA_C
-#endif /* !defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) */
-#endif /* defined(PSA_WANT_ALG_ECDSA) */
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_ECDSA */
+#endif /* PSA_WANT_ALG_ECDSA */
 
 #if defined(PSA_WANT_ALG_ECDSA_DETERMINISTIC)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA_DETERMINISTIC)
-#define MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA
-#else /*  && !defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA_DETERMINISTIC) */
+#define MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA     1
 #define MBEDTLS_ECDSA_DETERMINISTIC
-#endif /* !defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA_DETERMINISTIC) */
-#endif /* defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA) */
+#endif /* MBEDTLS_PSA_ACCEL_ALG_ECDSA_DETERMINISTIC */
+#endif /* PSA_WANT_ALG_DETERMINISTIC_ECDSA */
 
 #else /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
@@ -58,11 +60,11 @@ extern "C" {
  * Ensure PSA_WANT_* defines are setup properly if MBEDTLS_PSA_CRYPTO_CONFIG
  * is not defined
  */
-#ifdef MBEDTLS_ECDSA_C
+#if defined(MBEDTLS_ECDSA_C)
 #define PSA_WANT_ALG_ECDSA
 #endif /* MBEDTLS_ECDSA_C */
 
-#ifdef MBEDTLS_ECDSA_DETERMINISTIC
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 #define PSA_WANT_ALG_ECDSA_DETERMINISTIC
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 

@@ -2643,6 +2643,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
 
 MBEDTLS_MPS_STATIC int mps_reassembly_free( mbedtls_mps *mps )
 {
+    uint8_t idx;
     int ret = 0;
     ((void) mps);
     TRACE_INIT( "mps_reassembly_free" );
@@ -2651,6 +2652,20 @@ MBEDTLS_MPS_STATIC int mps_reassembly_free( mbedtls_mps *mps )
             mps_get_hs_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT, MBEDTLS_MPS_FLIGHT_RECEIVE ),
         "Can't use reassembly module outside of RECEIVE and RECVINIT state." );
+
+    for( idx = 0; idx < MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS; idx++ )
+    {
+        mbedtls_mps_msg_reassembly *cur =
+            &mps->dtls.io.in.incoming.reassembly[idx];
+        switch( cur->status )
+        {
+        case MBEDTLS_MPS_REASSEMBLY_WINDOW:
+            mbedtls_free( cur->data.window.buf );
+            break;
+        default:
+            break;
+        }
+    }
 
     MPS_INTERNAL_FAILURE_HANDLER;
 }
@@ -2885,10 +2900,10 @@ MBEDTLS_MPS_STATIC int mps_reassembly_forget( mbedtls_mps *mps )
      * more messages than expected. */
 #if MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS > 0
     for( idx = 0; idx < MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS; idx++ )
-        {
-            if( in->reassembly[idx].status != MBEDTLS_MPS_REASSEMBLY_NONE )
-                MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-        }
+    {
+        if( in->reassembly[idx].status != MBEDTLS_MPS_REASSEMBLY_NONE )
+            MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+    }
 #else
     ((void) idx);
     ((void) in);

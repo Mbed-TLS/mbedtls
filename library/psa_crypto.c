@@ -969,6 +969,19 @@ static psa_status_t psa_allocate_buffer_to_slot( psa_key_slot_t *slot,
     return( PSA_SUCCESS );
 }
 
+psa_status_t psa_copy_key_material_into_slot( psa_key_slot_t *slot,
+                                              const uint8_t* data,
+                                              size_t data_length )
+{
+    psa_status_t status = psa_allocate_buffer_to_slot( slot,
+                                                       data_length );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    memcpy( slot->data.key.data, data, data_length );
+    return( PSA_SUCCESS );
+}
+
 /** Import key data into a slot. `slot->attr.type` must have been set
  * previously. This function assumes that the slot does not contain
  * any key material yet. On failure, the slot content is unchanged. */
@@ -1001,12 +1014,9 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
             return( status );
 
         /* Allocate memory for the key */
-        status = psa_allocate_buffer_to_slot( slot, data_length );
+        status = psa_copy_key_material_into_slot( slot, data, data_length );
         if( status != PSA_SUCCESS )
             return( status );
-
-        /* copy key into allocated buffer */
-        memcpy( slot->data.key.data, data, data_length );
 
         /* Write the actual key size to the slot.
          * psa_start_key_creation() wrote the size declared by the
@@ -2180,12 +2190,12 @@ exit:
 static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
                                            psa_key_slot_t *target )
 {
-    psa_status_t status = psa_allocate_buffer_to_slot( target,
-                                                       source->data.key.bytes );
+    psa_status_t status = psa_copy_key_material_into_slot( target,
+                                                           source->data.key.data,
+                                                           source->data.key.bytes );
     if( status != PSA_SUCCESS )
         return( status );
 
-    memcpy( target->data.key.data, source->data.key.data, source->data.key.bytes );
     target->attr.type = source->attr.type;
     target->attr.bits = source->attr.bits;
 

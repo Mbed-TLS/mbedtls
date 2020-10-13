@@ -161,6 +161,27 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
                                        const uint8_t *data,
                                        size_t data_length );
 
+/** Copy key data (in export format) into an empty key slot.
+ *
+ * This function assumes that the slot does not contain
+ * any key material yet. On failure, the slot content is unchanged.
+ *
+ * \param[in,out] slot          Key slot to copy the key into.
+ * \param[in] data              Buffer containing the key material.
+ * \param data_length           Size of the key buffer.
+ *
+ * \retval #PSA_SUCCESS
+ *         The key has been copied successfully.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ *         Not enough memory was available for allocation of the
+ *         copy buffer.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         There was other key material already present in the slot.
+ */
+psa_status_t psa_copy_key_material_into_slot( psa_key_slot_t *slot,
+                                              const uint8_t *data,
+                                              size_t data_length );
+
 
 /** Convert an mbed TLS error code to a PSA error code
  *

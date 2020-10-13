@@ -6875,6 +6875,7 @@ void mbedtls_mps_l3_basic_handshake(
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
+    else
 #endif
     {
         build_mock_transforms( dummy_c, dummy_s, 1, 5 );
@@ -8232,6 +8233,7 @@ void mbedtls_mps_l3_basic_ccs( int allocator_buffer_sz,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
+    else
 #endif
     {
         build_mock_transforms( dummy_c, dummy_s, 1, 5 );
@@ -9951,6 +9953,7 @@ exit:
      */
 
     TEST_ASSERT( mbedtls_mps_free( &srv ) == 0 );
+    TEST_ASSERT( mbedtls_mps_free( &cli ) == 0 );
     TEST_ASSERT( mps_l3_free( &cli_l3 ) == 0 );
     TEST_ASSERT( mps_l3_free( &srv_l3 ) == 0 );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
@@ -9959,8 +9962,17 @@ exit:
     mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
-    layer0_dgram_free( &s2c_d );
-    layer0_dgram_free( &c2s_d );
+
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
+    {
+        layer0_free( &s2c );
+        layer0_free( &c2s );
+    }
+    else
+    {
+        layer0_dgram_free( &s2c_d );
+        layer0_dgram_free( &c2s_d );
+    }
 }
 /* END_CASE */
 
@@ -10155,6 +10167,7 @@ exit:
      */
 
     TEST_ASSERT( mbedtls_mps_free( &srv ) == 0 );
+    TEST_ASSERT( mbedtls_mps_free( &cli ) == 0 );
     TEST_ASSERT( mps_l3_free( &cli_l3 ) == 0 );
     TEST_ASSERT( mps_l3_free( &srv_l3 ) == 0 );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
@@ -10163,8 +10176,17 @@ exit:
     mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
-    layer0_dgram_free( &s2c_d );
-    layer0_dgram_free( &c2s_d );
+
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
+    {
+        layer0_free( &s2c );
+        layer0_free( &c2s );
+    }
+    else
+    {
+        layer0_dgram_free( &s2c_d );
+        layer0_dgram_free( &c2s_d );
+    }
 }
 /* END_CASE */
 

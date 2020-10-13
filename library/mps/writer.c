@@ -91,7 +91,9 @@ int mbedtls_writer_feed( mbedtls_writer *wr,
         if( copy_from_queue > buf_len )
             copy_from_queue = buf_len;
         queue += qa;
-        memcpy( buf, queue, copy_from_queue );
+
+        if( copy_from_queue != 0 )
+            memcpy( buf, queue, copy_from_queue );
 
         /* Check if, after the last copy, the entire
          * queue has been dispatched. */

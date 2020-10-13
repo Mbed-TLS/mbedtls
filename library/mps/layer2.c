@@ -2321,6 +2321,8 @@ int l2_in_update_counter( mbedtls_mps_l2 *ctx,
             {
                 /* Update window_top and the contents of the window */
                 uint32_t shift = ctr_lo - window_top_lo;
+                if( shift >= 32 )
+                    shift = 0;
                 window <<= shift;
                 window_top_lo = ctr_lo;
             }

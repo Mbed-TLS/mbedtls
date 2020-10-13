@@ -6167,24 +6167,34 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
     if( status != PSA_SUCCESS )
         goto exit;
 
+    /* In the case of a transparent key or an opaque key stored in local
+     * storage (thus not in the case of generating a key in a secure element
+     * or cryptoprocessor with storage), we have to allocate a buffer to
+     * hold the generated key material. */
+    if( slot->key.data == NULL )
+    {
+        if ( PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime ) ==
+             PSA_KEY_LOCATION_LOCAL_STORAGE )
+        {
+            status = psa_get_key_buffer_size( attributes->core.type,
+                                              attributes->core.bits,
+                                              &key_buffer_size );
+        }
+        else
+        {
+            status = psa_driver_wrapper_get_key_buffer_size(
+                         attributes, &key_buffer_size );
+        }
+        if( status != PSA_SUCCESS )
+            goto exit;
+
+        status = psa_allocate_buffer_to_slot( slot, key_buffer_size );
+        if( status != PSA_SUCCESS )
+            goto exit;
+    }
+
     status = psa_driver_wrapper_generate_key( attributes,
-                                              slot );
-    if( status != PSA_ERROR_NOT_SUPPORTED ||
-        psa_key_lifetime_is_external( attributes->core.lifetime ) )
-        goto exit;
-
-    status = psa_get_key_buffer_size( attributes->core.type,
-                                      attributes->core.bits,
-                                      &key_buffer_size );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    status = psa_allocate_buffer_to_slot( slot, key_buffer_size );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    status = psa_generate_key_internal(
-        attributes, slot->key.data, slot->key.bytes, &slot->key.bytes );
+        slot->key.data, slot->key.bytes, &slot->key.bytes );
 
     if( status != PSA_SUCCESS )
         psa_remove_key_data_from_memory( slot );

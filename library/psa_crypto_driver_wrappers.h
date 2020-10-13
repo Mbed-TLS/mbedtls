@@ -69,7 +69,7 @@ psa_status_t psa_driver_wrapper_get_key_buffer_size(
 
 psa_status_t psa_driver_wrapper_generate_key(
     const psa_key_attributes_t *attributes,
-    psa_key_slot_t *slot );
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length );
 
 /*
  * Cipher functions

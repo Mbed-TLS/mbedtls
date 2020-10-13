@@ -2,7 +2,7 @@
  * \file psa/crypto_config.h
  * \brief PSA crypto configuration options (set of defines)
  *
-*/
+ */
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 /**
  * When #MBEDTLS_PSA_CRYPTO_CONFIG is enabled in config.h,

@@ -43,8 +43,17 @@ psa_status_t psa_driver_wrapper_verify_hash( psa_key_slot_t *slot,
                                              const uint8_t *signature,
                                              size_t signature_length );
 
+/*
+ * Key handling functions
+ */
+
 psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attributes,
                                               psa_key_slot_t *slot );
+
+psa_status_t psa_driver_wrapper_validate_key( const psa_key_attributes_t *attributes,
+                                              const uint8_t *data,
+                                              size_t data_length,
+                                              size_t *bits );
 
 /*
  * Cipher functions

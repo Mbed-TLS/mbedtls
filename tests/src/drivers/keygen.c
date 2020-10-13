@@ -1,6 +1,6 @@
 /*
- * Test driver for generating keys.
- * Currently only supports generating ECC keys.
+ * Test driver for generating and verifying keys.
+ * Currently only supports generating and verifying ECC keys.
  */
 /*  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -120,6 +120,114 @@ psa_status_t test_opaque_generate_key(
     (void) key_size;
     (void) key_length;
     return( PSA_ERROR_NOT_SUPPORTED );
+}
+
+psa_status_t test_transparent_validate_key(const psa_key_attributes_t *attributes,
+                                           const uint8_t *data,
+                                           size_t data_length,
+                                           size_t *bits)
+{
+    ++test_driver_keygen_hooks.hits;
+
+    if( test_driver_keygen_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_keygen_hooks.forced_status );
+
+#if defined(MBEDTLS_ECP_C)
+    psa_key_type_t type = psa_get_key_type( attributes );
+    if ( PSA_KEY_TYPE_IS_ECC( type ) )
+    {
+        // Code mostly copied from psa_load_ecp_representation
+        psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( type );
+        mbedtls_ecp_group_id grp_id;
+        mbedtls_ecp_keypair ecp;
+        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+        if( *bits == 0 )
+        {
+            // Attempt auto-detect of curve bit size
+            size_t curve_size = data_length;
+
+            if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) &&
+                PSA_KEY_TYPE_ECC_GET_FAMILY( type ) != PSA_ECC_FAMILY_MONTGOMERY )
+            {
+                /* A Weierstrass public key is represented as:
+                 * - The byte 0x04;
+                 * - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
+                 * - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
+                 * So its data length is 2m+1 where n is the key size in bits.
+                 */
+                if( ( data_length & 1 ) == 0 )
+                    return( PSA_ERROR_INVALID_ARGUMENT );
+                curve_size = data_length / 2;
+
+                /* Montgomery public keys are represented in compressed format, meaning
+                 * their curve_size is equal to the amount of input. */
+
+                /* Private keys are represented in uncompressed private random integer
+                 * format, meaning their curve_size is equal to the amount of input. */
+            }
+
+            grp_id = mbedtls_ecc_group_of_psa( curve, curve_size );
+        }
+        else
+        {
+            grp_id = mbedtls_ecc_group_of_psa( curve,
+                PSA_BITS_TO_BYTES( psa_get_key_bits( attributes ) ) );
+        }
+
+        const mbedtls_ecp_curve_info *curve_info =
+            mbedtls_ecp_curve_info_from_grp_id( grp_id );
+
+        if( attributes->domain_parameters_size != 0 )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
+
+        *bits = curve_info->bit_size;
+
+        mbedtls_ecp_keypair_init( &ecp );
+
+        status = mbedtls_to_psa_error(
+                    mbedtls_ecp_group_load( &ecp.grp, grp_id ) );
+        if( status != PSA_SUCCESS )
+            goto ecp_exit;
+
+        /* Load the key material. */
+        if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
+        {
+            /* Load the public value. */
+            status = mbedtls_to_psa_error(
+                mbedtls_ecp_point_read_binary( &ecp.grp, &ecp.Q,
+                                               data,
+                                               data_length ) );
+            if( status != PSA_SUCCESS )
+                goto ecp_exit;
+
+            /* Check that the point is on the curve. */
+            status = mbedtls_to_psa_error(
+                mbedtls_ecp_check_pubkey( &ecp.grp, &ecp.Q ) );
+        }
+        else
+        {
+            /* Load and validate the secret value. */
+            status = mbedtls_to_psa_error(
+                mbedtls_ecp_read_key( ecp.grp.id,
+                                      &ecp,
+                                      data,
+                                      data_length ) );
+        }
+
+ecp_exit:
+        mbedtls_ecp_keypair_free( &ecp );
+        return( status );
+    }
+    return( PSA_ERROR_NOT_SUPPORTED );
+#else
+    (void) data;
+    (void) data_length;
+    (void) bits;
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* MBEDTLS_ECP_C */
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

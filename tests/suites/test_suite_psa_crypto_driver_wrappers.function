@@ -184,6 +184,40 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+void validate_key( int force_status_arg,
+                   int key_type_arg,
+                   data_t *key_input,
+                   int expected_status_arg )
+{
+    psa_status_t force_status = force_status_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_type_t key_type = key_type_arg;
+    psa_key_handle_t handle = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t actual_status;
+    test_driver_keygen_hooks = test_driver_keygen_hooks_init();
+
+    psa_set_key_type( &attributes,
+                      key_type );
+    psa_set_key_bits( &attributes, 0 );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
+
+    test_driver_keygen_hooks.forced_status = force_status;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    actual_status = psa_import_key( &attributes, key_input->x, key_input->len, &handle );
+    TEST_EQUAL( test_driver_keygen_hooks.hits, 1 );
+    TEST_EQUAL( actual_status, expected_status );
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( handle );
+    PSA_DONE( );
+    test_driver_keygen_hooks = test_driver_keygen_hooks_init();
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void cipher_encrypt( int alg_arg, int key_type_arg,
                      data_t *key, data_t *iv,

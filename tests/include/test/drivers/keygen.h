@@ -1,5 +1,5 @@
 /*
- * Test driver for generating keys.
+ * Test driver for generating and verifying keys.
  */
 /*  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -56,6 +56,11 @@ psa_status_t test_transparent_generate_key(
 psa_status_t test_opaque_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key, size_t key_size, size_t *key_length );
+
+psa_status_t test_transparent_validate_key(const psa_key_attributes_t *attributes,
+                                           const uint8_t *data,
+                                           size_t data_length,
+                                           size_t *bits);
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_TEST_DRIVERS_KEYGEN_H */

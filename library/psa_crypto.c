@@ -977,6 +977,7 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
                                        size_t data_length )
 {
     psa_status_t status = PSA_SUCCESS;
+    size_t bit_size;
 
     /* zero-length keys are never supported. */
     if( data_length == 0 )
@@ -984,7 +985,7 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
 
     if( key_type_is_raw_bytes( slot->attr.type ) )
     {
-        size_t bit_size = PSA_BYTES_TO_BITS( data_length );
+        bit_size = PSA_BYTES_TO_BITS( data_length );
 
         /* Ensure that the bytes-to-bits conversion hasn't overflown. */
         if( data_length > SIZE_MAX / 8 )

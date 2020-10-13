@@ -1291,10 +1291,8 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
 }
 
 component_test_psa_crypto_config_basic() {
-    # full plus MBEDTLS_PSA_CRYPTO_CONFIG, MBEDTLS_PSA_CRYPTO_DRIVERS,
-    # and PSA_CRYPTO_DRIVER_TEST minus MBEDTLS_USE_PSA_CRYPTO
-    msg "build: full config plus MBEDTLS_PSA_CRYPTO_CONFIG MBEDTLS_PSA_CRYPTO_DRIVERS"
-    msg "build: minus MBEDTLS_USE_PSA_CRYPTO"
+    # full plus MBEDTLS_PSA_CRYPTO_CONFIG
+    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG"
     scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
@@ -1306,12 +1304,10 @@ component_test_psa_crypto_config_basic() {
     make test
 }
 
-component_test_psa_crypto_config_want_ecdsa() {
-    # full plus MBEDTLS_PSA_CRYPTO_CONFIG, MBEDTLS_PSA_CRYPTO_DRIVERS,
-    # and PSA_CRYPTO_DRIVER_TEST minus MBEDTLS_USE_PSA_CRYPTO
-    msg "build: full config plus MBEDTLS_PSA_CRYPTO_CONFIG, MBEDTLS_PSA_CRYPTO_DRIVERS,"
-    msg "build: PSA_CRYPTO_DRIVER_TEST, MBEDTLS_PSA_ACCEL_ALG_ECDSA,"
-    msg "build: PSA_WANT_ALG_ECDSA minus MBEDTLS_USE_PSA_CRYPTO"
+component_test_psa_want_ecdsa_disabled_software() {
+    # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_ECDSA
+    # without MBEDTLS_ECDSA_C
+    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ALG_ECDSA without MBEDTLS_ECDSA_C"
     scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
@@ -1320,7 +1316,7 @@ component_test_psa_crypto_config_want_ecdsa() {
     scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_ALG_ECDSA
     scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_ALG_ECDSA_DETERMINISTIC
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DMBEDTLS_PSA_ACCEL_ALG_ECDSA -DPSA_CRYPTO_DRIVER_TEST -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: psa crypto config want ECDSA"
     make test

@@ -2179,26 +2179,16 @@ exit:
 static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
                                            psa_key_slot_t *target )
 {
-    psa_status_t status;
-    uint8_t *buffer = NULL;
-    size_t buffer_size = 0;
-    size_t length;
-
-    buffer_size = PSA_KEY_EXPORT_MAX_SIZE( source->attr.type,
-                                           psa_get_key_slot_bits( source ) );
-    buffer = mbedtls_calloc( 1, buffer_size );
-    if( buffer == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-    status = psa_internal_export_key( source, buffer, buffer_size, &length, 0 );
+    psa_status_t status = psa_allocate_buffer_to_slot( target,
+                                                       source->data.key.bytes );
     if( status != PSA_SUCCESS )
-        goto exit;
-    target->attr.type = source->attr.type;
-    status = psa_import_key_into_slot( target, buffer, length );
+        return( status );
 
-exit:
-    mbedtls_platform_zeroize( buffer, buffer_size );
-    mbedtls_free( buffer );
-    return( status );
+    memcpy( target->data.key.data, source->data.key.data, source->data.key.bytes );
+    target->attr.type = source->attr.type;
+    target->attr.bits = source->attr.bits;
+
+    return( PSA_SUCCESS );
 }
 
 psa_status_t psa_copy_key( psa_key_handle_t source_handle,

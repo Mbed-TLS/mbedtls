@@ -10195,7 +10195,7 @@ exit:
 void mbedtls_mps_l4_hs_inconsistent_continuation( int variant )
 {
     /* This test exercises the behaviour of the retransmission state machine
-     * when facing inconsistent handshake fragments during ressembly. The
+     * when facing inconsistent handshake fragments during reassembly. The
      * following inconsistencies are considered:
      * - Inconsistent total length (variant == 0)
      * - Inconsistent handshake type (variant == 1)

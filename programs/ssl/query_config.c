@@ -1850,6 +1850,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_USE_TINYCRYPT */
 
+#if defined(MBEDTLS_OPTIMIZE_TINYCRYPT_ASM)
+    if( strcmp( "MBEDTLS_OPTIMIZE_TINYCRYPT_ASM", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_OPTIMIZE_TINYCRYPT_ASM );
+        return( 0 );
+    }
+#endif /* MBEDTLS_OPTIMIZE_TINYCRYPT_ASM */
+
 #if defined(MBEDTLS_ENTROPY_C)
     if( strcmp( "MBEDTLS_ENTROPY_C", config ) == 0 )
     {

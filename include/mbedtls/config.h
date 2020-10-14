@@ -2703,6 +2703,21 @@
 //#define MBEDTLS_USE_TINYCRYPT
 
 /**
+ * \def MBEDTLS_OPTIMIZE_TINYCRYPT_ASM
+ *
+ * Optimize TinyCrypt operations using assembly.
+ * Add T32/A32 assembly for core tinycrypt/microecc routines, for ARMC5 and GCC;
+ * Use fast integer types to avoid frequent narrowing instructions;
+ * Use __builtin_clz and avoid boolean ops.
+ *
+ * Requires: MBEDTLS_USE_TINYCRYPT
+ *           MBEDTLS_HAVE_ASM
+ *
+ * Module:  tinycrypt/ecc.c
+ */
+//#define MBEDTLS_OPTIMIZE_TINYCRYPT_ASM
+
+/**
  * \def MBEDTLS_ENTROPY_C
  *
  * Enable the platform-specific entropy code.

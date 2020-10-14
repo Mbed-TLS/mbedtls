@@ -70,15 +70,15 @@
 #include <string.h>
 #include "mbedtls/platform_util.h"
 
+#if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM
 #ifdef __CC_ARM
 #pragma diag_suppress 667 // strict diagnostic: "asm" function is nonstandard
 #endif
 
-#if defined MBEDTLS_HAVE_ASM
 #ifndef asm
 #define asm __asm
 #endif
-#endif
+#endif /* MBEDTLS_OPTIMIZE_TINYCRYPT_ASM */
 
 /* Parameters for curve NIST P-256 aka secp256r1 */
 const uECC_word_t curve_p[NUM_ECC_WORDS] = {
@@ -214,7 +214,7 @@ int uECC_curve_public_key_size(void)
 	return 2 * NUM_ECC_BYTES;
 }
 
-#if defined MBEDTLS_HAVE_ASM && defined __CC_ARM
+#if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __CC_ARM
 __asm void uECC_vli_clear(uECC_word_t *vli)
 {
 #if NUM_ECC_WORDS != 8
@@ -237,7 +237,7 @@ __asm void uECC_vli_clear(uECC_word_t *vli)
     BX      lr
 #endif
 }
-#elif defined MBEDTLS_HAVE_ASM && defined __GNUC__ && defined __arm__
+#elif defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __GNUC__ && defined __arm__
 void uECC_vli_clear(uECC_word_t *vli)
 {
 #if NUM_ECC_WORDS != 8
@@ -281,7 +281,7 @@ void uECC_vli_clear(uECC_word_t *vli)
 }
 #endif
 
-#if defined MBEDTLS_HAVE_ASM && defined __CC_ARM
+#if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __CC_ARM
 __asm uECC_word_t uECC_vli_isZero(const uECC_word_t *vli)
 {
 #if NUM_ECC_WORDS != 8
@@ -323,7 +323,7 @@ __asm uECC_word_t uECC_vli_isZero(const uECC_word_t *vli)
     BX      lr
 #endif
 }
-#elif defined MBEDTLS_HAVE_ASM && defined __GNUC__ && defined __arm__
+#elif defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __GNUC__ && defined __arm__
 uECC_word_t uECC_vli_isZero(const uECC_word_t *vli)
 {
     uECC_word_t ret;
@@ -501,7 +501,7 @@ uECC_word_t cond_set(uECC_word_t p_true, uECC_word_t p_false, unsigned int cond)
 
 /* Computes result = left - right, returning borrow, in constant time.
  * Can modify in place. */
-#if defined MBEDTLS_HAVE_ASM && defined __CC_ARM
+#if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __CC_ARM
 __asm uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
                 const uECC_word_t *right)
 {
@@ -556,7 +556,7 @@ __asm uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
     POP     {r4-r8,pc}
 #endif
 }
-#elif defined MBEDTLS_HAVE_ASM && defined __GNUC__ && defined __arm__
+#elif defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __GNUC__ && defined __arm__
 uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
              const uECC_word_t *right)
 {
@@ -638,7 +638,7 @@ uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
 
 /* Computes result = left + right, returning carry, in constant time.
  * Can modify in place. */
-#if defined MBEDTLS_HAVE_ASM && defined __CC_ARM
+#if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __CC_ARM
 static __asm uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *left,
                 const uECC_word_t *right)
 {
@@ -693,7 +693,7 @@ static __asm uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *le
     POP     {r4-r8,pc}
 #endif
 }
-#elif defined MBEDTLS_HAVE_ASM && defined __GNUC__ && defined __arm__
+#elif defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __GNUC__ && defined __arm__
 static uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *left,
                 const uECC_word_t *right)
 {
@@ -779,7 +779,7 @@ cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right)
 }
 
 /* Computes vli = vli >> 1. */
-#if defined MBEDTLS_HAVE_ASM && defined __CC_ARM
+#if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __CC_ARM
 static __asm void uECC_vli_rshift1(uECC_word_t *vli)
 {
 #if defined __thumb__ &&  __TARGET_ARCH_THUMB < 4
@@ -818,7 +818,7 @@ static __asm void uECC_vli_rshift1(uECC_word_t *vli)
     BX      lr
 #endif
 }
-#elif defined MBEDTLS_HAVE_ASM && defined __GNUC__ && defined __arm__ && defined __thumb2__
+#elif defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __GNUC__ && defined __arm__ && defined __thumb2__
 static void uECC_vli_rshift1(uECC_word_t *vli)
 {
     register uECC_word_t *r0 asm ("r0") = vli;
@@ -867,7 +867,7 @@ static void uECC_vli_rshift1(uECC_word_t *vli)
  * [in] r: 3 words of operand to add
  * [out] r: 3 words of result
  */
-#if defined MBEDTLS_HAVE_ASM && defined __CC_ARM
+#if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __CC_ARM
 static __asm void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
 {
 #if defined __thumb__ &&  __TARGET_ARCH_THUMB < 4
@@ -917,7 +917,7 @@ static __asm void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
     BX      lr
 #endif
 }
-#elif defined MBEDTLS_HAVE_ASM && defined __GNUC__ && defined __arm__
+#elif defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __GNUC__ && defined __arm__
 static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
 {
     register uECC_word_t r0 asm ("r0") = a;

@@ -650,16 +650,18 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
                            mbedtls_mps_epoch_id epoch_id )
 {
     int ret;
-    unsigned char *rec_buf; /* The buffer received from Layer 1
-                             * to which we write the record.       */
-    size_t total_sz;        /* The total size of rec_buf in bytes. */
-    size_t hdr_len;         /* The length of the record header.    */
-    size_t pre_expansion;   /* The amount of data (in bytes) that
-                             * the transform protecting the record
-                             * adds in front of the plaintext.     */
-    size_t post_expansion;  /* The amount of data (in bytes) that
-                             * the transform protecting the record
-                             * adds beyond the plaintext.          */
+    unsigned char *rec_buf;    /* The buffer received from Layer 1
+                                * to which we write the record.       */
+    size_t total_sz;           /* The total size of rec_buf in bytes. */
+    size_t hdr_len;            /* The length of the record header.    */
+    size_t pre_expansion;      /* The amount of data (in bytes) that
+                                * the transform protecting the record
+                                * adds in front of the plaintext.     */
+    size_t post_expansion;     /* The amount of data (in bytes) that
+                                * the transform protecting the record
+                                * adds beyond the plaintext.          */
+    size_t max_plaintext_len;  /* The maximum number of plaintext bytes
+                                * that the outgoing record can hold.  */
 
     mbedtls_mps_l2_epoch_t *epoch;
 
@@ -733,6 +735,12 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
         RETURN( MBEDTLS_ERR_MPS_RETRY );
     }
 
+    /* The previous check ensures that the following is >= 1. */
+    max_plaintext_len = total_sz - ( hdr_len + pre_expansion + post_expansion );
+    /* Obey maximum plaintext size configured by the user. */
+    if( max_plaintext_len > mbedtls_mps_l2_conf_get_max_plain_out( &ctx->conf ) )
+        max_plaintext_len = mbedtls_mps_l2_conf_get_max_plain_out( &ctx->conf );
+
     /* Dissect L1 record buffer into header, ciphertext and plaintext parts.
      * The plaintext sub-buffer can subsequently be fed to the writer which
      * then gets passed to the user, i.e. Layer 3. */
@@ -744,8 +752,7 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
     ctx->io.out.payload.buf_len = total_sz - hdr_len;
 
     ctx->io.out.payload.data_offset = pre_expansion;
-    ctx->io.out.payload.data_len    = total_sz -
-        ( hdr_len + pre_expansion + post_expansion );
+    ctx->io.out.payload.data_len    = max_plaintext_len;
 
     epoch->usage |= MPS_EPOCH_USAGE_INTERNAL_OUT_RECORD_OPEN;
 

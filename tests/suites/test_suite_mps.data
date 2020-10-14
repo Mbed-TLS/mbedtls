@@ -806,10 +806,10 @@ MPS Layer 3 TLS: Multiple CCS messages, real transform, merging
 mbedtls_mps_l3_basic_ccs:100:10000:100:1:100:1
 
 MPS Layer 3 TLS: Interleave fragmented handshake message with alert, real transforms
-mbedtls_mps_l3_handshake_alert_interleaved:74:10000:100:1:5
+mbedtls_mps_l3_handshake_alert_interleaved:100:10000:100:1:5:4
 
 MPS Layer 3 TLS: Interleave fragmented handshake message with alert, fake transforms
-mbedtls_mps_l3_handshake_alert_interleaved:75:10000:100:0:5
+mbedtls_mps_l3_handshake_alert_interleaved:100:10000:100:0:5:4
 
 MPS Layer 3 TLS: Random communication, fake transforms
 mbedtls_mps_l3_random:100:200:1:3:200:0:50:50

@@ -8358,7 +8358,8 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
                                                  int layer0_buffer_sz,
                                                  int rec_sz,
                                                  int real_transforms,
-                                                 int num_msgs )
+                                                 int num_msgs,
+                                                 int max_out )
 {
     /* This test is based on the test for gradual handshake sending
      * and receiving, but exercises the behavior of Layer 2 if a handshake
@@ -8477,6 +8478,9 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
     TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_ALERT,
                                          treat_alert_as_pausable == 1,
                                          1, 1 ) == 0 );
+
+    cli_l2.conf.max_plain_out = max_out;
+    srv_l2.conf.max_plain_out = max_out;
 
     /* Initialize Layer 3 */
     TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );

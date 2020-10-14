@@ -63,6 +63,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
 #include <tinycrypt/ecc.h>
 #include "mbedtls/platform_util.h"
 #include "mbedtls/sha256.h"
@@ -1853,3 +1854,4 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key)
 
 	return ret;
 }
+#endif /* MBEDTLS_USE_TINYCRYPT */

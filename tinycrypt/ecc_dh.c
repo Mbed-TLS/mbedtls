@@ -66,6 +66,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
 #include <tinycrypt/ecc.h>
 #include <tinycrypt/ecc_dh.h>
 #include <string.h>
@@ -195,3 +196,4 @@ int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
 
 	return UECC_FAULT_DETECTED;
 }
+#endif /* MBEDTLS_USE_TINYCRYPT */

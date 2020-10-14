@@ -4105,8 +4105,8 @@ void mbedtls_mps_l2_basic( int mode,
     if( real_transforms == 1 )
     {
         build_real_transforms( dummy_c, dummy_s,
-                          MBEDTLS_CIPHER_AES_128_CBC,
-                          MBEDTLS_MD_SHA1,
+                          MBEDTLS_CIPHER_AES_256_GCM,
+                          MBEDTLS_MD_SHA256,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
@@ -5448,12 +5448,12 @@ void mbedtls_mps_l2_switch_epoch( int mode,
     {
         srand( 0 );
         build_real_transforms( epoch0_c, epoch0_s,
-                          MBEDTLS_CIPHER_AES_128_CBC,
+                          MBEDTLS_CIPHER_AES_256_GCM,
                           MBEDTLS_MD_SHA256,
                           0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
         build_real_transforms( epoch1_c, epoch1_s,
-                          MBEDTLS_CIPHER_AES_128_CBC,
+                          MBEDTLS_CIPHER_AES_256_GCM,
                           MBEDTLS_MD_SHA256,
                           0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
@@ -5845,8 +5845,8 @@ void mbedtls_mps_l2_many_epochs( int mode,
         {
             srand( id );
             build_real_transforms( epochs_c[id], epochs_s[id],
-                              MBEDTLS_CIPHER_AES_128_CBC,
-                              MBEDTLS_MD_SHA1,
+                              MBEDTLS_CIPHER_AES_256_GCM,
+                              MBEDTLS_MD_SHA256,
                               0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                               mbedtls_test_rnd_std_rand, NULL );
         }
@@ -6147,12 +6147,12 @@ void mbedtls_mps_l2_piggyback_data( int mode,
     {
         srand( 0 );
         build_real_transforms( epoch0_c, epoch0_s,
-                          MBEDTLS_CIPHER_AES_128_CBC,
+                          MBEDTLS_CIPHER_AES_256_GCM,
                           MBEDTLS_MD_SHA256,
                           0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
         build_real_transforms( epoch1_c, epoch1_s,
-                          MBEDTLS_CIPHER_AES_128_CBC,
+                          MBEDTLS_CIPHER_AES_256_GCM,
                           MBEDTLS_MD_SHA256,
                           0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
@@ -6363,8 +6363,8 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
         {
             srand( id );
             build_real_transforms( epochs[0][id], epochs[1][id],
-                              MBEDTLS_CIPHER_AES_128_CBC,
-                              MBEDTLS_MD_SHA1,
+                              MBEDTLS_CIPHER_AES_256_GCM,
+                              MBEDTLS_MD_SHA256,
                               0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                               mbedtls_test_rnd_std_rand, NULL );
         }
@@ -6880,8 +6880,8 @@ void mbedtls_mps_l3_basic_handshake(
     if( real_transforms == 1 )
     {
         build_real_transforms( dummy_c, dummy_s,
-                          MBEDTLS_CIPHER_AES_128_CBC,
-                          MBEDTLS_MD_SHA1,
+                          MBEDTLS_CIPHER_AES_256_GCM,
+                          MBEDTLS_MD_SHA256,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
@@ -7454,8 +7454,8 @@ void mbedtls_mps_l3_handshake_gradual( int allocator_buffer_sz,
     if( real_transforms == 1 )
     {
         build_real_transforms( dummy_c, dummy_s,
-                          MBEDTLS_CIPHER_AES_128_CBC,
-                          MBEDTLS_MD_SHA1,
+                          MBEDTLS_CIPHER_AES_256_GCM,
+                          MBEDTLS_MD_SHA256,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
@@ -7832,8 +7832,8 @@ void mbedtls_mps_l3_basic_application( int mode,
     if( real_transforms == 1 )
     {
         build_real_transforms( dummy_c, dummy_s,
-                          MBEDTLS_CIPHER_AES_128_CBC,
-                          MBEDTLS_MD_SHA1,
+                          MBEDTLS_CIPHER_AES_256_GCM,
+                          MBEDTLS_MD_SHA256,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
@@ -8021,8 +8021,8 @@ void mbedtls_mps_l3_basic_alert( int mode,
     if( real_transforms == 1 )
     {
         build_real_transforms( dummy_c, dummy_s,
-                          MBEDTLS_CIPHER_AES_128_CBC,
-                          MBEDTLS_MD_SHA1,
+                          MBEDTLS_CIPHER_AES_256_GCM,
+                          MBEDTLS_MD_SHA256,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
@@ -8238,8 +8238,8 @@ void mbedtls_mps_l3_basic_ccs( int allocator_buffer_sz,
     if( real_transforms == 1 )
     {
         build_real_transforms( dummy_c, dummy_s,
-                          MBEDTLS_CIPHER_AES_128_CBC,
-                          MBEDTLS_MD_SHA1,
+                          MBEDTLS_CIPHER_AES_256_GCM,
+                          MBEDTLS_MD_SHA256,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
@@ -8431,8 +8431,8 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
     if( real_transforms == 1 )
     {
         build_real_transforms( dummy_c, dummy_s,
-                          MBEDTLS_CIPHER_AES_128_CBC,
-                          MBEDTLS_MD_SHA1,
+                          MBEDTLS_CIPHER_AES_256_GCM,
+                          MBEDTLS_MD_SHA256,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
@@ -8867,8 +8867,8 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
         {
             srand( id );
             build_real_transforms( epochs[0][id], epochs[1][id],
-                              MBEDTLS_CIPHER_AES_128_CBC,
-                              MBEDTLS_MD_SHA1,
+                              MBEDTLS_CIPHER_AES_256_GCM,
+                              MBEDTLS_MD_SHA256,
                               0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                               mbedtls_test_rnd_std_rand, NULL );
         }
@@ -9591,8 +9591,8 @@ void mbedtls_mps_l4_basic_handshake(
     if( real_transforms == 1 )
     {
         build_real_transforms( dummy_c, dummy_s,
-                          MBEDTLS_CIPHER_AES_128_CBC,
-                          MBEDTLS_MD_SHA1,
+                          MBEDTLS_CIPHER_AES_256_GCM,
+                          MBEDTLS_MD_SHA256,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }

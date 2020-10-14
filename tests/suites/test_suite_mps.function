@@ -594,6 +594,9 @@ static int build_real_transforms( mbedtls_mps_transform_t *t_in_,
     mbedtls_ssl_transform * const t_in  = &t_in_->real;
     mbedtls_ssl_transform * const t_out = &t_out_->real;
 
+    memset( t_in,  0, sizeof( *t_in ) );
+    memset( t_out, 0, sizeof( *t_out ) );
+
     t_in_->type = 1;
     t_out_->type = 1;
 

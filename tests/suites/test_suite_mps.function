@@ -8514,7 +8514,9 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
             hs_out.type = 12;
             hs_out.len = 8;
             res = mps_l3_write_handshake( &cli, &hs_out );
-            TEST_ASSERT( res == 0 || res == MBEDTLS_ERR_MPS_WANT_WRITE );
+            TEST_ASSERT( res == 0                          ||
+                         res == MBEDTLS_ERR_MPS_WANT_WRITE ||
+                         res == MBEDTLS_ERR_MPS_RETRY );
             if( res != 0 )
                 continue;
 
@@ -8596,7 +8598,16 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
             if( pause == 1 )
             {
                 TEST_ASSERT( mps_l3_pause_handshake( &cli ) == 0 );
-                TEST_ASSERT( mps_l3_flush( &cli ) == 0 );
+
+                while( 1 )
+                {
+                    res = mps_l3_flush( &cli );
+                    TEST_ASSERT( res == 0                          ||
+                                 res == MBEDTLS_ERR_MPS_WANT_WRITE ||
+                                 res == MBEDTLS_ERR_MPS_RETRY );
+                    if( res == 0 )
+                        break;
+                }
 
                 if( send_state == 1 )
                 {
@@ -8620,7 +8631,15 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
         TEST_ASSERT( mps_l3_dispatch( &cli ) == 0 );
     }
 
-    TEST_ASSERT( mps_l3_flush( &cli ) == 0 );
+    while( 1 )
+    {
+        res = mps_l3_flush( &cli );
+        TEST_ASSERT( res == 0                          ||
+                     res == MBEDTLS_ERR_MPS_WANT_WRITE ||
+                     res == MBEDTLS_ERR_MPS_RETRY );
+        if( res == 0 )
+            break;
+    }
 
     /* The test is pointless if the input parameters
      * were chosen in such a way that no handshake write

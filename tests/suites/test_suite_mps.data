@@ -439,31 +439,31 @@ mbedtls_mps_l2_piggyback_data:MBEDTLS_MPS_MODE_DATAGRAM:500:500:0
 
 MPS Layer 2 TLS: Random communication, fake transforms
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_random:100:200:10:5:50:200:0:50:50
+mbedtls_mps_l2_random:100:200:10:5:50:200:0:50:50:100
 
 MPS Layer 2 TLS: Random communication, fake transforms, small records
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_random:37:200:10:5:10:100:0:50:50
+mbedtls_mps_l2_random:100:200:10:5:10:100:0:50:50:1
 
 MPS Layer 2 TLS: Random communication, real transforms
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_random:100:200:10:5:50:200:1:50:50
+mbedtls_mps_l2_random:100:200:10:5:50:200:1:50:50:100
 
 MPS Layer 2 TLS: Random communication, real transforms, small records
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_random:70:200:6:5:10:100:1:50:50
+mbedtls_mps_l2_random:1000:200:6:5:10:100:1:50:50:1
 
 MPS Layer 2 TLS: Random communication, real transforms, small records, 1-byte Layer 0
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_random:70:1:6:5:10:100:1:50:50
+mbedtls_mps_l2_random:1000:1:6:5:10:100:1:50:50:1
 
 MPS Layer 2 TLS: Random communication, real transforms, big records
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_random:1000:200:20:5:10:1000:1:50:50
+mbedtls_mps_l2_random:1000:200:20:5:10:1000:1:50:50:100
 
 MPS Layer 2 TLS: Random communication, real transforms, big records, 1-byte Layer 0
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_random:1000:1:5:5:10:1000:1:50:50
+mbedtls_mps_l2_random:1000:1:5:5:10:1000:1:50:50:100
 
 MPS Layer 3 TLS: HS, fake transform, unknown length #0
 depends_on:MBEDTLS_MPS_PROTO_TLS

@@ -6312,7 +6312,8 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
                             int max_chunk,
                             int real_transforms,
                             int write_probability,
-                            int flush_probability )
+                            int flush_probability,
+                            int max_out )
 {
     int ret;
 
@@ -6426,6 +6427,9 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
                                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
     TEST_ASSERT( mps_l2_config_version( &endpoint[1],
                                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+
+    endpoint[0].conf.max_plain_out = max_out;
+    endpoint[1].conf.max_plain_out = max_out;
 
     TEST_ASSERT( num_types <= 64 );
     for( size_t ty=0; ty < (unsigned) num_types; ty++ )

@@ -117,8 +117,9 @@
 
 #define MBEDTLS_USE_TINYCRYPT
 #define MBEDTLS_HAVE_ASM
-#define MBEDTLS_OPTIMIZE_TINYCRYPT_ASM
-
+#if !( defined(__STRICT_ANSI__) && defined(__CC_ARM) )
+    #define MBEDTLS_OPTIMIZE_TINYCRYPT_ASM
+#endif
 /* X.509 CRT parsing */
 #define MBEDTLS_X509_USE_C
 #define MBEDTLS_X509_CRT_PARSE_C

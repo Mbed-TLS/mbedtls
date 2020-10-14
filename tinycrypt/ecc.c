@@ -71,10 +71,6 @@
 #include "mbedtls/platform_util.h"
 
 #if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM
-#ifdef __CC_ARM
-#pragma diag_suppress 667 // strict diagnostic: "asm" function is nonstandard
-#endif
-
 #ifndef asm
 #define asm __asm
 #endif

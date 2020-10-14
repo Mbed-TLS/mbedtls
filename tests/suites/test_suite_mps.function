@@ -1052,8 +1052,11 @@ int transform_get_expansion( mbedtls_mps_transform_t *transform,
         {
             case MBEDTLS_MODE_GCM:
             case MBEDTLS_MODE_CCM:
+                *post_exp = transform->real.taglen;
+                break;
+
             case MBEDTLS_MODE_STREAM:
-                *post_exp = transform->real.minlen;
+                *post_exp = 0;
                 break;
 
             case MBEDTLS_MODE_CBC:

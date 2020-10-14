@@ -50,7 +50,7 @@
 #ifndef PSA_CRYPTO_CONFIG_H
 #define PSA_CRYPTO_CONFIG_H
 
-#define PSA_WANT_ALG_ECDSA                  1
-#define PSA_WANT_ALG_ECDSA_DETERMINISTIC    1
+#define PSA_WANT_ALG_ECDSA                      1
+#define PSA_WANT_ALG_DETERMINISTIC_ECDSA        1
 
 #endif /* PSA_CRYPTO_CONFIG_H */

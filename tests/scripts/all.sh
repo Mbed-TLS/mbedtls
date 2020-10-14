@@ -1314,7 +1314,7 @@ component_test_psa_want_ecdsa_disabled_software() {
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_ALG_ECDSA
-    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_ALG_ECDSA_DETERMINISTIC
+    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_ALG_DETERMINISTIC_ECDSA
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 

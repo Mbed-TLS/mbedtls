@@ -438,6 +438,59 @@ psa_status_t psa_driver_wrapper_validate_key( const psa_key_attributes_t *attrib
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
+psa_status_t psa_driver_wrapper_export_public_key( const psa_key_slot_t *slot,
+                                                   uint8_t *data,
+                                                   size_t data_size,
+                                                   size_t *data_length )
+{
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime);
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+
+    switch( location )
+    {
+        case PSA_KEY_LOCATION_LOCAL_STORAGE:
+            /* Key is stored in the slot in export representation, so
+             * cycle through all known transparent accelerators */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+            status = test_transparent_export_public_key( &attributes,
+                                                         slot->data.key.data,
+                                                         slot->data.key.bytes,
+                                                         data,
+                                                         data_size,
+                                                         data_length );
+            /* Declared with fallback == true */
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+            /* Fell through, meaning no accelerator supports this operation */
+            return( PSA_ERROR_NOT_SUPPORTED );
+        /* Add cases for opaque driver here */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+            return( test_opaque_export_public_key( &attributes,
+                                                   slot->data.key.data,
+                                                   slot->data.key.bytes,
+                                                   data,
+                                                   data_size,
+                                                   data_length ) );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+        default:
+            /* Key is declared with a lifetime not known to us */
+            return( status );
+    }
+#else /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+    (void) slot;
+    (void) data;
+    (void) data_size;
+    (void) data_length;
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+}
+
 /*
  * Cipher functions
  */

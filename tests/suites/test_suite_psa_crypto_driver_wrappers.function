@@ -218,6 +218,73 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+void export_key( int force_status_arg,
+                 data_t *fake_output,
+                 int key_in_type_arg,
+                 data_t *key_in,
+                 int key_out_type_arg,
+                 data_t *expected_output,
+                 int expected_status_arg )
+{
+    psa_status_t force_status = force_status_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_handle_t handle = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_type_t input_key_type = key_in_type_arg;
+    psa_key_type_t output_key_type = key_out_type_arg;
+    const uint8_t *expected_output_ptr = NULL;
+    size_t expected_output_length = 0;
+    psa_status_t actual_status;
+    uint8_t actual_output[PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(256)] = {0};
+    size_t actual_output_length;
+    test_driver_keygen_hooks = test_driver_keygen_hooks_init();
+
+    psa_set_key_type( &attributes, input_key_type );
+    psa_set_key_bits( &attributes, 256 );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_in->x, key_in->len, &handle ) );
+
+    if( fake_output->len > 0 )
+    {
+        expected_output_ptr = test_driver_keygen_hooks.forced_output = fake_output->x;
+        expected_output_length = test_driver_keygen_hooks.forced_output_length =
+            fake_output->len;
+    }
+    else
+    {
+        expected_output_ptr = expected_output->x;
+        expected_output_length = expected_output->len;
+    }
+
+    test_driver_keygen_hooks.hits = 0;
+    test_driver_keygen_hooks.forced_status = force_status;
+
+    if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( output_key_type ) )
+        actual_status = psa_export_public_key( handle, actual_output, sizeof(actual_output), &actual_output_length );
+    else
+        actual_status = psa_export_key( handle, actual_output, sizeof(actual_output), &actual_output_length );
+    TEST_EQUAL( actual_status, expected_status );
+
+    if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( output_key_type ) &&
+        !PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( input_key_type ) )
+        TEST_EQUAL( test_driver_keygen_hooks.hits, 1 );
+
+    if( actual_status == PSA_SUCCESS )
+    {
+        ASSERT_COMPARE( actual_output, actual_output_length,
+                        expected_output_ptr, expected_output_length );
+    }
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( handle );
+    PSA_DONE( );
+    test_driver_keygen_hooks = test_driver_keygen_hooks_init();
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void cipher_encrypt( int alg_arg, int key_type_arg,
                      data_t *key, data_t *iv,

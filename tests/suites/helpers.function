@@ -121,6 +121,7 @@ typedef struct data_tag
     TEST_ASSERT( ( expr1 ) == ( expr2 ) )
 
 /** Allocate memory dynamically and fail the test case if this fails.
+ * The allocated memory will be filled with zeros.
  *
  * You must set \p pointer to \c NULL before calling this macro and
  * put `mbedtls_free( pointer )` in the test's cleanup code.

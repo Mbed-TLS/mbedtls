@@ -73,37 +73,72 @@ psa_status_t psa_validate_key_id(
     return( PSA_ERROR_INVALID_HANDLE );
 }
 
-static psa_key_slot_t* psa_get_slot_from_volatile_key_id(
-    mbedtls_svc_key_id_t key )
+/** Search for the description of a key given its identifier.
+ *
+ *  The descriptions of volatile keys and loaded persistent keys are
+ *  stored in key slots. This function returns a pointer to the key slot
+ *  containing the description of a key given its identifier.
+ *
+ *  The function searches the key slots containing the description of the key
+ *  with \p key identifier. The function does only read accesses to the key
+ *  slots. The function does not load any persistent key thus does not access
+ *  any storage.
+ *
+ *  For volatile key identifiers, only one key slot is queried as a volatile
+ *  key with identifier key_id can only be stored in slot of index
+ *  ( key_id - PSA_KEY_ID_VOLATILE_MIN ).
+ *
+ * \param key           Key identifier to query.
+ * \param[out] p_slot   On success, `*p_slot` contains a pointer to the
+ *                      key slot containing the description of the key
+ *                      identified by \p key.
+ *
+ * \retval PSA_SUCCESS
+ *         The pointer to the key slot containing the description of the key
+ *         identified by \p key was returned.
+ * \retval PSA_ERROR_INVALID_HANDLE
+ *         \p key is not a valid key identifier.
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
+ *         There is no key with key identifier \p key in the key slots.
+ */
+static psa_status_t psa_search_key_in_slots(
+    mbedtls_svc_key_id_t key, psa_key_slot_t **p_slot )
 {
-    psa_key_slot_t *slot;
     psa_key_id_t key_id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key );
+    psa_key_slot_t *slot = NULL;
 
-    if( ( key_id < PSA_KEY_ID_VOLATILE_MIN ) ||
-        ( key_id > PSA_KEY_ID_VOLATILE_MAX ) )
-        return( NULL );
+    psa_status_t status = psa_validate_key_id( key, 1, 1 );
+    if( status != PSA_SUCCESS )
+        return( status );
 
-    slot = &global_data.key_slots[ key_id - PSA_KEY_ID_VOLATILE_MIN ];
-
-    return( mbedtls_svc_key_id_equal( key, slot->attr.id ) ? slot : NULL );
-}
-
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-static psa_key_slot_t* psa_get_slot_from_key_id(
-    mbedtls_svc_key_id_t key )
-{
-    psa_key_slot_t *slot = &global_data.key_slots[ PSA_KEY_SLOT_COUNT ];
-
-    while( slot > &global_data.key_slots[ 0 ] )
+    if( psa_key_id_is_volatile( key_id ) )
     {
-        slot--;
-        if( mbedtls_svc_key_id_equal( key, slot->attr.id ) )
-            return( slot );
+        slot = &global_data.key_slots[ key_id - PSA_KEY_ID_VOLATILE_MIN ];
+
+        if( ! mbedtls_svc_key_id_equal( key, slot->attr.id ) )
+             status = PSA_ERROR_DOES_NOT_EXIST;
+    }
+    else
+    {
+        status = PSA_ERROR_DOES_NOT_EXIST;
+        slot = &global_data.key_slots[ PSA_KEY_SLOT_COUNT ];
+
+        while( slot > &global_data.key_slots[ 0 ] )
+        {
+            slot--;
+            if( mbedtls_svc_key_id_equal( key, slot->attr.id ) )
+            {
+                status = PSA_SUCCESS;
+                break;
+            }
+        }
     }
 
-    return( NULL );
+    if( status == PSA_SUCCESS )
+        *p_slot = slot;
+
+    return( status );
 }
-#endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
 psa_status_t psa_initialize_key_slots( void )
 {
@@ -191,26 +226,18 @@ exit:
 psa_status_t psa_get_key_slot( mbedtls_svc_key_id_t key,
                                psa_key_slot_t **p_slot )
 {
-    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     *p_slot = NULL;
     if( ! global_data.key_slots_initialized )
         return( PSA_ERROR_BAD_STATE );
 
-    status = psa_validate_key_id( key, 1, 1 );
-    if( status != PSA_SUCCESS )
+    status = psa_search_key_in_slots( key, p_slot );
+    if( status != PSA_ERROR_DOES_NOT_EXIST )
         return( status );
-
-    *p_slot = psa_get_slot_from_volatile_key_id( key );
-    if( *p_slot != NULL )
-        return( PSA_SUCCESS );
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     psa_key_id_t volatile_key_id;
-
-    *p_slot = psa_get_slot_from_key_id( key );
-    if( *p_slot != NULL )
-        return( PSA_SUCCESS );
 
     status = psa_get_empty_key_slot( &volatile_key_id, p_slot );
     if( status != PSA_SUCCESS )

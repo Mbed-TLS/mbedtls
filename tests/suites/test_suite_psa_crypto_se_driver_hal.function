@@ -3,6 +3,7 @@
 #include "psa/crypto_se_driver.h"
 
 #include "psa_crypto_se.h"
+#include "psa_crypto_slot_management.h"
 #include "psa_crypto_storage.h"
 
 /* Invasive peeking: check the persistent data */

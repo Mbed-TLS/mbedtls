@@ -51,7 +51,8 @@ typedef struct
 
 static psa_global_data_t global_data;
 
-psa_status_t psa_validate_key_id( mbedtls_svc_key_id_t key, int vendor_ok )
+psa_status_t psa_validate_key_id(
+    mbedtls_svc_key_id_t key, int vendor_ok, int volatile_ok )
 {
     psa_key_id_t key_id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key );
 
@@ -61,7 +62,12 @@ psa_status_t psa_validate_key_id( mbedtls_svc_key_id_t key, int vendor_ok )
 
     if( vendor_ok &&
         ( PSA_KEY_ID_VENDOR_MIN <= key_id ) &&
-        ( key_id <= PSA_KEY_ID_VENDOR_MAX ) )
+        ( key_id < PSA_KEY_ID_VOLATILE_MIN ) )
+        return( PSA_SUCCESS );
+
+    if( volatile_ok &&
+        ( PSA_KEY_ID_VOLATILE_MIN <= key_id ) &&
+        ( key_id <= PSA_KEY_ID_VOLATILE_MAX ) )
         return( PSA_SUCCESS );
 
     return( PSA_ERROR_INVALID_HANDLE );
@@ -191,7 +197,7 @@ psa_status_t psa_get_key_slot( mbedtls_svc_key_id_t key,
     if( ! global_data.key_slots_initialized )
         return( PSA_ERROR_BAD_STATE );
 
-    status = psa_validate_key_id( key, 1 );
+    status = psa_validate_key_id( key, 1, 1 );
     if( status != PSA_SUCCESS )
         return( status );
 

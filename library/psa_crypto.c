@@ -1792,7 +1792,7 @@ static psa_status_t psa_validate_key_attributes(
     {
         status = psa_validate_key_id(
             psa_get_key_id( attributes ),
-            psa_key_lifetime_is_external( lifetime ) );
+            psa_key_lifetime_is_external( lifetime ), 0 );
 
         if( status != PSA_SUCCESS )
             return( status );

@@ -5233,7 +5233,7 @@ void key_agreement_setup( int alg_arg,
 {
     psa_key_handle_t our_key = 0;
     psa_algorithm_t alg = alg_arg;
-    psa_algorithm_t key_alg = our_key_alg_arg;
+    psa_algorithm_t our_key_alg = our_key_alg_arg;
     psa_key_type_t our_key_type = our_key_type_arg;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -5243,7 +5243,7 @@ void key_agreement_setup( int alg_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
-    psa_set_key_algorithm( &attributes, key_alg );
+    psa_set_key_algorithm( &attributes, our_key_alg );
     psa_set_key_type( &attributes, our_key_type );
     PSA_ASSERT( psa_import_key( &attributes,
                                 our_key_data->x, our_key_data->len,

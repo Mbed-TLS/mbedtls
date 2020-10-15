@@ -64,6 +64,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
 #include <tinycrypt/ecc.h>
 #include <tinycrypt/ecc_dsa.h>
 #include "mbedtls/platform_util.h"
@@ -314,3 +315,4 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 
 	return UECC_FAILURE;
 }
+#endif /* MBEDTLS_USE_TINYCRYPT */

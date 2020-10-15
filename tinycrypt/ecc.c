@@ -63,11 +63,18 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
 #include <tinycrypt/ecc.h>
 #include "mbedtls/platform_util.h"
 #include "mbedtls/sha256.h"
 #include <string.h>
 #include "mbedtls/platform_util.h"
+
+#if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM
+#ifndef asm
+#define asm __asm
+#endif
+#endif /* MBEDTLS_OPTIMIZE_TINYCRYPT_ASM */
 
 /* Parameters for curve NIST P-256 aka secp256r1 */
 const uECC_word_t curve_p[NUM_ECC_WORDS] = {
@@ -203,6 +210,64 @@ int uECC_curve_public_key_size(void)
 	return 2 * NUM_ECC_BYTES;
 }
 
+#if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __CC_ARM
+__asm void uECC_vli_clear(uECC_word_t *vli)
+{
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+#if !defined __thumb__ || __TARGET_ARCH_THUMB < 4
+    MOVS    r1,#0
+    MOVS    r2,#0
+    STMIA   r0!,{r1,r2}
+    STMIA   r0!,{r1,r2}
+    STMIA   r0!,{r1,r2}
+    STMIA   r0!,{r1,r2}
+    BX      lr
+#else
+    MOVS    r1,#0
+    STRD    r1,r1,[r0,#0]       // Only Thumb2 STRD can store same reg twice, not ARM
+    STRD    r1,r1,[r0,#8]
+    STRD    r1,r1,[r0,#16]
+    STRD    r1,r1,[r0,#24]
+    BX      lr
+#endif
+}
+#elif defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __GNUC__ && defined __arm__
+void uECC_vli_clear(uECC_word_t *vli)
+{
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+#if !defined __thumb__ || !defined __thumb2__
+    register uECC_word_t *r0 asm("r0") = vli;
+    register uECC_word_t r1 asm("r1") = 0;
+    register uECC_word_t r2 asm("r2") = 0;
+    asm volatile (
+    ".syntax unified            \n\t"
+    "STMIA   r0!,{r1,r2}        \n\t"
+    "STMIA   r0!,{r1,r2}        \n\t"
+    "STMIA   r0!,{r1,r2}        \n\t"
+    "STMIA   r0!,{r1,r2}        \n\t"
+    ".syntax divided            \n\t"
+    : "+r" (r0)
+    : "r" (r1), "r" (r2)
+    : "memory"
+#else
+    register uECC_word_t *r0 asm("r0") = vli;
+    register uECC_word_t r1 asm("r1") = 0;
+    asm volatile (
+    "STRD    r1,r1,[r0,#0]      \n\t" // Only Thumb2 STRD can store same reg twice, not ARM
+    "STRD    r1,r1,[r0,#8]      \n\t"
+    "STRD    r1,r1,[r0,#16]     \n\t"
+    "STRD    r1,r1,[r0,#24]     \n\t"
+    :
+    : "r" (r0), "r" (r1)
+    : "memory"
+#endif
+    );
+}
+#else
 void uECC_vli_clear(uECC_word_t *vli)
 {
 	wordcount_t i;
@@ -210,7 +275,112 @@ void uECC_vli_clear(uECC_word_t *vli)
 		 vli[i] = 0;
 	}
 }
+#endif
 
+#if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __CC_ARM
+__asm uECC_word_t uECC_vli_isZero(const uECC_word_t *vli)
+{
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+#if defined __thumb__ &&  __TARGET_ARCH_THUMB < 4
+    LDMIA   r0!,{r1,r2,r3}
+    ORRS    r1,r2
+    ORRS    r1,r3
+    LDMIA   r0!,{r2,r3}
+    ORRS    r1,r2
+    ORRS    r1,r3
+    LDMIA   r0,{r0,r2,r3}
+    ORRS    r1,r0
+    ORRS    r1,r2
+    ORRS    r1,r3
+    RSBS    r1,r1,#0      // C set if zero
+    MOVS    r0,#0
+    ADCS    r0,r0
+    BX      lr
+#else
+    LDMIA   r0!,{r1,r2,r3,ip}
+    ORRS    r1,r2
+    ORRS    r1,r3
+    ORRS    r1,ip
+    LDMIA   r0,{r0,r2,r3,ip}
+    ORRS    r1,r0
+    ORRS    r1,r2
+    ORRS    r1,r3
+    ORRS    r1,ip
+#ifdef __ARM_FEATURE_CLZ
+    CLZ     r0,r1           // 32 if zero
+    LSRS    r0,r0,#5
+#else
+    RSBS    r1,r1,#0      // C set if zero
+    MOVS    r0,#0
+    ADCS    r0,r0
+#endif
+    BX      lr
+#endif
+}
+#elif defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __GNUC__ && defined __arm__
+uECC_word_t uECC_vli_isZero(const uECC_word_t *vli)
+{
+    uECC_word_t ret;
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+#if defined __thumb__ && !defined __thumb2__
+    register uECC_word_t r1 asm ("r1");
+    register uECC_word_t r2 asm ("r2");
+    register uECC_word_t r3 asm ("r3");
+    asm volatile (
+    ".syntax unified                       \n\t"
+    "LDMIA   %[vli]!,{%[r1],%[r2],%[r3]}   \n\t"
+    "ORRS    %[r1],%[r2]                   \n\t"
+    "ORRS    %[r1],%[r3]                   \n\t"
+    "LDMIA   %[vli]!,{%[r2],%[r3]}         \n\t"
+    "ORRS    %[r1],%[r2]                   \n\t"
+    "ORRS    %[r1],%[r3]                   \n\t"
+    "LDMIA   %[vli],{%[vli],%[r2],%[r3]}   \n\t"
+    "ORRS    %[r1],%[vli]                  \n\t"
+    "ORRS    %[r1],%[r2]                   \n\t"
+    "ORRS    %[r1],%[r3]                   \n\t"
+    "RSBS    %[r1],%[r1],#0                \n\t"     // C set if zero
+    "MOVS    %[ret],#0                     \n\t"
+    "ADCS    %[ret],r0                     \n\t"
+    ".syntax divided                       \n\t"
+    : [ret]"=r" (ret), [r1]"=r" (r1), [r2]"=r" (r2), [r3]"=r" (r3)
+    : [vli]"[ret]" (vli)
+    : "cc", "memory"
+    );
+#else
+     register uECC_word_t r1 asm ("r1");
+     register uECC_word_t r2 asm ("r2");
+     register uECC_word_t r3 asm ("r3");
+     register uECC_word_t ip asm ("ip");
+     asm volatile (
+    "LDMIA   %[vli]!,{%[r1],%[r2],%[r3],%[ip]}\n\t"
+    "ORRS    %[r1],%[r2]                      \n\t"
+    "ORRS    %[r1],%[r3]                      \n\t"
+    "ORRS    %[r1],%[ip]                      \n\t"
+    "LDMIA   %[vli],{%[vli],%[r2],%[r3],%[ip]}\n\t"
+    "ORRS    %[r1],%[vli]                     \n\t"
+    "ORRS    %[r1],%[r2]                      \n\t"
+    "ORRS    %[r1],%[r3]                      \n\t"
+    "ORRS    %[r1],%[ip]                      \n\t"
+#if __ARM_ARCH >= 5
+    "CLZ     %[ret],%[r1]                     \n\t"     // r0 = 32 if zero
+    "LSRS    %[ret],%[ret],#5                 \n\t"
+#else
+    "RSBS    %[r1],%[r1],#0                   \n\t"     // C set if zero
+    "MOVS    %[ret],#0                        \n\t"
+    "ADCS    %[ret],r0                        \n\t"
+#endif
+    : [ret]"=r" (ret), [r1]"=r" (r1), [r2]"=r" (r2), [r3]"=r" (r3), [ip]"=r" (ip)
+    : [vli]"[ret]" (vli)
+    : "cc", "memory"
+    );
+#endif
+    return ret;
+}
+#else
 uECC_word_t uECC_vli_isZero(const uECC_word_t *vli)
 {
 	uECC_word_t bits = 0;
@@ -220,6 +390,7 @@ uECC_word_t uECC_vli_isZero(const uECC_word_t *vli)
 	}
 	return (bits == 0);
 }
+#endif
 
 uECC_word_t uECC_vli_testBit(const uECC_word_t *vli, bitcount_t bit)
 {
@@ -252,9 +423,13 @@ bitcount_t uECC_vli_numBits(const uECC_word_t *vli)
 	}
 
 	digit = vli[num_digits - 1];
+#if defined __GNUC__ || defined __clang__ || defined __CC_ARM
+	i = uECC_WORD_BITS - __builtin_clz(digit);
+#else
 	for (i = 0; digit; ++i) {
 		digit >>= 1;
 	}
+#endif
 
 	return (((bitcount_t)(num_digits - 1) << uECC_WORD_BITS_SHIFT) + i);
 }
@@ -317,11 +492,130 @@ uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right)
 
 uECC_word_t cond_set(uECC_word_t p_true, uECC_word_t p_false, unsigned int cond)
 {
-	return (p_true*(cond)) | (p_false*(!cond));
+	return (p_true*(cond)) | (p_false*(cond ^ 1));
 }
 
 /* Computes result = left - right, returning borrow, in constant time.
  * Can modify in place. */
+#if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __CC_ARM
+__asm uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
+                const uECC_word_t *right)
+{
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+#if defined __thumb__ &&  __TARGET_ARCH_THUMB < 4
+    PUSH    {r4-r6,lr}
+    FRAME   PUSH {r4-r6,lr}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    SUBS    r3,r5
+    SBCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    SBCS    r3,r5
+    SBCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    SBCS    r3,r5
+    SBCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    SBCS    r3,r5
+    SBCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    SBCS    r0,r0           // r0 := r0 - r0 - borrow = -borrow
+    RSBS    r0,r0,#0        // r0 := borrow
+    POP     {r4-r6,pc}
+#else
+    PUSH    {r4-r8,lr}
+    FRAME   PUSH {r4-r8,lr}
+    LDMIA   r1!,{r3-r6}
+    LDMIA   r2!,{r7,r8,r12,lr}
+    SUBS    r3,r7
+    SBCS    r4,r8
+    SBCS    r5,r12
+    SBCS    r6,lr
+    STMIA   r0!,{r3-r6}
+    LDMIA   r1!,{r3-r6}
+    LDMIA   r2!,{r7,r8,r12,lr}
+    SBCS    r3,r7
+    SBCS    r4,r8
+    SBCS    r5,r12
+    SBCS    r6,lr
+    STMIA   r0!,{r3-r6}
+    SBCS    r0,r0           // r0 := r0 - r0 - borrow = -borrow
+    RSBS    r0,r0,#0        // r0 := borrow
+    POP     {r4-r8,pc}
+#endif
+}
+#elif defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __GNUC__ && defined __arm__
+uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
+             const uECC_word_t *right)
+{
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+    register uECC_word_t *r0 asm ("r0") = result;
+    register const uECC_word_t *r1 asm ("r1") = left;
+    register const uECC_word_t *r2 asm ("r2") = right;
+    asm volatile (
+#if defined __thumb__ && !defined __thumb2__
+    ".syntax unified         \n\t"
+    "LDMIA   r1!,{r3,r4}     \n\t"
+    "LDMIA   r2!,{r5,r6}     \n\t"
+    "SUBS    r3,r5           \n\t"
+    "SBCS    r4,r6           \n\t"
+    "STMIA   r0!,{r3,r4}     \n\t"
+    "LDMIA   r1!,{r3,r4}     \n\t"
+    "LDMIA   r2!,{r5,r6}     \n\t"
+    "SBCS    r3,r5           \n\t"
+    "SBCS    r4,r6           \n\t"
+    "STMIA   r0!,{r3,r4}     \n\t"
+    "LDMIA   r1!,{r3,r4}     \n\t"
+    "LDMIA   r2!,{r5,r6}     \n\t"
+    "SBCS    r3,r5           \n\t"
+    "SBCS    r4,r6           \n\t"
+    "STMIA   r0!,{r3,r4}     \n\t"
+    "LDMIA   r1!,{r3,r4}     \n\t"
+    "LDMIA   r2!,{r5,r6}     \n\t"
+    "SBCS    r3,r5           \n\t"
+    "SBCS    r4,r6           \n\t"
+    "STMIA   r0!,{r3,r4}     \n\t"
+    "SBCS    r0,r0           \n\t" // r0 := r0 - r0 - borrow = -borrow
+    "RSBS    r0,r0,#0        \n\t" // r0 := borrow
+    ".syntax divided         \n\t"
+    : "+r" (r0), "+r" (r1), "+r" (r2)
+    :
+    : "r3", "r4", "r5", "r6", "cc", "memory"
+#else
+    "LDMIA   r1!,{r3-r6}        \n\t"
+    "LDMIA   r2!,{r7,r8,r12,lr} \n\t"
+    "SUBS    r3,r7              \n\t"
+    "SBCS    r4,r8              \n\t"
+    "SBCS    r5,r12             \n\t"
+    "SBCS    r6,lr              \n\t"
+    "STMIA   r0!,{r3-r6}        \n\t"
+    "LDMIA   r1!,{r3-r6}        \n\t"
+    "LDMIA   r2!,{r7,r8,r12,lr} \n\t"
+    "SBCS    r3,r7              \n\t"
+    "SBCS    r4,r8              \n\t"
+    "SBCS    r5,r12             \n\t"
+    "SBCS    r6,lr              \n\t"
+    "STMIA   r0!,{r3-r6}        \n\t"
+    "SBCS    r0,r0              \n\t" // r0 := r0 - r0 - borrow = -borrow
+    "RSBS    r0,r0,#0           \n\t" // r0 := borrow
+    : "+r" (r0), "+r" (r1), "+r" (r2)
+    :
+    : "r3", "r4", "r5", "r6", "r7", "r8", "r12", "lr", "cc", "memory"
+#endif
+    );
+    return (uECC_word_t) r0;
+}
+#else
 uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
 			 const uECC_word_t *right)
 {
@@ -336,9 +630,127 @@ uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
 	}
 	return borrow;
 }
+#endif
 
 /* Computes result = left + right, returning carry, in constant time.
  * Can modify in place. */
+#if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __CC_ARM
+static __asm uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *left,
+                const uECC_word_t *right)
+{
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+#if defined __thumb__ &&  __TARGET_ARCH_THUMB < 4
+    PUSH    {r4-r6,lr}
+    FRAME   PUSH {r4-r6,lr}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    ADDS    r3,r5
+    ADCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    ADCS    r3,r5
+    ADCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    ADCS    r3,r5
+    ADCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    LDMIA   r1!,{r3,r4}
+    LDMIA   r2!,{r5,r6}
+    ADCS    r3,r5
+    ADCS    r4,r6
+    STMIA   r0!,{r3,r4}
+    MOVS    r0,#0           // does not affect C flag
+    ADCS    r0,r0           // r0 := 0 + 0 + C = carry
+    POP     {r4-r6,pc}
+#else
+    PUSH    {r4-r8,lr}
+    FRAME   PUSH {r4-r8,lr}
+    LDMIA   r1!,{r3-r6}
+    LDMIA   r2!,{r7,r8,r12,lr}
+    ADDS    r3,r7
+    ADCS    r4,r8
+    ADCS    r5,r12
+    ADCS    r6,lr
+    STMIA   r0!,{r3-r6}
+    LDMIA   r1!,{r3-r6}
+    LDMIA   r2!,{r7,r8,r12,lr}
+    ADCS    r3,r7
+    ADCS    r4,r8
+    ADCS    r5,r12
+    ADCS    r6,lr
+    STMIA   r0!,{r3-r6}
+    MOVS    r0,#0           // does not affect C flag
+    ADCS    r0,r0           // r0 := 0 + 0 + C = carry
+    POP     {r4-r8,pc}
+#endif
+}
+#elif defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __GNUC__ && defined __arm__
+static uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *left,
+                const uECC_word_t *right)
+{
+    register uECC_word_t *r0 asm ("r0") = result;
+    register const uECC_word_t *r1 asm ("r1") = left;
+    register const uECC_word_t *r2 asm ("r2") = right;
+
+    asm volatile (
+#if defined __thumb__ && !defined __thumb2__
+    ".syntax unified         \n\t"
+    "LDMIA   r1!,{r3,r4}     \n\t"
+    "LDMIA   r2!,{r5,r6}     \n\t"
+    "ADDS    r3,r5           \n\t"
+    "ADCS    r4,r6           \n\t"
+    "STMIA   r0!,{r3,r4}     \n\t"
+    "LDMIA   r1!,{r3,r4}     \n\t"
+    "LDMIA   r2!,{r5,r6}     \n\t"
+    "ADCS    r3,r5           \n\t"
+    "ADCS    r4,r6           \n\t"
+    "STMIA   r0!,{r3,r4}     \n\t"
+    "LDMIA   r1!,{r3,r4}     \n\t"
+    "LDMIA   r2!,{r5,r6}     \n\t"
+    "ADCS    r3,r5           \n\t"
+    "ADCS    r4,r6           \n\t"
+    "STMIA   r0!,{r3,r4}     \n\t"
+    "LDMIA   r1!,{r3,r4}     \n\t"
+    "LDMIA   r2!,{r5,r6}     \n\t"
+    "ADCS    r3,r5           \n\t"
+    "ADCS    r4,r6           \n\t"
+    "STMIA   r0!,{r3,r4}     \n\t"
+    "MOVS    r0,#0           \n\t"  // does not affect C flag
+    "ADCS    r0,r0           \n\t"  // r0 := 0 + 0 + C = carry
+    ".syntax divided         \n\t"
+    : "+r" (r0), "+r" (r1), "+r" (r2)
+    :
+    : "r3", "r4", "r5", "r6", "cc", "memory"
+#else
+    "LDMIA   r1!,{r3-r6}        \n\t"
+    "LDMIA   r2!,{r7,r8,r12,lr} \n\t"
+    "ADDS    r3,r7              \n\t"
+    "ADCS    r4,r8              \n\t"
+    "ADCS    r5,r12             \n\t"
+    "ADCS    r6,lr              \n\t"
+    "STMIA   r0!,{r3-r6}        \n\t"
+    "LDMIA   r1!,{r3-r6}        \n\t"
+    "LDMIA   r2!,{r7,r8,r12,lr} \n\t"
+    "ADCS    r3,r7              \n\t"
+    "ADCS    r4,r8              \n\t"
+    "ADCS    r5,r12             \n\t"
+    "ADCS    r6,lr              \n\t"
+    "STMIA   r0!,{r3-r6}        \n\t"
+    "MOVS    r0,#0              \n\t"   // does not affect C flag
+    "ADCS    r0,r0              \n\t"   // r0 := 0 + 0 + C = carry
+    : "+r" (r0), "+r" (r1), "+r" (r2)
+    :
+    : "r3", "r4", "r5", "r6", "r7", "r8", "r12", "lr", "cc", "memory"
+#endif
+    );
+    return (uECC_word_t) r0;
+}
+#else
 static uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *left,
 				const uECC_word_t *right)
 {
@@ -352,16 +764,83 @@ static uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *left,
 	}
 	return carry;
 }
+#endif
 
 cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right)
 {
 	uECC_word_t tmp[NUM_ECC_WORDS];
-	uECC_word_t neg = !!uECC_vli_sub(tmp, left, right);
+	uECC_word_t neg = uECC_vli_sub(tmp, left, right);
 	uECC_word_t equal = uECC_vli_isZero(tmp);
-	return (!equal - 2 * neg);
+	return ((equal ^ 1) - 2 * neg);
 }
 
 /* Computes vli = vli >> 1. */
+#if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __CC_ARM
+static __asm void uECC_vli_rshift1(uECC_word_t *vli)
+{
+#if defined __thumb__ &&  __TARGET_ARCH_THUMB < 4
+// RRX instruction is not available, so although we
+// can use C flag, it's not that effective. Does at
+// least save one working register, meaning we don't need stack
+    MOVS    r3,#0           // initial carry = 0
+    MOVS    r2,#__cpp(4 * (NUM_ECC_WORDS - 1))
+01  LDR     r1,[r0,r2]
+    LSRS    r1,r1,#1        // r2 = word >> 1
+    ORRS    r1,r3           // merge in the previous carry
+    STR     r1,[r0,r2]
+    ADCS    r3,r3           // put C into bottom bit of r3
+    LSLS    r3,r3,#31       // shift it up to the top ready for next word
+    SUBS    r2,r2,#4
+    BPL     %B01
+    BX      lr
+#else
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+// Smooth multiword operation, lots of 32-bit instructions
+    ADDS    r0,#32
+    LDMDB   r0,{r1-r3,ip}
+    LSRS    ip,ip,#1
+    RRXS    r3,r3
+    RRXS    r2,r2
+    RRXS    r1,r1
+    STMDB   r0!,{r1-r3,ip}
+    LDMDB   r0,{r1-r3,ip}
+    RRXS    ip,ip
+    RRXS    r3,r3
+    RRXS    r2,r2
+    RRX     r1,r1
+    STMDB   r0!,{r1-r3,ip}
+    BX      lr
+#endif
+}
+#elif defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __GNUC__ && defined __arm__ && defined __thumb2__
+static void uECC_vli_rshift1(uECC_word_t *vli)
+{
+    register uECC_word_t *r0 asm ("r0") = vli;
+#if NUM_ECC_WORDS != 8
+#error adjust ARM assembly to handle NUM_ECC_WORDS != 8
+#endif
+    asm volatile (
+    "ADDS    r0,#32           \n\t"
+    "LDMDB   r0,{r1-r3,ip}    \n\t"
+    "LSRS    ip,ip,#1         \n\t"
+    "RRXS    r3,r3            \n\t"
+    "RRXS    r2,r2            \n\t"
+    "RRXS    r1,r1            \n\t"
+    "STMDB   r0!,{r1-r3,ip}   \n\t"
+    "LDMDB   r0,{r1-r3,ip}    \n\t"
+    "RRXS    ip,ip            \n\t"
+    "RRXS    r3,r3            \n\t"
+    "RRXS    r2,r2            \n\t"
+    "RRX     r1,r1            \n\t"
+    "STMDB   r0!,{r1-r3,ip}   \n\t"
+    : "+r" (r0)
+    :
+    : "r1", "r2", "r3", "ip", "cc", "memory"
+    );
+}
+#else
 static void uECC_vli_rshift1(uECC_word_t *vli)
 {
 	uECC_word_t *end = vli;
@@ -374,29 +853,135 @@ static void uECC_vli_rshift1(uECC_word_t *vli)
 		carry = temp << (uECC_WORD_BITS - 1);
 	}
 }
+#endif
 
-/* Compute a * b + r, where r is a double-word with high-order word r1 and
- * low-order word r0, and store the result in the same double-word (r1, r0),
- * with the carry bit stored in r2.
+/* Compute a * b + r, where r is a triple-word with high-order word r[2] and
+ * low-order word r[0], and store the result in the same triple-word.
  *
- * (r2, r1, r0) = a * b + (r1, r0):
+ * r[2..0] = a * b + r[2..0]:
  * [in] a, b: operands to be multiplied
- * [in] r0, r1: low and high-order words of operand to add
- * [out] r0, r1: low and high-order words of the result
- * [out] r2: carry
+ * [in] r: 3 words of operand to add
+ * [out] r: 3 words of result
  */
-static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t *r0,
-		   uECC_word_t *r1, uECC_word_t *r2)
+#if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __CC_ARM
+static __asm void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
+{
+#if defined __thumb__ &&  __TARGET_ARCH_THUMB < 4
+    PUSH    {r4-r5}
+    FRAME   PUSH {r4-r5}
+    // __ARM_common_mul_uu replacement - inline, faster, don't touch R2
+    // Separate operands into halfwords
+    UXTH    r3,r0               // r3 := a.lo
+    LSRS    r4,r0,#16           // r4 := a.hi
+    UXTH    r5,r1               // r5 := b.lo
+    LSRS    r1,r1,#16           // r1 := b.hi
+    // Multiply halfword pairs
+    MOVS    r0,r3
+    MULS    r0,r5,r0            // r0 := a.lo * b.lo
+    MULS    r3,r1,r3            // r3 := a.lo * b.hi
+    MULS    r5,r4,r5            // r5 := a.hi * b.lo
+    MULS    r1,r4,r1            // r1 := a.hi * b.hi
+    // Split, shift and add a.lo * b.hi
+    LSRS    r4,r3,#16           // r4 := (a.lo * b.hi).hi
+    LSLS    r3,r3,#16           // r3 := (a.lo * b.hi).lo
+    ADDS    r0,r0,r3            // r0 := a.lo * b.lo + (a.lo * b.hi).lo
+    ADCS    r1,r4               // r1 := a.hi * b.hi + (a.lo * b.hi).hi + carry
+    // Split, shift and add a.hi * b.lo
+    LSRS    r4,r5,#16           // r4 := (a.hi * b.lo).hi
+    LSLS    r5,r5,#16           // r5 := (a.hi * b.lo).lo
+    ADDS    r0,r0,r5            // r0 := a.lo * b.lo + (a.lo * b.hi).lo + (a.hi * b.lo).lo
+    ADCS    r1,r4               // r1 := a.hi * b.hi + (a.lo * b.hi).hi + (a.hi * b.lo).hi + carries
+    // Finally add r[]
+    LDMIA   r2!,{r3,r4,r5}
+    ADDS    r3,r3,r0
+    ADCS    r4,r1
+    MOVS    r0,#0
+    ADCS    r5,r0
+    SUBS    r2,#12
+    STMIA   r2!,{r3,r4,r5}
+    POP     {r4-r5}
+    FRAME   POP {r4-r5}
+    BX      lr
+#else
+    UMULL   r3,ip,r0,r1 // pre-ARMv6 requires Rd[Lo|Hi] != Rn
+    LDMIA   r2,{r0,r1}
+    ADDS    r0,r0,r3
+    LDR     r3,[r2,#8]
+    ADCS    r1,r1,ip
+    ADC     r3,r3,#0
+    STMIA   r2!,{r0,r1,r3}
+    BX      lr
+#endif
+}
+#elif defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM && defined __GNUC__ && defined __arm__
+static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
+{
+    register uECC_word_t r0 asm ("r0") = a;
+    register uECC_word_t r1 asm ("r1") = b;
+    register uECC_word_t *r2 asm ("r2") = r;
+    asm volatile (
+#if defined __thumb__ && !defined(__thumb2__)
+    ".syntax unified             \n\t"
+    // __ARM_common_mul_uu replacement - inline, faster, don't touch R2
+    // Separate operands into halfwords
+    "UXTH    r3,r0               \n\t" // r3 := a.lo
+    "LSRS    r4,r0,#16           \n\t" // r4 := a.hi
+    "UXTH    r5,r1               \n\t" // r5 := b.lo
+    "LSRS    r1,r1,#16           \n\t" // r1 := b.hi
+    // Multiply halfword pairs
+    "MOVS    r0,r3               \n\t"
+    "MULS    r0,r5,r0            \n\t" // r0 := a.lo * b.lo
+    "MULS    r3,r1,r3            \n\t" // r3 := a.lo * b.hi
+    "MULS    r5,r4,r5            \n\t" // r5 := a.hi * b.lo
+    "MULS    r1,r4,r1            \n\t" // r1 := a.hi * b.hi
+    // Split, shift and add a.lo * b.hi
+    "LSRS    r4,r3,#16           \n\t" // r4 := (a.lo * b.hi).hi
+    "LSLS    r3,r3,#16           \n\t" // r3 := (a.lo * b.hi).lo
+    "ADDS    r0,r0,r3            \n\t" // r0 := a.lo * b.lo + (a.lo * b.hi).lo
+    "ADCS    r1,r4               \n\t" // r1 := a.hi * b.hi + (a.lo * b.hi).hi + carry
+    // Split, shift and add a.hi * b.lo
+    "LSRS    r4,r5,#16           \n\t" // r4 := (a.hi * b.lo).hi
+    "LSLS    r5,r5,#16           \n\t" // r5 := (a.hi * b.lo).lo
+    "ADDS    r0,r0,r5            \n\t" // r0 := a.lo * b.lo + (a.lo * b.hi).lo + (a.hi * b.lo).lo
+    "ADCS    r1,r4               \n\t" // r1 := a.hi * b.hi + (a.lo * b.hi).hi + (a.hi * b.lo).hi + carries
+    // Finally add r[]
+    "LDMIA   r2!,{r3,r4,r5}      \n\t"
+    "ADDS    r3,r3,r0            \n\t"
+    "ADCS    r4,r1               \n\t"
+    "MOVS    r0,#0               \n\t"
+    "ADCS    r5,r0               \n\t"
+    "SUBS    r2,#12              \n\t"
+    "STMIA   r2!,{r3,r4,r5}      \n\t"
+    ".syntax divided             \n\t"
+    : "+r" (r0), "+r" (r1), "+r" (r2)
+    :
+    : "r3", "r4", "r5", "ip", "cc", "memory"
+#else
+    "UMULL   r3,ip,r0,r1         \n\t" // pre-ARMv6 requires Rd[Lo|Hi] != Rn
+    "LDMIA   r2,{r0,r1}          \n\t"
+    "ADDS    r0,r0,r3            \n\t"
+    "LDR     r3,[r2,#8]          \n\t"
+    "ADCS    r1,r1,ip            \n\t"
+    "ADC     r3,r3,#0            \n\t"
+    "STMIA   r2!,{r0,r1,r3}      \n\t"
+    : "+r" (r0), "+r" (r1), "+r" (r2)
+    :
+    : "r3", "ip", "cc", "memory"
+#endif
+    );
+}
+#else
+static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t r[3])
 {
 
 	uECC_dword_t p = (uECC_dword_t)a * b;
-	uECC_dword_t r01 = ((uECC_dword_t)(*r1) << uECC_WORD_BITS) | *r0;
+	uECC_dword_t r01 = ((uECC_dword_t)(r[1]) << uECC_WORD_BITS) | r[0];
 	r01 += p;
-	*r2 += (r01 < p);
-	*r1 = r01 >> uECC_WORD_BITS;
-	*r0 = (uECC_word_t)r01;
-
+	r[2] += (r01 < p);
+	r[1] = r01 >> uECC_WORD_BITS;
+	r[0] = (uECC_word_t)r01;
 }
+#endif
 
 /* State for implementing random delays in uECC_vli_mult_rnd().
  *
@@ -453,16 +1038,14 @@ static void uECC_vli_mult_rnd(uECC_word_t *result, const uECC_word_t *left,
 				  const uECC_word_t *right, ecc_wait_state_t *s)
 {
 
-	uECC_word_t r0 = 0;
-	uECC_word_t r1 = 0;
-	uECC_word_t r2 = 0;
+	uECC_word_t r[3] = { 0, 0, 0 };
 	wordcount_t i, k;
 	const uint8_t num_words = NUM_ECC_WORDS;
 
 	/* Fetch 8 bit worth of delay from the state; 0 if we have no state */
 	uint8_t delays = s ? s->delays[s->i++] : 0;
-	uECC_word_t rr0 = 0, rr1 = 0;
-	volatile uECC_word_t r;
+	uECC_word_t rr[3] = { 0, 0, 0 };
+	volatile uECC_word_t rdummy;
 
 	/* Mimic start of next loop: k in [0, 3] */
 	k = 0 + (delays & 0x03);
@@ -470,24 +1053,23 @@ static void uECC_vli_mult_rnd(uECC_word_t *result, const uECC_word_t *left,
 	/* k = 0 -> i in [1, 0] -> 0 extra muladd;
 	 * k = 3 -> i in [1, 3] -> 3 extra muladd */
 	for (i = 1; i <= k; ++i) {
-		muladd(left[i], right[k - i], &rr0, &rr1, &r2);
+		muladd(left[i], right[k - i], rr);
 	}
-	r = rr0;
-	rr0 = rr1;
-	rr1 = r2;
-	r2 = 0;
+	rdummy = rr[0];
+	rr[0] = rr[1];
+	rr[1] = rr[2];
+	rr[2] = 0;
 
 	/* Compute each digit of result in sequence, maintaining the carries. */
 	for (k = 0; k < num_words; ++k) {
-
 		for (i = 0; i <= k; ++i) {
-			muladd(left[i], right[k - i], &r0, &r1, &r2);
+			muladd(left[i], right[k - i], r);
 		}
 
-		result[k] = r0;
-		r0 = r1;
-		r1 = r2;
-		r2 = 0;
+		result[k] = r[0];
+		r[0] = r[1];
+		r[1] = r[2];
+		r[2] = 0;
 	}
 
 	/* Mimic end of previous loop: k in [4, 7] */
@@ -496,12 +1078,12 @@ static void uECC_vli_mult_rnd(uECC_word_t *result, const uECC_word_t *left,
 	/* k = 4 -> i in [5, 4] -> 0 extra muladd;
 	 * k = 7 -> i in [5, 7] -> 3 extra muladd */
 	for (i = 5; i <= k; ++i) {
-		muladd(left[i], right[k - i], &rr0, &rr1, &r2);
+		muladd(left[i], right[k - i], rr);
 	}
-	r = rr0;
-	rr0 = rr1;
-	rr1 = r2;
-	r2 = 0;
+	rdummy = rr[0];
+	rr[0] = rr[1];
+	rr[1] = rr[2];
+	rr[2] = 0;
 
 	/* Mimic start of next loop: k in [8, 11] */
 	k = 11 - (delays & 0x03);
@@ -509,25 +1091,25 @@ static void uECC_vli_mult_rnd(uECC_word_t *result, const uECC_word_t *left,
 	/* k =  8 -> i in [5, 7] -> 3 extra muladd;
 	 * k = 11 -> i in [8, 7] -> 0 extra muladd */
 	for (i = (k + 5) - num_words; i < num_words; ++i) {
-		muladd(left[i], right[k - i], &rr0, &rr1, &r2);
+		muladd(left[i], right[k - i], rr);
 	}
-	r = rr0;
-	rr0 = rr1;
-	rr1 = r2;
-	r2 = 0;
+	rdummy = rr[0];
+	rr[0] = rr[1];
+	rr[1] = rr[2];
+	rr[2] = 0;
 
 	for (k = num_words; k < num_words * 2 - 1; ++k) {
 
 		for (i = (k + 1) - num_words; i < num_words; ++i) {
-			muladd(left[i], right[k - i], &r0, &r1, &r2);
+			muladd(left[i], right[k - i], r);
 		}
-		result[k] = r0;
-		r0 = r1;
-		r1 = r2;
-		r2 = 0;
+		result[k] = r[0];
+		r[0] = r[1];
+		r[1] = r[2];
+		r[2] = 0;
 	}
 
-	result[num_words * 2 - 1] = r0;
+	result[num_words * 2 - 1] = r[0];
 
 	/* Mimic end of previous loop: k in [12, 15] */
 	k = 15 - (delays & 0x03);
@@ -535,15 +1117,15 @@ static void uECC_vli_mult_rnd(uECC_word_t *result, const uECC_word_t *left,
 	/* k = 12 -> i in [5, 7] -> 3 extra muladd;
 	 * k = 15 -> i in [8, 7] -> 0 extra muladd */
 	for (i = (k + 1) - num_words; i < num_words; ++i) {
-		muladd(left[i], right[k - i], &rr0, &rr1, &r2);
+		muladd(left[i], right[k - i], rr);
 	}
-	r = rr0;
-	rr0 = rr1;
-	rr1 = r2;
-	r2 = 0;
+	rdummy = rr[0];
+	rr[0] = rr[1];
+	rr[1] = rr[2];
+	rr[2] = 0;
 
-	/* avoid warning that r is set but not used */
-	(void) r;
+	/* avoid warning that rdummy is set but not used */
+	(void) rdummy;
 }
 
 void uECC_vli_modAdd(uECC_word_t *result, const uECC_word_t *left,
@@ -1268,3 +1850,4 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key)
 
 	return ret;
 }
+#endif /* MBEDTLS_USE_TINYCRYPT */

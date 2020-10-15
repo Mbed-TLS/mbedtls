@@ -1634,14 +1634,20 @@ component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
 }
 
 component_build_armcc () {
-    msg "build: ARM Compiler 5"
+    msg "build: ARM Compiler 5 strict"
     scripts/config.pl baremetal
     make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
 
-    msg "size: ARM Compiler 5"
+    msg "size: ARM Compiler 5 strict"
     "$ARMC5_FROMELF" -z library/*.o
 
     make clean
+
+    msg "build: ARM Compiler 5 non strict"
+    make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--c99' lib
+
+    msg "size: ARM Compiler 5 non strict"
+    "$ARMC5_FROMELF" -z library/*.o
 
     # ARM Compiler 6 - Target ARMv7-A
     armc6_build_test "--target=arm-arm-none-eabi -march=armv7-a"

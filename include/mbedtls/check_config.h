@@ -130,6 +130,12 @@
 #error "MBEDTLS_USE_TINYCRYPT defined, but not all prerequesites"
 #endif
 
+#if defined(MBEDTLS_OPTIMIZE_TINYCRYPT_ASM) &&           \
+    ( !defined(MBEDTLS_HAVE_ASM) || \
+      !defined(MBEDTLS_USE_TINYCRYPT) )
+#error "MBEDTLS_OPTIMIZE_TINYCRYPT_ASM defined, but not all prerequesites"
+#endif
+
 #if defined(MBEDTLS_NIST_KW_C) && \
     ( !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_CIPHER_C) )
 #error "MBEDTLS_NIST_KW_C defined, but not all prerequisites"

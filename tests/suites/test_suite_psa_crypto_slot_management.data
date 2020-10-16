@@ -1,17 +1,17 @@
 Transient slot, check after closing
-transient_slot_lifecycle:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":INVALIDATE_BY_CLOSING
+transient_slot_lifecycle:0x1:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":INVALIDATE_BY_CLOSING
 
 Transient slot, check after closing and restarting
-transient_slot_lifecycle:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":INVALIDATE_BY_CLOSING_WITH_SHUTDOWN
+transient_slot_lifecycle:0x13:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":INVALIDATE_BY_CLOSING_WITH_SHUTDOWN
 
 Transient slot, check after destroying
-transient_slot_lifecycle:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":INVALIDATE_BY_DESTROYING
+transient_slot_lifecycle:0x135:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":INVALIDATE_BY_DESTROYING
 
 Transient slot, check after destroying and restarting
-transient_slot_lifecycle:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN
+transient_slot_lifecycle:0x1357:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN
 
 Transient slot, check after restart with live handles
-transient_slot_lifecycle:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":INVALIDATE_BY_SHUTDOWN
+transient_slot_lifecycle:0x13579:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":INVALIDATE_BY_SHUTDOWN
 
 Persistent slot, check after closing, id=min
 persistent_slot_lifecycle:PSA_KEY_LIFETIME_PERSISTENT:124:PSA_KEY_ID_USER_MIN:0:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":INVALIDATE_BY_CLOSING

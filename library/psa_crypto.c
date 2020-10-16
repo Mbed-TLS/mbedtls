@@ -1834,7 +1834,9 @@ static psa_status_t psa_validate_key_attributes(
  *
  * \param method            An identification of the calling function.
  * \param[in] attributes    Key attributes for the new key.
- * \param[out] key          On success, identifier of the key.
+ * \param[out] key          On success, identifier of the key. Note that the
+ *                          key identifier is also stored in the prepared
+ *                          slot.
  * \param[out] p_slot       On success, a pointer to the prepared slot.
  * \param[out] p_drv        On any return, the driver for the key, if any.
  *                          NULL for a transparent key.

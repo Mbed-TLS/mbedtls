@@ -430,6 +430,11 @@ run_test "Binary file instead of text file" \
          -u "Too many bad symbols detected. File check aborted" \
          -n "Deserializing"
 
+run_test "Decoder continues past 0xff character" \
+         "def_b64_ff.bin" \
+         -n "No valid base64" \
+         -u "ciphersuite.* TLS-"
+
 
 # End of tests
 

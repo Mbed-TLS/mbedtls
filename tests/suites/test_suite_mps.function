@@ -8165,7 +8165,7 @@ void mbedtls_mps_l3_basic_alert( int mode,
         TEST_ASSERT( mps_l3_read_alert( &srv, &alert_in ) == 0 );
 
         TEST_ASSERT( alert_in.level ==
-                     ( alerts_remaining % 2 ) ? 1 : 2 );
+                     ( alerts_remaining % 2  ? 1 : 2 ) );
         TEST_ASSERT( alert_in.type == alerts_remaining );
 
         /* Signal that message has been processed. */

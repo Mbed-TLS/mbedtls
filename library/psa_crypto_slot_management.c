@@ -332,7 +332,7 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
     if( psa_key_handle_is_null( handle ) )
         return( PSA_SUCCESS );
 
-    status = psa_get_key_slot( handle, &slot );
+    status = psa_search_key_in_slots( handle, &slot );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -344,7 +344,7 @@ psa_status_t psa_purge_key( mbedtls_svc_key_id_t key )
     psa_status_t status;
     psa_key_slot_t *slot;
 
-    status = psa_get_key_slot( key, &slot );
+    status = psa_search_key_in_slots( key, &slot );
     if( status != PSA_SUCCESS )
         return( status );
 

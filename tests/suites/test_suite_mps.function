@@ -7715,6 +7715,8 @@ fallback:
             TEST_ASSERT( hs_in.type == 12 );
             TEST_ASSERT( hs_in.len == 8 );
 
+repeat:
+
             switch( recv_state )
             {
                 case 0:
@@ -7744,8 +7746,8 @@ fallback:
                     TEST_ASSERT( mps_l3_read_consume( &srv ) ==
                                  MBEDTLS_ERR_MPS_UNFINISHED_HS_MSG );
 
-                    /* `break` is deliberately omitted here as
-                     *  we want to continue processing. */
+                    goto repeat;
+                    break;
 
                 case 1:
 
@@ -7769,6 +7771,9 @@ fallback:
                     TEST_ASSERT( mbedtls_reader_commit_ext(
                                      hs_in.rd_ext ) == 0 );
                     recv_state = 2;
+
+                    goto repeat;
+                    break;
 
                 default:
                     break;

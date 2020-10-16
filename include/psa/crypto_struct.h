@@ -385,6 +385,14 @@ static inline mbedtls_svc_key_id_t psa_get_key_id(
     return( attributes->core.id );
 }
 
+#ifdef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+static inline void mbedtls_set_key_owner_id( psa_key_attributes_t *attributes,
+                                             mbedtls_key_owner_id_t owner )
+{
+    attributes->core.id.owner = owner;
+}
+#endif
+
 static inline void psa_set_key_lifetime(psa_key_attributes_t *attributes,
                                         psa_key_lifetime_t lifetime)
 {

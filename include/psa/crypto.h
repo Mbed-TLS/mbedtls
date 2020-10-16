@@ -152,6 +152,25 @@ static psa_key_attributes_t psa_key_attributes_init(void);
 static void psa_set_key_id( psa_key_attributes_t *attributes,
                             mbedtls_svc_key_id_t key );
 
+#ifdef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+/** Set the owner identifier of a key.
+ *
+ * When key identifiers encode key owner identifiers, psa_set_key_id() does
+ * not allow to define in key attributes the owner of volatile keys as
+ * psa_set_key_id() enforces the key to be persistent.
+ *
+ * This function allows to set in key attributes the owner identifier of a
+ * key. It is intended to be used for volatile keys. For persistent keys,
+ * it is recommended to use the PSA Cryptography API psa_set_key_id() to define
+ * the owner of a key.
+ *
+ * \param[out] attributes  The attribute structure to write to.
+ * \param owner_id         The key owner identifier.
+ */
+static void mbedtls_set_key_owner_id( psa_key_attributes_t *attributes,
+                                      mbedtls_key_owner_id_t owner_id );
+#endif
+
 /** Set the location of a persistent key.
  *
  * To make a key persistent, you must give it a persistent key identifier

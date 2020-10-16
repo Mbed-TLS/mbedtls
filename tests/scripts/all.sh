@@ -1276,6 +1276,75 @@ component_test_no_max_fragment_length_small_ssl_out_content_len () {
     if_build_succeeded tests/ssl-opt.sh -f "Max fragment length\|Large buffer"
 }
 
+component_test_variable_ssl_in_out_buffer_len () {
+    msg "build: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH enabled (ASan build)"
+    scripts/config.pl set MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH enabled"
+    make test
+
+    msg "test: ssl-opt.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH enabled"
+    if_build_succeeded tests/ssl-opt.sh
+
+    msg "test: compat.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH enabled"
+    if_build_succeeded tests/compat.sh
+}
+
+component_test_variable_ssl_in_out_buffer_len_CID () {
+    msg "build: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_DTLS_CONNECTION_ID enabled (ASan build)"
+    scripts/config.pl set MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+    scripts/config.pl set MBEDTLS_SSL_DTLS_CONNECTION_ID
+
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_DTLS_CONNECTION_ID"
+    make test
+
+    msg "test: ssl-opt.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_DTLS_CONNECTION_ID enabled"
+    if_build_succeeded tests/ssl-opt.sh
+
+    msg "test: compat.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_DTLS_CONNECTION_ID enabled"
+    if_build_succeeded tests/compat.sh
+}
+
+component_test_variable_ssl_in_out_buffer_len_record_splitting () {
+    msg "build: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING enabled (ASan build)"
+    scripts/config.pl set MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+    scripts/config.pl set MBEDTLS_SSL_CBC_RECORD_SPLITTING
+
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING"
+    make test
+
+    msg "test: ssl-opt.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING enabled"
+    if_build_succeeded tests/ssl-opt.sh
+
+    msg "test: compat.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING enabled"
+    if_build_succeeded tests/compat.sh
+}
+
+component_test_ssl_alloc_buffer_and_mfl () {
+    msg "build: default config with memory buffer allocator and MFL extension"
+    scripts/config.pl set MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
+    scripts/config.pl set MBEDTLS_MEMORY_DEBUG
+    scripts/config.pl set MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+    scripts/config.pl set MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+    CC=gcc cmake .
+    make
+
+    msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH, MBEDTLS_MEMORY_BUFFER_ALLOC_C, MBEDTLS_MEMORY_DEBUG and MBEDTLS_SSL_MAX_FRAGMENT_LENGTH"
+    make test
+
+    msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH, MBEDTLS_MEMORY_BUFFER_ALLOC_C, MBEDTLS_MEMORY_DEBUG and MBEDTLS_SSL_MAX_FRAGMENT_LENGTH"
+    if_build_succeeded tests/ssl-opt.sh -f "Handshake memory usage"
+}
+
 component_test_when_no_ciphersuites_have_mac () {
     msg "build: when no ciphersuites have MAC"
     scripts/config.pl unset MBEDTLS_CIPHER_NULL_CIPHER

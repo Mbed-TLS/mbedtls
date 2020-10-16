@@ -260,7 +260,7 @@
    implicit sequence number. */
 #define MBEDTLS_SSL_HEADER_LEN 13
 
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define MBEDTLS_SSL_IN_BUFFER_LEN  \
     ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_IN_PAYLOAD_LEN ) )
 #else
@@ -269,13 +269,39 @@
       + ( MBEDTLS_SSL_CID_IN_LEN_MAX ) )
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define MBEDTLS_SSL_OUT_BUFFER_LEN  \
     ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_OUT_PAYLOAD_LEN ) )
 #else
 #define MBEDTLS_SSL_OUT_BUFFER_LEN                               \
     ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_OUT_PAYLOAD_LEN )    \
       + ( MBEDTLS_SSL_CID_OUT_LEN_MAX ) )
+#endif
+
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+static inline uint32_t mbedtls_ssl_get_output_buflen( const mbedtls_ssl_context *ctx )
+{
+#if defined (MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    return (uint32_t) mbedtls_ssl_get_output_max_frag_len( ctx )
+               + MBEDTLS_SSL_HEADER_LEN + MBEDTLS_SSL_PAYLOAD_OVERHEAD
+               + MBEDTLS_SSL_CID_OUT_LEN_MAX;
+#else
+    return (uint32_t) mbedtls_ssl_get_output_max_frag_len( ctx )
+               + MBEDTLS_SSL_HEADER_LEN + MBEDTLS_SSL_PAYLOAD_OVERHEAD;
+#endif
+}
+
+static inline uint32_t mbedtls_ssl_get_input_buflen( const mbedtls_ssl_context *ctx )
+{
+#if defined (MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    return (uint32_t) mbedtls_ssl_get_input_max_frag_len( ctx )
+               + MBEDTLS_SSL_HEADER_LEN + MBEDTLS_SSL_PAYLOAD_OVERHEAD
+               + MBEDTLS_SSL_CID_IN_LEN_MAX;
+#else
+    return (uint32_t) mbedtls_ssl_get_input_max_frag_len( ctx )
+               + MBEDTLS_SSL_HEADER_LEN + MBEDTLS_SSL_PAYLOAD_OVERHEAD;
+#endif
+}
 #endif
 
 #ifdef MBEDTLS_ZLIB_SUPPORT

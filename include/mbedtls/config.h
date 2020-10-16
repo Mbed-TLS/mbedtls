@@ -1910,6 +1910,13 @@
 //#define MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT
 
 /**
+ * \def MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+ *
+ * Enable modifying the maximum I/O buffer size.
+ */
+//#define MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+
+/**
  * \def MBEDTLS_THREADING_ALT
  *
  * Provide your own alternate threading implementation.

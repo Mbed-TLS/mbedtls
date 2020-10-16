@@ -1522,6 +1522,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT */
 
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    if( strcmp( "MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH */
+
 #if defined(MBEDTLS_THREADING_ALT)
     if( strcmp( "MBEDTLS_THREADING_ALT", config ) == 0 )
     {

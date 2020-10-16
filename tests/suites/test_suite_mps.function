@@ -8550,6 +8550,8 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
              * - Pause and return if not enough data is available.
              */
 
+send_start:
+
             switch( send_state )
             {
                 case 0:
@@ -8581,8 +8583,8 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
                     TEST_ASSERT( mps_l3_dispatch( &cli ) ==
                                  MBEDTLS_ERR_MPS_UNFINISHED_HS_MSG );
 
-                    /* The missing `break;` is deliberate here, as
-                     * we want to progress to the next reading stage. */
+                    goto send_start;
+                    break;
 
                 case 1:
 
@@ -8605,6 +8607,9 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
                     TEST_ASSERT( mbedtls_writer_commit_ext(
                                      hs_out.wr_ext ) == 0 );
                     send_state = 2;
+
+                    goto send_start;
+                    break;
 
                 default:
                     break;
@@ -8728,6 +8733,8 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
             TEST_ASSERT( hs_in.type == 12 );
             TEST_ASSERT( hs_in.len == 8 );
 
+recv_start:
+
             switch( recv_state )
             {
                 case 0:
@@ -8758,6 +8765,9 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
                     TEST_ASSERT( mps_l3_read_consume( &srv ) ==
                                  MBEDTLS_ERR_MPS_UNFINISHED_HS_MSG );
 
+                    goto recv_start;
+                    break;
+
                 case 1:
 
                     /* Fetch next chunk of incoming data */
@@ -8780,6 +8790,9 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
                     TEST_ASSERT( mbedtls_reader_commit_ext(
                                      hs_in.rd_ext ) == 0 );
                     recv_state = 2;
+
+                    goto recv_start;
+                    break;
 
                 default:
                     break;

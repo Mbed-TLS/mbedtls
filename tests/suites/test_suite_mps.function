@@ -7575,17 +7575,21 @@ void mbedtls_mps_l3_handshake_gradual( int allocator_buffer_sz,
              *   is needed by the writer internally.
              * - Pause and return if not enough data is available.
              */
+fallback:
 
             switch( send_state )
             {
                 case 0:
 
+                    send_state = 1;
                     if( pause_after_header )
                     {
-                        pause      = 1;
-                        send_state = 1;
+                        pause = 1;
                         break;
                     }
+
+                    goto fallback;
+                    break;
 
                 case 1:
 
@@ -7614,6 +7618,9 @@ void mbedtls_mps_l3_handshake_gradual( int allocator_buffer_sz,
                     TEST_ASSERT( mps_l3_dispatch( &cli ) ==
                                  MBEDTLS_ERR_MPS_UNFINISHED_HS_MSG );
 
+                    goto fallback;
+                    break;
+
                 case 2:
 
                     /* Ask for outbuffer to write next chunk of data */
@@ -7635,6 +7642,9 @@ void mbedtls_mps_l3_handshake_gradual( int allocator_buffer_sz,
                     TEST_ASSERT( mbedtls_writer_commit_ext(
                                      hs_out.wr_ext ) == 0 );
                     send_state = 3;
+
+                    goto fallback;
+                    break;
 
                 default:
                     break;

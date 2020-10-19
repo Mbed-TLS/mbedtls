@@ -35,8 +35,8 @@ typedef struct {
 
 /** \def TEST_DRIVER_KEY_CONTEXT_BASE_SIZE
  *
- * This macro returns the base size for the key context. It should include
- * the size for any driver context information stored with each key.
+ * This macro returns the base size for the key context. It is the size of the
+ * driver specific information stored in each key context.
  */
 #define TEST_DRIVER_KEY_CONTEXT_BASE_SIZE          sizeof( test_driver_key_context_t )
 
@@ -92,4 +92,4 @@ size_t test_size_function(
 #endif /* TEST_DRIVER_KEY_CONTEXT_SIZE_FUNCTION */
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
-#endif /* PSA_CRYPTO_TEST_DRIVERS_KEYGEN_H */
+#endif /* PSA_CRYPTO_TEST_DRIVERS_SIZE_H */

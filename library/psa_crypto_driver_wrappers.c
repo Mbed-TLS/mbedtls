@@ -279,10 +279,19 @@ static psa_status_t get_expected_key_size( const psa_key_attributes_t *attribute
 #else /* TEST_DRIVER_KEY_CONTEXT_SIZE_FUNCTION */
             if( PSA_KEY_TYPE_IS_KEY_PAIR( key_type ) )
             {
+                int public_key_overhead = ( ( TEST_DRIVER_KEY_CONTEXT_STORE_PUBLIC_KEY == 1 ) ?
+                                           PSA_KEY_EXPORT_MAX_SIZE( key_type, key_bits ) : 0 );
+                *expected_size = TEST_DRIVER_KEY_CONTEXT_BASE_SIZE
+                                 + TEST_DRIVER_KEY_CONTEXT_PUBLIC_KEY_SIZE
+                                 + public_key_overhead;
+            }
+            else if( PSA_KEY_TYPE_IS_PUBLIC_KEY( attributes->core.type ) )
+            {
                 *expected_size = TEST_DRIVER_KEY_CONTEXT_BASE_SIZE
                                  + TEST_DRIVER_KEY_CONTEXT_PUBLIC_KEY_SIZE;
             }
-            else if( PSA_KEY_TYPE_IS_PUBLIC_KEY( attributes->core.type ) )
+            else if ( !PSA_KEY_TYPE_IS_KEY_PAIR( key_type ) &&
+                      !PSA_KEY_TYPE_IS_PUBLIC_KEY ( attributes->core.type ) )
             {
                 *expected_size = TEST_DRIVER_KEY_CONTEXT_BASE_SIZE
                                  + TEST_DRIVER_KEY_CONTEXT_SYMMETRIC_FACTOR
@@ -300,7 +309,7 @@ static psa_status_t get_expected_key_size( const psa_key_attributes_t *attribute
             return( PSA_ERROR_NOT_SUPPORTED );
     }
 }
-#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
 psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attributes,
                                               psa_key_slot_t *slot )

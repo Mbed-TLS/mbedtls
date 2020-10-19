@@ -160,15 +160,18 @@ struct mbedtls_reader
                            *   does not own the fragment and does not
                            *   perform any allocation operations on it,
                            *   but does have read and write access to it.   */
-    mbedtls_mps_stored_size_t frag_len;      /*!< The length of the current fragment.
+    mbedtls_mps_stored_size_t frag_len;
+                          /*!< The length of the current fragment.
                            *   Must be 0 if \c frag == \c NULL.             */
-    mbedtls_mps_stored_size_t commit;        /*!< The offset of the last commit, relative
+    mbedtls_mps_stored_size_t commit;
+                          /*!< The offset of the last commit, relative
                            *   to the first byte in the accumulator.
                            *   This is only used when the reader is in
                            *   consuming mode, i.e. frag != NULL;
                            *   otherwise, its value is \c 0
                            *   (invariant READER_INV_FRAG_UNSET_VARS_ZERO). */
-    mbedtls_mps_stored_size_t end;           /*!< The offset of the end of the last chunk
+    mbedtls_mps_stored_size_t end;
+                          /*!< The offset of the end of the last chunk
                            *   passed to the user through a call to
                            *   mbedtls_reader_get(), relative to the first
                            *   byte in the accumulator.
@@ -176,7 +179,8 @@ struct mbedtls_reader
                            *   consuming mode, i.e. \c frag != \c NULL;
                            *   otherwise, its value is \c 0
                            *   (invariant READER_INV_FRAG_UNSET_VARS_ZERO). */
-    mbedtls_mps_stored_size_t pending;       /*!< The amount of incoming data missing on the
+    mbedtls_mps_stored_size_t pending;
+                          /*!< The amount of incoming data missing on the
                            *   last call to mbedtls_reader_get().
                            *   In particular, it is \c 0 if the last call
                            *   was successful.
@@ -191,15 +195,17 @@ struct mbedtls_reader
                            *   otherwise, its value is \c 0
                            *   (invariant READER_INV_FRAG_UNSET_VARS_ZERO). */
 
-    /* This is only needed if we need to be able
-     * to pause the reader. A few bytes could be
-     * saved by moving this to a separate struct
-     * and using a pointer here. */
+    /* The accumulator is only needed if we need to be able to pause
+     * the reader. A few bytes could be saved by moving this to a
+     * separate struct and using a pointer here. */
+
     unsigned char *acc;   /*!< The accumulator is used to gather incoming
                            *   data if a read-request via mbedtls_reader_get()
                            *   cannot be served from the current fragment.  */
-    mbedtls_mps_stored_size_t acc_len;       /*!< The total size of the accumulator.           */
-    mbedtls_mps_stored_size_t acc_avail;     /*!< The number of bytes currently gathered in
+    mbedtls_mps_stored_size_t acc_len;
+                           /*!< The total size of the accumulator.           */
+    mbedtls_mps_stored_size_t acc_avail;
+                          /*!< The number of bytes currently gathered in
                            *   the accumulator. This is both used in
                            *   producing and in consuming mode:
                            *   While producing, it is increased until
@@ -224,19 +230,6 @@ struct mbedtls_reader
                                *   (invariant READER_INV_ACC_CONSUME).      */
     } acc_share;
 };
-
-/*
- * Concrete to abstract state mapping:
- *
- * The concrete C-state of the reader maps the abstract producer state
- * in the following way:
- *
- * - The reader is in Attached/Consuming state if and only if frag is not NULL.
- * - If the reader is not in Attached/Consuming state, it is in state Unset
- *   resp. Accumulating if and only if acc_share.acc_remaining is 0 resp. bigger
- *   than 0.
- *
- */
 
 /*
  * E-ACSL invariants for reader

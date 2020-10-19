@@ -484,7 +484,9 @@ psa_status_t psa_purge_key(mbedtls_svc_key_id_t key);
  *                            both sets of restrictions apply, as
  *                            described in the documentation of this function.
  * \param[out] target_key   On success, an identifier for the newly created
- *                          key. \c 0 on failure.
+ *                          key. For persistent keys, this is the key
+ *                          identifier defined in \p attributes.
+ *                          \c 0 on failure.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_HANDLE
@@ -598,6 +600,8 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key);
  *                          If the key size in \p attributes is nonzero,
  *                          it must be equal to the size from \p data.
  * \param[out] key          On success, an identifier to the newly created key.
+ *                          For persistent keys, this is the key identifier
+ *                          defined in \p attributes.
  *                          \c 0 on failure.
  * \param[in] data    Buffer containing the key data. The content of this
  *                    buffer is interpreted according to the type declared
@@ -3530,7 +3534,9 @@ psa_status_t psa_key_derivation_output_bytes(
  * \param[in] attributes    The attributes for the new key.
  * \param[in,out] operation The key derivation operation object to read from.
  * \param[out] key          On success, an identifier for the newly created
- *                          key. \c 0 on failure.
+ *                          key. For persistent keys, this is the key
+ *                          identifier defined in \p attributes.
+ *                          \c 0 on failure.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -3706,7 +3712,9 @@ psa_status_t psa_generate_random(uint8_t *output,
  *
  * \param[in] attributes    The attributes for the new key.
  * \param[out] key          On success, an identifier for the newly created
- *                          key. \c 0 on failure.
+ *                          key. For persistent keys, this is the key
+ *                          identifier defined in \p attributes.
+ *                          \c 0 on failure.
  *
  * \retval #PSA_SUCCESS
  *         Success.

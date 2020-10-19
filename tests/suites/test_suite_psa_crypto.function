@@ -112,7 +112,7 @@ int lifetime_is_secure_element( psa_key_lifetime_t lifetime )
 {
     /* At the moment, anything that isn't a built-in lifetime is either
      * a secure element or unassigned. */
-    return( lifetime != PSA_KEY_LIFETIME_VOLATILE &&
+    return( ( ! PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) ) &&
             lifetime != PSA_KEY_LIFETIME_PERSISTENT );
 }
 #else
@@ -245,7 +245,7 @@ int check_key_attributes_sanity( mbedtls_svc_key_id_t key )
     bits = psa_get_key_bits( &attributes );
 
     /* Persistence */
-    if( lifetime == PSA_KEY_LIFETIME_VOLATILE )
+    if( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
     {
         TEST_ASSERT(
             ( PSA_KEY_ID_VOLATILE_MIN <=

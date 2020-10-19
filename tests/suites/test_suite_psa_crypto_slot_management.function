@@ -561,7 +561,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_owner_id_arg,
 
     /* If the target key is persistent, restart the system to make
      * sure that the material is still alive. */
-    if( target_lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    if( ! PSA_KEY_LIFETIME_IS_VOLATILE( target_lifetime ) )
     {
         mbedtls_psa_crypto_free( );
         PSA_ASSERT( psa_crypto_init( ) );
@@ -573,7 +573,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_owner_id_arg,
     PSA_ASSERT( psa_get_key_attributes( returned_target_id,
                                         &target_attributes ) );
 
-    if( target_lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    if( ! PSA_KEY_LIFETIME_IS_VOLATILE( target_lifetime ) )
     {
         TEST_ASSERT( mbedtls_svc_key_id_equal(
                          target_id, psa_get_key_id( &target_attributes ) ) );
@@ -657,7 +657,7 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Populate the source slot. */
-    if( source_lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    if( ! PSA_KEY_LIFETIME_IS_VOLATILE( source_lifetime ) )
     {
         psa_set_key_id( &attributes, source_id );
         psa_set_key_lifetime( &attributes, source_lifetime );

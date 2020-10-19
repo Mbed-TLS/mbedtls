@@ -467,9 +467,9 @@ psa_status_t psa_purge_key(mbedtls_svc_key_id_t key);
  * implementation-defined.
  *
  * \param source_key        The key to copy. It must allow the usage
- *                          PSA_KEY_USAGE_COPY. If a private or secret key is
+ *                          #PSA_KEY_USAGE_COPY. If a private or secret key is
  *                          being copied outside of a secure element it must
- *                          also allow PSA_KEY_USAGE_EXPORT.
+ *                          also allow #PSA_KEY_USAGE_EXPORT.
  * \param[in] attributes    The attributes for the new key.
  *                          They are used as follows:
  *                          - The key type and size may be 0. If either is
@@ -535,7 +535,7 @@ psa_status_t psa_copy_key(mbedtls_svc_key_id_t source_key,
  * key will cause the multipart operation to fail.
  *
  * \param key  Identifier of the key to erase. If this is \c 0, do nothing and
- *             return PSA_SUCCESS.
+ *             return #PSA_SUCCESS.
  *
  * \retval #PSA_SUCCESS
  *         \p key was a valid identifier and the key material that it
@@ -704,7 +704,7 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
  * The policy on the key must have the usage flag #PSA_KEY_USAGE_EXPORT set.
  *
  * \param key               Identifier of the key to export. It must allow the
- *                          usage PSA_KEY_USAGE_EXPORT, unless it is a public
+ *                          usage #PSA_KEY_USAGE_EXPORT, unless it is a public
  *                          key.
  * \param[out] data         Buffer where the key data is to be written.
  * \param data_size         Size of the \p data buffer in bytes.
@@ -1596,7 +1596,7 @@ psa_status_t psa_mac_abort(psa_mac_operation_t *operation);
  * #psa_cipher_operation_t object to provide other forms of IV.
  *
  * \param key                   Identifier of the key to use for the operation.
- *                              It must allow the usage PSA_KEY_USAGE_ENCRYPT.
+ *                              It must allow the usage #PSA_KEY_USAGE_ENCRYPT.
  * \param alg                   The cipher algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
@@ -1643,7 +1643,7 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
  * \param key                   Identifier of the key to use for the operation.
  *                              It must remain valid until the operation
  *                              terminates. It must allow the usage
- *                              PSA_KEY_USAGE_DECRYPT.
+ *                              #PSA_KEY_USAGE_DECRYPT.
  * \param alg                   The cipher algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
@@ -1764,7 +1764,7 @@ static psa_cipher_operation_t psa_cipher_operation_init(void);
  * \param key                   Identifier of the key to use for the operation.
  *                              It must remain valid until the operation
  *                              terminates. It must allow the usage
- *                              PSA_KEY_USAGE_ENCRYPT.
+ *                              #PSA_KEY_USAGE_ENCRYPT.
  * \param alg                   The cipher algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
@@ -1828,7 +1828,7 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  * \param key                   Identifier of the key to use for the operation.
  *                              It must remain valid until the operation
  *                              terminates. It must allow the usage
- *                              PSA_KEY_USAGE_DECRYPT.
+ *                              #PSA_KEY_USAGE_DECRYPT.
  * \param alg                   The cipher algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
@@ -2070,7 +2070,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  *
  * \param key                     Identifier of the key to use for the
  *                                operation. It must allow the usage
- *                                PSA_KEY_USAGE_ENCRYPT.
+ *                                #PSA_KEY_USAGE_ENCRYPT.
  * \param alg                     The AEAD algorithm to compute
  *                                (\c PSA_ALG_XXX value such that
  *                                #PSA_ALG_IS_AEAD(\p alg) is true).
@@ -2132,7 +2132,7 @@ psa_status_t psa_aead_encrypt(mbedtls_svc_key_id_t key,
  *
  * \param key                     Identifier of the key to use for the
  *                                operation. It must allow the usage
- *                                PSA_KEY_USAGE_DECRYPT.
+ *                                #PSA_KEY_USAGE_DECRYPT.
  * \param alg                     The AEAD algorithm to compute
  *                                (\c PSA_ALG_XXX value such that
  *                                #PSA_ALG_IS_AEAD(\p alg) is true).
@@ -2277,7 +2277,7 @@ static psa_aead_operation_t psa_aead_operation_init(void);
  * \param key                   Identifier of the key to use for the operation.
  *                              It must remain valid until the operation
  *                              terminates. It must allow the usage
- *                              PSA_KEY_USAGE_ENCRYPT.
+ *                              #PSA_KEY_USAGE_ENCRYPT.
  * \param alg                   The AEAD algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_AEAD(\p alg) is true).
@@ -2286,7 +2286,7 @@ static psa_aead_operation_t psa_aead_operation_init(void);
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be inactive).
-  * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p key is not compatible with \p alg.
@@ -2344,7 +2344,7 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  * \param key                   Identifier of the key to use for the operation.
  *                              It must remain valid until the operation
  *                              terminates. It must allow the usage
- *                              PSA_KEY_USAGE_DECRYPT.
+ *                              #PSA_KEY_USAGE_DECRYPT.
  * \param alg                   The AEAD algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_AEAD(\p alg) is true).
@@ -2353,7 +2353,7 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be inactive).
-  * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p key is not compatible with \p alg.
@@ -2396,7 +2396,7 @@ psa_status_t psa_aead_decrypt_setup(psa_aead_operation_t *operation,
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be an active aead encrypt
-           operation, with no nonce set).
+ *         operation, with no nonce set).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p nonce buffer is too small.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -2830,7 +2830,7 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
  *
  * \param key                   Identifier of the key to use for the operation.
  *                              It must be an asymmetric key pair. The key must
- *                              allow the usage PSA_KEY_USAGE_SIGN_HASH.
+ *                              allow the usage #PSA_KEY_USAGE_SIGN_HASH.
  * \param alg                   A signature algorithm that is compatible with
  *                              the type of \p key.
  * \param[in] hash              The hash or message to sign.
@@ -2881,7 +2881,8 @@ psa_status_t psa_sign_hash(mbedtls_svc_key_id_t key,
  *
  * \param key               Identifier of the key to use for the operation. It
  *                          must be a public key or an asymmetric key pair. The
- *                          key must allow the usage PSA_KEY_USAGE_VERIFY_HASH.
+ *                          key must allow the usage
+ *                          #PSA_KEY_USAGE_VERIFY_HASH.
  * \param alg               A signature algorithm that is compatible with
  *                          the type of \p key.
  * \param[in] hash          The hash or message whose signature is to be
@@ -2922,7 +2923,7 @@ psa_status_t psa_verify_hash(mbedtls_svc_key_id_t key,
  * \param key                   Identifer of the key to use for the operation.
  *                              It must be a public key or an asymmetric key
  *                              pair. It must allow the usage
- *                              PSA_KEY_USAGE_ENCRYPT.
+ *                              #PSA_KEY_USAGE_ENCRYPT.
  * \param alg                   An asymmetric encryption algorithm that is
  *                              compatible with the type of \p key.
  * \param[in] input             The message to encrypt.
@@ -2982,7 +2983,7 @@ psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
  *
  * \param key                   Identifier of the key to use for the operation.
  *                              It must be an asymmetric key pair. It must
- *                              allow the usage PSA_KEY_USAGE_DECRYPT.
+ *                              allow the usage #PSA_KEY_USAGE_DECRYPT.
  * \param alg                   An asymmetric encryption algorithm that is
  *                              compatible with the type of \p key.
  * \param[in] input             The message to decrypt.
@@ -3288,7 +3289,7 @@ psa_status_t psa_key_derivation_input_bytes(
  * \param step                    Which step the input data is for.
  * \param key                     Identifier of the key. It must have an
  *                                appropriate type for step and must allow the
- *                                usage PSA_KEY_USAGE_DERIVE.
+ *                                usage #PSA_KEY_USAGE_DERIVE.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -3340,7 +3341,7 @@ psa_status_t psa_key_derivation_input_key(
  *                                input of the type given by \p step.
  * \param step                    Which step the input data is for.
  * \param private_key             Identifier of the private key to use. It must
- *                                allow the usage PSA_KEY_USAGE_DERIVE.
+ *                                allow the usage #PSA_KEY_USAGE_DERIVE.
  * \param[in] peer_key      Public key of the peer. The peer key must be in the
  *                          same format that psa_import_key() accepts for the
  *                          public key type corresponding to the type of
@@ -3610,7 +3611,7 @@ psa_status_t psa_key_derivation_abort(
  *                                #PSA_ALG_IS_RAW_KEY_AGREEMENT(\p alg)
  *                                is true).
  * \param private_key             Identifier of the private key to use. It must
- *                                allow the usage PSA_KEY_USAGE_DERIVE.
+ *                                allow the usage #PSA_KEY_USAGE_DERIVE.
  * \param[in] peer_key            Public key of the peer. It must be
  *                                in the same format that psa_import_key()
  *                                accepts. The standard formats for public

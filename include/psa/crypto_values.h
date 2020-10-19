@@ -1452,7 +1452,7 @@
  * a key derivation function.
  * Usually, raw key agreement algorithms are constructed directly with
  * a \c PSA_ALG_xxx macro while non-raw key agreement algorithms are
- * constructed with PSA_ALG_KEY_AGREEMENT().
+ * constructed with #PSA_ALG_KEY_AGREEMENT().
  *
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
  *

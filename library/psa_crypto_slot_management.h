@@ -33,7 +33,7 @@
  *
  *  The last PSA_KEY_SLOT_COUNT identifiers of the implementation range
  *  of key identifiers are reserved for volatile key identifiers.
- *  A volatile key identifier is equal to PSA_KEY_ID_VOLATILE_MIN plus the
+ *  A volatile key identifier is equal to #PSA_KEY_ID_VOLATILE_MIN plus the
  *  index of the key slot containing the volatile key definition.
  */
 
@@ -97,7 +97,7 @@ psa_status_t psa_get_key_slot( mbedtls_svc_key_id_t key,
 
 /** Initialize the key slot structures.
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  *         Currently this function always succeeds.
  */
 psa_status_t psa_initialize_key_slots( void );

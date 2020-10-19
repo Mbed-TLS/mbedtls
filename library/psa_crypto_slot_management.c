@@ -86,17 +86,17 @@ psa_status_t psa_validate_key_id(
  *
  *  For volatile key identifiers, only one key slot is queried as a volatile
  *  key with identifier key_id can only be stored in slot of index
- *  ( key_id - PSA_KEY_ID_VOLATILE_MIN ).
+ *  ( key_id - #PSA_KEY_ID_VOLATILE_MIN ).
  *
  * \param key           Key identifier to query.
  * \param[out] p_slot   On success, `*p_slot` contains a pointer to the
  *                      key slot containing the description of the key
  *                      identified by \p key.
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  *         The pointer to the key slot containing the description of the key
  *         identified by \p key was returned.
- * \retval PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_INVALID_HANDLE
  *         \p key is not a valid key identifier.
  * \retval #PSA_ERROR_DOES_NOT_EXIST
  *         There is no key with key identifier \p key in the key slots.

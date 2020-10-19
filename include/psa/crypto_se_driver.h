@@ -178,7 +178,7 @@ typedef uint64_t psa_key_slot_number_t;
  * \param[in] algorithm         The algorithm to be used to underly the MAC
  *                              operation
  *
- * \retval  PSA_SUCCESS
+ * \retval  #PSA_SUCCESS
  *          Success.
  */
 typedef psa_status_t (*psa_drv_se_mac_setup_t)(psa_drv_se_context_t *drv_context,
@@ -213,7 +213,7 @@ typedef psa_status_t (*psa_drv_se_mac_update_t)(void *op_context,
  * \param[out] p_mac_length     After completion, will contain the number of
  *                              bytes placed in the `p_mac` buffer
  *
- * \retval PSA_SUCCESS
+ * \retval  #PSA_SUCCESS
  *          Success.
  */
 typedef psa_status_t (*psa_drv_se_mac_finish_t)(void *op_context,
@@ -230,10 +230,10 @@ typedef psa_status_t (*psa_drv_se_mac_finish_t)(void *op_context,
  *                              will be compared against
  * \param[in] mac_length        The size in bytes of the value stored in `p_mac`
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  *         The operation completed successfully and the MACs matched each
  *         other
- * \retval PSA_ERROR_INVALID_SIGNATURE
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
  *         The operation completed successfully, but the calculated MAC did
  *         not match the provided MAC
  */
@@ -264,7 +264,7 @@ typedef psa_status_t (*psa_drv_se_mac_abort_t)(void *op_context);
  * \param[out] p_mac_length     After completion, will contain the number of
  *                              bytes placed in the `output` buffer
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  *         Success.
  */
 typedef psa_status_t (*psa_drv_se_mac_generate_t)(psa_drv_se_context_t *drv_context,
@@ -289,10 +289,10 @@ typedef psa_status_t (*psa_drv_se_mac_generate_t)(psa_drv_se_context_t *drv_cont
  *                          be compared against
  * \param[in] mac_length   The size in bytes of `mac`
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  *         The operation completed successfully and the MACs matched each
  *         other
- * \retval PSA_ERROR_INVALID_SIGNATURE
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
  *         The operation completed successfully, but the calculated MAC did
  *         not match the provided MAC
  */
@@ -384,8 +384,8 @@ typedef struct {
  * \param[in] direction         Indicates whether the operation is an encrypt
  *                              or decrypt
  *
- * \retval PSA_SUCCESS
- * \retval PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_NOT_SUPPORTED
  */
 typedef psa_status_t (*psa_drv_se_cipher_setup_t)(psa_drv_se_context_t *drv_context,
                                                   void *op_context,
@@ -406,7 +406,7 @@ typedef psa_status_t (*psa_drv_se_cipher_setup_t)(psa_drv_se_context_t *drv_cont
  * \param[in] p_iv              A buffer containing the initialization vector
  * \param[in] iv_length         The size (in bytes) of the `p_iv` buffer
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  */
 typedef psa_status_t (*psa_drv_se_cipher_set_iv_t)(void *op_context,
                                                    const uint8_t *p_iv,
@@ -428,7 +428,7 @@ typedef psa_status_t (*psa_drv_se_cipher_set_iv_t)(void *op_context,
  * \param[out] p_output_length      After completion, will contain the number
  *                                  of bytes placed in the `p_output` buffer
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  */
 typedef psa_status_t (*psa_drv_se_cipher_update_t)(void *op_context,
                                                    const uint8_t *p_input,
@@ -449,7 +449,7 @@ typedef psa_status_t (*psa_drv_se_cipher_update_t)(void *op_context,
  * \param[out] p_output_length  After completion, will contain the number of
  *                              bytes placed in the `p_output` buffer
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  */
 typedef psa_status_t (*psa_drv_se_cipher_finish_t)(void *op_context,
                                                    uint8_t *p_output,
@@ -484,8 +484,8 @@ typedef psa_status_t (*psa_drv_se_cipher_abort_t)(void *op_context);
  * \param[in] output_size       The allocated size in bytes of the `p_output`
  *                              buffer
  *
- * \retval PSA_SUCCESS
- * \retval PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_NOT_SUPPORTED
  */
 typedef psa_status_t (*psa_drv_se_cipher_ecb_t)(psa_drv_se_context_t *drv_context,
                                                 psa_key_slot_number_t key_slot,
@@ -553,7 +553,7 @@ typedef struct {
  * \param[out] p_signature_length   On success, the number of bytes
  *                                  that make up the returned signature value
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  */
 typedef psa_status_t (*psa_drv_se_asymmetric_sign_t)(psa_drv_se_context_t *drv_context,
                                                      psa_key_slot_number_t key_slot,
@@ -578,7 +578,7 @@ typedef psa_status_t (*psa_drv_se_asymmetric_sign_t)(psa_drv_se_context_t *drv_c
  * \param[in] p_signature       Buffer containing the signature to verify
  * \param[in] signature_length  Size of the `p_signature` buffer in bytes
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  *         The signature is valid.
  */
 typedef psa_status_t (*psa_drv_se_asymmetric_verify_t)(psa_drv_se_context_t *drv_context,
@@ -617,7 +617,7 @@ typedef psa_status_t (*psa_drv_se_asymmetric_verify_t)(psa_drv_se_context_t *drv
  * \param[out] p_output_length  On success, the number of bytes that make up
  *                              the returned output
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  */
 typedef psa_status_t (*psa_drv_se_asymmetric_encrypt_t)(psa_drv_se_context_t *drv_context,
                                                         psa_key_slot_number_t key_slot,
@@ -657,7 +657,7 @@ typedef psa_status_t (*psa_drv_se_asymmetric_encrypt_t)(psa_drv_se_context_t *dr
  * \param[out] p_output_length  On success, the number of bytes
  *                              that make up the returned output
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  */
 typedef psa_status_t (*psa_drv_se_asymmetric_decrypt_t)(psa_drv_se_context_t *drv_context,
                                                         psa_key_slot_number_t key_slot,
@@ -1195,7 +1195,7 @@ typedef struct {
  * \param[in] source_key        The key to be used as the source material for
  *                              the key derivation
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  */
 typedef psa_status_t (*psa_drv_se_key_derivation_setup_t)(psa_drv_se_context_t *drv_context,
                                                           void *op_context,
@@ -1215,7 +1215,7 @@ typedef psa_status_t (*psa_drv_se_key_derivation_setup_t)(psa_drv_se_context_t *
  * \param[in] p_collateral      A buffer containing the collateral data
  * \param[in] collateral_size   The size in bytes of the collateral
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  */
 typedef psa_status_t (*psa_drv_se_key_derivation_collateral_t)(void *op_context,
                                                                uint32_t collateral_id,
@@ -1230,7 +1230,7 @@ typedef psa_status_t (*psa_drv_se_key_derivation_collateral_t)(void *op_context,
  * \param[in] dest_key          The slot where the generated key material
  *                              should be placed
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  */
 typedef psa_status_t (*psa_drv_se_key_derivation_derive_t)(void *op_context,
                                                           psa_key_slot_number_t dest_key);
@@ -1244,7 +1244,7 @@ typedef psa_status_t (*psa_drv_se_key_derivation_derive_t)(void *op_context,
  * \param[out] p_output_length  Upon success, contains the number of bytes of
  *                              key material placed in `p_output`
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  */
 typedef psa_status_t (*psa_drv_se_key_derivation_export_t)(void *op_context,
                                                            uint8_t *p_output,
@@ -1353,7 +1353,7 @@ typedef struct {
  * \param location      The location value through which this driver will
  *                      be exposed to applications.
  *                      This driver will be used for all keys such that
- *                      `location == PSA_KEY_LIFETIME_LOCATION( lifetime )`.
+ *                      `location == #PSA_KEY_LIFETIME_GET_LOCATION( lifetime )`.
  *                      The value #PSA_KEY_LOCATION_LOCAL_STORAGE is reserved
  *                      and may not be used for drivers. Implementations
  *                      may reserve other values.
@@ -1362,22 +1362,22 @@ typedef struct {
  *                      module keeps running. It is typically a global
  *                      constant.
  *
- * \return PSA_SUCCESS
+ * \return #PSA_SUCCESS
  *         The driver was successfully registered. Applications can now
  *         use \p lifetime to access keys through the methods passed to
  *         this function.
- * \return PSA_ERROR_BAD_STATE
+ * \return #PSA_ERROR_BAD_STATE
  *         This function was called after the initialization of the
  *         cryptography module, and this implementation does not support
  *         driver registration at this stage.
- * \return PSA_ERROR_ALREADY_EXISTS
+ * \return #PSA_ERROR_ALREADY_EXISTS
  *         There is already a registered driver for this value of \p lifetime.
- * \return PSA_ERROR_INVALID_ARGUMENT
+ * \return #PSA_ERROR_INVALID_ARGUMENT
  *         \p lifetime is a reserved value.
- * \return PSA_ERROR_NOT_SUPPORTED
+ * \return #PSA_ERROR_NOT_SUPPORTED
  *         `methods->hal_version` is not supported by this implementation.
- * \return PSA_ERROR_INSUFFICIENT_MEMORY
- * \return PSA_ERROR_NOT_PERMITTED
+ * \return #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \return #PSA_ERROR_NOT_PERMITTED
  */
 psa_status_t psa_register_se_driver(
     psa_key_location_t location,

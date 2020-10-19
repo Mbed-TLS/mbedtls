@@ -2312,7 +2312,10 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
-#endif
+#if defined(MBEDTLS_MEMORY_DEBUG)
+    size_t current_heap_memory, peak_heap_memory, heap_blocks;
+#endif  /* MBEDTLS_MEMORY_DEBUG */
+#endif  /* MBEDTLS_MEMORY_BUFFER_ALLOC_C */
 
     ssl         = mbedtls_calloc( 1, sizeof( *ssl ) );
     conf        = mbedtls_calloc( 1, sizeof( *conf ) );
@@ -3420,8 +3423,10 @@ handshake:
         mbedtls_printf( "    [ Record expansion is unknown (compression) ]\n" );
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    mbedtls_printf( "    [ Maximum fragment length is %u ]\n",
-                    (unsigned int) mbedtls_ssl_get_max_frag_len( ssl ) );
+    mbedtls_printf( "    [ Maximum input fragment length is %u ]\n",
+                    (unsigned int) mbedtls_ssl_get_input_max_frag_len( ssl ) );
+    mbedtls_printf( "    [ Maximum output fragment length is %u ]\n",
+                    (unsigned int) mbedtls_ssl_get_output_max_frag_len( ssl ) );
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)
@@ -3485,6 +3490,13 @@ handshake:
         }
     }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+#if defined(MBEDTLS_MEMORY_DEBUG)
+    mbedtls_memory_buffer_alloc_cur_get( &current_heap_memory, &heap_blocks );
+    mbedtls_memory_buffer_alloc_max_get( &peak_heap_memory, &heap_blocks );
+    mbedtls_printf( "Heap memory usage after handshake: %lu bytes. Peak memory usage was %lu\n",
+                    (unsigned long) current_heap_memory, (unsigned long) peak_heap_memory );
+#endif  /* MBEDTLS_MEMORY_DEBUG */
 
     if( opt.exchanges == 0 )
         goto close_notify;

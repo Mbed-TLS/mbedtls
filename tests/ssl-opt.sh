@@ -153,7 +153,7 @@ skip_next_test() {
 }
 
 requires_ciphersuite_enabled() {
-    if [ -z "$($P_CLI --help | grep "$1")" ]; then
+    if [ -z "$($P_CLI --help 2>/dev/null | grep $1)" ]; then
         SKIP_NEXT="YES"
     fi
 }
@@ -504,6 +504,45 @@ check_server_hello_time() {
         return 1
     elif [ $SERVER_HELLO_TIME -gt $(( $CUR_TIME + $THRESHOLD_IN_SECS )) ]; then
         # The time in ServerHello is at least 5 minutes later than now
+        return 1
+    else
+        return 0
+    fi
+}
+
+# Get handshake memory usage from server or client output and put it into the variable specified by the first argument
+handshake_memory_get() {
+    OUTPUT_VARIABLE="$1"
+    OUTPUT_FILE="$2"
+
+    # Get memory usage from a pattern like "Heap memory usage after handshake: 23112 bytes. Peak memory usage was 33112"
+    MEM_USAGE=$(sed -n 's/.*Heap memory usage after handshake: //p' < "$OUTPUT_FILE" | grep -o "[0-9]*" | head -1)
+
+    # Check if memory usage was read
+    if [ -z "$MEM_USAGE" ]; then
+        echo "Error: Can not read the value of handshake memory usage"
+        return 1
+    else
+        eval "$OUTPUT_VARIABLE=$MEM_USAGE"
+        return 0
+    fi
+}
+
+# Get handshake memory usage from server or client output and check if this value
+# is not higher than the maximum given by the first argument
+handshake_memory_check() {
+    MAX_MEMORY="$1"
+    OUTPUT_FILE="$2"
+
+    # Get memory usage
+    if ! handshake_memory_get "MEMORY_USAGE" "$OUTPUT_FILE"; then
+        return 1
+    fi
+
+    # Check if memory usage is below max value
+    if [ "$MEMORY_USAGE" -gt "$MAX_MEMORY" ]; then
+        echo "\nFailed: Handshake memory usage was $MEMORY_USAGE bytes," \
+             "but should be below $MAX_MEMORY bytes"
         return 1
     else
         return 0
@@ -997,6 +1036,58 @@ run_test() {
     fi
 
     rm -f $SRV_OUT $CLI_OUT $PXY_OUT
+}
+
+# Test that the server's memory usage after a handshake is reduced when a client specifies
+# a maximum fragment length.
+#  first argument ($1) is MFL for SSL client
+#  second argument ($2) is memory usage for SSL client with default MFL (16k)
+run_test_memory_after_hanshake_with_mfl()
+{
+    # The test passes if the difference is around 2*(16k-MFL)
+    local MEMORY_USAGE_LIMIT="$(( $2 - ( 2 * ( 16384 - $1 )) ))"
+
+    # Leave some margin for robustness
+    MEMORY_USAGE_LIMIT="$(( ( MEMORY_USAGE_LIMIT * 110 ) / 100 ))"
+
+    run_test    "Handshake memory usage (MFL $1)" \
+                "$P_SRV debug_level=3 auth_mode=required force_version=tls1_2" \
+                "$P_CLI debug_level=3 force_version=tls1_2 \
+                    crt_file=data_files/server5.crt key_file=data_files/server5.key \
+                    force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM max_frag_len=$1" \
+                0 \
+                -F "handshake_memory_check $MEMORY_USAGE_LIMIT"
+}
+
+
+# Test that the server's memory usage after a handshake is reduced when a client specifies
+# different values of Maximum Fragment Length: default (16k), 4k, 2k, 1k and 512 bytes
+run_tests_memory_after_hanshake()
+{
+    # all tests in this sequence requires the same configuration (see requires_config_enabled())
+    SKIP_THIS_TESTS="$SKIP_NEXT"
+
+    # first test with default MFU is to get reference memory usage
+    MEMORY_USAGE_MFL_16K=0
+    run_test    "Handshake memory usage initial (MFL 16384 - default)" \
+                "$P_SRV debug_level=3 auth_mode=required force_version=tls1_2" \
+                "$P_CLI debug_level=3 force_version=tls1_2 \
+                    crt_file=data_files/server5.crt key_file=data_files/server5.key \
+                    force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM" \
+                0 \
+                -F "handshake_memory_get MEMORY_USAGE_MFL_16K"
+
+    SKIP_NEXT="$SKIP_THIS_TESTS"
+    run_test_memory_after_hanshake_with_mfl 4096 "$MEMORY_USAGE_MFL_16K"
+
+    SKIP_NEXT="$SKIP_THIS_TESTS"
+    run_test_memory_after_hanshake_with_mfl 2048 "$MEMORY_USAGE_MFL_16K"
+
+    SKIP_NEXT="$SKIP_THIS_TESTS"
+    run_test_memory_after_hanshake_with_mfl 1024 "$MEMORY_USAGE_MFL_16K"
+
+    SKIP_NEXT="$SKIP_THIS_TESTS"
+    run_test_memory_after_hanshake_with_mfl 512 "$MEMORY_USAGE_MFL_16K"
 }
 
 cleanup() {
@@ -2176,6 +2267,32 @@ run_test    "Connection ID, 3D: Cli+Srv enabled, Srv disables on renegotiation" 
             -c "ignoring unexpected CID" \
             -s "ignoring unexpected CID"
 
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+requires_config_enabled MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+run_test    "Connection ID: Cli+Srv enabled, variable buffer lengths, MFL=512" \
+            "$P_SRV dtls=1 cid=1 cid_val=dead debug_level=2" \
+            "$P_CLI force_ciphersuite="TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" max_frag_len=512 dtls=1 cid=1 cid_val=beef" \
+            0 \
+            -c "(initial handshake) Peer CID (length 2 Bytes): de ad" \
+            -s "(initial handshake) Peer CID (length 2 Bytes): be ef" \
+            -s "(initial handshake) Use of Connection ID has been negotiated" \
+            -c "(initial handshake) Use of Connection ID has been negotiated" \
+            -s "Reallocating in_buf" \
+            -s "Reallocating out_buf"
+
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+requires_config_enabled MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+run_test    "Connection ID: Cli+Srv enabled, variable buffer lengths, MFL=1024" \
+            "$P_SRV dtls=1 cid=1 cid_val=dead debug_level=2" \
+            "$P_CLI force_ciphersuite="TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" max_frag_len=1024 dtls=1 cid=1 cid_val=beef" \
+            0 \
+            -c "(initial handshake) Peer CID (length 2 Bytes): de ad" \
+            -s "(initial handshake) Peer CID (length 2 Bytes): be ef" \
+            -s "(initial handshake) Use of Connection ID has been negotiated" \
+            -c "(initial handshake) Use of Connection ID has been negotiated" \
+            -s "Reallocating in_buf" \
+            -s "Reallocating out_buf"
+
 # Tests for Encrypt-then-MAC extension
 
 run_test    "Encrypt then MAC: default" \
@@ -3047,14 +3164,15 @@ run_test    "Session resume using cache, DTLS: openssl server" \
 if [ $MAX_CONTENT_LEN -ne 16384 ]; then
     printf "Using non-default maximum content length $MAX_CONTENT_LEN\n"
 fi
-
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: enabled, default" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3" \
             0 \
-            -c "Maximum fragment length is $MAX_CONTENT_LEN" \
-            -s "Maximum fragment length is $MAX_CONTENT_LEN" \
+            -c "Maximum input fragment length is $MAX_CONTENT_LEN" \
+            -c "Maximum output fragment length is $MAX_CONTENT_LEN" \
+            -s "Maximum input fragment length is $MAX_CONTENT_LEN" \
+            -s "Maximum output fragment length is $MAX_CONTENT_LEN" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
@@ -3065,8 +3183,10 @@ run_test    "Max fragment length: enabled, default, larger message" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             0 \
-            -c "Maximum fragment length is $MAX_CONTENT_LEN" \
-            -s "Maximum fragment length is $MAX_CONTENT_LEN" \
+            -c "Maximum input fragment length is $MAX_CONTENT_LEN" \
+            -c "Maximum output fragment length is $MAX_CONTENT_LEN" \
+            -s "Maximum input fragment length is $MAX_CONTENT_LEN" \
+            -s "Maximum output fragment length is $MAX_CONTENT_LEN" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
@@ -3076,13 +3196,14 @@ run_test    "Max fragment length: enabled, default, larger message" \
             -s "1 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 4096
 run_test    "Max fragment length, DTLS: enabled, default, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
             "$P_CLI debug_level=3 dtls=1 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             1 \
-            -c "Maximum fragment length is $MAX_CONTENT_LEN" \
-            -s "Maximum fragment length is $MAX_CONTENT_LEN" \
+            -c "Maximum input fragment length is $MAX_CONTENT_LEN" \
+            -c "Maximum output fragment length is $MAX_CONTENT_LEN" \
+            -s "Maximum input fragment length is $MAX_CONTENT_LEN" \
+            -s "Maximum output fragment length is $MAX_CONTENT_LEN" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
@@ -3094,72 +3215,245 @@ run_test    "Max fragment length, DTLS: enabled, default, larger message" \
 # content length configuration.)
 
 requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 16384
 run_test    "Max fragment length: disabled, larger message" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             0 \
-            -C "Maximum fragment length is 16384" \
-            -S "Maximum fragment length is 16384" \
+            -C "Maximum input fragment length is 16384" \
+            -C "Maximum output fragment length is 16384" \
+            -S "Maximum input fragment length is 16384" \
+            -S "Maximum output fragment length is 16384" \
             -c "$(( $MAX_CONTENT_LEN + 1)) bytes written in 2 fragments" \
             -s "$MAX_CONTENT_LEN bytes read" \
             -s "1 bytes read"
 
 requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 16384
 run_test    "Max fragment length DTLS: disabled, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
             "$P_CLI debug_level=3 dtls=1 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             1 \
-            -C "Maximum fragment length is 16384" \
-            -S "Maximum fragment length is 16384" \
+            -C "Maximum input fragment length is 16384" \
+            -C "Maximum output fragment length is 16384" \
+            -S "Maximum input fragment length is 16384" \
+            -S "Maximum output fragment length is 16384" \
             -c "fragment larger than.*maximum "
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 4096
 run_test    "Max fragment length: used by client" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=4096" \
             0 \
-            -c "Maximum fragment length is 4096" \
-            -s "Maximum fragment length is 4096" \
+            -c "Maximum input fragment length is 4096" \
+            -c "Maximum output fragment length is 4096" \
+            -s "Maximum input fragment length is 4096" \
+            -s "Maximum output fragment length is 4096" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
             -c "found max_fragment_length extension"
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 4096
+run_test    "Max fragment length: client 512, server 1024" \
+            "$P_SRV debug_level=3 max_frag_len=1024" \
+            "$P_CLI debug_level=3 max_frag_len=512" \
+            0 \
+            -c "Maximum input fragment length is 512" \
+            -c "Maximum output fragment length is 512" \
+            -s "Maximum input fragment length is 512" \
+            -s "Maximum output fragment length is 512" \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: client 512, server 2048" \
+            "$P_SRV debug_level=3 max_frag_len=2048" \
+            "$P_CLI debug_level=3 max_frag_len=512" \
+            0 \
+            -c "Maximum input fragment length is 512" \
+            -c "Maximum output fragment length is 512" \
+            -s "Maximum input fragment length is 512" \
+            -s "Maximum output fragment length is 512" \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: client 512, server 4096" \
+            "$P_SRV debug_level=3 max_frag_len=4096" \
+            "$P_CLI debug_level=3 max_frag_len=512" \
+            0 \
+            -c "Maximum input fragment length is 512" \
+            -c "Maximum output fragment length is 512" \
+            -s "Maximum input fragment length is 512" \
+            -s "Maximum output fragment length is 512" \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: client 1024, server 512" \
+            "$P_SRV debug_level=3 max_frag_len=512" \
+            "$P_CLI debug_level=3 max_frag_len=1024" \
+            0 \
+            -c "Maximum input fragment length is 1024" \
+            -c "Maximum output fragment length is 1024" \
+            -s "Maximum input fragment length is 1024" \
+            -s "Maximum output fragment length is 512" \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: client 1024, server 2048" \
+            "$P_SRV debug_level=3 max_frag_len=2048" \
+            "$P_CLI debug_level=3 max_frag_len=1024" \
+            0 \
+            -c "Maximum input fragment length is 1024" \
+            -c "Maximum output fragment length is 1024" \
+            -s "Maximum input fragment length is 1024" \
+            -s "Maximum output fragment length is 1024" \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: client 1024, server 4096" \
+            "$P_SRV debug_level=3 max_frag_len=4096" \
+            "$P_CLI debug_level=3 max_frag_len=1024" \
+            0 \
+            -c "Maximum input fragment length is 1024" \
+            -c "Maximum output fragment length is 1024" \
+            -s "Maximum input fragment length is 1024" \
+            -s "Maximum output fragment length is 1024" \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: client 2048, server 512" \
+            "$P_SRV debug_level=3 max_frag_len=512" \
+            "$P_CLI debug_level=3 max_frag_len=2048" \
+            0 \
+            -c "Maximum input fragment length is 2048" \
+            -c "Maximum output fragment length is 2048" \
+            -s "Maximum input fragment length is 2048" \
+            -s "Maximum output fragment length is 512" \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: client 2048, server 1024" \
+            "$P_SRV debug_level=3 max_frag_len=1024" \
+            "$P_CLI debug_level=3 max_frag_len=2048" \
+            0 \
+            -c "Maximum input fragment length is 2048" \
+            -c "Maximum output fragment length is 2048" \
+            -s "Maximum input fragment length is 2048" \
+            -s "Maximum output fragment length is 1024" \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: client 2048, server 4096" \
+            "$P_SRV debug_level=3 max_frag_len=4096" \
+            "$P_CLI debug_level=3 max_frag_len=2048" \
+            0 \
+            -c "Maximum input fragment length is 2048" \
+            -c "Maximum output fragment length is 2048" \
+            -s "Maximum input fragment length is 2048" \
+            -s "Maximum output fragment length is 2048" \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: client 4096, server 512" \
+            "$P_SRV debug_level=3 max_frag_len=512" \
+            "$P_CLI debug_level=3 max_frag_len=4096" \
+            0 \
+            -c "Maximum input fragment length is 4096" \
+            -c "Maximum output fragment length is 4096" \
+            -s "Maximum input fragment length is 4096" \
+            -s "Maximum output fragment length is 512" \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: client 4096, server 1024" \
+            "$P_SRV debug_level=3 max_frag_len=1024" \
+            "$P_CLI debug_level=3 max_frag_len=4096" \
+            0 \
+            -c "Maximum input fragment length is 4096" \
+            -c "Maximum output fragment length is 4096" \
+            -s "Maximum input fragment length is 4096" \
+            -s "Maximum output fragment length is 1024" \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Max fragment length: client 4096, server 2048" \
+            "$P_SRV debug_level=3 max_frag_len=2048" \
+            "$P_CLI debug_level=3 max_frag_len=4096" \
+            0 \
+            -c "Maximum input fragment length is 4096" \
+            -c "Maximum output fragment length is 4096" \
+            -s "Maximum input fragment length is 4096" \
+            -s "Maximum output fragment length is 2048" \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension"
+
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: used by server" \
             "$P_SRV debug_level=3 max_frag_len=4096" \
             "$P_CLI debug_level=3" \
             0 \
-            -c "Maximum fragment length is $MAX_CONTENT_LEN" \
-            -s "Maximum fragment length is 4096" \
+            -c "Maximum input fragment length is $MAX_CONTENT_LEN" \
+            -c "Maximum output fragment length is $MAX_CONTENT_LEN" \
+            -s "Maximum input fragment length is $MAX_CONTENT_LEN" \
+            -s "Maximum output fragment length is 4096" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
             -C "found max_fragment_length extension"
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 4096
 requires_gnutls
 run_test    "Max fragment length: gnutls server" \
             "$G_SRV" \
-            "$P_CLI debug_level=3 max_frag_len=4096 ca_file=data_files/test-ca2.crt" \
+            "$P_CLI debug_level=3 max_frag_len=4096" \
             0 \
-            -c "Maximum fragment length is 4096" \
+            -c "Maximum input fragment length is 4096" \
+            -c "Maximum output fragment length is 4096" \
             -c "client hello, adding max_fragment_length extension" \
             -c "found max_fragment_length extension"
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 2048
 run_test    "Max fragment length: client, message just fits" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=2048 request_size=2048" \
             0 \
-            -c "Maximum fragment length is 2048" \
-            -s "Maximum fragment length is 2048" \
+            -c "Maximum input fragment length is 2048" \
+            -c "Maximum output fragment length is 2048" \
+            -s "Maximum input fragment length is 2048" \
+            -s "Maximum output fragment length is 2048" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3168,13 +3462,14 @@ run_test    "Max fragment length: client, message just fits" \
             -s "2048 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 2048
 run_test    "Max fragment length: client, larger message" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=2048 request_size=2345" \
             0 \
-            -c "Maximum fragment length is 2048" \
-            -s "Maximum fragment length is 2048" \
+            -c "Maximum input fragment length is 2048" \
+            -c "Maximum output fragment length is 2048" \
+            -s "Maximum input fragment length is 2048" \
+            -s "Maximum output fragment length is 2048" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3184,13 +3479,14 @@ run_test    "Max fragment length: client, larger message" \
             -s "297 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 2048
 run_test    "Max fragment length: DTLS client, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
             "$P_CLI debug_level=3 dtls=1 max_frag_len=2048 request_size=2345" \
             1 \
-            -c "Maximum fragment length is 2048" \
-            -s "Maximum fragment length is 2048" \
+            -c "Maximum input fragment length is 2048" \
+            -c "Maximum output fragment length is 2048" \
+            -s "Maximum input fragment length is 2048" \
+            -s "Maximum output fragment length is 2048" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3282,6 +3578,29 @@ run_test    "Renegotiation: double" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
             0 \
+            -c "client hello, adding renegotiation extension" \
+            -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
+            -s "found renegotiation extension" \
+            -s "server hello, secure renegotiation extension" \
+            -c "found renegotiation extension" \
+            -c "=> renegotiate" \
+            -s "=> renegotiate" \
+            -s "write hello request"
+
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "Renegotiation with max fragment length: client 2048, server 512" \
+            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1 max_frag_len=512" \
+            "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 max_frag_len=2048 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0 \
+            -c "Maximum input fragment length is 2048" \
+            -c "Maximum output fragment length is 2048" \
+            -s "Maximum input fragment length is 2048" \
+            -s "Maximum output fragment length is 512" \
+            -c "client hello, adding max_fragment_length extension" \
+            -s "found max fragment length extension" \
+            -s "server hello, max_fragment_length extension" \
+            -c "found max_fragment_length extension" \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
             -s "found renegotiation extension" \
@@ -8773,6 +9092,12 @@ run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             0 \
             -s "Extra-header:" \
             -c "Extra-header:"
+
+# Test heap memory usage after handshake
+requires_config_enabled MBEDTLS_MEMORY_DEBUG
+requires_config_enabled MBEDTLS_MEMORY_BUFFER_ALLOC_C
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_tests_memory_after_hanshake
 
 # Final report
 

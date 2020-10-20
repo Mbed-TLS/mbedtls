@@ -1855,7 +1855,7 @@ void mbedtls_mps_reader_commit_in_old()
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) ==
-                 MBEDTLS_ERR_READER_OPERATION_UNEXPECTED );
+                 MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* Consumption (upper layer) */
@@ -1868,7 +1868,7 @@ void mbedtls_mps_reader_commit_in_old()
     TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) ==
                  MBEDTLS_ERR_READER_OUT_OF_DATA );
     TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) ==
-                 MBEDTLS_ERR_READER_OPERATION_UNEXPECTED );
+                 MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
     /* Preparation */
     TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufB, 5 ) ==
@@ -1880,7 +1880,7 @@ void mbedtls_mps_reader_commit_in_old()
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufB, sizeof( bufB ) ) ==
-                 MBEDTLS_ERR_READER_OPERATION_UNEXPECTED );
+                 MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* Consumption */

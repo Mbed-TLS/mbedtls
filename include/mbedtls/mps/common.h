@@ -24,6 +24,7 @@
 #define MBEDTLS_MPS_COMMON_H
 
 #include <stdint.h>
+#include "error.h"
 
 /**
  * \name SECTION:       MPS Configuration

@@ -135,7 +135,7 @@ typedef struct mbedtls_reader_ext mbedtls_reader_ext;
 #define MBEDTLS_ERR_READER_INCONSISTENT_REQUESTS -0x6  /*!< A read request after pausing and reactivating the reader failed because
                                                         *   the request is not in line with the request made prior to pausing. The user
                                                         *   must not change it's 'strategy' after pausing and reactivating a reader.      */
-#define MBEDTLS_ERR_READER_OPERATION_UNEXPECTED  -0x7  /*!< The requested operation is not possible in the current state of the reader.   */
+#define MBEDTLS_ERR_READER_OPERATION_UNEXPECTED  MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED
 #define MBEDTLS_ERR_READER_NEED_ACCUMULATOR      -0x69 /*!< An attempt to reclaim the data buffer from a reader fails because the reader
                                                         *   has no accumulator it can use to backup the data that hasn't been processed.  */
 #define MBEDTLS_ERR_READER_ACCUMULATOR_TOO_SMALL -0x6a /*!< An attempt to reclaim the data buffer from a reader fails beacuse the

@@ -54,9 +54,9 @@
 /*! An internal assertion has failed - should never happen. */
 #define MBEDTLS_ERR_MPS_INTERNAL_ERROR        MBEDTLS_MPS_MAKE_ERROR( 0x08 )
 #define MBEDTLS_ERR_MPS_RETRY                 MBEDTLS_MPS_MAKE_ERROR( 0x09 )
-#define MBEDTLS_ERR_MPS_NO_FORWARD            MBEDTLS_ERR_MPS_RETRY
 #define MBEDTLS_ERR_MPS_COUNTER_WRAP          MBEDTLS_MPS_MAKE_ERROR( 0x0a )
 #define MBEDTLS_ERR_MPS_FLIGHT_TOO_LONG       MBEDTLS_MPS_MAKE_ERROR( 0x0b )
+
 /*! MPS cannot handle the amount of record fragmentation used by the peer.
  *  This happens e.g. if fragmented handshake records are interleaved with
  *  fragmented alert records. */
@@ -120,10 +120,203 @@
  * Internal error codes
  */
 
+#define MBEDTLS_ERR_MPS_NO_FORWARD                       MBEDTLS_MPS_MAKE_ERROR( 0x0c )
 #define MBEDTLS_ERR_MPS_FLIGHT_RETRANSMISSION            MBEDTLS_MPS_MAKE_ERROR( 0x1c )
 #define MBEDTLS_ERR_MPS_REPLAYED_RECORD                  MBEDTLS_MPS_MAKE_ERROR( 0x1d )
 #define MBEDTLS_ERR_MPS_REQUEST_OUT_OF_BOUNDS            MBEDTLS_MPS_MAKE_ERROR( 0x1e )
 #define MBEDTLS_ERR_MPS_RETRANSMISSION_HANDLE_UNFINISHED MBEDTLS_MPS_MAKE_ERROR( 0x1f )
 #define MBEDTLS_ERR_MPS_REASSEMBLY_FEED_NEED_MORE        MBEDTLS_MPS_MAKE_ERROR( 0x20 )
+
+/*
+ * Helper macro to traverse MPS error codes
+ *
+ * This macro unfolds to the concatenation of applications of
+ * ```
+ *    MBEDTLS_MPS_ERROR_INFO( string, code, flags )
+ * ```
+ * where there is one application per error-code, and the
+ * macro is being passed
+ * - the string representation of the error, e.g.
+ *   "MBEDTLS_ERR_MPS_INVALID_RECORD"
+ * - the numeric error code
+ * - error flags indicating whether the error code is
+ *   externally visible, fatal, TLS only, ...
+ *
+ * See the generic failure handler in mps.c for an example of
+ * how to use this macro.
+ */
+
+#define MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL ( 1u << 0 )
+#define MBEDTLS_MPS_ERROR_FLAGS_FATAL    ( 1u << 1 )
+#define MBEDTLS_MPS_ERROR_FLAGS_TLS_ONLY ( 1u << 2 )
+
+#define MBEDTLS_MPS_ERROR_IS_FATAL( flags )              \
+    ( ( flags & MBEDTLS_MPS_ERROR_FLAGS_FATAL ) != 0 )
+#define MBEDTLS_MPS_ERROR_IS_TLS_ONLY( flags )           \
+    ( ( flags & MBEDTLS_MPS_ERROR_FLAGS_TLS_ONLY ) != 0 )
+#define MBEDTLS_MPS_ERROR_IS_EXTERNAL( flags )           \
+    ( ( flags & MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL ) != 0 )
+
+#define MBEDTLS_MPS_MAKE_ERROR_INFO( flags, name )      \
+    #name, name, flags
+
+#define MBEDTLS_MPS_ERROR_INFO_WRAP( x ) MBEDTLS_MPS_ERROR_INFO(x)
+
+#define MBEDTLS_ERR_MPS_ERROR_LIST                                      \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                             \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_OUT_OF_MEMORY ) )                           \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED ) )                   \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED ) )                    \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL ),                       \
+            MBEDTLS_ERR_MPS_CLOSE_NOTIFY ) )                            \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL ),                       \
+            MBEDTLS_ERR_MPS_BLOCKED ) )                                 \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_FATAL_ALERT_RECEIVED ) )                    \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_INTERNAL_ERROR ) )                          \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL  ),                      \
+            MBEDTLS_ERR_MPS_RETRY ) )                                   \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_NO_FORWARD ) )                              \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_COUNTER_WRAP ) )                            \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_FLIGHT_TOO_LONG ) )                         \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_EXCESS_RECORD_FRAGMENTATION ) )             \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_INVALID_RECORD_FRAGMENTATION ) )            \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_TOO_MANY_LIVE_EPOCHS ) )                    \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_TOO_MANY_EPOCHS ) )                         \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL ),                       \
+            MBEDTLS_ERR_MPS_WANT_READ ) )                               \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL  ),                      \
+            MBEDTLS_ERR_MPS_WANT_WRITE ) )                              \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_BAD_TRANSFORM ) )                           \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_BUFFER_TOO_SMALL ) )                        \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_NO_INTERLEAVING ) )                         \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_UNFINISHED_HS_MSG ) )                       \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_ALLOC_OUT_OF_SPACE ) )                      \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_INVALID_ARGS ) )                            \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_INVALID_EPOCH ) )                           \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_INVALID_CONTENT ) )                         \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL    |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_TLS_ONLY ),                       \
+            MBEDTLS_ERR_MPS_INVALID_RECORD ) )                          \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_EXTERNAL |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_FATAL    |                        \
+              MBEDTLS_MPS_ERROR_FLAGS_TLS_ONLY ),                       \
+            MBEDTLS_ERR_MPS_INVALID_MAC ) )                             \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_BAD_TRANSPORT ) )                           \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_FLIGHT_RETRANSMISSION ) )                   \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_REPLAYED_RECORD ) )                         \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_REQUEST_OUT_OF_BOUNDS ) )                   \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_RETRANSMISSION_HANDLE_UNFINISHED ) )        \
+    MBEDTLS_MPS_ERROR_INFO_WRAP(                                        \
+        MBEDTLS_MPS_MAKE_ERROR_INFO(                                    \
+            ( MBEDTLS_MPS_ERROR_FLAGS_FATAL ),                          \
+            MBEDTLS_ERR_MPS_REASSEMBLY_FEED_NEED_MORE ) )
 
 #endif /* MBEDTLS_MPS_ERROR_H */

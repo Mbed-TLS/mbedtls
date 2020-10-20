@@ -606,109 +606,68 @@ MBEDTLS_MPS_STATIC void mps_block( mbedtls_mps *mps )
 /* Handle an error code from an internal library call. */
 MBEDTLS_MPS_STATIC int mps_generic_failure_handler( mbedtls_mps *mps, int ret )
 {
+    int flags;
+    int found = 0;
+    const char *error_string = NULL;
 
-    /* Helper-macro to check whether an error belongs to a
-     * static array of error codes. */
-#define MPS_ERROR_CHECK( ret, error_array, error_ok )                   \
-    do                                                                  \
-    {                                                                   \
-        unsigned idx;                                                   \
-        for( idx=0;                                                     \
-             idx < sizeof( error_array ) / sizeof( *error_array );      \
-             idx++ )                                                    \
-        {                                                               \
-            if( ret == error_array[ idx ] )                             \
-                error_ok = 1;                                           \
-        }                                                               \
-    } while( 0 )
+    if( ret == 0 )
+        return( 0 );
 
-    int is_public_error;
-    int is_non_fatal_error;
-
-    /* The MPS is automatically blocked on a failure, unless the error
-     * belongs to the following whitelist of non-fatal errors. */
-    int non_fatal_errors[] = {
-        0,
-        MBEDTLS_ERR_MPS_RETRY,
-        MBEDTLS_ERR_MPS_WANT_READ,
-        MBEDTLS_ERR_MPS_WANT_WRITE,
-        MBEDTLS_ERR_MPS_BLOCKED,
-        MBEDTLS_ERR_MPS_CLOSE_NOTIFY
-    };
-
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    /* Check that we never return error codes that haven't been explicitly
-     * named as potential return values at the MPS boundary. */
-    int public_errors[] = {
-        0,
-        MBEDTLS_ERR_MPS_OUT_OF_MEMORY,
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-        MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED,
-#endif /* MBEDTLS_MPS_STATE_VALIDATION  */
-        MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED,
-        MBEDTLS_ERR_MPS_CLOSE_NOTIFY,
-        MBEDTLS_ERR_MPS_BLOCKED,
-        MBEDTLS_ERR_MPS_FATAL_ALERT_RECEIVED,
-        MBEDTLS_ERR_MPS_INTERNAL_ERROR,
-        MBEDTLS_ERR_MPS_RETRY,
-        MBEDTLS_ERR_MPS_COUNTER_WRAP,
-        MBEDTLS_ERR_MPS_FLIGHT_TOO_LONG,
-        MBEDTLS_ERR_MPS_EXCESS_RECORD_FRAGMENTATION,
-        MBEDTLS_ERR_MPS_INVALID_RECORD_FRAGMENTATION,
-        MBEDTLS_ERR_MPS_TOO_MANY_LIVE_EPOCHS,
-        MBEDTLS_ERR_MPS_TOO_MANY_EPOCHS,
-        MBEDTLS_ERR_MPS_WANT_READ,
-        MBEDTLS_ERR_MPS_WANT_WRITE,
-#if defined(MBEDTLS_MPS_TRANSFORM_VALIDATION)
-        MBEDTLS_ERR_MPS_BAD_TRANSFORM,
-#endif /* MBEDTLS_MPS_TRANSFORM_VALIDATION */
-        MBEDTLS_ERR_MPS_BUFFER_TOO_SMALL,
-#if !defined(MPS_L3_ALLOW_INTERLEAVED_SENDING)
-        MBEDTLS_ERR_MPS_NO_INTERLEAVING,
-#endif /* MPS_L3_ALLOW_INTERLEAVED_SENDING */
-        MBEDTLS_ERR_MPS_UNFINISHED_HS_MSG,
-        MBEDTLS_ERR_MPS_ALLOC_OUT_OF_SPACE,
-        MBEDTLS_ERR_MPS_INVALID_ARGS,
-        MBEDTLS_ERR_MPS_INVALID_EPOCH,
-        MBEDTLS_ERR_MPS_INVALID_CONTENT
-    };
-
-    mbedtls_mps_transport_type const mode =
-        mbedtls_mps_conf_get_mode( &mps->conf );
-
-    is_public_error = 0;
-
-    /* Double-check that we only return documented public error code.    */
-    MPS_ERROR_CHECK( ret, public_errors, is_public_error );
-    /* Some error codes are publicly visible only for TLS - check those. */
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
-    {
-        int tls_only_errors[] = {
-            MBEDTLS_ERR_MPS_INVALID_RECORD,
-            MBEDTLS_ERR_MPS_INVALID_MAC,
-        };
-
-        MPS_ERROR_CHECK( ret, tls_only_errors, is_public_error );
+#define MBEDTLS_MPS_ERROR_INFO( err_str, err_code, err_flags )                    \
+    if( ret == err_code )                                                         \
+    {                                                                             \
+        flags = err_flags;                                                        \
+        error_string = err_str;                                                   \
+        found = 1;                                                                \
     }
-#else
-    ((void) mode);
-#endif /* MBEDTLS_MPS_PROTO_TLS */
 
-    if( is_public_error == 0 )
+    /* Replicates code from above for each MPS error - see error.h. */
+    MBEDTLS_ERR_MPS_ERROR_LIST;
+
+    if( found == 0 )
     {
-        TRACE( trace_error, "Invalid error at MPS boundary: -%#04x",
+        TRACE( trace_error, "Unknown error at MPS boundary: -%#04x",
                (unsigned) -ret );
         ret = MBEDTLS_ERR_MPS_INTERNAL_ERROR;
+        goto fatal;
+    }
+
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
+    {
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+        mbedtls_mps_transport_type const mode =
+            mbedtls_mps_conf_get_mode( &mps->conf );
+
+        if( MBEDTLS_MPS_IS_DTLS( mode ) &&
+            MBEDTLS_MPS_ERROR_IS_TLS_ONLY( flags ) )
+        {
+            TRACE( trace_error, "TLS-only error observed in DTLS mode: %s (-%#04x)",
+                   error_string, (unsigned) -ret );
+            ret = MBEDTLS_ERR_MPS_INTERNAL_ERROR;
+            goto fatal;
+        }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+
+        if( !MBEDTLS_MPS_ERROR_IS_EXTERNAL( flags ) )
+        {
+            TRACE( trace_error, "TLS-only error observed in DTLS mode: %s (-%#04x)",
+                   error_string, (unsigned) -ret );
+            ret = MBEDTLS_ERR_MPS_INTERNAL_ERROR;
+            goto fatal;
+        }
     }
 #else
-    ((void) is_public_error);
+    ((void) error_string);
+    ((void) mode);
 #endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
-    is_non_fatal_error = 0;
-    MPS_ERROR_CHECK( ret, non_fatal_errors, is_non_fatal_error );
-    if( is_non_fatal_error == 1 )
-        return( ret );
+    if( MBEDTLS_MPS_ERROR_IS_FATAL( flags ) )
+        goto fatal;
+
+    /* Error OK and non-fatal */
+    return( ret );
+
+fatal:
 
     /* Remember error and block MPS. */
     TRACE( trace_error, "Blocking MPS after a fatal error" );

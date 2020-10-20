@@ -406,14 +406,24 @@ int mbedtls_reader_init( mbedtls_reader *reader,
 int mbedtls_reader_free( mbedtls_reader *reader );
 
 /**
- * \brief           Pass chunk of data for the reader to manage
+ * \brief           Pass chunk of data for the reader to manage.
  *
- * \param reader    The reader context to use.
+ * \param reader    The reader context to use. The reader must be
+ *                  in producing state.
  * \param buf       The buffer to be managed by the reader.
  * \param buflen    The size in Bytes of \p buffer.
  *
- * \return          \c 0 on success.
- * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.
+ * \return          \c 0 on success. In this case, the reader will be
+ *                  moved to consuming state, and ownership of \p buf
+ *                  will be passed to the reader until mbedtls_reader_reclaim()
+ *                  is called.
+ * \return          \c MBEDTLS_ERR_READER_NEED_MORE if more input data is
+ *                  required to fulfill a previous request to mbedtls_reader_get().
+ *                  In this case, the reader remains in producing state and
+ *                  takes no ownership of the provided buffer (an internal copy
+ *                  is made instead).
+ * \return          Another negative \c MBEDTLS_ERR_READER_XXX error code on
+ *                  different kinds of failures.
  */
 
 /*@
@@ -431,10 +441,14 @@ int mbedtls_reader_feed( mbedtls_reader *reader,
 /**
  * \brief           Reclaim reader's access to the current input buffer.
  *
- * \param reader    The reader context to use.
- * \param paused    If not \c NULL, its content will be modified to indicates
- *                  whether the reader has been paused (value \c 1) or not
- *                  (value \c 0).
+ * \param reader    The reader context to use. The reader must be
+ *                  in producing state.
+ * \param paused    If not \c NULL, the intger at address \p paused will be
+ *                  modified to indicate whether the reader has been paused
+ *                  (value \c 1) or not (value \c 0). Pausing happens if there
+ *                  is uncommitted data and a previous request to
+ *                  mbedtls_reader_get() has exceeded the bounds of the
+ *                  input buffer.
  *
  * \return          \c 0 on success.
  * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.
@@ -451,18 +465,22 @@ int mbedtls_reader_reclaim( mbedtls_reader *reader, size_t *paused );
  */
 
 /**
- * \brief           Fetch a data chunk from the reader
+ * \brief           Request data from the reader.
  *
- * \param reader    The reader context to use.
- * \param desired   The desired amount of data to be read.
+ * \param reader    The reader context to use. The reader must
+ *                  in consuming state.
+ * \param desired   The desired amount of data to be read, in Bytes.
  * \param buffer    The address to store the buffer pointer in.
+ *                  This must not be \c NULL.
  * \param buflen    The address to store the actual buffer
  *                  length in, or \c NULL.
  *
  * \return          \c 0 on success. In this case, \c *buf holds the
  *                  address of a buffer of size \c *buflen
  *                  (if \c buflen != \c NULL) or \c desired
- *                  (if \c buflen == \c NULL).
+ *                  (if \c buflen == \c NULL). The user hass ownership
+ *                  of the buffer until the next call to mbedtls_reader_commit().
+ *                  or mbedtls_reader_reclaim().
  * \return          #MBEDTLS_ERR_READER_OUT_OF_DATA if there is not enough
  *                  data available to serve the read request. In this case,
  *                  the reader remains intact, and additional data can be

@@ -13,6 +13,9 @@ typedef enum
     /**< Destroy key(s) */
     INVALIDATE_BY_DESTROYING,
 
+    /**< Purge key(s) */
+    INVALIDATE_BY_PURGING,
+
     /**< Terminate and reinitialize without closing/destroying keys */
     INVALIDATE_BY_SHUTDOWN,
 
@@ -21,6 +24,9 @@ typedef enum
 
     /**< Destroy key(s) then terminate and re-initialize */
     INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN,
+
+    /**< Purge key(s) then terminate and re-initialize */
+    INVALIDATE_BY_PURGING_WITH_SHUTDOWN,
 } invalidate_method_t;
 
 typedef enum
@@ -100,6 +106,11 @@ static int invalidate_key( invalidate_method_t invalidate_method,
         case INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN:
             PSA_ASSERT( psa_destroy_key( key ) );
             break;
+        /* Purging the key just purge RAM data of persitent keys. */
+        case INVALIDATE_BY_PURGING:
+        case INVALIDATE_BY_PURGING_WITH_SHUTDOWN:
+            PSA_ASSERT( psa_purge_key( key ) );
+            break;
         case INVALIDATE_BY_SHUTDOWN:
             break;
     }
@@ -115,9 +126,11 @@ static int invalidate_psa( invalidate_method_t invalidate_method )
     {
         case INVALIDATE_BY_CLOSING:
         case INVALIDATE_BY_DESTROYING:
+        case INVALIDATE_BY_PURGING:
             return( 1 );
         case INVALIDATE_BY_CLOSING_WITH_SHUTDOWN:
         case INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN:
+        case INVALIDATE_BY_PURGING_WITH_SHUTDOWN:
             /* All keys must have been closed. */
             PSA_DONE( );
             break;
@@ -282,6 +295,8 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
     {
         case INVALIDATE_BY_CLOSING:
         case INVALIDATE_BY_CLOSING_WITH_SHUTDOWN:
+        case INVALIDATE_BY_PURGING:
+        case INVALIDATE_BY_PURGING_WITH_SHUTDOWN:
         case INVALIDATE_BY_SHUTDOWN:
             PSA_ASSERT( psa_open_key( id, &handle ) );
             PSA_ASSERT( psa_get_key_attributes( id, &read_attributes ) );

@@ -120,6 +120,7 @@
 
 #define MBEDTLS_USE_TINYCRYPT
 #define MBEDTLS_HAVE_ASM
+// Dummy change
 #if !( defined(__STRICT_ANSI__) && defined(__CC_ARM) )
     #define MBEDTLS_OPTIMIZE_TINYCRYPT_ASM
 #endif

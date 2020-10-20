@@ -2033,31 +2033,6 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
          * header) and/or some other records in the same datagram.
          */
 
-        /*
-         * Move to the next record in the already read datagram if applicable
-         */
-        if( ssl->next_record_offset != 0 )
-        {
-            if( ssl->in_left < ssl->next_record_offset )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-            }
-
-            ssl->in_left -= ssl->next_record_offset;
-
-            if( ssl->in_left != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 2, ( "next record in same datagram, offset: %d",
-                                    ssl->next_record_offset ) );
-                memmove( ssl->in_hdr,
-                         ssl->in_hdr + ssl->next_record_offset,
-                         ssl->in_left );
-            }
-
-            ssl->next_record_offset = 0;
-        }
-
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "in_left: %d, nb_want: %d",
                        ssl->in_left, nb_want ) );
 
@@ -4098,7 +4073,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 static int ssl_next_record_is_in_datagram( mbedtls_ssl_context *ssl )
 {
-    if( ssl->in_left > ssl->next_record_offset )
+    if( ssl->in_left > 0 )
         return( 1 );
 
     return( 0 );
@@ -4519,6 +4494,42 @@ static int ssl_consume_current_message( mbedtls_ssl_context *ssl )
     {
         ssl->in_msglen = 0;
     }
+
+    /*
+     * DTLS_only: If the current record has been fully consumed,
+     * check if another record is present in the current datagram.
+     */
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        ssl->in_msglen == 0 )
+    {
+        /*
+         * Move to the next record in the already read datagram if applicable
+         */
+        if( ssl->next_record_offset != 0 )
+        {
+            if( ssl->in_left < ssl->next_record_offset )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
+
+            ssl->in_left -= ssl->next_record_offset;
+
+            if( ssl->in_left != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "next record in same datagram, offset: %d",
+                                            ssl->next_record_offset ) );
+                memmove( ssl->in_hdr,
+                         ssl->in_hdr + ssl->next_record_offset,
+                         ssl->in_left );
+            }
+
+            ssl->next_record_offset = 0;
+        }
+    }
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     return( 0 );
 }

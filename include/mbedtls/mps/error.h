@@ -24,16 +24,11 @@
 #ifndef MBEDTLS_MPS_ERROR_H
 #define MBEDTLS_MPS_ERROR_H
 
+#include "common.h"
+
 /**
  * MPS-specific error codes
  */
-
-#ifndef MBEDTLS_MPS_ERR_BASE
-#define MBEDTLS_MPS_ERR_BASE 0
-#endif
-
-#define MBEDTLS_MPS_MAKE_ERROR(code) \
-    ( -( MBEDTLS_MPS_ERR_BASE | (code) ) )
 
 /*
  * Error codes visible at the MPS boundary.

@@ -125,25 +125,25 @@ typedef struct mbedtls_reader mbedtls_reader;
 struct mbedtls_reader_ext;
 typedef struct mbedtls_reader_ext mbedtls_reader_ext;
 
-#define MBEDTLS_ERR_READER_DATA_LEFT             -0x1  /*!< An attempt to reclaim the data buffer from a reader failed because
-                                                        *   the user hasn't yet read and committed all of it.                             */
-#define MBEDTLS_ERR_READER_INVALID_ARG           -0x2  /*!< The parameter validation failed.                                              */
-#define MBEDTLS_ERR_READER_NEED_MORE             -0x3  /*!< An attempt to move a reader to consuming mode through mbedtls_reader_feed()
+#define MBEDTLS_ERR_READER_DATA_LEFT             MBEDTLS_READER_MAKE_ERROR( 0x1 ) /*!< An attempt to reclaim the data buffer from a reader failed because
+                                                                                   *   the user hasn't yet read and committed all of it.                             */
+#define MBEDTLS_ERR_READER_INVALID_ARG           MBEDTLS_READER_MAKE_ERROR( 0x2 ) /*!< The parameter validation failed.                                              */
+#define MBEDTLS_ERR_READER_NEED_MORE             MBEDTLS_READER_MAKE_ERROR( 0x3 ) /*!< An attempt to move a reader to consuming mode through mbedtls_reader_feed()
                                                         *   after pausing failed because the provided data is not sufficient to serve the
                                                         *   the read requests that lead to the pausing.                                   */
-#define MBEDTLS_ERR_READER_OUT_OF_DATA           -0x5  /*!< A read request failed because not enough data is available in the reader.     */
-#define MBEDTLS_ERR_READER_INCONSISTENT_REQUESTS -0x6  /*!< A read request after pausing and reactivating the reader failed because
+#define MBEDTLS_ERR_READER_OUT_OF_DATA           MBEDTLS_READER_MAKE_ERROR( 0x5 ) /*!< A read request failed because not enough data is available in the reader.     */
+#define MBEDTLS_ERR_READER_INCONSISTENT_REQUESTS MBEDTLS_READER_MAKE_ERROR( 0x6 ) /*!< A read request after pausing and reactivating the reader failed because
                                                         *   the request is not in line with the request made prior to pausing. The user
                                                         *   must not change it's 'strategy' after pausing and reactivating a reader.      */
 #define MBEDTLS_ERR_READER_OPERATION_UNEXPECTED  MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED
-#define MBEDTLS_ERR_READER_NEED_ACCUMULATOR      -0x69 /*!< An attempt to reclaim the data buffer from a reader fails because the reader
+#define MBEDTLS_ERR_READER_NEED_ACCUMULATOR      MBEDTLS_READER_MAKE_ERROR( 0x69 )/*!< An attempt to reclaim the data buffer from a reader fails because the reader
                                                         *   has no accumulator it can use to backup the data that hasn't been processed.  */
-#define MBEDTLS_ERR_READER_ACCUMULATOR_TOO_SMALL -0x6a /*!< An attempt to reclaim the data buffer from a reader fails beacuse the
+#define MBEDTLS_ERR_READER_ACCUMULATOR_TOO_SMALL MBEDTLS_READER_MAKE_ERROR( 0x6a )/*!< An attempt to reclaim the data buffer from a reader fails beacuse the
                                                         *   accumulator passed to the reader is not large enough to hold both the
                                                         *   data that hasn't been processed and the excess of the last read-request.      */
 
-#define MBEDTLS_ERR_READER_BOUNDS_VIOLATION      -0x9  /*!< The attempted operation violates the bounds of the currently active group.    */
-#define MBEDTLS_ERR_READER_TOO_MANY_GROUPS       -0xa  /*!< The extended reader has reached the maximum number of groups, and another
+#define MBEDTLS_ERR_READER_BOUNDS_VIOLATION      MBEDTLS_READER_MAKE_ERROR( 0x9 ) /*!< The attempted operation violates the bounds of the currently active group.    */
+#define MBEDTLS_ERR_READER_TOO_MANY_GROUPS       MBEDTLS_READER_MAKE_ERROR( 0xa ) /*!< The extended reader has reached the maximum number of groups, and another
                                                         *   group cannot be opened.                                                       */
 
 #define MBEDTLS_READER_MAX_GROUPS 4

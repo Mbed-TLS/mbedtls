@@ -23,6 +23,27 @@
 #ifndef MBEDTLS_MPS_COMMON_H
 #define MBEDTLS_MPS_COMMON_H
 
+#ifndef MBEDTLS_MPS_ERR_BASE
+#define MBEDTLS_MPS_ERR_BASE    ( 1 << 0 )
+#endif
+
+#ifndef MBEDTLS_READER_ERR_BASE
+#define MBEDTLS_READER_ERR_BASE ( 1 << 7 )
+#endif
+
+#ifndef MBEDTLS_WRITER_ERR_BASE
+#define MBEDTLS_WRITER_ERR_BASE ( 1 << 11 )
+#endif
+
+#define MBEDTLS_MPS_MAKE_ERROR(code) \
+    ( -( MBEDTLS_MPS_ERR_BASE | (code) ) )
+
+#define MBEDTLS_READER_MAKE_ERROR(code) \
+    ( -( MBEDTLS_READER_ERR_BASE | (code) ) )
+
+#define MBEDTLS_WRITER_MAKE_ERROR(code) \
+    ( -( MBEDTLS_WRITER_ERR_BASE | (code) ) )
+
 #include <stdint.h>
 #include "error.h"
 

@@ -177,8 +177,17 @@ typedef uint8_t mbedtls_mps_epoch_offset_t;
 
 #else /* MBEDTLS_MPS_STATE_VALIDATION */
 
-#define MBEDTLS_MPS_STATE_VALIDATE( cond, string )     do {} while( 0 )
-#define MBEDTLS_MPS_STATE_VALIDATE_RAW( cond, string ) do {} while( 0 )
+#define MBEDTLS_MPS_STATE_VALIDATE( cond, string )               \
+    do                                                           \
+    {                                                            \
+        ( cond );                                                \
+    } while( 0 )
+
+#define MBEDTLS_MPS_STATE_VALIDATE_RAW( cond, string )           \
+    do                                                           \
+    {                                                            \
+        ( cond );                                                \
+    } while( 0 )
 
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 

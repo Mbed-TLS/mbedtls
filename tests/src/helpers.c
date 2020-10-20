@@ -244,3 +244,94 @@ void mbedtls_param_failed( const char *failure_condition,
     }
 }
 #endif /* MBEDTLS_CHECK_PARAMS */
+
+#if defined(MBEDTLS_PSA_BUILTIN_KEYS)
+#include <psa/crypto.h>
+
+#define FAKE_DRIVER_KEY_LOCATION 42
+typedef uint16_t fake_key_slot_t;
+static const psa_key_lifetime_t fake_driver_key_lifetime =
+    PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+        PSA_KEY_PERSISTENCE_READ_ONLY,
+        FAKE_DRIVER_KEY_LOCATION );
+
+static const fake_key_slot_t fake_key_slot_1 = 12345;
+
+psa_status_t mbedtls_psa_get_builtin_key(
+    mbedtls_psa_builtin_key_slot_number_t slot_number,
+    psa_key_attributes_t *attributes,
+    uint8_t** key_data,
+    size_t *key_data_size )
+{
+    switch( slot_number )
+    {
+        case 0:
+        {
+            /* A built-in AES key for test purposes. This case mimics an
+             * implementation that calculates a derived key and stores it in
+             * RAM, but for test purposes, we just return a constant key
+             * material. We do allocate memory, to mimic what would happen
+             * in the real world and so that memory management checks would
+             * detect a spurious or missing call to
+             * mbedtls_psa_free_builtin_key() (a missing call will translate
+             * into a memory leak). */
+            const size_t bits = 128;
+            *key_data_size = PSA_BITS_TO_BYTES( bits );
+            *key_data = mbedtls_calloc( 1, *key_data_size );
+            if( *key_data == NULL )
+                return( PSA_ERROR_INSUFFICIENT_MEMORY );
+            memset( key_data, 't', *key_data_size );
+            psa_set_key_type( attributes, PSA_KEY_TYPE_AES );
+            psa_set_key_bits( attributes, bits );
+            psa_set_key_usage_flags( attributes,
+                                     PSA_KEY_USAGE_ENCRYPT |
+                                     PSA_KEY_USAGE_DECRYPT |
+                                     PSA_KEY_USAGE_EXPORT );
+            psa_set_key_algorithm( attributes, PSA_ALG_CTR );
+            return( PSA_SUCCESS );
+        }
+
+        case 1:
+            /* A reference to an AES key in a driver.
+             * Note that the corresponding driver has not been implemented yet,
+             * so attempting to use  this key will fail. At this point, the
+             * code here is just for demonstration purposes. */
+            *key_data_size = sizeof( fake_key_slot_1 );
+            *key_data = (uint8_t*) &fake_key_slot_1;
+            psa_set_key_lifetime( attributes, fake_driver_key_lifetime );
+            psa_set_key_type( attributes, PSA_KEY_TYPE_AES );
+            psa_set_key_bits( attributes, 128 );
+            psa_set_key_usage_flags( attributes,
+                                     PSA_KEY_USAGE_ENCRYPT |
+                                     PSA_KEY_USAGE_DECRYPT |
+                                     PSA_KEY_USAGE_EXPORT );
+            psa_set_key_algorithm( attributes, PSA_ALG_CTR );
+            return( PSA_SUCCESS );
+
+        default:
+            return( PSA_ERROR_DOES_NOT_EXIST );
+    }
+}
+
+void mbedtls_psa_free_builtin_key(
+    mbedtls_psa_builtin_key_slot_number_t slot_number,
+    const psa_key_attributes_t *attributes,
+    uint8_t* key_data,
+    size_t key_data_size )
+{
+    psa_key_lifetime_t lifetime = psa_get_key_lifetime( attributes );
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
+
+    if( location == PSA_KEY_LOCATION_LOCAL_STORAGE )
+    {
+        /* Free the (simulated) derived key material. */
+        mbedtls_free( key_data );
+    }
+    else
+    {
+        TEST_HELPER_ASSERT( location == FAKE_DRIVER_KEY_LOCATION );
+        TEST_HELPER_ASSERT( key_data_size == sizeof( fake_key_slot_t ) );
+        TEST_HELPER_ASSERT( slot_number == *key_data );
+    }
+}
+#endif /* MBEDTLS_PSA_BUILTIN_KEYS */

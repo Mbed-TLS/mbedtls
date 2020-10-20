@@ -1326,6 +1326,20 @@
  */
 #define MBEDTLS_PKCS1_V21
 
+/**
+ * \def MBEDTLS_PSA_BUILTIN_KEYS
+ *
+ * Enable support for built-in keys in the PSA API.
+ *
+ * If you enable this symbol, you must define the two functions
+ * mbedtls_psa_get_builtin_key() and mbedtls_psa_free_builtin_key().
+ *
+ * Module:  library/psa_crypto.c
+ * Requires: MBEDTLS_PSA_CRYPTO_C
+ *
+ */
+//#define MBEDTLS_PSA_BUILTIN_KEYS
+
 /** \def MBEDTLS_PSA_CRYPTO_DRIVERS
  *
  * Enable support for the experimental PSA crypto driver interface.

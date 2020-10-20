@@ -647,6 +647,78 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
 
 /**@}*/
 
+/** \defgroup psa_builtin_keys PSA built-in keys
+ * @{
+ */
+
+#if defined(MBEDTLS_PSA_BUILTIN_KEYS)
+/** The type of slot numbers that designate a built-in key.
+ *
+ * The meaning of slot numbers is platform-specific. Generally the set of
+ * valid slot numbers ranges from 0 to a small number.
+ */
+typedef uint32_t mbedtls_psa_builtin_key_slot_number_t;
+
+/** Retrieve or calculate the data about a built-in key.
+ *
+ * \param slot_number           A unique identifier for the built-in key.
+ *                              This identifier is determined by the key
+ *                              identifier specified by the application.
+ * \param[out] attributes       On entry, this contains the requested
+ *                              key identifier. All other attributes have
+ *                              their default value.
+ *                              On success, this must contain the attributes
+ *                              of the key, including its type, bit-size and
+ *                              usage policy.
+ * \param[out] key_data         On success, a pointer to the key data.
+ *                              For a transparent key (a key whose location
+ *                              is #PSA_KEY_LOCATION_LOCAL_STORAGE), this
+ *                              is a representation of the key that
+ *                              psa_import_key() would accept.
+ *                              For an opaque key (a key whose location is
+ *                              handled by a driver), this is a representation
+ *                              of the key that the driver will accept.
+ *                              The pointer must remain valid until the core
+ *                              subsequently calls
+ *                              mbedtls_psa_free_builtin_key().
+ * \param[out] key_data_size    On success, the size of the buffer that
+ *                              \p *key_data points to, in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ */
+psa_status_t mbedtls_psa_get_builtin_key(
+    mbedtls_psa_builtin_key_slot_number_t slot_number,
+    psa_key_attributes_t *attributes,
+    uint8_t** key_data,
+    size_t *key_data_size );
+
+/** Free resources associated with an instance of a built-in key.
+ *
+ * The core calls mbedtls_psa_free_builtin_key() once after each successful
+ * call to mbedtls_psa_get_builtin_key(), with matching parameters.
+ *
+ * \param slot_number           A unique identifier for the built-in key.
+ *                              This is the value that was passed to
+ *                              mbedtls_psa_get_builtin_key().
+ * \param[in] attributes        The attributes of the key.
+ * \param[in] key_data          A pointer to the key data. This is the pointer
+ *                              that mbedtls_psa_get_builtin_key()
+ *                              passed out.
+ * \param key_data_size         The key data size passed out by
+ *                              mbedtls_psa_get_builtin_key().
+ */
+void mbedtls_psa_free_builtin_key(
+    mbedtls_psa_builtin_key_slot_number_t slot_number,
+    const psa_key_attributes_t *attributes,
+    uint8_t* key_data,
+    size_t key_data_size );
+#endif /* MBEDTLS_PSA_BUILTIN_KEYS */
+
+/**@}*/
+
 #ifdef __cplusplus
 }
 #endif

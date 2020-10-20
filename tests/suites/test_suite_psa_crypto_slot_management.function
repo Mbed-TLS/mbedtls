@@ -157,6 +157,16 @@ void transient_slot_lifecycle( int usage_arg, int alg_arg,
     TEST_ASSERT( ! mbedtls_svc_key_id_is_null( key ) );
     PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
+    psa_reset_key_attributes( &attributes );
+
+    /*
+     * Purge the key and make sure that it is still valid, as purging a
+     * volatile key shouldn't invalidate/destroy it.
+     */
+    PSA_ASSERT( psa_purge_key( key ) );
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    TEST_EQUAL( psa_get_key_type( &attributes ), type );
+    psa_reset_key_attributes( &attributes );
 
     /* Do something that invalidates the key. */
     if( ! invalidate_key( close_method, key ) )

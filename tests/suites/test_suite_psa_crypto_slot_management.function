@@ -7,12 +7,21 @@
 
 typedef enum
 {
-    CLOSE_BY_CLOSE, /**< Close key(s). */
-    CLOSE_BY_DESTROY, /**< Destroy key(s) */
-    CLOSE_BY_SHUTDOWN, /**< Deinit and reinit without closing keys. */
-    CLOSE_BY_CLOSE_WITH_SHUTDOWN, /**< Close key(s) then deinit/reinit. */
-    CLOSE_BY_DESTROY_WITH_SHUTDOWN, /**< Destroy key(s) then deinit/reinit. */
-} close_method_t;
+    /**< Close key(s) */
+    INVALIDATE_BY_CLOSING,
+
+    /**< Destroy key(s) */
+    INVALIDATE_BY_DESTROYING,
+
+    /**< Terminate and reinitialize without closing/destroying keys */
+    INVALIDATE_BY_SHUTDOWN,
+
+    /**< Close key(s) then terminate and re-initialize */
+    INVALIDATE_BY_CLOSING_WITH_SHUTDOWN,
+
+    /**< Destroy key(s) then terminate and re-initialize */
+    INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN,
+} invalidate_method_t;
 
 typedef enum
 {
@@ -74,24 +83,24 @@ static void psa_purge_key_storage( void )
 #define TEST_USES_KEY_ID( key_id ) ( (void) ( key_id ) )
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
-/** Apply \p close_method to invalidate the specified key:
+/** Apply \p invalidate_method to invalidate the specified key:
  * close it, destroy it, or do nothing;
  */
-static int invalidate_key( close_method_t close_method,
+static int invalidate_key( invalidate_method_t invalidate_method,
                            mbedtls_svc_key_id_t key )
 {
-    switch( close_method )
+    switch( invalidate_method )
     {
         /* Closing the key invalidate only volatile keys, not permanent ones. */
-        case CLOSE_BY_CLOSE:
-        case CLOSE_BY_CLOSE_WITH_SHUTDOWN:
+        case INVALIDATE_BY_CLOSING:
+        case INVALIDATE_BY_CLOSING_WITH_SHUTDOWN:
             PSA_ASSERT( psa_close_key( key ) );
             break;
-        case CLOSE_BY_DESTROY:
-        case CLOSE_BY_DESTROY_WITH_SHUTDOWN:
+        case INVALIDATE_BY_DESTROYING:
+        case INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN:
             PSA_ASSERT( psa_destroy_key( key ) );
             break;
-        case CLOSE_BY_SHUTDOWN:
+        case INVALIDATE_BY_SHUTDOWN:
             break;
     }
     return( 1 );
@@ -99,20 +108,20 @@ exit:
     return( 0 );
 }
 
-/** Restart the PSA subsystem if \p close_method says so. */
-static int invalidate_psa( close_method_t close_method )
+/** Restart the PSA subsystem if \p invalidate_method says so. */
+static int invalidate_psa( invalidate_method_t invalidate_method )
 {
-    switch( close_method )
+    switch( invalidate_method )
     {
-        case CLOSE_BY_CLOSE:
-        case CLOSE_BY_DESTROY:
+        case INVALIDATE_BY_CLOSING:
+        case INVALIDATE_BY_DESTROYING:
             return( 1 );
-        case CLOSE_BY_CLOSE_WITH_SHUTDOWN:
-        case CLOSE_BY_DESTROY_WITH_SHUTDOWN:
+        case INVALIDATE_BY_CLOSING_WITH_SHUTDOWN:
+        case INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN:
             /* All keys must have been closed. */
             PSA_DONE( );
             break;
-        case CLOSE_BY_SHUTDOWN:
+        case INVALIDATE_BY_SHUTDOWN:
             /* Some keys may remain behind, and we're testing that this
              * properly closes them. */
             mbedtls_psa_crypto_free( );
@@ -137,12 +146,12 @@ exit:
 /* BEGIN_CASE */
 void transient_slot_lifecycle( int usage_arg, int alg_arg,
                                int type_arg, data_t *key_data,
-                               int close_method_arg )
+                               int invalidate_method_arg )
 {
     psa_algorithm_t alg = alg_arg;
     psa_key_usage_t usage_flags = usage_arg;
     psa_key_type_t type = type_arg;
-    close_method_t close_method = close_method_arg;
+    invalidate_method_t invalidate_method = invalidate_method_arg;
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
@@ -169,9 +178,9 @@ void transient_slot_lifecycle( int usage_arg, int alg_arg,
     psa_reset_key_attributes( &attributes );
 
     /* Do something that invalidates the key. */
-    if( ! invalidate_key( close_method, key ) )
+    if( ! invalidate_key( invalidate_method, key ) )
         goto exit;
-    if( ! invalidate_psa( close_method ) )
+    if( ! invalidate_psa( invalidate_method ) )
         goto exit;
 
     /* Test that the key is now invalid. */
@@ -188,7 +197,7 @@ exit:
 void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
                                 int usage_arg, int alg_arg, int alg2_arg,
                                 int type_arg, data_t *key_data,
-                                int close_method_arg )
+                                int invalidate_method_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( owner_id_arg, id_arg );
@@ -196,7 +205,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
     psa_algorithm_t alg2 = alg2_arg;
     psa_key_usage_t usage_flags = usage_arg;
     psa_key_type_t type = type_arg;
-    close_method_t close_method = close_method_arg;
+    invalidate_method_t invalidate_method = invalidate_method_arg;
     mbedtls_svc_key_id_t returned_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_handle_t handle = PSA_KEY_HANDLE_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -261,19 +270,19 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
      * Do something that wipes key data in volatile memory or destroy the
      * key.
      */
-    if( ! invalidate_key( close_method, id ) )
+    if( ! invalidate_key( invalidate_method, id ) )
         goto exit;
-    if( ! invalidate_psa( close_method ) )
+    if( ! invalidate_psa( invalidate_method ) )
         goto exit;
 
     /* Try to reaccess the key. If we destroyed it, check that it doesn't
      * exist. Otherwise check that it still exists and has the expected
      * content. */
-    switch( close_method )
+    switch( invalidate_method )
     {
-        case CLOSE_BY_CLOSE:
-        case CLOSE_BY_CLOSE_WITH_SHUTDOWN:
-        case CLOSE_BY_SHUTDOWN:
+        case INVALIDATE_BY_CLOSING:
+        case INVALIDATE_BY_CLOSING_WITH_SHUTDOWN:
+        case INVALIDATE_BY_SHUTDOWN:
             PSA_ASSERT( psa_open_key( id, &handle ) );
             PSA_ASSERT( psa_get_key_attributes( id, &read_attributes ) );
             TEST_EQUAL( psa_get_key_lifetime( &attributes ),
@@ -306,8 +315,8 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
             PSA_ASSERT( psa_close_key( handle ) );
             break;
 
-        case CLOSE_BY_DESTROY:
-        case CLOSE_BY_DESTROY_WITH_SHUTDOWN:
+        case INVALIDATE_BY_DESTROYING:
+        case INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN:
             /*
              * Test that the key handle and identifier are now not refering to an
              * existing key.

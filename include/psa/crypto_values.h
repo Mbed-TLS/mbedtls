@@ -1667,6 +1667,22 @@
  */
 #define PSA_KEY_ID_VENDOR_MAX                   ((psa_key_id_t)0x7fffffff)
 
+/** The minimum value for a key identifier that is built into the
+ * implementation.
+ *
+ * This must be between #PSA_KEY_ID_VENDOR_MIN and #PSA_KEY_ID_VENDOR_MAX
+ * and is part of the library's ABI.
+ */
+#define MBEDTLS_PSA_KEY_ID_BUILTIN_MIN          ((psa_key_id_t)0x7fff0000)
+/** The maximum value for a key identifier that is built into the
+ * implementation.
+ *
+ * The range of # keys starting at #MBEDTLS_PSA_KEY_ID_BUILTIN_MIN
+ * must fall within #PSA_KEY_ID_VENDOR_MIN and #PSA_KEY_ID_VENDOR_MAX
+ * and must not intersect with any other set of implementation-chosen key
+ * identifiers.
+ */
+#define MBEDTLS_PSA_KEY_ID_BUILTIN_MAX          ((psa_key_id_t)0x7fffefff)
 
 #if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 

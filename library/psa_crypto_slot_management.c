@@ -226,9 +226,58 @@ psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime,
     }
 }
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEYS)
+static int mbedtls_psa_is_key_builtin(
+    mbedtls_svc_key_id_t key_id,
+    mbedtls_psa_builtin_key_slot_number_t *slot_number )
+{
+    psa_key_id_t app_id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key_id );
+    if( ! ( app_id >= MBEDTLS_PSA_KEY_ID_BUILTIN_MIN &&
+            app_id <= MBEDTLS_PSA_KEY_ID_BUILTIN_MAX ) )
+    {
+        return( 0 );
+    }
+
+    *slot_number = app_id - MBEDTLS_PSA_KEY_ID_BUILTIN_MIN;
+    return( 1 );
+}
+
+/** Finish setting up a key slot for a builtin key.
+ *
+ * \param key_id        The key identifier through which the builtin key
+ *                      was requested.
+ * \param slot          The key slot to populate.
+ * \param attributes    The attributes of the key.
+ *
+ * \retval #PSA_SUCCESS
+ *         The key.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         In a multi-client setup, the request to access the key comes from
+ *         an application which does not own the key.
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ *         The key attributes are inconsistent.
+ */
+static psa_status_t mbedtls_psa_setup_builtin_key(
+    mbedtls_svc_key_id_t key_id,
+    psa_key_slot_t *slot,
+    const psa_key_attributes_t *attributes )
+{
+    slot->attr = attributes->core;
+
+    slot->attr.id = key_id;
+
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+    // TODO: check owner
+#endif
+    // TODO: other validation?
+
+    return( PSA_SUCCESS );
+}
+#endif /* MBEDTLS_PSA_BUILTIN_KEYS */
+
 psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
 {
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) || defined(MBEDTLS_PSA_BUILTIN_KEYS)
     psa_status_t status;
     psa_key_slot_t *slot;
 
@@ -241,10 +290,32 @@ psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
     if( status != PSA_SUCCESS )
         return( status );
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEYS)
+    mbedtls_psa_builtin_key_slot_number_t slot_number;
+    if( mbedtls_psa_is_key_builtin( key, &slot_number ) )
+    {
+        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+        attributes.core.id = key;
+        status = mbedtls_psa_get_builtin_key( slot_number,
+                                              &attributes,
+                                              &slot->data.key.data,
+                                              &slot->data.key.bytes );
+        if( status != PSA_SUCCESS )
+            goto exit;
+        status = mbedtls_psa_setup_builtin_key( key, slot, &attributes );
+        if( status != PSA_SUCCESS )
+            goto exit;
+    }
+#endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     slot->attr.lifetime = PSA_KEY_LIFETIME_PERSISTENT;
     slot->attr.id = key;
 
     status = psa_load_persistent_key_into_slot( slot );
+#endif
+
+exit:
     if( status != PSA_SUCCESS )
     {
         psa_wipe_key_slot( slot );
@@ -252,11 +323,11 @@ psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
     }
     return( status );
 
-#else /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+#else /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) || defined(MBEDTLS_PSA_BUILTIN_KEYS) */
     (void) key;
     *handle = 0;
     return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* !defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+#endif /* !defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) || defined(MBEDTLS_PSA_BUILTIN_KEYS) */
 }
 
 psa_status_t psa_close_key( psa_key_handle_t handle )
@@ -270,6 +341,21 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
     status = psa_get_key_slot( handle, &slot );
     if( status != PSA_SUCCESS )
         return( status );
+
+#if defined(MBEDTLS_PSA_BUILTIN_KEYS)
+    mbedtls_psa_builtin_key_slot_number_t slot_number;
+    if( mbedtls_psa_is_key_builtin( slot->attr.id, &slot_number ) )
+    {
+        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+        attributes.core = slot->attr;
+        mbedtls_psa_free_builtin_key( slot_number,
+                                      &attributes,
+                                      slot->data.key.data,
+                                      slot->data.key.bytes );
+        slot->data.key.data = NULL;
+        slot->data.key.bytes = 0;
+    }
+#endif /* MBEDTLS_PSA_BUILTIN_KEYS */
 
     return( psa_wipe_key_slot( slot ) );
 }

@@ -51,6 +51,9 @@ ccm_lengths:65536:13:5:8:MBEDTLS_ERR_CCM_BAD_INPUT
 CCM lengths #9 tag length 0
 ccm_lengths:5:10:5:0:MBEDTLS_ERR_CCM_BAD_INPUT
 
+CCM lengths #10 Large AD
+ccm_lengths:5:10:32768:8:0
+
 CCM* fixed tag lengths #1 all OK
 ccm_star_lengths:5:10:5:8:0
 

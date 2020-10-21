@@ -1,0 +1,4 @@
+Bugfix
+  * Fix handling of EOF against 0xff bytes and on platforms with
+    unsigned chars.  Fixes a build failure on platforms where char is
+    unsigned.  Fixes #3794.

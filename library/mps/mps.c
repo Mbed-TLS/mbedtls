@@ -2396,7 +2396,7 @@ MBEDTLS_MPS_STATIC void mps_bitmask_set( unsigned char *mask, size_t first_bit,
     mask += first_byte;
     *mask &= ~( 1u << byte_frac );
 
-    return( mps_bitmask_set( mask, byte_frac + 1, bitlen ) );
+    mps_bitmask_set( mask, byte_frac + 1, bitlen );
 }
 
 /*

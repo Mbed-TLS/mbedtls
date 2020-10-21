@@ -93,7 +93,7 @@ int mbedtls_reader_feed( mbedtls_reader *rd, unsigned char *new_frag,
     unsigned char *acc;
     size_t copy_to_acc;
     TRACE_INIT( "reader_feed, frag %p, len %u",
-                new_frag, (unsigned) new_frag_len );
+                (void*) new_frag, (unsigned) new_frag_len );
 
     if( new_frag == NULL )
         RETURN( MBEDTLS_ERR_READER_INVALID_ARG );
@@ -154,7 +154,7 @@ int mbedtls_reader_get( mbedtls_reader *rd, size_t desired,
 {
     unsigned char *frag, *acc;
     size_t end, fo, fl, frag_fetched, frag_remaining;
-    TRACE_INIT( "reader_get %p, desired %u", rd, (unsigned) desired );
+    TRACE_INIT( "reader_get %p, desired %u", (void*) rd, (unsigned) desired );
 
     frag = rd->frag;
     MBEDTLS_MPS_STATE_VALIDATE_RAW( frag != NULL,
@@ -520,7 +520,7 @@ int mbedtls_reader_get_ext( mbedtls_reader_ext *rd_ext, size_t desired,
 {
     int ret;
     size_t logic_avail;
-    TRACE_INIT( "reader_get_ext %p: desired %u", rd_ext, (unsigned) desired );
+    TRACE_INIT( "reader_get_ext %p: desired %u", (void*) rd_ext, (unsigned) desired );
 
     MBEDTLS_MPS_STATE_VALIDATE_RAW( rd_ext->rd != NULL,
                 "mbedtls_reader_get_ext() without underlying reader" );

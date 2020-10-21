@@ -1,7 +1,5 @@
 Changes
-   * PSA persistent storage format is updated to always store the key bits
+   * The PSA persistent storage format is updated to always store the key bits
      attribute. No automatic upgrade path is provided. Previously stored keys
      must be erased, or manually upgraded based on the key storage format
-     specification (mbed-crypto-storage-specification.md). The storage format
-     for the dynamic Secure Element driver has also been updated. Previously
-     stored keys must be erased, or manually upgraded. #3740
+     specification (docs/architecture/mbed-crypto-storage-specification.md). #3740

@@ -1980,6 +1980,8 @@
  * \def MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
  *
  * Enable modifying the maximum I/O buffer size.
+ *
+ * Requires: MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
  */
 //#define MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
 

@@ -1,0 +1,6 @@
+Features
+   * In PSA, allow using a key declared with a base key agreement algorithm
+     in combined key agreement and derivation operations, as long as the key
+     agreement algorithm in use matches the algorithm the key was declared with.
+     This is currently non-standard behaviour, but expected to make it into a
+     future revision of the PSA Crypto standard.

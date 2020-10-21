@@ -173,27 +173,62 @@ void psa_wipe_all_key_slots( void )
 psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
                                      psa_key_slot_t **p_slot )
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t slot_idx;
+    psa_key_slot_t *selected_slot, *unaccessed_permanent_key_slot;
 
     if( ! global_data.key_slots_initialized )
-        return( PSA_ERROR_BAD_STATE );
-
-    for( slot_idx = PSA_KEY_SLOT_COUNT; slot_idx > 0; slot_idx-- )
     {
-        *p_slot = &global_data.key_slots[ slot_idx - 1 ];
-        if( ! psa_is_key_slot_occupied( *p_slot ) )
-        {
-            *volatile_key_id = PSA_KEY_ID_VOLATILE_MIN +
-                               ( (psa_key_id_t)slot_idx ) - 1;
-
-            psa_increment_key_slot_access_count( *p_slot );
-
-            return( PSA_SUCCESS );
-        }
+        status = PSA_ERROR_BAD_STATE;
+        goto error;
     }
 
+    selected_slot = unaccessed_permanent_key_slot = NULL;
+    for( slot_idx = 0; slot_idx < PSA_KEY_SLOT_COUNT; slot_idx++ )
+    {
+        psa_key_slot_t *slot = &global_data.key_slots[ slot_idx ];
+        if( ! psa_is_key_slot_occupied( slot ) )
+        {
+            selected_slot = slot;
+            break;
+        }
+
+        if( ( unaccessed_permanent_key_slot == NULL ) &&
+            ( ! PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) ) &&
+            ( ! psa_is_key_slot_accessed( slot ) ) )
+            unaccessed_permanent_key_slot = slot;
+    }
+
+    /*
+     * If there is no unused key slot and there is at least one unaccessed key
+     * slot containing the description of a permament key, recycle the first
+     * such key slot we encountered. If we need later on to operate on the
+     * permanent key we evict now, we will reload its description from storage.
+     */
+    if( ( selected_slot == NULL ) &&
+        ( unaccessed_permanent_key_slot != NULL ) )
+    {
+        selected_slot = unaccessed_permanent_key_slot;
+        selected_slot->access_count = 1;
+        psa_wipe_key_slot( selected_slot );
+    }
+
+    if( selected_slot != NULL )
+    {
+        *volatile_key_id = PSA_KEY_ID_VOLATILE_MIN +
+            ( (psa_key_id_t)( selected_slot - global_data.key_slots ) );
+        *p_slot = selected_slot;
+        psa_increment_key_slot_access_count( selected_slot );
+
+        return( PSA_SUCCESS );
+    }
+    status = PSA_ERROR_INSUFFICIENT_MEMORY;
+
+error:
     *p_slot = NULL;
-    return( PSA_ERROR_INSUFFICIENT_MEMORY );
+    *volatile_key_id = 0;
+
+    return( status );
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)

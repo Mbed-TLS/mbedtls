@@ -877,3 +877,189 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
+void key_slot_eviction_to_import_new_key( int lifetime_arg )
+{
+    psa_key_lifetime_t lifetime = (psa_key_lifetime_t)lifetime_arg;
+    size_t i;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t exported[sizeof( size_t )];
+    size_t exported_length;
+    mbedtls_svc_key_id_t key, returned_key_id;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
+    psa_set_key_algorithm( &attributes, 0 );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
+
+    /*
+     * Create PSA_KEY_SLOT_COUNT persistent keys.
+     */
+    for( i = 0; i < PSA_KEY_SLOT_COUNT; i++ )
+    {
+        key = mbedtls_svc_key_id_make( i, i + 1 );
+        psa_set_key_id( &attributes, key );
+        PSA_ASSERT( psa_import_key( &attributes,
+                                    (uint8_t *) &i, sizeof( i ),
+                                    &returned_key_id ) );
+       TEST_ASSERT( mbedtls_svc_key_id_equal( returned_key_id, key ) );
+    }
+
+    /*
+     * Create a new persistent or volatile key. When creating the key,
+     * one of the description of the previously created persistent key
+     * is removed from the RAM key slots. This makes room to store its
+     * description in RAM.
+     */
+    i = PSA_KEY_SLOT_COUNT;
+    key = mbedtls_svc_key_id_make( i, i + 1 );
+    psa_set_key_id( &attributes, key );
+
+    if( lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        psa_set_key_lifetime( &attributes, PSA_KEY_LIFETIME_VOLATILE );
+
+    PSA_ASSERT( psa_import_key( &attributes,
+                                (uint8_t *) &i, sizeof( i ),
+                                &returned_key_id ) );
+    if( lifetime != PSA_KEY_LIFETIME_VOLATILE )
+        TEST_ASSERT( mbedtls_svc_key_id_equal( returned_key_id, key ) );
+
+    /*
+     * Check that we can export all ( PSA_KEY_SLOT_COUNT + 1 ) keys,
+     * that they have the expected value and destroy them. In that process,
+     * the description of the persistent key that was evicted from the RAM
+     * slots when creating the last key is restored in a RAM slot to export
+     * its value.
+     */
+    for( i = 0; i <= PSA_KEY_SLOT_COUNT; i++ )
+    {
+        if( i < PSA_KEY_SLOT_COUNT )
+            key = mbedtls_svc_key_id_make( i, i + 1 );
+        else
+            key = returned_key_id;
+
+        PSA_ASSERT( psa_export_key( key,
+                                    exported, sizeof( exported ),
+                                    &exported_length ) );
+        ASSERT_COMPARE( exported, exported_length,
+                        (uint8_t *) &i, sizeof( i ) );
+        PSA_ASSERT( psa_destroy_key( key ) );
+    }
+
+exit:
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
+void non_reusable_key_slots_integrity_in_case_of_key_slot_starvation( )
+{
+    psa_status_t status;
+    size_t i;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t exported[sizeof( size_t )];
+    size_t exported_length;
+    mbedtls_svc_key_id_t permanent_key = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t permanent_key2 = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t returned_key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t *keys = NULL;
+
+    TEST_ASSERT( PSA_KEY_SLOT_COUNT >= 1 );
+
+    ASSERT_ALLOC( keys, PSA_KEY_SLOT_COUNT );
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes,
+                             PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY );
+    psa_set_key_algorithm( &attributes, 0 );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
+
+    /*
+     * Create a permanent key
+     */
+    permanent_key = mbedtls_svc_key_id_make( 0x100, 0x205 );
+    psa_set_key_id( &attributes, permanent_key );
+    PSA_ASSERT( psa_import_key( &attributes,
+                                (uint8_t *) &permanent_key,
+                                sizeof( permanent_key ),
+                                &returned_key_id ) );
+    TEST_ASSERT( mbedtls_svc_key_id_equal( returned_key_id, permanent_key ) );
+
+    /*
+     * Create PSA_KEY_SLOT_COUNT volatile keys
+     */
+    psa_set_key_lifetime( &attributes, PSA_KEY_LIFETIME_VOLATILE );
+    for( i = 0; i < PSA_KEY_SLOT_COUNT; i++ )
+    {
+        PSA_ASSERT( psa_import_key( &attributes,
+                                    (uint8_t *) &i, sizeof( i ),
+                                    &keys[i]) );
+    }
+    psa_reset_key_attributes( &attributes );
+
+    /*
+     * Check that we cannot access the persistent key as all slots are
+     * occupied by volatile keys and the implementation needs to load the
+     * persistent key description in a slot to be able to access it.
+     */
+    status = psa_get_key_attributes( permanent_key, &attributes );
+    TEST_EQUAL( status, PSA_ERROR_INSUFFICIENT_MEMORY );
+
+    /*
+     * Check we can export the volatile key created last and that it has the
+     * expected value. Then, destroy it.
+     */
+    PSA_ASSERT( psa_export_key( keys[PSA_KEY_SLOT_COUNT - 1],
+                                exported, sizeof( exported ),
+                                &exported_length ) );
+    i = PSA_KEY_SLOT_COUNT - 1;
+    ASSERT_COMPARE( exported, exported_length, (uint8_t *) &i, sizeof( i ) );
+    PSA_ASSERT( psa_destroy_key( keys[PSA_KEY_SLOT_COUNT - 1] ) );
+
+    /*
+     * Check that we can now access the persistent key again.
+     */
+    PSA_ASSERT( psa_get_key_attributes( permanent_key, &attributes ) );
+    TEST_ASSERT( mbedtls_svc_key_id_equal( attributes.core.id,
+                                           permanent_key ) );
+
+    /*
+     * Check that we cannot copy the persistent key as all slots are occupied
+     * by the permanent key and the volatile keys and the slot containing the
+     * permanent key cannot be reclaimed as it contains the key to copy.
+     */
+    permanent_key2 = mbedtls_svc_key_id_make( 0x100, 0x204 );
+    psa_set_key_id( &attributes, permanent_key2 );
+    status = psa_copy_key( permanent_key, &attributes, &returned_key_id );
+    TEST_EQUAL( status, PSA_ERROR_INSUFFICIENT_MEMORY );
+
+    /*
+     * Check we can export the remaining volatile keys and that they have the
+     * expected values.
+     */
+    for( i = 0; i < ( PSA_KEY_SLOT_COUNT - 1 ); i++ )
+    {
+        PSA_ASSERT( psa_export_key( keys[i],
+                                    exported, sizeof( exported ),
+                                    &exported_length ) );
+        ASSERT_COMPARE( exported, exported_length,
+                        (uint8_t *) &i, sizeof( i ) );
+        PSA_ASSERT( psa_destroy_key( keys[i] ) );
+    }
+
+    /*
+     * Check we can export the persistent key and that it have the expected
+     * value.
+     */
+
+    PSA_ASSERT( psa_export_key( permanent_key, exported, sizeof( exported ),
+                                &exported_length ) );
+    ASSERT_COMPARE( exported, exported_length,
+                    (uint8_t *) &permanent_key, sizeof( permanent_key ) );
+exit:
+    psa_destroy_key( permanent_key );
+    PSA_DONE( );
+    mbedtls_free( keys );
+}
+/* END_CASE */

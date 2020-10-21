@@ -1,5 +1,6 @@
 /*
- * Umbrella include for all of the test driver functionality
+ * Test driver for retrieving key context size.
+ * Only used by opaque drivers.
  */
 /*  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -17,14 +18,25 @@
  *  limitations under the License.
  */
 
-#ifndef PSA_CRYPTO_TEST_DRIVER_H
-#define PSA_CRYPTO_TEST_DRIVER_H
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "mbedtls/config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
 
-#define PSA_CRYPTO_TEST_DRIVER_LIFETIME 0x7fffff
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
 
-#include "test/drivers/signature.h"
-#include "test/drivers/keygen.h"
-#include "test/drivers/cipher.h"
 #include "test/drivers/size.h"
 
-#endif /* PSA_CRYPTO_TEST_DRIVER_H */
+#ifdef TEST_KEY_CONTEXT_SIZE_FUNCTION
+size_t test_size_function(
+    const psa_key_type_t key_type,
+    const size_t key_bits )
+{
+    (void) key_type;
+    (void) key_bits;
+    return 0;
+}
+#endif /*TEST_KEY_CONTEXT_SIZE_FUNCTION */
+
+#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

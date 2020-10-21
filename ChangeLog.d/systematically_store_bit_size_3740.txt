@@ -1,7 +1,7 @@
 Changes
-   * Always store key bits attribute in PSA key storage. Previously stored
-     keys should be augmented with the bits value to be compatible with the
-     updated version. #3740
-   * Removes the stored bits field from the storage format for the
-     dynamic Secure Element driver. Previously stored keys must be updated to
-     remove the stored bits field. #3740
+   * PSA persistent storage format is updated to always store the key bits
+     attribute. No automatic upgrade path is provided. Previously stored keys
+     must be erased, or manually upgraded based on the key storage format
+     specification (mbed-crypto-storage-specification.md). The storage format
+     for the dynamic Secure Element driver has also been updated. Previously
+     stored keys must be erased, or manually upgraded. #3740

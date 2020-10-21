@@ -1175,6 +1175,18 @@ MBEDTLS_MPS_PUBLIC int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1, uint8_t mod
 @*/
 MBEDTLS_MPS_PUBLIC int mps_l2_free( mbedtls_mps_l2 *ctx );
 
+typedef uint8_t mbedtls_mps_record_split_config_t;
+#define MBEDTLS_MPS_SPLIT_DISABLED ( (mbedtls_mps_record_split_config_t) 0 )
+#define MBEDTLS_MPS_SPLIT_ENABLED  ( (mbedtls_mps_record_split_config_t) 1 )
+
+typedef uint8_t mbedtls_mps_record_pack_config_t;
+#define MBEDTLS_MPS_PACK_DISABLED  ( (mbedtls_mps_record_pack_config_t) 0 )
+#define MBEDTLS_MPS_PACK_ENABLED   ( (mbedtls_mps_record_pack_config_t) 1 )
+
+typedef uint8_t mbedtls_mps_record_empty_config_t;
+#define MBEDTLS_MPS_EMPTY_FORBIDDEN ( (mbedtls_mps_record_empty_config_t) 0 )
+#define MBEDTLS_MPS_EMPTY_ALLOWED   ( (mbedtls_mps_record_empty_config_t) 1 )
+
 /**
  * \brief          Configure Layer 2 context to accept records
  *                 of a given record content type.
@@ -1213,18 +1225,6 @@ MBEDTLS_MPS_PUBLIC int mps_l2_free( mbedtls_mps_l2 *ctx );
  * \return         A negative error code on failure.
  *
  */
-typedef uint8_t mbedtls_mps_record_split_config_t;
-#define MBEDTLS_MPS_SPLIT_DISABLED ( (mbedtls_mps_record_split_config_t) 0 )
-#define MBEDTLS_MPS_SPLIT_ENABLED  ( (mbedtls_mps_record_split_config_t) 1 )
-
-typedef uint8_t mbedtls_mps_record_pack_config_t;
-#define MBEDTLS_MPS_PACK_DISABLED  ( (mbedtls_mps_record_pack_config_t) 0 )
-#define MBEDTLS_MPS_PACK_ENABLED   ( (mbedtls_mps_record_pack_config_t) 1 )
-
-typedef uint8_t mbedtls_mps_record_empty_config_t;
-#define MBEDTLS_MPS_EMPTY_FORBIDDEN ( (mbedtls_mps_record_empty_config_t) 0 )
-#define MBEDTLS_MPS_EMPTY_ALLOWED   ( (mbedtls_mps_record_empty_config_t) 1 )
-
 /*@
   MPS_L2_INV_REQUIRES( ctx )
   MPS_L2_INV_ENSURES( ctx )

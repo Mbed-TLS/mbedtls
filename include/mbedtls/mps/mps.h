@@ -430,18 +430,18 @@ typedef uint8_t mbedtls_mps_dependencies;
  * defined below.
  */
 
+typedef void mbedtls_mps_write_cb_ctx_t;
 /**
  * \brief       Callback for retransmission of outgoing handshake messages.
  *
  * \param ctx    Opaque context passed to the retransmission function.
  *               Must not be altered because multiple retransmissions
  *               must be guaranteed to produce the same results.
- * \param writer
+ * \param writer The writer to use to (re-)write the message contents.
  *
  * \note        If possible, it is advisable to use the same function
  *              that was used to write the message in the first place.
  */
-typedef void mbedtls_mps_write_cb_ctx_t;
 typedef int (*mbedtls_mps_write_cb_t)( mbedtls_mps_write_cb_ctx_t const *ctx,
                                        mbedtls_writer_ext *writer );
 
@@ -1858,7 +1858,7 @@ int mbedtls_mps_set_incoming_keys( mbedtls_mps *mps,
  * \brief        Set the security parameters for subsequent outgoing messages.
  *
  * \param mps    The MPS context to use.
- * \param params The identifier for a set of security parameters
+ * \param id     The identifier for a set of security parameters
  *               previously registered via mbedtls_mps_add_key_material().
  *
  * \return       \c 0 on success.

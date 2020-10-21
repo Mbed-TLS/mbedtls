@@ -643,7 +643,7 @@ MBEDTLS_MPS_PUBLIC int mps_l3_read( mps_l3 *l3 );
 /**
  * \brief       Check if a message has been read.
  *
- * \param mps   The Layer 3 context to use.
+ * \param l3    The Layer 3 context to use.
  *
  * \return      #MBEDTLS_MPS_MSG_NONE if no message is available.
  * \return      #MBEDTLS_MPS_MSG_APPLICATION, or

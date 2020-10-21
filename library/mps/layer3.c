@@ -1217,7 +1217,7 @@ int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs )
 int mps_l3_pause_handshake( mps_l3 *l3 )
 {
     int res;
-    size_t uncommitted;
+    mbedtls_mps_size_t uncommitted;
     TRACE_INIT( "mps_l3_pause_handshake" );
 
     /* See mps_l3_read() for the general description
@@ -1272,7 +1272,7 @@ int mps_l3_pause_handshake( mps_l3 *l3 )
 int mps_l3_write_abort_handshake( mps_l3 *l3 )
 {
     int res;
-    size_t committed;
+    mbedtls_mps_size_t committed;
      TRACE_INIT( "mps_l3_write_abort_handshake" );
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( l3->io.out.state  != MBEDTLS_MPS_MSG_HS ||
@@ -1316,8 +1316,8 @@ int mps_l3_write_abort_handshake( mps_l3 *l3 )
 int mps_l3_dispatch( mps_l3 *l3 )
 {
     int res;
-    size_t committed;
-    size_t uncommitted;
+    mbedtls_mps_size_t committed;
+    mbedtls_mps_size_t uncommitted;
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l3_conf_get_mode( &l3->conf );
 

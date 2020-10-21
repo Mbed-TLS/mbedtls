@@ -389,7 +389,8 @@ struct mbedtls_reader_ext
   READER_INV_ENSURES(reader)
 @*/
 int mbedtls_reader_init( mbedtls_reader *reader,
-                         unsigned char *acc, size_t acc_len );
+                         unsigned char *acc,
+                         mbedtls_mps_size_t acc_len );
 
 /**
  * \brief           Free a reader object
@@ -436,7 +437,8 @@ int mbedtls_reader_free( mbedtls_reader *reader );
   READER_INV_ENSURES(reader)
   @*/
 int mbedtls_reader_feed( mbedtls_reader *reader,
-                         unsigned char *buf, size_t buflen );
+                         unsigned char *buf,
+                         mbedtls_mps_size_t buflen );
 
 /**
  * \brief           Reclaim reader's access to the current input buffer.
@@ -458,7 +460,8 @@ int mbedtls_reader_feed( mbedtls_reader *reader,
   READER_INV_REQUIRES(reader)
   READER_INV_ENSURES(reader)
   @*/
-int mbedtls_reader_reclaim( mbedtls_reader *reader, size_t *paused );
+int mbedtls_reader_reclaim( mbedtls_reader     *reader,
+                            mbedtls_mps_size_t *paused );
 
 /*
  * Usage API (Upper layer)
@@ -505,8 +508,10 @@ int mbedtls_reader_reclaim( mbedtls_reader *reader, size_t *paused );
   READER_INV_REQUIRES(reader)
   READER_INV_ENSURES(reader)
   @*/
-int mbedtls_reader_get( mbedtls_reader *reader, size_t desired,
-                        unsigned char **buffer, size_t *buflen );
+int mbedtls_reader_get( mbedtls_reader *reader,
+                        mbedtls_mps_size_t desired,
+                        unsigned char **buffer,
+                        mbedtls_mps_size_t *buflen );
 
 /**
  * \brief           Signal that all input buffers previously obtained
@@ -572,7 +577,7 @@ int mbedtls_reader_commit( mbedtls_reader *reader );
   READER_EXT_INV_ENSURES( reader )
   @*/
 int mbedtls_reader_init_ext( mbedtls_reader_ext *reader,
-                             size_t size );
+                             mbedtls_mps_size_t size );
 
 /**
  * \brief           Free an extended reader object
@@ -623,8 +628,10 @@ int mbedtls_reader_free_ext( mbedtls_reader_ext *reader );
   READER_EXT_INV_REQUIRES(reader)
   READER_EXT_INV_ENSURES(reader)
   @*/
-int mbedtls_reader_get_ext( mbedtls_reader_ext *reader, size_t desired,
-                            unsigned char **buffer, size_t *buflen );
+int mbedtls_reader_get_ext( mbedtls_reader_ext *reader,
+                            mbedtls_mps_size_t desired,
+                            unsigned char **buffer,
+                            mbedtls_mps_size_t *buflen );
 
 /**
  * \brief           Signal that all input buffers previously obtained
@@ -680,7 +687,7 @@ int mbedtls_reader_commit_ext( mbedtls_reader_ext *reader );
   READER_EXT_INV_ENSURES(reader)
   @*/
 int mbedtls_reader_group_open( mbedtls_reader_ext *reader,
-                               size_t group_size );
+                               mbedtls_mps_size_t group_size );
 
 /**
  * \brief           Close the most recently opened logical subbuffer.

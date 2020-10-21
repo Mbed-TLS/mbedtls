@@ -65,7 +65,8 @@ static int trace_id = TRACE_BIT_READER;
  */
 
 int mbedtls_reader_init( mbedtls_reader *rd,
-                         unsigned char *acc, size_t acc_len )
+                         unsigned char *acc,
+                         mbedtls_mps_size_t acc_len )
 {
     mbedtls_reader const zero = { NULL, 0, 0, 0, 0, NULL, 0, 0, { 0 } };
     *rd = zero;
@@ -87,8 +88,9 @@ int mbedtls_reader_free( mbedtls_reader *rd )
     RETURN( 0 );
 }
 
-int mbedtls_reader_feed( mbedtls_reader *rd, unsigned char *new_frag,
-                         size_t new_frag_len )
+int mbedtls_reader_feed( mbedtls_reader *rd,
+                         unsigned char *new_frag,
+                         mbedtls_mps_size_t new_frag_len )
 {
     unsigned char *acc;
     size_t copy_to_acc;
@@ -149,8 +151,10 @@ int mbedtls_reader_feed( mbedtls_reader *rd, unsigned char *new_frag,
 }
 
 
-int mbedtls_reader_get( mbedtls_reader *rd, size_t desired,
-                        unsigned char **buffer, size_t *buflen )
+int mbedtls_reader_get( mbedtls_reader *rd,
+                        mbedtls_mps_size_t desired,
+                        unsigned char **buffer,
+                        mbedtls_mps_size_t *buflen )
 {
     unsigned char *frag, *acc;
     size_t end, fo, fl, frag_fetched, frag_remaining;
@@ -362,7 +366,8 @@ int mbedtls_reader_commit( mbedtls_reader *rd )
     RETURN( 0 );
 }
 
-int mbedtls_reader_reclaim( mbedtls_reader *rd, size_t *paused )
+int mbedtls_reader_reclaim( mbedtls_reader *rd,
+                            mbedtls_mps_size_t *paused )
 {
     unsigned char *frag, *acc;
     size_t pending, commit;
@@ -496,7 +501,8 @@ int mbedtls_reader_reclaim( mbedtls_reader *rd, size_t *paused )
 
 /* TODO: Consider making (some of) these functions inline. */
 
-int mbedtls_reader_init_ext( mbedtls_reader_ext *rd_ext, size_t size )
+int mbedtls_reader_init_ext( mbedtls_reader_ext *rd_ext,
+                             mbedtls_mps_size_t size )
 {
     mbedtls_reader_ext zero = { 0, { 0 }, NULL, 0, 0, };
     TRACE_INIT( "reader_init_ext, size %u", (unsigned) size );
@@ -515,8 +521,10 @@ int mbedtls_reader_free_ext( mbedtls_reader_ext *rd )
     RETURN( 0 );
 }
 
-int mbedtls_reader_get_ext( mbedtls_reader_ext *rd_ext, size_t desired,
-                            unsigned char **buffer, size_t *buflen )
+int mbedtls_reader_get_ext( mbedtls_reader_ext *rd_ext,
+                            mbedtls_mps_size_t desired,
+                            unsigned char **buffer,
+                            mbedtls_mps_size_t *buflen )
 {
     int ret;
     size_t logic_avail;
@@ -564,7 +572,7 @@ int mbedtls_reader_commit_ext( mbedtls_reader_ext *rd_ext )
 }
 
 int mbedtls_reader_group_open( mbedtls_reader_ext *rd_ext,
-                               size_t group_size )
+                               mbedtls_mps_size_t group_size )
 {
     /* Check how much space is left in the current group */
     size_t const logic_avail =

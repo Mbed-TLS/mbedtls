@@ -1298,7 +1298,7 @@ void mbedtls_mps_reader_no_pausing_multiple_steps_single_round( int with_acc )
     unsigned char buf[100];
     unsigned char acc[10];
     unsigned char *tmp;
-    size_t tmp_len;
+    mbedtls_mps_size_t tmp_len;
     mbedtls_reader rd;
     for( int i=0; (unsigned) i < sizeof( buf ); i++ )
         buf[i] = (unsigned char) i;
@@ -1332,7 +1332,7 @@ void mbedtls_mps_reader_no_pausing_multiple_steps_multiple_rounds( int with_acc 
     unsigned char bufA[100], bufB[100];
     unsigned char acc[10];
     unsigned char *tmp;
-    size_t tmp_len;
+    mbedtls_mps_size_t tmp_len;
     mbedtls_reader rd;
     for( int i=0; (unsigned) i < sizeof( bufA ); i++ )
         bufA[i] = (unsigned char) i;
@@ -1429,7 +1429,7 @@ void mbedtls_mps_reader_multiple_pausing( int option )
     unsigned char bufA[100], bufB[20], bufC[10];
     unsigned char *tmp;
     unsigned char acc[50];
-    size_t tmp_len;
+    mbedtls_mps_size_t tmp_len;
     mbedtls_reader rd;
     for( int i=0; (unsigned) i < sizeof( bufA ); i++ )
         bufA[i] = (unsigned char) i;
@@ -1752,7 +1752,7 @@ void mbedtls_mps_reader_pausing_multiple_feeds( int option )
     unsigned char *tmp;
     unsigned char acc[70];
     mbedtls_reader rd;
-    size_t fetch_len;
+    mbedtls_mps_size_t fetch_len;
     for( int i=0; (unsigned) i < sizeof( bufA ); i++ )
         bufA[i] = (unsigned char) i;
     for( int i=0; (unsigned) i < sizeof( bufB ); i++ )
@@ -1947,7 +1947,7 @@ void mbedtls_reader_inconsistent_usage( int option )
 
         case 3:
             /* Ask for more than was requested when pausing #2 */
-            TEST_ASSERT( mbedtls_reader_get( &rd, (unsigned) -1, &tmp, NULL ) ==
+            TEST_ASSERT( mbedtls_reader_get( &rd, (mbedtls_mps_size_t) -1, &tmp, NULL ) ==
                          MBEDTLS_ERR_READER_INCONSISTENT_REQUESTS );
             break;
 
@@ -2163,7 +2163,7 @@ void mbedtls_mps_reader_random_usage( int num_out_chunks,
             rand_op = rand() % 3;
             if( rand_op == 0 || rand_op == 1 )
             {
-                size_t get_size, real_size;
+                mbedtls_mps_size_t get_size, real_size;
                 unsigned char *chunk_get;
                 get_size = ( rand() % max_request ) + 1;
                 if( rand_op == 0 )
@@ -2226,7 +2226,7 @@ void mbedtls_mps_reader_ext_basic( )
     mbedtls_reader rd;
     unsigned char buf[75];
     unsigned char *tmp;
-    size_t tmp_sz;
+    mbedtls_mps_size_t tmp_sz;
 
     /* Initialize reader and extended reader separately. */
     TEST_ASSERT( mbedtls_reader_init_ext( &rd_ext, 100 ) == 0 );
@@ -2282,7 +2282,7 @@ void mbedtls_mps_reader_ext_group_open_close( )
     mbedtls_reader rd;
     unsigned char buf[75];
     unsigned char *tmp;
-    size_t tmp_sz;
+    mbedtls_mps_size_t tmp_sz;
 
     /* Initialize reader and extended reader separately. */
     TEST_ASSERT( mbedtls_reader_init_ext( &rd_ext, 100 ) == 0 );
@@ -4083,7 +4083,7 @@ void mbedtls_mps_l2_basic( int mode,
     mbedtls_mps_epoch_id epoch_init = 0;
 
     uint8_t *buf;
-    size_t sz;
+    mbedtls_mps_size_t sz;
 
     /* Layer 2 objects */
     mbedtls_mps_l2 cli, srv;
@@ -4317,7 +4317,7 @@ void mbedtls_mps_l2_non_packable_type( int mode,
     mbedtls_mps_epoch_id epoch_init = 0;
 
     uint8_t *buf;
-    size_t sz;
+    mbedtls_mps_size_t sz;
 
     /* Layer 2 objects */
     mbedtls_mps_l2 cli, srv;
@@ -4543,10 +4543,10 @@ void mbedtls_mps_l2_bad_record( int mode,
     size_t l1_out_buf_len;     /* Lenght of l1_out_buf.                       */
 
     uint8_t *buf; /* Buffer obtained from reader/writer handed out by Layer 2 */
-    size_t sz;    /* Size of buf. */
+    mbedtls_mps_size_t sz;    /* Size of buf. */
 
-    size_t const rec_sz = 10; /* Plaintext size of the valid records
-                               * sent by the client. */
+    mbedtls_mps_size_t const rec_sz = 10; /* Plaintext size of the valid records
+                                           * sent by the client. */
 
     /* Layer 2 objects */
     mbedtls_mps_l2 cli, srv;
@@ -4870,8 +4870,8 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
     /* Layer 2 objects */
     mbedtls_mps_l2 cli, srv;
 
-    size_t const rec_sz = 10;
-    size_t sz;
+    mbedtls_mps_size_t const rec_sz = 10;
+    mbedtls_mps_size_t sz;
     unsigned char *buf;
 
     mps_l2_out out_cli;
@@ -5185,7 +5185,7 @@ void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
     mbedtls_mps_epoch_id epoch_init = 0;
 
     uint8_t *buf;
-    size_t sz;
+    mbedtls_mps_size_t sz;
     size_t pre_exp, post_exp;
 
     /* Layer 2 objects */
@@ -5431,7 +5431,7 @@ void mbedtls_mps_l2_switch_epoch( int mode,
     mbedtls_mps_epoch_id epoch_crypt = 1;
 
     uint8_t *buf;
-    size_t sz;
+    mbedtls_mps_size_t sz;
 
     /* Layer 2 objects */
     mbedtls_mps_l2 cli, srv;
@@ -5672,7 +5672,7 @@ void mbedtls_mps_l2_queueing( int allocator_buffer_sz,
     mbedtls_mps_epoch_id epoch_init = 1;
 
     uint8_t *buf;
-    size_t sz;
+    mbedtls_mps_size_t sz;
     size_t server_read_pos = 0;
 
     /* Layer 2 objects */
@@ -5813,7 +5813,7 @@ void mbedtls_mps_l2_many_epochs( int mode,
     mps_l1 cli_l1, srv_l1;
 
     uint8_t *buf;
-    size_t sz;
+    mbedtls_mps_size_t sz;
 
     /* Layer 2 objects */
     mbedtls_mps_l2 cli, srv;
@@ -6128,7 +6128,7 @@ void mbedtls_mps_l2_piggyback_data( int mode,
     mbedtls_mps_epoch_id epoch_crypt = 1;
 
     uint8_t *buf;
-    size_t sz;
+    mbedtls_mps_size_t sz;
 
     /* Layer 2 objects */
     mbedtls_mps_l2 cli, srv;
@@ -6483,9 +6483,9 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
             size_t chunk_num;
             typed_data_chunk *chunk;
             mps_l2_in in;
-            size_t data_remaining;
-            size_t data_requested;
-            size_t data_obtained;
+            mbedtls_mps_size_t data_remaining;
+            mbedtls_mps_size_t data_requested;
+            mbedtls_mps_size_t data_obtained;
 
             epoch = read_epoch[self];
             chunk_num = read_chunk[self];
@@ -6624,10 +6624,10 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
             size_t chunk_num;
             typed_data_chunk *chunk;
             mps_l2_out out;
-            size_t data_remaining;
-            size_t data_requested;
-            size_t data_obtained;
-            size_t tmp_send_progress;
+            mbedtls_mps_size_t data_remaining;
+            mbedtls_mps_size_t data_requested;
+            mbedtls_mps_size_t data_obtained;
+            mbedtls_mps_size_t tmp_send_progress;
 
             /* If we have already written everything, skip. */
             epoch = write_epoch[self];
@@ -9076,9 +9076,10 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
             mbedtls_mps_epoch_id epoch;
             size_t chunk_num;
             typed_data_chunk_l3 *chunk;
-            size_t data_remaining;
-            size_t data_requested;
-            size_t data_obtained;
+
+            mbedtls_mps_size_t data_remaining;
+            mbedtls_mps_size_t data_requested;
+            mbedtls_mps_size_t data_obtained;
 
             epoch = read_epoch[self];
             chunk_num = read_chunk[self];
@@ -9291,9 +9292,9 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
             size_t chunk_num;
             typed_data_chunk_l3 *chunk;
 
-            size_t data_remaining;
-            size_t data_requested;
-            size_t data_obtained;
+            mbedtls_mps_size_t data_remaining;
+            mbedtls_mps_size_t data_requested;
+            mbedtls_mps_size_t data_obtained;
 
             /* If we have already written everything, skip. */
             epoch = write_epoch[self];

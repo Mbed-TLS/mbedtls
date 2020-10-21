@@ -3749,7 +3749,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_bind( mbedtls_mps *mps )
 MBEDTLS_MPS_STATIC int mps_dtls_frag_out_close( mbedtls_mps *mps )
 {
     int ret;
-    size_t frag_len, bytes_queued, remaining;
+    mbedtls_mps_size_t frag_len, bytes_queued, remaining;
     mbedtls_mps_handshake_out_internal * const hs = &mps->dtls.io.out.hs;
     mbedtls_mps_msg_metadata * const metadata = hs->metadata;
     TRACE_INIT( "mps_dtls_frag_out_close" );

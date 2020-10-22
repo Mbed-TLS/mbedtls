@@ -4727,16 +4727,14 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
                        list_size <= MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH;
          p++ )
     {
-        switch( *p )
+        if ( mbedtls_ssl_check_srtp_profile_value( *p ) != MBEDTLS_TLS_SRTP_UNSET )
         {
-            case MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80:
-            case MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32:
-            case MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80:
-            case MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32:
-                list_size++;
-                break;
-            default: /* unsupported value, stop parsing and set the size to an error value */
-                list_size = MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH + 1;
+            list_size++;
+        }
+        else
+        {
+            /* unsupported value, stop parsing and set the size to an error value */
+            list_size = MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH + 1;
         }
     }
 

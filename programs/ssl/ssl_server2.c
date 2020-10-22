@@ -782,6 +782,12 @@ exit:
 }
 
 #if defined( MBEDTLS_SSL_DTLS_SRTP )
+/* Supported SRTP mode needs a maximum of :
+ * - 16 bytes for key (AES-128)
+ * - 14 bytes SALT
+ * One for sender, one for receiver context
+ */
+#define MBEDTLS_TLS_SRTP_MAX_KEY_MATERIAL_LENGTH    60
 typedef struct dtls_srtp_keys
 {
     unsigned char master_secret[48];

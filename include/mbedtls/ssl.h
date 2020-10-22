@@ -414,19 +414,6 @@
 
 #define MBEDTLS_TLS_EXT_RENEGOTIATION_INFO      0xFF01
 
-#if defined(MBEDTLS_SSL_DTLS_SRTP)
-/*
- * Use_srtp extension protection profiles values as defined in
- * http://www.iana.org/assignments/srtp-protection/srtp-protection.xhtml
- */
-#define MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80     0x0001
-#define MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32     0x0002
-#define MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80          0x0005
-#define MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32          0x0006
-/* This one is not iana defined, but for code readability. */
-#define MBEDTLS_TLS_SRTP_UNSET                      0x0000
-#endif /* MBEDTLS_SSL_DTLS_SRTP*/
-
 /*
  * Size defines
  */
@@ -871,18 +858,24 @@ typedef void mbedtls_ssl_async_cancel_t( mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 
-#define MBEDTLS_TLS_SRTP_MAX_KEY_MATERIAL_LENGTH    60
 #define MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH             255
 #define MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH    4
 /*
  * For code readability use a typedef for DTLS-SRTP profiles
- * The supported profiles are defines as macro above:
- * MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80
- * MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32
- * MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80
- * MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32
- * MBEDTLS_TLS_SRTP_UNSET
+ *
+ * Use_srtp extension protection profiles values as defined in
+ * http://www.iana.org/assignments/srtp-protection/srtp-protection.xhtml
+ *
+ * Reminder: if this list is expanded mbedtls_ssl_check_srtp_profile_value
+ * must be updated too.
  */
+#define MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80     ( (uint16_t) 0x0001)
+#define MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32     ( (uint16_t) 0x0002)
+#define MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80          ( (uint16_t) 0x0005)
+#define MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32          ( (uint16_t) 0x0006)
+/* This one is not iana defined, but for code readability. */
+#define MBEDTLS_TLS_SRTP_UNSET                      ( (uint16_t) 0x0000)
+
 typedef uint16_t mbedtls_ssl_srtp_profile;
 
 typedef struct mbedtls_dtls_srtp_info_t
@@ -2096,6 +2089,8 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
  *                  (Default: none.)
  *
  * \note            See \c mbedtls_ssl_export_keys_ext_t.
+ * \warning         Exported key material must not be used for any purpose
+ *                  before the (D)TLS handshake is completed
  *
  * \param conf      SSL configuration context
  * \param f_export_keys_ext Callback for exporting keys
@@ -3249,6 +3244,11 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles
  * \param mki_value        The MKI value to set.
  * \param mki_len          The length of the MKI value.
  *
+ * \note                   This function is relevant on client side only.
+ *                         The server discovers the mki value during handshake.
+ *                         A mki value set on server side using this function
+ *                         is ignored.
+ *
  * \return                 0 on success
  * \return                 #MBEDTLS_ERR_SSL_BAD_INPUT_DATA
  * \return                 #MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE
@@ -3258,12 +3258,17 @@ int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
                                          uint16_t mki_len );
 /**
  * \brief          Get the negotiated DTLS-SRTP Protection Profile.
- *                 This function should be called after the handshake is
- *                 completed.
+ *
+ * \warning        This function must be called after the handshake is
+ *                 completed. The value returned by this function must
+ *                 not be trusted or acted upon before the handshake completes.
  *
  * \param ssl      The SSL context to query.
  *
- * \return         The DTLS SRTP protection profile in use.
+ * \return         The DTLS SRTP protection profile in use. The return type is
+ *                 a direct mapping of the iana defined value for protection
+ *                 profile on an uint16_t.
+ *                 http://www.iana.org/assignments/srtp-protection/srtp-protection.xhtml
  * \return         #MBEDTLS_TLS_SRTP_UNSET if the use of SRTP was not negotiated
  *                 or peer's Hello packet was not parsed yet.
  */

@@ -837,13 +837,14 @@ static int ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
         {
             /*
              * Note: we shall never arrive here as protection profiles
-             * is checked by ssl_set_dtls_srtp_protection_profiles function
+             * is checked by mbedtls_ssl_conf_dtls_srtp_protection_profiles function
              */
             MBEDTLS_SSL_DEBUG_MSG( 3,
                     ( "client hello, "
-                      "ignore illegal DTLS-SRTP protection profile %d",
+                      "illegal DTLS-SRTP protection profile %d",
                       ssl->conf->dtls_srtp_profile_list[protection_profiles_index]
                     ) );
+            return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
         }
     }
 
@@ -1872,11 +1873,12 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
     }
 
     /*
-     * Length is 5 and optional mki_value : one protection profile(2 bytes)
-     *                                      + length(2 bytes) + mki_len(1 byte)
+     * Length is 5 + optional mki_value : one protection profile length (2 bytes)
+     *                                      + protection profile (2 bytes)
+     *                                      + mki_len(1 byte)
      *                                      and optional srtp_mki
      */
-    if( ( len != 5 ) && ( len != ( 5 + mki_len ) ) )
+    if( len != ( buf[4] + 5u ) )
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
 
     /*
@@ -2509,8 +2511,11 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         case MBEDTLS_TLS_EXT_ALPN:
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "found alpn extension" ) );
 
-            if( ( ret = ssl_parse_alpn_ext( ssl, ext + 4, ext_size ) ) != 0 )
-                return( ret );
+            if ( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+            {
+                if( ( ret = ssl_parse_alpn_ext( ssl, ext + 4, ext_size ) ) != 0 )
+                    return( ret );
+            }
 
             break;
 #endif /* MBEDTLS_SSL_ALPN */

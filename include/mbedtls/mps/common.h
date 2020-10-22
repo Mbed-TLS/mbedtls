@@ -497,7 +497,7 @@ typedef int mbedtls_mps_stored_opt_size_t;
  *        so almost 10%.
  */
 #if defined(MBEDTLS_MPS_INTERNAL_SMALL_TYPES)
-typedef mbedtls_mps_stored_opt_size_t mbedtls_mps_size_t;
+typedef mbedtls_mps_stored_size_t mbedtls_mps_size_t;
 #else
 typedef uint_fast16_t mbedtls_mps_size_t;
 #endif /* MBEDTLS_MPS_INTERNAL_SMALL_TYPES */

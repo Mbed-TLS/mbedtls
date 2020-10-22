@@ -655,12 +655,12 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
                                 * to which we write the record.       */
     mbedtls_mps_size_t total_sz;       /* The total size of rec_buf in bytes. */
     mbedtls_mps_size_t hdr_len;        /* The length of the record header.    */
-    mbedtls_mps_size_t pre_expansion;  /* The amount of data (in bytes) that
-                                        * the transform protecting the record
-                                        * adds in front of the plaintext.     */
-    mbedtls_mps_size_t post_expansion; /* The amount of data (in bytes) that
-                                        * the transform protecting the record
-                                        * adds beyond the plaintext.          */
+    size_t pre_expansion;  /* The amount of data (in bytes) that
+                            * the transform protecting the record
+                            * adds in front of the plaintext.     */
+    size_t post_expansion; /* The amount of data (in bytes) that
+                            * the transform protecting the record
+                            * adds beyond the plaintext.          */
     mbedtls_mps_size_t max_plaintext_len;  /* The maximum number of plaintext
                                             * bytes that the outgoing record
                                             * can hold.                       */

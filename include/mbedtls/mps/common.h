@@ -471,6 +471,12 @@ typedef uint_fast8_t mbedtls_mps_hs_seq_nr_t;
  *           than ::mbedtls_mps_size_t here because of
  *           potential truncation during conversion.
  *
+ * \warning  Handshake messages in TLS may be up to 2^24 ~ 16Mb in size.
+ *           If mbedtls_mps_[opt_]stored_size_t is smaller than that, the
+ *           maximum handshake message is restricted accordingly.
+ *
+ * TODO: !!! This isn't yet implemented !!!
+ *
  */
 #if defined(MBEDTLS_MPS_STORED_SMALL_TYPES)
 typedef uint16_t mbedtls_mps_stored_size_t;

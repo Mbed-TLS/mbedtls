@@ -36,6 +36,33 @@
 typedef struct
 {
     psa_core_key_attributes_t attr;
+
+    /*
+     * Number of on-going accesses, read and/or write, to the key slot by the
+     * library.
+     *
+     * This counter is incremented by one each time a library function
+     * retrieves through one of the dedicated internal API a pointer to the
+     * key slot.
+     *
+     * This counter is decremented by one each time a library function stops
+     * accessing to the key slot and states it by calling the
+     * psa_decrement_key_slot_access_count() API.
+     *
+     * This counter is used to prevent resetting the key slot while the library
+     * may access it. For example, such control is needed in the following
+     * scenarios:
+     * . In case of key slot starvation, all key slots contain the description
+     *   of a key, and the library asks for the description of a permanent
+     *   key not present in the key slots, the key slots currently accessed by
+     *   the library cannot be reclaimed to free a key slot to load the
+     *   permanent key.
+     * . In case of a multi-threaded application where one thread asks to close
+     *   or purge or destroy a key while it is in used by the library through
+     *   another thread.
+     */
+    size_t access_count;
+
     union
     {
         /* Dynamically allocated key data buffer.
@@ -72,6 +99,20 @@ typedef struct
 static inline int psa_is_key_slot_occupied( const psa_key_slot_t *slot )
 {
     return( slot->attr.type != 0 );
+}
+
+/** Test whether a key slot is accessed.
+ *
+ * A key slot is accessed iff its access counter is strickly greater than
+ * 0.
+ *
+ * \param[in] slot  The key slot to test.
+ *
+ * \return 1 if the slot is accessed, 0 otherwise.
+ */
+static inline int psa_is_key_slot_accessed( const psa_key_slot_t *slot )
+{
+    return( slot->access_count > 0 );
 }
 
 /** Retrieve flags from psa_key_slot_t::attr::core::flags.

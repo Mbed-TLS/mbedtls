@@ -70,6 +70,11 @@ static inline int psa_key_id_is_volatile( psa_key_id_t key_id )
  *  In case of a persistent key, the function loads the description of the key
  *  into a key slot if not already done.
  *
+ *  On success, the access counter of the returned key slot is incremented by
+ *  one. It is the responsibility of the caller to call
+ *  psa_decrement_key_slot_access_count() when it does not access the slot
+ *  anymore.
+ *
  * \param key           Key identifier to query.
  * \param[out] p_slot   On success, `*p_slot` contains a pointer to the
  *                      key slot containing the description of the key
@@ -110,7 +115,10 @@ void psa_wipe_all_key_slots( void );
 /** Find a free key slot.
  *
  * This function returns a key slot that is available for use and is in its
- * ground state (all-bits-zero).
+ * ground state (all-bits-zero). On success, the access counter of the
+ * returned key slot is incremented by one. It is the responsibility of the
+ * caller to call psa_decrement_key_slot_access_count() when it does not access
+ * the key slot anymore.
  *
  * \param[out] volatile_key_id   On success, volatile key identifier
  *                               associated to the returned slot.
@@ -122,6 +130,35 @@ void psa_wipe_all_key_slots( void );
  */
 psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
                                      psa_key_slot_t **p_slot );
+
+/** Increment slot access counter.
+ *
+ * This function increments the slot access counter by one.
+ *
+ * \param[in] slot  The key slot.
+ */
+static inline void psa_increment_key_slot_access_count( psa_key_slot_t *slot )
+{
+    slot->access_count++;
+}
+
+/** Decrement slot access counter.
+ *
+ * This function decrements the slot access counter by one.
+ *
+ * \note To ease the handling of errors in retrieving a key slot
+ *       a NULL input pointer is valid, and the function returns
+ *       successfully without doing anything in that case.
+ *
+ * \param[in] slot  The key slot.
+ * \retval #PSA_SUCCESS
+ *             \p slot is NULL or the key slot access pointer has been
+ *             decremented successfully.
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *             The access counter was equal to 0.
+ *
+ */
+psa_status_t psa_decrement_key_slot_access_count( psa_key_slot_t *slot );
 
 /** Test whether a lifetime designates a key in an external cryptoprocessor.
  *

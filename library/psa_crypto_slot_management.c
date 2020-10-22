@@ -88,6 +88,11 @@ psa_status_t psa_validate_key_id(
  *  key with identifier key_id can only be stored in slot of index
  *  ( key_id - #PSA_KEY_ID_VOLATILE_MIN ).
  *
+ *  On success, the access counter of the returned key slot is incremented by
+ *  one. It is the responsibility of the caller to call
+ *  psa_decrement_key_slot_access_count() when it does not access the key slot
+ *  anymore.
+ *
  * \param key           Key identifier to query.
  * \param[out] p_slot   On success, `*p_slot` contains a pointer to the
  *                      key slot containing the description of the key
@@ -135,7 +140,10 @@ static psa_status_t psa_search_key_in_slots(
     }
 
     if( status == PSA_SUCCESS )
+    {
         *p_slot = slot;
+        psa_increment_key_slot_access_count( slot );
+    }
 
     return( status );
 }
@@ -177,9 +185,12 @@ psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
             *volatile_key_id = PSA_KEY_ID_VOLATILE_MIN +
                                ( (psa_key_id_t)slot_idx ) - 1;
 
+            psa_increment_key_slot_access_count( *p_slot );
+
             return( PSA_SUCCESS );
         }
     }
+
     *p_slot = NULL;
     return( PSA_ERROR_INSUFFICIENT_MEMORY );
 }
@@ -232,6 +243,10 @@ psa_status_t psa_get_key_slot( mbedtls_svc_key_id_t key,
     if( ! global_data.key_slots_initialized )
         return( PSA_ERROR_BAD_STATE );
 
+    /*
+     * On success, the pointer to the slot is passed directly to the caller
+     * thus no need to decrement the key slot access counter here.
+     */
     status = psa_search_key_in_slots( key, p_slot );
     if( status != PSA_ERROR_DOES_NOT_EXIST )
         return( status );
@@ -255,6 +270,36 @@ psa_status_t psa_get_key_slot( mbedtls_svc_key_id_t key,
     return( PSA_ERROR_DOES_NOT_EXIST );
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
+}
+
+psa_status_t psa_decrement_key_slot_access_count( psa_key_slot_t *slot )
+{
+    if( slot == NULL )
+        return( PSA_SUCCESS );
+
+    if( slot->access_count > 0 )
+    {
+        slot->access_count--;
+        return( PSA_SUCCESS );
+    }
+
+    /*
+     * As the return error code may not be handled in case of multiple errors,
+     * do our best to report if the access counter is equal to zero: if
+     * available call MBEDTLS_PARAM_FAILED that may terminate execution (if
+     * called as part of the execution of a unit test suite this will stop the
+     * test suite execution) and if MBEDTLS_PARAM_FAILED does not terminate
+     * execution ouput an error message on standard error output.
+     */
+#ifdef MBEDTLS_CHECK_PARAMS
+    MBEDTLS_PARAM_FAILED( slot->access_count > 0 );
+#endif
+#ifdef MBEDTLS_PLATFORM_C
+    mbedtls_fprintf( stderr,
+        "\nFATAL psa_decrement_key_slot_access_count Decrementing a zero access counter.\n" );
+#endif
+
+    return( PSA_ERROR_CORRUPTION_DETECTED );
 }
 
 psa_status_t psa_validate_key_location( psa_key_lifetime_t lifetime,
@@ -315,7 +360,7 @@ psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
 
     *handle = key;
 
-    return( PSA_SUCCESS );
+    return( psa_decrement_key_slot_access_count( slot ) );
 
 #else /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
     (void) key;
@@ -349,7 +394,7 @@ psa_status_t psa_purge_key( mbedtls_svc_key_id_t key )
         return( status );
 
     if( PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) )
-        return PSA_SUCCESS;
+        return( psa_decrement_key_slot_access_count( slot ) );
 
     return( psa_wipe_key_slot( slot ) );
 }

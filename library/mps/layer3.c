@@ -39,30 +39,23 @@ static int trace_id = TRACE_BIT_LAYER_3;
 MBEDTLS_MPS_STATIC int l3_parse_hs_header( uint8_t mode, mbedtls_reader *rd,
                                mps_l3_hs_in_internal *in );
 
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-MBEDTLS_MPS_STATIC int l3_parse_hs_header_tls( mbedtls_reader *rd,
-                                   mps_l3_hs_in_internal *in );
-#endif /* MBEDTLS_MPS_PROTO_TLS */
-
-#if defined(MBEDTLS_MPS_PROTO_DTLS)
-MBEDTLS_MPS_STATIC int l3_parse_hs_header_dtls( mbedtls_reader *rd,
-                                    mps_l3_hs_in_internal *in );
-#endif /* MBEDTLS_MPS_PROTO_DTLS */
-
 MBEDTLS_MPS_STATIC int l3_parse_alert( mbedtls_reader *rd,
                            mps_l3_alert_in_internal *alert );
-MBEDTLS_MPS_STATIC int l3_parse_ccs( mbedtls_reader *rd );
 
-/* Writing-related */
+MBEDTLS_MPS_STATIC int l3_parse_ccs( mbedtls_reader *rd );
 MBEDTLS_MPS_STATIC int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t type,
                              mbedtls_mps_epoch_id epoch );
 MBEDTLS_MPS_STATIC int l3_check_clear( mps_l3 *l3 );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
+MBEDTLS_MPS_STATIC int l3_parse_hs_header_tls( mbedtls_reader *rd,
+                                               mps_l3_hs_in_internal *in );
 MBEDTLS_MPS_STATIC int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
+MBEDTLS_MPS_STATIC int l3_parse_hs_header_dtls( mbedtls_reader *rd,
+                                                mps_l3_hs_in_internal *in );
 MBEDTLS_MPS_STATIC int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 

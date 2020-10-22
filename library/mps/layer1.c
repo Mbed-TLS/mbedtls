@@ -354,7 +354,7 @@ int l1_flush_stream( mps_l1_stream_write *p )
     int ret = 0;
     unsigned char *buf;
     mbedtls_mps_size_t br, bw, data_remaining;
-    uint8_t status;
+    mps_l1_stream_state status;
     mps_l0_send_t *send;
     TRACE_INIT( "L1 flush stream" );
 
@@ -443,7 +443,7 @@ int l1_write_stream( mps_l1_stream_write *p,
                      mbedtls_mps_size_t *buflen )
 {
     int ret;
-    uint8_t status;
+    mps_l1_stream_state status;
     mbedtls_mps_size_t bl, br, data_remaining;
     unsigned char* buf;
     TRACE_INIT( "l1_write_stream" );
@@ -495,7 +495,7 @@ int l1_write_stream( mps_l1_stream_write *p,
 
 MBEDTLS_MPS_INLINE int l1_write_dependency_stream( mps_l1_stream_write *p )
 {
-    uint8_t status;
+    mps_l1_stream_state status;
 
     status = p->status;
     if( status == MPS_L1_STREAM_STATUS_FLUSH )
@@ -558,7 +558,7 @@ int l1_dispatch_stream( mps_l1_stream_write *p,
                         mbedtls_mps_size_t *pending )
 {
     mbedtls_mps_size_t bl, br, data_remaining;
-    uint8_t status = p->status;
+    mps_l1_stream_state status = p->status;
     TRACE_INIT( "L1 dispatch %u", (unsigned) len );
 
     MBEDTLS_MPS_STATE_VALIDATE_RAW( status == MPS_L1_STREAM_STATUS_WRITE,

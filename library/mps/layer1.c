@@ -250,8 +250,7 @@ int l1_fetch_stream( mps_l1_stream_read *p,
      * field from the allocator, so that the compiler can
      * inline the access here. */
 
-    /* TODO: Remove reinterpret_cast eventually */
-    ret = l1_acquire_if_unset( &p->buf, (size_t*) &p->buf_len,
+    ret = l1_acquire_if_unset( &p->buf, &p->buf_len,
                                p->alloc, MPS_ALLOC_L1_IN );
     if( ret != 0 )
         RETURN( ret );
@@ -354,7 +353,7 @@ int l1_flush_stream( mps_l1_stream_write *p )
 {
     int ret = 0;
     unsigned char *buf;
-    mbetdls_mps_size_t br, bw, data_remaining;
+    mbedtls_mps_size_t br, bw, data_remaining;
     uint8_t status;
     mps_l0_send_t *send;
     TRACE_INIT( "L1 flush stream" );
@@ -471,7 +470,7 @@ int l1_write_stream( mps_l1_stream_write *p,
                             "Unexpected state are flushing" );
 
     /* Make sure a write-buffer is available. */
-    ret = l1_acquire_if_unset( &p->buf, (size_t*) &p->buf_len,
+    ret = l1_acquire_if_unset( &p->buf, &p->buf_len,
                                p->alloc, MPS_ALLOC_L1_OUT );
     if( ret != 0 )
         RETURN( ret );
@@ -680,15 +679,14 @@ void l1_free_dgram( mps_l1_dgram *p )
 MBEDTLS_MPS_INLINE
 int l1_ensure_in_dgram( mps_l1_dgram_read *p )
 {
-    mbetls_mps_size_t ml, bl;
+    mbedtls_mps_size_t ml, bl;
     unsigned char *buf;
     mps_l0_recv_t *recv;
     int ret;
     TRACE_INIT( "l1_ensure_in_dgram" );
 
     /* 1. Ensure that a buffer is available to receive data */
-    /* TODO: Fix reinterpret cast */
-    ret = l1_acquire_if_unset( &p->buf, (size_t*) &p->buf_len,
+    ret = l1_acquire_if_unset( &p->buf, &p->buf_len,
                                p->alloc, MPS_ALLOC_L1_IN );
     if( ret != 0 )
         RETURN( ret );
@@ -879,8 +877,7 @@ int l1_write_dgram( mps_l1_dgram_write *p,
 
     /* Ensure that a buffer is available to hold them
      * outgoing datagram. */
-    /* TODO: Fix reinterpret cast */
-    ret = l1_acquire_if_unset( &p->buf, (size_t*) &p->buf_len,
+    ret = l1_acquire_if_unset( &p->buf, &p->buf_len,
                                p->alloc, MPS_ALLOC_L1_OUT );
 
     bl = p->buf_len;
@@ -896,7 +893,7 @@ int l1_write_dgram( mps_l1_dgram_write *p,
 
 MBEDTLS_MPS_INLINE
 int l1_dispatch_dgram( mps_l1_dgram_write *p,
-                       mbetdls_mps_size_t len,
+                       mbedtls_mps_size_t len,
                        mbedtls_mps_size_t *pending )
 {
     mbedtls_mps_size_t bl, br;

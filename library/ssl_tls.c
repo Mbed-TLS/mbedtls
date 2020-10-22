@@ -1662,6 +1662,11 @@ int ssl_populate_transform( mbedtls_ssl_transform *transform,
     transform->key_enc = mbedtls_calloc( 1, cipher_info->key_bitlen >> 3 );
     transform->key_dec = mbedtls_calloc( 1, cipher_info->key_bitlen >> 3 );
 
+    if( transform->key_enc == NULL || transform->key_dec == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Failed to allocate cipher keys" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
     memcpy( transform->key_enc, key1, cipher_info->key_bitlen >> 3 );
     memcpy( transform->key_dec, key2, cipher_info->key_bitlen >> 3 );
 

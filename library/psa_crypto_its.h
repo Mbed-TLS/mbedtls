@@ -142,4 +142,8 @@ psa_status_t psa_its_get_info(psa_storage_uid_t uid,
  */
 psa_status_t psa_its_remove(psa_storage_uid_t uid);
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* PSA_CRYPTO_ITS_H */

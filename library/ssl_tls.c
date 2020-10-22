@@ -667,6 +667,8 @@ static int resize_buffer( unsigned char **buffer, size_t len_new, size_t *len_ol
     return 0;
 }
 
+#define BUFFER_UPSIZING 0
+#define BUFFER_DOWNSIZING 1
 static void handle_buffer_resizing( mbedtls_ssl_context *ssl, int downsizing,
                                     uint32_t in_buf_new_len,
                                     uint32_t out_buf_new_len )
@@ -8874,8 +8876,8 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
     /* If the buffers are too small - reallocate */
-    handle_buffer_resizing( ssl, 0, MBEDTLS_SSL_IN_BUFFER_LEN,
-                                    MBEDTLS_SSL_OUT_BUFFER_LEN );
+    handle_buffer_resizing( ssl, BUFFER_UPSIZING, MBEDTLS_SSL_IN_BUFFER_LEN,
+                                                  MBEDTLS_SSL_OUT_BUFFER_LEN );
 #endif
 
     /* All pointers should exist and can be directly freed without issue */
@@ -12066,8 +12068,9 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
      * processes datagrams and the fact that a datagram is allowed to have
      * several records in it, it is possible that the I/O buffers are not
      * empty at this stage */
-    handle_buffer_resizing( ssl, 1, mbedtls_ssl_get_input_buflen( ssl ),
-                                    mbedtls_ssl_get_output_buflen( ssl ) );
+    handle_buffer_resizing( ssl, BUFFER_DOWNSIZING,
+                            mbedtls_ssl_get_input_buflen( ssl ),
+                            mbedtls_ssl_get_output_buflen( ssl ) );
 #endif
 }
 

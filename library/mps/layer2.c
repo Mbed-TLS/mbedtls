@@ -108,8 +108,8 @@ MBEDTLS_MPS_STATIC int l2_out_release_and_dispatch( mbedtls_mps_l2 *ctx,
                                                     uint8_t force );
 MBEDTLS_MPS_STATIC int l2_out_clear_pending( mbedtls_mps_l2 *ctx );
 
-MBEDTLS_MPS_STATIC size_t l2_get_header_len( mbedtls_mps_l2 *ctx,
-                                 mbedtls_mps_epoch_id epoch );
+MBEDTLS_MPS_STATIC mbedtls_mps_size_t l2_get_header_len( mbedtls_mps_l2 *ctx,
+                                                   mbedtls_mps_epoch_id epoch );
 
 /* Configuration related */
 /* OPTIMIZATION: The flexibility of Layer 2 in terms of valid types,
@@ -457,7 +457,8 @@ int l2_increment_counter( uint32_t ctr[2] )
 
 int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1,
                  mbedtls_mps_transport_type mode,
-                 size_t max_read, size_t max_write,
+                 mbedtls_mps_size_t max_read,
+                 mbedtls_mps_size_t max_write,
                  int (*f_rng)(void *, unsigned char *, size_t),
                  void *p_rng )
 {
@@ -603,7 +604,7 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1,
 
 int mps_l2_free( mbedtls_mps_l2 *ctx )
 {
-    size_t offset;
+    mbedtls_mps_size_t offset;
     ((void) ctx);
     TRACE_INIT( "l2_free" );
 
@@ -652,16 +653,17 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
     int ret;
     unsigned char *rec_buf;    /* The buffer received from Layer 1
                                 * to which we write the record.       */
-    size_t total_sz;           /* The total size of rec_buf in bytes. */
-    size_t hdr_len;            /* The length of the record header.    */
-    size_t pre_expansion;      /* The amount of data (in bytes) that
-                                * the transform protecting the record
-                                * adds in front of the plaintext.     */
-    size_t post_expansion;     /* The amount of data (in bytes) that
-                                * the transform protecting the record
-                                * adds beyond the plaintext.          */
-    size_t max_plaintext_len;  /* The maximum number of plaintext bytes
-                                * that the outgoing record can hold.  */
+    mbedtls_mps_size_t total_sz;       /* The total size of rec_buf in bytes. */
+    mbedtls_mps_size_t hdr_len;        /* The length of the record header.    */
+    mbedtls_mps_size_t pre_expansion;  /* The amount of data (in bytes) that
+                                        * the transform protecting the record
+                                        * adds in front of the plaintext.     */
+    mbedtls_mps_size_t post_expansion; /* The amount of data (in bytes) that
+                                        * the transform protecting the record
+                                        * adds beyond the plaintext.          */
+    mbedtls_mps_size_t max_plaintext_len;  /* The maximum number of plaintext
+                                            * bytes that the outgoing record
+                                            * can hold.                       */
 
     mbedtls_mps_l2_epoch_t *epoch;
 
@@ -710,7 +712,7 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
      * at least a protected record with plaintext length 1. */
     if( hdr_len + pre_expansion + post_expansion >= total_sz )
     {
-        size_t bytes_pending;
+        mbedtls_mps_size_t bytes_pending;
         TRACE( trace_comment, "Not enough space for to hold a non-empty record." );
         TRACE( trace_comment, "Need at least %u ( %u header + %u pre-expansion + %u post-expansion + 1 plaintext ) byte, but have only %u bytes available.",
                (unsigned)( hdr_len + pre_expansion + post_expansion + 1 ),
@@ -942,14 +944,14 @@ int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 MBEDTLS_MPS_STATIC
 int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
-    uint8_t * const hdr     = ctx->io.out.hdr;
-    size_t    const hdr_len = ctx->io.out.hdr_len;
+    uint8_t * const hdr = ctx->io.out.hdr;
+    mbedtls_mps_size_t const hdr_len = ctx->io.out.hdr_len;
 
-    size_t const tls_rec_hdr_len = 5;
+    mbedtls_mps_size_t const tls_rec_hdr_len = 5;
 
-    const size_t tls_rec_type_offset = 0;
-    const size_t tls_rec_ver_offset  = 1;
-    const size_t tls_rec_len_offset  = 3;
+    mbedtls_mps_size_t const tls_rec_type_offset = 0;
+    mbedtls_mps_size_t const tls_rec_ver_offset  = 1;
+    mbedtls_mps_size_t const tls_rec_len_offset  = 3;
 
     ((void) tls_rec_hdr_len);
     TRACE_INIT( "l2_write_protected_record_tls" );
@@ -1006,8 +1008,8 @@ MBEDTLS_MPS_STATIC
 int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
                                                  mps_rec *rec )
 {
-    uint8_t * const hdr     = ctx->io.out.hdr;
-    size_t    const hdr_len = ctx->io.out.hdr_len;
+    uint8_t *          const hdr     = ctx->io.out.hdr;
+    mbedtls_mps_size_t const hdr_len = ctx->io.out.hdr_len;
 
     /* Header structure the same for DTLS 1.0 and DTLS 1.2.
 
@@ -1024,13 +1026,13 @@ int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
 
     */
 
-    size_t const dtls_rec_hdr_len      = 13;
+    mbedtls_mps_size_t const dtls_rec_hdr_len      = 13;
 
-    size_t const dtls_rec_type_offset  = 0;
-    size_t const dtls_rec_ver_offset   = 1;
-    size_t const dtls_rec_epoch_offset = 3;
-    size_t const dtls_rec_seq_offset   = 5;
-    size_t const dtls_rec_len_offset   = 11;
+    mbedtls_mps_size_t const dtls_rec_type_offset  = 0;
+    mbedtls_mps_size_t const dtls_rec_ver_offset   = 1;
+    mbedtls_mps_size_t const dtls_rec_epoch_offset = 3;
+    mbedtls_mps_size_t const dtls_rec_seq_offset   = 5;
+    mbedtls_mps_size_t const dtls_rec_len_offset   = 11;
 
     TRACE_INIT( "l2_write_protected_record_dtls12" );
 
@@ -2057,16 +2059,17 @@ int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 }
 
 MBEDTLS_MPS_STATIC
-size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
+mbedtls_mps_size_t l2_get_header_len( mbedtls_mps_l2 *ctx,
+                                      mbedtls_mps_epoch_id epoch )
 {
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    size_t const dtls12_rec_hdr_len = 13;
+    mbedtls_mps_size_t const dtls12_rec_hdr_len = 13;
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    size_t const  tls12_rec_hdr_len  = 5;
+    mbedtls_mps_size_t const  tls12_rec_hdr_len  = 5;
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
     ((void) epoch);
@@ -2161,11 +2164,11 @@ int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
 
     */
 
-    const size_t tls_rec_hdr_len     = 5;
+    const mbedtls_mps_size_t tls_rec_hdr_len     = 5;
 
-    const size_t tls_rec_type_offset = 0;
-    const size_t tls_rec_ver_offset  = 1;
-    const size_t tls_rec_len_offset  = 3;
+    const mbedtls_mps_size_t tls_rec_type_offset = 0;
+    const mbedtls_mps_size_t tls_rec_ver_offset  = 1;
+    const mbedtls_mps_size_t tls_rec_len_offset  = 3;
 
     /* Record fields */
     uint8_t minor_ver, major_ver;
@@ -2425,13 +2428,13 @@ int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
 
     */
 
-    size_t const dtls_rec_hdr_len      = 13;
+    mbedtls_mps_size_t const dtls_rec_hdr_len      = 13;
 
-    size_t const dtls_rec_type_offset  = 0;
-    size_t const dtls_rec_ver_offset   = 1;
-    size_t const dtls_rec_epoch_offset = 3;
-    size_t const dtls_rec_seq_offset   = 5;
-    size_t const dtls_rec_len_offset   = 11;
+    mbedtls_mps_size_t const dtls_rec_type_offset  = 0;
+    mbedtls_mps_size_t const dtls_rec_ver_offset   = 1;
+    mbedtls_mps_size_t const dtls_rec_epoch_offset = 3;
+    mbedtls_mps_size_t const dtls_rec_seq_offset   = 5;
+    mbedtls_mps_size_t const dtls_rec_len_offset   = 11;
 
     /* Temporaries for record fields. */
     uint8_t  type;
@@ -2604,7 +2607,7 @@ int l2_in_fetch_protected_record_dtls13( mbedtls_mps_l2 *ctx,
      *   +-+-+-+-+-+-+-+-+
     */
 
-    size_t const dtls_13_stable_hdr_len = 1;
+    mbedtls_mps_size_t const dtls_13_stable_hdr_len = 1;
 
     uint8_t const dtls_13_stable_hdr_magic_mask  =
         7u << 5;             /* 0b11100000 */
@@ -2619,7 +2622,7 @@ int l2_in_fetch_protected_record_dtls13( mbedtls_mps_l2 *ctx,
     uint8_t const dtls_13_stable_hdr_magic_bits  =
         1u << 5; /* 0b00100000 */
 
-    size_t hdr_len = 1;
+    mbedtls_mps_size_t hdr_len = 1;
     uint8_t stable_hdr_val;
 
     ((void) dtls_13_stable_hdr_epoch_mask); /* TODO: Implement epoch parsing. */

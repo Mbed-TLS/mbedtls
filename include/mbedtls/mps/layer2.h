@@ -1156,9 +1156,10 @@ struct mbedtls_mps_l2
   MPS_L2_INV_ENSURES( ctx )
 @*/
 MBEDTLS_MPS_PUBLIC int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
-                            size_t max_read, size_t max_write,
-                            int (*f_rng)(void *, unsigned char *, size_t),
-                            void *p_rng );
+                                    mbedtls_mps_size_t max_read,
+                                    mbedtls_mps_size_t max_write,
+                                    int (*f_rng)(void *, unsigned char *, size_t),
+                                    void *p_rng );
 
 /**
  * \brief          This functions frees a Layer 2 context.

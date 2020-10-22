@@ -93,7 +93,7 @@ int mbedtls_reader_feed( mbedtls_reader *rd,
                          mbedtls_mps_size_t new_frag_len )
 {
     unsigned char *acc;
-    size_t copy_to_acc;
+    mbedtls_mps_size_t copy_to_acc;
     TRACE_INIT( "reader_feed, frag %p, len %u",
                 (void*) new_frag, (unsigned) new_frag_len );
 
@@ -106,7 +106,7 @@ int mbedtls_reader_feed( mbedtls_reader *rd,
     acc = rd->acc;
     if( acc != NULL )
     {
-        size_t aa, ar;
+        mbedtls_mps_size_t aa, ar;
 
         ar = rd->acc_share.acc_remaining;
         aa = rd->acc_avail;
@@ -157,7 +157,7 @@ int mbedtls_reader_get( mbedtls_reader *rd,
                         mbedtls_mps_size_t *buflen )
 {
     unsigned char *frag, *acc;
-    size_t end, fo, fl, frag_fetched, frag_remaining;
+    mbedtls_mps_size_t end, fo, fl, frag_fetched, frag_remaining;
     TRACE_INIT( "reader_get %p, desired %u", (void*) rd, (unsigned) desired );
 
     frag = rd->frag;
@@ -247,7 +247,7 @@ int mbedtls_reader_get( mbedtls_reader *rd,
              * `frag` starting from the next call to mbedtls_reader_get().
              */
 
-            size_t aa;
+            mbedtls_mps_size_t aa;
             aa = rd->acc_avail;
             if( aa - end != desired )
             {
@@ -321,7 +321,7 @@ int mbedtls_reader_get( mbedtls_reader *rd,
 int mbedtls_reader_commit( mbedtls_reader *rd )
 {
     unsigned char *acc;
-    size_t aa, end, fo, shift;
+    mbedtls_mps_size_t aa, end, fo, shift;
     TRACE_INIT( "reader_commit" );
 
     MBEDTLS_MPS_STATE_VALIDATE_RAW( rd->frag != NULL,
@@ -370,8 +370,8 @@ int mbedtls_reader_reclaim( mbedtls_reader *rd,
                             mbedtls_mps_size_t *paused )
 {
     unsigned char *frag, *acc;
-    size_t pending, commit;
-    size_t al, fo, fl;
+    mbedtls_mps_size_t pending, commit;
+    mbedtls_mps_size_t al, fo, fl;
     TRACE_INIT( "reader_reclaim" );
 
     if( paused != NULL )
@@ -405,9 +405,9 @@ int mbedtls_reader_reclaim( mbedtls_reader *rd,
     }
     else
     {
-        size_t frag_backup_offset;
-        size_t frag_backup_len;
-        size_t idx;
+        mbedtls_mps_size_t frag_backup_offset;
+        mbedtls_mps_size_t frag_backup_len;
+        mbedtls_mps_size_t idx;
         TRACE( trace_comment, "There has been an unsatisfied read-request with %u bytes overhead.",
                (unsigned) pending );
 
@@ -527,7 +527,7 @@ int mbedtls_reader_get_ext( mbedtls_reader_ext *rd_ext,
                             mbedtls_mps_size_t *buflen )
 {
     int ret;
-    size_t logic_avail;
+    mbedtls_mps_size_t logic_avail;
     TRACE_INIT( "reader_get_ext %p: desired %u", (void*) rd_ext, (unsigned) desired );
 
     MBEDTLS_MPS_STATE_VALIDATE_RAW( rd_ext->rd != NULL,
@@ -575,7 +575,7 @@ int mbedtls_reader_group_open( mbedtls_reader_ext *rd_ext,
                                mbedtls_mps_size_t group_size )
 {
     /* Check how much space is left in the current group */
-    size_t const logic_avail =
+    mbedtls_mps_size_t const logic_avail =
         rd_ext->grp_end[rd_ext->cur_grp] - rd_ext->ofs_fetch;
     TRACE_INIT( "reader_group_open, size %u", (unsigned) group_size );
 
@@ -596,7 +596,7 @@ int mbedtls_reader_group_open( mbedtls_reader_ext *rd_ext,
 int mbedtls_reader_group_close( mbedtls_reader_ext *rd_ext )
 {
     /* Check how much space is left in the current group */
-    size_t const logic_avail =
+    mbedtls_mps_size_t const logic_avail =
         rd_ext->grp_end[rd_ext->cur_grp] - rd_ext->ofs_fetch;
     TRACE_INIT( "reader_group_close" );
 

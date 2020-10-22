@@ -3240,14 +3240,14 @@ void mbedtls_mps_l1_basic( int mode,
 
     unsigned char data[100];
     unsigned char data_in[100];
-    size_t const data_len = sizeof( data );
-    size_t send_chunk_size = 10; /* Size of outgoing chunks in the
-                                  * multiple-send-chunk case. */
-    size_t recv_chunk_size = 10; /* Size of incoming chunks in the
-                                  * multiple-recv-chunk case. */
+    mbedtls_mps_size_t const data_len = sizeof( data );
+    mbedtls_mps_size_t send_chunk_size = 10; /* Size of outgoing chunks in the
+                                              * multiple-send-chunk case. */
+    mbedtls_mps_size_t recv_chunk_size = 10; /* Size of incoming chunks in the
+                                              * multiple-recv-chunk case. */
     unsigned char *out_buf;
     unsigned char *in_buf;
-    size_t out_len;
+    mbedtls_mps_size_t out_len;
 
     mps_l0_send_t *cli_wr,  *srv_wr;
     mps_l0_recv_t *cli_rcv, *srv_rcv;
@@ -3255,7 +3255,7 @@ void mbedtls_mps_l1_basic( int mode,
     /* Initialize Layer 0 mock objects */
     if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
-        layer0_bufsize = (size_t) ( 2 * data_len );
+        layer0_bufsize = (mbedtls_mps_size_t) ( 2 * data_len );
         TEST_ASSERT( layer0_init( &s2c ) == 0 );
         TEST_ASSERT( layer0_init( &c2s ) == 0 );
 
@@ -3427,10 +3427,10 @@ void mbedtls_mps_l1_want_read( )
      */
 
     unsigned char data[20];
-    size_t const data_len = sizeof( data );
+    mbedtls_mps_size_t const data_len = sizeof( data );
     unsigned char *out_buf;
     unsigned char *in_buf;
-    size_t out_len;
+    mbedtls_mps_size_t out_len;
 
     /* Initialize Layer 0 mock objects */
     layer0_bufsize = (size_t) data_len;
@@ -3500,7 +3500,7 @@ void mbedtls_mps_l1_dgram_want_read()
     mps_alloc cli_alloc, srv_alloc;
     mps_l1 cli, srv;
 
-    size_t const data_len = 20;
+    mbedtls_mps_size_t const data_len = 20;
     unsigned char *in_buf;
 
     /* This test exercises the behavior of the receiving
@@ -3554,10 +3554,10 @@ void mbedtls_mps_l1_dgram_bounds_violation()
      */
 
     unsigned char data[10];
-    size_t const data_len = sizeof( data );
+    mbedtls_mps_size_t const data_len = sizeof( data );
     unsigned char *out_buf;
     unsigned char *in_buf;
-    size_t out_len;
+    mbedtls_mps_size_t out_len;
 
     /* Initialize Layer 0 mock objects */
     TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
@@ -3637,10 +3637,10 @@ void mbedtls_mps_l1_want_write( int client_write_instead_reflush,
      */
 
     unsigned char data[20];
-    size_t const data_len = sizeof( data );
+    mbedtls_mps_size_t const data_len = sizeof( data );
     unsigned char *out_buf;
     unsigned char *in_buf;
-    size_t out_len;
+    mbedtls_mps_size_t out_len;
 
     /* Initialize Layer 0 mock objects */
     layer0_bufsize = (size_t) data_len / 2;
@@ -3788,13 +3788,13 @@ void mbedtls_mps_l1_random_communication_stream( int allocator_buffer_sz,
      *       simple conversion to a fuzz target.
      */
 
-    size_t len_total = 10000;
+    mbedtls_mps_size_t len_total = 10000;
     unsigned char c2s_send_buffer[10000];
     unsigned char c2s_recv_buffer[10000];
     unsigned char s2c_send_buffer[10000];
     unsigned char s2c_recv_buffer[10000];
-    size_t c2s_send_pos = 0, s2c_send_pos = 0;
-    size_t c2s_recv_pos = 0, s2c_recv_pos = 0;
+    mbedtls_mps_size_t c2s_send_pos = 0, s2c_send_pos = 0;
+    mbedtls_mps_size_t c2s_recv_pos = 0, s2c_recv_pos = 0;
 
     /* This probably needs to be changed because we want
      * our tests to be deterministic. */
@@ -3831,7 +3831,7 @@ void mbedtls_mps_l1_random_communication_stream( int allocator_buffer_sz,
         mps_l1 *actor;
         unsigned char *recv_dst_buf, *send_src_buf;
         unsigned char *send_dst_buf, *recv_src_buf;
-        size_t *send_pos, *recv_pos;
+        mbedtls_mps_size_t *send_pos, *recv_pos;
         /* Randomly choose between server and client */
         if( rand() & 1 )
         {
@@ -3854,8 +3854,8 @@ void mbedtls_mps_l1_random_communication_stream( int allocator_buffer_sz,
         if( rand() & 1 )
         {
             /* Sending */
-            size_t send_attempt;
-            size_t send_dst_len;
+            mbedtls_mps_size_t send_attempt;
+            mbedtls_mps_size_t send_dst_len;
 
             /* Once we have dispatched everything, only call flush.
              * And even if we have more to dispatch, call flush randomly. */
@@ -3894,7 +3894,7 @@ void mbedtls_mps_l1_random_communication_stream( int allocator_buffer_sz,
         else
         {
             /* Receiving */
-            size_t recv_attempt;
+            mbedtls_mps_size_t recv_attempt;
 
             /* Skip this if we have already received everything */
             if( len_total == *recv_pos )
@@ -4002,27 +4002,27 @@ void mbedtls_mps_l1_random_communication_dgram( int max_dgram_size )
      *       simple conversion to a fuzz target.
      */
 
-    size_t len_total = 10000;
+    mbedtls_mps_size_t len_total = 10000;
     unsigned char c2s_send_buffer[10000];
     unsigned char c2s_recv_buffer[10000];
     unsigned char s2c_send_buffer[10000];
     unsigned char s2c_recv_buffer[10000];
 
-    size_t c2s_send_pos = 0, s2c_send_pos = 0;
-    size_t c2s_recv_pos = 0, s2c_recv_pos = 0;
+    mbedtls_mps_size_t c2s_send_pos = 0, s2c_send_pos = 0;
+    mbedtls_mps_size_t c2s_recv_pos = 0, s2c_recv_pos = 0;
 
-    size_t out_chunks;  /* Counts the number of outgoing chunks. */
-    size_t out_flushes; /* Counts the number of flushes.         */
-    size_t dispatch_positions[ 100 ]; /* Indicates the offsets within
+    mbedtls_mps_size_t out_chunks;  /* Counts the number of outgoing chunks. */
+    mbedtls_mps_size_t out_flushes; /* Counts the number of flushes.         */
+    mbedtls_mps_size_t dispatch_positions[ 100 ]; /* Indicates the offsets within
                                        * 0, .., len_total at which the
                                        * sending side has dispatched data. */
-    size_t flush_positions[ 100 ];    /* Indicates the offsets within
+    mbedtls_mps_size_t flush_positions[ 100 ];    /* Indicates the offsets within
                                        * 0, .., len_total at which the
                                        * sending side has flushed data.    */
 
-    size_t cur_in_chunk; /* Indicates from which chunk the receiver
+    mbedtls_mps_size_t cur_in_chunk; /* Indicates from which chunk the receiver
                           * is currently reading. */
-    size_t cur_in_flush; /* Indicates the 0-based index of the first flush
+    mbedtls_mps_size_t cur_in_flush; /* Indicates the 0-based index of the first flush
                           * following the chunk from which the receiver
                           * is currently reading. */
 
@@ -4090,7 +4090,7 @@ void mbedtls_mps_l2_basic( int mode,
     mps_l2_out out_cli;
     mps_l2_in in_srv;
 
-    size_t const rec_hdr_max = 13; /* 5 for TLS, 13 for DTLS */
+    mbedtls_mps_size_t const rec_hdr_max = 13; /* 5 for TLS, 13 for DTLS */
 
     /* Dummy record transformations for epoch 0 */
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
@@ -4540,7 +4540,7 @@ void mbedtls_mps_l2_bad_record( int mode,
 
     unsigned char *l1_out_buf; /* Buffer obtained from Layer 1 to which
                                 * we write the malformed record.              */
-    size_t l1_out_buf_len;     /* Lenght of l1_out_buf.                       */
+    mbedtls_mps_size_t l1_out_buf_len;     /* Lenght of l1_out_buf.                       */
 
     uint8_t *buf; /* Buffer obtained from reader/writer handed out by Layer 2 */
     mbedtls_mps_size_t sz;    /* Size of buf. */
@@ -4628,11 +4628,11 @@ void mbedtls_mps_l2_bad_record( int mode,
 
     if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
-        size_t const tls_rec_hdr_len = 5;
+        mbedtls_mps_size_t const tls_rec_hdr_len = 5;
 
-        const size_t tls_rec_type_offset = 0;
-        const size_t tls_rec_ver_offset  = 1;
-        const size_t tls_rec_len_offset  = 3;
+        const mbedtls_mps_size_t tls_rec_type_offset = 0;
+        const mbedtls_mps_size_t tls_rec_ver_offset  = 1;
+        const mbedtls_mps_size_t tls_rec_len_offset  = 3;
 
         uint8_t type;
         uint8_t min_ver;
@@ -4673,13 +4673,13 @@ void mbedtls_mps_l2_bad_record( int mode,
     }
     else
     {
-        size_t const dtls_rec_hdr_len      = 13;
+        mbedtls_mps_size_t const dtls_rec_hdr_len      = 13;
 
-        size_t const dtls_rec_type_offset  = 0;
-        size_t const dtls_rec_ver_offset   = 1;
-        size_t const dtls_rec_epoch_offset = 3;
-        size_t const dtls_rec_seq_offset   = 5;
-        size_t const dtls_rec_len_offset   = 11;
+        mbedtls_mps_size_t const dtls_rec_type_offset  = 0;
+        mbedtls_mps_size_t const dtls_rec_ver_offset   = 1;
+        mbedtls_mps_size_t const dtls_rec_epoch_offset = 3;
+        mbedtls_mps_size_t const dtls_rec_seq_offset   = 5;
+        mbedtls_mps_size_t const dtls_rec_len_offset   = 11;
 
         uint8_t type;
         uint8_t min_ver;
@@ -5194,9 +5194,9 @@ void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
     mps_l2_in in_srv;
 
     /* The length of the two type A chunks the client sends.   */
-    size_t const msg_chunk_size_A = 40;
+    mbedtls_mps_size_t const msg_chunk_size_A = 40;
     /* The length of the single type B chunk the client sends. */
-    size_t const msg_chunk_size_B = 40;
+    mbedtls_mps_size_t const msg_chunk_size_B = 40;
 
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
     mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
@@ -5673,7 +5673,7 @@ void mbedtls_mps_l2_queueing( int allocator_buffer_sz,
 
     uint8_t *buf;
     mbedtls_mps_size_t sz;
-    size_t server_read_pos = 0;
+    mbedtls_mps_size_t server_read_pos = 0;
 
     /* Layer 2 objects */
     mbedtls_mps_l2 cli, srv;

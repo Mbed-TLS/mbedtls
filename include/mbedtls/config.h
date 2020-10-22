@@ -1912,7 +1912,11 @@
 /**
  * \def MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
  *
- * Enable modifying the maximum I/O buffer size.
+ * Enable modifying the maximum I/O buffer size in runtime.
+ *
+ * If the library runs out of memory during the resizing of an I/O buffer,
+ * there is no error returned. The operation continues as usual on an
+ * unchanged buffer without any negative impact on the flow.
  */
 //#define MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
 

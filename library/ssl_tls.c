@@ -685,6 +685,8 @@ static void handle_buffer_resizing( mbedtls_ssl_context *ssl, int downsizing,
         {
             if( resize_buffer( &ssl->in_buf, in_buf_new_len, &ssl->in_buf_len ) != 0 )
             {
+                /* No need to return an error here; The buffer will remain as
+                 * is with no negative impact on the flow. */
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "input buffer resizing failed - out of memory" ) );
             }
             else
@@ -705,6 +707,8 @@ static void handle_buffer_resizing( mbedtls_ssl_context *ssl, int downsizing,
         {
             if( resize_buffer( &ssl->out_buf, out_buf_new_len, &ssl->out_buf_len ) != 0 )
             {
+                /* No need to return an error here; The buffer will remain as
+                 * is with no negative impact on the flow. */
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "output buffer resizing failed - out of memory" ) );
             }
             else

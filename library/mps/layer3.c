@@ -573,10 +573,10 @@ MBEDTLS_MPS_STATIC int l3_parse_hs_header_tls( mbedtls_reader *rd,
     int res;
     unsigned char *tmp;
 
-    size_t const tls_hs_hdr_len = 4;
+    mbedtls_mps_size_t const tls_hs_hdr_len = 4;
 
-    size_t const tls_hs_type_offset   = 0;
-    size_t const tls_hs_length_offset = 1;
+    mbedtls_mps_size_t const tls_hs_type_offset   = 0;
+    mbedtls_mps_size_t const tls_hs_length_offset = 1;
 
     /*
 
@@ -638,12 +638,12 @@ MBEDTLS_MPS_STATIC int l3_parse_hs_header_dtls( mbedtls_reader *rd,
     int res;
     unsigned char *tmp;
 
-    size_t const dtls_hs_hdr_len         = 13;
-    size_t const dtls_hs_type_offset     = 0;
-    size_t const dtls_hs_len_offset      = 1;
-    size_t const dtls_hs_seq_offset      = 4;
-    size_t const dtls_hs_frag_off_offset = 7;
-    size_t const dtls_hs_frag_len_offset = 10;
+    mbedtls_mps_size_t const dtls_hs_hdr_len         = 13;
+    mbedtls_mps_size_t const dtls_hs_type_offset     = 0;
+    mbedtls_mps_size_t const dtls_hs_len_offset      = 1;
+    mbedtls_mps_size_t const dtls_hs_seq_offset      = 4;
+    mbedtls_mps_size_t const dtls_hs_frag_off_offset = 7;
+    mbedtls_mps_size_t const dtls_hs_frag_len_offset = 10;
 
     /*
      *
@@ -1442,10 +1442,10 @@ MBEDTLS_MPS_STATIC int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs )
 {
     unsigned char *buf = hs->hdr;
 
-    size_t const tls_hs_hdr_len = 4;
+    mbedtls_mps_size_t const tls_hs_hdr_len = 4;
 
-    size_t const tls_hs_type_offset   = 0;
-    size_t const tls_hs_length_offset = 1;
+    mbedtls_mps_size_t const tls_hs_type_offset   = 0;
+    mbedtls_mps_size_t const tls_hs_length_offset = 1;
 
     /*
 
@@ -1500,12 +1500,12 @@ MBEDTLS_MPS_STATIC int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
 {
     unsigned char *buf = hs->hdr;
 
-    size_t const dtls_hs_hdr_len         = 13;
-    size_t const dtls_hs_type_offset     = 0;
-    size_t const dtls_hs_len_offset      = 1;
-    size_t const dtls_hs_seq_offset      = 4;
-    size_t const dtls_hs_frag_off_offset = 7;
-    size_t const dtls_hs_frag_len_offset = 10;
+    mbedtls_mps_size_t const dtls_hs_hdr_len         = 13;
+    mbedtls_mps_size_t const dtls_hs_type_offset     = 0;
+    mbedtls_mps_size_t const dtls_hs_len_offset      = 1;
+    mbedtls_mps_size_t const dtls_hs_seq_offset      = 4;
+    mbedtls_mps_size_t const dtls_hs_frag_off_offset = 7;
+    mbedtls_mps_size_t const dtls_hs_frag_len_offset = 10;
 
     /*
      *

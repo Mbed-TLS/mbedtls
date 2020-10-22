@@ -642,7 +642,8 @@ MBEDTLS_MPS_PUBLIC void mps_l1_free( mps_l1 *ctx );
  MPS_L1_INV_REQUIRES( ctx )
  MPS_L1_INV_ENSURES( ctx )
   @*/
-MBEDTLS_MPS_PUBLIC int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired );
+MBEDTLS_MPS_PUBLIC int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf,
+                                     mbedtls_mps_size_t desired );
 
 /**
  * \brief          Mark the previously fetched data as consumed.
@@ -713,7 +714,8 @@ MBEDTLS_MPS_PUBLIC int mps_l1_skip( mps_l1 *ctx );
  MPS_L1_INV_REQUIRES( ctx )
  MPS_L1_INV_ENSURES( ctx )
   @*/
-MBEDTLS_MPS_PUBLIC int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen );
+MBEDTLS_MPS_PUBLIC int mps_l1_write( mps_l1 *ctx, unsigned char **buf,
+                                     mbedtls_mps_size_t *buflen );
 
 /**
  * \brief          Dispatch data provided in the outgoing data buffer.
@@ -736,7 +738,9 @@ MBEDTLS_MPS_PUBLIC int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *b
  MPS_L1_INV_REQUIRES( ctx )
  MPS_L1_INV_ENSURES( ctx )
   @*/
-MBEDTLS_MPS_PUBLIC int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending );
+MBEDTLS_MPS_PUBLIC int mps_l1_dispatch( mps_l1 *ctx,
+                                        mbedtls_mps_size_t len,
+                                        mbedtls_mps_size_t *pending );
 
 /**
  * \brief          Deliver all previously dispatched data

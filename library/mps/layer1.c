@@ -35,7 +35,7 @@ MBEDTLS_MPS_STATIC void l1_release_if_set( unsigned char **buf_ptr,
                                mps_alloc *ctx,
                                mps_alloc_type purpose );
 MBEDTLS_MPS_STATIC int l1_acquire_if_unset( unsigned char **buf_ptr,
-                                size_t *buflen,
+                                mbedtls_mps_size_t *buflen,
                                 mps_alloc *ctx,
                                 mps_alloc_type purpose );
 
@@ -59,12 +59,13 @@ MBEDTLS_MPS_INLINE int l1_consume_stream( mps_l1_stream_read *p );
 MBEDTLS_MPS_INLINE int l1_flush_stream( mps_l1_stream_write *p );
 MBEDTLS_MPS_INLINE int l1_write_stream( mps_l1_stream_write *p,
                                    unsigned char **dst,
-                                   size_t *buflen );
+                                   mbedtls_mps_size_t *buflen );
 MBEDTLS_MPS_INLINE int l1_check_flush_stream( mps_l1_stream_write *p );
 MBEDTLS_MPS_INLINE int l1_write_dependency_stream( mps_l1_stream_write *p );
 MBEDTLS_MPS_INLINE int l1_read_dependency_stream( mps_l1_stream_read *p );
 MBEDTLS_MPS_INLINE int l1_dispatch_stream( mps_l1_stream_write *p,
-                                      size_t len, size_t *pending );
+                                           mbedtls_mps_size_t len,
+                                           mbedtls_mps_size_t *pending );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
@@ -87,13 +88,14 @@ MBEDTLS_MPS_INLINE int l1_write_dependency_dgram( mps_l1_dgram_write *p );
 MBEDTLS_MPS_INLINE int l1_read_dependency_dgram( mps_l1_dgram_read *p );
 MBEDTLS_MPS_INLINE int l1_fetch_dgram( mps_l1_dgram_read *p,
                                   unsigned char **dst,
-                                  size_t len );
+                                  mbedtls_mps_size_t len );
 MBEDTLS_MPS_INLINE int l1_consume_dgram( mps_l1_dgram_read *p );
 MBEDTLS_MPS_INLINE int l1_write_dgram( mps_l1_dgram_write *p,
-                                  unsigned char **buf,
-                                  size_t *buflen );
-MBEDTLS_MPS_INLINE int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len,
-                                     size_t *pending );
+                                       unsigned char **buf,
+                                       mbedtls_mps_size_t *buflen );
+MBEDTLS_MPS_INLINE int l1_dispatch_dgram( mps_l1_dgram_write *p,
+                                          mbedtls_mps_size_t len,
+                                          mbedtls_mps_size_t *pending );
 MBEDTLS_MPS_INLINE int l1_flush_dgram( mps_l1_dgram_write *p );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -135,9 +137,9 @@ MBEDTLS_MPS_STATIC void l1_release_if_set( unsigned char **buf_ptr,
 }
 
 MBEDTLS_MPS_STATIC int l1_acquire_if_unset( unsigned char **buf_ptr,
-                                size_t *buflen,
-                                mps_alloc *ctx,
-                                mps_alloc_type purpose )
+                                            mbedtls_mps_size_t *buflen,
+                                            mps_alloc *ctx,
+                                            mps_alloc_type purpose )
 {
     unsigned char *buf = *buf_ptr;
     if( buf != NULL )
@@ -230,10 +232,10 @@ void l1_free_stream( mps_l1_stream *p )
 MBEDTLS_MPS_INLINE
 int l1_fetch_stream( mps_l1_stream_read *p,
                      unsigned char **dst,
-                     size_t len )
+                     mbedtls_mps_size_t len )
 {
     int ret;
-    size_t bl, br, data_need, data_fetched;
+    mbedtls_mps_size_t bl, br, data_need, data_fetched;
     unsigned char *read_ptr;
     mps_l0_recv_t *recv;
     TRACE_INIT( "l1_fetch_stream, desired %u", (unsigned) len );
@@ -272,13 +274,14 @@ int l1_fetch_stream( mps_l1_stream_read *p,
             break;
         TRACE( trace_comment, "got %u", (unsigned) ret );
 
+        /* TODO: FIX! */
 #if( MAX_INT > SIZE_MAX )
         if( ret > (int) SIZE_MAX )
             RETURN( MBEDTLS_ERR_MPS_BAD_TRANSPORT );
 #endif
 
-        /* Now we know that we can safely cast ret to size_t. */
-        data_fetched = (size_t) ret;
+        /* Now we know that we can safely cast. */
+        data_fetched = (mbedtls_mps_size_t) ret;
         ret = 0;
 
         /* Double-check that the external Layer 0 obeys its spec;
@@ -311,7 +314,7 @@ MBEDTLS_MPS_INLINE
 int l1_consume_stream( mps_l1_stream_read *p )
 {
     unsigned char *buf;
-    size_t bf, br, not_yet_fetched;
+    mbedtls_mps_size_t bf, br, not_yet_fetched;
     TRACE_INIT( "l1_consume_stream" );
 
     bf = p->bytes_fetched;
@@ -351,7 +354,7 @@ int l1_flush_stream( mps_l1_stream_write *p )
 {
     int ret = 0;
     unsigned char *buf;
-    size_t br, bw, data_remaining;
+    mbetdls_mps_size_t br, bw, data_remaining;
     uint8_t status;
     mps_l0_send_t *send;
     TRACE_INIT( "L1 flush stream" );
@@ -385,7 +388,7 @@ int l1_flush_stream( mps_l1_stream_write *p )
     data_remaining = br - bw;
     while( data_remaining > 0 )
     {
-        size_t data_written;
+        mbedtls_mps_size_t data_written;
 
         ret = send( buf, data_remaining );
         if( ret <= 0 )
@@ -399,13 +402,14 @@ int l1_flush_stream( mps_l1_stream_write *p )
             break;
         }
 
+        /* TODO: FIX */
 #if( MAX_INT > SIZE_MAX )
         if( ret > (int) SIZE_MAX )
             RETURN( MBEDTLS_ERR_MPS_BAD_TRANSPORT );
 #endif
 
-        /* Now we know that we can safely cast ret to size_t. */
-        data_written = (size_t) ret;
+        /* Now we know that we can safely cast. */
+        data_written = (mbedtls_mps_size_t) ret;
         ret = 0;
 
         /* Double-check that the external Layer 0 obeys its
@@ -436,11 +440,12 @@ int l1_flush_stream( mps_l1_stream_write *p )
 @*/
 MBEDTLS_MPS_INLINE
 int l1_write_stream( mps_l1_stream_write *p,
-                     unsigned char **dst, size_t *buflen )
+                     unsigned char **dst,
+                     mbedtls_mps_size_t *buflen )
 {
     int ret;
     uint8_t status;
-    size_t bl, br, data_remaining;
+    mbedtls_mps_size_t bl, br, data_remaining;
     unsigned char* buf;
     TRACE_INIT( "l1_write_stream" );
 
@@ -518,7 +523,7 @@ int l1_check_flush_stream( mps_l1_stream_write *p )
      *
      */
 
-    size_t bl, br;
+    mbedtls_mps_size_t bl, br;
     br = p->bytes_ready;
     bl = p->buf_len;
     TRACE_INIT( "l1_check_flush_stream:  %u / %u bytes written",
@@ -549,9 +554,11 @@ int l1_check_flush_stream( mps_l1_stream_write *p )
   MPS_L1_STREAM_WRITE_INV_ENSURES(p)
 @*/
 MBEDTLS_MPS_INLINE
-int l1_dispatch_stream( mps_l1_stream_write *p, size_t len, size_t *pending )
+int l1_dispatch_stream( mps_l1_stream_write *p,
+                        mbedtls_mps_size_t len,
+                        mbedtls_mps_size_t *pending )
 {
-    size_t bl, br, data_remaining;
+    mbedtls_mps_size_t bl, br, data_remaining;
     uint8_t status = p->status;
     TRACE_INIT( "L1 dispatch %u", (unsigned) len );
 
@@ -673,7 +680,7 @@ void l1_free_dgram( mps_l1_dgram *p )
 MBEDTLS_MPS_INLINE
 int l1_ensure_in_dgram( mps_l1_dgram_read *p )
 {
-    size_t ml, bl;
+    mbetls_mps_size_t ml, bl;
     unsigned char *buf;
     mps_l0_recv_t *recv;
     int ret;
@@ -702,13 +709,14 @@ int l1_ensure_in_dgram( mps_l1_dgram_read *p )
         if( ret <= 0 )
             RETURN( ret );
 
+        /* TODO: FIX */
 #if( MAX_INT > SIZE_MAX )
         if( ret > (int) SIZE_MAX )
             RETURN( MBEDTLS_ERR_MPS_BAD_TRANSPORT );
 #endif
 
-        /* Now we know that we can safely cast ret to size_t. */
-        ml = (size_t) ret;
+        /* Now we know that we can safely cast. */
+        ml = (mbedtls_mps_size_t) ret;
 
         /* Double-check that the external Layer 0 obeys its spec. */
         if( ml > bl )
@@ -724,12 +732,12 @@ int l1_ensure_in_dgram( mps_l1_dgram_read *p )
 MBEDTLS_MPS_INLINE
 int l1_fetch_dgram( mps_l1_dgram_read *p,
                     unsigned char **dst,
-                    size_t len )
+                    mbedtls_mps_size_t len )
 {
     int ret;
 
-    size_t data_need, data_avail;
-    size_t wb, wl, ml;
+    mbedtls_mps_size_t data_need, data_avail;
+    mbedtls_mps_size_t wb, wl, ml;
 
     unsigned char *buf;
 
@@ -777,7 +785,7 @@ MBEDTLS_MPS_INLINE
 int l1_consume_dgram( mps_l1_dgram_read *p )
 {
     int ret;
-    size_t wl, wb, ml;
+    mbedtls_mps_size_t wl, wb, ml;
 
     TRACE_INIT( "l1_consume_dgram" );
 
@@ -848,11 +856,12 @@ MBEDTLS_MPS_INLINE int l1_read_dependency_dgram( mps_l1_dgram_read *p )
 
 MBEDTLS_MPS_INLINE
 int l1_write_dgram( mps_l1_dgram_write *p,
-                     unsigned char **dst, size_t *dstlen )
+                    unsigned char **dst,
+                    mbedtls_mps_size_t *dstlen )
 {
     int ret;
     unsigned char *buf;
-    size_t bl, br;
+    mbedtls_mps_size_t bl, br;
     uint8_t flush;
     TRACE_INIT( "l1_write_dgram" );
 
@@ -886,9 +895,11 @@ int l1_write_dgram( mps_l1_dgram_write *p,
 }
 
 MBEDTLS_MPS_INLINE
-int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len, size_t *pending )
+int l1_dispatch_dgram( mps_l1_dgram_write *p,
+                       mbetdls_mps_size_t len,
+                       mbedtls_mps_size_t *pending )
 {
-    size_t bl, br;
+    mbedtls_mps_size_t bl, br;
     TRACE_INIT( "l1_dispatch_dgram, length %u", (unsigned) len );
 
     MBEDTLS_MPS_STATE_VALIDATE_RAW( p->buf != NULL,
@@ -911,7 +922,7 @@ int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len, size_t *pending )
 MBEDTLS_MPS_INLINE
 int l1_check_flush_dgram( mps_l1_dgram_write *p )
 {
-    size_t bl, br;
+    mbedtls_mps_size_t bl, br;
     br = p->bytes_ready;
     bl = p->buf_len;
     TRACE_INIT( "l1_check_flush_dgram:  %u / %u bytes written",
@@ -937,7 +948,7 @@ int l1_flush_dgram( mps_l1_dgram_write *p )
     int ret;
     mps_l0_send_t *send;
     unsigned char *buf;
-    size_t br;
+    mbedtls_mps_size_t br;
 
     TRACE_INIT( "l1_flush_dgram" );
 
@@ -1036,7 +1047,8 @@ void mps_l1_free( mps_l1 *ctx )
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 }
 
-int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired )
+int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf,
+                  mbedtls_mps_size_t desired )
 {
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l1_get_mode( ctx );
@@ -1066,7 +1078,8 @@ int mps_l1_consume( mps_l1 *ctx )
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 }
 
-int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen )
+int mps_l1_write( mps_l1 *ctx, unsigned char **buf,
+                  mbedtls_mps_size_t *buflen )
 {
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l1_get_mode( ctx );
@@ -1081,7 +1094,9 @@ int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen )
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 }
 
-int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending )
+int mps_l1_dispatch( mps_l1 *ctx,
+                     mbedtls_mps_size_t len,
+                     mbedtls_mps_size_t *pending )
 {
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l1_get_mode( ctx );

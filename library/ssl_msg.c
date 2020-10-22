@@ -2018,14 +2018,6 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
     {
         uint32_t timeout;
 
-        /* Just to be sure */
-        if( ssl->f_set_timer == NULL || ssl->f_get_timer == NULL )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "You must use "
-                        "mbedtls_ssl_set_timer_cb() for DTLS" ) );
-            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-        }
-
         /*
          * The point is, we need to always read a full datagram at once, so we
          * sometimes read more then requested, and handle the additional data.

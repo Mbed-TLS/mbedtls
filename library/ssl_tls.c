@@ -5682,11 +5682,24 @@ int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
 
+    /* Sanity checks */
+
     if( ssl == NULL || ssl->conf == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        ( ssl->f_set_timer == NULL || ssl->f_get_timer == NULL ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "You must use "
+                                     "mbedtls_ssl_set_timer_cb() for DTLS" ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> handshake" ) );
 
+    /* Main handshake loop */
     while( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
     {
         ret = mbedtls_ssl_handshake_step( ssl );

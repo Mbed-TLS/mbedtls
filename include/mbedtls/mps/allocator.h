@@ -50,7 +50,7 @@ typedef enum
  * \return          A negative error code on failure.
  */
 int mps_alloc_init( mps_alloc *ctx,
-                    size_t l1_len );
+                    mbedtls_mps_size_t l1_len );
 
 /**
  * \brief           Free an MPS allocator context.
@@ -79,7 +79,8 @@ int mps_alloc_free( mps_alloc *ctx );
  *                  for the requested purpose couldn't be provided.
  */
 int mps_alloc_acquire( mps_alloc *ctx, mps_alloc_type purpose,
-                       unsigned char **buf, size_t *buflen );
+                       unsigned char **buf,
+                       mbedtls_mps_size_t *buflen );
 
 /**
  * \brief           Release a buffer previously acquired from the allocator.

@@ -24,7 +24,7 @@
 #include <stdlib.h>
 
 int mps_alloc_init( mps_alloc *ctx,
-                    size_t l1_len )
+                    mbedtls_mps_size_t l1_len )
 {
     ctx->l1_in_len  = l1_len;
     ctx->l1_out_len = l1_len;
@@ -74,7 +74,8 @@ static void alloc_remove_flag( mps_alloc *ctx, mps_alloc_type id )
 }
 
 int mps_alloc_acquire( mps_alloc *ctx, mps_alloc_type purpose,
-                       unsigned char **buf, size_t *buflen )
+                       unsigned char **buf,
+                       mbedtls_mps_size_t *buflen )
 {
     if( alloc_check_flag( ctx, purpose ) )
         return( MBEDTLS_ERR_MPS_ALLOC_OUT_OF_SPACE );

@@ -1342,7 +1342,7 @@ psa_status_t psa_destroy_key( mbedtls_svc_key_id_t key )
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    if( slot->attr.lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    if( ! PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) )
     {
         status = psa_destroy_persistent_key( slot->attr.id );
         if( overall_status == PSA_SUCCESS )

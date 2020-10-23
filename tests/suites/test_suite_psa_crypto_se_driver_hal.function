@@ -969,7 +969,12 @@ void key_creation_import_export( int lifetime_arg, int min_slot, int restart )
     psa_set_key_bits( &attributes,
                       PSA_BYTES_TO_BITS( sizeof( key_material ) ) );
     psa_set_key_slot_number( &attributes, min_slot );
-    psa_set_key_id( &attributes, returned_id );
+
+    if( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
+        attributes.core.id = returned_id;
+    else
+        psa_set_key_id( &attributes, returned_id );
+
     if( ! check_key_attributes( returned_id, &attributes ) )
         goto exit;
 

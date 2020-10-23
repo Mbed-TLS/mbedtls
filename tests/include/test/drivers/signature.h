@@ -36,7 +36,7 @@ typedef struct {
     /* If not PSA_SUCCESS, return this error code instead of processing the
      * function call. */
     psa_status_t forced_status;
-    /* Count the amount of times one of the keygen driver functions is called. */
+    /* Count the amount of times one of the signature driver functions is called. */
     unsigned long hits;
 } test_driver_signature_hooks_t;
 

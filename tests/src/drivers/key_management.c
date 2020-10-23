@@ -30,30 +30,31 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/error.h"
 
-#include "test/drivers/keygen.h"
+#include "test/drivers/key_management.h"
 
 #include "test/random.h"
 
 #include <string.h>
 
-test_driver_keygen_hooks_t test_driver_keygen_hooks = TEST_DRIVER_KEYGEN_INIT;
+test_driver_key_management_hooks_t test_driver_key_management_hooks =
+    TEST_DRIVER_KEY_MANAGEMENT_INIT;
 
 psa_status_t test_transparent_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key, size_t key_size, size_t *key_length )
 {
-    ++test_driver_keygen_hooks.hits;
+    ++test_driver_key_management_hooks.hits;
 
-    if( test_driver_keygen_hooks.forced_status != PSA_SUCCESS )
-        return( test_driver_keygen_hooks.forced_status );
+    if( test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_key_management_hooks.forced_status );
 
-    if( test_driver_keygen_hooks.forced_output != NULL )
+    if( test_driver_key_management_hooks.forced_output != NULL )
     {
-        if( test_driver_keygen_hooks.forced_output_length > key_size )
+        if( test_driver_key_management_hooks.forced_output_length > key_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
-        memcpy( key, test_driver_keygen_hooks.forced_output,
-                test_driver_keygen_hooks.forced_output_length );
-        *key_length = test_driver_keygen_hooks.forced_output_length;
+        memcpy( key, test_driver_key_management_hooks.forced_output,
+                test_driver_key_management_hooks.forced_output_length );
+        *key_length = test_driver_key_management_hooks.forced_output_length;
         return( PSA_SUCCESS );
     }
 
@@ -62,9 +63,12 @@ psa_status_t test_transparent_generate_key(
     if ( PSA_KEY_TYPE_IS_ECC( psa_get_key_type( attributes ) )
          && PSA_KEY_TYPE_IS_KEY_PAIR( psa_get_key_type( attributes ) ) )
     {
-        psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( psa_get_key_type( attributes ) );
+        psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(
+            psa_get_key_type( attributes ) );
         mbedtls_ecp_group_id grp_id =
-            mbedtls_ecc_group_of_psa( curve, PSA_BITS_TO_BYTES( psa_get_key_bits( attributes ) ) );
+            mbedtls_ecc_group_of_psa(
+                curve,
+                PSA_BITS_TO_BYTES( psa_get_key_bits( attributes ) ) );
         const mbedtls_ecp_curve_info *curve_info =
             mbedtls_ecp_curve_info_from_grp_id( grp_id );
         mbedtls_ecp_keypair ecp;
@@ -127,10 +131,10 @@ psa_status_t test_transparent_validate_key(const psa_key_attributes_t *attribute
                                            size_t data_length,
                                            size_t *bits)
 {
-    ++test_driver_keygen_hooks.hits;
+    ++test_driver_key_management_hooks.hits;
 
-    if( test_driver_keygen_hooks.forced_status != PSA_SUCCESS )
-        return( test_driver_keygen_hooks.forced_status );
+    if( test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_key_management_hooks.forced_status );
 
 #if defined(MBEDTLS_ECP_C)
     psa_key_type_t type = psa_get_key_type( attributes );
@@ -154,7 +158,7 @@ psa_status_t test_transparent_validate_key(const psa_key_attributes_t *attribute
                  * - The byte 0x04;
                  * - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
                  * - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
-                 * So its data length is 2m+1 where n is the key size in bits.
+                 * So its data length is 2m+1 where m is the curve size in bits.
                  */
                 if( ( data_length & 1 ) == 0 )
                     return( PSA_ERROR_INVALID_ARGUMENT );

@@ -17,8 +17,8 @@
  *  limitations under the License.
  */
 
-#ifndef PSA_CRYPTO_TEST_DRIVERS_KEYGEN_H
-#define PSA_CRYPTO_TEST_DRIVERS_KEYGEN_H
+#ifndef PSA_CRYPTO_TEST_DRIVERS_KEY_MANAGEMENT_H
+#define PSA_CRYPTO_TEST_DRIVERS_KEY_MANAGEMENT_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -36,18 +36,19 @@ typedef struct {
     /* If not PSA_SUCCESS, return this error code instead of processing the
      * function call. */
     psa_status_t forced_status;
-    /* Count the amount of times one of the keygen driver functions is called. */
+    /* Count the amount of times one of the key management driver functions
+     * is called. */
     unsigned long hits;
-} test_driver_keygen_hooks_t;
+} test_driver_key_management_hooks_t;
 
-#define TEST_DRIVER_KEYGEN_INIT { NULL, 0, PSA_ERROR_NOT_SUPPORTED, 0 }
-static inline test_driver_keygen_hooks_t test_driver_keygen_hooks_init( void )
+#define TEST_DRIVER_KEY_MANAGEMENT_INIT { NULL, 0, PSA_ERROR_NOT_SUPPORTED, 0 }
+static inline test_driver_key_management_hooks_t test_driver_key_management_hooks_init( void )
 {
-    const test_driver_keygen_hooks_t v = TEST_DRIVER_KEYGEN_INIT;
+    const test_driver_key_management_hooks_t v = TEST_DRIVER_KEY_MANAGEMENT_INIT;
     return( v );
 }
 
-extern test_driver_keygen_hooks_t test_driver_keygen_hooks;
+extern test_driver_key_management_hooks_t test_driver_key_management_hooks;
 
 psa_status_t test_transparent_generate_key(
     const psa_key_attributes_t *attributes,
@@ -63,4 +64,4 @@ psa_status_t test_transparent_validate_key(const psa_key_attributes_t *attribute
                                            size_t *bits);
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
-#endif /* PSA_CRYPTO_TEST_DRIVERS_KEYGEN_H */
+#endif /* PSA_CRYPTO_TEST_DRIVERS_KEY_MANAGEMENT_H */

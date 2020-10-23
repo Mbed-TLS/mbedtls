@@ -2340,7 +2340,12 @@ void copy_success( int source_usage_arg,
 
     /* Prepare the target attributes. */
     if( copy_attributes )
+    {
         target_attributes = source_attributes;
+        /* Set volatile lifetime to reset the key identifier to 0. */
+        psa_set_key_lifetime( &target_attributes, PSA_KEY_LIFETIME_VOLATILE );
+    }
+
     if( target_usage_arg != -1 )
         psa_set_key_usage_flags( &target_attributes, target_usage_arg );
     if( target_alg_arg != -1 )

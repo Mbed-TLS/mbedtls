@@ -1777,6 +1777,7 @@ static psa_status_t psa_validate_key_attributes(
 {
     psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
     psa_key_lifetime_t lifetime = psa_get_key_lifetime( attributes );
+    mbedtls_svc_key_id_t key = psa_get_key_id( attributes );
 
     status = psa_validate_key_location( psa_get_key_lifetime( attributes ),
                                         p_drv );
@@ -1787,8 +1788,12 @@ static psa_status_t psa_validate_key_attributes(
     if( status != PSA_SUCCESS )
         return( status );
 
-    /* Validate the key identifier only in the case of a persistent key. */
-    if ( ! PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
+    if ( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
+    {
+        if( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key ) != 0 )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+    else
     {
         status = psa_validate_key_id(
             psa_get_key_id( attributes ),

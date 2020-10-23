@@ -911,7 +911,6 @@ void key_creation_import_export( int lifetime_arg, int min_slot, int restart )
                                 key_material, sizeof( key_material ),
                                 &returned_id ) );
 
-
     if( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
     {
         /* For volatile keys, check no persistent data was created */

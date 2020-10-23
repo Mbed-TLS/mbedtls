@@ -476,8 +476,19 @@ void create_fail( int lifetime_arg, int id_arg,
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    psa_set_key_id( &attributes, id );
     psa_set_key_lifetime( &attributes, lifetime );
+    if( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
+    {
+        /*
+         * Not possible to set a key identifier different from 0 through
+         * PSA key attributes APIs thus accessing to the attributes
+         * directly.
+         */
+        attributes.core.id = id;
+    }
+    else
+        psa_set_key_id( &attributes, id );
+
     psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
     TEST_EQUAL( psa_import_key( &attributes, material, sizeof( material ),
                                 &returned_id ),

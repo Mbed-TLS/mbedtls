@@ -137,30 +137,6 @@ static inline void psa_key_slot_clear_bits( psa_key_slot_t *slot,
  */
 psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot );
 
-/** Import key data into a slot.
- *
- * `slot->type` must have been set previously.
- * This function assumes that the slot does not contain any key material yet.
- * On failure, the slot content is unchanged.
- *
- * Persistent storage is not affected.
- *
- * \param[in,out] slot  The key slot to import data into.
- *                      Its `type` field must have previously been set to
- *                      the desired key type.
- *                      It must not contain any key material yet.
- * \param[in] data      Buffer containing the key material to parse and import.
- * \param data_length   Size of \p data in bytes.
- *
- * \retval PSA_SUCCESS
- * \retval PSA_ERROR_INVALID_ARGUMENT
- * \retval PSA_ERROR_NOT_SUPPORTED
- * \retval PSA_ERROR_INSUFFICIENT_MEMORY
- */
-psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
-                                       const uint8_t *data,
-                                       size_t data_length );
-
 /** Copy key data (in export format) into an empty key slot.
  *
  * This function assumes that the slot does not contain
@@ -182,6 +158,24 @@ psa_status_t psa_copy_key_material_into_slot( psa_key_slot_t *slot,
                                               const uint8_t *data,
                                               size_t data_length );
 
+/** Detect the key bit size for a key in a slot where bit size
+ *  is unset.
+ *
+ * This function assumes that the slot contains key material in
+ * export format.
+ *
+ * \param[in,out] slot  Key slot to detect and set the bit size in.
+ *
+ * \retval #PSA_SUCCESS
+ *         The key bit size was already set, or has been detected
+ *         and set accordingly.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The size of the key material in the slot doesn't match
+ *         with the declared key type.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The key type is unknown to the implementation.
+ */
+psa_status_t psa_detect_bit_size_in_slot( psa_key_slot_t *slot );
 
 /** Convert an mbed TLS error code to a PSA error code
  *

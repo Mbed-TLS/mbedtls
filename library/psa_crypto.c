@@ -739,7 +739,7 @@ static psa_status_t psa_load_ecp_representation( psa_key_type_t type,
          * - The byte 0x04;
          * - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
          * - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
-         * So its data length is 2m+1 where n is the key size in bits.
+         * So its data length is 2m+1 where m is the curve size in bits.
          */
         if( ( data_length & 1 ) == 0 )
             return( PSA_ERROR_INVALID_ARGUMENT );
@@ -982,12 +982,197 @@ psa_status_t psa_copy_key_material_into_slot( psa_key_slot_t *slot,
     return( PSA_SUCCESS );
 }
 
-/** Import key data into a slot. `slot->attr.type` must have been set
- * previously. This function assumes that the slot does not contain
- * any key material yet. On failure, the slot content is unchanged. */
-psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
-                                       const uint8_t *data,
-                                       size_t data_length )
+psa_status_t psa_detect_bit_size_in_slot( psa_key_slot_t *slot )
+{
+    if( slot->attr.bits != 0 )
+        return( PSA_SUCCESS );
+
+    if( key_type_is_raw_bytes( slot->attr.type ) )
+    {
+        slot->attr.bits =
+            (psa_key_bits_t) PSA_BYTES_TO_BITS( slot->data.key.bytes );
+        return( PSA_SUCCESS );
+    }
+    else if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
+    {
+        /* Keys are stored in export format, and we are currently
+         * restricted to known curves, so do the reverse lookup based
+         * on data length. */
+        size_t byte_length = slot->data.key.bytes;
+        if( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->attr.type ) &&
+            PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type ) !=
+                PSA_ECC_FAMILY_MONTGOMERY )
+        {
+            /* A Weierstrass public key is represented as:
+             * - The byte 0x04;
+             * - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
+             * - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
+             * So its data length is 2m+1 where m is the curve size in bits.
+             */
+            if( ( byte_length & 1 ) == 0 )
+                return( PSA_ERROR_BAD_STATE );
+            byte_length = byte_length / 2;
+
+            /* Montgomery public keys are represented in compressed format,
+             * meaning their curve_size is equal to the amount of input. */
+
+            /* Private keys are represented in uncompressed private random
+             * integer format, meaning their curve_size is equal to the
+             * amount of input. */
+        }
+
+        switch( PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type ) )
+        {
+            case PSA_ECC_FAMILY_SECP_R1:
+                switch( byte_length )
+                {
+                    case PSA_BITS_TO_BYTES( 192 ):
+                        slot->attr.bits = 192;
+                        break;
+                    case PSA_BITS_TO_BYTES( 224 ):
+                        slot->attr.bits = 224;
+                        break;
+                    case PSA_BITS_TO_BYTES( 256 ):
+                        slot->attr.bits = 256;
+                        break;
+                    case PSA_BITS_TO_BYTES( 384 ):
+                        slot->attr.bits = 384;
+                        break;
+                    case PSA_BITS_TO_BYTES( 521 ):
+                        slot->attr.bits = 521;
+                        break;
+                    default:
+                        return( PSA_ERROR_BAD_STATE );
+                }
+                break;
+
+            case PSA_ECC_FAMILY_BRAINPOOL_P_R1:
+                switch( byte_length )
+                {
+                    case PSA_BITS_TO_BYTES( 256 ):
+                        slot->attr.bits = 256;
+                        break;
+                    case PSA_BITS_TO_BYTES( 384 ):
+                        slot->attr.bits = 384;
+                        break;
+                    case PSA_BITS_TO_BYTES( 512 ):
+                        slot->attr.bits = 512;
+                        break;
+                    default:
+                        return( PSA_ERROR_BAD_STATE );
+                }
+                break;
+
+            case PSA_ECC_FAMILY_MONTGOMERY:
+                switch( byte_length )
+                {
+                    case PSA_BITS_TO_BYTES( 255 ):
+                        slot->attr.bits = 255;
+                        break;
+                    case PSA_BITS_TO_BYTES( 448 ):
+                        slot->attr.bits = 448;
+                        break;
+                    default:
+                        return( PSA_ERROR_BAD_STATE );
+                }
+                break;
+
+            case PSA_ECC_FAMILY_SECP_K1:
+                switch( byte_length )
+                {
+                    case PSA_BITS_TO_BYTES( 192 ):
+                        slot->attr.bits = 192;
+                        break;
+                    case PSA_BITS_TO_BYTES( 224 ):
+                        slot->attr.bits = 224;
+                        break;
+                    case PSA_BITS_TO_BYTES( 256 ):
+                        slot->attr.bits = 256;
+                        break;
+                    default:
+                        return( PSA_ERROR_BAD_STATE );
+                }
+                break;
+
+            default:
+                return( PSA_ERROR_BAD_STATE );
+        }
+
+        return( PSA_SUCCESS );
+    }
+    else if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
+    {
+        /* There's no easy way of figuring out the RSA bit size from
+         * the data length of the export representation. For now, use
+         * the mbed TLS software implementation to figure it out. */
+        psa_key_attributes_t attributes = {
+            .core = slot->attr
+        };
+        size_t bits;
+        psa_status_t status = psa_driver_wrapper_validate_key(
+                                &attributes,
+                                slot->data.key.data,
+                                slot->data.key.bytes,
+                                &bits );
+        if( status == PSA_SUCCESS )
+            slot->attr.bits = (psa_key_bits_t) bits;
+        if( status != PSA_ERROR_NOT_SUPPORTED )
+            return( status );
+
+        /* If no accelerator was able to figure it out, try software. */
+#if defined(MBEDTLS_RSA_C)
+        mbedtls_rsa_context *rsa = NULL;
+
+        /* Parse input */
+        status = psa_load_rsa_representation( slot->attr.type,
+                                              slot->data.key.data,
+                                              slot->data.key.bytes,
+                                              &rsa );
+        if( status != PSA_SUCCESS )
+        {
+            mbedtls_rsa_free( rsa );
+            mbedtls_free( rsa );
+            return( status );
+        }
+
+        slot->attr.bits = (psa_key_bits_t) PSA_BYTES_TO_BITS(
+            mbedtls_rsa_get_len( rsa ) );
+
+        mbedtls_rsa_free( rsa );
+        mbedtls_free( rsa );
+
+        return( PSA_SUCCESS );
+#else
+        return( PSA_ERROR_NOT_SUPPORTED );
+#endif
+    }
+    else
+        return( PSA_ERROR_NOT_SUPPORTED );
+}
+
+/** Import key data into a slot.
+ *
+ * `slot->type` must have been set previously.
+ * This function assumes that the slot does not contain any key material yet.
+ * On failure, the slot content is unchanged.
+ *
+ * Persistent storage is not affected.
+ *
+ * \param[in,out] slot  The key slot to import data into.
+ *                      Its `type` field must have previously been set to
+ *                      the desired key type.
+ *                      It must not contain any key material yet.
+ * \param[in] data      Buffer containing the key material to parse and import.
+ * \param data_length   Size of \p data in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+static psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
+                                              const uint8_t *data,
+                                              size_t data_length )
 {
     psa_status_t status = PSA_SUCCESS;
     size_t bit_size;
@@ -1023,32 +1208,65 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
          * caller, which may be 0 (meaning unspecified) or wrong. */
         slot->attr.bits = (psa_key_bits_t) bit_size;
     }
-    else if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
+    else if( PSA_KEY_TYPE_IS_ASYMMETRIC( slot->attr.type ) )
     {
+        /* Try validation through accelerators first. */
+        bit_size = slot->attr.bits;
+        psa_key_attributes_t attributes = {
+          .core = slot->attr
+        };
+        status = psa_driver_wrapper_validate_key( &attributes,
+                                                  data,
+                                                  data_length,
+                                                  &bit_size );
+        if( status == PSA_SUCCESS )
+        {
+            /* Key has been validated successfully by an accelerator.
+             * Copy key material into slot. */
+            status = psa_copy_key_material_into_slot( slot, data, data_length );
+            if( status != PSA_SUCCESS )
+                return( status );
+
+            slot->attr.bits = (psa_key_bits_t) bit_size;
+            return( PSA_SUCCESS );
+        }
+        else if( status != PSA_ERROR_NOT_SUPPORTED )
+            return( status );
+
+        /* Key format is not supported by any accelerator, try software fallback
+         * if present. */
+        if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
+        {
 #if defined(MBEDTLS_ECP_C)
-        status = psa_import_ecp_key( slot,
-                                     data, data_length );
+            status = psa_import_ecp_key( slot,
+                                         data, data_length );
 #else
-        /* No drivers have been implemented yet, so without mbed TLS backing
-         * there's no way to do ECP with the current library. */
-        return( PSA_ERROR_NOT_SUPPORTED );
+            /* No drivers have been implemented yet, so without mbed TLS backing
+             * there's no way to do ECP with the current library. */
+            status = PSA_ERROR_NOT_SUPPORTED;
 #endif /* defined(MBEDTLS_ECP_C) */
-    }
-    else if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
-    {
+        }
+        else if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
+        {
 #if defined(MBEDTLS_RSA_C)
-        status = psa_import_rsa_key( slot,
-                                     data, data_length );
+            status = psa_import_rsa_key( slot,
+                                         data, data_length );
 #else
-        /* No drivers have been implemented yet, so without mbed TLS backing
-         * there's no way to do RSA with the current library. */
-        status = PSA_ERROR_NOT_SUPPORTED;
+            /* No drivers have been implemented yet, so without mbed TLS backing
+             * there's no way to do RSA with the current library. */
+            status = PSA_ERROR_NOT_SUPPORTED;
 #endif /* defined(MBEDTLS_RSA_C) */
+        }
+        else
+        {
+            /* Unsupported asymmetric key type */
+            status = PSA_ERROR_NOT_SUPPORTED;
+        }
     }
     else
     {
         /* Unknown key type */
-        return( PSA_ERROR_NOT_SUPPORTED );
+        status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     return( status );

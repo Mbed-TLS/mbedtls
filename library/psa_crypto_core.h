@@ -158,25 +158,6 @@ psa_status_t psa_copy_key_material_into_slot( psa_key_slot_t *slot,
                                               const uint8_t *data,
                                               size_t data_length );
 
-/** Detect the key bit size for a key in a slot where bit size
- *  is unset.
- *
- * This function assumes that the slot contains key material in
- * export format.
- *
- * \param[in,out] slot  Key slot to detect and set the bit size in.
- *
- * \retval #PSA_SUCCESS
- *         The key bit size was already set, or has been detected
- *         and set accordingly.
- * \retval #PSA_ERROR_BAD_STATE
- *         The size of the key material in the slot doesn't match
- *         with the declared key type.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         The key type is unknown to the implementation.
- */
-psa_status_t psa_detect_bit_size_in_slot( psa_key_slot_t *slot );
-
 /** Convert an mbed TLS error code to a PSA error code
  *
  * \note This function is provided solely for the convenience of

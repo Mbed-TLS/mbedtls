@@ -1300,7 +1300,21 @@ component_test_psa_crypto_config_basic() {
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 
-    msg "test: psa crypto config basic"
+    msg "test: full + MBEDTLS_PSA_CRYPTO_CONFIG"
+    make test
+}
+
+component_test_psa_crypto_config_no_driver() {
+    # full plus MBEDTLS_PSA_CRYPTO_CONFIG
+    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG minus MBEDTLS_PSA_CRYPTO_DRIVERS"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_DRIVERS
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: full + MBEDTLS_PSA_CRYPTO_CONFIG minus MBEDTLS_PSA_CRYPTO_DRIVERS"
     make test
 }
 
@@ -1321,7 +1335,7 @@ component_test_psa_want_ecdsa_disabled_software() {
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_ECDSA -DMBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 
     # This should be added back in once the accelerator ECDSA code is in place and ready to test.
-    #msg "test: psa crypto config want ECDSA"
+    #msg "test: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ALG_ECDSA without MBEDTLS_ECDSA_C"
     #make test
 }
 

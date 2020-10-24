@@ -2314,49 +2314,49 @@ int l2_in_update_counter( mbedtls_mps_l2 *ctx,
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     MBEDTLS_MPS_ELSE_IF_DTLS( mode )
     {
+        uint32_t window_top_hi, window_top_lo;
+        uint32_t window;
+        uint32_t flag = 1u;
+
         epoch->stats.dtls.last_seen[0] = ctr_hi;
         epoch->stats.dtls.last_seen[1] = ctr_lo;
+
         if( mbedtls_mps_l2_conf_get_anti_replay( &ctx->conf )
-            == MBEDTLS_MPS_ANTI_REPLAY_ENABLED )
+            == MBEDTLS_MPS_ANTI_REPLAY_DISABLED )
         {
-            uint32_t window_top_hi, window_top_lo;
-            uint32_t window;
-            uint32_t flag = 1u;
-
-            window_top_hi = epoch->stats.dtls.replay.in_window_top_hi;
-            window_top_lo = epoch->stats.dtls.replay.in_window_top_lo;
-            window     = epoch->stats.dtls.replay.in_window;
-
-            if( ctr_hi > window_top_hi )
-            {
-                window_top_hi = ctr_hi;
-                window_top_lo = ctr_lo;
-            }
-            else if( ctr_lo > window_top_lo )
-            {
-                /* Update window_top and the contents of the window */
-                uint32_t shift = ctr_lo - window_top_lo;
-                if( shift >= 32 )
-                    shift = 0;
-                window <<= shift;
-                window_top_lo = ctr_lo;
-            }
-            else
-            {
-                /* Mark that number as seen in the current window */
-                uint32_t bit = window_top_lo - ctr_lo;
-                flag <<= bit;
-            }
-            window |= flag;
-
-            epoch->stats.dtls.replay.in_window_top_lo = window_top_lo;
-            epoch->stats.dtls.replay.in_window_top_hi = window_top_hi;
-            epoch->stats.dtls.replay.in_window = window;
+            return( 0 );
         }
+
+        window_top_hi = epoch->stats.dtls.replay.in_window_top_hi;
+        window_top_lo = epoch->stats.dtls.replay.in_window_top_lo;
+        window     = epoch->stats.dtls.replay.in_window;
+
+        if( ctr_hi > window_top_hi )
+        {
+            window_top_hi = ctr_hi;
+            window_top_lo = ctr_lo;
+        }
+        else if( ctr_lo > window_top_lo )
+        {
+            /* Update window_top and the contents of the window */
+            uint32_t shift = ctr_lo - window_top_lo;
+            if( shift >= 32 )
+                shift = 0;
+            window <<= shift;
+            window_top_lo = ctr_lo;
+        }
+        else
+        {
+            /* Mark that number as seen in the current window */
+            uint32_t bit = window_top_lo - ctr_lo;
+            flag <<= bit;
+        }
+        window |= flag;
+
+        epoch->stats.dtls.replay.in_window_top_lo = window_top_lo;
+        epoch->stats.dtls.replay.in_window_top_hi = window_top_hi;
+        epoch->stats.dtls.replay.in_window = window;
     }
-#else
-    ((void) ctr_hi);
-    ((void) ctr_lo);
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     return( 0 );

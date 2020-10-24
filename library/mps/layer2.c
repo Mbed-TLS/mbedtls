@@ -208,6 +208,16 @@ MBEDTLS_MPS_STATIC int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
  * DTLS replay protection
  */
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
+/* This function checks whether the record sequence number represented
+ * by `ctr_lo` and `ctr_hi` is 'fresh' in the following sense:
+ * - It hasn't been seen before.
+ * - It's not too old.
+ *
+ * - Returns `0` if the sequence number is fresh.
+ * - Returns `-1` otherwise.
+ *
+ * This function does not update the replay protection window.
+ */
 MBEDTLS_MPS_STATIC int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
                                     mbedtls_mps_epoch_id epoch,
                                     uint32_t ctr_hi,

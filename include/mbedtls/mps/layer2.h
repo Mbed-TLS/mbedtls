@@ -124,32 +124,6 @@ typedef struct
                                    *   outgoing data buffers.                */
 } mps_l2_out;
 
-/* I don't know why E-ACSL allows the following predicates when spelled
- * out but forbids them when they are globally defined. Define them as
- * macros for now... very ugly hack, but anyway... */
-
-#define MPS_L2_BUFPAIR_INV_BUF_VALID( p )       \
-    ( \forall integer i; 0 <= i < (p)->buf_len  \
-      ==> \valid( (p)->buf+i ) )
-
-#define MPS_L2_BUFPAIR_INV_PAYLOAD_SUBBUF( p )                  \
-    ( (p)->data_offset <= (p)->buf_len &&                       \
-      (p)->data_len <= (p)->buf_len - (p)->data_offset )
-
-#define MPS_L2_BUFPAIR_INV( p )                  \
-    ( MPS_L2_BUFPAIR_INV_BUF_VALID( p ) &&       \
-      MPS_L2_BUFPAIR_INV_PAYLOAD_SUBBUF( p ) )
-
-#define MPS_L2_BUFPAIR_INV_ENSURES( p )                 \
-    ensures \valid( p );                                \
-    ensures MPS_L2_BUFPAIR_INV_BUF_VALID( p );          \
-    ensures MPS_L2_BUFPAIR_INV_PAYLOAD_SUBBUF( p );
-
-#define MPS_L2_BUFPAIR_INV_REQUIRES( p )                 \
-    requires \valid( p );                                \
-    requires MPS_L2_BUFPAIR_INV_BUF_VALID( p );          \
-    requires MPS_L2_BUFPAIR_INV_PAYLOAD_SUBBUF( p );
-
 /*! The type of states of readers managed by Layer 2.
  *
  *  Possible values are:
@@ -453,20 +427,6 @@ struct mbedtls_mps_l2_config
                            *   incoming empty records are treated as errors. */
 #endif /* !MBEDTLS_MPS_CONF_EMPTY_FLAG */
 
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-#define MPS_L2_CONF_INV_PAUSE_FLAG( p )                         \
-    ( ( (p)->pause_flag & (p)->type_flag ) == (p)->pause_flag )
-#else
-#define MPS_L2_CONF_INV_PAUSE_FLAG( p ) 1
-#endif /* MBEDTLS_MPS_PROTO_TLS */
-
-#define MPS_L2_CONF_INV_MERGE_FLAG( p )                         \
-    ( ( (p)->merge_flag & (p)->type_flag ) == (p)->merge_flag )
-
-#define MPS_L2_CONF_INV_EMPTY_FLAG( p )                         \
-    ( ( (p)->empty_flag & (p)->type_flag ) == (p)->empty_flag )
-
-
     /* Notes:
      * - Both record size limit values are usually negotiated with
      *   either the maximum_fragment_length extension or the new
@@ -702,13 +662,6 @@ struct mbedtls_mps_l2
             unsigned char *queue;
             /*! The size of the queue in Bytes. */
             mbedtls_mps_stored_size_t queue_len;
-
-#define MPS_L2_INV_QUEUE_VALID( p )                             \
-            ( (p)->out.queue != NULL ==>                        \
-              ( \forall integer i; 0 <= i < (p)->out.queue_len  \
-                ==> \valid( (p)->out.queue+i ) ) )
-#else
-#define MPS_L2_INV_QUEUE_VALID( p ) 1
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
             /** This variable indicates if preparation of a new outgoing record
@@ -720,21 +673,11 @@ struct mbedtls_mps_l2
              *  calls will require interfacing with the underlying transport. */
             uint8_t clearing;
 
-#define MPS_L2_INV_IF_CLEARING_NO_WRITE( p )                    \
-            ( (p)->out.clearing == 1 ==>                        \
-              (p)->out.state == MPS_L2_WRITER_STATE_UNSET    || \
-              (p)->out.state == MPS_L2_WRITER_STATE_QUEUEING )
-
             /** This variable indicates if all pending outgoing data
              *  needs to be flushed before the next write can happen.
              *
              * This flag cannot be set while serving a write request. */
             uint8_t flush;
-
-#define MPS_L2_INV_IF_FLUSH_NO_WRITE( p )                       \
-            ( (p)->out.flush == 1 ==>                           \
-              (p)->out.state == MPS_L2_WRITER_STATE_UNSET    || \
-              (p)->out.state == MPS_L2_WRITER_STATE_QUEUEING )
 
             /* Further explanation on the meaning and difference
              * between `flush` and `clearing`:
@@ -831,26 +774,6 @@ struct mbedtls_mps_l2
              *
              */
 
-#define MPS_L2_INV_OUT_HDR_VALID( p )                                   \
-            ( (p)->out.hdr == NULL ==> (p)->out.hdr_len == 0 ) &&       \
-            ( (p)->out.hdr != NULL ==>                                  \
-              ( \forall integer i; 0 <= i < (p)->out.hdr_len            \
-                ==> \valid( (p)->out.hdr+i ) ) )
-
-#define MPS_L2_INV_OUT_PAYLOAD_VALID( p )               \
-            MPS_L2_BUFPAIR_INV( &(p)->out.payload )
-
-#define MPS_L2_INV_OUT_HDR_PAYLOAD_SET                          \
-            ( ( (p)->out.hdr == NULL <==> (                     \
-                    (p)->out.payload.buf         == NULL &&     \
-                    (p)->out.payload.buf_len     == 0    &&     \
-                    (p)->out.payload.data_len    == 0    &&     \
-                    (p)->out.payload.data_offset == 0 ) ) &&    \
-              ( (p)->hdr != NULL ==>                            \
-                ( (p)->out.payload.buf ==                       \
-                  (p)->out.hdr + (p)->out.hdr_len ) ) )
-
-
             /** The address of the header of the current outgoing record,
              *  or \c NULL if there is no such. */
             /* OPTIMIZATION:
@@ -884,26 +807,9 @@ struct mbedtls_mps_l2
              * sacrificing structure and clarity of the code. */
             mbedtls_mps_l2_out_internal writer;
 
-#define MPS_L2_INV_OUT_WRITER_INV( p )          \
-            WRITER_INV( &(p)->out.writer.wr )
-
             /** The state of the \c writer field. See the documentation of
              *  l2_writer_state for more information.                         */
             mbedtls_mps_l2_writer_state state;
-
-#define MPS_L2_INV_OUT_WRITER_STATE( p )                                \
-            ( (p)->out.state == MPS_L2_WRITER_STATE_UNSET    ||         \
-                (p)->out.state == MPS_L2_WRITER_STATE_QUEUEING ||       \
-                (p)->out.state == MPS_L2_WRITER_STATE_INTERNAL ||       \
-                (p)->out.state == MPS_L2_WRITER_STATE_EXTERNAL )
-
-#define MPS_L2_INV_OUT_ACTIVE_IS_VALID( p )                             \
-            ( ( (p)->out.state != MPS_L2_WRITER_STATE_UNSET )           \
-            ==> ( ( ( (uint32_t) 1u << (p)->out.writer.type ) & (p)->conf.type_flag ) != 0 ) )
-
-#define MPS_L2_INV_OUT_QUEUEING_IS_PAUSABLE( p )                        \
-            ( ( (p)->out.state != MPS_L2_WRITER_STATE_QUEUEING )        \
-            ==> ( ( ( (uint32_t) 1u << (p)->out.writer.type ) & (p)->conf.pause_flag ) != 0 ) )
 
         } out;
 
@@ -982,15 +888,8 @@ struct mbedtls_mps_l2
         /*! The first epoch ID within the current epoch window. */
         mbedtls_mps_stored_epoch_id base;
 
-#define MPS_L2_INV_EPOCH_WINDOW_VALID( p )                              \
-        ( 0 <= (p)->epochs.base                 &&                      \
-          (p)->epochs.base < MPS_L2_LIMIT_EPOCH &&                      \
-          MPS_L2_LIMIT_EPOCH - (p)->epochs.base >= MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE )
-
         /* The offset of the next free epoch slot. */
         mbedtls_mps_epoch_offset_t next;
-#define MPS_L2_INV_NEXT_EPOCH_BOUNDS( p )                               \
-        ( (p)->epochs.next <= MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE )
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
         mbedtls_mps_stored_epoch_id default_in;
@@ -1005,102 +904,6 @@ struct mbedtls_mps_l2
 
     } epochs;
 };
-
-/* I don't know why E-ACSL allows the following predicates when spelled
- * out but forbids them when they are globally defined. Define them as
- * macros for now... very ugly hack, but anyway... */
-
-#define MPS_L2_INV( p )                                                 \
-    ( \valid( p )                              &&                       \
-      MPS_L2_CONF_INV_EMPTY_FLAG( &(p)->conf ) &&                       \
-      MPS_L2_CONF_INV_PAUSE_FLAG( &(p)->conf ) &&                       \
-      MPS_L2_CONF_INV_MERGE_FLAG( &(p)->conf ) &&                       \
-      MPS_L2_INV_QUEUE_VALID( p )              &&                       \
-      MPS_L2_INV_ACCUMULATOR_VALID( p )        &&                       \
-      MPS_L2_INV_IF_CLEARING_NO_WRITE( p )     &&                       \
-      MPS_L2_INV_IF_FLUSH_NO_WRITE( p )        &&                       \
-      MPS_L2_INV_OUT_HDR_VALID( p )            &&                       \
-      MPS_L2_INV_OUT_PAYLOAD_VALID( p )        &&                       \
-      MPS_L2_INV_OUT_WRITER_INV( p )           &&                       \
-      MPS_L2_INV_OUT_WRITER_STATE( p )         &&                       \
-      MPS_L2_INV_IN_READER_INV( p )            &&                       \
-      MPS_L2_INV_IN_READERS_PERMUTATION( p )   &&                       \
-      MPS_L2_INV_IN_ACTIVE_STATE( p )          &&                       \
-      MPS_L2_INV_IN_ACTIVE_IS_VALID( p ) &&                             \
-      MPS_L2_INV_IN_ACTIVE_IS_MERGEABLE( p ) &&                         \
-      MPS_L2_INV_IN_PAUSED_STATE( p )             &&                    \
-      MPS_L2_INV_IN_PAUSED_IS_VALID( p )    &&                          \
-      MPS_L2_INV_IN_PAUSED_IS_PAUSABLE( p ) &&                          \
-      MPS_L2_INV_IN_NO_ACTIVE_PAUSED_NO_OVERLAP( p ) &&                 \
-      MPS_L2_INV_EPOCH_WINDOW_VALID( p ) &&                             \
-      MPS_L2_INV_NEXT_EPOCH_BOUNDS( p )  &&                             \
-      MPS_L2_INV_DEFAULT_IN_VALID( p )  &&                              \
-      MPS_L2_INV_DEFAULT_IN_ACTIVE( p ) &&                              \
-      MPS_L2_INV_DEFAULT_IN_PAUSED( p ) &&                              \
-      MPS_L2_INV_DEFAULT_OUT_VALID( p ) &&                              \
-      MPS_L2_INV_DEFAULT_OUT( p ) )
-
-#define MPS_L2_INV_REQUIRES( p )                                        \
-    requires \valid( p );                                               \
-    requires MPS_L2_CONF_INV_EMPTY_FLAG( &(p)->conf );                  \
-    requires MPS_L2_CONF_INV_PAUSE_FLAG( &(p)->conf );                  \
-    requires MPS_L2_CONF_INV_MERGE_FLAG( &(p)->conf );                  \
-    requires MPS_L1_INV( p->conf.l1 );                                  \
-    requires MPS_L2_INV_ACCUMULATOR_VALID( p );                         \
-    requires MPS_L2_INV_QUEUE_VALID( p );                               \
-    requires MPS_L2_INV_IF_CLEARING_NO_WRITE( p );                      \
-    requires MPS_L2_INV_IF_FLUSH_NO_WRITE( p );                         \
-    requires MPS_L2_INV_OUT_HDR_VALID( p );                             \
-    requires MPS_L2_INV_OUT_PAYLOAD_VALID( p );                         \
-    requires MPS_L2_INV_OUT_WRITER_INV( p );                            \
-    requires MPS_L2_INV_OUT_WRITER_STATE( p );                          \
-    requires MPS_L2_INV_IN_READER_INV( p );                             \
-    requires MPS_L2_INV_IN_READERS_PERMUTATION( p );                    \
-    requires MPS_L2_INV_IN_ACTIVE_STATE( p );                           \
-    requires MPS_L2_INV_IN_ACTIVE_IS_VALID( p );                        \
-    requires MPS_L2_INV_IN_ACTIVE_IS_MERGEABLE( p );                    \
-    requires MPS_L2_INV_IN_PAUSED_STATE( p );                           \
-    requires MPS_L2_INV_IN_PAUSED_IS_VALID( p );                        \
-    requires MPS_L2_INV_IN_PAUSED_IS_PAUSABLE( p );                     \
-    requires MPS_L2_INV_IN_NO_ACTIVE_PAUSED_NO_OVERLAP( p );            \
-    requires MPS_L2_INV_EPOCH_WINDOW_VALID( p );                        \
-    requires MPS_L2_INV_NEXT_EPOCH_BOUNDS( p );                         \
-    requires MPS_L2_INV_DEFAULT_IN_VALID( p );                          \
-    requires MPS_L2_INV_DEFAULT_IN_ACTIVE( p );                         \
-    requires MPS_L2_INV_DEFAULT_IN_PAUSED( p );                         \
-    requires MPS_L2_INV_DEFAULT_OUT_VALID( p );                         \
-    requires MPS_L2_INV_DEFAULT_OUT( p );
-
-#define MPS_L2_INV_ENSURES( p )                                        \
-    ensures \valid( p );                                               \
-    ensures MPS_L2_CONF_INV_EMPTY_FLAG( &(p)->conf );                  \
-    ensures MPS_L2_CONF_INV_PAUSE_FLAG( &(p)->conf );                  \
-    ensures MPS_L2_CONF_INV_MERGE_FLAG( &(p)->conf );                  \
-    ensures MPS_L2_INV_ACCUMULATOR_VALID( p );                         \
-    ensures MPS_L2_INV_QUEUE_VALID( p );                               \
-    ensures MPS_L1_INV( p->conf.l1 );                                  \
-    ensures MPS_L2_INV_IF_CLEARING_NO_WRITE( p );                      \
-    ensures MPS_L2_INV_IF_FLUSH_NO_WRITE( p );                         \
-    ensures MPS_L2_INV_OUT_HDR_VALID( p );                             \
-    ensures MPS_L2_INV_OUT_PAYLOAD_VALID( p );                         \
-    ensures MPS_L2_INV_OUT_WRITER_INV( p );                            \
-    ensures MPS_L2_INV_OUT_WRITER_STATE( p );                          \
-    ensures MPS_L2_INV_IN_READER_INV( p );                             \
-    ensures MPS_L2_INV_IN_READERS_PERMUTATION( p );                    \
-    ensures MPS_L2_INV_IN_ACTIVE_STATE( p );                           \
-    ensures MPS_L2_INV_IN_ACTIVE_IS_VALID( p );                        \
-    ensures MPS_L2_INV_IN_ACTIVE_IS_MERGEABLE( p );                    \
-    ensures MPS_L2_INV_IN_PAUSED_STATE( p );                           \
-    ensures MPS_L2_INV_IN_PAUSED_IS_VALID( p );                        \
-    ensures MPS_L2_INV_IN_PAUSED_IS_PAUSABLE( p );                     \
-    ensures MPS_L2_INV_IN_NO_ACTIVE_PAUSED_NO_OVERLAP( p );            \
-    ensures MPS_L2_INV_EPOCH_WINDOW_VALID( p );                        \
-    ensures MPS_L2_INV_NEXT_EPOCH_BOUNDS( p );                         \
-    ensures MPS_L2_INV_DEFAULT_IN_VALID( p );                          \
-    ensures MPS_L2_INV_DEFAULT_IN_ACTIVE( p );                         \
-    ensures MPS_L2_INV_DEFAULT_IN_PAUSED( p );                         \
-    ensures MPS_L2_INV_DEFAULT_OUT_VALID( p );                         \
-    ensures MPS_L2_INV_DEFAULT_OUT( p );
 
 /**
  * \brief           This function initializes a Layer 2 context.
@@ -1151,11 +954,6 @@ struct mbedtls_mps_l2
  *
  */
 
-/*@
-  requires \valid( ctx );
-  MPS_L1_INV_REQUIRES( l1 )
-  MPS_L2_INV_ENSURES( ctx )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
                                     mbedtls_mps_size_t max_read,
                                     mbedtls_mps_size_t max_write,
@@ -1172,9 +970,6 @@ MBEDTLS_MPS_PUBLIC int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1, uint8_t mod
  *
  */
 
-/*@
-  MPS_L2_INV_REQUIRES( ctx )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l2_free( mbedtls_mps_l2 *ctx );
 
 typedef uint8_t mbedtls_mps_record_split_config_t;
@@ -1227,10 +1022,6 @@ typedef uint8_t mbedtls_mps_record_empty_config_t;
  * \return         A negative error code on failure.
  *
  */
-/*@
-  MPS_L2_INV_REQUIRES( ctx )
-  MPS_L2_INV_ENSURES( ctx )
-@*/
 static inline int mps_l2_config_add_type( mbedtls_mps_l2 *ctx,
                                     mbedtls_mps_msg_type_t type,
                                     mbedtls_mps_record_split_config_t pausing,
@@ -1282,10 +1073,6 @@ static inline int mps_l2_config_add_type( mbedtls_mps_l2 *ctx,
  *
  */
 
-/*@
-  MPS_L2_INV_REQUIRES( ctx )
-  MPS_L2_INV_ENSURES( ctx )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l2_config_version( mbedtls_mps_l2 *ctx, uint8_t version );
 
 /**
@@ -1306,10 +1093,6 @@ MBEDTLS_MPS_PUBLIC int mps_l2_config_version( mbedtls_mps_l2 *ctx, uint8_t versi
  *
  */
 
-/*@
-  MPS_L2_INV_REQUIRES( ctx )
-  MPS_L2_INV_ENSURES( ctx )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in );
 
 /**
@@ -1324,10 +1107,6 @@ MBEDTLS_MPS_PUBLIC int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in );
  *
  */
 
-/*@
-  MPS_L2_INV_REQUIRES( ctx )
-  MPS_L2_INV_ENSURES( ctx )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l2_read_done( mbedtls_mps_l2 *ctx );
 
 /**
@@ -1347,10 +1126,6 @@ MBEDTLS_MPS_PUBLIC int mps_l2_read_done( mbedtls_mps_l2 *ctx );
  *
  */
 
-/*@
-  MPS_L2_INV_REQUIRES( ctx )
-  MPS_L2_INV_ENSURES( ctx )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l2_write_start( mbedtls_mps_l2 *ctx, mps_l2_out *out );
 
 /**
@@ -1370,10 +1145,6 @@ MBEDTLS_MPS_PUBLIC int mps_l2_write_start( mbedtls_mps_l2 *ctx, mps_l2_out *out 
  *
  */
 
-/*@
-  MPS_L2_INV_REQUIRES( ctx )
-  MPS_L2_INV_ENSURES( ctx )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l2_write_done( mbedtls_mps_l2 *ctx );
 
 /**
@@ -1392,10 +1163,6 @@ MBEDTLS_MPS_PUBLIC int mps_l2_write_done( mbedtls_mps_l2 *ctx );
  *
  */
 
-/*@
-  MPS_L2_INV_REQUIRES( ctx )
-  MPS_L2_INV_ENSURES( ctx )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l2_write_flush( mbedtls_mps_l2 *ctx );
 
 /**
@@ -1444,10 +1211,6 @@ MBEDTLS_MPS_PUBLIC int mps_l2_write_flush( mbedtls_mps_l2 *ctx );
  *
  */
 
-/*@
-  MPS_L2_INV_REQUIRES( ctx )
-  MPS_L2_INV_ENSURES( ctx )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l2_epoch_add( mbedtls_mps_l2 *ctx,
                                  mbedtls_mps_transform_t *transform,
                                  mbedtls_mps_epoch_id *epoch );
@@ -1468,10 +1231,6 @@ MBEDTLS_MPS_PUBLIC int mps_l2_epoch_add( mbedtls_mps_l2 *ctx,
  *
  */
 
-/*@
-  MPS_L2_INV_REQUIRES( ctx )
-  MPS_L2_INV_ENSURES( ctx )
-@*/
 int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
                         mbedtls_mps_epoch_id epoch_id,
                         mbedtls_mps_epoch_usage clear,

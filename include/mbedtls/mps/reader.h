@@ -168,8 +168,7 @@ struct mbedtls_reader
                            *   to the first byte in the accumulator.
                            *   This is only used when the reader is in
                            *   consuming mode, i.e. frag != NULL;
-                           *   otherwise, its value is \c 0
-                           *   (invariant READER_INV_FRAG_UNSET_VARS_ZERO). */
+                           *   otherwise, its value is \c 0.                */
     mbedtls_mps_stored_size_t end;
                           /*!< The offset of the end of the last chunk
                            *   passed to the user through a call to
@@ -177,8 +176,7 @@ struct mbedtls_reader
                            *   byte in the accumulator.
                            *   This is only used when the reader is in
                            *   consuming mode, i.e. \c frag != \c NULL;
-                           *   otherwise, its value is \c 0
-                           *   (invariant READER_INV_FRAG_UNSET_VARS_ZERO). */
+                           *   otherwise, its value is \c 0.                */
     mbedtls_mps_stored_size_t pending;
                           /*!< The amount of incoming data missing on the
                            *   last call to mbedtls_reader_get().
@@ -192,8 +190,7 @@ struct mbedtls_reader
                            *   the user again.
                            *   This is only used when the reader is in
                            *   consuming mode, i.e. \c frag != \c NULL;
-                           *   otherwise, its value is \c 0
-                           *   (invariant READER_INV_FRAG_UNSET_VARS_ZERO). */
+                           *   otherwise, its value is \c 0.                */
 
     /* The accumulator is only needed if we need to be able to pause
      * the reader. A few bytes could be saved by moving this to a
@@ -201,7 +198,7 @@ struct mbedtls_reader
 
     unsigned char *acc;   /*!< The accumulator is used to gather incoming
                            *   data if a read-request via mbedtls_reader_get()
-                           *   cannot be served from the current fragment.  */
+                           *   cannot be served from the current fragment.   */
     mbedtls_mps_stored_size_t acc_len;
                            /*!< The total size of the accumulator.           */
     mbedtls_mps_stored_size_t acc_avail;
@@ -213,99 +210,22 @@ struct mbedtls_reader
                            *   While consuming, it is used to judge if a
                            *   read request can be served from the
                            *   accumulator or not.
-                           *   Must not be larger than acc_len
-                           *   (invariant READER_INV_ACC_AVAIL).            */
+                           *   Must not be larger than acc_len.              */
     union
     {
-        mbedtls_mps_stored_size_t acc_remaining; /*!< This indicates the amount of data still
+        mbedtls_mps_stored_size_t acc_remaining;
+                              /*!< This indicates the amount of data still
                                *   to be gathered in the accumulator. It is
                                *   only used in producing mode.
-                               *   Must be at most acc_len - acc_available
-                               *   (inv READER_INV_ACC_SET_AVAIL_REMAINING). */
-        mbedtls_mps_stored_size_t frag_offset;   /*!< This indicates the offset of the current
+                               *   Must be at most acc_len - acc_available.  */
+        mbedtls_mps_stored_size_t frag_offset;
+                              /*!< This indicates the offset of the current
                                *   fragment from the beginning of the
                                *   accumulator.
                                *   It is only used in consuming mode.
-                               *   Must not be larger than \c acc_avail
-                               *   (invariant READER_INV_ACC_CONSUME).      */
+                               *   Must not be larger than \c acc_avail.     */
     } acc_share;
 };
-
-/*
- * E-ACSL invariants for reader
- */
-
-/* I don't know why E-ACSL allows the following predicates when spelled
- * out but forbids them when they are globally defined. Define them as
- * macros for now... ugly hack, but anyway. */
-
-#define READER_INV_FRAG_VALID( p )                       \
-    ( (p)->frag != NULL ==>                              \
-      ( \forall integer i; 0 <= i < (p)->frag_len        \
-        ==> \valid( (p)->frag+i ) ) )
-
-#define READER_INV_FRAG_UNSET_VARS_ZERO( p )       \
-    ( (p)->frag == NULL ==>                        \
-      ( (p)->frag_len == 0 &&                      \
-        (p)->commit   == 0 &&                      \
-        (p)->end      == 0 &&                      \
-        (p)->pending    == 0 ) )
-
-#define READER_INV_ACC_VALID( p )                        \
-    ( (p)->acc != NULL ==>                               \
-      ( (p)->acc_len > 0 &&                              \
-        ( \forall integer i; 0 <= i < (p)->acc_len       \
-          ==> \valid( (p)->acc+i ) ) ) )
-
-#define READER_INV_ACC_UNSET_VARS_ZERO( p )              \
-    ( ( (p)->acc == NULL ) ==>                           \
-      ( (p)->acc_len   == 0 &&                           \
-        (p)->acc_avail == 0 &&                           \
-        ( (p)->frag == NULL ==> (p)->acc_share.acc_remaining == 0 ) ) )
-
-#define READER_INV_ACC_AVAIL( p )                   \
-    ( (p)->acc_avail <= (p)->acc_len )
-
-#define READER_INV_ACC_REMAINING( p )                 \
-    ( (p)->frag == NULL ==>                           \
-      (p)->acc_share.acc_remaining <= (p)->acc_len )
-
-#define READER_INV_ACC_PREPARE( p )                \
-    ( (p)->frag == NULL ==>                        \
-      (p)->acc_share.acc_remaining <=              \
-      (p)->acc_len - (p)->acc_avail )
-
-#define READER_INV_ACC_CONSUME( p )                             \
-    ( ( (p)->frag != NULL && (p)->acc != NULL ) ==>             \
-      ( (p)->acc_share.frag_offset <= (p)->acc_avail ) )
-
-#define READER_INV( p )                       \
-    ( \valid( p )                          && \
-      READER_INV_FRAG_VALID( p )           && \
-      READER_INV_FRAG_UNSET_VARS_ZERO( p ) && \
-      READER_INV_ACC_VALID( p )            && \
-      READER_INV_ACC_UNSET_VARS_ZERO( p )  && \
-      READER_INV_ACC_AVAIL( p )            && \
-      READER_INV_ACC_REMAINING( p )        && \
-      READER_INV_ACC_PREPARE( p )          && \
-      READER_INV_ACC_CONSUME( p ) )
-
-#define READER_INV_ENSURES( p )                      \
-    ensures \valid( p );                             \
-    ensures READER_INV_FRAG_VALID( p );
-
-
-#define READER_INV_REQUIRES( p )                      \
-    requires \valid ( p );                            \
-    requires READER_INV_FRAG_VALID( p );              \
-    requires READER_INV_FRAG_UNSET_VARS_ZERO( p );    \
-    requires READER_INV_ACC_VALID( p );               \
-    requires READER_INV_ACC_UNSET_VARS_ZERO( p );     \
-    requires READER_INV_ACC_AVAIL( p );               \
-    requires READER_INV_ACC_REMAINING( p );           \
-    requires READER_INV_ACC_PREPARE( p );             \
-    requires READER_INV_ACC_CONSUME( p );
-
 
 struct mbedtls_reader_ext
 {
@@ -319,41 +239,12 @@ struct mbedtls_reader_ext
                        *   groups are subgroups of their predecessors ones).  */
 
     mbedtls_reader *rd; /*!< Underlying writer object - may be \c NULL.       */
-    mbedtls_mps_stored_size_t ofs_fetch;   /*!< The offset of the first byte of the next chunk.  */
-    mbedtls_mps_stored_size_t ofs_commit;  /*!< The offset of first byte beyond
+    mbedtls_mps_stored_size_t ofs_fetch;
+                        /*!< The offset of the first byte of the next chunk.  */
+    mbedtls_mps_stored_size_t ofs_commit;
+                        /*!< The offset of first byte beyond
                          *   the last committed chunk.                        */
 };
-
-#define READER_EXT_INV_CUR_GRP_VALID( p )               \
-    ( (p)->cur_grp < MBEDTLS_READER_MAX_GROUPS )
-
-#define READER_EXT_INV_GRP_DESCENDING( p )             \
-    ( \forall integer i; 0 < i <= (p)->cur_grp ==>     \
-      (p)->grp_end[i - 1] >= (p)->grp_end[i] )
-
-#define READER_EXT_INV_ROOT_GROUP_BOUNDS( p )   \
-    ( (p)->ofs_fetch <= (p)->grp_end[0] )
-
-#define READER_EXT_INV_COMMIT_FETCH( p )        \
-    ( (p)->ofs_commit <= (p)->ofs_fetch )
-
-#define READER_EXT_INV_COMMIT_FETCH_DETACHED( p )   \
-    ( (p)->rd == NULL ==>                           \
-      ( (p)->ofs_commit <= (p)->ofs_fetch ) )
-
-#define READER_EXT_INV_ENSURES( p )                     \
-    ensures READER_EXT_INV_CUR_GRP_VALID( p );          \
-    ensures READER_EXT_INV_GRP_DESCENDING( p );         \
-    ensures READER_EXT_INV_ROOT_GROUP_BOUNDS( p );      \
-    ensures READER_EXT_INV_COMMIT_FETCH( p );           \
-    ensures READER_EXT_INV_COMMIT_FETCH_DETACHED( p );
-
-#define READER_EXT_INV_REQUIRES( p )                     \
-    requires READER_EXT_INV_CUR_GRP_VALID( p );          \
-    requires READER_EXT_INV_GRP_DESCENDING( p );         \
-    requires READER_EXT_INV_ROOT_GROUP_BOUNDS( p );      \
-    requires READER_EXT_INV_COMMIT_FETCH( p );           \
-    requires READER_EXT_INV_COMMIT_FETCH_DETACHED( p );
 
 /*
  * API organization:
@@ -379,15 +270,6 @@ struct mbedtls_reader_ext
  * \return          \c 0 on success.
  * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.
  */
-
-/*@
-  requires \valid( reader );
-  requires ( acc != NULL ==>
-             ( acc_len > 0 &&
-               \forall integer i; 0 <= i < acc_len
-                 ==> \valid( acc + i ) ) );
-  READER_INV_ENSURES(reader)
-@*/
 int mbedtls_reader_init( mbedtls_reader *reader,
                          unsigned char *acc,
                          mbedtls_mps_size_t acc_len );
@@ -400,10 +282,6 @@ int mbedtls_reader_init( mbedtls_reader *reader,
  * \return          \c 0 on success.
  * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.
  */
-
-/*@
-  READER_INV_REQUIRES(reader)
-  @*/
 int mbedtls_reader_free( mbedtls_reader *reader );
 
 /**
@@ -426,16 +304,6 @@ int mbedtls_reader_free( mbedtls_reader *reader );
  * \return          Another negative \c MBEDTLS_ERR_READER_XXX error code on
  *                  different kinds of failures.
  */
-
-/*@
-  READER_INV_REQUIRES(reader)
-  requires ( buf != NULL ==>
-             ( buflen > 0 &&
-               \forall integer i; 0 <= i < buflen
-                 ==> \valid( buf + i ) ) );
-
-  READER_INV_ENSURES(reader)
-  @*/
 int mbedtls_reader_feed( mbedtls_reader *reader,
                          unsigned char *buf,
                          mbedtls_mps_size_t buflen );
@@ -455,11 +323,6 @@ int mbedtls_reader_feed( mbedtls_reader *reader,
  * \return          \c 0 on success.
  * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.
  */
-
-/*@
-  READER_INV_REQUIRES(reader)
-  READER_INV_ENSURES(reader)
-  @*/
 int mbedtls_reader_reclaim( mbedtls_reader     *reader,
                             mbedtls_mps_size_t *paused );
 
@@ -499,15 +362,6 @@ int mbedtls_reader_reclaim( mbedtls_reader     *reader,
  *                  address as buflen and checking \c *buflen == \c desired
  *                  afterwards.
  */
-
-/* TODO: Add ACSL annotation asserting the validity of
- *       *buffer and *buflen on success. */
-/*@
-  requires \valid( buffer );
-  requires ( buflen == NULL ) || \valid( buflen );
-  READER_INV_REQUIRES(reader)
-  READER_INV_ENSURES(reader)
-  @*/
 int mbedtls_reader_get( mbedtls_reader *reader,
                         mbedtls_mps_size_t desired,
                         unsigned char **buffer,
@@ -529,11 +383,6 @@ int mbedtls_reader_get( mbedtls_reader *reader,
  *                  pointers corresponding to the committed data anymore.
  *
  */
-
-/*@
-  READER_INV_REQUIRES(reader)
-  READER_INV_ENSURES(reader)
-  @*/
 int mbedtls_reader_commit( mbedtls_reader *reader );
 
 /* /\** */
@@ -572,10 +421,6 @@ int mbedtls_reader_commit( mbedtls_reader *reader );
  * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.
  *
  */
-/*@
-  requires \valid( reader );
-  READER_EXT_INV_ENSURES( reader )
-  @*/
 int mbedtls_reader_init_ext( mbedtls_reader_ext *reader,
                              mbedtls_mps_size_t size );
 
@@ -588,9 +433,6 @@ int mbedtls_reader_init_ext( mbedtls_reader_ext *reader,
  * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.
  *
  */
-/*@
-  READER_EXT_INV_REQUIRES( reader )
-  @*/
 int mbedtls_reader_free_ext( mbedtls_reader_ext *reader );
 
 /**
@@ -621,13 +463,6 @@ int mbedtls_reader_free_ext( mbedtls_reader_ext *reader );
  *
  *
  */
-
-/*@
-  requires \valid( buffer );
-  requires ( buflen == NULL ) || \valid( buflen );
-  READER_EXT_INV_REQUIRES(reader)
-  READER_EXT_INV_ENSURES(reader)
-  @*/
 int mbedtls_reader_get_ext( mbedtls_reader_ext *reader,
                             mbedtls_mps_size_t desired,
                             unsigned char **buffer,
@@ -649,11 +484,6 @@ int mbedtls_reader_get_ext( mbedtls_reader_ext *reader,
  * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.
  *
  */
-
-/*@
-  READER_EXT_INV_REQUIRES(reader)
-  READER_EXT_INV_ENSURES(reader)
-  @*/
 int mbedtls_reader_commit_ext( mbedtls_reader_ext *reader );
 
 /**
@@ -681,11 +511,6 @@ int mbedtls_reader_commit_ext( mbedtls_reader_ext *reader );
  *                  for other kinds of failure.
  *
  */
-
-/*@
-  READER_EXT_INV_REQUIRES(reader)
-  READER_EXT_INV_ENSURES(reader)
-  @*/
 int mbedtls_reader_group_open( mbedtls_reader_ext *reader,
                                mbedtls_mps_size_t group_size );
 
@@ -702,11 +527,6 @@ int mbedtls_reader_group_open( mbedtls_reader_ext *reader,
  *                  for other kinds of failure.
  *
  */
-
-/*@
-  READER_EXT_INV_REQUIRES(reader)
-  READER_EXT_INV_ENSURES(reader)
-  @*/
 int mbedtls_reader_group_close( mbedtls_reader_ext *reader );
 
 /**
@@ -726,12 +546,6 @@ int mbedtls_reader_group_close( mbedtls_reader_ext *reader );
  * \return           Another negative error code on failure.
  *
  */
-
-/*@
-  READER_EXT_INV_REQUIRES(rd_ext)
-  READER_INV_REQUIRES(rd)
-  READER_EXT_INV_ENSURES(rd_ext)
-  @*/
 int mbedtls_reader_attach( mbedtls_reader_ext *rd_ext,
                            mbedtls_reader *rd );
 
@@ -744,11 +558,6 @@ int mbedtls_reader_attach( mbedtls_reader_ext *rd_ext,
  * \return          Another negative error code on failure.
  *
  */
-
-/*@
-  READER_EXT_INV_REQUIRES(rd_ext)
-  READER_EXT_INV_ENSURES(rd_ext)
-  @*/
 int mbedtls_reader_detach( mbedtls_reader_ext *rd_ext );
 
 /**
@@ -765,10 +574,6 @@ int mbedtls_reader_detach( mbedtls_reader_ext *rd_ext );
  * \return           A negative \c MBEDTLS_ERR_READER_XXX error code otherwise.
  *
  */
-
-/*@
-  READER_EXT_INV_REQUIRES(rd_ext)
-  @*/
 int mbedtls_reader_check_done( mbedtls_reader_ext const *rd_ext );
 
 /* /\** */

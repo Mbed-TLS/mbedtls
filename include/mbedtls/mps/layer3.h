@@ -436,8 +436,6 @@ struct mps_l3
 {
     mps_l3_config conf;
 
-#define MPS_L3_INV_L2_INV( p ) ( MPS_L2_INV( (p)->conf.l2 ) )
-
     struct
     {
         struct
@@ -446,13 +444,6 @@ struct mps_l3
 
             /*! Indicates if and which record type is currently open for reading. */
             mbedtls_mps_stored_msg_type_t state;
-
-#define MPS_L3_INV_IN_STATE( p )                                \
-            ( (p)->in.state == MBEDTLS_MPS_MSG_NONE        ||   \
-              (p)->in.state == MBEDTLS_MPS_MSG_APP ||           \
-              (p)->in.state == MBEDTLS_MPS_MSG_HS   ||          \
-              (p)->in.state == MBEDTLS_MPS_MSG_ALERT       ||   \
-              (p)->in.state == MBEDTLS_MPS_MSG_CCS )
 
             /* Raw record data. */
 
@@ -463,23 +454,11 @@ struct mps_l3
                                      *   (including headers in case of handshake
                                      *    messages).                             */
 
-#define MPS_L3_INV_IN_RAW_READER_SET( p )                       \
-            ( (p)->in.state != MBEDTLS_MPS_MSG_NONE <==>        \
-              (p)->in.raw_in != NULL )
-
-#define MPS_L3_INV_IN_RAW_READER( p )           \
-            ( (p)->in.raw_in != NULL ==>        \
-              READER_INV( (p)->in.raw_in ) )
-
             /* Type-specific structures for accessing the contents of
              * of the messages of the given type. */
 
             mps_l3_hs_in_internal hs;        /*!< Handle to incoming
                                               *   handshake message.              */
-
-#define MPS_L3_INV_IN_HS_ACTIVE_STATE( p )              \
-            ( (p)->in.hs.state == MPS_L3_HS_ACTIVE <==> \
-              (p)->in.state == MBEDTLS_MPS_MSG_HS )
 
             mps_l3_alert_in_internal alert;  /*!< Type + Level of incoming alert. */
 
@@ -506,13 +485,6 @@ struct mps_l3
             /*!< Indicates which record type is currently open for writing. */
             mbedtls_mps_stored_msg_type_t state;
 
-#define MPS_L3_INV_OUT_STATE( p )                               \
-            ( (p)->out.state == MBEDTLS_MPS_MSG_NONE        ||  \
-              (p)->out.state == MBEDTLS_MPS_MSG_APP ||          \
-              (p)->out.state == MBEDTLS_MPS_MSG_HS   ||         \
-              (p)->out.state == MBEDTLS_MPS_MSG_ALERT       ||  \
-              (p)->out.state == MBEDTLS_MPS_MSG_CCS )
-
             /* Raw outgoing record data */
 
             /* OPTIMIZATION:
@@ -524,14 +496,6 @@ struct mps_l3
                                       *   for headers in case of handshake
                                       *   messages).                              */
 
-#define MPS_L3_INV_OUT_RAW_WRITER_SET( p )                      \
-            ( (p)->out.state != MBEDTLS_MPS_MSG_NONE <==>       \
-              (p)->out.raw_out != NULL )
-
-#define MPS_L3_INV_OUT_RAW_WRITER( p )          \
-            ( (p)->out.raw_out != NULL ==>      \
-              WRITER_INV( (p)->out.raw_out ) )
-
             /* Type-specific structures */
 
             /* OPTIMIZATION:
@@ -541,33 +505,11 @@ struct mps_l3
              * the sequence number isn't needed anymore -- or is it? */
             mps_l3_hs_out_internal hs; /*!< Handle to outgoing handshake message. */
 
-#define MPS_L3_INV_OUT_HS_ACTIVE_STATE( p )                     \
-            ( (p)->out.hs.state == MPS_L3_HS_ACTIVE <==>        \
-              (p)->out.state == MBEDTLS_MPS_MSG_HS )
-
         } out;
 
     } io;
 
 };
-
-#define MPS_L3_INV_REQUIRES( p )                        \
-    requires \valid( p );                               \
-    MPS_L2_INV_REQUIRES( p->conf.l2 )                   \
-    requires MPS_L3_INV_IN_STATE( p );                  \
-    requires MPS_L3_INV_IN_RAW_READER_SET( p );         \
-    requires MPS_L3_INV_IN_RAW_READER( p );             \
-    requires MPS_L3_INV_IN_HS_ACTIVE_STATE( p );        \
-    requires MPS_L3_INV_OUT_STATE( p );
-
-#define MPS_L3_INV_ENSURES( p )                        \
-    ensures \valid( p );                               \
-    MPS_L2_INV_ENSURES( p->conf.l2 )                   \
-    ensures MPS_L3_INV_IN_STATE( p );                  \
-    ensures MPS_L3_INV_IN_RAW_READER_SET( p );         \
-    ensures MPS_L3_INV_IN_RAW_READER( p );             \
-    ensures MPS_L3_INV_IN_HS_ACTIVE_STATE( p );        \
-    ensures MPS_L3_INV_OUT_STATE( p );
 
 /**
  * \brief         Initialize a Layer 3 context.
@@ -587,10 +529,6 @@ struct mps_l3
  * \return        A negative error code on failure.
  */
 
-/*@
-  MPS_L2_INV_REQUIRES( l2 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l3_init( mps_l3 *l3, mbedtls_mps_l2 *l2, uint8_t mode );
 
 /**
@@ -604,10 +542,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_init( mps_l3 *l3, mbedtls_mps_l2 *l2, uint8_t mode
  * \return        \c 0 on success.
  * \return        A negative error code on failure.
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l3_free( mps_l3 *l3 );
 
 /**
@@ -629,12 +563,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_free( mps_l3 *l3 );
  *                via mps_l3_read_handshake().
  *
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
-
 /* OPTIMIZATION:
  * Subsume mps_l3_read() with mps_l3_read_XXX() by filling
  * an indexed union of mps_l3_in_xxx on success. */
@@ -673,12 +601,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_read_check( mps_l3 * l3 );
  *                through a call to mps_l3_dispatch(), or paused through a
  *                a call to mps_l3_pause_handshake().
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
-
 /* TODO: Consider making this function static inline
  * to avoid a layer of indirection. */
 MBEDTLS_MPS_PUBLIC int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs );
@@ -700,11 +622,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *h
  *                through a call to mps_l3_dispatch().
  */
 
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
-
 MBEDTLS_MPS_PUBLIC int mps_l3_read_app( mps_l3 *l3, mps_l3_app_in *app );
 
 /**
@@ -717,11 +634,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_read_app( mps_l3 *l3, mps_l3_app_in *app );
  * \return        A negative error code on failure.
  *
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l3_read_alert( mps_l3 *l3, mps_l3_alert_in *alert );
 
 /**
@@ -734,11 +646,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_read_alert( mps_l3 *l3, mps_l3_alert_in *alert );
  * \return        A negative error code on failure.
  *
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l3_read_ccs( mps_l3 *l3, mps_l3_ccs_in *ccs );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
@@ -765,11 +672,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_read_ccs( mps_l3 *l3, mps_l3_ccs_in *ccs );
  *                the user must call mps_l3_read_handshake() again to
  *                retrieve the handle to use.
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l3_read_pause_handshake( mps_l3 *l3 );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
@@ -793,11 +695,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_read_pause_handshake( mps_l3 *l3 );
  * \return        Another negative error code for other kinds of failure.
  *
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l3_read_consume( mps_l3 *l3 );
 
 /**
@@ -809,11 +706,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_read_consume( mps_l3 *l3 );
  * \return          \c 0 on success.
  * \return          A negative error code on failure.
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *hs );
 
 /**
@@ -825,11 +717,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out 
  * \return          \c 0 on success.
  * \return          A negative error code on failure.
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l3_write_app( mps_l3 *l3, mps_l3_app_out *app );
 
 /**
@@ -841,11 +728,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_write_app( mps_l3 *l3, mps_l3_app_out *app );
  * \return          \c 0 on success.
  * \return          A negative error code on failure.
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l3_write_alert( mps_l3 *l3, mps_l3_alert_out *alert );
 
 /**
@@ -863,11 +745,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_write_alert( mps_l3 *l3, mps_l3_alert_out *alert )
  *                  in the same way as the writing of messages of
  *                  other content types.
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
@@ -894,11 +771,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs );
  *                  the user must call mps_l3_write_handshake() again to
  *                  retrieve the handle to use.
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l3_pause_handshake( mps_l3 *l3 );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
@@ -915,11 +787,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_pause_handshake( mps_l3 *l3 );
  * \return          0 on success, a negative error code on failure.
  *
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l3_write_abort_handshake( mps_l3 *l3 );
 
 /**
@@ -940,11 +807,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_write_abort_handshake( mps_l3 *l3 );
  * \return        A negative error code on failure.
  *
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l3_dispatch( mps_l3 *l3 );
 
 /**
@@ -965,11 +827,6 @@ MBEDTLS_MPS_PUBLIC int mps_l3_dispatch( mps_l3 *l3 );
  * \note          In case #MPS_ERR_WANT_WRITE is returned, the function can
  *                be called again to retry the flush.
  */
-
-/*@
-  MPS_L3_INV_REQUIRES( l3 )
-  MPS_L3_INV_ENSURES( l3 )
-@*/
 MBEDTLS_MPS_PUBLIC int mps_l3_flush( mps_l3 *l3 );
 
 

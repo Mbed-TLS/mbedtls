@@ -200,99 +200,6 @@ struct mbedtls_writer
     mbedtls_writer_state_t state;
 };
 
-/*
- * E-ACSL invariants for writer
- */
-
-/* I don't know why E-ACSL allows the following predicates when spelled
- * out but forbids them when they are globally defined. Define them as
- * macros for now... ugly hack, but anyway. */
-
-#define WRITER_INV_FRAG_VALID( p )                      \
-    ( (p)->out != NULL ==>                              \
-      ( \forall integer i; 0 <= i < (p)->out_len        \
-        ==> \valid( (p)->out+i ) ) )
-
-#define WRITER_INV_FRAG_UNSET_VARS_ZERO( p )       \
-    ( (p)->out == NULL ==>                         \
-      ( (p)->out_len  == 0 &&                      \
-        (p)->commit   == 0 &&                      \
-        (p)->end      == 0 ) )
-
-#define WRITER_INV_COMMIT( p )                  \
-    ( (p)->commit <= (p)->out_len + (p)->queue_len )
-
-#define WRITER_INV_END( p )                  \
-    ( (p)->end <= (p)->out_len + (p)->queue_len )
-
-#define WRITER_INV_QUEUE_VALID( p )                      \
-    ( (p)->queue != NULL ==>                             \
-      ( (p)->queue_len > 0 &&                            \
-        ( \forall integer i; 0 <= i < (p)->queue_len     \
-          ==> \valid( (p)->queue+i ) ) ) )
-
-#define WRITER_INV_QUEUE_UNSET_VARS_ZERO( p )                  \
-    ( ( (p)->queue == NULL ) ==>                               \
-      ( (p)->queue_len  == 0      &&                           \
-        (p)->queue_next == 0      &&                           \
-        (p)->queue_remaining == 0 ) )
-
-#define WRITER_INV_QUEUE_AVAIL( p )             \
-    ( (p)->queue_next <= (p)->queue_len )
-
-#define WRITER_INV_QUEUE_AVAIL_BOUND( p )                \
-    ( ( (p)->out != NULL && (p)->end > (p)->out_len )    \
-      ==> ( (p)->queue_len - (p)->queue_next >=          \
-            (p)->end - (p)->out_len ) )
-
-#define WRITER_INV_QUEUE_AVAIL_UNSET( p )                \
-    ( ( (p)->out != NULL && (p)->end <= (p)->out_len )   \
-      ==> (p)->queue_next == 0 )
-
-#define WRITER_INV_QUEUE_REMAINING( p )                                 \
-    ( (p)->queue_remaining <= (p)->queue_len - (p)->queue_next )
-
-#define WRITER_INV_QUEUE_REMAINING_UNSET( p )                   \
-    ( (p)->out != NULL ) ==> ( (p)->queue_remaining == 0 ) )
-
-#define WRITER_INV( p )                             \
-    ( WRITER_INV_FRAG_VALID( p )            &&      \
-      WRITER_INV_COMMIT( p )                &&      \
-      WRITER_INV_END( p )                   &&      \
-      WRITER_INV_FRAG_UNSET_VARS_ZERO( p )  &&      \
-      WRITER_INV_QUEUE_VALID( p )           &&      \
-      WRITER_INV_QUEUE_UNSET_VARS_ZERO( p ) &&      \
-      WRITER_INV_QUEUE_AVAIL( p )           &&      \
-      WRITER_INV_QUEUE_AVAIL_UNSET( p )     &&      \
-      WRITER_INV_QUEUE_AVAIL_BOUND( p )     &&      \
-      WRITER_INV_QUEUE_REMAINING( p ) )
-
-#define WRITER_INV_ENSURES( p )                            \
-    ensures \valid( p );                                   \
-    ensures WRITER_INV_FRAG_VALID( p );                    \
-    ensures WRITER_INV_COMMIT( p );                        \
-    ensures WRITER_INV_END( p );                           \
-    ensures WRITER_INV_FRAG_UNSET_VARS_ZERO( p );          \
-    ensures WRITER_INV_QUEUE_VALID( p );                   \
-    ensures WRITER_INV_QUEUE_UNSET_VARS_ZERO( p );         \
-    ensures WRITER_INV_QUEUE_AVAIL( p );                   \
-    ensures WRITER_INV_QUEUE_AVAIL_UNSET( p );             \
-    ensures WRITER_INV_QUEUE_AVAIL_BOUND( p );             \
-    ensures WRITER_INV_QUEUE_REMAINING( p );
-
-#define WRITER_INV_REQUIRES( p )                            \
-    requires \valid( p );                                   \
-    requires WRITER_INV_FRAG_VALID( p );                    \
-    requires WRITER_INV_COMMIT( p );                        \
-    requires WRITER_INV_END( p );                           \
-    requires WRITER_INV_FRAG_UNSET_VARS_ZERO( p );          \
-    requires WRITER_INV_QUEUE_VALID( p );                   \
-    requires WRITER_INV_QUEUE_UNSET_VARS_ZERO( p );         \
-    requires WRITER_INV_QUEUE_AVAIL( p );                   \
-    requires WRITER_INV_QUEUE_AVAIL_UNSET( p );             \
-    requires WRITER_INV_QUEUE_AVAIL_BOUND( p );             \
-    requires WRITER_INV_QUEUE_REMAINING( p );
-
 /** Configures whether commits to the extended writer should be passed
  *  through to the underlying writer or not. Possible values are:
  *  - #MBEDTLS_WRITER_EXT_PASS
@@ -340,37 +247,6 @@ struct mbedtls_writer_ext
     mbedtls_writer_ext_passthrough_t passthrough;
 };
 
-#define WRITER_EXT_INV_CUR_GRP_VALID( p )               \
-    ( (p)->cur_grp < MBEDTLS_WRITER_MAX_GROUPS )
-
-#define WRITER_EXT_INV_GRP_DESCENDING( p )             \
-    ( \forall integer i; 0 < i <= (p)->cur_grp ==>     \
-      (p)->grp_end[i - 1] >= (p)->grp_end[i] )
-
-#define WRITER_EXT_INV_ROOT_GROUP_BOUNDS( p )   \
-    ( (p)->ofs_fetch <= (p)->grp_end[0] )
-
-#define WRITER_EXT_INV_COMMIT_FETCH( p )        \
-    ( (p)->ofs_commit <= (p)->ofs_fetch )
-
-#define WRITER_EXT_INV_COMMIT_FETCH_DETACHED( p )   \
-    ( (p)->wr == NULL ==>                           \
-      ( (p)->ofs_commit <= (p)->ofs_fetch ) )
-
-#define WRITER_EXT_INV_ENSURES( p )                     \
-    ensures WRITER_EXT_INV_CUR_GRP_VALID( p );          \
-    ensures WRITER_EXT_INV_GRP_DESCENDING( p );         \
-    ensures WRITER_EXT_INV_ROOT_GROUP_BOUNDS( p );      \
-    ensures WRITER_EXT_INV_COMMIT_FETCH( p );           \
-    ensures WRITER_EXT_INV_COMMIT_FETCH_DETACHED( p );
-
-#define WRITER_EXT_INV_REQUIRES( p )                     \
-    requires WRITER_EXT_INV_CUR_GRP_VALID( p );          \
-    requires WRITER_EXT_INV_GRP_DESCENDING( p );         \
-    requires WRITER_EXT_INV_ROOT_GROUP_BOUNDS( p );      \
-    requires WRITER_EXT_INV_COMMIT_FETCH( p );           \
-    requires WRITER_EXT_INV_COMMIT_FETCH_DETACHED( p );
-
 /**
  * \brief           Initialize a writer object
  *
@@ -380,14 +256,6 @@ struct mbedtls_writer_ext
  *                  isn't sufficient.
  * \param queue_len The size in Bytes of \p queue.
  */
-/*@
-  requires \valid( writer );
-  requires ( queue != NULL ==>
-             ( queue_len > 0 &&
-               \forall integer i; 0 <= i < queue_len
-                 ==> \valid( queue + i ) ) );
-  WRITER_INV_ENSURES(writer)
-  @*/
 void mbedtls_writer_init( mbedtls_writer *writer,
                           unsigned char *queue,
                           mbedtls_mps_size_t queue_len );
@@ -397,9 +265,6 @@ void mbedtls_writer_init( mbedtls_writer *writer,
  *
  * \param writer    The writer to be freed.
  */
-/*@
-  WRITER_INV_REQUIRES(writer)
-  @*/
 void mbedtls_writer_free( mbedtls_writer *writer );
 
 /**
@@ -432,13 +297,6 @@ void mbedtls_writer_free( mbedtls_writer *writer );
  *                  not be used anymore.
  *
  */
-/*@
-  WRITER_INV_REQUIRES(writer)
-  requires ( \forall integer i; 0 <= i < buflen
-                 ==> \valid( buf + i ) );
-
-  WRITER_INV_ENSURES(writer)
-  @*/
 int mbedtls_writer_feed( mbedtls_writer *writer,
                          unsigned char *buf,
                          mbedtls_mps_size_t buflen );
@@ -476,10 +334,6 @@ int mbedtls_writer_feed( mbedtls_writer *writer,
  *                  written to the next buffer(s) that is fed to the writer.
  *
  */
-/*@
-  WRITER_INV_REQUIRES(writer)
-  WRITER_INV_ENSURES(writer)
-  @*/
 int mbedtls_writer_reclaim( mbedtls_writer *writer,
                             mbedtls_mps_size_t *queued,
                             mbedtls_mps_size_t *written,
@@ -524,10 +378,6 @@ int mbedtls_writer_bytes_written( mbedtls_writer *writer,
  *                  not be used anymore.
  *
  */
-/*@
-  WRITER_INV_REQUIRES(writer)
-  WRITER_INV_ENSURES(writer)
-  @*/
 int mbedtls_writer_commit( mbedtls_writer *writer );
 
 /**
@@ -558,11 +408,6 @@ int mbedtls_writer_commit( mbedtls_writer *writer );
  *                  not be used anymore.
  *
  */
-
-/*@
-  WRITER_INV_REQUIRES(writer)
-  WRITER_INV_ENSURES(writer)
-  @*/
 int mbedtls_writer_commit_partial( mbedtls_writer *writer,
                                    mbedtls_mps_size_t omit );
 
@@ -601,13 +446,6 @@ int mbedtls_writer_commit_partial( mbedtls_writer *writer,
  *                  not be used anymore.
  *
  */
-
-/*@
-  requires \valid( buffer );
-  requires ( buflen == NULL ) || \valid( buflen );
-  WRITER_INV_REQUIRES(writer)
-  WRITER_INV_ENSURES(writer)
-  @*/
 int mbedtls_writer_get( mbedtls_writer *writer,
                         mbedtls_mps_size_t desired,
                         unsigned char **buffer,
@@ -621,11 +459,6 @@ int mbedtls_writer_get( mbedtls_writer *writer,
  *                  be managed by the extended writer.
  *
  */
-
-/*@
-  requires \valid( writer );
-  WRITER_EXT_INV_ENSURES( writer )
-  @*/
 void mbedtls_writer_init_ext( mbedtls_writer_ext *writer,
                               mbedtls_mps_size_t size );
 
@@ -634,9 +467,6 @@ void mbedtls_writer_init_ext( mbedtls_writer_ext *writer,
  *
  * \param writer    The extended writer context to be freed.
  */
-/*@
-  WRITER_EXT_INV_REQUIRES( writer )
-  @*/
 void mbedtls_writer_free_ext( mbedtls_writer_ext *writer );
 
 /**
@@ -662,13 +492,6 @@ void mbedtls_writer_free_ext( mbedtls_writer_ext *writer );
  *                  request exceeds the bounds of the current group.
  *
  */
-
-/*@
-  requires \valid( buffer );
-  requires ( buflen == NULL ) || \valid( buflen );
-  WRITER_EXT_INV_REQUIRES(writer)
-  WRITER_EXT_INV_ENSURES(writer)
-  @*/
 int mbedtls_writer_get_ext( mbedtls_writer_ext *writer,
                             mbedtls_mps_size_t desired,
                             unsigned char **buffer,
@@ -689,10 +512,6 @@ int mbedtls_writer_get_ext( mbedtls_writer_ext *writer,
  * \return          A negative error code \c MBEDTLS_ERR_WRITER_XXX on failure.
  *
  */
-/*@
-  WRITER_EXT_INV_REQUIRES(writer)
-  WRITER_EXT_INV_ENSURES(writer)
-  @*/
 int mbedtls_writer_commit_ext( mbedtls_writer_ext *writer );
 
 /**
@@ -723,11 +542,6 @@ int mbedtls_writer_commit_ext( mbedtls_writer_ext *writer );
  *                  not be used anymore.
  *
  */
-
-/*@
-  WRITER_INV_REQUIRES(writer)
-  WRITER_INV_ENSURES(writer)
-  @*/
 int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *writer,
                                        mbedtls_mps_size_t omit );
 
@@ -750,10 +564,6 @@ int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *writer,
  * \return           Another negative error code otherwise.
  *
  */
-/*@
-  WRITER_EXT_INV_REQUIRES(writer)
-  WRITER_EXT_INV_ENSURES(writer)
-  @*/
 int mbedtls_writer_group_open( mbedtls_writer_ext *writer,
                                mbedtls_mps_size_t group_size );
 
@@ -771,10 +581,6 @@ int mbedtls_writer_group_open( mbedtls_writer_ext *writer,
  * \return           Another negative error code otherwise.
  *
  */
-/*@
-  WRITER_EXT_INV_REQUIRES(writer)
-  WRITER_EXT_INV_ENSURES(writer)
-  @*/
 int mbedtls_writer_group_close( mbedtls_writer_ext *writer );
 
 /**
@@ -806,12 +612,6 @@ int mbedtls_writer_group_close( mbedtls_writer_ext *writer );
  * \return          A negative error code \c MBEDTLS_ERR_WRITER_XXX on failure.
  *
  */
-/*@
-  WRITER_EXT_INV_REQUIRES(wr_ext)
-  WRITER_INV_REQUIRES(wr)
-  WRITER_EXT_INV_ENSURES(wr_ext)
-  @*/
-
 int mbedtls_writer_attach( mbedtls_writer_ext *wr_ext,
                            mbedtls_writer *wr,
                            int pass );
@@ -828,10 +628,6 @@ int mbedtls_writer_attach( mbedtls_writer_ext *wr_ext,
  * \return           A negative error code \c MBEDTLS_ERR_WRITER_XXX on failure.
  *
  */
-/*@
-  WRITER_EXT_INV_REQUIRES(wr_ext)
-  WRITER_EXT_INV_ENSURES(wr_ext)
-  @*/
 int mbedtls_writer_detach( mbedtls_writer_ext *wr_ext,
                            mbedtls_mps_size_t *committed,
                            mbedtls_mps_size_t *uncommitted );
@@ -849,10 +645,6 @@ int mbedtls_writer_detach( mbedtls_writer_ext *wr_ext,
  * \return           A negative \c MBEDTLS_ERR_WRITER_XXX error code otherwise.
  *
  */
-/*@
-  WRITER_EXT_INV_REQUIRES(writer)
-  WRITER_EXT_INV_ENSURES(writer)
-  @*/
 int mbedtls_writer_check_done( mbedtls_writer_ext *writer );
 
 /* /\** */

@@ -64,8 +64,7 @@ typedef struct
     mbedtls_mps_stored_size_t buf_len;         /*!< The size of \c buf.      */
 
     /*! Total number of bytes read from the underlying transport so far.
-     *  Must not be larger than \c buf_len
-     *  (MPS_L1_STREAM_READ_INV_BUF_INEQUALITIES). */
+     *  Must not be larger than \c buf_len. */
     mbedtls_mps_stored_size_t bytes_read;
 
     /*! Total number of bytes provided to the user at the last fetch call if
@@ -75,8 +74,7 @@ typedef struct
      *  This field determines the read buffer in the abstract state of the
      *  Layer 1 context that the user has to keep in mind.
      *
-     *  Must not be larger than bytes_read
-     *  (MPS_L1_STREAM_READ_INV_BUF_INEQUALITIES). */
+     *  Must not be larger than bytes_read. */
     mbedtls_mps_stored_size_t bytes_fetched;
 
 } mps_l1_stream_read;
@@ -110,17 +108,13 @@ typedef struct
     mbedtls_mps_stored_size_t buf_len;    /*!< The size of \c buf.           */
 
     /*! Number of bytes written and dispatched by the user.
-     *  This must not be larger than buf_len
-     *  (MPS_L1_STREAM_WRITE_INV_BUF_INEQUALITIES). */
+     *  This must not be larger than buf_len. */
     mbedtls_mps_stored_size_t bytes_ready;
 
    /*! The number of bytes already transferred to Layer 0 during flushing.
     *  This is only used if status is MPS_L1_STREAM_STATUS_FLUSH;
-    *  otherwise, its value is 0 (invariants
-    *  MPS_L1_STREAM_WRITE_INV_STATUS_READY and
-    *  MPS_L1_STREAM_WRITE_INV_STATUS_WRITE).
-    *  This must not be larger than bytes_ready
-    *  (MPS_L1_STREAM_WRITE_INV_BUF_INEQUALITIES). */
+    *  otherwise, its value is 0.
+    *  This must not be larger than bytes_ready. */
     mbedtls_mps_stored_size_t bytes_written;
 
     /*!< Internal state:
@@ -131,7 +125,7 @@ typedef struct
      *   before write-buffer can be requested.
      * - L1_STREAM_STATUS_WRITE:
      *   Write-buffer has been passed to the user, awaiting dispatch call.
-     * Invariant L1_STREAM_INV_STATUS_VALID.     */
+     */
     mps_l1_stream_state status;
 
 } mps_l1_stream_write;
@@ -141,148 +135,6 @@ typedef struct
     mps_l1_stream_read  rd;   /*!< Reading-side of the Layer 1 context. */
     mps_l1_stream_write wr;   /*!< Writing-side of the Layer 1 context. */
 } mps_l1_stream;
-
-/*
- * E-ACSL invariants for stream-based implementation
- */
-
-/* I don't know why E-ACSL allows the following predicates when spelled
- * out but forbids them when they are globally defined. Define them as
- * macros for now... very ugly hack, but anyway... */
-
-/* Invariants for reading-side of stream-based Layer 1 context. */
-
-/* Q: Can this be made more precise in [E-]ACSL? In VST, one
- *    could e.g. specify that p->recv should be a valid pointer
- *    to a function of a specified signature. */
-#define MPS_L1_STREAM_READ_INV_RECV_VALID( p ) ( (p)->recv != NULL )
-
-#define MPS_L1_STREAM_READ_INV_BUF_VALID_OR_UNSET( p )                      \
-    ( (p)->buf != NULL ==> ( (p)->buf_len > 0 &&                        \
-                             ( \forall integer i; 0 <= i < (p)->buf_len \
-                               ==> \valid( (p)->buf+i ) ) ) )
-
-#define MPS_L1_STREAM_READ_INV_BUF_INVALID_OFFSETS_ZERO( p )             \
-    ( (p)->buf == NULL ==> ( (p)->buf_len       == 0 &&              \
-                             (p)->bytes_read    == 0 &&              \
-                             (p)->bytes_fetched == 0 ) )
-
-#define MPS_L1_STREAM_READ_INV_BUF_INEQUALITIES( p )                        \
-    ( (p)->buf != NULL ==> ( (p)->bytes_fetched <= (p)->bytes_read &&   \
-                             (p)->bytes_read    <= (p)->buf_len ) )
-
-#define MPS_L1_STREAM_READ_INV( p )                                  \
-    ( \valid( p )                                          &&        \
-      MPS_L1_STREAM_READ_INV_RECV_VALID( p )               &&        \
-      MPS_L1_STREAM_READ_INV_BUF_VALID_OR_UNSET( p )       &&        \
-      MPS_L1_STREAM_READ_INV_BUF_INVALID_OFFSETS_ZERO( p ) &&        \
-      MPS_L1_STREAM_READ_INV_BUF_INEQUALITIES( p ) )
-
-#define MPS_L1_STREAM_READ_INV_REQUIRES( p )                         \
-    requires \valid( p );                                            \
-    requires MPS_L1_STREAM_READ_INV_RECV_VALID( p );                 \
-    requires MPS_L1_STREAM_READ_INV_BUF_VALID_OR_UNSET( p );         \
-    requires MPS_L1_STREAM_READ_INV_BUF_INVALID_OFFSETS_ZERO( p );   \
-    requires MPS_L1_STREAM_READ_INV_BUF_INEQUALITIES( p );
-
-#define MPS_L1_STREAM_READ_INV_ENSURES( p )                         \
-    ensures \valid( p );                                            \
-    ensures MPS_L1_STREAM_READ_INV_RECV_VALID( p );                 \
-    ensures MPS_L1_STREAM_READ_INV_BUF_VALID_OR_UNSET( p );         \
-    ensures MPS_L1_STREAM_READ_INV_BUF_INVALID_OFFSETS_ZERO( p );   \
-    ensures MPS_L1_STREAM_READ_INV_BUF_INEQUALITIES( p );
-
-/* Invariants for writing-side of stream-based Layer 1 context. */
-
-/* Q: Can this be made more precise in [E-]ACSL? In VST, one
- *    could e.g. specify that (p)->send should be a valid pointer
- *    to a function of a specified signature. */
-#define MPS_L1_STREAM_WRITE_INV_SEND_VALID( p ) ( (p)->send != NULL )
-
-#define MPS_L1_STREAM_WRITE_INV_STATUS_VALID( p )       \
-    ( (p)->status == MPS_L1_STREAM_STATUS_READY ||      \
-      (p)->status == MPS_L1_STREAM_STATUS_FLUSH ||      \
-      (p)->status == MPS_L1_STREAM_STATUS_WRITE )
-
-#define MPS_L1_STREAM_WRITE_INV_BUF_VALID_OR_UNSET( p )                 \
-    ( (p)->buf != NULL ==> ( (p)->buf_len > 0 &&                        \
-                             ( \forall integer i; 0 <= i < (p)->buf_len \
-                               ==> \valid( (p)->buf+i ) ) ) )
-
-#define MPS_L1_STREAM_WRITE_INV_BUF_INVALID_OFFSETS_ZERO( p )      \
-    ( (p)->buf == NULL ==> ( (p)->buf_len       == 0 &&            \
-                             (p)->bytes_ready   == 0 &&            \
-                             (p)->bytes_written == 0 ) )
-
-#define MPS_L1_STREAM_WRITE_INV_BUF_INEQUALITIES( p )                   \
-    ( (p)->buf != NULL ==> ( (p)->bytes_written <= (p)->bytes_ready &&  \
-                             (p)->bytes_ready   <= (p)->buf_len ) )
-
-/* The following two invariants in particular imply that the
- * bytes_written field is only used if we're in flushing state. */
-#define MPS_L1_STREAM_WRITE_INV_STATUS_READY( p )                       \
-    ( (p)->status == MPS_L1_STREAM_STATUS_READY ==>                     \
-      ( (p)->bytes_written == 0 ) )
-#define MPS_L1_STREAM_WRITE_INV_STATUS_WRITE( p )                       \
-    ( (p)->status == MPS_L1_STREAM_STATUS_WRITE ==>                     \
-      ( (p)->buf != NULL && (p)->bytes_written == 0 ) )
-
-#define MPS_L1_STREAM_WRITE_INV_STATUS_FLUSH( p ) ( 1 )
-
-/* Check that the flushing strategy as implemented by l1_check_flush_stream
- * is obeyed. This needs to be updated whenever l1_check_flush_stream changes */
-#define MPS_L1_STREAM_WRITE_INV_FLUSH_STRATEGY( p )                     \
-    ( ( (p)->buf != NULL     &&                                         \
-        (p)->bytes_ready > 0 &&                                         \
-        (p)->bytes_ready >= ( 4 * (p)->buf_len / 5 )  )                 \
-      ==> ( (p)->status == MPS_L1_STREAM_STATUS_FLUSH ) )
-
-#define MPS_L1_STREAM_WRITE_INV( p )                                  \
-    ( \valid( p )                                           &&        \
-      MPS_L1_STREAM_WRITE_INV_SEND_VALID( p )               &&        \
-      MPS_L1_STREAM_WRITE_INV_STATUS_VALID( p )             &&        \
-      MPS_L1_STREAM_WRITE_INV_BUF_VALID_OR_UNSET( p )       &&        \
-      MPS_L1_STREAM_WRITE_INV_BUF_INVALID_OFFSETS_ZERO( p ) &&        \
-      MPS_L1_STREAM_WRITE_INV_BUF_INEQUALITIES( p )         &&        \
-      MPS_L1_STREAM_WRITE_INV_STATUS_READY( p )             &&        \
-      MPS_L1_STREAM_WRITE_INV_STATUS_WRITE( p )             &&        \
-      MPS_L1_STREAM_WRITE_INV_STATUS_FLUSH( p )             &&        \
-      MPS_L1_STREAM_WRITE_INV_FLUSH_STRATEGY( p ) )
-
-#define MPS_L1_STREAM_WRITE_INV_NO_FLUSH_CHECK( p )                   \
-    ( \valid( p )                                           &&        \
-      MPS_L1_STREAM_WRITE_INV_SEND_VALID( p )               &&        \
-      MPS_L1_STREAM_WRITE_INV_STATUS_VALID( p )             &&        \
-      MPS_L1_STREAM_WRITE_INV_BUF_VALID_OR_UNSET( p )       &&        \
-      MPS_L1_STREAM_WRITE_INV_BUF_INVALID_OFFSETS_ZERO( p ) &&        \
-      MPS_L1_STREAM_WRITE_INV_BUF_INEQUALITIES( p )         &&        \
-      MPS_L1_STREAM_WRITE_INV_STATUS_READY( p )             &&        \
-      MPS_L1_STREAM_WRITE_INV_STATUS_WRITE( p )             &&        \
-      MPS_L1_STREAM_WRITE_INV_STATUS_FLUSH( p ) )
-
-#define MPS_L1_STREAM_WRITE_INV_REQUIRES( p )                         \
-    requires \valid( p );                                             \
-    requires MPS_L1_STREAM_WRITE_INV_SEND_VALID( p );                 \
-    requires MPS_L1_STREAM_WRITE_INV_STATUS_VALID( p );               \
-    requires MPS_L1_STREAM_WRITE_INV_BUF_VALID_OR_UNSET( p );         \
-    requires MPS_L1_STREAM_WRITE_INV_BUF_INVALID_OFFSETS_ZERO( p );   \
-    requires MPS_L1_STREAM_WRITE_INV_BUF_INEQUALITIES( p );           \
-    requires MPS_L1_STREAM_WRITE_INV_STATUS_READY( p );               \
-    requires MPS_L1_STREAM_WRITE_INV_STATUS_WRITE( p );               \
-    requires MPS_L1_STREAM_WRITE_INV_STATUS_FLUSH( p );               \
-    requires MPS_L1_STREAM_WRITE_INV_FLUSH_STRATEGY( p );
-
-#define MPS_L1_STREAM_WRITE_INV_ENSURES( p )                         \
-    ensures \valid( p );                                             \
-    ensures MPS_L1_STREAM_WRITE_INV_SEND_VALID( p );                 \
-    ensures MPS_L1_STREAM_WRITE_INV_STATUS_VALID( p );               \
-    ensures MPS_L1_STREAM_WRITE_INV_BUF_VALID_OR_UNSET( p );         \
-    ensures MPS_L1_STREAM_WRITE_INV_BUF_INVALID_OFFSETS_ZERO( p );   \
-    ensures MPS_L1_STREAM_WRITE_INV_BUF_INEQUALITIES( p );           \
-    ensures MPS_L1_STREAM_WRITE_INV_STATUS_READY( p );               \
-    ensures MPS_L1_STREAM_WRITE_INV_STATUS_WRITE( p );               \
-    ensures MPS_L1_STREAM_WRITE_INV_STATUS_FLUSH( p );               \
-    ensures MPS_L1_STREAM_WRITE_INV_FLUSH_STRATEGY( p );
 
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
@@ -394,139 +246,6 @@ mbedtls_mps_l1_get_mode( mps_l1 *l1 )
 }
 #endif /* MBEDTLS_MPS_CONF_MODE */
 
-#define MPS_L1_INV_STREAM_READ_RECV_VALID( p )                              \
-    ( \valid( p ) &&                                                    \
-      ( (p)->mode == MPS_L1_MODE_STREAM ==>                             \
-        MPS_L1_STREAM_READ_INV_RECV_VALID( &(p)->raw.stream.rd ) ) )
-
-#define MPS_L1_INV_STREAM_READ_BUF_VALID_OR_UNSET( p )                      \
-    ( \valid( p ) &&                                                    \
-      ( (p)->mode == MPS_L1_MODE_STREAM ==>                             \
-        MPS_L1_STREAM_READ_INV_BUF_VALID_OR_UNSET( &(p)->raw.stream.rd ) ) )
-
-#define MPS_L1_INV_STREAM_READ_BUF_INVALID_OFFSETS_ZERO( p )                \
-    ( \valid( p ) &&                                                    \
-      ( (p)->mode == MPS_L1_MODE_STREAM ==>                             \
-        MPS_L1_STREAM_READ_INV_BUF_INVALID_OFFSETS_ZERO( &(p)->raw.stream.rd ) ) )
-
-#define MPS_L1_INV_STREAM_READ_BUF_INEQUALITIES( p )                        \
-    ( \valid( p ) &&                                                    \
-      ( (p)->mode == MPS_L1_MODE_STREAM ==>                             \
-        MPS_L1_STREAM_READ_INV_BUF_INEQUALITIES( &(p)->raw.stream.rd ) ) )
-
-#define MPS_L1_INV_STREAM_READ( p )                                     \
-    ( MPS_L1_INV_STREAM_READ_RECV_VALID( p )                &&          \
-      MPS_L1_INV_STREAM_READ_BUF_VALID_OR_UNSET( p )        &&          \
-      MPS_L1_INV_STREAM_READ_BUF_INVALID_OFFSETS_ZERO( p )  &&          \
-      MPS_L1_INV_STREAM_READ_BUF_INEQUALITIES( p ) )
-
-#define MPS_L1_INV_STREAM_READ_ENSURES( p )                         \
-    ensures MPS_L1_INV_STREAM_READ_RECV_VALID( p );                 \
-    ensures MPS_L1_INV_STREAM_READ_BUF_VALID_OR_UNSET( p );         \
-    ensures MPS_L1_INV_STREAM_READ_BUF_INVALID_OFFSETS_ZERO( p );   \
-    ensures MPS_L1_INV_STREAM_READ_BUF_INEQUALITIES( p );
-
-#define MPS_L1_INV_STREAM_READ_REQUIRES( p )                         \
-    requires MPS_L1_INV_STREAM_READ_RECV_VALID( p );                 \
-    requires MPS_L1_INV_STREAM_READ_BUF_VALID_OR_UNSET( p );         \
-    requires MPS_L1_INV_STREAM_READ_BUF_INVALID_OFFSETS_ZERO( p );   \
-    requires MPS_L1_INV_STREAM_READ_BUF_INEQUALITIES( p );
-
-#define MPS_L1_INV_STREAM_WRITE_SEND_VALID( p )     \
-    ( \valid( p ) &&                                                    \
-      ( (p)->mode == MPS_L1_MODE_STREAM ==>                             \
-        MPS_L1_STREAM_WRITE_INV_SEND_VALID( &(p)->raw.stream.wr ) ) )
-
-#define MPS_L1_INV_STREAM_WRITE_STATUS_VALID( p )     \
-    ( \valid( p ) &&                                                    \
-      ( (p)->mode == MPS_L1_MODE_STREAM ==>                             \
-        MPS_L1_STREAM_WRITE_INV_STATUS_VALID( &(p)->raw.stream.wr ) ) )
-
-#define MPS_L1_INV_STREAM_WRITE_BUF_VALID_OR_UNSET( p )                     \
-    ( \valid( p ) &&                                                    \
-      ( (p)->mode == MPS_L1_MODE_STREAM ==>                             \
-        MPS_L1_STREAM_WRITE_INV_BUF_VALID_OR_UNSET( &(p)->raw.stream.wr ) ) )
-
-#define MPS_L1_INV_STREAM_WRITE_BUF_INVALID_OFFSETS_ZERO( p )               \
-    ( \valid( p ) &&                                                    \
-      ( (p)->mode == MPS_L1_MODE_STREAM ==>                             \
-        MPS_L1_STREAM_WRITE_INV_BUF_INVALID_OFFSETS_ZERO( &(p)->raw.stream.wr ) ) )
-
-#define MPS_L1_INV_STREAM_WRITE_BUF_INEQUALITIES( p )                       \
-    ( \valid( p ) &&                                                    \
-      ( (p)->mode == MPS_L1_MODE_STREAM ==>                             \
-        MPS_L1_STREAM_WRITE_INV_BUF_INEQUALITIES( &(p)->raw.stream.wr ) ) )
-
-#define MPS_L1_INV_STREAM_WRITE_STATUS_READY( p )                           \
-    ( \valid( p ) &&                                                    \
-      ( (p)->mode == MPS_L1_MODE_STREAM ==>                             \
-        MPS_L1_STREAM_WRITE_INV_STATUS_READY( &(p)->raw.stream.wr ) ) )
-
-#define MPS_L1_INV_STREAM_WRITE_STATUS_WRITE( p )                           \
-    ( \valid( p ) &&                                                    \
-      ( (p)->mode == MPS_L1_MODE_STREAM ==>                             \
-        MPS_L1_STREAM_WRITE_INV_STATUS_WRITE( &(p)->raw.stream.wr ) ) )
-
-#define MPS_L1_INV_STREAM_WRITE_STATUS_FLUSH( p )                           \
-    ( \valid( p ) &&                                                    \
-      ( (p)->mode == MPS_L1_MODE_STREAM ==>                             \
-        MPS_L1_STREAM_WRITE_INV_STATUS_FLUSH( &(p)->raw.stream.wr ) ) )
-
-/* Check that the flushing strategy as implemented by l1_check_flush_stream
- * is obeyed. This needs to be updated whenever l1_check_flush_stream changes */
-#define MPS_L1_INV_STREAM_WRITE_FLUSH_STRATEGY( p )                     \
-    ( \valid( p ) &&                                                    \
-      ( p->mode == MPS_L1_MODE_STREAM ==>                               \
-        MPS_L1_STREAM_WRITE_INV_FLUSH_STRATEGY( &p->raw.stream.wr ) ) )
-
-#define MPS_L1_INV_STREAM_WRITE( p )                                    \
-    ( MPS_L1_INV_STREAM_WRITE_SEND_VALID( p )               &&          \
-      MPS_L1_INV_STREAM_WRITE_STATUS_VALID( p )             &&          \
-      MPS_L1_INV_STREAM_WRITE_BUF_VALID_OR_UNSET( p )       &&          \
-      MPS_L1_INV_STREAM_WRITE_BUF_INVALID_OFFSETS_ZERO( p ) &&          \
-      MPS_L1_INV_STREAM_WRITE_BUF_INEQUALITIES( p )         &&          \
-      MPS_L1_INV_STREAM_WRITE_STATUS_READY( p )             &&          \
-      MPS_L1_INV_STREAM_WRITE_STATUS_WRITE( p )             &&          \
-      MPS_L1_INV_STREAM_WRITE_STATUS_FLUSH( p )             &&          \
-      MPS_L1_INV_STREAM_WRITE_FLUSH_STRATEGY( p ) )
-
-#define MPS_L1_INV_STREAM_WRITE_REQUIRES( p )                         \
-    requires MPS_L1_INV_STREAM_WRITE_SEND_VALID( p );                 \
-    requires MPS_L1_INV_STREAM_WRITE_STATUS_VALID( p );               \
-    requires MPS_L1_INV_STREAM_WRITE_BUF_VALID_OR_UNSET( p );         \
-    requires MPS_L1_INV_STREAM_WRITE_BUF_INVALID_OFFSETS_ZERO( p );   \
-    requires MPS_L1_INV_STREAM_WRITE_BUF_INEQUALITIES( p );           \
-    requires MPS_L1_INV_STREAM_WRITE_STATUS_READY( p );               \
-    requires MPS_L1_INV_STREAM_WRITE_STATUS_WRITE( p );               \
-    requires MPS_L1_INV_STREAM_WRITE_STATUS_FLUSH( p );               \
-    requires MPS_L1_INV_STREAM_WRITE_FLUSH_STRATEGY( p );
-
-#define MPS_L1_INV_STREAM_WRITE_ENSURES( p )                         \
-    ensures MPS_L1_INV_STREAM_WRITE_SEND_VALID( p );                 \
-    ensures MPS_L1_INV_STREAM_WRITE_STATUS_VALID( p );               \
-    ensures MPS_L1_INV_STREAM_WRITE_BUF_VALID_OR_UNSET( p );         \
-    ensures MPS_L1_INV_STREAM_WRITE_BUF_INVALID_OFFSETS_ZERO( p );   \
-    ensures MPS_L1_INV_STREAM_WRITE_BUF_INEQUALITIES( p );           \
-    ensures MPS_L1_INV_STREAM_WRITE_STATUS_READY( p );               \
-    ensures MPS_L1_INV_STREAM_WRITE_STATUS_WRITE( p );               \
-    ensures MPS_L1_INV_STREAM_WRITE_STATUS_FLUSH( p );               \
-    ensures MPS_L1_INV_STREAM_WRITE_FLUSH_STRATEGY( p );
-
-#define MPS_L1_INV( p )                         \
-    ( \valid( p ) &&                            \
-      MPS_L1_INV_STREAM_READ( p ) &&            \
-      MPS_L1_INV_STREAM_WRITE( p ) )
-
-#define MPS_L1_INV_ENSURES( p )                 \
-    ensures \valid( p );                        \
-    MPS_L1_INV_STREAM_READ_ENSURES( p )         \
-    MPS_L1_INV_STREAM_WRITE_ENSURES( p )
-
-#define MPS_L1_INV_REQUIRES( p )                \
-    requires \valid( p );                       \
-    MPS_L1_INV_STREAM_READ_REQUIRES( p )        \
-    MPS_L1_INV_STREAM_WRITE_REQUIRES( p )
-
 /*
  *
  * Layer 1 interface
@@ -589,11 +308,6 @@ mbedtls_mps_l1_get_mode( mps_l1 *l1 )
  *
  */
 
-/* TODO: Add parameter preconditions. */
-/*@
-  requires \valid( ctx );
-  MPS_L1_INV_ENSURES( ctx )
-  @*/
 MBEDTLS_MPS_PUBLIC int mps_l1_init( mps_l1 *ctx, uint8_t mode, mps_alloc *alloc,
                             mps_l0_send_t *send, mps_l0_recv_t *recv );
 
@@ -610,9 +324,6 @@ MBEDTLS_MPS_PUBLIC int mps_l1_init( mps_l1 *ctx, uint8_t mode, mps_alloc *alloc,
  *
  */
 
-/*@
- MPS_L1_INV_REQUIRES( ctx )
-  @*/
 MBEDTLS_MPS_PUBLIC void mps_l1_free( mps_l1 *ctx );
 
 /*
@@ -638,10 +349,6 @@ MBEDTLS_MPS_PUBLIC void mps_l1_free( mps_l1 *ctx );
  *
  */
 
-/*@
- MPS_L1_INV_REQUIRES( ctx )
- MPS_L1_INV_ENSURES( ctx )
-  @*/
 MBEDTLS_MPS_PUBLIC int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf,
                                      mbedtls_mps_size_t desired );
 
@@ -657,10 +364,6 @@ MBEDTLS_MPS_PUBLIC int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf,
  *                 are invalid after this call and must not be accessed anymore.
  */
 
-/*@
- MPS_L1_INV_REQUIRES( ctx )
- MPS_L1_INV_ENSURES( ctx )
-  @*/
 MBEDTLS_MPS_PUBLIC int mps_l1_consume( mps_l1 *ctx );
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
@@ -678,10 +381,6 @@ MBEDTLS_MPS_PUBLIC int mps_l1_consume( mps_l1 *ctx );
  *                 it should ignore the currently processed datagram.
  */
 
-/*@
- MPS_L1_INV_REQUIRES( ctx )
- MPS_L1_INV_ENSURES( ctx )
-  @*/
 MBEDTLS_MPS_PUBLIC int mps_l1_skip( mps_l1 *ctx );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -710,10 +409,6 @@ MBEDTLS_MPS_PUBLIC int mps_l1_skip( mps_l1 *ctx );
  *
  */
 
-/*@
- MPS_L1_INV_REQUIRES( ctx )
- MPS_L1_INV_ENSURES( ctx )
-  @*/
 MBEDTLS_MPS_PUBLIC int mps_l1_write( mps_l1 *ctx, unsigned char **buf,
                                      mbedtls_mps_size_t *buflen );
 
@@ -734,10 +429,6 @@ MBEDTLS_MPS_PUBLIC int mps_l1_write( mps_l1 *ctx, unsigned char **buf,
  *
  */
 
-/*@
- MPS_L1_INV_REQUIRES( ctx )
- MPS_L1_INV_ENSURES( ctx )
-  @*/
 MBEDTLS_MPS_PUBLIC int mps_l1_dispatch( mps_l1 *ctx,
                                         mbedtls_mps_size_t len,
                                         mbedtls_mps_size_t *pending );
@@ -764,10 +455,6 @@ MBEDTLS_MPS_PUBLIC int mps_l1_dispatch( mps_l1 *ctx,
  *
  */
 
-/*@
- MPS_L1_INV_REQUIRES( ctx )
- MPS_L1_INV_ENSURES( ctx )
-  @*/
 MBEDTLS_MPS_PUBLIC int mps_l1_flush( mps_l1 *ctx );
 
 /**
@@ -788,10 +475,6 @@ MBEDTLS_MPS_PUBLIC int mps_l1_flush( mps_l1 *ctx );
  *
  */
 
-/*@
- MPS_L1_INV_REQUIRES( ctx )
- MPS_L1_INV_ENSURES( ctx )
-  @*/
 MBEDTLS_MPS_PUBLIC int mps_l1_read_dependency( mps_l1 *ctx );
 
 /**
@@ -818,10 +501,6 @@ MBEDTLS_MPS_PUBLIC int mps_l1_read_dependency( mps_l1 *ctx );
  *
  */
 
-/*@
- MPS_L1_INV_REQUIRES( ctx )
- MPS_L1_INV_ENSURES( ctx )
-  @*/
 MBEDTLS_MPS_PUBLIC int mps_l1_write_dependency( mps_l1 *ctx );
 
 

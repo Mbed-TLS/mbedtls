@@ -21,6 +21,7 @@
 
 #include "mbedtls/mps/layer2.h"
 #include "mbedtls/mps/trace.h"
+#include "mbedtls/mps/common.h"
 
 #if defined(MBEDTLS_MPS_SEPARATE_LAYERS) ||     \
     defined(MBEDTLS_MPS_TOP_TRANSLATION_UNIT)
@@ -1488,14 +1489,9 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
      * on the user-side, i.e. 'external'. Everything else is
      * a violation of the API. */
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( mps_l2_readers_active_state( ctx )
-        != MBEDTLS_MPS_L2_READER_STATE_EXTERNAL )
-    {
-        TRACE( trace_comment, "Unexpected operation" );
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW( mps_l2_readers_active_state( ctx )
+                          == MBEDTLS_MPS_L2_READER_STATE_EXTERNAL,
+                          "mbedtls_read_done() called in unexpected state" );
 
     /*
      * Layer 1 has provided the record the contents of which the
@@ -1676,14 +1672,10 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
 
     current_state = mps_l2_readers_active_state( ctx );
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    /* 1 */
-    if( current_state == MBEDTLS_MPS_L2_READER_STATE_EXTERNAL )
-    {
-        TRACE( trace_error, "A record is already open and has been passed to the user." );
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    /* * 1 */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        current_state != MBEDTLS_MPS_L2_READER_STATE_EXTERNAL,
+        "A record is already open and has been passed to the user." );
 
     /* 2 */
     if( current_state == MBEDTLS_MPS_L2_READER_STATE_INTERNAL )

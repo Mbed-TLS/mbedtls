@@ -695,11 +695,12 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
 
 #if defined(MBEDTLS_MPS_TRANSFORM_VALIDATION)
     {
-        uint8_t overflow = 0; /* Helper variable to detect arithmetic overflow. */
-        overflow |= ( hdr_len + pre_expansion < hdr_len );
-        overflow |= ( ( hdr_len + pre_expansion ) + post_expansion <
-                      hdr_len + pre_expansion );
-        if( overflow )
+        /* Detect overflow */
+        mbedtls_mps_size_t sum0 = hdr_len;
+        mbedtls_mps_size_t sum1 = (mbedtls_mps_size_t)( sum0 + pre_expansion  );
+        mbedtls_mps_size_t sum2 = (mbedtls_mps_size_t)( sum1 + post_expansion );
+
+        if( sum1 < sum0 || sum2 < sum1 )
         {
             TRACE( trace_comment, "INTERNAL ERROR on pre- and postexpansion, len %u, pre-expansion %u, post-expansion %u",
                    (unsigned) hdr_len, (unsigned) pre_expansion, (unsigned) post_expansion );
@@ -738,7 +739,9 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
     }
 
     /* The previous check ensures that the following is >= 1. */
-    max_plaintext_len = total_sz - ( hdr_len + pre_expansion + post_expansion );
+    max_plaintext_len =
+        (mbedtls_mps_size_t)( total_sz - ( hdr_len + pre_expansion + post_expansion ) );
+
     /* Obey maximum plaintext size configured by the user. */
     if( max_plaintext_len > mbedtls_mps_l2_conf_get_max_plain_out( &ctx->conf ) )
         max_plaintext_len = mbedtls_mps_l2_conf_get_max_plain_out( &ctx->conf );

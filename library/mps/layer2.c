@@ -852,8 +852,6 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
         TRACE( trace_comment, "* Sequence number: ( %u << 16 ) + %u",
                (unsigned) rec.ctr[0], (unsigned) rec.ctr[1] );
 
-        /* TLS-1.3-NOTE: Add TLSPlaintext header, incl. padding. */
-
         /* Step 2: Apply record payload protection. */
         TRACE( trace_comment, "Encrypt record. The plaintext offset is %u.",
                (unsigned) rec.buf.data_offset );

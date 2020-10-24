@@ -834,7 +834,7 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
         rec.major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
         rec.minor_ver = mbedtls_mps_l2_conf_get_version( &ctx->conf );
         rec.buf       = ctx->io.out.payload;
-        rec.epoch     = ctx->io.out.writer.epoch;
+        rec.epoch     = (uint16_t) ctx->io.out.writer.epoch;
         rec.type      = ctx->io.out.writer.type;
 
         TRACE( trace_comment, "Record header fields:" );

@@ -841,7 +841,7 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
         TRACE( trace_comment, "* Epoch:           %u", (unsigned) rec.epoch );
         TRACE( trace_comment, "* Type:            %u", (unsigned) rec.type  );
 
-        ret = l2_epoch_lookup( ctx, rec.epoch, &epoch );
+        ret = l2_epoch_lookup( ctx, ctx->io.out.writer.epoch, &epoch );
         if( ret != 0 )
         {
             TRACE( trace_comment, "Epoch lookup failed" );

@@ -319,9 +319,6 @@ MBEDTLS_MPS_PUBLIC int mps_l1_init( mps_l1 *ctx, uint8_t mode, mps_alloc *alloc,
  * \pre            \p ctx must point to a writable, initialized
  *                 Layer 1 context.
  *
- * \return         \c 0 on success.
- * \return         A negative error code on failure.
- *
  */
 
 MBEDTLS_MPS_PUBLIC void mps_l1_free( mps_l1 *ctx );

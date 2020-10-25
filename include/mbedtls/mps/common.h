@@ -47,8 +47,6 @@
 #include <stdint.h>
 #include "error.h"
 
-#include "error.h"
-
 /**
  * \name SECTION:       MPS Configuration
  *

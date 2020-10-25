@@ -139,6 +139,21 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_FS_IO */
+void entropy_write_base_seed_file( int ret )
+{
+    mbedtls_entropy_context ctx;
+
+    mbedtls_entropy_init( &ctx );
+
+    TEST_ASSERT( mbedtls_entropy_write_seed_file( &ctx, MBEDTLS_PLATFORM_STD_NV_SEED_FILE ) == ret );
+    TEST_ASSERT( mbedtls_entropy_update_seed_file( &ctx, MBEDTLS_PLATFORM_STD_NV_SEED_FILE ) == ret );
+
+exit:
+    mbedtls_entropy_free( &ctx );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void entropy_too_many_sources( )
 {

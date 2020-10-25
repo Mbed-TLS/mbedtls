@@ -639,7 +639,7 @@ MBEDTLS_MPS_PUBLIC int mps_l3_read_alert( mps_l3 *l3, mps_l3_alert_in *alert );
  * \brief         Get a handle to the contents of an incoming CCS message.
  *
  * \param l3      The pointer to the Layer 3 context.
- * \param alert   The address to hold the address of the alert handle.
+ * \param ccs     The address to hold the address of the alert handle.
  *
  * \return        \c 0 on success.
  * \return        A negative error code on failure.

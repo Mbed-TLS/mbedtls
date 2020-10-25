@@ -636,7 +636,7 @@ int mbedtls_writer_detach( mbedtls_writer_ext *wr_ext,
  * \brief            Check if the extended writer has finished processing
  *                   the logical buffer it was setup with.
  *
- * \param wr_ext     The extended writer context to use.
+ * \param writer     The extended writer context to use.
  *
  * \return           \c 0 if all groups opened via mbedtls_writer_group_open()
  *                   have been closed via mbedtls_writer_group_close(),

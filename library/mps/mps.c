@@ -2239,9 +2239,9 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_check( mbedtls_mps *mps,
      */
 
     TRACE_INIT( "mps_retransmit_in_check" );
-    TRACE( trace_comment, "Seq Nr: %u", hs->seq_nr );
-    TRACE( trace_comment, "Type:   %u", hs->type   );
-    TRACE( trace_comment, "Length: %u", hs->len    );
+    TRACE( trace_comment, "Seq Nr: %u", (unsigned) hs->seq_nr );
+    TRACE( trace_comment, "Type:   %u", (unsigned) hs->type   );
+    TRACE( trace_comment, "Length: %u", (unsigned) hs->len    );
 
     /* We only consider handshake fragments with offset 0. */
     if( hs->frag_offset != 0 )
@@ -2428,10 +2428,10 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
     mbedtls_mps_msg_reassembly * reassembly;
 
     TRACE_INIT( "mps_reassembly_feed" );
-    TRACE( trace_comment, "* Sequence number: %u", hs->seq_nr      );
-    TRACE( trace_comment, "* Type:            %u", hs->type        );
-    TRACE( trace_comment, "* Total length:    %u", hs->len         );
-    TRACE( trace_comment, "* Fragment offset: %u", hs->frag_offset );
+    TRACE( trace_comment, "* Sequence number: %u", (unsigned) hs->seq_nr      );
+    TRACE( trace_comment, "* Type:            %u", (unsigned) hs->type        );
+    TRACE( trace_comment, "* Total length:    %u", (unsigned) hs->len         );
+    TRACE( trace_comment, "* Fragment offset: %u", (unsigned) hs->frag_offset );
     TRACE( trace_comment, "* Fragment length: %u", (unsigned) hs->frag_len    );
     TRACE( trace_comment, "Sequence number of next HS message: %u",
            (unsigned) mps->dtls.seq_nr );

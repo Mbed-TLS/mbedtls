@@ -503,7 +503,7 @@ typedef int mbedtls_mps_stored_opt_size_t;
 #if defined(MBEDTLS_MPS_INTERNAL_SMALL_TYPES)
 typedef mbedtls_mps_stored_size_t mbedtls_mps_size_t;
 #else
-typedef uint_fast16_t mbedtls_mps_size_t;
+typedef unsigned mbedtls_mps_size_t;
 #endif /* MBEDTLS_MPS_INTERNAL_SMALL_TYPES */
 
 #if (mbedtls_mps_size_t) -1 > (mbedtls_mps_stored_size_t) -1

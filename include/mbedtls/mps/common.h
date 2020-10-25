@@ -454,7 +454,7 @@ typedef unsigned mbedtls_mps_stored_hs_seq_nr_t;
 #if defined(MBEDTLS_MPS_INTERNAL_SMALL_TYPES)
 typedef mbedtls_mps_stored_hs_seq_nr_t mbedtls_mps_hs_seq_nr_t;
 #else
-typedef uint_fast8_t mbedtls_mps_hs_seq_nr_t;
+typedef unsigned mbedtls_mps_hs_seq_nr_t;
 #endif /* MBEDTLS_MPS_INTERNAL_SMALL_TYPES */
 
 /** \brief   The type of buffer sizes and offsets used in MPS structures.

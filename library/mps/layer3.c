@@ -1022,8 +1022,16 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
             if( out->len      != MBEDTLS_MPS_SIZE_UNKNOWN &&
                 out->frag_len != MBEDTLS_MPS_SIZE_UNKNOWN )
             {
-                int overflow = out->frag_offset + out->frag_len < out->frag_len;
-                if( overflow || out->frag_offset + out->frag_len > out->len )
+                mbedtls_mps_size_t frag_len =
+                    (mbedtls_mps_size_t) out->frag_len;
+                mbedtls_mps_size_t total_len =
+                    (mbedtls_mps_size_t) out->len;
+
+                mbedtls_mps_size_t end_of_fragment =
+                    (mbedtls_mps_size_t)( out->frag_offset + frag_len );
+
+                if( end_of_fragment < out->frag_offset /* overflow */ ||
+                    end_of_fragment > total_len )
                 {
                     TRACE( trace_error, "ASSERTION FAILURE!" );
                     RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );

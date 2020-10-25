@@ -3926,7 +3926,7 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_done( mbedtls_mps *mps )
     /* Increase handshake sequence number except for the CCS message. */
     if( hdl->handle_type != MBEDTLS_MPS_RETRANSMISSION_HANDLE_CCS )
     {
-        uint8_t cur_seq_nr;
+        mbedtls_mps_hs_seq_nr_t cur_seq_nr;
         cur_seq_nr = mps->dtls.seq_nr;
         if( cur_seq_nr == MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER )
         {

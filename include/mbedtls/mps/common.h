@@ -309,7 +309,7 @@ typedef uint8_t mbedtls_mps_epoch_offset_t;
  *  Enabling this significantly reduces RAM usage of MPS structures,
  *  but slightly increases its code-size.
  */
-#define MBEDTLS_MPS_STORED_SMALL_TYPES
+//#define MBEDTLS_MPS_STORED_SMALL_TYPES
 
 typedef uint8_t mbedtls_mps_transport_type;
 /* MBEDTLS_SSL_TRANSPORT_STREAM   */

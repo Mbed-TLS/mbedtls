@@ -297,6 +297,9 @@ typedef uint8_t mbedtls_mps_epoch_offset_t;
  *  Currently, this is disabled by default because allowing
  *  the compiler to use the most natural choice of type for the
  *  target platform appears to lead to slightly smaller code.
+ *
+ * TODO: This feature is experimental and doesn't work properly yet!
+ *
  */
 //#define MBEDTLS_MPS_INTERNAL_SMALL_TYPES
 
@@ -308,6 +311,8 @@ typedef uint8_t mbedtls_mps_epoch_offset_t;
  *
  *  Enabling this significantly reduces RAM usage of MPS structures,
  *  but slightly increases its code-size.
+ *
+ * TODO: This feature is experimental and doesn't work properly yet!
  */
 //#define MBEDTLS_MPS_STORED_SMALL_TYPES
 

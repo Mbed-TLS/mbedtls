@@ -993,7 +993,7 @@ typedef uint8_t mbedtls_mps_record_empty_config_t;
  *
  * \param ctx      The address of the Layer 2 context to use.
  * \param type     The record content type to configure.
- * \param split    This parameter indicates whether content of type
+ * \param pausing  This parameter indicates whether content of type
  *                 \p type is allowed to be split across multiple records
  *                 (value #MPS_L2_SPLIT_ENABLED) or not
  *                 (value #MPS_L2_SPLIT_DISABLED).
@@ -1002,7 +1002,7 @@ typedef uint8_t mbedtls_mps_record_empty_config_t;
  *                 while in TLS 1.3 alert messages must not be split.
  *                 See the documentation of the \c pause_flag
  *                 member of ::mps_l2_config for more information.
- * \param pack     This parameter indicates whether successive read/write
+ * \param merging  This parameter indicates whether successive read/write
  *                 requests for content type \p type is allowed to be served
  *                 from the same record (value #MPS_L2_PACK_ENABLED) or not
  *                 (value #MPS_L2_PACK_DISABLED).
@@ -1219,7 +1219,7 @@ MBEDTLS_MPS_PUBLIC int mps_l2_epoch_add( mbedtls_mps_l2 *ctx,
  * \brief          Modify the usage configuration for a previously added epoch.
  *
  * \param ctx      The address of the Layer 2 context to use.
- * \param epoch    The ID of the epoch to configure.
+ * \param epoch_id The ID of the epoch to configure.
  * \param clear    The usage flags to clear.
  * \param set      The usage flags to set.
  *

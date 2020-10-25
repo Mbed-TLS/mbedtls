@@ -195,9 +195,8 @@ struct mps_l3_handshake_in
     /*! The total length of the message (regardless of fragmentation). */
     mbedtls_mps_stored_size_t len;
 
-    /*! The length of the current handshake fragment, or
-     *  #MBEDTLS_MPS_SIZE_UNKNOWN if the will be determined at write-time. */
-    mbedtls_mps_stored_opt_size_t frag_len;
+    /*! The length of the current handshake fragment. */
+    mbedtls_mps_stored_size_t frag_len;
 
     /*! The offset of the current fragment from
      *  the beginning of the handshake message.  */
@@ -325,7 +324,7 @@ struct mps_l3_hs_in_internal
     mbedtls_mps_stored_hs_type type;
 
     /*! The total length of the message (regardless of fragmentation).      */
-    mbedtls_mps_stored_opt_size_t len;
+    mbedtls_mps_stored_size_t len;
 
     /* DTLS-specific fields. */
 

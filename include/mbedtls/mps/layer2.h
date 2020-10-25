@@ -845,9 +845,7 @@ struct mbedtls_mps_l2
              *  - mps_l2_readers_active_state
              *  - mps_l2_readers_get_active
              *  - mps_l2_readers_pause_active
-             *  - mps_l2_setup_free_slot
-             *  - mps_l2_readers_update
-             *  - mps_l2_find_paused_slot (TLS only)
+             *  - mps_l2_find_suitable_slot
              */
 
             mbedtls_mps_l2_in_internal active;

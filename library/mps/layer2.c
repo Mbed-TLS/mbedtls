@@ -314,6 +314,7 @@ int mps_l2_readers_close_active( mbedtls_mps_l2 *ctx )
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
+/* This function pauses the currently active reader. */
 MBEDTLS_MPS_STATIC
 int mps_l2_readers_pause_active( mbedtls_mps_l2 *ctx )
 {
@@ -344,12 +345,20 @@ int mps_l2_readers_pause_active( mbedtls_mps_l2 *ctx )
 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
+/* This functions determines
+ * - Whether there is an active reader in the current Layer 2 implementation
+ * - If so, whether it's status is internal (record open but not currently
+ *   passed to the user) or external (record open and currently passed to
+ *   the user).
+ */
 MBEDTLS_MPS_STATIC
 mbedtls_mps_l2_reader_state mps_l2_readers_active_state( mbedtls_mps_l2 *ctx )
 {
     return( ctx->io.in.active.state );
 }
 
+/* This functions _assumes_ that there is an active reader (in state internal
+ * or external) and returns a handle to the reader. */
 MBEDTLS_MPS_STATIC
 mbedtls_mps_l2_in_internal* mps_l2_readers_get_active( mbedtls_mps_l2 *ctx )
 {
@@ -385,35 +394,43 @@ void mps_l2_reader_slots_changed( mbedtls_mps_l2 *ctx )
 
 }
 
-#if defined(MBEDTLS_MPS_PROTO_TLS)
+/* This function searches the list of paused readers for one matching the
+ * record content type passed as an argument. If one exists, it returns that
+ * reader if it matches the passed epoch, and fails otherwise. If there is
+ * no reader handling the given content type but an unused reader is available,
+ * it returns that reader. Otherwise, it fails. */
 MBEDTLS_MPS_INLINE
-mbedtls_mps_l2_in_internal *mps_l2_find_paused_slot( mbedtls_mps_l2 *ctx,
-                                                  mbedtls_mps_msg_type_t type )
-{
-    if( ctx->io.in.paused.state == MBEDTLS_MPS_L2_READER_STATE_PAUSED )
-    {
-        if( ctx->io.in.paused.type == type )
-            return( &ctx->io.in.paused );
-    }
-    return( NULL );
-}
-#endif /* MBEDTLS_MPS_PROTO_TLS */
-
-MBEDTLS_MPS_INLINE
-mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot( mbedtls_mps_l2 *ctx,
-                                                    mbedtls_mps_msg_type_t type,
-                                                    mbedtls_mps_epoch_id epoch )
+int mps_l2_find_suitable_slot( mbedtls_mps_l2 *ctx,
+                               mbedtls_mps_msg_type_t type,
+                               mbedtls_mps_epoch_id epoch,
+                               mbedtls_mps_l2_in_internal **dst )
 {
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 
+    unsigned char *acc = NULL;
+    mbedtls_mps_size_t acc_len = 0;
+
+    TRACE_INIT( "mps_l2_find_suitable_slot(), type %u, epoch %u",
+                (unsigned) type, (unsigned) epoch );
+
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     MBEDTLS_MPS_IF_TLS( mode )
     {
-        unsigned char *acc = NULL;
-        mbedtls_mps_size_t acc_len = 0;
+        if( ctx->io.in.paused.state == MBEDTLS_MPS_L2_READER_STATE_PAUSED &&
+            ctx->io.in.paused.type == type )
+        {
+            /* It is not possible to change the incoming epoch when
+             * a reader is being paused, hence the epoch of the new
+             * record must match. Double-check this nonetheless. */
+            MBEDTLS_MPS_ASSERT_RAW( ctx->io.in.paused.epoch == epoch,
+                        "The paused epoch doesn't match the incoming epoch" );
 
-        if( l2_type_can_be_paused( ctx, type ) )
+            *dst = &ctx->io.in.paused;
+            RETURN( 0 );
+        }
+
+        if( l2_type_can_be_paused( ctx, type ) != 0 )
         {
             TRACE( trace_comment, "Record content type can be paused" );
             if( ctx->io.in.paused.state == MBEDTLS_MPS_L2_READER_STATE_UNSET )
@@ -437,25 +454,15 @@ mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot( mbedtls_mps_l2 *ctx,
             }
 #endif /* MPS_L2_ALLOW_PAUSABLE_CONTENT_TYPE_WITHOUT_ACCUMULATOR */
         }
+    }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
-        mbedtls_reader_init( &ctx->io.in.active.rd, acc, acc_len );
-        ctx->io.in.active.type = type;
-        ctx->io.in.active.epoch = epoch;
-        return( &ctx->io.in.active );
-    }
-#endif /* MBEDTLS_MPS_PROTO_TLS */
-#if defined(MBEDTLS_MPS_PROTO_DTLS)
-    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
-    {
-        /* This assumes that there is no active slot. Hence, in case
-         * of DTLS, we can statically return the address of the single
-         * available slot. */
-        mbedtls_reader_init( &ctx->io.in.active.rd, NULL, 0 );
-        ctx->io.in.active.type = type;
-        ctx->io.in.active.epoch = epoch;
-        return( &ctx->io.in.active );
-    }
-#endif /* MBEDTLS_MPS_PROTO_TLS */
+    mbedtls_reader_init( &ctx->io.in.active.rd, acc, acc_len );
+    ctx->io.in.active.type = type;
+    ctx->io.in.active.epoch = epoch;
+
+    *dst = &ctx->io.in.active;
+    RETURN( 0 );
 }
 
 MBEDTLS_MPS_STATIC
@@ -1653,44 +1660,12 @@ int l2_handle_record_content( mbedtls_mps_l2 *ctx, mps_rec *rec )
 
     TRACE_INIT( "l2_handle_record_content" );
 
-    /* Attempt to attach to a paused reader.
-     * See 3.1 in mps_l2_read_start(). */
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
-    {
-        slot = mps_l2_find_paused_slot( ctx, rec->type );
-        if( slot != NULL )
-        {
-            /* 3.1.1 */
-            TRACE( trace_comment,
-                   "A reader is being paused for the "
-                   "received record content type." );
-
-            /* It is not possible to change the incoming epoch when
-             * a reader is being paused, hence the epoch of the new
-             * record must match. Double-check this nonetheless. */
-            MBEDTLS_MPS_ASSERT_RAW( ctx->io.in.paused.epoch == rec->epoch,
-                                    "The paused epoch doesn't match the incoming epoch" );
-        }
-    }
-#endif /* MBEDTLS_MPS_PROTO_TLS */
-
-    /* In case of DTLS, this is always true, and the compiler
-     * should be able to eliminate this (test?). */
-    if( slot == NULL )
-    {
-        /* Feed the payload into a fresh reader.
-         * See 3.2 in mps_l2_read_start(). */
-        slot = mps_l2_setup_free_slot( ctx, rec->type, rec->epoch );
-
-        /* This should never happen with the current implementation,
-         * but it might if we switch the TLS implementation to use
-         * a single pausable slot only. In the latter case, we'd reach
-         * the present code-path in case of interleaving of records of
-         * different content types. */
-        MBEDTLS_MPS_ASSERT_RAW( slot != NULL,
-                                "No free slow available to store incoming record payload" );
-    }
+    /* Find a reader to handle the content.
+     * This can either be a paused reader matching the record content type
+     * and epoch, or a currently unused reader. */
+    ret = mps_l2_find_suitable_slot( ctx, rec->type, rec->epoch, &slot );
+    if( ret != 0 )
+        RETURN( ret );
 
     /* Feed record payload into target slot; might be either
      * a fresh or a matching paused slot.

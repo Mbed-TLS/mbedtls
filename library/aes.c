@@ -730,6 +730,7 @@ exit:
 
     return( ret );
 }
+#endif /* !MBEDTLS_AES_SETKEY_DEC_ALT */
 
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
 static int mbedtls_aes_xts_decode_keys( const unsigned char *key,
@@ -807,8 +808,6 @@ int mbedtls_aes_xts_setkey_dec( mbedtls_aes_xts_context *ctx,
     return mbedtls_aes_setkey_dec( &ctx->crypt, key1, key1bits );
 }
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
-
-#endif /* !MBEDTLS_AES_SETKEY_DEC_ALT */
 
 #define AES_FROUND(X0,X1,X2,X3,Y0,Y1,Y2,Y3)                     \
     do                                                          \

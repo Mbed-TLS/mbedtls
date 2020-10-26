@@ -1878,7 +1878,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
      *                                      + mki_len(1 byte)
      *                                      and optional srtp_mki
      */
-    if( len != ( buf[4] + 5u ) )
+    if( ( len < 5 ) || ( len != ( buf[4] + 5u ) ) )
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
 
     /*
@@ -2524,8 +2524,11 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         case MBEDTLS_TLS_EXT_USE_SRTP:
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "found use_srtp extension" ) );
 
-            if( ( ret = ssl_parse_use_srtp_ext( ssl, ext + 4, ext_size ) ) != 0 )
-                return( ret );
+            if ( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+            {
+                if( ( ret = ssl_parse_use_srtp_ext( ssl, ext + 4, ext_size ) ) != 0 )
+                    return( ret );
+            }
 
             break;
 #endif /* MBEDTLS_SSL_DTLS_SRTP */

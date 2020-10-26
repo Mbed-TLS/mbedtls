@@ -647,6 +647,59 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
 
 /**@}*/
 
+#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
+/** \defgroup psa_builtin_keys Built-in keys
+ * @{
+ */
+
+/** Platform function to obtain the data of a built-in key.
+ *
+ * You must implement this function if #MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS is
+ * enabled. This function is typically provided as part of a platform's
+ * system image.
+ *
+ * Call psa_get_key_id(\p attributes) to obtain the key identifier
+ * \c key_id.
+ * In a multi-application configuration
+ * (\c MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER is defined),
+ * this function should check that #MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(\p key_id)
+ * is allowed to use the given key.
+ *
+ * \param[in,out] attributes    On entry, this is #PSA_KEY_ATTRIBUTES_INIT or
+ *                              an equivalent value, except that the key
+ *                              identifier field is set.
+ *                              On successful return, this function must set
+ *                              the attributes of the key: lifetime, type,
+ *                              bit-size, usage policy.
+ * \param[out] p_key_buffer     On successful return, this function must
+ *                              place a pointer to a buffer allocated with
+ *                              mbedtls_calloc().
+ * \param[out] key_buffer_size  On successful return, this function must
+ *                              place the size of the buffer \c *p_key_buffer
+ *                              in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The requested key identifier designates a built-in key.
+ *         In a multi-application configuration, the requested owner
+ *         is allowed to access it.
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
+ *         The requested key identifier is not a built-in key which is known
+ *         to this function. If a key exists in the key storage with this
+ *         identifier, the data from the storage will be used.
+ * \retval (any other error)
+ *         Any other error is propagated to the function that requested the key.
+ *         Common errors include:
+ *         - #PSA_ERROR_INSUFFICIENT_MEMORY: unable to allocate the key buffer.
+ *         - #PSA_ERROR_NOT_PERMITTED: the key exists but the requested owner
+ *           is not allowed to access it.
+ */
+psa_status_t mbedtls_psa_platform_get_builtin_key(
+    psa_key_attributes_t *attributes,
+    uint8_t **p_key_buffer, size_t *key_buffer_size );
+
+/**@}*/
+#endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+
 #ifdef __cplusplus
 }
 #endif

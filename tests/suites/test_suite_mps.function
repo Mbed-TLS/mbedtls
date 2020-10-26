@@ -3379,6 +3379,17 @@ void mbedtls_mps_writer_random_usage( int data_amount,
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void mbedtls_mps_init_free( int mode )
+{
+    /* This test checks that a plain free-after-init always works. */
+    mps_set_default_config();
+    mps_test_config.mode = mode;
+    TEST_ASSERT( init_mps_layers() == 0 );
+    TEST_ASSERT( free_mps_layers() == 0 );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_L1 */
 void mbedtls_mps_l1_basic( int mode,
                            int send_multiple,

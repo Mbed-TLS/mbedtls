@@ -187,6 +187,14 @@ mbedtls_mps_writer_random_usage:10000:100:100:50
 MPS Writer: Random usage #2
 mbedtls_mps_writer_random_usage:10000:100:50:100
 
+MPS TLS: Init + Free for all Layers
+depends_on:MBEDTLS_MPS_PROTO_TLS
+mbedtls_mps_init_free:MBEDTLS_MPS_MODE_STREAM
+
+MPS DTLS: Init + Free for all Layers
+depends_on:MBEDTLS_MPS_PROTO_DTLS
+mbedtls_mps_init_free:MBEDTLS_MPS_MODE_DATAGRAM
+
 MPS Layer 1 TLS: Single chunk send and receive
 depends_on:MBEDTLS_MPS_PROTO_TLS
 mbedtls_mps_l1_basic:MBEDTLS_MPS_MODE_STREAM:0:0:0:0

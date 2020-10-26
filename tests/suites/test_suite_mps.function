@@ -5346,8 +5346,10 @@ void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
                    ( accumulator_too_small == 1 ?
                      MBEDTLS_ERR_MPS_BUFFER_TOO_SMALL : 0 ) ) );
     if( accumulator_too_small == 1 ||
-        pausable_for_receiver == 1 )
+        pausable_for_receiver == 0 )
+    {
         goto exit;
+    }
 
 #if MBEDTLS_MPS_MAXIMUM_MESSAGE_INTERLEAVING < 2
 

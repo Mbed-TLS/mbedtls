@@ -864,7 +864,7 @@
  * may result in a compromise of the long-term signing key. This is avoided by
  * the deterministic variant.
  *
- * Requires: MBEDTLS_HMAC_DRBG_C
+ * Requires: MBEDTLS_HMAC_DRBG_C, MBEDTLS_ECDSA_C
  *
  * Comment this macro to disable deterministic ECDSA.
  */

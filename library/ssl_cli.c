@@ -1925,6 +1925,14 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
                                         MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
+
+    /* If server does not use mki in its reply, make sure the client won't keep
+     * one as negotiated */
+    if( len == 5 )
+    {
+        ssl->dtls_srtp_info.mki_len = 0;
+    }
+
     /*
      * RFC5764:
      *  If the client detects a nonzero-length MKI in the server's response

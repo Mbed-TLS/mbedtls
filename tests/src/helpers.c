@@ -244,3 +244,67 @@ void mbedtls_param_failed( const char *failure_condition,
     }
 }
 #endif /* MBEDTLS_CHECK_PARAMS */
+
+#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
+
+#include <psa/crypto.h>
+
+typedef struct
+{
+    psa_key_location_t location;
+    psa_drv_slot_number_t slot_number;
+} mbedtls_psa_builtin_key_description_t;
+
+static const mbedtls_psa_builtin_key_description_t builtin_keys[] = {
+    // TODO: declare some keys
+    {0, 0},
+};
+
+psa_status_t mbedtls_psa_platform_get_builtin_key(
+    psa_key_attributes_t *attributes,
+    uint8_t **p_key_buffer, size_t *key_buffer_size )
+{
+    mbedtls_svc_key_id_t svc_key_id = psa_get_key_id( attributes );
+    psa_key_id_t app_key_id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( svc_key_id );
+    size_t offset = app_key_id - MBEDTLS_PSA_KEY_ID_BUILTIN_MIN + 1;
+    if( offset >= sizeof( builtin_keys ) )
+        return( PSA_ERROR_DOES_NOT_EXIST );
+    const mbedtls_psa_builtin_key_description_t *descr = &builtin_keys[offset];
+
+    psa_set_key_lifetime( attributes,
+                          PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                              PSA_KEY_PERSISTENCE_READ_ONLY,
+                              descr->location ) );
+
+    switch( descr->location )
+    {
+#if 0
+        /* TODO: this code is for demonstration purpose. Add code that hooks into
+         * Mbed TLS tests. */
+        case EXAMPLE_DRIVER_LOCATION:
+        {
+            *key_buffer_size = EXAMPLE_DRIVER_BUILTIN_KEY_BUFFER_SIZE;
+            *p_key_buffer = mbedtls_calloc( 1, *key_buffer_size );
+            if( *p_key_buffer == NULL )
+                return( PSA_ERROR_INSUFFICIENT_MEMORY );
+            psa_status_t status =
+                example_driver_get_builtin_key( descr->slot_number,
+                                                attributes,
+                                                *p_key_buffer,
+                                                *key_buffer_size );
+            if( status != PSA_SUCCESS )
+            {
+                mbedtls_platform_zeroize( *p_key_buffer, *key_buffer_size );
+                mbedtls_free( *p_key_buffer );
+            }
+            return( status );
+        }
+#endif
+        default:
+            // The specified location does not exist in this build
+            (void) p_key_buffer;
+            (void) key_buffer_size;
+            return( PSA_ERROR_DOES_NOT_EXIST );
+    }
+}
+#endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */

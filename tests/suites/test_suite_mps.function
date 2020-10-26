@@ -6849,7 +6849,6 @@ void mbedtls_mps_l3_basic_handshake(
           int mode,
           int allocator_buffer_sz,
           int layer0_buffer_sz,
-          int rec_sz,
           int aborted_before,
           int real_transforms,
           int length_known,
@@ -6926,7 +6925,6 @@ void mbedtls_mps_l3_basic_handshake(
         srv_rcv = &layer0_dgram_read_srv;
     }
 
-    ((void) rec_sz);
 
     /* Initialize allocators */
     mps_alloc_init( &cli_alloc, allocator_buffer_sz );
@@ -7425,7 +7423,6 @@ exit:
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_L3:MBEDTLS_MPS_PROTO_TLS */
 void mbedtls_mps_l3_handshake_gradual( int allocator_buffer_sz,
                                        int layer0_buffer_sz,
-                                       int rec_sz,
                                        int real_transforms,
                                        int num_msgs,
                                        int pause_after_header )
@@ -7476,8 +7473,6 @@ void mbedtls_mps_l3_handshake_gradual( int allocator_buffer_sz,
     {
         build_mock_transforms( dummy_c, dummy_s, 1, 5 );
     }
-
-    ((void) rec_sz);
 
     /* Initialize Layer 0 mock objects */
     layer0_bufsize = (size_t) layer0_buffer_sz;
@@ -7823,7 +7818,6 @@ exit:
 void mbedtls_mps_l3_basic_application( int mode,
                                        int allocator_buffer_sz,
                                        int layer0_buffer_sz,
-                                       int rec_sz,
                                        int real_transforms )
 {
     /* Allocator objects */
@@ -7869,8 +7863,6 @@ void mbedtls_mps_l3_basic_application( int mode,
     {
         build_mock_transforms( dummy_c, dummy_s, 1, 5 );
     }
-
-    ((void) rec_sz);
 
     /* Initialize Layer 0 mock objects */
     layer0_bufsize = (size_t) layer0_buffer_sz;
@@ -8008,7 +8000,6 @@ exit:
 void mbedtls_mps_l3_basic_alert( int mode,
                                  int allocator_buffer_sz,
                                  int layer0_buffer_sz,
-                                 int rec_sz,
                                  int real_transforms,
                                  int handle_fragmentation,
                                  int num_alerts,
@@ -8058,8 +8049,6 @@ void mbedtls_mps_l3_basic_alert( int mode,
     {
         build_mock_transforms( dummy_c, dummy_s, 1, 5 );
     }
-
-    ((void) rec_sz);
 
     /* Initialize Layer 0 mock objects */
     layer0_bufsize = (size_t) layer0_buffer_sz;
@@ -8230,7 +8219,6 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_TLS:TEST_SUITE_MPS_L3 */
 void mbedtls_mps_l3_basic_ccs( int allocator_buffer_sz,
                                int layer0_buffer_sz,
-                               int rec_sz,
                                int real_transforms,
                                int num_ccss,
                                int ccs_merging )
@@ -8275,8 +8263,6 @@ void mbedtls_mps_l3_basic_ccs( int allocator_buffer_sz,
     {
         build_mock_transforms( dummy_c, dummy_s, 1, 5 );
     }
-
-    ((void) rec_sz);
 
     /* Initialize Layer 0 mock objects */
     layer0_bufsize = (size_t) layer0_buffer_sz;
@@ -8383,7 +8369,6 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_MPS_SUPPORT_TWO_INTERLEAVED_MESSAGES:MBEDTLS_MPS_PROTO_TLS:TEST_SUITE_MPS_L3:MPS_L3_ALLOW_INTERLEAVED_SENDING */
 void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
                                                  int layer0_buffer_sz,
-                                                 int rec_sz,
                                                  int real_transforms,
                                                  int num_msgs,
                                                  int max_out )
@@ -8468,8 +8453,6 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
     {
         build_mock_transforms( dummy_c, dummy_s, 1, 5 );
     }
-
-    ((void) rec_sz);
 
     /* Initialize Layer 0 mock objects */
     layer0_bufsize = (size_t) layer0_buffer_sz;
@@ -9587,7 +9570,6 @@ void mbedtls_mps_l4_basic_handshake(
           int mode,
           int allocator_buffer_sz,
           int layer0_buffer_sz,
-          int rec_sz,
           int real_transforms,
           int length_known,
           int multiple_fetch,
@@ -9642,8 +9624,6 @@ void mbedtls_mps_l4_basic_handshake(
     {
         build_mock_transforms( dummy_c, dummy_s, 1, 5 );
     }
-
-    ((void) rec_sz);
 
     /* Initialize Layer 0 mock objects */
     if( mode == MBEDTLS_MPS_MODE_STREAM )
@@ -10588,7 +10568,6 @@ exit:
 void mbedtls_mps_l4_disruption( int mode,
           int allocator_buffer_sz,
           int layer0_buffer_sz,
-          int rec_sz,
           int shutdown )
 {
     /*
@@ -10630,8 +10609,6 @@ void mbedtls_mps_l4_disruption( int mode,
     mps_l0_recv_t *cli_rcv, *srv_rcv;
 
     build_mock_transforms( dummy_c, dummy_s, 1, 5 );
-
-    ((void) rec_sz);
 
     /* Initialize Layer 0 mock objects */
     if( mode == MBEDTLS_MPS_MODE_STREAM )

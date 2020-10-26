@@ -284,32 +284,50 @@ void l2_read_version_dtls( uint8_t *major, uint8_t *minor,
 MBEDTLS_MPS_STATIC
 void mps_l2_readers_init( mbedtls_mps_l2 *ctx )
 {
-    ctx->io.in.active.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
-    mbedtls_reader_init( &ctx->io.in.active.rd, NULL, 0 );
-
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-    ctx->io.in.paused.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
-    mbedtls_reader_init( &ctx->io.in.paused.rd, NULL, 0 );
-#endif /* MBEDTLS_MPS_PROTO_TLS */
+    mbedtls_mps_l2_in_internal *cur = &ctx->io.in.slots[0];
+    for( unsigned idx=0; idx < MBEDTLS_MPS_L2_NUM_SLOTS; idx++, cur++ )
+    {
+        cur->state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
+        mbedtls_reader_init( &cur->rd, NULL, 0 );
+    }
 }
 
 MBEDTLS_MPS_STATIC
 void mps_l2_readers_free( mbedtls_mps_l2 *ctx )
 {
-    ctx->io.in.active.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
-    mbedtls_reader_free( &ctx->io.in.active.rd );
+    mbedtls_mps_l2_in_internal *cur = &ctx->io.in.slots[0];
+    for( unsigned idx=0; idx < MBEDTLS_MPS_L2_NUM_SLOTS; idx++, cur++ )
+    {
+        cur->state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
+        mbedtls_reader_free( &cur->rd );
+    }
+}
 
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-    ctx->io.in.paused.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
-    mbedtls_reader_free( &ctx->io.in.paused.rd );
-#endif /* MBEDTLS_MPS_PROTO_TLS */
+/* This functions _assumes_ that there is an active reader (in state internal
+ * or external) and returns a handle to the reader. */
+MBEDTLS_MPS_STATIC
+mbedtls_mps_l2_in_internal* mps_l2_readers_get_active( mbedtls_mps_l2 *ctx )
+{
+    mbedtls_mps_l2_in_internal *cur = &ctx->io.in.slots[0];
+    for( unsigned idx=0; idx < MBEDTLS_MPS_L2_NUM_SLOTS; idx++, cur++ )
+    {
+        if( cur->state == MBEDTLS_MPS_L2_READER_STATE_INTERNAL ||
+            cur->state == MBEDTLS_MPS_L2_READER_STATE_EXTERNAL )
+        {
+            return( cur );
+        }
+    }
+    return( NULL );
 }
 
 MBEDTLS_MPS_STATIC
 int mps_l2_readers_close_active( mbedtls_mps_l2 *ctx )
 {
-    mbedtls_reader_free( &ctx->io.in.active.rd );
-    ctx->io.in.active.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
+    mbedtls_mps_l2_in_internal *active = mps_l2_readers_get_active( ctx );
+    if( active == NULL )
+        return( 0 );
+    mbedtls_reader_free( &active->rd );
+    active->state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
     return( 0 );
 }
 
@@ -318,29 +336,11 @@ int mps_l2_readers_close_active( mbedtls_mps_l2 *ctx )
 MBEDTLS_MPS_STATIC
 int mps_l2_readers_pause_active( mbedtls_mps_l2 *ctx )
 {
-    mbedtls_mps_l2_in_internal tmp;
     TRACE_INIT( "mps_l2_readers_pause_active" );
-
-    /*
-     * At this point, we know that data has been backed up, so
-     * we must have provided an accumulator, so the record content
-     * type must have been pauseable.
-     * Also, we wouldn't have provided the accumulator if a
-     * reader had already been paused.
-     *
-     * Let's double-check this reasoning nonetheless.
-     */
-    MBEDTLS_MPS_ASSERT_RAW(
-        ctx->io.in.paused.state == MBEDTLS_MPS_L2_READER_STATE_UNSET,
-        "Invalid reader state in mps_l2_readers_pause_active()" );
-
-    tmp = ctx->io.in.active;
-    ctx->io.in.active = ctx->io.in.paused;
-    ctx->io.in.paused = tmp;
-
-    ctx->io.in.active.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
-    ctx->io.in.paused.state = MBEDTLS_MPS_L2_READER_STATE_PAUSED;
-
+    mbedtls_mps_l2_in_internal *active = mps_l2_readers_get_active( ctx );
+    if( active == NULL )
+        RETURN( 0 );
+    active->state = MBEDTLS_MPS_L2_READER_STATE_PAUSED;
     RETURN( 0 );
 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
@@ -354,44 +354,41 @@ int mps_l2_readers_pause_active( mbedtls_mps_l2 *ctx )
 MBEDTLS_MPS_STATIC
 mbedtls_mps_l2_reader_state mps_l2_readers_active_state( mbedtls_mps_l2 *ctx )
 {
-    return( ctx->io.in.active.state );
+    mbedtls_mps_l2_in_internal *active = mps_l2_readers_get_active( ctx );
+    if( active == NULL )
+        return( MBEDTLS_MPS_L2_READER_STATE_UNSET );
+    return( active->state );
 }
 
-/* This functions _assumes_ that there is an active reader (in state internal
- * or external) and returns a handle to the reader. */
 MBEDTLS_MPS_STATIC
-mbedtls_mps_l2_in_internal* mps_l2_readers_get_active( mbedtls_mps_l2 *ctx )
+mbedtls_mps_l2_in_internal* mps_l2_readers_get_unused( mbedtls_mps_l2 *ctx )
 {
-    return( &ctx->io.in.active );
+    mbedtls_mps_l2_in_internal *cur = &ctx->io.in.slots[0];
+    for( unsigned idx=0; idx < MBEDTLS_MPS_L2_NUM_SLOTS; idx++, cur++ )
+    {
+        if( cur->state == MBEDTLS_MPS_L2_READER_STATE_UNSET )
+            return( cur );
+    }
+    return( NULL );
+}
+
+MBEDTLS_MPS_STATIC
+int mps_l2_readers_accumulator_taken( mbedtls_mps_l2 *ctx )
+{
+    mbedtls_mps_l2_in_internal *cur = &ctx->io.in.slots[0];
+    for( unsigned idx=0; idx < MBEDTLS_MPS_L2_NUM_SLOTS; idx++, cur++ )
+    {
+        if( cur->state == MBEDTLS_MPS_L2_READER_STATE_PAUSED )
+            return( 1 );
+    }
+    return( 0 );
 }
 
 MBEDTLS_MPS_INLINE
 void mps_l2_reader_slots_changed( mbedtls_mps_l2 *ctx )
 {
-    mbedtls_mps_transport_type const mode =
-        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-    MBEDTLS_MPS_IF_TLS( mode )
-    {
-        /* Swap active and paused reader if the paused
-         * reader has been activated. */
-        if( ctx->io.in.paused.state == MBEDTLS_MPS_L2_READER_STATE_INTERNAL )
-        {
-            mbedtls_mps_l2_in_internal tmp = ctx->io.in.active;
-            ctx->io.in.active = ctx->io.in.paused;
-            ctx->io.in.paused = tmp;
-        }
-    }
-#endif /* MBEDTLS_MPS_PROTO_TLS */
-#if defined(MBEDTLS_MPS_PROTO_DTLS)
-    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
-    {
-        ((void) ctx);
-        return;
-    }
-#endif /* MBEDTLS_MPS_PROTO_DTLS */
-
+    ((void) ctx);
+    return;
 }
 
 /* This function searches the list of paused readers for one matching the
@@ -411,29 +408,34 @@ int mps_l2_find_suitable_slot( mbedtls_mps_l2 *ctx,
     unsigned char *acc = NULL;
     mbedtls_mps_size_t acc_len = 0;
 
+    mbedtls_mps_l2_in_internal *slot = NULL;
+
     TRACE_INIT( "mps_l2_find_suitable_slot(), type %u, epoch %u",
                 (unsigned) type, (unsigned) epoch );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     MBEDTLS_MPS_IF_TLS( mode )
     {
-        if( ctx->io.in.paused.state == MBEDTLS_MPS_L2_READER_STATE_PAUSED &&
-            ctx->io.in.paused.type == type )
+        mbedtls_mps_l2_in_internal *cur = &ctx->io.in.slots[0];
+        for( unsigned idx=0; idx < MBEDTLS_MPS_L2_NUM_SLOTS; idx++, cur++ )
         {
-            /* It is not possible to change the incoming epoch when
-             * a reader is being paused, hence the epoch of the new
-             * record must match. Double-check this nonetheless. */
-            MBEDTLS_MPS_ASSERT_RAW( ctx->io.in.paused.epoch == epoch,
-                        "The paused epoch doesn't match the incoming epoch" );
+            if( cur->state == MBEDTLS_MPS_L2_READER_STATE_PAUSED &&
+                cur->type == type )
+            {
+                /* It is not possible to change the incoming epoch when
+                 * a reader is being paused, hence the epoch of the new
+                 * record must match. Double-check this nonetheless. */
+                MBEDTLS_MPS_ASSERT_RAW( cur->epoch == epoch,
+                          "The paused epoch doesn't match the incoming epoch" );
 
-            *dst = &ctx->io.in.paused;
-            RETURN( 0 );
+                *dst = cur;
+                RETURN( 0 );
+            }
         }
 
         if( l2_type_can_be_paused( ctx, type ) != 0 )
         {
-            TRACE( trace_comment, "Record content type can be paused" );
-            if( ctx->io.in.paused.state == MBEDTLS_MPS_L2_READER_STATE_UNSET )
+            if( mps_l2_readers_accumulator_taken( ctx ) == 0 )
             {
                 TRACE( trace_comment, "The accumulator (size %u) is available",
                        (unsigned) ctx->io.in.acc_len );
@@ -457,11 +459,17 @@ int mps_l2_find_suitable_slot( mbedtls_mps_l2 *ctx,
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
-    mbedtls_reader_init( &ctx->io.in.active.rd, acc, acc_len );
-    ctx->io.in.active.type = type;
-    ctx->io.in.active.epoch = epoch;
+    slot = mps_l2_readers_get_unused( ctx );
+    if( slot == NULL )
+    {
+        TRACE( trace_error, "No free reader available for the incoming record." );
+        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED );
+    }
 
-    *dst = &ctx->io.in.active;
+    mbedtls_reader_init( &slot->rd, acc, acc_len );
+    slot->type = type;
+    slot->epoch = epoch;
+    *dst = slot;
     RETURN( 0 );
 }
 
@@ -1831,6 +1839,8 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
      * record. */
 
     active = mps_l2_readers_get_active( ctx );
+    MBEDTLS_MPS_ASSERT_RAW( active != NULL,
+                       "No active reader after l2_handle_record_content()" );
 
     /* Check if the record's epoch is a valid epoch for reading.
      *

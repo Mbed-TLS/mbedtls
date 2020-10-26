@@ -53,6 +53,38 @@
  * \{
  */
 
+/*! This numerical option controls the maximum level of interleaving
+ *  of records of different content types that should be supported.
+ *
+ *  - A value of \c 1 indicates that a sequence of records jointly
+ *    carrying some message (e.g., a long handshake message fragmented
+ *    across multiple records) must not be interleaved with records
+ *    of other content types (e.g., an alert record).
+ *
+ *  - A value of \c n indicates that the stack is able of processing
+ *    up to \c n messages of different content types carried over
+ *    interleaved records.
+ *
+ *  TLS 1.3 forbids interleaving of records of different content types,
+ *  and the value of this option is irrelevant in this case: The stack
+ *  will behave as if the value was \c 1.
+ *
+ *  For earlier versions of TLS, there are two reasons to consider
+ *  using a value bigger than \c 1:
+ *
+ *  - The default value of \c 2 allows to receive and handle a fatal alert
+ *    while accumulating a fragmented handshake message.
+ *
+ *  - A value greater than \c 2 is currently purely academic: It would e.g.
+ *    allow to receive a CCS while receiving a fragmented handshake message
+ *    _and_ a fragmented alert (which is only possible if the alert is carried
+ *    in two 1-byte records).
+ *    It is supported for experimentation and because the complexity of the
+ *    current implementation does not depend on the value of this option.
+ *
+ */
+#define MBEDTLS_MPS_MAXIMUM_MESSAGE_INTERLEAVING 2
+
 /*! This flag controls whether the MPS-internal components
  *  (reader, writer, Layer 1-3) perform validation of the
  *  expected abstract state at the entry of API calls.
@@ -174,6 +206,10 @@ typedef uint8_t mbedtls_mps_epoch_offset_t;
 /*
  * Internal helper macros derived from the MPS configuration.
  */
+
+#if MBEDTLS_MPS_MAXIMUM_MESSAGE_INTERLEAVING >= 2
+#define MBEDTLS_MPS_SUPPORT_TWO_INTERLEAVED_MESSAGES
+#endif
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
 

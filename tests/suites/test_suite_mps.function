@@ -5349,6 +5349,14 @@ void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
         pausable_for_receiver == 1 )
         goto exit;
 
+#if MBEDTLS_MPS_MAXIMUM_MESSAGE_INTERLEAVING < 2
+
+    TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) ==
+                 MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED );
+    goto exit;
+
+#else /* MBEDTLS_MPS_SUPPORT_TWO_INTERLEAVED_MESSAGES < 2 */
+
     /* Open next record; turns out to be type-B. */
     TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
     TEST_ASSERT( in_srv.epoch == epoch_init );
@@ -5384,6 +5392,8 @@ void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
     }
     TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
     TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+
+#endif /* MBEDTLS_MPS_SUPPORT_TWO_INTERLEAVED_MESSAGES < 2 */
 
 exit:
 
@@ -8368,7 +8378,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_TLS:TEST_SUITE_MPS_L3:MPS_L3_ALLOW_INTERLEAVED_SENDING */
+/* BEGIN_CASE depends_on:MBEDTLS_MPS_SUPPORT_TWO_INTERLEAVED_MESSAGES:MBEDTLS_MPS_PROTO_TLS:TEST_SUITE_MPS_L3:MPS_L3_ALLOW_INTERLEAVED_SENDING */
 void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
                                                  int layer0_buffer_sz,
                                                  int rec_sz,

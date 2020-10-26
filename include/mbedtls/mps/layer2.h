@@ -57,6 +57,12 @@
 
 #define MPS_L2_ALLOW_PAUSABLE_CONTENT_TYPE_WITHOUT_ACCUMULATOR
 
+#if defined(MBEDTLS_MPS_MAXIMUM_MESSAGE_INTERLEAVING)
+#define MBEDTLS_MPS_L2_NUM_SLOTS MBEDTLS_MPS_MAXIMUM_MESSAGE_INTERLEAVING
+#else
+#define MBEDTLS_MPS_L2_NUM_SLOTS 2
+#endif
+
 /*! The type of epoch usage flags */
 typedef uint8_t mbedtls_mps_epoch_usage;
 
@@ -825,6 +831,15 @@ struct mbedtls_mps_l2
          */
         struct
         {
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+            /*! The accumulator for incoming data of pausable
+             *  record content types.    */
+            unsigned char *accumulator;
+            /*! The size of the accumulator in Bytes.*/
+            mbedtls_mps_stored_size_t acc_len;
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
             /* Note: In contrast to the write-side, the read-side of Layer 2 does
              * not remember the raw record buffers obtained from Layer 1 as they
              * can be handled on the stack when a new record is fetched. */
@@ -842,23 +857,14 @@ struct mbedtls_mps_l2
              *  The Layer 2 implementation doesn't use this directly, but
              *  only through the following internal interface. Re-implement
              *  this interface to change the number of paused readers in TLS.
+             *  - mps_l2_readers_init
+             *  - mps_l2_readers_free
              *  - mps_l2_readers_active_state
              *  - mps_l2_readers_get_active
              *  - mps_l2_readers_pause_active
              *  - mps_l2_find_suitable_slot
              */
-
-            mbedtls_mps_l2_in_internal active;
-
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-            /*! The accumulator for incoming data of pausable
-             *  record content types.    */
-            unsigned char *accumulator;
-            /*! The size of the accumulator in Bytes.*/
-            mbedtls_mps_stored_size_t acc_len;
-
-            mbedtls_mps_l2_in_internal paused;
-#endif /* MBEDTLS_MPS_PROTO_TLS */
+            mbedtls_mps_l2_in_internal slots[ MBEDTLS_MPS_L2_NUM_SLOTS ];
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
             uint32_t bad_mac_ctr; /* The number of records with bad MAC that

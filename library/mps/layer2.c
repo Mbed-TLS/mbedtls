@@ -1098,14 +1098,9 @@ int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
 int mps_l2_write_flush( mbedtls_mps_l2 *ctx )
 {
     TRACE_INIT( "mps_l2_write_flush, state %u", ctx->io.out.state );
-
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL )
-    {
-        TRACE( trace_error, "Unexpected operation" );
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        ctx->io.out.state != MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL,
+        "mps_l2_write_flush() called in unexpected state." );
 
     ctx->io.out.flush = 1;
     RETURN( l2_out_clear_pending( ctx ) );
@@ -1218,13 +1213,9 @@ int mps_l2_write_start( mbedtls_mps_l2 *ctx, mps_l2_out *out )
     /* We must not attempt to write multiple records simultaneously.
      * If this happens, the layer most likely forgot to dispatch
      * the last outgoing record. */
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL )
-    {
-        TRACE( trace_error, "Unexpected operation" );
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        ctx->io.out.state != MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL,
+        "Unexpected operation" );
 
     /* Check if the requested record content type is valid. */
     desired_type = out->type;
@@ -1317,12 +1308,9 @@ int mps_l2_write_done( mbedtls_mps_l2 *ctx )
     int ret;
     TRACE_INIT( "l2_write_done" );
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( ctx->io.out.state != MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL )
-    {
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL,
+        "Unexpected operation" );
 
     ctx->io.out.state = MBEDTLS_MPS_L2_WRITER_STATE_INTERNAL;
 
@@ -3087,21 +3075,13 @@ int mps_l2_force_next_sequence_number( mbedtls_mps_l2 *ctx,
 {
     int ret;
     mbedtls_mps_l2_epoch_t *epoch;
-    mbedtls_mps_transport_type const mode =
-        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 
     TRACE_INIT( "mps_l2_force_next_sequence_number, epoch %u, ctr %u",
                 (unsigned) epoch_id, (unsigned) ctr );
 
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
-    {
-        TRACE( trace_error, "Sequence number forcing only needed and allowed in DTLS." );
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#else
-    ((void) mode);
-#endif /* MBEDTLS_MPS_PROTO_TLS */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        MBEDTLS_MPS_IS_DTLS( mbedtls_mps_l2_conf_get_mode( &ctx->conf ) ),
+        "Sequence number forcing only needed and allowed in DTLS." );
 
     ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
     if( ret != 0 )
@@ -3118,21 +3098,12 @@ int mps_l2_get_last_sequence_number( mbedtls_mps_l2 *ctx,
 {
     int ret;
     mbedtls_mps_l2_epoch_t *epoch;
-    mbedtls_mps_transport_type const mode =
-        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-
     TRACE_INIT( "mps_l2_get_last_sequence_number, epoch %u",
                 (unsigned) epoch_id );
 
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
-    {
-        TRACE( trace_error, "Sequence number retrieval only needed and allowed in DTLS." );
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#else
-    ((void) mode);
-#endif /* MBEDTLS_MPS_PROTO_TLS */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        MBEDTLS_MPS_IS_DTLS( mbedtls_mps_l2_conf_get_mode( &ctx->conf ) ),
+        "Sequence number retrieval only needed and allowed in DTLS." );
 
     ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
     if( ret != 0 )

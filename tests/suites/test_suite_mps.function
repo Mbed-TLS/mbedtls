@@ -2413,7 +2413,7 @@ void mbedtls_mps_writer_no_queueing_single_step_single_round( int with_queue )
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     /* Can't feed again as we're now in producing mode */
-    TEST_ASSERT( mbedtls_writer_feed( &wr, buf, sizeof( buf ) ) == 0
+    TEST_ASSERT( mbedtls_writer_feed( &wr, buf, sizeof( buf ) ) ==
                  MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED );
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -2462,7 +2462,7 @@ void mbedtls_mps_writer_unexpected_operations()
     /* Feed some buffer to the writer */
     TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
     /* Can't feed again as we're now in producing mode */
-    TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) ==
                  MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED );
     /* Producing (upper layer) */
     TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) == 0 );

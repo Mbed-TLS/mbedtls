@@ -21,6 +21,7 @@
 
 #include "mbedtls/mps/layer3.h"
 #include "mbedtls/mps/trace.h"
+#include "mbedtls/mps/common.h"
 
 #if defined(MBEDTLS_MPS_SEPARATE_LAYERS) ||     \
     defined(MBEDTLS_MPS_TOP_TRANSLATION_UNIT)
@@ -161,11 +162,9 @@ int mps_l3_read( mps_l3 *l3 )
      *         extended reader keeping track of global message bounds.
      */
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     /* 1 */
-    if( l3->io.in.state != MBEDTLS_MPS_MSG_NONE )
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW( l3->io.in.state == MBEDTLS_MPS_MSG_NONE,
+                                  "mps_l3_read() called in unexpected state." );
 
     /* 2 */
     /* Request incoming data from Layer 2 context */
@@ -433,11 +432,6 @@ int mps_l3_read_consume( mps_l3 *l3 )
 
     switch( l3->io.in.state )
     {
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-        case MBEDTLS_MPS_MSG_NONE:
-            RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
-
         case MBEDTLS_MPS_MSG_HS:
             TRACE( trace_comment, "Finishing handshake message" );
             /* See mps_l3_read for the general description
@@ -470,11 +464,13 @@ int mps_l3_read_consume( mps_l3 *l3 )
             /* All contents are already committed in parsing functions. */
             break;
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
         default:
-            TRACE( trace_error, "ASSERTION FAILURE!" );
-            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+            MBEDTLS_MPS_STATE_VALIDATE_RAW( l3->io.in.state != MBEDTLS_MPS_MSG_NONE,
+                          "mps_l3_read_consume() called in unexpected state." );
+
+            MBEDTLS_MPS_ASSERT_RAW( 0,
+                       "Invalid message state in mps_l3_read_consume()." );
+            break;
     }
 
     /* Remove reference to the raw reader borrowed from Layer 2
@@ -504,13 +500,10 @@ int mps_l3_read_pause_handshake( mps_l3 *l3 )
      * of how the implementation uses extended readers
      * to handle pausing of handshake messages. */
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->io.in.state != MBEDTLS_MPS_MSG_HS ||
-        l3->io.in.hs.state != MPS_L3_HS_ACTIVE )
-    {
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        l3->io.in.state    == MBEDTLS_MPS_MSG_HS &&
+        l3->io.in.hs.state == MPS_L3_HS_ACTIVE,
+        "mps_l3_read_pause_handshake() called in unexpected state." );
 
     /* Remove reference to raw reader from extended reader. */
     res = mbedtls_reader_detach( &l3->io.in.hs.rd_ext );
@@ -807,13 +800,10 @@ int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs )
 
     TRACE_INIT( "mps_l3_read_handshake" );
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->io.in.state    != MBEDTLS_MPS_MSG_HS ||
-        l3->io.in.hs.state != MPS_L3_HS_ACTIVE )
-    {
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        l3->io.in.state    == MBEDTLS_MPS_MSG_HS &&
+        l3->io.in.hs.state == MPS_L3_HS_ACTIVE,
+        "mps_l3_read_handshake() called in unexpected state." );
 
     hs->epoch  = l3->io.in.epoch;
     hs->len    = l3->io.in.hs.len;
@@ -837,13 +827,10 @@ int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs )
 int mps_l3_read_app( mps_l3 *l3, mps_l3_app_in *app )
 {
     TRACE_INIT( "mps_l3_read_app" );
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->io.in.state != MBEDTLS_MPS_MSG_APP )
-    {
-        TRACE( trace_comment, "No application data message opened" );
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        l3->io.in.state == MBEDTLS_MPS_MSG_APP,
+        "mps_l3_read_app() called in unexpected state." );
 
     app->epoch = l3->io.in.epoch;
     app->rd = l3->io.in.raw_in;
@@ -853,13 +840,10 @@ int mps_l3_read_app( mps_l3 *l3, mps_l3_app_in *app )
 int mps_l3_read_alert( mps_l3 *l3, mps_l3_alert_in *alert )
 {
     TRACE_INIT( "mps_l3_read_alert" );
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->io.in.state != MBEDTLS_MPS_MSG_ALERT )
-    {
-        TRACE( trace_comment, "No alert message opened" );
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        l3->io.in.state == MBEDTLS_MPS_MSG_ALERT,
+        "mps_l3_read_alert() called in unexpected state." );
 
     alert->epoch = l3->io.in.epoch;
     alert->type  = l3->io.in.alert.type;
@@ -870,13 +854,10 @@ int mps_l3_read_alert( mps_l3 *l3, mps_l3_alert_in *alert )
 int mps_l3_read_ccs( mps_l3 *l3, mps_l3_ccs_in *ccs )
 {
     TRACE_INIT( "mps_l3_read_ccs" );
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->io.in.state != MBEDTLS_MPS_MSG_CCS )
-    {
-        TRACE( trace_comment, "No CCS message opened" );
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        l3->io.in.state == MBEDTLS_MPS_MSG_CCS,
+        "mps_l3_read_appccs() called in unexpected state." );
 
     ccs->epoch = l3->io.in.epoch;
     RETURN( 0 );
@@ -1226,14 +1207,11 @@ int mps_l3_pause_handshake( mps_l3 *l3 )
      * handle pausing of handshake messages. The handling
      * of outgoing handshake messages is analogous. */
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->io.out.state    != MBEDTLS_MPS_MSG_HS       ||
-        l3->io.out.hs.state != MPS_L3_HS_ACTIVE         ||
-        l3->io.out.hs.len   == MBEDTLS_MPS_SIZE_UNKNOWN )
-    {
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        l3->io.out.state    == MBEDTLS_MPS_MSG_HS       &&
+        l3->io.out.hs.state == MPS_L3_HS_ACTIVE         &&
+        l3->io.out.hs.len   != MBEDTLS_MPS_SIZE_UNKNOWN,
+        "mps_l3_pause_handshake() called in unexpected state." );
 
     /* Remove reference to raw writer from writer. */
     res = mbedtls_writer_detach( &l3->io.out.hs.wr_ext,
@@ -1274,14 +1252,12 @@ int mps_l3_write_abort_handshake( mps_l3 *l3 )
 {
     int res;
     mbedtls_mps_size_t committed;
-     TRACE_INIT( "mps_l3_write_abort_handshake" );
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->io.out.state  != MBEDTLS_MPS_MSG_HS ||
-        l3->io.out.hs.state != MPS_L3_HS_ACTIVE )
-    {
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    TRACE_INIT( "mps_l3_write_abort_handshake" );
+
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        l3->io.out.state    == MBEDTLS_MPS_MSG_HS &&
+        l3->io.out.hs.state == MPS_L3_HS_ACTIVE,
+        "mps_l3_write_abort_handshake() called in unexpected state" );
 
     /* Remove reference to raw writer from writer. */
     res = mbedtls_writer_detach( &l3->io.out.hs.wr_ext,
@@ -1293,11 +1269,8 @@ int mps_l3_write_abort_handshake( mps_l3 *l3 )
     /* Reset extended writer. */
     mbedtls_writer_free_ext( &l3->io.out.hs.wr_ext );
 
-    if( committed > 0 )
-    {
-        TRACE( trace_error, "Attempt to abort handshake message parts of which have already been committed." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
+    MBEDTLS_MPS_ASSERT_RAW( committed == 0,
+       "Attempt to abort HS msg parts of which have already been committed." );
 
     /* Remove reference to the raw writer borrowed from Layer 2
      * before calling mps_l2_write_done(), which invalidates it. */
@@ -1326,11 +1299,6 @@ int mps_l3_dispatch( mps_l3 *l3 )
 
     switch( l3->io.out.state )
     {
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-        case MBEDTLS_MPS_MSG_NONE:
-            RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
-
         case MBEDTLS_MPS_MSG_HS:
             TRACE( trace_comment, "Dispatch handshake message" );
 
@@ -1417,11 +1385,16 @@ int mps_l3_dispatch( mps_l3 *l3 )
             TRACE( trace_comment, "Dispatch application data" );
             break;
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
         default:
-            TRACE( trace_error, "ASSERTION FAILURE!" );
-            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+
+            MBEDTLS_MPS_STATE_VALIDATE_RAW(
+                l3->io.out.state != MBEDTLS_MPS_MSG_NONE,
+                "mps_l2_write_done() called in unexpected state." );
+
+            MBEDTLS_MPS_ASSERT_RAW( 0,
+                       "Invalid message state in mps_l3_write_done()." );
+
+            break;
     }
 
     /* Remove reference to the raw writer borrowed from Layer 2
@@ -1597,13 +1570,8 @@ MBEDTLS_MPS_STATIC int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t port
     TRACE( trace_comment, "* Type:  %u", (unsigned) port );
     TRACE( trace_comment, "* Epoch: %u", (unsigned) epoch );
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->io.out.state != MBEDTLS_MPS_MSG_NONE )
-    {
-        TRACE( trace_error, "Unexpected state" );
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW( l3->io.out.state == MBEDTLS_MPS_MSG_NONE,
+                      "l3_prepare_write() called in unexpected state." );
 
 #if !defined(MPS_L3_ALLOW_INTERLEAVED_SENDING)
     if( l3->io.out.hs.state == MPS_L3_HS_PAUSED && port != MBEDTLS_MPS_MSG_HS )

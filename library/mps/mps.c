@@ -446,6 +446,7 @@ MBEDTLS_MPS_STATIC int mps_clear_pending( mbedtls_mps *mps,
     int ret = 0;
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
 
     TRACE_INIT( "mps_clear_pending, allow_active_hs %u",
                 (unsigned) allow_active_hs );
@@ -472,7 +473,7 @@ MBEDTLS_MPS_STATIC int mps_clear_pending( mbedtls_mps *mps,
     if( mps->out.flush == 1 )
     {
         TRACE( trace_comment, "A flush was requested" );
-        MPS_CHK( mps_l3_flush( mps->conf.l3 ) );
+        MPS_CHK( mps_l3_flush( l3 ) );
         mps->out.flush = 0;
     }
 
@@ -741,6 +742,7 @@ MBEDTLS_MPS_STATIC int mps_handle_pending_alert( mbedtls_mps *mps )
 {
     int ret;
     mps_l3_alert_out alert;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mps_handle_pending_alert" );
 
     if( mps->alert_pending == 0 )
@@ -753,7 +755,7 @@ MBEDTLS_MPS_STATIC int mps_handle_pending_alert( mbedtls_mps *mps )
     /* This might fail, but we only reset `mps->alert_pending`
      * on success, so in this case we'll retry sending the alert
      * on a subsequent call to mps_flush(). */
-    MPS_CHK( mps_l3_write_alert( mps->conf.l3, &alert ) );
+    MPS_CHK( mps_l3_write_alert( l3, &alert ) );
 
     if( MBEDTLS_MPS_STATE_EITHER_OR( mps->state,
                                      MBEDTLS_MPS_STATE_READ_ONLY,
@@ -776,7 +778,7 @@ MBEDTLS_MPS_STATIC int mps_handle_pending_alert( mbedtls_mps *mps )
         MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 
-    MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );
+    MPS_CHK( mps_l3_dispatch( l3 ) );
 
     mps->alert_pending = 0;
     mps->out.flush = 1;
@@ -954,6 +956,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
     mbedtls_mps_msg_type_t msg;
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mbedtls_mps_read" );
 
     /* Take care of numerous checks that need to be performed
@@ -992,7 +995,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     /* Fetch a new message (fragment) from Layer 3. */
-    MPS_CHK( mps_l3_read( mps->conf.l3 ) );
+    MPS_CHK( mps_l3_read( l3 ) );
 
     /* Go through the various message types:
      * - Fatal alerts and (non-fatal) closure notifications are handled here,
@@ -1026,7 +1029,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
             mps_l3_ccs_in ccs_l3;
             TRACE( trace_comment, "CCS message received from L3." );
 
-            MPS_CHK( mps_l3_read_ccs( mps->conf.l3, &ccs_l3 ) );
+            MPS_CHK( mps_l3_read_ccs( l3, &ccs_l3 ) );
 
             /* For DTLS, Layer 3 might be configured to pass through
              * records on multiple epochs for the purpose of detection
@@ -1036,7 +1039,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
              * if they're not secured through the current incoming epoch.
              */
 
-            MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
+            MPS_CHK( mps_l3_read_consume( l3 ) );
 
             if( ccs_l3.epoch != mps->in_epoch )
             {
@@ -1053,7 +1056,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
             mps_l3_alert_in alert;
 
             TRACE( trace_comment, "Alert msg received from L3." );
-            MPS_CHK( mps_l3_read_alert( mps->conf.l3, &alert ) );
+            MPS_CHK( mps_l3_read_alert( l3, &alert ) );
 
             /* For DTLS, Layer 3 might be configured to pass through
              * records on multiple epochs for the purpose of detection
@@ -1063,7 +1066,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
              * if they're not secured through the current incoming epoch.
              */
 
-            MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
+            MPS_CHK( mps_l3_read_consume( l3 ) );
 
             if( alert.epoch != mps->in_epoch )
             {
@@ -1160,7 +1163,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
         case MBEDTLS_MPS_MSG_APP:
         {
             mps_l3_app_in app_l3;
-            MPS_CHK( mps_l3_read_app( mps->conf.l3, &app_l3 ) );
+            MPS_CHK( mps_l3_read_app( l3, &app_l3 ) );
 
             /* For DTLS, Layer 3 might be configured to pass through
              * records on multiple epochs for the purpose of detection
@@ -1174,7 +1177,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
             if( app_l3.epoch != mps->in_epoch )
             {
                 /* The exit handler will retry the read. */
-                MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
+                MPS_CHK( mps_l3_read_consume( l3 ) );
                 MPS_CHK( MBEDTLS_ERR_MPS_RETRY );
             }
             mps->in.data.app = app_l3.rd;
@@ -1208,6 +1211,7 @@ int mbedtls_mps_read_handshake( mbedtls_mps *mps,
     int ret;
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mbedtls_mps_read_handshake" );
 
     ret = mps_check_read( mps );
@@ -1222,7 +1226,7 @@ int mbedtls_mps_read_handshake( mbedtls_mps *mps,
     {
         /* TLS */
         mps_l3_handshake_in hs_l3;
-        MPS_CHK( mps_l3_read_handshake( mps->conf.l3, &hs_l3 ) );
+        MPS_CHK( mps_l3_read_handshake( l3, &hs_l3 ) );
 
         hs->length = hs_l3.len;
         hs->type   = hs_l3.type;
@@ -1308,6 +1312,7 @@ int mbedtls_mps_read_pause( mbedtls_mps *mps )
     int ret;
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
 
     MBEDTLS_MPS_STATE_VALIDATE( mps->in.state == MBEDTLS_MPS_MSG_HS,
       "mbedtls_mps_read_pause() must only be called if HS msg is open." );
@@ -1320,7 +1325,7 @@ int mbedtls_mps_read_pause( mbedtls_mps *mps )
     if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         /* TLS */
-        MPS_CHK( mps_l3_read_pause_handshake( mps->conf.l3 ) );
+        MPS_CHK( mps_l3_read_pause_handshake( l3 ) );
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
@@ -1342,6 +1347,7 @@ int mbedtls_mps_read_consume( mbedtls_mps *mps )
     int ret;
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mbedtls_mps_read_consume" );
 
     MBEDTLS_MPS_STATE_VALIDATE( mps->in.state != MBEDTLS_MPS_MSG_NONE,
@@ -1359,7 +1365,7 @@ int mbedtls_mps_read_consume( mbedtls_mps *mps )
             if( MBEDTLS_MPS_IS_TLS( mode ) )
             {
                 /* TLS */
-                MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
+                MPS_CHK( mps_l3_read_consume( l3 ) );
             }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
@@ -1383,7 +1389,7 @@ int mbedtls_mps_read_consume( mbedtls_mps *mps )
             break;
 
         case MBEDTLS_MPS_MSG_APP:
-            MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
+            MPS_CHK( mps_l3_read_consume( l3 ) );
             break;
 
         case MBEDTLS_MPS_MSG_CCS:
@@ -1472,6 +1478,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
     int ret;
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
 
     TRACE_INIT( "mbedtls_mps_write_handshake, type %u, length %u",
                 (unsigned) hs_new->type, (unsigned) hs_new->length );
@@ -1493,7 +1500,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
         hs_l3.type  = hs_new->type;
         hs_l3.len   = hs_new->length;
 
-        MPS_CHK( mps_l3_write_handshake( mps->conf.l3, &hs_l3 ) );
+        MPS_CHK( mps_l3_write_handshake( l3, &hs_l3 ) );
 
         hs_new->handle = hs_l3.wr_ext;
         hs_new->addlen = 0;
@@ -1734,11 +1741,12 @@ int mbedtls_mps_write_application( mbedtls_mps *mps,
 {
     int ret;
     mps_l3_app_out out_l3;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mbedtls_mps_write_application" );
     MPS_CHK( mps_prepare_write( mps, MPS_PAUSED_HS_FORBIDDEN ) );
 
     out_l3.epoch = mps->out_epoch;
-    MPS_CHK( mps_l3_write_app( mps->conf.l3, &out_l3 ) );
+    MPS_CHK( mps_l3_write_app( l3, &out_l3 ) );
 
     *app = out_l3.wr;
     mps->out.state = MBEDTLS_MPS_MSG_APP;
@@ -1751,11 +1759,12 @@ int mbedtls_mps_write_alert( mbedtls_mps *mps,
 {
     int ret;
     mps_l3_alert_out alert_l3;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mbedtls_mps_write_alert" );
     MPS_CHK( mps_prepare_write( mps, MPS_PAUSED_HS_FORBIDDEN ) );
 
     alert_l3.epoch = mps->out_epoch;
-    MPS_CHK( mps_l3_write_alert( mps->conf.l3, &alert_l3 ) );
+    MPS_CHK( mps_l3_write_alert( l3, &alert_l3 ) );
 
     *alert_l3.level = MBEDTLS_MPS_ALERT_LEVEL_WARNING;
     *alert_l3.type = alert_type;
@@ -1784,13 +1793,14 @@ int mbedtls_mps_write_ccs( mbedtls_mps *mps )
     mps_l3_ccs_out ccs_l3;
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     ((void) mode);
 
     TRACE_INIT( "mbedtls_mps_write_ccs" );
     MPS_CHK( mps_prepare_write( mps, MPS_PAUSED_HS_FORBIDDEN ) );
 
     ccs_l3.epoch = mps->out_epoch;
-    MPS_CHK( mps_l3_write_ccs( mps->conf.l3, &ccs_l3 ) );
+    MPS_CHK( mps_l3_write_ccs( l3, &ccs_l3 ) );
 
     /* In case of DTLS, add CCS to flight for potential retransmission. */
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
@@ -1813,6 +1823,7 @@ int mbedtls_mps_write_pause( mbedtls_mps *mps )
     int ret;
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mbedtls_mps_write_pause" );
 
     ret = mps_check_write( mps );
@@ -1822,7 +1833,7 @@ int mbedtls_mps_write_pause( mbedtls_mps *mps )
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
-        MPS_CHK( mps_l3_pause_handshake( mps->conf.l3 ) );
+        MPS_CHK( mps_l3_pause_handshake( l3 ) );
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
@@ -1857,6 +1868,7 @@ int mbedtls_mps_dispatch( mbedtls_mps *mps )
     int ret;
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mbedtls_mps_dispatch" );
 
     ret = mps_check_write( mps );
@@ -1867,7 +1879,7 @@ int mbedtls_mps_dispatch( mbedtls_mps *mps )
     if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         /* TLS */
-        MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );
+        MPS_CHK( mps_l3_dispatch( l3 ) );
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
@@ -1887,7 +1899,7 @@ int mbedtls_mps_dispatch( mbedtls_mps *mps )
         {
             /* Everything apart from handshake messages
              * is just forwarded to Layer 3. */
-            MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );
+            MPS_CHK( mps_l3_dispatch( l3 ) );
         }
         else
         {
@@ -1982,8 +1994,9 @@ int mbedtls_mps_add_key_material( mbedtls_mps *mps,
                                   mbedtls_mps_epoch_id *id )
 {
     int ret;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mbedtls_mps_add_key_material" );
-    MPS_CHK( mps_l3_epoch_add( mps->conf.l3, params, id ) );
+    MPS_CHK( mps_l3_epoch_add( l3, params, id ) );
 
     MPS_API_BOUNDARY_FAILURE_HANDLER
 }
@@ -1992,6 +2005,7 @@ int mbedtls_mps_set_incoming_keys( mbedtls_mps *mps,
                                    mbedtls_mps_epoch_id id )
 {
     int ret;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mbedtls_mps_set_incoming_keys, epoch %d", (int) id );
 
     MBEDTLS_MPS_STATE_VALIDATE( mps->in.state == MBEDTLS_MPS_MSG_NONE,
@@ -2000,11 +2014,11 @@ int mbedtls_mps_set_incoming_keys( mbedtls_mps *mps,
     /* Clear 'active epoch' usage for old epoch and set it for new. */
     if( mps->in_epoch != MBEDTLS_MPS_EPOCH_NONE )
     {
-        MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, mps->in_epoch,
+        MPS_CHK( mps_l3_epoch_usage( l3, mps->in_epoch,
                                      MPS_EPOCH_USAGE_READ(
                                          MPS_READ_ACTIVE ), 0 ) );
     }
-    MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, id, 0,
+    MPS_CHK( mps_l3_epoch_usage( l3, id, 0,
                                  MPS_EPOCH_USAGE_READ(
                                      MPS_READ_ACTIVE ) ) );
     mps->in_epoch = id;
@@ -2016,6 +2030,7 @@ int mbedtls_mps_set_outgoing_keys( mbedtls_mps *mps,
                                    mbedtls_mps_epoch_id id )
 {
     int ret;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mbedtls_mps_set_outgoing_keys, epoch %d", (int) id );
 
     MBEDTLS_MPS_STATE_VALIDATE( mps->in.state == MBEDTLS_MPS_MSG_NONE,
@@ -2024,11 +2039,11 @@ int mbedtls_mps_set_outgoing_keys( mbedtls_mps *mps,
     /* Clear 'active epoch' usage for old epoch and set it for new. */
     if( mps->out_epoch != MBEDTLS_MPS_EPOCH_NONE )
     {
-        MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, mps->out_epoch,
+        MPS_CHK( mps_l3_epoch_usage( l3, mps->out_epoch,
                                      MPS_EPOCH_USAGE_WRITE(
                                          MPS_WRITE_ACTIVE ), 0 ) );
     }
-    MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, id, 0,
+    MPS_CHK( mps_l3_epoch_usage( l3, id, 0,
                                  MPS_EPOCH_USAGE_WRITE(
                                      MPS_WRITE_ACTIVE ) ) );
     mps->out_epoch = id;
@@ -2299,6 +2314,7 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_remember( mbedtls_mps *mps,
 {
     int ret = 0;
     size_t msg_idx;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     mbedtls_mps_recognition_info *next_info;
     TRACE_INIT( "mps_retransmit_in_remember" );
 
@@ -2322,9 +2338,7 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_remember( mbedtls_mps *mps,
 
     /* Keep an epoch as long as we might still receive
      * retransmissions using that epoch. */
-    MPS_CHK( mps_l3_epoch_usage( mps->conf.l3,
-                   mps->in_epoch,
-                   0,
+    MPS_CHK( mps_l3_epoch_usage( l3, mps->in_epoch, 0,
                    MPS_EPOCH_USAGE_READ(
                        MPS_READ_RETRANSMISSION_DETECTION ) ) );
 
@@ -2342,6 +2356,7 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_free( mbedtls_mps *mps )
     int ret = 0;
     uint8_t flight_len, msg_idx;
     mbedtls_mps_recognition_info *info;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mps_retransmit_in_free" );
 
     flight_len = mps->dtls.retransmission_detection.flight_len;
@@ -2354,8 +2369,7 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_free( mbedtls_mps *mps )
                "Epoch %u no longer needed for retransmission detection",
                (unsigned) info->epoch );
 
-        MPS_CHK( mps_l3_epoch_usage( mps->conf.l3,
-                    info->epoch,
+        MPS_CHK( mps_l3_epoch_usage( l3, info->epoch,
                     MPS_EPOCH_USAGE_READ(
                         MPS_READ_RETRANSMISSION_DETECTION ),
                     0 ) );
@@ -2426,6 +2440,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
     uint8_t seq_nr, seq_nr_offset;
     mbedtls_mps_reassembly * const in = &mps->dtls.io.in.incoming;
     mbedtls_mps_msg_reassembly * reassembly;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
 
     TRACE_INIT( "mps_reassembly_feed" );
     TRACE( trace_comment, "* Sequence number: %u", (unsigned) hs->seq_nr      );
@@ -2463,7 +2478,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
         MPS_CHK( mbedtls_reader_get_ext( hs->rd_ext, hs->frag_len,
                                          &tmp, NULL ) );
         MPS_CHK( mbedtls_reader_commit_ext( hs->rd_ext ) );
-        MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
+        MPS_CHK( mps_l3_read_consume( l3 ) );
         MPS_CHK( MBEDTLS_ERR_MPS_REASSEMBLY_FEED_NEED_MORE );
     }
 
@@ -2570,7 +2585,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
         memcpy( reassembly->data.window.buf + hs->frag_offset,
                 frag_content, hs->frag_len );
         MPS_CHK( mbedtls_reader_commit_ext( hs->rd_ext ) );
-        MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
+        MPS_CHK( mps_l3_read_consume( l3 ) );
 
         if( bitmask != NULL )
         {
@@ -2754,6 +2769,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_done( mbedtls_mps *mps )
     uint8_t idx;
     mbedtls_mps_reassembly * const in = &mps->dtls.io.in.incoming;
     mbedtls_mps_msg_reassembly * reassembly = &in->reassembly[0];
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mps_reassembly_done" );
 
     MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
@@ -2772,7 +2788,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_done( mbedtls_mps *mps )
     }
     else
     {
-        MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
+        MPS_CHK( mps_l3_read_consume( l3 ) );
     }
 
     /* Shift array of reassembly structures. */
@@ -3131,6 +3147,7 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
 {
     int ret = 0;
     mps_l3_handshake_in hs_l3;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mps_retransmission_handle_incoming_fragment" );
 
     /*
@@ -3179,7 +3196,7 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
      */
 
     TRACE( trace_comment, "Fetch new fragment from Layer 3" );
-    MPS_CHK( mps_l3_read_handshake( mps->conf.l3, &hs_l3 ) );
+    MPS_CHK( mps_l3_read_handshake( l3, &hs_l3 ) );
 
     /* 1. Check if the message is recognized as a retransmission
      *    from an old flight. */
@@ -3210,7 +3227,7 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
 
             /* Mark handshake fragment as processed before starting
              * the retransmission, which might return WANT_WRITE. */
-            MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
+            MPS_CHK( mps_l3_read_consume( l3 ) );
 
             MPS_CHK( mps_trigger_retransmission( mps ) );
             MPS_CHK( mps_handle_pending_retransmit( mps ) );
@@ -3298,7 +3315,7 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
             MPS_CHK( mbedtls_reader_get_ext( hs_rd_ext, hs_l3.frag_len, &tmp, NULL ) );
             MPS_CHK( mbedtls_reader_commit_ext( hs_rd_ext ) );
 
-            MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
+            MPS_CHK( mps_l3_read_consume( l3 ) );
             MPS_CHK( MBEDTLS_ERR_MPS_NO_FORWARD );
         }
 
@@ -3382,11 +3399,11 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
          * number when the first operation is the receipt of an
          * incoming record. That avoids the abstraction break
          * and saves some code. */
-        MPS_CHK( mps_l3_get_last_sequence_number( mps->conf.l3, hs_l3.epoch,
+        MPS_CHK( mps_l3_get_last_sequence_number( l3, hs_l3.epoch,
                                                   &rec_ctr ) );
 
         TRACE( trace_comment, "Mirror rec seq nr %u", (unsigned) rec_ctr );
-        MPS_CHK( mps_l3_force_next_sequence_number( mps->conf.l3, hs_l3.epoch,
+        MPS_CHK( mps_l3_force_next_sequence_number( l3, hs_l3.epoch,
                                                     rec_ctr ) );
     }
 
@@ -3459,6 +3476,7 @@ MBEDTLS_MPS_STATIC int mps_out_flight_free( mbedtls_mps *mps )
     int ret = 0;
     uint8_t idx, flight_len;
     mbedtls_mps_retransmission_handle *handle;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mps_out_flight_free" );
 
     flight_len =  mps->dtls.outgoing.flight_len;
@@ -3470,7 +3488,7 @@ MBEDTLS_MPS_STATIC int mps_out_flight_free( mbedtls_mps *mps )
         mbedtls_mps_epoch_id cur_epoch =
             handle->metadata.epoch;
 
-        MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, cur_epoch,
+        MPS_CHK( mps_l3_epoch_usage( l3, cur_epoch,
                                      MPS_EPOCH_USAGE_WRITE(
                                          MPS_WRITE_RETRANSMISSION ), 0 ) );
 
@@ -3517,6 +3535,7 @@ MBEDTLS_MPS_STATIC int mbedtls_mps_retransmission_handle_resend_empty(
 {
     int ret = 0;
     mps_l3_handshake_out hs_out_l3;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     TRACE_INIT( "mps_retransmission_handle_resend_empty" );
 
     hs_out_l3.epoch       = handle->metadata.epoch;
@@ -3525,9 +3544,9 @@ MBEDTLS_MPS_STATIC int mbedtls_mps_retransmission_handle_resend_empty(
     hs_out_l3.len         = handle->metadata.len;
     hs_out_l3.seq_nr      = handle->metadata.seq_nr;
     hs_out_l3.type        = handle->metadata.type;
-    MPS_CHK( mps_l3_write_handshake( mps->conf.l3, &hs_out_l3 ) );
+    MPS_CHK( mps_l3_write_handshake( l3, &hs_out_l3 ) );
     /* Don't write anything. */
-    MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );
+    MPS_CHK( mps_l3_dispatch( l3 ) );
 
     MPS_INTERNAL_FAILURE_HANDLER
 }
@@ -3537,6 +3556,7 @@ MBEDTLS_MPS_STATIC int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mp
 {
     int ret = 0;
     mbedtls_mps_handshake_out_internal * const hs = &mps->dtls.io.out.hs;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
 
     TRACE_INIT( "mps_retransmission_handle_resend" );
 
@@ -3627,8 +3647,8 @@ MBEDTLS_MPS_STATIC int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mp
             MPS_CHK( mps_clear_pending( mps, MPS_PAUSED_HS_FORBIDDEN ) );
 
             ccs_l3.epoch = handle->metadata.epoch;
-            MPS_CHK( mps_l3_write_ccs( mps->conf.l3, &ccs_l3 ) );
-            MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );
+            MPS_CHK( mps_l3_write_ccs( l3, &ccs_l3 ) );
+            MPS_CHK( mps_l3_dispatch( l3 ) );
             break;
         }
     }
@@ -3704,6 +3724,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_bind( mbedtls_mps *mps )
     unsigned char *frag;
     mbedtls_mps_size_t frag_len, remaining;
     mps_l3_handshake_out l3_hs;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     mbedtls_mps_handshake_out_internal * const hs = &mps->dtls.io.out.hs;
     mbedtls_mps_msg_metadata * const metadata = mps->dtls.io.out.hs.metadata;
 
@@ -3716,7 +3737,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_bind( mbedtls_mps *mps )
     l3_hs.len         = metadata->len;
     l3_hs.frag_offset = hs->offset;
     l3_hs.frag_len    = MBEDTLS_MPS_SIZE_UNKNOWN;
-    MPS_CHK( mps_l3_write_handshake( mps->conf.l3, &l3_hs ) );
+    MPS_CHK( mps_l3_write_handshake( l3, &l3_hs ) );
 
     TRACE( trace_comment, "Get max len buffer from L3 and feed to writer." );
 
@@ -3805,6 +3826,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_dispatch( mbedtls_mps *mps )
     int ret = 0;
     mbedtls_mps_handshake_out_internal * const hs = &mps->dtls.io.out.hs;
     mbedtls_mps_msg_metadata * const metadata = hs->metadata;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
     ((void) metadata);
 
     TRACE_INIT( "mps_dtls_frag_out_dispatch" );
@@ -3816,7 +3838,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_dispatch( mbedtls_mps *mps )
         TRACE( trace_comment, " * Frag len: %u", (unsigned) hs->frag_len );
         TRACE( trace_comment, " * Total len: %u", (unsigned) metadata->len );
 
-        MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );
+        MPS_CHK( mps_l3_dispatch( l3 ) );
 
         hs->offset    += hs->frag_len;
         hs->wr_ext_l3  = NULL;
@@ -3906,11 +3928,12 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_done( mbedtls_mps *mps )
 {
     int ret;
     uint8_t cur_flight_len;
+    mps_l3* const l3 = mbedtls_mps_l4_get_l3( mps );
 
     mbedtls_mps_retransmission_handle *hdl;
     TRACE_INIT( "mps_out_flight_msg_done" );
 
-    MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, mps->out_epoch,
+    MPS_CHK( mps_l3_epoch_usage( l3, mps->out_epoch,
                                  /* No removal of usage flags. */
                                  0,
                                  /* Add usage flag for retransmission. */

@@ -1214,6 +1214,11 @@ struct mbedtls_mps
 
 };
 
+static inline mps_l3* mbedtls_mps_l4_get_l3( mbedtls_mps *l4 )
+{
+    return( l4->conf.l3 );
+}
+
 /**
  * \brief                Set the underlying transport callbacks for the MPS.
  *

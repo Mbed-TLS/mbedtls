@@ -182,7 +182,6 @@ psa_status_t psa_destroy_se_persistent_data( psa_key_location_t location );
 typedef struct
 {
     uint8_t slot_number[sizeof( psa_key_slot_number_t )];
-    uint8_t bits[sizeof( psa_key_bits_t )];
 } psa_se_key_data_storage_t;
 
 #endif /* PSA_CRYPTO_SE_H */

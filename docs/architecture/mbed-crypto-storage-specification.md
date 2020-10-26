@@ -251,6 +251,7 @@ The layout of a key file is:
 * key material length (4 bytes).
 * key material:
     * For a transparent key: output of `psa_export_key`.
+    * For an opaque key (unified driver interface): driver-specific opaque key blob.
     * For an opaque key (key in a secure element): slot number (8 bytes), in platform endianness.
 * Any trailing data is rejected on load.
 
@@ -280,3 +281,36 @@ The layout of a transaction file is:
     * The slot in the secure element designated by the slot number.
     * The file containing the key metadata designated by the key identifier.
     * The driver persistent data.
+
+Mbed Crypto TBD
+---------------
+
+Tags: TBD
+
+Released in TBD 2020. <br>
+Integrated in Mbed OS TBD.
+
+### Changes introduced in TBD
+
+* The type field has been split into a type and a bits field of 2 bytes each.
+
+### Key file format for TBD
+
+All integers are encoded in little-endian order in 8-bit bytes except where otherwise indicated.
+
+The layout of a key file is:
+
+* magic (8 bytes): `"PSA\0KEY\0"`.
+* version (4 bytes): 0.
+* lifetime (4 bytes): `psa_key_lifetime_t` value.
+* type (2 bytes): `psa_key_type_t` value.
+* bits (2 bytes): `psa_key_bits_t` value.
+* policy usage flags (4 bytes): `psa_key_usage_t` value.
+* policy usage algorithm (4 bytes): `psa_algorithm_t` value.
+* policy enrollment algorithm (4 bytes): `psa_algorithm_t` value.
+* key material length (4 bytes).
+* key material:
+    * For a transparent key: output of `psa_export_key`.
+    * For an opaque key (unified driver interface): driver-specific opaque key blob.
+    * For an opaque key (key in a secure element): slot number (8 bytes), in platform endianness.
+* Any trailing data is rejected on load.

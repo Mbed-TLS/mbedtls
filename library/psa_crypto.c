@@ -1906,13 +1906,9 @@ static psa_status_t psa_finish_key_creation(
             static_assert( sizeof( slot->data.se.slot_number ) ==
                            sizeof( data.slot_number ),
                            "Slot number size does not match psa_se_key_data_storage_t" );
-            static_assert( sizeof( slot->attr.bits ) == sizeof( data.bits ),
-                           "Bit-size size does not match psa_se_key_data_storage_t" );
 #endif
             memcpy( &data.slot_number, &slot->data.se.slot_number,
                     sizeof( slot->data.se.slot_number ) );
-            memcpy( &data.bits, &slot->attr.bits,
-                    sizeof( slot->attr.bits ) );
             status = psa_save_persistent_key( &slot->attr,
                                               (uint8_t*) &data,
                                               sizeof( data ) );

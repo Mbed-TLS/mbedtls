@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/08/19 19:47:39 GMT"
+Time-stamp: "2020/10/26 09:24:09 GMT"
 
 ## Introduction
 
@@ -378,6 +378,7 @@ The `"key_context"` property in the [driver description](#driver-description-top
 * `"symmetric_factor"` (integer or string, optional): every key context for a symmetric key includes this many times the key size. If omitted, this value defaults to 0.
 * `"store_public_key"` (boolean, optional): If specified and true, for a key pair, the key context includes space for the public key. If omitted or false, no additional space is added for the public key.
 * `"size_function"` (string, optional): the name of a function that returns the number of bytes that the driver needs in a key context for a key. This may be a pointer to function. This must be a C identifier; more complex expressions are not permitted. If the core uses this function, it supersedes all the other properties.
+* `"builtin_key_size"` (integer or string, optional): If specified, this overrides all other methods (including the `"size_function"` entry point) to determine the size of the key context for [built-in keys](#built-in-keys).
 
 The integer properties must be C language constants. A typical value for `"base_size"` is `sizeof(acme_key_context_t)` where `acme_key_context_t` is a type defined in a driver header file.
 
@@ -433,6 +434,7 @@ Opaque drivers may provide the following key management entry points:
 * `"generate_key"`: called by `psa_generate_key()`.
 * `"key_derivation_output_key"`: called by `psa_key_derivation_output_key()`.
 * `"copy_key"`: called by `psa_copy_key()` when copying a key within the same [location](#lifetimes-and-locations).
+* `"get_builtin_key"`: called by functions that access a key to retrieve information about a [built-in key](#built-in-keys).
 
 In addition, secure elements that store the key material internally must provide the following two entry points:
 
@@ -559,6 +561,29 @@ psa_status_t psa_crypto_driver_commit_persistent_state(size_t from, size_t lengt
 The core will not update the persistent state in storage while an entry point is running except when the entry point calls `psa_crypto_driver_commit_persistent_state`. It may update the persistent state in storage after an entry point returns.
 
 In a multithreaded environment, the driver may only call these two functions from the thread that is executing the entry point.
+
+#### Built-in keys
+
+Opaque drivers may declare built-in keys. Built-in keys can be accessed, but not created, through the PSA Cryptography API.
+
+A built-in key is identified by its location and its **slot number**. Drivers that support built-in keys must provide a `"get_builtin_key"` entry point to retrieve the key data and metadata. This entry point has the following prototype:
+
+```
+psa_status_t acme_get_builtin_key(psa_drv_slot_number_t slot_number,
+                                  psa_key_attributes_t *attributes,
+                                  uint8_t *key_buffer,
+                                  size_t key_buffer_size);
+```
+
+If this function returns `PSA_SUCCESS`, it must fill `attributes` with the attributes of the key (except for the key identifier) and must fill `key_buffer` with the key data.
+
+On entry, `psa_get_key_lifetime(attributes)` is the location at which the driver was declared and the persistence level `#PSA_KEY_LIFETIME_PERSISTENT`. The driver entry point may change the lifetime to one with the same location but a different persistence level.
+
+The output parameter `key_buffer` points to a writable buffer of `key_buffer_size` bytes. If the driver has a [`"builtin_key_size"` property](#key-format-for-opaque-drivers) property, `key_buffer_size` has this value, otherwise `key_buffer_size` has the value determined from the key type and size.
+
+Typically, for a built-in key, the key data is a reference to key material that is kept inside the secure element, similar to the format returned by [`"allocate_key"`](#key-management-in-a-secure-element-with-storage). A driver may have built-in keys even if it doesn't have an `"allocate_key"` entry point.
+
+The core will pass authorized requests to destroy a built-in key to the [`"destroy_key"`](#key-management-in-a-secure-element-with-storage) entry point if there is one. If built-in keys must not be destroyed, it is up to the driver to reject such requests.
 
 ## How to use drivers from an application
 

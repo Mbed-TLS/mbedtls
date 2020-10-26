@@ -63,16 +63,9 @@ int mbedtls_writer_feed( mbedtls_writer *wr,
                 (unsigned) buf_len );
 
     /* Feeding is only possible in providing state. */
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    {
-        unsigned char const state = wr->state;
-        if( state != MBEDTLS_WRITER_PROVIDING )
-        {
-            TRACE( trace_error, "Attempt to feed output buffer to writer outside providing mode." );
-            RETURN( MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED );
-        }
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        wr->state == MBEDTLS_WRITER_PROVIDING,
+        "Attempt to feed output buffer to writer outside providing mode." );
 
     /* Check if there is data in the queue pending to be dispatched. */
     queue = wr->queue;
@@ -140,16 +133,9 @@ int mbedtls_writer_reclaim( mbedtls_writer *wr,
     TRACE( trace_comment," * Force reclaim: %u", (unsigned) force );
 
     /* Check that the writer is in consuming mode. */
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    {
-        unsigned char const state = wr->state;
-        if( state != MBEDTLS_WRITER_CONSUMING )
-        {
-            TRACE( trace_error, "Can't reclaim output buffer outside of consuming mode." );
-            RETURN( MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED );
-        }
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        wr->state == MBEDTLS_WRITER_CONSUMING,
+        "Can't reclaim output buffer outside of consuming mode." );
 
     /* Check if there's space left unused. */
     commit = wr->committed;
@@ -207,16 +193,11 @@ int mbedtls_writer_bytes_written( mbedtls_writer *wr,
                                   mbedtls_mps_size_t *written )
 {
     mbedtls_mps_size_t commit;
-    unsigned char state;
     TRACE_INIT( "writer_bytes_written" );
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    state = wr->state;
-    if( state != MBEDTLS_WRITER_PROVIDING )
-        RETURN( MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED );
-#else
-    ((void) state);
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        wr->state == MBEDTLS_WRITER_PROVIDING,
+        "Attempt to feed output buffer to writer outside providing mode." );
 
     commit = wr->committed;
     *written = commit;
@@ -233,16 +214,8 @@ int mbedtls_writer_get( mbedtls_writer *wr,
     mbedtls_mps_size_t end, ol, or, ql, qn, qo;
     TRACE_INIT( "writer_get, desired %u", (unsigned) desired );
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    {
-        unsigned char const state = wr->state;
-        if( state != MBEDTLS_WRITER_CONSUMING )
-        {
-            TRACE( trace_error, "Attempt to request write-buffer outside consuming mode." );
-            RETURN( MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED );
-        }
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW( wr->state == MBEDTLS_WRITER_CONSUMING,
+                  "Attempt to request write-buffer outside consuming mode." );
 
     out = wr->out;
     end = wr->end;
@@ -367,16 +340,9 @@ int mbedtls_writer_commit_partial( mbedtls_writer *wr,
     TRACE_INIT( "writer_commit_partial" );
     TRACE( trace_comment, "* Omit %u bytes", (unsigned) omit );
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    {
-        unsigned char const state = wr->state;
-        if( state != MBEDTLS_WRITER_CONSUMING )
-        {
-            TRACE( trace_error, "Attempt to request write-buffer outside consuming mode." );
-            RETURN( MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED );
-        }
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        wr->state == MBEDTLS_WRITER_CONSUMING,
+        "Attempt to request write-buffer outside consuming mode." );
 
     out           = wr->out;
     queue_overlap = wr->queue_next;
@@ -454,18 +420,10 @@ int mbedtls_writer_get_ext( mbedtls_writer_ext *wr_ext,
     mbedtls_mps_size_t logic_avail;
     TRACE_INIT( "writer_get_ext: desired %u", (unsigned) desired );
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( wr_ext->wr == NULL )
-    {
-        TRACE( trace_error, "No writer attached" );
-        RETURN( MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED );
-    }
-    if( wr_ext->passthrough == MBEDTLS_WRITER_EXT_BLOCK )
-    {
-        TRACE( trace_error, "Extended writer is blocked." );
-        RETURN( MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW( wr_ext->wr != NULL, "No writer attached" );
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        wr_ext->passthrough != MBEDTLS_WRITER_EXT_BLOCK,
+        "Extended writer is blocked." );
 
     logic_avail = wr_ext->grp_end[wr_ext->cur_grp] - wr_ext->ofs_fetch;
     TRACE( trace_comment, "desired %u, logic_avail %u",
@@ -504,16 +462,10 @@ int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *wr,
     TRACE_INIT( "writer_commit_partial_ext, omit %u",
                 (unsigned) omit );
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( wr->wr == NULL )
-    {
-        RETURN( MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED );
-    }
-    if( wr->passthrough == MBEDTLS_WRITER_EXT_BLOCK )
-    {
-        RETURN( MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW( wr->wr != NULL, "No writer attached" );
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        wr->passthrough != MBEDTLS_WRITER_EXT_BLOCK,
+        "Extended writer is blocked." );
 
     ofs_fetch  = wr->ofs_fetch;
     ofs_commit = wr->ofs_commit;
@@ -593,10 +545,7 @@ int mbedtls_writer_attach( mbedtls_writer_ext *wr_ext,
                            int pass )
 {
     TRACE_INIT( "mbedtls_writer_attach" );
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( wr_ext->wr != NULL )
-        RETURN( MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED );
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW( wr_ext->wr == NULL, "Writer attached" );
 
     wr_ext->passthrough = pass;
     wr_ext->wr = wr;
@@ -609,11 +558,7 @@ int mbedtls_writer_detach( mbedtls_writer_ext *wr_ext,
                            mbedtls_mps_size_t *uncommitted )
 {
     TRACE_INIT( "writer_check_detach" );
-
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( wr_ext->wr == NULL )
-        RETURN( MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED );
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW( wr_ext->wr != NULL, "No writer attached" );
 
     if( uncommitted != NULL )
     {

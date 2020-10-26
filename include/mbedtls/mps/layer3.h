@@ -510,6 +510,11 @@ struct mps_l3
 
 };
 
+static inline mbedtls_mps_l2* mbedtls_mps_l3_get_l2( mps_l3 *l3 )
+{
+    return( l3->conf.l2 );
+}
+
 /**
  * \brief         Initialize a Layer 3 context.
  *

@@ -137,6 +137,7 @@ int mps_l3_read( mps_l3 *l3 )
     mps_l2_in in;
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l3_conf_get_mode( &l3->conf );
+    mbedtls_mps_l2* const l2 = mbedtls_mps_l3_get_l2( l3 );
 
     TRACE_INIT( "mps_l3_read" );
 
@@ -170,7 +171,7 @@ int mps_l3_read( mps_l3 *l3 )
     /* Request incoming data from Layer 2 context */
     TRACE( trace_comment, "Check for incoming data on Layer 2" );
 
-    res = mps_l2_read_start( l3->conf.l2, &in );
+    res = mps_l2_read_start( l2, &in );
     if( res != 0 )
         RETURN( res );
 
@@ -214,7 +215,7 @@ int mps_l3_read( mps_l3 *l3 )
                 if( MBEDTLS_MPS_IS_TLS( mode ) )
                 {
                     TRACE( trace_comment, "Not enough data available in record to read alert message" );
-                    res = mps_l2_read_done( l3->conf.l2 );
+                    res = mps_l2_read_done( l2 );
                     if( res != 0 )
                         RETURN( res );
 
@@ -321,7 +322,7 @@ int mps_l3_read( mps_l3 *l3 )
                         {
                             TRACE( trace_comment, "Incomplete handshake header in current record -- wait for more data." );
 
-                            res = mps_l2_read_done( l3->conf.l2 );
+                            res = mps_l2_read_done( l2 );
                             if( res != 0 )
                                 RETURN( res );
 
@@ -428,6 +429,7 @@ int mps_l3_read( mps_l3 *l3 )
 int mps_l3_read_consume( mps_l3 *l3 )
 {
     int res;
+    mbedtls_mps_l2* const l2 = mbedtls_mps_l3_get_l2( l3 );
     TRACE_INIT( "mps_l3_read_consume" );
 
     switch( l3->io.in.state )
@@ -478,7 +480,7 @@ int mps_l3_read_consume( mps_l3 *l3 )
     l3->io.in.raw_in = NULL;
 
     /* Signal that incoming data is fully processed. */
-    res = mps_l2_read_done( l3->conf.l2 );
+    res = mps_l2_read_done( l2 );
     if( res != 0 )
         RETURN( res );
 
@@ -494,6 +496,7 @@ int mps_l3_read_consume( mps_l3 *l3 )
 int mps_l3_read_pause_handshake( mps_l3 *l3 )
 {
     int res;
+    mbedtls_mps_l2* const l2 = mbedtls_mps_l3_get_l2( l3 );
     TRACE_INIT( "mps_l3_read_pause_handshake" );
 
     /* See mps_l3_read() for the general description
@@ -515,7 +518,7 @@ int mps_l3_read_pause_handshake( mps_l3 *l3 )
     l3->io.in.raw_in = NULL;
 
     /* Signal to Layer 2 that incoming data is fully processed. */
-    res = mps_l2_read_done( l3->conf.l2 );
+    res = mps_l2_read_done( l2 );
     if( res != 0 )
         RETURN( res );
 
@@ -939,6 +942,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
 {
     int res;
     int32_t len;
+    mbedtls_mps_l2* const l2 = mbedtls_mps_l3_get_l2( l3 );
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l3_conf_get_mode( &l3->conf );
 
@@ -1043,7 +1047,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
             /* Remember that we must flush. */
             l3->io.out.clearing = 1;
             l3->io.out.state = MBEDTLS_MPS_MSG_NONE;
-            res = mps_l2_write_done( l3->conf.l2 );
+            res = mps_l2_write_done( l2 );
             if( res != 0 )
                 RETURN( res );
 
@@ -1134,6 +1138,7 @@ int mps_l3_write_alert( mps_l3 *l3, mps_l3_alert_out *alert )
     int res;
     unsigned char *tmp;
     mbedtls_mps_epoch_id epoch = alert->epoch;
+    mbedtls_mps_l2* const l2 = mbedtls_mps_l3_get_l2( l3 );
     TRACE_INIT( "l3_write_alert: epoch %u", (unsigned) epoch );
 
     res = l3_prepare_write( l3, MBEDTLS_MPS_MSG_ALERT, epoch );
@@ -1145,7 +1150,7 @@ int mps_l3_write_alert( mps_l3 *l3, mps_l3_alert_out *alert )
     {
         l3->io.out.clearing = 1;
         l3->io.out.state = MBEDTLS_MPS_MSG_NONE;
-        res = mps_l2_write_done( l3->conf.l2 );
+        res = mps_l2_write_done( l2 );
         if( res != 0 )
             RETURN( res );
 
@@ -1167,6 +1172,7 @@ int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs )
     int res;
     unsigned char *tmp;
     mbedtls_mps_epoch_id epoch = ccs->epoch;
+    mbedtls_mps_l2* const l2 = mbedtls_mps_l3_get_l2( l3 );
     TRACE_INIT( "l3_write_ccs: epoch %u", (unsigned) epoch );
 
     res = l3_prepare_write( l3, MBEDTLS_MPS_MSG_CCS, epoch );
@@ -1178,7 +1184,7 @@ int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs )
     {
         l3->io.out.clearing = 1;
         l3->io.out.state = MBEDTLS_MPS_MSG_NONE;
-        res = mps_l2_write_done( l3->conf.l2 );
+        res = mps_l2_write_done( l2 );
         if( res != 0 )
             RETURN( res );
 
@@ -1200,6 +1206,7 @@ int mps_l3_pause_handshake( mps_l3 *l3 )
 {
     int res;
     mbedtls_mps_size_t uncommitted;
+    mbedtls_mps_l2* const l2 = mbedtls_mps_l3_get_l2( l3 );
     TRACE_INIT( "mps_l3_pause_handshake" );
 
     /* See mps_l3_read() for the general description
@@ -1236,7 +1243,7 @@ int mps_l3_pause_handshake( mps_l3 *l3 )
 
     /* Signal to Layer 2 that we've finished acquiring and
      * writing to the outgoing data buffers. */
-    res = mps_l2_write_done( l3->conf.l2 );
+    res = mps_l2_write_done( l2 );
     if( res != 0 )
         RETURN( res );
 
@@ -1252,6 +1259,7 @@ int mps_l3_write_abort_handshake( mps_l3 *l3 )
 {
     int res;
     mbedtls_mps_size_t committed;
+    mbedtls_mps_l2* const l2 = mbedtls_mps_l3_get_l2( l3 );
     TRACE_INIT( "mps_l3_write_abort_handshake" );
 
     MBEDTLS_MPS_STATE_VALIDATE_RAW(
@@ -1278,7 +1286,7 @@ int mps_l3_write_abort_handshake( mps_l3 *l3 )
 
     /* Signal to Layer 2 that we've finished acquiring and
      * writing to the outgoing data buffers. */
-    res = mps_l2_write_done( l3->conf.l2 );
+    res = mps_l2_write_done( l2 );
     if( res != 0 )
         RETURN( res );
 
@@ -1292,6 +1300,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
     int res;
     mbedtls_mps_size_t committed;
     mbedtls_mps_size_t uncommitted;
+    mbedtls_mps_l2* const l2 = mbedtls_mps_l3_get_l2( l3 );
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l3_conf_get_mode( &l3->conf );
 
@@ -1401,7 +1410,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
      * before calling mps_l2_write_done(), which invalidates it. */
     l3->io.out.raw_out = NULL;
 
-    res = mps_l2_write_done( l3->conf.l2 );
+    res = mps_l2_write_done( l2 );
     if( res != 0 )
         RETURN( res );
 
@@ -1544,11 +1553,12 @@ MBEDTLS_MPS_STATIC int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
 MBEDTLS_MPS_STATIC int l3_check_clear( mps_l3 *l3 )
 {
     int res;
+    mbedtls_mps_l2* const l2 = mbedtls_mps_l3_get_l2( l3 );
     TRACE_INIT( "l3_check_clear" );
     if( l3->io.out.clearing == 0 )
         RETURN( 0 );
 
-    res = mps_l2_write_flush( l3->conf.l2 );
+    res = mps_l2_write_flush( l2 );
     if( res != 0 )
         RETURN( res );
 
@@ -1566,6 +1576,7 @@ MBEDTLS_MPS_STATIC int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t port
 {
     int res;
     mps_l2_out out;
+    mbedtls_mps_l2* const l2 = mbedtls_mps_l3_get_l2( l3 );
     TRACE_INIT( "l3_prepare_write" );
     TRACE( trace_comment, "* Type:  %u", (unsigned) port );
     TRACE( trace_comment, "* Epoch: %u", (unsigned) epoch );
@@ -1587,7 +1598,7 @@ MBEDTLS_MPS_STATIC int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t port
 
     out.epoch = epoch;
     out.type = port;
-    res = mps_l2_write_start( l3->conf.l2, &out );
+    res = mps_l2_write_start( l2, &out );
     if( res != 0 )
         RETURN( res );
 

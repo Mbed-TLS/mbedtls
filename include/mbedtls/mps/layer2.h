@@ -844,19 +844,12 @@ struct mbedtls_mps_l2
              * not remember the raw record buffers obtained from Layer 1 as they
              * can be handled on the stack when a new record is fetched. */
 
-            /** The current TLS implementation allows a single paused reader,
-             *  allowing e.g. to pause the reading of a handshake message while
-             *  processing other content types; on the other hand, it is not
-             *  capable of dealing with a fragmented alert followed by a fragmented
-             *  handshake message. However, while allowed in TLS up to version 1.2,
-             *  this is more of an academic use case, and the limitation seems
-             *  acceptable. In fact, TLS 1.3 forbids any interleaving of record
-             *  content types, and for that purpose, a single active or paused
-             *  reader would be sufficient.
+            /** The current Layer 2 implementation uses a configurable
+             *  array of readers to handle the incoming record contents.
+             *  See MBEDTLS_MPS_MAXIMUM_MESSAGE_INTERLEAVING for more details.
              *
-             *  The Layer 2 implementation doesn't use this directly, but
-             *  only through the following internal interface. Re-implement
-             *  this interface to change the number of paused readers in TLS.
+             *  The Layer 2 implementation does never use this array directly,
+             *  but only through the following internal interface:
              *  - mps_l2_readers_init
              *  - mps_l2_readers_free
              *  - mps_l2_readers_active_state

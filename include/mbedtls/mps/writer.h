@@ -100,28 +100,28 @@ typedef struct mbedtls_writer_ext mbedtls_writer_ext;
 
 /** An attempt was made to reclaim a buffer from the writer,
  *  but the buffer hasn't been fully used up, yet.            */
-#define MBEDTLS_ERR_WRITER_DATA_LEFT             -0x1
+#define MBEDTLS_ERR_WRITER_DATA_LEFT             MBEDTLS_WRITER_MAKE_ERROR( 0x1 )
 /** The validation of input parameters failed.                */
-#define MBEDTLS_ERR_WRITER_INVALID_ARG           -0x2
+#define MBEDTLS_ERR_WRITER_INVALID_ARG           MBEDTLS_WRITER_MAKE_ERROR( 0x2 )
 /** The provided outgoing data buffer was not large enough to
  *  hold all queued data that's currently pending to be
  *  delivered.                                                */
-#define MBEDTLS_ERR_WRITER_NEED_MORE             -0x3
+#define MBEDTLS_ERR_WRITER_NEED_MORE             MBEDTLS_WRITER_MAKE_ERROR( 0x3 )
 /** The requested operation is not possible
  *  in the current state of the writer.                       */
-#define MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED  -0x4
+#define MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED  MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED
 /** The remaining amount of space for outgoing data is not
  *  sufficient to serve the user's request. The current
  *  outgoing data buffer must be reclaimed, dispatched,
  *  and a fresh outgoing data buffer must be fed to the
  *  writer.                                                   */
-#define MBEDTLS_ERR_WRITER_OUT_OF_DATA           -0x5
+#define MBEDTLS_ERR_WRITER_OUT_OF_DATA           MBEDTLS_WRITER_MAKE_ERROR( 0x5 )
 /** A write-request was issued to the extended writer that
  *  exceeds the bounds of the most recently added group.      */
-#define MBEDTLS_ERR_WRITER_BOUNDS_VIOLATION      -0x9
+#define MBEDTLS_ERR_WRITER_BOUNDS_VIOLATION      MBEDTLS_WRITER_MAKE_ERROR( 0x9 )
 /** The extended writer has reached the maximum number of
  *  groups, and another group cannot be added.                */
-#define MBEDTLS_ERR_WRITER_TOO_MANY_GROUPS       -0xa
+#define MBEDTLS_ERR_WRITER_TOO_MANY_GROUPS       MBEDTLS_WRITER_MAKE_ERROR( 0xa )
 
 /** The identifier to use in mbedtls_writer_reclaim() to
  *  force the reclamation of the outgoing data buffer even

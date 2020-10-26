@@ -65,11 +65,13 @@ extern "C" {
  */
 #if defined(MBEDTLS_ECDSA_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_ECDSA
-#endif /* MBEDTLS_ECDSA_C */
 
+// Only add in DETERMINISTIC support if ECDSA is also enabled
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 #define MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
+
+#endif /* MBEDTLS_ECDSA_C */
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
 

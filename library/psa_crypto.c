@@ -3530,7 +3530,7 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
 }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
 /* `ecp` cannot be const because `ecp->grp` needs to be non-const
  * for mbedtls_ecdsa_sign() and mbedtls_ecdsa_sign_det()
  * (even though these functions don't modify it). */
@@ -3629,7 +3629,7 @@ cleanup:
     mbedtls_mpi_free( &s );
     return( mbedtls_to_psa_error( ret ) );
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA */
 
 psa_status_t psa_sign_hash( psa_key_handle_t handle,
                             psa_algorithm_t alg,
@@ -3799,7 +3799,7 @@ psa_status_t psa_verify_hash( psa_key_handle_t handle,
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
     {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
         if( PSA_ALG_IS_ECDSA( alg ) )
         {
             mbedtls_ecp_keypair *ecp = NULL;
@@ -3817,7 +3817,7 @@ psa_status_t psa_verify_hash( psa_key_handle_t handle,
             return( status );
         }
         else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
         {
             return( PSA_ERROR_INVALID_ARGUMENT );
         }

@@ -691,12 +691,14 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
                                             * bytes that the outgoing record
                                             * can hold.                       */
 
+    mps_l1* const l1 = mbedtls_mps_l2_get_l1( ctx );
+
     mbedtls_mps_l2_epoch_t *epoch;
 
     TRACE_INIT( "l2_out_prepare, epoch %d", epoch_id );
 
     /* Request buffer from Layer 1 to hold entire record. */
-    ret = mps_l1_write( ctx->conf.l1, &rec_buf, &total_sz );
+    ret = mps_l1_write( l1, &rec_buf, &total_sz );
     if( ret != 0 )
     {
         TRACE( trace_comment, "l1_write failed with %d", ret );
@@ -749,7 +751,7 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
                (unsigned) total_sz );
 
         /* Abort the write and remember to flush before the next write. */
-        mps_l1_dispatch( ctx->conf.l1, 0 /* Abort := Dispatch nothing */,
+        mps_l1_dispatch( l1, 0 /* Abort := Dispatch nothing */,
                          &bytes_pending );
         ctx->io.out.clearing = 1;
 
@@ -812,6 +814,7 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
 {
     int ret;
     mps_rec rec;
+    mps_l1* const l1 = mbedtls_mps_l2_get_l1( ctx );
 
     TRACE_INIT( "l2_out_dispatch_record" );
     TRACE( trace_comment, "Plaintext length: %u",
@@ -835,7 +838,7 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
                ctx->io.out.writer.type );
 
         /* dispatch(0) effectively resets the underlying Layer 1. */
-        ret = mps_l1_dispatch( ctx->conf.l1, 0, NULL );
+        ret = mps_l1_dispatch( l1, 0, NULL );
         if( ret != 0 )
             RETURN( ret );
     }
@@ -971,6 +974,8 @@ int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 MBEDTLS_MPS_STATIC
 int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
+    mps_l1* const l1 = mbedtls_mps_l2_get_l1( ctx );
+
     uint8_t * const hdr = ctx->io.out.hdr;
     mbedtls_mps_size_t const hdr_len = ctx->io.out.hdr_len;
 
@@ -1025,8 +1030,7 @@ int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
     MPS_WRITE_UINT16_BE( &rec->buf.data_len, hdr + tls_rec_len_offset );
 
     TRACE( trace_comment, "Write protected record -- DISPATCH" );
-    RETURN( mps_l1_dispatch( ctx->conf.l1, hdr_len + rec->buf.data_len,
-                             NULL ) );
+    RETURN( mps_l1_dispatch( l1, hdr_len + rec->buf.data_len, NULL ) );
 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
@@ -1035,6 +1039,8 @@ MBEDTLS_MPS_STATIC
 int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
                                                  mps_rec *rec )
 {
+    mps_l1* const l1 = mbedtls_mps_l2_get_l1( ctx );
+
     uint8_t *          const hdr     = ctx->io.out.hdr;
     mbedtls_mps_size_t const hdr_len = ctx->io.out.hdr_len;
 
@@ -1090,8 +1096,7 @@ int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
     MPS_WRITE_UINT16_BE( &rec->buf.data_len, hdr + dtls_rec_len_offset );
 
     TRACE( trace_comment, "Write protected record -- DISPATCH" );
-    RETURN( mps_l1_dispatch( ctx->conf.l1, hdr_len + rec->buf.data_len,
-                             NULL ) );
+    RETURN( mps_l1_dispatch( l1, hdr_len + rec->buf.data_len, NULL ) );
 }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -1112,11 +1117,12 @@ MBEDTLS_MPS_STATIC
 int l2_out_clear_pending( mbedtls_mps_l2 *ctx )
 {
     int ret;
+    mps_l1* const l1 = mbedtls_mps_l2_get_l1( ctx );
     TRACE_INIT( "l2_out_clear_pending, state %u", (unsigned) ctx->io.out.state );
 
     if( ctx->io.out.clearing == 1 )
     {
-        ret = mps_l1_flush( ctx->conf.l1 );
+        ret = mps_l1_flush( l1 );
         if( ret != 0 )
             RETURN( ret );
         ctx->io.out.clearing = 0;
@@ -1193,7 +1199,7 @@ int l2_out_clear_pending( mbedtls_mps_l2 *ctx )
 
     if( ctx->io.out.clearing == 1 )
     {
-        ret = mps_l1_flush( ctx->conf.l1 );
+        ret = mps_l1_flush( l1 );
         if( ret != 0 )
             RETURN( ret );
         ctx->io.out.clearing = 0;
@@ -1614,6 +1620,7 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
 MBEDTLS_MPS_STATIC
 int l2_handle_invalid_record( mbedtls_mps_l2 *ctx, int ret )
 {
+    mps_l1* const l1 = mbedtls_mps_l2_get_l1( ctx );
     /* This function assumes that the mode has been checked
      * to be MBEDTLS_MPS_MODE_DATAGRAM and hence omits this check here. */
 
@@ -1641,7 +1648,7 @@ int l2_handle_invalid_record( mbedtls_mps_l2 *ctx, int ret )
     }
 
     /* Silently discard datagrams containing invalid records. */
-    RETURN( mps_l1_skip( ctx->conf.l1 ) );
+    RETURN( mps_l1_skip( l1 ) );
 }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -1859,9 +1866,10 @@ MBEDTLS_MPS_STATIC
 int l2_in_release_record( mbedtls_mps_l2 *ctx )
 {
     int ret;
+    mps_l1* const l1 = mbedtls_mps_l2_get_l1( ctx );
     TRACE_INIT( "l2_in_release_record" );
 
-    ret = mps_l1_consume( ctx->conf.l1 );
+    ret = mps_l1_consume( l1 );
     if( ret != 0 )
         RETURN( ret );
 
@@ -2101,6 +2109,7 @@ MBEDTLS_MPS_STATIC
 int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
     int ret;
+    mps_l1* const l1 = mbedtls_mps_l2_get_l1( ctx );
 
     /* Buffer to hold the record header; will be obtained from Layer 1 */
     unsigned char *buf;
@@ -2145,7 +2154,7 @@ int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
      * Fetch TLS record header from Layer 1
      */
 
-    ret = mps_l1_fetch( ctx->conf.l1, &buf, tls_rec_hdr_len );
+    ret = mps_l1_fetch( l1, &buf, tls_rec_hdr_len );
     if( ret != 0 )
         RETURN( ret );
 
@@ -2206,8 +2215,7 @@ int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
     /*
      * Read record contents from Layer 1
      */
-    ret = mps_l1_fetch( ctx->conf.l1, &buf,
-                        tls_rec_hdr_len + len );
+    ret = mps_l1_fetch( l1, &buf, tls_rec_hdr_len + len );
     if( ret != 0 )
         RETURN( ret );
 
@@ -2373,6 +2381,7 @@ int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
                                          mps_rec *rec )
 {
     int ret;
+    mps_l1* const l1 = mbedtls_mps_l2_get_l1( ctx );
 
     /* Buffer to hold the DTLS record header; will be obtained from Layer 1 */
     unsigned char *buf;
@@ -2413,7 +2422,7 @@ int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
      * Fetch DTLS record header from Layer 1
      */
 
-    ret = mps_l1_fetch( ctx->conf.l1, &buf, dtls_rec_hdr_len );
+    ret = mps_l1_fetch( l1, &buf, dtls_rec_hdr_len );
     if( ret != 0 )
         RETURN( ret );
 
@@ -2495,8 +2504,7 @@ int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
      * Read record contents from Layer 1
      */
 
-    ret = mps_l1_fetch( ctx->conf.l1, &buf, dtls_rec_hdr_len + len );
-
+    ret = mps_l1_fetch( l1, &buf, dtls_rec_hdr_len + len );
     if( ret == MBEDTLS_ERR_MPS_REQUEST_OUT_OF_BOUNDS )
     {
         TRACE( trace_error, "Claimed record length exceeds datagram bounds." );
@@ -2520,6 +2528,7 @@ int l2_in_fetch_protected_record_dtls13( mbedtls_mps_l2 *ctx,
                                          mps_rec *rec )
 {
     int ret;
+    mps_l1* const l1 = mbedtls_mps_l2_get_l1( ctx );
 
     /* Buffer to hold the DTLS record header; will be obtained from Layer 1 */
     unsigned char *buf;
@@ -2597,8 +2606,7 @@ int l2_in_fetch_protected_record_dtls13( mbedtls_mps_l2 *ctx,
      * Fetch DTLS record header from Layer 1
      */
 
-    ret = mps_l1_fetch( ctx->conf.l1, &buf,
-                        dtls_13_stable_hdr_len );
+    ret = mps_l1_fetch( l1, &buf, dtls_13_stable_hdr_len );
     if( ret != 0 )
         RETURN( ret );
 

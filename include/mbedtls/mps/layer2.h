@@ -909,6 +909,11 @@ struct mbedtls_mps_l2
     } epochs;
 };
 
+static inline mps_l1* mbedtls_mps_l2_get_l1( mbedtls_mps_l2 *l2 )
+{
+    return( l2->conf.l1 );
+}
+
 /**
  * \brief           This function initializes a Layer 2 context.
  *

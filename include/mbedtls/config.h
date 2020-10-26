@@ -1340,7 +1340,7 @@
  * \warning This interface is experimental and may change or be removed
  * without notice.
  */
-#define MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
+//#define MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
 
 /** \def MBEDTLS_PSA_CRYPTO_DRIVERS
  *

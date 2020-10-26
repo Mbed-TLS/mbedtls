@@ -652,6 +652,32 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
  * @{
  */
 
+/** The minimum value for a key identifier that is built into the
+ * implementation.
+ *
+ * The range of key identifiers from #MBEDTLS_PSA_KEY_ID_BUILTIN_MIN
+ * to #MBEDTLS_PSA_KEY_ID_BUILTIN_MAX within the range from
+ * #PSA_KEY_ID_VENDOR_MIN and #PSA_KEY_ID_VENDOR_MAX and must not intersect
+ * with any other set of implementation-chosen key identifiers.
+ *
+ * This value is part of the library's ABI since changing it would invalidate
+ * the values of built-in key identifiers in applications.
+ */
+#define MBEDTLS_PSA_KEY_ID_BUILTIN_MIN          ((psa_key_id_t)0x7fff0000)
+
+/** The maximum value for a key identifier that is built into the
+ * implementation.
+ *
+ * See #MBEDTLS_PSA_KEY_ID_BUILTIN_MIN for more information.
+ */
+#define MBEDTLS_PSA_KEY_ID_BUILTIN_MAX          ((psa_key_id_t)0x7fffefff)
+
+/** A slot number identifying a key in a driver.
+ *
+ * Values of this type are used to identify built-in keys.
+ */
+typedef uint64_t psa_drv_slot_number_t;
+
 /** Platform function to obtain the data of a built-in key.
  *
  * You must implement this function if #MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS is
@@ -660,6 +686,9 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
  *
  * Call psa_get_key_id(\p attributes) to obtain the key identifier
  * \c key_id.
+ * #MBEDTLS_SVC_KEY_ID_GET_KEY_ID(\p key_id) is in the range from
+ * #MBEDTLS_PSA_KEY_ID_BUILTIN_MIN to #MBEDTLS_PSA_KEY_ID_BUILTIN_MAX.
+ *
  * In a multi-application configuration
  * (\c MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER is defined),
  * this function should check that #MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(\p key_id)

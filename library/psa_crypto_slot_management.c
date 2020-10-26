@@ -226,37 +226,76 @@ psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime,
     }
 }
 
+#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
+static psa_status_t get_builtin_key( mbedtls_svc_key_id_t svc_key_id,
+                                     psa_key_slot_t *slot )
+{
+    psa_key_id_t app_key_id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( svc_key_id );
+    if( ! ( app_key_id >= MBEDTLS_PSA_KEY_ID_BUILTIN_MIN &&
+            app_key_id <= MBEDTLS_PSA_KEY_ID_BUILTIN_MAX ) )
+    {
+        return( PSA_ERROR_DOES_NOT_EXIST );
+    }
+
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_set_key_id( &attributes, svc_key_id );
+    psa_set_key_lifetime( &attributes, PSA_KEY_LIFETIME_VOLATILE );
+    psa_status_t status =
+        mbedtls_psa_platform_get_builtin_key( &attributes,
+                                              &slot->data.key.data,
+                                              &slot->data.key.bytes );
+    if( status != PSA_SUCCESS )
+    {
+        slot->data.key.data = NULL;
+        slot->data.key.bytes = 0;
+        return( status );
+    }
+
+    slot->attr = attributes.core;
+    return( PSA_SUCCESS );
+}
+#endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+
 psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
 {
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    psa_status_t status;
-    psa_key_slot_t *slot;
+    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
 
     *handle = 0;
 
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) || defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
     if( ! psa_is_key_id_valid( key, 1 ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
+    psa_key_slot_t *slot;
     status = psa_get_empty_key_slot( handle, &slot );
     if( status != PSA_SUCCESS )
         return( status );
 
+#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
+    status = get_builtin_key( key, slot );
+    if( status != PSA_ERROR_DOES_NOT_EXIST )
+        goto exit;
+#endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     slot->attr.lifetime = PSA_KEY_LIFETIME_PERSISTENT;
     slot->attr.id = key;
-
     status = psa_load_persistent_key_into_slot( slot );
+#endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
+exit:
+#endif
     if( status != PSA_SUCCESS )
     {
         psa_wipe_key_slot( slot );
         *handle = 0;
     }
-    return( status );
-
-#else /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+#else /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) || defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS) */
     (void) key;
-    *handle = 0;
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* !defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+#endif /* !( defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) || defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS) ) */
+
+    return( status );
 }
 
 psa_status_t psa_close_key( psa_key_handle_t handle )

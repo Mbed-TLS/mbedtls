@@ -289,107 +289,107 @@ mbedtls_mps_l1_random_communication_stream:1:1:
 
 MPS Layer 2 TLS: Exchange of messages of two types, fake transform
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_STREAM:150:1000:20:0
+mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_STREAM:20:0
 
 MPS Layer 2 TLS: Exchange of messages of two types, empty, fake transform
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_STREAM:150:1000:0:0
+mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_STREAM:0:0
 
 MPS Layer 2 TLS: Exchange of messages of two types, real transform
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_STREAM:150:1000:20:1
+mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_STREAM:20:1
 
 MPS Layer 2 TLS: Exchange of messages of two types, empty, real transform
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_STREAM:150:1000:0:1
+mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_STREAM:0:1
 
 MPS Layer 2 DTLS: Exchange of messages of two types, fake transform
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_DATAGRAM:150:1000:20:0
+mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_DATAGRAM:20:0
 
 MPS Layer 2 DTLS: Exchange of messages of two types, empty, fake transform
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_DATAGRAM:150:1000:0:0
+mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_DATAGRAM:0:0
 
 MPS Layer 2 DTLS: Exchange of messages of two types, real transform
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_DATAGRAM:150:1000:20:1
+mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_DATAGRAM:20:1
 
 MPS Layer 2 DTLS: Exchange of messages of two types, empty, real transform
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_DATAGRAM:150:1000:0:1
+mbedtls_mps_l2_basic:MBEDTLS_MPS_MODE_DATAGRAM:0:1
 
 MPS Layer 2 TLS: Bad record - invalid content type
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_STREAM:150:1000:0
+mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_STREAM:0
 
 MPS Layer 2 TLS: Bad record - invalid minor version
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_STREAM:150:1000:1
+mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_STREAM:1
 
 MPS Layer 2 TLS: Bad record - invalid major version
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_STREAM:150:1000:2
+mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_STREAM:2
 
 MPS Layer 2 TLS: Bad record - invalid MAC
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_STREAM:150:1000:3
+mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_STREAM:3
 
 MPS Layer 2 DTLS: Bad record - invalid content type
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_DATAGRAM:150:1000:0
+mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_DATAGRAM:0
 
 MPS Layer 2 DTLS: Bad record - invalid MAC
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_DATAGRAM:150:1000:4
+mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_DATAGRAM:4
 
 MPS Layer 2 DTLS: Bad record - invalid record length
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_DATAGRAM:150:1000:3
+mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_DATAGRAM:3
 
 MPS Layer 2 DTLS: Bad record - invalid major version
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_DATAGRAM:150:1000:2
+mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_DATAGRAM:2
 
 MPS Layer 2 DTLS: Bad record - invalid minor version
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_DATAGRAM:150:1000:1
+mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_DATAGRAM:1
 
 MPS Layer 2 DTLS: Bad record - invalid content type
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_DATAGRAM:150:1000:0
+mbedtls_mps_l2_bad_record:MBEDTLS_MPS_MODE_DATAGRAM:0
 
 MPS Layer 2 DTLS: Replay protection #0
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_anti_replay:150:0
+mbedtls_mps_l2_anti_replay:0
 
 MPS Layer 2 DTLS: Replay protection #1
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_anti_replay:150:1
+mbedtls_mps_l2_anti_replay:1
 
 MPS Layer 2 DTLS: Replay protection #2
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_anti_replay:150:2
+mbedtls_mps_l2_anti_replay:2
 
 MPS Layer 2 DTLS: Replay protection #3
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_anti_replay:150:3
+mbedtls_mps_l2_anti_replay:3
 
 MPS Layer 2 DTLS: Replay protection #4
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_anti_replay:150:4
+mbedtls_mps_l2_anti_replay:4
 
 MPS Layer 2 TLS: Exchange of messages of two types, with pausing
-mbedtls_mps_l2_pausing:100:300:0:1
+mbedtls_mps_l2_pausing:0:1
 
 MPS Layer 2 TLS: Exchange of messages of two types, with pausing, accumulator too small
-mbedtls_mps_l2_pausing:100:300:1:1
+mbedtls_mps_l2_pausing:1:1
 
 MPS Layer 2 TLS: Exchange of messages of two types, with pausing, type not pausable
-mbedtls_mps_l2_pausing:100:300:0:1
+mbedtls_mps_l2_pausing:0:1
 
 MPS Layer 2 TLS: Exchange of messages of two types, with pausing, accumulator too small and type not pausable
-mbedtls_mps_l2_pausing:100:300:1:0
+mbedtls_mps_l2_pausing:1:0
 
 MPS Layer 2 TLS: Exchange of single large message, with queueing
 mbedtls_mps_l2_queueing:100:20000:1000:1
@@ -431,19 +431,19 @@ mbedtls_mps_l2_many_epochs:MBEDTLS_MPS_MODE_DATAGRAM:200:20000:100:1
 
 MPS Layer 2 TLS: Piggy-backed record content after epoch switch, real transforms
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_piggyback_data:MBEDTLS_MPS_MODE_STREAM:500:500:1
+mbedtls_mps_l2_piggyback_data:MBEDTLS_MPS_MODE_STREAM:1
 
 MPS Layer 2 DTLS: Piggy-backed record content after epoch switch, real transforms
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_piggyback_data:MBEDTLS_MPS_MODE_DATAGRAM:500:500:1
+mbedtls_mps_l2_piggyback_data:MBEDTLS_MPS_MODE_DATAGRAM:1
 
 MPS Layer 2 TLS: Piggy-backed record content after epoch switch, mock transforms
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_piggyback_data:MBEDTLS_MPS_MODE_STREAM:500:500:0
+mbedtls_mps_l2_piggyback_data:MBEDTLS_MPS_MODE_STREAM:0
 
 MPS Layer 2 DTLS: Piggy-backed record content after epoch switch, mock transforms
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l2_piggyback_data:MBEDTLS_MPS_MODE_DATAGRAM:500:500:0
+mbedtls_mps_l2_piggyback_data:MBEDTLS_MPS_MODE_DATAGRAM:0
 
 MPS Layer 2 TLS: Random communication, fake transforms
 depends_on:MBEDTLS_MPS_PROTO_TLS
@@ -475,219 +475,219 @@ mbedtls_mps_l2_random:1000:1:5:5:10:1000:1:50:50:100
 
 MPS Layer 3 TLS: HS, fake transform, unknown length #0
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:0:0:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:0:0:0:0:0
 
 MPS Layer 3 TLS: HS, fake transform, unknown length #1
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:0:0:0:0:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:0:0:0:0:1
 
 MPS Layer 3 TLS: HS, fake transform, unknown length #2
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:0:0:1:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:0:0:1:0:0
 
 MPS Layer 3 TLS: HS, fake transform, unknown length #3
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:0:0:1:0:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:0:0:1:0:1
 
 MPS Layer 3 TLS: HS, fake transform, unknown length #4
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:0:0:1:1:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:0:0:1:1:0
 
 MPS Layer 3 TLS: HS, fake transform, unknown length #5
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:0:0:1:1:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:0:0:1:1:1
 
 MPS Layer 3 TLS: HS, fake transform, known length #0
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:0:1:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:0:1:0:0:0
 
 MPS Layer 3 TLS: HS, fake transform, known length #1
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:0:1:1:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:0:1:1:0:0
 
 MPS Layer 3 TLS: HS, fake transform, known length #2
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:0:1:1:1:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:0:1:1:1:0
 
 MPS Layer 3 TLS: HS, real transform, unknown length #0
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:1:0:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:1:0:0:0:0
 
 MPS Layer 3 TLS: HS, real transform, unknown length #1
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:1:0:0:0:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:1:0:0:0:1
 
 MPS Layer 3 TLS: HS, real transform, unknown length #2
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:1:0:1:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:1:0:1:0:0
 
 MPS Layer 3 TLS: HS, real transform, unknown length #3
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:1:0:1:0:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:1:0:1:0:1
 
 MPS Layer 3 TLS: HS, real transform, unknown length #4
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:1:0:1:1:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:1:0:1:1:0
 
 MPS Layer 3 TLS: HS, real transform, unknown length #5
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:1:0:1:1:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:1:0:1:1:1
 
 MPS Layer 3 TLS: HS, real transform, known length #0
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:1:1:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:1:1:0:0:0
 
 MPS Layer 3 TLS: HS, real transform, known length #1
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:1:1:1:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:1:1:1:0:0
 
 MPS Layer 3 TLS: HS, real transform, known length #2
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:0:1:1:1:1:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:0:1:1:1:1:0
 
 MPS Layer 3 TLS: HS, fake transform, unknown length, with abort
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:1:0:0:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1:0:0:0:0:0
 
 MPS Layer 3 TLS: HS, fake transform, known length, with abort
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:1:0:0:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1:0:0:0:0:0
 
 MPS Layer 3 TLS: HS, abort after commit
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:2:0:0:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_STREAM:2:0:0:0:0:0
 
 MPS Layer 3 DTLS: HS, fake transform, unknown length #0
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:0:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:0:0:0:0
 
 MPS Layer 3 DTLS: HS, fake transform, unknown length #1
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:0:0:0:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:0:0:0:1
 
 MPS Layer 3 DTLS: HS, fake transform, unknown length #2
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:0:1:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:0:1:0:0
 
 MPS Layer 3 DTLS: HS, fake transform, unknown length #3
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:0:1:0:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:0:1:0:1
 
 MPS Layer 3 DTLS: HS, fake transform, unknown length #4
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:0:1:1:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:0:1:1:0
 
 MPS Layer 3 DTLS: HS, fake transform, unknown length #5
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:0:1:1:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:0:1:1:1
 
 MPS Layer 3 DTLS: HS, fake transform, unknown length #6
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:1:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:1:0:0:0
 
 MPS Layer 3 DTLS: HS, fake transform, unknown length #7
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:1:0:0:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:1:0:0:1
 
 MPS Layer 3 DTLS: HS, fake transform, unknown length #8
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:1:1:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:1:1:0:0
 
 MPS Layer 3 DTLS: HS, fake transform, unknown length #9
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:1:1:0:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:1:1:0:1
 
 MPS Layer 3 DTLS: HS, fake transform, unknown length #10
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:1:1:1:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:1:1:1:0
 
 MPS Layer 3 DTLS: HS, fake transform, unknown length #11
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:1:1:1:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:1:1:1:1
 
 MPS Layer 3 DTLS: HS, fake transform, known length #0
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:2:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:2:0:0:0
 
 MPS Layer 3 DTLS: HS, fake transform, known length #1
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:2:1:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:2:1:0:0
 
 MPS Layer 3 DTLS: HS, fake transform, known length #2
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:0:2:1:1:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:0:2:1:1:0
 
 MPS Layer 3 DTLS: HS, real transform, unknown length #0
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:0:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:0:0:0:0
 
 MPS Layer 3 DTLS: HS, real transform, unknown length #1
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:0:0:0:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:0:0:0:1
 
 MPS Layer 3 DTLS: HS, real transform, unknown length #2
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:0:1:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:0:1:0:0
 
 MPS Layer 3 DTLS: HS, real transform, unknown length #3
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:0:1:0:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:0:1:0:1
 
 MPS Layer 3 DTLS: HS, real transform, unknown length #4
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:0:1:1:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:0:1:1:0
 
 MPS Layer 3 DTLS: HS, real transform, unknown length #5
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:0:1:1:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:0:1:1:1
 
 MPS Layer 3 DTLS: HS, real transform, unknown length #6
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:1:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:1:0:0:0
 
 MPS Layer 3 DTLS: HS, real transform, unknown length #7
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:1:0:0:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:1:0:0:1
 
 MPS Layer 3 DTLS: HS, real transform, unknown length #8
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:1:1:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:1:1:0:0
 
 MPS Layer 3 DTLS: HS, real transform, unknown length #9
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:1:1:0:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:1:1:0:1
 
 MPS Layer 3 DTLS: HS, real transform, unknown length #10
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:1:1:1:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:1:1:1:0
 
 MPS Layer 3 DTLS: HS, real transform, unknown length #11
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:1:1:1:1
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:1:1:1:1
 
 MPS Layer 3 DTLS: HS, real transform, known length #0
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:2:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:2:0:0:0
 
 MPS Layer 3 DTLS: HS, real transform, known length #1
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:2:1:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:2:1:0:0
 
 MPS Layer 3 DTLS: HS, real transform, known length #2
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:0:1:2:1:1:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:0:1:2:1:1:0
 
 MPS Layer 3 DTLS: HS, fake transform, unknown length, with abort
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:1:0:0:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1:0:0:0:0:0
 
 MPS Layer 3 DTLS: HS, fake transform, known length, with abort
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:1:0:0:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1:0:0:0:0:0
 
 MPS Layer 3 DTLS: HS, abort after commit
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:2:0:0:0:0:0
+mbedtls_mps_l3_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:2:0:0:0:0:0
 
 MPS Layer 3 DTLS: HS, incomplete header
 depends_on:MBEDTLS_MPS_PROTO_DTLS
@@ -710,22 +710,22 @@ depends_on:MBEDTLS_MPS_PROTO_DTLS
 mbedtls_mps_l3_bad_msg:4
 
 MPS Layer 3 TLS: HS, gradual in small records, real transforms
-mbedtls_mps_l3_handshake_gradual:58:1000:1:1:0
+mbedtls_mps_l3_handshake_gradual:1:1000:1:1:0
 
 MPS Layer 3 TLS: HS, gradual in small records, real transforms, pause after header
-mbedtls_mps_l3_handshake_gradual:58:1000:1:1:1
+mbedtls_mps_l3_handshake_gradual:1:1000:1:1:1
 
 MPS Layer 3 TLS: Two handshake messages, gradual in small records, real transforms
-mbedtls_mps_l3_handshake_gradual:58:2000:1:2:0
+mbedtls_mps_l3_handshake_gradual:1:2000:1:2:0
 
 MPS Layer 3 TLS: Two handshake messages, gradual in small records, real transforms, pause after header
-mbedtls_mps_l3_handshake_gradual:58:2000:1:2:1
+mbedtls_mps_l3_handshake_gradual:1:2000:1:2:1
 
 MPS Layer 3 TLS: Multiple handshake messages, fake transform
-mbedtls_mps_l3_handshake_gradual:1000:10000:0:100:0
+mbedtls_mps_l3_handshake_gradual:100:10000:0:100:0
 
 MPS Layer 3 TLS: Multiple handshake messages, real transform
-mbedtls_mps_l3_handshake_gradual:1000:10000:1:100:0
+mbedtls_mps_l3_handshake_gradual:100:10000:1:100:0
 
 MPS Layer 3 TLS: Application data message, fake transform
 depends_on:MBEDTLS_MPS_PROTO_TLS

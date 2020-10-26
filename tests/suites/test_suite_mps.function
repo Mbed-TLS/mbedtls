@@ -48,6 +48,8 @@
 /* Default TLS version to use in tests */
 #define DEFAULT_TLS_VERSION MBEDTLS_SSL_MINOR_VERSION_3
 
+#define DEFAULT_TLS_MAX_PLAINTEXT_SIZE 1000
+
 /* The sizes of the accumulator/queue used by the
  * readers/writers in Layer 2.
  *
@@ -1232,6 +1234,7 @@ typedef struct
 {
     int mode;
     int version;
+    size_t max_plain_out;
     size_t io_buffer_size;
     size_t l0_stream_buffer_sz;
     size_t l2_accumulator_size;
@@ -1243,6 +1246,7 @@ mps_layer_test_config_t const mps_test_config_default =
 {
     .mode                = MBEDTLS_MPS_MODE_STREAM,
     .version             = DEFAULT_TLS_VERSION,
+    .max_plain_out       = DEFAULT_TLS_MAX_PLAINTEXT_SIZE,
     .io_buffer_size      = IO_BUFFER_DEFAULT_SIZE,
     .l0_stream_buffer_sz = L0_STREAM_BUFFER_DEFAULT_SIZE,
     .l2_accumulator_size = L2_DEFAULT_ACCUMULATOR_SIZE,
@@ -1302,6 +1306,9 @@ static int init_mps_layers()
                       mps_test_config.l2_accumulator_size,
                       mps_test_config.l2_queue_size,
                       mbedtls_test_rnd_std_rand, NULL ) == 0 );
+
+    cli_l2.conf.max_plain_out = mps_test_config.max_plain_out;
+    srv_l2.conf.max_plain_out = mps_test_config.max_plain_out;
 
     CHK( mps_l2_config_version( &cli_l2,
                                 mps_test_config.version ) == 0 );
@@ -4059,8 +4066,6 @@ void mbedtls_mps_l1_random_communication_dgram( int max_dgram_size )
 
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_basic( int mode,
-                           int allocator_buffer_sz,
-                           int layer0_buffer_sz,
                            int rec_sz,
                            int real_transforms )
 {
@@ -4072,8 +4077,6 @@ void mbedtls_mps_l2_basic( int mode,
      * Neither queueing nor pausing are needed, and hence
      * the test is valid both for TLS and DTLS. */
 
-    size_t pre_exp, post_exp;
-
     uint8_t const ty_A = 0;
     uint8_t const ty_B = 1;
     mbedtls_mps_epoch_id epoch_init = 0;
@@ -4083,8 +4086,6 @@ void mbedtls_mps_l2_basic( int mode,
 
     mps_l2_out out_cli;
     mps_l2_in in_srv;
-
-    mbedtls_mps_size_t const rec_hdr_max = 13; /* 5 for TLS, 13 for DTLS */
 
     /* Dummy record transformations for epoch 0 */
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
@@ -4101,8 +4102,6 @@ void mbedtls_mps_l2_basic( int mode,
 
     mps_set_default_config();
     mps_test_config.mode = mode;
-    mps_test_config.io_buffer_size = allocator_buffer_sz;
-    mps_test_config.l0_stream_buffer_sz = layer0_buffer_sz;
     TEST_ASSERT( init_mps_layers() == 0 );
 
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, ty_A,
@@ -4127,12 +4126,6 @@ void mbedtls_mps_l2_basic( int mode,
     TEST_ASSERT( mps_l2_epoch_add( &srv_l2, dummy_s, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &srv_l2, epoch_init,
                                      0, MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
-
-    /* Ensure that the test parameters are valid */
-    TEST_ASSERT( transform_get_expansion( dummy_c, &pre_exp, &post_exp ) == 0 );
-    TEST_ASSERT( (unsigned) allocator_buffer_sz > rec_hdr_max + ( 2 * rec_sz ) + pre_exp + post_exp );
-    TEST_ASSERT( transform_get_expansion( dummy_s, &pre_exp, &post_exp ) == 0 );
-    TEST_ASSERT( (unsigned) allocator_buffer_sz > rec_hdr_max + ( 2 * rec_sz ) + pre_exp + post_exp );
 
     /*
      * Client: Write something of type A to server
@@ -4371,8 +4364,6 @@ exit:
 
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_bad_record( int mode,
-                                int allocator_buffer_sz,
-                                int layer0_buffer_sz,
                                 int failure_type )
 {
     /* This test exercises the behavior of Layer 2 when
@@ -4421,8 +4412,6 @@ void mbedtls_mps_l2_bad_record( int mode,
 
     mps_set_default_config();
     mps_test_config.mode = mode;
-    mps_test_config.io_buffer_size = allocator_buffer_sz;
-    mps_test_config.l0_stream_buffer_sz = layer0_buffer_sz;
     TEST_ASSERT( init_mps_layers() == 0 );
 
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, ty_A, 0, 1, 1 ) == 0 );
@@ -4626,8 +4615,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_DTLS:TEST_SUITE_MPS_L2 */
-void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
-                                 int variant )
+void mbedtls_mps_l2_anti_replay( int variant )
 {
     /* This test exercises the anti-replay protection of Layer 2 for DTLS.
      * Variants:
@@ -4674,7 +4662,6 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
 
     mps_set_default_config();
     mps_test_config.mode = MBEDTLS_MPS_MODE_DATAGRAM;
-    mps_test_config.io_buffer_size = allocator_buffer_sz;
     TEST_ASSERT( init_mps_layers() == 0 );
 
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, ty_A, 0, 1, 1 ) == 0 );
@@ -4921,9 +4908,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2:MBEDTLS_MPS_PROTO_TLS */
-void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
-                             int layer0_buffer_sz,
-                             int accumulator_too_small,
+void mbedtls_mps_l2_pausing( int accumulator_too_small,
                              int pausable_for_receiver )
 {
     /* This test exercises the client making three write-requests of
@@ -4939,7 +4924,6 @@ void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
 
     uint8_t *buf;
     mbedtls_mps_size_t sz;
-    size_t pre_exp, post_exp;
 
     /* Layer 2 objects */
     mps_l2_out out_cli;
@@ -4956,18 +4940,10 @@ void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
     build_mock_transforms( dummy_s, dummy_c, 1, 5 );
 
     mps_set_default_config();
-    mps_test_config.io_buffer_size = allocator_buffer_sz;
-    mps_test_config.l0_stream_buffer_sz = layer0_buffer_sz;
     mps_test_config.l2_accumulator_size =
         msg_chunk_size_A - ( accumulator_too_small == 1 );
     mps_test_config.l2_queue_size = 0;
     TEST_ASSERT( init_mps_layers() == 0 );
-
-    /* Ensure that the test parameters are valid */
-    TEST_ASSERT( transform_get_expansion( dummy_c, &pre_exp, &post_exp ) == 0 );
-    TEST_ASSERT( (unsigned) allocator_buffer_sz > 40 + pre_exp + post_exp );
-    TEST_ASSERT( transform_get_expansion( dummy_s, &pre_exp, &post_exp ) == 0 );
-    TEST_ASSERT( (unsigned) allocator_buffer_sz > 40 + pre_exp + post_exp );
 
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, ty_A,
                                          MBEDTLS_MPS_SPLIT_ENABLED,
@@ -5655,8 +5631,6 @@ exit:
 
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_piggyback_data( int mode,
-                                    int allocator_buffer_sz,
-                                    int layer0_buffer_sz,
                                     int real_transforms )
 {
     /* This test exercises Layer 2's behaviour when the incoming epoch
@@ -5703,8 +5677,6 @@ void mbedtls_mps_l2_piggyback_data( int mode,
 
     mps_set_default_config();
     mps_test_config.mode = mode;
-    mps_test_config.io_buffer_size = allocator_buffer_sz;
-    mps_test_config.l0_stream_buffer_sz = layer0_buffer_sz;
     mps_test_config.l2_accumulator_size = 0;
     mps_test_config.l2_queue_size = 0;
     TEST_ASSERT( init_mps_layers() == 0 );
@@ -5873,12 +5845,10 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
     }
 
     mps_set_default_config();
+    mps_test_config.max_plain_out = max_out;
     mps_test_config.io_buffer_size = allocator_buffer_sz;
     mps_test_config.l0_stream_buffer_sz = layer0_buffer_sz;
     TEST_ASSERT( init_mps_layers() == 0 );
-
-    endpoint[0]->conf.max_plain_out = max_out;
-    endpoint[1]->conf.max_plain_out = max_out;
 
     TEST_ASSERT( num_types <= 64 );
     for( size_t ty=0; ty < (unsigned) num_types; ty++ )
@@ -6272,8 +6242,6 @@ exit:
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_L3 */
 void mbedtls_mps_l3_basic_handshake(
           int mode,
-          int allocator_buffer_sz,
-          int layer0_buffer_sz,
           int aborted_before,
           int real_transforms,
           int length_known,
@@ -6306,8 +6274,6 @@ void mbedtls_mps_l3_basic_handshake(
 
     mps_set_default_config();
     mps_test_config.mode = mode;
-    mps_test_config.io_buffer_size = allocator_buffer_sz;
-    mps_test_config.l0_stream_buffer_sz = layer0_buffer_sz;
     TEST_ASSERT( init_mps_layers() == 0 );
 
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_HS,
@@ -6719,7 +6685,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_L3:MBEDTLS_MPS_PROTO_TLS */
-void mbedtls_mps_l3_handshake_gradual( int allocator_buffer_sz,
+void mbedtls_mps_l3_handshake_gradual( int max_out,
                                        int layer0_buffer_sz,
                                        int real_transforms,
                                        int num_msgs,
@@ -6757,7 +6723,7 @@ void mbedtls_mps_l3_handshake_gradual( int allocator_buffer_sz,
     }
 
     mps_set_default_config();
-    mps_test_config.io_buffer_size = allocator_buffer_sz;
+    mps_test_config.max_plain_out = max_out;
     mps_test_config.l0_stream_buffer_sz = layer0_buffer_sz;
     TEST_ASSERT( init_mps_layers() == 0 );
 
@@ -7456,6 +7422,7 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
     }
 
     mps_set_default_config();
+    mps_test_config.max_plain_out = max_out;
     mps_test_config.io_buffer_size = allocator_buffer_sz;
     mps_test_config.l0_stream_buffer_sz = layer0_buffer_sz;
     TEST_ASSERT( init_mps_layers() == 0 );
@@ -7470,9 +7437,6 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
     TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_ALERT,
                                          treat_alert_as_pausable == 1,
                                          1, 1 ) == 0 );
-
-    cli_l2.conf.max_plain_out = max_out;
-    srv_l2.conf.max_plain_out = max_out;
 
     TEST_ASSERT( mps_l3_epoch_add( &cli_l3, dummy_c, &cli_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &cli_l3, cli_epoch,

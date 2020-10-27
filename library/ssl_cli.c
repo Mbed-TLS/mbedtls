@@ -2519,11 +2519,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         case MBEDTLS_TLS_EXT_ALPN:
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "found alpn extension" ) );
 
-            if ( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-            {
-                if( ( ret = ssl_parse_alpn_ext( ssl, ext + 4, ext_size ) ) != 0 )
-                    return( ret );
-            }
+            if( ( ret = ssl_parse_alpn_ext( ssl, ext + 4, ext_size ) ) != 0 )
+                return( ret );
 
             break;
 #endif /* MBEDTLS_SSL_ALPN */

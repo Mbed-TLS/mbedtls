@@ -1592,6 +1592,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+    if( strcmp( "MBEDTLS_PSA_CRYPTO_CONFIG", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_CRYPTO_CONFIG );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
+
 #if defined(MBEDTLS_VERSION_FEATURES)
     if( strcmp( "MBEDTLS_VERSION_FEATURES", config ) == 0 )
     {

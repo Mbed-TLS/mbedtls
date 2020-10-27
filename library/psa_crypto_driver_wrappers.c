@@ -617,7 +617,7 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is declared with a lifetime not known to us */
-            return( PSA_ERROR_BAD_STATE );
+            return( PSA_ERROR_NOT_SUPPORTED );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void)slot;
@@ -698,7 +698,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             /* Key is declared with a lifetime not known to us */
-            return( PSA_ERROR_BAD_STATE );
+            return( PSA_ERROR_NOT_SUPPORTED );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
     (void)slot;

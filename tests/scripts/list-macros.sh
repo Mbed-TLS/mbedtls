@@ -30,4 +30,10 @@ sed -n -e 's/.*#define \([a-zA-Z0-9_]*\).*/\1/p' $HEADERS \
     | egrep -v '^(asm|inline|EMIT|_CRT_SECURE_NO_DEPRECATE)$|^MULADDC_' \
     | sort -u > macros
 
+# For include/mbedtls/config_psa.h need to ignore the MBEDTLS_xxx define
+# in that file since they may not be defined in include/psa/crypto_config.h
+# This line renames the potentially missing defines to ones that should
+# be present.
+sed -ne 's/^MBEDTLS_PSA_BUILTIN_/MBEDTLS_PSA_ACCEL_/p' <macros >>macros
+
 wc -l macros

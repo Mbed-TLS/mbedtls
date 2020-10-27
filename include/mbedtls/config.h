@@ -864,7 +864,7 @@
  * may result in a compromise of the long-term signing key. This is avoided by
  * the deterministic variant.
  *
- * Requires: MBEDTLS_HMAC_DRBG_C
+ * Requires: MBEDTLS_HMAC_DRBG_C, MBEDTLS_ECDSA_C
  *
  * Comment this macro to disable deterministic ECDSA.
  */
@@ -1330,7 +1330,7 @@
  *
  * Enable support for the experimental PSA crypto driver interface.
  *
- * Requires: MBEDTLS_PSA_CRYPTO_C.
+ * Requires: MBEDTLS_PSA_CRYPTO_C
  *
  * \warning This interface is experimental and may change or be removed
  * without notice.
@@ -2018,6 +2018,20 @@
  * Uncomment this to enable internal use of PSA Crypto and new associated APIs.
  */
 //#define MBEDTLS_USE_PSA_CRYPTO
+
+/**
+ * \def MBEDTLS_PSA_CRYPTO_CONFIG
+ *
+ * This setting allows support for cryptographic mechanisms through the PSA
+ * API to be configured separately from support through the mbedtls API.
+ *
+ * Uncomment this to enable use of PSA Crypto configuration settings which
+ * can be found in include/psa/crypto_config.h
+ *
+ * This feature is still experimental and is not ready for production since
+ * it is not completed.
+ */
+//#define MBEDTLS_PSA_CRYPTO_CONFIG
 
 /**
  * \def MBEDTLS_VERSION_FEATURES
@@ -3810,6 +3824,8 @@
 #if defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
+
+#include "mbedtls/config_psa.h"
 
 #include "mbedtls/check_config.h"
 

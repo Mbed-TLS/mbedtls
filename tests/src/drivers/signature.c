@@ -262,6 +262,8 @@ cleanup:
     (void) alg;
     (void) hash;
     (void) hash_length;
+    (void) signature;
+    (void) signature_length;
 #endif /* defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) && \
           defined(MBEDTLS_SHA256_C) */
 

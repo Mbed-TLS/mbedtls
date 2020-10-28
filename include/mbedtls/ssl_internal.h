@@ -316,6 +316,8 @@ static inline uint32_t mbedtls_ssl_get_input_buflen( const mbedtls_ssl_context *
  */
 #define MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS_PRESENT (1 << 0)
 #define MBEDTLS_TLS_EXT_ECJPAKE_KKPP_OK                 (1 << 1)
+#define MBEDTLS_TLS_EXT_CLIENT_CERTIFICATE_TYPE_PRESENT (1 << 2)
+#define MBEDTLS_TLS_EXT_SERVER_CERTIFICATE_TYPE_PRESENT (1 << 3)
 
 /**
  * \brief        This function checks if the remaining size in a buffer is
@@ -617,6 +619,11 @@ struct mbedtls_ssl_handshake_params
      * The library does not use it internally. */
     void *user_async_ctx;
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+    
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
+    int client_cert_type;    /* cert types supported */
+    int server_cert_type;    /* cert types supported */
+#endif
 };
 
 typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
@@ -725,6 +732,8 @@ struct mbedtls_ssl_transform
     /*
      * Session specific crypto layer
      */
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+                                        /*!<  Chosen cipersuite_info  */
     size_t minlen;                      /*!<  min. ciphertext length  */
     size_t ivlen;                       /*!<  IV length               */
     size_t fixed_ivlen;                 /*!<  Fixed part of IV (AEAD) */
@@ -1227,6 +1236,11 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
                                             mbedtls_md_type_t md_alg );
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
           MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
+int mbedtls_ssl_check_client_certificate_type( const mbedtls_ssl_context *ssl, int cert_type );
+int mbedtls_ssl_check_server_certificate_type( const mbedtls_ssl_context *ssl, int cert_type );
+#endif
 
 #ifdef __cplusplus
 }

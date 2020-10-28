@@ -128,6 +128,7 @@
 #define MBEDTLS_ERR_SSL_VERSION_MISMATCH                  -0x5F00  /**< An operation failed due to an unexpected version or configuration. */
 #define MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS                -0x7000  /**< A cryptographic operation is in progress. Try again later. */
 #define MBEDTLS_ERR_SSL_BAD_CONFIG                        -0x5E80  /**< Invalid value in SSL config */
+#define MBEDTLS_ERR_SSL_NO_CERTIFICATE_TYPE_CHOSEN        -0x10000 /**< The server has no certificate types in common with the client */
 
 /*
  * Various constants
@@ -213,6 +214,12 @@
 
 #define MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED       1
 #define MBEDTLS_SSL_CERT_REQ_CA_LIST_DISABLED      0
+
+#define MBEDTLS_SSL_SEND_CERTIFICATE_DISABLED       0
+#define MBEDTLS_SSL_SEND_CERTIFICATE_ENABLED        1
+
+#define MBEDTLS_SSL_RECEIVE_CERTIFICATE_DISABLED        0
+#define MBEDTLS_SSL_RECEIVE_CERTIFICATE_ENABLED            1
 
 /*
  * Default range for DTLS retransmission timer value, in milliseconds.
@@ -395,6 +402,9 @@
 
 #define MBEDTLS_TLS_EXT_ALPN                        16
 
+#define MBEDTLS_TLS_EXT_CLIENT_CERTIFICATE_TYPE     19
+#define MBEDTLS_TLS_EXT_SERVER_CERTIFICATE_TYPE     20
+
 #define MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC            22 /* 0x16 */
 #define MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET  0x0017 /* 23 */
 
@@ -408,6 +418,15 @@
 #define MBEDTLS_TLS_EXT_ECJPAKE_KKPP               256 /* experimental */
 
 #define MBEDTLS_TLS_EXT_RENEGOTIATION_INFO      0xFF01
+
+/**
+ * TLS Certificate Types
+ * See RFC 7250
+ */
+
+#define MBEDTLS_TLS_CERT_TYPE_NONE            -1
+#define MBEDTLS_TLS_CERT_TYPE_X509            0
+#define MBEDTLS_TLS_CERT_TYPE_RAW_PUBLIC_KEY  2
 
 /*
  * Size defines
@@ -1137,6 +1156,14 @@ struct mbedtls_ssl_config
                                              *   record with unexpected CID
                                              *   should lead to failure.    */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+    
+    unsigned int send_certificate : 1;
+    unsigned int receive_certificate : 1;
+
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
+    const int *server_certificate_type_list;
+    const int *client_certificate_type_list;
+#endif
 };
 
 
@@ -2974,6 +3001,13 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
                                   const int *hashes );
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
+#if defined(MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT)
+void mbedtls_ssl_conf_client_certificate_types( mbedtls_ssl_config *conf,
+                                                const int *cert_types );
+void mbedtls_ssl_conf_server_certificate_types( mbedtls_ssl_config *conf,
+                                                const int *cert_types );
+#endif /* MBEDTLS_SSL_RAW_PUBLIC_KEY_SUPPORT */
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
  * \brief          Set or reset the hostname to check against the received
@@ -3441,6 +3475,9 @@ void mbedtls_ssl_conf_renegotiation_enforced( mbedtls_ssl_config *conf, int max_
 void mbedtls_ssl_conf_renegotiation_period( mbedtls_ssl_config *conf,
                                    const unsigned char period[8] );
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
+
+void mbedtls_ssl_conf_certificate_send( mbedtls_ssl_config *conf, int send_certificate );
+void mbedtls_ssl_conf_certificate_receive( mbedtls_ssl_config *conf, int receive_certificate );
 
 /**
  * \brief          Check if there is data already read from the

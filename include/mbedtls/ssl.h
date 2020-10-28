@@ -3257,27 +3257,25 @@ int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
                                          unsigned char *mki_value,
                                          uint16_t mki_len );
 /**
- * \brief          Get the negotiated DTLS-SRTP informations:
- *                 Protection profile and MKI value.
+ * \brief                  Get the negotiated DTLS-SRTP informations:
+ *                         Protection profile and MKI value.
  *
- * \warning        This function must be called after the handshake is
- *                 completed. The value returned by this function must
- *                 not be trusted or acted upon before the handshake completes.
+ * \warning                This function must be called after the handshake is
+ *                         completed. The value returned by this function must
+ *                         not be trusted or acted upon before the handshake completes.
  *
- * \param ssl      The SSL context to query.
- *
- * \return         The negotiated DTLS-SRTP informations:
- *                 - Protection profile in use.
- *                 A direct mapping of the iana defined value for protection
- *                 profile on an uint16_t.
- *                 http://www.iana.org/assignments/srtp-protection/srtp-protection.xhtml
- *                 #MBEDTLS_TLS_SRTP_UNSET if the use of SRTP was not negotiated
- *                 or peer's Hello packet was not parsed yet.
- *                 - mki size and value (if size is > 0). These informations are valid only
- *                 if the protection profile returned is not MBEDTLS_TLS_SRTP_UNSET.
+ * \param ssl              The SSL context to query.
+ * \param dtls_srtp_info   The negotiated DTLS-SRTP informations:
+ *                         - Protection profile in use.
+ *                         A direct mapping of the iana defined value for protection
+ *                         profile on an uint16_t.
+                   http://www.iana.org/assignments/srtp-protection/srtp-protection.xhtml
+ *                         #MBEDTLS_TLS_SRTP_UNSET if the use of SRTP was not negotiated
+ *                         or peer's Hello packet was not parsed yet.
+ *                         - mki size and value( if size is > 0 ).
  */
-mbedtls_dtls_srtp_info mbedtls_ssl_get_dtls_srtp_negotiation_result
-                                             ( const mbedtls_ssl_context *ssl );
+void mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ssl,
+                                                   mbedtls_dtls_srtp_info *dtls_srtp_info );
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
 /**

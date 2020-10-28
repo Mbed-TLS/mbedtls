@@ -2754,8 +2754,8 @@ int main( int argc, char *argv[] )
     else if( opt.use_srtp != 0  )
     {
         size_t j = 0;
-        mbedtls_dtls_srtp_info dtls_srtp_negotiation_result =
-                        mbedtls_ssl_get_dtls_srtp_negotiation_result( &ssl );
+        mbedtls_dtls_srtp_info dtls_srtp_negotiation_result;
+        mbedtls_ssl_get_dtls_srtp_negotiation_result( &ssl, &dtls_srtp_negotiation_result );
 
         if( ( dtls_srtp_negotiation_result.chosen_dtls_srtp_profile
                                 == MBEDTLS_TLS_SRTP_UNSET ) )

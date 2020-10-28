@@ -4751,16 +4751,19 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
     return( 0 );
 }
 
-mbedtls_dtls_srtp_info
-     mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ssl )
+void mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ssl, mbedtls_dtls_srtp_info *dtls_srtp_info )
 {
-    mbedtls_dtls_srtp_info ret = ssl->dtls_srtp_info;
-    /* discard the mki if there is no chosen profile */
-    if ( ret.chosen_dtls_srtp_profile == MBEDTLS_TLS_SRTP_UNSET )
+    dtls_srtp_info->chosen_dtls_srtp_profile = ssl->dtls_srtp_info.chosen_dtls_srtp_profile;
+    /* do not copy the mki value if there is no chosen profile */
+    if ( dtls_srtp_info->chosen_dtls_srtp_profile == MBEDTLS_TLS_SRTP_UNSET )
     {
-        ret.mki_len = 0;
+        dtls_srtp_info->mki_len = 0;
     }
-    return( ret );
+    else
+    {
+        dtls_srtp_info->mki_len = ssl->dtls_srtp_info.mki_len;
+        memcpy( dtls_srtp_info->mki_value, ssl->dtls_srtp_info.mki_value, ssl->dtls_srtp_info.mki_len );
+    }
 }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 

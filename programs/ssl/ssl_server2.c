@@ -3865,10 +3865,10 @@ handshake:
     else if( opt.use_srtp != 0  )
     {
         size_t j = 0;
-        const mbedtls_dtls_srtp_info *dtls_srtp_negotiation_result =
+        mbedtls_dtls_srtp_info dtls_srtp_negotiation_result =
                         mbedtls_ssl_get_dtls_srtp_negotiation_result( &ssl );
 
-        if( ( dtls_srtp_negotiation_result->chosen_dtls_srtp_profile
+        if( ( dtls_srtp_negotiation_result.chosen_dtls_srtp_profile
                                 == MBEDTLS_TLS_SRTP_UNSET ) )
         {
             mbedtls_printf( "    Unable to negotiate "
@@ -3911,12 +3911,12 @@ handshake:
             }
             mbedtls_printf( "\n" );
 
-            if ( dtls_srtp_negotiation_result->mki_len > 0 )
+            if ( dtls_srtp_negotiation_result.mki_len > 0 )
             {
                 mbedtls_printf( "    DTLS-SRTP mki value: " );
-                for( j = 0; j < dtls_srtp_negotiation_result->mki_len; j++ )
+                for( j = 0; j < dtls_srtp_negotiation_result.mki_len; j++ )
                 {
-                    mbedtls_printf( "%02X", dtls_srtp_negotiation_result->mki_value[j] );
+                    mbedtls_printf( "%02X", dtls_srtp_negotiation_result.mki_value[j] );
                 }
             }
             else

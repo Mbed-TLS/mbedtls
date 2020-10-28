@@ -4751,10 +4751,16 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
     return( 0 );
 }
 
-const mbedtls_dtls_srtp_info *
+mbedtls_dtls_srtp_info
      mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ssl )
 {
-    return( &( ssl->dtls_srtp_info ) );
+    mbedtls_dtls_srtp_info ret = ssl->dtls_srtp_info;
+    /* discard the mki if there is no chosen profile */
+    if ( ret.chosen_dtls_srtp_profile == MBEDTLS_TLS_SRTP_UNSET )
+    {
+        ret.mki_len = 0;
+    }
+    return( ret );
 }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 

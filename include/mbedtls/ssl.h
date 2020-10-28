@@ -3275,11 +3275,8 @@ int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
  *                 or peer's Hello packet was not parsed yet.
  *                 - mki size and value (if size is > 0). These informations are valid only
  *                 if the protection profile returned is not MBEDTLS_TLS_SRTP_UNSET.
- *                 Ownership of the returned structure is kept by the ssl context,
- *                 the caller must duplicate any information that must live longer than
- *                 the context (typically MKI size and value if any)
  */
-const mbedtls_dtls_srtp_info *mbedtls_ssl_get_dtls_srtp_negotiation_result
+mbedtls_dtls_srtp_info mbedtls_ssl_get_dtls_srtp_negotiation_result
                                              ( const mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 

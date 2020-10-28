@@ -885,7 +885,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
     {
         ssl->dtls_srtp_info.mki_len = mki_length;
 
-        memcpy(ssl->dtls_srtp_info.mki_value, buf, mki_length);
+        memcpy( ssl->dtls_srtp_info.mki_value, buf, mki_length );
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "using mki",  ssl->dtls_srtp_info.mki_value,
                                                 ssl->dtls_srtp_info.mki_len );
@@ -2065,10 +2065,10 @@ read_record_header:
             case MBEDTLS_TLS_EXT_USE_SRTP:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found use_srtp extension" ) );
 
-                if ( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+                if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
                 {
                     ret = ssl_parse_use_srtp_ext( ssl, ext + 4, ext_size );
-                    if ( ret != 0 )
+                    if( ret != 0 )
                         return( ret );
                 }
                 break;
@@ -2992,7 +2992,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-    if ( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         ssl_write_use_srtp_ext( ssl, p + 2 + ext_len, &olen );
         ext_len += olen;

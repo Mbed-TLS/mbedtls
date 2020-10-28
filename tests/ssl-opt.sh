@@ -8875,14 +8875,14 @@ run_test  "DTLS-SRTP all profiles supported. server doesn't support mki." \
           -s "selected srtp profile" \
           -s "server hello, adding use_srtp extension" \
           -s "DTLS-SRTP key material is"\
-          -s "DTLS-SRTP no mki value negociated"\
+          -s "DTLS-SRTP no mki value negotiated"\
           -S "dumping 'using mki' (8 bytes)" \
           -c "client hello, adding use_srtp extension" \
           -c "found use_srtp extension" \
           -c "found srtp profile" \
           -c "selected srtp profile" \
           -c "DTLS-SRTP key material is"\
-          -c "DTLS-SRTP no mki value negociated"\
+          -c "DTLS-SRTP no mki value negotiated"\
           -g "find_in_both '^ *Keying material: [0-9A-F]*$'"\
           -c "dumping 'sending mki' (8 bytes)" \
           -C "dumping 'received mki' (8 bytes)" \
@@ -9069,7 +9069,7 @@ run_test  "DTLS-SRTP all profiles supported. server doesn't support mki. openssl
           -c "found srtp profile" \
           -c "selected srtp profile" \
           -c "DTLS-SRTP key material is"\
-          -c "DTLS-SRTP no mki value negociated"\
+          -c "DTLS-SRTP no mki value negotiated"\
           -c "dumping 'sending mki' (8 bytes)" \
           -C "dumping 'received mki' (8 bytes)" \
           -C "error"

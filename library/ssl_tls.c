@@ -4700,7 +4700,7 @@ int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
                                          unsigned char *mki_value,
                                          uint16_t mki_len )
 {
-    if ( mki_len > MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH )
+    if( mki_len > MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH )
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
@@ -4727,7 +4727,7 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
                        list_size <= MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH;
          p++ )
     {
-        if ( mbedtls_ssl_check_srtp_profile_value( *p ) != MBEDTLS_TLS_SRTP_UNSET )
+        if( mbedtls_ssl_check_srtp_profile_value( *p ) != MBEDTLS_TLS_SRTP_UNSET )
         {
             list_size++;
         }
@@ -4738,7 +4738,7 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
         }
     }
 
-    if ( list_size > MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH )
+    if( list_size > MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH )
     {
                 conf->dtls_srtp_profile_list = NULL;
                 conf->dtls_srtp_profile_list_len = 0;
@@ -4751,18 +4751,20 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
     return( 0 );
 }
 
-void mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ssl, mbedtls_dtls_srtp_info *dtls_srtp_info )
+void mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ssl,
+                                                   mbedtls_dtls_srtp_info *dtls_srtp_info )
 {
     dtls_srtp_info->chosen_dtls_srtp_profile = ssl->dtls_srtp_info.chosen_dtls_srtp_profile;
     /* do not copy the mki value if there is no chosen profile */
-    if ( dtls_srtp_info->chosen_dtls_srtp_profile == MBEDTLS_TLS_SRTP_UNSET )
+    if( dtls_srtp_info->chosen_dtls_srtp_profile == MBEDTLS_TLS_SRTP_UNSET )
     {
         dtls_srtp_info->mki_len = 0;
     }
     else
     {
         dtls_srtp_info->mki_len = ssl->dtls_srtp_info.mki_len;
-        memcpy( dtls_srtp_info->mki_value, ssl->dtls_srtp_info.mki_value, ssl->dtls_srtp_info.mki_len );
+        memcpy( dtls_srtp_info->mki_value, ssl->dtls_srtp_info.mki_value,
+                ssl->dtls_srtp_info.mki_len );
     }
 }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */

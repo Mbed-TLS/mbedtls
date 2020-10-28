@@ -2341,7 +2341,8 @@ int main( int argc, char *argv[] )
     {
         if( opt.force_srtp_profile != 0 )
         {
-            const mbedtls_ssl_srtp_profile forced_profile[] = { opt.force_srtp_profile, MBEDTLS_TLS_SRTP_UNSET };
+            const mbedtls_ssl_srtp_profile forced_profile[] =
+                                        { opt.force_srtp_profile, MBEDTLS_TLS_SRTP_UNSET };
             ret = mbedtls_ssl_conf_dtls_srtp_protection_profiles ( &conf, forced_profile );
         }
         else
@@ -2810,7 +2811,7 @@ int main( int argc, char *argv[] )
             }
             else
             {
-                mbedtls_printf( "    DTLS-SRTP no mki value negociated" );
+                mbedtls_printf( "    DTLS-SRTP no mki value negotiated" );
             }
             mbedtls_printf( "\n" );
         }

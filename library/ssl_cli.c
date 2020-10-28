@@ -1909,7 +1909,8 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
      */
     for( i=0; i < ssl->conf->dtls_srtp_profile_list_len; i++)
     {
-        if( server_protection == ssl->conf->dtls_srtp_profile_list[i] ) {
+        if( server_protection == ssl->conf->dtls_srtp_profile_list[i] )
+        {
             ssl->dtls_srtp_info.chosen_dtls_srtp_profile = ssl->conf->dtls_srtp_profile_list[i];
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "selected srtp profile: %s",
                                       mbedtls_ssl_get_srtp_profile_as_string(

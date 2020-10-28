@@ -3921,7 +3921,7 @@ handshake:
             }
             else
             {
-                mbedtls_printf( "    DTLS-SRTP no mki value negociated" );
+                mbedtls_printf( "    DTLS-SRTP no mki value negotiated" );
             }
             mbedtls_printf( "\n" );
 

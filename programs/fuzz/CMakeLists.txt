@@ -1,5 +1,5 @@
 set(libs
-    mbedtls
+    ${mbedtls_target}
 )
 
 if(USE_PKCS11_HELPER_LIBRARY)

@@ -921,6 +921,22 @@ static int send_cb( void *ctx, unsigned char const *buf, size_t len )
     return( mbedtls_net_send( io_ctx->net, buf, len ) );
 }
 
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+static int psk_cb(void * p_psk,  mbedtls_ssl_context *context, const unsigned char * identity, size_t  identity_len) {
+    (void)context;
+    (void)p_psk;
+
+    /* INFO: Cou can also configure the psk inside this callback. */
+
+    mbedtls_printf( "\n  . Receieved server identity: %.*s\n",  (int)identity_len, identity);
+
+    /* Repeat the handshake print because it was interrupted by this callback */
+    mbedtls_printf( "  . Performing the SSL/TLS handshake..." );
+
+    return( 0 );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static unsigned char peer_crt_info[1024];
 
@@ -2392,6 +2408,8 @@ int main( int argc, char *argv[] )
             mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_psk returned %d\n\n", ret );
             goto exit;
         }
+
+        mbedtls_ssl_conf_psk_cb(&conf, &psk_cb, &conf);
     }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 

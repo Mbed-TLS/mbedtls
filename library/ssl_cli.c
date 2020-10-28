@@ -840,10 +840,11 @@ static int ssl_validate_ciphersuite(
         return( 1 );
 #endif
 
-    /* Don't suggest PSK-based ciphersuite if no PSK is available. */
+    /* Don't suggest PSK-based ciphersuite if no PSK is available
+     * and if no PSK identity hint callback is installed. */
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_psk( suite_info ) &&
-        ssl_conf_has_static_psk( ssl->conf ) == 0 )
+        ssl_conf_has_static_psk( ssl->conf ) == 0 && ssl->conf->f_psk == NULL )
     {
         return( 1 );
     }
@@ -2562,13 +2563,15 @@ static int ssl_parse_server_psk_hint( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
-    /*
-     * Note: we currently ignore the PKS identity hint, as we only allow one
-     * PSK to be provisionned on the client. This could be changed later if
-     * someone needs that feature.
-     */
-    *p += len;
+    /* Execute client callback to read the server identity (hint) */
     ret = 0;
+    if( ssl->conf->f_psk != NULL )
+    {
+        if( ssl->conf->f_psk( ssl->conf->p_psk, ssl, *p, len ) != 0 )
+            ret = MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY;
+    }
+
+    *p += len;
 
     return( ret );
 }
@@ -3633,9 +3636,8 @@ ecdh_calc_secret:
          */
         if( ssl_conf_has_static_psk( ssl->conf ) == 0 )
         {
-            /* We don't offer PSK suites if we don't have a PSK,
-             * and we check that the server's choice is among the
-             * ciphersuites we offered, so this should never happen. */
+            /* This can happen, if PSK suite is enabled
+             * but no PSK has been selected manually or by the PSK identity hint callback. */
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 

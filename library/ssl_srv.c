@@ -789,8 +789,9 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
     const size_t size_of_lengths = 3;
 
     /* If use_srtp is not configured, just ignore the extension */
-    if( ssl->conf->dtls_srtp_profile_list == NULL ||
-        ssl->conf->dtls_srtp_profile_list_len == 0 )
+    if( ( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ) ||
+        ( ssl->conf->dtls_srtp_profile_list == NULL ) ||
+        ( ssl->conf->dtls_srtp_profile_list_len == 0 ) )
     {
         return( 0 );
     }
@@ -2065,12 +2066,9 @@ read_record_header:
             case MBEDTLS_TLS_EXT_USE_SRTP:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found use_srtp extension" ) );
 
-                if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-                {
-                    ret = ssl_parse_use_srtp_ext( ssl, ext + 4, ext_size );
-                    if( ret != 0 )
-                        return( ret );
-                }
+                ret = ssl_parse_use_srtp_ext( ssl, ext + 4, ext_size );
+                if( ret != 0 )
+                    return( ret );
                 break;
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
@@ -2643,7 +2641,8 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
 
     *olen = 0;
 
-    if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile == MBEDTLS_TLS_SRTP_UNSET )
+    if( ( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ) ||
+        ( ssl->dtls_srtp_info.chosen_dtls_srtp_profile == MBEDTLS_TLS_SRTP_UNSET ) )
     {
         return;
     }
@@ -2992,11 +2991,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-    {
-        ssl_write_use_srtp_ext( ssl, p + 2 + ext_len, &olen );
-        ext_len += olen;
-    }
+    ssl_write_use_srtp_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
 #endif
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, total extension length: %d", ext_len ) );

@@ -768,8 +768,9 @@ static int ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
 
     *olen = 0;
 
-    if( ( ssl->conf->dtls_srtp_profile_list == NULL ) ||
-        ( ssl->conf->dtls_srtp_profile_list_len == 0  ) )
+    if( ( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ) ||
+        ( ssl->conf->dtls_srtp_profile_list == NULL ) ||
+        ( ssl->conf->dtls_srtp_profile_list_len == 0 ) )
     {
         return( 0 );
     }
@@ -1397,16 +1398,13 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( ( ret = ssl_write_use_srtp_ext( ssl, p + 2 + ext_len,
+                                        end, &olen ) ) != 0 )
     {
-        if( ( ret = ssl_write_use_srtp_ext( ssl, p + 2 + ext_len,
-                                            end, &olen ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_use_srtp_ext", ret );
-            return( ret );
-        }
-        ext_len += olen;
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_use_srtp_ext", ret );
+        return( ret );
     }
+    ext_len += olen;
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
@@ -1852,8 +1850,9 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
     uint16_t server_protection_profile_value = 0;
 
     /* If use_srtp is not configured, just ignore the extension */
-    if( ssl->conf->dtls_srtp_profile_list == NULL ||
-        ssl->conf->dtls_srtp_profile_list_len == 0  )
+    if( ( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ) ||
+        ( ssl->conf->dtls_srtp_profile_list == NULL ) ||
+        ( ssl->conf->dtls_srtp_profile_list_len == 0 ) )
         return( 0 );
 
     /* RFC 5764 section 4.1.1
@@ -2530,11 +2529,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         case MBEDTLS_TLS_EXT_USE_SRTP:
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "found use_srtp extension" ) );
 
-            if ( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-            {
-                if( ( ret = ssl_parse_use_srtp_ext( ssl, ext + 4, ext_size ) ) != 0 )
-                    return( ret );
-            }
+            if( ( ret = ssl_parse_use_srtp_ext( ssl, ext + 4, ext_size ) ) != 0 )
+                return( ret );
 
             break;
 #endif /* MBEDTLS_SSL_DTLS_SRTP */

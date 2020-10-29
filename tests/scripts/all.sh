@@ -780,6 +780,18 @@ component_test_full_cmake_gcc_asan () {
     if_build_succeeded tests/context-info.sh
 }
 
+component_test_psa_crypto_key_id_encodes_owner () {
+    msg "build: full config - USE_PSA_CRYPTO + PSA_CRYPTO_KEY_ID_ENCODES_OWNER, cmake, gcc, ASan"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: full config - USE_PSA_CRYPTO + PSA_CRYPTO_KEY_ID_ENCODES_OWNER, cmake, gcc, ASan"
+    make test
+}
+
 component_test_zlib_make() {
     msg "build: zlib enabled, make"
     scripts/config.py set MBEDTLS_ZLIB_SUPPORT

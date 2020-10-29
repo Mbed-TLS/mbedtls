@@ -382,7 +382,10 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
     if( status != PSA_SUCCESS )
         return( status );
 
-    return( psa_wipe_key_slot( slot ) );
+    if( slot->access_count <= 1 )
+        return( psa_wipe_key_slot( slot ) );
+    else
+        return( psa_decrement_key_slot_access_count( slot ) );
 }
 
 psa_status_t psa_purge_key( mbedtls_svc_key_id_t key )
@@ -394,10 +397,11 @@ psa_status_t psa_purge_key( mbedtls_svc_key_id_t key )
     if( status != PSA_SUCCESS )
         return( status );
 
-    if( PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) )
+    if( ( ! PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) ) &&
+        ( slot->access_count <= 1 ) )
+        return( psa_wipe_key_slot( slot ) );
+    else
         return( psa_decrement_key_slot_access_count( slot ) );
-
-    return( psa_wipe_key_slot( slot ) );
 }
 
 void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )

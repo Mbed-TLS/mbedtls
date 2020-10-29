@@ -1344,9 +1344,29 @@ psa_status_t psa_destroy_key( mbedtls_svc_key_id_t key )
     if( mbedtls_svc_key_id_is_null( key ) )
         return( PSA_SUCCESS );
 
+    /*
+     * Get the description of the key in a key slot. In case of a permanent
+     * key, this will load the key description from persistent memory if not
+     * done yet. We cannot avoid this loading as without it we don't know if
+     * the key is operated by an SE or not and this information is needed by
+     * the current implementation.
+     */
     status = psa_get_key_slot( key, &slot );
     if( status != PSA_SUCCESS )
         return( status );
+
+    /*
+     * If the key slot containing the key description is under access by the
+     * library (apart from the present access), the key cannot be destroyed
+     * yet. For the time being, just return in error. Eventually (to be
+     * implemented), the key should be destroyed when all accesses have
+     * stopped.
+     */
+    if( slot->access_count > 1 )
+    {
+       psa_decrement_key_slot_access_count( slot );
+       return( PSA_ERROR_GENERIC_ERROR );
+    }
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     driver = psa_get_se_driver_entry( slot->attr.lifetime );

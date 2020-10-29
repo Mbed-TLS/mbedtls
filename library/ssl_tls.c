@@ -2261,7 +2261,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
     }
 
     if( mbedtls_ssl_hs_msg_type( ssl ) != MBEDTLS_SSL_HS_CERTIFICATE ||
-        ssl->in_hslen < mbedtls_ssl_hs_hdr_len( ssl ) + 3 + 3 )
+        mbedtls_ssl_hs_body_len( ssl ) < 3 + 3 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -2279,7 +2279,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
     n = ( hs_msg[i+1] << 8 ) | hs_msg[i+2];
 
     if( hs_msg[i] != 0 ||
-        ssl->in_hslen != n + 3 + mbedtls_ssl_hs_hdr_len( ssl ) )
+        mbedtls_ssl_hs_body_len( ssl ) != n + 3 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -2292,12 +2292,12 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
 
     int iter = 0;
     /* Iterate through and parse the CRTs in the provided chain. */
-    while( i < ( ssl->in_hslen - mbedtls_ssl_hs_hdr_len( ssl ) ) )
+    while( i < mbedtls_ssl_hs_body_len( ssl ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "iter=%d i=%d n=%d", iter, i, n ) );
         iter++;
         /* Check that there's room for the next CRT's length fields. */
-        if ( i + 3 > ssl->in_hslen ) {
+        if ( i + 3 > mbedtls_ssl_hs_len( ssl ) ) {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
             mbedtls_ssl_send_alert_message( ssl,
                               MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -2320,7 +2320,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
             | (unsigned int) hs_msg[i + 2];
         i += 3;
 
-        if( n < 128 || i + n > ssl->in_hslen )
+        if( n < 128 || i + n > mbedtls_ssl_hs_len( ssl ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message i=%d n=%u ssl->in_hslen=%u", i, n, ssl->in_hslen ) );
             mbedtls_ssl_send_alert_message( ssl,
@@ -2426,7 +2426,7 @@ static int ssl_srv_check_client_no_crt_notification( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl->in_hslen   == 3 + mbedtls_ssl_hs_hdr_len( ssl ) &&
+    if( mbedtls_ssl_hs_body_len( ssl )   == 3 &&
         ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE    &&
         mbedtls_ssl_hs_msg_type( ssl )  == MBEDTLS_SSL_HS_CERTIFICATE   &&
         memcmp( hs_msg, "\0\0\0", 3 ) == 0 )
@@ -3536,7 +3536,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
         hash_len = 12;
 
     if( mbedtls_ssl_hs_msg_type( ssl ) != MBEDTLS_SSL_HS_FINISHED ||
-        ssl->in_hslen  != mbedtls_ssl_hs_hdr_len( ssl ) + hash_len )
+        mbedtls_ssl_hs_body_len( ssl )  != hash_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,

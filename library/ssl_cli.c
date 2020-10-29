@@ -2121,7 +2121,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-    if( ssl->in_hslen < 38 + mbedtls_ssl_hs_hdr_len( ssl ) ||
+    if( mbedtls_ssl_hs_body_len( ssl ) < 38 ||
         mbedtls_ssl_hs_msg_type( ssl ) != MBEDTLS_SSL_HS_SERVER_HELLO )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
@@ -2186,13 +2186,13 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
-    if( ssl->in_hslen > mbedtls_ssl_hs_hdr_len( ssl ) + 39 + n )
+    if( mbedtls_ssl_hs_body_len( ssl ) > 39 + n )
     {
         ext_len = ( ( buf[38 + n] <<  8 )
                   | ( buf[39 + n]       ) );
 
         if( ( ext_len > 0 && ext_len < 4 ) ||
-            ssl->in_hslen != mbedtls_ssl_hs_hdr_len( ssl ) + 40 + n + ext_len )
+            mbedtls_ssl_hs_body_len( ssl ) != 40 + n + ext_len )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
             mbedtls_ssl_send_alert_message(
@@ -2202,7 +2202,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
     }
-    else if( ssl->in_hslen == mbedtls_ssl_hs_hdr_len( ssl ) + 38 + n )
+    else if( mbedtls_ssl_hs_body_len( ssl ) == 38 + n )
     {
         ext_len = 0;
     }
@@ -3142,7 +3142,7 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
 start_processing:
 #endif
     p   = mbedtls_ssl_hs_body_ptr( ssl );
-    end = p + ssl->in_hslen - mbedtls_ssl_hs_hdr_len( ssl );
+    end = p + mbedtls_ssl_hs_body_len( ssl );
     MBEDTLS_SSL_DEBUG_BUF( 3,   "server key exchange", p, end - p );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
@@ -3329,6 +3329,8 @@ start_processing:
         }
         sig_len = ( p[0] << 8 ) | p[1];
         p += 2;
+
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "sig_len=%u end=%p, p=%p expected=%p diff=%d", sig_len, end, p, end - sig_len, ( p - ( end - sig_len ) ) ) );
 
         if( p != end - sig_len )
         {
@@ -3536,7 +3538,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     buf = mbedtls_ssl_hs_body_ptr( ssl );
 
     /* certificate_types */
-    if( ssl->in_hslen <= mbedtls_ssl_hs_hdr_len( ssl ) )
+    if( mbedtls_ssl_hs_body_len( ssl ) == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -3556,7 +3558,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
      * therefore the buffer length at this point must be greater than that
      * regardless of the actual code path.
      */
-    if( ssl->in_hslen <= mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n )
+    if( mbedtls_ssl_hs_body_len( ssl ) <= 2 + n )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -3580,16 +3582,15 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
          * The furthest access in buf is in the loop few lines below:
          *     sig_alg[i + 1],
          * where:
-         *     sig_alg = buf + 3 + n,
+         *     sig_alg = msg_body + 3 + n,
          *     max(i) = sig_alg_len - 1.
          * Therefore the furthest access is:
-         *     buf[3 + n + sig_alg_len - 1 + 1],
+         *     msg_body[3 + n + sig_alg_len - 1 + 1],
          * which reduces to:
-         *     buf[3 + n + sig_alg_len],
+         *     msg_body[3 + n + sig_alg_len],
          * which is one less than we need the buf to be.
          */
-        if( ssl->in_hslen <= mbedtls_ssl_hs_hdr_len( ssl )
-                                + 3 + n + sig_alg_len )
+        if( mbedtls_ssl_hs_body_len( ssl ) <= 3 + n + sig_alg_len )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
             mbedtls_ssl_send_alert_message(
@@ -3618,7 +3619,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
              | ( buf[2 + n]       ) );
 
     n += dn_len;
-    if( ssl->in_hslen != mbedtls_ssl_hs_hdr_len( ssl ) + 3 + n )
+    if( mbedtls_ssl_hs_body_len( ssl ) != 3 + n )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -3651,7 +3652,9 @@ static int ssl_parse_server_hello_done( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
-    if( ssl->in_hslen  != mbedtls_ssl_hs_hdr_len( ssl ) ||
+    /* Not using mbedtls_ssl_body_len to avoid a false positive with
+     * a potentially partially received header */
+    if( mbedtls_ssl_hs_len( ssl )  != mbedtls_ssl_hs_hdr_len( ssl ) ||
         mbedtls_ssl_hs_msg_type( ssl ) != MBEDTLS_SSL_HS_SERVER_HELLO_DONE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello done message" ) );
@@ -4326,7 +4329,7 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
      * 6  .  5+n ticket content
      */
     if( mbedtls_ssl_hs_msg_type( ssl ) != MBEDTLS_SSL_HS_NEW_SESSION_TICKET ||
-        ssl->in_hslen < 6 + mbedtls_ssl_hs_hdr_len( ssl ) )
+        mbedtls_ssl_hs_body_len( ssl ) < 6 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -4341,7 +4344,7 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
 
     ticket_len = ( msg[4] << 8 ) | ( msg[5] );
 
-    if( ticket_len + 6 + mbedtls_ssl_hs_hdr_len( ssl ) != ssl->in_hslen )
+    if( ticket_len + 6 != mbedtls_ssl_hs_body_len( ssl ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,

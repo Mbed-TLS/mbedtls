@@ -58,8 +58,6 @@
 #include "mbedtls/oid.h"
 #endif
 
-static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl );
-
 /*
  * Start a timer.
  * Passing millisecs = 0 cancels a running timer.
@@ -3014,7 +3012,7 @@ static int ssl_check_hs_header( mbedtls_ssl_context const *ssl )
 {
     uint32_t msg_len, frag_off, frag_len;
 
-    msg_len  = ssl_get_hs_total_len( ssl );
+    msg_len  = mbedtls_ssl_hs_body_len( ssl );
     frag_off = ssl_get_hs_frag_off( ssl );
     frag_len = ssl_get_hs_frag_len( ssl );
 
@@ -3108,13 +3106,6 @@ static size_t ssl_get_reassembly_buffer_size( size_t msg_len,
 
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl )
-{
-    return( ( ssl->in_msg[1] << 16 ) |
-            ( ssl->in_msg[2] << 8  ) |
-              ssl->in_msg[3] );
-}
-
 int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
 {
     if( ssl->in_msglen < mbedtls_ssl_hs_hdr_len( ssl ) )
@@ -3124,7 +3115,7 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 
-    ssl->in_hslen = mbedtls_ssl_hs_hdr_len( ssl ) + ssl_get_hs_total_len( ssl );
+    ssl->in_hslen = mbedtls_ssl_hs_len( ssl );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "handshake message: msglen ="
                         " %d, type = %d, hslen = %d",
@@ -3213,7 +3204,10 @@ void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl )
 
     if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER && hs != NULL )
     {
-        ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
+        /* Since the header and the body of the handshake message are not guaranteed to be in
+         * a contiguous buffer, the checksum is updated separately.  */
+        ssl->handshake->update_checksum( ssl, mbedtls_ssl_hs_hdr_ptr( ssl ), mbedtls_ssl_hs_hdr_len( ssl ) );
+        ssl->handshake->update_checksum( ssl, mbedtls_ssl_hs_body_ptr( ssl ), mbedtls_ssl_hs_body_len( ssl ) );
     }
 
     /* Handshake message is complete, increment counter */
@@ -5540,7 +5534,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 #if defined(MBEDTLS_SSL_CLI_C)
             if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
                 ( ssl->in_msg[0] != MBEDTLS_SSL_HS_HELLO_REQUEST ||
-                  ssl->in_hslen  != mbedtls_ssl_hs_hdr_len( ssl ) ) )
+                  mbedtls_ssl_hs_body_len( ssl ) != 0 ) )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "handshake received (not HelloRequest)" ) );
 

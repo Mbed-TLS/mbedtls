@@ -1325,4 +1325,21 @@ static inline unsigned char *mbedtls_ssl_hs_body_ptr( const mbedtls_ssl_context 
     return( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ) );
 }
 
+/* Returns the length of the (possibly reassembled) handshake message */
+static inline size_t mbedtls_ssl_hs_body_len( const mbedtls_ssl_context *ssl )
+{
+    unsigned char *hdr = mbedtls_ssl_hs_hdr_ptr( ssl );
+    return( ( hdr[1] << 16 ) |
+            ( hdr[2] << 8  ) |
+            ( hdr[3]       ) );
+}
+
+/* Returns the length of the (possibly reassembled) handshake message,
+ * including the header */
+static inline size_t mbedtls_ssl_hs_len( const mbedtls_ssl_context *ssl )
+{
+    return( mbedtls_ssl_hs_hdr_len( ssl ) + mbedtls_ssl_hs_body_len( ssl ) );
+}
+
+
 #endif /* ssl_internal.h */

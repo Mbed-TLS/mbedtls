@@ -1095,6 +1095,23 @@ int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
                                 mbedtls_md_type_t md );
 #endif
 
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+static inline mbedtls_ssl_srtp_profile mbedtls_ssl_check_srtp_profile_value
+                                                    ( const uint16_t srtp_profile_value )
+{
+    switch( srtp_profile_value )
+    {
+        case MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80:
+        case MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32:
+        case MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80:
+        case MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32:
+            return srtp_profile_value;
+        default: break;
+    }
+    return( MBEDTLS_TLS_SRTP_UNSET );
+}
+#endif
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static inline mbedtls_pk_context *mbedtls_ssl_own_key( mbedtls_ssl_context *ssl )
 {

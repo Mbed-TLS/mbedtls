@@ -3859,6 +3859,10 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
 
     mbedtls_ssl_reset_in_out_pointers( ssl );
 
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    memset( &ssl->dtls_srtp_info, 0, sizeof(ssl->dtls_srtp_info) );
+#endif
+
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         goto error;
 
@@ -4684,6 +4688,86 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl )
     return( ssl->alpn_chosen );
 }
 #endif /* MBEDTLS_SSL_ALPN */
+
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf,
+                                                int support_mki_value )
+{
+    conf->dtls_srtp_mki_support = support_mki_value;
+}
+
+int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
+                                         unsigned char *mki_value,
+                                         uint16_t mki_len )
+{
+    if( mki_len > MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH )
+    {
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    if( ssl->conf->dtls_srtp_mki_support == MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED )
+    {
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
+
+    memcpy( ssl->dtls_srtp_info.mki_value, mki_value, mki_len );
+    ssl->dtls_srtp_info.mki_len = mki_len;
+    return( 0 );
+}
+
+int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
+                                                    const mbedtls_ssl_srtp_profile *profiles )
+{
+    const mbedtls_ssl_srtp_profile *p;
+    size_t list_size = 0;
+
+    /* check the profiles list: all entry must be valid,
+     * its size cannot be more than the total number of supported profiles, currently 4 */
+    for( p = profiles; *p != MBEDTLS_TLS_SRTP_UNSET &&
+                       list_size <= MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH;
+         p++ )
+    {
+        if( mbedtls_ssl_check_srtp_profile_value( *p ) != MBEDTLS_TLS_SRTP_UNSET )
+        {
+            list_size++;
+        }
+        else
+        {
+            /* unsupported value, stop parsing and set the size to an error value */
+            list_size = MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH + 1;
+        }
+    }
+
+    if( list_size > MBEDTLS_TLS_SRTP_MAX_PROFILE_LIST_LENGTH )
+    {
+                conf->dtls_srtp_profile_list = NULL;
+                conf->dtls_srtp_profile_list_len = 0;
+                return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    conf->dtls_srtp_profile_list = profiles;
+    conf->dtls_srtp_profile_list_len = list_size;
+
+    return( 0 );
+}
+
+void mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ssl,
+                                                   mbedtls_dtls_srtp_info *dtls_srtp_info )
+{
+    dtls_srtp_info->chosen_dtls_srtp_profile = ssl->dtls_srtp_info.chosen_dtls_srtp_profile;
+    /* do not copy the mki value if there is no chosen profile */
+    if( dtls_srtp_info->chosen_dtls_srtp_profile == MBEDTLS_TLS_SRTP_UNSET )
+    {
+        dtls_srtp_info->mki_len = 0;
+    }
+    else
+    {
+        dtls_srtp_info->mki_len = ssl->dtls_srtp_info.mki_len;
+        memcpy( dtls_srtp_info->mki_value, ssl->dtls_srtp_info.mki_value,
+                ssl->dtls_srtp_info.mki_len );
+    }
+}
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
 
 void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor )
 {

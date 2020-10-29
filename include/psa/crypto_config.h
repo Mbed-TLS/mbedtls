@@ -53,6 +53,8 @@
 #define PSA_WANT_ALG_ECDSA                      1
 #define PSA_WANT_ALG_DETERMINISTIC_ECDSA        1
 #define PSA_WANT_ALG_ECDH                       1
+#define PSA_WANT_ECC_KEY_PAIR                   1
+#define PSA_WANT_ECC_PUBLIC_KEY                 1
 #define PSA_WANT_ALG_HMAC                       1
 #define PSA_WANT_ALG_HKDF                       1
 #define PSA_WANT_ALG_RSA                        1

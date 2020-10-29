@@ -1354,6 +1354,30 @@ component_build_psa_want_ecdh_disabled_software() {
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_ECDH -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }
 
+# This should be renamed to test and updated once the accelerator ECC key pair code is in place and ready to test.
+component_build_psa_want_ecc_key_pair_disabled_software() {
+    # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ECC_KEY_PAIR
+    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ECC_KEY_PAIR"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ECC_KEY_PAIR -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
+}
+
+# This should be renamed to test and updated once the accelerator ECC public key code is in place and ready to test.
+component_build_psa_want_ecc_public_key_disabled_software() {
+    # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ECC_PUBLIC_KEY
+    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ECC_PUBLIC_KEY"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ECC_PUBLIC_KEY -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
+}
+
 # This should be renamed to test and updated once the accelerator HMAC code is in place and ready to test.
 component_build_psa_want_hmac_disabled_software() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_HMAC

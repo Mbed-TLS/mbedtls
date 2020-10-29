@@ -63,23 +63,35 @@ extern "C" {
 #define MBEDTLS_ECDH_C
 #define MBEDTLS_ECP_C
 #define MBEDTLS_BIGNUM_C
-#endif /* !defined(MBEDTLS_PSA_ACCEL_ALG_ECDH) */
-#endif /* defined(PSA_WANT_ALG_ECDH) */
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_ECDH */
+#endif /* PSA_WANT_ALG_ECDH */
+
+#if defined(PSA_WANT_ECC_KEY_PAIR)
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_KEY_PAIR)
+#define MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR                1
+#endif /* !MBEDTLS_PSA_ACCEL_ECC_KEY_PAIR */
+#endif /* PSA_WANT_ECC_KEY_PAIR */
+
+#if defined(PSA_WANT_ECC_PUBLIC_KEY)
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_PUBLIC_KEY)
+#define MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY              1
+#endif /* !MBEDTLS_PSA_ACCEL_ECC_PUBLIC_KEY */
+#endif /* PSA_WANT_ECC_PUBLIC_KEY */
 
 #if defined(PSA_WANT_ALG_HMAC)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_HMAC)
 #define MBEDTLS_PSA_BUILTIN_ALG_HMAC                    1
 #define MBEDTLS_MD_C
-#endif /* !defined(MBEDTLS_PSA_ACCEL_ALG_HMAC) */
-#endif /* defined(PSA_WANT_ALG_HMAC) */
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_HMAC */
+#endif /* PSA_WANT_ALG_HMAC */
 
 #if defined(PSA_WANT_ALG_HKDF)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_HKDF)
 #define MBEDTLS_PSA_BUILTIN_ALG_HKDF                    1
 #define MBEDTLS_HKDF_C
 #define MBEDTLS_MD_C
-#endif /* !defined(MBEDTLS_PSA_ACCEL_ALG_HKDF) */
-#endif /* defined(PSA_WANT_ALG_HKDF) */
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_HKDF */
+#endif /* PSA_WANT_ALG_HKDF */
 
 #if defined(PSA_WANT_ALG_RSA)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_RSA)
@@ -87,8 +99,8 @@ extern "C" {
 #define MBEDTLS_RSA_C
 #define MBEDTLS_BIGNUM_C
 #define MBEDTLS_OID_C
-#endif /* !defined(MBEDTLS_PSA_ACCEL_ALG_RSA) */
-#endif /* defined(PSA_WANT_ALG_RSA) */
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_RSA */
+#endif /* PSA_WANT_ALG_RSA */
 
 #else /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
@@ -110,6 +122,11 @@ extern "C" {
 #define MBEDTLS_PSA_BUILTIN_ALG_ECDH                    1
 #endif /* MBEDTLS_ECDH_C */
 
+#if defined(MBEDTLS_ECP_C)
+#define MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR                1
+#define MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY              1
+#endif /* MBEDTLS_ECP_C */
+
 #if defined(MBEDTLS_MD_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_HMAC                    1
 #endif /* MBEDTLS_MD_C */
@@ -118,7 +135,7 @@ extern "C" {
 #define MBEDTLS_PSA_BUILTIN_ALG_HKDF                    1
 #endif /* MBEDTLS_HKDF_C */
 
-#ifdef MBEDTLS_RSA_C
+#if defined(MBEDTLS_RSA_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_RSA                     1
 #endif /* MBEDTLS_RSA_C */
 

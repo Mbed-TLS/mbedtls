@@ -3868,8 +3868,8 @@ handshake:
         mbedtls_dtls_srtp_info dtls_srtp_negotiation_result;
         mbedtls_ssl_get_dtls_srtp_negotiation_result( &ssl, &dtls_srtp_negotiation_result );
 
-        if( ( dtls_srtp_negotiation_result.chosen_dtls_srtp_profile
-                                == MBEDTLS_TLS_SRTP_UNSET ) )
+        if( dtls_srtp_negotiation_result.chosen_dtls_srtp_profile
+                                == MBEDTLS_TLS_SRTP_UNSET )
         {
             mbedtls_printf( "    Unable to negotiate "
                             "the use of DTLS-SRTP\n" );

@@ -1779,8 +1779,7 @@ static psa_status_t psa_validate_key_attributes(
     psa_key_lifetime_t lifetime = psa_get_key_lifetime( attributes );
     mbedtls_svc_key_id_t key = psa_get_key_id( attributes );
 
-    status = psa_validate_key_location( psa_get_key_lifetime( attributes ),
-                                        p_drv );
+    status = psa_validate_key_location( lifetime, p_drv );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -1795,10 +1794,7 @@ static psa_status_t psa_validate_key_attributes(
     }
     else
     {
-        status = psa_validate_key_id(
-            psa_get_key_id( attributes ),
-            psa_key_lifetime_is_external( lifetime ), 0 );
-
+        status = psa_validate_key_id( psa_get_key_id( attributes ), 0, 0 );
         if( status != PSA_SUCCESS )
             return( status );
     }

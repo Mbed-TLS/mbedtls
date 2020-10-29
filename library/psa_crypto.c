@@ -1039,6 +1039,8 @@ static psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
          * psa_start_key_creation() wrote the size declared by the
          * caller, which may be 0 (meaning unspecified) or wrong. */
         slot->attr.bits = (psa_key_bits_t) bit_size;
+
+        return( PSA_SUCCESS );
     }
     else if( PSA_KEY_TYPE_IS_ASYMMETRIC( slot->attr.type ) )
     {
@@ -1067,41 +1069,27 @@ static psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
 
         /* Key format is not supported by any accelerator, try software fallback
          * if present. */
+#if defined(MBEDTLS_ECP_C)
         if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
         {
-#if defined(MBEDTLS_ECP_C)
-            status = psa_import_ecp_key( slot,
-                                         data, data_length );
-#else
-            /* No drivers have been implemented yet, so without mbed TLS backing
-             * there's no way to do ECP with the current library. */
-            status = PSA_ERROR_NOT_SUPPORTED;
+            return( psa_import_ecp_key( slot, data, data_length ) );
+        }
 #endif /* defined(MBEDTLS_ECP_C) */
-        }
-        else if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
-        {
 #if defined(MBEDTLS_RSA_C)
-            status = psa_import_rsa_key( slot,
-                                         data, data_length );
-#else
-            /* No drivers have been implemented yet, so without mbed TLS backing
-             * there's no way to do RSA with the current library. */
-            status = PSA_ERROR_NOT_SUPPORTED;
-#endif /* defined(MBEDTLS_RSA_C) */
-        }
-        else
+        if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
         {
-            /* Unsupported asymmetric key type */
-            status = PSA_ERROR_NOT_SUPPORTED;
+            return( psa_import_rsa_key( slot, data, data_length ) );
         }
+#endif /* defined(MBEDTLS_RSA_C) */
+
+        /* Fell through the fallback as well, so have nothing else to try. */
+        return( PSA_ERROR_NOT_SUPPORTED );
     }
     else
     {
         /* Unknown key type */
-        status = PSA_ERROR_NOT_SUPPORTED;
+        return( PSA_ERROR_NOT_SUPPORTED );
     }
-
-    return( status );
 }
 
 /** Calculate the intersection of two algorithm usage policies.
@@ -1977,22 +1965,11 @@ static psa_status_t psa_finish_key_creation(
         else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
         {
-            size_t buffer_size =
-                PSA_KEY_EXPORT_MAX_SIZE( slot->attr.type,
-                                         slot->attr.bits );
-            uint8_t *buffer = mbedtls_calloc( 1, buffer_size );
-            size_t length = 0;
-            if( buffer == NULL )
-                return( PSA_ERROR_INSUFFICIENT_MEMORY );
-            status = psa_internal_export_key( slot,
-                                              buffer, buffer_size, &length,
-                                              0 );
-            if( status == PSA_SUCCESS )
-                status = psa_save_persistent_key( &slot->attr,
-                                                  buffer, length );
-
-            mbedtls_platform_zeroize( buffer, buffer_size );
-            mbedtls_free( buffer );
+            /* Key material is saved in export representation in the slot, so
+             * just pass the slot buffer for storage. */
+            status = psa_save_persistent_key( &slot->attr,
+                                              slot->data.key.data,
+                                              slot->data.key.bytes );
         }
     }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */

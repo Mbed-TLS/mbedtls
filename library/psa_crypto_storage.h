@@ -81,9 +81,10 @@ int psa_is_key_present_in_storage( const mbedtls_svc_key_id_t key );
  * This function formats the key data and metadata and saves it to a
  * persistent storage backend. The storage location corresponding to the
  * key slot must be empty, otherwise this function will fail. This function
- * should be called after psa_import_key_into_slot() to ensure the
+ * should be called after loading the key into an internal slot to ensure the
  * persistent key is not saved into a storage location corresponding to an
- * already occupied non-persistent key, as well as validating the key data.
+ * already occupied non-persistent key, as well as ensuring the key data is
+ * validated.
  *
  *
  * \param[in] attr          The attributes of the key to save.

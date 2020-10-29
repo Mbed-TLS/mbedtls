@@ -106,6 +106,10 @@ psa_status_t test_transparent_generate_key(
         {
             *key_length = bytes;
         }
+        else
+        {
+            memset( key, 0, bytes );
+        }
 
         mbedtls_ecp_keypair_free( &ecp );
         return( status );
@@ -146,7 +150,7 @@ psa_status_t test_transparent_validate_key(const psa_key_attributes_t *attribute
         mbedtls_ecp_keypair ecp;
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-        if( *bits == 0 )
+        if( psa_get_key_bits( attributes ) == 0 )
         {
             // Attempt auto-detect of curve bit size
             size_t curve_size = data_length;

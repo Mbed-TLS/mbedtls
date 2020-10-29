@@ -3128,7 +3128,7 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "handshake message: msglen ="
                         " %d, type = %d, hslen = %d",
-                        ssl->in_msglen, ssl->in_msg[0], ssl->in_hslen ) );
+                        ssl->in_msglen, mbedtls_ssl_hs_msg_type( ssl ), ssl->in_hslen ) );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )

@@ -1319,4 +1319,10 @@ static inline unsigned char mbedtls_ssl_hs_msg_type( const mbedtls_ssl_context *
     return( hdr[0] );
 }
 
+/* Returns pointer to the (possibly reassembled) body of a handshake message */
+static inline unsigned char *mbedtls_ssl_hs_body_ptr( const mbedtls_ssl_context *ssl )
+{
+    return( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ) );
+}
+
 #endif /* ssl_internal.h */

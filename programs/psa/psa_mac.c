@@ -1,4 +1,4 @@
-#include "psa/crypto.h"
+    #include "psa/crypto.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,14 +18,9 @@ int main( void )
     size_t mac_size_real = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_handle_t key_handle = 0;
-    size_t output_len = 0;
     uint8_t mac[32];
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
     const uint8_t key_bytes[16] = "kkkkkkkkkkkkkkkk";
-/*    size_t mac_size_expected = PSA_MAC_FINAL_SIZE( PSA_KEY_TYPE_HMAC, 
-                                                   PSA_BYTES_TO_BITS( sizeof( key_bytes ) ), 
-                                                   PSA_ALG_HMAC(PSA_ALG_SHA_256) );
-*/
     uint8_t incorrect_mac = 0; 
     const uint8_t mbedtls_test_hmac_sha256[] = {
         0xae, 0x72, 0x34, 0x5a, 0x10, 0x36, 0xfb, 0x71,
@@ -33,7 +28,6 @@ int main( void )
         0x00, 0x4a, 0x43, 0x7c, 0x2d, 0xb3, 0x1a, 0xd8,
         0x67, 0xb1, 0xad, 0x11, 0x4d, 0x18, 0x49, 0x8b
      };
-    const size_t mbedtls_test_hmac_sha256_len = sizeof( mbedtls_test_hmac_sha256 );
 
     status = psa_crypto_init( );
     if( status != PSA_SUCCESS )

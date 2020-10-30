@@ -1335,6 +1335,63 @@ component_build_psa_want_ecdsa_disabled_software() {
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_ECDSA -DMBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }
 
+# This should be renamed to test and updated once the accelerator ECDH code is in place and ready to test.
+component_build_psa_want_ecdh_disabled_software() {
+    # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_ECDH
+    # without MBEDTLS_ECDH_C
+    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ALG_ECDH without MBEDTLS_ECDH_C"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_ECDH_C
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_ECDH -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
+}
+
+# This should be renamed to test and updated once the accelerator HMAC code is in place and ready to test.
+component_build_psa_want_hmac_disabled_software() {
+    # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_HMAC
+    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ALG_HMAC"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_HMAC -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
+}
+
+# This should be renamed to test and updated once the accelerator HKDF code is in place and ready to test.
+component_build_psa_want_hkdf_disabled_software() {
+    # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_HKDF
+    # without MBEDTLS_HKDF_C
+    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ALG_HKDF without MBEDTLS_HKDF_C"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_HKDF_C
+    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_HKDF -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
+}
+
+# This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
+component_build_psa_want_rsa_disabled_software() {
+    # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_RSA
+    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ALG_RSA"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
+}
+
 component_test_check_params_functionality () {
     msg "build+test: MBEDTLS_CHECK_PARAMS functionality"
     scripts/config.py full # includes CHECK_PARAMS

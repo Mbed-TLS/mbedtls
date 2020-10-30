@@ -52,5 +52,9 @@
 
 #define PSA_WANT_ALG_ECDSA                      1
 #define PSA_WANT_ALG_DETERMINISTIC_ECDSA        1
+#define PSA_WANT_ALG_ECDH                       1
+#define PSA_WANT_ALG_HMAC                       1
+#define PSA_WANT_ALG_HKDF                       1
+#define PSA_WANT_ALG_RSA                        1
 
 #endif /* PSA_CRYPTO_CONFIG_H */

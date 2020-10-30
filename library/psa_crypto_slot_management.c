@@ -164,6 +164,7 @@ void psa_wipe_all_key_slots( void )
     for( slot_idx = 0; slot_idx < PSA_KEY_SLOT_COUNT; slot_idx++ )
     {
         psa_key_slot_t *slot = &global_data.key_slots[ slot_idx ];
+        slot->access_count = 1;
         (void) psa_wipe_key_slot( slot );
     }
     global_data.key_slots_initialized = 0;

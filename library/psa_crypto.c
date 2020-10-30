@@ -1299,6 +1299,27 @@ static psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
 psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
 {
     psa_status_t status = psa_remove_key_data_from_memory( slot );
+
+    /*
+     * As the return error code may not be handled in case of multiple errors,
+     * do our best to report an unexpected access counter: if available
+     * call MBEDTLS_PARAM_FAILED that may terminate execution (if called as
+     * part of the execution of a test suite this will stop the test suite
+     * execution) and if MBEDTLS_PARAM_FAILED does not terminate execution
+     * ouput an error message on standard error output.
+     */
+    if( slot->access_count != 1 )
+    {
+#ifdef MBEDTLS_CHECK_PARAMS
+        MBEDTLS_PARAM_FAILED( slot->access_count == 1 );
+#endif
+#ifdef MBEDTLS_PLATFORM_C
+        mbedtls_fprintf( stderr,
+            "\nFATAL psa_wipe_key_slot Unexpected access counter value\n.");
+#endif
+        status = PSA_ERROR_CORRUPTION_DETECTED;
+    }
+
     /* Multipart operations may still be using the key. This is safe
      * because all multipart operation objects are independent from
      * the key slot: if they need to access the key after the setup

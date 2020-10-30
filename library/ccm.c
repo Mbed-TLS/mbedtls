@@ -156,17 +156,33 @@ static void mbedtls_generate_masks( unsigned char* table, size_t  size )
 /*
  * Update the CBC-MAC state in y using a block in b
  * (Always using b as the source helps the compiler optimise a bit better.)
+ * Initial b masking happens outside of this macro due to various sources of it.
  */
 #define UPDATE_CBC_MAC                                                      \
-    mbedtls_generate_permutation( perm_table, 16 );                         \
     for( i = 0; i < 16; i++ )                                               \
     {                                                                       \
         y[perm_table[i]] ^= b[perm_table[i]];                               \
+        y[perm_table[i]] ^= mask_table[perm_table[i]];                      \
     }                                                                       \
                                                                             \
     if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, y, 16, y, &olen ) ) != 0 ) \
         return( ret );
 
+/*
+ * Copy src to dst starting at a random offset, while masking the whole dst buffer.
+ */
+#define COPY_MASK( dst, src, mask, len_src, len_dst )                   \
+    do                                                                  \
+    {                                                                   \
+        unsigned j, offset = mbedtls_platform_random_uint32() % 256;    \
+        for( i = 0; i < len_src; i++ )                                  \
+        {                                                               \
+            j = (i + offset) % len_src;                                 \
+            (dst)[j] = (src)[j] ^ (mask)[j];                            \
+        }                                                               \
+        for( ; i < len_dst; i++ )                                       \
+            (dst)[i] ^= (mask)[i];                                      \
+    } while( 0 )
 /*
  * Encrypt or decrypt a partial block with CTR
  * Warning: using b for temporary storage! src and dst must not be b!
@@ -243,15 +259,16 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
      * 5 .. 3   (t - 2) / 2
      * 2 .. 0   q - 1
      */
-    b[0] = 0;
-    b[0] |= ( add_len > 0 ) << 6;
-    b[0] |= ( ( tag_len - 2 ) / 2 ) << 3;
-    b[0] |= q - 1;
+    mbedtls_generate_masks( mask_table, 16 );
+    mbedtls_generate_permutation( perm_table, 16 );
+    b[0] = (unsigned char) ( ( ( add_len > 0 ) << 6 ) |
+                           ( ( ( tag_len - 2 ) / 2 ) << 3 ) |
+                           ( q - 1 ) ) ^ mask_table[0];
 
-    mbedtls_platform_memcpy( b + 1, iv, iv_len );
-
+    for( i = 0; i < iv_len; i++ )
+        b[i+1] = iv[i] ^ mask_table[i+1];
     for( i = 0, len_left = length; i < q; i++, len_left >>= 8 )
-        b[15-i] = (unsigned char)( len_left & 0xFF );
+        b[15-i] = (unsigned char)( ( len_left & 0xFF ) ) ^ mask_table[15-i];
 
     if( len_left > 0 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
@@ -271,12 +288,16 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         len_left = add_len;
         src = add;
 
+        mbedtls_generate_masks( mask_table, 16 );
+        mbedtls_generate_permutation( perm_table, 16 );
         mbedtls_platform_memset( b, 0, 16 );
-        b[0] = (unsigned char)( ( add_len >> 8 ) & 0xFF );
-        b[1] = (unsigned char)( ( add_len      ) & 0xFF );
+        b[0] = (unsigned char)( ( ( add_len >> 8 ) & 0xFF ) ^ mask_table[0] );
+        b[1] = (unsigned char)( ( ( add_len      ) & 0xFF ) ^ mask_table[1] );
 
         use_len = len_left < 16 - 2 ? len_left : 16 - 2;
-        mbedtls_platform_memcpy( b + 2, src, use_len );
+
+        COPY_MASK( b+2, src, mask_table+2, use_len, 14 );
+
         len_left -= use_len;
         src += use_len;
 
@@ -284,10 +305,12 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
         while( len_left > 0 )
         {
+            mbedtls_generate_masks( mask_table, 16 );
+            mbedtls_generate_permutation( perm_table, 16 );
             use_len = len_left > 16 ? 16 : len_left;
 
             mbedtls_platform_memset( b, 0, 16 );
-            mbedtls_platform_memcpy( b, src, use_len );
+            COPY_MASK( b, src, mask_table, use_len, 16);
             UPDATE_CBC_MAC;
 
             len_left -= use_len;
@@ -326,8 +349,10 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
         if( mode == CCM_ENCRYPT )
         {
+            mbedtls_generate_masks( mask_table, 16 );
+            mbedtls_generate_permutation( perm_table, 16 );
             mbedtls_platform_memset( b, 0, 16 );
-            mbedtls_platform_memcpy( b, src, use_len );
+            COPY_MASK( b, src, mask_table, use_len, 16 );
             UPDATE_CBC_MAC;
         }
 
@@ -335,8 +360,10 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
         if( mode == CCM_DECRYPT )
         {
+            mbedtls_generate_masks( mask_table, 16 );
+            mbedtls_generate_permutation( perm_table, 16 );
             mbedtls_platform_memset( b, 0, 16 );
-            mbedtls_platform_memcpy( b, dst, use_len );
+            COPY_MASK( b, dst, mask_table, use_len, 16 );
             UPDATE_CBC_MAC;
         }
 

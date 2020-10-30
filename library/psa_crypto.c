@@ -5843,11 +5843,18 @@ psa_status_t psa_key_derivation_input_bytes(
         && operation->can_output_key == 0 )
     {
         /* Copy salt to hmac struct for opaque support */
-        uint8_t *salt_ptr = mbedtls_calloc( 1, data_length );
-        if( salt_ptr == NULL )
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
-        memcpy( salt_ptr, data, data_length );
-        operation->stored_input.data = salt_ptr;
+        if( data_length > 0)
+        {
+            uint8_t *salt_ptr = mbedtls_calloc( 1, data_length );
+            if( salt_ptr == NULL )
+                return( PSA_ERROR_INSUFFICIENT_MEMORY );
+            memcpy( salt_ptr, data, data_length );
+            operation->stored_input.data = salt_ptr;
+        }
+        else
+        {
+            operation->stored_input.data = NULL;
+        }
         operation->stored_input.length = data_length;
         operation->stored_input.step = PSA_KEY_DERIVATION_INPUT_SALT;
     }

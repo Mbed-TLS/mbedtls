@@ -262,13 +262,15 @@ typedef struct psa_tls12_prf_key_derivation_s
 } psa_tls12_prf_key_derivation_t;
 #endif /* MBEDTLS_MD_C */
 
-typedef struct {
+typedef struct psa_key_derivation_input_buffer_s
+{
     const uint8_t *data;
     size_t length;
     psa_key_derivation_step_t step;
 } psa_key_derivation_input_buffer_t;
 
-typedef struct psa_opaque_key_derivation_s {
+typedef struct psa_opaque_key_derivation_s
+{
     psa_key_handle_t key;
     uint8_t *salt;
     size_t salt_length;

@@ -5843,7 +5843,7 @@ psa_status_t psa_key_derivation_input_bytes(
         && operation->can_output_key == 0 )
     {
         /* Copy salt to hmac struct for opaque support */
-        if( data_length > 0)
+        if( data_length > 0 )
         {
             uint8_t *salt_ptr = mbedtls_calloc( 1, data_length );
             if( salt_ptr == NULL )

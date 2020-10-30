@@ -113,6 +113,41 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_ccm_context ) );
 }
 
+/* Durstenfeld's version of Fisher-Yates shuffle */
+static void mbedtls_generate_permutation( unsigned char* table, size_t  size )
+{
+    size_t i, j;
+
+    for( i = 0; i < size; i++ )
+    {
+        table[i] = (unsigned char) i;
+    }
+
+    if( size < 2 )
+    {
+        return;
+    }
+
+    for( i = size - 1; i > 0; i-- )
+    {
+        unsigned char tmp;
+        j = mbedtls_platform_random_uint32() % ( i + 1 );
+        tmp = table[i];
+        table[i] = table[j];
+        table[j] = tmp;
+    }
+}
+
+static void mbedtls_generate_masks( unsigned char* table, size_t  size )
+{
+    size_t i;
+
+    for( i = 0; i < size; i++ )
+    {
+        table[i] = mbedtls_platform_random_uint32() % ( 256 );
+    }
+}
+
 /*
  * Macros for common operations.
  * Results in smaller compiled code than static inline functions.
@@ -123,8 +158,11 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
  * (Always using b as the source helps the compiler optimise a bit better.)
  */
 #define UPDATE_CBC_MAC                                                      \
+    mbedtls_generate_permutation( perm_table, 16 );                         \
     for( i = 0; i < 16; i++ )                                               \
-        y[i] ^= b[i];                                                       \
+    {                                                                       \
+        y[perm_table[i]] ^= b[perm_table[i]];                               \
+    }                                                                       \
                                                                             \
     if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, y, 16, y, &olen ) ) != 0 ) \
         return( ret );
@@ -134,17 +172,23 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
  * Warning: using b for temporary storage! src and dst must not be b!
  * This avoids allocating one more 16 bytes buffer while allowing src == dst.
  */
-#define CTR_CRYPT( dst, src, len  )                                            \
+#define CTR_CRYPT( dst, src, len )                                      \
     do                                                                  \
     {                                                                   \
+        mbedtls_generate_permutation( perm_table, len );                \
+        mbedtls_generate_masks( mask_table, len );                      \
         if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, ctr,       \
                                            16, b, &olen ) ) != 0 )      \
         {                                                               \
             return( ret );                                              \
         }                                                               \
                                                                         \
-        for( i = 0; i < (len); i++ )                                    \
-            (dst)[i] = (src)[i] ^ b[i];                                 \
+        for( i = 0; i < len; i++ )                                      \
+        {                                                               \
+            (dst)[perm_table[i]] = (src)[perm_table[i]] ^ mask_table[perm_table[i]];\
+            (dst)[perm_table[i]] ^= b[perm_table[i]];                   \
+            (dst)[perm_table[i]] ^= mask_table[perm_table[i]];          \
+        }                                                               \
     } while( 0 )
 
 /*
@@ -163,6 +207,8 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     unsigned char b[16];
     unsigned char y[16];
     unsigned char ctr[16];
+    unsigned char perm_table[16];
+    unsigned char mask_table[16];
     const unsigned char *src;
     unsigned char *dst;
 

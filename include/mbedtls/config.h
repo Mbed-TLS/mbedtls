@@ -3095,6 +3095,16 @@
 #define MBEDTLS_PLATFORM_C
 
 /**
+ * \def MBEDTLS_MPS_READER_C
+ *
+ * Enable the MPS reader, which allows accumulation and resegmentation
+ * of incoming data. It is a dependency for TLS handshake reassembly. 
+ *
+ * Enabling MBEDTLS_MPS_READER_C will increase the binary size.
+ */
+//#define MBEDTLS_MPS_READER_C
+
+/**
  * \def MBEDTLS_POLY1305_C
  *
  * Enable the Poly1305 MAC algorithm.

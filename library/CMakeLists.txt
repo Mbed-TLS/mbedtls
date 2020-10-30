@@ -77,6 +77,7 @@ set(src_crypto
     version.c
     version_features.c
     xtea.c
+    mps/reader.c
 )
 
 list(APPEND src_crypto ${thirdparty_src})

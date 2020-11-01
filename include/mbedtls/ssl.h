@@ -42,7 +42,7 @@
 #include "mbedtls/dhm.h"
 #endif
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_ECDH_C) || defined(PSA_WANT_ALG_ECDH)
 #include "mbedtls/ecdh.h"
 #endif
 

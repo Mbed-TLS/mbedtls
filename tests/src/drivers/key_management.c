@@ -43,6 +43,9 @@ psa_status_t test_transparent_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key, size_t key_size, size_t *key_length )
 {
+#if !defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) && !defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY)
+    (void)attributes;
+#endif /* !MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR && !MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY */
     ++test_driver_key_management_hooks.hits;
 
     if( test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
@@ -59,7 +62,7 @@ psa_status_t test_transparent_generate_key(
     }
 
     /* Copied from psa_crypto.c */
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY)
     if ( PSA_KEY_TYPE_IS_ECC( psa_get_key_type( attributes ) )
          && PSA_KEY_TYPE_IS_KEY_PAIR( psa_get_key_type( attributes ) ) )
     {
@@ -115,7 +118,7 @@ psa_status_t test_transparent_generate_key(
         return( status );
     }
     else
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR || MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY */
     return( PSA_ERROR_NOT_SUPPORTED );
 }
 

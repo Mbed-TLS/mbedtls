@@ -437,7 +437,7 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_DHM_C)
     mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
 #endif
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_ECDH_C) || defined(PSA_WANT_ALG_ECDH)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -447,7 +447,7 @@ struct mbedtls_ssl_handshake_params
     unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t ecdh_psa_peerkey_len;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-#endif /* MBEDTLS_ECDH_C */
+#endif /* MBEDTLS_ECDH_C || PSA_WANT_ALG_ECDH */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     mbedtls_ecjpake_context ecjpake_ctx;        /*!< EC J-PAKE key exchange */

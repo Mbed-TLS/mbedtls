@@ -3795,6 +3795,14 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     }
 #endif
 
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+    if( ssl->conf->hs_msg_max_size > 0 )
+    {
+        mbedtls_ssl_hs_reassembly_init( &ssl->handshake->hs_rcb,
+                                    ssl->conf->hs_msg_max_size );
+    }
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
+
     return( 0 );
 }
 
@@ -6153,6 +6161,9 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
         }
     }
 #endif
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+    mbedtls_ssl_hs_reassembly_free( &ssl->handshake->hs_rcb );
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
 }
 
 void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
@@ -7705,5 +7716,60 @@ exit:
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
           MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+int mbedtls_ssl_hs_reassembly_init( mbedtls_ssl_hs_reassembly *rcb,
+                                    unsigned int max_msg_size )
+{
+    int ret = 0;
+
+    if( !rcb )
+        goto exit;
+
+    mbedtls_ssl_hs_reassembly_free( rcb );
+
+    rcb->acc_len = max_msg_size;
+    rcb->acc     = mbedtls_calloc( 1, rcb->acc_len );
+    rcb->reader  = mbedtls_calloc( 1, sizeof(mbedtls_reader) );
+
+    if( !( rcb->reader && rcb->acc ) )
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto exit;
+    }
+
+    ret = mbedtls_reader_init( rcb->reader, rcb->acc, rcb->acc_len );
+
+exit:
+    if( ret != 0 )
+        mbedtls_ssl_hs_reassembly_free( rcb );
+
+    return( ret );
+}
+
+void mbedtls_ssl_hs_reassembly_free( mbedtls_ssl_hs_reassembly *rcb )
+{
+    if( !rcb )
+        return;
+
+    if( rcb->reader )
+    {
+        mbedtls_reader_free( rcb->reader );
+        mbedtls_free( rcb->reader );
+        rcb->reader = NULL;
+    }
+
+    if( rcb->acc )
+    {
+        mbedtls_platform_zeroize( rcb->acc, rcb->acc_len );
+        mbedtls_free( rcb->acc );
+        rcb->acc = NULL;
+    }
+
+    mbedtls_platform_zeroize( &rcb->hdr[0], sizeof(rcb->hdr) );
+
+    rcb->pmsg = NULL;
+}
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
 
 #endif /* MBEDTLS_SSL_TLS_C */

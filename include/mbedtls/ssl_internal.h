@@ -274,6 +274,13 @@
       + ( MBEDTLS_SSL_CID_OUT_LEN_MAX ) )
 #endif
 
+/* Defragmentation buffer size */
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+#if !defined(MBEDTLS_SSL_HANDSHAKE_REASSEMBLY_MAX_MESSAGE_SIZE)
+#define MBEDTLS_SSL_HANDSHAKE_REASSEMBLY_MAX_MESSAGE_SIZE 16384
+#endif
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
+
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
 static inline uint32_t mbedtls_ssl_get_output_buflen( const mbedtls_ssl_context *ctx )
 {

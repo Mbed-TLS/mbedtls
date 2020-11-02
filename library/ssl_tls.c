@@ -4853,6 +4853,18 @@ int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_c
 }
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+int mbedtls_ssl_conf_hs_reassembly_max_size( mbedtls_ssl_config *conf, unsigned int max_size )
+{
+    if( max_size > MBEDTLS_SSL_HANDSHAKE_REASSEMBLY_MAX_MESSAGE_SIZE )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    conf->hs_msg_max_size = max_size;
+
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
+
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
 void mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate )
 {

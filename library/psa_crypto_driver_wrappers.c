@@ -410,6 +410,34 @@ psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attrib
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
+psa_status_t psa_driver_wrapper_validate_key( const psa_key_attributes_t *attributes,
+                                              const uint8_t *data,
+                                              size_t data_length,
+                                              size_t *bits )
+{
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    /* Try accelerators in turn */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+    status = test_transparent_validate_key( attributes,
+                                            data,
+                                            data_length,
+                                            bits );
+    /* Declared with fallback == true */
+    if( status != PSA_ERROR_NOT_SUPPORTED )
+        return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+#else /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+    (void) attributes;
+    (void) data;
+    (void) data_length;
+    (void) bits;
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+}
+
 /*
  * Cipher functions
  */

@@ -137,30 +137,26 @@ static inline void psa_key_slot_clear_bits( psa_key_slot_t *slot,
  */
 psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot );
 
-/** Import key data into a slot.
+/** Copy key data (in export format) into an empty key slot.
  *
- * `slot->type` must have been set previously.
- * This function assumes that the slot does not contain any key material yet.
- * On failure, the slot content is unchanged.
+ * This function assumes that the slot does not contain
+ * any key material yet. On failure, the slot content is unchanged.
  *
- * Persistent storage is not affected.
+ * \param[in,out] slot          Key slot to copy the key into.
+ * \param[in] data              Buffer containing the key material.
+ * \param data_length           Size of the key buffer.
  *
- * \param[in,out] slot  The key slot to import data into.
- *                      Its `type` field must have previously been set to
- *                      the desired key type.
- *                      It must not contain any key material yet.
- * \param[in] data      Buffer containing the key material to parse and import.
- * \param data_length   Size of \p data in bytes.
- *
- * \retval PSA_SUCCESS
- * \retval PSA_ERROR_INVALID_ARGUMENT
- * \retval PSA_ERROR_NOT_SUPPORTED
- * \retval PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_SUCCESS
+ *         The key has been copied successfully.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ *         Not enough memory was available for allocation of the
+ *         copy buffer.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         There was other key material already present in the slot.
  */
-psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
-                                       const uint8_t *data,
-                                       size_t data_length );
-
+psa_status_t psa_copy_key_material_into_slot( psa_key_slot_t *slot,
+                                              const uint8_t *data,
+                                              size_t data_length );
 
 /** Convert an mbed TLS error code to a PSA error code
  *

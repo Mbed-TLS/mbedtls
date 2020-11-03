@@ -573,8 +573,7 @@
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_C) &&            \
-    !( defined(MBEDTLS_CTR_DRBG_C) &&           \
-       defined(MBEDTLS_ENTROPY_C) )
+    !( defined(MBEDTLS_ENTROPY_C) )
 #error "MBEDTLS_PSA_CRYPTO_C defined, but not all prerequisites"
 #endif
 

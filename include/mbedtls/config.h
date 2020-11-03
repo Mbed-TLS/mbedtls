@@ -3111,7 +3111,7 @@
  *
  * Module:  library/psa_crypto.c
  *
- * Requires: MBEDTLS_CTR_DRBG_C, MBEDTLS_ENTROPY_C
+ * Requires: MBEDTLS_ENTROPY_C
  *
  */
 #define MBEDTLS_PSA_CRYPTO_C

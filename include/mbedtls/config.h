@@ -3860,6 +3860,9 @@
 /* Endpoint (Client/Server) */
 //#define MBEDTLS_SSL_CONF_ENDPOINT MBEDTLS_SSL_IS_CLIENT
 
+/* Transport (Stream/Datagram) */
+//#define MBEDTLS_SSL_CONF_TRANSPORT MBEDTLS_SSL_TRANSPORT_STREAM
+
 //#define MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED
 
 /* DTLS-specific settings */

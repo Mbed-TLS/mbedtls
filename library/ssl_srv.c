@@ -1468,7 +1468,8 @@ read_record_header:
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, protocol version: [%d:%d]",
                    buf[1], buf[2] ) );
 
-    mbedtls_ssl_read_version( &major, &minor, ssl->conf->transport, buf + 1 );
+    mbedtls_ssl_read_version( &major, &minor,
+                              mbedtls_ssl_conf_get_transport( ssl->conf ), buf + 1 );
 
     /* According to RFC 5246 Appendix E.1, the version here is typically
      * "{03,00}, the lowest version number supported by the client, [or] the
@@ -1674,7 +1675,7 @@ read_record_header:
     {
         int minor_ver, major_ver;
         mbedtls_ssl_read_version( &major_ver, &minor_ver,
-                                  ssl->conf->transport,
+                                  mbedtls_ssl_conf_get_transport( ssl->conf ),
                                   buf );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||        \
@@ -2703,7 +2704,7 @@ static int ssl_write_hello_verify_request( mbedtls_ssl_context *ssl )
      * version looks like the most interoperable thing to do. */
     mbedtls_ssl_write_version( mbedtls_ssl_get_major_ver( ssl ),
                                mbedtls_ssl_get_minor_ver( ssl ),
-                               ssl->conf->transport, p );
+                               mbedtls_ssl_conf_get_transport( ssl->conf ), p );
     MBEDTLS_SSL_DEBUG_BUF( 3, "server version", p, 2 );
     p += 2;
 
@@ -2797,7 +2798,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
     mbedtls_ssl_write_version( mbedtls_ssl_get_major_ver( ssl ),
                                mbedtls_ssl_get_minor_ver( ssl ),
-                               ssl->conf->transport, p );
+                               mbedtls_ssl_conf_get_transport( ssl->conf ), p );
     p += 2;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen version: [%d:%d]",
@@ -4001,7 +4002,7 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
 
     mbedtls_ssl_write_version( ssl->handshake->max_major_ver,
                                ssl->handshake->max_minor_ver,
-                               ssl->conf->transport, ver );
+                               mbedtls_ssl_conf_get_transport( ssl->conf ), ver );
 
     /* Avoid data-dependent branches while checking for invalid
      * padding, to protect against timing-based Bleichenbacher-type

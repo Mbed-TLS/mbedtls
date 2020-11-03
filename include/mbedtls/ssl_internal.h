@@ -1454,6 +1454,21 @@ static inline unsigned int mbedtls_ssl_conf_get_endpoint(
 }
 #endif /* MBEDTLS_SSL_CONF_ENDPOINT */
 
+#if !defined(MBEDTLS_SSL_CONF_TRANSPORT)
+static inline unsigned int mbedtls_ssl_conf_get_transport(
+    mbedtls_ssl_config const *conf )
+{
+    return( conf->transport );
+}
+#else /* !MBEDTLS_SSL_CONF_TRANSPORT */
+static inline unsigned int mbedtls_ssl_conf_get_transport(
+    mbedtls_ssl_config const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_TRANSPORT );
+}
+#endif /* MBEDTLS_SSL_CONF_TRANSPORT */
+
 #if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
 static inline uint32_t mbedtls_ssl_conf_get_read_timeout(
     mbedtls_ssl_config  const *conf )

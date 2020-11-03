@@ -1200,7 +1200,9 @@ struct mbedtls_ssl_config
 #if !defined(MBEDTLS_SSL_CONF_ENDPOINT)
     unsigned int endpoint : 1;      /*!< 0: client, 1: server               */
 #endif /* !MBEDTLS_SSL_CONF_ENDPOINT */
+#if !defined(MBEDTLS_SSL_CONF_TRANSPORT)
     unsigned int transport : 1;     /*!< stream (TLS) or datagram (DTLS)    */
+#endif /* !MBEDTLS_SSL_CONF_TRANSPORT */
 #if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
     unsigned int authmode : 6;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
 #endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
@@ -1569,6 +1571,7 @@ int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_conf_endpoint( mbedtls_ssl_config *conf, int endpoint );
 #endif /* !MBEDTLS_SSL_CONF_ENDPOINT */
 
+#if !defined(MBEDTLS_SSL_CONF_TRANSPORT)
 /**
  * \brief           Set the transport type (TLS or DTLS).
  *                  Default: TLS unless #MBEDTLS_SSL_PROTO_NO_TLS is defined,
@@ -1579,12 +1582,16 @@ void mbedtls_ssl_conf_endpoint( mbedtls_ssl_config *conf, int endpoint );
  *                  \c mbedtls_ssl_set_bio(). You also need to provide timer
  *                  callbacks with \c mbedtls_ssl_set_timer_cb().
  *
+ * \note            On constrained systems, this can also be configured
+ *                  at compile-time via MBEDTLS_SSL_CONF_TRANSPORT.
+ *
  * \param conf      SSL configuration
  * \param transport transport type:
  *                  MBEDTLS_SSL_TRANSPORT_STREAM for TLS,
  *                  MBEDTLS_SSL_TRANSPORT_DATAGRAM for DTLS.
  */
 void mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport );
+#endif /* !MBEDTLS_SSL_CONF_TRANSPORT */
 
 /**
  * \brief          Set the certificate verification mode

@@ -1194,72 +1194,71 @@ struct mbedtls_ssl_config
 #endif /* !MBEDTLS_SSL_CONF_MAX_MINOR_VER */
 
     /*
-     * Flags (bitfields)
+     * Flags (bytes)
      */
 
 #if !defined(MBEDTLS_SSL_CONF_ENDPOINT)
-    unsigned int endpoint : 1;      /*!< 0: client, 1: server               */
+    uint8_t endpoint;               /*!< 0: client, 1: server               */
 #endif /* !MBEDTLS_SSL_CONF_ENDPOINT */
 #if !defined(MBEDTLS_SSL_CONF_TRANSPORT)
-    unsigned int transport : 1;     /*!< stream (TLS) or datagram (DTLS)    */
+    uint8_t transport;              /*!< stream (TLS) or datagram (DTLS)    */
 #endif /* !MBEDTLS_SSL_CONF_TRANSPORT */
 #if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
-    unsigned int authmode : 6;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
+    uint8_t authmode;               /*!< MBEDTLS_SSL_VERIFY_XXX             */
 #endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
 #if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
     /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
-    unsigned int allow_legacy_renegotiation : 2 ; /*!< MBEDTLS_LEGACY_XXX   */
+    uint8_t allow_legacy_renegotiation; /*!< MBEDTLS_LEGACY_XXX   */
 #endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
 #if defined(MBEDTLS_ARC4_C)
-    unsigned int arc4_disabled : 1; /*!< blacklist RC4 ciphersuites?        */
+    uint8_t arc4_disabled;          /*!< blacklist RC4 ciphersuites?        */
 #endif
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    unsigned int mfl_code : 3;      /*!< desired fragment length            */
+    uint8_t mfl_code;               /*!< desired fragment length            */
 #endif
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-    unsigned int encrypt_then_mac : 1 ; /*!< negotiate encrypt-then-mac?    */
+    uint8_t encrypt_then_mac;       /*!< negotiate encrypt-then-mac?        */
 #endif
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
 #if !defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
-    unsigned int extended_ms : 1;   /*!< negotiate extended master secret?  */
+    uint8_t extended_ms;            /*!< negotiate extended master secret?  */
 #endif /* !MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 #if !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
-    unsigned int enforce_extended_master_secret : 1; /*!< enforce the usage
-                                                      *   of extended master
-                                                      *   secret            */
+    uint8_t enforce_extended_master_secret; /*!< enforce the usage of
+                                             *   extended master secret     */
 #endif /* !MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
 #if !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
-    unsigned int anti_replay : 1;   /*!< detect and prevent replay?         */
+    uint8_t anti_replay;            /*!< detect and prevent replay?         */
 #endif /* !MBEDTLS_SSL_CONF_ANTI_REPLAY */
 #endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-    unsigned int cbc_record_splitting : 1;  /*!< do cbc record splitting    */
+    uint8_t cbc_record_splitting;   /*!< do cbc record splitting            */
 #endif
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    unsigned int disable_renegotiation : 1; /*!< disable renegotiation?     */
+    uint8_t disable_renegotiation;  /*!< disable renegotiation?             */
 #endif
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    unsigned int trunc_hmac : 1;    /*!< negotiate truncated hmac?          */
+    uint8_t trunc_hmac;             /*!< negotiate truncated hmac?          */
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    unsigned int session_tickets : 1;   /*!< use session tickets?           */
+    uint8_t session_tickets;        /*!< use session tickets?               */
 #endif
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
-    unsigned int fallback : 1;      /*!< is this a fallback?                */
+    uint8_t fallback;               /*!< is this a fallback?                */
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
 #if !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
-    unsigned int cert_req_ca_list : 1;  /*!< enable sending CA list in
-                                          Certificate Request messages?     */
+    uint8_t cert_req_ca_list;       /*!< enable sending CA list in
+                                         Certificate Request messages?      */
 #endif /* !MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #if !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
-    unsigned int ignore_unexpected_cid : 1; /*!< Determines whether DTLS
-                                             *   record with unexpected CID
-                                             *   should lead to failure.    */
+    uint8_t ignore_unexpected_cid;  /*!< Determines whether DTLS record
+                                     *   with unexpected CID should
+                                     *   lead to failure.                   */
 #endif /* !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 };

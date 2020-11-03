@@ -518,9 +518,9 @@ struct mbedtls_ssl_handshake_params
 
         struct mbedtls_ssl_hs_buffer
         {
-            unsigned is_valid      : 1;
-            unsigned is_fragmented : 1;
-            unsigned is_complete   : 1;
+            uint8_t is_valid;
+            uint8_t is_fragmented;
+            uint8_t is_complete;
             unsigned char *data;
             size_t data_len;
         } hs[MBEDTLS_SSL_MAX_BUFFERED_HS];
@@ -559,7 +559,7 @@ struct mbedtls_ssl_handshake_params
 #endif
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-    unsigned int async_in_progress : 1; /*!< an asynchronous operation is in progress */
+    uint8_t async_in_progress;          /*!< an asynchronous operation is in progress */
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)

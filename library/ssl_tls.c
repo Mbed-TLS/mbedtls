@@ -10322,7 +10322,7 @@ size_t mbedtls_ssl_get_input_max_frag_len( const mbedtls_ssl_context *ssl )
     size_t read_mfl;
 
     /* Use the configured MFL for the client if we're past SERVER_HELLO_DONE */
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+    if( mbedtls_ssl_conf_get_endpoint( ssl->conf ) == MBEDTLS_SSL_IS_CLIENT &&
         ssl->state >= MBEDTLS_SSL_SERVER_HELLO_DONE )
     {
         return ssl_mfl_code_to_length( ssl->conf->mfl_code );
@@ -12846,7 +12846,9 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 
     /* Use the functions here so that they are covered in tests,
      * but otherwise access member directly for efficiency */
+#if !defined(MBEDTLS_SSL_CONF_ENDPOINT)
     mbedtls_ssl_conf_endpoint( conf, endpoint );
+#endif
     mbedtls_ssl_conf_transport( conf, transport );
 
     /*

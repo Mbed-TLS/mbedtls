@@ -756,12 +756,12 @@ run_test() {
         fi
 
         check_osrv_dtls
-        printf "# $NAME\n$SRV_CMD\n" > $SRV_OUT
+        printf "# %s\n%\n" "$NAME" "$SRV_CMD" > $SRV_OUT
         provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
         SRV_PID=$!
         wait_server_start "$SRV_PORT" "$SRV_PID"
 
-        printf "# $NAME\n$CLI_CMD\n" > $CLI_OUT
+        printf "# %s\n%\n" "$NAME" "$CLI_CMD" > $CLI_OUT
         eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
         wait_client_done
 

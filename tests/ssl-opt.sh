@@ -130,8 +130,8 @@ print_usage() {
     echo "Usage: $0 [options]"
     printf "  -h|--help\tPrint this help.\n"
     printf "  -m|--memcheck\tCheck memory leaks and errors.\n"
-    printf "  -f|--filter\tOnly matching tests are executed (BRE; default: '$FILTER')\n"
-    printf "  -e|--exclude\tMatching tests are excluded (BRE; default: '$EXCLUDE')\n"
+    printf "  -f|--filter\tOnly matching tests are executed (BRE)\n"
+    printf "  -e|--exclude\tMatching tests are excluded (BRE)\n"
     printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
     printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
     printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
@@ -384,7 +384,7 @@ print_name() {
     fi
 
     LINE="$LINE$1"
-    printf "$LINE "
+    printf "%s " "$LINE"
     LEN=$(( 72 - `echo "$LINE" | wc -c` ))
     for i in `seq 1 $LEN`; do printf '.'; done
     printf ' '
@@ -662,12 +662,12 @@ run_test() {
         fi
 
         check_osrv_dtls
-        printf "# $NAME\n$SRV_CMD\n" > $SRV_OUT
+        printf '# %s\n%s\n' "$NAME" "$SRV_CMD" > $SRV_OUT
         provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
         SRV_PID=$!
         wait_server_start "$SRV_PORT" "$SRV_PID"
 
-        printf "# $NAME\n$CLI_CMD\n" > $CLI_OUT
+        printf '# %s\n%s\n' "$NAME" "$CLI_CMD" > $CLI_OUT
         eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
         wait_client_done
 
@@ -1877,12 +1877,12 @@ run_test    "Session resume using cache, DTLS: openssl server" \
 # Tests for Max Fragment Length extension
 
 if [ "$MAX_CONTENT_LEN" -lt "4096" ]; then
-    printf "${CONFIG_H} defines MBEDTLS_SSL_MAX_CONTENT_LEN to be less than 4096. Fragment length tests will fail.\n"
+    printf '%s defines MBEDTLS_SSL_MAX_CONTENT_LEN to be less than 4096. Fragment length tests will fail.\n' "${CONFIG_H}"
     exit 1
 fi
 
 if [ $MAX_CONTENT_LEN -ne 16384 ]; then
-    printf "Using non-default maximum content length $MAX_CONTENT_LEN\n"
+    echo "Using non-default maximum content length $MAX_CONTENT_LEN"
 fi
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
@@ -2823,14 +2823,14 @@ MAX_IM_CA='8'
 MAX_IM_CA_CONFIG=$( ../scripts/config.pl get MBEDTLS_X509_MAX_INTERMEDIATE_CA)
 
 if [ -n "$MAX_IM_CA_CONFIG" ] && [ "$MAX_IM_CA_CONFIG" -ne "$MAX_IM_CA" ]; then
-    printf "The ${CONFIG_H} file contains a value for the configuration of\n"
-    printf "MBEDTLS_X509_MAX_INTERMEDIATE_CA that is different from the script’s\n"
-    printf "test value of ${MAX_IM_CA}. \n"
-    printf "\n"
-    printf "The tests assume this value and if it changes, the tests in this\n"
-    printf "script should also be adjusted.\n"
-    printf "\n"
+    cat <<EOF
+${CONFIG_H} contains a value for the configuration of
+MBEDTLS_X509_MAX_INTERMEDIATE_CA that is different from the script's
+test value of ${MAX_IM_CA}.
 
+The tests assume this value and if it changes, the tests in this
+script should also be adjusted.
+EOF
     exit 1
 fi
 

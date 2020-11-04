@@ -4513,6 +4513,14 @@ static int ssl_consume_current_message( mbedtls_ssl_context *ssl )
 
 static int ssl_record_is_in_progress( mbedtls_ssl_context *ssl )
 {
+    /*
+     * If reassembly is being used, buffers are fully consumed
+     * by the reader, leaving no record in progress
+     */
+    if( mbedtls_ssl_hs_reassembly_enabled( ssl ) )
+        return( 0 );
+
+    /* Otherwise, check for remaining contents of the current TLS record */
     if( ssl->in_msglen > 0 )
         return( 1 );
 

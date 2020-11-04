@@ -246,6 +246,10 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     if( add_len > 0xFF00 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
 
+    mbedtls_platform_zeroize( b, 16 );
+    mbedtls_platform_zeroize( y, 16 );
+    mbedtls_platform_zeroize( ctr, 16 );
+
     q = (uint_fast8_t) (16 - 1 - iv_len);
 
     /*
@@ -389,6 +393,10 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
     CTR_CRYPT( y, y, 16 );
     mbedtls_platform_memcpy( tag, y, tag_len );
+
+    mbedtls_platform_zeroize( b, 16 );
+    mbedtls_platform_zeroize( y, 16 );
+    mbedtls_platform_zeroize( ctr, 16 );
 
     return( ret );
 }

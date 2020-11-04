@@ -438,10 +438,11 @@ run_test "Decoder continues past 0xff character" \
 
 # End of tests
 
+echo
 if [ $T_FAILED -eq 0 ]; then
-    printf "\nPASSED ( $T_COUNT tests )\n"
+    echo "PASSED ( $T_COUNT tests )"
 else
-    printf "\nFAILED ( $T_FAILED / $T_COUNT tests )\n"
+    echo "FAILED ( $T_FAILED / $T_COUNT tests )"
 fi
 
 exit $T_FAILED

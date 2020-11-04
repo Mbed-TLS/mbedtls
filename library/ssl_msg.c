@@ -4580,6 +4580,20 @@ static int ssl_consume_current_message( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+        if( mbedtls_ssl_hs_reassembly_enabled( ssl ) )
+        {
+            mbedtls_reader_commit( ssl->handshake->hs_rcb.reader );
+            mbedtls_reader_reclaim( ssl->handshake->hs_rcb.reader, NULL );
+
+            /* If a full message has been received by this point, reset the RCB state machine
+             * in anticipation for the next handshake message */
+            if( RCB_STATE_HAS_FULL_MSG == mbedtls_ssl_hs_reassembly_get_state( ssl ) )
+                mbedtls_ssl_hs_reassembly_reset_state( ssl );
+        }
+        else
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
+
         /*
          * Get next Handshake message in the current record
          */

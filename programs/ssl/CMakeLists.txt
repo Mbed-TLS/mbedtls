@@ -37,8 +37,8 @@ target_link_libraries(mini_client ${libs})
 add_executable(ssl_client1 ssl_client1.c)
 target_link_libraries(ssl_client1 ${libs})
 
-add_executable(ssl_client2 ssl_client2.c)
-target_sources(ssl_client2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/query_config.c)
+add_executable(ssl_client2 ssl_client2.c
+               ${CMAKE_CURRENT_SOURCE_DIR}/query_config.c)
 target_link_libraries(ssl_client2 ${libs})
 
 add_executable(ssl_fork_server ssl_fork_server.c)
@@ -50,8 +50,8 @@ target_link_libraries(ssl_mail_client ${libs})
 add_executable(ssl_server ssl_server.c)
 target_link_libraries(ssl_server ${libs})
 
-add_executable(ssl_server2 ssl_server2.c)
-target_sources(ssl_server2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/query_config.c)
+add_executable(ssl_server2 ssl_server2.c
+               ${CMAKE_CURRENT_SOURCE_DIR}/query_config.c)
 target_link_libraries(ssl_server2 ${libs})
 
 if(THREADS_FOUND)

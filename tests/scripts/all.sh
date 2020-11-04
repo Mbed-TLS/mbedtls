@@ -1369,7 +1369,7 @@ component_build_psa_want_ecc_key_pair() {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_ECC_KEY_PAIR 1
-    #scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ECC_PUBLIC_KEY
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ECC_PUBLIC_KEY
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ECC_KEY_PAIR -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }
@@ -1383,6 +1383,7 @@ component_build_psa_want_ecc_public_key() {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_ECC_PUBLIC_KEY 1
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ECC_KEY_PAIR
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ECC_PUBLIC_KEY -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }
@@ -1424,7 +1425,9 @@ component_build_psa_want_rsa_pkcs1v15_crypt() {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_ALG_RSA_PKCS1V15_CRYPT 1
-    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY 1
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RSA_PKCS1V15_SIGN
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RSA_OAEP
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RSA_PSS
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_CRYPT -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }
@@ -1438,7 +1441,9 @@ component_build_psa_want_rsa_pkcs1v15_sign() {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_ALG_RSA_PKCS1V15_SIGN 1
-    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY 1
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RSA_PKCS1V15_CRYPT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RSA_OAEP
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RSA_PSS
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }
@@ -1452,7 +1457,9 @@ component_build_psa_want_rsa_oaep() {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_ALG_RSA_OAEP 1
-    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY 1
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RSA_PKCS1V15_CRYPT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RSA_PKCS1V15_SIGN
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RSA_PSS
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_OAEP -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }
@@ -1466,7 +1473,9 @@ component_build_psa_want_rsa_pss() {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_ALG_RSA_PSS 1
-    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY 1
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RSA_PKCS1V15_CRYPT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RSA_PKCS1V15_SIGN
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RSA_OAEP
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_PSS -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }

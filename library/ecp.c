@@ -82,6 +82,7 @@
 #include "mbedtls/threading.h"
 #include "mbedtls/platform_util.h"
 
+#include <stdint.h>
 #include <string.h>
 
 #if !defined(MBEDTLS_ECP_ALT)
@@ -183,7 +184,7 @@ static void ecp_restart_rsm_init( mbedtls_ecp_restart_mul_ctx *ctx )
  */
 static void ecp_restart_rsm_free( mbedtls_ecp_restart_mul_ctx *ctx )
 {
-    unsigned char i;
+    uint_fast8_t i;
 
     if( ctx == NULL )
         return;
@@ -1753,7 +1754,7 @@ static int ecp_select_comb( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                             unsigned char i )
 {
     int ret;
-    unsigned char ii, j;
+    uint_fast8_t ii, j;
 
     /* Ignore the "sign" bit and scale down */
     ii =  ( i & 0x7Fu ) >> 1;
@@ -2019,7 +2020,8 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                          mbedtls_ecp_restart_ctx *rs_ctx )
 {
     int ret;
-    unsigned char w, p_eq_g, i;
+    unsigned char w, p_eq_g;
+    uint_fast8_t i;
     size_t d;
     unsigned char T_size, T_ok;
     mbedtls_ecp_point *T;

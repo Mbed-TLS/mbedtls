@@ -35,6 +35,8 @@
 
 #if defined(MBEDTLS_SSL_TLS_C)
 
+#include <stdint.h>
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -2932,7 +2934,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         else if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
         {
             /* ChachaPoly: fixed XOR sequence number */
-            unsigned char i;
+            uint_fast8_t i;
 
             mbedtls_platform_memcpy( iv, transform->iv_enc, transform->fixed_ivlen );
 
@@ -3317,7 +3319,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
         {
             /* ChachaPoly: fixed XOR sequence number */
-            unsigned char i;
+            uint_fast8_t i;
 
             mbedtls_platform_memcpy( iv, transform->iv_dec, transform->fixed_ivlen );
 
@@ -4021,7 +4023,7 @@ static int ssl_resend_hello_request( mbedtls_ssl_context *ssl )
         uint32_t ratio =
             mbedtls_ssl_conf_get_hs_timeout_max( ssl->conf ) /
             mbedtls_ssl_conf_get_hs_timeout_min( ssl->conf ) + 1;
-        unsigned char doublings = 1;
+        int_fast8_t doublings = 1;
 
         while( ratio != 0 )
         {
@@ -8604,7 +8606,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
-        unsigned char i;
+        uint_fast8_t i;
 
         /* Remember current epoch settings for resending */
         ssl->handshake->alt_transform_out = ssl->transform_out;

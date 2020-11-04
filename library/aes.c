@@ -547,7 +547,7 @@ static void aes_gen_tables( void )
  *  |0x10|0x03|0x10|0x10|0x10|0x04|0x00| ... |0x04|0x00|0x04|0x03|0x07|
  */
 #if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
-static int aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
+static int aes_sca_cm_data_randomize( uint8_t *tbl, int tbl_len )
 {
     int i = 0, j, is_even_pos, dummy_rounds, num;
 

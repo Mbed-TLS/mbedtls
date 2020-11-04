@@ -370,7 +370,8 @@ static inline int psa_key_slot_is_external( const psa_key_slot_t *slot )
 }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-#if defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
 mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
                                                size_t byte_length )
 {
@@ -438,7 +439,8 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
             return( MBEDTLS_ECP_DP_NONE );
     }
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
 
 static psa_status_t validate_unstructured_key_bit_size( psa_key_type_t type,
                                                         size_t bits )
@@ -494,7 +496,9 @@ static psa_status_t validate_unstructured_key_bit_size( psa_key_type_t type,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
+    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
 
 #if defined(MBEDTLS_PK_PARSE_C)
 /* Mbed TLS doesn't support non-byte-aligned key sizes (i.e. key sizes
@@ -712,9 +716,15 @@ exit:
 
     return( PSA_SUCCESS );
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
-#if defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
 /** Load the contents of a key buffer into an internal ECP representation
  *
  * \param[in] type          The type of key contained in \p data.
@@ -933,7 +943,8 @@ exit:
 
     return( PSA_SUCCESS );
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
 
 /** Return the size of the key in the given slot, in bits.
  *
@@ -1072,19 +1083,22 @@ static psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
 
         /* Key format is not supported by any accelerator, try software fallback
          * if present. */
-#if defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
         if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
         {
             return( psa_import_ecp_key( slot, data, data_length ) );
         }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
         if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
         {
             return( psa_import_rsa_key( slot, data, data_length ) );
         }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
         /* Fell through the fallback as well, so have nothing else to try. */
         return( PSA_ERROR_NOT_SUPPORTED );
@@ -1471,7 +1485,8 @@ exit:
         mbedtls_free( buffer );
     return( mbedtls_to_psa_error( ret ) );
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
 /** Retrieve all the publicly-accessible attributes of a key.
  */
@@ -1526,7 +1541,8 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
                 mbedtls_free( rsa );
             }
             break;
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
         default:
             /* Nothing else to do. */
             break;
@@ -1650,11 +1666,12 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
 #else
             /* We don't know how to convert a private RSA key to public. */
             return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
         }
         else
         {
-#if defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
             mbedtls_ecp_keypair *ecp = NULL;
             psa_status_t status = psa_load_ecp_representation(
                                     slot->attr.type,
@@ -1678,7 +1695,8 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
 #else
             /* We don't know how to convert a private ECC key to public */
             return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
         }
     }
     else
@@ -2104,7 +2122,8 @@ static psa_status_t psa_validate_optional_attributes(
                 return( mbedtls_to_psa_error( ret ) );
         }
         else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
         {
             return( PSA_ERROR_INVALID_ARGUMENT );
         }
@@ -2301,8 +2320,7 @@ exit:
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) || \
-    (defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) && \
-     (defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY)))
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
 static const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
 {
     switch( alg )
@@ -2345,7 +2363,11 @@ static const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
             return( NULL );
     }
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) || (defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) && (defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY))) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
 
 psa_status_t psa_hash_abort( psa_hash_operation_t *operation )
 {
@@ -3414,7 +3436,8 @@ cleanup:
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
+    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR)
 /* Decode the hash algorithm from alg and store the mbedtls encoding in
  * md_alg. Verify that the hash length is acceptable. */
 static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
@@ -3587,10 +3610,16 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
         return( PSA_ERROR_INVALID_SIGNATURE );
     return( mbedtls_to_psa_error( ret ) );
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) */
 
-#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
-    (defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY))
+#if ( defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+      defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
+    ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+      defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) )
 /* `ecp` cannot be const because `ecp->grp` needs to be non-const
  * for mbedtls_ecdsa_sign() and mbedtls_ecdsa_sign_det()
  * (even though these functions don't modify it). */
@@ -3689,7 +3718,10 @@ cleanup:
     mbedtls_mpi_free( &s );
     return( mbedtls_to_psa_error( ret ) );
 }
-#endif /* (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA))  && (defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY)) */
+#endif /* ( defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        *   defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) &&
+          ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
+            defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ) */
 
 psa_status_t psa_sign_hash( psa_key_handle_t handle,
                             psa_algorithm_t alg,
@@ -3755,10 +3787,12 @@ psa_status_t psa_sign_hash( psa_key_handle_t handle,
     }
     else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) */
-#if defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
     if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
     {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
         if(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
             PSA_ALG_IS_ECDSA( alg )
@@ -3783,13 +3817,15 @@ psa_status_t psa_sign_hash( psa_key_handle_t handle,
             mbedtls_free( ecp );
         }
         else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
         {
             status = PSA_ERROR_INVALID_ARGUMENT;
         }
     }
     else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
     {
         status = PSA_ERROR_NOT_SUPPORTED;
     }
@@ -3856,11 +3892,14 @@ psa_status_t psa_verify_hash( psa_key_handle_t handle,
         return( status );
     }
     else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
-#if defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY)
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
     if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
     {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
         if( PSA_ALG_IS_ECDSA( alg ) )
         {
             mbedtls_ecp_keypair *ecp = NULL;
@@ -3878,13 +3917,15 @@ psa_status_t psa_verify_hash( psa_key_handle_t handle,
             return( status );
         }
         else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
         {
             return( PSA_ERROR_INVALID_ARGUMENT );
         }
     }
     else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) || defined(MBEDTLS_PSA_BUILTIN_ECC_PUBLIC_KEY) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
@@ -3992,7 +4033,10 @@ rsa_exit:
         return( status );
     }
     else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
@@ -5811,7 +5855,8 @@ psa_status_t psa_key_derivation_input_key(
 /* Key agreement */
 /****************************************************************/
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) && defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) && \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR)
 static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
                                             size_t peer_key_length,
                                             const mbedtls_ecp_keypair *our_key,
@@ -5862,7 +5907,7 @@ exit:
 
     return( status );
 }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH && MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH && MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR */
 
 #define PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE MBEDTLS_ECP_MAX_BYTES
 
@@ -5876,7 +5921,8 @@ static psa_status_t psa_key_agreement_raw_internal( psa_algorithm_t alg,
 {
     switch( alg )
     {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) && defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) && \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR)
         case PSA_ALG_ECDH:
             if( ! PSA_KEY_TYPE_IS_ECC_KEY_PAIR( private_key->attr.type ) )
                 return( PSA_ERROR_INVALID_ARGUMENT );
@@ -5895,7 +5941,7 @@ static psa_status_t psa_key_agreement_raw_internal( psa_algorithm_t alg,
             mbedtls_ecp_keypair_free( ecp );
             mbedtls_free( ecp );
             return( status );
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH && MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH && MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR */
         default:
             (void) private_key;
             (void) peer_key;
@@ -6173,7 +6219,7 @@ static psa_status_t psa_generate_key_internal(
     else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) && defined(MBEDTLS_GENPRIME) */
 
-#if defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR)
     if ( PSA_KEY_TYPE_IS_ECC( type ) && PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
     {
         psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( type );
@@ -6218,7 +6264,7 @@ static psa_status_t psa_generate_key_internal(
         return( status );
     }
     else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ECC_KEY_PAIR) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }

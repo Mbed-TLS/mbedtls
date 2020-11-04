@@ -55,8 +55,8 @@
 #define PSA_WANT_ALG_ECDH                       1
 #define PSA_WANT_ALG_HMAC                       1
 #define PSA_WANT_ALG_HKDF                       1
-#define PSA_WANT_ECC_KEY_PAIR                   1
-#define PSA_WANT_ECC_PUBLIC_KEY                 1
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR          1
+#define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY        1
 #define PSA_WANT_ALG_RSA_PKCS1V15_CRYPT         1
 #define PSA_WANT_ALG_RSA_PKCS1V15_SIGN          1
 #define PSA_WANT_ALG_RSA_OAEP                   1

@@ -157,6 +157,7 @@
     <ClInclude Include="..\..\include\mbedtls\chacha20.h" />
     <ClInclude Include="..\..\include\mbedtls\chachapoly.h" />
     <ClInclude Include="..\..\include\mbedtls\check_config.h" />
+    <ClInclude Include="..\..\include\mbedtls\check_config_psa.h" />
     <ClInclude Include="..\..\include\mbedtls\cipher.h" />
     <ClInclude Include="..\..\include\mbedtls\cipher_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\cmac.h" />

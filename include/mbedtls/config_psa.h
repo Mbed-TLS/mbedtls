@@ -57,6 +57,14 @@ extern "C" {
 #endif /* MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA */
 #endif /* PSA_WANT_ALG_DETERMINISTIC_ECDSA */
 
+#if defined(PSA_WANT_ALG_AES_DRBG)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_AES_DRBG)
+#define MBEDTLS_PSA_BUILTIN_ALG_AES_DRBG                1
+#define MBEDTLS_AES_C
+#define MBEDTLS_CTR_DRBG_C
+#endif /* MBEDTLS_PSA_ACCEL_ALG_AES_DRBG */
+#endif /* PSA_WANT_ALG_AES_DRBG */
+
 #else /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
 /*
@@ -72,6 +80,10 @@ extern "C" {
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
 #endif /* MBEDTLS_ECDSA_C */
+
+#if defined(MBEDTLS_AES_C) && defined(MBEDTLS_CTR_DRBG_C)
+#define MBEDTLS_PSA_BUILTIN_ALG_AES_DRBG                1
+#endif
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
 

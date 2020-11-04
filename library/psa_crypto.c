@@ -93,7 +93,102 @@ static inline int safer_memcmp( const uint8_t *a, const uint8_t *b, size_t n )
     return( diff );
 }
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_AES_DRBG)
+/*
+ * Map the PSA definitions to the mbedtls CTR DRBG versions if the
+ * built in version of the AES DRBG feature is selected
+ */
+typedef struct mbedtls_ctr_drbg_context psa_ctr_drbg_context;
 
+#define psa_ctr_drbg_init mbedtls_ctr_drbg_init
+#define psa_ctr_drbg_free mbedtls_ctr_drbg_free
+#define psa_ctr_drbg_seed mbedtls_ctr_drbg_seed
+#define psa_ctr_drbg_random mbedtls_ctr_drbg_random
+
+#else
+
+/**
+ * \brief          The PSA_CTR_DRBG context structure.
+ */
+typedef struct psa_ctr_drbg_context
+{
+    unsigned char counter[16];  /*!< The counter (V). */
+    int reseed_counter;         /*!< The reseed counter.
+                                 * This is the number of requests that have
+                                 * been made since the last (re)seeding,
+                                 * minus one.
+                                 * Before the initial seeding, this field
+                                 * contains the amount of entropy in bytes
+                                 * to use as a nonce for the initial seeding,
+                                 * or -1 if no nonce length has been explicitly
+                                 * set (see mbedtls_ctr_drbg_set_nonce_len()).
+                                 */
+    int prediction_resistance;  /*!< This determines whether prediction
+                                     resistance is enabled, that is
+                                     whether to systematically reseed before
+                                     each random generation. */
+    size_t entropy_len;         /*!< The amount of entropy grabbed on each
+                                     seed or reseed operation, in bytes. */
+    int reseed_interval;        /*!< The reseed interval.
+                                 * This is the maximum number of requests
+                                 * that can be made between reseedings. */
+
+    mbedtls_aes_context aes_ctx;        /*!< The AES context. */
+
+    /*
+     * Callbacks (Entropy)
+     */
+    int (*f_entropy)(void *, unsigned char *, size_t);
+                                /*!< The entropy callback function. */
+
+    void *p_entropy;            /*!< The context for the entropy function. */
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_threading_mutex_t mutex;
+#endif
+}
+psa_ctr_drbg_context;
+
+/*
+ * TBD: These functions need to be filled out with the support required to
+ * use driver acceleration for DRBG support.
+ */
+void psa_ctr_drbg_init( psa_ctr_drbg_context *ctx )
+{
+    (void)ctx;
+    return;
+}
+
+void psa_ctr_drbg_free( psa_ctr_drbg_context *ctx )
+{
+    (void)ctx;
+    return;
+}
+
+int psa_ctr_drbg_seed( psa_ctr_drbg_context *ctx,
+                       int (*f_entropy)(void *, unsigned char *, size_t),
+                       void *p_entropy,
+                       const unsigned char *custom,
+                       size_t len )
+{
+    (void)ctx;
+    (void)f_entropy;
+    (void)p_entropy;
+    (void)custom;
+    (void)len;
+    return 0;
+}
+
+int psa_ctr_drbg_random( void *p_rng, unsigned char *output,
+                         size_t output_len )
+{
+    (void)p_rng;
+    (void)output;
+    (void)output_len;
+    return 0;
+}
+
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_AES_DRBG */
 
 /****************************************************************/
 /* Global data, support functions and library management */
@@ -114,7 +209,7 @@ typedef struct
     void (* entropy_init )( mbedtls_entropy_context *ctx );
     void (* entropy_free )( mbedtls_entropy_context *ctx );
     mbedtls_entropy_context entropy;
-    mbedtls_ctr_drbg_context ctr_drbg;
+    psa_ctr_drbg_context ctr_drbg;
     unsigned initialized : 1;
     unsigned rng_state : 2;
 } psa_global_data_t;
@@ -836,7 +931,7 @@ static psa_status_t psa_export_ecp_key( psa_key_type_t type,
             /* Calculate the public key */
             status = mbedtls_to_psa_error(
                 mbedtls_ecp_mul( &ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G,
-                                 mbedtls_ctr_drbg_random, &global_data.ctr_drbg ) );
+                                 psa_ctr_drbg_random, &global_data.ctr_drbg ) );
             if( status != PSA_SUCCESS )
                 return( status );
         }
@@ -3467,7 +3562,7 @@ static psa_status_t psa_rsa_sign( mbedtls_rsa_context *rsa,
         mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V15,
                                  MBEDTLS_MD_NONE );
         ret = mbedtls_rsa_pkcs1_sign( rsa,
-                                      mbedtls_ctr_drbg_random,
+                                      psa_ctr_drbg_random,
                                       &global_data.ctr_drbg,
                                       MBEDTLS_RSA_PRIVATE,
                                       md_alg,
@@ -3482,7 +3577,7 @@ static psa_status_t psa_rsa_sign( mbedtls_rsa_context *rsa,
     {
         mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
         ret = mbedtls_rsa_rsassa_pss_sign( rsa,
-                                           mbedtls_ctr_drbg_random,
+                                           psa_ctr_drbg_random,
                                            &global_data.ctr_drbg,
                                            MBEDTLS_RSA_PRIVATE,
                                            MBEDTLS_MD_NONE,
@@ -3525,7 +3620,7 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
         mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V15,
                                  MBEDTLS_MD_NONE );
         ret = mbedtls_rsa_pkcs1_verify( rsa,
-                                        mbedtls_ctr_drbg_random,
+                                        psa_ctr_drbg_random,
                                         &global_data.ctr_drbg,
                                         MBEDTLS_RSA_PUBLIC,
                                         md_alg,
@@ -3540,7 +3635,7 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
     {
         mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
         ret = mbedtls_rsa_rsassa_pss_verify( rsa,
-                                             mbedtls_ctr_drbg_random,
+                                             psa_ctr_drbg_random,
                                              &global_data.ctr_drbg,
                                              MBEDTLS_RSA_PUBLIC,
                                              MBEDTLS_MD_NONE,
@@ -3596,7 +3691,7 @@ static psa_status_t psa_ecdsa_sign( mbedtls_ecp_keypair *ecp,
         MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_det_ext( &ecp->grp, &r, &s,
                                                      &ecp->d, hash,
                                                      hash_length, md_alg,
-                                                     mbedtls_ctr_drbg_random,
+                                                     psa_ctr_drbg_random,
                                                      &global_data.ctr_drbg ) );
     }
     else
@@ -3605,7 +3700,7 @@ static psa_status_t psa_ecdsa_sign( mbedtls_ecp_keypair *ecp,
         (void) alg;
         MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign( &ecp->grp, &r, &s, &ecp->d,
                                              hash, hash_length,
-                                             mbedtls_ctr_drbg_random,
+                                             psa_ctr_drbg_random,
                                              &global_data.ctr_drbg ) );
     }
 
@@ -3651,7 +3746,7 @@ static psa_status_t psa_ecdsa_verify( mbedtls_ecp_keypair *ecp,
     {
         MBEDTLS_MPI_CHK(
             mbedtls_ecp_mul( &ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G,
-                             mbedtls_ctr_drbg_random, &global_data.ctr_drbg ) );
+                             psa_ctr_drbg_random, &global_data.ctr_drbg ) );
     }
 
     ret = mbedtls_ecdsa_verify( &ecp->grp, hash, hash_length,
@@ -3925,7 +4020,7 @@ psa_status_t psa_asymmetric_encrypt( psa_key_handle_t handle,
         {
             status = mbedtls_to_psa_error(
                     mbedtls_rsa_pkcs1_encrypt( rsa,
-                                               mbedtls_ctr_drbg_random,
+                                               psa_ctr_drbg_random,
                                                &global_data.ctr_drbg,
                                                MBEDTLS_RSA_PUBLIC,
                                                input_length,
@@ -3940,7 +4035,7 @@ psa_status_t psa_asymmetric_encrypt( psa_key_handle_t handle,
             psa_rsa_oaep_set_padding_mode( alg, rsa );
             status = mbedtls_to_psa_error(
                 mbedtls_rsa_rsaes_oaep_encrypt( rsa,
-                                                mbedtls_ctr_drbg_random,
+                                                psa_ctr_drbg_random,
                                                 &global_data.ctr_drbg,
                                                 MBEDTLS_RSA_PUBLIC,
                                                 salt, salt_length,
@@ -4021,7 +4116,7 @@ psa_status_t psa_asymmetric_decrypt( psa_key_handle_t handle,
         {
             status = mbedtls_to_psa_error(
                 mbedtls_rsa_pkcs1_decrypt( rsa,
-                                           mbedtls_ctr_drbg_random,
+                                           psa_ctr_drbg_random,
                                            &global_data.ctr_drbg,
                                            MBEDTLS_RSA_PRIVATE,
                                            output_length,
@@ -4037,7 +4132,7 @@ psa_status_t psa_asymmetric_decrypt( psa_key_handle_t handle,
             psa_rsa_oaep_set_padding_mode( alg, rsa );
             status = mbedtls_to_psa_error(
                 mbedtls_rsa_rsaes_oaep_decrypt( rsa,
-                                                mbedtls_ctr_drbg_random,
+                                                psa_ctr_drbg_random,
                                                 &global_data.ctr_drbg,
                                                 MBEDTLS_RSA_PRIVATE,
                                                 salt, salt_length,
@@ -4263,8 +4358,8 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
         status = PSA_ERROR_BUFFER_TOO_SMALL;
         goto exit;
     }
-    ret = mbedtls_ctr_drbg_random( &global_data.ctr_drbg,
-                                   iv, operation->iv_size );
+    ret = psa_ctr_drbg_random( &global_data.ctr_drbg,
+                               iv, operation->iv_size );
     if( ret != 0 )
     {
         status = mbedtls_to_psa_error( ret );
@@ -5807,7 +5902,7 @@ static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
         mbedtls_ecdh_calc_secret( &ecdh,
                                   shared_secret_length,
                                   shared_secret, shared_secret_size,
-                                  mbedtls_ctr_drbg_random,
+                                  psa_ctr_drbg_random,
                                   &global_data.ctr_drbg ) );
     if( status != PSA_SUCCESS )
         goto exit;
@@ -5989,16 +6084,16 @@ psa_status_t psa_generate_random( uint8_t *output,
 
     while( output_size > MBEDTLS_CTR_DRBG_MAX_REQUEST )
     {
-        ret = mbedtls_ctr_drbg_random( &global_data.ctr_drbg,
-                                       output,
-                                       MBEDTLS_CTR_DRBG_MAX_REQUEST );
+        ret = psa_ctr_drbg_random( &global_data.ctr_drbg,
+                                   output,
+                                   MBEDTLS_CTR_DRBG_MAX_REQUEST );
         if( ret != 0 )
             return( mbedtls_to_psa_error( ret ) );
         output += MBEDTLS_CTR_DRBG_MAX_REQUEST;
         output_size -= MBEDTLS_CTR_DRBG_MAX_REQUEST;
     }
 
-    ret = mbedtls_ctr_drbg_random( &global_data.ctr_drbg, output, output_size );
+    ret = psa_ctr_drbg_random( &global_data.ctr_drbg, output, output_size );
     return( mbedtls_to_psa_error( ret ) );
 }
 
@@ -6104,7 +6199,7 @@ static psa_status_t psa_generate_key_internal(
             return( status );
         mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_NONE );
         ret = mbedtls_rsa_gen_key( &rsa,
-                                   mbedtls_ctr_drbg_random,
+                                   psa_ctr_drbg_random,
                                    &global_data.ctr_drbg,
                                    (unsigned int) bits,
                                    exponent );
@@ -6150,7 +6245,7 @@ static psa_status_t psa_generate_key_internal(
             return( PSA_ERROR_NOT_SUPPORTED );
         mbedtls_ecp_keypair_init( &ecp );
         ret = mbedtls_ecp_gen_key( grp_id, &ecp,
-                                   mbedtls_ctr_drbg_random,
+                                   psa_ctr_drbg_random,
                                    &global_data.ctr_drbg );
         if( ret != 0 )
         {
@@ -6247,7 +6342,7 @@ void mbedtls_psa_crypto_free( void )
     psa_wipe_all_key_slots( );
     if( global_data.rng_state != RNG_NOT_INITIALIZED )
     {
-        mbedtls_ctr_drbg_free( &global_data.ctr_drbg );
+        psa_ctr_drbg_free( &global_data.ctr_drbg );
         global_data.entropy_free( &global_data.entropy );
     }
     /* Wipe all remaining data, including configuration.
@@ -6314,13 +6409,13 @@ psa_status_t psa_crypto_init( void )
                                 MBEDTLS_ENTROPY_BLOCK_SIZE,
                                 MBEDTLS_ENTROPY_SOURCE_STRONG );
 #endif
-    mbedtls_ctr_drbg_init( &global_data.ctr_drbg );
+    psa_ctr_drbg_init( &global_data.ctr_drbg );
     global_data.rng_state = RNG_INITIALIZED;
     status = mbedtls_to_psa_error(
-        mbedtls_ctr_drbg_seed( &global_data.ctr_drbg,
-                               mbedtls_entropy_func,
-                               &global_data.entropy,
-                               drbg_seed, sizeof( drbg_seed ) - 1 ) );
+        psa_ctr_drbg_seed( &global_data.ctr_drbg,
+                           mbedtls_entropy_func,
+                           &global_data.entropy,
+                           drbg_seed, sizeof( drbg_seed ) - 1 ) );
     if( status != PSA_SUCCESS )
         goto exit;
     global_data.rng_state = RNG_SEEDED;

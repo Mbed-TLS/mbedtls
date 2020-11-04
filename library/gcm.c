@@ -1010,6 +1010,12 @@ exit:
     return( ret );
 }
 
+#else
+int mbedtls_gcm_self_test( int verbose )
+{
+    (void)verbose;
+    return 0;
+}
 #endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
 
 #endif /* MBEDTLS_GCM_C */

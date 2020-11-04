@@ -395,6 +395,7 @@
 /** Key for a cipher, AEAD or MAC algorithm based on the
  * Camellia block cipher. */
 #define PSA_KEY_TYPE_CAMELLIA                       ((psa_key_type_t)0x2403)
+#define PSA_KEY_TYPE_ARIA                           ((psa_key_type_t)0x2402)
 
 /** Key for the RC4 stream cipher.
  *

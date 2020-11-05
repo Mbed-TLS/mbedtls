@@ -5,7 +5,7 @@ This document is a proposed interface for deciding at build time which cryptogra
 
 This is currently a proposal for Mbed TLS. It is not currently on track for standardization in PSA.
 
-Time-stamp: "2020/10/13 17:05:02 GMT"
+Time-stamp: "2020/11/05 09:50:28 GMT"
 
 ## Introduction
 
@@ -111,7 +111,7 @@ These symbols are not part of the public interface of Mbed TLS towards applicati
 
 When `MBEDTLS_PSA_CRYPTO_CONFIG` is set, the header file `mbedtls/config.h` needs to define all the `MBEDTLS_xxx_C` configuration symbols, including the ones deduced from the PSA crypto configuration. It does this by including the new header file **`mbedtls/config_psa.h`**, which defines the `MBEDTLS_PSA_BUILTIN_xxx` symbols and deduces the corresponding `MBEDTLS_xxx_C` (and other) symbols.
 
-When `MBEDTLS_PSA_CRYPTO_CONFIG` is not set, the configuration of Mbed TLS works as before, and the inclusion of non-PSA code only depends on `MBEDTLS_xxx` symbols defined (or not) in `mbedtls/config.h`. In this case, `mbedtls/config_psa.h` is only needed to build the PSA parts of the library, including `psa/crypto_struct.h` (where the layout of some structures depends on the configuration). Therefore, `psa/crypto_struct.h` (or a header that is included before it) needs to include `mbedtls/config_psa.h`.
+When `MBEDTLS_PSA_CRYPTO_CONFIG` is not set, the configuration of Mbed TLS works as before, and the inclusion of non-PSA code only depends on `MBEDTLS_xxx` symbols defined (or not) in `mbedtls/config.h`. In this case, `mbedtls/config_psa.h` is only needed to build the PSA parts of the library and code that uses these parts. Note that `psa/crypto_struct.h` and `psa/crypto_sizes.h` include definitions that depend on the configuration, so `mbedtls/config_psa.h` needs to be included in or before these headers (it isn't enough to include it only from files in `library`).
 
 `mbedtls/config_psa.h` includes two header files:
 

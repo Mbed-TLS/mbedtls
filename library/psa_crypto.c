@@ -5956,34 +5956,6 @@ psa_status_t mbedtls_psa_inject_entropy( const uint8_t *seed,
 }
 #endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR)
-static psa_status_t psa_read_rsa_exponent( const uint8_t *domain_parameters,
-                                           size_t domain_parameters_size,
-                                           int *exponent )
-{
-    size_t i;
-    uint32_t acc = 0;
-
-    if( domain_parameters_size == 0 )
-    {
-        *exponent = 65537;
-        return( PSA_SUCCESS );
-    }
-
-    /* Mbed TLS encodes the public exponent as an int. For simplicity, only
-     * support values that fit in a 32-bit integer, which is larger than
-     * int on just about every platform anyway. */
-    if( domain_parameters_size > sizeof( acc ) )
-        return( PSA_ERROR_NOT_SUPPORTED );
-    for( i = 0; i < domain_parameters_size; i++ )
-        acc = ( acc << 8 ) | domain_parameters[i];
-    if( acc > INT_MAX )
-        return( PSA_ERROR_NOT_SUPPORTED );
-    *exponent = acc;
-    return( PSA_SUCCESS );
-}
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) */
-
 /** Get the key buffer size for the key material in export format
  *
  * \param[in] type  The key type
@@ -6070,33 +6042,10 @@ psa_status_t psa_generate_key_internal(
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR)
     if ( type == PSA_KEY_TYPE_RSA_KEY_PAIR )
     {
-        mbedtls_rsa_context rsa;
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-        int exponent;
-
-        status = psa_read_rsa_exponent( attributes->domain_parameters,
-                                        attributes->domain_parameters_size,
-                                        &exponent );
-        if( status != PSA_SUCCESS )
-            return( status );
-
-        mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_NONE );
-        ret = mbedtls_rsa_gen_key( &rsa,
-                                   mbedtls_psa_get_random,
-                                   MBEDTLS_PSA_RANDOM_STATE,
-                                   (unsigned int) attributes->core.bits,
-                                   exponent );
-        if( ret != 0 )
-            return( mbedtls_to_psa_error( ret ) );
-
-        status = mbedtls_psa_rsa_export_key( type,
-                                             &rsa,
-                                             key_buffer,
-                                             key_buffer_size,
-                                             key_buffer_length );
-        mbedtls_rsa_free( &rsa );
-
-        return( status );
+        return( mbedtls_psa_rsa_generate_key( attributes,
+                                              key_buffer,
+                                              key_buffer_size,
+                                              key_buffer_length ) );
     }
     else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) */

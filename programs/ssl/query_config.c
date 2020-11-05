@@ -2778,6 +2778,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_CONF_ENDPOINT */
 
+#if defined(MBEDTLS_SSL_CONF_TRANSPORT)
+    if( strcmp( "MBEDTLS_SSL_CONF_TRANSPORT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_TRANSPORT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_TRANSPORT */
+
 #if defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
     if( strcmp( "MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST", config ) == 0 )
     {

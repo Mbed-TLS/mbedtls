@@ -4946,7 +4946,8 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
 
         mbedtls_ssl_write_version( mbedtls_ssl_get_major_ver( ssl ),
                                    mbedtls_ssl_get_minor_ver( ssl ),
-                                   ssl->conf->transport, ssl->out_hdr + 1 );
+                                   mbedtls_ssl_conf_get_transport( ssl->conf ),
+                                   ssl->out_hdr + 1 );
 
         mbedtls_platform_memcpy( ssl->out_ctr, ssl->cur_out_ctr, 8 );
         (void)mbedtls_platform_put_uint16_be( ssl->out_len, len );
@@ -4963,7 +4964,8 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
             mbedtls_platform_memcpy( &rec.ctr[0], ssl->out_ctr, 8 );
             mbedtls_ssl_write_version( mbedtls_ssl_get_major_ver( ssl ),
                                        mbedtls_ssl_get_minor_ver( ssl ),
-                                       ssl->conf->transport, rec.ver );
+                                       mbedtls_ssl_conf_get_transport( ssl->conf ),
+                                       rec.ver );
             rec.type = ssl->out_msgtype;
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -5815,7 +5817,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
     rec->ver[0] = buf[ rec_hdr_version_offset + 0 ];
     rec->ver[1] = buf[ rec_hdr_version_offset + 1 ];
     mbedtls_ssl_read_version( &major_ver, &minor_ver,
-                              ssl->conf->transport,
+                              mbedtls_ssl_conf_get_transport( ssl->conf ),
                               &rec->ver[0] );
 
     if( major_ver != mbedtls_ssl_get_major_ver( ssl ) )
@@ -9318,10 +9320,12 @@ void mbedtls_ssl_conf_endpoint( mbedtls_ssl_config *conf, int endpoint )
 }
 #endif /* MBEDTLS_SSL_CONF_ENDPOINT */
 
+#if !defined(MBEDTLS_SSL_CONF_TRANSPORT)
 void mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport )
 {
     conf->transport = transport;
 }
+#endif /* MBEDTLS_SSL_CONF_TRANSPORT */
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY) && \
     !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
@@ -10322,7 +10326,7 @@ size_t mbedtls_ssl_get_input_max_frag_len( const mbedtls_ssl_context *ssl )
     size_t read_mfl;
 
     /* Use the configured MFL for the client if we're past SERVER_HELLO_DONE */
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+    if( mbedtls_ssl_conf_get_endpoint( ssl->conf ) == MBEDTLS_SSL_IS_CLIENT &&
         ssl->state >= MBEDTLS_SSL_SERVER_HELLO_DONE )
     {
         return ssl_mfl_code_to_length( ssl->conf->mfl_code );
@@ -12781,7 +12785,9 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
     memset( conf, 0, sizeof( mbedtls_ssl_config ) );
 
 #if !defined(MBEDTLS_SSL_PROTO_TLS)
+#if !defined(MBEDTLS_SSL_CONF_TRANSPORT)
     conf->transport = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
+#endif
 #endif
 }
 
@@ -12846,8 +12852,14 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 
     /* Use the functions here so that they are covered in tests,
      * but otherwise access member directly for efficiency */
+#if !defined(MBEDTLS_SSL_CONF_ENDPOINT)
     mbedtls_ssl_conf_endpoint( conf, endpoint );
+#endif
+#if !defined(MBEDTLS_SSL_CONF_TRANSPORT)
     mbedtls_ssl_conf_transport( conf, transport );
+#else
+    ((void) transport);
+#endif
 
     /*
      * Things that are common to all presets

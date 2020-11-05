@@ -838,7 +838,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 
     mbedtls_ssl_write_version( mbedtls_ssl_conf_get_max_major_ver( ssl->conf ),
                                mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ),
-                               ssl->conf->transport, p );
+                               mbedtls_ssl_conf_get_transport( ssl->conf ), p );
     p += 2;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, max version: [%d:%d]",
@@ -1541,7 +1541,8 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
      * } HelloVerifyRequest;
      */
     MBEDTLS_SSL_DEBUG_BUF( 3, "server version", p, 2 );
-    mbedtls_ssl_read_version( &major_ver, &minor_ver, ssl->conf->transport, p );
+    mbedtls_ssl_read_version( &major_ver, &minor_ver,
+                              mbedtls_ssl_conf_get_transport( ssl->conf ), p );
     p += 2;
 
     /*
@@ -1704,7 +1705,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, version", buf + 0, 2 );
         mbedtls_ssl_read_version( &major_ver, &minor_ver,
-                                  ssl->conf->transport,
+                                  mbedtls_ssl_conf_get_transport( ssl->conf ),
                                   buf + 0 );
 
         if( mbedtls_ssl_ver_lt( major_ver,
@@ -2379,7 +2380,7 @@ static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
 
     mbedtls_ssl_write_version( mbedtls_ssl_conf_get_max_major_ver( ssl->conf ),
                                mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ),
-                               ssl->conf->transport, out );
+                               mbedtls_ssl_conf_get_transport( ssl->conf ), out );
 
     ret = mbedtls_ssl_conf_get_frng( ssl->conf )
           ( mbedtls_ssl_conf_get_prng( ssl->conf ), out + 2, 46 );

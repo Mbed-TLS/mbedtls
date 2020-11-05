@@ -461,19 +461,6 @@ struct mbedtls_ssl_handshake_params
     unsigned char *psk;                 /*!<  PSK from the callback         */
     size_t psk_len;                     /*!<  Length of PSK from callback   */
 #endif
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-    mbedtls_ssl_key_cert *key_cert;     /*!< chosen key/cert pair (server)  */
-#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    mbedtls_pk_context peer_pubkey;     /*!< The public key from the peer.  */
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    int sni_authmode;                   /*!< authmode from SNI callback     */
-    mbedtls_ssl_key_cert *sni_key_cert; /*!< key/cert list from SNI         */
-    mbedtls_x509_crt *sni_ca_chain;     /*!< trusted CAs from SNI callback  */
-    mbedtls_x509_crl *sni_ca_crl;       /*!< trusted CAs CRLs from SNI      */
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
     int ecrs_enabled;                   /*!< Handshake supports EC restart? */
     mbedtls_x509_crt_restart_ctx ecrs_ctx;  /*!< restart context            */
@@ -518,9 +505,9 @@ struct mbedtls_ssl_handshake_params
 
         struct mbedtls_ssl_hs_buffer
         {
-            unsigned is_valid      : 1;
-            unsigned is_fragmented : 1;
-            unsigned is_complete   : 1;
+            uint8_t is_valid;
+            uint8_t is_fragmented;
+            uint8_t is_complete;
             unsigned char *data;
             size_t data_len;
         } hs[MBEDTLS_SSL_MAX_BUFFERED_HS];
@@ -530,6 +517,19 @@ struct mbedtls_ssl_handshake_params
     unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ]; /*! The peer's CID */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_ssl_key_cert *key_cert;     /*!< chosen key/cert pair (server)  */
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    mbedtls_pk_context peer_pubkey;     /*!< The public key from the peer.  */
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    int sni_authmode;                   /*!< authmode from SNI callback     */
+    mbedtls_ssl_key_cert *sni_key_cert; /*!< key/cert list from SNI         */
+    mbedtls_x509_crt *sni_ca_chain;     /*!< trusted CAs from SNI callback  */
+    mbedtls_x509_crl *sni_ca_crl;       /*!< trusted CAs CRLs from SNI      */
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
     unsigned char randbytes[64];        /*!<  random bytes            */
     unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
                                         /*!<  premaster secret        */
@@ -559,7 +559,7 @@ struct mbedtls_ssl_handshake_params
 #endif
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-    unsigned int async_in_progress : 1; /*!< an asynchronous operation is in progress */
+    uint8_t async_in_progress;          /*!< an asynchronous operation is in progress */
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
@@ -1453,6 +1453,21 @@ static inline unsigned int mbedtls_ssl_conf_get_endpoint(
     return( MBEDTLS_SSL_CONF_ENDPOINT );
 }
 #endif /* MBEDTLS_SSL_CONF_ENDPOINT */
+
+#if !defined(MBEDTLS_SSL_CONF_TRANSPORT)
+static inline unsigned int mbedtls_ssl_conf_get_transport(
+    mbedtls_ssl_config const *conf )
+{
+    return( conf->transport );
+}
+#else /* !MBEDTLS_SSL_CONF_TRANSPORT */
+static inline unsigned int mbedtls_ssl_conf_get_transport(
+    mbedtls_ssl_config const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_TRANSPORT );
+}
+#endif /* MBEDTLS_SSL_CONF_TRANSPORT */
 
 #if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
 static inline uint32_t mbedtls_ssl_conf_get_read_timeout(

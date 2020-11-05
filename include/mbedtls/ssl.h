@@ -971,8 +971,6 @@ struct mbedtls_ssl_session
     int compression;            /*!< chosen compression */
 #endif /* MBEDTLS_ZLIB_SUPPORT */
     size_t id_len;              /*!< session id length  */
-    unsigned char id[32];       /*!< session identifier */
-    unsigned char master[48];   /*!< the master secret  */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
@@ -1004,6 +1002,9 @@ struct mbedtls_ssl_session
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     int encrypt_then_mac;       /*!< flag for EtM activation                */
 #endif
+
+    unsigned char id[32];       /*!< session identifier */
+    unsigned char master[48];   /*!< the master secret  */
 };
 
 /**
@@ -1011,7 +1012,124 @@ struct mbedtls_ssl_session
  */
 struct mbedtls_ssl_config
 {
-    /* Group items by size (largest first) to minimize padding overhead */
+    /* Group items by size (smallest first) to minimize padding overhead */
+
+    /*
+     * Flags (bytes)
+     */
+
+#if !defined(MBEDTLS_SSL_CONF_ENDPOINT)
+    uint8_t endpoint;               /*!< 0: client, 1: server               */
+#endif /* !MBEDTLS_SSL_CONF_ENDPOINT */
+#if !defined(MBEDTLS_SSL_CONF_TRANSPORT)
+    uint8_t transport;              /*!< stream (TLS) or datagram (DTLS)    */
+#endif /* !MBEDTLS_SSL_CONF_TRANSPORT */
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
+    uint8_t authmode;               /*!< MBEDTLS_SSL_VERIFY_XXX             */
+#endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
+    /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
+    uint8_t allow_legacy_renegotiation; /*!< MBEDTLS_LEGACY_XXX   */
+#endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
+#if defined(MBEDTLS_ARC4_C)
+    uint8_t arc4_disabled;          /*!< blacklist RC4 ciphersuites?        */
+#endif
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    uint8_t mfl_code;               /*!< desired fragment length            */
+#endif
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    uint8_t encrypt_then_mac;       /*!< negotiate encrypt-then-mac?        */
+#endif
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+#if !defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
+    uint8_t extended_ms;            /*!< negotiate extended master secret?  */
+#endif /* !MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
+#if !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
+    uint8_t enforce_extended_master_secret; /*!< enforce the usage of
+                                             *   extended master secret     */
+#endif /* !MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
+#endif
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#if !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
+    uint8_t anti_replay;            /*!< detect and prevent replay?         */
+#endif /* !MBEDTLS_SSL_CONF_ANTI_REPLAY */
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
+#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
+    uint8_t cbc_record_splitting;   /*!< do cbc record splitting            */
+#endif
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    uint8_t disable_renegotiation;  /*!< disable renegotiation?             */
+#endif
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+    uint8_t trunc_hmac;             /*!< negotiate truncated hmac?          */
+#endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    uint8_t session_tickets;        /*!< use session tickets?               */
+#endif
+#if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
+    uint8_t fallback;               /*!< is this a fallback?                */
+#endif
+#if defined(MBEDTLS_SSL_SRV_C)
+#if !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
+    uint8_t cert_req_ca_list;       /*!< enable sending CA list in
+                                         Certificate Request messages?      */
+#endif /* !MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST */
+#endif
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
+    uint8_t ignore_unexpected_cid;  /*!< Determines whether DTLS record
+                                     *   with unexpected CID should
+                                     *   lead to failure.                   */
+#endif /* !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+    /*
+     * Numerical settings
+     */
+
+#if !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER)
+    unsigned char min_major_ver;    /*!< min. major version used            */
+#endif /* !MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
+    unsigned char max_major_ver;    /*!< max. major version used            */
+#endif /* !MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER)
+    uint16_t min_minor_ver;    /*!< min. minor version used            */
+#endif /* !MBEDTLS_SSL_CONF_MIN_MINOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
+    uint16_t max_minor_ver;    /*!< max. minor version used            */
+#endif /* !MBEDTLS_SSL_CONF_MAX_MINOR_VER */
+
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
+    uint32_t read_timeout;          /*!< timeout for mbedtls_ssl_read (ms)  */
+#endif /* !MBEDTLS_SSL_CONF_READ_TIMEOUT */
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+#if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN)
+    uint32_t hs_timeout_min;        /*!< initial value of the handshake
+                                         retransmission timeout (ms)        */
+#endif /* !MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN */
+#if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX)
+    uint32_t hs_timeout_max;        /*!< maximum value of the handshake
+                                         retransmission timeout (ms)        */
+#endif /* !MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    int renego_max_records;         /*!< grace period for renegotiation     */
+    unsigned char renego_period[8]; /*!< value of the record counters
+                                         that triggers renegotiation        */
+#endif
+
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+#if !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
+    unsigned int badmac_limit;      /*!< limit of records with a bad MAC    */
+#endif /* !MBEDTLS_SSL_CONF_BADMAC_LIMIT */
+#endif
+
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
+    unsigned int dhm_min_bitlen;    /*!< min. bit length of the DHM prime   */
+#endif
 
     /*
      * Pointers
@@ -1145,121 +1263,6 @@ struct mbedtls_ssl_config
     const char **alpn_list;         /*!< ordered list of protocols          */
 #endif
 
-    /*
-     * Numerical settings (int then char)
-     */
-
-#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
-    uint32_t read_timeout;          /*!< timeout for mbedtls_ssl_read (ms)  */
-#endif /* !MBEDTLS_SSL_CONF_READ_TIMEOUT */
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-#if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN)
-    uint32_t hs_timeout_min;        /*!< initial value of the handshake
-                                         retransmission timeout (ms)        */
-#endif /* !MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN */
-#if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX)
-    uint32_t hs_timeout_max;        /*!< maximum value of the handshake
-                                         retransmission timeout (ms)        */
-#endif /* !MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX */
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
-
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    int renego_max_records;         /*!< grace period for renegotiation     */
-    unsigned char renego_period[8]; /*!< value of the record counters
-                                         that triggers renegotiation        */
-#endif
-
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
-#if !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
-    unsigned int badmac_limit;      /*!< limit of records with a bad MAC    */
-#endif /* !MBEDTLS_SSL_CONF_BADMAC_LIMIT */
-#endif
-
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
-    unsigned int dhm_min_bitlen;    /*!< min. bit length of the DHM prime   */
-#endif
-
-#if !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER)
-    unsigned char min_major_ver;    /*!< min. major version used            */
-#endif /* !MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
-#if !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
-    unsigned char max_major_ver;    /*!< max. major version used            */
-#endif /* !MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
-#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER)
-    uint16_t min_minor_ver;    /*!< min. minor version used            */
-#endif /* !MBEDTLS_SSL_CONF_MIN_MINOR_VER */
-#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
-    uint16_t max_minor_ver;    /*!< max. minor version used            */
-#endif /* !MBEDTLS_SSL_CONF_MAX_MINOR_VER */
-
-    /*
-     * Flags (bitfields)
-     */
-
-#if !defined(MBEDTLS_SSL_CONF_ENDPOINT)
-    unsigned int endpoint : 1;      /*!< 0: client, 1: server               */
-#endif /* !MBEDTLS_SSL_CONF_ENDPOINT */
-    unsigned int transport : 1;     /*!< stream (TLS) or datagram (DTLS)    */
-#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
-    unsigned int authmode : 6;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
-#endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
-#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
-    /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
-    unsigned int allow_legacy_renegotiation : 2 ; /*!< MBEDTLS_LEGACY_XXX   */
-#endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
-#if defined(MBEDTLS_ARC4_C)
-    unsigned int arc4_disabled : 1; /*!< blacklist RC4 ciphersuites?        */
-#endif
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    unsigned int mfl_code : 3;      /*!< desired fragment length            */
-#endif
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-    unsigned int encrypt_then_mac : 1 ; /*!< negotiate encrypt-then-mac?    */
-#endif
-#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-#if !defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
-    unsigned int extended_ms : 1;   /*!< negotiate extended master secret?  */
-#endif /* !MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
-#if !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
-    unsigned int enforce_extended_master_secret : 1; /*!< enforce the usage
-                                                      *   of extended master
-                                                      *   secret            */
-#endif /* !MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
-#endif
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-#if !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
-    unsigned int anti_replay : 1;   /*!< detect and prevent replay?         */
-#endif /* !MBEDTLS_SSL_CONF_ANTI_REPLAY */
-#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-    unsigned int cbc_record_splitting : 1;  /*!< do cbc record splitting    */
-#endif
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    unsigned int disable_renegotiation : 1; /*!< disable renegotiation?     */
-#endif
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    unsigned int trunc_hmac : 1;    /*!< negotiate truncated hmac?          */
-#endif
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    unsigned int session_tickets : 1;   /*!< use session tickets?           */
-#endif
-#if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
-    unsigned int fallback : 1;      /*!< is this a fallback?                */
-#endif
-#if defined(MBEDTLS_SSL_SRV_C)
-#if !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
-    unsigned int cert_req_ca_list : 1;  /*!< enable sending CA list in
-                                          Certificate Request messages?     */
-#endif /* !MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST */
-#endif
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-#if !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
-    unsigned int ignore_unexpected_cid : 1; /*!< Determines whether DTLS
-                                             *   record with unexpected CID
-                                             *   should lead to failure.    */
-#endif /* !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 };
 
 struct mbedtls_ssl_context
@@ -1307,19 +1310,6 @@ struct mbedtls_ssl_context
     unsigned badmac_seen;       /*!< records with a bad MAC received    */
 #endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
-#if !defined(MBEDTLS_SSL_CONF_SEND)
-    mbedtls_ssl_send_t *f_send; /*!< Callback for network send */
-#endif /* !MBEDTLS_SSL_CONF_SEND */
-#if !defined(MBEDTLS_SSL_CONF_RECV)
-    mbedtls_ssl_recv_t *f_recv; /*!< Callback for network receive */
-#endif /* !MBEDTLS_SSL_CONF_RECV */
-#if !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
-    mbedtls_ssl_recv_timeout_t *f_recv_timeout;
-#endif /* !MBEDTLS_SSL_CONF_RECV_TIMEOUT */
-                                /*!< Callback for network receive with timeout */
-
-    void *p_bio;                /*!< context for I/O operations   */
-
     /*
      * Session layer
      */
@@ -1330,26 +1320,6 @@ struct mbedtls_ssl_context
 
     mbedtls_ssl_handshake_params *handshake;    /*!<  params required only during
                                               the handshake process        */
-
-    /*
-     * Record layer transformations
-     */
-    mbedtls_ssl_transform *transform_in;        /*!<  current transform params (in)   */
-    mbedtls_ssl_transform *transform_out;       /*!<  current transform params (in)   */
-    mbedtls_ssl_transform *transform;           /*!<  negotiated transform params     */
-    mbedtls_ssl_transform *transform_negotiate; /*!<  transform params in negotiation */
-
-    /*
-     * Timers
-     */
-    void *p_timer;              /*!< context for the timer callbacks */
-
-#if !defined(MBEDTLS_SSL_CONF_SET_TIMER)
-    mbedtls_ssl_set_timer_t *f_set_timer;       /*!< set timer callback */
-#endif /* !MBEDTLS_SSL_CONF_SET_TIMER */
-#if !defined(MBEDTLS_SSL_CONF_GET_TIMER)
-    mbedtls_ssl_get_timer_t *f_get_timer;       /*!< get timer callback */
-#endif /* !MBEDTLS_SSL_CONF_GET_TIMER */
 
     /*
      * Record layer (incoming data)
@@ -1413,6 +1383,39 @@ struct mbedtls_ssl_context
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     signed char split_done;     /*!< current record already splitted? */
 #endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
+
+    /*
+     * Record layer transformations
+     */
+    mbedtls_ssl_transform *transform_in;        /*!<  current transform params (in)   */
+    mbedtls_ssl_transform *transform_out;       /*!<  current transform params (in)   */
+    mbedtls_ssl_transform *transform;           /*!<  negotiated transform params     */
+    mbedtls_ssl_transform *transform_negotiate; /*!<  transform params in negotiation */
+
+#if !defined(MBEDTLS_SSL_CONF_SEND)
+    mbedtls_ssl_send_t *f_send; /*!< Callback for network send */
+#endif /* !MBEDTLS_SSL_CONF_SEND */
+#if !defined(MBEDTLS_SSL_CONF_RECV)
+    mbedtls_ssl_recv_t *f_recv; /*!< Callback for network receive */
+#endif /* !MBEDTLS_SSL_CONF_RECV */
+#if !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
+    mbedtls_ssl_recv_timeout_t *f_recv_timeout;
+#endif /* !MBEDTLS_SSL_CONF_RECV_TIMEOUT */
+                                /*!< Callback for network receive with timeout */
+
+    void *p_bio;                /*!< context for I/O operations   */
+
+    /*
+     * Timers
+     */
+    void *p_timer;              /*!< context for the timer callbacks */
+
+#if !defined(MBEDTLS_SSL_CONF_SET_TIMER)
+    mbedtls_ssl_set_timer_t *f_set_timer;       /*!< set timer callback */
+#endif /* !MBEDTLS_SSL_CONF_SET_TIMER */
+#if !defined(MBEDTLS_SSL_CONF_GET_TIMER)
+    mbedtls_ssl_get_timer_t *f_get_timer;       /*!< get timer callback */
+#endif /* !MBEDTLS_SSL_CONF_GET_TIMER */
 
     /*
      * PKI layer
@@ -1569,6 +1572,7 @@ int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_conf_endpoint( mbedtls_ssl_config *conf, int endpoint );
 #endif /* !MBEDTLS_SSL_CONF_ENDPOINT */
 
+#if !defined(MBEDTLS_SSL_CONF_TRANSPORT)
 /**
  * \brief           Set the transport type (TLS or DTLS).
  *                  Default: TLS unless #MBEDTLS_SSL_PROTO_NO_TLS is defined,
@@ -1579,12 +1583,16 @@ void mbedtls_ssl_conf_endpoint( mbedtls_ssl_config *conf, int endpoint );
  *                  \c mbedtls_ssl_set_bio(). You also need to provide timer
  *                  callbacks with \c mbedtls_ssl_set_timer_cb().
  *
+ * \note            On constrained systems, this can also be configured
+ *                  at compile-time via MBEDTLS_SSL_CONF_TRANSPORT.
+ *
  * \param conf      SSL configuration
  * \param transport transport type:
  *                  MBEDTLS_SSL_TRANSPORT_STREAM for TLS,
  *                  MBEDTLS_SSL_TRANSPORT_DATAGRAM for DTLS.
  */
 void mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport );
+#endif /* !MBEDTLS_SSL_CONF_TRANSPORT */
 
 /**
  * \brief          Set the certificate verification mode

@@ -29,7 +29,7 @@
 
 #if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
     !defined(__APPLE__) && !defined(_WIN32) && !defined(__QNXNTO__) && \
-    !defined(__HAIKU__) && !defined(__midipix__)
+    !defined(__HAIKU__) && !defined(__midipix__) && !defined(__NuttX__)
 #error "This module only works on Unix and Windows, see MBEDTLS_NET_C in config.h"
 #endif
 
@@ -37,6 +37,10 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdlib.h>
+#endif
+
+#if defined(__NuttX__)
+#include <select.h>
 #endif
 
 #include "mbedtls/net_sockets.h"
@@ -279,18 +283,19 @@ static int net_would_block( const mbedtls_net_context *ctx )
  */
 static int net_would_block( const mbedtls_net_context *ctx )
 {
-    int err = errno;
+    int err = get_errno();
 
     /*
      * Never return 'WOULD BLOCK' on a blocking socket
      */
     if( ( fcntl( ctx->fd, F_GETFL ) & O_NONBLOCK ) != O_NONBLOCK )
     {
-        errno = err;
+        set_errno(err);
         return( 0 );
     }
 
-    switch( errno = err )
+    set_errno(err);
+    switch( errno )
     {
 #if defined EAGAIN
         case EAGAIN:

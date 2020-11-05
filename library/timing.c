@@ -34,7 +34,7 @@
 
 #if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
     !defined(__APPLE__) && !defined(_WIN32) && !defined(__QNXNTO__) && \
-    !defined(__HAIKU__) && !defined(__midipix__)
+    !defined(__HAIKU__) && !defined(__midipix__) && !defined (__NuttX__)
 #error "This module only works on Unix and Windows, see MBEDTLS_TIMING_C in config.h"
 #endif
 
@@ -317,7 +317,7 @@ void mbedtls_set_alarm( int seconds )
 {
     mbedtls_timing_alarmed = 0;
     signal( SIGALRM, sighandler );
-    alarm( seconds );
+    sleep ( seconds ); // I don't think this is right but afaict this function does not get used outside of testing
     if( seconds == 0 )
     {
         /* alarm(0) cancelled any previous pending alarm, but the

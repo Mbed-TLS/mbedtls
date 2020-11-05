@@ -37,7 +37,8 @@ foreach(exe IN LISTS executables_libs executables_mbedcrypto)
     endif()
 endforeach()
 
-target_sources(query_compile_time_config PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/query_config.c)
+set_property(TARGET query_compile_time_config APPEND PROPERTY SOURCES
+             ${CMAKE_CURRENT_SOURCE_DIR}/query_config.c)
 
 install(TARGETS ${executables_libs} ${executables_mbedcrypto}
         DESTINATION "bin"

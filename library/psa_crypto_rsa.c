@@ -286,7 +286,7 @@ static psa_status_t psa_read_rsa_exponent( const uint8_t *domain_parameters,
     return( PSA_SUCCESS );
 }
 
-psa_status_t mbedtls_psa_rsa_generate_key(
+static psa_status_t rsa_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
 {
@@ -317,7 +317,7 @@ psa_status_t mbedtls_psa_rsa_generate_key(
 
     return( status );
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) */
+#endif /* defined(BUILTIN_KEY_TYPE_RSA_KEY_PAIR) */
 
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
@@ -344,6 +344,16 @@ psa_status_t mbedtls_psa_rsa_export_public_key(
 
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
+
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR)
+psa_status_t mbedtls_psa_rsa_generate_key(
+    const psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
+{
+    return( rsa_generate_key( attributes, key_buffer, key_buffer_size,
+                              key_buffer_length ) );
+}
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) */
 
 /*
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
@@ -376,6 +386,16 @@ psa_status_t mbedtls_transparent_test_driver_rsa_export_public_key(
 
 #endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) ||
           defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY) */
+
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR)
+psa_status_t mbedtls_transparent_test_driver_rsa_generate_key(
+    const psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
+{
+    return( rsa_generate_key( attributes, key_buffer, key_buffer_size,
+                              key_buffer_length ) );
+}
+#endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) */
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 

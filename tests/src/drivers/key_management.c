@@ -45,11 +45,6 @@ psa_status_t test_transparent_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key, size_t key_size, size_t *key_length )
 {
-#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) && \
-    !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
-    (void)attributes;
-#endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR &&
-        * !MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY */
     ++test_driver_key_management_hooks.hits;
 
     if( test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
@@ -125,7 +120,17 @@ psa_status_t test_transparent_generate_key(
     else
 #endif /* MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR ||
         * MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY */
-    return( PSA_ERROR_NOT_SUPPORTED );
+
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR)
+    if ( psa_get_key_type( attributes ) == PSA_KEY_TYPE_RSA_KEY_PAIR )
+        return( mbedtls_transparent_test_driver_rsa_generate_key(
+                    attributes, key, key_size, key_length ) );
+    else
+#endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) */
+    {
+        (void)attributes;
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
 }
 
 psa_status_t test_opaque_generate_key(

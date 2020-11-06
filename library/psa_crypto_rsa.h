@@ -154,6 +154,10 @@ psa_status_t mbedtls_transparent_test_driver_rsa_export_public_key(
     const uint8_t *key_buffer, size_t key_buffer_size,
     uint8_t *data, size_t data_size, size_t *data_length );
 
+psa_status_t mbedtls_transparent_test_driver_rsa_generate_key(
+    const psa_key_attributes_t *attributes,
+    uint8_t *key, size_t key_size, size_t *key_length );
+
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 
 #endif /* PSA_CRYPTO_RSA_H */

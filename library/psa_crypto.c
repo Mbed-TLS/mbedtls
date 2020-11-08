@@ -536,42 +536,56 @@ static psa_status_t validate_unstructured_key_bit_size( psa_key_type_t type,
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
 
-/** Import an RSA key from import representation to a slot
+/** Import an RSA key in binary format.
  *
- * \param[in,out] slot      The slot where to store the export representation to
- * \param[in] data          The buffer containing the import representation
- * \param[in] data_length   The amount of bytes in \p data
- * \param[out] key_buffer   The buffer containing the export representation
- * \param[in] key_buffer_size     The size of \p key_buffer in bytes
- * \param[out] key_buffer_length  The length of the data written in the key
- *                                buffer in bytes.
+ * \note The signature of this function is that of a PSA driver
+ *       import_key entry point. This function behaves as an import_key
+ *       entry point as defined in the PSA driver interface specification for
+ *       transparent drivers.
+ *
+ * \param[in]  attributes       The attributes for the key to import.
+ * \param[in]  data             The buffer containing the key data in import
+ *                              format.
+ * \param[in]  data_length      Size of the \p data buffer in bytes.
+ * \param[out] key_buffer       The buffer containing the key data in output
+ *                              format.
+ * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes. This
+ *                              size is greater or equal to \p data_length.
+ * \param[out] key_buffer_length  The length of the data written in \p
+ *                                key_buffer in bytes.
+ * \param[out] bits             The key size in number of bits.
+ *
+ * \retval #PSA_SUCCESS  The RSA key was imported successfully.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key data is not correctly formatted.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
-static psa_status_t psa_import_rsa_key( psa_key_slot_t *slot,
-                                        const uint8_t *data,
-                                        size_t data_length,
-                                        uint8_t *key_buffer,
-                                        size_t key_buffer_size,
-                                        size_t *key_buffer_length )
+static psa_status_t psa_import_rsa_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *data, size_t data_length,
+    uint8_t *key_buffer, size_t key_buffer_size,
+    size_t *key_buffer_length, size_t *bits )
 {
     psa_status_t status;
     mbedtls_rsa_context *rsa = NULL;
 
     /* Parse input */
-    status = mbedtls_psa_rsa_load_representation( slot->attr.type,
+    status = mbedtls_psa_rsa_load_representation( attributes->core.type,
                                                   data,
                                                   data_length,
                                                   &rsa );
     if( status != PSA_SUCCESS )
         goto exit;
 
-    slot->attr.bits = (psa_key_bits_t) PSA_BYTES_TO_BITS(
-        mbedtls_rsa_get_len( rsa ) );
+    *bits = (psa_key_bits_t) PSA_BYTES_TO_BITS( mbedtls_rsa_get_len( rsa ) );
 
     /* Re-export the data to PSA export format, such that we can store export
      * representation in the key slot. Export representation in case of RSA is
      * the smallest representation that's allowed as input, so a straight-up
      * allocation of the same size as the input buffer will be large enough. */
-    status = mbedtls_psa_rsa_export_key( slot->attr.type,
+    status = mbedtls_psa_rsa_export_key( attributes->core.type,
                                          rsa,
                                          key_buffer,
                                          key_buffer_size,
@@ -819,10 +833,12 @@ static psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
             if( status != PSA_SUCCESS )
                 return( status );
 
-            status = psa_import_rsa_key( slot,
+            status = psa_import_rsa_key( &attributes,
                                          data, data_length,
                                          slot->key.data, data_length,
-                                         &slot->key.bytes );
+                                         &slot->key.bytes,
+                                         &bit_size );
+            slot->attr.bits = (psa_key_bits_t) bit_size;
             return( status );
         }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||

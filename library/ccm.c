@@ -40,6 +40,7 @@
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 
+#include <stdint.h>
 #include <string.h>
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
@@ -157,8 +158,8 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
                            unsigned char *tag, size_t tag_len )
 {
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
-    unsigned char i;
-    unsigned char q;
+    uint_fast8_t i;
+    uint_fast8_t q;
     size_t len_left, olen;
     unsigned char b[16];
     unsigned char y[16];
@@ -183,7 +184,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     if( add_len > 0xFF00 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
 
-    q = 16 - 1 - (unsigned char) iv_len;
+    q = (uint_fast8_t) (16 - 1 - iv_len);
 
     /*
      * First block B_0:
@@ -368,7 +369,7 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
 {
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     unsigned char check_tag[16];
-    unsigned char i;
+    uint_fast8_t i;
     int diff;
 
     CCM_VALIDATE_RET( ctx != NULL );

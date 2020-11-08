@@ -36,6 +36,7 @@
 #include "mbedtls/platform_util.h"
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
 #if defined(MBEDTLS_CHACHAPOLY_C)
@@ -591,7 +592,7 @@ static void add_pkcs_padding( unsigned char *output, size_t output_len,
         size_t data_len )
 {
     size_t padding_len = output_len - data_len;
-    unsigned char i;
+    uint_fast8_t i;
 
     for( i = 0; i < padding_len; i++ )
         output[data_len + i] = (unsigned char) padding_len;
@@ -601,7 +602,7 @@ static int get_pkcs_padding( unsigned char *input, size_t input_len,
         size_t *data_len )
 {
     size_t i, pad_idx;
-    unsigned char padding_len, bad = 0;
+    uint_fast8_t padding_len, bad = 0;
 
     if( NULL == input || NULL == data_len )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
@@ -631,7 +632,7 @@ static void add_one_and_zeros_padding( unsigned char *output,
                                        size_t output_len, size_t data_len )
 {
     size_t padding_len = output_len - data_len;
-    unsigned char i = 0;
+    uint_fast8_t i = 0;
 
     output[data_len] = 0x80;
     for( i = 1; i < padding_len; i++ )
@@ -642,7 +643,7 @@ static int get_one_and_zeros_padding( unsigned char *input, size_t input_len,
                                       size_t *data_len )
 {
     size_t i;
-    unsigned char done = 0, prev_done, bad;
+    uint_fast8_t done = 0, prev_done, bad;
 
     if( NULL == input || NULL == data_len )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
@@ -670,7 +671,7 @@ static void add_zeros_and_len_padding( unsigned char *output,
                                        size_t output_len, size_t data_len )
 {
     size_t padding_len = output_len - data_len;
-    unsigned char i = 0;
+    uint_fast8_t i = 0;
 
     for( i = 1; i < padding_len; i++ )
         output[data_len + i - 1] = 0x00;

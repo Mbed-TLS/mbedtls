@@ -160,7 +160,7 @@ static int uECC_check_curve_integrity(void)
 		0x76, 0x0a, 0xe2, 0xbc, 0xce, 0x2a, 0xa2, 0xc6,
 		0x38, 0xf2, 0x19, 0x1d, 0x76, 0x72, 0x93, 0x49,
 	};
-	unsigned char diff = 0;
+	int diff = 0;
 	unsigned char tmp1, tmp2;
 	volatile unsigned i;
 
@@ -177,7 +177,7 @@ static int uECC_check_curve_integrity(void)
 
 	/* i should be 32 */
 	mbedtls_platform_random_delay();
-	diff |= (unsigned char) i ^ 32;
+	diff |= i ^ 32;
 
 	return diff;
 }

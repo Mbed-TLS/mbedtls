@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_ERROR_STRERROR_DUMMY)
+#if defined(MBEDTLS_ERROR_C)
 #include <string.h>
 #endif
 

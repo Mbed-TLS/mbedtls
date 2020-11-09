@@ -3856,7 +3856,9 @@
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 #include "mbedtls/config_psa.h"
+#endif
 
 #include "mbedtls/check_config.h"
 

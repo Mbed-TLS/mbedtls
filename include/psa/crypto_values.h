@@ -270,6 +270,30 @@
  */
 #define PSA_ERROR_INVALID_HANDLE        ((psa_status_t)-136)
 
+/** Stored data has been corrupted.
+ *
+ * This error indicates that some persistent storage has suffered corruption.
+ * It does not indicate the following situations, which have specific error
+ * codes:
+ *
+ * - A corruption of volatile memory - use #PSA_ERROR_CORRUPTION_DETECTED.
+ * - A communication error between the cryptoprocessor and its external
+ *   storage - use #PSA_ERROR_COMMUNICATION_FAILURE.
+ * - When the storage is in a valid state but is full - use
+ *   #PSA_ERROR_INSUFFICIENT_STORAGE.
+ * - When the storage fails for other reasons - use
+ *   #PSA_ERROR_STORAGE_FAILURE.
+ * - When the stored data is not valid - use #PSA_ERROR_DATA_INVALID.
+ *
+ * \note A storage corruption does not indicate that any data that was
+ * previously read is invalid. However this previously read data might no
+ * longer be readable from storage.
+ *
+ * When a storage failure occurs, it is no longer possible to ensure the
+ * global integrity of the keystore.
+ */
+#define PSA_ERROR_DATA_CORRUPT          ((psa_status_t)-152)
+
 /**@}*/
 
 /** \defgroup crypto_types Key and algorithm types

@@ -1378,6 +1378,9 @@ typedef struct {
  *         `methods->hal_version` is not supported by this implementation.
  * \return #PSA_ERROR_INSUFFICIENT_MEMORY
  * \return #PSA_ERROR_NOT_PERMITTED
+ * \return #PSA_ERROR_STORAGE_FAILURE
+ * \return #PSA_ERROR_DATA_CORRUPT
+ * \return #PSA_ERROR_INVALID_ARGUMENT
  */
 psa_status_t psa_register_se_driver(
     psa_key_location_t location,

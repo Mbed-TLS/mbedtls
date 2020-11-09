@@ -155,6 +155,13 @@ psa_status_t psa_destroy_se_key( psa_se_drv_table_entry_t *driver,
  *
  * \param driver        The driver table entry containing the persistent
  *                      data to load from storage.
+ *
+ * \return #PSA_SUCCESS
+ * \return #PSA_ERROR_NOT_SUPPORTED
+ * \return #PSA_ERROR_DOES_NOT_EXIST
+ * \return #PSA_ERROR_STORAGE_FAILURE
+ * \return #PSA_ERROR_DATA_CORRUPT
+ * \return #PSA_ERROR_INVALID_ARGUMENT
  */
 psa_status_t psa_load_se_persistent_data(
     const psa_se_drv_table_entry_t *driver );
@@ -163,6 +170,14 @@ psa_status_t psa_load_se_persistent_data(
  *
  * \param[in] driver    The driver table entry containing the persistent
  *                      data to save to storage.
+ *
+ * \return #PSA_SUCCESS
+ * \return #PSA_ERROR_NOT_SUPPORTED
+ * \return #PSA_ERROR_NOT_PERMITTED
+ * \return #PSA_ERROR_NOT_SUPPORTED
+ * \return #PSA_ERROR_INSUFFICIENT_STORAGE
+ * \return #PSA_ERROR_STORAGE_FAILURE
+ * \return #PSA_ERROR_INVALID_ARGUMENT
  */
 psa_status_t psa_save_se_persistent_data(
     const psa_se_drv_table_entry_t *driver );

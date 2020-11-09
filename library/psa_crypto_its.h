@@ -100,6 +100,7 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
  * \retval      #PSA_SUCCESS                 The operation completed successfully
  * \retval      #PSA_ERROR_DOES_NOT_EXIST    The operation failed because the provided `uid` value was not found in the storage
  * \retval      #PSA_ERROR_STORAGE_FAILURE   The operation failed because the physical storage has failed (Fatal error)
+ * \retval      #PSA_ERROR_DATA_CORRUPT      The operation failed because stored data has been corrupted
  * \retval      #PSA_ERROR_INVALID_ARGUMENT  The operation failed because one of the provided pointers(`p_data`, `p_data_length`)
  *                                           is invalid. For example is `NULL` or references memory the caller cannot access.
  *                                           In addition, this can also happen if an invalid offset was provided.

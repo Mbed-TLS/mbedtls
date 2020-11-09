@@ -144,3 +144,5 @@ TAGS: $(C_SOURCE_FILES)
 	etags -o $@ $(C_SOURCE_FILES)
 GPATH GRTAGS GSYMS GTAGS: $(C_SOURCE_FILES)
 	ls $(C_SOURCE_FILES) | gtags -f - --gtagsconf .globalrc
+cscope.in.out cscope.po.out cscope.out: $(C_SOURCE_FILES)
+	cscope -bq -u -Iinclude -Ilibrary $(patsubst %,-I%,$(wildcard 3rdparty/*/include)) -Itests/include $(C_SOURCE_FILES)

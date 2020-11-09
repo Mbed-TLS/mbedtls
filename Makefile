@@ -126,7 +126,16 @@ apidoc_clean:
 endif
 
 ## Editor navigation files
-C_SOURCE_FILES = $(wildcard include/*/*.h library/*.[hc] programs/*/*.[hc] tests/suites/*.function)
+C_SOURCE_FILES = $(wildcard \
+	3rdparty/*/include/*/*.h 3rdparty/*/include/*/*/*.h 3rdparty/*/include/*/*/*/*.h \
+	3rdparty/*/*.c 3rdparty/*/*/*.c 3rdparty/*/*/*/*.c 3rdparty/*/*/*/*/*.c \
+	include/*/*.h \
+	library/*.[hc] \
+	programs/*/*.[hc] \
+	tests/include/*/*.h tests/include/*/*/*.h \
+	tests/src/*.c tests/src/*/*.c \
+	tests/suites/*.function \
+)
 # Exuberant-ctags invocation. Other ctags implementations may require different options.
 CTAGS = ctags --langmap=c:+.h.function -o
 tags: $(C_SOURCE_FILES)

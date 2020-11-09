@@ -41,6 +41,10 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+/* Translate between classic MBEDTLS_xxx feature symbols and PSA_xxx
+ * feature symbols. */
+#include "mbedtls/config_psa.h"
+
 /* PSA requires several types which C99 provides in stdint.h. */
 #include <stdint.h>
 

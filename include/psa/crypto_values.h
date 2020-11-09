@@ -294,6 +294,22 @@
  */
 #define PSA_ERROR_DATA_CORRUPT          ((psa_status_t)-152)
 
+/** Data read from storage is not valid for the implementation.
+ *
+ * This error indicates that some data read from storage does not have a valid
+ * format. It does not indicate the following situations, which have specific
+ * error codes:
+ *
+ * - When the storage or stored data is corrupted - use #PSA_ERROR_DATA_CORRUPT
+ * - When the storage fails for other reasons - use #PSA_ERROR_STORAGE_FAILURE
+ * - An invalid argument to the API - use #PSA_ERROR_INVALID_ARGUMENT
+ *
+ * This error is typically a result of either storage corruption on a
+ * cleartext storage backend, or an attempt to read data that was
+ * written by an incompatible version of the library.
+ */
+#define PSA_ERROR_DATA_INVALID          ((psa_status_t)-153)
+
 /**@}*/
 
 /** \defgroup crypto_types Key and algorithm types

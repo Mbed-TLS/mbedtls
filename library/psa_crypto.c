@@ -6593,7 +6593,7 @@ static psa_status_t psa_crypto_recover_transaction(
         default:
             /* We found an unsupported transaction in the storage.
              * We don't know what state the storage is in. Give up. */
-            return( PSA_ERROR_STORAGE_FAILURE );
+            return( PSA_ERROR_DATA_INVALID );
     }
 }
 #endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */

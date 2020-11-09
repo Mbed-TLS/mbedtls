@@ -253,7 +253,7 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *slot )
         psa_se_key_data_storage_t *data;
         if( key_data_length != sizeof( *data ) )
         {
-            status = PSA_ERROR_STORAGE_FAILURE;
+            status = PSA_ERROR_DATA_INVALID;
             goto exit;
         }
         data = (psa_se_key_data_storage_t *) key_data;

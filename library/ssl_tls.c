@@ -6369,7 +6369,7 @@ static void ssl_calc_finished_tls_sha384(
     int len = 12;
     const char *sender;
     mbedtls_sha512_context sha512;
-    unsigned char padbuf[48];
+    unsigned char padbuf[64];
 
     mbedtls_ssl_session *session = ssl->session_negotiate;
     if( !session )

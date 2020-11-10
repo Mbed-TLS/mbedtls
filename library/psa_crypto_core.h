@@ -53,10 +53,10 @@ typedef struct
      * may access it. For example, such control is needed in the following
      * scenarios:
      * . In case of key slot starvation, all key slots contain the description
-     *   of a key, and the library asks for the description of a permanent
+     *   of a key, and the library asks for the description of a persistent
      *   key not present in the key slots, the key slots currently accessed by
      *   the library cannot be reclaimed to free a key slot to load the
-     *   permanent key.
+     *   persistent key.
      * . In case of a multi-threaded application where one thread asks to close
      *   or purge or destroy a key while it is in used by the library through
      *   another thread.

@@ -187,8 +187,8 @@ invalid_handle:INVALID_HANDLE_HUGE:PSA_ERROR_INVALID_HANDLE:PSA_ERROR_INVALID_HA
 Open many transient keys
 many_transient_keys:42
 
-# Eviction from a key slot to be able to import a new permanent key.
-Key slot eviction to import a new permanent key
+# Eviction from a key slot to be able to import a new persistent key.
+Key slot eviction to import a new persistent key
 key_slot_eviction_to_import_new_key:PSA_KEY_LIFETIME_PERSISTENT
 
 # Eviction from a key slot to be able to import a new volatile key.
@@ -197,12 +197,12 @@ key_slot_eviction_to_import_new_key:PSA_KEY_LIFETIME_VOLATILE
 
 # Check that non reusable key slots are not deleted/overwritten in case of key
 # slot starvation:
-# . An attempt to access a permanent key while all RAM key slots are occupied
+# . An attempt to access a persistent key while all RAM key slots are occupied
 #   by volatile keys fails and does not lead to volatile key data to be
 #   spoiled.
-# . With all key slot in use with one containing a permanent key, an attempt
-#   to copy the permanent key fails (the permanent key slot cannot be reclaimed
-#   as it is accessed by the copy process) without the permament key data and
-#   volatile key data being spoiled.
+# . With all key slot in use with one containing a persistent key, an attempt
+#   to copy the persistent key fails (the persistent key slot cannot be
+#   reclaimed as it is accessed by the copy process) without the persistent key
+#   data and volatile key data being spoiled.
 Non reusable key slots integrity in case of key slot starvation
 non_reusable_key_slots_integrity_in_case_of_key_slot_starvation

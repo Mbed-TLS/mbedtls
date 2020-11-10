@@ -175,7 +175,7 @@ psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t slot_idx;
-    psa_key_slot_t *selected_slot, *unaccessed_permanent_key_slot;
+    psa_key_slot_t *selected_slot, *unaccessed_persistent_key_slot;
 
     if( ! global_data.key_slots_initialized )
     {
@@ -183,7 +183,7 @@ psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
         goto error;
     }
 
-    selected_slot = unaccessed_permanent_key_slot = NULL;
+    selected_slot = unaccessed_persistent_key_slot = NULL;
     for( slot_idx = 0; slot_idx < PSA_KEY_SLOT_COUNT; slot_idx++ )
     {
         psa_key_slot_t *slot = &global_data.key_slots[ slot_idx ];
@@ -193,22 +193,23 @@ psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
             break;
         }
 
-        if( ( unaccessed_permanent_key_slot == NULL ) &&
+        if( ( unaccessed_persistent_key_slot == NULL ) &&
             ( ! PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) ) &&
             ( ! psa_is_key_slot_accessed( slot ) ) )
-            unaccessed_permanent_key_slot = slot;
+            unaccessed_persistent_key_slot = slot;
     }
 
     /*
      * If there is no unused key slot and there is at least one unaccessed key
      * slot containing the description of a permament key, recycle the first
      * such key slot we encountered. If we need later on to operate on the
-     * permanent key we evict now, we will reload its description from storage.
+     * persistent key we evict now, we will reload its description from
+     * storage.
      */
     if( ( selected_slot == NULL ) &&
-        ( unaccessed_permanent_key_slot != NULL ) )
+        ( unaccessed_persistent_key_slot != NULL ) )
     {
-        selected_slot = unaccessed_permanent_key_slot;
+        selected_slot = unaccessed_persistent_key_slot;
         selected_slot->access_count = 1;
         psa_wipe_key_slot( selected_slot );
     }

@@ -1345,7 +1345,7 @@ psa_status_t psa_destroy_key( mbedtls_svc_key_id_t key )
         return( PSA_SUCCESS );
 
     /*
-     * Get the description of the key in a key slot. In case of a permanent
+     * Get the description of the key in a key slot. In case of a persistent
      * key, this will load the key description from persistent memory if not
      * done yet. We cannot avoid this loading as without it we don't know if
      * the key is operated by an SE or not and this information is needed by

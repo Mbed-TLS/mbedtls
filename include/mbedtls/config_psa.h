@@ -91,6 +91,7 @@ extern "C" {
 
 #if defined(PSA_WANT_ALG_HKDF)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_HKDF)
+#define MBEDTLS_PSA_BUILTIN_ALG_HMAC                    1
 #define MBEDTLS_PSA_BUILTIN_ALG_HKDF                    1
 #define MBEDTLS_HKDF_C
 #define MBEDTLS_MD_C
@@ -187,6 +188,7 @@ extern "C" {
 #endif /* MBEDTLS_MD_C */
 
 #if defined(MBEDTLS_HKDF_C)
+#define MBEDTLS_PSA_BUILTIN_ALG_HMAC                    1
 #define MBEDTLS_PSA_BUILTIN_ALG_HKDF                    1
 #endif /* MBEDTLS_HKDF_C */
 

@@ -36,4 +36,52 @@
 #error "MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) && \
+    !( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+       defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
+       defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
+       defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) )
+#error "MBEDTLS_PSA_BUILTIN_ALG_ECDSA defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) && \
+    !( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+       defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
+       defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
+       defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) )
+#error "MBEDTLS_PSA_BUILTIN_ALG_ECDH defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) && \
+    !( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
+       defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) || \
+       defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) || \
+       defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY) )
+#error "MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) && \
+    !( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
+       defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) || \
+       defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) || \
+       defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY) )
+#error "MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) && \
+    !( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
+       defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) || \
+       defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) || \
+       defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY) )
+#error "MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) && \
+    !( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
+       defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) || \
+       defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) || \
+       defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY) )
+#error "MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS defined, but not all prerequisites"
+#endif
+
 #endif /* MBEDTLS_CHECK_CONFIG_PSA_H */

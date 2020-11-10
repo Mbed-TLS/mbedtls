@@ -1324,7 +1324,7 @@ component_test_psa_crypto_config_no_driver() {
 }
 
 # This should be renamed to test and updated once the accelerator ECDSA code is in place and ready to test.
-component_build_psa_want_ecdsa_disabled_software() {
+component_build_psa_accel_alg_ecdsa() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_ECDSA
     # without MBEDTLS_ECDSA_C
     # PSA_WANT_ALG_ECDSA and PSA_WANT_ALG_DETERMINISTIC_ECDSA are already
@@ -1342,7 +1342,7 @@ component_build_psa_want_ecdsa_disabled_software() {
 }
 
 # This should be renamed to test and updated once the accelerator ECDH code is in place and ready to test.
-component_build_psa_want_ecdh_disabled_software() {
+component_build_psa_accel_alg_ecdh() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_ECDH
     # without MBEDTLS_ECDH_C
     msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ALG_ECDH without MBEDTLS_ECDH_C"
@@ -1361,7 +1361,7 @@ component_build_psa_want_ecdh_disabled_software() {
 }
 
 # This should be renamed to test and updated once the accelerator ECC key pair code is in place and ready to test.
-component_build_psa_want_ecc_key_pair() {
+component_build_psa_accel_key_type_ecc_key_pair() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_KEY_TYPE_ECC_KEY_PAIR
     msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_KEY_TYPE_ECC_KEY_PAIR"
     scripts/config.py full
@@ -1375,7 +1375,7 @@ component_build_psa_want_ecc_key_pair() {
 }
 
 # This should be renamed to test and updated once the accelerator ECC public key code is in place and ready to test.
-component_build_psa_want_ecc_public_key() {
+component_build_psa_accel_key_type_ecc_public_key() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY
     msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY"
     scripts/config.py full
@@ -1389,7 +1389,7 @@ component_build_psa_want_ecc_public_key() {
 }
 
 # This should be renamed to test and updated once the accelerator HMAC code is in place and ready to test.
-component_build_psa_want_hmac() {
+component_build_psa_accel_alg_hmac() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_HMAC
     msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ALG_HMAC"
     scripts/config.py full
@@ -1401,7 +1401,7 @@ component_build_psa_want_hmac() {
 }
 
 # This should be renamed to test and updated once the accelerator HKDF code is in place and ready to test.
-component_build_psa_want_hkdf_disabled_software() {
+component_build_psa_accel_alg_hkdf() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_HKDF
     # without MBEDTLS_HKDF_C
     msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ALG_HKDF without MBEDTLS_HKDF_C"
@@ -1417,7 +1417,7 @@ component_build_psa_want_hkdf_disabled_software() {
 }
 
 # This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
-component_build_psa_want_rsa_pkcs1v15_crypt() {
+component_build_psa_accel_alg_rsa_pkcs1v15_crypt() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_RSA_PKCS1V15_CRYPT
     msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ALG_RSA_PKCS1V15_CRYPT + PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY"
     scripts/config.py full
@@ -1433,7 +1433,7 @@ component_build_psa_want_rsa_pkcs1v15_crypt() {
 }
 
 # This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
-component_build_psa_want_rsa_pkcs1v15_sign() {
+component_build_psa_accel_alg_rsa_pkcs1v15_sign() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_RSA_PKCS1V15_SIGN and PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
     msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ALG_RSA_PKCS1V15_SIGN + PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY"
     scripts/config.py full
@@ -1449,7 +1449,7 @@ component_build_psa_want_rsa_pkcs1v15_sign() {
 }
 
 # This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
-component_build_psa_want_rsa_oaep() {
+component_build_psa_accel_alg_rsa_oaep() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_RSA_OAEP and PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
     msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ALG_RSA_OAEP + PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY"
     scripts/config.py full
@@ -1465,7 +1465,7 @@ component_build_psa_want_rsa_oaep() {
 }
 
 # This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
-component_build_psa_want_rsa_pss() {
+component_build_psa_accel_alg_rsa_pss() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_RSA_PSS and PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
     msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_ALG_RSA_PSS + PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY"
     scripts/config.py full
@@ -1481,7 +1481,7 @@ component_build_psa_want_rsa_pss() {
 }
 
 # This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
-component_build_psa_want_rsa_key_pair() {
+component_build_psa_accel_key_type_rsa_key_pair() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_KEY_TYPE_RSA_KEY_PAIR and PSA_WANT_ALG_RSA_PSS
     msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR + PSA_WANT_ALG_RSA_PSS"
     scripts/config.py full
@@ -1495,7 +1495,7 @@ component_build_psa_want_rsa_key_pair() {
 }
 
 # This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
-component_build_psa_want_rsa_public_key() {
+component_build_psa_accel_key_type_rsa_public_key() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY and PSA_WANT_ALG_RSA_PSS
     msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY + PSA_WANT_ALG_RSA_PSS"
     scripts/config.py full

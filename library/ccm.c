@@ -228,6 +228,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     unsigned char mask_table[16];
     const unsigned char *src;
     unsigned char *dst;
+    volatile size_t flow_ctrl = 0;
 
     /*
      * Check length requirements: SP800-38C A.1
@@ -251,6 +252,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     mbedtls_platform_zeroize( ctr, 16 );
 
     q = (uint_fast8_t) (16 - 1 - iv_len);
+    flow_ctrl++; /* 1 */
 
     /*
      * First block B_0:
@@ -271,7 +273,10 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
                            ( q - 1 ) ) ^ mask_table[0];
 
     for( i = 0; i < iv_len; i++ )
+    {
         b[i+1] = iv[i] ^ mask_table[i+1];
+        flow_ctrl++; /* iv_len + 1 */
+    }
     for( i = 0, len_left = length; i < q; i++, len_left >>= 8 )
         b[15-i] = (unsigned char)( ( len_left & 0xFF ) ) ^ mask_table[15-i];
 
@@ -282,6 +287,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     /* Start CBC-MAC with first block */
     memset( y, 0, 16 );
     UPDATE_CBC_MAC;
+    flow_ctrl++; /* iv_len + 2 */
 
     /*
      * If there is additional data, update CBC-MAC with
@@ -307,6 +313,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         src += use_len;
 
         UPDATE_CBC_MAC;
+        flow_ctrl++; /* iv_len + 2 + ( add_len? 1 : 0 ) */
 
         while( len_left > 0 )
         {
@@ -337,6 +344,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     mbedtls_platform_memcpy( ctr + 1, iv, iv_len );
     mbedtls_platform_memset( ctr + 1 + iv_len, 0, q );
     ctr[15] = 1;
+    flow_ctrl++;  /* iv_len + 3 + ( add_len? 1 : 0 ) */
 
     /*
      * Authenticate and {en,de}crypt the message.
@@ -359,6 +367,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
             mbedtls_platform_memset( b, 0, 16 );
             COPY_MASK( b, src, mask_table, use_len, 16 );
             UPDATE_CBC_MAC;
+            flow_ctrl++;  /* iv_len + 3 + ( add_len? 1 : 0 ) + encryptions */
         }
 
         CTR_CRYPT( dst, src, use_len );
@@ -370,6 +379,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
             mbedtls_platform_memset( b, 0, 16 );
             COPY_MASK( b, dst, mask_table, use_len, 16 );
             UPDATE_CBC_MAC;
+            flow_ctrl++; /* iv_len + 3 + ( add_len? 1 : 0 ) + decryptions */
         }
 
         dst += use_len;
@@ -384,6 +394,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
             if( ++ctr[15-i] != 0 )
                 break;
     }
+    flow_ctrl++;  /* iv_len + 4 + ( add_len? 1 : 0 ) + enc/dec */
 
     /*
      * Authentication: reset counter and crypt/mask internal tag
@@ -394,11 +405,25 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     CTR_CRYPT( y, y, 16 );
     mbedtls_platform_memcpy( tag, y, tag_len );
 
+    flow_ctrl++; /* iv_len + 5 + ( add_len? 1 : 0 ) + enc/dec */
+
     mbedtls_platform_zeroize( b, 16 );
     mbedtls_platform_zeroize( y, 16 );
     mbedtls_platform_zeroize( ctr, 16 );
 
-    return( ret );
+    {
+        size_t operations = length / 16;
+        operations += ( length % 16 ? 1 : 0 );
+        operations += ( add_len > 0 ? 1 : 0 );
+        /* See comments above on steps in calculating flow_ctrl */
+        if( flow_ctrl == iv_len + 5 + operations )
+        {
+            mbedtls_platform_random_delay();
+            if( flow_ctrl == iv_len + 5 + operations )
+                return( ret );
+        }
+    }
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 /*

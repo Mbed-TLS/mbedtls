@@ -106,7 +106,7 @@ static int invalidate_key( invalidate_method_t invalidate_method,
         case INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN:
             PSA_ASSERT( psa_destroy_key( key ) );
             break;
-        /* Purging the key just purge RAM data of persitent keys. */
+        /* Purging the key just purges RAM data of persistent keys. */
         case INVALIDATE_BY_PURGING:
         case INVALIDATE_BY_PURGING_WITH_SHUTDOWN:
             PSA_ASSERT( psa_purge_key( key ) );

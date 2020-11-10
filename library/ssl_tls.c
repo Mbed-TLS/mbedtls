@@ -3202,7 +3202,7 @@ static void ssl_calc_finished_tls_sha384(
 {
     int len = 12;
     const char *sender;
-    unsigned char padbuf[48];
+    unsigned char padbuf[64];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     size_t hash_size;
     psa_hash_operation_t sha384_psa = PSA_HASH_OPERATION_INIT;

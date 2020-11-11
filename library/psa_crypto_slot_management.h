@@ -82,7 +82,8 @@ static inline int psa_key_id_is_volatile( psa_key_id_t key_id )
  *
  * \retval #PSA_SUCCESS
  *         The pointer to the key slot containing the description of the key
- *         identified by \p key was returned.
+ *         identified by \p key was returned. The key slot counter was
+ *         implemented.
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been initialized.
  * \retval #PSA_ERROR_INVALID_HANDLE

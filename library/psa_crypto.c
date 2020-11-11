@@ -1191,6 +1191,9 @@ static psa_status_t psa_restrict_key_policy(
  * usage flags set in \p usage. If \p alg is nonzero, the key must allow
  * operations with this algorithm.
  *
+ *  In case of a persistent key, the function loads the description of the key
+ *  into a key slot if not already done.
+ *
  * On success, the access counter of the returned key slot is incremented by
  * one. It is the responsibility of the caller to call
  * psa_decrement_key_slot_access_count() when it does not access the key slot

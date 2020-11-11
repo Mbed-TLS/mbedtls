@@ -172,13 +172,13 @@ void transient_slot_lifecycle( int owner_id_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Import a key. */
-    #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
     mbedtls_key_owner_id_t owner_id = owner_id_arg;
 
     mbedtls_set_key_owner_id( &attributes, owner_id );
-    #else
+#else
     (void)owner_id_arg;
-    #endif
+#endif
 
     psa_set_key_usage_flags( &attributes, usage_flags );
     psa_set_key_algorithm( &attributes, alg );
@@ -190,7 +190,7 @@ void transient_slot_lifecycle( int owner_id_arg,
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
     psa_reset_key_attributes( &attributes );
 
-    #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
     {
         psa_key_handle_t handle;
         mbedtls_svc_key_id_t key_with_invalid_owner =
@@ -203,7 +203,7 @@ void transient_slot_lifecycle( int owner_id_arg,
         TEST_EQUAL( psa_open_key( key_with_invalid_owner, &handle ),
                     PSA_ERROR_DOES_NOT_EXIST );
     }
-    #endif
+#endif
 
     /*
      * Purge the key and make sure that it is still valid, as purging a

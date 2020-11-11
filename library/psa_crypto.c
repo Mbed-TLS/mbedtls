@@ -1870,7 +1870,7 @@ static psa_status_t psa_validate_key_attributes(
     }
     else
     {
-        status = psa_validate_key_id( psa_get_key_id( attributes ), 0, 0 );
+        status = psa_validate_key_id( psa_get_key_id( attributes ), 0 );
         if( status != PSA_SUCCESS )
             return( status );
     }

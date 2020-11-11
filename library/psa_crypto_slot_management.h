@@ -212,13 +212,10 @@ psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime );
  * \param[in] vendor_ok     Non-zero to indicate that key identifiers in the
  *                          vendor range are allowed, volatile key identifiers
  *                          excepted \c 0 otherwise.
- * \param[in] volatile_ok   Non-zero to indicate that volatile key identifiers
- *                          are allowed \c 0 otherwise.
  *
  * \retval #PSA_SUCCESS The identifier is valid.
  * \retval #PSA_ERROR_INVALID_ARGUMENT The key identifier is not valid.
  */
-psa_status_t psa_validate_key_id(
-    mbedtls_svc_key_id_t key, int vendor_ok, int volatile_ok );
+psa_status_t psa_validate_key_id( mbedtls_svc_key_id_t key, int vendor_ok );
 
 #endif /* PSA_CRYPTO_SLOT_MANAGEMENT_H */

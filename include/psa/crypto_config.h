@@ -64,4 +64,6 @@
 #define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR          1
 #define PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY        1
 
+#include "psa/check_crypto_config.h"
+
 #endif /* PSA_CRYPTO_CONFIG_H */

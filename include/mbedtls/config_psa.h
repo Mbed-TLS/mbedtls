@@ -207,8 +207,6 @@ extern "C" {
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
-#include "mbedtls/check_config_psa.h"
-
 #ifdef __cplusplus
 }
 #endif

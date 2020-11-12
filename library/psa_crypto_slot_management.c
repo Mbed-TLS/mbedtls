@@ -109,34 +109,31 @@ psa_status_t psa_validate_key_id(
 static psa_status_t psa_search_key_in_slots(
     mbedtls_svc_key_id_t key, psa_key_slot_t **p_slot )
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_id_t key_id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key );
+    size_t slot_idx;
     psa_key_slot_t *slot = NULL;
-
-    psa_status_t status = psa_validate_key_id( key, 1, 1 );
-    if( status != PSA_SUCCESS )
-        return( status );
 
     if( psa_key_id_is_volatile( key_id ) )
     {
         slot = &global_data.key_slots[ key_id - PSA_KEY_ID_VOLATILE_MIN ];
-
-        if( ! mbedtls_svc_key_id_equal( key, slot->attr.id ) )
-             status = PSA_ERROR_DOES_NOT_EXIST;
+        status = mbedtls_svc_key_id_equal( key, slot->attr.id ) ?
+                 PSA_SUCCESS : PSA_ERROR_DOES_NOT_EXIST;
     }
     else
     {
-        status = PSA_ERROR_DOES_NOT_EXIST;
-        slot = &global_data.key_slots[ PSA_KEY_SLOT_COUNT ];
+        status = psa_validate_key_id( key, 1, 1 );
+        if( status != PSA_SUCCESS )
+            return( status );
 
-        while( slot > &global_data.key_slots[ 0 ] )
+        for( slot_idx = 0; slot_idx < PSA_KEY_SLOT_COUNT; slot_idx++ )
         {
-            slot--;
+            slot = &global_data.key_slots[ slot_idx ];
             if( mbedtls_svc_key_id_equal( key, slot->attr.id ) )
-            {
-                status = PSA_SUCCESS;
                 break;
-            }
         }
+        status = ( slot_idx < PSA_KEY_SLOT_COUNT ) ?
+                 PSA_SUCCESS : PSA_ERROR_DOES_NOT_EXIST;
     }
 
     if( status == PSA_SUCCESS )

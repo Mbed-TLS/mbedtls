@@ -281,7 +281,9 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
 
     if( flow_ctrl == 8 )
     {
-        return( 0 );
+        mbedtls_platform_random_delay();
+        if( flow_ctrl == 8 )
+            return( 0 );
     }
     /* Free the ctx upon suspected FI */
     mbedtls_sha256_free( ctx );
@@ -355,6 +357,7 @@ int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
     /* Re-check ilen_dup to protect from a FI attack */
     if( ilen_dup < 64 )
     {
+        mbedtls_platform_random_delay();
         /* Re-check that the calculated offsets are correct */
         ilen_change = ilen - ilen_dup;
         if( ( input_dup + ilen_change ) == input )
@@ -458,7 +461,9 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
     /* flow ctrl was incremented twice and then 7 times in two loops */
     if( flow_ctrl == 9 )
     {
-        return( 0 );
+        mbedtls_platform_random_delay();
+        if( flow_ctrl == 9 )
+            return( 0 );
     }
     /* Free the ctx and clear output upon suspected FI */
     mbedtls_sha256_free( ctx );
@@ -509,7 +514,9 @@ exit:
 
     if( input_dup == input && ilen_dup == ilen )
     {
-        return( ret );
+        mbedtls_platform_random_delay();
+        if( input_dup == input && ilen_dup == ilen )
+            return( ret );
     }
     mbedtls_platform_memset( output, 0, 32 );
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );

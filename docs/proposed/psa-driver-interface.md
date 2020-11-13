@@ -194,7 +194,7 @@ The signature of a driver entry point generally looks like the signature of the 
 
 Some entry points are grouped in families that must be implemented as a whole. If a driver supports an entry point family, it must provide all the entry points in the family.
 
-Drivers can also have entry points related to random generation. For transparent drivers, these are [random generation entry points](#random-generation-entry-points). For opaque drivers, these are [entropy collection entry points](#entropy-collection-entry-point).
+Drivers can also have entry points related to random generation. A transparent driver can provide a [random generation interface](#random-generation-entry-points). Separately, transparent and opaque drivers can have [entropy collection entry points](#entropy-collection-entry-point).
 
 #### General considerations on driver entry point parameters
 
@@ -374,6 +374,47 @@ This section describes some minimal validity requirements for standard key types
 * For RSA (`PSA_KEY_TYPE_RSA_PUBLIC_KEY`, `PSA_KEY_TYPE_RSA_KEY_PAIR`), check the syntax of the key and make sanity checks on its components. TODO: what sanity checks? Value ranges (e.g. p < n), sanity checks such as parity, minimum and maximum size, what else?
 * For elliptic curve private keys (`PSA_KEY_TYPE_ECC_KEY_PAIR`), check the size and range. TODO: what else?
 * For elliptic curve public keys (`PSA_KEY_TYPE_ECC_PUBLIC_KEY`), check the size and range, and that the point is on the curve. TODO: what else?
+
+### Entropy collection entry point
+
+A driver can declare an entropy source by providing a `"get_entropy"` entry point. This entry point has the following prototypes for a driver with the prefix `"acme"`:
+
+```
+psa_status_t acme_get_entropy(uint32_t flags,
+                              size_t *estimate_bits,
+                              uint8_t *output,
+                              size_t output_size);
+```
+
+The semantics of the parameters is as follows:
+
+* `flags`: a bit-mask of [entropy collection flags](#entropy-collection-flags).
+* `estimate_bits`: on success, an estimate of the amount of entropy that is present in the `output` buffer, in bits. This must be at least `1` on success. The value is ignored on failure.
+* `output`: on success, this buffer contains non-deterministic data with an estimated entropy of at least `*estimate_bits` bits.
+* `output_size`: the size of the `output` buffer in bytes.
+
+The entry point may return the following statuses:
+
+* `PSA_SUCCESS`: success. The output buffer contains some entropy.
+* `PSA_ERROR_INSUFFICIENT_ENTROPY`: no entropy is available without blocking. This is only permitted if the `PSA_DRIVER_GET_ENTROPY_BLOCK` is clear.
+* Other error codes indicate a transient or permanent failure of the entropy source.
+
+Unlike most other entry points, if multiple transparent drivers include a `"get_entropy"` point, the core will call all of them (as well as the entry points from opaque drivers). Fallback is not applicable to `"get_entropy"`.
+
+#### Entropy collection flags
+
+* `PSA_DRIVER_GET_ENTROPY_BLOCK`: If this flag is set, the driver should block until it has at least one bit of entropy. If this flag is clear, the driver should avoid blocking if no entropy is readily available.
+* `PSA_DRIVER_GET_ENTROPY_KEEPALIVE`: If this flag is set, the driver should expect another call to `acme_get_entropy` after a short time. If this flag is clear, the core is not expecting to call the `"get_entropy"` entry point again within a short amount of time (but it may do so nonetheless).
+
+#### Entropy collection and blocking
+
+The intent of the `BLOCK` and `KEEPALIVE` [flags](#entropy-collection-flags) is to support drivers for TRNG (True Random Number Generator, i.e. an entropy source peripheral) that have a long ramp-up time, especially on platforms with multiple entropy sources.
+
+Here is a suggested call sequence for entropy collection that leverages these flags:
+
+1. The core makes a first round of calls to `"get_entropy"` on every source with the `BLOCK` flag clear and the `KEEPALIVE` flag set, so that drivers can prepare the TRNG peripheral.
+2. The core makes a second round of calls with the `BLOCK` flag set and the `KEEPALIVE` flag clear to gather needed entropy.
+3. If the second round does not collect enough entropy, the core makes more similar rounds, until the total amount of collected entropy is sufficient.
 
 ### Miscellaneous driver entry points
 
@@ -705,45 +746,6 @@ psa_status_t acme_export_public_key(const psa_key_attributes_t *attributes,
 The core will only call `acme_export_public_key` on a private key. Drivers implementers may choose to store the public key in the key context buffer or to recalculate it on demand. If the key context includes the public key, it needs to have an adequate size; see [“Key format for opaque drivers”](#key-format-for-opaque-drivers).
 
 The core guarantees that the size of the output buffer (`data_size`) is sufficient to export any key with the given attributes. The driver must set `*data_length` to the exact size of the exported key.
-
-### Entropy collection entry point
-
-An opaque driver can declare an entropy source by providing a `"get_entropy"` entry point. This entry point has the following prototypes for a driver with the prefix `"acme"`:
-
-```
-psa_status_t acme_get_entropy(uint32_t flags,
-                              size_t *estimate_bits,
-                              uint8_t *output,
-                              size_t output_size);
-```
-
-The semantics of the parameters is as follows:
-
-* `flags`: a bit-mask of [entropy collection flags](#entropy-collection-flags).
-* `estimate_bits`: on success, an estimate of the amount of entropy that is present in the `output` buffer, in bits. This must be at least `1` on success. The value is ignored on failure.
-* `output`: on success, this buffer contains non-deterministic data with an estimated entropy of at least `*estimate_bits` bits.
-* `output_size`: the size of the `output` buffer in bytes.
-
-The entry point may return the following statuses:
-
-* `PSA_SUCCESS`: success. The output buffer contains some entropy.
-* `PSA_ERROR_INSUFFICIENT_ENTROPY`: no entropy is available without blocking. This is only permitted if the `PSA_DRIVER_GET_ENTROPY_BLOCK` is clear.
-* Other error codes indicate a transient or permanent failure of the entropy source.
-
-#### Entropy collection flags
-
-* `PSA_DRIVER_GET_ENTROPY_BLOCK`: If this flag is set, the driver should block until it has at least one bit of entropy. If this flag is clear, the driver should avoid blocking if no entropy is readily available.
-* `PSA_DRIVER_GET_ENTROPY_KEEPALIVE`: If this flag is set, the driver should expect another call to `acme_get_entropy` after a short time. If this flag is clear, the core is not expecting to call the `"get_entropy"` entry point again within a short amount of time (but it may do so nonetheless).
-
-#### Entropy collection and blocking
-
-The intent of the `BLOCK` and `KEEPALIVE` [flags](#entropy-collection-flags) is to support drivers for TRNG (True Random Number Generator, i.e. an entropy source peripheral) that have a long ramp-up time, especially on platforms with multiple entropy sources.
-
-Here is a suggested call sequence for entropy collection that leverages these flags:
-
-1. The core makes a first round of calls to `"get_entropy"` on every source with the `BLOCK` flag clear and the `KEEPALIVE` flag set, so that drivers can prepare the TRNG peripheral.
-2. The core makes a second round of calls with the `BLOCK` flag set and the `KEEPALIVE` flag clear to gather needed entropy.
-3. If the second round does not collect enough entropy, the core makes more similar rounds, until the total amount of collected entropy is sufficient.
 
 ### Opaque driver persistent state
 

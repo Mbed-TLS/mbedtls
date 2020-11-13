@@ -453,9 +453,7 @@ static psa_status_t validate_unstructured_key_bit_size( psa_key_type_t type,
     switch( type )
     {
         case PSA_KEY_TYPE_RAW_DATA:
-#if defined(MBEDTLS_MD_C)
         case PSA_KEY_TYPE_HMAC:
-#endif
         case PSA_KEY_TYPE_DERIVE:
             break;
 #if defined(MBEDTLS_AES_C)

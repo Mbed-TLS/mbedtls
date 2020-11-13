@@ -4521,7 +4521,7 @@ exit:
             ( opt.query_config_mode == DFL_QUERY_CONFIG_MODE ) )
         {
             mbedtls_printf( "Failed to destroy key slot %u - error was %d",
-                            (int) psk_slot, (int) status );
+                            (unsigned) psk_slot, (int) status );
         }
     }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED &&

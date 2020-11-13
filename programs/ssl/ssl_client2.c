@@ -3580,7 +3580,7 @@ exit:
             ( opt.query_config_mode == DFL_QUERY_CONFIG_MODE ) )
         {
             mbedtls_printf( "Failed to destroy key slot %u - error was %d",
-                            (int) slot, (int) status );
+                            (unsigned) slot, (int) status );
             if( ret == 0 )
                 ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
         }

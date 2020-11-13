@@ -11,11 +11,21 @@
 #define ENTROPY_MIN_NV_SEED_SIZE                                        \
     MAX(MBEDTLS_ENTROPY_MIN_PLATFORM, MBEDTLS_ENTROPY_BLOCK_SIZE)
 
+#include "psa_crypto_random.h"
+#if defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE)
+/* PSA crypto uses the HMAC_DRBG module. It reads from the entropy source twice:
+ * once for the initial entropy and once for a nonce. The nonce length is
+ * half the entropy length. For SHA-256, SHA-384 or SHA-512, the
+ * entropy length is 256 per the documentation of mbedtls_hmac_drbg_seed(),
+ * and PSA crypto doesn't support other hashes for HMAC_DRBG. */
+#define ENTROPY_NONCE_LEN ( 256 / 2 )
+#else
 /* PSA crypto uses the CTR_DRBG module. In some configurations, it needs
  * to read from the entropy source twice: once for the initial entropy
  * and once for a nonce. */
 #include "mbedtls/ctr_drbg.h"
 #define ENTROPY_NONCE_LEN MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN
+#endif
 
 #if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 

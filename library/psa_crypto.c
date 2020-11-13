@@ -63,7 +63,6 @@
 #include "mbedtls/cipher.h"
 #include "mbedtls/ccm.h"
 #include "mbedtls/cmac.h"
-#include "mbedtls/ctr_drbg.h"
 #include "mbedtls/des.h"
 #include "mbedtls/ecdh.h"
 #include "mbedtls/ecp.h"
@@ -214,6 +213,8 @@ psa_status_t mbedtls_to_psa_error( int ret )
         case MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
 
+#if !( defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) ||      \
+       defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE) )
         case MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED:
             return( PSA_ERROR_INSUFFICIENT_ENTROPY );
         case MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG:
@@ -221,6 +222,7 @@ psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_NOT_SUPPORTED );
         case MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR:
             return( PSA_ERROR_INSUFFICIENT_ENTROPY );
+#endif
 
         case MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH:
             return( PSA_ERROR_NOT_SUPPORTED );
@@ -238,6 +240,17 @@ psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_INVALID_ARGUMENT );
         case MBEDTLS_ERR_GCM_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
+
+#if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&        \
+    defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE)
+        case MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED:
+            return( PSA_ERROR_INSUFFICIENT_ENTROPY );
+        case MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG:
+        case MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG:
+            return( PSA_ERROR_NOT_SUPPORTED );
+        case MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR:
+            return( PSA_ERROR_INSUFFICIENT_ENTROPY );
+#endif
 
         case MBEDTLS_ERR_MD2_HW_ACCEL_FAILED:
         case MBEDTLS_ERR_MD4_HW_ACCEL_FAILED:

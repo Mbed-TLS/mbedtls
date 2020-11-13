@@ -573,7 +573,7 @@
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_C) &&                                    \
-    !( ( defined(MBEDTLS_CTR_DRBG_C) &&                                 \
+    !( ( ( defined(MBEDTLS_CTR_DRBG_C) || defined(MBEDTLS_HMAC_DRBG_C) ) && \
          defined(MBEDTLS_ENTROPY_C) ) ||                                \
        defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) )
 #error "MBEDTLS_PSA_CRYPTO_C defined, but not all prerequisites (missing RNG)"

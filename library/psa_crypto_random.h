@@ -50,15 +50,48 @@ static inline void *mbedtls_psa_random_state( mbedtls_psa_random_context_t *rng 
 
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
-/* Currently, the only supported RNG is Mbed TLS's CTR_DRBG seeded with
- * mbedtls_entropy_func(). */
+/* Choose a DRBG based on configuration and availability */
+#if defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE)
+
+#include "mbedtls/hmac_drbg.h"
+
+#elif defined(MBEDTLS_CTR_DRBG_C)
 
 #include "mbedtls/ctr_drbg.h"
+
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+
+#include "mbedtls/hmac_drbg.h"
+#if defined(MBEDTLS_SHA512_C) && defined(MBEDTLS_SHA256_C)
+#include <limits.h>
+#if SIZE_MAX > 0xffffffff
+/* Looks like a 64-bit system, so prefer SHA-512. */
+#define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA512
+#else
+/* Looks like a 32-bit system, so prefer SHA-256. */
+#define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA256
+#endif
+#elif defined(MBEDTLS_SHA512_C)
+#define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA512
+#elif defined(MBEDTLS_SHA256_C)
+#define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA256
+#else
+#error "No hash algorithm available for HMAC_DBRG."
+#endif
+
+#else
+#error "No DRBG module available for the psa_crypto module."
+#endif
+
 #include "mbedtls/entropy.h"
 
 /** The type of the PSA DRBG context.
  */
+#if defined(MBEDTLS_CTR_DRBG_C)
 typedef mbedtls_ctr_drbg_context mbedtls_psa_drbg_context_t;
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+typedef mbedtls_hmac_drbg_context mbedtls_psa_drbg_context_t;
+#endif
 
 /** Initialize the PSA DRBG.
  *
@@ -66,7 +99,11 @@ typedef mbedtls_ctr_drbg_context mbedtls_psa_drbg_context_t;
  */
 static inline void mbedtls_psa_drbg_init( mbedtls_psa_drbg_context_t *p_rng )
 {
+#if defined(MBEDTLS_CTR_DRBG_C)
     mbedtls_ctr_drbg_init( p_rng );
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+    mbedtls_hmac_drbg_init( p_rng );
+#endif
 }
 
 /** Deinitialize the PSA DRBG.
@@ -75,7 +112,11 @@ static inline void mbedtls_psa_drbg_init( mbedtls_psa_drbg_context_t *p_rng )
  */
 static inline void mbedtls_psa_drbg_free( mbedtls_psa_drbg_context_t *p_rng )
 {
+#if defined(MBEDTLS_CTR_DRBG_C)
     mbedtls_ctr_drbg_free( p_rng );
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+    mbedtls_hmac_drbg_free( p_rng );
+#endif
 }
 
 /** The type of the PSA random generator context.
@@ -97,7 +138,7 @@ typedef struct
  * that require a random generator. Use mbedtls_psa_random_state() to
  * obtain the \p p_rng parameter.
  *
- * \param p_rng         The CTR_DRBG context. This must be
+ * \param p_rng         The DRBG context. This must be
  *                      mbedtls_psa_random_state( \c rng )
  *                      where \c rng is a pointer to a
  *                      ::mbedtls_psa_random_context_t structure.
@@ -105,21 +146,29 @@ typedef struct
  * \param output_len    The length of the buffer in bytes.
  *                      It must be at most #MBEDTLS_PSA_RANDOM_MAX_REQUEST.
  *
- * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED or
- *                      #MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG on failure.
+ * \retval              \c 0 on success.
+ * \return              \c MBEDTLS_ERR_xxx_DRBG_xxx or
+ *                      \c MBEDTLS_ERR_PLATFORM_xxx on failure.
  */
 static inline int mbedtls_psa_get_random( void *p_rng,
                                           unsigned char *output,
                                           size_t output_len )
 {
+#if defined(MBEDTLS_CTR_DRBG_C)
     return( mbedtls_ctr_drbg_random( p_rng, output, output_len ) );
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+    return( mbedtls_hmac_drbg_random( p_rng, output, output_len ) );
+#endif
 }
 
 /** The maximum number of bytes that mbedtls_psa_get_random() is expected to
  * return.
  */
+#if defined(MBEDTLS_CTR_DRBG_C)
 #define MBEDTLS_PSA_RANDOM_MAX_REQUEST MBEDTLS_CTR_DRBG_MAX_REQUEST
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+#define MBEDTLS_PSA_RANDOM_MAX_REQUEST MBEDTLS_HMAC_DRBG_MAX_REQUEST
+#endif
 
 /** Retrieve the DRBG state from the PSA RNG state.
  *
@@ -132,7 +181,6 @@ static inline mbedtls_psa_drbg_context_t *mbedtls_psa_random_state(
 {
     return( &rng->drbg );
 }
-
 
 /** Seed the PSA DRBG.
  *
@@ -149,10 +197,20 @@ static inline int mbedtls_psa_drbg_seed(
     mbedtls_psa_random_context_t *rng,
     const unsigned char *custom, size_t len )
 {
+#if defined(MBEDTLS_CTR_DRBG_C)
     return( mbedtls_ctr_drbg_seed( mbedtls_psa_random_state( rng ),
                                    mbedtls_entropy_func,
                                    &rng->entropy,
                                    custom, len ) );
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+    const mbedtls_md_info_t *md_info =
+        mbedtls_md_info_from_type( MBEDTLS_PSA_HMAC_DRBG_MD_TYPE );
+    return( mbedtls_hmac_drbg_seed( mbedtls_psa_random_state( rng ),
+                                    md_info,
+                                    mbedtls_entropy_func,
+                                    &rng->entropy,
+                                    custom, len ) );
+#endif
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */

@@ -40,6 +40,8 @@
  * stored keys. */
 #include "psa_crypto_storage.h"
 
+#include "psa_crypto_random.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>

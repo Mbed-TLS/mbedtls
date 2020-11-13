@@ -108,12 +108,10 @@ static const size_t INVALID_EXPORT_LENGTH = ~0U;
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-int lifetime_is_secure_element( psa_key_lifetime_t lifetime )
+int lifetime_is_dynamic_secure_element( psa_key_lifetime_t lifetime )
 {
-    /* At the moment, anything that isn't a built-in lifetime is either
-     * a secure element or unassigned. */
-    return( ( ! PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) ) &&
-            lifetime != PSA_KEY_LIFETIME_PERSISTENT );
+    return( PSA_KEY_LIFETIME_GET_LOCATION( lifetime ) !=
+            PSA_KEY_LOCATION_LOCAL_STORAGE );
 }
 #else
 int lifetime_is_secure_element( psa_key_lifetime_t lifetime )
@@ -263,7 +261,7 @@ int check_key_attributes_sanity( mbedtls_svc_key_id_t key )
     /* randomly-generated 64-bit constant, should never appear in test data */
     psa_key_slot_number_t slot_number = 0xec94d4a5058a1a21;
     psa_status_t status = psa_get_key_slot_number( &attributes, &slot_number );
-    if( lifetime_is_secure_element( lifetime ) )
+    if( lifetime_is_dynamic_secure_element( lifetime ) )
     {
         /* Mbed Crypto currently always exposes the slot number to
          * applications. This is not mandated by the PSA specification

@@ -133,8 +133,9 @@ static psa_status_t psa_search_key_in_slots(
 
     if( status == PSA_SUCCESS )
     {
-        *p_slot = slot;
-        psa_increment_key_slot_access_count( slot );
+        status = psa_increment_key_slot_access_count( slot );
+        if( status == PSA_SUCCESS )
+            *p_slot = slot;
     }
 
     return( status );
@@ -208,10 +209,13 @@ psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
 
     if( selected_slot != NULL )
     {
+       status = psa_increment_key_slot_access_count( selected_slot );
+       if( status != PSA_SUCCESS )
+           goto error;
+
         *volatile_key_id = PSA_KEY_ID_VOLATILE_MIN +
             ( (psa_key_id_t)( selected_slot - global_data.key_slots ) );
         *p_slot = selected_slot;
-        psa_increment_key_slot_access_count( selected_slot );
 
         return( PSA_SUCCESS );
     }

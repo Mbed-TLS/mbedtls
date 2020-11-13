@@ -137,10 +137,21 @@ psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
  * This function increments the slot access counter by one.
  *
  * \param[in] slot  The key slot.
+ *
+ * \retval #PSA_SUCCESS
+               The access count was incremented.
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *             The access count already reached its maximum value and was not
+ *             increased.
  */
-static inline void psa_increment_key_slot_access_count( psa_key_slot_t *slot )
+static inline psa_status_t psa_increment_key_slot_access_count( psa_key_slot_t *slot )
 {
+    if( slot->access_count >= SIZE_MAX )
+        return( PSA_ERROR_CORRUPTION_DETECTED );
+
     slot->access_count++;
+
+    return( PSA_SUCCESS );
 }
 
 /** Decrement slot access counter.

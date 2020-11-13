@@ -1224,6 +1224,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
 
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+    if( strcmp( "MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+
 #if defined(MBEDTLS_PSA_CRYPTO_SPM)
     if( strcmp( "MBEDTLS_PSA_CRYPTO_SPM", config ) == 0 )
     {

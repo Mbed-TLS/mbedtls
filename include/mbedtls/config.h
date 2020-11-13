@@ -1337,6 +1337,35 @@
  */
 //#define MBEDTLS_PSA_CRYPTO_DRIVERS
 
+/** \def MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+ *
+ * Make the PSA Crypto module use an external random generator provided
+ * by a driver, instead of Mbed TLS's entropy and DRBG modules.
+ *
+ * If you enable this option, you must supply a type called
+ * \c mbedtls_psa_external_random_context_t and a function called
+ * mbedtls_psa_external_get_random() with the following prototype:
+ * ```
+ * psa_status_t mbedtls_psa_external_get_random(
+ *     mbedtls_psa_external_random_context_t *context,
+ *     uint8_t *output, size_t output_size, size_t *output_length);
+ * );
+ * ```
+ * The \c context value is initialized to 0 before the first call.
+ * The function must fill the \c output buffer with \p output_size bytes
+ * of random data and set \c *output_length to \p output_size.
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C
+ *
+ * \warning If you enable this option, code that uses the PSA cryptography
+ *          interface will not use any of the entropy sources set up for
+ *          the entropy module, nor the NV seed that MBEDTLS_ENTROPY_NV_SEED
+ *          enables.
+ *
+ * \note This option is experimental and may be removed without notice.
+ */
+//#define MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+
 /**
  * \def MBEDTLS_PSA_CRYPTO_SPM
  *
@@ -3115,7 +3144,8 @@
  *
  * Module:  library/psa_crypto.c
  *
- * Requires: MBEDTLS_CTR_DRBG_C, MBEDTLS_ENTROPY_C
+ * Requires: either MBEDTLS_CTR_DRBG_C and MBEDTLS_ENTROPY_C,
+ *           or MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG.
  *
  */
 #define MBEDTLS_PSA_CRYPTO_C

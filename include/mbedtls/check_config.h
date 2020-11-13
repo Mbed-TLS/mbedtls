@@ -605,6 +605,11 @@
 #error "MBEDTLS_PSA_INJECT_ENTROPY is not compatible with actual entropy sources"
 #endif
 
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY) &&              \
+    !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+#error "MBEDTLS_PSA_INJECT_ENTROPY is not compatible with MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG"
+#endif
+
 #if defined(MBEDTLS_PSA_ITS_FILE_C) && \
     !defined(MBEDTLS_FS_IO)
 #error "MBEDTLS_PSA_ITS_FILE_C defined, but not all prerequisites"

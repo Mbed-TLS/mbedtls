@@ -6297,6 +6297,10 @@ exit:
  */
 static void mbedtls_psa_random_init( mbedtls_psa_random_context_t *rng )
 {
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+    memset( rng, 0, sizeof( *rng ) );
+#else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+
     /* Set default configuration if
      * mbedtls_psa_crypto_configure_entropy_sources() hasn't been called. */
     if( rng->entropy_init == NULL )
@@ -6316,30 +6320,58 @@ static void mbedtls_psa_random_init( mbedtls_psa_random_context_t *rng )
 #endif
 
     mbedtls_psa_drbg_init( mbedtls_psa_random_state( rng ) );
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 
 /** Deinitialize the PSA random generator.
  */
 static void mbedtls_psa_random_free( mbedtls_psa_random_context_t *rng )
 {
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+    memset( rng, 0, sizeof( *rng ) );
+#else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
     mbedtls_psa_drbg_free( mbedtls_psa_random_state( rng ) );
     rng->entropy_free( &rng->entropy );
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 
 /** Seed the PSA random generator.
  */
 static psa_status_t mbedtls_psa_random_seed( mbedtls_psa_random_context_t *rng )
 {
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+    /* Do nothing: the external RNG seeds itself. */
+    (void) rng;
+    return( PSA_SUCCESS );
+#else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
     const unsigned char drbg_seed[] = "PSA";
     int ret = mbedtls_psa_drbg_seed( rng, drbg_seed, sizeof( drbg_seed ) - 1 );
     return mbedtls_to_psa_error( ret );
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 
 psa_status_t psa_generate_random( uint8_t *output,
                                   size_t output_size )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     GUARD_MODULE_INITIALIZED;
+
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+
+    size_t output_length = 0;
+    psa_status_t status = mbedtls_psa_external_get_random( &global_data.rng,
+                                                           output, output_size,
+                                                           &output_length );
+    if( status != PSA_SUCCESS )
+        return( status );
+    /* Breaking up a request into smaller chunks is currently not supported
+     * for the extrernal RNG interface. */
+    if( output_length != output_size )
+        return( PSA_ERROR_INSUFFICIENT_ENTROPY );
+    return( PSA_SUCCESS );
+
+#else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     while( output_size > MBEDTLS_PSA_RANDOM_MAX_REQUEST )
     {
@@ -6355,6 +6387,7 @@ psa_status_t psa_generate_random( uint8_t *output,
     ret = mbedtls_psa_get_random( mbedtls_psa_random_state( &global_data.rng ),
                                   output, output_size );
     return( mbedtls_to_psa_error( ret ) );
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
@@ -6586,6 +6619,7 @@ exit:
 /* Module setup */
 /****************************************************************/
 
+#if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 psa_status_t mbedtls_psa_crypto_configure_entropy_sources(
     void (* entropy_init )( mbedtls_entropy_context *ctx ),
     void (* entropy_free )( mbedtls_entropy_context *ctx ) )
@@ -6596,6 +6630,7 @@ psa_status_t mbedtls_psa_crypto_configure_entropy_sources(
     global_data.rng.entropy_free = entropy_free;
     return( PSA_SUCCESS );
 }
+#endif /* !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) */
 
 void mbedtls_psa_crypto_free( void )
 {

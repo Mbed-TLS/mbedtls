@@ -22,6 +22,34 @@
 #ifndef PSA_CRYPTO_RANDOM_H
 #define PSA_CRYPTO_RANDOM_H
 
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+
+#include <string.h>
+#include <mbedtls/entropy.h> // only for error codes
+#include <psa/crypto.h>
+
+typedef mbedtls_psa_external_random_context_t mbedtls_psa_random_context_t;
+
+static inline int mbedtls_psa_get_random( void *p_rng,
+                                          unsigned char *output,
+                                          size_t output_size )
+{
+    (void) p_rng;
+    psa_status_t status = psa_generate_random( output, output_size );
+    if( status == PSA_SUCCESS )
+        return( 0 );
+    else
+        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+}
+
+static inline void *mbedtls_psa_random_state( mbedtls_psa_random_context_t *rng )
+{
+    (void) rng;
+    return( NULL );
+}
+
+#else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+
 /* Currently, the only supported RNG is Mbed TLS's CTR_DRBG seeded with
  * mbedtls_entropy_func(). */
 
@@ -126,5 +154,7 @@ static inline int mbedtls_psa_drbg_seed(
                                    &rng->entropy,
                                    custom, len ) );
 }
+
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 #endif /* PSA_CRYPTO_RANDOM_H */

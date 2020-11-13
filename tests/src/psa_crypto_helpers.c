@@ -27,4 +27,20 @@
 
 #include <psa/crypto.h>
 
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+#include <test/random.h>
+
+psa_status_t mbedtls_psa_external_get_random(
+    mbedtls_psa_external_random_context_t *context,
+    uint8_t *output, size_t output_size, size_t *output_length )
+{
+    /* This implementation is for test purposes only!
+     * Use the libc non-cryptographic random generator. */
+    (void) context;
+    mbedtls_test_rnd_std_rand( NULL, output, output_size );
+    *output_length = output_size;
+    return( PSA_SUCCESS );
+}
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

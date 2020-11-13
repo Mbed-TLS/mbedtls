@@ -317,15 +317,10 @@ psa_status_t psa_decrement_key_slot_access_count( psa_key_slot_t *slot )
      * do our best to report if the access counter is equal to zero: if
      * available call MBEDTLS_PARAM_FAILED that may terminate execution (if
      * called as part of the execution of a unit test suite this will stop the
-     * test suite execution) and if MBEDTLS_PARAM_FAILED does not terminate
-     * execution ouput an error message on standard error output.
+     * test suite execution).
      */
 #ifdef MBEDTLS_CHECK_PARAMS
     MBEDTLS_PARAM_FAILED( slot->access_count > 0 );
-#endif
-#ifdef MBEDTLS_PLATFORM_C
-    mbedtls_fprintf( stderr,
-        "\nFATAL psa_decrement_key_slot_access_count Decrementing a zero access counter.\n" );
 #endif
 
     return( PSA_ERROR_CORRUPTION_DETECTED );

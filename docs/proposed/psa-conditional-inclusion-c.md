@@ -5,7 +5,7 @@ This document is a proposed interface for deciding at build time which cryptogra
 
 This is currently a proposal for Mbed TLS. It is not currently on track for standardization in PSA.
 
-Time-stamp: "2020/11/05 09:50:28 GMT"
+Time-stamp: "2020/11/13 21:45:08 GMT"
 
 ## Introduction
 
@@ -67,6 +67,14 @@ A PSA crypto configuration symbol is a C preprocessor symbol whose name starts w
 * If the symbol is not defined, the corresponding feature is not included.
 * If the symbol is defined to a preprocessor expression with the value `1`, the corresponding feature is included.
 * If the symbol is defined with a different value, the behavior is currently undefined and reserved for future use.
+
+#### Configuration symbol usage
+
+The presence of a symbol `PSA_WANT_xxx` in the Mbed TLS configuration determines whether a feature is available. These symbols should be used in any place that requires conditional compilation based on the availability of a cryptogrraphic mechanism, including:
+
+* In Mbed TLS test code.
+* In Mbed TLS library code using `MBEDTLS_USE_PSA_CRYPTO`, for example in TLS to determine which cipher suites to enable.
+* In application code that provides additional features based on crypto capabilities, for example additional key parsing and formatting functions, or cipher suite availability for network protocols.
 
 #### Configuration symbol semantics
 

@@ -649,6 +649,36 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
 
 /**@}*/
 
+/** \defgroup psa_external_rng External random generator
+ * @{
+ */
+
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+/** External random generator function, implemented by the platform.
+ *
+ * When the compile-time option #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled,
+ * this function replaces Mbed TLS's entropy and DRBG modules for all
+ * random generation triggered via PSA crypto interfaces.
+ *
+ * \param[in,out] context       Pointer to the random generator context.
+ *                              This is all-bits-zero on the first call
+ *                              and preserved between successive calls.
+ * \param[out] output           Output buffer. On success, this buffer
+ *                              contains random data with a uniform
+ *                              distribution.
+ * \param output_size           The size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, set this value to \p output_size.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ */
+psa_status_t mbedtls_psa_external_get_random(
+    mbedtls_psa_external_random_context_t *context,
+    uint8_t *output, size_t output_size, size_t *output_length );
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+
+/**@}*/
+
 #ifdef __cplusplus
 }
 #endif

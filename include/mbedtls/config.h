@@ -1342,9 +1342,10 @@
  * Make the PSA Crypto module use an external random generator provided
  * by a driver, instead of Mbed TLS's entropy and DRBG modules.
  *
- * If you enable this option, you must supply a type called
- * \c mbedtls_psa_external_random_context_t and a function called
- * mbedtls_psa_external_get_random() with the following prototype:
+ * If you enable this option, you must supply configure the type
+ * ::mbedtls_psa_external_random_context_t in psa/crypto_platform.h
+ * and define a function called mbedtls_psa_external_get_random()
+ * with the following prototype:
  * ```
  * psa_status_t mbedtls_psa_external_get_random(
  *     mbedtls_psa_external_random_context_t *context,

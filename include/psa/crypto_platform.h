@@ -81,4 +81,10 @@ static inline int mbedtls_key_owner_id_equal( mbedtls_key_owner_id_t id1,
 
 #endif /* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
 
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+typedef struct {
+    uint8_t opaque[32];
+} mbedtls_psa_external_random_context_t;
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+
 #endif /* PSA_CRYPTO_PLATFORM_H */

@@ -3635,6 +3635,20 @@
  */
 //#define MBEDTLS_PARAM_FAILED( cond )               assert( cond )
 
+/* PSA options */
+/** \def MBEDTLS_PSA_HMAC_DRBG_MD_TYPE
+ *
+ * Use HMAC_DRBG with the specified hash algorithm for HMAC_DRBG for the
+ * PSA crypto subsystem.
+ *
+ * If this option is unset:
+ * - If CTR_DRBG is available, the PSA subsystem uses it rather than HMAC_DRBG.
+ * - Otherwise, the PSA subsystem uses one HMAC_DRBG with of
+ *   #MBEDTLS_MD_SHA512 or #MBEDTLS_MD_SHA256 based on availability and
+ *   on unspecified heuristics.
+ */
+//#define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA256
+
 /* SSL Cache options */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_MAX_ENTRIES      50 /**< Maximum entries in cache */

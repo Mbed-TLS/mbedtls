@@ -51,6 +51,7 @@
 #define mbedtls_free   free
 #endif
 
+#include "mbedtls/aes.h"
 #include "mbedtls/arc4.h"
 #include "mbedtls/asn1.h"
 #include "mbedtls/asn1write.h"
@@ -62,6 +63,7 @@
 #include "mbedtls/cipher.h"
 #include "mbedtls/ccm.h"
 #include "mbedtls/cmac.h"
+#include "mbedtls/ctr_drbg.h"
 #include "mbedtls/des.h"
 #include "mbedtls/ecdh.h"
 #include "mbedtls/ecp.h"

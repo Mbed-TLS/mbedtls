@@ -194,6 +194,8 @@ The signature of a driver entry point generally looks like the signature of the 
 
 Some entry points are grouped in families that must be implemented as a whole. If a driver supports an entry point family, it must provide all the entry points in the family.
 
+Drivers can also have entry points related to random generation. For transparent drivers, these are [random generation entry points](#random-generation-entry-points). For opaque drivers, these are [entropy collection entry points](#entropy-collection-entry-point).
+
 #### General considerations on driver entry point parameters
 
 Buffer parameters for driver entry points obey the following conventions:
@@ -426,6 +428,90 @@ This entry point has several roles:
 3. [Determine the key size](#key-size-determination-on-import) and output it through `*bits`.
 4. Copy the validated key data from `data` to `key_buffer`. The output must be in the canonical format documented for [`psa_export_key()`](https://armmbed.github.io/mbed-crypto/html/api/keys/management.html#c.psa_export_key) or [`psa_export_public_key()`](https://armmbed.github.io/mbed-crypto/html/api/keys/management.html#c.psa_export_public_key), so if the input is not in this format, the entry point must convert it.
 
+### Random generation entry points
+
+A transparent driver may provide an operation family that allows it to generate random data. The random generation mechanism must obey the following requirements:
+
+* The random output must be of cryptographic quality, with a uniform distribution. Therefore, if the random generator includes an entropy source, this entropy source must be fed through a CSPRNG (cryptographically secure pseudo-random number generator).
+* Random generation is expected to be fast. (If a device can provide entropy but is slow at generating random data, declare it as an [entropy driver](#entropy-collection-entry-point) instead.)
+* The random generator must be able to incorporate entropy provided by an outside source.
+* The random generator may either be deterministic (in the sense that it always returns the same data when given the same entropy inputs) or non-deterministic (including its own entropy source). In other words, this interface is suitable both for PRNG (pseudo-random number generator, also known as DRBG (deterministic random bit generator)) and for NRBG (non-deterministic random bit generator).
+
+If no driver implements the random generation entry point family, the core provides an unspecified random generation mechanism.
+
+This operation family requires the following type, entry points and parameters (TODO: where exactly are the parameters in the JSON structure?):
+
+* Type `"random_context_t"`: the type of a random generation context.
+* `"init_random"` (optional): if this function is present, [the core calls it once](#random-generator-initialization) after allocating a `"random_context_t"` object.
+* `"add_entropy"` (entry point): the core calls this function to [inject entropy](#entropy-injection).
+* `"get_random"` (entry point): the core calls this function whenever it needs to [obtain random data](#the-get_random-entry-point).
+* `"initial_entropy_size"` (integer): the minimum number of bytes of entropy that the core must supply before the driver can output random data.
+* `"reseed_entropy_size"` (integer): the minimum number of bytes of entropy that the core must supply when the driver runs out of entropy.
+
+Random generation is not parametrized by an algorithm. The choice of algorithm is up to the driver.
+
+#### Random generator initialization
+
+The `"init_random"` entry point has the following prototype for a driver with the prefix `"acme"`:
+
+```
+psa_status_t acme_init_random(acme_random_context_t *context);
+```
+
+The core calls this entry point once after allocating a random generation context. Initially, the context object is all-bits-zero.
+
+If a driver does not have an `"init_random"` entry point, the context object passed to the first call to `"add_entropy"` will be all-bits-zero.
+
+#### Entropy injection
+
+The `"add_entropy"` entry point has the following prototype for a driver with the prefix `"acme"`:
+
+```
+psa_status_t acme_add_entropy(acme_random_context_t *context,
+                              const uint8_t *entropy,
+                              size_t entropy_size);
+```
+
+The semantics of the parameters is as follows:
+
+* `context`: a random generation context. On the first call to `"add_entropy"`, this object has been initialized by a call to the driver's `"init_random"` entry point if one is present, and to all-bits-zero otherwise.
+* `entropy`: a buffer containing high-entropy data to seed the random generator.
+* `entropy_size`: the size of the `entropy` buffer in bytes. It is guaranteed to be at least `1`, but it may be smaller than the amount of entropy that the driver needs to deliver random data, in which case the core will call the `"add_entropy"` entry point again to supply more entropy.
+
+The core calls this function to supply entropy to the driver. The driver must mix this entropy into its internal state. The driver must mix the whole supplied entropy, even if there is more than what the driver requires, to ensure that all entropy sources are mixed into the random generator state. The driver may mix additional entropy of its own.
+
+The core may call this function at any time. For example, to enforce prediction resistance, the core can call `"add_entropy"` immediately after each call to `"get_random"`. The core must call this function in two circumstances:
+
+* Before any call to the `"get_random"` entry point, to supply `"initial_entropy_size"` bytes of entropy.
+* After a call to the `"get_random"` entry point returns less than the required amount of random data, to supply `"reseed_entropy_size"` bytes of entropy.
+
+When the driver requires entropy, the core can supply it with one or more successive calls to the `"add_entropy"` entry point.
+
+#### The `"get_random"` entry point
+
+The `"get_random"` entry point has the following prototype for a driver with the prefix `"acme"`:
+
+```
+psa_status_t acme_get_random(acme_random_context_t *context,
+                             uint8_t *output,
+                             size_t output_size,
+                             size_t *output_length);
+```
+
+The semantics of the parameters is as follows:
+
+* `context`: a random generation context. The core must have called `"add_entropy"` at least once with a total of at least `"initial_entropy_size"` bytes of entropy before it calls `"get_random"`.
+* `output`: on success or partial success, the first `*output_length` bytes of this buffer contain cryptographic-quality random data.
+* `output_size`: the size of the `output` buffer in bytes.
+* `*output_length`: on exit, the number of bytes of random data that the driver has written to the `output` buffer. This is preferably `output_size`, but the driver is allowed to return less data if it runs out of entropy as described below. The core sets this value to 0 on entry.
+
+The driver may return the following status codes:
+
+* `PSA_SUCCESS`: the `output` buffer contains `*output_length` bytes of random data.
+* `PSA_ERROR_INSUFFICIENT_ENTROPY`: the core must supply additional entropy by calling the `"add_entropy"` entry point with at least `"reseed_entropy_size"` bytes. In this case, if `*output_length` is nonzero, the core will use the first `*output_length` bytes of the `output` buffer as random data, and will call `"get_random"` again for the remaining `output_size - *output_length` bytes after calling `"add_entropy"`.
+* `PSA_ERROR_NOT_SUPPORTED`: the random generator is not available. The core will not use the content of `output` or `output_length`. This is only permitted if the driver specification for random generation has the [fallback property](#fallback) enabled.
+* Other error codes such as `PSA_ERROR_COMMUNICATION_FAILURE` or `PSA_ERROR_HARDWARE_FAILURE` indicate a transient or permanent error. The core will not use the content of `output` or `output_length`.
+
 ### Fallback
 
 Sometimes cryptographic accelerators only support certain cryptographic mechanisms partially. The capability description language allows specifying some restrictions, including restrictions on key sizes, but it cannot cover all the possibilities that may arise in practice. Furthermore, it may be desirable to deploy the same binary image on different devices, only some of which have a cryptographic accelerators.
@@ -619,6 +705,45 @@ psa_status_t acme_export_public_key(const psa_key_attributes_t *attributes,
 The core will only call `acme_export_public_key` on a private key. Drivers implementers may choose to store the public key in the key context buffer or to recalculate it on demand. If the key context includes the public key, it needs to have an adequate size; see [“Key format for opaque drivers”](#key-format-for-opaque-drivers).
 
 The core guarantees that the size of the output buffer (`data_size`) is sufficient to export any key with the given attributes. The driver must set `*data_length` to the exact size of the exported key.
+
+### Entropy collection entry point
+
+An opaque driver can declare an entropy source by providing a `"get_entropy"` entry point. This entry point has the following prototypes for a driver with the prefix `"acme"`:
+
+```
+psa_status_t acme_get_entropy(uint32_t flags,
+                              size_t *estimate_bits,
+                              uint8_t *output,
+                              size_t output_size);
+```
+
+The semantics of the parameters is as follows:
+
+* `flags`: a bit-mask of [entropy collection flags](#entropy-collection-flags).
+* `estimate_bits`: on success, an estimate of the amount of entropy that is present in the `output` buffer, in bits. This must be at least `1` on success. The value is ignored on failure.
+* `output`: on success, this buffer contains non-deterministic data with an estimated entropy of at least `*estimate_bits` bits.
+* `output_size`: the size of the `output` buffer in bytes.
+
+The entry point may return the following statuses:
+
+* `PSA_SUCCESS`: success. The output buffer contains some entropy.
+* `PSA_ERROR_INSUFFICIENT_ENTROPY`: no entropy is available without blocking. This is only permitted if the `PSA_DRIVER_GET_ENTROPY_BLOCK` is clear.
+* Other error codes indicate a transient or permanent failure of the entropy source.
+
+#### Entropy collection flags
+
+* `PSA_DRIVER_GET_ENTROPY_BLOCK`: If this flag is set, the driver should block until it has at least one bit of entropy. If this flag is clear, the driver should avoid blocking if no entropy is readily available.
+* `PSA_DRIVER_GET_ENTROPY_KEEPALIVE`: If this flag is set, the driver should expect another call to `acme_get_entropy` after a short time. If this flag is clear, the core is not expecting to call the `"get_entropy"` entry point again within a short amount of time (but it may do so nonetheless).
+
+#### Entropy collection and blocking
+
+The intent of the `BLOCK` and `KEEPALIVE` [flags](#entropy-collection-flags) is to support drivers for TRNG (True Random Number Generator, i.e. an entropy source peripheral) that have a long ramp-up time, especially on platforms with multiple entropy sources.
+
+Here is a suggested call sequence for entropy collection that leverages these flags:
+
+1. The core makes a first round of calls to `"get_entropy"` on every source with the `BLOCK` flag clear and the `KEEPALIVE` flag set, so that drivers can prepare the TRNG peripheral.
+2. The core makes a second round of calls with the `BLOCK` flag set and the `KEEPALIVE` flag clear to gather needed entropy.
+3. If the second round does not collect enough entropy, the core makes more similar rounds, until the total amount of collected entropy is sufficient.
 
 ### Opaque driver persistent state
 

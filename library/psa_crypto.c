@@ -2030,6 +2030,10 @@ static psa_status_t psa_start_key_creation(
  * See the documentation of psa_start_key_creation() for the intended use
  * of this function.
  *
+ * If the finalization succeeds, the function decreases the slot access
+ * counter (that was incremented as part of psa_start_key_creation()) and the
+ * slot cannot be accessed anymore as part of the key creation process.
+ *
  * \param[in,out] slot  Pointer to the slot with key material.
  * \param[in] driver    The secure element driver for the key,
  *                      or NULL for a transparent key.
@@ -2093,10 +2097,11 @@ static psa_status_t psa_finish_key_creation(
             return( status );
         }
         status = psa_crypto_stop_transaction( );
-        if( status != PSA_SUCCESS )
-            return( status );
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
+    if( status == PSA_SUCCESS )
+        status = psa_decrement_key_slot_access_count( slot );
 
     return( status );
 }
@@ -2278,8 +2283,6 @@ exit:
         psa_fail_key_creation( slot, driver );
         *key = MBEDTLS_SVC_KEY_ID_INIT;
     }
-    else
-        status = psa_decrement_key_slot_access_count( slot );
 
     return( status );
 }
@@ -2312,8 +2315,6 @@ psa_status_t mbedtls_psa_register_se_key(
 exit:
     if( status != PSA_SUCCESS )
         psa_fail_key_creation( slot, driver );
-    else
-        status = psa_decrement_key_slot_access_count( slot );
 
     /* Registration doesn't keep the key in RAM. */
     psa_close_key( key );
@@ -2388,8 +2389,6 @@ exit:
         psa_fail_key_creation( target_slot, driver );
         *target_key = MBEDTLS_SVC_KEY_ID_INIT;
     }
-    else
-        status = psa_decrement_key_slot_access_count( target_slot );
 
     decrement_status = psa_decrement_key_slot_access_count( source_slot );
 
@@ -5547,8 +5546,6 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
         psa_fail_key_creation( slot, driver );
         *key = MBEDTLS_SVC_KEY_ID_INIT;
     }
-    else
-        status = psa_decrement_key_slot_access_count( slot );
 
     return( status );
 }
@@ -6405,8 +6402,6 @@ exit:
         psa_fail_key_creation( slot, driver );
         *key = MBEDTLS_SVC_KEY_ID_INIT;
     }
-    else
-        status = psa_decrement_key_slot_access_count( slot );
 
     return( status );
 }

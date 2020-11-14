@@ -38,8 +38,7 @@ typedef struct
     psa_core_key_attributes_t attr;
 
     /*
-     * Number of on-going accesses, read and/or write, to the key slot by the
-     * library.
+     * Number of locks, read and/or write, to the key slot by the library.
      *
      * This counter is incremented by one each time a library function
      * retrieves through one of the dedicated internal API a pointer to the
@@ -47,7 +46,7 @@ typedef struct
      *
      * This counter is decremented by one each time a library function stops
      * accessing to the key slot and states it by calling the
-     * psa_decrement_key_slot_access_count() API.
+     * psa_unlock_key_slot() API.
      *
      * This counter is used to prevent resetting the key slot while the library
      * may access it. For example, such control is needed in the following
@@ -61,7 +60,7 @@ typedef struct
      *   or purge or destroy a key while it is in used by the library through
      *   another thread.
      */
-    size_t access_count;
+    size_t lock_count;
 
     union
     {
@@ -101,18 +100,17 @@ static inline int psa_is_key_slot_occupied( const psa_key_slot_t *slot )
     return( slot->attr.type != 0 );
 }
 
-/** Test whether a key slot is accessed.
+/** Test whether a key slot is locked.
  *
- * A key slot is accessed iff its access counter is strickly greater than
- * 0.
+ * A key slot is locked iff its lock counter is strickly greater than 0.
  *
  * \param[in] slot  The key slot to test.
  *
- * \return 1 if the slot is accessed, 0 otherwise.
+ * \return 1 if the slot is locked, 0 otherwise.
  */
-static inline int psa_is_key_slot_accessed( const psa_key_slot_t *slot )
+static inline int psa_is_key_slot_locked( const psa_key_slot_t *slot )
 {
-    return( slot->access_count > 0 );
+    return( slot->lock_count > 0 );
 }
 
 /** Retrieve flags from psa_key_slot_t::attr::core::flags.

@@ -61,19 +61,17 @@ static inline int psa_key_id_is_volatile( psa_key_id_t key_id )
             ( key_id <= PSA_KEY_ID_VOLATILE_MAX ) );
 }
 
-/** Retrieve the description of a key given its identifier.
+/** Get the description of a key given its identifier and lock it.
  *
- *  The descriptions of volatile keys and loaded persistent keys are
- *  stored in key slots. This function returns a pointer to the key slot
- *  containing the description of a key given its identifier.
+ * The descriptions of volatile keys and loaded persistent keys are stored in
+ * key slots. This function returns a pointer to the key slot containing the
+ * description of a key given its identifier.
  *
- *  In case of a persistent key, the function loads the description of the key
- *  into a key slot if not already done.
+ * In case of a persistent key, the function loads the description of the key
+ * into a key slot if not already done.
  *
- *  On success, the access counter of the returned key slot is incremented by
- *  one. It is the responsibility of the caller to call
- *  psa_decrement_key_slot_access_count() when it does not access the slot
- *  anymore.
+ * On success, the returned key slot is locked. It is the responsibility of
+ * the caller to unlock the key slot when it does not access it anymore.
  *
  * \param key           Key identifier to query.
  * \param[out] p_slot   On success, `*p_slot` contains a pointer to the
@@ -98,8 +96,8 @@ static inline int psa_key_id_is_volatile( psa_key_id_t key_id )
  * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_DATA_CORRUPT
  */
-psa_status_t psa_get_key_slot( mbedtls_svc_key_id_t key,
-                               psa_key_slot_t **p_slot );
+psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
+                                        psa_key_slot_t **p_slot );
 
 /** Initialize the key slot structures.
  *
@@ -116,10 +114,9 @@ void psa_wipe_all_key_slots( void );
 /** Find a free key slot.
  *
  * This function returns a key slot that is available for use and is in its
- * ground state (all-bits-zero). On success, the access counter of the
- * returned key slot is incremented by one. It is the responsibility of the
- * caller to call psa_decrement_key_slot_access_count() when it does not access
- * the key slot anymore.
+ * ground state (all-bits-zero). On success, the key slot is locked. It is
+ * the responsibility of the caller to unlock the key slot when it does not
+ * access it anymore.
  *
  * \param[out] volatile_key_id   On success, volatile key identifier
  *                               associated to the returned slot.
@@ -132,31 +129,31 @@ void psa_wipe_all_key_slots( void );
 psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
                                      psa_key_slot_t **p_slot );
 
-/** Increment slot access counter.
+/** Lock a key slot.
  *
- * This function increments the slot access counter by one.
+ * This function increments the key slot lock counter by one.
  *
  * \param[in] slot  The key slot.
  *
  * \retval #PSA_SUCCESS
-               The access count was incremented.
+               The key slot lock counter was incremented.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- *             The access count already reached its maximum value and was not
+ *             The lock counter already reached its maximum value and was not
  *             increased.
  */
-static inline psa_status_t psa_increment_key_slot_access_count( psa_key_slot_t *slot )
+static inline psa_status_t psa_lock_key_slot( psa_key_slot_t *slot )
 {
-    if( slot->access_count >= SIZE_MAX )
+    if( slot->lock_count >= SIZE_MAX )
         return( PSA_ERROR_CORRUPTION_DETECTED );
 
-    slot->access_count++;
+    slot->lock_count++;
 
     return( PSA_SUCCESS );
 }
 
-/** Decrement slot access counter.
+/** Unlock a key slot.
  *
- * This function decrements the slot access counter by one.
+ * This function decrements the key slot lock counter by one.
  *
  * \note To ease the handling of errors in retrieving a key slot
  *       a NULL input pointer is valid, and the function returns
@@ -164,13 +161,13 @@ static inline psa_status_t psa_increment_key_slot_access_count( psa_key_slot_t *
  *
  * \param[in] slot  The key slot.
  * \retval #PSA_SUCCESS
- *             \p slot is NULL or the key slot access pointer has been
+ *             \p slot is NULL or the key slot lock counter has been
  *             decremented successfully.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- *             The access counter was equal to 0.
+ *             The lock counter was equal to 0.
  *
  */
-psa_status_t psa_decrement_key_slot_access_count( psa_key_slot_t *slot );
+psa_status_t psa_unlock_key_slot( psa_key_slot_t *slot );
 
 /** Test whether a lifetime designates a key in an external cryptoprocessor.
  *

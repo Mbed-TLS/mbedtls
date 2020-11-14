@@ -41,9 +41,9 @@ static int test_helper_is_psa_pristine( int line, const char *file )
         msg = "An external slot has not been closed properly.";
     else if( stats.half_filled_slots != 0 )
         msg = "A half-filled slot has not been cleared properly.";
-    else if( stats.unaccessed_slots != PSA_KEY_SLOT_COUNT )
+    else if( stats.unlocked_slots != PSA_KEY_SLOT_COUNT )
     {
-        msg = "Some slots are still marked as accessed.";
+        msg = "Some slots are still marked as locked.";
     }
 
     /* If the test has already failed, don't overwrite the failure

@@ -915,15 +915,16 @@ void key_slot_eviction_to_import_new_key( int lifetime_arg )
     i = PSA_KEY_SLOT_COUNT;
     key = mbedtls_svc_key_id_make( i, i + 1 );
     psa_set_key_id( &attributes, key );
-
-    if( lifetime == PSA_KEY_LIFETIME_VOLATILE )
-        psa_set_key_lifetime( &attributes, PSA_KEY_LIFETIME_VOLATILE );
+    psa_set_key_lifetime( &attributes, lifetime );
 
     PSA_ASSERT( psa_import_key( &attributes,
                                 (uint8_t *) &i, sizeof( i ),
                                 &returned_key_id ) );
     if( lifetime != PSA_KEY_LIFETIME_VOLATILE )
         TEST_ASSERT( mbedtls_svc_key_id_equal( returned_key_id, key ) );
+    else
+        TEST_ASSERT( psa_key_id_is_volatile(
+                     MBEDTLS_SVC_KEY_ID_GET_KEY_ID( returned_key_id ) ) );
 
     /*
      * Check that we can export all ( PSA_KEY_SLOT_COUNT + 1 ) keys,

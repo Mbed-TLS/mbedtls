@@ -3636,8 +3636,7 @@
 //#define MBEDTLS_PARAM_FAILED( cond )               assert( cond )
 
 /* PSA options */
-/** \def MBEDTLS_PSA_HMAC_DRBG_MD_TYPE
- *
+/**
  * Use HMAC_DRBG with the specified hash algorithm for HMAC_DRBG for the
  * PSA crypto subsystem.
  *

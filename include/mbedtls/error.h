@@ -95,6 +95,7 @@
  * ECP       4   10 (Started from top)
  * MD        5   5
  * HKDF      5   1 (Started from top)
+ * PKCS7     5   12 (Started from 0x5300)
  * SSL       5   2 (Started from 0x5F00)
  * CIPHER    6   8 (Started from 0x6080)
  * SSL       6   22 (Started from top, plus 0x6000)

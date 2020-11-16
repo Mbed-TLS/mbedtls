@@ -227,6 +227,21 @@ psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime,
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
+/** Look up a key identifier as a built-in key.
+ *
+ * \param svc_key_id    The key identifier to look up.
+ * \param[out] slot     On success, a key slot filled with the key metadata
+ *                      and data, including the key identifier.
+ *
+ * \retval #PSA_SUCCESS
+ *         \p slot contains the data of the requested built-in key.
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
+ *         There is no built-in key with this key identifier. This includes
+ *         the case where the key identifier is not in the permitted range
+ *         for built-in keys.
+ * \retval (any other error)
+ *         There was an error accessing the requested key.
+ */
 static psa_status_t get_builtin_key( mbedtls_svc_key_id_t svc_key_id,
                                      psa_key_slot_t *slot )
 {
@@ -239,6 +254,11 @@ static psa_status_t get_builtin_key( mbedtls_svc_key_id_t svc_key_id,
 
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_set_key_id( &attributes, svc_key_id );
+    /* This key object is volatile: it is not referenced in any persistent
+     * storage and will be destroyed on a reset, even though the key material
+     * can be obtained again by instantiating the built-in key again.
+     * Declare it as being in located locally; the platform hook may
+     * change the location to a secure element. */
     psa_set_key_lifetime( &attributes, PSA_KEY_LIFETIME_VOLATILE );
     psa_status_t status =
         mbedtls_psa_platform_get_builtin_key( &attributes,
@@ -272,6 +292,10 @@ psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
         return( status );
 
 #if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
+    /* Give built-in keys priority over keys in storage, because built-in
+     * keys are part of the same root of trust as the key management code,
+     * whereas keys in storage involve a larger root of trust. This way
+     * a breach of storage integrity cannot override built-in keys. */
     status = get_builtin_key( key, slot );
     if( status != PSA_ERROR_DOES_NOT_EXIST )
         goto exit;

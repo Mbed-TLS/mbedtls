@@ -553,16 +553,16 @@ psa_status_t acme_get_random(acme_random_context_t *context,
 The semantics of the parameters is as follows:
 
 * `context`: a random generation context. If the driver's `"initial_entropy_size"` property is nonzero, the core must have called `"add_entropy"` at least once with a total of at least `"initial_entropy_size"` bytes of entropy before it calls `"get_random"`. Alternatively, if the driver's `"initial_entropy_size"` property is zero and the core did not call `"add_entropy"`, or if the driver has no `"add_entropy"` entry point, the core must have called `"init_random"` if present, and otherwise the context is all-bits zero.
-* `output`: on success or partial success, the first `*output_length` bytes of this buffer contain cryptographic-quality random data.
+* `output`: on success (including partial success), the first `*output_length` bytes of this buffer contain cryptographic-quality random data. The output is not used on error.
 * `output_size`: the size of the `output` buffer in bytes.
-* `*output_length`: on exit, the number of bytes of random data that the driver has written to the `output` buffer. This is preferably `output_size`, but the driver is allowed to return less data if it runs out of entropy as described below. The core sets this value to 0 on entry.
+* `*output_length`: on success (including partial success), the number of bytes of random data that the driver has written to the `output` buffer. This is preferably `output_size`, but the driver is allowed to return less data if it runs out of entropy as described below. The core sets this value to 0 on entry. The value is not used on error.
 
 The driver may return the following status codes:
 
-* `PSA_SUCCESS`: the `output` buffer contains `*output_length` bytes of random data.
-* `PSA_ERROR_INSUFFICIENT_ENTROPY`: the core must supply additional entropy by calling the `"add_entropy"` entry point with at least `"reseed_entropy_size"` bytes. In this case, if `*output_length` is nonzero, the core will use the first `*output_length` bytes of the `output` buffer as random data, and will call `"get_random"` again for the remaining `output_size - *output_length` bytes after calling `"add_entropy"`.
-* `PSA_ERROR_NOT_SUPPORTED`: the random generator is not available. The core will not use the content of `output` or `output_length`. This is only permitted if the driver specification for random generation has the [fallback property](#fallback) enabled.
-* Other error codes such as `PSA_ERROR_COMMUNICATION_FAILURE` or `PSA_ERROR_HARDWARE_FAILURE` indicate a transient or permanent error. The core will not use the content of `output` or `output_length`.
+* `PSA_SUCCESS`: the `output` buffer contains `*output_length` bytes of cryptographic-quality random data. Note that this may be less than `output_size`; in this case the core should call the driver's `"add_entropy"` method to supply `"reseed_entropy_size"` bytes of entropy before calling `"get_random"` again.
+* `PSA_ERROR_INSUFFICIENT_ENTROPY`: the core must supply additional entropy by calling the `"add_entropy"` entry point with at least `"reseed_entropy_size"` bytes.
+* `PSA_ERROR_NOT_SUPPORTED`: the random generator is not available. This is only permitted if the driver specification for random generation has the [fallback property](#fallback) enabled.
+* Other error codes such as `PSA_ERROR_COMMUNICATION_FAILURE` or `PSA_ERROR_HARDWARE_FAILURE` indicate a transient or permanent error.
 
 ### Fallback
 

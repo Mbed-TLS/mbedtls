@@ -925,6 +925,10 @@ Should the input to the [`"add_entropy"` entry point](#entropy-injection) be a f
 * Choice: drivers must implement entropy mixing. `"add_entropy"` needs an extra parameter to indicate the amount of entropy in the data. The core may do conditioning if it wants, but doesn't have to.
 * Full entropy: drivers don't need to do entropy mixing.
 
+#### Flags for `"get_entropy"`
+
+Are the [entropy collection flags](#entropy-collection-flags) well-chosen?
+
 <!--
 Local Variables:
 time-stamp-line-limit: 40

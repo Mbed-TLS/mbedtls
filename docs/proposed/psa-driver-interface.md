@@ -915,6 +915,16 @@ An example use case for updating the persistent state at arbitrary times is to r
 
 `psa_crypto_driver_get_persistent_state` does not identify the calling driver, so the driver needs to remember which driver it's calling. This may require a thread-local variable in a multithreaded core. Is this ok?
 
+### Randomness
+
+#### Input to `"add_entropy"`
+
+Should the input to the [`"add_entropy"` entry point](#entropy-injection) be a full-entropy buffer (with data from all entropy sources already mixed), raw entropy direct from the entropy sources, or give the core a choice?
+
+* Raw data: drivers must implement entropy mixing. `"add_entropy"` needs an extra parameter to indicate the amount of entropy in the data. The core must not do any conditioning.
+* Choice: drivers must implement entropy mixing. `"add_entropy"` needs an extra parameter to indicate the amount of entropy in the data. The core may do conditioning if it wants, but doesn't have to.
+* Full entropy: drivers don't need to do entropy mixing.
+
 <!--
 Local Variables:
 time-stamp-line-limit: 40

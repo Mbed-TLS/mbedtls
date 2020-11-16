@@ -5,7 +5,7 @@ This document is a proposed interface for deciding at build time which cryptogra
 
 This is currently a proposal for Mbed TLS. It is not currently on track for standardization in PSA.
 
-Time-stamp: "2020/11/16 09:25:51 GMT"
+Time-stamp: "2020/11/16 11:00:23 GMT"
 
 ## Introduction
 
@@ -70,11 +70,11 @@ A PSA Crypto configuration symbol is a C preprocessor symbol whose name starts w
 
 #### Configuration symbol usage
 
-The presence of a symbol `PSA_WANT_xxx` in the Mbed TLS configuration determines whether a feature is available. These symbols should be used in any place that requires conditional compilation based on the availability of a cryptographic mechanism, including:
+The presence of a symbol `PSA_WANT_xxx` in the Mbed TLS configuration determines whether a feature is available through the PSA API. These symbols should be used in any place that requires conditional compilation based on the availability of a cryptographic mechanism, including:
 
 * In Mbed TLS test code.
 * In Mbed TLS library code using `MBEDTLS_USE_PSA_CRYPTO`, for example in TLS to determine which cipher suites to enable.
-* In application code that provides additional features based on crypto capabilities, for example additional key parsing and formatting functions, or cipher suite availability for network protocols.
+* In application code that provides additional features based on cryptographic capabilities, for example additional key parsing and formatting functions, or cipher suite availability for network protocols.
 
 #### Configuration symbol semantics
 
@@ -119,7 +119,7 @@ These symbols are not part of the public interface of Mbed TLS towards applicati
 
 When `MBEDTLS_PSA_CRYPTO_CONFIG` is set, the header file `mbedtls/config.h` needs to define all the `MBEDTLS_xxx_C` configuration symbols, including the ones deduced from the PSA Crypto configuration. It does this by including the new header file **`mbedtls/config_psa.h`**, which defines the `MBEDTLS_PSA_BUILTIN_xxx` symbols and deduces the corresponding `MBEDTLS_xxx_C` (and other) symbols.
 
-When `MBEDTLS_PSA_CRYPTO_CONFIG` is not set, the configuration of Mbed TLS works as before, and the inclusion of non-PSA code only depends on `MBEDTLS_xxx` symbols defined (or not) in `mbedtls/config.h`. In this case, `mbedtls/config_psa.h` is only needed to build the PSA parts of the library and code that uses these parts. Note that `psa/crypto_struct.h` and `psa/crypto_sizes.h` include definitions that depend on the configuration, so `mbedtls/config_psa.h` needs to be included in or before these headers (it isn't enough to include it only from files in `library`).
+When `MBEDTLS_PSA_CRYPTO_CONFIG` is not set, the configuration of Mbed TLS works as before, and the inclusion of non-PSA code only depends on `MBEDTLS_xxx` symbols defined (or not) in `mbedtls/config.h`. In this case, `mbedtls/config_psa.h` deduces PSA configuration symbols (`PSA_WANT_xxx`, `MBEDTLS_PSA_BUILTIN_xxx`) from classic configuration symbols (`MBEDTLS_xxx`). The definitions in `mbedtls/config_psa.h` are only needed to build the PSA parts of the library and code that uses these parts. Note that `psa/crypto_struct.h` and `psa/crypto_sizes.h` include definitions that depend on the configuration, so `mbedtls/config_psa.h` needs to be included in or before these headers (it isn't enough to include it only from files in `library`).
 
 `mbedtls/config_psa.h` includes two header files:
 

@@ -100,6 +100,7 @@
  * SSL       6   22 (Started from top, plus 0x6000)
  * SSL       7   20 (Started from 0x7000, gaps at
  *                   0x7380, 0x7900-0x7980, 0x7A80-0x7E80)
+ * PKCS7     5   12 (Started from 0x5300)
  *
  * Module dependent error code (5 bits 0x.00.-0x.F8.)
  */

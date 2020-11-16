@@ -656,8 +656,8 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
  * implementation.
  *
  * The range of key identifiers from #MBEDTLS_PSA_KEY_ID_BUILTIN_MIN
- * to #MBEDTLS_PSA_KEY_ID_BUILTIN_MAX within the range from
- * #PSA_KEY_ID_VENDOR_MIN and #PSA_KEY_ID_VENDOR_MAX and must not intersect
+ * to #MBEDTLS_PSA_KEY_ID_BUILTIN_MAX must be a subset of the range from
+ * #PSA_KEY_ID_VENDOR_MIN and #PSA_KEY_ID_VENDOR_MAX, and must not intersect
  * with any other set of implementation-chosen key identifiers.
  *
  * This value is part of the library's ABI since changing it would invalidate
@@ -684,14 +684,15 @@ typedef uint64_t psa_drv_slot_number_t;
  * enabled. This function is typically provided as part of a platform's
  * system image.
  *
- * Call psa_get_key_id(\p attributes) to obtain the key identifier
- * \c key_id.
+ * In the implementation of this function, to identify which key is requested,
+ * call psa_get_key_id(\p attributes) to obtain the key identifier
+ * \c key_id. Mbed TLS guarantees that
  * #MBEDTLS_SVC_KEY_ID_GET_KEY_ID(\p key_id) is in the range from
  * #MBEDTLS_PSA_KEY_ID_BUILTIN_MIN to #MBEDTLS_PSA_KEY_ID_BUILTIN_MAX.
  *
  * In a multi-application configuration
  * (\c MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER is defined),
- * this function should check that #MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(\p key_id)
+ * this function must check that #MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(\p key_id)
  * is allowed to use the given key.
  *
  * \param[in,out] attributes    On entry, this is #PSA_KEY_ATTRIBUTES_INIT or
@@ -702,7 +703,8 @@ typedef uint64_t psa_drv_slot_number_t;
  *                              bit-size, usage policy.
  * \param[out] p_key_buffer     On successful return, this function must
  *                              place a pointer to a buffer allocated with
- *                              mbedtls_calloc().
+ *                              mbedtls_calloc() in \c *p_key_buffer, and
+ *                              fill this buffer with the key data.
  * \param[out] key_buffer_size  On successful return, this function must
  *                              place the size of the buffer \c *p_key_buffer
  *                              in bytes.

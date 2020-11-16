@@ -391,7 +391,9 @@ The semantics of the parameters is as follows:
 * `flags`: a bit-mask of [entropy collection flags](#entropy-collection-flags).
 * `estimate_bits`: on success, an estimate of the amount of entropy that is present in the `output` buffer, in bits. This must be at least `1` on success. The value is ignored on failure.
 * `output`: on success, this buffer contains non-deterministic data with an estimated entropy of at least `*estimate_bits` bits.
-* `output_size`: the size of the `output` buffer in bytes.
+* `output_size`: the size of the `output` buffer in bytes. This size should be large enough to allow a driver to pass unconditioned data with a low density of entropy; for example a peripheral that returns eight bytes of data with an estimated one bit of entropy cannot provide meaningful output in less than 8 bytes.
+
+Note that there is no output parameter indicating how many bytes the driver wrote to the buffer. Such an output length indication is not necessary because the entropy may be located anywhere in the buffer, so the driver may write less than `output_size` bytes but the core does not need to know this. The output parameter `estimate_bits` contains the amount of entropy, expressed in bits, which may be significantly less than `output_size * 8`.
 
 The entry point may return the following statuses:
 

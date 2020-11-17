@@ -131,7 +131,7 @@ static void mbedtls_generate_permutation( unsigned char* table, size_t  size )
     for( i = size - 1; i > 0; i-- )
     {
         unsigned char tmp;
-        j = mbedtls_platform_random_uint32() % ( i + 1 );
+        j = mbedtls_platform_random_in_range( (uint32_t) i + 1 );
         tmp = table[i];
         table[i] = table[j];
         table[j] = tmp;
@@ -144,7 +144,7 @@ static void mbedtls_generate_masks( unsigned char* table, size_t  size )
 
     for( i = 0; i < size; i++ )
     {
-        table[i] = mbedtls_platform_random_uint32() % ( 256 );
+        table[i] = mbedtls_platform_random_in_range( 256 );
     }
 }
 
@@ -174,7 +174,7 @@ static void mbedtls_generate_masks( unsigned char* table, size_t  size )
 #define COPY_MASK( dst, src, mask, len_src, len_dst )                   \
     do                                                                  \
     {                                                                   \
-        unsigned j, offset = mbedtls_platform_random_uint32() % 256;    \
+        unsigned j, offset = mbedtls_platform_random_in_range( 256 );   \
         for( i = 0; i < len_src; i++ )                                  \
         {                                                               \
             j = (i + offset) % len_src;                                 \

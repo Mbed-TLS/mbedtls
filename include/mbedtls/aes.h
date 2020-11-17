@@ -83,6 +83,10 @@ extern "C" {
 /**
  * \brief The AES context-type definition.
  */
+
+//#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+#define AES_128_EXPANDED_KEY_SIZE_IN_WORDS 44
+//#endif
 typedef struct mbedtls_aes_context
 {
     int nr;                     /*!< The number of rounds. */
@@ -94,7 +98,7 @@ typedef struct mbedtls_aes_context
     uint32_t hash;               /*!< hash of the set key */
 #endif
 #if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH) && !defined(MBEDTLS_PADLOCK_C)
-    uint32_t buf[44];           /*!< Unaligned data buffer */
+    uint32_t buf[AES_128_EXPANDED_KEY_SIZE_IN_WORDS];           /*!< Unaligned data buffer for expanded key only */
 #else /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
     uint32_t buf[68];           /*!< Unaligned data buffer. This buffer can
                                      hold 32 extra Bytes, which can be used for

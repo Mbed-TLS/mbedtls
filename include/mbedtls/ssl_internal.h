@@ -437,7 +437,12 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_DHM_C)
     mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
 #endif
-#if defined(MBEDTLS_ECDH_C) || defined(PSA_WANT_ALG_ECDH)
+/* Adding guard for MBEDTLS_ECDSA_C to ensure no compile errors due
+ * to guards also being in ssl_srv.c and ssl_cli.c. There is a gap
+ * in functionality that access to ecdh_ctx structure is needed for
+ * MBEDTLS_ECDSA_C which does not seem correct.
+ */
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -447,7 +452,7 @@ struct mbedtls_ssl_handshake_params
     unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t ecdh_psa_peerkey_len;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-#endif /* MBEDTLS_ECDH_C || PSA_WANT_ALG_ECDH */
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     mbedtls_ecjpake_context ecjpake_ctx;        /*!< EC J-PAKE key exchange */

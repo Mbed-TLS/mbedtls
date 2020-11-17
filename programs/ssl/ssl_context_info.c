@@ -26,10 +26,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_ERROR_C)
+#if !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_ERROR_C) || \
+    !defined(MBEDTLS_SSL_TLS_C)
 int main( void )
 {
-    printf("MBEDTLS_X509_CRT_PARSE_C and/or MBEDTLS_ERROR_C not defined.\n");
+    printf("MBEDTLS_X509_CRT_PARSE_C and/or MBEDTLS_ERROR_C and/or "
+           "MBEDTLS_SSL_TLS_C not defined.\n");
     return( 0 );
 }
 #else

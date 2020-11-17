@@ -1895,6 +1895,20 @@ component_test_no_64bit_multiplication () {
     make test
 }
 
+component_test_no_strings () {
+    msg "build: no strings" # ~10s
+    scripts/config.py full
+    # Disable options that activate a large amount of string constants.
+    scripts/config.py unset MBEDTLS_DEBUG_C
+    scripts/config.py unset MBEDTLS_ERROR_C
+    scripts/config.py set MBEDTLS_ERROR_STRERROR_DUMMY
+    scripts/config.py unset MBEDTLS_VERSION_FEATURES
+    make CFLAGS='-Werror -Os'
+
+    msg "test: no strings" # ~ 10s
+    make test
+}
+
 component_build_arm_none_eabi_gcc () {
     msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -O1" # ~ 10s
     scripts/config.py baremetal

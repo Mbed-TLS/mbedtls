@@ -929,6 +929,12 @@ Should the input to the [`"add_entropy"` entry point](#entropy-injection) be a f
 
 Are the [entropy collection flags](#entropy-collection-flags) well-chosen?
 
+#### Random generator instantiations
+
+May the core instantiate a random generation context more than once? In other words, can there be multiple objects of type `acme_random_context_t`?
+
+Functionally, one RNG is as good as any. If the core wants some parts of the system to use a deterministic generator for reproducibility, it can't use this interface anyway, since the RNG is not necessarily deterministic. However, for performance on multiprocessor systems, a multithreaded core could prefer to use one RNG instance per thread.
+
 <!--
 Local Variables:
 time-stamp-line-limit: 40

@@ -36,16 +36,6 @@
  * @{
  */
 
-/** \brief Key handle.
- *
- * This type represents open handles to keys. It must be an unsigned integral
- * type. The choice of type is implementation-dependent.
- *
- * 0 is not a valid key handle. How other handle values are assigned is
- * implementation-dependent.
- */
-typedef _unsigned_integral_type_ psa_key_handle_t;
-
 /**@}*/
 #endif /* __DOXYGEN_ONLY__ */
 

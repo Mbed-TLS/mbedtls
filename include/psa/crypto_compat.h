@@ -35,7 +35,7 @@ extern "C" {
 #endif
 
 /*
- * To support temporary both openless APIs and psa_open_key(), define
+ * To support both openless APIs and psa_open_key() temporarily, define
  * psa_key_handle_t to be equal to mbedtls_svc_key_id_t. Do not mark the
  * type and its utility macros and functions deprecated yet. This will be done
  * in a subsequent phase.

@@ -38,14 +38,14 @@ typedef struct
     psa_core_key_attributes_t attr;
 
     /*
-     * Number of locks, read and/or write, to the key slot by the library.
+     * Number of locks on the key slot held by the library.
      *
      * This counter is incremented by one each time a library function
      * retrieves through one of the dedicated internal API a pointer to the
      * key slot.
      *
      * This counter is decremented by one each time a library function stops
-     * accessing to the key slot and states it by calling the
+     * accessing the key slot and states it by calling the
      * psa_unlock_key_slot() API.
      *
      * This counter is used to prevent resetting the key slot while the library
@@ -102,7 +102,7 @@ static inline int psa_is_key_slot_occupied( const psa_key_slot_t *slot )
 
 /** Test whether a key slot is locked.
  *
- * A key slot is locked iff its lock counter is strickly greater than 0.
+ * A key slot is locked iff its lock counter is strictly greater than 0.
  *
  * \param[in] slot  The key slot to test.
  *

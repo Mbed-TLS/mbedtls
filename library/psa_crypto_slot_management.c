@@ -110,6 +110,15 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
     if( psa_key_id_is_volatile( key_id ) )
     {
         slot = &global_data.key_slots[ key_id - PSA_KEY_ID_VOLATILE_MIN ];
+
+        /*
+         * Check if both the PSA key identifier key_id and the owner
+         * identifier of key match those of the key slot.
+         *
+         * Note that, if the key slot is not occupied, its PSA key identifier
+         * is equal to zero. This is an invalid value for a PSA key identifier
+         * and thus cannot be equal to the valid PSA key identifier key_id.
+         */
         status = mbedtls_svc_key_id_equal( key, slot->attr.id ) ?
                  PSA_SUCCESS : PSA_ERROR_DOES_NOT_EXIST;
     }
@@ -192,9 +201,9 @@ psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
 
     /*
      * If there is no unused key slot and there is at least one unlocked key
-     * slot containing the description of a permament key, recycle the first
-     * such key slot we encountered. If we need later on to operate on the
-     * persistent key we evict now, we will reload its description from
+     * slot containing the description of a persistent key, recycle the first
+     * such key slot we encountered. If we later need to operate on the
+     * persistent key we are evicting now, we will reload its description from
      * storage.
      */
     if( ( selected_slot == NULL ) &&

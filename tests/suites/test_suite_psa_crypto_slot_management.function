@@ -908,7 +908,7 @@ void key_slot_eviction_to_import_new_key( int lifetime_arg )
 
     /*
      * Create a new persistent or volatile key. When creating the key,
-     * one of the description of the previously created persistent key
+     * one of the descriptions of the previously created persistent keys
      * is removed from the RAM key slots. This makes room to store its
      * description in RAM.
      */

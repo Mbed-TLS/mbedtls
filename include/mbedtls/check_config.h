@@ -606,7 +606,7 @@
 #endif
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY) &&              \
-    !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+    defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 #error "MBEDTLS_PSA_INJECT_ENTROPY is not compatible with MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG"
 #endif
 

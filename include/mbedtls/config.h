@@ -1342,6 +1342,14 @@
  * Make the PSA Crypto module use an external random generator provided
  * by a driver, instead of Mbed TLS's entropy and DRBG modules.
  *
+ * \note This random generator must deliver random numbers with cryptographic
+ *       quality and high performance. It must supply unpredictable numbers
+ *       with a uniform distribution. The implementation of this function
+ *       is responsible for ensuring that the random generator is seeded
+ *       with sufficient entropy. If you have a hardware TRNG which is slow
+ *       or delivers non-uniform output, declare it as an entropy source
+ *       with mbedtls_entropy_add_source() instead of enabling this option.
+ *
  * If you enable this option, you must supply configure the type
  * ::mbedtls_psa_external_random_context_t in psa/crypto_platform.h
  * and define a function called mbedtls_psa_external_get_random()

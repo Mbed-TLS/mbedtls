@@ -660,6 +660,14 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
  * this function replaces Mbed TLS's entropy and DRBG modules for all
  * random generation triggered via PSA crypto interfaces.
  *
+ * \note This random generator must deliver random numbers with cryptographic
+ *       quality and high performance. It must supply unpredictable numbers
+ *       with a uniform distribution. The implementation of this function
+ *       is responsible for ensuring that the random generator is seeded
+ *       with sufficient entropy. If you have a hardware TRNG which is slow
+ *       or delivers non-uniform output, declare it as an entropy source
+ *       with mbedtls_entropy_add_source() instead of enabling this option.
+ *
  * \param[in,out] context       Pointer to the random generator context.
  *                              This is all-bits-zero on the first call
  *                              and preserved between successive calls.

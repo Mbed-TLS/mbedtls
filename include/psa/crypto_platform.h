@@ -82,8 +82,17 @@ static inline int mbedtls_key_owner_id_equal( mbedtls_key_owner_id_t id1,
 #endif /* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
 
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+/** The type of contexts passed to mbedtls_psa_external_get_random().
+ *
+ * Mbed TLS initializes the context to all-bits-zero before calling
+ * mbedtls_psa_external_get_random() for the first time.
+ *
+ * The definition of this type in the Mbed TLS source code is for
+ * demonstration purposes. Implementers of mbedtls_psa_external_get_random()
+ * are expected to replace it with a custom definition.
+ */
 typedef struct {
-    uint8_t opaque[32];
+    uintptr_t opaque[2];
 } mbedtls_psa_external_random_context_t;
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 

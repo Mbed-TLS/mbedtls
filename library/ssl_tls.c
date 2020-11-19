@@ -933,8 +933,8 @@ int tls_prf_generic( mbedtls_md_type_t md_type,
 {
     size_t nb;
     size_t i, j, k, md_len;
-    unsigned char tmp[128];
-    unsigned char h_i[MBEDTLS_MD_MAX_SIZE];
+    unsigned char tmp[128] = {0};
+    unsigned char h_i[MBEDTLS_MD_MAX_SIZE] = {0};
     mbedtls_md_handle_t md_info;
     mbedtls_md_context_t md_ctx;
     int ret;

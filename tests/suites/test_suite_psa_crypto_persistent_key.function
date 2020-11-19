@@ -240,7 +240,12 @@ void persistent_key_import( int owner_id_arg, int key_id_arg, int type_arg,
     PSA_ASSERT( psa_destroy_key( key_id ) );
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
     psa_destroy_persistent_key( key_id );
     PSA_DONE();
 }
@@ -308,7 +313,12 @@ void import_export_persistent_key( data_t *data, int type_arg,
     TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 0 );
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
     mbedtls_free( exported );
     PSA_DONE( );
     psa_destroy_persistent_key( key_id );

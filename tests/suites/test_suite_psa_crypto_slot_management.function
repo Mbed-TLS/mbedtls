@@ -226,6 +226,12 @@ void transient_slot_lifecycle( int owner_id_arg,
     TEST_EQUAL( psa_close_key( key ), PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &attributes );
+
     PSA_DONE( );
 }
 /* END_CASE */
@@ -369,6 +375,13 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
     }
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &attributes );
+    psa_reset_key_attributes( &read_attributes );
+
     PSA_DONE( );
     psa_purge_key_storage( );
     mbedtls_free( reexported );
@@ -437,6 +450,12 @@ void create_existent( int lifetime_arg, int owner_id_arg, int id_arg,
     PSA_ASSERT( psa_close_key( id ) );
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &attributes );
+
     PSA_DONE( );
     psa_purge_key_storage( );
 }
@@ -626,6 +645,13 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_owner_id_arg,
     PSA_ASSERT( psa_destroy_key( returned_target_id ) );
 
 exit:
+    /*
+     * Source and target key attributes may have been returned by
+     * psa_get_key_attributes() thus reset them as required.
+     */
+    psa_reset_key_attributes( &source_attributes );
+    psa_reset_key_attributes( &target_attributes );
+
     PSA_DONE( );
     mbedtls_free( export_buffer );
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
@@ -737,6 +763,13 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
         PSA_ASSERT( psa_destroy_key( returned_target_id ) );
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &attributes1 );
+    psa_reset_key_attributes( &attributes2 );
+
     PSA_DONE( );
     mbedtls_free( export_buffer );
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
@@ -824,6 +857,12 @@ void invalid_handle( int handle_construction,
     PSA_ASSERT( psa_close_key( valid_handle ) );
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &attributes );
+
     PSA_DONE( );
 }
 /* END_CASE */
@@ -1059,6 +1098,12 @@ void non_reusable_key_slots_integrity_in_case_of_key_slot_starvation( )
     ASSERT_COMPARE( exported, exported_length,
                     (uint8_t *) &persistent_key, sizeof( persistent_key ) );
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &attributes );
+
     psa_destroy_key( persistent_key );
     PSA_DONE( );
     mbedtls_free( keys );

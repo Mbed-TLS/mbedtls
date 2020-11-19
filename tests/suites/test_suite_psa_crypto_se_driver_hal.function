@@ -578,6 +578,12 @@ static int check_key_attributes(
     ok = 1;
 
 exit:
+    /*
+     * Actual key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &actual_attributes );
+
     return( ok );
 }
 
@@ -753,7 +759,12 @@ static int smoke_test_key( mbedtls_svc_key_id_t key )
     ok = 1;
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
     return( ok );
 }
 
@@ -1080,6 +1091,12 @@ void key_creation_in_chosen_slot( int slot_arg,
     TEST_EQUAL( psa_open_key( id, &handle ), PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &attributes );
+
     PSA_DONE( );
     ram_slots_reset( );
     psa_purge_storage( );
@@ -1431,6 +1448,12 @@ void sign_verify( int flow,
         PSA_ERROR_INVALID_SIGNATURE );
 
 exit:
+    /*
+     * Driver key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &drv_attributes );
+
     psa_destroy_key( id );
     psa_destroy_key( sw_key );
     PSA_DONE( );

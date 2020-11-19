@@ -292,7 +292,12 @@ int check_key_attributes_sanity( mbedtls_svc_key_id_t key )
     ok = 1;
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
     return( ok );
 }
 
@@ -445,6 +450,7 @@ static int exercise_cipher_key( mbedtls_svc_key_id_t key,
             iv_length = PSA_BLOCK_CIPHER_BLOCK_SIZE(
                 psa_get_key_type( &attributes ) );
             maybe_invalid_padding = ! PSA_ALG_IS_STREAM_CIPHER( alg );
+            psa_reset_key_attributes( &attributes );
         }
         PSA_ASSERT( psa_cipher_decrypt_setup( &operation, key, alg ) );
         PSA_ASSERT( psa_cipher_set_iv( &operation,
@@ -717,8 +723,13 @@ static psa_status_t key_agreement_with_self(
         operation, PSA_KEY_DERIVATION_INPUT_SECRET, key,
         public_key, public_key_length );
 exit:
-    mbedtls_free( public_key );
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
+    mbedtls_free( public_key );
     return( status );
 }
 
@@ -754,8 +765,13 @@ static psa_status_t raw_key_agreement_with_self( psa_algorithm_t alg,
                                     public_key, public_key_length,
                                     output, sizeof( output ), &output_length );
 exit:
-    mbedtls_free( public_key );
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
+    mbedtls_free( public_key );
     return( status );
 }
 
@@ -1033,8 +1049,13 @@ static int exercise_export_key( mbedtls_svc_key_id_t key,
                                     exported, exported_length );
 
 exit:
-    mbedtls_free( exported );
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
+    mbedtls_free( exported );
     return( ok );
 }
 
@@ -1069,8 +1090,13 @@ static int exercise_export_public_key( mbedtls_svc_key_id_t key )
                                     exported, exported_length );
 
 exit:
-    mbedtls_free( exported );
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
+    mbedtls_free( exported );
     return( ok );
 }
 
@@ -1205,7 +1231,12 @@ static int test_operations_on_invalid_key( mbedtls_svc_key_id_t key )
     ok = 1;
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
     return( ok );
 }
 
@@ -1479,8 +1510,13 @@ void import_with_policy( int type_arg,
     test_operations_on_invalid_key( key );
 
 exit:
-    psa_destroy_key( key );
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &got_attributes );
+
+    psa_destroy_key( key );
     PSA_DONE( );
 }
 /* END_CASE */
@@ -1518,8 +1554,13 @@ void import_with_data( data_t *data, int type_arg,
     test_operations_on_invalid_key( key );
 
 exit:
-    psa_destroy_key( key );
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &got_attributes );
+
+    psa_destroy_key( key );
     PSA_DONE( );
 }
 /* END_CASE */
@@ -1567,6 +1608,12 @@ void import_large_key( int type_arg, int byte_size_arg,
     }
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &attributes );
+
     psa_destroy_key( key );
     PSA_DONE( );
     mbedtls_free( buffer );
@@ -1696,9 +1743,14 @@ destroy:
     test_operations_on_invalid_key( key );
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &got_attributes );
+
     mbedtls_free( exported );
     mbedtls_free( reexported );
-    psa_reset_key_attributes( &got_attributes );
     PSA_DONE( );
 }
 /* END_CASE */
@@ -1749,9 +1801,14 @@ void import_export_public_key( data_t *data,
     }
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &attributes );
+
     mbedtls_free( exported );
     psa_destroy_key( key );
-    psa_reset_key_attributes( &attributes );
     PSA_DONE( );
 }
 /* END_CASE */
@@ -1792,8 +1849,14 @@ void import_and_exercise_key( data_t *data,
     test_operations_on_invalid_key( key );
 
 exit:
-    psa_destroy_key( key );
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &got_attributes );
+
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
     PSA_DONE( );
 }
 /* END_CASE */
@@ -1832,8 +1895,13 @@ void effective_key_attributes( int type_arg, int expected_type_arg,
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), expected_alg );
 
 exit:
-    psa_destroy_key( key );
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
+    psa_destroy_key( key );
     PSA_DONE( );
 }
 /* END_CASE */
@@ -2087,8 +2155,13 @@ void asymmetric_encryption_key_policy( int policy_usage,
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
 
 exit:
-    psa_destroy_key( key );
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
+    psa_destroy_key( key );
     PSA_DONE( );
     mbedtls_free( buffer );
 }
@@ -2265,6 +2338,12 @@ void key_policy_alg2( int key_type_arg, data_t *key_data,
         goto exit;
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &got_attributes );
+
     psa_destroy_key( key );
     PSA_DONE( );
 }
@@ -2385,8 +2464,13 @@ void copy_success( int source_usage_arg,
     PSA_ASSERT( psa_destroy_key( target_key ) );
 
 exit:
+    /*
+     * Source and target key attributes may have been returned by
+     * psa_get_key_attributes() thus reset them as required.
+     */
     psa_reset_key_attributes( &source_attributes );
     psa_reset_key_attributes( &target_attributes );
+
     PSA_DONE( );
     mbedtls_free( export_buffer );
 }
@@ -4138,7 +4222,12 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
 #endif /* MBEDTLS_TEST_DEPRECATED */
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
     psa_destroy_key( key );
     mbedtls_free( signature );
     PSA_DONE( );
@@ -4259,7 +4348,12 @@ void sign_verify( int key_type_arg, data_t *key_data,
     }
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
     psa_destroy_key( key );
     mbedtls_free( signature );
     PSA_DONE( );
@@ -4409,7 +4503,12 @@ void asymmetric_encrypt( int key_type_arg,
     }
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
     psa_destroy_key( key );
     mbedtls_free( output );
     PSA_DONE( );
@@ -4473,7 +4572,12 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
                     output2, output2_length );
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
     psa_destroy_key( key );
     mbedtls_free( output );
     mbedtls_free( output2 );
@@ -5080,8 +5184,13 @@ void derive_key_exercise( int alg_arg,
         goto exit;
 
 exit:
-    psa_key_derivation_abort( &operation );
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &got_attributes );
+
+    psa_key_derivation_abort( &operation );
     psa_destroy_key( base_key );
     psa_destroy_key( derived_key );
     PSA_DONE( );
@@ -5511,7 +5620,12 @@ void generate_key( int type_arg,
         goto exit;
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &got_attributes );
+
     psa_destroy_key( key );
     PSA_DONE( );
 }
@@ -5612,7 +5726,12 @@ void generate_key_rsa( int bits_arg,
     }
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes() or
+     * set by psa_set_key_domain_parameters() thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
     psa_destroy_key( key );
     PSA_DONE( );
     mbedtls_free( e_read_buffer );
@@ -5741,7 +5860,12 @@ void persistent_key_load_key_from_storage( data_t *data,
         goto exit;
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
     mbedtls_free( first_export );
     mbedtls_free( second_export );
     psa_key_derivation_abort( &operation );

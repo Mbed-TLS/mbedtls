@@ -200,6 +200,12 @@ void pk_psa_utils(  )
     TEST_ASSERT( PSA_SUCCESS == psa_destroy_key( key ) );
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &attributes );
+
     mbedtls_pk_free( &pk ); /* redundant except upon error */
     mbedtls_pk_free( &pk2 );
     PSA_DONE( );
@@ -1289,6 +1295,12 @@ void pk_psa_sign( int grpid_arg,
                             hash, sizeof hash, sig, sig_len ) == 0 );
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &attributes );
+
     mbedtls_pk_free( &pk );
     PSA_DONE( );
 }

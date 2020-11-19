@@ -245,6 +245,7 @@
     <ClInclude Include="..\..\tests\include\test\drivers\signature.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\size.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\test_driver.h" />
+    <ClInclude Include="..\..\library\check_crypto_config.h" />
     <ClInclude Include="..\..\library\common.h" />
     <ClInclude Include="..\..\library\psa_crypto_core.h" />
     <ClInclude Include="..\..\library\psa_crypto_driver_wrappers.h" />

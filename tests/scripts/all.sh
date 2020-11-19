@@ -941,11 +941,21 @@ component_test_no_hmac_drbg () {
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: no HMAC_DRBG"
+    msg "test: Full minus HMAC_DRBG - main suites"
     make test
 
-    # No ssl-opt.sh/compat.sh as they never use HMAC_DRBG so far,
-    # so there's little value in running those lengthy tests here.
+    # Normally our ECDSA implementation uses deterministic ECDSA. But since
+    # HMAC_DRBG is disabled in this configuration, randomized ECDSA is used
+    # instead.
+    # Test SSL with non-deterministic ECDSA. Only test features that
+    # might be affected by how ECDSA signature is performed.
+    msg "test: Full minus HMAC_DRBG - ssl-opt.sh (subset)"
+    if_build_succeeded tests/ssl-opt.sh -f 'Default\|SSL async private: sign'
+
+    # To save time, only test one protocol version, since this part of
+    # the protocol is identical in (D)TLS up to 1.2.
+    msg "test: Full minus HMAC_DRBG - compat.sh (ECDSA)"
+    if_build_succeeded tests/compat.sh -m tls1_2 -t 'ECDSA'
 }
 
 component_test_psa_external_rng_no_drbg () {

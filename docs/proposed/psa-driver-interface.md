@@ -518,14 +518,14 @@ psa_status_t acme_add_entropy(acme_random_context_t *context,
 The semantics of the parameters is as follows:
 
 * `context`: a random generation context. On the first call to `"add_entropy"`, this object has been initialized by a call to the driver's `"init_random"` entry point if one is present, and to all-bits-zero otherwise.
-* `entropy`: a buffer containing high-entropy data to seed the random generator.
+* `entropy`: a buffer containing full-entropy data to seed the random generator. “Full-entropy” means that the data is uniformly distributed and independent of any other observable quantity.
 * `entropy_size`: the size of the `entropy` buffer in bytes. It is guaranteed to be at least `1`, but it may be smaller than the amount of entropy that the driver needs to deliver random data, in which case the core will call the `"add_entropy"` entry point again to supply more entropy.
 
 The core calls this function to supply entropy to the driver. The driver must mix this entropy into its internal state. The driver must mix the whole supplied entropy, even if there is more than what the driver requires, to ensure that all entropy sources are mixed into the random generator state. The driver may mix additional entropy of its own.
 
 The core may call this function at any time. For example, to enforce prediction resistance, the core can call `"add_entropy"` immediately after each call to `"get_random"`. The core must call this function in two circumstances:
 
-* Before any call to the `"get_random"` entry point, to supply `"initial_entropy_size"` bytes of entropy.
+* Before the first call to the `"get_random"` entry point, to supply `"initial_entropy_size"` bytes of entropy.
 * After a call to the `"get_random"` entry point returns less than the required amount of random data, to supply `"reseed_entropy_size"` bytes of entropy.
 
 When the driver requires entropy, the core can supply it with one or more successive calls to the `"add_entropy"` entry point. If the required entropy size is zero, the core does not need to call `"add_entropy"`.

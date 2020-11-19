@@ -5,7 +5,7 @@ This document is a proposed interface for deciding at build time which cryptogra
 
 This is currently a proposal for Mbed TLS. It is not currently on track for standardization in PSA.
 
-Time-stamp: "2020/11/16 20:44:13 GMT"
+Time-stamp: "2020/11/19 10:24:03 GMT"
 
 ## Introduction
 
@@ -123,7 +123,7 @@ When `MBEDTLS_PSA_CRYPTO_CONFIG` is set, the header file `mbedtls/config.h` need
 
 #### Old-style definition of configuration symbols
 
-When `MBEDTLS_PSA_CRYPTO_CONFIG` is not set, the configuration of Mbed TLS works as before, and the inclusion of non-PSA code only depends on `MBEDTLS_xxx` symbols defined (or not) in `mbedtls/config.h`. Furthermore, a new header file **`mbedtls/config_psa.h`** deduces PSA configuration symbols (`PSA_WANT_xxx`, `MBEDTLS_PSA_BUILTIN_xxx`) from classic configuration symbols (`MBEDTLS_xxx`).
+When `MBEDTLS_PSA_CRYPTO_CONFIG` is not set, the configuration of Mbed TLS works as before, and the inclusion of non-PSA code only depends on `MBEDTLS_xxx` symbols defined (or not) in `mbedtls/config.h`. Furthermore, the new header file **`mbedtls/config_psa.h`** deduces PSA configuration symbols (`PSA_WANT_xxx`, `MBEDTLS_PSA_BUILTIN_xxx`) from classic configuration symbols (`MBEDTLS_xxx`).
 
 The `PSA_WANT_xxx` definitions in `mbedtls/config_psa.h` are needed not only to build the PSA parts of the library, but also to build code that uses these parts. This includes structure definitions in `psa/crypto_struct.h`, size calculations in `psa/crypto_sizes.h`, and application code that's specific to a given cryptographic mechanism. In Mbed TLS itself, code under `MBEDTLS_USE_PSA_CRYPTO` and conditional compilation guards in tests and sample programs need `PSA_WANT_xxx`.
 

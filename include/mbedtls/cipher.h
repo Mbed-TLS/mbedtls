@@ -862,25 +862,35 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
  *
  * \param ctx           The generic cipher context. This must be initialized and
  *                      bound to a key.
- * \param iv            The IV to use, or NONCE_COUNTER for CTR-mode ciphers.
- *                      This must be a readable buffer of at least \p iv_len
- *                      Bytes.
- * \param iv_len        The IV length for ciphers with variable-size IV.
- *                      This parameter is discarded by ciphers with fixed-size IV.
+ * \param iv            The nonce to use. This must be a readable buffer of
+ *                      at least \p iv_len Bytes and must not be \c NULL.
+ * \param iv_len        The length of the nonce. This must satisfy the
+ *                      constraints imposed by the AEAD cipher used.
  * \param ad            The additional data to authenticate. This must be a
- *                      readable buffer of at least \p ad_len Bytes.
+ *                      readable buffer of at least \p ad_len Bytes, and may
+ *                      be \c NULL is \p ad_len is \c 0.
  * \param ad_len        The length of \p ad.
  * \param input         The buffer holding the input data. This must be a
- *                      readable buffer of at least \p ilen Bytes.
+ *                      readable buffer of at least \p ilen Bytes, and may be
+ *                      \c NULL if \p ilen is \c 0.
  * \param ilen          The length of the input data.
- * \param output        The buffer for the output data. This must be able to
- *                      hold at least \p ilen Bytes.
- * \param olen          The length of the output data, to be updated with the
- *                      actual number of Bytes written. This must not be
- *                      \c NULL.
+ * \param output        The buffer for the output data. This must be a
+ *                      writable buffer of at least \p ilen Bytes, and must
+ *                      not be \c NULL.
+ * \param olen          This will be filled with the actual number of Bytes
+ *                      written to the \p output buffer. This must point to a
+ *                      writable object of type \c size_t.
  * \param tag           The buffer for the authentication tag. This must be a
- *                      writable buffer of at least \p tag_len Bytes.
- * \param tag_len       The desired length of the authentication tag.
+ *                      writable buffer of at least \p tag_len Bytes. See note
+ *                      below regarding restrictions with PSA-based contexts.
+ * \param tag_len       The desired length of the authentication tag. This
+ *                      must match the constraints imposed by the AEAD cipher
+ *                      used, and in particuler must not be \c 0.
+ *
+ * \note                If the context is based on PSA (that is, it was set up
+ *                      with mbedtls_cipher_setup_psa()), then it is required
+ *                      that \c tag == output + ilen. That is, the tag must be
+ *                      appended to the ciphertext as recommended by RFC 5116.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
@@ -903,25 +913,35 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
  *
  * \param ctx           The generic cipher context. This must be initialized and
  *                      and bound to a key.
- * \param iv            The IV to use, or NONCE_COUNTER for CTR-mode ciphers.
- *                      This must be a readable buffer of at least \p iv_len
- *                      Bytes.
- * \param iv_len        The IV length for ciphers with variable-size IV.
- *                      This parameter is discarded by ciphers with fixed-size IV.
- * \param ad            The additional data to be authenticated. This must be a
- *                      readable buffer of at least \p ad_len Bytes.
+ * \param iv            The nonce to use. This must be a readable buffer of
+ *                      at least \p iv_len Bytes and must not be \c NULL.
+ * \param iv_len        The length of the nonce. This must satisfy the
+ *                      constraints imposed by the AEAD cipher used.
+ * \param ad            The additional data to authenticate. This must be a
+ *                      readable buffer of at least \p ad_len Bytes, and may
+ *                      be \c NULL is \p ad_len is \c 0.
  * \param ad_len        The length of \p ad.
  * \param input         The buffer holding the input data. This must be a
- *                      readable buffer of at least \p ilen Bytes.
+ *                      readable buffer of at least \p ilen Bytes, and may be
+ *                      \c NULL if \p ilen is \c 0.
  * \param ilen          The length of the input data.
- * \param output        The buffer for the output data.
- *                      This must be able to hold at least \p ilen Bytes.
- * \param olen          The length of the output data, to be updated with the
- *                      actual number of Bytes written. This must not be
- *                      \c NULL.
- * \param tag           The buffer holding the authentication tag. This must be
- *                      a readable buffer of at least \p tag_len Bytes.
- * \param tag_len       The length of the authentication tag.
+ * \param output        The buffer for the output data. This must be a
+ *                      writable buffer of at least \p ilen Bytes, and must
+ *                      not be \c NULL.
+ * \param olen          This will be filled with the actual number of Bytes
+ *                      written to the \p output buffer. This must point to a
+ *                      writable object of type \c size_t.
+ * \param tag           The buffer for the authentication tag. This must be a
+ *                      readable buffer of at least \p tag_len Bytes. See note
+ *                      below regarding restrictions with PSA-based contexts.
+ * \param tag_len       The length of the authentication tag. This must match
+ *                      the constraints imposed by the AEAD cipher used, and in
+ *                      particular must not be \c 0.
+ *
+ * \note                If the context is based on PSA (that is, it was set up
+ *                      with mbedtls_cipher_setup_psa()), then it is required
+ *                      that \c tag == input + len. That is, the tag must be
+ *                      appended to the ciphertext as recommended by RFC 5116.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on

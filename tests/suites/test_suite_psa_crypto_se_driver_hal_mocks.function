@@ -333,7 +333,7 @@ void mock_import( int mock_alloc_return_value,
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
-    psa_key_handle_t handle = 0;
+    mbedtls_svc_key_id_t returned_id;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
 
@@ -357,7 +357,7 @@ void mock_import( int mock_alloc_return_value,
     psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
     TEST_ASSERT( psa_import_key( &attributes,
                                  key_material, sizeof( key_material ),
-                                 &handle ) == expected_result );
+                                 &returned_id ) == expected_result );
 
     TEST_ASSERT( mock_allocate_data.called == 1 );
     TEST_ASSERT( mock_import_data.called ==
@@ -385,7 +385,7 @@ void mock_import( int mock_alloc_return_value,
 
     if( expected_result == PSA_SUCCESS )
     {
-        PSA_ASSERT( psa_destroy_key( handle ) );
+        PSA_ASSERT( psa_destroy_key( id ) );
         TEST_ASSERT( mock_destroy_data.called == 1 );
     }
 exit:
@@ -402,7 +402,7 @@ void mock_export( int mock_export_return_value, int expected_result )
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
-    psa_key_handle_t handle = 0;
+    mbedtls_svc_key_id_t returned_id;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
     uint8_t exported[sizeof( key_material )];
@@ -428,15 +428,15 @@ void mock_export( int mock_export_return_value, int expected_result )
     psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
     PSA_ASSERT( psa_import_key( &attributes,
                                 key_material, sizeof( key_material ),
-                                &handle ) );
+                                &returned_id ) );
 
-    TEST_ASSERT( psa_export_key( handle,
-                                exported, sizeof( exported ),
-                                &exported_length ) == expected_result );
+    TEST_ASSERT( psa_export_key( id,
+                                 exported, sizeof( exported ),
+                                 &exported_length ) == expected_result );
 
     TEST_ASSERT( mock_export_data.called == 1 );
 
-    PSA_ASSERT( psa_destroy_key( handle ) );
+    PSA_ASSERT( psa_destroy_key( id ) );
 
     TEST_ASSERT( mock_destroy_data.called == 1 );
 
@@ -456,7 +456,7 @@ void mock_generate( int mock_alloc_return_value,
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
-    psa_key_handle_t handle = 0;
+    mbedtls_svc_key_id_t returned_id;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     mock_allocate_data.return_value = mock_alloc_return_value;
@@ -477,7 +477,7 @@ void mock_generate( int mock_alloc_return_value,
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
     psa_set_key_bits( &attributes, 8 );
-    TEST_ASSERT( psa_generate_key( &attributes, &handle ) == expected_result );
+    TEST_ASSERT( psa_generate_key( &attributes, &returned_id) == expected_result );
     TEST_ASSERT( mock_allocate_data.called == 1 );
     TEST_ASSERT( mock_generate_data.called ==
         ( mock_alloc_return_value == PSA_SUCCESS? 1 : 0 ) );
@@ -504,7 +504,7 @@ void mock_generate( int mock_alloc_return_value,
 
     if( expected_result == PSA_SUCCESS )
     {
-        PSA_ASSERT( psa_destroy_key( handle ) );
+        PSA_ASSERT( psa_destroy_key( id ) );
         TEST_ASSERT( mock_destroy_data.called == 1 );
     }
 
@@ -523,7 +523,7 @@ void mock_export_public( int mock_export_public_return_value,
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
-    psa_key_handle_t handle = 0;
+    mbedtls_svc_key_id_t returned_id;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
     uint8_t exported[sizeof( key_material )];
@@ -549,13 +549,13 @@ void mock_export_public( int mock_export_public_return_value,
 
     PSA_ASSERT( psa_import_key( &attributes,
                                 key_material, sizeof( key_material ),
-                                &handle ) );
+                                &returned_id ) );
 
-    TEST_ASSERT( psa_export_public_key( handle, exported, sizeof(exported),
+    TEST_ASSERT( psa_export_public_key( id, exported, sizeof(exported),
                                         &exported_length ) == expected_result );
     TEST_ASSERT( mock_export_public_data.called == 1 );
 
-    PSA_ASSERT( psa_destroy_key( handle ) );
+    PSA_ASSERT( psa_destroy_key( id ) );
     TEST_ASSERT( mock_destroy_data.called == 1 );
 
 exit:
@@ -573,7 +573,7 @@ void mock_sign( int mock_sign_return_value, int expected_result )
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
-    psa_key_handle_t handle = 0;
+    mbedtls_svc_key_id_t returned_id;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
     psa_algorithm_t algorithm = PSA_ALG_ECDSA(PSA_ALG_SHA_256);
@@ -607,16 +607,16 @@ void mock_sign( int mock_sign_return_value, int expected_result )
 
     PSA_ASSERT( psa_import_key( &attributes,
                                 key_material, sizeof( key_material ),
-                                &handle ) );
+                                &returned_id ) );
 
-    TEST_ASSERT( psa_sign_hash( handle, algorithm,
+    TEST_ASSERT( psa_sign_hash( id, algorithm,
                                 hash, sizeof( hash ),
                                 signature, sizeof( signature ),
                                 &signature_length)
                  == expected_result );
     TEST_ASSERT( mock_sign_data.called == 1 );
 
-    PSA_ASSERT( psa_destroy_key( handle ) );
+    PSA_ASSERT( psa_destroy_key( id ) );
     TEST_ASSERT( mock_destroy_data.called == 1 );
 
 exit:
@@ -634,7 +634,7 @@ void mock_verify( int mock_verify_return_value, int expected_result )
     psa_key_lifetime_t lifetime = TEST_SE_PERSISTENT_LIFETIME;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( lifetime );
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, 1 );
-    psa_key_handle_t handle = 0;
+    mbedtls_svc_key_id_t returned_id;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
     psa_algorithm_t algorithm = PSA_ALG_ECDSA(PSA_ALG_SHA_256);
@@ -667,15 +667,15 @@ void mock_verify( int mock_verify_return_value, int expected_result )
 
     PSA_ASSERT( psa_import_key( &attributes,
                                 key_material, sizeof( key_material ),
-                                &handle ) );
+                                &returned_id ) );
 
-    TEST_ASSERT( psa_verify_hash( handle, algorithm,
+    TEST_ASSERT( psa_verify_hash( id, algorithm,
                                   hash, sizeof( hash ),
                                   signature, sizeof( signature ) )
                  == expected_result );
     TEST_ASSERT( mock_verify_data.called == 1 );
 
-    PSA_ASSERT( psa_destroy_key( handle ) );
+    PSA_ASSERT( psa_destroy_key( id ) );
     TEST_ASSERT( mock_destroy_data.called == 1 );
 
 exit:

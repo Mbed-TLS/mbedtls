@@ -208,7 +208,7 @@ The design goals of the PSA cryptography API include:
 
 * The API distinguishes caller memory from internal memory, which allows the library to be implemented in an isolated space for additional security. Library calls can be implemented as direct function calls if isolation is not desired, and as remote procedure calls if isolation is desired.
 * The structure of internal data is hidden to the application, which allows substituting alternative implementations at build time or run time, for example, in order to take advantage of hardware accelerators.
-* All access to the keys happens through handles, which allows support for external cryptoprocessors that is transparent to applications.
+* All access to the keys happens through key identifiers, which allows support for external cryptoprocessors that is transparent to applications.
 * The interface to algorithms is generic, favoring algorithm agility.
 * The interface is designed to be easy to use and hard to accidentally misuse.
 

@@ -10,6 +10,7 @@
 #include <stdint.h>
 
 #include "test/psa_crypto_helpers.h"
+#include "psa_crypto_slot_management.h"
 #include "psa_crypto_storage.h"
 
 #include "mbedtls/md.h"
@@ -117,7 +118,6 @@ exit:
 void save_large_persistent_key( int data_length_arg, int expected_status )
 {
     mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make( 1, 42 );
-    psa_key_handle_t handle = 0;
     uint8_t *data = NULL;
     size_t data_length = data_length_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -129,11 +129,11 @@ void save_large_persistent_key( int data_length_arg, int expected_status )
     psa_set_key_id( &attributes, key_id );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
 
-    TEST_EQUAL( psa_import_key( &attributes, data, data_length, &handle ),
+    TEST_EQUAL( psa_import_key( &attributes, data, data_length, &key_id ),
                 expected_status );
 
     if( expected_status == PSA_SUCCESS )
-        PSA_ASSERT( psa_destroy_key( handle ) );
+        PSA_ASSERT( psa_destroy_key( key_id ) );
 
 exit:
     mbedtls_free( data );
@@ -149,7 +149,7 @@ void persistent_key_destroy( int owner_id_arg, int key_id_arg, int restart,
 {
     mbedtls_svc_key_id_t key_id =
         mbedtls_svc_key_id_make( owner_id_arg, key_id_arg );
-    psa_key_handle_t handle = 0;
+    mbedtls_svc_key_id_t returned_key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t first_type = (psa_key_type_t) first_type_arg;
     psa_key_type_t second_type = (psa_key_type_t) second_type_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -160,24 +160,21 @@ void persistent_key_destroy( int owner_id_arg, int key_id_arg, int restart,
     psa_set_key_type( &attributes, first_type );
 
     PSA_ASSERT( psa_import_key( &attributes, first_data->x, first_data->len,
-                                &handle ) );
+                                &returned_key_id ) );
 
     if( restart )
     {
-        psa_close_key( handle );
+        psa_close_key( key_id );
         PSA_DONE();
         PSA_ASSERT( psa_crypto_init() );
-        PSA_ASSERT( psa_open_key( key_id, &handle ) );
     }
     TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 1 );
 
     /* Destroy the key */
-    PSA_ASSERT( psa_destroy_key( handle ) );
+    PSA_ASSERT( psa_destroy_key( key_id ) );
 
     /* Check key slot storage is removed */
     TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 0 );
-    TEST_EQUAL( psa_open_key( key_id, &handle ), PSA_ERROR_DOES_NOT_EXIST );
-    TEST_EQUAL( handle, 0 );
 
     /* Shutdown and restart */
     PSA_DONE();
@@ -187,9 +184,9 @@ void persistent_key_destroy( int owner_id_arg, int key_id_arg, int restart,
     psa_set_key_id( &attributes, key_id );
     psa_set_key_type( &attributes, second_type );
     PSA_ASSERT( psa_import_key( &attributes, second_data->x, second_data->len,
-                                &handle ) );
+                                &returned_key_id ) );
 
-    PSA_ASSERT( psa_destroy_key( handle ) );
+    PSA_ASSERT( psa_destroy_key( key_id ) );
 
 exit:
     PSA_DONE();
@@ -203,45 +200,52 @@ void persistent_key_import( int owner_id_arg, int key_id_arg, int type_arg,
 {
     mbedtls_svc_key_id_t key_id =
         mbedtls_svc_key_id_make( owner_id_arg, key_id_arg );
+    mbedtls_svc_key_id_t returned_key_id;
     psa_key_type_t type = (psa_key_type_t) type_arg;
-    psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init() );
 
     psa_set_key_id( &attributes, key_id );
     psa_set_key_type( &attributes, type );
-    TEST_EQUAL( psa_import_key( &attributes, data->x, data->len, &handle ),
+    TEST_EQUAL( psa_import_key( &attributes, data->x, data->len, &returned_key_id ),
                 expected_status );
 
     if( expected_status != PSA_SUCCESS )
     {
+        TEST_ASSERT( mbedtls_svc_key_id_is_null( returned_key_id ) );
         TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 0 );
         goto exit;
     }
 
+    TEST_ASSERT( mbedtls_svc_key_id_equal( returned_key_id, key_id ) );
+
     if( restart )
     {
-        psa_close_key( handle );
+        PSA_ASSERT( psa_purge_key( key_id ) );
         PSA_DONE();
         PSA_ASSERT( psa_crypto_init() );
-        PSA_ASSERT( psa_open_key( key_id, &handle ) );
     }
 
     psa_reset_key_attributes( &attributes );
-    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
-    TEST_ASSERT( mbedtls_svc_key_id_equal(
-                     psa_get_key_id( &attributes ), key_id ) );
+    PSA_ASSERT( psa_get_key_attributes( key_id, &attributes ) );
+    TEST_ASSERT( mbedtls_svc_key_id_equal( psa_get_key_id( &attributes ),
+                                           key_id ) );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ),
                 PSA_KEY_LIFETIME_PERSISTENT );
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), 0 );
 
-    PSA_ASSERT( psa_destroy_key( handle ) );
+    PSA_ASSERT( psa_destroy_key( key_id ) );
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
     psa_destroy_persistent_key( key_id );
     PSA_DONE();
 }
@@ -254,7 +258,7 @@ void import_export_persistent_key( data_t *data, int type_arg,
 {
     mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make( 1, 42 );
     psa_key_type_t type = (psa_key_type_t) type_arg;
-    psa_key_handle_t handle = 0;
+    mbedtls_svc_key_id_t returned_key_id = MBEDTLS_SVC_KEY_ID_INIT;
     unsigned char *exported = NULL;
     size_t export_size = data->len;
     size_t exported_length;
@@ -269,20 +273,20 @@ void import_export_persistent_key( data_t *data, int type_arg,
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
 
     /* Import the key */
-    PSA_ASSERT( psa_import_key( &attributes, data->x, data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, data->x, data->len,
+                                &returned_key_id ) );
 
 
     if( restart )
     {
-        psa_close_key( handle );
+        PSA_ASSERT( psa_purge_key( key_id ) );
         PSA_DONE();
         PSA_ASSERT( psa_crypto_init() );
-        PSA_ASSERT( psa_open_key( key_id, &handle ) );
     }
 
     /* Test the key information */
     psa_reset_key_attributes( &attributes );
-    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+    PSA_ASSERT( psa_get_key_attributes( key_id, &attributes ) );
     TEST_ASSERT( mbedtls_svc_key_id_equal(
                      psa_get_key_id( &attributes ), key_id ) );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ),
@@ -299,17 +303,22 @@ void import_export_persistent_key( data_t *data, int type_arg,
         psa_destroy_persistent_key( key_id );
     }
     /* Export the key */
-    PSA_ASSERT( psa_export_key( handle, exported, export_size,
+    PSA_ASSERT( psa_export_key( key_id, exported, export_size,
                                 &exported_length ) );
 
     ASSERT_COMPARE( data->x, data->len, exported, exported_length );
 
     /* Destroy the key */
-    PSA_ASSERT( psa_destroy_key( handle ) );
+    PSA_ASSERT( psa_destroy_key( key_id ) );
     TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 0 );
 
 exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
     psa_reset_key_attributes( &attributes );
+
     mbedtls_free( exported );
     PSA_DONE( );
     psa_destroy_persistent_key( key_id );

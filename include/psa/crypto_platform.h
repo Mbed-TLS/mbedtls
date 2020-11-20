@@ -53,9 +53,6 @@
 #define inline __inline
 #endif
 
-/* Integral type representing a key handle. */
-typedef uint16_t psa_key_handle_t;
-
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 
 /* Building for the PSA Crypto service on a PSA platform, a key owner is a PSA

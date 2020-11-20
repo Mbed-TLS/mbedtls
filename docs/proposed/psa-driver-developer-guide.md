@@ -36,10 +36,6 @@ A driver therefore consists of:
 
 Mbed TLS calls driver entry points [as specified in the PSA Cryptography Driver Interface specification](psa-driver-interface.html#driver-entry-points) except as otherwise indicated in this section.
 
-### Key handles
-
-Mbed TLS currently implements the interface for opening and closing persistent keys from version 1.0 beta 3 of the PSA Crypto specification. As a consequence, functions that operate on an existing key take an argument of type `psa_key_handle_t` instead of `psa_key_id_t`. Functions that create a new key take an argument of type `psa_key_handle_t *` instead of `psa_key_id_t *`.
-
 ## Building and testing your driver
 
 <!-- TODO -->

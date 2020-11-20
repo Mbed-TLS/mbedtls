@@ -24,6 +24,7 @@
 #include "test/psa_helpers.h"
 
 #include <psa/crypto.h>
+#include <psa_crypto_slot_management.h>
 
 static int test_helper_is_psa_pristine( int line, const char *file )
 {
@@ -40,6 +41,10 @@ static int test_helper_is_psa_pristine( int line, const char *file )
         msg = "An external slot has not been closed properly.";
     else if( stats.half_filled_slots != 0 )
         msg = "A half-filled slot has not been cleared properly.";
+    else if( stats.locked_slots != 0 )
+    {
+        msg = "Some slots are still marked as locked.";
+    }
 
     /* If the test has already failed, don't overwrite the failure
      * information. Do keep the stats lookup above, because it can be

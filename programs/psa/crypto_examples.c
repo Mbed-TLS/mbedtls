@@ -45,13 +45,15 @@
 
 #if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_AES_C) || \
     !defined(MBEDTLS_CIPHER_MODE_CBC) || !defined(MBEDTLS_CIPHER_MODE_CTR) || \
-    !defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+    !defined(MBEDTLS_CIPHER_MODE_WITH_PADDING) || \
+    defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main( void )
 {
     printf( "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_AES_C and/or "
             "MBEDTLS_CIPHER_MODE_CBC and/or MBEDTLS_CIPHER_MODE_CTR "
             "and/or MBEDTLS_CIPHER_MODE_WITH_PADDING "
-            "not defined.\r\n" );
+            "not defined and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER"
+            " defined.\r\n" );
     return( 0 );
 }
 #else
@@ -92,7 +94,7 @@ exit:
     return( status );
 }
 
-static psa_status_t cipher_encrypt( psa_key_handle_t key_handle,
+static psa_status_t cipher_encrypt( psa_key_id_t key,
                                     psa_algorithm_t alg,
                                     uint8_t * iv,
                                     size_t iv_size,
@@ -108,7 +110,7 @@ static psa_status_t cipher_encrypt( psa_key_handle_t key_handle,
     size_t iv_len = 0;
 
     memset( &operation, 0, sizeof( operation ) );
-    status = psa_cipher_encrypt_setup( &operation, key_handle, alg );
+    status = psa_cipher_encrypt_setup( &operation, key, alg );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
     status = psa_cipher_generate_iv( &operation, iv, iv_size, &iv_len );
@@ -123,7 +125,7 @@ exit:
     return( status );
 }
 
-static psa_status_t cipher_decrypt( psa_key_handle_t key_handle,
+static psa_status_t cipher_decrypt( psa_key_id_t key,
                                     psa_algorithm_t alg,
                                     const uint8_t * iv,
                                     size_t iv_size,
@@ -138,7 +140,7 @@ static psa_status_t cipher_decrypt( psa_key_handle_t key_handle,
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
 
     memset( &operation, 0, sizeof( operation ) );
-    status = psa_cipher_decrypt_setup( &operation, key_handle, alg );
+    status = psa_cipher_decrypt_setup( &operation, key, alg );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
     status = psa_cipher_set_iv( &operation, iv, iv_size );
@@ -165,7 +167,7 @@ cipher_example_encrypt_decrypt_aes_cbc_nopad_1_block( void )
 
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle = 0;
+    psa_key_id_t key = 0;
     size_t output_len = 0;
     uint8_t iv[block_size];
     uint8_t input[block_size];
@@ -181,15 +183,15 @@ cipher_example_encrypt_decrypt_aes_cbc_nopad_1_block( void )
     psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
     psa_set_key_bits( &attributes, key_bits );
 
-    status = psa_generate_key( &attributes, &key_handle );
+    status = psa_generate_key( &attributes, &key );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = cipher_encrypt( key_handle, alg, iv, sizeof( iv ),
+    status = cipher_encrypt( key, alg, iv, sizeof( iv ),
                              input, sizeof( input ), part_size,
                              encrypt, sizeof( encrypt ), &output_len );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = cipher_decrypt( key_handle, alg, iv, sizeof( iv ),
+    status = cipher_decrypt( key, alg, iv, sizeof( iv ),
                              encrypt, output_len, part_size,
                              decrypt, sizeof( decrypt ), &output_len );
     ASSERT_STATUS( status, PSA_SUCCESS );
@@ -198,7 +200,7 @@ cipher_example_encrypt_decrypt_aes_cbc_nopad_1_block( void )
     ASSERT_STATUS( status, PSA_SUCCESS );
 
 exit:
-    psa_destroy_key( key_handle );
+    psa_destroy_key( key );
     return( status );
 }
 
@@ -215,7 +217,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( void )
 
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle = 0;
+    psa_key_id_t key = 0;
     size_t output_len = 0;
     uint8_t iv[block_size], input[input_size],
             encrypt[input_size + block_size], decrypt[input_size + block_size];
@@ -229,15 +231,15 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( void )
     psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
     psa_set_key_bits( &attributes, key_bits );
 
-    status = psa_generate_key( &attributes, &key_handle );
+    status = psa_generate_key( &attributes, &key );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = cipher_encrypt( key_handle, alg, iv, sizeof( iv ),
+    status = cipher_encrypt( key, alg, iv, sizeof( iv ),
                              input, sizeof( input ), part_size,
                              encrypt, sizeof( encrypt ), &output_len );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = cipher_decrypt( key_handle, alg, iv, sizeof( iv ),
+    status = cipher_decrypt( key, alg, iv, sizeof( iv ),
                              encrypt, output_len, part_size,
                              decrypt, sizeof( decrypt ), &output_len );
     ASSERT_STATUS( status, PSA_SUCCESS );
@@ -246,7 +248,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( void )
     ASSERT_STATUS( status, PSA_SUCCESS );
 
 exit:
-    psa_destroy_key( key_handle );
+    psa_destroy_key( key );
     return( status );
 }
 
@@ -262,7 +264,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_ctr_multi( void )
 
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle = 0;
+    psa_key_id_t key = 0;
     size_t output_len = 0;
     uint8_t iv[block_size], input[input_size], encrypt[input_size],
             decrypt[input_size];
@@ -276,15 +278,15 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_ctr_multi( void )
     psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
     psa_set_key_bits( &attributes, key_bits );
 
-    status = psa_generate_key( &attributes, &key_handle );
+    status = psa_generate_key( &attributes, &key );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = cipher_encrypt( key_handle, alg, iv, sizeof( iv ),
+    status = cipher_encrypt( key, alg, iv, sizeof( iv ),
                              input, sizeof( input ), part_size,
                              encrypt, sizeof( encrypt ), &output_len );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = cipher_decrypt( key_handle, alg, iv, sizeof( iv ),
+    status = cipher_decrypt( key, alg, iv, sizeof( iv ),
                              encrypt, output_len, part_size,
                              decrypt, sizeof( decrypt ), &output_len );
     ASSERT_STATUS( status, PSA_SUCCESS );
@@ -293,7 +295,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_ctr_multi( void )
     ASSERT_STATUS( status, PSA_SUCCESS );
 
 exit:
-    psa_destroy_key( key_handle );
+    psa_destroy_key( key );
     return( status );
 }
 

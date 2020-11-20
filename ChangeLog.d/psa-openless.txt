@@ -1,0 +1,17 @@
+Features
+   * In the PSA API, it is no longer necessary to open persistent keys:
+     operations now accept the key identifier. The type psa_key_handle_t is now
+     identical to psa_key_id_t instead of being platform-defined. This bridges
+     the last major gap to compliance with the PSA Cryptography specification
+     version 1.0.0. Opening persistent keys is still supported for backward
+     compatibility, but will be deprecated and later removed in future
+     releases.
+
+Bugfix
+   * psa_set_key_id() now also sets the lifetime to persistent for keys located
+     in a secure element.
+   * Attempting to create a volatile key with a non-zero key identifier now
+     fails. Previously the key identifier was just ignored when creating a
+     volatile key.
+   * Attempting to create or register a key with a key identifier in the vendor
+     range now fails.

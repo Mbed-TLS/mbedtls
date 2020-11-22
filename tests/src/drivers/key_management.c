@@ -273,6 +273,7 @@ psa_status_t test_transparent_export_public_key(
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     psa_key_type_t keytype = psa_get_key_type( attributes );
+    (void) keytype;
 
 #if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)

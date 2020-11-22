@@ -562,7 +562,7 @@ static psa_status_t validate_unstructured_key_bit_size( psa_key_type_t type,
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
-static psa_status_t psa_import_rsa_key(
+static psa_status_t mbedtls_psa_rsa_import_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *data, size_t data_length,
     uint8_t *key_buffer, size_t key_buffer_size,
@@ -833,11 +833,11 @@ static psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
             if( status != PSA_SUCCESS )
                 return( status );
 
-            status = psa_import_rsa_key( &attributes,
-                                         data, data_length,
-                                         slot->key.data, data_length,
-                                         &slot->key.bytes,
-                                         &bit_size );
+            status = mbedtls_psa_rsa_import_key( &attributes,
+                                                 data, data_length,
+                                                 slot->key.data, data_length,
+                                                 &slot->key.bytes,
+                                                 &bit_size );
             slot->attr.bits = (psa_key_bits_t) bit_size;
             return( status );
         }
@@ -6270,7 +6270,7 @@ static psa_status_t psa_generate_key_internal(
         if( bits > PSA_VENDOR_RSA_MAX_KEY_BITS )
             return( PSA_ERROR_NOT_SUPPORTED );
         /* Accept only byte-aligned keys, for the same reasons as
-         * in psa_import_rsa_key(). */
+         * in mbedtls_psa_rsa_import_key(). */
         if( bits % 8 != 0 )
             return( PSA_ERROR_NOT_SUPPORTED );
         status = psa_read_rsa_exponent( domain_parameters,

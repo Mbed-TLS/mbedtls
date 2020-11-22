@@ -1104,27 +1104,40 @@ static psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
     else if( PSA_KEY_TYPE_IS_ASYMMETRIC( slot->attr.type ) )
     {
         /* Try validation through accelerators first. */
-        bit_size = slot->attr.bits;
         psa_key_attributes_t attributes = {
           .core = slot->attr
         };
-        status = psa_driver_wrapper_validate_key( &attributes,
-                                                  data,
-                                                  data_length,
-                                                  &bit_size );
+
+        status = psa_allocate_buffer_to_slot( slot, data_length );
+        if( status != PSA_SUCCESS )
+            return( status );
+
+        bit_size = slot->attr.bits;
+        status = psa_driver_wrapper_import_key( &attributes,
+                                                data, data_length,
+                                                slot->key.data,
+                                                slot->key.bytes,
+                                                &slot->key.bytes,
+                                                &bit_size );
         if( status == PSA_SUCCESS )
         {
-            /* Key has been validated successfully by an accelerator.
-             * Copy key material into slot. */
-            status = psa_copy_key_material_into_slot( slot, data, data_length );
-            if( status != PSA_SUCCESS )
-                return( status );
+            if( slot->attr.bits == 0 )
+                slot->attr.bits = (psa_key_bits_t) bit_size;
+            else if( bit_size != slot->attr.bits )
+                return( PSA_ERROR_INVALID_ARGUMENT );
 
-            slot->attr.bits = (psa_key_bits_t) bit_size;
             return( PSA_SUCCESS );
         }
-        else if( status != PSA_ERROR_NOT_SUPPORTED )
-            return( status );
+        else
+        {
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return( status );
+        }
+
+        mbedtls_platform_zeroize( slot->key.data, data_length );
+        mbedtls_free( slot->key.data );
+        slot->key.data = NULL;
+        slot->key.bytes = 0;
 
         /* Key format is not supported by any accelerator, try software fallback
          * if present. */

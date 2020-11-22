@@ -254,18 +254,18 @@ psa_status_t test_transparent_export_public_key(
     const uint8_t *key, size_t key_length,
     uint8_t *data, size_t data_size, size_t *data_length )
 {
-    ++test_driver_keygen_hooks.hits;
+    ++test_driver_key_management_hooks.hits;
 
-    if( test_driver_keygen_hooks.forced_status != PSA_SUCCESS )
-        return( test_driver_keygen_hooks.forced_status );
+    if( test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_key_management_hooks.forced_status );
 
-    if( test_driver_keygen_hooks.forced_output != NULL )
+    if( test_driver_key_management_hooks.forced_output != NULL )
     {
-        if( test_driver_keygen_hooks.forced_output_length > data_size )
+        if( test_driver_key_management_hooks.forced_output_length > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
-        memcpy( data, test_driver_keygen_hooks.forced_output,
-                test_driver_keygen_hooks.forced_output_length );
-        *data_length = test_driver_keygen_hooks.forced_output_length;
+        memcpy( data, test_driver_key_management_hooks.forced_output,
+                test_driver_key_management_hooks.forced_output_length );
+        *data_length = test_driver_key_management_hooks.forced_output_length;
         return( PSA_SUCCESS );
     }
 

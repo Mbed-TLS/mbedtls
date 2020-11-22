@@ -562,7 +562,7 @@ static psa_status_t validate_unstructured_key_bit_size( psa_key_type_t type,
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
-static psa_status_t psa_import_ecp_key(
+static psa_status_t mbedtls_psa_ecp_import_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *data, size_t data_length,
     uint8_t *key_buffer, size_t key_buffer_size,
@@ -761,11 +761,11 @@ static psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
             if( status != PSA_SUCCESS )
                 return( status );
 
-            status = psa_import_ecp_key( &attributes,
-                                         data, data_length,
-                                         slot->key.data, data_length,
-                                         &slot->key.bytes,
-                                         &bit_size );
+            status = mbedtls_psa_ecp_import_key( &attributes,
+                                                 data, data_length,
+                                                 slot->key.data, data_length,
+                                                 &slot->key.bytes,
+                                                 &bit_size );
             slot->attr.bits = (psa_key_bits_t) bit_size;
             return( status );
         }

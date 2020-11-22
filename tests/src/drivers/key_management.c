@@ -137,11 +137,14 @@ psa_status_t test_opaque_generate_key(
     return( PSA_ERROR_NOT_SUPPORTED );
 }
 
-psa_status_t test_transparent_validate_key(
+psa_status_t test_transparent_import_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *data,
     size_t data_length,
-    size_t *bits )
+    uint8_t *key_buffer,
+    size_t key_buffer_size,
+    size_t *key_buffer_length,
+    size_t *bits)
 {
     ++test_driver_key_management_hooks.hits;
 

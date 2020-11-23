@@ -941,6 +941,36 @@ component_test_no_hmac_drbg () {
     # so there's little value in running those lengthy tests here.
 }
 
+component_test_psa_external_rng_no_drbg () {
+    msg "build: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    scripts/config.py unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+    scripts/config.py set MBEDTLS_ECP_NO_INTERNAL_RNG
+    make CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG"
+    make test
+
+    # No ssl-opt.sh/compat.sh because they require CTR_DRBG.
+}
+
+component_test_psa_external_rng_use_psa_crypto () {
+    msg "build: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    make CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
+    make test
+
+    # No ssl-opt.sh/compat.sh because they require CTR_DRBG.
+}
+
 component_test_ecp_no_internal_rng () {
     msg "build: Default plus ECP_NO_INTERNAL_RNG minus DRBG modules"
     scripts/config.py set MBEDTLS_ECP_NO_INTERNAL_RNG

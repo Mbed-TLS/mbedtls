@@ -215,6 +215,8 @@ psa_status_t mbedtls_to_psa_error( int ret )
 
 #if !( defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) ||      \
        defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE) )
+        /* Only check CTR_DRBG error codes if underlying mbedtls_xxx
+         * functions are passed a CTR_DRBG instance. */
         case MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED:
             return( PSA_ERROR_INSUFFICIENT_ENTROPY );
         case MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG:
@@ -243,6 +245,8 @@ psa_status_t mbedtls_to_psa_error( int ret )
 
 #if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&        \
     defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE)
+        /* Only check HMAC_DRBG error codes if underlying mbedtls_xxx
+         * functions are passed a HMAC_DRBG instance. */
         case MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED:
             return( PSA_ERROR_INSUFFICIENT_ENTROPY );
         case MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG:

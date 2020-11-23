@@ -137,10 +137,11 @@ psa_status_t test_opaque_generate_key(
     return( PSA_ERROR_NOT_SUPPORTED );
 }
 
-psa_status_t test_transparent_validate_key(const psa_key_attributes_t *attributes,
-                                           const uint8_t *data,
-                                           size_t data_length,
-                                           size_t *bits)
+psa_status_t test_transparent_validate_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *data,
+    size_t data_length,
+    size_t *bits )
 {
     ++test_driver_key_management_hooks.hits;
 
@@ -246,6 +247,109 @@ ecp_exit:
     return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR ||
         * MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY */
+}
+
+psa_status_t test_transparent_export_public_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key, size_t key_length,
+    uint8_t *data, size_t data_size, size_t *data_length )
+{
+    ++test_driver_key_management_hooks.hits;
+
+    if( test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
+        return( test_driver_key_management_hooks.forced_status );
+
+    if( test_driver_key_management_hooks.forced_output != NULL )
+    {
+        if( test_driver_key_management_hooks.forced_output_length > data_size )
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+        memcpy( data, test_driver_key_management_hooks.forced_output,
+                test_driver_key_management_hooks.forced_output_length );
+        *data_length = test_driver_key_management_hooks.forced_output_length;
+        return( PSA_SUCCESS );
+    }
+
+    if( key == NULL || key_length == 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    psa_key_type_t keytype = psa_get_key_type( attributes );
+    (void) keytype;
+
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
+    if( PSA_KEY_TYPE_IS_ECC( keytype ) )
+    {
+        if( !PSA_KEY_TYPE_IS_KEY_PAIR( keytype ) )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
+        /* Mostly copied from psa_crypto.c */
+        mbedtls_ecp_group_id grp_id = MBEDTLS_ECP_DP_NONE;
+        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+        mbedtls_ecp_keypair ecp;
+        mbedtls_test_rnd_pseudo_info rnd_info;
+        memset( &rnd_info, 0x5A, sizeof( mbedtls_test_rnd_pseudo_info ) );
+
+        if( attributes->domain_parameters_size != 0 )
+            return( PSA_ERROR_NOT_SUPPORTED );
+
+        grp_id = mbedtls_ecc_group_of_psa( PSA_KEY_TYPE_ECC_GET_FAMILY( keytype ),
+                                           PSA_BITS_TO_BYTES( psa_get_key_bits( attributes ) ) );
+        if( grp_id == MBEDTLS_ECP_DP_NONE )
+            return( PSA_ERROR_NOT_SUPPORTED );
+
+        mbedtls_ecp_keypair_init( &ecp );
+
+        status = mbedtls_to_psa_error(
+                    mbedtls_ecp_group_load( &ecp.grp, grp_id ) );
+        if( status != PSA_SUCCESS )
+            goto ecp_exit;
+
+        status = mbedtls_to_psa_error(
+            mbedtls_ecp_read_key( ecp.grp.id,
+                                  &ecp,
+                                  key,
+                                  key_length ) );
+        if( status != PSA_SUCCESS )
+            goto ecp_exit;
+
+        /* Calculate the public key */
+        status = mbedtls_to_psa_error(
+            mbedtls_ecp_mul( &ecp.grp, &ecp.Q, &ecp.d, &ecp.grp.G,
+                             &mbedtls_test_rnd_pseudo_rand,
+                             &rnd_info ) );
+        if( status != PSA_SUCCESS )
+            goto ecp_exit;
+
+        status = mbedtls_to_psa_error(
+                    mbedtls_ecp_point_write_binary( &ecp.grp, &ecp.Q,
+                                                    MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                                    data_length,
+                                                    data,
+                                                    data_size ) );
+        if( status != PSA_SUCCESS )
+            memset( data, 0, data_size );
+ecp_exit:
+        mbedtls_ecp_keypair_free( &ecp );
+        return( status );
+    }
+#endif /* MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR ||
+        * MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY */
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+}
+
+psa_status_t test_opaque_export_public_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key, size_t key_length,
+    uint8_t *data, size_t data_size, size_t *data_length )
+{
+    (void) attributes;
+    (void) key;
+    (void) key_length;
+    (void) data;
+    (void) data_size;
+    (void) data_length;
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

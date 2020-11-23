@@ -55,6 +55,11 @@ psa_status_t psa_driver_wrapper_validate_key( const psa_key_attributes_t *attrib
                                               size_t data_length,
                                               size_t *bits );
 
+psa_status_t psa_driver_wrapper_export_public_key( const psa_key_slot_t *slot,
+                                                   uint8_t *data,
+                                                   size_t data_size,
+                                                   size_t *data_length );
+
 /*
  * Cipher functions
  */

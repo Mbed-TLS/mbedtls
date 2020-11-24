@@ -362,7 +362,7 @@ Key creation entry points must produce valid key data. Key data is _valid_ if op
 
 * If a cryptographic mechanism is defined as having keying material of a certain size, or if the keying material involves integers that have to be in a certain range, key creation must ensure that the keying material has an appropriate size and falls within an appropriate range.
 * If a cryptographic operation involves a division by an integer which is provided as part of a key, key creation must ensure that this integer is nonzero.
-* If a cryptographic operation involves two keys A and B (or more), then the creation of A must ensure that using it does not risk compromising B. This applies even if A's policy does not explicitly allow a problematic operation, but A is exportable. In particular, public keys that can potentially be used for key agreement are considered invalid and must not be created if they risk compromising the private key..
+* If a cryptographic operation involves two keys A and B (or more), then the creation of A must ensure that using it does not risk compromising B. This applies even if A's policy does not explicitly allow a problematic operation, but A is exportable. In particular, public keys that can potentially be used for key agreement are considered invalid and must not be created if they risk compromising the private key.
 * On the other hand, it is acceptable for import to accept a key that cannot be verified as valid if using this key would at most compromise the key itself and material that is secured with this key. For example, RSA key import does not need to verify that the primes are actually prime. Key import may accept an insecure key if the consequences of the insecurity are no worse than a leak of the key prior to its import.
 
 With opaque drivers, the key context can only be used by code from the same driver, so key validity is primarily intended to report key creation errors at creation time rather than during an operation. With transparent drivers, the key context can potentially be used by code from a different provider, so key validity is critical for interoperability.
@@ -424,7 +424,7 @@ psa_status_t acme_import_key(const psa_key_attributes_t *attributes,
 This entry point has several roles:
 
 1. Parse the key data in the input buffer `data`. The driver must support the export format for the key types that the entry point is declared for. It may support additional formats as specified in the description of [`psa_import_key()`](https://armmbed.github.io/mbed-crypto/html/api/keys/management.html#c.psa_export_key) in the PSA Cryptography API specification.
-2. Validate the key data. The necessary validation is described in the section [“Key validation with transparent drivers”](#key-validation-with-transparent-drivers) below.
+2. Validate the key data. The necessary validation is described in the section [“Key validation with transparent drivers”](#key-validation-with-transparent-drivers) above.
 3. [Determine the key size](#key-size-determination-on-import) and output it through `*bits`.
 4. Copy the validated key data from `data` to `key_buffer`. The output must be in the canonical format documented for [`psa_export_key()`](https://armmbed.github.io/mbed-crypto/html/api/keys/management.html#c.psa_export_key) or [`psa_export_public_key()`](https://armmbed.github.io/mbed-crypto/html/api/keys/management.html#c.psa_export_public_key), so if the input is not in this format, the entry point must convert it.
 

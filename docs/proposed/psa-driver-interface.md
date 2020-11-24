@@ -190,7 +190,7 @@ The signature of a driver entry point generally looks like the signature of the 
 * For entry points that involve a multi-part operation, the operation state type (`psa_XXX_operation_t`) is replaced by a driver-specific operation state type (*prefix*`_XXX_operation_t`).
 
 * For entry points that are involved in key creation, the `psa_key_id_t *` output parameter is replaced by a sequence of parameters that convey the key context:
-    1. `const uint8_t *key_buffer`: a buffer for the key material or key context.
+    1. `uint8_t *key_buffer`: a buffer for the key material or key context.
     2. `size_t key_buffer_size`: the size of the key buffer in bytes.
     2. `size_t *key_buffer_length`: the length of the data written to the key buffer in bytes.
 
@@ -316,7 +316,7 @@ TODO
 
 ### Driver entry points for key management
 
-The driver entry points for key management differ significantly between [transparent drivers](#key-management-with-transparent-drivers) and [opaque drivers](#key-management-with-transparent-drivers). This section describes common elements. Refer to the applicable section for each driver type for more information.
+The driver entry points for key management differ significantly between [transparent drivers](#key-management-with-transparent-drivers) and [opaque drivers](#key-management-with-opaque-drivers). This section describes common elements. Refer to the applicable section for each driver type for more information.
 
 The entry points that create or format key data have the following prototypes for a driver with the prefix `"acme"`:
 

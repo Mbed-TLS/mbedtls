@@ -5,6 +5,9 @@
 #include <test/macros.h>
 #include <test/helpers.h>
 #include <test/random.h>
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#include <test/psa_crypto_helpers.h>
+#endif
 
 #include <stdlib.h>
 

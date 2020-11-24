@@ -4,7 +4,6 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
 
-#include "test/psa_crypto_helpers.h"
 #if defined(MBEDTLS_PSA_ITS_FILE_C)
 #include <stdio.h>
 #else

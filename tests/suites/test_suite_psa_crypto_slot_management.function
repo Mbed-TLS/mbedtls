@@ -1,7 +1,6 @@
 /* BEGIN_HEADER */
 #include <stdint.h>
 
-#include "test/psa_crypto_helpers.h"
 #include "psa_crypto_slot_management.h"
 #include "psa_crypto_storage.h"
 

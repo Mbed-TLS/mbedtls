@@ -9,7 +9,6 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
-#include "test/psa_crypto_helpers.h"
 #define PSA_INIT( ) PSA_ASSERT( psa_crypto_init( ) )
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

@@ -17,13 +17,13 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/psa_util.h"
-#include "test/psa_crypto_helpers.h"
 #define PSA_INIT( ) PSA_ASSERT( psa_crypto_init( ) )
 #else
 /* Define empty macros so that we can use them in the preamble and teardown
  * of every test function that uses PSA conditionally based on
  * MBEDTLS_USE_PSA_CRYPTO. */
 #define PSA_INIT( ) ( (void) 0 )
+#undef PSA_DONE
 #define PSA_DONE( ) ( (void) 0 )
 #endif
 

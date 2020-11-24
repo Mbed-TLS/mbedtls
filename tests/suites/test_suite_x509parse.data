@@ -1876,6 +1876,10 @@ X509 File parse (trailing spaces, OK)
 depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 x509parse_crt_file:"data_files/server7_trailing_space.crt":0
 
+X509 File parse (Algorithm Params Tag mismatch)
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
+x509parse_crt_file:"data_files/cli-rsa-sha256-badalg.crt.der":MBEDTLS_ERR_X509_SIG_MISMATCH
+
 X509 Get time (UTC no issues)
 depends_on:MBEDTLS_X509_USE_C
 x509_get_time:MBEDTLS_ASN1_UTC_TIME:"500101000000Z":0:1950:1:1:0:0:0

@@ -26,7 +26,7 @@
 #include <psa/crypto.h>
 #include <psa_crypto_slot_management.h>
 
-static int test_helper_is_psa_pristine( int line, const char *file )
+static int mbedtls_test_helper_is_psa_pristine( int line, const char *file )
 {
     mbedtls_psa_stats_t stats;
     const char *msg = NULL;
@@ -60,21 +60,21 @@ static int test_helper_is_psa_pristine( int line, const char *file )
 #define ASSERT_PSA_PRISTINE( )                                    \
     do                                                            \
     {                                                             \
-        if( ! test_helper_is_psa_pristine( __LINE__, __FILE__ ) ) \
+        if( ! mbedtls_test_helper_is_psa_pristine( __LINE__, __FILE__ ) ) \
             goto exit;                                            \
     }                                                             \
     while( 0 )
 
-static void test_helper_psa_done( int line, const char *file )
+static void mbedtls_test_helper_psa_done( int line, const char *file )
 {
-    (void) test_helper_is_psa_pristine( line, file );
+    (void) mbedtls_test_helper_is_psa_pristine( line, file );
     mbedtls_psa_crypto_free( );
 }
 
 /** Shut down the PSA Crypto subsystem. Expect a clean shutdown, with no slots
  * in use.
  */
-#define PSA_DONE( ) test_helper_psa_done( __LINE__, __FILE__ )
+#define PSA_DONE( ) mbedtls_test_helper_psa_done( __LINE__, __FILE__ )
 
 
 
@@ -84,10 +84,10 @@ static void test_helper_psa_done( int line, const char *file )
 /** Name of the file where return statuses are logged by #RECORD_STATUS. */
 #define STATUS_LOG_FILE_NAME "statuses.log"
 
-static psa_status_t record_status( psa_status_t status,
-                                   const char *func,
-                                   const char *file, int line,
-                                   const char *expr )
+static psa_status_t mbedtls_test_record_status( psa_status_t status,
+                                                const char *func,
+                                                const char *file, int line,
+                                                const char *expr )
 {
     /* We open the log file on first use.
      * We never close the log file, so the record_status feature is not
@@ -125,7 +125,7 @@ static psa_status_t record_status( psa_status_t status,
  * \return          The value of \p expr.
  */
 #define RECORD_STATUS( string, expr )                                   \
-    record_status( ( expr ), string, __FILE__, __LINE__, #expr )
+    mbedtls_test_record_status( ( expr ), string, __FILE__, __LINE__, #expr )
 
 #include "instrument_record_status.h"
 

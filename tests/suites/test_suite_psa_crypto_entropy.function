@@ -4,14 +4,16 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
 
+/* Calculating the minimum allowed entropy size in bytes */
+#define MBEDTLS_PSA_INJECT_ENTROPY_MIN_SIZE MAX(MBEDTLS_ENTROPY_MIN_PLATFORM, MBEDTLS_ENTROPY_BLOCK_SIZE)
+
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+
 #if defined(MBEDTLS_PSA_ITS_FILE_C)
 #include <stdio.h>
 #else
 #include <psa/internal_trusted_storage.h>
 #endif
-
-/* Calculating the minimum allowed entropy size in bytes */
-#define MBEDTLS_PSA_INJECT_ENTROPY_MIN_SIZE MAX(MBEDTLS_ENTROPY_MIN_PLATFORM, MBEDTLS_ENTROPY_BLOCK_SIZE)
 
 /* Remove the entropy seed file. Since the library does not expose a way
  * to do this (it would be a security risk if such a function was ever
@@ -29,14 +31,11 @@ psa_status_t remove_seed_file( void )
 #endif
 }
 
+#endif /* MBEDTLS_PSA_INJECT_ENTROPY */
+
 /* END_HEADER */
 
-/* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_PSA_INJECT_ENTROPY
- * END_DEPENDENCIES
- */
-
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_INJECT_ENTROPY */
 void validate_entropy_seed_injection( int seed_length_a,
                                       int expected_status_a,
                                       int seed_length_b,
@@ -80,7 +79,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_INJECT_ENTROPY */
 void run_entropy_inject_with_crypto_init( )
 {
     psa_status_t status;

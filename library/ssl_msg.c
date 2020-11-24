@@ -5121,7 +5121,7 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
  * and having a helper function allows to distinguish between TLS <= 1.2 and
  * TLS 1.3 in the future without bloating the logic of mbedtls_ssl_read().
  */
-int ssl_handle_hs_message_post_handshake( mbedtls_ssl_context *ssl )
+static int ssl_handle_hs_message_post_handshake( mbedtls_ssl_context *ssl )
 {
     int ret;
 

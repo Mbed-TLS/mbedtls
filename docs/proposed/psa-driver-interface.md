@@ -5,7 +5,7 @@ This document describes an interface for cryptoprocessor drivers in the PSA cryp
 
 This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
-Time-stamp: "2020/10/27 17:31:13 GMT"
+Time-stamp: "2020/11/24 11:03:32 GMT"
 
 ## Introduction
 
@@ -327,7 +327,7 @@ psa_status_t acme_import_key(const psa_key_attributes_t *attributes,
                              uint8_t *key_buffer,
                              size_t key_buffer_size,
                              size_t *key_buffer_length,
-                             size_t *bits);
+                             size_t *bits); // additional parameter, see below
 psa_status_t acme_generate_key(const psa_key_attributes_t *attributes,
                                uint8_t *key_buffer,
                                size_t key_buffer_size,
@@ -338,7 +338,7 @@ TODO: derivation, copy
 
 * The key attributes (`attributes`) have the same semantics as in the PSA Cryptography application interface.
 * For the `"import_key"` entry point, the input in the `data` buffer is either the export format or an implementation-specific format that the core documents as an acceptable input format for `psa_import_key()`.
-* The size of the key data buffer is sufficient for the internal representation of the key. For a transparent driver, this is the key's [export format](#key-format-for-transparent-drivers). For an opaque driver, this is the size determined from the driver description and the key attributes, as specified in the section [“Key format for opaque drivers”](#key-format-for-opaque-drivers).
+* The size of the key data buffer `key_buffer` is sufficient for the internal representation of the key. For a transparent driver, this is the key's [export format](#key-format-for-transparent-drivers). For an opaque driver, this is the size determined from the driver description and the key attributes, as specified in the section [“Key format for opaque drivers”](#key-format-for-opaque-drivers).
 * For an opaque driver with an `"allocate_key"` entry point, the content of the key data buffer on entry is the output of that entry point.
 * The `"import_key"` entry point must determine or validate the key size and set `*bits` as described in the section [“Key size determination on import”](#key-size-determination-on-import) below.
 
@@ -346,14 +346,15 @@ All key creation entry points must ensure that the resulting key is valid as spe
 
 #### Key size determination on import
 
-The `"import_key"` entry point may need to determine the key size.
+The `"import_key"` entry point must determine or validate the key size.
 The PSA Cryptography API exposes the key size as part of the key attributes.
-When importing a key, the key size recorded in the key attributes may be `0`, which indicates that the size must be calculated from the data.
-In this case, the core will call the `"import_key"` entry point with an `attributes` structure such that `psa_get_key_bits(attributes)` returns 0, and the `"import_key"` entry point must return the actual key size in the `bits` output parameter. The semantics of `bits` is as follows:
+When importing a key, the key size recorded in the key attributes can be either a size specified by the caller of the API (who may not be trusted), or `0` which indicates that the size must be calculated from the data.
+
+When the core calls the `"import_key"` entry point to process a call to `psa_import_key`, it passes an `attributes` structure such that `psa_get_key_bits(attributes)` is the size passed by the caller of `psa_import_key`. If this size is `0`, the `"import_key"` entry point must set the `bits` input-output parameter to the correct key size. The semantics of `bits` is as follows:
 
 * The core sets `*bits` to `psa_get_key_bits(attributes)` before calling the `"import_key"` entry point.
 * If `*bits == 0`, the driver must determine the key size from the data and set `*bits` to this size. If the key size cannot be determined from the data, the driver must return `PSA_ERROR_INVALID_ARGUMENT` (as of version 1.0 of the PSA Cryptography API specification, it is possible to determine the key size for all standard key types).
-* If `*bits != 0`, the driver must check the value of `*bits` against the data and return an error if it does not match. If the driver entry point changes `*bits` to a different value but returns `PSA_SUCCESS`, the core will consider the key as invalid and the import will fail.
+* If `*bits != 0`, the driver must check the value of `*bits` against the data and return `PSA_ERROR_INVALID_ARGUMENT` if it does not match. If the driver entry point changes `*bits` to a different value but returns `PSA_SUCCESS`, the core will consider the key as invalid and the import will fail.
 
 #### Key validation
 
@@ -409,7 +410,7 @@ Transparent drivers are not involved when exporting, copying or destroying keys,
 
 #### Key import with transparent drivers
 
-The key import entry points has the following prototype for a driver with the prefix `"acme"`:
+As discussed in [the general section about key management entry points](#driver-entry-points-for-key-management), the key import entry points has the following prototype for a driver with the prefix `"acme"`:
 ```
 psa_status_t acme_import_key(const psa_key_attributes_t *attributes,
                              const uint8_t *data,
@@ -761,6 +762,12 @@ The specification doesn't mention when the public key might be calculated. The c
 #### Symmetric key validation with transparent drivers
 
 Should the entry point be called for symmetric keys as well?
+
+#### Support for custom import formats
+
+[“Driver entry points for key management”](#driver-entry-points-for-key-management) states that the input to `"import_key"` can be an implementation-defined format. Is this a good idea? It reduces driver portability, since a core that accepts a custom format would not work with a driver that doesn't accept this format. On the other hand, if a driver accepts a custom format, the core should let it through because the driver presumably handles it more efficiently (in terms of speed and code size) than the core could.
+
+Allowing custom formats also causes a problem with import: the core can't know the size of the key representation until it knows the bit-size of the key, but determining the bit-size of the key is part of the job of the `"import_key"` entry point. For standard key types, this could plausibly be an issue for RSA private keys, where an implementation might accept a custom format that omits the CRT parameters (or that omits *d*).
 
 ### Opaque drivers
 

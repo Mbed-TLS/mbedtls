@@ -26,52 +26,48 @@
 #include <psa/crypto.h>
 #include <psa_crypto_slot_management.h>
 
-static int mbedtls_test_helper_is_psa_pristine( int line, const char *file )
+/** Check for things that have not been cleaned up properly in the
+ * PSA subsystem.
+ *
+ * \return NULL if nothing has leaked.
+ * \return A string literal explaining what has not been cleaned up
+ *         if applicable.
+ */
+static const char *mbedtls_test_helper_is_psa_leaking( void )
 {
     mbedtls_psa_stats_t stats;
-    const char *msg = NULL;
 
     mbedtls_psa_get_stats( &stats );
 
     if( stats.volatile_slots != 0 )
-        msg = "A volatile slot has not been closed properly.";
-    else if( stats.persistent_slots != 0 )
-        msg = "A persistent slot has not been closed properly.";
-    else if( stats.external_slots != 0 )
-        msg = "An external slot has not been closed properly.";
-    else if( stats.half_filled_slots != 0 )
-        msg = "A half-filled slot has not been cleared properly.";
-    else if( stats.locked_slots != 0 )
-    {
-        msg = "Some slots are still marked as locked.";
-    }
+        return( "A volatile slot has not been closed properly." );
+    if( stats.persistent_slots != 0 )
+        return( "A persistent slot has not been closed properly." );
+    if( stats.external_slots != 0 )
+        return( "An external slot has not been closed properly." );
+     if( stats.half_filled_slots != 0 )
+        return( "A half-filled slot has not been cleared properly." );
+    if( stats.locked_slots != 0 )
+        return( "Some slots are still marked as locked." );
 
-    if( msg != NULL )
-        test_fail( msg, line, file );
-
-    return( msg == NULL );
+    return( NULL );
 }
 
 /** Check that no PSA Crypto key slots are in use.
  */
-#define ASSERT_PSA_PRISTINE( )                                    \
-    do                                                            \
-    {                                                             \
-        if( ! mbedtls_test_helper_is_psa_pristine( __LINE__, __FILE__ ) ) \
-            goto exit;                                            \
-    }                                                             \
-    while( 0 )
-
-static void mbedtls_test_helper_psa_done( int line, const char *file )
-{
-    (void) mbedtls_test_helper_is_psa_pristine( line, file );
-    mbedtls_psa_crypto_free( );
-}
+#define ASSERT_PSA_PRISTINE( )                                  \
+    TEST_ASSERT( ! mbedtls_test_helper_is_psa_leaking( ) )
 
 /** Shut down the PSA Crypto subsystem. Expect a clean shutdown, with no slots
  * in use.
  */
-#define PSA_DONE( ) mbedtls_test_helper_psa_done( __LINE__, __FILE__ )
+#define PSA_DONE( )                                     \
+    do                                                  \
+    {                                                   \
+        ASSERT_PSA_PRISTINE( );                         \
+        mbedtls_psa_crypto_free( );                     \
+    }                                                   \
+    while( 0 )
 
 
 

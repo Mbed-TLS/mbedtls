@@ -444,17 +444,16 @@ psa_status_t psa_driver_wrapper_import_key(
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
-psa_status_t psa_driver_wrapper_export_public_key( const psa_key_slot_t *slot,
-                                                   uint8_t *data,
-                                                   size_t data_size,
-                                                   size_t *data_length )
+psa_status_t psa_driver_wrapper_export_public_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    uint8_t *data, size_t data_size, size_t *data_length )
+
 {
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
     psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
-    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime);
-    psa_key_attributes_t attributes = {
-      .core = slot->attr
-    };
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(
+                                      psa_get_key_lifetime( attributes ) );
 
     switch( location )
     {
@@ -462,9 +461,9 @@ psa_status_t psa_driver_wrapper_export_public_key( const psa_key_slot_t *slot,
             /* Key is stored in the slot in export representation, so
              * cycle through all known transparent accelerators */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-            status = test_transparent_export_public_key( &attributes,
-                                                         slot->key.data,
-                                                         slot->key.bytes,
+            status = test_transparent_export_public_key( attributes,
+                                                         key_buffer,
+                                                         key_buffer_size,
                                                          data,
                                                          data_size,
                                                          data_length );
@@ -477,9 +476,9 @@ psa_status_t psa_driver_wrapper_export_public_key( const psa_key_slot_t *slot,
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
-            return( test_opaque_export_public_key( &attributes,
-                                                   slot->key.data,
-                                                   slot->key.bytes,
+            return( test_opaque_export_public_key( attributes,
+                                                   key_buffer,
+                                                   key_buffer_size,
                                                    data,
                                                    data_size,
                                                    data_length ) );
@@ -489,7 +488,9 @@ psa_status_t psa_driver_wrapper_export_public_key( const psa_key_slot_t *slot,
             return( status );
     }
 #else /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-    (void) slot;
+    (void) attributes;
+    (void) key_buffer;
+    (void) key_buffer_size;
     (void) data;
     (void) data_size;
     (void) data_length;

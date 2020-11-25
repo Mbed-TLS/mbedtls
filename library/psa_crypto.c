@@ -1481,49 +1481,76 @@ psa_status_t psa_get_key_slot_number(
 }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-static psa_status_t psa_export_key_buffer_internal( const psa_key_slot_t *slot,
+static psa_status_t psa_export_key_buffer_internal( const uint8_t *key_buffer,
+                                                    size_t key_buffer_size,
                                                     uint8_t *data,
                                                     size_t data_size,
                                                     size_t *data_length )
 {
-    if( slot->key.bytes > data_size )
+    if( key_buffer_size > data_size )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
-    memcpy( data, slot->key.data, slot->key.bytes );
-    memset( data + slot->key.bytes, 0,
-            data_size - slot->key.bytes );
-    *data_length = slot->key.bytes;
+    memcpy( data, key_buffer, key_buffer_size );
+    memset( data + key_buffer_size, 0,
+            data_size - key_buffer_size );
+    *data_length = key_buffer_size;
     return( PSA_SUCCESS );
 }
 
-static psa_status_t psa_export_key_internal( const psa_key_slot_t *slot,
-                                             uint8_t *data,
-                                             size_t data_size,
-                                             size_t *data_length )
+/** Export a key in binary format
+ *
+ * \note The signature of this function is that of a PSA driver export_key
+ *       entry point. This function behaves as an export_key entry point as
+ *       defined in the PSA driver interface specification.
+ *
+ * \param[in]  attributes       The attributes for the key to export.
+ * \param[in]  key_buffer       Material or context of the key to export.
+ * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes.
+ * \param[out] data             Buffer where the key data is to be written.
+ * \param[in]  data_size        Size of the \p data buffer in bytes.
+ * \param[out] data_length      On success, the number of bytes written in
+ *                              \p data
+ *
+ * \retval #PSA_SUCCESS  The key was exported successfully.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+static psa_status_t psa_export_key_internal(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    uint8_t *data, size_t data_size, size_t *data_length )
 {
+    psa_key_type_t type = attributes->core.type;
+
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     const psa_drv_se_t *drv;
     psa_drv_se_context_t *drv_context;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )
+    if( psa_get_se_driver( attributes->core.lifetime, &drv, &drv_context ) )
     {
         if( ( drv->key_management == NULL   ) ||
             ( drv->key_management->p_export == NULL ) )
             return( PSA_ERROR_NOT_SUPPORTED );
 
         return( drv->key_management->p_export(
-                     drv_context, psa_key_slot_get_slot_number( slot ),
+                     drv_context,
+                     *( (psa_key_slot_number_t *)key_buffer ),
                      data, data_size, data_length ) );
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    if( key_type_is_raw_bytes( slot->attr.type ) ||
-        PSA_KEY_TYPE_IS_RSA( slot->attr.type )   ||
-        PSA_KEY_TYPE_IS_ECC( slot->attr.type )      )
+    if( key_type_is_raw_bytes( type ) ||
+        PSA_KEY_TYPE_IS_RSA( type )   ||
+        PSA_KEY_TYPE_IS_ECC( type )      )
     {
         return( psa_export_key_buffer_internal(
-                    slot, data, data_size, data_length ) );
+                    key_buffer, key_buffer_size,
+                    data, data_size, data_length ) );
     }
     else
     {
@@ -1567,7 +1594,12 @@ psa_status_t psa_export_key( mbedtls_svc_key_id_t key,
          goto exit;
     }
 
-    status = psa_export_key_internal( slot, data, data_size, data_length );
+    psa_key_attributes_t attributes = {
+        .core = slot->attr
+    };
+    status = psa_export_key_internal( &attributes,
+                 slot->key.data, slot->key.bytes,
+                 data, data_size, data_length );
 
 exit:
     unlock_status = psa_unlock_key_slot( slot );
@@ -1575,60 +1607,87 @@ exit:
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
-static psa_status_t psa_export_public_key_internal( const psa_key_slot_t *slot,
-                                                    uint8_t *data,
-                                                    size_t data_size,
-                                                    size_t *data_length )
+/** Export a public key or the public part of a key pair in binary format.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       export_public_key entry point. This function behaves as an
+ *       export_public_key entry point as defined in the PSA driver interface
+ *       specification.
+ *
+ * \param[in]  attributes       The attributes for the key to export.
+ * \param[in]  key_buffer       Material or context of the key to export.
+ * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes.
+ * \param[out] data             Buffer where the key data is to be written.
+ * \param[in]  data_size        Size of the \p data buffer in bytes.
+ * \param[out] data_length      On success, the number of bytes written in
+ *                              \p data
+ *
+ * \retval #PSA_SUCCESS  The public key was exported successfully.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+static psa_status_t psa_export_public_key_internal(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    uint8_t *data,
+    size_t data_size,
+    size_t *data_length )
 {
+    psa_key_type_t type = attributes->core.type;
+    psa_key_lifetime_t lifetime = attributes->core.lifetime;
+
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     const psa_drv_se_t *drv;
     psa_drv_se_context_t *drv_context;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )
+    if( psa_get_se_driver( lifetime, &drv, &drv_context ) )
     {
         if( ( drv->key_management == NULL ) ||
             ( drv->key_management->p_export_public == NULL ) )
             return( PSA_ERROR_NOT_SUPPORTED );
 
         return( drv->key_management->p_export_public(
-                    drv_context, psa_key_slot_get_slot_number( slot ),
+                    drv_context,
+                    *( (psa_key_slot_number_t *)key_buffer ),
                     data, data_size, data_length ) );
     }
     else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) ||
-             PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
+    if( PSA_KEY_TYPE_IS_RSA( type ) || PSA_KEY_TYPE_IS_ECC( type ) )
     {
-        if( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->attr.type ) )
+        if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
         {
             /* Exporting public -> public */
             return( psa_export_key_buffer_internal(
-                        slot, data, data_size, data_length ) );
+                        key_buffer, key_buffer_size,
+                        data, data_size, data_length ) );
         }
 
         /* Need to export the public part of a private key,
          * so conversion is needed. Try the accelerators first. */
-        psa_key_attributes_t attributes = {
-          .core = slot->attr
-        };
         psa_status_t status = psa_driver_wrapper_export_public_key(
-            &attributes, slot->key.data, slot->key.bytes,
+            attributes, key_buffer, key_buffer_size,
             data, data_size, data_length );
 
         if( status != PSA_ERROR_NOT_SUPPORTED ||
-            psa_key_lifetime_is_external( slot->attr.lifetime ) )
+            psa_key_lifetime_is_external( lifetime ) )
             return( status );
 
-        if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
+        if( PSA_KEY_TYPE_IS_RSA( type ) )
         {
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
             mbedtls_rsa_context *rsa = NULL;
-            status = mbedtls_psa_rsa_load_representation( slot->attr.type,
-                                                          slot->key.data,
-                                                          slot->key.bytes,
+            status = mbedtls_psa_rsa_load_representation( type,
+                                                          key_buffer,
+                                                          key_buffer_size,
                                                           &rsa );
             if( status != PSA_SUCCESS )
                 return( status );
@@ -1654,16 +1713,16 @@ static psa_status_t psa_export_public_key_internal( const psa_key_slot_t *slot,
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
             mbedtls_ecp_keypair *ecp = NULL;
-            status = mbedtls_psa_ecp_load_representation( slot->attr.type,
-                                                          slot->key.data,
-                                                          slot->key.bytes,
+            status = mbedtls_psa_ecp_load_representation( type,
+                                                          key_buffer,
+                                                          key_buffer_size,
                                                           &ecp );
             if( status != PSA_SUCCESS )
                 return( status );
 
             status = mbedtls_psa_ecp_export_key(
                 PSA_KEY_TYPE_ECC_PUBLIC_KEY(
-                    PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type ) ),
+                    PSA_KEY_TYPE_ECC_GET_FAMILY( type ) ),
                 ecp,
                 data,
                 data_size,
@@ -1687,6 +1746,7 @@ static psa_status_t psa_export_public_key_internal( const psa_key_slot_t *slot,
         return( PSA_ERROR_NOT_SUPPORTED );
     }
 }
+
 psa_status_t psa_export_public_key( mbedtls_svc_key_id_t key,
                                     uint8_t *data,
                                     size_t data_size,
@@ -1722,8 +1782,12 @@ psa_status_t psa_export_public_key( mbedtls_svc_key_id_t key,
          goto exit;
     }
 
+    psa_key_attributes_t attributes = {
+        .core = slot->attr
+    };
     status = psa_export_public_key_internal(
-                 slot, data, data_size, data_length );
+        &attributes, slot->key.data, slot->key.bytes,
+        data, data_size, data_length );
 
 exit:
     unlock_status = psa_unlock_key_slot( slot );

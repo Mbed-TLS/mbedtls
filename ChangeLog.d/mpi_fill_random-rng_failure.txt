@@ -1,0 +1,8 @@
+Security
+   * A failure of the random generator was ignored in mbedtls_mpi_fill_random(),
+     which is how most uses of randomization in asymmetric cryptography
+     (including key generation, intermediate value randomization and blinding)
+     are implemented. This could cause failures or the silent use of non-random
+     values. A random generator can fail if it needs reseeding and cannot not
+     obtain entropy, or due to an internal failure (which, for Mbed TLS's own
+     CTR_DRBG or HMAC_DRBG, can only happen due to a misconfiguration).

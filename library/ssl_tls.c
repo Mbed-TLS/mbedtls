@@ -933,8 +933,8 @@ int tls_prf_generic( mbedtls_md_type_t md_type,
 {
     size_t nb;
     size_t i, j, k, md_len;
-    unsigned char tmp[128];
-    unsigned char h_i[MBEDTLS_MD_MAX_SIZE];
+    unsigned char tmp[128] = {0};
+    unsigned char h_i[MBEDTLS_MD_MAX_SIZE] = {0};
     mbedtls_md_handle_t md_info;
     mbedtls_md_context_t md_ctx;
     int ret;
@@ -12709,6 +12709,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 #endif
         mbedtls_platform_zeroize( ssl->out_buf, out_buf_len );
         mbedtls_free( ssl->out_buf );
+        ssl->out_buf = NULL;
     }
 
     if( ssl->in_buf != NULL )
@@ -12720,6 +12721,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 #endif
         mbedtls_platform_zeroize( ssl->in_buf, in_buf_len );
         mbedtls_free( ssl->in_buf );
+        ssl->in_buf = NULL;
     }
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)

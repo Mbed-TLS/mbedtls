@@ -276,9 +276,9 @@ uint32_t mbedtls_platform_random_uint32( void );
  *              cryptographically secure RNG, but provide an RNG for utility
  *              functions.
  *
- * \note        If the given range is [0, 0), 0 is returned.
- *
  * \param num   Max-value for the generated random number, exclusive.
+ *              Must be greater than zero, otherwise an undefined behavior
+ *              will occur on "num % 0".
  *              The generated number will be on range [0, num).
  *
  * \return      The generated random number.

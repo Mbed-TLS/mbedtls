@@ -80,7 +80,7 @@ psa_status_t psa_driver_wrapper_sign_hash( psa_key_slot_t *slot,
             return( PSA_ERROR_NOT_SUPPORTED );
         }
         return( drv->asymmetric->p_sign( drv_context,
-                                         slot->data.se.slot_number,
+                                         psa_key_slot_get_slot_number( slot ),
                                          alg,
                                          hash, hash_length,
                                          signature, signature_size,
@@ -103,8 +103,8 @@ psa_status_t psa_driver_wrapper_sign_hash( psa_key_slot_t *slot,
              * cycle through all known transparent accelerators */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
             status = test_transparent_signature_sign_hash( &attributes,
-                                                           slot->data.key.data,
-                                                           slot->data.key.bytes,
+                                                           slot->key.data,
+                                                           slot->key.bytes,
                                                            alg,
                                                            hash,
                                                            hash_length,
@@ -121,8 +121,8 @@ psa_status_t psa_driver_wrapper_sign_hash( psa_key_slot_t *slot,
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
             return( test_opaque_signature_sign_hash( &attributes,
-                                                     slot->data.key.data,
-                                                     slot->data.key.bytes,
+                                                     slot->key.data,
+                                                     slot->key.bytes,
                                                      alg,
                                                      hash,
                                                      hash_length,
@@ -172,7 +172,7 @@ psa_status_t psa_driver_wrapper_verify_hash( psa_key_slot_t *slot,
             return( PSA_ERROR_NOT_SUPPORTED );
         }
         return( drv->asymmetric->p_verify( drv_context,
-                                           slot->data.se.slot_number,
+                                           psa_key_slot_get_slot_number( slot ),
                                            alg,
                                            hash, hash_length,
                                            signature, signature_length ) );
@@ -194,8 +194,8 @@ psa_status_t psa_driver_wrapper_verify_hash( psa_key_slot_t *slot,
              * cycle through all known transparent accelerators */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
             status = test_transparent_signature_verify_hash( &attributes,
-                                                             slot->data.key.data,
-                                                             slot->data.key.bytes,
+                                                             slot->key.data,
+                                                             slot->key.bytes,
                                                              alg,
                                                              hash,
                                                              hash_length,
@@ -211,8 +211,8 @@ psa_status_t psa_driver_wrapper_verify_hash( psa_key_slot_t *slot,
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
             return( test_opaque_signature_verify_hash( &attributes,
-                                                       slot->data.key.data,
-                                                       slot->data.key.bytes,
+                                                       slot->key.data,
+                                                       slot->key.bytes,
                                                        alg,
                                                        hash,
                                                        hash_length,
@@ -330,9 +330,8 @@ psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attrib
             return( PSA_ERROR_NOT_SUPPORTED );
         }
         return( drv->key_management->p_generate(
-            drv_context,
-            slot->data.se.slot_number, attributes,
-            NULL, 0, &pubkey_length ) );
+            drv_context, psa_key_slot_get_slot_number( slot ),
+            attributes, NULL, 0, &pubkey_length ) );
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
@@ -346,10 +345,10 @@ psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attrib
     if( status != PSA_SUCCESS )
         return( status );
 
-    slot->data.key.data = mbedtls_calloc(1, export_size);
-    if( slot->data.key.data == NULL )
+    slot->key.data = mbedtls_calloc(1, export_size);
+    if( slot->key.data == NULL )
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
-    slot->data.key.bytes = export_size;
+    slot->key.bytes = export_size;
 
     switch( location )
     {
@@ -365,9 +364,9 @@ psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attrib
             }
 #if defined(PSA_CRYPTO_DRIVER_TEST)
             status = test_transparent_generate_key( attributes,
-                                                    slot->data.key.data,
-                                                    slot->data.key.bytes,
-                                                    &slot->data.key.bytes );
+                                                    slot->key.data,
+                                                    slot->key.bytes,
+                                                    &slot->key.bytes );
             /* Declared with fallback == true */
             if( status != PSA_ERROR_NOT_SUPPORTED )
                 break;
@@ -379,9 +378,9 @@ psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attrib
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
             status = test_opaque_generate_key( attributes,
-                                               slot->data.key.data,
-                                               slot->data.key.bytes,
-                                               &slot->data.key.bytes );
+                                               slot->key.data,
+                                               slot->key.bytes,
+                                               &slot->key.bytes );
             break;
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
@@ -393,9 +392,9 @@ psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attrib
     if( status != PSA_SUCCESS )
     {
         /* free allocated buffer */
-        mbedtls_free( slot->data.key.data );
-        slot->data.key.data = NULL;
-        slot->data.key.bytes = 0;
+        mbedtls_free( slot->key.data );
+        slot->key.data = NULL;
+        slot->key.bytes = 0;
     }
 
     return( status );
@@ -457,8 +456,8 @@ psa_status_t psa_driver_wrapper_export_public_key( const psa_key_slot_t *slot,
              * cycle through all known transparent accelerators */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
             status = test_transparent_export_public_key( &attributes,
-                                                         slot->data.key.data,
-                                                         slot->data.key.bytes,
+                                                         slot->key.data,
+                                                         slot->key.bytes,
                                                          data,
                                                          data_size,
                                                          data_length );
@@ -472,8 +471,8 @@ psa_status_t psa_driver_wrapper_export_public_key( const psa_key_slot_t *slot,
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
             return( test_opaque_export_public_key( &attributes,
-                                                   slot->data.key.data,
-                                                   slot->data.key.bytes,
+                                                   slot->key.data,
+                                                   slot->key.bytes,
                                                    data,
                                                    data_size,
                                                    data_length ) );
@@ -517,8 +516,8 @@ psa_status_t psa_driver_wrapper_cipher_encrypt(
              * cycle through all known transparent accelerators */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
             status = test_transparent_cipher_encrypt( &attributes,
-                                                      slot->data.key.data,
-                                                      slot->data.key.bytes,
+                                                      slot->key.data,
+                                                      slot->key.bytes,
                                                       alg,
                                                       input,
                                                       input_length,
@@ -535,8 +534,8 @@ psa_status_t psa_driver_wrapper_cipher_encrypt(
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
             return( test_opaque_cipher_encrypt( &attributes,
-                                                slot->data.key.data,
-                                                slot->data.key.bytes,
+                                                slot->key.data,
+                                                slot->key.bytes,
                                                 alg,
                                                 input,
                                                 input_length,
@@ -584,8 +583,8 @@ psa_status_t psa_driver_wrapper_cipher_decrypt(
              * cycle through all known transparent accelerators */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
             status = test_transparent_cipher_decrypt( &attributes,
-                                                      slot->data.key.data,
-                                                      slot->data.key.bytes,
+                                                      slot->key.data,
+                                                      slot->key.bytes,
                                                       alg,
                                                       input,
                                                       input_length,
@@ -602,8 +601,8 @@ psa_status_t psa_driver_wrapper_cipher_decrypt(
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
             return( test_opaque_cipher_decrypt( &attributes,
-                                                slot->data.key.data,
-                                                slot->data.key.bytes,
+                                                slot->key.data,
+                                                slot->key.bytes,
                                                 alg,
                                                 input,
                                                 input_length,
@@ -652,8 +651,8 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
 
             status = test_transparent_cipher_encrypt_setup( operation->ctx,
                                                             &attributes,
-                                                            slot->data.key.data,
-                                                            slot->data.key.bytes,
+                                                            slot->key.data,
+                                                            slot->key.bytes,
                                                             alg );
             /* Declared with fallback == true */
             if( status == PSA_SUCCESS )
@@ -680,8 +679,8 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
 
             status = test_opaque_cipher_encrypt_setup( operation->ctx,
                                                        &attributes,
-                                                       slot->data.key.data,
-                                                       slot->data.key.bytes,
+                                                       slot->key.data,
+                                                       slot->key.bytes,
                                                        alg );
             if( status == PSA_SUCCESS )
                 operation->id = PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID;
@@ -733,8 +732,8 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
 
             status = test_transparent_cipher_decrypt_setup( operation->ctx,
                                                             &attributes,
-                                                            slot->data.key.data,
-                                                            slot->data.key.bytes,
+                                                            slot->key.data,
+                                                            slot->key.bytes,
                                                             alg );
             /* Declared with fallback == true */
             if( status == PSA_SUCCESS )
@@ -761,8 +760,8 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
 
             status = test_opaque_cipher_decrypt_setup( operation->ctx,
                                                        &attributes,
-                                                       slot->data.key.data,
-                                                       slot->data.key.bytes,
+                                                       slot->key.data,
+                                                       slot->key.bytes,
                                                        alg );
             if( status == PSA_SUCCESS )
                 operation->id = PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID;

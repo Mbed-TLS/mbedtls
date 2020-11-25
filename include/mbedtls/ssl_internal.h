@@ -1306,4 +1306,10 @@ void mbedtls_ssl_buffering_free( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+/* Returns a pointer to the header of the handshake message */
+static inline unsigned char *mbedtls_ssl_hs_hdr_ptr( const mbedtls_ssl_context *ssl )
+{
+    return( ssl->in_msg );
+}
+
 #endif /* ssl_internal.h */

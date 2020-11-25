@@ -32,6 +32,8 @@
 #include "psa_crypto_core.h"
 #include "psa_crypto_invasive.h"
 #include "psa_crypto_driver_wrappers.h"
+#include "psa_crypto_ecp.h"
+#include "psa_crypto_rsa.h"
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 #include "psa_crypto_se.h"
 #endif
@@ -531,102 +533,6 @@ static psa_status_t validate_unstructured_key_bit_size( psa_key_type_t type,
     return( PSA_SUCCESS );
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
-
-/* Mbed TLS doesn't support non-byte-aligned key sizes (i.e. key sizes
- * that are not a multiple of 8) well. For example, there is only
- * mbedtls_rsa_get_len(), which returns a number of bytes, and no
- * way to return the exact bit size of a key.
- * To keep things simple, reject non-byte-aligned key sizes. */
-static psa_status_t psa_check_rsa_key_byte_aligned(
-    const mbedtls_rsa_context *rsa )
-{
-    mbedtls_mpi n;
-    psa_status_t status;
-    mbedtls_mpi_init( &n );
-    status = mbedtls_to_psa_error(
-        mbedtls_rsa_export( rsa, &n, NULL, NULL, NULL, NULL ) );
-    if( status == PSA_SUCCESS )
-    {
-        if( mbedtls_mpi_bitlen( &n ) % 8 != 0 )
-            status = PSA_ERROR_NOT_SUPPORTED;
-    }
-    mbedtls_mpi_free( &n );
-    return( status );
-}
-
-/** Load the contents of a key buffer into an internal RSA representation
- *
- * \param[in] type          The type of key contained in \p data.
- * \param[in] data          The buffer from which to load the representation.
- * \param[in] data_length   The size in bytes of \p data.
- * \param[out] p_rsa        Returns a pointer to an RSA context on success.
- *                          The caller is responsible for freeing both the
- *                          contents of the context and the context itself
- *                          when done.
- */
-static psa_status_t mbedtls_psa_rsa_load_representation(
-    psa_key_type_t type, const uint8_t *data, size_t data_length,
-    mbedtls_rsa_context **p_rsa )
-{
-    psa_status_t status;
-    mbedtls_pk_context ctx;
-    size_t bits;
-    mbedtls_pk_init( &ctx );
-
-    /* Parse the data. */
-    if( PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
-        status = mbedtls_to_psa_error(
-            mbedtls_pk_parse_key( &ctx, data, data_length, NULL, 0 ) );
-    else
-        status = mbedtls_to_psa_error(
-            mbedtls_pk_parse_public_key( &ctx, data, data_length ) );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    /* We have something that the pkparse module recognizes. If it is a
-     * valid RSA key, store it. */
-    if( mbedtls_pk_get_type( &ctx ) != MBEDTLS_PK_RSA )
-    {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto exit;
-    }
-
-    /* The size of an RSA key doesn't have to be a multiple of 8. Mbed TLS
-     * supports non-byte-aligned key sizes, but not well. For example,
-     * mbedtls_rsa_get_len() returns the key size in bytes, not in bits. */
-    bits = PSA_BYTES_TO_BITS( mbedtls_rsa_get_len( mbedtls_pk_rsa( ctx ) ) );
-    if( bits > PSA_VENDOR_RSA_MAX_KEY_BITS )
-    {
-        status = PSA_ERROR_NOT_SUPPORTED;
-        goto exit;
-    }
-    status = psa_check_rsa_key_byte_aligned( mbedtls_pk_rsa( ctx ) );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    /* Copy out the pointer to the RSA context, and reset the PK context
-     * such that pk_free doesn't free the RSA context we just grabbed. */
-    *p_rsa = mbedtls_pk_rsa( ctx );
-    ctx.pk_info = NULL;
-
-exit:
-    mbedtls_pk_free( &ctx );
-    return( status );
-}
-
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
-
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
 
@@ -756,115 +662,6 @@ exit:
 
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
-
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
-/** Load the contents of a key buffer into an internal ECP representation
- *
- * \param[in] type          The type of key contained in \p data.
- * \param[in] data          The buffer from which to load the representation.
- * \param[in] data_length   The size in bytes of \p data.
- * \param[out] p_ecp        Returns a pointer to an ECP context on success.
- *                          The caller is responsible for freeing both the
- *                          contents of the context and the context itself
- *                          when done.
- */
-static psa_status_t mbedtls_psa_ecp_load_representation(
-    psa_key_type_t type, const uint8_t *data, size_t data_length,
-    mbedtls_ecp_keypair **p_ecp )
-{
-    mbedtls_ecp_group_id grp_id = MBEDTLS_ECP_DP_NONE;
-    psa_status_t status;
-    mbedtls_ecp_keypair *ecp = NULL;
-    size_t curve_size = data_length;
-
-    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) &&
-        PSA_KEY_TYPE_ECC_GET_FAMILY( type ) != PSA_ECC_FAMILY_MONTGOMERY )
-    {
-        /* A Weierstrass public key is represented as:
-         * - The byte 0x04;
-         * - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
-         * - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
-         * So its data length is 2m+1 where m is the curve size in bits.
-         */
-        if( ( data_length & 1 ) == 0 )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        curve_size = data_length / 2;
-
-        /* Montgomery public keys are represented in compressed format, meaning
-         * their curve_size is equal to the amount of input. */
-
-        /* Private keys are represented in uncompressed private random integer
-         * format, meaning their curve_size is equal to the amount of input. */
-    }
-
-    /* Allocate and initialize a key representation. */
-    ecp = mbedtls_calloc( 1, sizeof( mbedtls_ecp_keypair ) );
-    if( ecp == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-    mbedtls_ecp_keypair_init( ecp );
-
-    /* Load the group. */
-    grp_id = mbedtls_ecc_group_of_psa( PSA_KEY_TYPE_ECC_GET_FAMILY( type ),
-                                       curve_size );
-    if( grp_id == MBEDTLS_ECP_DP_NONE )
-    {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto exit;
-    }
-
-    status = mbedtls_to_psa_error(
-                mbedtls_ecp_group_load( &ecp->grp, grp_id ) );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    /* Load the key material. */
-    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
-    {
-        /* Load the public value. */
-        status = mbedtls_to_psa_error(
-            mbedtls_ecp_point_read_binary( &ecp->grp, &ecp->Q,
-                                           data,
-                                           data_length ) );
-        if( status != PSA_SUCCESS )
-            goto exit;
-
-        /* Check that the point is on the curve. */
-        status = mbedtls_to_psa_error(
-            mbedtls_ecp_check_pubkey( &ecp->grp, &ecp->Q ) );
-        if( status != PSA_SUCCESS )
-            goto exit;
-    }
-    else
-    {
-        /* Load and validate the secret value. */
-        status = mbedtls_to_psa_error(
-            mbedtls_ecp_read_key( ecp->grp.id,
-                                  ecp,
-                                  data,
-                                  data_length ) );
-        if( status != PSA_SUCCESS )
-            goto exit;
-    }
-
-    *p_ecp = ecp;
-exit:
-    if( status != PSA_SUCCESS )
-    {
-        mbedtls_ecp_keypair_free( ecp );
-        mbedtls_free( ecp );
-    }
-
-    return( status );
-}
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
 
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)

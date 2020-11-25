@@ -48,6 +48,12 @@
 #include "mbedtls/entropy_poll.h"
 #endif
 
+#if defined(MBEDTLS_PLATFORM_FAULT_CALLBACKS)
+#include "platform_fault.h"
+#else
+static void mbedtls_platform_fault(){}
+#endif
+
 #include <stddef.h>
 #include <string.h>
 
@@ -167,7 +173,7 @@ void *mbedtls_platform_memset( void *ptr, int value, size_t num )
             return ptr;
         }
     }
-
+    mbedtls_platform_fault();
     return NULL;
 }
 
@@ -207,6 +213,7 @@ void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
             return dst;
         }
     }
+    mbedtls_platform_fault();
     return NULL;
 }
 

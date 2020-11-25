@@ -1986,6 +1986,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_MEMORY_BUFFER_ALLOC_C */
 
+#if defined(MBEDTLS_PLATFORM_FAULT_CALLBACKS)
+    if( strcmp( "MBEDTLS_PLATFORM_FAULT_CALLBACKS", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PLATFORM_FAULT_CALLBACKS );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PLATFORM_FAULT_CALLBACKS */
+
 #if defined(MBEDTLS_NET_C)
     if( strcmp( "MBEDTLS_NET_C", config ) == 0 )
     {

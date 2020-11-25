@@ -2590,7 +2590,7 @@ void mbedtls_ssl_recv_flight_completed( mbedtls_ssl_context *ssl )
     mbedtls_ssl_set_timer( ssl, 0 );
 
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
-        ssl->in_msg[0] == MBEDTLS_SSL_HS_FINISHED )
+        mbedtls_ssl_hs_msg_type( ssl ) == MBEDTLS_SSL_HS_FINISHED )
     {
         ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_FINISHED;
     }
@@ -2607,7 +2607,7 @@ void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl )
     mbedtls_ssl_set_timer( ssl, ssl->handshake->retransmit_timeout );
 
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
-        ssl->in_msg[0] == MBEDTLS_SSL_HS_FINISHED )
+        mbedtls_ssl_hs_msg_type( ssl ) == MBEDTLS_SSL_HS_FINISHED )
     {
         ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_FINISHED;
     }

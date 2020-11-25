@@ -1312,4 +1312,11 @@ static inline unsigned char *mbedtls_ssl_hs_hdr_ptr( const mbedtls_ssl_context *
     return( ssl->in_msg );
 }
 
+/* Returns the type of the handshake message */
+static inline unsigned char mbedtls_ssl_hs_msg_type( const mbedtls_ssl_context *ssl )
+{
+    unsigned char *hdr = mbedtls_ssl_hs_hdr_ptr( ssl );
+    return( hdr[0] );
+}
+
 #endif /* ssl_internal.h */

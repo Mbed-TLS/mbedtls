@@ -4110,7 +4110,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
     }
 
-    if( ssl->in_msg[0] != MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE )
+    if( mbedtls_ssl_hs_msg_type( ssl ) != MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
@@ -4447,7 +4447,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 
     /* Process the message contents */
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
-        ssl->in_msg[0] != MBEDTLS_SSL_HS_CERTIFICATE_VERIFY )
+        mbedtls_ssl_hs_msg_type( ssl ) != MBEDTLS_SSL_HS_CERTIFICATE_VERIFY )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );

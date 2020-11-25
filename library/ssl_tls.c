@@ -2259,7 +2259,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
-    if( ssl->in_msg[0] != MBEDTLS_SSL_HS_CERTIFICATE ||
+    if( mbedtls_ssl_hs_msg_type( ssl ) != MBEDTLS_SSL_HS_CERTIFICATE ||
         ssl->in_hslen < mbedtls_ssl_hs_hdr_len( ssl ) + 3 + 3 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
@@ -2403,7 +2403,7 @@ static int ssl_srv_check_client_no_crt_notification( mbedtls_ssl_context *ssl )
     {
         if( ssl->in_msglen  == 2                        &&
             ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT            &&
-            ssl->in_msg[0]  == MBEDTLS_SSL_ALERT_LEVEL_WARNING  &&
+            mbedtls_ssl_hs_msg_type( ssl )  == MBEDTLS_SSL_ALERT_LEVEL_WARNING  &&
             ssl->in_msg[1]  == MBEDTLS_SSL_ALERT_MSG_NO_CERT )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "SSLv3 client has no certificate" ) );
@@ -2418,7 +2418,7 @@ static int ssl_srv_check_client_no_crt_notification( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->in_hslen   == 3 + mbedtls_ssl_hs_hdr_len( ssl ) &&
         ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE    &&
-        ssl->in_msg[0]  == MBEDTLS_SSL_HS_CERTIFICATE   &&
+        mbedtls_ssl_hs_msg_type( ssl )  == MBEDTLS_SSL_HS_CERTIFICATE   &&
         memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ), "\0\0\0", 3 ) == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLSv1 client has no certificate" ) );
@@ -3524,7 +3524,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
 #endif
         hash_len = 12;
 
-    if( ssl->in_msg[0] != MBEDTLS_SSL_HS_FINISHED ||
+    if( mbedtls_ssl_hs_msg_type( ssl ) != MBEDTLS_SSL_HS_FINISHED ||
         ssl->in_hslen  != mbedtls_ssl_hs_hdr_len( ssl ) + hash_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );

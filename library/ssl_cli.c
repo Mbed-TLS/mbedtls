@@ -2105,7 +2105,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        if( buf[0] == MBEDTLS_SSL_HS_HELLO_VERIFY_REQUEST )
+        if( mbedtls_ssl_hs_msg_type( ssl )  == MBEDTLS_SSL_HS_HELLO_VERIFY_REQUEST )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "received hello verify request" ) );
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server hello" ) );
@@ -2122,7 +2122,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     if( ssl->in_hslen < 38 + mbedtls_ssl_hs_hdr_len( ssl ) ||
-        buf[0] != MBEDTLS_SSL_HS_SERVER_HELLO )
+        mbedtls_ssl_hs_msg_type( ssl ) != MBEDTLS_SSL_HS_SERVER_HELLO )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -3113,7 +3113,7 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
      * ServerKeyExchange may be skipped with PSK and RSA-PSK when the server
      * doesn't use a psk_identity_hint
      */
-    if( ssl->in_msg[0] != MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE )
+    if( mbedtls_ssl_hs_msg_type( ssl ) != MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE )
     {
         if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
             ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
@@ -3496,7 +3496,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     }
 
     ssl->state++;
-    ssl->client_auth = ( ssl->in_msg[0] == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST );
+    ssl->client_auth = ( mbedtls_ssl_hs_msg_type( ssl ) == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "got %s certificate request",
                         ssl->client_auth ? "a" : "no" ) );
@@ -3651,7 +3651,7 @@ static int ssl_parse_server_hello_done( mbedtls_ssl_context *ssl )
     }
 
     if( ssl->in_hslen  != mbedtls_ssl_hs_hdr_len( ssl ) ||
-        ssl->in_msg[0] != MBEDTLS_SSL_HS_SERVER_HELLO_DONE )
+        mbedtls_ssl_hs_msg_type( ssl ) != MBEDTLS_SSL_HS_SERVER_HELLO_DONE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello done message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -4323,7 +4323,7 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
      * 4  .  5   ticket_len (n)
      * 6  .  5+n ticket content
      */
-    if( ssl->in_msg[0] != MBEDTLS_SSL_HS_NEW_SESSION_TICKET ||
+    if( mbedtls_ssl_hs_msg_type( ssl ) != MBEDTLS_SSL_HS_NEW_SESSION_TICKET ||
         ssl->in_hslen < 6 + mbedtls_ssl_hs_hdr_len( ssl ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );

@@ -48,6 +48,12 @@
 #include "mbedtls/entropy_poll.h"
 #endif
 
+#if defined(MBEDTLS_PLATFORM_FAULT_CALLBACKS)
+#include "platform_fault.h"
+#else
+static void mbedtls_platform_fault(){}
+#endif
+
 #include <stddef.h>
 #include <string.h>
 
@@ -119,43 +125,45 @@ void *mbedtls_platform_zeroize( void *buf, size_t len )
 
 void *mbedtls_platform_memset( void *ptr, int value, size_t num )
 {
-    size_t i, start_offset;
+    size_t i, start_offset = 0;
     volatile size_t flow_counter = 0;
     volatile char *b = ptr;
     char rnd_data;
-
-    start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
-    rnd_data = (char) mbedtls_platform_random_in_range( 256 );
-
-    /* Perform a memset operations with random data and start from a random
-     * location */
-    for( i = start_offset; i < num; ++i )
+    if( num > 0 )
     {
-        b[i] = rnd_data;
-        flow_counter++;
-    }
+        start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
 
-    /* Start from a random location with target data */
-    for( i = start_offset; i < num; ++i )
-    {
-        b[i] = value;
-        flow_counter++;
-    }
+        rnd_data = (char) mbedtls_platform_random_in_range( 256 );
 
-    /* Second memset operation with random data */
-    for( i = 0; i < start_offset; ++i )
-    {
-        b[i] = rnd_data;
-        flow_counter++;
-    }
+        /* Perform a memset operations with random data and start from a random
+         * location */
+        for( i = start_offset; i < num; ++i )
+        {
+            b[i] = rnd_data;
+            flow_counter++;
+        }
 
-    /* Finish memset operation with correct data */
-    for( i = 0; i < start_offset; ++i )
-    {
-        b[i] = value;
-        flow_counter++;
-    }
+        /* Start from a random location with target data */
+        for( i = start_offset; i < num; ++i )
+        {
+            b[i] = value;
+            flow_counter++;
+        }
 
+        /* Second memset operation with random data */
+        for( i = 0; i < start_offset; ++i )
+        {
+            b[i] = rnd_data;
+            flow_counter++;
+        }
+
+        /* Finish memset operation with correct data */
+        for( i = 0; i < start_offset; ++i )
+        {
+            b[i] = value;
+            flow_counter++;
+        }
+    }
     /* check the correct number of iterations */
     if( flow_counter == 2 * num )
     {
@@ -165,6 +173,7 @@ void *mbedtls_platform_memset( void *ptr, int value, size_t num )
             return ptr;
         }
     }
+    mbedtls_platform_fault();
     return NULL;
 }
 
@@ -204,6 +213,7 @@ void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
             return dst;
         }
     }
+    mbedtls_platform_fault();
     return NULL;
 }
 
@@ -245,22 +255,25 @@ int mbedtls_platform_memequal( const void *buf1, const void *buf2, size_t num )
 
     /* Start from a random location and check the correct number of iterations */
     size_t i, flow_counter = 0;
-    size_t start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
-
-    for( i = start_offset; i < num; i++ )
+    size_t start_offset = 0;
+    if( num > 0 )
     {
-        unsigned char x = A[i], y = B[i];
-        flow_counter++;
-        diff |= x ^ y;
-    }
+        start_offset = (size_t) mbedtls_platform_random_in_range( (uint32_t) num );
 
-    for( i = 0; i < start_offset; i++ )
-    {
-        unsigned char x = A[i], y = B[i];
-        flow_counter++;
-        diff |= x ^ y;
-    }
+        for( i = start_offset; i < num; i++ )
+        {
+            unsigned char x = A[i], y = B[i];
+            flow_counter++;
+            diff |= x ^ y;
+        }
 
+        for( i = 0; i < start_offset; i++ )
+        {
+            unsigned char x = A[i], y = B[i];
+            flow_counter++;
+            diff |= x ^ y;
+        }
+    }
     /* Return 0 only when diff is 0 and flow_counter is equal to num */
     return( (int) diff | (int) ( flow_counter ^ num ) );
 }
@@ -340,18 +353,7 @@ void mbedtls_platform_random_buf( uint8_t *buf, size_t len )
 
 uint32_t mbedtls_platform_random_in_range( uint32_t num )
 {
-    uint32_t result;
-
-    if( num <= 1 )
-    {
-        result = 0;
-    }
-    else
-    {
-        result = mbedtls_platform_random_uint32() % num;
-    }
-
-    return( result );
+    return mbedtls_platform_random_uint32() % num;
 }
 
 void mbedtls_platform_random_delay( void )

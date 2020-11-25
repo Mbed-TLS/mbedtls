@@ -2971,6 +2971,18 @@
 //#define MBEDTLS_MEMORY_BUFFER_ALLOC_C
 
 /**
+ * \def MBEDTLS_PLATFORM_FAULT_CALLBACKS
+ *
+ * Uncomment to provide your own alternate implementation for mbedtls_platform_fault(),
+ * used in library/platform_util.c to signal a fault injection in either
+ * mbedtls_platform_memcpy or mbedtls_platform_memset.
+ *
+ * You will need to provide a header "platform_fault.h" and an implementation at
+ * compile time.
+ */
+//#define MBEDTLS_PLATFORM_FAULT_CALLBACKS
+
+/**
  * \def MBEDTLS_NET_C
  *
  * Enable the TCP and UDP over IPv6/IPv4 networking routines.

@@ -805,7 +805,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
                 RK[5]  = RK[1] ^ RK[4];
                 RK[6]  = RK[2] ^ RK[5];
                 RK[7]  = RK[3] ^ RK[6];
-            }                
+            }
             break;
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
         case 12:
@@ -1197,7 +1197,7 @@ static int init_masking_encrypt(const uint8_t *rk, uint8_t *rk_masked, uint32_t 
   volatile int flow_control = 0;
   unsigned int i = 0;
 
-  mbedtls_platform_memcpy(rk_masked, rk, AES_128_EXPANDED_KEY_SIZE_IN_WORDS*4);
+  mbedtls_platform_memcpy(rk_masked, rk, MBEDTLS_AES_128_EXPANDED_KEY_SIZE_IN_WORDS*4);
 
 
   //Randomly generate the masks: m1 m2 m3 m4 m m'
@@ -1213,7 +1213,7 @@ static int init_masking_encrypt(const uint8_t *rk, uint8_t *rk_masked, uint32_t 
 
   //Calculate the masked Sbox
   if (calcSboxMasked(mask, sbox_masked) == 0){
-      flow_control++;  
+      flow_control++;
   }
 
 #define MASK_INIT_CONTROL 19
@@ -1386,7 +1386,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     uint8_t round_ctrl_table[( 14 + AES_SCA_CM_ROUNDS + 2 )];
 
 #if defined MBEDTLS_AES_128_BIT_MASKED
-    uint32_t rk_masked[AES_128_EXPANDED_KEY_SIZE_IN_WORDS] = {0};
+    uint32_t rk_masked[MBEDTLS_AES_128_EXPANDED_KEY_SIZE_IN_WORDS] = {0};
     static uint8_t sbox_masked[256] = {0};
     uint32_t mask[10] = {0};
 #endif
@@ -1495,7 +1495,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
             aes_data_ptr->xy_values[6 - offset],
             aes_data_ptr->xy_values[7 - offset] );
         flow_control++;
-#endif        
+#endif
         tindex++;
 
     } while( stop_mark == 0 );
@@ -1510,7 +1510,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
                                      aes_data_ptr->rk_ptr, sbox_masked ) == 0)
             flow_control++;
         //Cleanup the masked key
-        mbedtls_platform_memset(rk_masked, 0, sizeof(rk_masked));              
+        mbedtls_platform_memset(rk_masked, 0, sizeof(rk_masked));
 #else
         aes_fround_final( aes_data_ptr->rk_ptr,
             &aes_data_ptr->xy_values[0],

@@ -62,23 +62,13 @@ typedef struct
      */
     size_t lock_count;
 
-    union
+    /* Dynamically allocated key data buffer.
+     * Format as specified in psa_export_key(). */
+    struct key_data
     {
-        /* Dynamically allocated key data buffer.
-         * Format as specified in psa_export_key(). */
-        struct key_data
-        {
-            uint8_t *data;
-            size_t bytes;
-        } key;
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-        /* Any key type in a secure element */
-        struct se
-        {
-            psa_key_slot_number_t slot_number;
-        } se;
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    } data;
+        uint8_t *data;
+        size_t bytes;
+    } key;
 } psa_key_slot_t;
 
 /* A mask of key attribute flags used only internally.
@@ -162,6 +152,20 @@ static inline void psa_key_slot_clear_bits( psa_key_slot_t *slot,
 {
     slot->attr.flags &= ~mask;
 }
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+/** Get the SE slot number of a key from the key slot storing its description.
+ *
+ * \param[in]  slot  The key slot to query. This must be a key slot storing
+ *                   the description of a key of a dynamically registered
+ *                   secure element, otherwise the behaviour is undefined.
+ */
+static inline psa_key_slot_number_t psa_key_slot_get_slot_number(
+    const psa_key_slot_t *slot )
+{
+    return( *( (psa_key_slot_number_t *)( slot->key.data ) ) );
+}
+#endif
 
 /** Completely wipe a slot in memory, including its policy.
  *

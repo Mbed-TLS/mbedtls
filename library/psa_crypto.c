@@ -1481,7 +1481,7 @@ psa_status_t psa_get_key_slot_number(
 }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-static psa_status_t psa_internal_export_key_buffer( const psa_key_slot_t *slot,
+static psa_status_t psa_export_key_buffer_internal( const psa_key_slot_t *slot,
                                                     uint8_t *data,
                                                     size_t data_size,
                                                     size_t *data_length )
@@ -1495,7 +1495,7 @@ static psa_status_t psa_internal_export_key_buffer( const psa_key_slot_t *slot,
     return( PSA_SUCCESS );
 }
 
-static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
+static psa_status_t psa_export_key_internal( const psa_key_slot_t *slot,
                                              uint8_t *data,
                                              size_t data_size,
                                              size_t *data_length,
@@ -1536,7 +1536,7 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
 
     if( key_type_is_raw_bytes( slot->attr.type ) )
     {
-        return( psa_internal_export_key_buffer( slot, data, data_size, data_length ) );
+        return( psa_export_key_buffer_internal( slot, data, data_size, data_length ) );
     }
     else if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) ||
              PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
@@ -1544,12 +1544,12 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
         if( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->attr.type ) )
         {
             /* Exporting public -> public */
-            return( psa_internal_export_key_buffer( slot, data, data_size, data_length ) );
+            return( psa_export_key_buffer_internal( slot, data, data_size, data_length ) );
         }
         else if( !export_public_key )
         {
             /* Exporting private -> private */
-            return( psa_internal_export_key_buffer( slot, data, data_size, data_length ) );
+            return( psa_export_key_buffer_internal( slot, data, data_size, data_length ) );
         }
 
         /* Need to export the public part of a private key,
@@ -1656,7 +1656,7 @@ psa_status_t psa_export_key( mbedtls_svc_key_id_t key,
     if( status != PSA_SUCCESS )
         return( status );
 
-    status = psa_internal_export_key( slot, data, data_size, data_length, 0 );
+    status = psa_export_key_internal( slot, data, data_size, data_length, 0 );
     unlock_status = psa_unlock_key_slot( slot );
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
@@ -1682,7 +1682,7 @@ psa_status_t psa_export_public_key( mbedtls_svc_key_id_t key,
     if( status != PSA_SUCCESS )
         return( status );
 
-    status = psa_internal_export_key( slot, data, data_size, data_length, 1 );
+    status = psa_export_key_internal( slot, data, data_size, data_length, 1 );
     unlock_status = psa_unlock_key_slot( slot );
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );

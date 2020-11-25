@@ -1758,10 +1758,12 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
 
         /* Need to export the public part of a private key,
          * so conversion is needed. Try the accelerators first. */
-        psa_status_t status = psa_driver_wrapper_export_public_key( slot,
-                                                                    data,
-                                                                    data_size,
-                                                                    data_length );
+        psa_key_attributes_t attributes = {
+          .core = slot->attr
+        };
+        psa_status_t status = psa_driver_wrapper_export_public_key(
+            &attributes, slot->key.data, slot->key.bytes,
+            data, data_size, data_length );
 
         if( status != PSA_ERROR_NOT_SUPPORTED ||
             psa_key_lifetime_is_external( slot->attr.lifetime ) )

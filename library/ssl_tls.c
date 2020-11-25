@@ -5406,7 +5406,7 @@ static void ssl_calc_finished_tls_sha256(
 
 #if defined(MBEDTLS_SHA512_C)
 
-typedef int (*finish_sha384_t)(mbedtls_sha512_context*, unsigned char[48]);
+typedef int (*finish_sha384_t)(mbedtls_sha512_context*, unsigned char*);
 
 static void ssl_calc_finished_tls_sha384(
                 mbedtls_ssl_context *ssl, unsigned char *buf, int from )

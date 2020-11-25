@@ -84,8 +84,13 @@ MBEDTLS_TEST_OBJS=$(patsubst %.c,%.o,$(wildcard src/*.c src/drivers/*.c))
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
+TEST_OBJS_DEPS =
+ifdef RECORD_PSA_STATUS_COVERAGE_LOG
+TEST_OBJS_DEPS += include/test/instrument_record_status.h
+endif
+
 # Rule to compile common test C files in src folder
-src/%.o : src/%.c
+src/%.o : src/%.c $(TEST_OBJS_DEPS)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
@@ -121,7 +126,7 @@ C_FILES := $(addsuffix .c,$(APPS))
 		-o .
 
 
-$(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(MBEDTLS_TEST_OBJS)
+$(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $< $(MBEDTLS_TEST_OBJS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
@@ -135,6 +140,7 @@ clean:
 ifndef WINDOWS
 	rm -rf $(BINARIES) *.c *.datax TESTS
 	rm -f src/*.o src/drivers/*.o src/libmbed*
+	rm -f include/test/instrument_record_status.h
 else
 	if exist *.c del /Q /F *.c
 	if exist *.exe del /Q /F *.exe
@@ -142,6 +148,7 @@ else
 	if exist src/*.o del /Q /F src/*.o
 	if exist src/drivers/*.o del /Q /F src/drivers/*.o
 	if exist src/libmbed* del /Q /F src/libmed*
+	if exist include/test/instrument_record_status.h del /Q /F include/test/instrument_record_status.h
 ifneq ($(wildcard TESTS/.*),)
 	rmdir /Q /S TESTS
 endif
@@ -187,7 +194,7 @@ $(foreach app, $(APPS), $(foreach file, $(notdir $(wildcard include/test/*.h)), 
 	$(eval $(call copy_header_to_target,$(app),$(file)))))
 
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-$(BINARIES): include/test/instrument_record_status.h
 include/test/instrument_record_status.h: ../include/psa/crypto.h Makefile
+	echo "  Gen  $@"
 	sed <../include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
 endif

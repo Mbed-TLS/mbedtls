@@ -114,6 +114,7 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_ccm_context ) );
 }
 
+#if defined(MBEDTLS_CCM_SHUFFLING_MASKING)
 /* Durstenfeld's version of Fisher-Yates shuffle */
 static void mbedtls_generate_permutation( unsigned char* table, size_t  size )
 {
@@ -148,6 +149,7 @@ static void mbedtls_generate_masks( unsigned char* table, size_t  size )
         table[i] = mbedtls_platform_random_in_range( 256 );
     }
 }
+#endif /* MBEDTLS_CCM_SHUFFLING_MASKING */
 
 /*
  * Macros for common operations.
@@ -159,6 +161,7 @@ static void mbedtls_generate_masks( unsigned char* table, size_t  size )
  * (Always using b as the source helps the compiler optimise a bit better.)
  * Initial b masking happens outside of this macro due to various sources of it.
  */
+#if defined(MBEDTLS_CCM_SHUFFLING_MASKING)
 #define UPDATE_CBC_MAC                                                      \
     for( i = 0; i < 16; i++ )                                               \
     {                                                                       \
@@ -168,14 +171,25 @@ static void mbedtls_generate_masks( unsigned char* table, size_t  size )
                                                                             \
     if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, y, 16, y, &olen ) ) != 0 ) \
         return( ret );
+#else
+#define UPDATE_CBC_MAC                                                      \
+    for( i = 0; i < 16; i++ )                                               \
+        y[i] ^= b[i];                                                       \
+                                                                            \
+    if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, y, 16, y, &olen ) ) != 0 ) \
+        return( ret );
+#endif /* MBEDTLS_CCM_SHUFFLING_MASKING */
 
 /*
  * Copy src to dst starting at a random offset, while masking the whole dst buffer.
  */
+#if defined(MBEDTLS_CCM_SHUFFLING_MASKING)
 #define COPY_MASK( dst, src, mask, len_src, len_dst )                   \
     do                                                                  \
     {                                                                   \
         unsigned j, offset = mbedtls_platform_random_in_range( 256 );   \
+        mbedtls_generate_masks( mask_table, 16 );                       \
+        mbedtls_generate_permutation( perm_table, 16 );                 \
         for( i = 0; i < len_src; i++ )                                  \
         {                                                               \
             j = (i + offset) % len_src;                                 \
@@ -184,11 +198,14 @@ static void mbedtls_generate_masks( unsigned char* table, size_t  size )
         for( ; i < len_dst; i++ )                                       \
             (dst)[i] ^= (mask)[i];                                      \
     } while( 0 )
+#endif /* MBEDTLS_CCM_SHUFFLING_MASKING */
+
 /*
  * Encrypt or decrypt a partial block with CTR
  * Warning: using b for temporary storage! src and dst must not be b!
  * This avoids allocating one more 16 bytes buffer while allowing src == dst.
  */
+#if defined(MBEDTLS_CCM_SHUFFLING_MASKING)
 #define CTR_CRYPT( dst, src, len )                                      \
     do                                                                  \
     {                                                                   \
@@ -200,13 +217,27 @@ static void mbedtls_generate_masks( unsigned char* table, size_t  size )
             return( ret );                                              \
         }                                                               \
                                                                         \
-        for( i = 0; i < len; i++ )                                      \
+        for( i = 0; i < (len); i++ )                                    \
         {                                                               \
             (dst)[perm_table[i]] = (src)[perm_table[i]] ^ mask_table[perm_table[i]];\
             (dst)[perm_table[i]] ^= b[perm_table[i]];                   \
             (dst)[perm_table[i]] ^= mask_table[perm_table[i]];          \
         }                                                               \
     } while( 0 )
+#else
+#define CTR_CRYPT( dst, src, len )                                      \
+    do                                                                  \
+    {                                                                   \
+        if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, ctr,       \
+                                           16, b, &olen ) ) != 0 )      \
+        {                                                               \
+            return( ret );                                              \
+        }                                                               \
+                                                                        \
+        for( i = 0; i < (len); i++ )                                    \
+            (dst)[i] = (src)[i] ^ b[i];                                 \
+    } while( 0 )
+#endif /* MBEDTLS_CCM_SHUFFLING_MASKING */
 
 /*
  * Authenticated encryption or decryption
@@ -224,12 +255,13 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     unsigned char b[16];
     unsigned char y[16];
     unsigned char ctr[16];
-    unsigned char perm_table[16];
-    unsigned char mask_table[16];
     const unsigned char *src;
     unsigned char *dst;
     volatile size_t flow_ctrl = 0;
-
+#if defined(MBEDTLS_CCM_SHUFFLING_MASKING)
+    unsigned char perm_table[16];
+    unsigned char mask_table[16];
+#endif /* MBEDTLS_CCM_SHUFFLING_MASKING */
     /*
      * Check length requirements: SP800-38C A.1
      * Additional requirement: a < 2^16 - 2^8 to simplify the code.
@@ -266,6 +298,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
      * 5 .. 3   (t - 2) / 2
      * 2 .. 0   q - 1
      */
+#if defined(MBEDTLS_CCM_SHUFFLING_MASKING)
     mbedtls_generate_masks( mask_table, 16 );
     mbedtls_generate_permutation( perm_table, 16 );
     b[0] = (unsigned char) ( ( ( add_len > 0 ) << 6 ) |
@@ -279,10 +312,20 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     }
     for( i = 0, len_left = length; i < q; i++, len_left >>= 8 )
         b[15-i] = (unsigned char)( ( len_left & 0xFF ) ) ^ mask_table[15-i];
+#else
+    b[0] = 0;
+    b[0] |= ( add_len > 0 ) << 6;
+    b[0] |= ( ( tag_len - 2 ) / 2 ) << 3;
+    b[0] |= q - 1;
+
+    mbedtls_platform_memcpy( b + 1, iv, iv_len );
+    flow_ctrl += iv_len; /* iv_len + 1 */
+    for( i = 0, len_left = length; i < q; i++, len_left >>= 8 )
+        b[15-i] = (unsigned char)( len_left & 0xFF );
+#endif /* MBEDTLS_CCM_SHUFFLING_MASKING */
 
     if( len_left > 0 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
-
 
     /* Start CBC-MAC with first block */
     memset( y, 0, 16 );
@@ -298,16 +341,20 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         size_t use_len;
         len_left = add_len;
         src = add;
-
-        mbedtls_generate_masks( mask_table, 16 );
-        mbedtls_generate_permutation( perm_table, 16 );
         mbedtls_platform_memset( b, 0, 16 );
-        b[0] = (unsigned char)( ( ( add_len >> 8 ) & 0xFF ) ^ mask_table[0] );
-        b[1] = (unsigned char)( ( ( add_len      ) & 0xFF ) ^ mask_table[1] );
 
         use_len = len_left < 16 - 2 ? len_left : 16 - 2;
 
+#if defined(MBEDTLS_CCM_SHUFFLING_MASKING)
         COPY_MASK( b+2, src, mask_table+2, use_len, 14 );
+        b[0] = (unsigned char)( ( ( add_len >> 8 ) & 0xFF ) ^ mask_table[0] );
+        b[1] = (unsigned char)( ( ( add_len      ) & 0xFF ) ^ mask_table[1] );
+#else
+        b[0] = (unsigned char)( ( add_len >> 8 ) & 0xFF );
+        b[1] = (unsigned char)( ( add_len      ) & 0xFF );
+
+        mbedtls_platform_memcpy( b + 2, src, use_len );
+#endif /* MBEDTLS_CCM_SHUFFLING_MASKING */
 
         len_left -= use_len;
         src += use_len;
@@ -317,12 +364,14 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
         while( len_left > 0 )
         {
-            mbedtls_generate_masks( mask_table, 16 );
-            mbedtls_generate_permutation( perm_table, 16 );
             use_len = len_left > 16 ? 16 : len_left;
-
             mbedtls_platform_memset( b, 0, 16 );
-            COPY_MASK( b, src, mask_table, use_len, 16);
+
+#if defined(MBEDTLS_CCM_SHUFFLING_MASKING)
+            COPY_MASK( b, src, mask_table, use_len, 16 );
+#else
+            mbedtls_platform_memcpy( b, src, use_len );
+#endif /* MBEDTLS_CCM_SHUFFLING_MASKING */
             UPDATE_CBC_MAC;
 
             len_left -= use_len;
@@ -362,10 +411,13 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
         if( mode == CCM_ENCRYPT )
         {
-            mbedtls_generate_masks( mask_table, 16 );
-            mbedtls_generate_permutation( perm_table, 16 );
             mbedtls_platform_memset( b, 0, 16 );
+#if defined(MBEDTLS_CCM_SHUFFLING_MASKING)
             COPY_MASK( b, src, mask_table, use_len, 16 );
+#else
+            mbedtls_platform_memcpy( b, src, use_len );
+#endif /* MBEDTLS_CCM_SHUFFLING_MASKING */
+
             UPDATE_CBC_MAC;
             flow_ctrl++;  /* iv_len + 3 + ( add_len? 1 : 0 ) + encryptions */
         }
@@ -374,10 +426,12 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
         if( mode == CCM_DECRYPT )
         {
-            mbedtls_generate_masks( mask_table, 16 );
-            mbedtls_generate_permutation( perm_table, 16 );
             mbedtls_platform_memset( b, 0, 16 );
+#if defined(MBEDTLS_CCM_SHUFFLING_MASKING)
             COPY_MASK( b, dst, mask_table, use_len, 16 );
+#else
+           mbedtls_platform_memcpy( b, dst, use_len );
+#endif /* MBEDTLS_CCM_SHUFFLING_MASKING */
             UPDATE_CBC_MAC;
             flow_ctrl++; /* iv_len + 3 + ( add_len? 1 : 0 ) + decryptions */
         }

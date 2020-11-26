@@ -665,6 +665,15 @@
 //#define MBEDTLS_FI_COUNTERMEASURES
 
 /**
+ * \def MBEDTLS_CCM_SHUFFLING_MASKING
+ *
+ * Add shuffling and masking to the CCM module as an additional security
+ * measure.
+ *
+ */
+//#define MBEDTLS_CCM_SHUFFLING_MASKING
+
+/**
  * \def MBEDTLS_CAMELLIA_SMALL_MEMORY
  *
  * Use less ROM for the Camellia implementation (saves about 768 bytes).

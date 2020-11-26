@@ -778,6 +778,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_FI_COUNTERMEASURES */
 
+#if defined(MBEDTLS_CCM_SHUFFLING_MASKING)
+    if( strcmp( "MBEDTLS_CCM_SHUFFLING_MASKING", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_CCM_SHUFFLING_MASKING );
+        return( 0 );
+    }
+#endif /* MBEDTLS_CCM_SHUFFLING_MASKING */
+
 #if defined(MBEDTLS_CAMELLIA_SMALL_MEMORY)
     if( strcmp( "MBEDTLS_CAMELLIA_SMALL_MEMORY", config ) == 0 )
     {

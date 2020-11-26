@@ -158,6 +158,7 @@
 
 /* Fault Injection Countermeasures */
 #define MBEDTLS_FI_COUNTERMEASURES
+#define MBEDTLS_CCM_SHUFFLING_MASKING
 
 #if defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE

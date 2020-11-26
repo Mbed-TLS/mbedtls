@@ -45,6 +45,7 @@ install: no_test
 
 uninstall:
 	rm -rf $(DESTDIR)/include/mbedtls
+	rm -rf $(DESTDIR)/include/psa
 	rm -f $(DESTDIR)/lib/libmbedtls.*
 	rm -f $(DESTDIR)/lib/libmbedx509.*
 	rm -f $(DESTDIR)/lib/libmbedcrypto.*

@@ -658,17 +658,21 @@
  * \def MBEDTLS_AES_128_BIT_MASKED
  *
  * Requires MBEDTLS_AES_SCA_COUNTERMEASURES
+ *          MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+ *          MBEDTLS_AES_ONLY_ENCRYPT
  *
- * Add boolean masking against possible combined side-channel-attack fault injection attacks.
+ * Add boolean masking against possible combined side-channel-attack
+ * fault injection attacks.
  *
- * Uncommenting this macro adds data, key and Sbox masking additionally to dummy rounds
+ * Uncommenting this macro adds data, key and Sbox masking additionally
+ * to dummy rounds.
  *
  * Tradeoff:
- * Uncommenting this macro does not increase codesize in MBEDTLS_AES_ROM_TABLES configuration.
- * Uncommenting this macro increases codesize in AES RAM tables configuration by ~600 byte.
+ * Uncommenting this macro does not increase codesize in MBEDTLS_AES_ROM_TABLES
+ * configuration.
+ * Uncommenting this macro increases codesize in AES RAM tables configuration
+ * by ~600 bytes.
  * The performance loss is ~50% with 128 bit AES encrypt.
- *
- * This option is dependent of \c MBEDTLS_ENTROPY_HARDWARE_ALT.
  *
  */
 //#define MBEDTLS_AES_128_BIT_MASKED

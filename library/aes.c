@@ -721,8 +721,6 @@ static void mbedtls_generate_fake_key( unsigned int keybits, mbedtls_aes_context
 /*
  * AES key schedule (encryption)
  */
-
-
 #if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits )
@@ -1061,207 +1059,226 @@ int mbedtls_aes_xts_setkey_dec( mbedtls_aes_xts_context *ctx,
 
 #if defined(MBEDTLS_AES_128_BIT_MASKED)
 
-static uint8_t xtime(uint8_t x)
+static uint8_t xtime( uint8_t x )
 {
-  return ((x << 1) ^ (((x >> 7) & 1) * 0x1b));
+    return ( ( x << 1 ) ^ ( ( ( x >> 7 ) & 1 ) * 0x1b ) );
 }
 
-static int sub_bytes_masked(uint32_t *data, uint8_t sbox_masked[256])
+static int sub_bytes_masked( uint32_t *data, uint8_t sbox_masked[256] )
 {
     volatile unsigned int i;
 
-    for (i = 0; i < 4; i++) {
-        data[i] = ( (uint32_t) sbox_masked[ ( data[i]       ) & 0xFF ]       ) ^
-                  ( (uint32_t) sbox_masked[ ( data[i]  >> 8 ) & 0xFF ] <<  8 ) ^
-                  ( (uint32_t) sbox_masked[ ( data[i] >> 16 ) & 0xFF ] << 16 ) ^
-                  ( (uint32_t) sbox_masked[ ( data[i] >> 24 ) & 0xFF ] << 24 );
+    for ( i = 0; i < 4; i++ )
+    {
+        data[i] = ( (uint32_t)sbox_masked[(data[i])        & 0xFF]       ) ^
+                  ( (uint32_t)sbox_masked[(data[i] >> 8 )  & 0xFF] << 8  ) ^
+                  ( (uint32_t)sbox_masked[(data[i] >> 16 ) & 0xFF] << 16 ) ^
+                  ( (uint32_t)sbox_masked[(data[i] >> 24 ) & 0xFF] << 24 );
     }
 
-    if (i == 4){
+    if ( i == 4 )
+    {
         return 0;
     }
 
-    return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    return ( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
-static int mix_columns(uint8_t *s)
+static int mix_columns( uint8_t *s )
 {
-  masked_state_t *state = (masked_state_t *) s;
-  volatile unsigned int i = 0;
-  uint8_t Tmp, Tm, t;
+    masked_state_t *state = (masked_state_t *)s;
+    volatile unsigned int i = 0;
+    uint8_t Tmp, Tm, t;
 
-  for (i = 0; i < 4; ++i)
-  {
-    t = (*state)[i][0];
-    Tmp = (*state)[i][0] ^ (*state)[i][1] ^ (*state)[i][2] ^ (*state)[i][3];
-    Tm = (*state)[i][0] ^ (*state)[i][1];
-    Tm = xtime(Tm);
-    (*state)[i][0] ^= Tm ^ Tmp;
-    Tm = (*state)[i][1] ^ (*state)[i][2];
-    Tm = xtime(Tm);
-    (*state)[i][1] ^= Tm ^ Tmp;
-    Tm = (*state)[i][2] ^ (*state)[i][3];
-    Tm = xtime(Tm);
-    (*state)[i][2] ^= Tm ^ Tmp;
-    Tm = (*state)[i][3] ^ t;
-    Tm = xtime(Tm);
-    (*state)[i][3] ^= Tm ^ Tmp;
-  }
+    for ( i = 0; i < 4; ++i )
+    {
+        t = (*state)[i][0];
+        Tmp = (*state)[i][0] ^ (*state)[i][1] ^ (*state)[i][2] ^ (*state)[i][3];
+        Tm = (*state)[i][0] ^ (*state)[i][1];
+        Tm = xtime(Tm);
+        (*state)[i][0] ^= Tm ^ Tmp;
+        Tm = (*state)[i][1] ^ (*state)[i][2];
+        Tm = xtime(Tm);
+        (*state)[i][1] ^= Tm ^ Tmp;
+        Tm = (*state)[i][2] ^ (*state)[i][3];
+        Tm = xtime(Tm);
+        (*state)[i][2] ^= Tm ^ Tmp;
+        Tm = (*state)[i][3] ^ t;
+        Tm = xtime(Tm);
+        (*state)[i][3] ^= Tm ^ Tmp;
+    }
 
-  if (i == 4) {
+    if ( i == 4 )
+    {
         return 0;
-  }
+    }
 
-  return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    return ( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
-static void shift_rows(uint8_t *s)
+static void shift_rows( uint8_t *s )
 {
-   uint8_t temp;
-   masked_state_t *state = (masked_state_t *) s;
-  // Rotate first row 1 columns to left
-  temp = (*state)[0][1];
-  (*state)[0][1] = (*state)[1][1];
-  (*state)[1][1] = (*state)[2][1];
-  (*state)[2][1] = (*state)[3][1];
-  (*state)[3][1] = temp;
+    uint8_t temp;
+    masked_state_t *state = (masked_state_t *)s;
+    // Rotate first row 1 columns to left
+    temp = (*state)[0][1];
+    (*state)[0][1] = (*state)[1][1];
+    (*state)[1][1] = (*state)[2][1];
+    (*state)[2][1] = (*state)[3][1];
+    (*state)[3][1] = temp;
 
-  // Rotate second row 2 columns to left
-  temp = (*state)[0][2];
-  (*state)[0][2] = (*state)[2][2];
-  (*state)[2][2] = temp;
+    // Rotate second row 2 columns to left
+    temp = (*state)[0][2];
+    (*state)[0][2] = (*state)[2][2];
+    (*state)[2][2] = temp;
 
-  temp = (*state)[1][2];
-  (*state)[1][2] = (*state)[3][2];
-  (*state)[3][2] = temp;
+    temp = (*state)[1][2];
+    (*state)[1][2] = (*state)[3][2];
+    (*state)[3][2] = temp;
 
-  // Rotate third row 3 columns to left
-  temp = (*state)[0][3];
-  (*state)[0][3] = (*state)[3][3];
-  (*state)[3][3] = (*state)[2][3];
-  (*state)[2][3] = (*state)[1][3];
-  (*state)[1][3] = temp;
-
+    // Rotate third row 3 columns to left
+    temp = (*state)[0][3];
+    (*state)[0][3] = (*state)[3][3];
+    (*state)[3][3] = (*state)[2][3];
+    (*state)[2][3] = (*state)[1][3];
+    (*state)[1][3] = temp;
 }
 
-#define mul_02(num) ( (num << 1) ^ (0x11b & -(num >> 7)) )
-#define mul_03(num) ( mul_02(num) ^ num )
+#define mul_02( num ) ( ( num << 1 ) ^ ( 0x11b & - ( num >> 7 ) ) )
+#define mul_03( num ) ( mul_02( num ) ^ num )
 
-static void calcMixColmask(uint32_t mask[10])
+static void calc_mix_colmn_mask( uint32_t mask[10] )
 {
-  mask[6] = mul_02(mask[0]) ^ mul_03(mask[1]) ^ mask[2]         ^ mask[3];
-  mask[7] = mask[0]         ^ mul_02(mask[1]) ^ mul_03(mask[2]) ^ mask[3];
-  mask[8] = mask[0]         ^ mask[1]         ^ mul_02(mask[2]) ^ mul_03(mask[3]);
-  mask[9] = mul_03(mask[0]) ^ mask[1]         ^ mask[2]         ^ mul_02(mask[3]);
+    mask[6] = mul_02( mask[0] ) ^ mul_03( mask[1] ) ^ mask[2] ^ mask[3];
+    mask[7] = mask[0] ^ mul_02( mask[1] ) ^ mul_03( mask[2]  ) ^ mask[3];
+    mask[8] = mask[0] ^ mask[1] ^ mul_02( mask[2] ) ^ mul_03( mask[3] );
+    mask[9] = mul_03( mask[0] ) ^ mask[1] ^ mask[2] ^ mul_02( mask[3] );
 }
 
 //Calculate the the invSbox to change from Mask m to Mask m'
-static int calcSboxMasked(uint32_t mask[10], uint8_t sbox_masked[256])
+static int calc_sbox_masked( uint32_t mask[10], uint8_t sbox_masked[256] )
 {
-  volatile unsigned int i = 0;
+    volatile unsigned int i = 0;
 
-  for ( i = 0; i < 256; i++ )
-  {
-    sbox_masked[i ^ mask[4]] = FSb[i] ^ mask[5];
-  }
-  if (i == 256) {
+    for ( i = 0; i < 256; i++ )
+    {
+        sbox_masked[i ^ mask[4]] = FSb[i] ^ mask[5];
+    }
+    if ( i == 256 )
+    {
         return 0;
-  }
+    }
 
-  return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    return ( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
-static int remask(uint32_t *data, uint32_t m1, uint32_t m2, uint32_t m3, uint32_t m4, uint32_t m5, uint32_t m6, uint32_t m7, uint32_t m8)
+static int remask( uint32_t *data, uint32_t m1, uint32_t m2,
+                  uint32_t m3, uint32_t m4, uint32_t m5,
+                  uint32_t m6, uint32_t m7, uint32_t m8 )
 {
+    volatile unsigned int i = 0;
 
-  volatile unsigned int i = 0;
+    for ( i = 0; i < 4; i++ )
+    {
+        data[i] = data[i] ^ ( ( m1 ^ m5 )       );
+        data[i] = data[i] ^ ( ( m2 ^ m6 ) << 8  );
+        data[i] = data[i] ^ ( ( m3 ^ m7 ) << 16 );
+        data[i] = data[i] ^ ( ( m4 ^ m8 ) << 24 );
+    }
 
-  for ( i = 0; i < 4; i++)
-  {
-    data[i] = data[i] ^ ( (m1^m5)       );
-    data[i] = data[i] ^ ( (m2^m6) << 8  );
-    data[i] = data[i] ^ ( (m3^m7) << 16 );
-    data[i] = data[i] ^ ( (m4^m8) << 24 );
-  }
-
-  if (i == 4) {
+    if ( i == 4 )
+    {
         return 0;
-  }
+    }
 
-  return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    return ( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
-
-
-static int init_masking_encrypt(const uint8_t *rk, uint8_t *rk_masked, uint32_t mask[10], uint8_t sbox_masked[256] )
-{
-  volatile int flow_control = 0;
-  unsigned int i = 0;
-
-  mbedtls_platform_memcpy(rk_masked, rk, MBEDTLS_AES_128_EXPANDED_KEY_SIZE_IN_WORDS*4);
-
-
-  //Randomly generate the masks: m1 m2 m3 m4 m m'
-  for (i = 0; i < 6; i++)
-  {
-    mask[i] = mbedtls_platform_random_in_range( 0xFF );
-    flow_control++;
-  }
-
-  //Calculate m1',m2',m3',m4'
-  calcMixColmask(mask);
-  flow_control++;
-
-  //Calculate the masked Sbox
-  if (calcSboxMasked(mask, sbox_masked) == 0){
-      flow_control++;
-  }
 
 #define MASK_INIT_CONTROL 19
-  //Init masked key
-  if (remask(  (uint32_t *)&rk_masked[(Nr * Nb * 4)], 0, 0, 0, 0, mask[5], mask[5], mask[5], mask[5]) == 0) {
-      flow_control++;
-  }
 
-  // Mask change from M1',M2',M3',M4' to M
-  for (i = 0; i < Nr; i++)
-  {
-      if ( remask( (uint32_t *)&rk_masked[( i * Nb * 4 )], mask[6], mask[7], mask[8], mask[9], mask[4], mask[4], mask[4], mask[4]) == 0 )
-          flow_control++;
-  }
-
-  if( flow_control == MASK_INIT_CONTROL ) {
-      mbedtls_platform_random_delay();
-      if( flow_control == MASK_INIT_CONTROL ) {
-        return MASK_INIT_CONTROL;
-      }
-  }
-
-  return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
-}
-
-static int add_rk_masked(uint32_t round, uint32_t *data, const uint32_t * rk_masked)
+static int init_masking_encrypt( const uint8_t *rk, uint8_t *rk_masked,
+                                uint32_t mask[10], uint8_t sbox_masked[256] )
 {
-  volatile unsigned int i;
-  unsigned int offset = round*4;
-  for( i = 0; i < 4; i++ )
-  {
-      data[i] ^= rk_masked[offset + i] ;
-  }
+    volatile int flow_control = 0;
+    unsigned int i = 0;
 
-  if (i == 4) {
-        return 0;
-  }
-  return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    mbedtls_platform_memcpy( rk_masked, rk,
+                          MBEDTLS_AES_128_EXPANDED_KEY_SIZE_IN_WORDS * 4 );
+
+    //Randomly generate the masks: m1 m2 m3 m4 m m'
+    for ( i = 0; i < 6; i++ )
+    {
+        mask[i] = mbedtls_platform_random_in_range( 0xFF );
+        flow_control++;
+    }
+
+    //Calculate m1',m2',m3',m4'
+    calc_mix_colmn_mask( mask );
+    flow_control++;
+
+    //Calculate the masked Sbox
+    if ( calc_sbox_masked( mask, sbox_masked ) == 0 )
+    {
+        flow_control++;
+    }
+
+    //Init masked key
+    if ( remask( (uint32_t *)&rk_masked[(Nr * Nb * 4)], 0, 0, 0, 0,
+                  mask[5], mask[5], mask[5], mask[5]) == 0 )
+    {
+        flow_control++;
+    }
+
+    // Mask change from M1',M2',M3',M4' to M
+    for ( i = 0; i < Nr; i++ )
+    {
+        if ( remask( (uint32_t *)&rk_masked[( i * Nb * 4 )], mask[6],
+              mask[7], mask[8], mask[9], mask[4], mask[4], mask[4], mask[4]) == 0 )
+        {
+            flow_control++;
+        }
+    }
+
+    if ( flow_control == MASK_INIT_CONTROL )
+    {
+        mbedtls_platform_random_delay();
+        if (flow_control == MASK_INIT_CONTROL)
+        {
+            return MASK_INIT_CONTROL;
+        }
+    }
+
+    return ( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
+static int add_rk_masked( uint32_t round, uint32_t *data,
+                          const uint32_t * rk_masked )
+{
+    volatile unsigned int i;
+    unsigned int offset = round * 4;
 
-static int aes_masked_round(uint32_t *data, uint32_t *key, uint32_t round, uint32_t mask[10], uint8_t sbox_masked[256])
+    for ( i = 0; i < 4; i++ )
+    {
+        data[i] ^= rk_masked[offset + i];
+    }
+
+    if ( i == 4 )
+    {
+        return 0;
+    }
+    return ( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+}
+
+static int aes_masked_round( uint32_t *data, uint32_t *key, uint32_t round,
+                             uint32_t mask[10], uint8_t sbox_masked[256] )
 {
     volatile uint32_t flow_control = 0;
 
 // Mask changes from M to M'
-    if ( sub_bytes_masked(data, sbox_masked) == 0 )
+    if ( sub_bytes_masked( data, sbox_masked ) == 0 )
+    {
         flow_control++;
+    }
 
     //No impact on mask
     shift_rows((uint8_t *)data);
@@ -1271,44 +1288,62 @@ static int aes_masked_round(uint32_t *data, uint32_t *key, uint32_t round, uint3
     // M2 for second row
     // M3 for third row
     // M4 for fourth row
-    if ( remask(data, mask[0], mask[1], mask[2], mask[3], mask[5], mask[5], mask[5], mask[5]) == 0)
+    if ( remask( data, mask[0], mask[1], mask[2], mask[3],
+                 mask[5], mask[5], mask[5], mask[5]) == 0 )
+    {
         flow_control++;
+    }
 
     // Masks change from M1,M2,M3,M4 to M1',M2',M3',M4'
-    if ( mix_columns((uint8_t *)data) == 0)
+    if ( mix_columns( (uint8_t *)data ) == 0 )
+    {
         flow_control++;
+    }
 
     // Add the First round key to the state before starting the rounds.
     // Masks change from M1',M2',M3',M4' to M
-    if ( add_rk_masked(round,data, key) == 0 )
+    if ( add_rk_masked( round, data, key ) == 0 )
+    {
         flow_control++;
+    }
 
     if ( flow_control == 4 )
+    {
         return 0;
+    }
 
-    return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    return ( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
-static int aes_masked_round_final( uint32_t *data, uint32_t *key, uint8_t sbox_masked[256] )
+static int aes_masked_round_final( uint32_t *data, uint32_t *key,
+                                   uint8_t sbox_masked[256] )
 {
     volatile uint32_t flow_control = 0;
 
     if ( sub_bytes_masked(data, sbox_masked) == 0 )
+    {
         flow_control++;
+    }
 
-    shift_rows((uint8_t *)data);
+    shift_rows( (uint8_t *)data );
 
     // Mask are removed by the last addroundkey
     // From M' to 0
-    if( add_rk_masked(Nr, data, key) == 0)
+    if( add_rk_masked( Nr, data, key ) == 0 )
+    {
         flow_control++;
+    }
 
     if ( flow_control == 2 )
+    {
         return 0;
+    }
 
-    return MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    return ( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
-#define MASKING_FLOW_CONTORL (MASK_INIT_CONTROL + 2) //2 comes from initial data remask of real and fake data
+
+//2 comes from initial data remask of real and fake data
+#define MASKING_FLOW_CONTORL ( MASK_INIT_CONTROL + 2 )
 
 #else // end of MBEDTLS_AES_128_BIT_MASKED
 
@@ -1407,8 +1442,11 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 #endif
 
 #if defined (MBEDTLS_AES_128_BIT_MASKED)
-    //Flow control should be MASK_INIT_CONTROL and it will be checked as a part last flow control verification
-    flow_control = init_masking_encrypt((uint8_t*)ctx->rk, (uint8_t*)rk_masked, mask, sbox_masked);
+    /* Flow control should be MASK_INIT_CONTROL and it will be checked as
+       a part last flow control verification */
+    flow_control = init_masking_encrypt( (uint8_t *)ctx->rk,
+                  (uint8_t *)rk_masked, mask, sbox_masked );
+
     aes_data_real.rk_ptr = &rk_masked[0];
 #else
     aes_data_real.rk_ptr = ctx->rk;
@@ -1441,11 +1479,17 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 
 #if defined (MBEDTLS_AES_128_BIT_MASKED)
     //Plain text masked with m1',m2',m3',m4'
-    if (remask( &aes_data_real.xy_values[0], mask[6], mask[7], mask[8], mask[9], 0, 0, 0, 0) == 0)
+    if (remask( &aes_data_real.xy_values[0], mask[6],
+                mask[7], mask[8], mask[9], 0, 0, 0, 0) == 0 )
+    {
         flow_control++;
+    }
 
-    if (remask( &aes_data_fake.xy_values[0], mask[6], mask[7], mask[8], mask[9], 0, 0, 0, 0) == 0)
+    if (remask( &aes_data_fake.xy_values[0], mask[6],
+        mask[7], mask[8], mask[9], 0, 0, 0, 0) == 0 )
+    {
         flow_control++;
+    }
 #endif
 
     tindex = 0;
@@ -1457,8 +1501,11 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 
         // initial round key addition
 #if defined (MBEDTLS_AES_128_BIT_MASKED)
-        if ( add_rk_masked(0, &aes_data_ptr->xy_values[0], aes_data_ptr->rk_ptr) == 0)
+        if ( add_rk_masked( 0, &aes_data_ptr->xy_values[0],
+                            aes_data_ptr->rk_ptr ) == 0 )
+        {
             flow_control++;
+        }
         aes_data_ptr->round = 1;
 #else
         for( i = 0; i < 4; i++ )
@@ -1471,7 +1518,6 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         tindex++;
     } while( stop_mark == 0 );
 
-
     // Calculate AES rounds (9, 11 or 13 rounds) + dummy rounds
     do
     {
@@ -1480,9 +1526,12 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         offset = round_ctrl_table[tindex] & 0x04;
         stop_mark = round_ctrl_table[tindex] & 0x03;
 #if defined (MBEDTLS_AES_128_BIT_MASKED)
-        if (aes_masked_round( &aes_data_ptr->xy_values[0], aes_data_ptr->rk_ptr,
-                               aes_data_ptr->round, mask, sbox_masked) == 0)
+        if ( aes_masked_round( &aes_data_ptr->xy_values[0],
+                              aes_data_ptr->rk_ptr,
+                              aes_data_ptr->round, mask, sbox_masked ) == 0 )
+        {
             flow_control++;
+        }
         aes_data_ptr->round ++;
 #else
         aes_data_ptr->rk_ptr = aes_fround( aes_data_ptr->rk_ptr,
@@ -1507,10 +1556,12 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         stop_mark = round_ctrl_table[tindex] & 0x03;
 #if defined (MBEDTLS_AES_128_BIT_MASKED)
         if ( aes_masked_round_final( &aes_data_ptr->xy_values[0],
-                                     aes_data_ptr->rk_ptr, sbox_masked ) == 0)
+                                     aes_data_ptr->rk_ptr, sbox_masked ) == 0 )
+        {
             flow_control++;
+        }
         //Cleanup the masked key
-        mbedtls_platform_memset(rk_masked, 0, sizeof(rk_masked));
+        mbedtls_platform_memset( rk_masked, 0, sizeof(rk_masked) );
 #else
         aes_fround_final( aes_data_ptr->rk_ptr,
             &aes_data_ptr->xy_values[0],
@@ -1526,7 +1577,6 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         tindex++;
     } while( stop_mark == 0 );
 
-
     // SCA countermeasure, safely clear the output
     mbedtls_platform_memset( output, 0, 16 );
 
@@ -1541,7 +1591,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     } while( ( i = ( i + 1 ) % 4 ) != offset );
 
 #if defined (MBEDTLS_AES_128_BIT_MASKED)
-    mbedtls_platform_memset(rk_masked, 0, sizeof(rk_masked));
+    mbedtls_platform_memset( rk_masked, 0, sizeof(rk_masked) );
 #endif
     /* Double negation is used to silence an "extraneous parentheses" warning */
     if( ! ( flow_control != tindex + dummy_rounds + MASKING_FLOW_CONTORL + 8 )
@@ -1561,13 +1611,14 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 
     // Clear the output in case of a FI
     mbedtls_platform_memset( output, 0, 16 );
-    mbedtls_platform_memset( (uint8_t*)&aes_data_real, 0, sizeof(aes_data_real) );
-    mbedtls_platform_memset (aes_data_table, 0, sizeof(aes_data_table));
+    mbedtls_platform_memset( (uint8_t*)&aes_data_real, 0,
+                              sizeof(aes_data_real) );
+    mbedtls_platform_memset ( aes_data_table, 0, sizeof(aes_data_table) );
 #if defined (MBEDTLS_AES_128_BIT_MASKED)
     //Clear masked key, masked sbox and mask in case of a FI
-    mbedtls_platform_memset(rk_masked, 0, sizeof(rk_masked));
-    mbedtls_platform_memset(mask, 0, sizeof(mask));
-    mbedtls_platform_memset(sbox_masked, 0, sizeof(sbox_masked));
+    mbedtls_platform_memset( rk_masked, 0, sizeof(rk_masked) );
+    mbedtls_platform_memset( mask, 0, sizeof(mask) );
+    mbedtls_platform_memset( sbox_masked, 0, sizeof(sbox_masked) );
 #endif
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }

@@ -13,6 +13,10 @@
 #include "test/psa_crypto_helpers.h"
 #endif
 
+#if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
+#define MBEDTLS_CIPHER_AUTH_CRYPT
+#endif
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -959,15 +963,17 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_AEAD */
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_AUTH_CRYPT */
 void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
                     data_t * ad, data_t * cipher, data_t * tag,
                     char * result, data_t * clear, int use_psa )
 {
-    /* Takes an AEAD ciphertext + tag and performs a pair
-     * of AEAD decryption and AEAD encryption. It checks that
+    /*
+     * Take an AEAD ciphertext + tag and perform a pair
+     * of AEAD decryption and AEAD encryption. Check that
      * this results in the expected plaintext, and that
-     * decryption and encryption are inverse to one another. */
+     * decryption and encryption are inverse to one another.
+     */
 
     int ret;
     unsigned char output[300];        /* Temporary buffer for results of
@@ -984,31 +990,27 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
     mbedtls_cipher_init( &ctx );
     memset( output, 0xFF, sizeof( output ) );
 
-    /* Prepare context */
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
-    (void) use_psa;
+    /* Initialize PSA Crypto */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( use_psa == 1 )
+        PSA_ASSERT( psa_crypto_init( ) );
 #else
+    (void) use_psa;
+#endif
+
+    /*
+     * Prepare context for decryption
+     */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( use_psa == 1 )
     {
-        PSA_ASSERT( psa_crypto_init( ) );
-
-        /* PSA requires that the tag immediately follows the ciphertext. */
-        tmp_cipher = mbedtls_calloc( 1, cipher->len + tag->len );
-        TEST_ASSERT( tmp_cipher != NULL );
-        tmp_tag = tmp_cipher + cipher->len;
-
-        memcpy( tmp_cipher, cipher->x, cipher->len );
-        memcpy( tmp_tag, tag->x, tag->len );
-
         TEST_ASSERT( 0 == mbedtls_cipher_setup_psa( &ctx,
                               mbedtls_cipher_info_from_type( cipher_id ),
                               tag->len ) );
     }
     else
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     {
-        tmp_tag = tag->x;
-        tmp_cipher = cipher->x;
         TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
                               mbedtls_cipher_info_from_type( cipher_id ) ) );
     }
@@ -1016,7 +1018,30 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key->x, 8 * key->len,
                                              MBEDTLS_DECRYPT ) );
 
-    /* decode buffer and check tag->x */
+    /*
+     * Prepare buffers/pointers for decryption
+     */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( use_psa == 1 )
+    {
+        /* PSA requires that the tag immediately follows the ciphertext. */
+        tmp_cipher = mbedtls_calloc( 1, cipher->len + tag->len );
+        TEST_ASSERT( tmp_cipher != NULL );
+        tmp_tag = tmp_cipher + cipher->len;
+
+        memcpy( tmp_cipher, cipher->x, cipher->len );
+        memcpy( tmp_tag, tag->x, tag->len );
+    }
+    else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    {
+        tmp_tag = tag->x;
+        tmp_cipher = cipher->x;
+    }
+
+    /*
+     * Authenticate and decrypt, and check result
+     */
 
     /* Sanity check that we don't use overly long inputs. */
     TEST_ASSERT( sizeof( output ) >= cipher->len );
@@ -1029,48 +1054,54 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
     if( strcmp( result, "FAIL" ) == 0 )
     {
         TEST_ASSERT( ret == MBEDTLS_ERR_CIPHER_AUTH_FAILED );
-        goto exit;
-    }
-
-    /* otherwise, make sure it was decrypted properly */
-    TEST_ASSERT( ret == 0 );
-
-    TEST_ASSERT( outlen == clear->len );
-    TEST_ASSERT( memcmp( output, clear->x, clear->len ) == 0 );
-
-    /* then encrypt the clear->x and make sure we get the same ciphertext and tag->x */
-    mbedtls_cipher_free( &ctx );
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( use_psa == 1 )
-    {
-        TEST_ASSERT( 0 == mbedtls_cipher_setup_psa( &ctx,
-                              mbedtls_cipher_info_from_type( cipher_id ),
-                              tag->len ) );
     }
     else
-#endif
     {
-        TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
-                              mbedtls_cipher_info_from_type( cipher_id ) ) );
+        /* otherwise, make sure it was decrypted properly */
+        TEST_ASSERT( ret == 0 );
+
+        TEST_ASSERT( outlen == clear->len );
+        TEST_ASSERT( memcmp( output, clear->x, clear->len ) == 0 );
+
+        /*
+         * Prepare context for encryption
+         */
+        mbedtls_cipher_free( &ctx );
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        if( use_psa == 1 )
+        {
+            TEST_ASSERT( 0 == mbedtls_cipher_setup_psa( &ctx,
+                                  mbedtls_cipher_info_from_type( cipher_id ),
+                                  tag->len ) );
+        }
+        else
+#endif
+        {
+            TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
+                                  mbedtls_cipher_info_from_type( cipher_id ) ) );
+        }
+        TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key->x, 8 * key->len,
+                                                 MBEDTLS_ENCRYPT ) );
+
+        /*
+         * Encrypt and check the result
+         */
+        memset( output, 0xFF, sizeof( output ) );
+        outlen = 0;
+
+        /* Sanity check that we don't use overly long inputs. */
+        TEST_ASSERT( sizeof( output ) >= clear->len + tag->len );
+
+        output_tag = output + clear->len;
+        ret = mbedtls_cipher_auth_encrypt( &ctx, iv->x, iv->len, ad->x, ad->len,
+                                   clear->x, clear->len, output, &outlen,
+                                   output_tag, tag->len );
+        TEST_ASSERT( ret == 0 );
+
+        TEST_ASSERT( outlen == cipher->len );
+        TEST_ASSERT( memcmp( output, cipher->x, cipher->len ) == 0 );
+        TEST_ASSERT( memcmp( output_tag, tag->x, tag->len ) == 0 );
     }
-    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key->x, 8 * key->len,
-                                             MBEDTLS_ENCRYPT ) );
-
-    memset( output, 0xFF, sizeof( output ) );
-    outlen = 0;
-
-    /* Sanity check that we don't use overly long inputs. */
-    TEST_ASSERT( sizeof( output ) >= clear->len + tag->len );
-
-    output_tag = output + clear->len;
-    ret = mbedtls_cipher_auth_encrypt( &ctx, iv->x, iv->len, ad->x, ad->len,
-                               clear->x, clear->len, output, &outlen,
-                               output_tag, tag->len );
-    TEST_ASSERT( ret == 0 );
-
-    TEST_ASSERT( outlen == cipher->len );
-    TEST_ASSERT( memcmp( output, cipher->x, cipher->len ) == 0 );
-    TEST_ASSERT( memcmp( output_tag, tag->x, tag->len ) == 0 );
 
 exit:
 

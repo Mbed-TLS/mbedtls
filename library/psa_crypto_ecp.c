@@ -38,8 +38,20 @@
 #include <mbedtls/ecp.h>
 #include <mbedtls/error.h>
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
+#if ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||  \
+      ( defined(PSA_CRYPTO_DRIVER_TEST) &&                   \
+        defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) ) )
+#define BUILTIN_KEY_TYPE_ECC_KEY_PAIR    1
+#endif
+
+#if ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ||  \
+      ( defined(PSA_CRYPTO_DRIVER_TEST) &&                   \
+        defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) ) )
+#define BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY  1
+#endif
+
+#if defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
@@ -131,14 +143,14 @@ exit:
 
     return( status );
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ||
+#endif /* defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
+        * defined(BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
+#if defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
 psa_status_t mbedtls_psa_ecp_export_key( psa_key_type_t type,
                                          mbedtls_ecp_keypair *ecp,
                                          uint8_t *data,
@@ -190,7 +202,7 @@ psa_status_t mbedtls_psa_ecp_export_key( psa_key_type_t type,
     }
 }
 
-psa_status_t mbedtls_psa_ecp_export_public_key(
+static psa_status_t ecp_export_public_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     uint8_t *data, size_t data_size, size_t *data_length )
@@ -213,7 +225,43 @@ psa_status_t mbedtls_psa_ecp_export_public_key(
 
     return( status );
 }
+#endif /* defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
+        * defined(BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
+
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
+
+psa_status_t mbedtls_psa_ecp_export_public_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    uint8_t *data, size_t data_size, size_t *data_length )
+{
+    return( ecp_export_public_key( attributes, key_buffer, key_buffer_size,
+                                   data, data_size, data_length ) );
+}
+
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
+
+/*
+ * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
+ */
+
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
+psa_status_t mbedtls_transparent_test_driver_ecp_export_public_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    uint8_t *data, size_t data_size, size_t *data_length )
+{
+    return( ecp_export_public_key( attributes, key_buffer, key_buffer_size,
+                                   data, data_size, data_length ) );
+}
+#endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) ||
+          defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) */
+
+#endif /* PSA_CRYPTO_DRIVER_TEST */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

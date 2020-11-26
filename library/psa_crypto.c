@@ -1496,29 +1496,7 @@ static psa_status_t psa_export_key_buffer_internal( const uint8_t *key_buffer,
     return( PSA_SUCCESS );
 }
 
-/** Export a key in binary format
- *
- * \note The signature of this function is that of a PSA driver export_key
- *       entry point. This function behaves as an export_key entry point as
- *       defined in the PSA driver interface specification.
- *
- * \param[in]  attributes       The attributes for the key to export.
- * \param[in]  key_buffer       Material or context of the key to export.
- * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes.
- * \param[out] data             Buffer where the key data is to be written.
- * \param[in]  data_size        Size of the \p data buffer in bytes.
- * \param[out] data_length      On success, the number of bytes written in
- *                              \p data
- *
- * \retval #PSA_SUCCESS  The key was exported successfully.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- */
-static psa_status_t psa_export_key_internal(
+psa_status_t psa_export_key_internal(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     uint8_t *data, size_t data_size, size_t *data_length )
@@ -1607,30 +1585,7 @@ exit:
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
-/** Export a public key or the public part of a key pair in binary format.
- *
- * \note The signature of this function is that of a PSA driver
- *       export_public_key entry point. This function behaves as an
- *       export_public_key entry point as defined in the PSA driver interface
- *       specification.
- *
- * \param[in]  attributes       The attributes for the key to export.
- * \param[in]  key_buffer       Material or context of the key to export.
- * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes.
- * \param[out] data             Buffer where the key data is to be written.
- * \param[in]  data_size        Size of the \p data buffer in bytes.
- * \param[out] data_length      On success, the number of bytes written in
- *                              \p data
- *
- * \retval #PSA_SUCCESS  The public key was exported successfully.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- */
-static psa_status_t psa_export_public_key_internal(
+psa_status_t psa_export_public_key_internal(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,

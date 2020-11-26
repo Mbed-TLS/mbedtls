@@ -58,6 +58,11 @@ psa_status_t test_opaque_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key, size_t key_size, size_t *key_length );
 
+psa_status_t test_opaque_export_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key, size_t key_length,
+    uint8_t *data, size_t data_size, size_t *data_length );
+
 psa_status_t test_transparent_export_public_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,

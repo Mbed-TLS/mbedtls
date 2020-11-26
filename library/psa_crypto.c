@@ -1575,7 +1575,7 @@ psa_status_t psa_export_key( mbedtls_svc_key_id_t key,
     psa_key_attributes_t attributes = {
         .core = slot->attr
     };
-    status = psa_export_key_internal( &attributes,
+    status = psa_driver_wrapper_export_key( &attributes,
                  slot->key.data, slot->key.bytes,
                  data, data_size, data_length );
 
@@ -1593,8 +1593,8 @@ psa_status_t psa_export_public_key_internal(
     size_t data_size,
     size_t *data_length )
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_type_t type = attributes->core.type;
-    psa_key_lifetime_t lifetime = attributes->core.lifetime;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     const psa_drv_se_t *drv;
@@ -1624,16 +1624,6 @@ psa_status_t psa_export_public_key_internal(
                         key_buffer, key_buffer_size,
                         data, data_size, data_length ) );
         }
-
-        /* Need to export the public part of a private key,
-         * so conversion is needed. Try the accelerators first. */
-        psa_status_t status = psa_driver_wrapper_export_public_key(
-            attributes, key_buffer, key_buffer_size,
-            data, data_size, data_length );
-
-        if( status != PSA_ERROR_NOT_SUPPORTED ||
-            psa_key_lifetime_is_external( lifetime ) )
-            return( status );
 
         if( PSA_KEY_TYPE_IS_RSA( type ) )
         {
@@ -1740,7 +1730,7 @@ psa_status_t psa_export_public_key( mbedtls_svc_key_id_t key,
     psa_key_attributes_t attributes = {
         .core = slot->attr
     };
-    status = psa_export_public_key_internal(
+    status = psa_driver_wrapper_export_public_key(
         &attributes, slot->key.data, slot->key.bytes,
         data, data_size, data_length );
 

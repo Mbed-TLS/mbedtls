@@ -1498,58 +1498,114 @@ static psa_status_t psa_export_key_buffer_internal( const psa_key_slot_t *slot,
 static psa_status_t psa_export_key_internal( const psa_key_slot_t *slot,
                                              uint8_t *data,
                                              size_t data_size,
-                                             size_t *data_length,
-                                             int export_public_key )
+                                             size_t *data_length )
 {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     const psa_drv_se_t *drv;
     psa_drv_se_context_t *drv_context;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )
+    {
+        if( ( drv->key_management == NULL   ) ||
+            ( drv->key_management->p_export == NULL ) )
+            return( PSA_ERROR_NOT_SUPPORTED );
+
+        return( drv->key_management->p_export(
+                     drv_context, psa_key_slot_get_slot_number( slot ),
+                     data, data_size, data_length ) );
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
+    if( key_type_is_raw_bytes( slot->attr.type ) ||
+        PSA_KEY_TYPE_IS_RSA( slot->attr.type )   ||
+        PSA_KEY_TYPE_IS_ECC( slot->attr.type )      )
+    {
+        return( psa_export_key_buffer_internal(
+                    slot, data, data_size, data_length ) );
+    }
+    else
+    {
+        /* This shouldn't happen in the reference implementation, but
+           it is valid for a special-purpose implementation to omit
+           support for exporting certain key types. */
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
+}
+
+psa_status_t psa_export_key( mbedtls_svc_key_id_t key,
+                             uint8_t *data,
+                             size_t data_size,
+                             size_t *data_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+
+    /* Set the key to empty now, so that even when there are errors, we always
+     * set data_length to a value between 0 and data_size. On error, setting
+     * the key to empty is a good choice because an empty key representation is
+     * unlikely to be accepted anywhere. */
     *data_length = 0;
 
-    if( export_public_key && ! PSA_KEY_TYPE_IS_ASYMMETRIC( slot->attr.type ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+    /* Export requires the EXPORT flag. There is an exception for public keys,
+     * which don't require any flag, but
+     * psa_get_and_lock_key_slot_with_policy() takes care of this.
+     */
+    status = psa_get_and_lock_key_slot_with_policy( key, &slot,
+                                                    PSA_KEY_USAGE_EXPORT, 0 );
+    if( status != PSA_SUCCESS )
+        return( status );
 
     /* Reject a zero-length output buffer now, since this can never be a
      * valid key representation. This way we know that data must be a valid
      * pointer and we can do things like memset(data, ..., data_size). */
     if( data_size == 0 )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
+    {
+         status = PSA_ERROR_BUFFER_TOO_SMALL;
+         goto exit;
+    }
+
+    status = psa_export_key_internal( slot, data, data_size, data_length );
+
+exit:
+    unlock_status = psa_unlock_key_slot( slot );
+
+    return( ( status == PSA_SUCCESS ) ? unlock_status : status );
+}
+
+static psa_status_t psa_export_public_key_internal( const psa_key_slot_t *slot,
+                                                    uint8_t *data,
+                                                    size_t data_size,
+                                                    size_t *data_length )
+{
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    const psa_drv_se_t *drv;
+    psa_drv_se_context_t *drv_context;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )
     {
-        psa_drv_se_export_key_t method;
-        if( drv->key_management == NULL )
+        if( ( drv->key_management == NULL ) ||
+            ( drv->key_management->p_export_public == NULL ) )
             return( PSA_ERROR_NOT_SUPPORTED );
-        method = ( export_public_key ?
-                   drv->key_management->p_export_public :
-                   drv->key_management->p_export );
-        if( method == NULL )
-            return( PSA_ERROR_NOT_SUPPORTED );
-        return( method( drv_context,
-                        psa_key_slot_get_slot_number( slot ),
-                        data, data_size, data_length ) );
-    }
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    if( key_type_is_raw_bytes( slot->attr.type ) )
-    {
-        return( psa_export_key_buffer_internal( slot, data, data_size, data_length ) );
+        return( drv->key_management->p_export_public(
+                    drv_context, psa_key_slot_get_slot_number( slot ),
+                    data, data_size, data_length ) );
     }
-    else if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) ||
+    else
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+    if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) ||
              PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
     {
         if( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->attr.type ) )
         {
             /* Exporting public -> public */
-            return( psa_export_key_buffer_internal( slot, data, data_size, data_length ) );
-        }
-        else if( !export_public_key )
-        {
-            /* Exporting private -> private */
-            return( psa_export_key_buffer_internal( slot, data, data_size, data_length ) );
+            return( psa_export_key_buffer_internal(
+                        slot, data, data_size, data_length ) );
         }
 
         /* Need to export the public part of a private key,
@@ -1631,37 +1687,6 @@ static psa_status_t psa_export_key_internal( const psa_key_slot_t *slot,
         return( PSA_ERROR_NOT_SUPPORTED );
     }
 }
-
-psa_status_t psa_export_key( mbedtls_svc_key_id_t key,
-                             uint8_t *data,
-                             size_t data_size,
-                             size_t *data_length )
-{
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
-
-    /* Set the key to empty now, so that even when there are errors, we always
-     * set data_length to a value between 0 and data_size. On error, setting
-     * the key to empty is a good choice because an empty key representation is
-     * unlikely to be accepted anywhere. */
-    *data_length = 0;
-
-    /* Export requires the EXPORT flag. There is an exception for public keys,
-     * which don't require any flag, but
-     * psa_get_and_lock_key_slot_with_policy() takes care of this.
-     */
-    status = psa_get_and_lock_key_slot_with_policy( key, &slot,
-                                                    PSA_KEY_USAGE_EXPORT, 0 );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    status = psa_export_key_internal( slot, data, data_size, data_length, 0 );
-    unlock_status = psa_unlock_key_slot( slot );
-
-    return( ( status == PSA_SUCCESS ) ? unlock_status : status );
-}
-
 psa_status_t psa_export_public_key( mbedtls_svc_key_id_t key,
                                     uint8_t *data,
                                     size_t data_size,
@@ -1682,7 +1707,25 @@ psa_status_t psa_export_public_key( mbedtls_svc_key_id_t key,
     if( status != PSA_SUCCESS )
         return( status );
 
-    status = psa_export_key_internal( slot, data, data_size, data_length, 1 );
+    if( ! PSA_KEY_TYPE_IS_ASYMMETRIC( slot->attr.type ) )
+    {
+         status = PSA_ERROR_INVALID_ARGUMENT;
+         goto exit;
+    }
+
+    /* Reject a zero-length output buffer now, since this can never be a
+     * valid key representation. This way we know that data must be a valid
+     * pointer and we can do things like memset(data, ..., data_size). */
+    if( data_size == 0 )
+    {
+         status = PSA_ERROR_BUFFER_TOO_SMALL;
+         goto exit;
+    }
+
+    status = psa_export_public_key_internal(
+                 slot, data, data_size, data_length );
+
+exit:
     unlock_status = psa_unlock_key_slot( slot );
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );

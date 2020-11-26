@@ -38,4 +38,48 @@ psa_status_t mbedtls_psa_ecp_load_representation( psa_key_type_t type,
                                                   const uint8_t *data,
                                                   size_t data_length,
                                                   mbedtls_ecp_keypair **p_ecp );
-#endif /* PSA_CRYPTO_ECP */
+
+/** Export an ECP key to export representation
+ *
+ * \param[in] type          The type of key (public/private) to export
+ * \param[in] ecp           The internal ECP representation from which to export
+ * \param[out] data         The buffer to export to
+ * \param[in] data_size     The length of the buffer to export to
+ * \param[out] data_length  The amount of bytes written to \p data
+ */
+psa_status_t mbedtls_psa_ecp_export_key( psa_key_type_t type,
+                                         mbedtls_ecp_keypair *ecp,
+                                         uint8_t *data,
+                                         size_t data_size,
+                                         size_t *data_length );
+
+/** Export an ECP public key or the public part of an ECP key pair in binary
+ *  format.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       export_public_key entry point. This function behaves as an
+ *       export_public_key entry point as defined in the PSA driver interface
+ *       specification.
+ *
+ * \param[in]  attributes       The attributes for the key to export.
+ * \param[in]  key_buffer       Material or context of the key to export.
+ * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes.
+ * \param[out] data             Buffer where the key data is to be written.
+ * \param[in]  data_size        Size of the \p data buffer in bytes.
+ * \param[out] data_length      On success, the number of bytes written in
+ *                              \p data
+ *
+ * \retval #PSA_SUCCESS  The ECP public key was exported successfully.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+psa_status_t mbedtls_psa_ecp_export_public_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    uint8_t *data, size_t data_size, size_t *data_length );
+
+#endif /* PSA_CRYPTO_ECP_H */

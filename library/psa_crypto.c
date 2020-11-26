@@ -1503,25 +1503,6 @@ psa_status_t psa_export_key_internal(
 {
     psa_key_type_t type = attributes->core.type;
 
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    const psa_drv_se_t *drv;
-    psa_drv_se_context_t *drv_context;
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( psa_get_se_driver( attributes->core.lifetime, &drv, &drv_context ) )
-    {
-        if( ( drv->key_management == NULL   ) ||
-            ( drv->key_management->p_export == NULL ) )
-            return( PSA_ERROR_NOT_SUPPORTED );
-
-        return( drv->key_management->p_export(
-                     drv_context,
-                     *( (psa_key_slot_number_t *)key_buffer ),
-                     data, data_size, data_length ) );
-    }
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-
     if( key_type_is_raw_bytes( type ) ||
         PSA_KEY_TYPE_IS_RSA( type )   ||
         PSA_KEY_TYPE_IS_ECC( type )      )
@@ -1596,25 +1577,6 @@ psa_status_t psa_export_public_key_internal(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_type_t type = attributes->core.type;
 
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    const psa_drv_se_t *drv;
-    psa_drv_se_context_t *drv_context;
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( psa_get_se_driver( lifetime, &drv, &drv_context ) )
-    {
-        if( ( drv->key_management == NULL ) ||
-            ( drv->key_management->p_export_public == NULL ) )
-            return( PSA_ERROR_NOT_SUPPORTED );
-
-        return( drv->key_management->p_export_public(
-                    drv_context,
-                    *( (psa_key_slot_number_t *)key_buffer ),
-                    data, data_size, data_length ) );
-    }
-    else
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     if( PSA_KEY_TYPE_IS_RSA( type ) || PSA_KEY_TYPE_IS_ECC( type ) )
     {
         if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )

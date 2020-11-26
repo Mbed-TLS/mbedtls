@@ -82,4 +82,17 @@ psa_status_t mbedtls_psa_rsa_export_public_key(
     const uint8_t *key_buffer, size_t key_buffer_size,
     uint8_t *data, size_t data_size, size_t *data_length );
 
+/*
+ * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
+ */
+
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+
+psa_status_t mbedtls_transparent_test_driver_rsa_export_public_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    uint8_t *data, size_t data_size, size_t *data_length );
+
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+
 #endif /* PSA_CRYPTO_RSA_H */

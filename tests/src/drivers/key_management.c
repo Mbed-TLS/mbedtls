@@ -27,6 +27,8 @@
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
 #include "psa/crypto.h"
 #include "psa_crypto_core.h"
+#include "psa_crypto_ecp.h"
+#include "psa_crypto_rsa.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/error.h"
 
@@ -265,9 +267,10 @@ psa_status_t test_opaque_export_key(
     (void) data_length;
     return( PSA_ERROR_NOT_SUPPORTED );
 }
+
 psa_status_t test_transparent_export_public_key(
     const psa_key_attributes_t *attributes,
-    const uint8_t *key, size_t key_length,
+    const uint8_t *key_buffer, size_t key_buffer_size,
     uint8_t *data, size_t data_size, size_t *data_length )
 {
     ++test_driver_key_management_hooks.hits;
@@ -285,73 +288,39 @@ psa_status_t test_transparent_export_public_key(
         return( PSA_SUCCESS );
     }
 
-    if( key == NULL || key_length == 0 )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    psa_key_type_t keytype = psa_get_key_type( attributes );
-    (void) keytype;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_type_t key_type = psa_get_key_type( attributes );
 
 #if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
-    if( PSA_KEY_TYPE_IS_ECC( keytype ) )
+    if( PSA_KEY_TYPE_IS_ECC( key_type ) )
     {
-        if( !PSA_KEY_TYPE_IS_KEY_PAIR( keytype ) )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-
-        /* Mostly copied from psa_crypto.c */
-        mbedtls_ecp_group_id grp_id = MBEDTLS_ECP_DP_NONE;
-        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-        mbedtls_ecp_keypair ecp;
-        mbedtls_test_rnd_pseudo_info rnd_info;
-        memset( &rnd_info, 0x5A, sizeof( mbedtls_test_rnd_pseudo_info ) );
-
-        if( attributes->domain_parameters_size != 0 )
-            return( PSA_ERROR_NOT_SUPPORTED );
-
-        grp_id = mbedtls_ecc_group_of_psa( PSA_KEY_TYPE_ECC_GET_FAMILY( keytype ),
-                                           PSA_BITS_TO_BYTES( psa_get_key_bits( attributes ) ) );
-        if( grp_id == MBEDTLS_ECP_DP_NONE )
-            return( PSA_ERROR_NOT_SUPPORTED );
-
-        mbedtls_ecp_keypair_init( &ecp );
-
-        status = mbedtls_to_psa_error(
-                    mbedtls_ecp_group_load( &ecp.grp, grp_id ) );
-        if( status != PSA_SUCCESS )
-            goto ecp_exit;
-
-        status = mbedtls_to_psa_error(
-            mbedtls_ecp_read_key( ecp.grp.id,
-                                  &ecp,
-                                  key,
-                                  key_length ) );
-        if( status != PSA_SUCCESS )
-            goto ecp_exit;
-
-        /* Calculate the public key */
-        status = mbedtls_to_psa_error(
-            mbedtls_ecp_mul( &ecp.grp, &ecp.Q, &ecp.d, &ecp.grp.G,
-                             &mbedtls_test_rnd_pseudo_rand,
-                             &rnd_info ) );
-        if( status != PSA_SUCCESS )
-            goto ecp_exit;
-
-        status = mbedtls_to_psa_error(
-                    mbedtls_ecp_point_write_binary( &ecp.grp, &ecp.Q,
-                                                    MBEDTLS_ECP_PF_UNCOMPRESSED,
-                                                    data_length,
-                                                    data,
-                                                    data_size ) );
-        if( status != PSA_SUCCESS )
-            memset( data, 0, data_size );
-ecp_exit:
-        mbedtls_ecp_keypair_free( &ecp );
-        return( status );
+        status = mbedtls_transparent_test_driver_ecp_export_public_key(
+                      attributes,
+                      key_buffer, key_buffer_size,
+                      data, data_size, data_length );
     }
-#endif /* MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR ||
-        * MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY */
+    else
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY)
+    if( PSA_KEY_TYPE_IS_RSA( key_type ) )
+    {
+        status = mbedtls_transparent_test_driver_rsa_export_public_key(
+                      attributes,
+                      key_buffer, key_buffer_size,
+                      data, data_size, data_length );
+    }
+    else
+#endif
+    {
+        status = PSA_ERROR_NOT_SUPPORTED;
+        (void)key_buffer;
+        (void)key_buffer_size;
+        (void)key_type;
+    }
 
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return( status );
 }
 
 psa_status_t test_opaque_export_public_key(

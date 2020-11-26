@@ -25,6 +25,7 @@
 #include <psa/crypto.h>
 #include "psa_crypto_core.h"
 #include "psa_crypto_ecp.h"
+#include "psa_crypto_random_impl.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -135,5 +136,84 @@ exit:
         * defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
+
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
+psa_status_t mbedtls_psa_ecp_export_key( psa_key_type_t type,
+                                         mbedtls_ecp_keypair *ecp,
+                                         uint8_t *data,
+                                         size_t data_size,
+                                         size_t *data_length )
+{
+    psa_status_t status;
+
+    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
+    {
+        /* Check whether the public part is loaded */
+        if( mbedtls_ecp_is_zero( &ecp->Q ) )
+        {
+            /* Calculate the public key */
+            status = mbedtls_to_psa_error(
+                mbedtls_ecp_mul( &ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G,
+                                 mbedtls_psa_get_random,
+                                 MBEDTLS_PSA_RANDOM_STATE ) );
+            if( status != PSA_SUCCESS )
+                return( status );
+        }
+
+        status = mbedtls_to_psa_error(
+                    mbedtls_ecp_point_write_binary( &ecp->grp, &ecp->Q,
+                                                    MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                                    data_length,
+                                                    data,
+                                                    data_size ) );
+        if( status != PSA_SUCCESS )
+            memset( data, 0, data_size );
+
+        return( status );
+    }
+    else
+    {
+        if( data_size < PSA_BITS_TO_BYTES( ecp->grp.nbits ) )
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+        status = mbedtls_to_psa_error(
+                    mbedtls_ecp_write_key( ecp,
+                                           data,
+                                           PSA_BITS_TO_BYTES( ecp->grp.nbits ) ) );
+        if( status == PSA_SUCCESS )
+            *data_length = PSA_BITS_TO_BYTES( ecp->grp.nbits );
+        else
+            memset( data, 0, data_size );
+
+        return( status );
+    }
+}
+
+psa_status_t mbedtls_psa_ecp_export_public_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    uint8_t *data, size_t data_size, size_t *data_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ecp_keypair *ecp = NULL;
+
+    status = mbedtls_psa_ecp_load_representation(
+                 attributes->core.type, key_buffer, key_buffer_size, &ecp );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    status = mbedtls_psa_ecp_export_key(
+                 PSA_KEY_TYPE_ECC_PUBLIC_KEY(
+                     PSA_KEY_TYPE_ECC_GET_FAMILY( attributes->core.type ) ),
+                 ecp, data, data_size, data_length );
+
+    mbedtls_ecp_keypair_free( ecp );
+    mbedtls_free( ecp );
+
+    return( status );
+}
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

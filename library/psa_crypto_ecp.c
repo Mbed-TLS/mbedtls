@@ -151,6 +151,46 @@ exit:
 
 #if defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
+
+psa_status_t mbedtls_psa_ecp_import_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *data, size_t data_length,
+    uint8_t *key_buffer, size_t key_buffer_size,
+    size_t *key_buffer_length, size_t *bits )
+{
+    psa_status_t status;
+    mbedtls_ecp_keypair *ecp = NULL;
+
+    /* Parse input */
+    status = mbedtls_psa_ecp_load_representation( attributes->core.type,
+                                                  data,
+                                                  data_length,
+                                                  &ecp );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    if( PSA_KEY_TYPE_ECC_GET_FAMILY( attributes->core.type ) ==
+        PSA_ECC_FAMILY_MONTGOMERY )
+        *bits = ecp->grp.nbits + 1;
+    else
+        *bits = ecp->grp.nbits;
+
+    /* Re-export the data to PSA export format. There is currently no support
+     * for other input formats then the export format, so this is a 1-1
+     * copy operation. */
+    status = mbedtls_psa_ecp_export_key( attributes->core.type,
+                                         ecp,
+                                         key_buffer,
+                                         key_buffer_size,
+                                         key_buffer_length );
+exit:
+    /* Always free the PK object (will also free contained ECP context) */
+    mbedtls_ecp_keypair_free( ecp );
+    mbedtls_free( ecp );
+
+    return( status );
+}
+
 psa_status_t mbedtls_psa_ecp_export_key( psa_key_type_t type,
                                          mbedtls_ecp_keypair *ecp,
                                          uint8_t *data,

@@ -770,6 +770,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
 
+#if defined(MBEDTLS_AES_128_BIT_MASKED)
+    if( strcmp( "MBEDTLS_AES_128_BIT_MASKED", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_AES_128_BIT_MASKED );
+        return( 0 );
+    }
+#endif /* MBEDTLS_AES_128_BIT_MASKED */
+
 #if defined(MBEDTLS_FI_COUNTERMEASURES)
     if( strcmp( "MBEDTLS_FI_COUNTERMEASURES", config ) == 0 )
     {

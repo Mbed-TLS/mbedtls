@@ -78,6 +78,12 @@
 #error "MBEDTLS_CTR_DRBG_C and MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH defined, but MBEDTLS_CTR_DRBG_USE_128_BIT_KEY is not defined"
 #endif
 
+#if defined(MBEDTLS_AES_128_BIT_MASKED) && ( !defined(MBEDTLS_AES_SCA_COUNTERMEASURES) || \
+                                             !defined(MBEDTLS_AES_ONLY_ENCRYPT) || \
+                                             !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH) )
+#error "MBEDTLS_AES_128_BIT_MASKED defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_DHM_C) && !defined(MBEDTLS_BIGNUM_C)
 #error "MBEDTLS_DHM_C defined, but not all prerequisites"
 #endif

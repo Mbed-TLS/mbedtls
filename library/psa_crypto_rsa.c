@@ -138,6 +138,43 @@ exit:
 
 #if defined(BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
     defined(BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
+
+psa_status_t mbedtls_psa_rsa_import_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *data, size_t data_length,
+    uint8_t *key_buffer, size_t key_buffer_size,
+    size_t *key_buffer_length, size_t *bits )
+{
+    psa_status_t status;
+    mbedtls_rsa_context *rsa = NULL;
+
+    /* Parse input */
+    status = mbedtls_psa_rsa_load_representation( attributes->core.type,
+                                                  data,
+                                                  data_length,
+                                                  &rsa );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    *bits = (psa_key_bits_t) PSA_BYTES_TO_BITS( mbedtls_rsa_get_len( rsa ) );
+
+    /* Re-export the data to PSA export format, such that we can store export
+     * representation in the key slot. Export representation in case of RSA is
+     * the smallest representation that's allowed as input, so a straight-up
+     * allocation of the same size as the input buffer will be large enough. */
+    status = mbedtls_psa_rsa_export_key( attributes->core.type,
+                                         rsa,
+                                         key_buffer,
+                                         key_buffer_size,
+                                         key_buffer_length );
+exit:
+    /* Always free the RSA object */
+    mbedtls_rsa_free( rsa );
+    mbedtls_free( rsa );
+
+    return( status );
+}
+
 psa_status_t mbedtls_psa_rsa_export_key( psa_key_type_t type,
                                          mbedtls_rsa_context *rsa,
                                          uint8_t *data,

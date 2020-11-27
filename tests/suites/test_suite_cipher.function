@@ -17,6 +17,46 @@
 #define MBEDTLS_CIPHER_AUTH_CRYPT
 #endif
 
+#if defined(MBEDTLS_CIPHER_AUTH_CRYPT)
+/* Helper for resetting key/direction
+ *
+ * The documentation doesn't explicitly say whether calling
+ * mbedtls_cipher_setkey() twice is allowed or not. This currently works with
+ * the default software implementation, but only by accident. It isn't
+ * guaranteed to work with new ciphers or with alternative implementations of
+ * individual ciphers, and it doesn't work with the PSA wrappers. So don't do
+ * it, and instead start with a fresh context.
+ */
+static void cipher_reset_key( mbedtls_cipher_context_t *ctx, int cipher_id,
+        int use_psa, size_t tag_len, const data_t *key, int direction )
+{
+    mbedtls_cipher_free( ctx );
+    mbedtls_cipher_init( ctx );
+
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+    (void) use_psa;
+    (void) tag_len;
+#else
+    if( use_psa == 1 )
+    {
+        TEST_ASSERT( 0 == mbedtls_cipher_setup_psa( ctx,
+                              mbedtls_cipher_info_from_type( cipher_id ),
+                              tag_len ) );
+    }
+    else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    {
+        TEST_ASSERT( 0 == mbedtls_cipher_setup( ctx,
+                              mbedtls_cipher_info_from_type( cipher_id ) ) );
+    }
+
+    TEST_ASSERT( 0 == mbedtls_cipher_setkey( ctx, key->x, 8 * key->len,
+                                             direction ) );
+exit:
+    ;
+}
+#endif /* MBEDTLS_CIPHER_AUTH_CRYPT */
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -1001,22 +1041,8 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
     /*
      * Prepare context for decryption
      */
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( use_psa == 1 )
-    {
-        TEST_ASSERT( 0 == mbedtls_cipher_setup_psa( &ctx,
-                              mbedtls_cipher_info_from_type( cipher_id ),
-                              tag->len ) );
-    }
-    else
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-    {
-        TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
-                              mbedtls_cipher_info_from_type( cipher_id ) ) );
-    }
-
-    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key->x, 8 * key->len,
-                                             MBEDTLS_DECRYPT ) );
+    cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
+                      MBEDTLS_DECRYPT );
 
     /*
      * Prepare buffers/pointers for decryption
@@ -1066,22 +1092,8 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
         /*
          * Prepare context for encryption
          */
-        mbedtls_cipher_free( &ctx );
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        if( use_psa == 1 )
-        {
-            TEST_ASSERT( 0 == mbedtls_cipher_setup_psa( &ctx,
-                                  mbedtls_cipher_info_from_type( cipher_id ),
-                                  tag->len ) );
-        }
-        else
-#endif
-        {
-            TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
-                                  mbedtls_cipher_info_from_type( cipher_id ) ) );
-        }
-        TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key->x, 8 * key->len,
-                                                 MBEDTLS_ENCRYPT ) );
+        cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
+                          MBEDTLS_ENCRYPT );
 
         /*
          * Encrypt and check the result

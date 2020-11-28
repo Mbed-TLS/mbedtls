@@ -418,30 +418,38 @@ psa_status_t psa_driver_wrapper_import_key(
     size_t *key_buffer_length,
     size_t *bits )
 {
-#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    /* Try accelerators in turn */
-#if defined(PSA_CRYPTO_DRIVER_TEST)
-    status = test_transparent_import_key( attributes,
-                                          data, data_length,
-                                          key_buffer, key_buffer_size,
-                                          key_buffer_length, bits );
-    /* Declared with fallback == true */
-    if( status != PSA_ERROR_NOT_SUPPORTED )
-        return( status );
-#endif /* PSA_CRYPTO_DRIVER_TEST */
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(
+                                      psa_get_key_lifetime( attributes ) );
 
-    return( PSA_ERROR_NOT_SUPPORTED );
-#else /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-    (void) attributes;
-    (void) data;
-    (void) data_length;
-    (void) key_buffer;
-    (void) key_buffer_size;
-    (void) key_buffer_length;
-    (void) bits;
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+    switch( location )
+    {
+        case PSA_KEY_LOCATION_LOCAL_STORAGE:
+            /* Key is stored in the slot in export representation, so
+             * cycle through all known transparent accelerators */
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+            status = test_transparent_import_key( attributes,
+                                                  data, data_length,
+                                                  key_buffer, key_buffer_size,
+                                                  key_buffer_length, bits );
+            /* Declared with fallback == true */
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+            /* Fell through, meaning no accelerator supports this operation */
+            return( psa_import_key_into_slot( attributes,
+                                              data, data_length,
+                                              key_buffer, key_buffer_size,
+                                              key_buffer_length, bits ) );
+
+        default:
+            /* Key is declared with a lifetime not known to us */
+            (void)status;
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
 }
 
 psa_status_t psa_driver_wrapper_export_key(

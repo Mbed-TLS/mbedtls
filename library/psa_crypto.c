@@ -622,19 +622,6 @@ psa_status_t psa_import_key_into_slot(
     }
     else if( PSA_KEY_TYPE_IS_ASYMMETRIC( type ) )
     {
-        status = psa_driver_wrapper_import_key( attributes,
-                                                data, data_length,
-                                                key_buffer,
-                                                key_buffer_size,
-                                                key_buffer_length,
-                                                bits );
-        if( status != PSA_ERROR_NOT_SUPPORTED )
-            return( status );
-
-        mbedtls_platform_zeroize( key_buffer, key_buffer_size );
-
-        /* Key format is not supported by any accelerator, try software fallback
-         * if present. */
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
         if( PSA_KEY_TYPE_IS_ECC( type ) )
@@ -1865,16 +1852,23 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     }
     else
     {
-        status = psa_allocate_buffer_to_slot( slot, data_length );
-        if( status != PSA_SUCCESS )
-            goto exit;
+       /* In the case of a transparent key or an opaque key stored in local
+        * storage (thus not in the case of generating a key in a secure element
+        * or cryptoprocessor with storage), we have to allocate a buffer to
+        * hold the generated key material. */
+        if( slot->key.data == NULL )
+        {
+            status = psa_allocate_buffer_to_slot( slot, data_length );
+            if( status != PSA_SUCCESS )
+                goto exit;
+        }
 
         size_t bits = slot->attr.bits;
-        status = psa_import_key_into_slot( attributes,
-                                           data, data_length,
-                                           slot->key.data,
-                                           slot->key.bytes,
-                                           &slot->key.bytes, &bits );
+        status = psa_driver_wrapper_import_key( attributes,
+                                                data, data_length,
+                                                slot->key.data,
+                                                slot->key.bytes,
+                                                &slot->key.bytes, &bits );
         if( status != PSA_SUCCESS )
             goto exit;
 
@@ -5191,16 +5185,18 @@ static psa_status_t psa_generate_derived_key_internal(
     if( status != PSA_SUCCESS )
         return( status );
 
+    slot->attr.bits = (psa_key_bits_t) bits;
     psa_key_attributes_t attributes = {
       .core = slot->attr
     };
 
-    status = psa_import_key_into_slot( &attributes,
-                                       data, bytes,
-                                       slot->key.data, slot->key.bytes,
-                                       &slot->key.bytes,
-                                       &bits );
-    slot->attr.bits = (psa_key_bits_t) bits;
+    status = psa_driver_wrapper_import_key( &attributes,
+                                            data, bytes,
+                                            slot->key.data,
+                                            slot->key.bytes,
+                                            &slot->key.bytes, &bits );
+    if( bits != slot->attr.bits )
+        status = PSA_ERROR_INVALID_ARGUMENT;
 
 exit:
     mbedtls_free( data );

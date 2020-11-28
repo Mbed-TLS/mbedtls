@@ -5415,6 +5415,12 @@ static void ssl_calc_finished_tls_sha384(
     const char *sender;
     mbedtls_sha512_context sha512;
     unsigned char padbuf[48];
+    /*
+     * For SHA-384, we can save 16 bytes by keeping padbuf 48 bytes long.
+     * However, to avoid stringop-overflow warning in gcc, we have to cast
+     * mbedtls_sha512_finish_ret().
+     */
+    finish_sha384_t finish_sha384 = (finish_sha384_t)mbedtls_sha512_finish_ret;
 
     mbedtls_ssl_session *session = ssl->session_negotiate;
     if( !session )
@@ -5441,13 +5447,7 @@ static void ssl_calc_finished_tls_sha384(
              ? "client finished"
              : "server finished";
 
-    /*
-     * For SHA-384, we can save 16 bytes by keeping padbuf 48 bytes long.
-     * However, to avoid stringop-overflow warning in gcc, we have to cast
-     * mbedtls_sha512_finish_ret().
-     */
-    finish_sha384_t finish = (finish_sha384_t)mbedtls_sha512_finish_ret;
-    finish( &sha512, padbuf );
+    finish_sha384( &sha512, padbuf );
 
     ssl->handshake->tls_prf( session->master, 48, sender,
                              padbuf, 48, buf, len );

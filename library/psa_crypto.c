@@ -541,13 +541,19 @@ static psa_status_t validate_unstructured_key_bit_size( psa_key_type_t type,
  * \param[in,out] slot      The slot where to store the export representation to
  * \param[in] data          The buffer containing the import representation
  * \param[in] data_length   The amount of bytes in \p data
+ * \param[out] key_buffer   The buffer containing the export representation
+ * \param[in] key_buffer_size     The size of \p key_buffer in bytes
+ * \param[out] key_buffer_length  The length of the data written in the key
+ *                                buffer in bytes.
  */
 static psa_status_t psa_import_ecp_key( psa_key_slot_t *slot,
                                         const uint8_t *data,
-                                        size_t data_length )
+                                        size_t data_length,
+                                        uint8_t *key_buffer,
+                                        size_t key_buffer_size,
+                                        size_t *key_buffer_length )
 {
     psa_status_t status;
-    uint8_t* output = NULL;
     mbedtls_ecp_keypair *ecp = NULL;
 
     /* Parse input */
@@ -566,35 +572,17 @@ static psa_status_t psa_import_ecp_key( psa_key_slot_t *slot,
     /* Re-export the data to PSA export format. There is currently no support
      * for other input formats then the export format, so this is a 1-1
      * copy operation. */
-    output = mbedtls_calloc( 1, data_length );
-    if( output == NULL )
-    {
-        status = PSA_ERROR_INSUFFICIENT_MEMORY;
-        goto exit;
-    }
-
     status = mbedtls_psa_ecp_export_key( slot->attr.type,
                                          ecp,
-                                         output,
-                                         data_length,
-                                         &data_length);
+                                         key_buffer,
+                                         key_buffer_size,
+                                         key_buffer_length );
 exit:
     /* Always free the PK object (will also free contained ECP context) */
     mbedtls_ecp_keypair_free( ecp );
     mbedtls_free( ecp );
 
-    /* Free the allocated buffer only on error. */
-    if( status != PSA_SUCCESS )
-    {
-        mbedtls_free( output );
-        return( status );
-    }
-
-    /* On success, store the allocated export-formatted key. */
-    slot->key.data = output;
-    slot->key.bytes = data_length;
-
-    return( PSA_SUCCESS );
+    return( status );
 }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
@@ -753,7 +741,15 @@ static psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
         if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
         {
-            return( psa_import_ecp_key( slot, data, data_length ) );
+            status = psa_allocate_buffer_to_slot( slot, data_length );
+            if( status != PSA_SUCCESS )
+                return( status );
+
+            status = psa_import_ecp_key( slot,
+                                         data, data_length,
+                                         slot->key.data, data_length,
+                                         &slot->key.bytes );
+            return( status );
         }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */

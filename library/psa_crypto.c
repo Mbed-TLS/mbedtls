@@ -2098,8 +2098,7 @@ static psa_status_t psa_start_key_creation(
  * \retval #PSA_ERROR_ALREADY_EXISTS
  * \retval #PSA_ERROR_DATA_INVALID
  * \retval #PSA_ERROR_DATA_CORRUPT
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_DOES_NOT_EXIST
+ * \retval #PSA_ERROR_STORAGE_FAILURE
  *
  * \return If this function fails, the key slot is an invalid state.
  *         You must call psa_fail_key_creation() to wipe and free the slot.

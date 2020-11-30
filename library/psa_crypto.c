@@ -1800,6 +1800,7 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
+    size_t bits;
 
     *key = MBEDTLS_SVC_KEY_ID_INIT;
 
@@ -1814,71 +1815,32 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     if( status != PSA_SUCCESS )
         goto exit;
 
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( driver != NULL )
+    /* In the case of a transparent key or an opaque key stored in local
+     * storage (thus not in the case of generating a key in a secure element
+     * or cryptoprocessor with storage), we have to allocate a buffer to
+     * hold the generated key material. */
+    if( slot->key.data == NULL )
     {
-        const psa_drv_se_t *drv = psa_get_se_driver_methods( driver );
-        /* The driver should set the number of key bits, however in
-         * case it doesn't, we initialize bits to an invalid value. */
-        size_t bits = PSA_MAX_KEY_BITS + 1;
-        if( drv->key_management == NULL ||
-            drv->key_management->p_import == NULL )
-        {
-            status = PSA_ERROR_NOT_SUPPORTED;
-            goto exit;
-        }
-        status = drv->key_management->p_import(
-            psa_get_se_driver_context( driver ),
-            psa_key_slot_get_slot_number( slot ),
-            attributes, data, data_length, &bits );
+        status = psa_allocate_buffer_to_slot( slot, data_length );
         if( status != PSA_SUCCESS )
             goto exit;
-        if( bits > PSA_MAX_KEY_BITS )
-        {
-            status = PSA_ERROR_NOT_SUPPORTED;
-            goto exit;
-        }
-        slot->attr.bits = (psa_key_bits_t) bits;
     }
-    else
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    if( psa_key_lifetime_is_external( psa_get_key_lifetime( attributes ) ) )
+
+    bits = slot->attr.bits;
+    status = psa_driver_wrapper_import_key( attributes,
+                                            data, data_length,
+                                            slot->key.data,
+                                            slot->key.bytes,
+                                            &slot->key.bytes, &bits );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    if( slot->attr.bits == 0 )
+        slot->attr.bits = (psa_key_bits_t) bits;
+    else if( bits != slot->attr.bits )
     {
-        /* Importing a key with external lifetime through the driver wrapper
-         * interface is not yet supported. Return as if this was an invalid
-         * lifetime. */
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
-    }
-    else
-    {
-       /* In the case of a transparent key or an opaque key stored in local
-        * storage (thus not in the case of generating a key in a secure element
-        * or cryptoprocessor with storage), we have to allocate a buffer to
-        * hold the generated key material. */
-        if( slot->key.data == NULL )
-        {
-            status = psa_allocate_buffer_to_slot( slot, data_length );
-            if( status != PSA_SUCCESS )
-                goto exit;
-        }
-
-        size_t bits = slot->attr.bits;
-        status = psa_driver_wrapper_import_key( attributes,
-                                                data, data_length,
-                                                slot->key.data,
-                                                slot->key.bytes,
-                                                &slot->key.bytes, &bits );
-        if( status != PSA_SUCCESS )
-            goto exit;
-
-        if( slot->attr.bits == 0 )
-            slot->attr.bits = (psa_key_bits_t) bits;
-        else if( bits != slot->attr.bits )
-        {
-            status = PSA_ERROR_INVALID_ARGUMENT;
-            goto exit;
-        }
     }
 
     status = psa_validate_optional_attributes( slot, attributes );

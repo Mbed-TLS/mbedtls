@@ -422,6 +422,35 @@ psa_status_t psa_driver_wrapper_import_key(
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(
                                       psa_get_key_lifetime( attributes ) );
 
+    /* Try dynamically-registered SE interface first */
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    const psa_drv_se_t *drv;
+    psa_drv_se_context_t *drv_context;
+
+    if( psa_get_se_driver( attributes->core.lifetime, &drv, &drv_context ) )
+    {
+        if( drv->key_management == NULL ||
+            drv->key_management->p_import == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
+
+        /* The driver should set the number of key bits, however in
+         * case it doesn't, we initialize bits to an invalid value. */
+        *bits = PSA_MAX_KEY_BITS + 1;
+        status = drv->key_management->p_import(
+            drv_context,
+            *( (psa_key_slot_number_t *)key_buffer ),
+            attributes, data, data_length, bits );
+
+        if( status != PSA_SUCCESS )
+            return( status );
+
+        if( (*bits) > PSA_MAX_KEY_BITS )
+            return( PSA_ERROR_NOT_SUPPORTED );
+
+        return( PSA_SUCCESS );
+    }
+#endif /* PSA_CRYPTO_SE_C */
+
     switch( location )
     {
         case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -445,9 +474,10 @@ psa_status_t psa_driver_wrapper_import_key(
                                               key_buffer_length, bits ) );
 
         default:
-            /* Key is declared with a lifetime not known to us */
+            /* Importing a key with external storage in not yet supported.
+             * Return in error indicating that the lifetime is not valid. */
             (void)status;
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
 }

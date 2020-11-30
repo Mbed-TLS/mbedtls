@@ -1350,7 +1350,7 @@
  *       or delivers non-uniform output, declare it as an entropy source
  *       with mbedtls_entropy_add_source() instead of enabling this option.
  *
- * If you enable this option, you must supply configure the type
+ * If you enable this option, you must configure the type
  * ::mbedtls_psa_external_random_context_t in psa/crypto_platform.h
  * and define a function called mbedtls_psa_external_get_random()
  * with the following prototype:
@@ -3650,7 +3650,7 @@
  *
  * If this option is unset:
  * - If CTR_DRBG is available, the PSA subsystem uses it rather than HMAC_DRBG.
- * - Otherwise, the PSA subsystem uses one HMAC_DRBG with of
+ * - Otherwise, the PSA subsystem uses HMAC_DRBG with either
  *   #MBEDTLS_MD_SHA512 or #MBEDTLS_MD_SHA256 based on availability and
  *   on unspecified heuristics.
  */

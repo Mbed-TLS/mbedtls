@@ -1981,6 +1981,23 @@
 #define MBEDTLS_AESNI_C
 
 /**
+ * \def MBEDTLS_CUSTOM_HAS_AESNI
+ *
+ * Link to an externally defined `mbedtls_aesni_has_support` function. By
+ * default mbedtls uses the `cpuid` instruction to determine whether AES-NI
+ * is supported at run time.
+ *
+ * Module:  library/aesni.c
+ * Caller:  library/gcm.c
+ *          library/aes.c
+ *
+ * Requires: MBEDTLS_HAVE_X86_64
+ *
+ * Uncomment to provide a custom `mbedtls_aesni_has_support` function.
+ */
+//#define MBEDTLS_CUSTOM_HAS_AESNI
+
+/**
  * \def MBEDTLS_AES_C
  *
  * Enable the AES block cipher.

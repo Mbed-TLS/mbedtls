@@ -489,7 +489,7 @@ This operation family requires the following type, entry points and parameters (
 * `"add_entropy"` (entry point, optional): the core calls this function to [inject entropy](#entropy-injection). This entry point is optional if the driver is for a peripheral that includes an entropy source of its own, however [random generator drivers without entropy injection](#random-generator-drivers-without-entropy-injection) have limited portability since they can only be used on platforms with no other entropy source. This entry point is mandatory if `"initial_entropy_size"` is nonzero.
 * `"get_random"` (entry point, mandatory): the core calls this function whenever it needs to [obtain random data](#the-get_random-entry-point).
 * `"initial_entropy_size"` (integer, mandatory): the minimum number of bytes of entropy that the core must supply before the driver can output random data. This can be `0` if the driver is for a peripheral that includes an entropy source of its own.
-* `"reseed_entropy_size"` (integer, optional): the minimum number of bytes of entropy that the core must supply when the driver runs out of entropy. This value is also a hint for the size to supply if the core makes additional calls to `"add_entropy"`, for example to enforce prediction resistance. If omitted, the core chooses a value which is at least the expected security strength of the device.
+* `"reseed_entropy_size"` (integer, optional): the minimum number of bytes of entropy that the core should supply via [`"add_entropy"`](#entropy-injection) when the driver runs out of entropy. This value is also a hint for the size to supply if the core makes additional calls to `"add_entropy"`, for example to enforce prediction resistance. If omitted, the core should pass an amount of entropy corresponding to the expected security strength of the device (for example, pass 32 bytes of entropy when reseeding to achieve a security strength of 256 bits). If specified, the core should pass the larger of `"reseed_entropy_size"` and the amount corresponding to the security strength.
 
 Random generation is not parametrized by an algorithm. The choice of algorithm is up to the driver.
 
@@ -526,7 +526,7 @@ The core calls this function to supply entropy to the driver. The driver must mi
 The core may call this function at any time. For example, to enforce prediction resistance, the core can call `"add_entropy"` immediately after each call to `"get_random"`. The core must call this function in two circumstances:
 
 * Before the first call to the `"get_random"` entry point, to supply `"initial_entropy_size"` bytes of entropy.
-* After a call to the `"get_random"` entry point returns less than the required amount of random data, to supply `"reseed_entropy_size"` bytes of entropy.
+* After a call to the `"get_random"` entry point returns less than the required amount of random data, to supply at least `"reseed_entropy_size"` bytes of entropy.
 
 When the driver requires entropy, the core can supply it with one or more successive calls to the `"add_entropy"` entry point. If the required entropy size is zero, the core does not need to call `"add_entropy"`.
 
@@ -569,7 +569,7 @@ The semantics of the parameters is as follows:
 
 The driver may return the following status codes:
 
-* `PSA_SUCCESS`: the `output` buffer contains `*output_length` bytes of cryptographic-quality random data. Note that this may be less than `output_size`; in this case the core should call the driver's `"add_entropy"` method to supply `"reseed_entropy_size"` bytes of entropy before calling `"get_random"` again.
+* `PSA_SUCCESS`: the `output` buffer contains `*output_length` bytes of cryptographic-quality random data. Note that this may be less than `output_size`; in this case the core should call the driver's `"add_entropy"` method to supply at least `"reseed_entropy_size"` bytes of entropy before calling `"get_random"` again.
 * `PSA_ERROR_INSUFFICIENT_ENTROPY`: the core must supply additional entropy by calling the `"add_entropy"` entry point with at least `"reseed_entropy_size"` bytes.
 * `PSA_ERROR_NOT_SUPPORTED`: the random generator is not available. This is only permitted if the driver specification for random generation has the [fallback property](#fallback) enabled.
 * Other error codes such as `PSA_ERROR_COMMUNICATION_FAILURE` or `PSA_ERROR_HARDWARE_FAILURE` indicate a transient or permanent error.

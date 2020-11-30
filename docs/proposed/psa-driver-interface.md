@@ -377,7 +377,7 @@ This section describes some minimal validity requirements for standard key types
 
 ### Entropy collection entry point
 
-A driver can declare an entropy source by providing a `"get_entropy"` entry point. This entry point has the following prototypes for a driver with the prefix `"acme"`:
+A driver can declare an entropy source by providing a `"get_entropy"` entry point. This entry point has the following prototype for a driver with the prefix `"acme"`:
 
 ```
 psa_status_t acme_get_entropy(uint32_t flags,
@@ -389,7 +389,7 @@ psa_status_t acme_get_entropy(uint32_t flags,
 The semantics of the parameters is as follows:
 
 * `flags`: a bit-mask of [entropy collection flags](#entropy-collection-flags).
-* `estimate_bits`: on success, an estimate of the amount of entropy that is present in the `output` buffer, in bits. This must be at least `1` on success. The value is ignored on failure. Drivers should return a conservative estimate, even in circumstances where the quality of the entropy source is degraded due to environmental conditions (e.g. undervolting, excessive temperature, etc.).
+* `estimate_bits`: on success, an estimate of the amount of entropy that is present in the `output` buffer, in bits. This must be at least `1` on success. The value is ignored on failure. Drivers should return a conservative estimate, even in circumstances where the quality of the entropy source is degraded due to environmental conditions (e.g. undervolting, low temperature, etc.).
 * `output`: on success, this buffer contains non-deterministic data with an estimated entropy of at least `*estimate_bits` bits. When the entropy is coming from a hardware peripheral, this should preferably be raw or lightly conditioned measurements from a physical process, such that statistical tests run over a sufficiently large amount of output can confirm the entropy estimates. But this specification also permits entropy sources that are fully conditioned, for example when the PSA Cryptography system is running as an application in an operating system and `"get_entropy"` returns data from the random generator in the operating system's kernel.
 * `output_size`: the size of the `output` buffer in bytes. This size should be large enough to allow a driver to pass unconditioned data with a low density of entropy; for example a peripheral that returns eight bytes of data with an estimated one bit of entropy cannot provide meaningful output in less than 8 bytes.
 
@@ -473,11 +473,11 @@ This entry point has several roles:
 
 ### Random generation entry points
 
-A transparent driver may provide an operation family that allows it to generate random data. The random generation mechanism must obey the following requirements:
+A transparent driver may provide an operation family that can be used as a cryptographic random number generator. The random generation mechanism must obey the following requirements:
 
 * The random output must be of cryptographic quality, with a uniform distribution. Therefore, if the random generator includes an entropy source, this entropy source must be fed through a CSPRNG (cryptographically secure pseudo-random number generator).
 * Random generation is expected to be fast. (If a device can provide entropy but is slow at generating random data, declare it as an [entropy driver](#entropy-collection-entry-point) instead.)
-* The random generator must be able to incorporate entropy provided by an outside source.
+* The random generator should be able to incorporate entropy provided by an outside source. If it isn't, the random generator can only be used if it's the only entropy source on the platform. (A random generator peripheral can be declared as an [entropy source](#entropy-collection-entry-point) instead of a random generator; this way the core will combine it with other entropy sources.)
 * The random generator may either be deterministic (in the sense that it always returns the same data when given the same entropy inputs) or non-deterministic (including its own entropy source). In other words, this interface is suitable both for PRNG (pseudo-random number generator, also known as DRBG (deterministic random bit generator)) and for NRBG (non-deterministic random bit generator).
 
 If no driver implements the random generation entry point family, the core provides an unspecified random generation mechanism.

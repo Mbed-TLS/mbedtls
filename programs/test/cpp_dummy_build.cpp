@@ -111,8 +111,6 @@
 
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
-#include "psa/crypto_entropy_driver.h"
-#include "psa/crypto_accel_driver.h"
 #include "../library/psa_crypto_its.h"
 
 int main()

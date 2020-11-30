@@ -101,15 +101,3 @@ We should have at least one driver that covers the whole interface:
 * Run the full driver validation test suite (which does not yet exist).
 
 A PKCS#11 driver would be a good candidate. It would be useful as part of our product offering.
-
-## Accelerator driver interface
-
-The accelerator driver interface is defined by [`psa/crypto_accel_driver.h`](../../../include/psa/crypto_accel_driver.h).
-
-TODO
-
-## Entropy driver interface
-
-The entropy driver interface is defined by [`psa/crypto_entropy_driver.h`](../../../include/psa/crypto_entropy_driver.h).
-
-TODO

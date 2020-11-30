@@ -530,6 +530,16 @@ The core may call this function at any time. For example, to enforce prediction 
 
 When the driver requires entropy, the core can supply it with one or more successive calls to the `"add_entropy"` entry point. If the required entropy size is zero, the core does not need to call `"add_entropy"`.
 
+#### Combining entropy sources with a random generation driver
+
+This section provides guidance on combining one or more [entropy sources](#entropy-collection-entry-point) (each having a `"get_entropy"` entry point) with a random generation driver (with an `"add_entropy"` entry point).
+
+Note that `"get_entropy"` returns data with an estimated amount of entropy that is in general less than the buffer size. The core must apply a mixing algorithm to the output of `"get_entropy"` to obtain full-entropy data.
+
+For example, the core may use a simple mixing scheme based on a pseudorandom function family $(F_k)$ with an $E$-bit output where $E = 8 \cdot \mathtt{entropy_size}$ and $\mathtt{entropy_size}$ is the desired amount of entropy in bytes (typically the random driver's `"initial_entropy_size"` property for the initial seeding and the `"reseed_entropy_size"` property for subsequent reseeding). The core calls the `"get_entropy"` points of the available entropy drivers, outputting a string $s_i$ and an entropy estimate $e_i$ on the $i$th call. It does so until the total entropy estimate $e_1 + e_2 + \ldots + e_n$ is at least $E$. The core then calculates $F_k(0)$ where $k = s_1 || s_2 || \ldots || s_n$. This value is a string of $\mathtt{entropy_size}$, and since $(F_k)$ is a pseudorandom function family, $F_k(0)$ is uniformly distributed over strings of $\mathtt{entropy_size}$ bytes. Therefore $F_k(0)$ is a suitable value to pass to `"add_entropy"`.
+
+Note that the mechanism above is only given as an example. Implementations may choose a different mechanism, for example involving multiple pools or intermediate compression functions.
+
 #### Random generator drivers without entropy injection
 
 Random generator drivers should have the capability to inject additional entropy through the `"add_entropy"` entry point. This ensures that the random generator depends on all the entropy sources that are available on the platform. A driver where a call to `"add_entropy"` does not affect the state of the random generator is not compliant with this specification.

@@ -152,7 +152,7 @@ exit:
 #if defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
 
-psa_status_t mbedtls_psa_ecp_import_key(
+static psa_status_t ecp_import_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *data, size_t data_length,
     uint8_t *key_buffer, size_t key_buffer_size,
@@ -271,6 +271,17 @@ static psa_status_t ecp_export_public_key(
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
 
+psa_status_t mbedtls_psa_ecp_import_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *data, size_t data_length,
+    uint8_t *key_buffer, size_t key_buffer_size,
+    size_t *key_buffer_length, size_t *bits )
+{
+    return( ecp_import_key( attributes, data, data_length,
+                            key_buffer, key_buffer_size,
+                            key_buffer_length, bits ) );
+}
+
 psa_status_t mbedtls_psa_ecp_export_public_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
@@ -291,6 +302,18 @@ psa_status_t mbedtls_psa_ecp_export_public_key(
 
 #if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
+
+psa_status_t mbedtls_transparent_test_driver_ecp_import_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *data, size_t data_length,
+    uint8_t *key_buffer, size_t key_buffer_size,
+    size_t *key_buffer_length, size_t *bits )
+{
+    return( ecp_import_key( attributes, data, data_length,
+                            key_buffer, key_buffer_size,
+                            key_buffer_length, bits ) );
+}
+
 psa_status_t mbedtls_transparent_test_driver_ecp_export_public_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
@@ -299,6 +322,7 @@ psa_status_t mbedtls_transparent_test_driver_ecp_export_public_key(
     return( ecp_export_public_key( attributes, key_buffer, key_buffer_size,
                                    data, data_size, data_length ) );
 }
+
 #endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) ||
           defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) */
 

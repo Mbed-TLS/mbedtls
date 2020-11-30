@@ -153,105 +153,45 @@ psa_status_t test_transparent_import_key(
     if( test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
         return( test_driver_key_management_hooks.forced_status );
 
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_type_t type = psa_get_key_type( attributes );
+
 #if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
-    psa_key_type_t type = psa_get_key_type( attributes );
-    if ( PSA_KEY_TYPE_IS_ECC( type ) )
+    if( PSA_KEY_TYPE_IS_ECC( type ) )
     {
-        // Code mostly copied from psa_load_ecp_representation
-        psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( type );
-        mbedtls_ecp_group_id grp_id;
-        mbedtls_ecp_keypair ecp;
-        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-        if( psa_get_key_bits( attributes ) == 0 )
-        {
-            // Attempt auto-detect of curve bit size
-            size_t curve_size = data_length;
-
-            if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) &&
-                PSA_KEY_TYPE_ECC_GET_FAMILY( type ) != PSA_ECC_FAMILY_MONTGOMERY )
-            {
-                /* A Weierstrass public key is represented as:
-                 * - The byte 0x04;
-                 * - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
-                 * - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
-                 * So its data length is 2m+1 where m is the curve size in bits.
-                 */
-                if( ( data_length & 1 ) == 0 )
-                    return( PSA_ERROR_INVALID_ARGUMENT );
-                curve_size = data_length / 2;
-
-                /* Montgomery public keys are represented in compressed format, meaning
-                 * their curve_size is equal to the amount of input. */
-
-                /* Private keys are represented in uncompressed private random integer
-                 * format, meaning their curve_size is equal to the amount of input. */
-            }
-
-            grp_id = mbedtls_ecc_group_of_psa( curve, curve_size );
-        }
-        else
-        {
-            grp_id = mbedtls_ecc_group_of_psa( curve,
-                PSA_BITS_TO_BYTES( psa_get_key_bits( attributes ) ) );
-        }
-
-        const mbedtls_ecp_curve_info *curve_info =
-            mbedtls_ecp_curve_info_from_grp_id( grp_id );
-
-        if( attributes->domain_parameters_size != 0 )
-            return( PSA_ERROR_NOT_SUPPORTED );
-        if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )
-            return( PSA_ERROR_NOT_SUPPORTED );
-
-        *bits = curve_info->bit_size;
-
-        mbedtls_ecp_keypair_init( &ecp );
-
-        status = mbedtls_to_psa_error(
-                    mbedtls_ecp_group_load( &ecp.grp, grp_id ) );
-        if( status != PSA_SUCCESS )
-            goto ecp_exit;
-
-        /* Load the key material. */
-        if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
-        {
-            /* Load the public value. */
-            status = mbedtls_to_psa_error(
-                mbedtls_ecp_point_read_binary( &ecp.grp, &ecp.Q,
-                                               data,
-                                               data_length ) );
-            if( status != PSA_SUCCESS )
-                goto ecp_exit;
-
-            /* Check that the point is on the curve. */
-            status = mbedtls_to_psa_error(
-                mbedtls_ecp_check_pubkey( &ecp.grp, &ecp.Q ) );
-        }
-        else
-        {
-            /* Load and validate the secret value. */
-            status = mbedtls_to_psa_error(
-                mbedtls_ecp_read_key( ecp.grp.id,
-                                      &ecp,
-                                      data,
-                                      data_length ) );
-        }
-
-ecp_exit:
-        mbedtls_ecp_keypair_free( &ecp );
-        return( status );
+        status = mbedtls_transparent_test_driver_ecp_import_key(
+                     attributes,
+                     data, data_length,
+                     key_buffer, key_buffer_size,
+                     key_buffer_length, bits );
     }
-    return( PSA_ERROR_NOT_SUPPORTED );
-#else
-    (void) attributes;
-    (void) data;
-    (void) data_length;
-    (void) bits;
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR ||
-        * MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY */
+    else
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY)
+    if( PSA_KEY_TYPE_IS_RSA( type ) )
+    {
+        status = mbedtls_transparent_test_driver_rsa_import_key(
+                     attributes,
+                     data, data_length,
+                     key_buffer, key_buffer_size,
+                     key_buffer_length, bits );
+    }
+    else
+#endif
+    {
+        status = PSA_ERROR_NOT_SUPPORTED;
+        (void)data;
+        (void)data_length;
+        (void)key_buffer;
+        (void)key_buffer_size;
+        (void)key_buffer_length;
+        (void)bits;
+        (void)type;
+    }
+
+    return( status );
 }
 
 psa_status_t test_opaque_export_key(

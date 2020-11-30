@@ -941,6 +941,48 @@ mbedtls_mpi_set_bit:16:"00":32:1:16:"0100000000":0
 Test bit set (Invalid bit value)
 mbedtls_mpi_set_bit:16:"00":5:2:16:"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
+Fill random: 0 bytes
+mpi_fill_random:0:0:0
+
+Fill random: 1 byte, good
+mpi_fill_random:1:1:0
+
+Fill random: 2 bytes, good, no leading zero
+mpi_fill_random:2:2:0
+
+Fill random: 2 bytes, good, 1 leading zero
+mpi_fill_random:2:256:0
+
+Fill random: MAX_SIZE - 7, good
+mpi_fill_random:MBEDTLS_MPI_MAX_SIZE - 7:MBEDTLS_MPI_MAX_SIZE - 7:0
+
+Fill random: MAX_SIZE, good
+mpi_fill_random:MBEDTLS_MPI_MAX_SIZE:MBEDTLS_MPI_MAX_SIZE:0
+
+Fill random: 1 byte, RNG failure
+mpi_fill_random:1:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+
+Fill random: 2 bytes, RNG failure after 1 byte
+mpi_fill_random:2:1:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+
+Fill random: 4 bytes, RNG failure after 3 bytes
+mpi_fill_random:4:3:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+
+Fill random: 8 bytes, RNG failure after 7 bytes
+mpi_fill_random:8:7:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+
+Fill random: 16 bytes, RNG failure after 1 bytes
+mpi_fill_random:16:1:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+
+Fill random: 16 bytes, RNG failure after 8 bytes
+mpi_fill_random:16:8:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+
+Fill random: 16 bytes, RNG failure after 15 bytes
+mpi_fill_random:16:15:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+
+Fill random: MAX_SIZE bytes, RNG failure after MAX_SIZE-1 bytes
+mpi_fill_random:MBEDTLS_MPI_MAX_SIZE:MBEDTLS_MPI_MAX_SIZE-1:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+
 MPI Selftest
 depends_on:MBEDTLS_SELF_TEST
 mpi_selftest:

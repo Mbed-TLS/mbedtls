@@ -130,6 +130,15 @@
  * counter (8) + header (5) + IV(16) + MAC (16-48) + padding (0-256).
  */
 
+#if defined(MBEDTLS_SSL_PROTO_SSL3)   ||      \
+    defined(MBEDTLS_SSL_PROTO_TLS1)   ||      \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1) ||      \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#define MBEDTLS_SSL_PROTO_TLS1_2_OR_EARLIER
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2_OR_EARLIER)
+
 /* This macro determines whether CBC is supported. */
 #if defined(MBEDTLS_CIPHER_MODE_CBC) &&                               \
     ( defined(MBEDTLS_AES_C)      ||                                  \
@@ -137,6 +146,12 @@
       defined(MBEDTLS_ARIA_C)     ||                                  \
       defined(MBEDTLS_DES_C) )
 #define MBEDTLS_SSL_SOME_SUITES_USE_CBC
+#endif
+
+/* This macro determines whether a ciphersuite using a
+ * stream cipher can be used. */
+#if defined(MBEDTLS_CIPHER_NULL_CIPHER)
+#define MBEDTLS_SSL_SOME_SUITES_USE_STREAM
 #endif
 
 /* This macro determines whether the CBC construct used in TLS 1.0-1.2 is supported. */
@@ -147,10 +162,12 @@
 #define MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC
 #endif
 
-#if defined(MBEDTLS_CIPHER_NULL_CIPHER) ||   \
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_STREAM) ||
     defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC)
 #define MBEDTLS_SSL_SOME_SUITES_USE_MAC
 #endif
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2_OR_EARLIER */
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 /* Ciphersuites using HMAC */

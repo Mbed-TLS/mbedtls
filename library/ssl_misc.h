@@ -149,10 +149,10 @@
 
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER) ||   \
     defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC)
-#define MBEDTLS_SSL_SOME_MODES_USE_MAC
+#define MBEDTLS_SSL_SOME_SUITES_USE_MAC
 #endif
 
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 /* Ciphersuites using HMAC */
 #if defined(MBEDTLS_SHA512_C)
 #define MBEDTLS_SSL_MAC_ADD                 48  /* SHA-384 used for HMAC */
@@ -161,7 +161,7 @@
 #else
 #define MBEDTLS_SSL_MAC_ADD                 20  /* SHA-1   used for HMAC */
 #endif
-#else /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+#else /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 /* AEAD ciphersuites: GCM and CCM use a 128 bits tag */
 #define MBEDTLS_SSL_MAC_ADD                 16
 #endif
@@ -711,7 +711,7 @@ struct mbedtls_ssl_transform
     unsigned char iv_enc[16];           /*!<  IV (encryption)         */
     unsigned char iv_dec[16];           /*!<  IV (decryption)         */
 
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 
     mbedtls_md_context_t md_ctx_enc;            /*!<  MAC (encryption)        */
     mbedtls_md_context_t md_ctx_dec;            /*!<  MAC (decryption)        */
@@ -720,7 +720,7 @@ struct mbedtls_ssl_transform
     int encrypt_then_mac;       /*!< flag for EtM activation                */
 #endif
 
-#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
     mbedtls_cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
     mbedtls_cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
@@ -747,7 +747,7 @@ struct mbedtls_ssl_transform
 static inline int mbedtls_ssl_transform_uses_aead(
         const mbedtls_ssl_transform *transform )
 {
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     return( transform->maclen == 0 && transform->taglen != 0 );
 #else
     (void) transform;

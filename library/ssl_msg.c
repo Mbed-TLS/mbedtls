@@ -633,7 +633,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     /*
      * Add MAC before if needed
      */
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     if( mode == MBEDTLS_MODE_STREAM ||
         ( mode == MBEDTLS_MODE_CBC
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -678,7 +678,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         post_avail -= transform->maclen;
         auth_done++;
     }
-#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
     /*
      * Encrypt
@@ -1209,7 +1209,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
     size_t olen;
     mbedtls_cipher_mode_t mode;
     int ret, auth_done = 0;
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     size_t padlen = 0, correct = 1;
 #endif
     unsigned char* data;
@@ -1636,7 +1636,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
      * Authenticate if not done yet.
      * Compute the MAC regardless of the padding result (RFC4346, CBCTIME).
      */
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     if( auth_done == 0 )
     {
         unsigned char mac_expect[MBEDTLS_SSL_MAC_ADD];
@@ -1712,7 +1712,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
      */
     if( correct == 0 )
         return( MBEDTLS_ERR_SSL_INVALID_MAC );
-#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
     /* Make extra sure authentication was performed, exactly once */
     if( auth_done != 1 )
@@ -5628,7 +5628,7 @@ void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform )
     mbedtls_cipher_free( &transform->cipher_ctx_enc );
     mbedtls_cipher_free( &transform->cipher_ctx_dec );
 
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     mbedtls_md_free( &transform->md_ctx_enc );
     mbedtls_md_free( &transform->md_ctx_dec );
 #endif

@@ -134,10 +134,6 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
     return psa_verify_hash( key, alg, hash, hash_length, signature, signature_length );
 }
 
-
-
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-
 /*
  * Size-specific elliptic curve families.
  */
@@ -243,6 +239,8 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
     MBEDTLS_DEPRECATED_CONSTANT( psa_dh_family_t, PSA_DH_FAMILY_RFC7919 )
 #define PSA_DH_GROUP_CUSTOM \
     MBEDTLS_DEPRECATED_CONSTANT( psa_dh_family_t, PSA_DH_FAMILY_CUSTOM )
+
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 /** Open a handle to an existing persistent key.
  *

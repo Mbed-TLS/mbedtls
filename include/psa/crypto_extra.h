@@ -678,7 +678,20 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
  * \param[out] output_length    On success, set this value to \p output_size.
  *
  * \retval #PSA_SUCCESS
+ *         Success. The output buffer contains \p output_size bytes of
+ *         cryptographic-quality random data, and \c *output_length is
+ *         set to \p output_size.
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
+ *         The random generator requires extra entropy and there is no
+ *         way to obtain entropy under current environment conditions.
+ *         This error should not happen under normal circumstances since
+ *         this function is responsible for obtaining as much entropy as
+ *         it needs. However implementations of this function may return
+ *         #PSA_ERROR_INSUFFICIENT_ENTROPY if there is no way to obtain
+ *         entropy without blocking indefinitely.
  * \retval #PSA_ERROR_HARDWARE_FAILURE
+ *         A failure of the random generator hardware that isn't covered
+ *         by #PSA_ERROR_INSUFFICIENT_ENTROPY.
  */
 psa_status_t mbedtls_psa_external_get_random(
     mbedtls_psa_external_random_context_t *context,

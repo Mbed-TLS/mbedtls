@@ -93,6 +93,7 @@ static psa_storage_uid_t psa_its_identifier_of_slot( mbedtls_svc_key_id_t key )
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_DATA_INVALID
  * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_DOES_NOT_EXIST
  */
 static psa_status_t psa_crypto_storage_load(
@@ -139,11 +140,10 @@ int psa_is_key_present_in_storage( const mbedtls_svc_key_id_t key )
  *                      that make up the data.
  *
  * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
  * \retval #PSA_ERROR_ALREADY_EXISTS
+ * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_DATA_INVALID
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_DOES_NOT_EXIST
- * \retval #PSA_ERROR_DATA_CORRUPT
  */
 static psa_status_t psa_crypto_storage_store( const mbedtls_svc_key_id_t key,
                                               const uint8_t *data,
@@ -214,9 +214,9 @@ psa_status_t psa_destroy_persistent_key( const mbedtls_svc_key_id_t key )
  * \param[out] data_length  The number of bytes that make up the data.
  *
  * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_DATA_CORRUPT
- * \retval #PSA_ERROR_INVALID_ARGUMENT
  */
 static psa_status_t psa_crypto_storage_get_data_length(
     const mbedtls_svc_key_id_t key,

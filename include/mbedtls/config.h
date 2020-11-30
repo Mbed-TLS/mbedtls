@@ -2669,6 +2669,23 @@
 #define MBEDTLS_PADLOCK_C
 
 /**
+ * \def MBEDTLS_CUSTOM_HAS_PADLOCK
+ *
+ * Link to an externally defined `mbedtls_padlock_has_support` function. By
+ * default mbedtls uses the `cpuid` instruction to determine whether VIA Padlock
+ * is supported at run time.
+ *
+ * Module:  library/padlock.c
+ * Caller:  library/aes.c
+ *
+ * Requires: MBEDTLS_HAVE_X86
+ *           MBEDTLS_PADLOCK_C
+ *
+ * Uncomment to provide a custom `mbedtls_padlock_has_support` function.
+ */
+//#define MBEDTLS_CUSTOM_HAS_PADLOCK
+
+/**
  * \def MBEDTLS_PEM_PARSE_C
  *
  * Enable PEM decoding / parsing.

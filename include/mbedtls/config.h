@@ -2988,7 +2988,7 @@
  *
  * Uncomment to provide your own alternate implementation for mbedtls_platform_fault(),
  * used in library/platform_util.c to signal a fault injection in either
- * mbedtls_platform_memcpy or mbedtls_platform_memset.
+ * mbedtls_platform_memcpy, mbedtls_platform_memset or mbedtls_platform_random_buf.
  *
  * You will need to provide a header "platform_fault.h" and an implementation at
  * compile time.

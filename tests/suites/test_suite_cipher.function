@@ -1022,16 +1022,9 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
 
     int ret;
     int using_nist_kw, using_nist_kw_padding;
-    unsigned char output[300];        /* Temporary buffer for results of
-                                       * encryption and decryption. */
-    unsigned char *output_tag = NULL; /* Temporary buffer for tag in the
-                                       * encryption step. */
 
     mbedtls_cipher_context_t ctx;
     size_t outlen;
-
-    unsigned char *tmp_tag    = NULL;
-    unsigned char *tmp_cipher = NULL;
 
     unsigned char *cipher_plus_tag = NULL;
     size_t cipher_plus_tag_len;
@@ -1040,8 +1033,19 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
     unsigned char *encrypt_buf = NULL;
     size_t encrypt_buf_len = 0;
 
-    mbedtls_cipher_init( &ctx );
+#if !defined(MBEDTLS_DEPRECATED_WARNING) && \
+    !defined(MBEDTLS_DEPRECATED_REMOVED)
+    unsigned char output[300];        /* Temporary buffer for results of
+                                       * encryption and decryption. */
+    unsigned char *output_tag = NULL; /* Temporary buffer for tag in the
+                                       * encryption step. */
+    unsigned char *tmp_tag    = NULL;
+    unsigned char *tmp_cipher = NULL;
+
     memset( output, 0xFF, sizeof( output ) );
+#endif /* !MBEDTLS_DEPRECATED_WARNING && !MBEDTLS_DEPRECATED_REMOVED */
+
+    mbedtls_cipher_init( &ctx );
 
     /* Initialize PSA Crypto */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1061,6 +1065,12 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
                     cipher_id == MBEDTLS_CIPHER_AES_192_KW ||
                     cipher_id == MBEDTLS_CIPHER_AES_256_KW ||
                     using_nist_kw_padding;
+
+    /****************************************************************
+     *                                                              *
+     *  Part 1: non-deprecated API                                  *
+     *                                                              *
+     ****************************************************************/
 
     /*
      * Prepare context for decryption
@@ -1126,7 +1136,7 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
             TEST_ASSERT( memcmp( decrypt_buf, clear->x, clear->len ) == 0 );
     }
 
-    /* Free this, but keep cipher_plus_tag for legacy function with PSA */
+    /* Free this, but keep cipher_plus_tag for deprecated function with PSA */
     mbedtls_free( decrypt_buf );
     decrypt_buf = NULL;
 
@@ -1186,6 +1196,15 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
         mbedtls_free( encrypt_buf );
         encrypt_buf = NULL;
     }
+
+    /****************************************************************
+     *                                                              *
+     *  Part 2: deprecated API                                      *
+     *                                                              *
+     ****************************************************************/
+
+#if !defined(MBEDTLS_DEPRECATED_WARNING) && \
+    !defined(MBEDTLS_DEPRECATED_REMOVED)
 
     /*
      * Prepare context for decryption
@@ -1277,6 +1296,8 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
             TEST_ASSERT( memcmp( output_tag, tag->x, tag->len ) == 0 );
         }
     }
+
+#endif /* !MBEDTLS_DEPRECATED_WARNING && !MBEDTLS_DEPRECATED_REMOVED */
 
 exit:
 

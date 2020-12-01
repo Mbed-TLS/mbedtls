@@ -1469,6 +1469,7 @@ static int mbedtls_cipher_aead_decrypt( mbedtls_cipher_context_t *ctx,
     return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /*
  * Packet-oriented encryption for AEAD modes: public function.
  */
@@ -1536,6 +1537,7 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
                                          input, ilen, output, olen,
                                          tag, tag_len ) );
 }
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_CIPHER_MODE_AEAD */
 
 #if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)

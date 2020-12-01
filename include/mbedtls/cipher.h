@@ -857,8 +857,16 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
                   unsigned char *output, size_t *olen );
 
 #if defined(MBEDTLS_CIPHER_MODE_AEAD)
+#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif /* MBEDTLS_DEPRECATED_WARNING */
 /**
  * \brief               The generic authenticated encryption (AEAD) function.
+ *
+ * \deprecated          Superseded by mbedtls_cipher_auth_encrypt_ext().
  *
  * \note                This function only supports AEAD algorithms, not key
  *                      wrapping algorithms such as NIST_KW; for this, see
@@ -906,14 +914,17 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
                          const unsigned char *ad, size_t ad_len,
                          const unsigned char *input, size_t ilen,
                          unsigned char *output, size_t *olen,
-                         unsigned char *tag, size_t tag_len );
+                         unsigned char *tag, size_t tag_len )
+                         MBEDTLS_DEPRECATED;
 
 /**
  * \brief               The generic authenticated decryption (AEAD) function.
  *
+ * \deprecated          Superseded by mbedtls_cipher_auth_decrypt_ext().
+ *
  * \note                This function only supports AEAD algorithms, not key
  *                      wrapping algorithms such as NIST_KW; for this, see
- *                      mbedtls_cipher_auth_encrypt_ext().
+ *                      mbedtls_cipher_auth_decrypt_ext().
  *
  * \note                If the data is not authentic, then the output buffer
  *                      is zeroed out to prevent the unauthentic plaintext being
@@ -962,7 +973,10 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
                          const unsigned char *ad, size_t ad_len,
                          const unsigned char *input, size_t ilen,
                          unsigned char *output, size_t *olen,
-                         const unsigned char *tag, size_t tag_len );
+                         const unsigned char *tag, size_t tag_len )
+                         MBEDTLS_DEPRECATED;
+#undef MBEDTLS_DEPRECATED
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_CIPHER_MODE_AEAD */
 
 #if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)

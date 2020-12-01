@@ -1491,16 +1491,10 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
     if( MBEDTLS_MODE_KW == ctx->cipher_info->mode ||
         MBEDTLS_MODE_KWP == ctx->cipher_info->mode )
     {
-        mbedtls_nist_kw_mode_t mode = ( MBEDTLS_MODE_KW == ctx->cipher_info->mode ) ?
-                                        MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;
-
-        /* There is no iv, tag or ad associated with KW and KWP, these length should be 0 */
-        if( iv_len != 0 || tag_len != 0 || ad_len != 0 )
-        {
-            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-        }
-
-        return( mbedtls_nist_kw_wrap( ctx->cipher_ctx, mode, input, ilen, output, olen, SIZE_MAX ) );
+        /* NIST_KW is not supported because we used to document the wrong size
+         * of the output buffer, so people should move to the _ext API,
+         * which has an explicit argument for buffer size. */
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
     }
 #endif /* MBEDTLS_NIST_KW_C */
 
@@ -1531,16 +1525,10 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
     if( MBEDTLS_MODE_KW == ctx->cipher_info->mode ||
         MBEDTLS_MODE_KWP == ctx->cipher_info->mode )
     {
-        mbedtls_nist_kw_mode_t mode = ( MBEDTLS_MODE_KW == ctx->cipher_info->mode ) ?
-                                        MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;
-
-        /* There is no iv, tag or ad associated with KW and KWP, these length should be 0 */
-        if( iv_len != 0 || tag_len != 0 || ad_len != 0 )
-        {
-            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-        }
-
-        return( mbedtls_nist_kw_unwrap( ctx->cipher_ctx, mode, input, ilen, output, olen, SIZE_MAX ) );
+        /* NIST_KW is not supported because we used to document the wrong size
+         * of the output buffer, so people should move to the _ext API,
+         * which has an explicit argument for buffer size. */
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
     }
 #endif /* MBEDTLS_NIST_KW_C */
 

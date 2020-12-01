@@ -858,10 +858,14 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_AEAD)
 /**
- * \brief               The generic autenticated encryption (AEAD) function.
+ * \brief               The generic authenticated encryption (AEAD) function.
+ *
+ * \note                This function only supports AEAD algorithms, not key
+ *                      wrapping algorithms such as NIST_KW; for this, see
+ *                      mbedtls_cipher_auth_encrypt_ext().
  *
  * \param ctx           The generic cipher context. This must be initialized and
- *                      bound to a key.
+ *                      bound to a key associated with an AEAD algorithm.
  * \param iv            The nonce to use. This must be a readable buffer of
  *                      at least \p iv_len Bytes and must not be \c NULL.
  * \param iv_len        The length of the nonce. This must satisfy the
@@ -885,7 +889,7 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
  *                      below regarding restrictions with PSA-based contexts.
  * \param tag_len       The desired length of the authentication tag. This
  *                      must match the constraints imposed by the AEAD cipher
- *                      used, and in particuler must not be \c 0.
+ *                      used, and in particular must not be \c 0.
  *
  * \note                If the context is based on PSA (that is, it was set up
  *                      with mbedtls_cipher_setup_psa()), then it is required
@@ -905,14 +909,18 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
                          unsigned char *tag, size_t tag_len );
 
 /**
- * \brief               The generic autenticated decryption (AEAD) function.
+ * \brief               The generic authenticated decryption (AEAD) function.
+ *
+ * \note                This function only supports AEAD algorithms, not key
+ *                      wrapping algorithms such as NIST_KW; for this, see
+ *                      mbedtls_cipher_auth_encrypt_ext().
  *
  * \note                If the data is not authentic, then the output buffer
  *                      is zeroed out to prevent the unauthentic plaintext being
  *                      used, making this interface safer.
  *
  * \param ctx           The generic cipher context. This must be initialized and
- *                      and bound to a key.
+ *                      bound to a key associated with an AEAD algorithm.
  * \param iv            The nonce to use. This must be a readable buffer of
  *                      at least \p iv_len Bytes and must not be \c NULL.
  * \param iv_len        The length of the nonce. This must satisfy the
@@ -959,14 +967,14 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
 /**
- * \brief               The autenticated encryption (AEAD/NIST_KW) function.
+ * \brief               The authenticated encryption (AEAD/NIST_KW) function.
  *
  * \note                For AEAD modes, the tag will be appended to the
  *                      ciphertext, as recommended by RFC 5116.
  *                      (NIST_KW doesn't have a separate tag.)
  *
  * \param ctx           The generic cipher context. This must be initialized and
- *                      bound to a key.
+ *                      bound to a key, with an AEAD algorithm or NIST_KW.
  * \param iv            The nonce to use. This must be a readable buffer of
  *                      at least \p iv_len Bytes and may be \c NULL if \p
  *                      iv_len is \c 0.
@@ -994,7 +1002,7 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
  *                      writable object of type \c size_t.
  * \param tag_len       The desired length of the authentication tag. For AEAD
  *                      ciphers, this must match the constraints imposed by
- *                      the cipher used, and in particuler must not be \c 0.
+ *                      the cipher used, and in particular must not be \c 0.
  *                      For NIST_KW, this must be \c 0.
  *
  * \return              \c 0 on success.
@@ -1010,7 +1018,7 @@ int mbedtls_cipher_auth_encrypt_ext( mbedtls_cipher_context_t *ctx,
                          size_t *olen, size_t tag_len );
 
 /**
- * \brief               The autenticated encryption (AEAD/NIST_KW) function.
+ * \brief               The authenticated encryption (AEAD/NIST_KW) function.
  *
  * \note                If the data is not authentic, then the output buffer
  *                      is zeroed out to prevent the unauthentic plaintext being
@@ -1021,7 +1029,7 @@ int mbedtls_cipher_auth_encrypt_ext( mbedtls_cipher_context_t *ctx,
  *                      (NIST_KW doesn't have a separate tag.)
  *
  * \param ctx           The generic cipher context. This must be initialized and
- *                      and bound to a key.
+ *                      bound to a key, with an AEAD algorithm or NIST_KW.
  * \param iv            The nonce to use. This must be a readable buffer of
  *                      at least \p iv_len Bytes and may be \c NULL if \p
  *                      iv_len is \c 0.
@@ -1049,7 +1057,7 @@ int mbedtls_cipher_auth_encrypt_ext( mbedtls_cipher_context_t *ctx,
  *                      writable object of type \c size_t.
  * \param tag_len       The actual length of the authentication tag. For AEAD
  *                      ciphers, this must match the constraints imposed by
- *                      the cipher used, and in particuler must not be \c 0.
+ *                      the cipher used, and in particular must not be \c 0.
  *                      For NIST_KW, this must be \c 0.
  *
  * \return              \c 0 on success.

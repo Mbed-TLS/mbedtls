@@ -1222,22 +1222,31 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
                                tmp_cipher, cipher->len, output, &outlen,
                                tmp_tag, tag->len );
 
-    /* make sure the message is rejected if it should be */
-    if( strcmp( result, "FAIL" ) == 0 )
+    if( using_nist_kw )
     {
+        /* NIST_KW with legacy API */
+        TEST_ASSERT( ret == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+    }
+    else if( strcmp( result, "FAIL" ) == 0 )
+    {
+        /* unauthentic message */
         TEST_ASSERT( ret == MBEDTLS_ERR_CIPHER_AUTH_FAILED );
     }
     else
     {
-        /* otherwise, make sure it was decrypted properly */
+        /* authentic message: is the plaintext correct? */
         TEST_ASSERT( ret == 0 );
 
         TEST_ASSERT( outlen == clear->len );
         TEST_ASSERT( memcmp( output, clear->x, clear->len ) == 0 );
+    }
 
-        /*
-         * Prepare context for encryption
-         */
+    /*
+     * Encrypt back if test data was authentic
+     */
+    if( strcmp( result, "FAIL" ) != 0 )
+    {
+        /* prepare context for encryption */
         cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
                           MBEDTLS_ENCRYPT );
 
@@ -1254,11 +1263,19 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
         ret = mbedtls_cipher_auth_encrypt( &ctx, iv->x, iv->len, ad->x, ad->len,
                                    clear->x, clear->len, output, &outlen,
                                    output_tag, tag->len );
-        TEST_ASSERT( ret == 0 );
 
-        TEST_ASSERT( outlen == cipher->len );
-        TEST_ASSERT( memcmp( output, cipher->x, cipher->len ) == 0 );
-        TEST_ASSERT( memcmp( output_tag, tag->x, tag->len ) == 0 );
+        if( using_nist_kw )
+        {
+            TEST_ASSERT( ret == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+        }
+        else
+        {
+            TEST_ASSERT( ret == 0 );
+
+            TEST_ASSERT( outlen == cipher->len );
+            TEST_ASSERT( memcmp( output, cipher->x, cipher->len ) == 0 );
+            TEST_ASSERT( memcmp( output_tag, tag->x, tag->len ) == 0 );
+        }
     }
 
 exit:

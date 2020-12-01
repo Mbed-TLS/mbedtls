@@ -56,6 +56,27 @@ void test_ecdsa()
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_USE_TINYCRYPT */
+void ecdh_primitive_vector( data_t * qx_str, data_t * qy_str,
+                            data_t * d_str, data_t * z_str )
+
+{
+    uint8_t public[2*NUM_ECC_BYTES] = {0};
+    uint8_t private[NUM_ECC_BYTES] = {0};
+    uint8_t secret[NUM_ECC_BYTES] = {0};
+
+    memcpy( public, qx_str->x, qx_str->len );
+    memcpy( public + NUM_ECC_BYTES, qy_str->x, qy_str->len );
+
+    memcpy( private, d_str->x, d_str->len );
+
+    // Compute shared secret and compare to test vector secret
+    TEST_ASSERT( uECC_shared_secret( public, d_str->x, secret ) == UECC_SUCCESS );
+
+    TEST_ASSERT( memcmp( secret, z_str->x, sizeof( secret ) ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_USE_TINYCRYPT */
 void ecdh_primitive_testvec( data_t * private1, data_t * xA_str,
                              data_t * yA_str, data_t * private2,
                              data_t * xB_str, data_t * yB_str, data_t * z_str )

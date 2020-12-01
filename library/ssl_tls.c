@@ -680,20 +680,20 @@ static void ssl_calc_finished_ssl( mbedtls_ssl_context *, unsigned char *, int )
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-static void ssl_calc_verify_tls( const mbedtls_ssl_context *, unsigned char *, size_t * );
+static void ssl_calc_verify_tls( const mbedtls_ssl_context *, unsigned char*, size_t * );
 static void ssl_calc_finished_tls( mbedtls_ssl_context *, unsigned char *, int );
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
 static void ssl_update_checksum_sha256( mbedtls_ssl_context *, const unsigned char *, size_t );
-static void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *,unsigned char *, size_t * );
+static void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *,unsigned char*, size_t * );
 static void ssl_calc_finished_tls_sha256( mbedtls_ssl_context *,unsigned char *, int );
 #endif
 
 #if defined(MBEDTLS_SHA512_C)
 static void ssl_update_checksum_sha384( mbedtls_ssl_context *, const unsigned char *, size_t );
-static void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *, unsigned char *, size_t * );
+static void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *, unsigned char*, size_t * );
 static void ssl_calc_finished_tls_sha384( mbedtls_ssl_context *, unsigned char *, int );
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
@@ -1667,7 +1667,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
 void ssl_calc_verify_ssl( const mbedtls_ssl_context *ssl,
-                          unsigned char hash[36],
+                          unsigned char *hash,
                           size_t *hlen )
 {
     mbedtls_md5_context md5;
@@ -1720,7 +1720,7 @@ void ssl_calc_verify_ssl( const mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
 void ssl_calc_verify_tls( const mbedtls_ssl_context *ssl,
-                          unsigned char hash[36],
+                          unsigned char *hash,
                           size_t *hlen )
 {
     mbedtls_md5_context md5;
@@ -1752,7 +1752,7 @@ void ssl_calc_verify_tls( const mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
 void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *ssl,
-                                 unsigned char hash[32],
+                                 unsigned char *hash,
                                  size_t *hlen )
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1801,7 +1801,7 @@ void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SHA512_C)
 void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *ssl,
-                                 unsigned char hash[48],
+                                 unsigned char *hash,
                                  size_t *hlen )
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -3197,6 +3197,9 @@ static void ssl_calc_finished_tls_sha256(
 #endif /* MBEDTLS_SHA256_C */
 
 #if defined(MBEDTLS_SHA512_C)
+
+typedef int (*finish_sha384_t)(mbedtls_sha512_context*, unsigned char*);
+
 static void ssl_calc_finished_tls_sha384(
                 mbedtls_ssl_context *ssl, unsigned char *buf, int from )
 {
@@ -3255,8 +3258,14 @@ static void ssl_calc_finished_tls_sha384(
     MBEDTLS_SSL_DEBUG_BUF( 4, "finished sha512 state", (unsigned char *)
                    sha512.state, sizeof( sha512.state ) );
 #endif
+    /*
+     * For SHA-384, we can save 16 bytes by keeping padbuf 48 bytes long.
+     * However, to avoid stringop-overflow warning in gcc, we have to cast
+     * mbedtls_sha512_finish_ret().
+     */
+    finish_sha384_t finish = (finish_sha384_t)mbedtls_sha512_finish_ret;
+    finish( &sha512, padbuf );
 
-    mbedtls_sha512_finish_ret( &sha512, padbuf );
     mbedtls_sha512_free( &sha512 );
 #endif
 

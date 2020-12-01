@@ -1,0 +1,2 @@
+Bugfix
+  * Add missing arguments of debug message in mbedtls_ssl_decrypt_buf.

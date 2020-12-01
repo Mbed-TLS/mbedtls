@@ -41,7 +41,7 @@ typedef struct {
     unsigned long hits;
 } test_driver_key_management_hooks_t;
 
-#define TEST_DRIVER_KEY_MANAGEMENT_INIT { NULL, 0, PSA_ERROR_NOT_SUPPORTED, 0 }
+#define TEST_DRIVER_KEY_MANAGEMENT_INIT { NULL, 0, PSA_SUCCESS, 0 }
 static inline test_driver_key_management_hooks_t test_driver_key_management_hooks_init( void )
 {
     const test_driver_key_management_hooks_t v = TEST_DRIVER_KEY_MANAGEMENT_INIT;

@@ -2546,18 +2546,16 @@ psa_status_t psa_hash_abort( psa_hash_operation_t *operation )
             mbedtls_sha1_free( &operation->ctx.sha1 );
             break;
 #endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256)
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224)
         case PSA_ALG_SHA_224:
-#endif
         case PSA_ALG_SHA_256:
             mbedtls_sha256_free( &operation->ctx.sha256 );
             break;
 #endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512)
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
         case PSA_ALG_SHA_384:
-#endif
         case PSA_ALG_SHA_512:
             mbedtls_sha512_free( &operation->ctx.sha512 );
             break;
@@ -2691,19 +2689,17 @@ psa_status_t psa_hash_update( psa_hash_operation_t *operation,
                                            input, input_length );
             break;
 #endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256)
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224)
         case PSA_ALG_SHA_224:
-#endif
         case PSA_ALG_SHA_256:
             ret = mbedtls_sha256_update_ret( &operation->ctx.sha256,
                                              input, input_length );
             break;
 #endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512)
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
         case PSA_ALG_SHA_384:
-#endif
         case PSA_ALG_SHA_512:
             ret = mbedtls_sha512_update_ret( &operation->ctx.sha512,
                                              input, input_length );
@@ -2770,18 +2766,16 @@ psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
             ret = mbedtls_sha1_finish_ret( &operation->ctx.sha1, hash );
             break;
 #endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256)
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224)
         case PSA_ALG_SHA_224:
-#endif
         case PSA_ALG_SHA_256:
             ret = mbedtls_sha256_finish_ret( &operation->ctx.sha256, hash );
             break;
 #endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512)
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
         case PSA_ALG_SHA_384:
-#endif
         case PSA_ALG_SHA_512:
             ret = mbedtls_sha512_finish_ret( &operation->ctx.sha512, hash );
             break;
@@ -2914,19 +2908,17 @@ psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,
                                 &source_operation->ctx.sha1 );
             break;
 #endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256)
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224)
         case PSA_ALG_SHA_224:
-#endif
         case PSA_ALG_SHA_256:
             mbedtls_sha256_clone( &target_operation->ctx.sha256,
                                   &source_operation->ctx.sha256 );
             break;
 #endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512)
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
         case PSA_ALG_SHA_384:
-#endif
         case PSA_ALG_SHA_512:
             mbedtls_sha512_clone( &target_operation->ctx.sha512,
                                   &source_operation->ctx.sha512 );

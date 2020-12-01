@@ -64,16 +64,6 @@
 #error "PSA_WANT_ALG_RSA_PSS defined, but not all prerequisites"
 #endif
 
-#if defined(PSA_WANT_ALG_SHA_224) && \
-    !( defined(PSA_WANT_ALG_SHA_256) )
-#error "PSA_WANT_ALG_SHA224 defined, but not all prerequisites"
-#endif
-
-#if defined(PSA_WANT_ALG_SHA_384) && \
-    !( defined(PSA_WANT_ALG_SHA_512) )
-#error "PSA_WANT_ALG_SHA384 defined, but not all prerequisites"
-#endif
-
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
     !defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 #error "PSA_WANT_KEY_TYPE_ECC_KEY_PAIR defined, but not all prerequisites"

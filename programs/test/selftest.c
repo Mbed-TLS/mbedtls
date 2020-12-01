@@ -185,7 +185,7 @@ static int calloc_self_test( int verbose )
 }
 #endif /* MBEDTLS_SELF_TEST */
 
-static int test_snprintf( size_t n, const char ref_buf[10], int ref_ret )
+static int test_snprintf( size_t n, const char *ref_buf, int ref_ret )
 {
     int ret;
     char buf[10] = "xxxxxxxxx";

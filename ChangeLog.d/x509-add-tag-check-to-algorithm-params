@@ -1,0 +1,11 @@
+Security
+   * Fix a compliance issue whereby we were not checking the tag on the
+     algorithm parameters (only the size) when comparing the signature in the
+     description part of the cert to the real signature. This meant that a
+     NULL algorithm parameters entry would look identical to an array of REAL
+     (size zero) to the library and thus the certificate would be considered
+     valid. However, if the parameters do not match in *any* way then the
+     certificate should be considered invalid, and indeed OpenSSL marks these
+     certs as invalid when mbedtls did not.
+     Many thanks to guidovranken who found this issue via differential fuzzing
+     and reported it in #3629.

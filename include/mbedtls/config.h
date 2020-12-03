@@ -41,6 +41,15 @@
  */
 
 /**
+ * \def MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION
+ *
+ * Enable the delayed verification of server 
+ * certificates on the client side. 
+ *
+ */
+#define MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION
+
+/**
  * \def MBEDTLS_HAVE_ASM
  *
  * The compiler has support for asm().
@@ -1591,6 +1600,20 @@
  * after the handshake.
  */
 #define MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
+
+/**
+ * \def MBEDTLS_SSL_FREE_SERVER_CERTIFICATE
+ *
+ * This option controls determines whether the server certificate is discarded
+ * after a handshake when the MBEDTLS_SSL_KEEP_PEER_CERTIFICATE is enabled.
+ *
+ * Use of this option is useful in combined with the delayed certificate verification
+ * when the server certificate has to be kept for the duration of the handshake
+ * but not afterwards.
+ *
+ */
+#define MBEDTLS_SSL_FREE_SERVER_CERTIFICATE
+
 
 /**
  * \def MBEDTLS_SSL_HW_RECORD_ACCEL

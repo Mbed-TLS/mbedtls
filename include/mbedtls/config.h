@@ -1624,6 +1624,15 @@
  */
 #define MBEDTLS_IMMEDIATE_TRANSMISSION
 
+/**
+ * \def MBEDTLS_EARLY_KEY_COMPUTATION
+ *
+ * Create ephemeral Diffie-Hellman key pair after
+ * the ClientHello has been successfully transmitted.
+ *
+ * Requires: 
+ */
+#define MBEDTLS_EARLY_KEY_COMPUTATION
 
 /**
  * \def MBEDTLS_SSL_HW_RECORD_ACCEL

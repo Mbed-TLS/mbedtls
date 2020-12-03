@@ -529,6 +529,108 @@ void cipher_invalid_param_conditional( )
                                      NULL, valid_size ) );
 #endif /* defined(MBEDTLS_CIPHER_MODE_AEAD) */
 
+#if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
+    /* mbedtls_cipher_auth_encrypt_ext */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt_ext( NULL,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt_ext( &valid_ctx,
+                                         NULL, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         NULL, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         NULL, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         NULL, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, NULL,
+                                         valid_size ) );
+
+    /* mbedtls_cipher_auth_decrypt_ext */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt_ext( NULL,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt_ext( &valid_ctx,
+                                         NULL, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         NULL, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         NULL, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         NULL, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, NULL,
+                                         valid_size ) );
+#endif /* MBEDTLS_CIPHER_MODE_AEAD || MBEDTLS_NIST_KW_C */
+
     /* mbedtls_cipher_free() */
     TEST_VALID_PARAM( mbedtls_cipher_free( NULL ) );
 exit:

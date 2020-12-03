@@ -1082,7 +1082,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MPI_MAX_BITS_LARGER_THAN_256 */
+/* BEGIN_CASE */
 void mbedtls_mpi_exp_mod( int radix_A, char * input_A, int radix_E,
                           char * input_E, int radix_N, char * input_N,
                           int radix_RR, char * input_RR, int radix_X,

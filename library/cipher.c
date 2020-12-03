@@ -1471,7 +1471,7 @@ static int mbedtls_cipher_aead_decrypt( mbedtls_cipher_context_t *ctx,
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /*
- * Packet-oriented encryption for AEAD modes: public function.
+ * Packet-oriented encryption for AEAD modes: public legacy function.
  */
 int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
                          const unsigned char *iv, size_t iv_len,
@@ -1494,7 +1494,7 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
 }
 
 /*
- * Packet-oriented decryption for AEAD modes: public function.
+ * Packet-oriented decryption for AEAD modes: public legacy function.
  */
 int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
                          const unsigned char *iv, size_t iv_len,

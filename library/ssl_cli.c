@@ -4218,6 +4218,11 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
 int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
+#if defined(MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION)
+    void *rs_ctx = NULL;
+    int authmode;
+    mbedtls_x509_crt *chain = NULL;
+#endif /* MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION */
 
     if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER || ssl->handshake == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -4310,6 +4315,29 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
            break;
 
        case MBEDTLS_SSL_CLIENT_FINISHED:
+
+#if defined(MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION)
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+           authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
+                       ? ssl->handshake->sni_authmode
+                       : mbedtls_ssl_conf_get_authmode( ssl->conf );
+#else
+           authmode = mbedtls_ssl_conf_get_authmode( ssl->conf );
+#endif
+/*           authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
+                       ? ssl->handshake->sni_authmode
+                       : ssl->conf->authmode;
+*/
+           chain = ssl->session_negotiate->peer_cert;
+
+           MBEDTLS_SSL_DEBUG_MSG( 3, ( "execute delayed server certificate verification" ) );
+
+           ret = ssl_parse_delayed_certificate_verify( ssl, authmode,
+                                                       chain, rs_ctx );
+           if( ret != 0 )
+               break;
+#endif /* MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION */
+
            ret = mbedtls_ssl_write_finished( ssl );
            break;
 

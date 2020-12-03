@@ -1,8 +1,8 @@
 /* BEGIN_HEADER */
 #include "mbedtls/bignum.h"
 
-#if MBEDTLS_MPI_MAX_BITS > 256
-#define MPI_MAX_BITS_LARGER_THAN_256
+#if MBEDTLS_MPI_MAX_BITS > 792
+#define MPI_MAX_BITS_LARGER_THAN_792
 #endif
 
 typedef struct mbedtls_test_mpi_random

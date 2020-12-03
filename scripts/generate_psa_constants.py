@@ -273,10 +273,10 @@ class MacroCollector:
                 return
             self.algorithms.add(name)
             # Ad hoc detection of hash algorithms
-            if re.search(r'0x010000[0-9A-Fa-f]{2}', expansion):
+            if re.search(r'0x020000[0-9A-Fa-f]{2}', expansion):
                 self.hash_algorithms.add(name)
             # Ad hoc detection of key agreement algorithms
-            if re.search(r'0x30[0-9A-Fa-f]{2}0000', expansion):
+            if re.search(r'0x09[0-9A-Fa-f]{2}0000', expansion):
                 self.ka_algorithms.add(name)
         elif name.startswith('PSA_ALG_') and parameter == 'hash_alg':
             if name in ['PSA_ALG_DSA', 'PSA_ALG_ECDSA']:

@@ -353,7 +353,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
 #define PSA_KEY_TYPE_IS_DSA(type)                                       \
     (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(type) == PSA_KEY_TYPE_DSA_PUBLIC_KEY)
 
-#define PSA_ALG_DSA_BASE                        ((psa_algorithm_t)0x10040000)
+#define PSA_ALG_DSA_BASE                        ((psa_algorithm_t)0x06000400)
 /** DSA signature with hashing.
  *
  * This is the signature scheme defined by FIPS 186-4,
@@ -370,7 +370,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  */
 #define PSA_ALG_DSA(hash_alg)                             \
     (PSA_ALG_DSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
-#define PSA_ALG_DETERMINISTIC_DSA_BASE          ((psa_algorithm_t)0x10050000)
+#define PSA_ALG_DETERMINISTIC_DSA_BASE          ((psa_algorithm_t)0x06000500)
 #define PSA_ALG_DSA_DETERMINISTIC_FLAG PSA_ALG_ECDSA_DETERMINISTIC_FLAG
 /** Deterministic DSA signature with hashing.
  *

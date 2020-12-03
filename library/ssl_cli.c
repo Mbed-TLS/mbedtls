@@ -3661,11 +3661,15 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
         *p++ = 2 * NUM_ECC_BYTES + 1;
         *p++ = 0x04; /* uncompressed point presentation */
 
+#if defined(MBEDTLS_EARLY_KEY_COMPUTATION) && defined(MBEDTLS_USE_TINYCRYPT)
+        memcpy( p, ssl->handshake->ecdh_publickey, 2 * NUM_ECC_BYTES );
+#else
         ret = uECC_make_key( p, ssl->handshake->ecdh_privkey );
         if( ret == UECC_FAULT_DETECTED )
             return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
         if( ret != UECC_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+#endif /* MBEDTLS_EARLY_KEY_COMPUTATION && MBEDTLS_USE_TINYCRYPT */
         p += 2 * NUM_ECC_BYTES;
     }
     else
@@ -4272,6 +4276,14 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
         *        ServerHelloDone
         */
        case MBEDTLS_SSL_SERVER_HELLO:
+#if defined(MBEDTLS_EARLY_KEY_COMPUTATION) && defined(MBEDTLS_USE_TINYCRYPT)
+            ret = uECC_make_key( ssl->handshake->ecdh_publickey, ssl->handshake->ecdh_privkey );
+            if( ret == UECC_FAULT_DETECTED )
+                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+            if( ret != UECC_SUCCESS )
+                return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+#endif /* MBEDTLS_EARLY_KEY_COMPUTATION && MBEDTLS_USE_TINYCRYPT */
+
            ret = ssl_parse_server_hello( ssl );
            break;
 

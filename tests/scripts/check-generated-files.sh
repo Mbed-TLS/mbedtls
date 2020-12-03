@@ -106,3 +106,4 @@ check scripts/generate_query_config.pl programs/test/query_config.c
 check scripts/generate_features.pl library/version_features.c
 check scripts/generate_visualc_files.pl visualc/VS2010
 check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generated.c
+check scripts/generate_verify_psa_macros.py programs/test/verify_psa_macros.c

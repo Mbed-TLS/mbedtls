@@ -21,11 +21,15 @@ set(executables_mbedcrypto
     zeroize
 )
 
+set(executables
+    verify_psa_macros
+)
+
 if(TEST_CPP)
     list(APPEND executables_mbedcrypto cpp_dummy_build)
 endif()
 
-foreach(exe IN LISTS executables_libs executables_mbedcrypto)
+foreach(exe IN LISTS executables_libs executables_mbedcrypto executables)
     add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>)
 
     # This emulates "if ( ... IN_LIST ... )" which becomes available in CMake 3.3
@@ -40,6 +44,6 @@ endforeach()
 set_property(TARGET query_compile_time_config APPEND PROPERTY SOURCES
              ${CMAKE_CURRENT_SOURCE_DIR}/query_config.c)
 
-install(TARGETS ${executables_libs} ${executables_mbedcrypto}
+install(TARGETS ${executables_libs} ${executables_mbedcrypto} ${executables}
         DESTINATION "bin"
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

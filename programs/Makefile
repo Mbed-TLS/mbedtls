@@ -100,6 +100,7 @@ APPS = \
 	test/query_compile_time_config$(EXEXT) \
 	test/selftest$(EXEXT) \
 	test/udp_proxy$(EXEXT) \
+	test/verify_psa_macros$(EXEXT) \
 	test/zeroize$(EXEXT) \
 	util/pem2der$(EXEXT) \
 	util/strerror$(EXEXT) \
@@ -314,6 +315,10 @@ test/selftest$(EXEXT): test/selftest.c $(DEP)
 test/udp_proxy$(EXEXT): test/udp_proxy.c $(DEP)
 	echo "  CC    test/udp_proxy.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/udp_proxy.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test/verify_psa_macros$(EXEXT): test/verify_psa_macros.c
+	echo " CC     test/verify_psa_macros.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/verify_psa_macros.c -o $@
 
 test/zeroize$(EXEXT): test/zeroize.c $(DEP)
 	echo "  CC    test/zeroize.c"

@@ -1488,17 +1488,6 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( olen != NULL );
     CIPHER_VALIDATE_RET( tag_len == 0 || tag != NULL );
 
-#if defined(MBEDTLS_NIST_KW_C)
-    if( MBEDTLS_MODE_KW == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_KWP == ctx->cipher_info->mode )
-    {
-        /* NIST_KW is not supported because we used to document the wrong size
-         * of the output buffer, so people should move to the _ext API,
-         * which has an explicit argument for buffer size. */
-        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
-    }
-#endif /* MBEDTLS_NIST_KW_C */
-
     return( mbedtls_cipher_aead_encrypt( ctx, iv, iv_len, ad, ad_len,
                                          input, ilen, output, olen,
                                          tag, tag_len ) );
@@ -1521,17 +1510,6 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( ilen == 0 || output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
     CIPHER_VALIDATE_RET( tag_len == 0 || tag != NULL );
-
-#if defined(MBEDTLS_NIST_KW_C)
-    if( MBEDTLS_MODE_KW == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_KWP == ctx->cipher_info->mode )
-    {
-        /* NIST_KW is not supported because we used to document the wrong size
-         * of the output buffer, so people should move to the _ext API,
-         * which has an explicit argument for buffer size. */
-        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
-    }
-#endif /* MBEDTLS_NIST_KW_C */
 
     return( mbedtls_cipher_aead_decrypt( ctx, iv, iv_len, ad, ad_len,
                                          input, ilen, output, olen,

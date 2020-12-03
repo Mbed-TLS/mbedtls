@@ -41,15 +41,18 @@ ccm_lengths:5:10:5:18:MBEDTLS_ERR_CCM_BAD_INPUT
 CCM lengths #6 tag length not even
 ccm_lengths:5:10:5:7:MBEDTLS_ERR_CCM_BAD_INPUT
 
-CCM lengths #7 AD too long (2^16 - 2^8 + 1)
+CCM lengths #7 AD too long (2^16 - 2^8)
 depends_on:!MBEDTLS_CCM_ALT
-ccm_lengths:5:10:65281:8:MBEDTLS_ERR_CCM_BAD_INPUT
+ccm_lengths:5:10:65280:8:MBEDTLS_ERR_CCM_BAD_INPUT
 
 CCM lengths #8 msg too long for this IV length (2^16, q = 2)
 ccm_lengths:65536:13:5:8:MBEDTLS_ERR_CCM_BAD_INPUT
 
 CCM lengths #9 tag length 0
 ccm_lengths:5:10:5:0:MBEDTLS_ERR_CCM_BAD_INPUT
+
+CCM lengths #10 Large AD
+ccm_lengths:5:10:32768:8:0
 
 CCM* fixed tag lengths #1 all OK
 ccm_star_lengths:5:10:5:8:0

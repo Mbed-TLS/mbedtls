@@ -162,6 +162,7 @@
     <ClInclude Include="..\..\include\mbedtls\cmac.h" />
     <ClInclude Include="..\..\include\mbedtls\compat-1.3.h" />
     <ClInclude Include="..\..\include\mbedtls\config.h" />
+    <ClInclude Include="..\..\include\mbedtls\config_psa.h" />
     <ClInclude Include="..\..\include\mbedtls\ctr_drbg.h" />
     <ClInclude Include="..\..\include\mbedtls\debug.h" />
     <ClInclude Include="..\..\include\mbedtls\des.h" />
@@ -223,6 +224,7 @@
     <ClInclude Include="..\..\include\psa\crypto.h" />
     <ClInclude Include="..\..\include\psa\crypto_accel_driver.h" />
     <ClInclude Include="..\..\include\psa\crypto_compat.h" />
+    <ClInclude Include="..\..\include\psa\crypto_config.h" />
     <ClInclude Include="..\..\include\psa\crypto_driver_common.h" />
     <ClInclude Include="..\..\include\psa\crypto_entropy_driver.h" />
     <ClInclude Include="..\..\include\psa\crypto_extra.h" />
@@ -238,8 +240,15 @@
     <ClInclude Include="..\..\tests\include\test\psa_crypto_helpers.h" />
     <ClInclude Include="..\..\tests\include\test\psa_helpers.h" />
     <ClInclude Include="..\..\tests\include\test\random.h" />
+    <ClInclude Include="..\..\tests\include\test\drivers\cipher.h" />
+    <ClInclude Include="..\..\tests\include\test\drivers\key_management.h" />
+    <ClInclude Include="..\..\tests\include\test\drivers\signature.h" />
+    <ClInclude Include="..\..\tests\include\test\drivers\size.h" />
+    <ClInclude Include="..\..\tests\include\test\drivers\test_driver.h" />
+    <ClInclude Include="..\..\library\check_crypto_config.h" />
     <ClInclude Include="..\..\library\common.h" />
     <ClInclude Include="..\..\library\psa_crypto_core.h" />
+    <ClInclude Include="..\..\library\psa_crypto_driver_wrappers.h" />
     <ClInclude Include="..\..\library\psa_crypto_invasive.h" />
     <ClInclude Include="..\..\library\psa_crypto_its.h" />
     <ClInclude Include="..\..\library\psa_crypto_se.h" />
@@ -247,6 +256,7 @@
     <ClInclude Include="..\..\library\psa_crypto_slot_management.h" />
     <ClInclude Include="..\..\library\psa_crypto_storage.h" />
     <ClInclude Include="..\..\library\ssl_invasive.h" />
+    <ClInclude Include="..\..\library\ssl_tls13_keys.h" />
     <ClInclude Include="..\..\3rdparty\everest\include\everest\everest.h" />
     <ClInclude Include="..\..\3rdparty\everest\include\everest\Hacl_Curve25519.h" />
     <ClInclude Include="..\..\3rdparty\everest\include\everest\kremlib.h" />
@@ -307,6 +317,7 @@
     <ClCompile Include="..\..\library\platform_util.c" />
     <ClCompile Include="..\..\library\poly1305.c" />
     <ClCompile Include="..\..\library\psa_crypto.c" />
+    <ClCompile Include="..\..\library\psa_crypto_driver_wrappers.c" />
     <ClCompile Include="..\..\library\psa_crypto_se.c" />
     <ClCompile Include="..\..\library\psa_crypto_slot_management.c" />
     <ClCompile Include="..\..\library\psa_crypto_storage.c" />
@@ -325,6 +336,7 @@
     <ClCompile Include="..\..\library\ssl_srv.c" />
     <ClCompile Include="..\..\library\ssl_ticket.c" />
     <ClCompile Include="..\..\library\ssl_tls.c" />
+    <ClCompile Include="..\..\library\ssl_tls13_keys.c" />
     <ClCompile Include="..\..\library\threading.c" />
     <ClCompile Include="..\..\library\timing.c" />
     <ClCompile Include="..\..\library\version.c" />

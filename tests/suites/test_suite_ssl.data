@@ -10398,6 +10398,132 @@ Decrypt CBC !EtM, 3DES SHA384 trunc, padlen=255
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA512_C:!MBEDTLS_SHA512_NO_SHA384
 ssl_decrypt_non_etm_cbc:MBEDTLS_CIPHER_DES_EDE3_CBC:MBEDTLS_MD_SHA384:1:255
 
+SSL TLS 1.3 Key schedule: Secret evolution #1
+# Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
+# Initial secret to Early Secret
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+ssl_tls1_3_key_evolution:MBEDTLS_MD_SHA256:"":"":"33ad0a1c607ec03b09e6cd9893680ce210adf300aa1f2660e1b22e10f170f92a"
+
+SSL TLS 1.3 Key schedule: Secret evolution #2
+# Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
+# Early secret to Handshake Secret
+ssl_tls1_3_key_evolution:MBEDTLS_MD_SHA256:"33ad0a1c607ec03b09e6cd9893680ce210adf300aa1f2660e1b22e10f170f92a":"df4a291baa1eb7cfa6934b29b474baad2697e29f1f920dcc77c8a0a088447624":"fb9fc80689b3a5d02c33243bf69a1b1b20705588a794304a6e7120155edf149a"
+
+SSL TLS 1.3 Key schedule: Secret evolution #3
+# Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
+# Handshake secret to Master Secret
+ssl_tls1_3_key_evolution:MBEDTLS_MD_SHA256:"fb9fc80689b3a5d02c33243bf69a1b1b20705588a794304a6e7120155edf149a":"":"7f2882bb9b9a46265941653e9c2f19067118151e21d12e57a7b6aca1f8150c8d"
+
+SSL TLS 1.3 Key schedule: HKDF Expand Label #1
+# Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
+# Server handshake traffic secret -> Server traffic key
+# HKDF-Expand-Label(server_handshake_secret, "key", "", 16)
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"a2067265e7f0652a923d5d72ab0467c46132eeb968b6a32d311c805868548814":tls1_3_label_key:"":16:"844780a7acad9f980fa25c114e43402a"
+
+SSL TLS 1.3 Key schedule: HKDF Expand Label #2
+# Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
+# Server handshake traffic secret -> Server traffic IV
+# HKDF-Expand-Label(server_handshake_secret, "iv", "", 12)
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"a2067265e7f0652a923d5d72ab0467c46132eeb968b6a32d311c805868548814":tls1_3_label_iv:"":12:"4c042ddc120a38d1417fc815"
+
+SSL TLS 1.3 Key schedule: HKDF Expand Label #3
+# Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
+# Client handshake traffic secret -> Client traffic key
+# HKDF-Expand-Label(client_handshake_secret, "key", "", 16)
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"ff0e5b965291c608c1e8cd267eefc0afcc5e98a2786373f0db47b04786d72aea":tls1_3_label_key:"":16:"7154f314e6be7dc008df2c832baa1d39"
+
+SSL TLS 1.3 Key schedule: HKDF Expand Label #4
+# Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
+# Client handshake traffic secret -> Client traffic IV
+# HKDF-Expand-Label(client_handshake_secret, "iv", "", 12)
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"ff0e5b965291c608c1e8cd267eefc0afcc5e98a2786373f0db47b04786d72aea":tls1_3_label_iv:"":12:"71abc2cae4c699d47c600268"
+
+SSL TLS 1.3 Key schedule: HKDF Expand Label #5 (RFC 8448)
+# Vector from RFC 8448
+# Server handshake traffic secret -> Server traffic IV
+# HKDF-Expand-Label(server_handshake_secret, "iv", "", 12)
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"b67b7d690cc16c4e75e54213cb2d37b4e9c912bcded9105d42befd59d391ad38":tls1_3_label_iv:"":12:"5d313eb2671276ee13000b30"
+
+SSL TLS 1.3 Key schedule: HKDF Expand Label #6 (RFC 8448)
+# Vector from RFC 8448
+# Server handshake traffic secret -> Server traffic Key
+# HKDF-Expand-Label(server_handshake_secret, "key", "", 16)
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"b67b7d690cc16c4e75e54213cb2d37b4e9c912bcded9105d42befd59d391ad38":tls1_3_label_key:"":16:"3fce516009c21727d0f2e4e86ee403bc"
+
+SSL TLS 1.3 Key schedule: HKDF Expand Label #7 (RFC 8448)
+# Vector from RFC 8448
+# Client handshake traffic secret -> Client traffic IV
+# HKDF-Expand-Label(client_handshake_secret, "iv", "", 12)
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"b3eddb126e067f35a780b3abf45e2d8f3b1a950738f52e9600746a0e27a55a21":tls1_3_label_iv:"":12:"5bd3c71b836e0b76bb73265f"
+
+SSL TLS 1.3 Key schedule: HKDF Expand Label #8 (RFC 8448)
+# Vector from RFC 8448
+# Client handshake traffic secret -> Client traffic Key
+# HKDF-Expand-Label(client_handshake_secret, "key", "", 16)
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"b3eddb126e067f35a780b3abf45e2d8f3b1a950738f52e9600746a0e27a55a21":tls1_3_label_key:"":16:"dbfaa693d1762c5b666af5d950258d01"
+
+SSL TLS 1.3 Key schedule: HKDF Expand Label #9 (RFC 8448)
+# Calculation of finished_key
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"2faac08f851d35fea3604fcb4de82dc62c9b164a70974d0462e27f1ab278700f":tls1_3_label_finished:"":32:"5ace394c26980d581243f627d1150ae27e37fa52364e0a7f20ac686d09cd0e8e"
+
+SSL TLS 1.3 Key schedule: HKDF Expand Label #10 (RFC 8448)
+# Calculation of resumption key
+ssl_tls1_3_hkdf_expand_label:MBEDTLS_MD_SHA256:"7df235f2031d2a051287d02b0241b0bfdaf86cc856231f2d5aba46c434ec196c":tls1_3_label_resumption:"0000":32:"4ecd0eb6ec3b4d87f5d6028f922ca4c5851a277fd41311c9e62d2c9492e1c4f3"
+
+SSL TLS 1.3 Key schedule: Traffic key generation #1
+# Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
+# Client/Server handshake traffic secrets -> Client/Server traffic {Key,IV}
+ssl_tls1_3_traffic_key_generation:MBEDTLS_MD_SHA256:"a2067265e7f0652a923d5d72ab0467c46132eeb968b6a32d311c805868548814":"ff0e5b965291c608c1e8cd267eefc0afcc5e98a2786373f0db47b04786d72aea":12:16:"844780a7acad9f980fa25c114e43402a":"4c042ddc120a38d1417fc815":"7154f314e6be7dc008df2c832baa1d39":"71abc2cae4c699d47c600268"
+
+SSL TLS 1.3 Key schedule: Traffic key generation #2 (RFC 8448)
+# Vector RFC 8448
+# Client/Server handshake traffic secrets -> Client/Server traffic {Key,IV}
+ssl_tls1_3_traffic_key_generation:MBEDTLS_MD_SHA256:"a2067265e7f0652a923d5d72ab0467c46132eeb968b6a32d311c805868548814":"ff0e5b965291c608c1e8cd267eefc0afcc5e98a2786373f0db47b04786d72aea":12:16:"844780a7acad9f980fa25c114e43402a":"4c042ddc120a38d1417fc815":"7154f314e6be7dc008df2c832baa1d39":"71abc2cae4c699d47c600268"
+
+SSL TLS 1.3 Key schedule: Derive-Secret( ., "derived", "")
+# Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
+# Derive-Secret( Early-Secret, "derived", "")
+# Tests the case where context isn't yet hashed (empty string here,
+# but still needs to be hashed)
+ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"33ad0a1c607ec03b09e6cd9893680ce210adf300aa1f2660e1b22e10f170f92a":tls1_3_label_derived:"":32:MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED:"6f2615a108c702c5678f54fc9dbab69716c076189c48250cebeac3576c3611ba"
+
+SSL TLS 1.3 Key schedule: Derive-Secret( ., "s ap traffic", hash) #1
+# Vector from TLS 1.3 Byte by Byte (https://tls13.ulfheim.net/)
+# Derive-Secret( MasterSecret, "s ap traffic", hash)
+# Tests the case where context is already hashed
+ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"7f2882bb9b9a46265941653e9c2f19067118151e21d12e57a7b6aca1f8150c8d":tls1_3_label_s_ap_traffic:"22844b930e5e0a59a09d5ac35fc032fc91163b193874a265236e568077378d8b":32:MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED:"3fc35ea70693069a277956afa23b8f4543ce68ac595f2aace05cd7a1c92023d5"
+
+SSL TLS 1.3 Key schedule: Derive-Secret( ., "c e traffic", hash)
+# Vector from RFC 8448
+ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"9b2188e9b2fc6d64d71dc329900e20bb41915000f678aa839cbb797cb7d8332c":tls1_3_label_c_e_traffic:"08ad0fa05d7c7233b1775ba2ff9f4c5b8b59276b7f227f13a976245f5d960913":32:MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED:"3fbbe6a60deb66c30a32795aba0eff7eaa10105586e7be5c09678d63b6caab62"
+
+SSL TLS 1.3 Key schedule: Derive-Secret( ., "e exp master", hash)
+# Vector from RFC 8448
+ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"9b2188e9b2fc6d64d71dc329900e20bb41915000f678aa839cbb797cb7d8332c":tls1_3_label_e_exp_master:"08ad0fa05d7c7233b1775ba2ff9f4c5b8b59276b7f227f13a976245f5d960913":32:MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED:"b2026866610937d7423e5be90862ccf24c0e6091186d34f812089ff5be2ef7df"
+
+SSL TLS 1.3 Key schedule: Derive-Secret( ., "c hs traffic", hash)
+# Vector from RFC 8448
+ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"005cb112fd8eb4ccc623bb88a07c64b3ede1605363fc7d0df8c7ce4ff0fb4ae6":tls1_3_label_c_hs_traffic:"f736cb34fe25e701551bee6fd24c1cc7102a7daf9405cb15d97aafe16f757d03"::32:MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED:"2faac08f851d35fea3604fcb4de82dc62c9b164a70974d0462e27f1ab278700f"
+
+SSL TLS 1.3 Key schedule: Derive-Secret( ., "s hs traffic", hash)
+# Vector from RFC 8448
+ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"005cb112fd8eb4ccc623bb88a07c64b3ede1605363fc7d0df8c7ce4ff0fb4ae6":tls1_3_label_s_hs_traffic:"f736cb34fe25e701551bee6fd24c1cc7102a7daf9405cb15d97aafe16f757d03":32:MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED:"fe927ae271312e8bf0275b581c54eef020450dc4ecffaa05a1a35d27518e7803"
+
+SSL TLS 1.3 Key schedule: Derive-Secret( ., "c ap traffic", hash)
+# Vector from RFC 8448
+ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"e2d32d4ed66dd37897a0e80c84107503ce58bf8aad4cb55a5002d77ecb890ece":tls1_3_label_c_ap_traffic:"b0aeffc46a2cfe33114e6fd7d51f9f04b1ca3c497dab08934a774a9d9ad7dbf3":32:MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED:"2abbf2b8e381d23dbebe1dd2a7d16a8bf484cb4950d23fb7fb7fa8547062d9a1"
+
+SSL TLS 1.3 Key schedule: Derive-Secret( ., "s ap traffic", hash) #2
+# Vector from RFC 8448
+ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"e2d32d4ed66dd37897a0e80c84107503ce58bf8aad4cb55a5002d77ecb890ece":tls1_3_label_s_ap_traffic:"b0aeffc46a2cfe33114e6fd7d51f9f04b1ca3c497dab08934a774a9d9ad7dbf3":32:MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED:"cc21f1bf8feb7dd5fa505bd9c4b468a9984d554a993dc49e6d285598fb672691"
+
+SSL TLS 1.3 Key schedule: Derive-Secret( ., "exp master", hash)
+# Vector from RFC 8448
+ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"e2d32d4ed66dd37897a0e80c84107503ce58bf8aad4cb55a5002d77ecb890ece":tls1_3_label_exp_master:"b0aeffc46a2cfe33114e6fd7d51f9f04b1ca3c497dab08934a774a9d9ad7dbf3":32:MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED:"3fd93d4ffddc98e64b14dd107aedf8ee4add23f4510f58a4592d0b201bee56b4"
+
+SSL TLS 1.3 Key schedule: Derive-Secret( ., "res master", hash)
+# Vector from RFC 8448
+ssl_tls1_3_derive_secret:MBEDTLS_MD_SHA256:"e2d32d4ed66dd37897a0e80c84107503ce58bf8aad4cb55a5002d77ecb890ece":tls1_3_label_res_master:"c3c122e0bd907a4a3ff6112d8fd53dbf89c773d9552e8b6b9d56d361b3a97bf6":32:MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED:"5e95bdf1f89005ea2e9aa0ba85e728e3c19c5fe0c699e3f5bee59faebd0b5406"
 
 SSL TLS_PRF MBEDTLS_SSL_TLS_PRF_NONE
 ssl_tls_prf:MBEDTLS_SSL_TLS_PRF_NONE:"":"":"test tls_prf label":"":MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE

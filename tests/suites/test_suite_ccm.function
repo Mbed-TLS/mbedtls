@@ -41,17 +41,17 @@ void ccm_lengths( int msg_len, int iv_len, int add_len, int tag_len, int res )
     unsigned char key[16];
     unsigned char msg[10];
     unsigned char iv[14];
-    unsigned char add[10];
+    unsigned char *add = NULL;
     unsigned char out[10];
     unsigned char tag[18];
     int decrypt_ret;
 
     mbedtls_ccm_init( &ctx );
 
+    ASSERT_ALLOC_WEAK( add, add_len );
     memset( key, 0, sizeof( key ) );
     memset( msg, 0, sizeof( msg ) );
     memset( iv, 0, sizeof( iv ) );
-    memset( add, 0, sizeof( add ) );
     memset( out, 0, sizeof( out ) );
     memset( tag, 0, sizeof( tag ) );
 
@@ -70,6 +70,7 @@ void ccm_lengths( int msg_len, int iv_len, int add_len, int tag_len, int res )
         TEST_ASSERT( decrypt_ret == res );
 
 exit:
+    mbedtls_free( add );
     mbedtls_ccm_free( &ctx );
 }
 /* END_CASE */
@@ -152,7 +153,7 @@ exit:
 void mbedtls_ccm_auth_decrypt( int cipher_id, data_t * key,
                                data_t * msg, data_t * iv,
                                data_t * add, int tag_len, int result,
-                               data_t * hex_msg )
+                               data_t * expected_msg )
 {
     unsigned char tag[16];
     mbedtls_ccm_context ctx;
@@ -172,7 +173,7 @@ void mbedtls_ccm_auth_decrypt( int cipher_id, data_t * key,
 
     if( result == 0 )
     {
-        TEST_ASSERT( memcmp( msg->x, hex_msg->x, hex_msg->len ) == 0 );
+        TEST_ASSERT( memcmp( msg->x, expected_msg->x, expected_msg->len ) == 0 );
     }
     else
     {

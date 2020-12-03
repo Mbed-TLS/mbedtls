@@ -122,6 +122,10 @@ Cipher: OFB
 depends_on:MBEDTLS_CIPHER_C:MBEDTLS_CIPHER_MODE_OFB
 cipher_algorithm:PSA_ALG_OFB:ALG_IS_STREAM_CIPHER
 
+Cipher: ECB-nopad
+depends_on:MBEDTLS_CIPHER_C
+cipher_algorithm:PSA_ALG_ECB_NO_PADDING:0
+
 Cipher: CBC-nopad
 depends_on:MBEDTLS_CIPHER_C:MBEDTLS_CIPHER_MODE_CBC
 cipher_algorithm:PSA_ALG_CBC_NO_PADDING:0

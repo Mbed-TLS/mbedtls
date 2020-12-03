@@ -14,9 +14,13 @@
 #     CMake files. It is related to ZLIB support which is planned to be removed.
 #     When the support is removed, the associated include_directories command
 #     will be removed as well as this note.
+# - MBEDTLS_TARGET_PREFIX: CMake targets are designed to be alterable by calling
+#   CMake in order to avoid target name clashes, via the use of
+#   MBEDTLS_TARGET_PREFIX. The value of this variable is prefixed to the
+#   mbedtls, mbedx509, mbedcrypto and apidoc targets.
 #
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 if(TEST_CPP)
     project("mbed TLS" C CXX)
 else()
@@ -112,9 +116,12 @@ option: \n\
     endif()
 endif()
 
-set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
-    CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull"
-    FORCE)
+# If this is the root project add longer list of available CMAKE_BUILD_TYPE values
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
+        CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull"
+        FORCE)
+endif()
 
 # Create a symbolic link from ${base_name} in the binary directory
 # to the corresponding path in the source directory.
@@ -152,6 +159,8 @@ endfunction(link_to_source)
 
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 
+include(CheckCCompilerFlag)
+
 if(CMAKE_COMPILER_IS_GNU)
     # some warnings we want are not available with old GCC versions
     # note: starting with CMake 2.8 we could use CMAKE_C_COMPILER_VERSION
@@ -168,7 +177,10 @@ if(CMAKE_COMPILER_IS_GNU)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshadow")
     endif()
     if (GCC_VERSION VERSION_GREATER 5.0)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat-signedness")
+        CHECK_C_COMPILER_FLAG("-Wformat-signedness" C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS)
+        if(C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat-signedness")
+        endif()
     endif()
     set(CMAKE_C_FLAGS_RELEASE     "-O2")
     set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
@@ -256,7 +268,7 @@ add_subdirectory(library)
 # to define the test executables.
 #
 if(ENABLE_TESTING OR ENABLE_PROGRAMS)
-    file(GLOB MBEDTLS_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c)
+    file(GLOB MBEDTLS_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/drivers/*.c)
     add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
     target_include_directories(mbedtls_test
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
@@ -268,7 +280,7 @@ if(ENABLE_PROGRAMS)
     add_subdirectory(programs)
 endif()
 
-ADD_CUSTOM_TARGET(apidoc
+ADD_CUSTOM_TARGET(${MBEDTLS_TARGET_PREFIX}apidoc
     COMMAND doxygen mbedtls.doxyfile
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doxygen)
 

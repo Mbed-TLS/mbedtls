@@ -335,7 +335,7 @@ static int convert_params( size_t cnt , char ** params , int * int_params_store 
 #if defined(__GNUC__)
 __attribute__((__noinline__))
 #endif
-static int test_snprintf( size_t n, const char ref_buf[10], int ref_ret )
+static int test_snprintf( size_t n, const char *ref_buf, int ref_ret )
 {
     int ret;
     char buf[10] = "xxxxxxxxx";
@@ -683,7 +683,6 @@ int execute_tests( int argc , const char ** argv )
             if( unmet_dep_count == 0 )
             {
                 test_info.result = TEST_RESULT_SUCCESS;
-                test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_IDLE;
                 test_info.step = (unsigned long)( -1 );
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
@@ -692,7 +691,7 @@ int execute_tests( int argc , const char ** argv )
                  */
                 if( !option_verbose )
                 {
-                    stdout_fd = redirect_output( &stdout, "/dev/null" );
+                    stdout_fd = redirect_output( stdout, "/dev/null" );
                     if( stdout_fd == -1 )
                     {
                         /* Redirection has failed with no stdout so exit */
@@ -712,7 +711,7 @@ int execute_tests( int argc , const char ** argv )
                 }
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-                if( !option_verbose && restore_output( &stdout, stdout_fd ) )
+                if( !option_verbose && restore_output( stdout, stdout_fd ) )
                 {
                         /* Redirection has failed with no stdout so exit */
                         exit( 1 );
@@ -816,11 +815,6 @@ int execute_tests( int argc , const char ** argv )
 #endif
     mbedtls_memory_buffer_alloc_free();
 #endif
-
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-    if( stdout_fd != -1 )
-        close_output( stdout );
-#endif /* __unix__ || __APPLE__ __MACH__ */
 
     return( total_errors != 0 );
 }

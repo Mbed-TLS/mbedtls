@@ -36,6 +36,32 @@
 typedef struct
 {
     psa_core_key_attributes_t attr;
+
+    /*
+     * Number of locks on the key slot held by the library.
+     *
+     * This counter is incremented by one each time a library function
+     * retrieves through one of the dedicated internal API a pointer to the
+     * key slot.
+     *
+     * This counter is decremented by one each time a library function stops
+     * accessing the key slot and states it by calling the
+     * psa_unlock_key_slot() API.
+     *
+     * This counter is used to prevent resetting the key slot while the library
+     * may access it. For example, such control is needed in the following
+     * scenarios:
+     * . In case of key slot starvation, all key slots contain the description
+     *   of a key, and the library asks for the description of a persistent
+     *   key not present in the key slots, the key slots currently accessed by
+     *   the library cannot be reclaimed to free a key slot to load the
+     *   persistent key.
+     * . In case of a multi-threaded application where one thread asks to close
+     *   or purge or destroy a key while it is in used by the library through
+     *   another thread.
+     */
+    size_t lock_count;
+
     union
     {
         /* Dynamically allocated key data buffer.
@@ -72,6 +98,19 @@ typedef struct
 static inline int psa_is_key_slot_occupied( const psa_key_slot_t *slot )
 {
     return( slot->attr.type != 0 );
+}
+
+/** Test whether a key slot is locked.
+ *
+ * A key slot is locked iff its lock counter is strictly greater than 0.
+ *
+ * \param[in] slot  The key slot to test.
+ *
+ * \return 1 if the slot is locked, 0 otherwise.
+ */
+static inline int psa_is_key_slot_locked( const psa_key_slot_t *slot )
+{
+    return( slot->lock_count > 0 );
 }
 
 /** Retrieve flags from psa_key_slot_t::attr::core::flags.
@@ -130,35 +169,43 @@ static inline void psa_key_slot_clear_bits( psa_key_slot_t *slot,
  *
  * \param[in,out] slot  The key slot to wipe.
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  *         Success. This includes the case of a key slot that was
  *         already fully wiped.
- * \retval PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
 psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot );
 
-/** Import key data into a slot.
+/** Copy key data (in export format) into an empty key slot.
  *
- * `slot->type` must have been set previously.
- * This function assumes that the slot does not contain any key material yet.
- * On failure, the slot content is unchanged.
+ * This function assumes that the slot does not contain
+ * any key material yet. On failure, the slot content is unchanged.
  *
- * Persistent storage is not affected.
+ * \param[in,out] slot          Key slot to copy the key into.
+ * \param[in] data              Buffer containing the key material.
+ * \param data_length           Size of the key buffer.
  *
- * \param[in,out] slot  The key slot to import data into.
- *                      Its `type` field must have previously been set to
- *                      the desired key type.
- *                      It must not contain any key material yet.
- * \param[in] data      Buffer containing the key material to parse and import.
- * \param data_length   Size of \p data in bytes.
- *
- * \retval PSA_SUCCESS
- * \retval PSA_ERROR_INVALID_ARGUMENT
- * \retval PSA_ERROR_NOT_SUPPORTED
- * \retval PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_SUCCESS
+ *         The key has been copied successfully.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ *         Not enough memory was available for allocation of the
+ *         copy buffer.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         There was other key material already present in the slot.
  */
-psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
-                                       const uint8_t *data,
-                                       size_t data_length );
+psa_status_t psa_copy_key_material_into_slot( psa_key_slot_t *slot,
+                                              const uint8_t *data,
+                                              size_t data_length );
+
+/** Convert an mbed TLS error code to a PSA error code
+ *
+ * \note This function is provided solely for the convenience of
+ *       Mbed TLS and may be removed at any time without notice.
+ *
+ * \param ret           An mbed TLS-thrown error code
+ *
+ * \return              The corresponding PSA error code
+ */
+psa_status_t mbedtls_to_psa_error( int ret );
 
 #endif /* PSA_CRYPTO_CORE_H */

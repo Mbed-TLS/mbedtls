@@ -108,7 +108,7 @@
  * as applicable.
  *
  * Implementations shall not return this error code to indicate that a
- * key handle is invalid, but shall return #PSA_ERROR_INVALID_HANDLE
+ * key identifier is invalid, but shall return #PSA_ERROR_INVALID_HANDLE
  * instead. */
 #define PSA_ERROR_BAD_STATE             ((psa_status_t)-137)
 
@@ -118,7 +118,7 @@
  * combination of parameters are recognized as invalid.
  *
  * Implementations shall not return this error code to indicate that a
- * key handle is invalid, but shall return #PSA_ERROR_INVALID_HANDLE
+ * key identifier is invalid, but shall return #PSA_ERROR_INVALID_HANDLE
  * instead.
  */
 #define PSA_ERROR_INVALID_ARGUMENT      ((psa_status_t)-135)
@@ -266,7 +266,7 @@
  * to read from a resource. */
 #define PSA_ERROR_INSUFFICIENT_DATA     ((psa_status_t)-143)
 
-/** The key handle is not valid. See also :ref:\`key-handles\`.
+/** The key identifier is not valid. See also :ref:\`key-handles\`.
  */
 #define PSA_ERROR_INVALID_HANDLE        ((psa_status_t)-136)
 
@@ -769,9 +769,9 @@
  *   an algorithm built from `PSA_xxx_SIGNATURE` and a specific hash. Each
  *   call to sign or verify a message may use a different hash.
  *   ```
- *   psa_sign_hash(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA_256), ...);
- *   psa_sign_hash(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA_512), ...);
- *   psa_sign_hash(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA3_256), ...);
+ *   psa_sign_hash(key, PSA_xxx_SIGNATURE(PSA_ALG_SHA_256), ...);
+ *   psa_sign_hash(key, PSA_xxx_SIGNATURE(PSA_ALG_SHA_512), ...);
+ *   psa_sign_hash(key, PSA_xxx_SIGNATURE(PSA_ALG_SHA3_256), ...);
  *   ```
  *
  * This value may not be used to build other algorithms that are
@@ -977,6 +977,26 @@
  * does not need to be a whole number of blocks.
  */
 #define PSA_ALG_XTS                             ((psa_algorithm_t)0x044000ff)
+
+/** The Electronic Code Book (ECB) mode of a block cipher, with no padding.
+ *
+ * \warning ECB mode does not protect the confidentiality of the encrypted data
+ * except in extremely narrow circumstances. It is recommended that applications
+ * only use ECB if they need to construct an operating mode that the
+ * implementation does not provide. Implementations are encouraged to provide
+ * the modes that applications need in preference to supporting direct access
+ * to ECB.
+ *
+ * The underlying block cipher is determined by the key type.
+ *
+ * This symmetric cipher mode can only be used with messages whose lengths are a
+ * multiple of the block size of the chosen block cipher.
+ *
+ * ECB mode does not accept an initialization vector (IV). When using a
+ * multi-part cipher operation with this algorithm, psa_cipher_generate_iv()
+ * and psa_cipher_set_iv() must not be called.
+ */
+#define PSA_ALG_ECB_NO_PADDING                  ((psa_algorithm_t)0x04404400)
 
 /** The CBC block cipher chaining mode, with no padding.
  *
@@ -1432,7 +1452,7 @@
  * a key derivation function.
  * Usually, raw key agreement algorithms are constructed directly with
  * a \c PSA_ALG_xxx macro while non-raw key agreement algorithms are
- * constructed with PSA_ALG_KEY_AGREEMENT().
+ * constructed with #PSA_ALG_KEY_AGREEMENT().
  *
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
  *
@@ -1541,7 +1561,7 @@
 
 /** The default lifetime for volatile keys.
  *
- * A volatile key only exists as long as the handle to it is not closed.
+ * A volatile key only exists as long as the identifier to it is not destroyed.
  * The key material is guaranteed to be erased on a power reset.
  *
  * A key with this lifetime is typically stored in the RAM area of the
@@ -1636,16 +1656,105 @@
 
 /** The minimum value for a key identifier chosen by the application.
  */
-#define PSA_KEY_ID_USER_MIN                     ((psa_app_key_id_t)0x00000001)
+#define PSA_KEY_ID_USER_MIN                     ((psa_key_id_t)0x00000001)
 /** The maximum value for a key identifier chosen by the application.
  */
-#define PSA_KEY_ID_USER_MAX                     ((psa_app_key_id_t)0x3fffffff)
+#define PSA_KEY_ID_USER_MAX                     ((psa_key_id_t)0x3fffffff)
 /** The minimum value for a key identifier chosen by the implementation.
  */
-#define PSA_KEY_ID_VENDOR_MIN                   ((psa_app_key_id_t)0x40000000)
+#define PSA_KEY_ID_VENDOR_MIN                   ((psa_key_id_t)0x40000000)
 /** The maximum value for a key identifier chosen by the implementation.
  */
-#define PSA_KEY_ID_VENDOR_MAX                   ((psa_app_key_id_t)0x7fffffff)
+#define PSA_KEY_ID_VENDOR_MAX                   ((psa_key_id_t)0x7fffffff)
+
+
+#if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+
+#define MBEDTLS_SVC_KEY_ID_INIT ( (psa_key_id_t)0 )
+#define MBEDTLS_SVC_KEY_ID_GET_KEY_ID( id ) ( id )
+#define MBEDTLS_SVC_KEY_ID_GET_OWNER_ID( id ) ( 0 )
+
+/** Utility to initialize a key identifier at runtime.
+ *
+ * \param unused  Unused parameter.
+ * \param key_id  Identifier of the key.
+ */
+static inline mbedtls_svc_key_id_t mbedtls_svc_key_id_make(
+    unsigned int unused, psa_key_id_t key_id )
+{
+    (void)unused;
+
+    return( key_id );
+}
+
+/** Compare two key identifiers.
+ *
+ * \param id1 First key identifier.
+ * \param id2 Second key identifier.
+ *
+ * \return Non-zero if the two key identifier are equal, zero otherwise.
+ */
+static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
+                                            mbedtls_svc_key_id_t id2 )
+{
+    return( id1 == id2 );
+}
+
+/** Check whether a key identifier is null.
+ *
+ * \param key Key identifier.
+ *
+ * \return Non-zero if the key identifier is null, zero otherwise.
+ */
+static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
+{
+    return( key == 0 );
+}
+
+#else /* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
+
+#define MBEDTLS_SVC_KEY_ID_INIT ( (mbedtls_svc_key_id_t){ 0, 0 } )
+#define MBEDTLS_SVC_KEY_ID_GET_KEY_ID( id ) ( ( id ).key_id )
+#define MBEDTLS_SVC_KEY_ID_GET_OWNER_ID( id ) ( ( id ).owner )
+
+/** Utility to initialize a key identifier at runtime.
+ *
+ * \param owner_id Identifier of the key owner.
+ * \param key_id   Identifier of the key.
+ */
+static inline mbedtls_svc_key_id_t mbedtls_svc_key_id_make(
+    mbedtls_key_owner_id_t owner_id, psa_key_id_t key_id )
+{
+    return( (mbedtls_svc_key_id_t){ .key_id = key_id,
+                                    .owner = owner_id } );
+}
+
+/** Compare two key identifiers.
+ *
+ * \param id1 First key identifier.
+ * \param id2 Second key identifier.
+ *
+ * \return Non-zero if the two key identifier are equal, zero otherwise.
+ */
+static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
+                                            mbedtls_svc_key_id_t id2 )
+{
+    return( ( id1.key_id == id2.key_id ) &&
+            mbedtls_key_owner_id_equal( id1.owner, id2.owner ) );
+}
+
+/** Check whether a key identifier is null.
+ *
+ * \param key Key identifier.
+ *
+ * \return Non-zero if the key identifier is null, zero otherwise.
+ */
+static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
+{
+    return( ( key.key_id == 0 ) && ( key.owner == 0 ) );
+}
+
+#endif /* !MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
 
 /**@}*/
 

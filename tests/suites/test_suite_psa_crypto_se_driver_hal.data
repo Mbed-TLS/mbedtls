@@ -130,28 +130,37 @@ Key generation smoke test: HMAC-SHA-256
 generate_key_smoke:PSA_KEY_TYPE_HMAC:256:PSA_ALG_HMAC( PSA_ALG_SHA_256 )
 
 Key registration: smoke test
-register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:1:1:PSA_SUCCESS
+register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:1:1:PSA_SUCCESS
 
 Key registration: invalid lifetime (volatile internal storage)
-register_key_smoke_test:PSA_KEY_LIFETIME_VOLATILE:1:1:PSA_ERROR_INVALID_ARGUMENT
+register_key_smoke_test:PSA_KEY_LIFETIME_VOLATILE:7:1:1:PSA_ERROR_INVALID_ARGUMENT
 
 Key registration: invalid lifetime (internal storage)
-register_key_smoke_test:PSA_KEY_LIFETIME_PERSISTENT:1:1:PSA_ERROR_INVALID_ARGUMENT
+register_key_smoke_test:PSA_KEY_LIFETIME_PERSISTENT:7:1:1:PSA_ERROR_INVALID_ARGUMENT
 
 Key registration: invalid lifetime (no registered driver)
-register_key_smoke_test:PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION( PSA_KEY_PERSISTENCE_DEFAULT, TEST_DRIVER_LOCATION + 1 ):1:1:PSA_ERROR_INVALID_ARGUMENT
+register_key_smoke_test:PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION( PSA_KEY_PERSISTENCE_DEFAULT, TEST_DRIVER_LOCATION + 1 ):7:1:1:PSA_ERROR_INVALID_ARGUMENT
 
 Key registration: rejected
-register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:1:0:PSA_ERROR_NOT_PERMITTED
+register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:1:0:PSA_ERROR_NOT_PERMITTED
 
 Key registration: not supported
-register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:1:-1:PSA_ERROR_NOT_SUPPORTED
+register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:1:-1:PSA_ERROR_NOT_SUPPORTED
 
 Key registration: key id out of range
-register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:PSA_KEY_ID_VENDOR_MAX+1:-1:PSA_ERROR_INVALID_ARGUMENT
+register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VENDOR_MAX+1:-1:PSA_ERROR_INVALID_HANDLE
 
-Key registration: key id in vendor range
-register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:PSA_KEY_ID_VENDOR_MAX:1:PSA_SUCCESS
+Key registration: key id min vendor
+register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VENDOR_MIN:1:PSA_ERROR_INVALID_HANDLE
+
+Key registration: key id max vendor except volatile
+register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VOLATILE_MIN-1:1:PSA_ERROR_INVALID_HANDLE
+
+Key registration: key id min volatile
+register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VOLATILE_MIN:1:PSA_ERROR_INVALID_HANDLE
+
+Key registration: key id max volatile
+register_key_smoke_test:TEST_SE_PERSISTENT_LIFETIME:7:PSA_KEY_ID_VOLATILE_MAX:1:PSA_ERROR_INVALID_HANDLE
 
 Import-sign-verify: sign in driver, ECDSA
 depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED

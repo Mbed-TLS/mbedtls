@@ -9,14 +9,12 @@
  */
 
 /* BEGIN_CASE */
-void mbedtls_poly1305( data_t *key, char *hex_mac_string, data_t *src_str )
+void mbedtls_poly1305( data_t *key, data_t *expected_mac, data_t *src_str )
 {
     unsigned char mac[16]; /* size set by the standard */
-    unsigned char mac_str[33]; /* hex expansion of the above */
     mbedtls_poly1305_context ctx;
 
-    memset( mac_str, 0x00, sizeof( mac_str ) );
-    memset( mac,     0x00, sizeof( mac ) );
+    memset( mac, 0x00, sizeof( mac ) );
 
     /*
      * Test the integrated API
@@ -24,8 +22,8 @@ void mbedtls_poly1305( data_t *key, char *hex_mac_string, data_t *src_str )
     TEST_ASSERT( mbedtls_poly1305_mac( key->x, src_str->x,
                                        src_str->len, mac ) == 0 );
 
-    mbedtls_test_hexify( mac_str, mac, 16 );
-    TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
+    ASSERT_COMPARE( mac, expected_mac->len,
+                    expected_mac->x, expected_mac->len );
 
     /*
      * Test the streaming API
@@ -38,8 +36,8 @@ void mbedtls_poly1305( data_t *key, char *hex_mac_string, data_t *src_str )
 
     TEST_ASSERT( mbedtls_poly1305_finish( &ctx, mac ) == 0 );
 
-    mbedtls_test_hexify( mac_str, mac, 16 );
-    TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
+    ASSERT_COMPARE( mac, expected_mac->len,
+                    expected_mac->x, expected_mac->len );
 
     /*
      * Test the streaming API again, piecewise
@@ -56,8 +54,8 @@ void mbedtls_poly1305( data_t *key, char *hex_mac_string, data_t *src_str )
 
         TEST_ASSERT( mbedtls_poly1305_finish( &ctx, mac ) == 0 );
 
-        mbedtls_test_hexify( mac_str, mac, 16 );
-        TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
+        ASSERT_COMPARE( mac, expected_mac->len,
+                        expected_mac->x, expected_mac->len );
     }
 
     /*
@@ -73,8 +71,8 @@ void mbedtls_poly1305( data_t *key, char *hex_mac_string, data_t *src_str )
 
         TEST_ASSERT( mbedtls_poly1305_finish( &ctx, mac ) == 0 );
 
-        mbedtls_test_hexify( mac_str, mac, 16 );
-        TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
+        ASSERT_COMPARE( mac, expected_mac->len,
+                        expected_mac->x, expected_mac->len );
     }
 
     mbedtls_poly1305_free( &ctx );

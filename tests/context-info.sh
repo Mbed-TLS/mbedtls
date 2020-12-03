@@ -430,13 +430,19 @@ run_test "Binary file instead of text file" \
          -u "Too many bad symbols detected. File check aborted" \
          -n "Deserializing"
 
+run_test "Decoder continues past 0xff character" \
+         "def_b64_ff.bin" \
+         -n "No valid base64" \
+         -u "ciphersuite.* TLS-"
+
 
 # End of tests
 
+echo
 if [ $T_FAILED -eq 0 ]; then
-    printf "\nPASSED ( $T_COUNT tests )\n"
+    echo "PASSED ( $T_COUNT tests )"
 else
-    printf "\nFAILED ( $T_FAILED / $T_COUNT tests )\n"
+    echo "FAILED ( $T_FAILED / $T_COUNT tests )"
 fi
 
 exit $T_FAILED

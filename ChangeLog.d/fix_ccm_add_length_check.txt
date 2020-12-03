@@ -1,0 +1,5 @@
+Bugfix
+   * Fix an off-by-one error in the additional data length check for
+     CCM, which allowed encryption with a non-standard length field.
+     Fixes #3719.
+

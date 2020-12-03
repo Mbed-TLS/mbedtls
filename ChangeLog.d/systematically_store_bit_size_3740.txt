@@ -1,0 +1,5 @@
+Changes
+   * The PSA persistent storage format is updated to always store the key bits
+     attribute. No automatic upgrade path is provided. Previously stored keys
+     must be erased, or manually upgraded based on the key storage format
+     specification (docs/architecture/mbed-crypto-storage-specification.md). #3740

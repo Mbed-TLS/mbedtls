@@ -19,9 +19,33 @@
 #include <test/macros.h>
 #include <string.h>
 
+#if defined(MBEDTLS_CHECK_PARAMS)
+#include <setjmp.h>
+#endif
+
+/*----------------------------------------------------------------------------*/
+/* Static global variables */
+
+#if defined(MBEDTLS_CHECK_PARAMS)
+typedef struct
+{
+    uint8_t expected_call;
+    uint8_t expected_call_happened;
+
+    jmp_buf state;
+
+    mbedtls_test_param_failed_location_record_t location_record;
+}
+param_failed_ctx_t;
+static param_failed_ctx_t param_failed_ctx;
+#endif
+
 #if defined(MBEDTLS_PLATFORM_C)
 static mbedtls_platform_context platform_ctx;
 #endif
+
+/*----------------------------------------------------------------------------*/
+/* Helper Functions */
 
 int mbedtls_test_platform_setup( void )
 {
@@ -159,3 +183,64 @@ int mbedtls_test_hexcmp( uint8_t * a, uint8_t * b,
     }
     return ret;
 }
+
+#if defined(MBEDTLS_CHECK_PARAMS)
+void mbedtls_test_param_failed_get_location_record(
+         mbedtls_test_param_failed_location_record_t *location_record )
+{
+    *location_record = param_failed_ctx.location_record;
+}
+
+void mbedtls_test_param_failed_expect_call( void )
+{
+    param_failed_ctx.expected_call_happened = 0;
+    param_failed_ctx.expected_call = 1;
+}
+
+int mbedtls_test_param_failed_check_expected_call( void )
+{
+    param_failed_ctx.expected_call = 0;
+
+    if( param_failed_ctx.expected_call_happened != 0 )
+        return( 0 );
+
+    return( -1 );
+}
+
+void* mbedtls_test_param_failed_get_state_buf( void )
+{
+    return &param_failed_ctx.state;
+}
+
+void mbedtls_test_param_failed_reset_state( void )
+{
+    memset( param_failed_ctx.state, 0, sizeof( param_failed_ctx.state ) );
+}
+
+void mbedtls_param_failed( const char *failure_condition,
+                           const char *file,
+                           int line )
+{
+    /* Record the location of the failure */
+    param_failed_ctx.location_record.failure_condition = failure_condition;
+    param_failed_ctx.location_record.file = file;
+    param_failed_ctx.location_record.line = line;
+
+    /* If we are testing the callback function...  */
+    if( param_failed_ctx.expected_call != 0 )
+    {
+        param_failed_ctx.expected_call = 0;
+        param_failed_ctx.expected_call_happened = 1;
+    }
+    else
+    {
+        /* ...else try a long jump. If the execution state has not been set-up
+         * or reset then the long jump buffer is all zero's and the call will
+         * with high probability fault, emphasizing there is something to look
+         * at.
+         */
+
+        longjmp( param_failed_ctx.state, 1 );
+    }
+}
+#endif /* MBEDTLS_CHECK_PARAMS */

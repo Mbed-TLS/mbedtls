@@ -72,7 +72,7 @@ extern "C" {
  * \retval 1
  *         Persistent data present for slot number
  */
-int psa_is_key_present_in_storage( const psa_key_file_id_t key );
+int psa_is_key_present_in_storage( const mbedtls_svc_key_id_t key );
 
 /**
  * \brief Format key data and metadata and save to a location for given key
@@ -81,9 +81,10 @@ int psa_is_key_present_in_storage( const psa_key_file_id_t key );
  * This function formats the key data and metadata and saves it to a
  * persistent storage backend. The storage location corresponding to the
  * key slot must be empty, otherwise this function will fail. This function
- * should be called after psa_import_key_into_slot() to ensure the
+ * should be called after loading the key into an internal slot to ensure the
  * persistent key is not saved into a storage location corresponding to an
- * already occupied non-persistent key, as well as validating the key data.
+ * already occupied non-persistent key, as well as ensuring the key data is
+ * validated.
  *
  *
  * \param[in] attr          The attributes of the key to save.
@@ -92,11 +93,11 @@ int psa_is_key_present_in_storage( const psa_key_file_id_t key );
  * \param[in] data          Buffer containing the key data.
  * \param data_length       The number of bytes that make up the key data.
  *
- * \retval PSA_SUCCESS
- * \retval PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval PSA_ERROR_INSUFFICIENT_STORAGE
- * \retval PSA_ERROR_STORAGE_FAILURE
- * \retval PSA_ERROR_ALREADY_EXISTS
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_ALREADY_EXISTS
  */
 psa_status_t psa_save_persistent_key( const psa_core_key_attributes_t *attr,
                                       const uint8_t *data,
@@ -121,10 +122,10 @@ psa_status_t psa_save_persistent_key( const psa_core_key_attributes_t *attr,
  * \param[out] data         Pointer to an allocated key data buffer on return.
  * \param[out] data_length  The number of bytes that make up the key data.
  *
- * \retval PSA_SUCCESS
- * \retval PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval PSA_ERROR_STORAGE_FAILURE
- * \retval PSA_ERROR_DOES_NOT_EXIST
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  */
 psa_status_t psa_load_persistent_key( psa_core_key_attributes_t *attr,
                                       uint8_t **data,
@@ -136,12 +137,12 @@ psa_status_t psa_load_persistent_key( psa_core_key_attributes_t *attr,
  * \param key           Persistent identifier of the key to remove
  *                      from persistent storage.
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  *         The key was successfully removed,
  *         or the key did not exist.
- * \retval PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_STORAGE_FAILURE
  */
-psa_status_t psa_destroy_persistent_key( const psa_key_file_id_t key );
+psa_status_t psa_destroy_persistent_key( const mbedtls_svc_key_id_t key );
 
 /**
  * \brief Free the temporary buffer allocated by psa_load_persistent_key().
@@ -181,10 +182,10 @@ void psa_format_key_data_for_storage( const uint8_t *data,
  * \param[out] attr            On success, the attribute structure is filled
  *                             with the loaded key metadata.
  *
- * \retval PSA_SUCCESS
- * \retval PSA_ERROR_INSUFFICIENT_STORAGE
- * \retval PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_STORAGE_FAILURE
  */
 psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
                                               size_t storage_data_length,
@@ -292,7 +293,7 @@ typedef union
         uint16_t unused1;
         psa_key_lifetime_t lifetime;
         psa_key_slot_number_t slot;
-        psa_key_id_t id;
+        mbedtls_svc_key_id_t id;
     } key;
 } psa_crypto_transaction_t;
 

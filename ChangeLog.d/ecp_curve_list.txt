@@ -1,0 +1,5 @@
+Bugfix
+   * mbedtls_ecp_curve_list() now lists Curve25519 and Curve448 under the names
+     "x25519" and "x448". These curves support ECDH but not ECDSA. If you need
+     only the curves that support ECDSA, filter the list with
+     mbedtls_ecdsa_can_do().

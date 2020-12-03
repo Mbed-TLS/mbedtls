@@ -1,5 +1,5 @@
 set(libs
-    mbedcrypto
+    ${mbedcrypto_target}
 )
 
 set(executables

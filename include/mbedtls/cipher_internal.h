@@ -134,7 +134,7 @@ typedef enum
 typedef struct
 {
     psa_algorithm_t alg;
-    psa_key_handle_t slot;
+    psa_key_id_t slot;
     mbedtls_cipher_psa_key_ownership slot_state;
 } mbedtls_cipher_context_psa;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

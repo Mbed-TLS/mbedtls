@@ -77,6 +77,16 @@ extern "C" {
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 
+typedef struct {
+    /** Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_driver_wrappers.h */
+    unsigned int id;
+    /** Context structure for the assigned driver, when id is not zero. */
+    void* ctx;
+} psa_operation_driver_context_t;
+
 struct psa_hash_operation_s
 {
     psa_algorithm_t alg;
@@ -158,16 +168,18 @@ struct psa_cipher_operation_s
     unsigned int key_set : 1;
     unsigned int iv_required : 1;
     unsigned int iv_set : 1;
+    unsigned int mbedtls_in_use : 1; /* Indicates mbed TLS is handling the operation. */
     uint8_t iv_size;
     uint8_t block_size;
     union
     {
         unsigned dummy; /* Enable easier initializing of the union. */
         mbedtls_cipher_context_t cipher;
+        psa_operation_driver_context_t driver;
     } ctx;
 };
 
-#define PSA_CIPHER_OPERATION_INIT {0, 0, 0, 0, 0, 0, {0}}
+#define PSA_CIPHER_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, {0}}
 static inline struct psa_cipher_operation_s psa_cipher_operation_init( void )
 {
     const struct psa_cipher_operation_s v = PSA_CIPHER_OPERATION_INIT;
@@ -330,12 +342,12 @@ typedef struct
     psa_key_type_t type;
     psa_key_bits_t bits;
     psa_key_lifetime_t lifetime;
-    psa_key_id_t id;
+    mbedtls_svc_key_id_t id;
     psa_key_policy_t policy;
     psa_key_attributes_flag_t flags;
 } psa_core_key_attributes_t;
 
-#define PSA_CORE_KEY_ATTRIBUTES_INIT {PSA_KEY_TYPE_NONE, 0, PSA_KEY_LIFETIME_VOLATILE, PSA_KEY_ID_INIT, PSA_KEY_POLICY_INIT, 0}
+#define PSA_CORE_KEY_ATTRIBUTES_INIT {PSA_KEY_TYPE_NONE, 0, PSA_KEY_LIFETIME_VOLATILE, MBEDTLS_SVC_KEY_ID_INIT, PSA_KEY_POLICY_INIT, 0}
 
 struct psa_key_attributes_s
 {
@@ -359,29 +371,44 @@ static inline struct psa_key_attributes_s psa_key_attributes_init( void )
     return( v );
 }
 
-static inline void psa_set_key_id(psa_key_attributes_t *attributes,
-                                  psa_key_id_t id)
+static inline void psa_set_key_id( psa_key_attributes_t *attributes,
+                                   mbedtls_svc_key_id_t key )
 {
-    attributes->core.id = id;
-    if( attributes->core.lifetime == PSA_KEY_LIFETIME_VOLATILE )
-        attributes->core.lifetime = PSA_KEY_LIFETIME_PERSISTENT;
+    psa_key_lifetime_t lifetime = attributes->core.lifetime;
+
+    attributes->core.id = key;
+
+    if( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
+    {
+        attributes->core.lifetime =
+            PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                PSA_KEY_LIFETIME_PERSISTENT,
+                PSA_KEY_LIFETIME_GET_LOCATION( lifetime ) );
+    }
 }
 
-static inline psa_key_id_t psa_get_key_id(
+static inline mbedtls_svc_key_id_t psa_get_key_id(
     const psa_key_attributes_t *attributes)
 {
     return( attributes->core.id );
 }
 
+#ifdef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+static inline void mbedtls_set_key_owner_id( psa_key_attributes_t *attributes,
+                                             mbedtls_key_owner_id_t owner )
+{
+    attributes->core.id.owner = owner;
+}
+#endif
+
 static inline void psa_set_key_lifetime(psa_key_attributes_t *attributes,
                                         psa_key_lifetime_t lifetime)
 {
     attributes->core.lifetime = lifetime;
-    if( lifetime == PSA_KEY_LIFETIME_VOLATILE )
+    if( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
     {
-#ifdef MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
+#ifdef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
         attributes->core.id.key_id = 0;
-        attributes->core.id.owner = 0;
 #else
         attributes->core.id = 0;
 #endif

@@ -1,0 +1,3 @@
+Requirement changes
+* Update the minimum required CMake version to 2.8.12.
+* This silences a warning on CMake 3.19.0. #3801

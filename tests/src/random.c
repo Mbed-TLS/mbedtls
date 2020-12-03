@@ -22,6 +22,15 @@
  *  limitations under the License.
  */
 
+/*
+ * for arc4random_buf() from <stdlib.h>
+ */
+#if defined(__NetBSD__)
+#define _NETBSD_SOURCE 1
+#elif defined(__OpenBSD__)
+#define _BSD_SOURCE 1
+#endif
+
 #include <test/macros.h>
 #include <test/random.h>
 #include <string.h>

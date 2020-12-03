@@ -864,7 +864,7 @@
  * may result in a compromise of the long-term signing key. This is avoided by
  * the deterministic variant.
  *
- * Requires: MBEDTLS_HMAC_DRBG_C
+ * Requires: MBEDTLS_HMAC_DRBG_C, MBEDTLS_ECDSA_C
  *
  * Comment this macro to disable deterministic ECDSA.
  */
@@ -1258,20 +1258,17 @@
  */
 //#define MBEDTLS_ENTROPY_NV_SEED
 
-/* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
+/* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
  *
- * In PSA key storage, encode the owner of the key.
+ * Enable key identifiers that encode a key owner identifier.
  *
- * This is only meaningful when building the library as part of a
- * multi-client service. When you activate this option, you must provide
- * an implementation of the type psa_key_owner_id_t and a translation
- * from psa_key_file_id_t to file name in all the storage backends that
- * you wish to support.
+ * The owner of a key is identified by a value of type ::mbedtls_key_owner_id_t
+ * which is currently hard-coded to be int32_t.
  *
  * Note that this option is meant for internal use only and may be removed
- * without notice.
+ * without notice. It is incompatible with MBEDTLS_USE_PSA_CRYPTO.
  */
-//#define MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
+//#define MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
 
 /**
  * \def MBEDTLS_MEMORY_DEBUG
@@ -1328,6 +1325,17 @@
  * This enables support for RSAES-OAEP and RSASSA-PSS operations.
  */
 #define MBEDTLS_PKCS1_V21
+
+/** \def MBEDTLS_PSA_CRYPTO_DRIVERS
+ *
+ * Enable support for the experimental PSA crypto driver interface.
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C
+ *
+ * \warning This interface is experimental and may change or be removed
+ * without notice.
+ */
+//#define MBEDTLS_PSA_CRYPTO_DRIVERS
 
 /**
  * \def MBEDTLS_PSA_CRYPTO_SPM
@@ -1805,6 +1813,37 @@
 #define MBEDTLS_SSL_DTLS_HELLO_VERIFY
 
 /**
+ * \def MBEDTLS_SSL_DTLS_SRTP
+ *
+ * Enable support for negotation of DTLS-SRTP (RFC 5764)
+ * through the use_srtp extension.
+ *
+ * \note This feature provides the minimum functionality required
+ * to negotiate the use of DTLS-SRTP and to allow the derivation of
+ * the associated SRTP packet protection key material.
+ * In particular, the SRTP packet protection itself, as well as the
+ * demultiplexing of RTP and DTLS packets at the datagram layer
+ * (see Section 5 of RFC 5764), are not handled by this feature.
+ * Instead, after successful completion of a handshake negotiating
+ * the use of DTLS-SRTP, the extended key exporter API
+ * mbedtls_ssl_conf_export_keys_ext_cb() should be used to implement
+ * the key exporter described in Section 4.2 of RFC 5764 and RFC 5705
+ * (this is implemented in the SSL example programs).
+ * The resulting key should then be passed to an SRTP stack.
+ *
+ * Setting this option enables the runtime API
+ * mbedtls_ssl_conf_dtls_srtp_protection_profiles()
+ * through which the supported DTLS-SRTP protection
+ * profiles can be configured. You must call this API at
+ * runtime if you wish to negotiate the use of DTLS-SRTP.
+ *
+ * Requires: MBEDTLS_SSL_PROTO_DTLS
+ *
+ * Uncomment this to enable support for use_srtp extension.
+ */
+//#define MBEDTLS_SSL_DTLS_SRTP
+
+/**
  * \def MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
  *
  * Enable server-side support for clients that reconnect from the same port.
@@ -2010,6 +2049,24 @@
  * Uncomment this to enable internal use of PSA Crypto and new associated APIs.
  */
 //#define MBEDTLS_USE_PSA_CRYPTO
+
+/**
+ * \def MBEDTLS_PSA_CRYPTO_CONFIG
+ *
+ * This setting allows support for cryptographic mechanisms through the PSA
+ * API to be configured separately from support through the mbedtls API.
+ *
+ * Uncomment this to enable use of PSA Crypto configuration settings which
+ * can be found in include/psa/crypto_config.h.
+ *
+ * If you enable this option and write your own configuration file, you must
+ * include mbedtls/config_psa.h in your configuration file. The default
+ * provided mbedtls/config.h contains the necessary inclusion.
+ *
+ * This feature is still experimental and is not ready for production since
+ * it is not completed.
+ */
+//#define MBEDTLS_PSA_CRYPTO_CONFIG
 
 /**
  * \def MBEDTLS_VERSION_FEATURES
@@ -3450,7 +3507,7 @@
  */
 
 /* MPI / BIGNUM options */
-//#define MBEDTLS_MPI_WINDOW_SIZE            6 /**< Maximum windows size used. */
+//#define MBEDTLS_MPI_WINDOW_SIZE            6 /**< Maximum window size used. */
 //#define MBEDTLS_MPI_MAX_SIZE            1024 /**< Maximum number of bytes for usable MPIs. */
 
 /* CTR_DRBG options */
@@ -3801,6 +3858,10 @@
  */
 #if defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE
+#endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#include "mbedtls/config_psa.h"
 #endif
 
 #include "mbedtls/check_config.h"

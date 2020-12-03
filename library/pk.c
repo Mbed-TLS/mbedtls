@@ -150,11 +150,12 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info )
 /*
  * Initialise a PSA-wrapping context
  */
-int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx, const psa_key_handle_t key )
+int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx,
+                             const psa_key_id_t key )
 {
     const mbedtls_pk_info_t * const info = &mbedtls_pk_opaque_info;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t *pk_ctx;
+    psa_key_id_t *pk_ctx;
     psa_key_type_t type;
 
     if( ctx == NULL || ctx->pk_info != NULL )
@@ -174,7 +175,7 @@ int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx, const psa_key_handle_t key
 
     ctx->pk_info = info;
 
-    pk_ctx = (psa_key_handle_t *) ctx->pk_ctx;
+    pk_ctx = (psa_key_id_t *) ctx->pk_ctx;
     *pk_ctx = key;
 
     return( 0 );
@@ -587,10 +588,13 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
  * Currently only works for EC private keys.
  */
 int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
-                               psa_key_handle_t *handle,
+                               psa_key_id_t *key,
                                psa_algorithm_t hash_alg )
 {
 #if !defined(MBEDTLS_ECP_C)
+    ((void) pk);
+    ((void) key);
+    ((void) hash_alg);
     return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
 #else
     const mbedtls_ecp_keypair *ec;
@@ -621,14 +625,14 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
     psa_set_key_algorithm( &attributes, PSA_ALG_ECDSA(hash_alg) );
 
     /* import private key into PSA */
-    if( PSA_SUCCESS != psa_import_key( &attributes, d, d_len, handle ) )
+    if( PSA_SUCCESS != psa_import_key( &attributes, d, d_len, key ) )
         return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
 
     /* make PK context wrap the key slot */
     mbedtls_pk_free( pk );
     mbedtls_pk_init( pk );
 
-    return( mbedtls_pk_setup_opaque( pk, *handle ) );
+    return( mbedtls_pk_setup_opaque( pk, *key ) );
 #endif /* MBEDTLS_ECP_C */
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

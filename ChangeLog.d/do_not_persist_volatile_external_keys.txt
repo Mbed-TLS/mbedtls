@@ -1,4 +1,0 @@
-Default behavior changes
-   * Stop storing persistent information about externally stored keys created
-     through PSA Crypto with a volatile lifetime. Reported in #3288 and
-     contributed by Steven Cooreman in #3382.

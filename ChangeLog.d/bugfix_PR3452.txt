@@ -1,3 +1,0 @@
-Bugfix
-   * Use local labels in mbedtls_padlock_has_support() to fix an invalid symbol redefinition if the function is inlined.
-     Reported in #3451 and fix contributed in #3452 by okhowang.

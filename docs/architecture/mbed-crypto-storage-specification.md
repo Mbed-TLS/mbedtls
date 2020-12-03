@@ -107,14 +107,12 @@ Backward compatibility commitments: TBD
 
 ### Key names for 1.0.0
 
-Information about each key is stored in a dedicated file designated by a _key file identifier_ (`psa_key_file_id_t`). The key file identifier is constructed from the 32-bit key identifier (`psa_key_id_t`) and, if applicable, an identifier of the owner of the key. In integrations where there is no concept of key owner (in particular, in library integrations), the key file identifier is exactly the key identifier. When the library is integrated into a service, the service determines the semantics of the owner identifier.
+Information about each key is stored in a dedicated file designated by the key identifier. In integrations where there is no concept of key owner (in particular, in library integrations), the key identifier is exactly the key identifier as defined in the PSA Cryptography API specification (`psa_key_id_t`). In integrations where there is a concept of key owner (integration into a service for example), the key identifier is made of an owner identifier (its semantics and type are integration specific) and of the key identifier (`psa_key_id_t`) from the key owner point of view.
 
-The way in which the file name is constructed from the key file identifier depends on the storage backend. The content of the file is described [below](#key-file-format-for-1.0.0).
+The way in which the file name is constructed from the key identifier depends on the storage backend. The content of the file is described [below](#key-file-format-for-1.0.0).
 
-The valid values for a key identifier are the range from 1 to 0xfffeffff. This limitation on the range is not documented in user-facing documentation: according to the user-facing documentation, arbitrary 32-bit values are valid.
-
-* Library integration: the key file name is just the key identifer. This is a 32-bit value.
-* PSA service integration: the key file identifier is `(uint32_t)owner_uid << 32 | key_id` where `key_id` is the key identifier specified by the application and `owner_uid` (of type `int32_t`) is the calling partition identifier provided to the server by the partition manager. This is a 64-bit value.
+* Library integration: the key file name is just the key identifier as defined in the PSA crypto specification. This is a 32-bit value.
+* PSA service integration: the key file name is `(uint32_t)owner_uid << 32 | key_id` where `key_id` is the key identifier from the owner point of view and `owner_uid` (of type `int32_t`) is the calling partition identifier provided to the server by the partition manager. This is a 64-bit value.
 
 ### Key file format for 1.0.0
 
@@ -253,6 +251,7 @@ The layout of a key file is:
 * key material length (4 bytes).
 * key material:
     * For a transparent key: output of `psa_export_key`.
+    * For an opaque key (unified driver interface): driver-specific opaque key blob.
     * For an opaque key (key in a secure element): slot number (8 bytes), in platform endianness.
 * Any trailing data is rejected on load.
 
@@ -282,3 +281,36 @@ The layout of a transaction file is:
     * The slot in the secure element designated by the slot number.
     * The file containing the key metadata designated by the key identifier.
     * The driver persistent data.
+
+Mbed Crypto TBD
+---------------
+
+Tags: TBD
+
+Released in TBD 2020. <br>
+Integrated in Mbed OS TBD.
+
+### Changes introduced in TBD
+
+* The type field has been split into a type and a bits field of 2 bytes each.
+
+### Key file format for TBD
+
+All integers are encoded in little-endian order in 8-bit bytes except where otherwise indicated.
+
+The layout of a key file is:
+
+* magic (8 bytes): `"PSA\0KEY\0"`.
+* version (4 bytes): 0.
+* lifetime (4 bytes): `psa_key_lifetime_t` value.
+* type (2 bytes): `psa_key_type_t` value.
+* bits (2 bytes): `psa_key_bits_t` value.
+* policy usage flags (4 bytes): `psa_key_usage_t` value.
+* policy usage algorithm (4 bytes): `psa_algorithm_t` value.
+* policy enrollment algorithm (4 bytes): `psa_algorithm_t` value.
+* key material length (4 bytes).
+* key material:
+    * For a transparent key: output of `psa_export_key`.
+    * For an opaque key (unified driver interface): driver-specific opaque key blob.
+    * For an opaque key (key in a secure element): slot number (8 bytes), in platform endianness.
+* Any trailing data is rejected on load.

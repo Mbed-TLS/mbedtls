@@ -28,10 +28,6 @@ jobs:
       script:
         - tests/scripts/all.sh -k test_full_cmake_gcc_asan
 
-    - name: check compilation guards
-      script:
-        - tests/scripts/all.sh -k 'test_depends_*' 'build_key_exchanges'
-
     - name: macOS
       os: osx
       compiler: clang

@@ -1035,14 +1035,9 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
 
 #if !defined(MBEDTLS_DEPRECATED_WARNING) && \
     !defined(MBEDTLS_DEPRECATED_REMOVED)
-    unsigned char output[300];        /* Temporary buffer for results of
-                                       * encryption and decryption. */
-    unsigned char *output_tag = NULL; /* Temporary buffer for tag in the
-                                       * encryption step. */
     unsigned char *tmp_tag    = NULL;
     unsigned char *tmp_cipher = NULL;
-
-    memset( output, 0xFF, sizeof( output ) );
+    unsigned char *tag_buf = NULL;
 #endif /* !MBEDTLS_DEPRECATED_WARNING && !MBEDTLS_DEPRECATED_REMOVED */
 
     mbedtls_cipher_init( &ctx );
@@ -1234,11 +1229,11 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
      * Authenticate and decrypt, and check result
      */
 
-    /* Sanity check that we don't use overly long inputs. */
-    TEST_ASSERT( sizeof( output ) >= cipher->len );
-
+    /* We can't pass a NULL output buffer to this funciton */
+    ASSERT_ALLOC( decrypt_buf, cipher->len ? cipher->len : 1 );
+    outlen = 0;
     ret = mbedtls_cipher_auth_decrypt( &ctx, iv->x, iv->len, ad->x, ad->len,
-                               tmp_cipher, cipher->len, output, &outlen,
+                               tmp_cipher, cipher->len, decrypt_buf, &outlen,
                                tmp_tag, tag->len );
 
     if( using_nist_kw )
@@ -1257,8 +1252,13 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
         TEST_ASSERT( ret == 0 );
 
         TEST_ASSERT( outlen == clear->len );
-        TEST_ASSERT( memcmp( output, clear->x, clear->len ) == 0 );
+        TEST_ASSERT( memcmp( decrypt_buf, clear->x, clear->len ) == 0 );
     }
+
+    mbedtls_free( decrypt_buf );
+    decrypt_buf = NULL;
+    mbedtls_free( cipher_plus_tag );
+    cipher_plus_tag = NULL;
 
     /*
      * Encrypt back if test data was authentic
@@ -1269,19 +1269,31 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
         cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
                           MBEDTLS_ENCRYPT );
 
+        /* prepare buffers for encryption */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        if( use_psa )
+        {
+            ASSERT_ALLOC( cipher_plus_tag, cipher->len + tag->len );
+            tmp_cipher = cipher_plus_tag;
+            tmp_tag = cipher_plus_tag + cipher->len;
+        }
+        else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+        {
+            /* can't pass a NULL output buffer to this function */
+            ASSERT_ALLOC( encrypt_buf, cipher->len ? cipher->len : 1 );
+            ASSERT_ALLOC( tag_buf, tag->len );
+            tmp_cipher = encrypt_buf;
+            tmp_tag = tag_buf;
+        }
+
         /*
          * Encrypt and check the result
          */
-        memset( output, 0xFF, sizeof( output ) );
         outlen = 0;
-
-        /* Sanity check that we don't use overly long inputs. */
-        TEST_ASSERT( sizeof( output ) >= clear->len + tag->len );
-
-        output_tag = output + clear->len;
         ret = mbedtls_cipher_auth_encrypt( &ctx, iv->x, iv->len, ad->x, ad->len,
-                                   clear->x, clear->len, output, &outlen,
-                                   output_tag, tag->len );
+                                   clear->x, clear->len, tmp_cipher, &outlen,
+                                   tmp_tag, tag->len );
 
         if( using_nist_kw )
         {
@@ -1292,8 +1304,8 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
             TEST_ASSERT( ret == 0 );
 
             TEST_ASSERT( outlen == cipher->len );
-            TEST_ASSERT( memcmp( output, cipher->x, cipher->len ) == 0 );
-            TEST_ASSERT( memcmp( output_tag, tag->x, tag->len ) == 0 );
+            TEST_ASSERT( memcmp( tmp_cipher, cipher->x, cipher->len ) == 0 );
+            TEST_ASSERT( memcmp( tmp_tag, tag->x, tag->len ) == 0 );
         }
     }
 
@@ -1305,6 +1317,10 @@ exit:
     mbedtls_free( decrypt_buf );
     mbedtls_free( encrypt_buf );
     mbedtls_free( cipher_plus_tag );
+#if !defined(MBEDTLS_DEPRECATED_WARNING) && \
+    !defined(MBEDTLS_DEPRECATED_REMOVED)
+    mbedtls_free( tag_buf );
+#endif /* !MBEDTLS_DEPRECATED_WARNING && !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( use_psa == 1 )

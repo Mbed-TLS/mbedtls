@@ -44,7 +44,7 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
     unsigned char buf[4096];
     unsigned char check_buf[4000];
     int ret;
-    size_t olen = 0, pem_len = 0;
+    size_t olen = 0, pem_len = 0, buf_index;
     int der_len = -1;
     FILE *f;
     const char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
@@ -69,6 +69,11 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
     TEST_ASSERT( ret == 0 );
 
     pem_len = strlen( (char *) buf );
+
+    for( buf_index = pem_len; buf_index < sizeof( buf ); ++buf_index )
+    {
+        TEST_ASSERT( buf[buf_index] == 0 );
+    }
 
     f = fopen( cert_req_check_file, "r" );
     TEST_ASSERT( f != NULL );
@@ -112,7 +117,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     unsigned char check_buf[5000];
     mbedtls_mpi serial;
     int ret;
-    size_t olen = 0, pem_len = 0;
+    size_t olen = 0, pem_len = 0, buf_index;
     int der_len = -1;
     FILE *f;
     rnd_pseudo_info rnd_info;
@@ -180,6 +185,11 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     TEST_ASSERT( ret == 0 );
 
     pem_len = strlen( (char *) buf );
+
+    for( buf_index = pem_len; buf_index < sizeof( buf ); ++buf_index )
+    {
+        TEST_ASSERT( buf[buf_index] == 0 );
+    }
 
     f = fopen( cert_check_file, "r" );
     TEST_ASSERT( f != NULL );

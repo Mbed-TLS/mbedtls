@@ -676,22 +676,22 @@ mbedtls_mpi_exp_mod:10:"23":10:"-13":10:"29":10:"":10:"0":MBEDTLS_ERR_MPI_BAD_IN
 Base test mbedtls_mpi_exp_mod #6 (Negative base + exponent)
 mbedtls_mpi_exp_mod:10:"-23":10:"-13":10:"29":10:"":10:"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-Base test mbedtls_mpi_exp_mod #7 (MAX_SIZE exponent)
+Test mbedtls_mpi_exp_mod: MAX_SIZE exponent
 mbedtls_mpi_exp_mod_size:2:MBEDTLS_MPI_MAX_SIZE:2:10:"":0
 
-Base test mbedtls_mpi_exp_mod #8 (MAX_SIZE + 1 exponent)
+Test mbedtls_mpi_exp_mod: MAX_SIZE + 1 exponent
 mbedtls_mpi_exp_mod_size:2:MBEDTLS_MPI_MAX_SIZE + 1:2:10:"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-Base test mbedtls_mpi_exp_mod #9 (MAX_SIZE modulus)
+Test mbedtls_mpi_exp_mod: MAX_SIZE modulus
 mbedtls_mpi_exp_mod_size:2:2:MBEDTLS_MPI_MAX_SIZE:10:"":0
 
-Base test mbedtls_mpi_exp_mod #10 (MAX_SIZE + 1 modulus)
+Test mbedtls_mpi_exp_mod: MAX_SIZE + 1 modulus
 mbedtls_mpi_exp_mod_size:2:2:MBEDTLS_MPI_MAX_SIZE + 1:10:"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-Base test mbedtls_mpi_exp_mod #11 (MAX_SIZE exponent and modulus)
+Test mbedtls_mpi_exp_mod: MAX_SIZE exponent and modulus
 mbedtls_mpi_exp_mod_size:2:MBEDTLS_MPI_MAX_SIZE:MBEDTLS_MPI_MAX_SIZE:10:"":0
 
-Base test mbedtls_mpi_exp_mod #12 (MAX_SIZE + 1 exponent and modulus)
+Test mbedtls_mpi_exp_mod: MAX_SIZE + 1 exponent and modulus
 mbedtls_mpi_exp_mod_size:2:MBEDTLS_MPI_MAX_SIZE + 1:MBEDTLS_MPI_MAX_SIZE + 1:10:"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Test mbedtls_mpi_exp_mod #1

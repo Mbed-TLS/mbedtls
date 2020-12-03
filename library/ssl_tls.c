@@ -4507,6 +4507,12 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialise flight transmission" ) );
 
+#if defined(MBEDTLS_IMMEDIATE_TRANSMISSION)
+        ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_SENDING;
+
+        return( 0 );
+#endif /* MBEDTLS_IMMEDIATE_TRANSMISSION */
+
         ssl->handshake->cur_msg = ssl->handshake->flight;
         ssl->handshake->cur_msg_p = ssl->handshake->flight->p + 12;
         if( ( ret = ssl_swap_epochs( ssl ) ) != 0 )
@@ -4861,6 +4867,14 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
         ! ( ssl->out_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
             hs_type          == MBEDTLS_SSL_HS_HELLO_REQUEST ) )
     {
+#if defined(MBEDTLS_IMMEDIATE_TRANSMISSION)
+        if( ( ret = mbedtls_ssl_write_record( ssl, SSL_FORCE_FLUSH ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_record", ret );
+            return( ret );
+        }
+#endif /* MBEDTLS_IMMEDIATE_TRANSMISSION */
+
         if( ( ret = ssl_flight_append( ssl ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "ssl_flight_append", ret );

@@ -7972,6 +7972,26 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
     return( verify_ret );
 }
 
+
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED) && defined(MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION)
+/* ssl_parse_delayed_certificate_verify() defines a wrapper around ssl_parse_certificate_verify
+ * to call it in ssl_cli.c rather than purely internal to ssl_tls.c. 
+ */
+int ssl_parse_delayed_certificate_verify( mbedtls_ssl_context *ssl,
+                                         int authmode,
+                                         mbedtls_x509_crt *chain,
+                                         void *rs_ctx )
+{
+
+    return( ssl_parse_certificate_verify( ssl,
+                                          authmode,
+                                          chain,
+                                          rs_ctx ) );
+
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED && MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION */
+
+
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -8112,10 +8132,19 @@ crt_verify:
         rs_ctx = &ssl->handshake->ecrs_ctx;
 #endif
 
-    ret = ssl_parse_certificate_verify( ssl, authmode,
-                                        chain, rs_ctx );
-    if( ret != 0 )
-        goto exit;
+#if defined(MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION)
+    if (mbedtls_ssl_conf_get_endpoint( ssl->conf ) == MBEDTLS_SSL_IS_CLIENT )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "delay server certificate verification" ) );
+    }
+    else
+#endif /* MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION */
+    {
+        ret = ssl_parse_certificate_verify( ssl, authmode,
+                                            chain, rs_ctx );
+        if( ret != 0 )
+            goto exit;
+    }
 
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     {
@@ -12012,6 +12041,11 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
     mbedtls_sha512_free(   &handshake->fin_sha512    );
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_SSL_FREE_SERVER_CERTIFICATE)
+    mbedtls_free( ssl->session->peer_cert );
+    ssl->session->peer_cert = NULL;
+#endif /* MBEDTLS_SSL_FREE_SERVER_CERTIFICATE */
 
 #if defined(MBEDTLS_DHM_C)
     mbedtls_dhm_free( &handshake->dhm_ctx );

@@ -55,6 +55,19 @@ static void cipher_reset_key( mbedtls_cipher_context_t *ctx, int cipher_id,
 exit:
     ;
 }
+
+/*
+ * Check if a buffer is all-0 bytes:
+ * return   1 if it is,
+ *          0 if it isn't.
+ */
+int buffer_is_all_zero( const uint8_t *buf, size_t size )
+{
+    for( size_t i = 0; i < size; i++ )
+        if( buf[i] != 0 )
+            return 0;
+    return 1;
+}
 #endif /* MBEDTLS_CIPHER_AUTH_CRYPT */
 
 /* END_HEADER */
@@ -1223,6 +1236,7 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
     if( strcmp( result, "FAIL" ) == 0 )
     {
         TEST_ASSERT( ret == MBEDTLS_ERR_CIPHER_AUTH_FAILED );
+        TEST_ASSERT( buffer_is_all_zero( decrypt_buf, decrypt_buf_len ) );
     }
     else
     {
@@ -1347,6 +1361,7 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
     {
         /* unauthentic message */
         TEST_ASSERT( ret == MBEDTLS_ERR_CIPHER_AUTH_FAILED );
+        TEST_ASSERT( buffer_is_all_zero( decrypt_buf, cipher->len ) );
     }
     else
     {

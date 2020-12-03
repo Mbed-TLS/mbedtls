@@ -1,6 +1,10 @@
 /* BEGIN_HEADER */
 #include "mbedtls/bignum.h"
 
+#if MBEDTLS_MPI_MAX_BITS > 256
+#define MPI_MAX_BITS_LARGER_THAN_256
+#endif
+
 typedef struct mbedtls_test_mpi_random
 {
     data_t *data;
@@ -1078,7 +1082,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MPI_MAX_BITS_LARGER_THAN_256 */
 void mbedtls_mpi_exp_mod( int radix_A, char * input_A, int radix_E,
                           char * input_E, int radix_N, char * input_N,
                           int radix_RR, char * input_RR, int radix_X,

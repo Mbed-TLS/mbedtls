@@ -226,7 +226,7 @@ void dhm_make_public( int P_bytes, int radix_G, char *input_G, int result )
     TEST_ASSERT( mbedtls_dhm_set_group( &ctx, &P, &G ) == 0 );
     TEST_ASSERT( mbedtls_dhm_make_public( &ctx, (int) mbedtls_mpi_size( &P ),
                                           output, sizeof(output),
-                                          &mbedtls_test_rnd_pseudo_rand,
+                                          &rnd_pseudo_rand,
                                           NULL ) == result );
 
 exit:

@@ -1616,6 +1616,16 @@
 
 
 /**
+ * \def MBEDTLS_IMMEDIATE_TRANSMISSION
+ *
+ * Force stack to immediately transmit messages.
+ *
+ * Requires: MBEDTLS_SSL_PROTO_DTLS
+ */
+#define MBEDTLS_IMMEDIATE_TRANSMISSION
+
+
+/**
  * \def MBEDTLS_SSL_HW_RECORD_ACCEL
  *
  * Enable hooking functions in SSL module for hardware acceleration of

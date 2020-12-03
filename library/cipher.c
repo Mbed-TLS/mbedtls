@@ -1313,7 +1313,7 @@ static int mbedtls_cipher_aead_encrypt( mbedtls_cipher_context_t *ctx,
 
         /* PSA Crypto API always writes the authentication tag
          * at the end of the encrypted message. */
-        if( tag != output + ilen )
+        if( output == NULL || tag != output + ilen )
             return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
 
         status = psa_aead_encrypt( cipher_psa->slot,
@@ -1393,7 +1393,7 @@ static int mbedtls_cipher_aead_decrypt( mbedtls_cipher_context_t *ctx,
 
         /* PSA Crypto API always writes the authentication tag
          * at the end of the encrypted message. */
-        if( tag != input + ilen )
+        if( input == NULL || tag != input + ilen )
             return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
 
         status = psa_aead_decrypt( cipher_psa->slot,
@@ -1481,10 +1481,10 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
                          unsigned char *tag, size_t tag_len )
 {
     CIPHER_VALIDATE_RET( ctx != NULL );
-    CIPHER_VALIDATE_RET( iv != NULL );
+    CIPHER_VALIDATE_RET( iv_len == 0 || iv != NULL );
     CIPHER_VALIDATE_RET( ad_len == 0 || ad != NULL );
     CIPHER_VALIDATE_RET( ilen == 0 || input != NULL );
-    CIPHER_VALIDATE_RET( output != NULL );
+    CIPHER_VALIDATE_RET( ilen == 0 || output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
     CIPHER_VALIDATE_RET( tag_len == 0 || tag != NULL );
 
@@ -1515,10 +1515,10 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
                          const unsigned char *tag, size_t tag_len )
 {
     CIPHER_VALIDATE_RET( ctx != NULL );
-    CIPHER_VALIDATE_RET( iv != NULL );
+    CIPHER_VALIDATE_RET( iv_len == 0 || iv != NULL );
     CIPHER_VALIDATE_RET( ad_len == 0 || ad != NULL );
     CIPHER_VALIDATE_RET( ilen == 0 || input != NULL );
-    CIPHER_VALIDATE_RET( output != NULL );
+    CIPHER_VALIDATE_RET( ilen == 0 || output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
     CIPHER_VALIDATE_RET( tag_len == 0 || tag != NULL );
 
@@ -1552,7 +1552,7 @@ int mbedtls_cipher_auth_encrypt_ext( mbedtls_cipher_context_t *ctx,
                          size_t *olen, size_t tag_len )
 {
     CIPHER_VALIDATE_RET( ctx != NULL );
-    CIPHER_VALIDATE_RET( iv != NULL );
+    CIPHER_VALIDATE_RET( iv_len == 0 || iv != NULL );
     CIPHER_VALIDATE_RET( ad_len == 0 || ad != NULL );
     CIPHER_VALIDATE_RET( ilen == 0 || input != NULL );
     CIPHER_VALIDATE_RET( output != NULL );
@@ -1601,7 +1601,7 @@ int mbedtls_cipher_auth_decrypt_ext( mbedtls_cipher_context_t *ctx,
                          size_t *olen, size_t tag_len )
 {
     CIPHER_VALIDATE_RET( ctx != NULL );
-    CIPHER_VALIDATE_RET( iv != NULL );
+    CIPHER_VALIDATE_RET( iv_len == 0 || iv != NULL );
     CIPHER_VALIDATE_RET( ad_len == 0 || ad != NULL );
     CIPHER_VALIDATE_RET( ilen == 0 || input != NULL );
     CIPHER_VALIDATE_RET( output_len == 0 || output != NULL );

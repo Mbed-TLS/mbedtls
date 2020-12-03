@@ -695,10 +695,10 @@ Base test mbedtls_mpi_exp_mod #6 (Negative base + exponent)
 mbedtls_mpi_exp_mod:10:"-23":10:"-13":10:"29":10:"":10:"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Test mbedtls_mpi_exp_mod: MAX_SIZE exponent
-mbedtls_mpi_exp_mod_size:2:MBEDTLS_MPI_MAX_SIZE:2:10:"":0
+mbedtls_mpi_exp_mod_size:2:MBEDTLS_MPI_MAX_SIZE:10:10:"":0
 
 Test mbedtls_mpi_exp_mod: MAX_SIZE + 1 exponent
-mbedtls_mpi_exp_mod_size:2:MBEDTLS_MPI_MAX_SIZE + 1:2:10:"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+mbedtls_mpi_exp_mod_size:2:MBEDTLS_MPI_MAX_SIZE + 1:10:10:"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Test mbedtls_mpi_exp_mod: MAX_SIZE modulus
 mbedtls_mpi_exp_mod_size:2:2:MBEDTLS_MPI_MAX_SIZE:10:"":0

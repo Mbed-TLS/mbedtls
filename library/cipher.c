@@ -1537,8 +1537,12 @@ int mbedtls_cipher_auth_encrypt_ext( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( olen != NULL );
 
 #if defined(MBEDTLS_NIST_KW_C)
-    if( MBEDTLS_MODE_KW == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_KWP == ctx->cipher_info->mode )
+    if(
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        ctx->psa_enabled == 0 &&
+#endif
+        ( MBEDTLS_MODE_KW == ctx->cipher_info->mode ||
+          MBEDTLS_MODE_KWP == ctx->cipher_info->mode ) )
     {
         mbedtls_nist_kw_mode_t mode = ( MBEDTLS_MODE_KW == ctx->cipher_info->mode ) ?
                                         MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;
@@ -1586,8 +1590,12 @@ int mbedtls_cipher_auth_decrypt_ext( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( olen != NULL );
 
 #if defined(MBEDTLS_NIST_KW_C)
-    if( MBEDTLS_MODE_KW == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_KWP == ctx->cipher_info->mode )
+    if(
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        ctx->psa_enabled == 0 &&
+#endif
+        ( MBEDTLS_MODE_KW == ctx->cipher_info->mode ||
+          MBEDTLS_MODE_KWP == ctx->cipher_info->mode ) )
     {
         mbedtls_nist_kw_mode_t mode = ( MBEDTLS_MODE_KW == ctx->cipher_info->mode ) ?
                                         MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;

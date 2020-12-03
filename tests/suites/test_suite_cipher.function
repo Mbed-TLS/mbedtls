@@ -27,7 +27,7 @@
  * individual ciphers, and it doesn't work with the PSA wrappers. So don't do
  * it, and instead start with a fresh context.
  */
-static void cipher_reset_key( mbedtls_cipher_context_t *ctx, int cipher_id,
+static int cipher_reset_key( mbedtls_cipher_context_t *ctx, int cipher_id,
         int use_psa, size_t tag_len, const data_t *key, int direction )
 {
     mbedtls_cipher_free( ctx );
@@ -52,8 +52,10 @@ static void cipher_reset_key( mbedtls_cipher_context_t *ctx, int cipher_id,
 
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( ctx, key->x, 8 * key->len,
                                              direction ) );
+    return( 1 );
+
 exit:
-    ;
+    return( 0 );
 }
 
 /*
@@ -1195,8 +1197,9 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
     /*
      * Prepare context for decryption
      */
-    cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
-                      MBEDTLS_DECRYPT );
+    if( ! cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
+                            MBEDTLS_DECRYPT ) )
+        goto exit;
 
     /*
      * prepare buffer for decryption
@@ -1264,8 +1267,9 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
     if( strcmp( result, "FAIL" ) != 0 )
     {
         /* prepare context for encryption */
-        cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
-                          MBEDTLS_ENCRYPT );
+        if( ! cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
+                                MBEDTLS_ENCRYPT ) )
+            goto exit;
 
         /*
          * Compute size of output buffer according to documentation
@@ -1327,8 +1331,9 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
     /*
      * Prepare context for decryption
      */
-    cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
-                      MBEDTLS_DECRYPT );
+    if( ! cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
+                            MBEDTLS_DECRYPT ) )
+        goto exit;
 
     /*
      * Prepare pointers for decryption
@@ -1387,8 +1392,9 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
     if( strcmp( result, "FAIL" ) != 0 )
     {
         /* prepare context for encryption */
-        cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
-                          MBEDTLS_ENCRYPT );
+        if( ! cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
+                                MBEDTLS_ENCRYPT ) )
+            goto exit;
 
         /* prepare buffers for encryption */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

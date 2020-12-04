@@ -4,6 +4,8 @@
 #include "tinycrypt/ecc_dh.h"
 #include "tinycrypt/ecc_dsa.h"
 
+#include "mbedtls/sha256.h"
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -99,6 +101,26 @@ void ecdh_primitive_testvec( data_t * private1, data_t * xA_str,
     TEST_ASSERT( memcmp( secret1, secret2, sizeof( secret1 ) ) == 0 );
     TEST_ASSERT( memcmp( secret1, z_str->x, sizeof( secret1 ) ) == 0 );
     TEST_ASSERT( memcmp( secret2, z_str->x, sizeof( secret2 ) ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_USE_TINYCRYPT */
+void ecdsa_verify_msg( data_t * message, data_t * xQ_str, data_t * yQ_str,
+                       data_t * r_str, data_t * s_str,
+                       int res )
+{
+    uint8_t pub_bytes[2*NUM_ECC_BYTES] = {0};
+    uint8_t sig_bytes[2*NUM_ECC_BYTES] = {0};
+    unsigned char hash[32] = {0};
+
+    memcpy( pub_bytes, xQ_str->x, xQ_str->len );
+    memcpy( pub_bytes + NUM_ECC_BYTES, yQ_str->x, yQ_str->len );
+    memcpy( sig_bytes, r_str->x, r_str->len );
+    memcpy( sig_bytes + NUM_ECC_BYTES, s_str->x, r_str->len );
+
+    TEST_ASSERT( mbedtls_sha256_ret( message->x, message->len, hash, 0 ) == 0 );
+    TEST_ASSERT( uECC_verify( pub_bytes, hash, sizeof(hash),
+                              sig_bytes ) == res );
 }
 /* END_CASE */
 

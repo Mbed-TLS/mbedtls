@@ -63,6 +63,10 @@ psa_status_t psa_driver_wrapper_export_public_key(
     const uint8_t *key_buffer, size_t key_buffer_size,
     uint8_t *data, size_t data_size, size_t *data_length );
 
+psa_status_t psa_driver_wrapper_get_key_buffer_size(
+    const psa_key_attributes_t *attributes,
+    size_t *key_buffer_size );
+
 psa_status_t psa_driver_wrapper_generate_key(
     const psa_key_attributes_t *attributes,
     psa_key_slot_t *slot );

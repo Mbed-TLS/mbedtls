@@ -238,7 +238,6 @@ psa_status_t psa_driver_wrapper_verify_hash( psa_key_slot_t *slot,
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
-#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 /** Get the key buffer size for the key material of a generated key in the
  *  case of an opaque driver without storage.
  *
@@ -254,7 +253,7 @@ psa_status_t psa_driver_wrapper_verify_hash( psa_key_slot_t *slot,
  *         The type and/or the size in bits of the key or the combination of
  *         the two is not supported.
  */
-static psa_status_t get_key_buffer_size(
+psa_status_t psa_driver_wrapper_get_key_buffer_size(
     const psa_key_attributes_t *attributes,
     size_t *key_buffer_size )
 {
@@ -301,10 +300,11 @@ static psa_status_t get_key_buffer_size(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 
         default:
+            (void)key_type;
+            (void)key_bits;
             return( PSA_ERROR_NOT_SUPPORTED );
     }
 }
-#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
 psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attributes,
                                               psa_key_slot_t *slot )
@@ -350,7 +350,8 @@ psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attrib
         }
         else
         {
-            status = get_key_buffer_size( attributes, &export_size );
+            status = psa_driver_wrapper_get_key_buffer_size( attributes,
+                                                             &export_size );
             if( status != PSA_SUCCESS )
                 return( status );
         }

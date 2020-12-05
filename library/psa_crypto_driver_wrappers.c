@@ -341,14 +341,19 @@ psa_status_t psa_driver_wrapper_generate_key( const psa_key_attributes_t *attrib
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime);
     size_t export_size = 0;
 
-    status = get_expected_key_size( attributes, &export_size );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    slot->key.data = mbedtls_calloc(1, export_size);
+    /* If this is not to generate a key in a secure element or cryptoprocessor
+     * with storage. */
     if( slot->key.data == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-    slot->key.bytes = export_size;
+    {
+        status = get_expected_key_size( attributes, &export_size );
+        if( status != PSA_SUCCESS )
+            return( status );
+
+        slot->key.data = mbedtls_calloc(1, export_size);
+        if( slot->key.data == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        slot->key.bytes = export_size;
+    }
 
     switch( location )
     {

@@ -936,10 +936,8 @@
 /** The stream cipher mode of a stream cipher algorithm.
  *
  * The underlying stream cipher is determined by the key type.
- * - To use ChaCha20, use a key type of #PSA_KEY_TYPE_CHACHA20
- *   and algorithm id #PSA_ALG_STREAM_CIPHER.
- * - To use ARC4, use a key type of #PSA_KEY_TYPE_ARC4
- *   and algorithm id #PSA_ALG_STREAM_CIPHER.
+ * - To use ChaCha20, use a key type of #PSA_KEY_TYPE_CHACHA20.
+ * - To use ARC4, use a key type of #PSA_KEY_TYPE_ARC4.
  */
 #define PSA_ALG_STREAM_CIPHER                   ((psa_algorithm_t)0x04800100)
 

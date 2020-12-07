@@ -6013,7 +6013,7 @@ static psa_status_t psa_get_key_buffer_size(
         *key_buffer_size = PSA_BITS_TO_BYTES( bits );
     }
     else
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR)
     if( PSA_KEY_TYPE_IS_RSA( type ) && PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
     {
         if( bits > PSA_VENDOR_RSA_MAX_KEY_BITS )
@@ -6027,15 +6027,15 @@ static psa_status_t psa_get_key_buffer_size(
         *key_buffer_size = PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE( bits );
     }
     else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) */
+#endif /* defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR) */
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR)
+#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR)
     if( PSA_KEY_TYPE_IS_ECC( type ) && PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
     {
         *key_buffer_size = PSA_BITS_TO_BYTES( bits );
     }
     else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) */
+#endif /* defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }

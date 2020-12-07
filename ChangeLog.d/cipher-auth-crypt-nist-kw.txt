@@ -3,7 +3,8 @@ API changes
      mbedtls_cipher_auth_decrypt() no longer accept NIST_KW contexts,
      as they have no way to check if the output buffer is large enough.
      Please use mbedtls_cipher_auth_encrypt_ext() and
-     mbedtls_cipher_auth_decrypt_ext() instead.
+     mbedtls_cipher_auth_decrypt_ext() instead. Credit to OSS-Fuzz and
+     Cryptofuzz. Fixes #3665.
 
 Security
    * The functions mbedtls_cipher_auth_encrypt() and

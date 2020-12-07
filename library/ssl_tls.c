@@ -12057,6 +12057,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_FREE_SERVER_CERTIFICATE)
+    mbedtls_x509_crt_free( ssl->session_negotiate->peer_cert );
     mbedtls_free( ssl->session->peer_cert );
     ssl->session->peer_cert = NULL;
 #endif /* MBEDTLS_SSL_FREE_SERVER_CERTIFICATE */

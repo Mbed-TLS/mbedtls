@@ -933,21 +933,15 @@
     (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_CIPHER_STREAM_FLAG)) == \
         (PSA_ALG_CATEGORY_CIPHER | PSA_ALG_CIPHER_STREAM_FLAG))
 
-/** The ARC4 stream cipher algorithm.
+/** The stream cipher mode of a stream cipher algorithm.
+ *
+ * The underlying stream cipher is determined by the key type.
+ * - To use ChaCha20, use a key type of #PSA_KEY_TYPE_CHACHA20
+ *   and algorithm id #PSA_ALG_STREAM_CIPHER.
+ * - To use ARC4, use a key type of #PSA_KEY_TYPE_ARC4
+ *   and algorithm id #PSA_ALG_STREAM_CIPHER.
  */
-#define PSA_ALG_ARC4                            ((psa_algorithm_t)0x04800001)
-
-/** The ChaCha20 stream cipher.
- *
- * ChaCha20 is defined in RFC 7539.
- *
- * The nonce size for psa_cipher_set_iv() or psa_cipher_generate_iv()
- * must be 12.
- *
- * The initial block counter is always 0.
- *
- */
-#define PSA_ALG_CHACHA20                        ((psa_algorithm_t)0x04800005)
+#define PSA_ALG_STREAM_CIPHER                   ((psa_algorithm_t)0x04800100)
 
 /** The CTR stream cipher mode.
  *

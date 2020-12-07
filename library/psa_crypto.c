@@ -2948,8 +2948,7 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     {
         switch( alg )
         {
-            case PSA_ALG_ARC4:
-            case PSA_ALG_CHACHA20:
+            case PSA_ALG_STREAM_CIPHER:
                 mode = MBEDTLS_MODE_STREAM;
                 break;
             case PSA_ALG_CTR:

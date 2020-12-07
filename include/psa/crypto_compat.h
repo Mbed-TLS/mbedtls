@@ -242,6 +242,14 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
 
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
+/*
+ * Deprecated PSA Crypto stream cipher algorithms (PSA Crypto API  <= 1.0 beta3)
+ */
+#define PSA_ALG_ARC4 \
+    PSA_ALG_STREAM_CIPHER
+#define PSA_ALG_CHACHA20 \
+    PSA_ALG_STREAM_CIPHER
+
 /** Open a handle to an existing persistent key.
  *
  * Open a handle to a persistent key. A key is persistent if it was created

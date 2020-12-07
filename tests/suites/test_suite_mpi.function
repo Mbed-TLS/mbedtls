@@ -777,6 +777,15 @@ void mbedtls_mpi_add_mpi( int radix_X, char * input_X, int radix_Y,
     TEST_ASSERT( mbedtls_mpi_add_mpi( &Z, &X, &Y ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Z, &A ) == 0 );
 
+    /* result == first operand */
+    TEST_ASSERT( mbedtls_mpi_add_mpi( &X, &X, &Y ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &A ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == 0 );
+
+    /* result == second operand */
+    TEST_ASSERT( mbedtls_mpi_add_mpi( &Y, &X, &Y ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Y, &A ) == 0 );
+
 exit:
     mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &Z ); mbedtls_mpi_free( &A );
 }
@@ -822,44 +831,17 @@ void mbedtls_mpi_add_abs( int radix_X, char * input_X, int radix_Y,
     TEST_ASSERT( mbedtls_mpi_add_abs( &Z, &X, &Y ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Z, &A ) == 0 );
 
-exit:
-    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &Z ); mbedtls_mpi_free( &A );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void mpi_add_abs_add_first( int radix_X, char * input_X, int radix_Y,
-                            char * input_Y, int radix_A, char * input_A )
-{
-    mbedtls_mpi X, Y, A;
-    mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &A );
-
-    TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &Y, radix_Y, input_Y ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &A, radix_A, input_A ) == 0 );
+    /* result == first operand */
     TEST_ASSERT( mbedtls_mpi_add_abs( &X, &X, &Y ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &A ) == 0 );
-
-exit:
-    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &A );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void mpi_add_abs_add_second( int radix_X, char * input_X, int radix_Y,
-                             char * input_Y, int radix_A, char * input_A )
-{
-    mbedtls_mpi X, Y, A;
-    mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &A );
-
     TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &Y, radix_Y, input_Y ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &A, radix_A, input_A ) == 0 );
+
+    /* result == second operand */
     TEST_ASSERT( mbedtls_mpi_add_abs( &Y, &X, &Y ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Y, &A ) == 0 );
 
 exit:
-    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &A );
+    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &Z ); mbedtls_mpi_free( &A );
 }
 /* END_CASE */
 
@@ -893,6 +875,15 @@ void mbedtls_mpi_sub_mpi( int radix_X, char * input_X, int radix_Y,
     TEST_ASSERT( mbedtls_mpi_sub_mpi( &Z, &X, &Y ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Z, &A ) == 0 );
 
+    /* result == first operand */
+    TEST_ASSERT( mbedtls_mpi_sub_mpi( &X, &X, &Y ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &A ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == 0 );
+
+    /* result == second operand */
+    TEST_ASSERT( mbedtls_mpi_sub_mpi( &Y, &X, &Y ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Y, &A ) == 0 );
+
 exit:
     mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &Z ); mbedtls_mpi_free( &A );
 }
@@ -915,6 +906,17 @@ void mbedtls_mpi_sub_abs( int radix_X, char * input_X, int radix_Y,
     TEST_ASSERT( res == sub_result );
     if( res == 0 )
         TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Z, &A ) == 0 );
+
+    /* result == first operand */
+    TEST_ASSERT( mbedtls_mpi_sub_abs( &X, &X, &Y ) == sub_result );
+    if( sub_result == 0 )
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &A ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == 0 );
+
+    /* result == second operand */
+    TEST_ASSERT( mbedtls_mpi_sub_abs( &Y, &X, &Y ) == sub_result );
+    if( sub_result == 0 )
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Y, &A ) == 0 );
 
 exit:
     mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &Z ); mbedtls_mpi_free( &A );

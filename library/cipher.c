@@ -1552,6 +1552,9 @@ int mbedtls_cipher_auth_encrypt_ext( mbedtls_cipher_context_t *ctx,
         if( iv_len != 0 || tag_len != 0 || ad_len != 0 )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+        (void) iv;
+        (void) ad;
+
         return( mbedtls_nist_kw_wrap( ctx->cipher_ctx, mode, input, ilen,
                                       output, olen, output_len ) );
     }
@@ -1604,6 +1607,9 @@ int mbedtls_cipher_auth_decrypt_ext( mbedtls_cipher_context_t *ctx,
          * so these length should be 0 as documented. */
         if( iv_len != 0 || tag_len != 0 || ad_len != 0 )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+        (void) iv;
+        (void) ad;
 
         return( mbedtls_nist_kw_unwrap( ctx->cipher_ctx, mode, input, ilen,
                                         output, olen, output_len ) );

@@ -659,7 +659,7 @@ psa_status_t acme_get_builtin_key(psa_drv_slot_number_t slot_number,
                                   size_t key_buffer_size);
 ```
 
-If this function returns `PSA_SUCCESS`, it must fill `attributes` with the attributes of the key (except for the key identifier) and must fill `key_buffer` with the key context.
+If this function returns `PSA_SUCCESS` or `PSA_ERROR_BUFFER_TOO_SMALL`, it must fill `attributes` with the attributes of the key (except for the key identifier). On success, this function must also fill `key_buffer` with the key context.
 
 On entry, `psa_get_key_lifetime(attributes)` is the location at which the driver was declared and the persistence level `#PSA_KEY_LIFETIME_PERSISTENT`. The driver entry point may change the lifetime to one with the same location but a different persistence level. The standard attributes other than the key identifier and lifetime have the value conveyed by `PSA_KEY_ATTRIBUTES_INIT`.
 
@@ -670,8 +670,8 @@ Typically, for a built-in key, the key context is a reference to key material th
 This entry point may return the following status values:
 
 * `PSA_SUCCESS`: the requested key exists, and the output parameters `attributes` and `key_buffer` contain the key metadata and key data respectively.
+* `PSA_ERROR_BUFFER_TOO_SMALL`: `key_buffer_size` is insufficient. In this case, the driver must pass the key's attributes in `*attributes`. In particular, `get_builtin_key(slot_number, &attributes, NULL, 0)` is a way for the core to obtain the key's attributes.
 * `PSA_ERROR_DOES_NOT_EXIST`: the requested key does not exist.
-* `PSA_ERROR_BUFFER_TOO_SMALL`: `key_buffer_size` is insufficient. This should not happen with a correct core and a properly configured driver.
 * Other error codes such as `PSA_ERROR_COMMUNICATION_FAILURE` or `PSA_ERROR_HARDWARE_FAILURE` indicate a transient or permanent error.
 
 The core will pass authorized requests to destroy a built-in key to the [`"destroy_key"`](#key-management-in-a-secure-element-with-storage) entry point if there is one. If built-in keys must not be destroyed, it is up to the driver to reject such requests.

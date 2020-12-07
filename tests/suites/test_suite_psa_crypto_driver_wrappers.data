@@ -38,6 +38,10 @@ generate_key through transparent driver: fallback
 depends_on:MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR
 generate_key:PSA_ERROR_NOT_SUPPORTED:"":PSA_SUCCESS
 
+generate_key through transparent driver: fallback not available
+depends_on:!MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR
+generate_key:PSA_ERROR_NOT_SUPPORTED:"":PSA_ERROR_NOT_SUPPORTED
+
 generate_key through transparent driver: error
 generate_key:PSA_ERROR_GENERIC_ERROR:"":PSA_ERROR_GENERIC_ERROR
 

@@ -49,14 +49,17 @@ void hmac_drbg_entropy_usage( int md_alg )
     md_info = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md_info != NULL );
 
+    /* Set reseed interval before seed */
+    mbedtls_hmac_drbg_set_reseed_interval( &ctx, 2 * reps );
+
     /* Init must use entropy */
     last_len = entropy.len;
     TEST_ASSERT( mbedtls_hmac_drbg_seed( &ctx, md_info, mbedtls_test_entropy_func, &entropy,
                                  NULL, 0 ) == 0 );
     TEST_ASSERT( entropy.len < last_len );
 
-    /* By default, PR is off and reseed_interval is large,
-     * so the next few calls should not use entropy */
+    /* By default, PR is off, and reseed interval was set to
+     * 2 * reps so the next few calls should not use entropy */
     last_len = entropy.len;
     for( i = 0; i < reps; i++ )
     {
@@ -72,15 +75,16 @@ void hmac_drbg_entropy_usage( int md_alg )
     TEST_ASSERT( out[sizeof( out ) - 2] == 0 );
     TEST_ASSERT( out[sizeof( out ) - 1] == 0 );
 
-    /* Set reseed_interval to the number of calls done,
-     * so the next call should reseed */
-    mbedtls_hmac_drbg_set_reseed_interval( &ctx, 2 * reps );
+    /* There have been 2 * reps calls to random. The next call should reseed */
     TEST_ASSERT( mbedtls_hmac_drbg_random( &ctx, out, sizeof( out ) ) == 0 );
     TEST_ASSERT( entropy.len < last_len );
 
+    /* Set reseed interval after seed */
+    mbedtls_hmac_drbg_set_reseed_interval( &ctx, 4 * reps + 1);
+
     /* The new few calls should not reseed */
     last_len = entropy.len;
-    for( i = 0; i < reps / 2; i++ )
+    for( i = 0; i < (2 * reps); i++ )
     {
         TEST_ASSERT( mbedtls_hmac_drbg_random( &ctx, out, sizeof( out ) ) == 0 );
         TEST_ASSERT( mbedtls_hmac_drbg_random_with_add( &ctx, out, sizeof( out ) ,
@@ -189,7 +193,7 @@ void hmac_drbg_no_reseed( int md_alg, data_t * entropy,
     TEST_ASSERT( mbedtls_hmac_drbg_random_with_add( &ctx, my_output, output->len,
                                             add2->x, add2->len ) == 0 );
 
-    /* clear for second run */
+    /* Reset context for second run */
     mbedtls_hmac_drbg_free( &ctx );
 
     TEST_ASSERT( memcmp( my_output, output->x, output->len ) == 0 );

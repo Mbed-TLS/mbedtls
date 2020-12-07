@@ -9,6 +9,8 @@ typedef /* implementation-defined type */ psa_key_derivation_operation_t;
 typedef uint16_t psa_key_derivation_step_t;
 typedef uint32_t psa_key_id_t;
 typedef uint32_t psa_key_lifetime_t;
+typedef uint32_t psa_key_location_t;
+typedef uint8_t psa_key_persistence_t;
 typedef uint16_t psa_key_type_t;
 typedef uint32_t psa_key_usage_t;
 typedef /* implementation-defined type */ psa_mac_operation_t;
@@ -215,8 +217,21 @@ typedef int32_t psa_status_t;
 #define PSA_KEY_ID_USER_MIN ((psa_key_id_t)0x00000001)
 #define PSA_KEY_ID_VENDOR_MAX ((psa_key_id_t)0x7fffffff)
 #define PSA_KEY_ID_VENDOR_MIN ((psa_key_id_t)0x40000000)
-#define PSA_KEY_LIFETIME_PERSISTENT ((psa_key_lifetime_t)0x00000001)
-#define PSA_KEY_LIFETIME_VOLATILE ((psa_key_lifetime_t)0x00000000)
+#define PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(persistence, location) \
+    ((location) << 8 | (persistence))
+#define PSA_KEY_LIFETIME_GET_LOCATION(lifetime) \
+    ((psa_key_location_t) ((lifetime) >> 8))
+#define PSA_KEY_LIFETIME_GET_PERSISTENCE(lifetime) \
+    ((psa_key_persistence_t) ((lifetime) & 0x000000ff))
+#define PSA_KEY_LIFETIME_IS_VOLATILE(lifetime) \
+    (PSA_KEY_LIFETIME_GET_PERSISTENCE(lifetime) == PSA_KEY_PERSISTENCE_VOLATILE)
+#define PSA_KEY_LIFETIME_PERSISTENT ((psa_key_lifetime_t) 0x00000001)
+#define PSA_KEY_LIFETIME_VOLATILE ((psa_key_lifetime_t) 0x00000000)
+#define PSA_KEY_LOCATION_LOCAL_STORAGE ((psa_key_location_t) 0x000000)
+#define PSA_KEY_LOCATION_PRIMARY_SECURE_ELEMENT ((psa_key_location_t) 0x000001)
+#define PSA_KEY_PERSISTENCE_DEFAULT ((psa_key_persistence_t) 0x01)
+#define PSA_KEY_PERSISTENCE_READ_ONLY ((psa_key_persistence_t) 0xff)
+#define PSA_KEY_PERSISTENCE_VOLATILE ((psa_key_persistence_t) 0x00)
 #define PSA_KEY_TYPE_AES ((psa_key_type_t)0x2400)
 #define PSA_KEY_TYPE_ARC4 ((psa_key_type_t)0x2002)
 #define PSA_KEY_TYPE_CAMELLIA ((psa_key_type_t)0x2403)

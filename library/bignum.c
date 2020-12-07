@@ -1859,6 +1859,10 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     if( mbedtls_mpi_cmp_int( E, 0 ) < 0 )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
+    if( mbedtls_mpi_bitlen( E ) > MBEDTLS_MPI_MAX_BITS ||
+        mbedtls_mpi_bitlen( N ) > MBEDTLS_MPI_MAX_BITS )
+        return ( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
     /*
      * Init temps and window size
      */

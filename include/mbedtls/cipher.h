@@ -992,9 +992,9 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
  * \param iv            The nonce to use. This must be a readable buffer of
  *                      at least \p iv_len Bytes and may be \c NULL if \p
  *                      iv_len is \c 0.
- * \param iv_len        The length of the nonce. For AEAD ciphers, this must satisfy the
- *                      constraints imposed by the cipher used. For NIST_KW,
- *                      this must be \c 0.
+ * \param iv_len        The length of the nonce. For AEAD ciphers, this must
+ *                      satisfy the constraints imposed by the cipher used.
+ *                      For NIST_KW, this must be \c 0.
  * \param ad            The additional data to authenticate. This must be a
  *                      readable buffer of at least \p ad_len Bytes, and may
  *                      be \c NULL is \p ad_len is \c 0.
@@ -1047,9 +1047,9 @@ int mbedtls_cipher_auth_encrypt_ext( mbedtls_cipher_context_t *ctx,
  * \param iv            The nonce to use. This must be a readable buffer of
  *                      at least \p iv_len Bytes and may be \c NULL if \p
  *                      iv_len is \c 0.
- * \param iv_len        The length of the nonce. For AEAD ciphers, this must satisfy the
- *                      constraints imposed by the cipher used. For NIST_KW,
- *                      this must be \c 0.
+ * \param iv_len        The length of the nonce. For AEAD ciphers, this must
+ *                      satisfy the constraints imposed by the cipher used.
+ *                      For NIST_KW, this must be \c 0.
  * \param ad            The additional data to authenticate. This must be a
  *                      readable buffer of at least \p ad_len Bytes, and may
  *                      be \c NULL is \p ad_len is \c 0.

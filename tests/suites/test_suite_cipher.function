@@ -1345,7 +1345,7 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
      * Authenticate and decrypt, and check result
      */
 
-    /* We can't pass a NULL output buffer to this funciton */
+    /* We can't pass a NULL output buffer to this function */
     ASSERT_ALLOC( decrypt_buf, cipher->len ? cipher->len : 1 );
     outlen = 0;
     ret = mbedtls_cipher_auth_decrypt( &ctx, iv->x, iv->len, ad->x, ad->len,

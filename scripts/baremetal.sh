@@ -97,7 +97,7 @@ baremetal_build_gcc()
     if [ $check -ne 0 ]; then
         CFLAGS_BAREMETAL="$CFLAGS_BAREMETAL -Werror"
     fi
-    CFLAGS="$CFLAGS_BAREMETAL $CFLAGS_CONFIG"
+    CFLAGS="$CFLAGS_BAREMETAL $CFLAGS_CONFIG -DENABLE_TESTS"
 
     echo "GCC version: $gcc_ver"
     echo "Flags: $CFLAGS_BAREMETAL"
@@ -132,7 +132,7 @@ baremetal_build_armc5()
     fi
 
     CFLAGS_BAREMETAL="$OPTIM_CFLAGS_ARMC5 --thumb --cpu Cortex-m0plus"
-    CFLAGS="$CFLAGS_BAREMETAL $CFLAGS_CONFIG"
+    CFLAGS="$CFLAGS_BAREMETAL $CFLAGS_CONFIG -DENABLE_TESTS"
     WARNING_CFLAGS="--strict --c99"
 
     if [ $check -ne 0 ]; then
@@ -175,7 +175,7 @@ baremetal_build_armc6()
     if [ $check -ne 0 ]; then
         CFLAGS_BAREMETAL="$CFLAGS_BAREMETAL -Werror"
     fi
-    CFLAGS="$CFLAGS_BAREMETAL $CFLAGS_CONFIG"
+    CFLAGS="$CFLAGS_BAREMETAL $CFLAGS_CONFIG -DENABLE_TESTS"
 
     echo "ARMC6 version: $armc6_ver"
     echo "Flags: $CFLAGS_BAREMETAL"
@@ -204,7 +204,7 @@ baremetal_ram_build() {
     echo "Cleanup..."
     make clean
 
-    CFLAGS="$BASE_CFLAGS $CFLAGS_CONFIG $CFLAGS_USER_CONFIG"
+    CFLAGS="$BASE_CFLAGS $CFLAGS_CONFIG $CFLAGS_USER_CONFIG -DENABLE_TESTS"
     if [ "$build_only" -eq 1 ]; then
         CFLAGS="$CFLAGS -Werror"
     fi

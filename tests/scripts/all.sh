@@ -1765,7 +1765,7 @@ component_test_default_tinycrypt_without_legacy_ecc () {
     scripts/config.pl unset MBEDTLS_ECP_DP_SECP192K1_ENABLED
     scripts/config.pl unset MBEDTLS_ECP_DP_SECP224K1_ENABLED
     scripts/config.pl unset MBEDTLS_ECP_DP_SECP256K1_ENABLED
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DENABLE_TESTS'
 
     msg "test: default config with tinycrypt enabled and legacy ECC disabled"
     make test
@@ -1813,7 +1813,7 @@ component_test_hardcoded_pk_type () {
     scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
     scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
     scripts/config.pl unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
-    make CFLAGS='-Werror -O1'
+    make CFLAGS='-Werror -O1 -DENABLE_TESTS'
 
     msg "test: default config + single PK type harcoded (tinycrypt)"
     make test

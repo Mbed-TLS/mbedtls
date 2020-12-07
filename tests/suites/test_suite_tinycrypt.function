@@ -60,7 +60,6 @@ void test_ecdsa()
 /* BEGIN_CASE depends_on:MBEDTLS_USE_TINYCRYPT */
 void ecdh_primitive_vector( data_t * qx_str, data_t * qy_str,
                             data_t * d_str, data_t * z_str )
-
 {
     uint8_t public[2*NUM_ECC_BYTES] = {0};
     uint8_t private[NUM_ECC_BYTES] = {0};
@@ -138,7 +137,7 @@ void ecdsa_sig( data_t * message, data_t * d_str, data_t * k_str,
         k[i] = k_str->x[NUM_ECC_BYTES - i - 1];
     }
     TEST_ASSERT( mbedtls_sha256_ret( message->x, message->len, hash, 0 ) == 0 );
-    TEST_ASSERT( uECC_sign_with_k( d_str->x, hash, sizeof(hash), k,
+    TEST_ASSERT( uECC_sign_with_k( d_str->x, hash, sizeof(hash), (uECC_word_t*) k,
                                    sig_bytes ) == UECC_SUCCESS );
     TEST_ASSERT( memcmp( sig_bytes, r_str->x, NUM_ECC_BYTES) == 0 );
     TEST_ASSERT( memcmp( sig_bytes + NUM_ECC_BYTES, s_str->x, NUM_ECC_BYTES ) == 0 );

@@ -240,6 +240,9 @@ void ctr_drbg_entropy_usage( int entropy_nonce_len )
     if( entropy_nonce_len >= 0 )
         TEST_ASSERT( mbedtls_ctr_drbg_set_nonce_len( &ctx, entropy_nonce_len ) == 0 );
 
+    /* Set reseed interval before seed */
+    mbedtls_ctr_drbg_set_reseed_interval( &ctx, 2 * reps );
+
     /* Init must use entropy */
     TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctx, mbedtls_test_entropy_func, entropy, NULL, 0 ) == 0 );
     expected_idx += MBEDTLS_CTR_DRBG_ENTROPY_LEN;
@@ -249,8 +252,8 @@ void ctr_drbg_entropy_usage( int entropy_nonce_len )
         expected_idx += MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN;
     TEST_EQUAL( test_offset_idx, expected_idx );
 
-    /* By default, PR is off and reseed_interval is large,
-     * so the next few calls should not use entropy */
+    /* By default, PR is off, and reseed interval was set to
+     * 2 * reps so the next few calls should not use entropy */
     for( i = 0; i < reps; i++ )
     {
         TEST_ASSERT( mbedtls_ctr_drbg_random( &ctx, out, sizeof( out ) - 4 ) == 0 );
@@ -265,15 +268,16 @@ void ctr_drbg_entropy_usage( int entropy_nonce_len )
     TEST_ASSERT( out[sizeof( out ) - 2] == 0 );
     TEST_ASSERT( out[sizeof( out ) - 1] == 0 );
 
-    /* Set reseed_interval to the number of calls done,
-     * so the next call should reseed */
-    mbedtls_ctr_drbg_set_reseed_interval( &ctx, 2 * reps );
+    /* There have been 2 * reps calls to random. The next call should reseed */
     TEST_ASSERT( mbedtls_ctr_drbg_random( &ctx, out, sizeof( out ) ) == 0 );
     expected_idx += MBEDTLS_CTR_DRBG_ENTROPY_LEN;
     TEST_EQUAL( test_offset_idx, expected_idx );
 
-    /* The new few calls should not reseed */
-    for( i = 0; i < reps / 2; i++ )
+    /* Set reseed interval after seed */
+    mbedtls_ctr_drbg_set_reseed_interval( &ctx, 4 * reps + 1 );
+
+    /* The next few calls should not reseed */
+    for( i = 0; i < (2 * reps); i++ )
     {
         TEST_ASSERT( mbedtls_ctr_drbg_random( &ctx, out, sizeof( out ) ) == 0 );
         TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, out, sizeof( out ) ,

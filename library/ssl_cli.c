@@ -4349,8 +4349,8 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
 
            MBEDTLS_SSL_DEBUG_MSG( 3, ( "execute delayed server certificate verification" ) );
 
-           ret = ssl_parse_delayed_certificate_verify( ssl, authmode,
-                                                       chain, rs_ctx );
+           ret = mbedtls_ssl_parse_delayed_certificate_verify( ssl, authmode,
+                                                               chain, rs_ctx );
            if( ret != 0 )
                break;
 #endif /* MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION */

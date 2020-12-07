@@ -7988,13 +7988,13 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
 
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED) && defined(MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION)
-/* ssl_parse_delayed_certificate_verify() defines a wrapper around ssl_parse_certificate_verify
+/* mbedtls_ssl_parse_delayed_certificate_verify() defines a wrapper around ssl_parse_certificate_verify
  * to call it in ssl_cli.c rather than purely internal to ssl_tls.c.
  */
-int ssl_parse_delayed_certificate_verify( mbedtls_ssl_context *ssl,
-                                         int authmode,
-                                         mbedtls_x509_crt *chain,
-                                         void *rs_ctx )
+int mbedtls_ssl_parse_delayed_certificate_verify( mbedtls_ssl_context *ssl,
+                                                  int authmode,
+                                                  mbedtls_x509_crt *chain,
+                                                  void *rs_ctx )
 {
 
     return( ssl_parse_certificate_verify( ssl,

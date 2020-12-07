@@ -13,6 +13,65 @@
 #include "test/psa_crypto_helpers.h"
 #endif
 
+#if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
+#define MBEDTLS_CIPHER_AUTH_CRYPT
+#endif
+
+#if defined(MBEDTLS_CIPHER_AUTH_CRYPT)
+/* Helper for resetting key/direction
+ *
+ * The documentation doesn't explicitly say whether calling
+ * mbedtls_cipher_setkey() twice is allowed or not. This currently works with
+ * the default software implementation, but only by accident. It isn't
+ * guaranteed to work with new ciphers or with alternative implementations of
+ * individual ciphers, and it doesn't work with the PSA wrappers. So don't do
+ * it, and instead start with a fresh context.
+ */
+static int cipher_reset_key( mbedtls_cipher_context_t *ctx, int cipher_id,
+        int use_psa, size_t tag_len, const data_t *key, int direction )
+{
+    mbedtls_cipher_free( ctx );
+    mbedtls_cipher_init( ctx );
+
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+    (void) use_psa;
+    (void) tag_len;
+#else
+    if( use_psa == 1 )
+    {
+        TEST_ASSERT( 0 == mbedtls_cipher_setup_psa( ctx,
+                              mbedtls_cipher_info_from_type( cipher_id ),
+                              tag_len ) );
+    }
+    else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    {
+        TEST_ASSERT( 0 == mbedtls_cipher_setup( ctx,
+                              mbedtls_cipher_info_from_type( cipher_id ) ) );
+    }
+
+    TEST_ASSERT( 0 == mbedtls_cipher_setkey( ctx, key->x, 8 * key->len,
+                                             direction ) );
+    return( 1 );
+
+exit:
+    return( 0 );
+}
+
+/*
+ * Check if a buffer is all-0 bytes:
+ * return   1 if it is,
+ *          0 if it isn't.
+ */
+int buffer_is_all_zero( const uint8_t *buf, size_t size )
+{
+    for( size_t i = 0; i < size; i++ )
+        if( buf[i] != 0 )
+            return 0;
+    return 1;
+}
+#endif /* MBEDTLS_CIPHER_AUTH_CRYPT */
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -484,6 +543,108 @@ void cipher_invalid_param_conditional( )
                                      valid_buffer, &size_t_var,
                                      NULL, valid_size ) );
 #endif /* defined(MBEDTLS_CIPHER_MODE_AEAD) */
+
+#if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
+    /* mbedtls_cipher_auth_encrypt_ext */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt_ext( NULL,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt_ext( &valid_ctx,
+                                         NULL, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         NULL, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         NULL, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         NULL, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, NULL,
+                                         valid_size ) );
+
+    /* mbedtls_cipher_auth_decrypt_ext */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt_ext( NULL,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt_ext( &valid_ctx,
+                                         NULL, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         NULL, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         NULL, valid_size,
+                                         valid_buffer, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         NULL, valid_size, &size_t_var,
+                                         valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt_ext( &valid_ctx,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size,
+                                         valid_buffer, valid_size, NULL,
+                                         valid_size ) );
+#endif /* MBEDTLS_CIPHER_MODE_AEAD || MBEDTLS_NIST_KW_C */
 
     /* mbedtls_cipher_free() */
     TEST_VALID_PARAM( mbedtls_cipher_free( NULL ) );
@@ -959,129 +1120,338 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_AEAD */
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_AUTH_CRYPT */
 void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
                     data_t * ad, data_t * cipher, data_t * tag,
                     char * result, data_t * clear, int use_psa )
 {
-    /* Takes an AEAD ciphertext + tag and performs a pair
-     * of AEAD decryption and AEAD encryption. It checks that
+    /*
+     * Take an AEAD ciphertext + tag and perform a pair
+     * of AEAD decryption and AEAD encryption. Check that
      * this results in the expected plaintext, and that
-     * decryption and encryption are inverse to one another. */
+     * decryption and encryption are inverse to one another.
+     *
+     * Do that twice:
+     * - once with legacy functions auth_decrypt/auth_encrypt
+     * - once with new functions auth_decrypt_ext/auth_encrypt_ext
+     * This allows testing both without duplicating test cases.
+     */
 
     int ret;
-    unsigned char output[300];        /* Temporary buffer for results of
-                                       * encryption and decryption. */
-    unsigned char *output_tag = NULL; /* Temporary buffer for tag in the
-                                       * encryption step. */
+    int using_nist_kw, using_nist_kw_padding;
 
     mbedtls_cipher_context_t ctx;
     size_t outlen;
 
+    unsigned char *cipher_plus_tag = NULL;
+    size_t cipher_plus_tag_len;
+    unsigned char *decrypt_buf = NULL;
+    size_t decrypt_buf_len = 0;
+    unsigned char *encrypt_buf = NULL;
+    size_t encrypt_buf_len = 0;
+
+#if !defined(MBEDTLS_DEPRECATED_WARNING) && \
+    !defined(MBEDTLS_DEPRECATED_REMOVED)
     unsigned char *tmp_tag    = NULL;
     unsigned char *tmp_cipher = NULL;
+    unsigned char *tag_buf = NULL;
+#endif /* !MBEDTLS_DEPRECATED_WARNING && !MBEDTLS_DEPRECATED_REMOVED */
+
+    /* Null pointers are documented as valid for inputs of length 0.
+     * The test framework passes non-null pointers, so set them to NULL.
+     * key, cipher and tag can't be empty. */
+    if( iv->len == 0 )
+        iv->x = NULL;
+    if( ad->len == 0 )
+        ad->x = NULL;
+    if( clear->len == 0 )
+        clear->x = NULL;
 
     mbedtls_cipher_init( &ctx );
-    memset( output, 0xFF, sizeof( output ) );
 
-    /* Prepare context */
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
-    (void) use_psa;
-#else
+    /* Initialize PSA Crypto */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( use_psa == 1 )
-    {
         PSA_ASSERT( psa_crypto_init( ) );
-
-        /* PSA requires that the tag immediately follows the ciphertext. */
-        tmp_cipher = mbedtls_calloc( 1, cipher->len + tag->len );
-        TEST_ASSERT( tmp_cipher != NULL );
-        tmp_tag = tmp_cipher + cipher->len;
-
-        memcpy( tmp_cipher, cipher->x, cipher->len );
-        memcpy( tmp_tag, tag->x, tag->len );
-
-        TEST_ASSERT( 0 == mbedtls_cipher_setup_psa( &ctx,
-                              mbedtls_cipher_info_from_type( cipher_id ),
-                              tag->len ) );
-    }
-    else
+#else
+    (void) use_psa;
 #endif
+
+    /*
+     * Are we using NIST_KW? with padding?
+     */
+    using_nist_kw_padding = cipher_id == MBEDTLS_CIPHER_AES_128_KWP ||
+                            cipher_id == MBEDTLS_CIPHER_AES_192_KWP ||
+                            cipher_id == MBEDTLS_CIPHER_AES_256_KWP;
+    using_nist_kw = cipher_id == MBEDTLS_CIPHER_AES_128_KW ||
+                    cipher_id == MBEDTLS_CIPHER_AES_192_KW ||
+                    cipher_id == MBEDTLS_CIPHER_AES_256_KW ||
+                    using_nist_kw_padding;
+
+    /****************************************************************
+     *                                                              *
+     *  Part 1: non-deprecated API                                  *
+     *                                                              *
+     ****************************************************************/
+
+    /*
+     * Prepare context for decryption
+     */
+    if( ! cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
+                            MBEDTLS_DECRYPT ) )
+        goto exit;
+
+    /*
+     * prepare buffer for decryption
+     * (we need the tag appended to the ciphertext)
+     */
+    cipher_plus_tag_len = cipher->len + tag->len;
+    ASSERT_ALLOC( cipher_plus_tag, cipher_plus_tag_len );
+    memcpy( cipher_plus_tag, cipher->x, cipher->len );
+    memcpy( cipher_plus_tag + cipher->len, tag->x, tag->len );
+
+    /*
+     * Compute length of output buffer according to the documentation
+     */
+    if( using_nist_kw )
+        decrypt_buf_len = cipher_plus_tag_len - 8;
+    else
+        decrypt_buf_len = cipher_plus_tag_len - tag->len;
+
+
+    /*
+     * Try decrypting to a buffer that's 1B too small
+     */
+    if( decrypt_buf_len != 0 )
     {
-        tmp_tag = tag->x;
-        tmp_cipher = cipher->x;
-        TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
-                              mbedtls_cipher_info_from_type( cipher_id ) ) );
+        ASSERT_ALLOC( decrypt_buf, decrypt_buf_len - 1 );
+
+        outlen = 0;
+        ret = mbedtls_cipher_auth_decrypt_ext( &ctx, iv->x, iv->len,
+                ad->x, ad->len, cipher_plus_tag, cipher_plus_tag_len,
+                decrypt_buf, decrypt_buf_len - 1, &outlen, tag->len );
+        TEST_ASSERT( ret == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+        mbedtls_free( decrypt_buf );
+        decrypt_buf = NULL;
     }
 
-    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key->x, 8 * key->len,
-                                             MBEDTLS_DECRYPT ) );
+    /*
+     * Authenticate and decrypt, and check result
+     */
+    ASSERT_ALLOC( decrypt_buf, decrypt_buf_len );
 
-    /* decode buffer and check tag->x */
+    outlen = 0;
+    ret = mbedtls_cipher_auth_decrypt_ext( &ctx, iv->x, iv->len,
+            ad->x, ad->len, cipher_plus_tag, cipher_plus_tag_len,
+            decrypt_buf, decrypt_buf_len, &outlen, tag->len );
 
-    /* Sanity check that we don't use overly long inputs. */
-    TEST_ASSERT( sizeof( output ) >= cipher->len );
-
-    ret = mbedtls_cipher_auth_decrypt( &ctx, iv->x, iv->len, ad->x, ad->len,
-                               tmp_cipher, cipher->len, output, &outlen,
-                               tmp_tag, tag->len );
-
-    /* make sure the message is rejected if it should be */
     if( strcmp( result, "FAIL" ) == 0 )
     {
         TEST_ASSERT( ret == MBEDTLS_ERR_CIPHER_AUTH_FAILED );
-        goto exit;
+        TEST_ASSERT( buffer_is_all_zero( decrypt_buf, decrypt_buf_len ) );
+    }
+    else
+    {
+        TEST_ASSERT( ret == 0 );
+        ASSERT_COMPARE( decrypt_buf, outlen, clear->x, clear->len );
     }
 
-    /* otherwise, make sure it was decrypted properly */
-    TEST_ASSERT( ret == 0 );
+    /* Free this, but keep cipher_plus_tag for deprecated function with PSA */
+    mbedtls_free( decrypt_buf );
+    decrypt_buf = NULL;
 
-    TEST_ASSERT( outlen == clear->len );
-    TEST_ASSERT( memcmp( output, clear->x, clear->len ) == 0 );
+    /*
+     * Encrypt back if test data was authentic
+     */
+    if( strcmp( result, "FAIL" ) != 0 )
+    {
+        /* prepare context for encryption */
+        if( ! cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
+                                MBEDTLS_ENCRYPT ) )
+            goto exit;
 
-    /* then encrypt the clear->x and make sure we get the same ciphertext and tag->x */
-    mbedtls_cipher_free( &ctx );
+        /*
+         * Compute size of output buffer according to documentation
+         */
+        if( using_nist_kw )
+        {
+            encrypt_buf_len = clear->len + 8;
+            if( using_nist_kw_padding && encrypt_buf_len % 8 != 0 )
+                encrypt_buf_len += 8 - encrypt_buf_len % 8;
+        }
+        else
+        {
+            encrypt_buf_len = clear->len + tag->len;
+        }
+
+        /*
+         * Try encrypting with an output buffer that's 1B too small
+         */
+        ASSERT_ALLOC( encrypt_buf, encrypt_buf_len - 1 );
+
+        outlen = 0;
+        ret = mbedtls_cipher_auth_encrypt_ext( &ctx, iv->x, iv->len,
+                ad->x, ad->len, clear->x, clear->len,
+                encrypt_buf, encrypt_buf_len - 1, &outlen, tag->len );
+        TEST_ASSERT( ret != 0 );
+
+        mbedtls_free( encrypt_buf );
+        encrypt_buf = NULL;
+
+        /*
+         * Encrypt and check the result
+         */
+        ASSERT_ALLOC( encrypt_buf, encrypt_buf_len );
+
+        outlen = 0;
+        ret = mbedtls_cipher_auth_encrypt_ext( &ctx, iv->x, iv->len,
+                ad->x, ad->len, clear->x, clear->len,
+                encrypt_buf, encrypt_buf_len, &outlen, tag->len );
+        TEST_ASSERT( ret == 0 );
+
+        TEST_ASSERT( outlen == cipher->len + tag->len );
+        TEST_ASSERT( memcmp( encrypt_buf, cipher->x, cipher->len ) == 0 );
+        TEST_ASSERT( memcmp( encrypt_buf + cipher->len,
+                             tag->x, tag->len ) == 0 );
+
+        mbedtls_free( encrypt_buf );
+        encrypt_buf = NULL;
+    }
+
+    /****************************************************************
+     *                                                              *
+     *  Part 2: deprecated API                                      *
+     *                                                              *
+     ****************************************************************/
+
+#if !defined(MBEDTLS_DEPRECATED_WARNING) && \
+    !defined(MBEDTLS_DEPRECATED_REMOVED)
+
+    /*
+     * Prepare context for decryption
+     */
+    if( ! cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
+                            MBEDTLS_DECRYPT ) )
+        goto exit;
+
+    /*
+     * Prepare pointers for decryption
+     */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( use_psa == 1 )
     {
-        TEST_ASSERT( 0 == mbedtls_cipher_setup_psa( &ctx,
-                              mbedtls_cipher_info_from_type( cipher_id ),
-                              tag->len ) );
+        /* PSA requires that the tag immediately follows the ciphertext.
+         * Fortunately, we already have that from testing the new API. */
+        tmp_cipher = cipher_plus_tag;
+        tmp_tag = tmp_cipher + cipher->len;
     }
     else
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     {
-        TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
-                              mbedtls_cipher_info_from_type( cipher_id ) ) );
+        tmp_cipher = cipher->x;
+        tmp_tag = tag->x;
     }
-    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key->x, 8 * key->len,
-                                             MBEDTLS_ENCRYPT ) );
 
-    memset( output, 0xFF, sizeof( output ) );
+    /*
+     * Authenticate and decrypt, and check result
+     */
+
+    ASSERT_ALLOC( decrypt_buf, cipher->len );
     outlen = 0;
+    ret = mbedtls_cipher_auth_decrypt( &ctx, iv->x, iv->len, ad->x, ad->len,
+                               tmp_cipher, cipher->len, decrypt_buf, &outlen,
+                               tmp_tag, tag->len );
 
-    /* Sanity check that we don't use overly long inputs. */
-    TEST_ASSERT( sizeof( output ) >= clear->len + tag->len );
+    if( using_nist_kw )
+    {
+        /* NIST_KW with legacy API */
+        TEST_ASSERT( ret == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+    }
+    else if( strcmp( result, "FAIL" ) == 0 )
+    {
+        /* unauthentic message */
+        TEST_ASSERT( ret == MBEDTLS_ERR_CIPHER_AUTH_FAILED );
+        TEST_ASSERT( buffer_is_all_zero( decrypt_buf, cipher->len ) );
+    }
+    else
+    {
+        /* authentic message: is the plaintext correct? */
+        TEST_ASSERT( ret == 0 );
+        ASSERT_COMPARE(  decrypt_buf, outlen, clear->x, clear->len );
+    }
 
-    output_tag = output + clear->len;
-    ret = mbedtls_cipher_auth_encrypt( &ctx, iv->x, iv->len, ad->x, ad->len,
-                               clear->x, clear->len, output, &outlen,
-                               output_tag, tag->len );
-    TEST_ASSERT( ret == 0 );
+    mbedtls_free( decrypt_buf );
+    decrypt_buf = NULL;
+    mbedtls_free( cipher_plus_tag );
+    cipher_plus_tag = NULL;
 
-    TEST_ASSERT( outlen == cipher->len );
-    TEST_ASSERT( memcmp( output, cipher->x, cipher->len ) == 0 );
-    TEST_ASSERT( memcmp( output_tag, tag->x, tag->len ) == 0 );
+    /*
+     * Encrypt back if test data was authentic
+     */
+    if( strcmp( result, "FAIL" ) != 0 )
+    {
+        /* prepare context for encryption */
+        if( ! cipher_reset_key( &ctx, cipher_id, use_psa, tag->len, key,
+                                MBEDTLS_ENCRYPT ) )
+            goto exit;
+
+        /* prepare buffers for encryption */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        if( use_psa )
+        {
+            ASSERT_ALLOC( cipher_plus_tag, cipher->len + tag->len );
+            tmp_cipher = cipher_plus_tag;
+            tmp_tag = cipher_plus_tag + cipher->len;
+        }
+        else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+        {
+            ASSERT_ALLOC( encrypt_buf, cipher->len );
+            ASSERT_ALLOC( tag_buf, tag->len );
+            tmp_cipher = encrypt_buf;
+            tmp_tag = tag_buf;
+        }
+
+        /*
+         * Encrypt and check the result
+         */
+        outlen = 0;
+        ret = mbedtls_cipher_auth_encrypt( &ctx, iv->x, iv->len, ad->x, ad->len,
+                                   clear->x, clear->len, tmp_cipher, &outlen,
+                                   tmp_tag, tag->len );
+
+        if( using_nist_kw )
+        {
+            TEST_ASSERT( ret == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+        }
+        else
+        {
+            TEST_ASSERT( ret == 0 );
+
+            TEST_ASSERT( outlen == cipher->len );
+            if( cipher->len != 0 )
+                TEST_ASSERT( memcmp( tmp_cipher, cipher->x, cipher->len ) == 0 );
+            TEST_ASSERT( memcmp( tmp_tag, tag->x, tag->len ) == 0 );
+        }
+    }
+
+#endif /* !MBEDTLS_DEPRECATED_WARNING && !MBEDTLS_DEPRECATED_REMOVED */
 
 exit:
 
     mbedtls_cipher_free( &ctx );
+    mbedtls_free( decrypt_buf );
+    mbedtls_free( encrypt_buf );
+    mbedtls_free( cipher_plus_tag );
+#if !defined(MBEDTLS_DEPRECATED_WARNING) && \
+    !defined(MBEDTLS_DEPRECATED_REMOVED)
+    mbedtls_free( tag_buf );
+#endif /* !MBEDTLS_DEPRECATED_WARNING && !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( use_psa == 1 )
-    {
-        mbedtls_free( tmp_cipher );
         PSA_DONE( );
-    }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
 /* END_CASE */

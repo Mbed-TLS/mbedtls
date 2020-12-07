@@ -1,0 +1,22 @@
+API changes
+   * The functions mbedtls_cipher_auth_encrypt() and
+     mbedtls_cipher_auth_decrypt() no longer accept NIST_KW contexts,
+     as they have no way to check if the output buffer is large enough.
+     Please use mbedtls_cipher_auth_encrypt_ext() and
+     mbedtls_cipher_auth_decrypt_ext() instead.
+
+Security
+   * The functions mbedtls_cipher_auth_encrypt() and
+     mbedtls_cipher_auth_decrypt() would write past the minimum documented
+     size of the output buffer when used with NIST_KW. As a result, code using
+     those functions as documented with NIST_KW could have a buffer overwrite
+     of up to 15 bytes, with consequences ranging up to arbitrary code
+     execution depending on the location of the output buffer.
+
+New deprecations
+   * The functions mbedtls_cipher_auth_encrypt() and
+     mbedtls_cipher_auth_decrypt() are deprecated in favour of the new
+     functions mbedtls_cipher_auth_encrypt_ext() and
+     mbedtls_cipher_auth_decrypt_ext(). Please note that with AEAD ciphers,
+     these new functions always append the tag to the ciphertext, and include
+     the tag in the ciphertext length.

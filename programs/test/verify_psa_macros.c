@@ -628,16 +628,54 @@
 #define PSA_KEY_ID_VENDOR_MIN ((psa_key_id_t)0x40000000)
 #endif
 
-#ifdef PSA_KEY_LIFETIME_PERSISTENT
-#define SPEC_PSA_KEY_LIFETIME_PERSISTENT ((psa_key_lifetime_t)0x00000001)
+#ifdef PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION
+#define SPEC_PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(persistence, location) \
+    ((location) << 8 | (persistence))
 #else
-#define PSA_KEY_LIFETIME_PERSISTENT ((psa_key_lifetime_t)0x00000001)
+#define PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(persistence, location) \
+    ((location) << 8 | (persistence))
+#endif
+
+#ifdef PSA_KEY_LIFETIME_PERSISTENT
+#define SPEC_PSA_KEY_LIFETIME_PERSISTENT ((psa_key_lifetime_t) 0x00000001)
+#else
+#define PSA_KEY_LIFETIME_PERSISTENT ((psa_key_lifetime_t) 0x00000001)
 #endif
 
 #ifdef PSA_KEY_LIFETIME_VOLATILE
-#define SPEC_PSA_KEY_LIFETIME_VOLATILE ((psa_key_lifetime_t)0x00000000)
+#define SPEC_PSA_KEY_LIFETIME_VOLATILE ((psa_key_lifetime_t) 0x00000000)
 #else
-#define PSA_KEY_LIFETIME_VOLATILE ((psa_key_lifetime_t)0x00000000)
+#define PSA_KEY_LIFETIME_VOLATILE ((psa_key_lifetime_t) 0x00000000)
+#endif
+
+#ifdef PSA_KEY_LOCATION_LOCAL_STORAGE
+#define SPEC_PSA_KEY_LOCATION_LOCAL_STORAGE ((psa_key_location_t) 0x000000)
+#else
+#define PSA_KEY_LOCATION_LOCAL_STORAGE ((psa_key_location_t) 0x000000)
+#endif
+
+#ifdef PSA_KEY_LOCATION_PRIMARY_SECURE_ELEMENT
+#define SPEC_PSA_KEY_LOCATION_PRIMARY_SECURE_ELEMENT ((psa_key_location_t) 0x000001)
+#else
+#define PSA_KEY_LOCATION_PRIMARY_SECURE_ELEMENT ((psa_key_location_t) 0x000001)
+#endif
+
+#ifdef PSA_KEY_PERSISTENCE_DEFAULT
+#define SPEC_PSA_KEY_PERSISTENCE_DEFAULT ((psa_key_persistence_t) 0x01)
+#else
+#define PSA_KEY_PERSISTENCE_DEFAULT ((psa_key_persistence_t) 0x01)
+#endif
+
+#ifdef PSA_KEY_PERSISTENCE_READ_ONLY
+#define SPEC_PSA_KEY_PERSISTENCE_READ_ONLY ((psa_key_persistence_t) 0xff)
+#else
+#define PSA_KEY_PERSISTENCE_READ_ONLY ((psa_key_persistence_t) 0xff)
+#endif
+
+#ifdef PSA_KEY_PERSISTENCE_VOLATILE
+#define SPEC_PSA_KEY_PERSISTENCE_VOLATILE ((psa_key_persistence_t) 0x00)
+#else
+#define PSA_KEY_PERSISTENCE_VOLATILE ((psa_key_persistence_t) 0x00)
 #endif
 
 #ifdef PSA_KEY_TYPE_AES
@@ -827,14 +865,16 @@
 #endif
 
 
-#define hash_alg   PSA_ALG_SHA_256
-#define mac_alg    PSA_ALG_CMAC
-#define ka_alg     PSA_ALG_ECDH
-#define kdf_alg    PSA_ALG_HKDF(PSA_ALG_SHA_256)
-#define mac_length 4
-#define group      0x2A
-#define curve      0x2A
-#define type       PSA_KEY_TYPE_RSA_PUBLIC_KEY
+#define hash_alg    PSA_ALG_SHA_256
+#define mac_alg     PSA_ALG_CMAC
+#define ka_alg      PSA_ALG_ECDH
+#define kdf_alg     PSA_ALG_HKDF(PSA_ALG_SHA_256)
+#define mac_length  4
+#define group       0x2A
+#define curve       0x2A
+#define type        PSA_KEY_TYPE_RSA_PUBLIC_KEY
+#define persistence PSA_KEY_PERSISTENCE_DEFAULT
+#define location    PSA_KEY_LOCATION_PRIMARY_SECURE_ELEMENT
 
 int main() {
     int ret = 0;
@@ -1996,6 +2036,27 @@ int main() {
     printf("WARN:  %s is not defined\n", "PSA_KEY_ID_VENDOR_MIN");
 #endif
 
+#ifdef SPEC_PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION
+    if (PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(persistence, location) != SPEC_PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(persistence, location)) {
+        fprintf(stderr, "ERROR: %s doesn't match value in spec\n", "PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(persistence, location)");
+        ret = 1;
+    }
+#else
+    printf("WARN:  %s is not defined\n", "PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(persistence, location)");
+#endif
+
+#ifndef PSA_KEY_LIFETIME_GET_LOCATION
+    printf("WARN:  %s is not defined\n", "PSA_KEY_LIFETIME_GET_LOCATION(lifetime)");
+#endif
+
+#ifndef PSA_KEY_LIFETIME_GET_PERSISTENCE
+    printf("WARN:  %s is not defined\n", "PSA_KEY_LIFETIME_GET_PERSISTENCE(lifetime)");
+#endif
+
+#ifndef PSA_KEY_LIFETIME_IS_VOLATILE
+    printf("WARN:  %s is not defined\n", "PSA_KEY_LIFETIME_IS_VOLATILE(lifetime)");
+#endif
+
 #ifdef SPEC_PSA_KEY_LIFETIME_PERSISTENT
     if (PSA_KEY_LIFETIME_PERSISTENT != SPEC_PSA_KEY_LIFETIME_PERSISTENT) {
         fprintf(stderr, "ERROR: %s doesn't match value in spec\n", "PSA_KEY_LIFETIME_PERSISTENT");
@@ -2012,6 +2073,51 @@ int main() {
     }
 #else
     printf("WARN:  %s is not defined\n", "PSA_KEY_LIFETIME_VOLATILE");
+#endif
+
+#ifdef SPEC_PSA_KEY_LOCATION_LOCAL_STORAGE
+    if (PSA_KEY_LOCATION_LOCAL_STORAGE != SPEC_PSA_KEY_LOCATION_LOCAL_STORAGE) {
+        fprintf(stderr, "ERROR: %s doesn't match value in spec\n", "PSA_KEY_LOCATION_LOCAL_STORAGE");
+        ret = 1;
+    }
+#else
+    printf("WARN:  %s is not defined\n", "PSA_KEY_LOCATION_LOCAL_STORAGE");
+#endif
+
+#ifdef SPEC_PSA_KEY_LOCATION_PRIMARY_SECURE_ELEMENT
+    if (PSA_KEY_LOCATION_PRIMARY_SECURE_ELEMENT != SPEC_PSA_KEY_LOCATION_PRIMARY_SECURE_ELEMENT) {
+        fprintf(stderr, "ERROR: %s doesn't match value in spec\n", "PSA_KEY_LOCATION_PRIMARY_SECURE_ELEMENT");
+        ret = 1;
+    }
+#else
+    printf("WARN:  %s is not defined\n", "PSA_KEY_LOCATION_PRIMARY_SECURE_ELEMENT");
+#endif
+
+#ifdef SPEC_PSA_KEY_PERSISTENCE_DEFAULT
+    if (PSA_KEY_PERSISTENCE_DEFAULT != SPEC_PSA_KEY_PERSISTENCE_DEFAULT) {
+        fprintf(stderr, "ERROR: %s doesn't match value in spec\n", "PSA_KEY_PERSISTENCE_DEFAULT");
+        ret = 1;
+    }
+#else
+    printf("WARN:  %s is not defined\n", "PSA_KEY_PERSISTENCE_DEFAULT");
+#endif
+
+#ifdef SPEC_PSA_KEY_PERSISTENCE_READ_ONLY
+    if (PSA_KEY_PERSISTENCE_READ_ONLY != SPEC_PSA_KEY_PERSISTENCE_READ_ONLY) {
+        fprintf(stderr, "ERROR: %s doesn't match value in spec\n", "PSA_KEY_PERSISTENCE_READ_ONLY");
+        ret = 1;
+    }
+#else
+    printf("WARN:  %s is not defined\n", "PSA_KEY_PERSISTENCE_READ_ONLY");
+#endif
+
+#ifdef SPEC_PSA_KEY_PERSISTENCE_VOLATILE
+    if (PSA_KEY_PERSISTENCE_VOLATILE != SPEC_PSA_KEY_PERSISTENCE_VOLATILE) {
+        fprintf(stderr, "ERROR: %s doesn't match value in spec\n", "PSA_KEY_PERSISTENCE_VOLATILE");
+        ret = 1;
+    }
+#else
+    printf("WARN:  %s is not defined\n", "PSA_KEY_PERSISTENCE_VOLATILE");
 #endif
 
 #ifdef SPEC_PSA_KEY_TYPE_AES

@@ -1201,7 +1201,10 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
         /* If we ran out of space for the carry, it means that the result
          * is negative. */
         if( n == X->n )
-            return( MBEDTLS_ERR_MPI_NEGATIVE_VALUE );
+        {
+            ret = MBEDTLS_ERR_MPI_NEGATIVE_VALUE;
+            goto cleanup;
+        }
         --X->p[n];
     }
 

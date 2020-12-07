@@ -29,14 +29,16 @@ OUTPUT_TEMPLATE = '''\
 
 {header}
 
-#define hash_alg   PSA_ALG_SHA_256
-#define mac_alg    PSA_ALG_CMAC
-#define ka_alg     PSA_ALG_ECDH
-#define kdf_alg    PSA_ALG_HKDF(PSA_ALG_SHA_256)
-#define mac_length 4
-#define group      0x2A
-#define curve      0x2A
-#define type       PSA_KEY_TYPE_RSA_PUBLIC_KEY
+#define hash_alg    PSA_ALG_SHA_256
+#define mac_alg     PSA_ALG_CMAC
+#define ka_alg      PSA_ALG_ECDH
+#define kdf_alg     PSA_ALG_HKDF(PSA_ALG_SHA_256)
+#define mac_length  4
+#define group       0x2A
+#define curve       0x2A
+#define type        PSA_KEY_TYPE_RSA_PUBLIC_KEY
+#define persistence PSA_KEY_PERSISTENCE_DEFAULT
+#define location    PSA_KEY_LOCATION_PRIMARY_SECURE_ELEMENT
 
 int main() {{
     int ret = 0;

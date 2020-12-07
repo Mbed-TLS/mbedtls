@@ -140,7 +140,7 @@ class MacroCollector():
         header = []
         tests = []
 
-        for name, (parameters, expansion) in self.macros.items():
+        for name, (parameters, expansion) in sorted(self.macros.items()):
             macro = {'name' : name, 'parameters' : parameters, 'expansion' : expansion}
             if not expansion or '_IS_' in name or '_GET_' in name:
                 tests.append(TEST_DEFINED_TEMPLATE.format_map(macro))

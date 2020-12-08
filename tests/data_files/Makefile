@@ -131,6 +131,14 @@ cli-rsa-sha256.crt: $(cli_crt_key_file_rsa) test-ca-sha256.crt cli-rsa.csr
 	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA test-ca-sha256.crt -CAkey $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 4 -days 3653 -sha256 -in cli-rsa.csr -out $@
 all_final += cli-rsa-sha256.crt
 
+cli-rsa-sha256.crt.der: cli-rsa-sha256.crt
+	$(OPENSSL) x509 -in $< -out $@ -inform PEM -outform DER
+all_final += cli-rsa-sha256.crt.der
+
+cli-rsa-sha256-badalg.crt.der: cli-rsa-sha256.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/06092A864886F70D01010B0500/06092A864886F70D01010B0900/2" | xxd -r -p > $@
+all_final += cli-rsa-sha256-badalg.crt.der
+
 server2-rsa.csr: server2.key
 	$(OPENSSL) req -new -key server2.key -passin "pass:$(test_ca_pwd_rsa)" -subj "/C=NL/O=PolarSSL/CN=localhost" -out $@
 all_intermediate += server2-rsa.csr

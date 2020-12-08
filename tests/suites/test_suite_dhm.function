@@ -99,6 +99,36 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void dhm_make_public( int P_bytes, int radix_G, char *input_G, int result )
+{
+    mbedtls_mpi P, G;
+    mbedtls_dhm_context ctx;
+    unsigned char output[MBEDTLS_MPI_MAX_SIZE];
+
+    mbedtls_mpi_init( &P );
+    mbedtls_mpi_init( &G );
+    mbedtls_dhm_init( &ctx );
+
+    TEST_ASSERT( mbedtls_mpi_lset( &P, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_shift_l( &P, ( P_bytes * 8 ) - 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_set_bit( &P, 0, 1 ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &G, radix_G, input_G ) == 0 );
+
+    TEST_ASSERT( mbedtls_dhm_set_group( &ctx, &P, &G ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_make_public( &ctx, (int) mbedtls_mpi_size( &P ),
+                                          output, sizeof(output),
+                                          &rnd_pseudo_rand,
+                                          NULL ) == result );
+
+exit:
+    mbedtls_mpi_free( &P );
+    mbedtls_mpi_free( &G );
+    mbedtls_dhm_free( &ctx );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
 void dhm_file( char *filename, char *p, char *g, int len )
 {

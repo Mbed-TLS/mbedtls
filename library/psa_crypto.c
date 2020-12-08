@@ -3341,57 +3341,14 @@ cleanup:
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
 
-psa_status_t psa_sign_hash( mbedtls_svc_key_id_t key,
-                            psa_algorithm_t alg,
-                            const uint8_t *hash,
-                            size_t hash_length,
-                            uint8_t *signature,
-                            size_t signature_size,
-                            size_t *signature_length )
+static psa_status_t psa_sign_hash_internal(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    uint8_t *signature, size_t signature_size, size_t *signature_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
 
-    *signature_length = signature_size;
-    /* Immediately reject a zero-length signature buffer. This guarantees
-     * that signature must be a valid pointer. (On the other hand, the hash
-     * buffer can in principle be empty since it doesn't actually have
-     * to be a hash.) */
-    if( signature_size == 0 )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
-
-    status = psa_get_and_lock_key_slot_with_policy( key, &slot,
-                                                    PSA_KEY_USAGE_SIGN_HASH,
-                                                    alg );
-    if( status != PSA_SUCCESS )
-        goto exit;
-    if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->attr.type ) )
-    {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto exit;
-    }
-
-    /* Try any of the available accelerators first */
-    status = psa_driver_wrapper_sign_hash( slot,
-                                           alg,
-                                           hash,
-                                           hash_length,
-                                           signature,
-                                           signature_size,
-                                           signature_length );
-    if( status != PSA_ERROR_NOT_SUPPORTED ||
-        psa_key_lifetime_is_external( slot->attr.lifetime ) )
-        goto exit;
-
-    psa_key_attributes_t attributes_struct = {
-       .core = slot->attr
-    };
-    psa_key_attributes_t *attributes = &attributes_struct;
-    const uint8_t *key_buffer = slot->key.data;
-    size_t key_buffer_size = slot->key.bytes;
-
-    /* If the operation was not supported by any accelerator, try fallback. */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
     if( attributes->core.type == PSA_KEY_TYPE_RSA_KEY_PAIR )
@@ -3458,6 +3415,62 @@ psa_status_t psa_sign_hash( mbedtls_svc_key_id_t key,
     }
 
 exit:
+    return( status );
+}
+
+psa_status_t psa_sign_hash( mbedtls_svc_key_id_t key,
+                            psa_algorithm_t alg,
+                            const uint8_t *hash,
+                            size_t hash_length,
+                            uint8_t *signature,
+                            size_t signature_size,
+                            size_t *signature_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+
+    *signature_length = signature_size;
+    /* Immediately reject a zero-length signature buffer. This guarantees
+     * that signature must be a valid pointer. (On the other hand, the hash
+     * buffer can in principle be empty since it doesn't actually have
+     * to be a hash.) */
+    if( signature_size == 0 )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+    status = psa_get_and_lock_key_slot_with_policy( key, &slot,
+                                                    PSA_KEY_USAGE_SIGN_HASH,
+                                                    alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->attr.type ) )
+    {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+
+    /* Try any of the available accelerators first */
+    status = psa_driver_wrapper_sign_hash( slot,
+                                           alg,
+                                           hash,
+                                           hash_length,
+                                           signature,
+                                           signature_size,
+                                           signature_length );
+    if( status != PSA_ERROR_NOT_SUPPORTED ||
+        psa_key_lifetime_is_external( slot->attr.lifetime ) )
+        goto exit;
+
+    /* If the operation was not supported by any accelerator, try fallback. */
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+    status = psa_sign_hash_internal(
+        &attributes, slot->key.data, slot->key.bytes,
+        alg, hash, hash_length,
+        signature, signature_size, signature_length );
+
+exit:
     /* Fill the unused part of the output buffer (the whole buffer on error,
      * the trailing part on success) with something that isn't a valid mac
      * (barring an attack on the mac and deliberately-crafted input),
@@ -3475,40 +3488,13 @@ exit:
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
-psa_status_t psa_verify_hash( mbedtls_svc_key_id_t key,
-                              psa_algorithm_t alg,
-                              const uint8_t *hash,
-                              size_t hash_length,
-                              const uint8_t *signature,
-                              size_t signature_length )
+static psa_status_t psa_verify_hash_internal(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
-
-    status = psa_get_and_lock_key_slot_with_policy( key, &slot,
-                                                    PSA_KEY_USAGE_VERIFY_HASH,
-                                                    alg );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    /* Try any of the available accelerators first */
-    status = psa_driver_wrapper_verify_hash( slot,
-                                             alg,
-                                             hash,
-                                             hash_length,
-                                             signature,
-                                             signature_length );
-    if( status != PSA_ERROR_NOT_SUPPORTED ||
-        psa_key_lifetime_is_external( slot->attr.lifetime ) )
-        goto exit;
-
-    psa_key_attributes_t attributes_struct = {
-       .core = slot->attr
-    };
-    psa_key_attributes_t *attributes = &attributes_struct;
-    const uint8_t *key_buffer = slot->key.data;
-    size_t key_buffer_size = slot->key.bytes;
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
@@ -3567,6 +3553,46 @@ psa_status_t psa_verify_hash( mbedtls_svc_key_id_t key,
     {
         status = PSA_ERROR_NOT_SUPPORTED;
     }
+
+exit:
+    return( status );
+}
+
+psa_status_t psa_verify_hash( mbedtls_svc_key_id_t key,
+                              psa_algorithm_t alg,
+                              const uint8_t *hash,
+                              size_t hash_length,
+                              const uint8_t *signature,
+                              size_t signature_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+
+    status = psa_get_and_lock_key_slot_with_policy( key, &slot,
+                                                    PSA_KEY_USAGE_VERIFY_HASH,
+                                                    alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    /* Try any of the available accelerators first */
+    status = psa_driver_wrapper_verify_hash( slot,
+                                             alg,
+                                             hash,
+                                             hash_length,
+                                             signature,
+                                             signature_length );
+    if( status != PSA_ERROR_NOT_SUPPORTED ||
+        psa_key_lifetime_is_external( slot->attr.lifetime ) )
+        goto exit;
+
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+    status = psa_verify_hash_internal(
+        &attributes, slot->key.data, slot->key.bytes,
+        alg, hash, hash_length,
+        signature, signature_length );
 
 exit:
     unlock_status = psa_unlock_key_slot( slot );

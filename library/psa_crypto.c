@@ -3449,22 +3449,21 @@ psa_status_t psa_sign_hash( mbedtls_svc_key_id_t key,
         goto exit;
     }
 
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+
     /* Try any of the available accelerators first */
-    status = psa_driver_wrapper_sign_hash( slot,
-                                           alg,
-                                           hash,
-                                           hash_length,
-                                           signature,
-                                           signature_size,
-                                           signature_length );
+    status = psa_driver_wrapper_sign_hash(
+        &attributes, slot->key.data, slot->key.bytes,
+        alg, hash, hash_length,
+        signature, signature_size, signature_length );
+
     if( status != PSA_ERROR_NOT_SUPPORTED ||
         psa_key_lifetime_is_external( slot->attr.lifetime ) )
         goto exit;
 
     /* If the operation was not supported by any accelerator, try fallback. */
-    psa_key_attributes_t attributes = {
-      .core = slot->attr
-    };
     status = psa_sign_hash_internal(
         &attributes, slot->key.data, slot->key.bytes,
         alg, hash, hash_length,
@@ -3575,20 +3574,20 @@ psa_status_t psa_verify_hash( mbedtls_svc_key_id_t key,
     if( status != PSA_SUCCESS )
         return( status );
 
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+
     /* Try any of the available accelerators first */
-    status = psa_driver_wrapper_verify_hash( slot,
-                                             alg,
-                                             hash,
-                                             hash_length,
-                                             signature,
-                                             signature_length );
+    status = psa_driver_wrapper_verify_hash(
+        &attributes, slot->key.data, slot->key.bytes,
+        alg, hash, hash_length,
+        signature, signature_length );
+
     if( status != PSA_ERROR_NOT_SUPPORTED ||
         psa_key_lifetime_is_external( slot->attr.lifetime ) )
         goto exit;
 
-    psa_key_attributes_t attributes = {
-      .core = slot->attr
-    };
     status = psa_verify_hash_internal(
         &attributes, slot->key.data, slot->key.bytes,
         alg, hash, hash_length,

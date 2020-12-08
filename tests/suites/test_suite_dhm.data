@@ -22,6 +22,12 @@ dhm_do_dhm:10:"3":10:"5":MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED
 Diffie-Hellman zero modulus
 dhm_do_dhm:10:"0":10:"5":MBEDTLS_ERR_DHM_BAD_INPUT_DATA
 
+Diffie-Hellman MPI_MAX_SIZE modulus
+dhm_make_public:MBEDTLS_MPI_MAX_SIZE:10:"5":0
+
+Diffie-Hellman MPI_MAX_SIZE + 1 modulus
+dhm_make_public:MBEDTLS_MPI_MAX_SIZE + 1:10:"5":MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED+MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
 Diffie-Hellman load parameters from file [#1]
 dhm_file:"data_files/dhparams.pem":"9e35f430443a09904f3a39a979797d070df53378e79c2438bef4e761f3c714553328589b041c809be1d6c6b5f1fc9f47d3a25443188253a992a56818b37ba9de5a40d362e56eff0be5417474c125c199272c8fe41dea733df6f662c92ae76556e755d10c64e6a50968f67fc6ea73d0dca8569be2ba204e23580d8bca2f4975b3":"02":128
 

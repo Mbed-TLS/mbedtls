@@ -3459,16 +3459,6 @@ psa_status_t psa_sign_hash( mbedtls_svc_key_id_t key,
         alg, hash, hash_length,
         signature, signature_size, signature_length );
 
-    if( status != PSA_ERROR_NOT_SUPPORTED ||
-        psa_key_lifetime_is_external( slot->attr.lifetime ) )
-        goto exit;
-
-    /* If the operation was not supported by any accelerator, try fallback. */
-    status = psa_sign_hash_internal(
-        &attributes, slot->key.data, slot->key.bytes,
-        alg, hash, hash_length,
-        signature, signature_size, signature_length );
-
 exit:
     /* Fill the unused part of the output buffer (the whole buffer on error,
      * the trailing part on success) with something that isn't a valid mac
@@ -3584,16 +3574,6 @@ psa_status_t psa_verify_hash( mbedtls_svc_key_id_t key,
         alg, hash, hash_length,
         signature, signature_length );
 
-    if( status != PSA_ERROR_NOT_SUPPORTED ||
-        psa_key_lifetime_is_external( slot->attr.lifetime ) )
-        goto exit;
-
-    status = psa_verify_hash_internal(
-        &attributes, slot->key.data, slot->key.bytes,
-        alg, hash, hash_length,
-        signature, signature_length );
-
-exit:
     unlock_status = psa_unlock_key_slot( slot );
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );

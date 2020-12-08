@@ -65,7 +65,6 @@ psa_status_t psa_driver_wrapper_sign_hash(
 {
     (void)key_buffer_size;
 
-#if defined(PSA_CRYPTO_DRIVER_PRESENT)
     /* Try dynamically-registered SE interface first */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     const psa_drv_se_t *drv;
@@ -86,9 +85,7 @@ psa_status_t psa_driver_wrapper_sign_hash(
     }
 #endif /* PSA_CRYPTO_SE_C */
 
-    /* Then try accelerator API */
-#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_location_t location =
         PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
 
@@ -97,6 +94,7 @@ psa_status_t psa_driver_wrapper_sign_hash(
         case PSA_KEY_LOCATION_LOCAL_STORAGE:
             /* Key is stored in the slot in export representation, so
              * cycle through all known transparent accelerators */
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
             status = test_transparent_signature_sign_hash( attributes,
                                                            key_buffer,
@@ -111,9 +109,20 @@ psa_status_t psa_driver_wrapper_sign_hash(
             if( status != PSA_ERROR_NOT_SUPPORTED )
                 return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
             /* Fell through, meaning no accelerator supports this operation */
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return( psa_sign_hash_internal( attributes,
+                                            key_buffer,
+                                            key_buffer_size,
+                                            alg,
+                                            hash,
+                                            hash_length,
+                                            signature,
+                                            signature_size,
+                                            signature_length ) );
+
         /* Add cases for opaque driver here */
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
             return( test_opaque_signature_sign_hash( attributes,
@@ -126,25 +135,12 @@ psa_status_t psa_driver_wrapper_sign_hash(
                                                      signature_size,
                                                      signature_length ) );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
             /* Key is declared with a lifetime not known to us */
-            return( status );
+            (void)status;
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
-#else /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-#else /* PSA_CRYPTO_DRIVER_PRESENT */
-    (void)attributes;
-    (void)key_buffer;
-    (void)alg;
-    (void)hash;
-    (void)hash_length;
-    (void)signature;
-    (void)signature_size;
-    (void)signature_length;
-
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
 psa_status_t psa_driver_wrapper_verify_hash(
@@ -155,7 +151,6 @@ psa_status_t psa_driver_wrapper_verify_hash(
 {
     (void)key_buffer_size;
 
-#if defined(PSA_CRYPTO_DRIVER_PRESENT)
     /* Try dynamically-registered SE interface first */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     const psa_drv_se_t *drv;
@@ -176,9 +171,7 @@ psa_status_t psa_driver_wrapper_verify_hash(
     }
 #endif /* PSA_CRYPTO_SE_C */
 
-    /* Then try accelerator API */
-#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_location_t location =
         PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
 
@@ -187,6 +180,7 @@ psa_status_t psa_driver_wrapper_verify_hash(
         case PSA_KEY_LOCATION_LOCAL_STORAGE:
             /* Key is stored in the slot in export representation, so
              * cycle through all known transparent accelerators */
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
             status = test_transparent_signature_verify_hash( attributes,
                                                              key_buffer,
@@ -200,9 +194,19 @@ psa_status_t psa_driver_wrapper_verify_hash(
             if( status != PSA_ERROR_NOT_SUPPORTED )
                 return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
-            /* Fell through, meaning no accelerator supports this operation */
-            return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+
+            return( psa_verify_hash_internal( attributes,
+                                              key_buffer,
+                                              key_buffer_size,
+                                              alg,
+                                              hash,
+                                              hash_length,
+                                              signature,
+                                              signature_length ) );
+
         /* Add cases for opaque driver here */
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
             return( test_opaque_signature_verify_hash( attributes,
@@ -214,24 +218,12 @@ psa_status_t psa_driver_wrapper_verify_hash(
                                                        signature,
                                                        signature_length ) );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
             /* Key is declared with a lifetime not known to us */
-            return( status );
+            (void)status;
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
-#else /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-#else /* PSA_CRYPTO_DRIVER_PRESENT */
-    (void)attributes;
-    (void)key_buffer;
-    (void)alg;
-    (void)hash;
-    (void)hash_length;
-    (void)signature;
-    (void)signature_length;
-
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
 /** Get the key buffer size for the key material of a generated key in the

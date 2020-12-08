@@ -1368,6 +1368,7 @@ run_test    "SHA-256 allowed by default in client certificate" \
             0
 
 # Tests for datagram packing
+requires_config_disabled MBEDTLS_IMMEDIATE_TRANSMISSION
 run_test    "DTLS: multiple records in same datagram, client and server" \
             "$P_SRV dtls=1 dgram_packing=1 debug_level=2" \
             "$P_CLI dtls=1 dgram_packing=1 debug_level=2" \
@@ -1375,6 +1376,7 @@ run_test    "DTLS: multiple records in same datagram, client and server" \
             -c "next record in same datagram" \
             -s "next record in same datagram"
 
+requires_config_disabled MBEDTLS_IMMEDIATE_TRANSMISSION
 run_test    "DTLS: multiple records in same datagram, client only" \
             "$P_SRV dtls=1 dgram_packing=0 debug_level=2" \
             "$P_CLI dtls=1 dgram_packing=1 debug_level=2" \
@@ -1382,6 +1384,7 @@ run_test    "DTLS: multiple records in same datagram, client only" \
             -s "next record in same datagram" \
             -C "next record in same datagram"
 
+requires_config_disabled MBEDTLS_IMMEDIATE_TRANSMISSION
 run_test    "DTLS: multiple records in same datagram, server only" \
             "$P_SRV dtls=1 dgram_packing=1 debug_level=2" \
             "$P_CLI dtls=1 dgram_packing=0 debug_level=2" \

@@ -2981,8 +2981,7 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     {
         switch( alg )
         {
-            case PSA_ALG_ARC4:
-            case PSA_ALG_CHACHA20:
+            case PSA_ALG_STREAM_CIPHER:
                 mode = MBEDTLS_MODE_STREAM;
                 break;
             case PSA_ALG_CTR:
@@ -4464,7 +4463,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     }
 #if defined(MBEDTLS_CHACHA20_C)
     else
-    if( alg == PSA_ALG_CHACHA20 )
+    if( alg == PSA_ALG_STREAM_CIPHER && slot->attr.type == PSA_KEY_TYPE_CHACHA20 )
         operation->iv_size = 12;
 #endif
 

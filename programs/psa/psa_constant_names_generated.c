@@ -175,7 +175,6 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
     }
     switch (core_alg) {
     case PSA_ALG_ANY_HASH: append(&buffer, buffer_size, &required_size, "PSA_ALG_ANY_HASH", 16); break;
-    case PSA_ALG_ARC4: append(&buffer, buffer_size, &required_size, "PSA_ALG_ARC4", 12); break;
     case PSA_ALG_CATEGORY_AEAD: append(&buffer, buffer_size, &required_size, "PSA_ALG_CATEGORY_AEAD", 21); break;
     case PSA_ALG_CATEGORY_ASYMMETRIC_ENCRYPTION: append(&buffer, buffer_size, &required_size, "PSA_ALG_CATEGORY_ASYMMETRIC_ENCRYPTION", 38); break;
     case PSA_ALG_CATEGORY_CIPHER: append(&buffer, buffer_size, &required_size, "PSA_ALG_CATEGORY_CIPHER", 23); break;
@@ -189,7 +188,6 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
     case PSA_ALG_CBC_PKCS7: append(&buffer, buffer_size, &required_size, "PSA_ALG_CBC_PKCS7", 17); break;
     case PSA_ALG_CCM: append(&buffer, buffer_size, &required_size, "PSA_ALG_CCM", 11); break;
     case PSA_ALG_CFB: append(&buffer, buffer_size, &required_size, "PSA_ALG_CFB", 11); break;
-    case PSA_ALG_CHACHA20: append(&buffer, buffer_size, &required_size, "PSA_ALG_CHACHA20", 16); break;
     case PSA_ALG_CHACHA20_POLY1305: append(&buffer, buffer_size, &required_size, "PSA_ALG_CHACHA20_POLY1305", 25); break;
     case PSA_ALG_CIPHER_MAC_BASE: append(&buffer, buffer_size, &required_size, "PSA_ALG_CIPHER_MAC_BASE", 23); break;
     case PSA_ALG_CMAC: append(&buffer, buffer_size, &required_size, "PSA_ALG_CMAC", 12); break;
@@ -224,6 +222,7 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
     case PSA_ALG_SHA_512: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA_512", 15); break;
     case PSA_ALG_SHA_512_224: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA_512_224", 19); break;
     case PSA_ALG_SHA_512_256: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA_512_256", 19); break;
+    case PSA_ALG_STREAM_CIPHER: append(&buffer, buffer_size, &required_size, "PSA_ALG_STREAM_CIPHER", 21); break;
     case PSA_ALG_TLS12_PRF_BASE: append(&buffer, buffer_size, &required_size, "PSA_ALG_TLS12_PRF_BASE", 22); break;
     case PSA_ALG_TLS12_PSK_TO_MS_BASE: append(&buffer, buffer_size, &required_size, "PSA_ALG_TLS12_PSK_TO_MS_BASE", 28); break;
     case PSA_ALG_XTS: append(&buffer, buffer_size, &required_size, "PSA_ALG_XTS", 11); break;

@@ -1,2 +1,3 @@
 Features
-* Add support for DTLS-SRTP as defined in RFC 5764. Contributed by Johan Pascal, improved by Ron Eldor.
+   * Add support for DTLS-SRTP as defined in RFC 5764. Contributed by Johan
+     Pascal, improved by Ron Eldor.

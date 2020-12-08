@@ -4511,7 +4511,7 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
         ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_SENDING;
 
         return( 0 );
-#endif /* MBEDTLS_IMMEDIATE_TRANSMISSION */
+#else
 
         ssl->handshake->cur_msg = ssl->handshake->flight;
         ssl->handshake->cur_msg_p = ssl->handshake->flight->p + 12;
@@ -4519,6 +4519,7 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
             return( ret );
 
         ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_SENDING;
+#endif /* MBEDTLS_IMMEDIATE_TRANSMISSION */
     }
 
     while( ssl->handshake->cur_msg != NULL )

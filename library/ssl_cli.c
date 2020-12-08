@@ -3654,14 +3654,14 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
 
     {
         ((void) n);
-
+        ((void) ret);
         if( (size_t)( end - p ) < 2 * NUM_ECC_BYTES + 2 )
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
         *p++ = 2 * NUM_ECC_BYTES + 1;
         *p++ = 0x04; /* uncompressed point presentation */
 
-#if defined(MBEDTLS_EARLY_KEY_COMPUTATION) && defined(MBEDTLS_USE_TINYCRYPT)
+#if defined(MBEDTLS_EARLY_KEY_COMPUTATION)
         memcpy( p, ssl->handshake->ecdh_publickey, 2 * NUM_ECC_BYTES );
 #else
         ret = uECC_make_key( p, ssl->handshake->ecdh_privkey );

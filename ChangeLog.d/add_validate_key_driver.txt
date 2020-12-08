@@ -1,0 +1,3 @@
+Features
+   * Implementation of the validate_key entry point for PSA Crypto accelerator
+     drivers as defined in #3695.

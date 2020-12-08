@@ -3341,7 +3341,7 @@ cleanup:
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
 
-static psa_status_t psa_sign_hash_internal(
+psa_status_t psa_sign_hash_internal(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
@@ -3487,7 +3487,7 @@ exit:
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
-static psa_status_t psa_verify_hash_internal(
+psa_status_t psa_verify_hash_internal(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,

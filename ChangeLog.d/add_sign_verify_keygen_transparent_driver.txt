@@ -1,4 +1,0 @@
-Features
-   * Partial implementation of the new PSA Crypto accelerator APIs for
-     enabling key generation and asymmetric signing/verification through crypto
-     accelerators. Contributed by Steven Cooreman in #3501.

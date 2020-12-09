@@ -1,6 +1,0 @@
-Features
-   * Add MBEDTLS_TARGET_PREFIX CMake variable, which is prefixed to the mbedtls,
-     mbedcrypto, mbedx509 and apidoc CMake target names. This can be used by
-     external CMake projects that include this one to avoid CMake target name
-     clashes.  The default value of this variable is "", so default target names
-     are unchanged.

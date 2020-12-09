@@ -1,6 +1,0 @@
-Bugfix
-   * In PEM writing functions, fill the trailing part of the buffer with null
-     bytes. This guarantees that the corresponding parsing function can read
-     the buffer back, which was the case for mbedtls_x509write_{crt,csr}_pem
-     until this property was inadvertently broken in Mbed TLS 2.19.0.
-     Fixes #3682.

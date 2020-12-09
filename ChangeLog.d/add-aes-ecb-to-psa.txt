@@ -1,2 +1,0 @@
-Features
-   * Add support for ECB to the PSA cipher API.

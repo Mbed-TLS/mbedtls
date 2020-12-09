@@ -1,4 +1,0 @@
-Features
-   * PSA_AEAD_NONCE_LENGTH, PSA_AEAD_NONCE_MAX_SIZE, PSA_CIPHER_IV_LENGTH and
-     PSA_CIPHER_IV_MAX_SIZE macros have been added as defined in version
-     1.0.0 of the PSA Crypto API specification.

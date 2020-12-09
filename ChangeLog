@@ -1,5 +1,176 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+API changes
+   * The numerical values of the PSA Crypto API macros have been updated to
+     conform to version 1.0.0 of the specification.
+   * PSA_ALG_STREAM_CIPHER replaces PSA_ALG_CHACHA20 and PSA_ALG_ARC4.
+     The underlying stream cipher is determined by the key type
+     (PSA_KEY_TYPE_CHACHA20 or PSA_KEY_TYPE_ARC4).
+   * The functions mbedtls_cipher_auth_encrypt() and
+     mbedtls_cipher_auth_decrypt() no longer accept NIST_KW contexts,
+     as they have no way to check if the output buffer is large enough.
+     Please use mbedtls_cipher_auth_encrypt_ext() and
+     mbedtls_cipher_auth_decrypt_ext() instead. Credit to OSS-Fuzz and
+     Cryptofuzz. Fixes #3665.
+
+Requirement changes
+   * Update the minimum required CMake version to 2.8.12.
+   * This silences a warning on CMake 3.19.0. #3801
+
+New deprecations
+   * PSA_KEY_TYPE_CHACHA20 and PSA_KEY_TYPE_ARC4 have been deprecated.
+     Use PSA_ALG_STREAM_CIPHER instead.
+   * The functions mbedtls_cipher_auth_encrypt() and
+     mbedtls_cipher_auth_decrypt() are deprecated in favour of the new
+     functions mbedtls_cipher_auth_encrypt_ext() and
+     mbedtls_cipher_auth_decrypt_ext(). Please note that with AEAD ciphers,
+     these new functions always append the tag to the ciphertext, and include
+     the tag in the ciphertext length.
+
+Features
+   * Partial implementation of the new PSA Crypto accelerator APIs for
+     enabling key generation and asymmetric signing/verification through crypto
+     accelerators. Contributed by Steven Cooreman in #3501.
+   * Add support for ECB to the PSA cipher API.
+   * Partial implementation of the new PSA Crypto accelerator APIs for
+     enabling symmetric cipher acceleration through crypto accelerators.
+     Contributed by Steven Cooreman in #3644.
+   * In PSA, allow using a key declared with a base key agreement algorithm
+     in combined key agreement and derivation operations, as long as the key
+     agreement algorithm in use matches the algorithm the key was declared with.
+     This is currently non-standard behaviour, but expected to make it into a
+     future revision of the PSA Crypto standard.
+   * Add MBEDTLS_TARGET_PREFIX CMake variable, which is prefixed to the mbedtls,
+     mbedcrypto, mbedx509 and apidoc CMake target names. This can be used by
+     external CMake projects that include this one to avoid CMake target name
+     clashes.  The default value of this variable is "", so default target names
+     are unchanged.
+   * Add support for DTLS-SRTP as defined in RFC 5764. Contributed by Johan
+     Pascal, improved by Ron Eldor.
+   * In the PSA API, it is no longer necessary to open persistent keys:
+     operations now accept the key identifier. The type psa_key_handle_t is now
+     identical to psa_key_id_t instead of being platform-defined. This bridges
+     the last major gap to compliance with the PSA Cryptography specification
+     version 1.0.0. Opening persistent keys is still supported for backward
+     compatibility, but will be deprecated and later removed in future
+     releases.
+   * Implementation of the export_public_key interface for PSA Crypto
+     accelerator drivers, as defined in #3493. Contributed in #3786.
+   * Implementation of the validate_key entry point for PSA Crypto accelerator
+     drivers as defined in #3695.
+   * PSA_AEAD_NONCE_LENGTH, PSA_AEAD_NONCE_MAX_SIZE, PSA_CIPHER_IV_LENGTH and
+     PSA_CIPHER_IV_MAX_SIZE macros have been added as defined in version
+     1.0.0 of the PSA Crypto API specification.
+
+Security
+   * The functions mbedtls_cipher_auth_encrypt() and
+     mbedtls_cipher_auth_decrypt() would write past the minimum documented
+     size of the output buffer when used with NIST_KW. As a result, code using
+     those functions as documented with NIST_KW could have a buffer overwrite
+     of up to 15 bytes, with consequences ranging up to arbitrary code
+     execution depending on the location of the output buffer.
+   * Limit the size of calculations performed by mbedtls_mpi_exp_mod to
+     MBEDTLS_MPI_MAX_SIZE to prevent a potential denial of service when
+     generating Diffie-Hellman key pairs. Credit to OSS-Fuzz.
+   * A failure of the random generator was ignored in mbedtls_mpi_fill_random(),
+     which is how most uses of randomization in asymmetric cryptography
+     (including key generation, intermediate value randomization and blinding)
+     are implemented. This could cause failures or the silent use of non-random
+     values. A random generator can fail if it needs reseeding and cannot not
+     obtain entropy, or due to an internal failure (which, for Mbed TLS's own
+     CTR_DRBG or HMAC_DRBG, can only happen due to a misconfiguration).
+   * Fix a compliance issue whereby we were not checking the tag on the
+     algorithm parameters (only the size) when comparing the signature in the
+     description part of the cert to the real signature. This meant that a
+     NULL algorithm parameters entry would look identical to an array of REAL
+     (size zero) to the library and thus the certificate would be considered
+     valid. However, if the parameters do not match in *any* way then the
+     certificate should be considered invalid, and indeed OpenSSL marks these
+     certs as invalid when mbedtls did not.
+     Many thanks to guidovranken who found this issue via differential fuzzing
+     and reported it in #3629.
+   * Zeroising of local buffers and variables which are used for calculations
+     in mbedtls_pkcs5_pbkdf2_hmac(), mbedtls_internal_sha*_process(),
+     mbedtls_internal_md*_process() and mbedtls_internal_ripemd160_process()
+     functions to erase sensitive data from memory. Reported by
+     Johan Malmgren and Johan Uppman Bruce from Sectra.
+
+Bugfix
+   * Fix build failure in configurations where MBEDTLS_USE_PSA_CRYPTO is
+     enabled but ECDSA is disabled. Contributed by jdurkop. Fixes #3294.
+   * Include the psa_constant_names generated source code in the source tree
+     instead of generating it at build time. Fixes #3524.
+   * Fix rsa_prepare_blinding() to retry when the blinding value is not
+     invertible (mod N), instead of returning MBEDTLS_ERR_RSA_RNG_FAILED. This
+     addresses a regression but is rare in practice (approx. 1 in 2/sqrt(N)).
+     Found by Synopsys Coverity, fix contributed by Peter Kolbus (Garmin).
+     Fixes #3647.
+   * Use socklen_t on Android and other POSIX-compliant system
+   * Fix the build when the macro _GNU_SOURCE is defined to a non-empty value.
+     Fix #3432.
+   * Consistently return PSA_ERROR_INVALID_ARGUMENT on invalid cipher input
+     sizes (instead of PSA_ERROR_BAD_STATE in some cases) to make the
+     psa_cipher_* functions compliant with the PSA Crypto API specification.
+   * mbedtls_ecp_curve_list() now lists Curve25519 and Curve448 under the names
+     "x25519" and "x448". These curves support ECDH but not ECDSA. If you need
+     only the curves that support ECDSA, filter the list with
+     mbedtls_ecdsa_can_do().
+   * Fix psa_generate_key() returning an error when asked to generate
+     an ECC key pair on Curve25519 or secp244k1.
+   * Fix psa_key_derivation_output_key() to allow the output of a combined key
+     agreement and subsequent key derivation operation to be used as a key
+     inside of the PSA Crypto core.
+   * Fix handling of EOF against 0xff bytes and on platforms with unsigned
+     chars. Fixes a build failure on platforms where char is unsigned. Fixes
+     #3794.
+   * Fix an off-by-one error in the additional data length check for
+     CCM, which allowed encryption with a non-standard length field.
+     Fixes #3719.
+   * Correct the default IV size for mbedtls_cipher_info_t structures using
+     MBEDTLS_MODE_ECB to 0, since ECB mode ciphers don't use IVs.
+   * Make arc4random_buf available on NetBSD and OpenBSD when _POSIX_C_SOURCE is
+     defined. Fix contributed in #3571.
+   * Fix conditions for including string.h in error.c. Fixes #3866.
+   * psa_set_key_id() now also sets the lifetime to persistent for keys located
+     in a secure element.
+   * Attempting to create a volatile key with a non-zero key identifier now
+     fails. Previously the key identifier was just ignored when creating a
+     volatile key.
+   * Attempting to create or register a key with a key identifier in the vendor
+     range now fails.
+   * Fix build failures on GCC 11. Fixes #3782.
+   * Add missing arguments of debug message in mbedtls_ssl_decrypt_buf.
+   * Fix a memory leak in mbedtls_mpi_sub_abs() when the result was negative
+     (an error condition) and the second operand was aliased to the result.
+   * Fix a case in elliptic curve arithmetic where an out-of-memory condition
+     could go undetected, resulting in an incorrect result.
+   * In CTR_DRBG and HMAC_DRBG, don't reset the reseed interval in seed().
+     Fixes #2927.
+   * In PEM writing functions, fill the trailing part of the buffer with null
+     bytes. This guarantees that the corresponding parsing function can read
+     the buffer back, which was the case for mbedtls_x509write_{crt,csr}_pem
+     until this property was inadvertently broken in Mbed TLS 2.19.0.
+     Fixes #3682.
+   * Fix a build failure that occurred with the MBEDTLS_AES_SETKEY_DEC_ALT
+     option on. In this configuration key management methods that are required
+     for MBEDTLS_CIPHER_MODE_XTS were excluded from the build and made it fail.
+     Fixes #3818. Reported by John Stroebel.
+
+Changes
+   * Reduce stack usage significantly during sliding window exponentiation.
+     Reported in #3591 and fix contributed in #3592 by Daniel Otte.
+   * The PSA persistent storage format is updated to always store the key bits
+     attribute. No automatic upgrade path is provided. Previously stored keys
+     must be erased, or manually upgraded based on the key storage format
+     specification (docs/architecture/mbed-crypto-storage-specification.md).
+     Fixes #3740.
+   * Remove the zeroization of a pointer variable in AES rounds. It was valid
+     but spurious and misleading since it looked like a mistaken attempt to
+     zeroize the pointed-to buffer. Reported by Antonio de la Piedra, CEA
+     Leti, France.
+
 = mbed TLS 2.24.0 branch released 2020-09-01
 
 API changes

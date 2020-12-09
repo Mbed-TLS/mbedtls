@@ -1,3 +1,0 @@
-Bugfix
-   * Correct the default IV size for mbedtls_cipher_info_t structures using
-     MBEDTLS_MODE_ECB to 0, since ECB mode ciphers don't use IVs.

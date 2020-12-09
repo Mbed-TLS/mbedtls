@@ -1,3 +1,0 @@
-Bugfix
-   * Fix psa_generate_key() returning an error when asked to generate
-     an ECC key pair on Curve25519 or secp244k1.

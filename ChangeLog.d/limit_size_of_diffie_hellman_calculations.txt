@@ -1,4 +1,0 @@
-Security
-   * Limit the size of calculations performed by mbedtls_mpi_exp_mod to
-     MBEDTLS_MPI_MAX_SIZE to prevent a potential denial of service when
-     generating Diffie-Hellman key pairs. Credit to OSS-Fuzz.

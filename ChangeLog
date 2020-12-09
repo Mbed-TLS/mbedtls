@@ -98,6 +98,8 @@ Security
      Johan Malmgren and Johan Uppman Bruce from Sectra.
 
 Bugfix
+   * Fix an invalid (but nonzero) return code from mbedtls_pk_parse_subpubkey()
+     when the input has trailing garbage. Fixes #2512.
    * Fix build failure in configurations where MBEDTLS_USE_PSA_CRYPTO is
      enabled but ECDSA is disabled. Contributed by jdurkop. Fixes #3294.
    * Include the psa_constant_names generated source code in the source tree

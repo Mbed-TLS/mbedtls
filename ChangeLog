@@ -30,13 +30,10 @@ New deprecations
      the tag in the ciphertext length.
 
 Features
-   * Partial implementation of the new PSA Crypto accelerator APIs for
-     enabling key generation and asymmetric signing/verification through crypto
-     accelerators. Contributed by Steven Cooreman in #3501.
+   * Partial implementation of the new PSA Crypto accelerator APIs. (Symmetric
+     ciphers, asymmetric signing/verification and key generation, validate_key
+     entry point, and export_public_key interface.)
    * Add support for ECB to the PSA cipher API.
-   * Partial implementation of the new PSA Crypto accelerator APIs for
-     enabling symmetric cipher acceleration through crypto accelerators.
-     Contributed by Steven Cooreman in #3644.
    * In PSA, allow using a key declared with a base key agreement algorithm
      in combined key agreement and derivation operations, as long as the key
      agreement algorithm in use matches the algorithm the key was declared with.
@@ -56,10 +53,6 @@ Features
      version 1.0.0. Opening persistent keys is still supported for backward
      compatibility, but will be deprecated and later removed in future
      releases.
-   * Implementation of the export_public_key interface for PSA Crypto
-     accelerator drivers, as defined in #3493. Contributed in #3786.
-   * Implementation of the validate_key entry point for PSA Crypto accelerator
-     drivers as defined in #3695.
    * PSA_AEAD_NONCE_LENGTH, PSA_AEAD_NONCE_MAX_SIZE, PSA_CIPHER_IV_LENGTH and
      PSA_CIPHER_IV_MAX_SIZE macros have been added as defined in version
      1.0.0 of the PSA Crypto API specification.

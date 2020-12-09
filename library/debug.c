@@ -74,6 +74,7 @@ static inline void debug_send_line( const mbedtls_ssl_context *ssl, int level,
 #endif
 }
 
+MBEDTLS_PRINTF_ATTRIBUTE(5, 6)
 void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,
                               const char *file, int line,
                               const char *format, ... )

@@ -80,6 +80,25 @@
 
 #endif /* MBEDTLS_DEBUG_C */
 
+/**
+ * \def MBEDTLS_PRINTF_ATTRIBUTE
+ *
+ * Mark a function as having printf attributes, and thus enable checking
+ * via -wFormat and other flags. This does nothing in windows builds as the
+ * windows compiler does not support it.
+ *
+ * Module:  library/debug.c
+ * Caller:
+ *
+ * This module provides debugging functions.
+ */
+#if (defined(_WIN32) || defined(_WIN64))
+#define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)
+#else
+#define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)    \
+    __attribute__((format (printf, string_index, first_to_check)))
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -118,7 +137,7 @@ void mbedtls_debug_set_threshold( int threshold );
  */
 void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,
                               const char *file, int line,
-                              const char *format, ... );
+                              const char *format, ... ) MBEDTLS_PRINTF_ATTRIBUTE(5, 6);
 
 /**
  * \brief   Print the return value of a function to the debug output. This

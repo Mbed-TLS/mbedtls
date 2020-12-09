@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.25.0 branch released 2020-12-11
 
 API changes
    * The numerical values of the PSA Crypto API macros have been updated to

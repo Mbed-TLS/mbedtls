@@ -1,2 +1,0 @@
-Bugfix
-   * Fix build failures on GCC 11. Fixes #3782.

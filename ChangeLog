@@ -1,5 +1,51 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Security
+   * Limit the size of calculations performed by mbedtls_mpi_exp_mod to
+     MBEDTLS_MPI_MAX_SIZE to prevent a potential denial of service when
+     generating Diffie-Hellman key pairs. Credit to OSS-Fuzz.
+   * Fix a compliance issue whereby we were not checking the tag on the
+     algorithm parameters (only the size) when comparing the signature in the
+     description part of the cert to the real signature. This meant that a
+     NULL algorithm parameters entry would look identical to an array of REAL
+     (size zero) to the library and thus the certificate would be considered
+     valid. However, if the parameters do not match in *any* way then the
+     certificate should be considered invalid, and indeed OpenSSL marks these
+     certs as invalid when mbedtls did not.
+     Many thanks to guidovranken who found this issue via differential fuzzing
+     and reported it in #3629.
+   * Zeroising of local buffers and variables which are used for calculations
+     in mbedtls_pkcs5_pbkdf2_hmac(), mbedtls_internal_sha*_process(),
+     mbedtls_internal_md*_process() and mbedtls_internal_ripemd160_process()
+     functions to erase sensitive data from memory. Reported by
+     Johan Malmgren and Johan Uppman Bruce from Sectra.
+
+Bugfix
+   * Fix rsa_prepare_blinding() to retry when the blinding value is not
+     invertible (mod N), instead of returning MBEDTLS_ERR_RSA_RNG_FAILED. This
+     addresses a regression but is rare in practice (approx. 1 in 2/sqrt(N)).
+     Found by Synopsys Coverity, fix contributed by Peter Kolbus (Garmin).
+     Fixes #3647.
+   * Correct the default IV size for mbedtls_cipher_info_t structures using
+     MBEDTLS_MODE_ECB to 0, since ECB mode ciphers don't use IVs.
+   * Fix build failures on GCC 11. Fixes #3782.
+   * Fix a memory leak in mbedtls_mpi_sub_abs() when the result was negative
+     (an error condition) and the second operand was aliased to the result.
+   * Fix a case in elliptic curve arithmetic where an out-of-memory condition
+     could go undetected, resulting in an incorrect result.
+   * In CTR_DRBG and HMAC_DRBG, don't reset the reseed interval in seed().
+     Fixes #2927.
+
+Changes
+   * Reduce stack usage significantly during sliding window exponentiation.
+     Reported in #3591 and fix contributed in #3592 by Daniel Otte.
+   * Remove the zeroization of a pointer variable in AES rounds. It was valid
+     but spurious and misleading since it looked like a mistaken attempt to
+     zeroize the pointed-to buffer. Reported by Antonio de la Piedra, CEA
+     Leti, France.
+
 = mbed TLS 2.7.17 branch released 2020-09-01
 
 Features

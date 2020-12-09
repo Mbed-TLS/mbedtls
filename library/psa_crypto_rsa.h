@@ -137,6 +137,81 @@ psa_status_t mbedtls_psa_rsa_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length );
 
+/** Sign an already-calculated hash with an RSA private key.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       sign_hash entry point. This function behaves as a sign_hash
+ *       entry point as defined in the PSA driver interface specification for
+ *       transparent drivers.
+ *
+ * \param[in]  attributes       The attributes of the RSA key to use for the
+ *                              operation.
+ * \param[in]  key_buffer       The buffer containing the RSA key context.
+ *                              format.
+ * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes.
+ * \param[in]  alg              A signature algorithm that is compatible with
+ *                              an RSA key.
+ * \param[in]  hash             The hash or message to sign.
+ * \param[in]  hash_length      Size of the \p hash buffer in bytes.
+ * \param[out] signature        Buffer where the signature is to be written.
+ * \param[in]  signature_size   Size of the \p signature buffer in bytes.
+ * \param[out] signature_length On success, the number of bytes
+ *                              that make up the returned signature value.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p signature buffer is too small. You can
+ *         determine a sufficient buffer size by calling
+ *         #PSA_SIGN_OUTPUT_SIZE(\c PSA_KEY_TYPE_RSA_KEY_PAIR, \c key_bits,
+ *         \p alg) where \c key_bits is the bit-size of the RSA key.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
+ */
+psa_status_t mbedtls_psa_rsa_sign_hash(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    uint8_t *signature, size_t signature_size, size_t *signature_length );
+
+/**
+ * \brief Verify the signature a hash or short message using a public RSA key.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       verify_hash entry point. This function behaves as a verify_hash
+ *       entry point as defined in the PSA driver interface specification for
+ *       transparent drivers.
+ *
+ * \param[in]  attributes       The attributes of the RSA key to use for the
+ *                              operation.
+ * \param[in]  key_buffer       The buffer containing the RSA key context.
+ *                              format.
+ * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes.
+ * \param[in]  alg              A signature algorithm that is compatible with
+ *                              an RSA key.
+ * \param[in]  hash             The hash or message whose signature is to be
+ *                              verified.
+ * \param[in]  hash_length      Size of the \p hash buffer in bytes.
+ * \param[in]  signature        Buffer containing the signature to verify.
+ * \param[in]  signature_length Size of the \p signature buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The signature is valid.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The calculation was performed successfully, but the passed
+ *         signature is not a valid signature.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+psa_status_t mbedtls_psa_rsa_verify_hash(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length );
+
 /*
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
  */

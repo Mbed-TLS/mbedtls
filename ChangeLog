@@ -53,10 +53,10 @@ Bugfix
      the buffer back, which was the case for mbedtls_x509write_{crt,csr}_pem
      until this property was inadvertently broken in Mbed TLS 2.19.0.
      Fixes #3682.
-   * Fix an issue that occurred when building with MBEDTLS_AES_SETKEY_DEC_ALT.
-     Key management methods that are required for MBEDTLS_CIPHER_MODE_XTS were
-     excluded from the build and led to failure. Fixes #3818. Reported by
-     John Stroebel.
+   * Fix a build failure that occurred with the MBEDTLS_AES_SETKEY_DEC_ALT
+     option on. In this configuration key management methods that are required
+     for MBEDTLS_CIPHER_MODE_XTS were excluded from the build and made it fail.
+     Fixes #3818. Reported by John Stroebel.
 
 Changes
    * Reduce stack usage significantly during sliding window exponentiation.

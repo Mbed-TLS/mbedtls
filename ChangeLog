@@ -30,6 +30,8 @@ Security
      Johan Malmgren and Johan Uppman Bruce from Sectra.
 
 Bugfix
+   * Fix an invalid (but nonzero) return code from mbedtls_pk_parse_subpubkey()
+     when the input has trailing garbage. Fixes #2512.
    * Fix rsa_prepare_blinding() to retry when the blinding value is not
      invertible (mod N), instead of returning MBEDTLS_ERR_RSA_RNG_FAILED. This
      addresses a regression but is rare in practice (approx. 1 in 2/sqrt(N)).

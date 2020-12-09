@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.16.9 branch released 2020-12-11
 
 Security
    * Limit the size of calculations performed by mbedtls_mpi_exp_mod to

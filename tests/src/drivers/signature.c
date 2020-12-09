@@ -28,6 +28,7 @@
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
 #include "psa/crypto.h"
 #include "psa_crypto_core.h"
+#include "psa_crypto_rsa.h"
 #include "mbedtls/ecp.h"
 
 #include "test/drivers/signature.h"
@@ -65,6 +66,19 @@ psa_status_t test_transparent_signature_sign_hash(
     }
 
     psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
+
+#if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) || \
+    defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS)
+    if( attributes->core.type == PSA_KEY_TYPE_RSA_KEY_PAIR )
+    {
+        return( mbedtls_transparent_test_driver_rsa_sign_hash(
+                    attributes,
+                    key_buffer, key_buffer_size,
+                    alg, hash, hash_length,
+                    signature, signature_size, signature_length ) );
+    }
+#endif /* defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) ||
+        * defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS) */
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) && \
     defined(MBEDTLS_SHA256_C)
@@ -177,6 +191,19 @@ psa_status_t test_transparent_signature_verify_hash(
         return( test_driver_signature_verify_hooks.forced_status );
 
     psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
+
+#if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) || \
+    defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS)
+    if( PSA_KEY_TYPE_IS_RSA( attributes->core.type ) )
+    {
+        return( mbedtls_transparent_test_driver_rsa_verify_hash(
+                    attributes,
+                    key_buffer, key_buffer_size,
+                    alg, hash, hash_length,
+                    signature, signature_length ) );
+    }
+#endif /* defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) ||
+        * defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS) */
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) && \
     defined(MBEDTLS_SHA256_C)

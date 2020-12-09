@@ -52,6 +52,7 @@
 #define PSA_ITS_STORAGE_FILENAME_LENGTH         \
     ( sizeof( PSA_ITS_STORAGE_PREFIX ) - 1 + /*prefix without terminating 0*/ \
       16 + /*UID (64-bit number in hex)*/                               \
+      16 + /*UID (64-bit number in hex)*/                               \
       sizeof( PSA_ITS_STORAGE_SUFFIX ) - 1 + /*suffix without terminating 0*/ \
       1 /*terminating null byte*/ )
 #define PSA_ITS_STORAGE_TEMP \

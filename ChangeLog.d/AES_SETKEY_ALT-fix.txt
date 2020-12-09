@@ -1,5 +1,0 @@
-Bugfix
-   * Fix an issue that occurred when building with MBEDTLS_AES_SETKEY_DEC_ALT.
-     Key management methods that are required for MBEDTLS_CIPHER_MODE_XTS were
-     excluded from the build and led to failure. Fixes #3818. Reported by
-     John Stroebel.

@@ -1,3 +1,0 @@
-Features
-    * Implementation of the export_public_key interface for PSA Crypto
-      accelerator drivers, as defined in #3493. Contributed in #3786.

@@ -1,2 +1,0 @@
-Bugfix
-   * Fix conditions for including string.h in error.c. Fixes #3866.

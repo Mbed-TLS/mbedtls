@@ -1,3 +1,0 @@
-Bugfix
-  * Include the psa_constant_names generated source code in the source tree
-    instead of generating it at build time. Fixes #3524.

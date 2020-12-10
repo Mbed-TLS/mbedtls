@@ -1,9 +1,0 @@
-API changes
-   * The numerical values of the PSA Crypto API macros have been updated to
-     conform to version 1.0.0 of the specification.
-   * PSA_ALG_STREAM_CIPHER replaces PSA_ALG_CHACHA20 and PSA_ALG_ARC4.
-     The underlying stream cipher is determined by the key type
-     (PSA_KEY_TYPE_CHACHA20 or PSA_KEY_TYPE_ARC4).
-New deprecations
-   * PSA_KEY_TYPE_CHACHA20 and PSA_KEY_TYPE_ARC4 have been deprecated.
-     Use PSA_ALG_STREAM_CIPHER instead.

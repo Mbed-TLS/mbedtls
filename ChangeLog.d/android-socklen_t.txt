@@ -1,3 +1,0 @@
-Bugfix
-   * Use socklen_t on Android and other POSIX-compliant system
-

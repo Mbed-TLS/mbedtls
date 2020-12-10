@@ -1,4 +1,0 @@
-Bugfix
-   * Fix psa_key_derivation_output_key() to allow the output of a combined key
-     agreement and subsequent key derivation operation to be used as a key
-     inside of the PSA Crypto core.

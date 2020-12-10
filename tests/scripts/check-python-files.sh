@@ -28,7 +28,7 @@ else
     PYTHON=python
 fi
 
-$PYTHON -m pylint -j 2 scripts/*.py tests/scripts/*.py || {
+$PYTHON -m pylint -j 2 scripts/mbedtls_dev/*.py scripts/*.py tests/scripts/*.py || {
     echo >&2 "pylint reported errors"
     ret=1
 }

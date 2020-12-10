@@ -16,8 +16,8 @@ API changes
      Cryptofuzz. Fixes #3665.
 
 Requirement changes
-   * Update the minimum required CMake version to 2.8.12.
-   * This silences a warning on CMake 3.19.0. #3801
+   * Update the minimum required CMake version to 2.8.12.  This silences a
+     warning on CMake 3.19.0. #3801
 
 New deprecations
    * PSA_KEY_TYPE_CHACHA20 and PSA_KEY_TYPE_ARC4 have been deprecated.

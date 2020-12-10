@@ -4,9 +4,19 @@ This document describes the test strategy for the driver interfaces in Mbed Cryp
 
 The driver interfaces are standardized through PSA Cryptography functional specifications.
 
-## Secure element driver interface
+## Secure element driver interface testing
 
-The secure element driver interface (SE interface for short) is defined by [`psa/crypto_se_driver.h`](../../../include/psa/crypto_se_driver.h). This is an interface between Mbed Crypto and one or more third-party drivers.
+### Secure element driver interfaces
+
+#### Opaque driver interface
+
+The [unified driver interface](../../proposed/psa-driver-interface.md) supports both transparent drivers (for accelerators) and opaque drivers (for secure elements).
+
+Drivers exposing this interface need to be registered at compile time by declaring their JSON description file.
+
+#### Dynamic secure element driver interface
+
+The dynamic secure element driver interface (SE interface for short) is defined by [`psa/crypto_se_driver.h`](../../../include/psa/crypto_se_driver.h). This is an interface between Mbed Crypto and one or more third-party drivers.
 
 The SE interface consists of one function provided by Mbed Crypto (`psa_register_se_driver`) and many functions that drivers must implement. To make a driver usable by Mbed Crypto, the initialization code must call `psa_register_se_driver` with a structure that describes the driver. The structure mostly contains function pointers, pointing to the driver's methods. All calls to a driver function are triggered by a call to a PSA crypto API function.
 
@@ -17,6 +27,8 @@ This section describes unit tests that must be implemented to validate the secur
 Many SE driver interface unit tests could be covered by running the existing API tests with a key in a secure element.
 
 #### SE driver registration
+
+This applies to dynamic drivers only.
 
 * Test `psa_register_se_driver` with valid and with invalid arguments.
 * Make at least one failing call to `psa_register_se_driver` followed by a successful call.
@@ -102,14 +114,20 @@ We should have at least one driver that covers the whole interface:
 
 A PKCS#11 driver would be a good candidate. It would be useful as part of our product offering.
 
-## Accelerator driver interface
+## Transparent driver interface testing
 
-The accelerator driver interface is defined by [`psa/crypto_accel_driver.h`](../../../include/psa/crypto_accel_driver.h).
+The [unified driver interface](../../proposed/psa-driver-interface.md) defines interfaces for accelerators.
 
-TODO
+### Test requirements
 
-## Entropy driver interface
+#### Requirements for transparent driver testing
 
-The entropy driver interface is defined by [`psa/crypto_entropy_driver.h`](../../../include/psa/crypto_entropy_driver.h).
+Every cryptographic mechanism for which a transparent driver interface exists (key creation, cryptographic operations, …) must be exercised in at least one build. The test must verify that the driver code is called.
+
+#### Requirements for fallback
+
+The driver interface includes a fallback mechanism so that a driver can reject a request at runtime and let another driver handle the request. For each entry point, there must be at least three test runs with two or more drivers available with driver A configured to fall back to driver B, with one run where A returns `PSA_SUCCESS`, one where A returns `PSA_ERROR_NOT_SUPPORTED` and B is invoked, and one where A returns a different error and B is not invoked.
+
+## Entropy and randomness interface testing
 
 TODO

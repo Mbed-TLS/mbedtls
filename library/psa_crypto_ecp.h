@@ -239,6 +239,18 @@ psa_status_t mbedtls_transparent_test_driver_ecp_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length );
 
+psa_status_t mbedtls_transparent_test_driver_ecdsa_sign_hash(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    uint8_t *signature, size_t signature_size, size_t *signature_length );
+
+psa_status_t mbedtls_transparent_test_driver_ecdsa_verify_hash(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length );
+
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 
 #endif /* PSA_CRYPTO_ECP_H */

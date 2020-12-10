@@ -1,5 +1,73 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.16.9 branch released 2020-12-11
+
+Security
+   * Limit the size of calculations performed by mbedtls_mpi_exp_mod to
+     MBEDTLS_MPI_MAX_SIZE to prevent a potential denial of service when
+     generating Diffie-Hellman key pairs. Credit to OSS-Fuzz.
+   * A failure of the random generator was ignored in mbedtls_mpi_fill_random(),
+     which is how most uses of randomization in asymmetric cryptography
+     (including key generation, intermediate value randomization and blinding)
+     are implemented. This could cause failures or the silent use of non-random
+     values. A random generator can fail if it needs reseeding and cannot not
+     obtain entropy, or due to an internal failure (which, for Mbed TLS's own
+     CTR_DRBG or HMAC_DRBG, can only happen due to a misconfiguration).
+   * Fix a compliance issue whereby we were not checking the tag on the
+     algorithm parameters (only the size) when comparing the signature in the
+     description part of the cert to the real signature. This meant that a
+     NULL algorithm parameters entry would look identical to an array of REAL
+     (size zero) to the library and thus the certificate would be considered
+     valid. However, if the parameters do not match in *any* way then the
+     certificate should be considered invalid, and indeed OpenSSL marks these
+     certs as invalid when mbedtls did not.
+     Many thanks to guidovranken who found this issue via differential fuzzing
+     and reported it in #3629.
+   * Zeroising of local buffers and variables which are used for calculations
+     in mbedtls_pkcs5_pbkdf2_hmac(), mbedtls_internal_sha*_process(),
+     mbedtls_internal_md*_process() and mbedtls_internal_ripemd160_process()
+     functions to erase sensitive data from memory. Reported by
+     Johan Malmgren and Johan Uppman Bruce from Sectra.
+
+Bugfix
+   * Fix an invalid (but nonzero) return code from mbedtls_pk_parse_subpubkey()
+     when the input has trailing garbage. Fixes #2512.
+   * Fix rsa_prepare_blinding() to retry when the blinding value is not
+     invertible (mod N), instead of returning MBEDTLS_ERR_RSA_RNG_FAILED. This
+     addresses a regression but is rare in practice (approx. 1 in 2/sqrt(N)).
+     Found by Synopsys Coverity, fix contributed by Peter Kolbus (Garmin).
+     Fixes #3647.
+   * Fix the build when the macro _GNU_SOURCE is defined to a non-empty value.
+     Fix #3432.
+   * Correct the default IV size for mbedtls_cipher_info_t structures using
+     MBEDTLS_MODE_ECB to 0, since ECB mode ciphers don't use IVs.
+   * Make arc4random_buf available on NetBSD and OpenBSD when _POSIX_C_SOURCE is
+     defined. Fix contributed in #3571. Adopted for LTS branch 2.16 in #3602.
+   * Fix build failures on GCC 11. Fixes #3782.
+   * Fix a memory leak in mbedtls_mpi_sub_abs() when the result was negative
+     (an error condition) and the second operand was aliased to the result.
+   * Fix a case in elliptic curve arithmetic where an out-of-memory condition
+     could go undetected, resulting in an incorrect result.
+   * In CTR_DRBG and HMAC_DRBG, don't reset the reseed interval in seed().
+     Fixes #2927.
+   * In PEM writing functions, fill the trailing part of the buffer with null
+     bytes. This guarantees that the corresponding parsing function can read
+     the buffer back, which was the case for mbedtls_x509write_{crt,csr}_pem
+     until this property was inadvertently broken in Mbed TLS 2.19.0.
+     Fixes #3682.
+   * Fix a build failure that occurred with the MBEDTLS_AES_SETKEY_DEC_ALT
+     option on. In this configuration key management methods that are required
+     for MBEDTLS_CIPHER_MODE_XTS were excluded from the build and made it fail.
+     Fixes #3818. Reported by John Stroebel.
+
+Changes
+   * Reduce stack usage significantly during sliding window exponentiation.
+     Reported in #3591 and fix contributed in #3592 by Daniel Otte.
+   * Remove the zeroization of a pointer variable in AES rounds. It was valid
+     but spurious and misleading since it looked like a mistaken attempt to
+     zeroize the pointed-to buffer. Reported by Antonio de la Piedra, CEA
+     Leti, France.
+
 = mbed TLS 2.16.8 branch released 2020-09-01
 
 Features

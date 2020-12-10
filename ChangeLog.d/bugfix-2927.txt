@@ -1,3 +1,0 @@
-Bugfix
-   * In CTR_DRBG and HMAC_DRBG, don't reset the reseed interval in seed().
-     Fixes #2927.

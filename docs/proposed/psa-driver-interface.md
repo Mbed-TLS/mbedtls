@@ -406,7 +406,7 @@ Unlike most other entry points, if multiple transparent drivers include a `"get_
 #### Entropy collection flags
 
 * `PSA_DRIVER_GET_ENTROPY_BLOCK`: If this flag is set, the driver should block until it has at least one bit of entropy. If this flag is clear, the driver should avoid blocking if no entropy is readily available.
-* `PSA_DRIVER_GET_ENTROPY_KEEPALIVE`: If this flag is set, the driver should expect another call to `acme_get_entropy` after a short time. If this flag is clear, the core is not expecting to call the `"get_entropy"` entry point again within a short amount of time (but it may do so nonetheless).
+* `PSA_DRIVER_GET_ENTROPY_KEEPALIVE`: This flag is intended to help with energy management for entropy-generating peripherals. If this flag is set, the driver should expect another call to `acme_get_entropy` after a short time. If this flag is clear, the core is not expecting to call the `"get_entropy"` entry point again within a short amount of time (but it may do so nonetheless).
 
 #### Entropy collection and blocking
 

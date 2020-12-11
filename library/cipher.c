@@ -282,6 +282,15 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
     if( ctx->cipher_info == NULL )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+    /* Prevent reusing a context with a different key unless the context
+     * has been fully reset. This may have worked by accident in the past,
+     * but it was never documented as working, and it could cause a memory
+     * leak with alternative implementations that allocate resources during
+     * setkey, or could cause sensitive data to not be wiped if overwriting
+     * a key with another one that uses a smaller context. */
+    if( ctx->key_bitlen != 0 )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ctx->psa_enabled == 1 )
     {
@@ -376,8 +385,10 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
 
     CIPHER_VALIDATE_RET( ctx != NULL );
     CIPHER_VALIDATE_RET( iv_len == 0 || iv != NULL );
+
     if( ctx->cipher_info == NULL )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ctx->psa_enabled == 1 )
     {
@@ -450,7 +461,12 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
 {
     CIPHER_VALIDATE_RET( ctx != NULL );
     CIPHER_VALIDATE_RET( ad_len == 0 || ad != NULL );
+
     if( ctx->cipher_info == NULL )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    if( ctx->key_bitlen == 0 )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    if( ctx->iv_size == 0 )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -492,7 +508,7 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
     }
 #endif
 
-    return( 0 );
+    return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 }
 #endif /* MBEDTLS_GCM_C || MBEDTLS_CHACHAPOLY_C */
 
@@ -506,7 +522,12 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
     CIPHER_VALIDATE_RET( ilen == 0 || input != NULL );
     CIPHER_VALIDATE_RET( output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
+
     if( ctx->cipher_info == NULL )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    if( ctx->key_bitlen == 0 )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    if( ctx->cipher_info->iv_size != 0 && ctx->iv_size == 0 )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -919,7 +940,12 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( ctx != NULL );
     CIPHER_VALIDATE_RET( output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
+
     if( ctx->cipher_info == NULL )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    if( ctx->key_bitlen == 0 )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    if( ctx->cipher_info->iv_size != 0 && ctx->iv_size == 0 )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1085,7 +1111,11 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
     if( ctx->cipher_info == NULL )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+    if( ctx->key_bitlen == 0 )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     if( MBEDTLS_ENCRYPT != ctx->operation )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    if( ctx->iv_size == 0 )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1130,6 +1160,10 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
     if( ctx->cipher_info == NULL )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+    if( ctx->key_bitlen == 0 )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    if( ctx->iv_size == 0 )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     if( MBEDTLS_DECRYPT != ctx->operation )
     {
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
@@ -1209,6 +1243,9 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
 
+    if( ctx->key_bitlen == 0 )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ctx->psa_enabled == 1 )
     {
@@ -1267,10 +1304,10 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-    if( ( ret = mbedtls_cipher_set_iv( ctx, iv, iv_len ) ) != 0 )
+    if( ( ret = mbedtls_cipher_reset( ctx ) ) != 0 )
         return( ret );
 
-    if( ( ret = mbedtls_cipher_reset( ctx ) ) != 0 )
+    if( ( ret = mbedtls_cipher_set_iv( ctx, iv, iv_len ) ) != 0 )
         return( ret );
 
     if( ( ret = mbedtls_cipher_update( ctx, input, ilen,
@@ -1304,6 +1341,9 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
     CIPHER_VALIDATE_RET( tag_len == 0 || tag != NULL );
+
+    if( ctx->key_bitlen == 0 )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ctx->psa_enabled == 1 )
@@ -1407,6 +1447,9 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
     CIPHER_VALIDATE_RET( tag_len == 0 || tag != NULL );
+
+    if( ctx->key_bitlen == 0 )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ctx->psa_enabled == 1 )

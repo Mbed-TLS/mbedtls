@@ -765,3 +765,27 @@ enc_dec_buf_multipart:MBEDTLS_CIPHER_CAMELLIA_256_CBC:256:17:6:-1:16:0:16:0
 CAMELLIA Encrypt and decrypt 32 bytes in multiple parts 1 [#5]
 depends_on:MBEDTLS_CAMELLIA_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf_multipart:MBEDTLS_CIPHER_CAMELLIA_256_CBC:256:16:16:-1:16:16:0:32
+
+Cipher state machine (CAMELLIA-ECB)
+depends_on:MBEDTLS_CAMELLIA_C
+cipher_state_machine:MBEDTLS_CIPHER_CAMELLIA_128_ECB
+
+Cipher state machine (CAMELLIA-CBC)
+depends_on:MBEDTLS_CAMELLIA_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_state_machine:MBEDTLS_CIPHER_CAMELLIA_128_CBC
+
+Cipher state machine (CAMELLIA-CTR)
+depends_on:MBEDTLS_CAMELLIA_C:MBEDTLS_CIPHER_MODE_CTR
+cipher_state_machine:MBEDTLS_CIPHER_CAMELLIA_128_CTR
+
+Cipher state machine (CAMELLIA-CFB)
+depends_on:MBEDTLS_CAMELLIA_C:MBEDTLS_CIPHER_MODE_CFB
+cipher_state_machine:MBEDTLS_CIPHER_CAMELLIA_128_CFB128
+
+Cipher state machine (CAMELLIA-CCM)
+depends_on:MBEDTLS_CAMELLIA_C:MBEDTLS_CCM_C
+cipher_state_machine:MBEDTLS_CIPHER_CAMELLIA_128_CCM
+
+Cipher state machine (CAMELLIA-GCM)
+depends_on:MBEDTLS_CAMELLIA_C:MBEDTLS_GCM_C
+cipher_state_machine:MBEDTLS_CIPHER_CAMELLIA_128_GCM

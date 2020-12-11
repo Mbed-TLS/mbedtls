@@ -105,3 +105,7 @@ enc_dec_buf_multipart:MBEDTLS_CIPHER_ARC4_128:128:17:6:-1:17:6:17:6
 ARC4 Encrypt and decrypt 32 bytes in multiple parts 1
 depends_on:MBEDTLS_ARC4_C
 enc_dec_buf_multipart:MBEDTLS_CIPHER_ARC4_128:128:16:16:-1:16:16:16:16
+
+Cipher state machine (ARC4)
+depends_on:MBEDTLS_ARC4_C
+cipher_state_machine:MBEDTLS_CIPHER_ARC4_128

@@ -605,3 +605,19 @@ test_vec_ecb:MBEDTLS_CIPHER_BLOWFISH_ECB:MBEDTLS_DECRYPT:"3849674c2602319e":"a25
 BLOWFISH ECB Decrypt test vector (SSLeay) #3, 192-bit key
 depends_on:MBEDTLS_BLOWFISH_C
 test_vec_ecb:MBEDTLS_CIPHER_BLOWFISH_ECB:MBEDTLS_DECRYPT:"3849674c2602319e3849674c2602319e3849674c2602319e":"a25e7856cf2651eb":"51454b582ddf440a":0
+
+Cipher state machine (Blowfish-ECB)
+depends_on:MBEDTLS_BLOWFISH_C
+cipher_state_machine:MBEDTLS_CIPHER_BLOWFISH_ECB
+
+Cipher state machine (Blowfish-CBC)
+depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_state_machine:MBEDTLS_CIPHER_BLOWFISH_CBC
+
+Cipher state machine (Blowfish-CTR)
+depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CTR
+cipher_state_machine:MBEDTLS_CIPHER_BLOWFISH_CTR
+
+Cipher state machine (Blowfish-CFB)
+depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CFB
+cipher_state_machine:MBEDTLS_CIPHER_BLOWFISH_CFB64

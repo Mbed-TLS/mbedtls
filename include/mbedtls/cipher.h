@@ -626,8 +626,10 @@ static inline mbedtls_operation_t mbedtls_cipher_get_operation(
 /**
  * \brief               This function sets the key to use with the given context.
  *
- * \param ctx           The generic cipher context. This must be initialized and
- *                      bound to a cipher information structure.
+ * \param ctx           The generic cipher context. This must be initialized,
+ *                      bound to a cipher information structure (with
+ *                      mbedtls_cipher_setup() or an equivalent function),
+ *                      and not yet have a key set.
  * \param key           The key to use. This must be a readable buffer of at
  *                      least \p key_bitlen Bits.
  * \param key_bitlen    The key length to use, in Bits.
@@ -702,8 +704,9 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx );
 /**
  * \brief               This function adds additional data for AEAD ciphers.
  *                      Currently supported with GCM and ChaCha20+Poly1305.
- *                      This must be called exactly once, after
- *                      mbedtls_cipher_reset().
+ *
+ *                      This function must be called exactly once, after
+ *                      mbedtls_cipher_set_iv().
  *
  * \param ctx           The generic cipher context. This must be initialized.
  * \param ad            The additional data to use. This must be a readable
@@ -719,13 +722,22 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
 
 /**
  * \brief               The generic cipher update function. It encrypts or
- *                      decrypts using the given cipher context. Writes as
- *                      many block-sized blocks of data as possible to output.
+ *                      decrypts using the given cipher context.
+ *
+ *                      This function writes as many block-sized blocks of
+ *                      data as possible to \p output.
  *                      Any data that cannot be written immediately is either
  *                      added to the next block, or flushed when
  *                      mbedtls_cipher_finish() is called.
- *                      Exception: For MBEDTLS_MODE_ECB, expects a single block
+ *                      Exception: For #MBEDTLS_MODE_ECB, expects a single block
  *                      in size. For example, 16 Bytes for AES.
+ *
+ *                      For modes that use an initialization vector (IV) or
+ *                      nonce, call mbedtls_cipher_set_iv() before this
+ *                      function.
+ *
+ *                      For authenticated encryption modes, call
+ *                      mbedtls_cipher_update_ad() before this function.
  *
  * \note                If the underlying cipher is used in GCM mode, all calls
  *                      to this function, except for the last one before

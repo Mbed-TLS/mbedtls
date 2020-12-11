@@ -115,9 +115,8 @@ typedef uint32_t psa_algorithm_t;
  *   whether the key is _volatile_ or _persistent_.
  *   See ::psa_key_persistence_t for more information.
  * - Bits 8-31 (#PSA_KEY_LIFETIME_GET_LOCATION(\c lifetime)):
- *   location indicator. This value indicates where the key material is stored
- *   (or at least where it is accessible in cleartext) and where operations
- *   on the key are performed.
+ *   location indicator. This value indicates which part of the system
+ *   has access to the key material and can perform operations using the key.
  *   See ::psa_key_location_t for more information.
  *
  * Volatile keys are automatically destroyed when the application instance
@@ -176,9 +175,10 @@ typedef uint8_t psa_key_persistence_t;
  * If an integration of Mbed TLS can make calls to external
  * cryptoprocessors such as secure elements, the location of a key
  * indicates which secure element performs the operations on the key.
- * Depending on the design of the driver for the secure element, the key
+ * Depending on the design of the secure element, the key
  * material may either be stored either in the secure element, or
- * in wrapped form alongside the key metadata in the primary local storage.
+ * in wrapped (encrypted) form alongside the key metadata in the
+ * primary local storage.
  *
  * This specification defines the following values of location indicators:
  * - \c 0: primary local storage.

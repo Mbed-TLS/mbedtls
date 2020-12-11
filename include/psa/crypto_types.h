@@ -131,11 +131,10 @@ typedef uint32_t psa_algorithm_t;
  * The application can call psa_open_key() to open a persistent key that
  * it created previously.
  *
- * This specification defines two basic lifetime values:
- * - Keys with the lifetime #PSA_KEY_LIFETIME_VOLATILE are volatile.
- *   This lifetime is always supported.
- * - Keys with the lifetime #PSA_KEY_LIFETIME_PERSISTENT are persistent.
- *   This lifetime is always supported if persistent storage is available.
+ * The default lifetime of a key is #PSA_KEY_LIFETIME_VOLATILE. The lifetime
+ * #PSA_KEY_LIFETIME_PERSISTENT is supported if persistent storage is
+ * available. Other lifetime values may be supported depending on the
+ * library configuration.
  */
 typedef uint32_t psa_key_lifetime_t;
 
@@ -180,9 +179,10 @@ typedef uint8_t psa_key_persistence_t;
  * in wrapped (encrypted) form alongside the key metadata in the
  * primary local storage.
  *
- * This specification defines the following values of location indicators:
+ * The PSA Cryptography API specification defines the following values of
+ * location indicators:
  * - \c 0: primary local storage.
- *   All implementations should support this value.
+ *   This location is always available.
  *   The primary local storage is typically the same storage area that
  *   contains the key metadata.
  * - \c 1: primary secure element.
@@ -209,7 +209,7 @@ typedef uint32_t psa_key_location_t;
  *
  * - Applications may freely choose key identifiers in the range
  *   #PSA_KEY_ID_USER_MIN to #PSA_KEY_ID_USER_MAX.
- * - Implementations may define additional key identifiers in the range
+ * - The implementation may define additional key identifiers in the range
  *   #PSA_KEY_ID_VENDOR_MIN to #PSA_KEY_ID_VENDOR_MAX.
  * - 0 is reserved as an invalid key identifier.
  * - Key identifiers outside these ranges are reserved for future use.
@@ -248,23 +248,18 @@ typedef uint32_t psa_key_usage_t;
  * - The key's policy, comprising usage flags and a specification of
  *   the permitted algorithm(s).
  * - Information about the key itself: the key type and its size.
- * - Implementations may define additional attributes.
+ * - Additional implementation-defined attributes.
  *
  * The actual key material is not considered an attribute of a key.
  * Key attributes do not contain information that is generally considered
  * highly confidential.
  *
- * An attribute structure can be a simple data structure where each function
+ * An attribute structure works like a simple data structure where each function
  * `psa_set_key_xxx` sets a field and the corresponding function
  * `psa_get_key_xxx` retrieves the value of the corresponding field.
- * However, implementations may report values that are equivalent to the
- * original one, but have a different encoding. For example, an
- * implementation may use a more compact representation for types where
- * many bit-patterns are invalid or not supported, and store all values
- * that it does not support as a special marker value. In such an
- * implementation, after setting an invalid value, the corresponding
- * get function returns an invalid value which may not be the one that
- * was originally stored.
+ * However, a future version of the library  may report values that are
+ * equivalent to the original one, but have a different encoding. Invalid
+ * values may be mapped to different, also invalid values.
  *
  * An attribute structure may contain references to auxiliary resources,
  * for example pointers to allocated memory or indirect references to

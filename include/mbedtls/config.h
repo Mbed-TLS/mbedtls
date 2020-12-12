@@ -47,7 +47,7 @@
  * certificates on the client side.
  *
  */
-#define MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION
+//#define MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION
 
 /**
  * \def MBEDTLS_HAVE_ASM

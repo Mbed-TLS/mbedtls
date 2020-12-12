@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -W -Wdeclaration-after-statement -Wwrite-strings -Wlogical-op -Wshadow  -rdynamic CMakeFiles/strerror.dir/strerror.c.o  -o strerror  -Wl,-rpath,/home/jordan/mbedtls/library: ../../library/libmbedtls.so.2.4.2 ../../library/libmbedx509.so.2.4.2 ../../library/libmbedcrypto.so.2.4.2 

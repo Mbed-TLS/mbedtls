@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -W -Wdeclaration-after-statement -Wwrite-strings -Wlogical-op -Wshadow  -rdynamic CMakeFiles/ssl_pthread_server.dir/ssl_pthread_server.c.o  -o ssl_pthread_server  -Wl,-rpath,/home/jordan/mbedtls/library: ../../library/libmbedtls.so.2.4.2 -lpthread ../../library/libmbedx509.so.2.4.2 ../../library/libmbedcrypto.so.2.4.2 

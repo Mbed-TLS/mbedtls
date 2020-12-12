@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -W -Wdeclaration-after-statement -Wwrite-strings -Wlogical-op -Wshadow -Wno-unused-function  -rdynamic CMakeFiles/test_suite_gcm.camellia.dir/test_suite_gcm.camellia.c.o  -o test_suite_gcm.camellia  -Wl,-rpath,/home/jordan/mbedtls/library ../library/libmbedtls.so.2.4.2 ../library/libmbedx509.so.2.4.2 ../library/libmbedcrypto.so.2.4.2 

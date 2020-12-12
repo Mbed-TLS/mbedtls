@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmbedx509.a  CMakeFiles/mbedx509_static.dir/certs.c.o CMakeFiles/mbedx509_static.dir/pkcs11.c.o CMakeFiles/mbedx509_static.dir/x509.c.o CMakeFiles/mbedx509_static.dir/x509_create.c.o CMakeFiles/mbedx509_static.dir/x509_crl.c.o CMakeFiles/mbedx509_static.dir/x509_crt.c.o CMakeFiles/mbedx509_static.dir/x509_csr.c.o CMakeFiles/mbedx509_static.dir/x509write_crt.c.o CMakeFiles/mbedx509_static.dir/x509write_csr.c.o
+/usr/bin/ranlib libmbedx509.a

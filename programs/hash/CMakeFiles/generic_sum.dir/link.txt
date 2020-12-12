@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -W -Wdeclaration-after-statement -Wwrite-strings -Wlogical-op -Wshadow  -rdynamic CMakeFiles/generic_sum.dir/generic_sum.c.o  -o generic_sum  -Wl,-rpath,/home/jordan/mbedtls/library: ../../library/libmbedtls.so.2.4.2 ../../library/libmbedx509.so.2.4.2 ../../library/libmbedcrypto.so.2.4.2 

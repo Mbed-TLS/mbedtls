@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/jordan/mbedtls/hmac/hmac-test.c
+string.h
+-
+stdio.h
+-
+mbedtls/md.h
+/home/jordan/mbedtls/hmac/mbedtls/md.h
+

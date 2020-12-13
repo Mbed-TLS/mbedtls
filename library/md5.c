@@ -24,6 +24,14 @@
  *  http://www.ietf.org/rfc/rfc1321.txt
  */
 
+
+// 信息摘要算法，不可逆
+// MD5信息摘要算法（英语：MD5 Message-Digest Algorithm），一种被广泛使用的密码散列函数，可以产生出一个128位（16字节）的散列值（hash value），
+// 用于确保信息传输完整一致。1996年后该算法被证实存在弱点，可以被加以破解，对于需要高度安全性的数据，专家一般建议改用其他算法，如SHA-2。
+// 2004年，证实MD5算法无法防止碰撞（collision），因此不适用于安全性认证，如SSL公开密钥认证或是数字签名等用途。
+
+
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -75,11 +83,15 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 }
 #endif
 
+
+//--1
 void mbedtls_md5_init( mbedtls_md5_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_md5_context ) );
 }
 
+
+//---5
 void mbedtls_md5_free( mbedtls_md5_context *ctx )
 {
     if( ctx == NULL )
@@ -97,6 +109,7 @@ void mbedtls_md5_clone( mbedtls_md5_context *dst,
 /*
  * MD5 context setup
  */
+//--------2
 void mbedtls_md5_starts( mbedtls_md5_context *ctx )
 {
     ctx->total[0] = 0;
@@ -109,6 +122,7 @@ void mbedtls_md5_starts( mbedtls_md5_context *ctx )
 }
 
 #if !defined(MBEDTLS_MD5_PROCESS_ALT)
+//----6
 void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64] )
 {
     uint32_t X[16], A, B, C, D;
@@ -236,6 +250,7 @@ void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64]
 /*
  * MD5 process buffer
  */
+//-------3
 void mbedtls_md5_update( mbedtls_md5_context *ctx, const unsigned char *input, size_t ilen )
 {
     size_t fill;
@@ -286,6 +301,7 @@ static const unsigned char md5_padding[64] =
 /*
  * MD5 final digest
  */
+//-----4
 void mbedtls_md5_finish( mbedtls_md5_context *ctx, unsigned char output[16] )
 {
     uint32_t last, padn;
@@ -316,6 +332,7 @@ void mbedtls_md5_finish( mbedtls_md5_context *ctx, unsigned char output[16] )
 /*
  * output = MD5( input buffer )
  */
+//md5加密----1
 void mbedtls_md5( const unsigned char *input, size_t ilen, unsigned char output[16] )
 {
     mbedtls_md5_context ctx;
@@ -326,6 +343,9 @@ void mbedtls_md5( const unsigned char *input, size_t ilen, unsigned char output[
     mbedtls_md5_finish( &ctx, output );
     mbedtls_md5_free( &ctx );
 }
+
+
+
 
 #if defined(MBEDTLS_SELF_TEST)
 /*

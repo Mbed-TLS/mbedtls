@@ -43,6 +43,9 @@ int main( void )
     return( 0 );
 }
 #else
+
+
+
 int main( void )
 {
     int i;
@@ -51,12 +54,16 @@ int main( void )
 
     mbedtls_printf( "\n  MD5('%s') = ", str );
 
+
+    //md5加密
     mbedtls_md5( (unsigned char *) str, 13, digest );
 
     for( i = 0; i < 16; i++ )
         mbedtls_printf( "%02x", digest[i] );
 
     mbedtls_printf( "\n\n" );
+
+
 
 #if defined(_WIN32)
     mbedtls_printf( "  Press Enter to exit this program.\n" );

@@ -80,6 +80,8 @@ int convert_pem_to_der( const unsigned char *input, size_t ilen,
                         unsigned char *output, size_t *olen )
 {
     int ret;
+
+                                  //直接指向文件末尾
     const unsigned char *s1, *s2, *end = input + ilen;
     size_t len = 0;
 
@@ -110,6 +112,8 @@ int convert_pem_to_der( const unsigned char *input, size_t ilen,
     if( s2 <= s1 || s2 > end )
         return( -1 );
 
+
+    //把pem文件解码
     ret = mbedtls_base64_decode( NULL, 0, &len, (const unsigned char *) s1, s2 - s1 );
     if( ret == MBEDTLS_ERR_BASE64_INVALID_CHARACTER )
         return( ret );
@@ -267,6 +271,8 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Converting from PEM to DER ..." );
     fflush( stdout );
 
+
+    //将pem 通过 base 64 解码后 得到 der 
     if( ( ret = convert_pem_to_der( pem_buffer, pem_size, der_buffer, &der_size ) ) != 0 )
     {
 #ifdef MBEDTLS_ERROR_C
@@ -284,6 +290,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Writing the DER file ..." );
     fflush( stdout );
 
+    //将解码后的数据写入 der 文件
     ret = write_file( opt.output_file, der_buffer, der_size );
 
     if( ret != 0 )

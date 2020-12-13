@@ -43,14 +43,17 @@
 #include <string.h>
 #endif
 
-#define DFL_FILENAME            "file.pem"
-#define DFL_OUTPUT_FILENAME     "file.der"
+//把 pem 转为 der 
+#define DFL_FILENAME            "Jordan.pem"
+#define DFL_OUTPUT_FILENAME     "Jordan.der"
+
+
 
 #define USAGE \
     "\n usage: pem2der param=<>...\n"                   \
     "\n acceptable parameters:\n"                       \
-    "    filename=%%s         default: file.pem\n"      \
-    "    output_file=%%s      default: file.der\n"      \
+    "    filename=%%s         default: Jordan.pem\n"      \
+    "    output_file=%%s      default: Jordan.der\n"      \
     "\n"
 
 #if !defined(MBEDTLS_BASE64_C) || !defined(MBEDTLS_FS_IO)
@@ -65,9 +68,13 @@ int main( void )
  */
 struct options
 {
+    //输入文件
     const char *filename;       /* filename of the input file             */
+    //输出文件
     const char *output_file;    /* where to store the output              */
 } opt;
+
+
 
 int convert_pem_to_der( const unsigned char *input, size_t ilen,
                         unsigned char *output, size_t *olen )
@@ -76,13 +83,19 @@ int convert_pem_to_der( const unsigned char *input, size_t ilen,
     const unsigned char *s1, *s2, *end = input + ilen;
     size_t len = 0;
 
+
+    //strstr(str1,str2) 函数用于判断字符串str2是否是str1的子串。
+    //如果是，则该函数返回 str1字符串从 str2第一次出现的位置开始到 str1结尾的字符串；否则，返回NULL。
     s1 = (unsigned char *) strstr( (const char *) input, "-----BEGIN" );
     if( s1 == NULL )
         return( -1 );
+    printf("s1:\n%s\n",s1);
 
     s2 = (unsigned char *) strstr( (const char *) input, "-----END" );
     if( s2 == NULL )
         return( -1 );
+    printf("s2:\n%s\n",s2);
+
 
     s1 += 10;
     while( s1 < end && *s1 != '-' )

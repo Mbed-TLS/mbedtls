@@ -89,19 +89,21 @@ int convert_pem_to_der( const unsigned char *input, size_t ilen,
     s1 = (unsigned char *) strstr( (const char *) input, "-----BEGIN" );
     if( s1 == NULL )
         return( -1 );
-    printf("s1:\n%s\n",s1);
+    // printf("s1:\n%s\n",s1);
 
     s2 = (unsigned char *) strstr( (const char *) input, "-----END" );
     if( s2 == NULL )
         return( -1 );
-    printf("s2:\n%s\n",s2);
+    // printf("s2:\n%s\n",s2);
 
 
     s1 += 10;
     while( s1 < end && *s1 != '-' )
         s1++;
+
     while( s1 < end && *s1 == '-' )
         s1++;
+
     if( *s1 == '\r' ) s1++;
     if( *s1 == '\n' ) s1++;
 
@@ -137,16 +139,22 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( -1 );
 
+    //把文件描述指针移到末尾
     fseek( f, 0, SEEK_END );
+
+    //获取文件大小
     if( ( size = ftell( f ) ) == -1 )
     {
         fclose( f );
         return( -1 );
     }
+
+    //在把文件描述指针移到首位
     fseek( f, 0, SEEK_SET );
 
     *n = (size_t) size;
 
+    //根据文件大小分配内存
     if( *n + 1 == 0 ||
         ( *buf = mbedtls_calloc( 1, *n + 1 ) ) == NULL )
     {
@@ -154,6 +162,8 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
         return( -1 );
     }
 
+
+    //根据文件大小读取文件
     if( fread( *buf, 1, *n, f ) != *n )
     {
         fclose( f );
@@ -162,6 +172,7 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
         return( -1 );
     }
 
+    // 关闭文件
     fclose( f );
 
     (*buf)[*n] = '\0';

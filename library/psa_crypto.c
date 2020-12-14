@@ -3443,22 +3443,6 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
         operation->alg = alg;
     }
 
-    if( status != PSA_ERROR_NOT_SUPPORTED ||
-        psa_key_lifetime_is_external( slot->attr.lifetime ) )
-        goto exit;
-
-    /* Try doing the operation through a driver before using software fallback. */
-    if( cipher_operation == MBEDTLS_ENCRYPT )
-        status = mbedtls_psa_cipher_encrypt_setup( operation, &attributes,
-                                                   slot->key.data,
-                                                   slot->key.bytes,
-                                                   alg );
-    else
-        status = mbedtls_psa_cipher_decrypt_setup( operation, &attributes,
-                                                   slot->key.data,
-                                                   slot->key.bytes,
-                                                   alg );
-
 exit:
     if( status == PSA_SUCCESS )
     {

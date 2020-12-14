@@ -30,17 +30,9 @@
 
 typedef mbedtls_psa_external_random_context_t mbedtls_psa_random_context_t;
 
-static inline int mbedtls_psa_get_random( void *p_rng,
-                                          unsigned char *output,
-                                          size_t output_size )
-{
-    (void) p_rng;
-    psa_status_t status = psa_generate_random( output, output_size );
-    if( status == PSA_SUCCESS )
-        return( 0 );
-    else
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
-}
+int mbedtls_psa_get_random( void *p_rng,
+                            unsigned char *output,
+                            size_t output_size );
 
 #define MBEDTLS_PSA_RANDOM_STATE NULL
 
@@ -144,16 +136,15 @@ typedef struct
  * \return              \c MBEDTLS_ERR_xxx_DRBG_xxx or
  *                      \c MBEDTLS_ERR_PLATFORM_xxx on failure.
  */
-static inline int mbedtls_psa_get_random( void *p_rng,
-                                          unsigned char *output,
-                                          size_t output_len )
-{
 #if defined(MBEDTLS_CTR_DRBG_C)
-    return( mbedtls_ctr_drbg_random( p_rng, output, output_len ) );
+static int ( *const mbedtls_psa_get_random )(
+    void *p_rng, unsigned char *output, size_t output_size ) =
+    mbedtls_ctr_drbg_random;
 #elif defined(MBEDTLS_HMAC_DRBG_C)
-    return( mbedtls_hmac_drbg_random( p_rng, output, output_len ) );
+static int ( *const mbedtls_psa_get_random )(
+    void *p_rng, unsigned char *output, size_t output_size ) =
+    mbedtls_hmac_drbg_random;
 #endif
-}
 
 /** The maximum number of bytes that mbedtls_psa_get_random() is expected to
  * return.

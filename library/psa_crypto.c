@@ -6413,6 +6413,24 @@ psa_status_t psa_generate_random( uint8_t *output,
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 
+/* Wrapper function allowing the classic API to use the PSA RNG.
+ * In the non-external case, mbedtls_psa_get_random is defined
+ * as a constant function pointer in psa_crypto_random.h.
+ */
+#if defined (MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+int mbedtls_psa_get_random( void *p_rng,
+                            unsigned char *output,
+                            size_t output_size )
+{
+    (void) p_rng;
+    psa_status_t status = psa_generate_random( output, output_size );
+    if( status == PSA_SUCCESS )
+        return( 0 );
+    else
+        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+}
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
 #include "mbedtls/entropy_poll.h"
 

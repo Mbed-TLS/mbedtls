@@ -90,13 +90,15 @@ psa_status_t psa_driver_wrapper_cipher_decrypt(
     size_t *output_length );
 
 psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
-    psa_operation_driver_context_t *operation,
-    psa_key_slot_t *slot,
+    psa_cipher_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg );
 
 psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
-    psa_operation_driver_context_t *operation,
-    psa_key_slot_t *slot,
+    psa_cipher_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg );
 
 psa_status_t psa_driver_wrapper_cipher_generate_iv(

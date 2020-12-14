@@ -3418,14 +3418,22 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     else
         operation->iv_required = 1;
 
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+
     /* Try doing the operation through a driver before using software fallback. */
     if( cipher_operation == MBEDTLS_ENCRYPT )
-        status = psa_driver_wrapper_cipher_encrypt_setup( &operation->ctx.driver,
-                                                          slot,
+        status = psa_driver_wrapper_cipher_encrypt_setup( operation,
+                                                          &attributes,
+                                                          slot->key.data,
+                                                          slot->key.bytes,
                                                           alg );
     else
-        status = psa_driver_wrapper_cipher_decrypt_setup( &operation->ctx.driver,
-                                                          slot,
+        status = psa_driver_wrapper_cipher_decrypt_setup( operation,
+                                                          &attributes,
+                                                          slot->key.data,
+                                                          slot->key.bytes,
                                                           alg );
 
     if( status == PSA_SUCCESS )
@@ -3439,9 +3447,6 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
         psa_key_lifetime_is_external( slot->attr.lifetime ) )
         goto exit;
 
-    psa_key_attributes_t attributes = {
-      .core = slot->attr
-    };
     /* Try doing the operation through a driver before using software fallback. */
     if( cipher_operation == MBEDTLS_ENCRYPT )
         status = mbedtls_psa_cipher_encrypt_setup( operation, &attributes,

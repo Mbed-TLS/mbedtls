@@ -710,16 +710,16 @@ psa_status_t psa_driver_wrapper_cipher_decrypt(
 }
 
 psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
-    psa_operation_driver_context_t *operation,
-    psa_key_slot_t *slot,
+    psa_cipher_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg )
 {
 #if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
     psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
-    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime);
-    psa_key_attributes_t attributes = {
-      .core = slot->attr
-    };
+    psa_key_location_t location =
+        PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
+    void *driver_ctx = NULL;
 
     switch( location )
     {
@@ -727,25 +727,28 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
             /* Key is stored in the slot in export representation, so
              * cycle through all known transparent accelerators */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-            operation->ctx = mbedtls_calloc( 1, sizeof(test_transparent_cipher_operation_t) );
-            if( operation->ctx == NULL )
+            driver_ctx = mbedtls_calloc( 1,
+                             sizeof( test_transparent_cipher_operation_t ) );
+            if( driver_ctx == NULL )
                 return PSA_ERROR_INSUFFICIENT_MEMORY;
 
-            status = test_transparent_cipher_encrypt_setup( operation->ctx,
-                                                            &attributes,
-                                                            slot->key.data,
-                                                            slot->key.bytes,
+            status = test_transparent_cipher_encrypt_setup( driver_ctx,
+                                                            attributes,
+                                                            key_buffer,
+                                                            key_buffer_size,
                                                             alg );
             /* Declared with fallback == true */
             if( status == PSA_SUCCESS )
-                operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
+            {
+                operation->ctx.driver.id =
+                    PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
+                operation->ctx.driver.ctx = driver_ctx;
+            }
             else
             {
-                mbedtls_platform_zeroize(
-                    operation->ctx,
+                mbedtls_platform_zeroize( driver_ctx,
                     sizeof( test_transparent_cipher_operation_t ) );
-                mbedtls_free( operation->ctx );
-                operation->ctx = NULL;
+                mbedtls_free( driver_ctx );
             }
 
             return( status );
@@ -755,24 +758,26 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
-            operation->ctx = mbedtls_calloc( 1, sizeof(test_opaque_cipher_operation_t) );
-            if( operation->ctx == NULL )
+            driver_ctx =
+                mbedtls_calloc( 1, sizeof(test_opaque_cipher_operation_t) );
+            if( driver_ctx == NULL )
                 return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
-            status = test_opaque_cipher_encrypt_setup( operation->ctx,
-                                                       &attributes,
-                                                       slot->key.data,
-                                                       slot->key.bytes,
+            status = test_opaque_cipher_encrypt_setup( driver_ctx,
+                                                       attributes,
+                                                       key_buffer,
+                                                       key_buffer_size,
                                                        alg );
             if( status == PSA_SUCCESS )
-                operation->id = PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID;
+            {
+                operation->ctx.driver.id = PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID;
+                operation->ctx.driver.ctx = driver_ctx;
+            }
             else
             {
                 mbedtls_platform_zeroize(
-                    operation->ctx,
-                    sizeof( test_opaque_cipher_operation_t ) );
-                mbedtls_free( operation->ctx );
-                operation->ctx = NULL;
+                    driver_ctx, sizeof( test_opaque_cipher_operation_t ) );
+                mbedtls_free( driver_ctx );
             }
 
             return( status );
@@ -782,25 +787,27 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
-    (void)slot;
-    (void)alg;
     (void)operation;
+    (void)attributes;
+    (void)key_buffer;
+    (void)key_buffer_size;
+    (void)alg;
 
     return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
 psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
-    psa_operation_driver_context_t *operation,
-    psa_key_slot_t *slot,
+    psa_cipher_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg )
 {
 #if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
     psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
-    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime);
-    psa_key_attributes_t attributes = {
-      .core = slot->attr
-    };
+    psa_key_location_t location =
+        PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
+    void *driver_ctx = NULL;
 
     switch( location )
     {
@@ -808,25 +815,28 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
             /* Key is stored in the slot in export representation, so
              * cycle through all known transparent accelerators */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-            operation->ctx = mbedtls_calloc( 1, sizeof(test_transparent_cipher_operation_t) );
-            if( operation->ctx == NULL )
-                return( PSA_ERROR_INSUFFICIENT_MEMORY );
+            driver_ctx = mbedtls_calloc( 1,
+                             sizeof( test_transparent_cipher_operation_t ) );
+            if( driver_ctx == NULL )
+                return PSA_ERROR_INSUFFICIENT_MEMORY;
 
-            status = test_transparent_cipher_decrypt_setup( operation->ctx,
-                                                            &attributes,
-                                                            slot->key.data,
-                                                            slot->key.bytes,
+            status = test_transparent_cipher_decrypt_setup( driver_ctx,
+                                                            attributes,
+                                                            key_buffer,
+                                                            key_buffer_size,
                                                             alg );
             /* Declared with fallback == true */
             if( status == PSA_SUCCESS )
-                operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
+            {
+                operation->ctx.driver.id =
+                    PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
+                operation->ctx.driver.ctx = driver_ctx;
+            }
             else
             {
-                mbedtls_platform_zeroize(
-                    operation->ctx,
+                mbedtls_platform_zeroize( driver_ctx,
                     sizeof( test_transparent_cipher_operation_t ) );
-                mbedtls_free( operation->ctx );
-                operation->ctx = NULL;
+                mbedtls_free( driver_ctx );
             }
 
             return( status );
@@ -836,24 +846,26 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
-            operation->ctx = mbedtls_calloc( 1, sizeof(test_opaque_cipher_operation_t) );
-            if( operation->ctx == NULL )
-                return PSA_ERROR_INSUFFICIENT_MEMORY;
+            driver_ctx =
+                mbedtls_calloc( 1, sizeof(test_opaque_cipher_operation_t) );
+            if( driver_ctx == NULL )
+                return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
-            status = test_opaque_cipher_decrypt_setup( operation->ctx,
-                                                       &attributes,
-                                                       slot->key.data,
-                                                       slot->key.bytes,
+            status = test_opaque_cipher_decrypt_setup( driver_ctx,
+                                                       attributes,
+                                                       key_buffer,
+                                                       key_buffer_size,
                                                        alg );
             if( status == PSA_SUCCESS )
-                operation->id = PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID;
+            {
+                operation->ctx.driver.id = PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID;
+                operation->ctx.driver.ctx = driver_ctx;
+            }
             else
             {
                 mbedtls_platform_zeroize(
-                    operation->ctx,
-                    sizeof( test_opaque_cipher_operation_t ) );
-                mbedtls_free( operation->ctx );
-                operation->ctx = NULL;
+                    driver_ctx, sizeof( test_opaque_cipher_operation_t ) );
+                mbedtls_free( driver_ctx );
             }
 
             return( status );
@@ -863,9 +875,11 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 #else /* PSA_CRYPTO_DRIVER_PRESENT */
-    (void)slot;
-    (void)alg;
     (void)operation;
+    (void)attributes;
+    (void)key_buffer;
+    (void)key_buffer_size;
+    (void)alg;
 
     return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */

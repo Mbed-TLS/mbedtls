@@ -42,11 +42,7 @@ static inline int mbedtls_psa_get_random( void *p_rng,
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
 }
 
-static inline void *mbedtls_psa_random_state( mbedtls_psa_random_context_t *rng )
-{
-    (void) rng;
-    return( NULL );
-}
+#define MBEDTLS_PSA_RANDOM_STATE NULL
 
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
@@ -135,13 +131,11 @@ typedef struct
 /** Return random data.
  *
  * This function is suitable as the \p f_rng parameter to Mbed TLS functions
- * that require a random generator. Use mbedtls_psa_random_state() to
+ * that require a random generator. Use #MBEDTLS_PSA_RANDOM_STATE to
  * obtain the \p p_rng parameter.
  *
  * \param p_rng         The DRBG context. This must be
- *                      mbedtls_psa_random_state( \c rng )
- *                      where \c rng is a pointer to a
- *                      ::mbedtls_psa_random_context_t structure.
+ *                      #MBEDTLS_PSA_RANDOM_STATE.
  * \param output        The buffer to fill.
  * \param output_len    The length of the buffer in bytes.
  *                      It must be at most #MBEDTLS_PSA_RANDOM_MAX_REQUEST.
@@ -170,21 +164,26 @@ static inline int mbedtls_psa_get_random( void *p_rng,
 #define MBEDTLS_PSA_RANDOM_MAX_REQUEST MBEDTLS_HMAC_DRBG_MAX_REQUEST
 #endif
 
-/** Retrieve the DRBG state from the PSA RNG state.
+/** A pointer to the PSA DRBG state.
  *
- * \param rng           Pointer to the PSA random generator state.
- *
- * \return              The DRBG state (\c p_rng argument ).
+ * This variable is only intended to be used through the macro
+ * #MBEDTLS_PSA_RANDOM_STATE.
  */
-static inline mbedtls_psa_drbg_context_t *mbedtls_psa_random_state(
-    mbedtls_psa_random_context_t *rng )
-{
-    return( &rng->drbg );
-}
+extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
+
+/** A pointer to the PSA DRBG state.
+ *
+ * This macro expnds to an expression that is suitable as the \c p_rng
+ * parameter to pass to mbedtls_psa_get_random().
+ *
+ * This macro exists in all configurations where the psa_crypto module is
+ * enabled. Its expansion depends on the configuration.
+ */
+#define MBEDTLS_PSA_RANDOM_STATE mbedtls_psa_random_state
 
 /** Seed the PSA DRBG.
  *
- * \param rng           DRBG context to be seeded.
+ * \param entropy       An entropy context to read the seed from.
  * \param custom        The personalization string.
  *                      This can be \c NULL, in which case the personalization
  *                      string is empty regardless of the value of \p len.
@@ -194,21 +193,21 @@ static inline mbedtls_psa_drbg_context_t *mbedtls_psa_random_state(
  * \return              An Mbed TLS error code (\c MBEDTLS_ERR_xxx) on failure.
  */
 static inline int mbedtls_psa_drbg_seed(
-    mbedtls_psa_random_context_t *rng,
+    mbedtls_entropy_context *entropy,
     const unsigned char *custom, size_t len )
 {
 #if defined(MBEDTLS_CTR_DRBG_C)
-    return( mbedtls_ctr_drbg_seed( mbedtls_psa_random_state( rng ),
+    return( mbedtls_ctr_drbg_seed( MBEDTLS_PSA_RANDOM_STATE,
                                    mbedtls_entropy_func,
-                                   &rng->entropy,
+                                   entropy,
                                    custom, len ) );
 #elif defined(MBEDTLS_HMAC_DRBG_C)
     const mbedtls_md_info_t *md_info =
         mbedtls_md_info_from_type( MBEDTLS_PSA_HMAC_DRBG_MD_TYPE );
-    return( mbedtls_hmac_drbg_seed( mbedtls_psa_random_state( rng ),
+    return( mbedtls_hmac_drbg_seed( MBEDTLS_PSA_RANDOM_STATE,
                                     md_info,
                                     mbedtls_entropy_func,
-                                    &rng->entropy,
+                                    entropy,
                                     custom, len ) );
 #endif
 }

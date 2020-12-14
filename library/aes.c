@@ -1422,7 +1422,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 
 #if defined MBEDTLS_AES_128_BIT_MASKED
     uint32_t rk_masked[MBEDTLS_AES_128_EXPANDED_KEY_SIZE_IN_WORDS] = {0};
-    static uint8_t sbox_masked[256] = {0};
+    uint8_t sbox_masked[256] = {0};
     uint32_t mask[10] = {0};
 #endif
 

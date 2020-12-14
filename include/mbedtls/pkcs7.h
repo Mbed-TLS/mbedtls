@@ -97,6 +97,20 @@ typedef mbedtls_asn1_named_data mbedtls_pkcs7_name;
 typedef mbedtls_asn1_sequence mbedtls_pkcs7_sequence;
 
 /**
+ * PKCS7 types
+ */
+typedef enum {
+    MBEDTLS_PKCS7_NONE=0,
+    MBEDTLS_PKCS7_DATA,
+    MBEDTLS_PKCS7_SIGNED_DATA,
+    MBEDTLS_PKCS7_ENVELOPED_DATA,
+    MBEDTLS_PKCS7_SIGNED_AND_ENVELOPED_DATA,
+    MBEDTLS_PKCS7_DIGESTED_DATA,
+    MBEDTLS_PKCS7_ENCRYPTED_DATA,
+}
+mbedtls_pkcs7_type;
+
+/**
  * Structure holding PKCS7 signer info
  */
 typedef struct mbedtls_pkcs7_signer_info
@@ -168,7 +182,7 @@ void mbedtls_pkcs7_init( mbedtls_pkcs7 *pkcs7 );
  *                 \p buf. In particular, \p buf may be destroyed or reused
  *                 after this call returns.
  *
- * \return         \c 0, if successful.
+ * \return         The \c mbedtls_pkcs7_type of \p buf, if successful.
  * \return         A negative error code on failure.
  */
 int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,

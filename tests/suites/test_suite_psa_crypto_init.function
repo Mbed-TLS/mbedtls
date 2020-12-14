@@ -11,7 +11,7 @@
 #define ENTROPY_MIN_NV_SEED_SIZE                                        \
     MAX(MBEDTLS_ENTROPY_MIN_PLATFORM, MBEDTLS_ENTROPY_BLOCK_SIZE)
 
-#include "psa_crypto_random.h"
+#include "psa_crypto_random_impl.h"
 #if defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE)
 /* PSA crypto uses the HMAC_DRBG module. It reads from the entropy source twice:
  * once for the initial entropy and once for a nonce. The nonce length is

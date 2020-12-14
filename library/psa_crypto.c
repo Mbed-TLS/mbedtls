@@ -40,7 +40,7 @@
  * stored keys. */
 #include "psa_crypto_storage.h"
 
-#include "psa_crypto_random.h"
+#include "psa_crypto_random_impl.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -6415,7 +6415,7 @@ psa_status_t psa_generate_random( uint8_t *output,
 
 /* Wrapper function allowing the classic API to use the PSA RNG.
  * In the non-external case, mbedtls_psa_get_random is defined
- * as a constant function pointer in psa_crypto_random.h.
+ * as a constant function pointer in psa_crypto_random_impl.h.
  */
 #if defined (MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 int mbedtls_psa_get_random( void *p_rng,

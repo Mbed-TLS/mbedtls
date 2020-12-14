@@ -1,6 +1,6 @@
-/** \file psa_crypto_random.h
+/** \file psa_crypto_random_impl.h
  *
- * \brief PSA crypto random generator abstraction.
+ * \brief PSA crypto random generator implementation abstraction.
  */
 /*
  *  Copyright The Mbed TLS Contributors
@@ -19,8 +19,8 @@
  *  limitations under the License.
  */
 
-#ifndef PSA_CRYPTO_RANDOM_H
-#define PSA_CRYPTO_RANDOM_H
+#ifndef PSA_CRYPTO_RANDOM_IMPL_H
+#define PSA_CRYPTO_RANDOM_IMPL_H
 
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 
@@ -205,4 +205,4 @@ static inline int mbedtls_psa_drbg_seed(
 
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
-#endif /* PSA_CRYPTO_RANDOM_H */
+#endif /* PSA_CRYPTO_RANDOM_IMPL_H */

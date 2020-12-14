@@ -23,4 +23,64 @@
 
 #include <psa/crypto.h>
 
+/**
+ * \brief Set the key for a multipart symmetric encryption operation.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       cipher_encrypt_setup entry point. This function behaves as a
+ *       cipher_encrypt_setup entry point as defined in the PSA driver
+ *       interface specification for transparent drivers.
+ *
+ * \param[in,out] operation     The operation object to set up. It has been
+ *                              initialized as per the documentation for
+ *                              #psa_cipher_operation_t and not yet in use.
+ * \param[in] attributes        The attributes of the key to use for the
+ *                              operation.
+ * \param[in] key_buffer        The buffer containing the key context.
+ * \param[in] key_buffer_size   Size of the \p key_buffer buffer in bytes.
+ * \param[in] alg               The cipher algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ */
+psa_status_t mbedtls_psa_cipher_encrypt_setup(
+    psa_cipher_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg );
+
+/**
+ * \brief Set the key for a multipart symmetric decryption operation.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       cipher_decrypt_setup entry point. This function behaves as a
+ *       cipher_decrypt_setup entry point as defined in the PSA driver
+ *       interface specification for transparent drivers.
+ *
+ * \param[in,out] operation     The operation object to set up. It has been
+ *                              initialized as per the documentation for
+ *                              #psa_cipher_operation_t and not yet in use.
+ * \param[in] attributes        The attributes of the key to use for the
+ *                              operation.
+ * \param[in] key_buffer        The buffer containing the key context.
+ * \param[in] key_buffer_size   Size of the \p key_buffer buffer in bytes.
+ * \param[in] alg               The cipher algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ */
+psa_status_t mbedtls_psa_cipher_decrypt_setup(
+    psa_cipher_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg );
+
 #endif /* PSA_CRYPTO_CIPHER_H */

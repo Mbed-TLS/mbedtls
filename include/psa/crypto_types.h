@@ -175,7 +175,7 @@ typedef uint8_t psa_key_persistence_t;
  * cryptoprocessors such as secure elements, the location of a key
  * indicates which secure element performs the operations on the key.
  * Depending on the design of the secure element, the key
- * material may either be stored either in the secure element, or
+ * material may be stored either in the secure element, or
  * in wrapped (encrypted) form alongside the key metadata in the
  * primary local storage.
  *

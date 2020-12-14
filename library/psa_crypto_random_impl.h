@@ -120,6 +120,13 @@ typedef struct
     mbedtls_psa_drbg_context_t drbg;
 } mbedtls_psa_random_context_t;
 
+/* The type of an Mbed TLS random generator function. This should be
+ * part of the public API instead of repeating the type everywhere.
+ * For the time being, declare it here. Declaring a type is necessary
+ * to define mbedtls_psa_get_random as a variable of a function pointer
+ * type without incurring the wrath of check-names.sh. */
+typedef int mbedtls_f_rng_t( void *p_rng, unsigned char *output, size_t output_size );
+
 /** Return random data.
  *
  * This function is suitable as the \p f_rng parameter to Mbed TLS functions
@@ -137,13 +144,9 @@ typedef struct
  *                      \c MBEDTLS_ERR_PLATFORM_xxx on failure.
  */
 #if defined(MBEDTLS_CTR_DRBG_C)
-static int ( *const mbedtls_psa_get_random )(
-    void *p_rng, unsigned char *output, size_t output_size ) =
-    mbedtls_ctr_drbg_random;
+static mbedtls_f_rng_t *const mbedtls_psa_get_random = mbedtls_ctr_drbg_random;
 #elif defined(MBEDTLS_HMAC_DRBG_C)
-static int ( *const mbedtls_psa_get_random )(
-    void *p_rng, unsigned char *output, size_t output_size ) =
-    mbedtls_hmac_drbg_random;
+static mbedtls_f_rng_t *const mbedtls_psa_get_random = mbedtls_hmac_drbg_random;
 #endif
 
 /** The maximum number of bytes that mbedtls_psa_get_random() is expected to

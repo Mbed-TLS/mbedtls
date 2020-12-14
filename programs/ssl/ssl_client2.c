@@ -2339,12 +2339,12 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
+    const mbedtls_ssl_srtp_profile forced_profile[] =
+                                { opt.force_srtp_profile, MBEDTLS_TLS_SRTP_UNSET };
     if( opt.use_srtp == 1 )
     {
         if( opt.force_srtp_profile != 0 )
         {
-            const mbedtls_ssl_srtp_profile forced_profile[] =
-                                        { opt.force_srtp_profile, MBEDTLS_TLS_SRTP_UNSET };
             ret = mbedtls_ssl_conf_dtls_srtp_protection_profiles ( &conf, forced_profile );
         }
         else

@@ -115,14 +115,14 @@ typedef uint32_t psa_algorithm_t;
  *   whether the key is _volatile_ or _persistent_.
  *   See ::psa_key_persistence_t for more information.
  * - Bits 8-31 (#PSA_KEY_LIFETIME_GET_LOCATION(\c lifetime)):
- *   location indicator. This value indicates where the key is stored
- *   and where operations on the key are performed.
+ *   location indicator. This value indicates which part of the system
+ *   has access to the key material and can perform operations using the key.
  *   See ::psa_key_location_t for more information.
  *
  * Volatile keys are automatically destroyed when the application instance
  * terminates or on a power reset of the device. Persistent keys are
  * preserved until the application explicitly destroys them or until an
- * implementation-specific device management event occurs (for example,
+ * integration-specific device management event occurs (for example,
  * a factory reset).
  *
  * Persistent keys have a key identifier of type #mbedtls_svc_key_id_t.
@@ -131,12 +131,10 @@ typedef uint32_t psa_algorithm_t;
  * The application can call psa_open_key() to open a persistent key that
  * it created previously.
  *
- * This specification defines two basic lifetime values:
- * - Keys with the lifetime #PSA_KEY_LIFETIME_VOLATILE are volatile.
- *   All implementations should support this lifetime.
- * - Keys with the lifetime #PSA_KEY_LIFETIME_PERSISTENT are persistent.
- *   All implementations that have access to persistent storage with
- *   appropriate security guarantees should support this lifetime.
+ * The default lifetime of a key is #PSA_KEY_LIFETIME_VOLATILE. The lifetime
+ * #PSA_KEY_LIFETIME_PERSISTENT is supported if persistent storage is
+ * available. Other lifetime values may be supported depending on the
+ * library configuration.
  */
 typedef uint32_t psa_key_lifetime_t;
 
@@ -149,35 +147,21 @@ typedef uint32_t psa_key_lifetime_t;
  * actually affect persistent keys at different levels is outside the
  * scope of the PSA Cryptography specification.
  *
- * This specification defines the following values of persistence levels:
+ * The PSA Cryptography specification defines the following values of
+ * persistence levels:
  * - \c 0 = #PSA_KEY_PERSISTENCE_VOLATILE: volatile key.
  *   A volatile key is automatically destroyed by the implementation when
  *   the application instance terminates. In particular, a volatile key
  *   is automatically destroyed on a power reset of the device.
  * - \c 1 = #PSA_KEY_PERSISTENCE_DEFAULT:
  *   persistent key with a default lifetime.
- *   Implementations should support this value if they support persistent
- *   keys at all.
- *   Applications should use this value if they have no specific needs that
- *   are only met by implementation-specific features.
- * - \c 2-127: persistent key with a PSA-specified lifetime.
- *   The PSA Cryptography specification does not define the meaning of these
- *   values, but other PSA specifications may do so.
- * - \c 128-254: persistent key with a vendor-specified lifetime.
- *   No PSA specification will define the meaning of these values, so
- *   implementations may choose the meaning freely.
- *   As a guideline, higher persistence levels should cause a key to survive
- *   more management events than lower levels.
+ * - \c 2-254: currently not supported by Mbed TLS.
  * - \c 255 = #PSA_KEY_PERSISTENCE_READ_ONLY:
  *   read-only or write-once key.
  *   A key with this persistence level cannot be destroyed.
- *   Implementations that support such keys may either allow their creation
- *   through the PSA Cryptography API, preferably only to applications with
- *   the appropriate privilege, or only expose keys created through
- *   implementation-specific means such as a factory ROM engraving process.
- *   Note that keys that are read-only due to policy restrictions
- *   rather than due to physical limitations should not have this
- *   persistence levels.
+ *   Mbed TLS does not currently offer a way to create such keys, but
+ *   integrations of Mbed TLS can use it for built-in keys that the
+ *   application cannot modify (for example, a hardware unique key (HUK)).
  *
  * \note Key persistence levels are 8-bit values. Key management
  *       interfaces operate on lifetimes (type ::psa_key_lifetime_t) which
@@ -187,28 +171,30 @@ typedef uint8_t psa_key_persistence_t;
 
 /** Encoding of key location indicators.
  *
- * If an implementation of this API can make calls to external
+ * If an integration of Mbed TLS can make calls to external
  * cryptoprocessors such as secure elements, the location of a key
  * indicates which secure element performs the operations on the key.
- * If an implementation offers multiple physical locations for persistent
- * storage, the location indicator reflects at which physical location
- * the key is stored.
+ * Depending on the design of the secure element, the key
+ * material may be stored either in the secure element, or
+ * in wrapped (encrypted) form alongside the key metadata in the
+ * primary local storage.
  *
- * This specification defines the following values of location indicators:
+ * The PSA Cryptography API specification defines the following values of
+ * location indicators:
  * - \c 0: primary local storage.
- *   All implementations should support this value.
+ *   This location is always available.
  *   The primary local storage is typically the same storage area that
  *   contains the key metadata.
  * - \c 1: primary secure element.
- *   Implementations should support this value if there is a secure element
- *   attached to the operating environment.
+ *   Integrations of Mbed TLS should support this value if there is a secure
+ *   element attached to the operating environment.
  *   As a guideline, secure elements may provide higher resistance against
  *   side channel and physical attacks than the primary local storage, but may
  *   have restrictions on supported key types, sizes, policies and operations
  *   and may have different performance characteristics.
  * - \c 2-0x7fffff: other locations defined by a PSA specification.
  *   The PSA Cryptography API does not currently assign any meaning to these
- *   locations, but future versions of this specification or other PSA
+ *   locations, but future versions of that specification or other PSA
  *   specifications may do so.
  * - \c 0x800000-0xffffff: vendor-defined locations.
  *   No PSA specification will assign a meaning to locations in this range.
@@ -223,7 +209,7 @@ typedef uint32_t psa_key_location_t;
  *
  * - Applications may freely choose key identifiers in the range
  *   #PSA_KEY_ID_USER_MIN to #PSA_KEY_ID_USER_MAX.
- * - Implementations may define additional key identifiers in the range
+ * - The implementation may define additional key identifiers in the range
  *   #PSA_KEY_ID_VENDOR_MIN to #PSA_KEY_ID_VENDOR_MAX.
  * - 0 is reserved as an invalid key identifier.
  * - Key identifiers outside these ranges are reserved for future use.
@@ -271,23 +257,18 @@ typedef uint32_t psa_key_usage_t;
  * - The key's policy, comprising usage flags and a specification of
  *   the permitted algorithm(s).
  * - Information about the key itself: the key type and its size.
- * - Implementations may define additional attributes.
+ * - Additional implementation-defined attributes.
  *
  * The actual key material is not considered an attribute of a key.
  * Key attributes do not contain information that is generally considered
  * highly confidential.
  *
- * An attribute structure can be a simple data structure where each function
+ * An attribute structure works like a simple data structure where each function
  * `psa_set_key_xxx` sets a field and the corresponding function
  * `psa_get_key_xxx` retrieves the value of the corresponding field.
- * However, implementations may report values that are equivalent to the
- * original one, but have a different encoding. For example, an
- * implementation may use a more compact representation for types where
- * many bit-patterns are invalid or not supported, and store all values
- * that it does not support as a special marker value. In such an
- * implementation, after setting an invalid value, the corresponding
- * get function returns an invalid value which may not be the one that
- * was originally stored.
+ * However, a future version of the library  may report values that are
+ * equivalent to the original one, but have a different encoding. Invalid
+ * values may be mapped to different, also invalid values.
  *
  * An attribute structure may contain references to auxiliary resources,
  * for example pointers to allocated memory or indirect references to

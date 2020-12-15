@@ -1568,13 +1568,12 @@
  *
  * A persistent key remains in storage until it is explicitly destroyed or
  * until the corresponding storage area is wiped. This specification does
- * not define any mechanism to wipe a storage area, but implementations may
+ * not define any mechanism to wipe a storage area, but integrations may
  * provide their own mechanism (for example to perform a factory reset,
  * to prepare for device refurbishment, or to uninstall an application).
  *
  * This lifetime value is the default storage area for the calling
- * application. Implementations may offer other storage areas designated
- * by other lifetime values as implementation-specific extensions.
+ * application. Integrations of Mbed TLS may support other persistent lifetimes.
  * See ::psa_key_lifetime_t for more information.
  */
 #define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000001)

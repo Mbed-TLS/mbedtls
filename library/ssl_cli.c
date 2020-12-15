@@ -4259,6 +4259,9 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
     {
         case MBEDTLS_SSL_HELLO_REQUEST:
             ssl->state = MBEDTLS_SSL_CLIENT_HELLO;
+#if defined(MBEDTLS_EARLY_KEY_COMPUTATION)
+            int ecdhe_computed = 0;
+#endif /* MBEDTLS_EARLY_KEY_COMPUTATION */
             break;
 
        /*
@@ -4277,11 +4280,16 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
         */
        case MBEDTLS_SSL_SERVER_HELLO:
 #if defined(MBEDTLS_EARLY_KEY_COMPUTATION) && defined(MBEDTLS_USE_TINYCRYPT)
-            ret = uECC_make_key( ssl->handshake->ecdh_publickey, ssl->handshake->ecdh_privkey );
-            if( ret == UECC_FAULT_DETECTED )
-                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
-            if( ret != UECC_SUCCESS )
-                return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+           /* Make sure that the ECDHE pre-computation is only done once */
+           if( ecdhe_computed == 0 )
+           {
+               ret = uECC_make_key( ssl->handshake->ecdh_publickey, ssl->handshake->ecdh_privkey );
+               if( ret == UECC_FAULT_DETECTED )
+                   return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+               if( ret != UECC_SUCCESS )
+                   return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+               ecdhe_computed = 1;
+           }
 #endif /* MBEDTLS_EARLY_KEY_COMPUTATION && MBEDTLS_USE_TINYCRYPT */
 
            ret = ssl_parse_server_hello( ssl );

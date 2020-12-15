@@ -102,18 +102,18 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
     psa_algorithm_t alg );
 
 psa_status_t psa_driver_wrapper_cipher_generate_iv(
-    psa_operation_driver_context_t *operation,
+    psa_cipher_operation_t *operation,
     uint8_t *iv,
     size_t iv_size,
     size_t *iv_length );
 
 psa_status_t psa_driver_wrapper_cipher_set_iv(
-    psa_operation_driver_context_t *operation,
+    psa_cipher_operation_t *operation,
     const uint8_t *iv,
     size_t iv_length );
 
 psa_status_t psa_driver_wrapper_cipher_update(
-    psa_operation_driver_context_t *operation,
+    psa_cipher_operation_t *operation,
     const uint8_t *input,
     size_t input_length,
     uint8_t *output,
@@ -121,13 +121,13 @@ psa_status_t psa_driver_wrapper_cipher_update(
     size_t *output_length );
 
 psa_status_t psa_driver_wrapper_cipher_finish(
-    psa_operation_driver_context_t *operation,
+    psa_cipher_operation_t *operation,
     uint8_t *output,
     size_t output_size,
     size_t *output_length );
 
 psa_status_t psa_driver_wrapper_cipher_abort(
-    psa_operation_driver_context_t *operation );
+    psa_cipher_operation_t *operation );
 
 /*
  * Hashing functions

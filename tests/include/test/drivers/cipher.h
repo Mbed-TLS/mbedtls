@@ -28,17 +28,10 @@
 
 #if defined(PSA_CRYPTO_DRIVER_TEST)
 #include <psa/crypto_driver_common.h>
+#include <psa/crypto.h>
 
 #include "mbedtls/cipher.h"
-typedef struct {
-    psa_algorithm_t alg;
-    unsigned int key_set : 1;
-    unsigned int iv_required : 1;
-    unsigned int iv_set : 1;
-    uint8_t iv_size;
-    uint8_t block_size;
-    mbedtls_cipher_context_t cipher;
-} test_transparent_cipher_operation_t;
+typedef psa_cipher_operation_t test_transparent_cipher_operation_t;
 
 typedef struct{
     unsigned int initialised : 1;

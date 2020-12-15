@@ -574,6 +574,7 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_USE_TINYCRYPT)
     uint8_t ecdh_privkey[NUM_ECC_BYTES];
 #if defined(MBEDTLS_EARLY_KEY_COMPUTATION)
+    uint8_t ecdhe_computed;
     uint8_t ecdh_publickey[2*NUM_ECC_BYTES];
 #endif /* MBEDTLS_EARLY_KEY_COMPUTATION */
     uint8_t ecdh_peerkey[2*NUM_ECC_BYTES];

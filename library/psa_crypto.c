@@ -3488,20 +3488,10 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    if( operation->mbedtls_in_use == 0 )
-    {
-        status = psa_driver_wrapper_cipher_generate_iv( operation,
-                                                        iv,
-                                                        iv_size,
-                                                        iv_length );
-    }
-    else
-    {
-        status = mbedtls_psa_cipher_generate_iv( operation,
-                                                 iv,
-                                                 iv_size,
-                                                 iv_length );
-    }
+    status = psa_driver_wrapper_cipher_generate_iv( operation,
+                                                    iv,
+                                                    iv_size,
+                                                    iv_length );
 
     if( status == PSA_SUCCESS )
         operation->iv_set = 1;
@@ -3527,16 +3517,9 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    if( operation->mbedtls_in_use == 0 )
-    {
-        status = psa_driver_wrapper_cipher_set_iv( operation,
-                                                   iv,
-                                                   iv_length );
-    }
-    else
-    {
-        status = mbedtls_psa_cipher_set_iv( operation, iv, iv_length );
-    }
+    status = psa_driver_wrapper_cipher_set_iv( operation,
+                                               iv,
+                                               iv_length );
 
     if( status == PSA_SUCCESS )
         operation->iv_set = 1;
@@ -3563,25 +3546,12 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    if( operation->mbedtls_in_use == 0 )
-    {
-        status = psa_driver_wrapper_cipher_update( operation,
-                                                   input,
-                                                   input_length,
-                                                   output,
-                                                   output_size,
-                                                   output_length );
-    }
-    else
-    {
-        status = mbedtls_psa_cipher_update( operation,
-                                            input,
-                                            input_length,
-                                            output,
-                                            output_size,
-                                            output_length );
-    }
-
+    status = psa_driver_wrapper_cipher_update( operation,
+                                               input,
+                                               input_length,
+                                               output,
+                                               output_size,
+                                               output_length );
     if( status != PSA_SUCCESS )
         psa_cipher_abort( operation );
 
@@ -3604,21 +3574,10 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    if( operation->mbedtls_in_use == 0 )
-    {
-        status = psa_driver_wrapper_cipher_finish( operation,
-                                                   output,
-                                                   output_size,
-                                                   output_length );
-    }
-    else
-    {
-        status = mbedtls_psa_cipher_finish( operation,
-                                            output,
-                                            output_size,
-                                            output_length );
-    }
-    
+    status = psa_driver_wrapper_cipher_finish( operation,
+                                               output,
+                                               output_size,
+                                               output_length );
     if( status == PSA_SUCCESS )
         return( psa_cipher_abort( operation ) );
     else
@@ -3645,10 +3604,7 @@ psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
     if( ! PSA_ALG_IS_CIPHER( operation->alg ) )
         return( PSA_ERROR_BAD_STATE );
 
-    if( operation->mbedtls_in_use == 0 )
-        psa_driver_wrapper_cipher_abort( operation );
-    else
-        mbedtls_psa_cipher_abort( operation );
+    psa_driver_wrapper_cipher_abort( operation );
 
     operation->alg = 0;
     operation->key_set = 0;

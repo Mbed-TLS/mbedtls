@@ -895,7 +895,13 @@ psa_status_t psa_driver_wrapper_cipher_generate_iv(
     size_t iv_size,
     size_t *iv_length )
 {
-#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    if( operation->mbedtls_in_use )
+        return( mbedtls_psa_cipher_generate_iv( operation,
+                                                iv,
+                                                iv_size,
+                                                iv_length ) );
+
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
     switch( operation->ctx.driver.id )
     {
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -906,6 +912,7 @@ psa_status_t psa_driver_wrapper_cipher_generate_iv(
                         iv_size,
                         iv_length ) );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
+
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID:
             return( test_opaque_cipher_generate_iv(
@@ -914,18 +921,10 @@ psa_status_t psa_driver_wrapper_cipher_generate_iv(
                         iv_size,
                         iv_length ) );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
-        default:
-            /* Key is attached to a driver not known to us */
-            return( PSA_ERROR_INVALID_ARGUMENT );
     }
-#else /* PSA_CRYPTO_DRIVER_PRESENT */
-    (void) operation;
-    (void) iv;
-    (void) iv_size;
-    (void) iv_length;
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+    return( PSA_ERROR_INVALID_ARGUMENT );
 }
 
 psa_status_t psa_driver_wrapper_cipher_set_iv(
@@ -933,7 +932,12 @@ psa_status_t psa_driver_wrapper_cipher_set_iv(
     const uint8_t *iv,
     size_t iv_length )
 {
-#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    if( operation->mbedtls_in_use )
+        return( mbedtls_psa_cipher_set_iv( operation,
+                                           iv,
+                                           iv_length ) );
+
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
     switch( operation->ctx.driver.id )
     {
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -948,17 +952,10 @@ psa_status_t psa_driver_wrapper_cipher_set_iv(
                                                iv,
                                                iv_length ) );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
-        default:
-            /* Key is attached to a driver not known to us */
-            return( PSA_ERROR_INVALID_ARGUMENT );
     }
-#else /* PSA_CRYPTO_DRIVER_PRESENT */
-    (void) operation;
-    (void) iv;
-    (void) iv_length;
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+    return( PSA_ERROR_INVALID_ARGUMENT );
 }
 
 psa_status_t psa_driver_wrapper_cipher_update(
@@ -969,7 +966,15 @@ psa_status_t psa_driver_wrapper_cipher_update(
     size_t output_size,
     size_t *output_length )
 {
-#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    if( operation->mbedtls_in_use )
+        return( mbedtls_psa_cipher_update( operation,
+                                           input,
+                                           input_length,
+                                           output,
+                                           output_size,
+                                           output_length ) );
+
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
     switch( operation->ctx.driver.id )
     {
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -990,20 +995,10 @@ psa_status_t psa_driver_wrapper_cipher_update(
                                                output_size,
                                                output_length ) );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
-        default:
-            /* Key is attached to a driver not known to us */
-            return( PSA_ERROR_INVALID_ARGUMENT );
     }
-#else /* PSA_CRYPTO_DRIVER_PRESENT */
-    (void) operation;
-    (void) input;
-    (void) input_length;
-    (void) output;
-    (void) output_length;
-    (void) output_size;
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+    return( PSA_ERROR_INVALID_ARGUMENT );
 }
 
 psa_status_t psa_driver_wrapper_cipher_finish(
@@ -1012,7 +1007,13 @@ psa_status_t psa_driver_wrapper_cipher_finish(
     size_t output_size,
     size_t *output_length )
 {
-#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    if( operation->mbedtls_in_use )
+        return( mbedtls_psa_cipher_finish( operation,
+                                           output,
+                                           output_size,
+                                           output_length ) );
+
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
     switch( operation->ctx.driver.id )
     {
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -1029,25 +1030,20 @@ psa_status_t psa_driver_wrapper_cipher_finish(
                                                output_size,
                                                output_length ) );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
-        default:
-            /* Key is attached to a driver not known to us */
-            return( PSA_ERROR_INVALID_ARGUMENT );
     }
-#else /* PSA_CRYPTO_DRIVER_PRESENT */
-    (void) operation;
-    (void) output;
-    (void) output_size;
-    (void) output_length;
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+    return( PSA_ERROR_INVALID_ARGUMENT );
 }
 
 psa_status_t psa_driver_wrapper_cipher_abort(
     psa_cipher_operation_t *operation )
 {
-#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+    if( operation->mbedtls_in_use )
+        return( mbedtls_psa_cipher_abort( operation ) );
+
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_operation_driver_context_t *driver_context = &operation->ctx.driver;
 
     /* The object has (apparently) been initialized but it is not in use. It's
@@ -1081,15 +1077,10 @@ psa_status_t psa_driver_wrapper_cipher_abort(
 
             return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
-        default:
-            /* Operation is attached to a driver not known to us */
-            return( PSA_ERROR_INVALID_ARGUMENT );
     }
-#else /* PSA_CRYPTO_DRIVER_PRESENT */
-    (void)operation;
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+    return( PSA_ERROR_INVALID_ARGUMENT );
 }
 
 /*

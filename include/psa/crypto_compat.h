@@ -261,6 +261,14 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
 #define PSA_ALG_CHACHA20 \
     MBEDTLS_DEPRECATED_CONSTANT( psa_algorithm_t, PSA_ALG_STREAM_CIPHER )
 
+/*
+ * Renamed AEAD tag length macros (PSA Crypto API  <= 1.0 beta3)
+ */
+#define PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH( aead_alg ) \
+    MBEDTLS_DEPRECATED_CONSTANT( psa_algorithm_t, PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG( aead_alg ) )
+#define PSA_ALG_AEAD_WITH_TAG_LENGTH( aead_alg, tag_length ) \
+    MBEDTLS_DEPRECATED_CONSTANT( psa_algorithm_t, PSA_ALG_AEAD_WITH_SHORTENED_TAG( aead_alg, tag_length ) )
+
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 /** Open a handle to an existing persistent key.

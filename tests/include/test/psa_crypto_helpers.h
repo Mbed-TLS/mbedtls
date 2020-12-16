@@ -175,8 +175,8 @@ psa_status_t mbedtls_test_record_status( psa_status_t status,
     do                                                                     \
     {                                                                      \
         if( ( MBEDTLS_TEST_HAVE_ALT_GCM ) &&                               \
-            ( PSA_ALG_AEAD_WITH_TAG_LENGTH( ( alg ) , 0 ) ==               \
-              PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ) ) &&          \
+            ( PSA_ALG_AEAD_WITH_SHORTENED_TAG( ( alg ) , 0 ) ==            \
+              PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ) ) &&       \
             ( ( nonce_length ) != 12 ) )                                   \
         {                                                                  \
             mbedtls_test_skip( "GCM with non-12-byte IV is not supported", __LINE__, __FILE__ ); \

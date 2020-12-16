@@ -1,0 +1,2 @@
+Bugfix
+   * Fix use-after-scope error in programs/ssl/ssl_client2.c and ssl_server2.c

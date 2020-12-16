@@ -2146,13 +2146,13 @@
 /**
  * \def MBEDTLS_X509_REMOVE_INFO
  *
- * Enable mbedtls_x509_*_info() and related APIs.
+ * Disable mbedtls_x509_*_info() and related APIs.
  *
- * Comment to omit mbedtls_x509_*_info(), as well as mbedtls_debug_print_crt()
+ * Uncomment to omit mbedtls_x509_*_info(), as well as mbedtls_debug_print_crt()
  * and other functions/constants only used by these functions, thus reducing
  * the code footprint by several KB.
  */
-#define MBEDTLS_X509_REMOVE_INFO
+//#define MBEDTLS_X509_REMOVE_INFO
 
 /**
  * \def MBEDTLS_X509_RSASSA_PSS_SUPPORT

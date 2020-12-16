@@ -398,7 +398,6 @@ int parse_crt_ext_cb( void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf
  * END_DEPENDENCIES
  */
 
-
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
 void x509_parse_san( char * crt_file, char * result_str )
 {
@@ -941,7 +940,6 @@ void x509parse_crt_cb( data_t * buf, char * result_str, int result )
 
     mbedtls_x509_crt_free( &crt );
     mbedtls_x509_crt_init( &crt );
-
 
     TEST_ASSERT( mbedtls_x509_crt_parse_der_with_ext_cb( &crt, buf->x, buf->len, 1, parse_crt_ext_cb, &oid ) == ( result ) );
 #if !defined(MBEDTLS_X509_REMOVE_INFO)

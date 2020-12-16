@@ -334,7 +334,7 @@ uint32_t mbedtls_platform_random_uint32( void )
 
 void mbedtls_platform_random_buf( uint8_t *buf, size_t len )
 {
-    volatile size_t flow_control = 0;
+    volatile size_t flow_control = 0, flow_control_check = len;
     uint16_t val;
 
     while( len > 1 )
@@ -351,7 +351,7 @@ void mbedtls_platform_random_buf( uint8_t *buf, size_t len )
         flow_control ++;
     }
 
-    if ( flow_control == len )
+    if ( flow_control == flow_control_check )
     {
         return;
     }

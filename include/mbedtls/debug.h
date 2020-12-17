@@ -92,7 +92,7 @@
  *
  * This module provides debugging functions.
  */
-#if (defined(_WIN32) || defined(_WIN64))
+#if defined(__GNUC__)
 #define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)
 #else
 #define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)    \

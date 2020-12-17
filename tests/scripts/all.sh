@@ -2410,7 +2410,6 @@ component_test_no_64bit_multiplication () {
     make test
 }
 
-<<<<<<< HEAD
 component_test_no_strings () {
     msg "build: no strings" # ~10s
     scripts/config.py full

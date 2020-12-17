@@ -299,12 +299,12 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
             mbedtls_ssl_sig_hash_set_add( &ssl->handshake->hash_algs, sig_cur, md_cur );
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext:"
                                         " match sig %u and hash %u",
-                                        sig_cur, md_cur ) );
+                                        (unsigned) sig_cur, (unsigned) md_cur ) );
         }
         else
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: "
-                                        "hash alg %u not supported", md_cur ) );
+                                        "hash alg %u not supported", (unsigned) md_cur ) );
         }
     }
 
@@ -1048,7 +1048,7 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "trying ciphersuite: %#04x (%s)",
-                                (unsigned int)suite_id, suite_info->name ) );
+                                (unsigned int) suite_id, suite_info->name ) );
 
     if( suite_info->min_minor_ver > ssl->minor_ver ||
         suite_info->max_minor_ver < ssl->minor_ver )
@@ -1116,7 +1116,7 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
             mbedtls_ssl_sig_hash_set_find( &ssl->handshake->hash_algs, sig_type ) == MBEDTLS_MD_NONE )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: no suitable hash algorithm "
-                                        "for signature algorithm %u", sig_type ) );
+                                        "for signature algorithm %u", (unsigned) sig_type ) );
             return( 0 );
         }
     }
@@ -2274,7 +2274,7 @@ have_ciphersuite:
         else
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "no hash algorithm for signature algorithm "
-                                        "%u - should not happen", sig_alg ) );
+                                        "%u - should not happen", (unsigned) sig_alg ) );
         }
     }
 #endif
@@ -2926,7 +2926,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %s",
            mbedtls_ssl_get_ciphersuite_name( ssl->session_negotiate->ciphersuite ) ) );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: 0x%02X",
-                   (unsigned int)ssl->session_negotiate->compression ) );
+                   (unsigned int) ssl->session_negotiate->compression ) );
 
     /* Do not write the extensions if the protocol is SSLv3 */
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
@@ -3502,7 +3502,7 @@ curve_matching_done:
             md_alg = MBEDTLS_MD_NONE;
         }
 
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "pick hash algorithm %u for signing", md_alg ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "pick hash algorithm %u for signing", (unsigned) md_alg ) );
 
         /*
          * 2.2: Compute the hash to be signed

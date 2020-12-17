@@ -623,9 +623,9 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 
     if( rec->data_len > MBEDTLS_SSL_OUT_CONTENT_LEN )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Record content %u too large, maximum %d",
-                                    (unsigned) rec->data_len,
-                                    MBEDTLS_SSL_OUT_CONTENT_LEN ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Record content %zu too large, maximum %zu",
+                                    rec->data_len,
+                                    (size_t) MBEDTLS_SSL_OUT_CONTENT_LEN ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
@@ -2699,9 +2699,9 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
     if( ssl->out_msglen > MBEDTLS_SSL_OUT_CONTENT_LEN )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Record too large: "
-                                    "size %u, maximum %u",
-                                    (unsigned) ssl->out_msglen,
-                                    (unsigned) MBEDTLS_SSL_OUT_CONTENT_LEN ) );
+                                    "size %zu, maximum %zu",
+                                    ssl->out_msglen,
+                                    (size_t) MBEDTLS_SSL_OUT_CONTENT_LEN ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
@@ -2728,9 +2728,9 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
             if( MBEDTLS_SSL_OUT_CONTENT_LEN - ssl->out_msglen < 8 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "DTLS handshake message too large: "
-                              "size %u, maximum %u",
-                               (unsigned) ( hs_len ),
-                               (unsigned) ( MBEDTLS_SSL_OUT_CONTENT_LEN - 12 ) ) );
+                              "size %zu, maximum %zu",
+                               hs_len,
+                               (size_t) ( MBEDTLS_SSL_OUT_CONTENT_LEN - 12 ) ) );
                 return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
             }
 
@@ -4325,24 +4325,24 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
                     {
                         /* If we can't buffer a future message because
                          * of space limitations -- ignore. */
-                        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Buffering of future message of size %zu would exceed the compile-time limit %d (already %zu bytes buffered) -- ignore\n",
-                             msg_len, MBEDTLS_SSL_DTLS_MAX_BUFFERING,
+                        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Buffering of future message of size %zu would exceed the compile-time limit %zu (already %zu bytes buffered) -- ignore\n",
+                             msg_len, (size_t) MBEDTLS_SSL_DTLS_MAX_BUFFERING,
                              hs->buffering.total_bytes_buffered ) );
                         goto exit;
                     }
                     else
                     {
-                        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Buffering of future message of size %zu would exceed the compile-time limit %d (already %zu bytes buffered) -- attempt to make space by freeing buffered future messages\n",
-                             msg_len, MBEDTLS_SSL_DTLS_MAX_BUFFERING,
+                        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Buffering of future message of size %zu would exceed the compile-time limit %zu (already %zu bytes buffered) -- attempt to make space by freeing buffered future messages\n",
+                             msg_len, (size_t) MBEDTLS_SSL_DTLS_MAX_BUFFERING,
                              hs->buffering.total_bytes_buffered ) );
                     }
 
                     if( ssl_buffer_make_space( ssl, reassembly_buf_sz ) != 0 )
                     {
-                        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reassembly of next message of size %zu (%zu with bitmap) would exceed the compile-time limit %d (already %zu bytes buffered) -- fail\n",
+                        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reassembly of next message of size %zu (%zu with bitmap) would exceed the compile-time limit %zu (already %zu bytes buffered) -- fail\n",
                              msg_len,
                              reassembly_buf_sz,
-                             MBEDTLS_SSL_DTLS_MAX_BUFFERING,
+                             (size_t) MBEDTLS_SSL_DTLS_MAX_BUFFERING,
                              hs->buffering.total_bytes_buffered ) );
                         ret = MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
                         goto exit;
@@ -4622,8 +4622,8 @@ static int ssl_buffer_future_record( mbedtls_ssl_context *ssl,
     if( rec->buf_len > ( MBEDTLS_SSL_DTLS_MAX_BUFFERING -
                          hs->buffering.total_bytes_buffered ) )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Buffering of future epoch record of size %zu would exceed the compile-time limit %d (already %zu bytes buffered) -- ignore\n",
-                        rec->buf_len, MBEDTLS_SSL_DTLS_MAX_BUFFERING,
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Buffering of future epoch record of size %zu would exceed the compile-time limit %zu (already %zu bytes buffered) -- ignore\n",
+                        rec->buf_len, (size_t) MBEDTLS_SSL_DTLS_MAX_BUFFERING,
                         hs->buffering.total_bytes_buffered ) );
         return( 0 );
     }

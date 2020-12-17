@@ -47,11 +47,10 @@
 #define PSA_ITS_STORAGE_PREFIX ""
 #endif
 
-#define PSA_ITS_STORAGE_FILENAME_PATTERN "%08lx%08lx"
+#define PSA_ITS_STORAGE_FILENAME_PATTERN "%08x%08x"
 #define PSA_ITS_STORAGE_SUFFIX ".psa_its"
 #define PSA_ITS_STORAGE_FILENAME_LENGTH         \
     ( sizeof( PSA_ITS_STORAGE_PREFIX ) - 1 + /*prefix without terminating 0*/ \
-      16 + /*UID (64-bit number in hex)*/                               \
       16 + /*UID (64-bit number in hex)*/                               \
       sizeof( PSA_ITS_STORAGE_SUFFIX ) - 1 + /*suffix without terminating 0*/ \
       1 /*terminating null byte*/ )
@@ -88,8 +87,8 @@ static void psa_its_fill_filename( psa_storage_uid_t uid, char *filename )
     mbedtls_snprintf( filename, PSA_ITS_STORAGE_FILENAME_LENGTH,
                       "%s" PSA_ITS_STORAGE_FILENAME_PATTERN "%s",
                       PSA_ITS_STORAGE_PREFIX,
-                      (unsigned long) ( uid >> 32 ),
-                      (unsigned long) ( uid & 0xffffffff ),
+                      (unsigned) ( uid >> 32 ),
+                      (unsigned) ( uid & 0xffffffff ),
                       PSA_ITS_STORAGE_SUFFIX );
 }
 

@@ -1197,7 +1197,8 @@ static psa_status_t psa_get_transparent_key( psa_key_handle_t handle,
 static psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
 {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( psa_key_slot_is_external( slot ) )
+    if( psa_get_se_driver( slot->attr.lifetime, NULL, NULL ) &&
+        psa_key_slot_is_external( slot ) )
     {
         /* No key material to clean. */
     }

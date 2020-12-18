@@ -363,7 +363,7 @@
  * used for.
  *
  * HMAC keys should generally have the same size as the underlying hash.
- * This size can be calculated with #PSA_HASH_SIZE(\c alg) where
+ * This size can be calculated with #PSA_HASH_LENGTH(\c alg) where
  * \c alg is the HMAC algorithm or the underlying hash algorithm. */
 #define PSA_KEY_TYPE_HMAC                           ((psa_key_type_t)0x1100)
 
@@ -594,9 +594,9 @@
  *
  * \warning This macro may evaluate its argument multiple times.
  */
-#define PSA_BLOCK_CIPHER_BLOCK_SIZE(type)            \
+#define PSA_BLOCK_CIPHER_BLOCK_LENGTH(type)                                     \
     (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_SYMMETRIC ? \
-     1u << PSA_GET_KEY_TYPE_BLOCK_SIZE_EXPONENT(type) :                 \
+     1u << PSA_GET_KEY_TYPE_BLOCK_SIZE_EXPONENT(type) :                         \
      0u)
 
 /** Vendor-defined algorithm flag.

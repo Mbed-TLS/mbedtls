@@ -203,7 +203,7 @@ This example shows how to encrypt data using an AES (Advanced Encryption Standar
 void encrypt_with_symmetric_ciphers(const uint8_t *key, size_t key_len)
 {
     enum {
-        block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(PSA_KEY_TYPE_AES),
+        block_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH(PSA_KEY_TYPE_AES),
     };
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -288,7 +288,7 @@ This example shows how to decrypt encrypted data using an AES key in CBC mode wi
 void decrypt_with_symmetric_ciphers(const uint8_t *key, size_t key_len)
 {
     enum {
-        block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(PSA_KEY_TYPE_AES),
+        block_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH(PSA_KEY_TYPE_AES),
     };
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -445,7 +445,7 @@ This example shows how to verify the SHA-256 hash of a message:
         0x5d, 0xae, 0x22, 0x23, 0xb0, 0x03, 0x61, 0xa3, 0x96, 0x17, 0x7a, 0x9c,
         0xb4, 0x10, 0xff, 0x61, 0xf2, 0x00, 0x15, 0xad
     };
-    size_t expected_hash_len = PSA_HASH_SIZE(alg);
+    size_t expected_hash_len = PSA_HASH_LENGTH(alg);
 
     printf("Verify a hash...\t");
     fflush(stdout);
@@ -482,7 +482,7 @@ This example shows how to verify the SHA-256 hash of a message:
     mbedtls_psa_crypto_free();
 ```
 
-The API provides the macro `PSA_HASH_SIZE`, which returns the expected hash length (in bytes) for the specified algorithm.
+The API provides the macro `PSA_HASH_LENGTH`, which returns the expected hash length (in bytes) for the specified algorithm.
 
 #### Handling hash operation contexts
 

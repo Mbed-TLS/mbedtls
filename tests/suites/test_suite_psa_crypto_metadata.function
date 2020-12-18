@@ -156,7 +156,7 @@ void mac_algorithm_core( psa_algorithm_t alg, int classification_flags,
     algorithm_classification( alg, classification_flags );
 
     /* Length */
-    TEST_EQUAL( length, PSA_MAC_FINAL_SIZE( key_type, key_bits, alg ) );
+    TEST_EQUAL( length, PSA_MAC_LENGTH( key_type, key_bits, alg ) );
 
 exit: ;
 }
@@ -226,7 +226,7 @@ void hash_algorithm( int alg_arg, int length_arg )
     TEST_EQUAL( PSA_ALG_HKDF_GET_HASH( hkdf_alg ), alg );
 
     /* Hash length */
-    TEST_EQUAL( length, PSA_HASH_SIZE( alg ) );
+    TEST_EQUAL( length, PSA_HASH_LENGTH( alg ) );
     TEST_ASSERT( length <= PSA_HASH_MAX_SIZE );
 }
 /* END_CASE */
@@ -483,7 +483,7 @@ void block_cipher_key_type( int type_arg, int block_size_arg )
 
     TEST_EQUAL( type & PSA_KEY_TYPE_CATEGORY_MASK,
                 PSA_KEY_TYPE_CATEGORY_SYMMETRIC );
-    TEST_EQUAL( PSA_BLOCK_CIPHER_BLOCK_SIZE( type ), block_size );
+    TEST_EQUAL( PSA_BLOCK_CIPHER_BLOCK_LENGTH( type ), block_size );
 }
 /* END_CASE */
 
@@ -496,7 +496,7 @@ void stream_cipher_key_type( int type_arg )
 
     TEST_EQUAL( type & PSA_KEY_TYPE_CATEGORY_MASK,
                 PSA_KEY_TYPE_CATEGORY_SYMMETRIC );
-    TEST_EQUAL( PSA_BLOCK_CIPHER_BLOCK_SIZE( type ), 1 );
+    TEST_EQUAL( PSA_BLOCK_CIPHER_BLOCK_LENGTH( type ), 1 );
 }
 /* END_CASE */
 

@@ -263,7 +263,7 @@ static psa_status_t get_expected_key_size( const psa_key_attributes_t *attribute
     switch( location )
     {
         case PSA_KEY_LOCATION_LOCAL_STORAGE:
-            buffer_size = PSA_KEY_EXPORT_MAX_SIZE( key_type, key_bits );
+            buffer_size = PSA_EXPORT_KEY_OUTPUT_SIZE( key_type, key_bits );
 
             if( buffer_size == 0 )
                 return( PSA_ERROR_NOT_SUPPORTED );
@@ -280,7 +280,7 @@ static psa_status_t get_expected_key_size( const psa_key_attributes_t *attribute
             if( PSA_KEY_TYPE_IS_KEY_PAIR( key_type ) )
             {
                 int public_key_overhead = ( ( TEST_DRIVER_KEY_CONTEXT_STORE_PUBLIC_KEY == 1 ) ?
-                                           PSA_KEY_EXPORT_MAX_SIZE( key_type, key_bits ) : 0 );
+                                           PSA_EXPORT_KEY_OUTPUT_SIZE( key_type, key_bits ) : 0 );
                 *expected_size = TEST_DRIVER_KEY_CONTEXT_BASE_SIZE
                                  + TEST_DRIVER_KEY_CONTEXT_PUBLIC_KEY_SIZE
                                  + public_key_overhead;

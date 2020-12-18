@@ -4539,6 +4539,9 @@ static int ssl_flight_append( mbedtls_ssl_context *ssl )
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit_msg", ret );
                 return( ret );
             }
+
+            if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
+                return( ret );
         }
     }
 #endif

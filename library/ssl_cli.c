@@ -3668,7 +3668,8 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
         *p++ = 0x04; /* uncompressed point presentation */
 
 #if defined(MBEDTLS_EARLY_KEY_COMPUTATION)
-        memcpy( p, ssl->handshake->ecdh_publickey, 2 * NUM_ECC_BYTES );
+        mbedtls_platform_memcpy( p, ssl->handshake->ecdh_publickey,
+                                 2 * NUM_ECC_BYTES );
 #else
         ret = uECC_make_key( p, ssl->handshake->ecdh_privkey );
         if( ret == UECC_FAULT_DETECTED )
@@ -4227,11 +4228,10 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
  */
 int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
 {
-    int ret = 0;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 #if defined(MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION)
     void *rs_ctx = NULL;
     int authmode;
-    mbedtls_x509_crt *chain = NULL;
 #endif /* MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION */
 
     if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER || ssl->handshake == NULL )
@@ -4347,16 +4347,11 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
 #else
            authmode = mbedtls_ssl_conf_get_authmode( ssl->conf );
 #endif
-/*           authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
-                       ? ssl->handshake->sni_authmode
-                       : ssl->conf->authmode;
-*/
-           chain = ssl->session_negotiate->peer_cert;
 
            MBEDTLS_SSL_DEBUG_MSG( 3, ( "execute delayed server certificate verification" ) );
 
            ret = mbedtls_ssl_parse_delayed_certificate_verify( ssl, authmode,
-                                                               chain, rs_ctx );
+                                   ssl->session_negotiate->peer_cert, rs_ctx );
            if( ret != 0 )
                break;
 #endif /* MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION */

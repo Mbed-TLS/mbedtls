@@ -93,10 +93,10 @@
  * This module provides debugging functions.
  */
 #if defined(__GNUC__)
-#define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)
-#else
 #define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)    \
     __attribute__((format (printf, string_index, first_to_check)))
+#else
+#define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)
 #endif
 
 #ifdef __cplusplus

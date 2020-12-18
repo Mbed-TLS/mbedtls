@@ -12099,12 +12099,11 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     if( ssl->session_negotiate )
     {
-        mbedtls_x509_crt_free( ssl->session_negotiate->peer_cert );
+        ssl_clear_peer_cert( ssl->session_negotiate );
     }
     if( ssl->session )
     {
-        mbedtls_free( ssl->session->peer_cert );
-        ssl->session->peer_cert = NULL;
+        ssl_clear_peer_cert( ssl->session );
     }
 #endif /* MBEDTLS_SSL_FREE_SERVER_CERTIFICATE */
 

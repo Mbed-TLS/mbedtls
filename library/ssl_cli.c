@@ -4229,10 +4229,10 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
 int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
-#if defined(MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION)
+#if defined(MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION)
     void *rs_ctx = NULL;
     int authmode;
-#endif /* MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION */
+#endif /* MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION */
 
     if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER || ssl->handshake == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -4339,7 +4339,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
 
        case MBEDTLS_SSL_CLIENT_FINISHED:
 
-#if defined(MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION)
+#if defined(MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION)
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
            authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
                        ? ssl->handshake->sni_authmode
@@ -4354,7 +4354,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
                                    ssl->session_negotiate->peer_cert, rs_ctx );
            if( ret != 0 )
                break;
-#endif /* MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION */
+#endif /* MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION */
 
            ret = mbedtls_ssl_write_finished( ssl );
            break;

@@ -1089,12 +1089,12 @@ int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
                                 mbedtls_md_type_t md );
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED) && defined(MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION)
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED) && defined(MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION)
 int mbedtls_ssl_parse_delayed_certificate_verify( mbedtls_ssl_context *ssl,
                                                   int authmode,
                                                   mbedtls_x509_crt *chain,
                                                   void *rs_ctx );
-#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED && MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION */
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED && MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION */
 
 
 static inline int mbedtls_ssl_get_minor_ver( mbedtls_ssl_context const *ssl )

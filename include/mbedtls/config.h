@@ -41,13 +41,13 @@
  */
 
 /**
- * \def MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION
+ * \def MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION
  *
  * Enable the delayed verification of server
  * certificates on the client side.
  *
  */
-//#define MBEDTLS_DELAYED_SERVER_CERT_VERIFICATION
+//#define MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION
 
 /**
  * \def MBEDTLS_HAVE_ASM

@@ -1827,6 +1827,13 @@ component_test_baremetal () {
     msg "test: baremetal.h + baremetal_test.h"
     if_build_succeeded make test
     if_build_succeeded tests/ssl-opt.sh
+
+    # Optional parts (slow; currently broken on OS X because programs don't
+    # seem to receive signals under valgrind on OS X).
+    if [ "$MEMORY" -gt 0 ]; then
+        msg "test: ssl-opt.sh --memcheck"
+        if_build_succeeded tests/ssl-opt.sh --memcheck
+    fi
 }
 
 component_test_hardware_entropy () {

@@ -4527,7 +4527,7 @@ static int ssl_flight_append( mbedtls_ssl_context *ssl )
         cur->next = msg;
     }
 
-#if defined(MBEDTLS_IMMEDIATE_TRANSMISSION)
+#if defined(MBEDTLS_SSL_IMMEDIATE_TRANSMISSION)
     ssl->handshake->cur_msg = msg;
     ssl->handshake->cur_msg_p = msg->p + 12;
     {
@@ -4634,7 +4634,7 @@ int mbedtls_ssl_resend( mbedtls_ssl_context *ssl )
     return( ret );
 }
 
-#if defined(MBEDTLS_IMMEDIATE_TRANSMISSION)
+#if defined(MBEDTLS_SSL_IMMEDIATE_TRANSMISSION)
 void mbedtls_ssl_immediate_flight_done( mbedtls_ssl_context *ssl )
 {
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_immediate_flight_done" ) );
@@ -8743,7 +8743,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
-#if defined(MBEDTLS_IMMEDIATE_TRANSMISSION)
+#if defined(MBEDTLS_SSL_IMMEDIATE_TRANSMISSION)
         mbedtls_ssl_immediate_flight_done( ssl );
 #else
         if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )

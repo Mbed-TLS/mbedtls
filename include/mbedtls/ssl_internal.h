@@ -1203,7 +1203,7 @@ void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_recv_flight_completed( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_resend( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl );
-#if defined(MBEDTLS_IMMEDIATE_TRANSMISSION)
+#if defined(MBEDTLS_SSL_IMMEDIATE_TRANSMISSION)
 void mbedtls_ssl_immediate_flight_done( mbedtls_ssl_context *ssl );
 #endif
 #endif

@@ -1143,7 +1143,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
-#if defined(MBEDTLS_IMMEDIATE_TRANSMISSION)
+#if defined(MBEDTLS_SSL_IMMEDIATE_TRANSMISSION)
         mbedtls_ssl_immediate_flight_done( ssl );
 #else
         if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )

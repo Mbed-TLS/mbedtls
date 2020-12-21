@@ -1,0 +1,2 @@
+Features
+   * Add support for a client side identity hint callback.

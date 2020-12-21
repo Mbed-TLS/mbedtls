@@ -922,11 +922,12 @@ static int send_cb( void *ctx, unsigned char const *buf, size_t len )
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-static int psk_cb(void * p_psk,  mbedtls_ssl_context *context, const unsigned char * identity, size_t  identity_len) {
+static int psk_cb( void *p_psk,  mbedtls_ssl_context *context,
+                   const unsigned char *identity, size_t  identity_len) {
     (void)context;
     (void)p_psk;
 
-    /* INFO: Cou can also configure the psk inside this callback. */
+    /* INFO: You can also configure the psk inside this callback. */
 
     mbedtls_printf( "\n  . Receieved server identity: %.*s\n",  (int)identity_len, identity);
 

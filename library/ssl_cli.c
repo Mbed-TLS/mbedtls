@@ -840,11 +840,11 @@ static int ssl_validate_ciphersuite(
         return( 1 );
 #endif
 
-    /* Don't suggest PSK-based ciphersuite if no PSK is available
-     * and if no PSK identity hint callback is installed. */
+    /* Only offer PSK-based ciphersuites if a PSK is available or a callback is installed. */
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_psk( suite_info ) &&
-        ssl_conf_has_static_psk( ssl->conf ) == 0 && ssl->conf->f_psk == NULL )
+        ssl_conf_has_static_psk( ssl->conf ) == 0 &&
+        ssl->conf->f_psk == NULL )
     {
         return( 1 );
     }
@@ -2563,12 +2563,15 @@ static int ssl_parse_server_psk_hint( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
-    /* Execute client callback to read the server identity (hint) */
+    /* Execute client callback to read the server identity hint */
     ret = 0;
     if( ssl->conf->f_psk != NULL )
     {
-        if( ssl->conf->f_psk( ssl->conf->p_psk, ssl, *p, len ) != 0 )
+        MBEDTLS_SSL_DEBUG_BUF( 2, "identity hint passed to PSK callback", *p, len);
+        if( ssl->conf->f_psk( ssl->conf->p_psk, ssl, *p, len ) != 0 ) {
             ret = MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY;
+            MBEDTLS_SSL_DEBUG_MSG( 2, ("PSK callback failed!") );
+        }
     }
 
     *p += len;
@@ -3636,7 +3639,7 @@ ecdh_calc_secret:
          */
         if( ssl_conf_has_static_psk( ssl->conf ) == 0 )
         {
-            /* This can happen, if PSK suite is enabled
+            /* This can happen, if a PSK suite is enabled
              * but no PSK has been selected manually or by the PSK identity hint callback. */
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }

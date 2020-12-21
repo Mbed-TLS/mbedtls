@@ -2805,7 +2805,7 @@ int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**
- * \brief          Set the PSK callback (server-side only).
+ * \brief          Set the PSK callback (used for server-side and client-side).
  *
  *                 If set, the PSK callback is called for each
  *                 handshake where a PSK-based ciphersuite was negotiated.

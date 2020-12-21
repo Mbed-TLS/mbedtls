@@ -1370,13 +1370,13 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_IMMEDIATE_TRANSMISSION */
 
-#if defined(MBEDTLS_EARLY_KEY_COMPUTATION)
-    if( strcmp( "MBEDTLS_EARLY_KEY_COMPUTATION", config ) == 0 )
+#if defined(MBEDTLS_SSL_EARLY_KEY_COMPUTATION)
+    if( strcmp( "MBEDTLS_SSL_EARLY_KEY_COMPUTATION", config ) == 0 )
     {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_EARLY_KEY_COMPUTATION );
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_EARLY_KEY_COMPUTATION );
         return( 0 );
     }
-#endif /* MBEDTLS_EARLY_KEY_COMPUTATION */
+#endif /* MBEDTLS_SSL_EARLY_KEY_COMPUTATION */
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( strcmp( "MBEDTLS_SSL_HW_RECORD_ACCEL", config ) == 0 )

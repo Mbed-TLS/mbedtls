@@ -1383,6 +1383,18 @@ void mbedtls_ssl_buffering_free( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+/* Checks whether client handshake defragmentation is enabled */
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+static inline int mbedtls_ssl_hs_reassembly_enabled( const mbedtls_ssl_context *ssl )
+{
+    return( ( ssl->handshake ) &&
+            ( ssl->handshake->hs_rcb.acc ) &&
+            ( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_STREAM ) );
+}
+#else
+#define mbedtls_ssl_hs_reassembly_enabled(x) 0
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
+
 /* Returns a pointer to the header of the handshake message */
 static inline unsigned char *mbedtls_ssl_hs_hdr_ptr( const mbedtls_ssl_context *ssl )
 {

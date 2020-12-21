@@ -1398,6 +1398,11 @@ static inline int mbedtls_ssl_hs_reassembly_enabled( const mbedtls_ssl_context *
 /* Returns a pointer to the header of the handshake message */
 static inline unsigned char *mbedtls_ssl_hs_hdr_ptr( const mbedtls_ssl_context *ssl )
 {
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+    if( mbedtls_ssl_hs_reassembly_enabled( ssl ) )
+        return( &ssl->handshake->hs_rcb.hdr[0] );
+    else
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
     return( ssl->in_msg );
 }
 
@@ -1411,6 +1416,11 @@ static inline unsigned char mbedtls_ssl_hs_msg_type( const mbedtls_ssl_context *
 /* Returns pointer to the (possibly reassembled) body of a handshake message */
 static inline unsigned char *mbedtls_ssl_hs_body_ptr( const mbedtls_ssl_context *ssl )
 {
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+    if( mbedtls_ssl_hs_reassembly_enabled( ssl ) )
+        return( ssl->handshake->hs_rcb.pmsg );
+    else
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
     return( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ) );
 }
 

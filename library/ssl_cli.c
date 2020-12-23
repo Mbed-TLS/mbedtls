@@ -4261,10 +4261,12 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
     }
 #endif
 
+    ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     switch( ssl->state )
     {
         case MBEDTLS_SSL_HELLO_REQUEST:
             ssl->state = MBEDTLS_SSL_CLIENT_HELLO;
+            ret = 0;
             break;
 
        /*
@@ -4381,6 +4383,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
        case MBEDTLS_SSL_FLUSH_BUFFERS:
            MBEDTLS_SSL_DEBUG_MSG( 2, ( "handshake: done" ) );
            ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
+           ret = 0;
            break;
 
        case MBEDTLS_SSL_HANDSHAKE_WRAPUP:

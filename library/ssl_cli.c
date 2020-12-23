@@ -3599,7 +3599,7 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
                                           size_t buflen,
                                           size_t *olen )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     unsigned char *p, *end;
     size_t n;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
@@ -4285,8 +4285,10 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
         */
        case MBEDTLS_SSL_SERVER_HELLO:
 #if defined(MBEDTLS_SSL_EARLY_KEY_COMPUTATION) && defined(MBEDTLS_USE_TINYCRYPT)
+       {
+           volatile uint8_t ecdhe_computed = ssl->handshake->ecdhe_computed;
            /* Make sure that the ECDHE pre-computation is only done once */
-           if( ssl->handshake->ecdhe_computed == 0 )
+           if( ecdhe_computed == 0 )
            {
                ret = uECC_make_key( ssl->handshake->ecdh_publickey, ssl->handshake->ecdh_privkey );
                if( ret == UECC_FAULT_DETECTED )
@@ -4294,7 +4296,11 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
                if( ret != UECC_SUCCESS )
                    return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
                ssl->handshake->ecdhe_computed = 1;
+               ecdhe_computed = 1;
            }
+           if( ecdhe_computed  == 0 || ssl->handshake->ecdhe_computed == 0 )
+               return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+       }
 #endif /* MBEDTLS_SSL_EARLY_KEY_COMPUTATION && MBEDTLS_USE_TINYCRYPT */
 
            ret = ssl_parse_server_hello( ssl );

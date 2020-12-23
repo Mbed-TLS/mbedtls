@@ -394,7 +394,7 @@ static int mbedtls_ctr_drbg_reseed_internal( mbedtls_ctr_drbg_context *ctx,
     /* Gather entropy for a nonce if requested. */
     if( nonce_len != 0 )
     {
-        if( 0 != ctx->f_entropy( ctx->p_entropy, seed, nonce_len ) )
+        if( 0 != ctx->f_entropy( ctx->p_entropy, seed + seedlen, nonce_len ) )
         {
             return( MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED );
         }

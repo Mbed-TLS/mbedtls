@@ -910,6 +910,15 @@
 #undef MBEDTLS_HASHES_ENABLED
 #endif /* MBEDTLS_MD_SINGLE_HASH */
 
+#if defined(MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION) && !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#error "MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION can only be used with MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+#endif
+
+
+#if defined(MBEDTLS_SSL_EARLY_KEY_COMPUTATION) && !defined(MBEDTLS_USE_TINYCRYPT)
+#error "MBEDTLS_SSL_EARLY_KEY_COMPUTATION can only be used with MBEDTLS_USE_TINYCRYPT"
+#endif
+
 /*
  * Note: the dependency on TinyCrypt is reflected in several ways in the code:
  *

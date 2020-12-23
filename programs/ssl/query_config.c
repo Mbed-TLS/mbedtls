@@ -130,6 +130,14 @@
 
 int query_config( const char *config )
 {
+#if defined(MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION)
+    if( strcmp( "MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION */
+
 #if defined(MBEDTLS_HAVE_ASM)
     if( strcmp( "MBEDTLS_HAVE_ASM", config ) == 0 )
     {
@@ -1345,6 +1353,30 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
+#if defined(MBEDTLS_SSL_FREE_SERVER_CERTIFICATE)
+    if( strcmp( "MBEDTLS_SSL_FREE_SERVER_CERTIFICATE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_FREE_SERVER_CERTIFICATE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_FREE_SERVER_CERTIFICATE */
+
+#if defined(MBEDTLS_SSL_IMMEDIATE_TRANSMISSION)
+    if( strcmp( "MBEDTLS_SSL_IMMEDIATE_TRANSMISSION", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_IMMEDIATE_TRANSMISSION );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_IMMEDIATE_TRANSMISSION */
+
+#if defined(MBEDTLS_SSL_EARLY_KEY_COMPUTATION)
+    if( strcmp( "MBEDTLS_SSL_EARLY_KEY_COMPUTATION", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_EARLY_KEY_COMPUTATION );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_EARLY_KEY_COMPUTATION */
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( strcmp( "MBEDTLS_SSL_HW_RECORD_ACCEL", config ) == 0 )

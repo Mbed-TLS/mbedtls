@@ -573,6 +573,10 @@ struct mbedtls_ssl_handshake_params
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
     uint8_t ecdh_privkey[NUM_ECC_BYTES];
+#if defined(MBEDTLS_SSL_EARLY_KEY_COMPUTATION)
+    uint8_t ecdhe_computed;
+    uint8_t ecdh_publickey[2*NUM_ECC_BYTES];
+#endif /* MBEDTLS_SSL_EARLY_KEY_COMPUTATION */
     uint8_t ecdh_peerkey[2*NUM_ECC_BYTES];
 #endif /* MBEDTLS_USE_TINYCRYPT */
 
@@ -1085,6 +1089,14 @@ int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
                                 mbedtls_md_type_t md );
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED) && defined(MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION)
+int mbedtls_ssl_parse_delayed_certificate_verify( mbedtls_ssl_context *ssl,
+                                                  int authmode,
+                                                  mbedtls_x509_crt *chain,
+                                                  void *rs_ctx );
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED && MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION */
+
+
 static inline int mbedtls_ssl_get_minor_ver( mbedtls_ssl_context const *ssl )
 {
 #if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
@@ -1191,6 +1203,9 @@ void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_recv_flight_completed( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_resend( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl );
+#if defined(MBEDTLS_SSL_IMMEDIATE_TRANSMISSION)
+void mbedtls_ssl_immediate_flight_done( mbedtls_ssl_context *ssl );
+#endif
 #endif
 
 /* Visible for testing purposes only */

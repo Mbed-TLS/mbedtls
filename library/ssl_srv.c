@@ -2743,11 +2743,17 @@ static int ssl_write_hello_verify_request( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
-        ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
-        return( ret );
+#if defined(MBEDTLS_SSL_IMMEDIATE_TRANSMISSION)
+        mbedtls_ssl_immediate_flight_done( ssl );
+#else
+        if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
+            return( ret );
+        }
+#endif
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
@@ -3802,11 +3808,17 @@ static int ssl_write_server_hello_done( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
-        ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
-        return( ret );
+#if defined(MBEDTLS_SSL_IMMEDIATE_TRANSMISSION)
+        mbedtls_ssl_immediate_flight_done( ssl );
+#else
+        if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
+            return( ret );
+        }
+#endif
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 

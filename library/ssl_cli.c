@@ -1141,11 +1141,17 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
-        ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
-        return( ret );
+#if defined(MBEDTLS_SSL_IMMEDIATE_TRANSMISSION)
+        mbedtls_ssl_immediate_flight_done( ssl );
+#else
+        if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
+            return( ret );
+        }
+#endif
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
@@ -3593,7 +3599,7 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
                                           size_t buflen,
                                           size_t *olen )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     unsigned char *p, *end;
     size_t n;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
@@ -3654,18 +3660,23 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
 
     {
         ((void) n);
-
+        ((void) ret);
         if( (size_t)( end - p ) < 2 * NUM_ECC_BYTES + 2 )
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
         *p++ = 2 * NUM_ECC_BYTES + 1;
         *p++ = 0x04; /* uncompressed point presentation */
 
+#if defined(MBEDTLS_SSL_EARLY_KEY_COMPUTATION)
+        mbedtls_platform_memcpy( p, ssl->handshake->ecdh_publickey,
+                                 2 * NUM_ECC_BYTES );
+#else
         ret = uECC_make_key( p, ssl->handshake->ecdh_privkey );
         if( ret == UECC_FAULT_DETECTED )
             return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
         if( ret != UECC_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+#endif /* MBEDTLS_SSL_EARLY_KEY_COMPUTATION && MBEDTLS_USE_TINYCRYPT */
         p += 2 * NUM_ECC_BYTES;
     }
     else
@@ -4217,7 +4228,11 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
  */
 int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
 {
-    int ret = 0;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+#if defined(MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION)
+    void *rs_ctx = NULL;
+    int authmode;
+#endif /* MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION */
 
     if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER || ssl->handshake == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -4246,10 +4261,12 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
     }
 #endif
 
+    ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     switch( ssl->state )
     {
         case MBEDTLS_SSL_HELLO_REQUEST:
             ssl->state = MBEDTLS_SSL_CLIENT_HELLO;
+            ret = 0;
             break;
 
        /*
@@ -4267,6 +4284,25 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
         *        ServerHelloDone
         */
        case MBEDTLS_SSL_SERVER_HELLO:
+#if defined(MBEDTLS_SSL_EARLY_KEY_COMPUTATION) && defined(MBEDTLS_USE_TINYCRYPT)
+       {
+           volatile uint8_t ecdhe_computed = ssl->handshake->ecdhe_computed;
+           /* Make sure that the ECDHE pre-computation is only done once */
+           if( ecdhe_computed == 0 )
+           {
+               ret = uECC_make_key( ssl->handshake->ecdh_publickey, ssl->handshake->ecdh_privkey );
+               if( ret == UECC_FAULT_DETECTED )
+                   return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+               if( ret != UECC_SUCCESS )
+                   return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+               ssl->handshake->ecdhe_computed = 1;
+               ecdhe_computed = 1;
+           }
+           if( ecdhe_computed  == 0 || ssl->handshake->ecdhe_computed == 0 )
+               return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+       }
+#endif /* MBEDTLS_SSL_EARLY_KEY_COMPUTATION && MBEDTLS_USE_TINYCRYPT */
+
            ret = ssl_parse_server_hello( ssl );
            break;
 
@@ -4310,6 +4346,24 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
            break;
 
        case MBEDTLS_SSL_CLIENT_FINISHED:
+
+#if defined(MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION)
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+           authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
+                       ? ssl->handshake->sni_authmode
+                       : mbedtls_ssl_conf_get_authmode( ssl->conf );
+#else
+           authmode = mbedtls_ssl_conf_get_authmode( ssl->conf );
+#endif
+
+           MBEDTLS_SSL_DEBUG_MSG( 3, ( "execute delayed server certificate verification" ) );
+
+           ret = mbedtls_ssl_parse_delayed_certificate_verify( ssl, authmode,
+                                   ssl->session_negotiate->peer_cert, rs_ctx );
+           if( ret != 0 )
+               break;
+#endif /* MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION */
+
            ret = mbedtls_ssl_write_finished( ssl );
            break;
 
@@ -4335,6 +4389,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
        case MBEDTLS_SSL_FLUSH_BUFFERS:
            MBEDTLS_SSL_DEBUG_MSG( 2, ( "handshake: done" ) );
            ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
+           ret = 0;
            break;
 
        case MBEDTLS_SSL_HANDSHAKE_WRAPUP:

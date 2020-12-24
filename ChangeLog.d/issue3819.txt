@@ -1,0 +1,4 @@
+Bugfix
+   * Fix incorrect seed generation when a nonce is included
+     in mbedtls_ctr_drbg_reseed_internal.
+     Found by John Stroebel in #3819 and fixed in #3973.

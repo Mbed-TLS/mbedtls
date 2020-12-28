@@ -684,6 +684,29 @@ exit:
 
 #if defined(MBEDTLS_SELF_TEST)
 
+/* The CTR_DRBG NIST test vectors used here are available at
+ * https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Algorithm-Validation-Program/documents/drbg/drbgtestvectors.zip
+ *
+ * The parameters used to derive the test data are:
+ *
+ * [AES-128 use df]
+ * [PredictionResistance = True/False]
+ * [EntropyInputLen = 128]
+ * [NonceLen = 64]
+ * [PersonalizationStringLen = 128]
+ * [AdditionalInputLen = 0]
+ * [ReturnedBitsLen = 512]
+ *
+ * [AES-256 use df]
+ * [PredictionResistance = True/False]
+ * [EntropyInputLen = 256]
+ * [NonceLen = 128]
+ * [PersonalizationStringLen = 256]
+ * [AdditionalInputLen = 0]
+ * [ReturnedBitsLen = 512]
+ *
+ */
+
 #if defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY)
 static const unsigned char entropy_source_pr[] =
     { 0x04, 0xd9, 0x49, 0xa6, 0xdc, 0xe8, 0x6e, 0xbb,

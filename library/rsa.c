@@ -1856,7 +1856,7 @@ static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
         else
             slen = olen - hlen - 2;
     }
-    else if ( ( (size_t) saltlen ) > olen - hlen - 2 )
+    else if ( (saltlen < 0) || ((size_t) saltlen > olen - hlen - 2) )
     {
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }

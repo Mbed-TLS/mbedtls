@@ -3106,6 +3106,40 @@ static size_t ssl_get_reassembly_buffer_size( size_t msg_len,
 
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+static int ssl_hs_accumulate_fragments( mbedtls_ssl_context const *ssl )
+{
+    int ret;
+    mbedtls_ssl_hs_reassembly *rcb = &ssl->handshake->hs_rcb;
+
+    ret = mbedtls_reader_feed( rcb->reader, ssl->in_msg, ssl->in_msglen );
+
+    MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_reader_feed" ), ret );
+
+    if( ret == MBEDTLS_ERR_READER_NEED_MORE )
+    {
+        /* This error code indicates that the reader is still
+         * unable to satisfy the last `mbedtls_reader_get` request.
+         *
+         * For example, this will happen if the handshake message
+         * has been split into several fragments, and the last
+         * fragment is not yet available.
+         *
+         * In this situation, we need to continue to read additional
+         * TLS records and feed their contents to the reader.
+         *
+         * We accomplish this by re-routing the error code into
+         * `MBEDTLS_ERR_SSL_CONTINUE_PROCESSING` and looping.
+         */
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reader needs more data" ) );
+
+        ret = MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
+    }
+
+    return( ret );
+}
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
+
 int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
 {
     if( ssl->in_msglen < mbedtls_ssl_hs_hdr_len( ssl ) )
@@ -4040,6 +4074,23 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
                         MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_get_next_record" ), ret );
                         return( ret );
                     }
+
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+                    if( ( mbedtls_ssl_hs_reassembly_enabled( ssl ) ) &&
+                        ( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE ) )
+                    {
+                        ret = ssl_hs_accumulate_fragments( ssl );
+
+                        if( ret == MBEDTLS_ERR_SSL_CONTINUE_PROCESSING )
+                            continue;
+
+                        if( ret != 0 )
+                        {
+                            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_hs_accumulate_fragments" ), ret );
+                            return( ret );
+                        }
+                    }
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
                 }
             }
 

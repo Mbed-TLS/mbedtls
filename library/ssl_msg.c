@@ -3107,6 +3107,41 @@ static size_t ssl_get_reassembly_buffer_size( size_t msg_len,
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+static int ssl_hs_read_data( mbedtls_ssl_context *ssl, unsigned char **ppmsg, size_t desired )
+{
+    int ret;
+    mbedtls_ssl_hs_reassembly *rcb = &ssl->handshake->hs_rcb;
+
+    /* Attempt to get the required portion of a handshake message from the reader */
+    ret = mbedtls_reader_get( rcb->reader, desired, ppmsg, NULL );
+
+    MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_reader_get" ), ret );
+
+    if( ret == MBEDTLS_ERR_READER_OUT_OF_DATA )
+    {
+        /* This error code indicates that the reader does not
+         * contain sufficient data for the handshake message.
+         *
+         * For example, this will happen if the header of
+         * the handshake message has been split between two
+         * TLS records.
+         *
+         * In this situation, we need to continue to read additional
+         * TLS records and feed their contents to the reader.
+         *
+         * We accomplish this by re-routing the error code into
+         * `MBEDTLS_ERR_SSL_CONTINUE_PROCESSING` and looping.
+         */
+        MBEDTLS_SSL_DEBUG_MSG( 1, (
+                    "Handshake reader needs more data: desired: %d",
+                    desired ) );
+
+        ret = MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
+    }
+
+    return( ret );
+}
+
 static int ssl_hs_accumulate_fragments( mbedtls_ssl_context const *ssl )
 {
     int ret;
@@ -3142,6 +3177,24 @@ static int ssl_hs_accumulate_fragments( mbedtls_ssl_context const *ssl )
 
 int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
 {
+    int ret;
+
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+    if( mbedtls_ssl_hs_reassembly_enabled( ssl ) )
+    {
+        /* If a header of the handshake message is not available, read it */
+        if( mbedtls_ssl_hs_reassembly_get_state( ssl ) < RCB_STATE_HAS_HDR )
+        {
+            unsigned char *phdr = NULL;
+            if( ( ret = ssl_hs_read_data( ssl, &phdr, mbedtls_ssl_hs_hdr_len( ssl ) ) ) != 0 )
+                return( ret) ;
+
+            memcpy( mbedtls_ssl_hs_hdr_ptr( ssl ), phdr, mbedtls_ssl_hs_hdr_len( ssl ) );
+            mbedtls_ssl_hs_reassembly_set_state( ssl, RCB_STATE_HAS_HDR );
+        }
+    }
+    else
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
     if( ssl->in_msglen < mbedtls_ssl_hs_hdr_len( ssl ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "handshake message too short: %d",
@@ -3158,7 +3211,7 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         unsigned int recv_msg_seq = ( ssl->in_msg[4] << 8 ) | ssl->in_msg[5];
 
         if( ssl_check_hs_header( ssl ) != 0 )
@@ -3222,10 +3275,26 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
-    /* With TLS we don't handle fragmentation (for now) */
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+    if( mbedtls_ssl_hs_reassembly_enabled( ssl ) )
+    {
+        if( mbedtls_ssl_hs_reassembly_get_state( ssl ) < RCB_STATE_HAS_FULL_MSG )
+        {
+            ret = ssl_hs_read_data( ssl, &ssl->handshake->hs_rcb.pmsg, mbedtls_ssl_hs_body_len( ssl ) );
+            if( ret != 0 )
+                return( ret) ;
+
+            mbedtls_ssl_hs_reassembly_set_state( ssl, RCB_STATE_HAS_FULL_MSG );
+        }
+        else
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "Handshake message already available for consumption" ) );
+
+    }
+    else
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
     if( ssl->in_msglen < ssl->in_hslen )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLS handshake fragmentation not supported" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLS handshake fragmentation not enabled" ) );
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 

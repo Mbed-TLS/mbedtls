@@ -2989,7 +2989,7 @@ static int x509_crt_find_parent_in(
     for( parent_crt = candidates; parent_crt != NULL;
          parent_crt = parent_crt->next )
     {
-        int parent_valid, parent_match, path_len_ok;
+        volatile int parent_valid, parent_match, path_len_ok;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 check_signature:

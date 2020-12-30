@@ -683,7 +683,7 @@ static void ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
  */
 static int ssl_generate_random( mbedtls_ssl_context *ssl )
 {
-    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     unsigned char *p = ssl->handshake->randbytes;
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t t;
@@ -2956,7 +2956,7 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
         unsigned char *params = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
         size_t params_len = p - params;
-        void *rs_ctx = NULL;
+        void * volatile rs_ctx = NULL;
 
         mbedtls_pk_context * peer_pk;
 

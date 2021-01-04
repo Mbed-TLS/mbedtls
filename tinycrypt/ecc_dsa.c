@@ -116,9 +116,13 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 
 	/* Prevent side channel analysis of uECC_vli_modInv() to determine
 	bits of k / the private key by premultiplying by a random number */
-	uECC_vli_modMult(k, k, tmp, curve_n); /* k' = rand * k */
+	r = uECC_vli_modMult(k, k, tmp, curve_n); /* k' = rand * k */
+	if (r != UECC_SUCCESS)
+	    return r;
 	uECC_vli_modInv(k, k, curve_n);	   /* k = 1 / k' */
-	uECC_vli_modMult(k, k, tmp, curve_n); /* k = 1 / k */
+	r = uECC_vli_modMult(k, k, tmp, curve_n); /* k = 1 / k */
+	if (r != UECC_SUCCESS)
+	    return r;
 
 	uECC_vli_nativeToBytes(signature, NUM_ECC_BYTES, p); /* store r */
 
@@ -127,11 +131,15 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 
 	s[num_n_words - 1] = 0;
 	uECC_vli_set(s, p);
-	uECC_vli_modMult(s, tmp, s, curve_n); /* s = r*d */
+	r = uECC_vli_modMult(s, tmp, s, curve_n); /* s = r*d */
+	if (r != UECC_SUCCESS)
+        return r;
 
 	bits2int(tmp, message_hash, hash_size);
 	uECC_vli_modAdd(s, tmp, s, curve_n); /* s = e + r*d */
-	uECC_vli_modMult(s, s, k, curve_n);  /* s = (e + r*d) / k */
+	r = uECC_vli_modMult(s, s, k, curve_n);  /* s = (e + r*d) / k */
+	if (r != UECC_SUCCESS)
+		return r;
 	if (uECC_vli_numBits(s) > (bitcount_t)NUM_ECC_BYTES * 8) {
 		return UECC_FAILURE;
 	}
@@ -161,7 +169,9 @@ int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,
 		}
 
 		// computing k as modular reduction of _random (see FIPS 186.4 B.5.1):
-		uECC_vli_mmod(k, _random, curve_n);
+		r = uECC_vli_mmod(k, _random, curve_n);
+		if (r != UECC_SUCCESS)
+			return r;
 
 		r = uECC_sign_with_k(private_key, message_hash, hash_size, k, signature);
 		/* don't keep trying if a fault was detected */
@@ -239,9 +249,12 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	uECC_vli_modInv(z, s, curve_n); /* z = 1/s */
 	u1[num_n_words - 1] = 0;
 	bits2int(u1, message_hash, hash_size);
-	uECC_vli_modMult(u1, u1, z, curve_n); /* u1 = e/s */
-	uECC_vli_modMult(u2, r, z, curve_n); /* u2 = r/s */
 
+
+	if (uECC_vli_modMult(u1, u1, z, curve_n) != UECC_SUCCESS)  /* u1 = e/s */
+		return UECC_FAILURE;
+	if (uECC_vli_modMult(u2, r, z, curve_n) != UECC_SUCCESS) /* u2 = r/s */
+		return UECC_FAILURE;
 	/* Calculate sum = G + Q. */
 	uECC_vli_set(sum, _public);
 	uECC_vli_set(sum + num_words, _public + num_words);

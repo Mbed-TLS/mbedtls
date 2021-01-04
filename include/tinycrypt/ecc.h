@@ -333,9 +333,10 @@ uECC_word_t uECC_vli_testBit(const uECC_word_t *vli, bitcount_t bit);
  * @param mod IN -- module
  * @param num_words IN -- number of words
  * @warning Currently only designed to work for curve_p or curve_n.
+ * @return UECC_SUCCESS if mod is valid, UECC_FAILURE otherwise.
  */
-void uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
-		   const uECC_word_t *mod);
+int uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
+		          const uECC_word_t *mod);
 
 /*
  * @brief Computes modular product (using curve->mmod_fast)
@@ -375,9 +376,11 @@ uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right);
  * @param right IN -- right term in product
  * @param mod IN -- mod
  * @param num_words IN -- number of words
+ * @return UECC_SUCCESS if mod is valid (currently only designed to work
+ * for curve_p or curve_n), UECC_FAILURE otherwise.
  */
-void uECC_vli_modMult(uECC_word_t *result, const uECC_word_t *left,
-		      const uECC_word_t *right, const uECC_word_t *mod);
+int uECC_vli_modMult(uECC_word_t *result, const uECC_word_t *left,
+		             const uECC_word_t *right, const uECC_word_t *mod);
 
 /*
  * @brief Computes (1 / input) % mod

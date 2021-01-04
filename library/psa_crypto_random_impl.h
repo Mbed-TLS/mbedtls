@@ -167,7 +167,7 @@ extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
 
 /** A pointer to the PSA DRBG state.
  *
- * This macro expnds to an expression that is suitable as the \c p_rng
+ * This macro expands to an expression that is suitable as the \c p_rng
  * parameter to pass to mbedtls_psa_get_random().
  *
  * This macro exists in all configurations where the psa_crypto module is

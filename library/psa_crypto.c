@@ -6394,21 +6394,18 @@ psa_status_t psa_generate_random( uint8_t *output,
 
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    while( output_size > MBEDTLS_PSA_RANDOM_MAX_REQUEST )
+    int ret = 0;
+    while( output_size > 0 )
     {
-        ret = mbedtls_psa_get_random(
-            MBEDTLS_PSA_RANDOM_STATE,
-            output, MBEDTLS_PSA_RANDOM_MAX_REQUEST );
-        if( ret != 0 )
-            return( mbedtls_to_psa_error( ret ) );
-        output += MBEDTLS_PSA_RANDOM_MAX_REQUEST;
-        output_size -= MBEDTLS_PSA_RANDOM_MAX_REQUEST;
+        size_t request_size =
+            ( output_size > MBEDTLS_PSA_RANDOM_MAX_REQUEST ?
+              MBEDTLS_PSA_RANDOM_MAX_REQUEST :
+              output_size );
+        ret = mbedtls_psa_get_random( MBEDTLS_PSA_RANDOM_STATE,
+                                      output, request_size );
+        output_size -= request_size;
+        output += request_size;
     }
-
-    ret = mbedtls_psa_get_random( MBEDTLS_PSA_RANDOM_STATE,
-                                  output, output_size );
     return( mbedtls_to_psa_error( ret ) );
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }

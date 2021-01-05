@@ -625,13 +625,6 @@ struct options
 } opt;
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
-typedef struct eap_tls_keys
-{
-    unsigned char master_secret[48];
-    unsigned char randbytes[64];
-    mbedtls_tls_prf_types tls_prf_type;
-} eap_tls_keys;
-
 int eap_tls_key_derivation( void *p_expkey,
                             const unsigned char *ms,
                             const unsigned char *kb,
@@ -736,19 +729,6 @@ exit:
 }
 
 #if defined( MBEDTLS_SSL_DTLS_SRTP )
-/* Supported SRTP mode needs a maximum of :
- * - 16 bytes for key (AES-128)
- * - 14 bytes SALT
- * One for sender, one for receiver context
- */
-#define MBEDTLS_TLS_SRTP_MAX_KEY_MATERIAL_LENGTH    60
-typedef struct dtls_srtp_keys
-{
-    unsigned char master_secret[48];
-    unsigned char randbytes[64];
-    mbedtls_tls_prf_types tls_prf_type;
-} dtls_srtp_keys;
-
 int dtls_srtp_key_derivation( void *p_expkey,
                               const unsigned char *ms,
                               const unsigned char *kb,
@@ -909,12 +889,6 @@ int delayed_send( void *ctx, const unsigned char *buf, size_t len )
         first_try = 1; /* Next call will be a new operation */
     return( ret );
 }
-
-typedef struct
-{
-    mbedtls_ssl_context *ssl;
-    mbedtls_net_context *net;
-} io_ctx_t;
 
 #if defined(MBEDTLS_SSL_RECORD_CHECKING)
 int ssl_check_record( mbedtls_ssl_context const *ssl,

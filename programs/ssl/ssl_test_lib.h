@@ -133,6 +133,35 @@ typedef struct
     mbedtls_net_context *net;
 } io_ctx_t;
 
-#endif /* MBEDTLS_SSL_TEST_IMPOSSIBLE conditions: else */
+void my_debug( void *ctx, int level,
+               const char *file, int line,
+               const char *str );
 
+mbedtls_time_t dummy_constant_time( mbedtls_time_t* time );
+
+int dummy_entropy( void *data, unsigned char *output, size_t len );
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+int ca_callback( void *data, mbedtls_x509_crt const *child,
+                 mbedtls_x509_crt **candidates );
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+
+/*
+ * Test recv/send functions that make sure each try returns
+ * WANT_READ/WANT_WRITE at least once before sucesseding
+ */
+int delayed_recv( void *ctx, unsigned char *buf, size_t len );
+int delayed_send( void *ctx, const unsigned char *buf, size_t len );
+
+/*
+ * Wait for an event from the underlying transport or the timer
+ * (Used in event-driven IO mode).
+ */
+int idle( mbedtls_net_context *fd,
+#if defined(MBEDTLS_TIMING_C)
+          mbedtls_timing_delay_context *timer,
+#endif
+          int idle_reason );
+
+#endif /* MBEDTLS_SSL_TEST_IMPOSSIBLE conditions: else */
 #endif /* MBEDTLS_PROGRAMS_SSL_SSL_TEST_LIB_H */

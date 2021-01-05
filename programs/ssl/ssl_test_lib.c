@@ -22,3 +22,6 @@
 
 #include "ssl_test_lib.h"
 
+#if !defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
+
+#endif /* !defined(MBEDTLS_SSL_TEST_IMPOSSIBLE) */

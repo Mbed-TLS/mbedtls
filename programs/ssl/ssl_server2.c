@@ -17,39 +17,18 @@
  *  limitations under the License.
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "ssl_test_lib.h"
 
-#if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#include <stdlib.h>
-#define mbedtls_calloc     calloc
-#define mbedtls_free       free
-#define mbedtls_time       time
-#define mbedtls_time_t     time_t
-#define mbedtls_calloc    calloc
-#define mbedtls_fprintf    fprintf
-#define mbedtls_printf     printf
-#define mbedtls_exit            exit
-#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
-#endif
-
-#if !defined(MBEDTLS_ENTROPY_C) || \
-    !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_SRV_C) || \
-    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
-    defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+#if defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
 int main( void )
 {
-    mbedtls_printf( "MBEDTLS_ENTROPY_C and/or "
-           "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_SRV_C and/or "
-           "MBEDTLS_NET_C and/or MBEDTLS_CTR_DRBG_C and/or not defined "
-           " and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\n" );
+    mbedtls_printf( MBEDTLS_SSL_TEST_IMPOSSIBLE );
+    mbedtls_exit( 0 );
+}
+#elif !defined(MBEDTLS_SSL_SRV_C)
+int main( void )
+{
+    mbedtls_printf( "MBEDTLS_SSL_SRV_C not defined.\n" );
     mbedtls_exit( 0 );
 }
 #else

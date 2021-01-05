@@ -220,6 +220,12 @@ extern "C" {
 #endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY */
 #endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */
 
+#if defined(PSA_WANT_KEY_TYPE_AES)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
+#define MBEDTLS_AES_C
+#endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_AES */
+#endif /* PSA_WANT_KEY_TYPE_AES */
+
 #else /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
 /*
@@ -326,6 +332,10 @@ extern "C" {
 #endif
 #define MBEDTLS_PSA_BUILTIN_ALG_SHA_512 1
 #define PSA_WANT_ALG_SHA_512 1
+#endif
+
+#if defined(MBEDTLS_AES_C)
+#define PSA_WANT_KEY_TYPE_AES 1
 #endif
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */

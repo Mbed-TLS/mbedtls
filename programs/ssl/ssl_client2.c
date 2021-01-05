@@ -987,6 +987,7 @@ static int send_cb( void *ctx, unsigned char const *buf, size_t len )
 
     return( mbedtls_net_send( io_ctx->net, buf, len ) );
 }
+#include "ssl_test_common_source.c"
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static unsigned char peer_crt_info[1024];

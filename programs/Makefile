@@ -268,12 +268,13 @@ ssl/ssl_client1$(EXEXT): ssl/ssl_client1.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_client1.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 SSL_TEST_OBJECTS = test/query_config.o ssl/ssl_test_lib.o
+SSL_TEST_DEPS = $(SSL_TEST_OBJECTS) ssl/ssl_test_lib.h ssl/ssl_test_common_source.c $(DEP)
 
 ssl/ssl_test_lib.o: ssl/ssl_test_lib.c ssl/ssl_test_lib.h $(DEP)
 	echo "  CC    ssl/ssl_test_lib.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -c ssl/ssl_test_lib.c -o $@
 
-ssl/ssl_client2$(EXEXT): ssl/ssl_client2.c $(SSL_TEST_OBJECTS) ssl/ssl_test_lib.h $(DEP)
+ssl/ssl_client2$(EXEXT): ssl/ssl_client2.c $(SSL_TEST_DEPS)
 	echo "  CC    ssl/ssl_client2.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_client2.c $(SSL_TEST_OBJECTS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
@@ -281,7 +282,7 @@ ssl/ssl_server$(EXEXT): ssl/ssl_server.c $(DEP)
 	echo "  CC    ssl/ssl_server.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-ssl/ssl_server2$(EXEXT): ssl/ssl_server2.c $(SSL_TEST_OBJECTS) $(DEP)
+ssl/ssl_server2$(EXEXT): ssl/ssl_server2.c $(SSL_TEST_DEPS)
 	echo "  CC    ssl/ssl_server2.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server2.c $(SSL_TEST_OBJECTS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 

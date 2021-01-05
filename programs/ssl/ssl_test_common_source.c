@@ -1,8 +1,12 @@
 /*
- *  Common code library for SSL test programs.
+ *  Common source code for SSL test programs. This file is included by
+ *  both ssl_client2.c and ssl_server2.c and is intended for source
+ *  code that is textually identical in both programs, but that cannot be
+ *  compiled separately because it refers to types or macros that are
+ *  different in the two programs, or because it would have an incomplete
+ *  type.
  *
- *  In addition to the functions in this file, there is shared source code
- *  that cannot be compiled separately in "ssl_test_common_source.c".
+ *  This file is meant to be #include'd and cannot be compiled separately.
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -19,6 +23,3 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-#include "ssl_test_lib.h"
-

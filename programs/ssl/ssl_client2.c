@@ -521,8 +521,6 @@ struct options
     const char *mki;            /* The dtls mki value to use                */
 } opt;
 
-int query_config( const char *config );
-
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
 typedef struct eap_tls_keys
 {

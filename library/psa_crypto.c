@@ -6394,19 +6394,20 @@ psa_status_t psa_generate_random( uint8_t *output,
 
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
-    int ret = 0;
     while( output_size > 0 )
     {
         size_t request_size =
             ( output_size > MBEDTLS_PSA_RANDOM_MAX_REQUEST ?
               MBEDTLS_PSA_RANDOM_MAX_REQUEST :
               output_size );
-        ret = mbedtls_psa_get_random( MBEDTLS_PSA_RANDOM_STATE,
-                                      output, request_size );
+        int ret = mbedtls_psa_get_random( MBEDTLS_PSA_RANDOM_STATE,
+                                          output, request_size );
+        if( ret != 0 )
+            return( mbedtls_to_psa_error( ret ) );
         output_size -= request_size;
         output += request_size;
     }
-    return( mbedtls_to_psa_error( ret ) );
+    return( PSA_SUCCESS );
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 

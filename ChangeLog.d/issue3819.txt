@@ -1,5 +1,5 @@
 Security
-   * Fix a security reduction error that caused all bits of the nonce
-     to be zero in mbedtls_ctr_drbg_reseed_internal.  This prevented
+   * Fix a security reduction error that causes all bits of the nonce
+     to be zero in mbedtls_ctr_drbg_reseed_internal.  This prevents
      the security strength from reaching the level required by NIST.
      Found by John Stroebel in #3819 and fixed in #3973.

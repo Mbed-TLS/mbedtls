@@ -232,6 +232,12 @@ extern "C" {
 #endif /*!MBEDTLS_PSA_ACCEL_KEY_TYPE_ARC4 */
 #endif /* PSA_WANT_KEY_TYPE_ARC4 */
 
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA)
+#define MBEDTLS_CAMELLIA_C
+#endif /*!MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA */
+#endif /* PSA_WANT_KEY_TYPE_CAMELLIA */
+
 #else /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
 /*
@@ -346,6 +352,10 @@ extern "C" {
 
 #if defined(MBEDTLS_ARC4_C)
 #define PSA_WANT_KEY_TYPE_ARC4 1
+#endif
+
+#if defined(MBEDTLS_CAMELLIA_C)
+#define PSA_WANT_KEY_TYPE_CAMELLIA 1
 #endif
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */

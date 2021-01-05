@@ -632,15 +632,15 @@ typedef struct eap_tls_keys
     mbedtls_tls_prf_types tls_prf_type;
 } eap_tls_keys;
 
-static int eap_tls_key_derivation ( void *p_expkey,
-                                    const unsigned char *ms,
-                                    const unsigned char *kb,
-                                    size_t maclen,
-                                    size_t keylen,
-                                    size_t ivlen,
-                                    const unsigned char client_random[32],
-                                    const unsigned char server_random[32],
-                                    mbedtls_tls_prf_types tls_prf_type )
+int eap_tls_key_derivation( void *p_expkey,
+                            const unsigned char *ms,
+                            const unsigned char *kb,
+                            size_t maclen,
+                            size_t keylen,
+                            size_t ivlen,
+                            const unsigned char client_random[32],
+                            const unsigned char server_random[32],
+                            mbedtls_tls_prf_types tls_prf_type )
 {
     eap_tls_keys *keys = (eap_tls_keys *)p_expkey;
 
@@ -659,15 +659,15 @@ static int eap_tls_key_derivation ( void *p_expkey,
     return( 0 );
 }
 
-static int nss_keylog_export( void *p_expkey,
-                              const unsigned char *ms,
-                              const unsigned char *kb,
-                              size_t maclen,
-                              size_t keylen,
-                              size_t ivlen,
-                              const unsigned char client_random[32],
-                              const unsigned char server_random[32],
-                              mbedtls_tls_prf_types tls_prf_type )
+int nss_keylog_export( void *p_expkey,
+                       const unsigned char *ms,
+                       const unsigned char *kb,
+                       size_t maclen,
+                       size_t keylen,
+                       size_t ivlen,
+                       const unsigned char client_random[32],
+                       const unsigned char server_random[32],
+                       mbedtls_tls_prf_types tls_prf_type )
 {
     char nss_keylog_line[ 200 ];
     size_t const client_random_len = 32;
@@ -749,15 +749,15 @@ typedef struct dtls_srtp_keys
     mbedtls_tls_prf_types tls_prf_type;
 } dtls_srtp_keys;
 
-static int dtls_srtp_key_derivation( void *p_expkey,
-                                     const unsigned char *ms,
-                                     const unsigned char *kb,
-                                     size_t maclen,
-                                     size_t keylen,
-                                     size_t ivlen,
-                                     const unsigned char client_random[32],
-                                     const unsigned char server_random[32],
-                                     mbedtls_tls_prf_types tls_prf_type )
+int dtls_srtp_key_derivation( void *p_expkey,
+                              const unsigned char *ms,
+                              const unsigned char *kb,
+                              size_t maclen,
+                              size_t keylen,
+                              size_t ivlen,
+                              const unsigned char client_random[32],
+                              const unsigned char server_random[32],
+                              mbedtls_tls_prf_types tls_prf_type )
 {
     dtls_srtp_keys *keys = (dtls_srtp_keys *)p_expkey;
 
@@ -779,9 +779,9 @@ static int dtls_srtp_key_derivation( void *p_expkey,
 
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
-static void my_debug( void *ctx, int level,
-                      const char *file, int line,
-                      const char *str )
+void my_debug( void *ctx, int level,
+               const char *file, int line,
+               const char *str )
 {
     const char *p, *basename;
 
@@ -790,8 +790,9 @@ static void my_debug( void *ctx, int level,
         if( *p == '/' || *p == '\\' )
             basename = p + 1;
 
-    mbedtls_fprintf( (FILE *) ctx, "%s:%04d: |%d| %s", basename, line, level, str );
-    fflush(  (FILE *) ctx  );
+    mbedtls_fprintf( (FILE *) ctx, "%s:%04d: |%d| %s",
+                     basename, line, level, str );
+    fflush( (FILE *) ctx  );
 }
 
 mbedtls_time_t dummy_constant_time( mbedtls_time_t* time )
@@ -807,7 +808,8 @@ int dummy_entropy( void *data, unsigned char *output, size_t len )
     (void) data;
 
     ret = mbedtls_entropy_func( data, output, len );
-    for (i = 0; i < len; i++ ) {
+    for( i = 0; i < len; i++ )
+    {
         //replace result with pseudo random
         output[i] = (unsigned char) rand();
     }
@@ -816,7 +818,7 @@ int dummy_entropy( void *data, unsigned char *output, size_t len )
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 int ca_callback( void *data, mbedtls_x509_crt const *child,
-                 mbedtls_x509_crt **candidates)
+                 mbedtls_x509_crt **candidates )
 {
     int ret = 0;
     mbedtls_x509_crt *ca = (mbedtls_x509_crt *) data;
@@ -829,7 +831,7 @@ int ca_callback( void *data, mbedtls_x509_crt const *child,
      * set of trusted certificates (such as a hashtable) and only
      * return those trusted certificates which satisfy basic
      * parental checks, such as the matching of child `Issuer`
-     * and parent `Subject` field. */
+     * and parent `Subject` field or matching key identifiers. */
     ((void) child);
 
     first = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
@@ -874,7 +876,7 @@ exit:
  * Test recv/send functions that make sure each try returns
  * WANT_READ/WANT_WRITE at least once before sucesseding
  */
-static int delayed_recv( void *ctx, unsigned char *buf, size_t len )
+int delayed_recv( void *ctx, unsigned char *buf, size_t len )
 {
     static int first_try = 1;
     int ret;
@@ -891,7 +893,7 @@ static int delayed_recv( void *ctx, unsigned char *buf, size_t len )
     return( ret );
 }
 
-static int delayed_send( void *ctx, const unsigned char *buf, size_t len )
+int delayed_send( void *ctx, const unsigned char *buf, size_t len )
 {
     static int first_try = 1;
     int ret;
@@ -915,8 +917,8 @@ typedef struct
 } io_ctx_t;
 
 #if defined(MBEDTLS_SSL_RECORD_CHECKING)
-static int ssl_check_record( mbedtls_ssl_context const *ssl,
-                             unsigned char const *buf, size_t len )
+int ssl_check_record( mbedtls_ssl_context const *ssl,
+                      unsigned char const *buf, size_t len )
 {
     int ret;
     unsigned char *tmp_buf;
@@ -977,7 +979,7 @@ static int ssl_check_record( mbedtls_ssl_context const *ssl,
 }
 #endif /* MBEDTLS_SSL_RECORD_CHECKING */
 
-static int recv_cb( void *ctx, unsigned char *buf, size_t len )
+int recv_cb( void *ctx, unsigned char *buf, size_t len )
 {
     io_ctx_t *io_ctx = (io_ctx_t*) ctx;
     size_t recv_len;
@@ -1005,8 +1007,8 @@ static int recv_cb( void *ctx, unsigned char *buf, size_t len )
     return( (int) recv_len );
 }
 
-static int recv_timeout_cb( void *ctx, unsigned char *buf, size_t len,
-                            uint32_t timeout )
+int recv_timeout_cb( void *ctx, unsigned char *buf, size_t len,
+                     uint32_t timeout )
 {
     io_ctx_t *io_ctx = (io_ctx_t*) ctx;
     int ret;
@@ -1031,7 +1033,7 @@ static int recv_timeout_cb( void *ctx, unsigned char *buf, size_t len,
     return( (int) recv_len );
 }
 
-static int send_cb( void *ctx, unsigned char const *buf, size_t len )
+int send_cb( void *ctx, unsigned char const *buf, size_t len )
 {
     io_ctx_t *io_ctx = (io_ctx_t*) ctx;
 
@@ -1360,7 +1362,7 @@ void term_handler( int sig )
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-static int ssl_sig_hashes_for_test[] = {
+int ssl_sig_hashes_for_test[] = {
 #if defined(MBEDTLS_SHA512_C)
     MBEDTLS_MD_SHA512,
     MBEDTLS_MD_SHA384,

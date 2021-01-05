@@ -6412,14 +6412,28 @@ psa_status_t psa_generate_random( uint8_t *output,
 }
 
 /* Wrapper function allowing the classic API to use the PSA RNG.
- * In the non-external case, mbedtls_psa_get_random is defined
- * as a constant function pointer in psa_crypto_random_impl.h.
+ *
+ * `mbedtls_psa_get_random(MBEDTLS_PSA_RANDOM_STATE, ...)` calls
+ * `psa_generate_random(...)`. The state parameter is ignored since the
+ * PSA API doesn't support passing an explicit state.
+ *
+ * In the non-external case, psa_generate_random() calls an
+ * `mbedtls_xxx_drbg_random` function which has exactly the same signature
+ * and semantics as mbedtls_psa_get_random(). As an optimization,
+ * instead of doing this back-and-forth between the PSA API and the
+ * classic API, psa_crypto_random_impl.h defines `mbedtls_psa_get_random`
+ * as a constant function pointer to `mbedtls_xxx_drbg_random`.
  */
 #if defined (MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 int mbedtls_psa_get_random( void *p_rng,
                             unsigned char *output,
                             size_t output_size )
 {
+    /* This function takes a pointer to the RNG state because that's what
+     * classic mbedtls functions using an RNG expect. The PSA RNG manages
+     * its own state internally and doesn't let the caller access that state.
+     * So we just ignore the state parameter, and in practice we'll pass
+     * NULL. */
     (void) p_rng;
     psa_status_t status = psa_generate_random( output, output_size );
     if( status == PSA_SUCCESS )

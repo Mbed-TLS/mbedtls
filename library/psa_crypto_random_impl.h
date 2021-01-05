@@ -30,10 +30,12 @@
 
 typedef mbedtls_psa_external_random_context_t mbedtls_psa_random_context_t;
 
+/* Trivial wrapper around psa_generate_random(). */
 int mbedtls_psa_get_random( void *p_rng,
                             unsigned char *output,
                             size_t output_size );
 
+/* The PSA RNG API doesn't need any externally maintained state. */
 #define MBEDTLS_PSA_RANDOM_STATE NULL
 
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
@@ -163,6 +165,8 @@ static mbedtls_f_rng_t *const mbedtls_psa_get_random = mbedtls_hmac_drbg_random;
  * This variable is only intended to be used through the macro
  * #MBEDTLS_PSA_RANDOM_STATE.
  */
+/* psa_crypto.c sets this variable to a pointer to the DRBG state in the
+ * global PSA crypto state. */
 extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
 
 /** A pointer to the PSA DRBG state.

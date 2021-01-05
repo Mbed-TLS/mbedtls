@@ -66,7 +66,7 @@ static int mbedtls_ssl_switch_key( mbedtls_ssl_transform *transform,
 {
     unsigned char * key;
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
-    int flow_ctrl = 0;
+    volatile int flow_ctrl = 0;
 #if defined(MBEDTLS_VALIDATE_SSL_KEYS_INTEGRITY)
     uint32_t hash;
 #endif
@@ -11769,7 +11769,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 static int ssl_write_real( mbedtls_ssl_context *ssl,
                            const unsigned char *buf, size_t len )
 {
-    int ret = mbedtls_ssl_get_max_out_record_payload( ssl );
+    volatile int ret = mbedtls_ssl_get_max_out_record_payload( ssl );
     const size_t max_len = (size_t) ret;
 
     if( ret < 0 )

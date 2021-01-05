@@ -226,6 +226,12 @@ extern "C" {
 #endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_AES */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
+#if defined(PSA_WANT_KEY_TYPE_ARC4)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ARC4)
+#define MBEDTLS_ARC4_C
+#endif /*!MBEDTLS_PSA_ACCEL_KEY_TYPE_ARC4 */
+#endif /* PSA_WANT_KEY_TYPE_ARC4 */
+
 #else /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
 /*
@@ -336,6 +342,10 @@ extern "C" {
 
 #if defined(MBEDTLS_AES_C)
 #define PSA_WANT_KEY_TYPE_AES 1
+#endif
+
+#if defined(MBEDTLS_ARC4_C)
+#define PSA_WANT_KEY_TYPE_ARC4 1
 #endif
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */

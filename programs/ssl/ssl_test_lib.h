@@ -56,6 +56,33 @@
     "and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\n"
 #else
 #undef MBEDTLS_SSL_TEST_IMPOSSIBLE
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "mbedtls/net_sockets.h"
+#include "mbedtls/ssl.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/certs.h"
+#include "mbedtls/x509.h"
+#include "mbedtls/error.h"
+#include "mbedtls/debug.h"
+#include "mbedtls/timing.h"
+#include "mbedtls/base64.h"
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#include "mbedtls/psa_util.h"
 #endif
+
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+#include "mbedtls/memory_buffer_alloc.h"
+#endif
+
+#include <test/helpers.h>
+
+#endif /* MBEDTLS_SSL_TEST_IMPOSSIBLE conditions: else */
 
 #endif /* MBEDTLS_PROGRAMS_SSL_SSL_TEST_LIB_H */

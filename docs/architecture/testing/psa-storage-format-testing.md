@@ -6,7 +6,7 @@ The PSA crypto subsystem includes a persistent key store. It is possible to crea
 
 The goal of this document is to define a test strategy for the key store that not only validates that it's possible to load a key that was saved with the version of Mbed TLS under test, but also that it's possible to load a key that was saved with previous versions of Mbed TLS.
 
-No interoperability is sought. Downgrading is not required to work.
+Interoperability is not a goal: PSA crypto implementations are not intended to have compatible storage formats. Downgrading is not required to work.
 
 ## General approach
 

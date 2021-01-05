@@ -724,11 +724,11 @@ static const unsigned char entropy_source_nopr[] =
       0x4a, 0x47, 0xc2, 0xf3, 0x85, 0x16, 0xb4, 0x6f,
       0x00, 0x2e, 0x71, 0xda, 0xed, 0x16, 0x9b, 0x5c };
 
-static const unsigned char nonce_pers_pr[] =
+static const unsigned char pers_pr[] =
     { 0xbf, 0xa4, 0x9a, 0x8f, 0x7b, 0xd8, 0xb1, 0x7a,
       0x9d, 0xfa, 0x45, 0xed, 0x21, 0x52, 0xb3, 0xad };
 
-static const unsigned char nonce_pers_nopr[] =
+static const unsigned char pers_nopr[] =
     { 0x4e, 0x61, 0x79, 0xd4, 0xc2, 0x72, 0xa1, 0x4c,
       0xf1, 0x3d, 0xf6, 0x5e, 0xa3, 0xa6, 0xe5, 0x0f };
 
@@ -781,13 +781,13 @@ static const unsigned char entropy_source_nopr[] =
       0x4f, 0x11, 0xa6, 0x86, 0x51, 0xf2, 0x3e, 0x3a,
       0x8b, 0x1f, 0xdc, 0x03, 0xb1, 0x92, 0xc7, 0xe7 };
 
-static const unsigned char nonce_pers_pr[] =
+static const unsigned char pers_pr[] =
     { 0x5a, 0x70, 0x95, 0xe9, 0x81, 0x40, 0x52, 0x33,
       0x91, 0x53, 0x7e, 0x75, 0xd6, 0x19, 0x9d, 0x1e,
       0xad, 0x0d, 0xc6, 0xa7, 0xde, 0x6c, 0x1f, 0xe0,
       0xea, 0x18, 0x33, 0xa8, 0x7e, 0x06, 0x20, 0xe9 };
 
-static const unsigned char nonce_pers_nopr[] =
+static const unsigned char pers_nopr[] =
     { 0x88, 0xee, 0xb8, 0xe0, 0xe8, 0x3b, 0xf3, 0x29,
       0x4b, 0xda, 0xcd, 0x60, 0x99, 0xeb, 0xe4, 0xbf,
       0x55, 0xec, 0xd9, 0x11, 0x3f, 0x71, 0xe5, 0xeb,
@@ -831,13 +831,15 @@ static int ctr_drbg_self_test_entropy( void *data, unsigned char *buf,
                         return( 1 );                        \
                     }
 
+#define SELF_TEST_OUPUT_DISCARD_LENGTH 64
+
 /*
  * Checkup routine
  */
 int mbedtls_ctr_drbg_self_test( int verbose )
 {
     mbedtls_ctr_drbg_context ctx;
-    unsigned char buf[64];
+    unsigned char buf[ sizeof( result_pr ) ];
 
     mbedtls_ctr_drbg_init( &ctx );
 
@@ -849,15 +851,15 @@ int mbedtls_ctr_drbg_self_test( int verbose )
 
     test_offset = 0;
     mbedtls_ctr_drbg_set_entropy_len( &ctx, MBEDTLS_CTR_DRBG_KEYSIZE );
-    mbedtls_ctr_drbg_set_nonce_len( &ctx, MBEDTLS_CTR_DRBG_KEYSIZE >> 1 );
+    mbedtls_ctr_drbg_set_nonce_len( &ctx, MBEDTLS_CTR_DRBG_KEYSIZE / 2 );
     CHK( mbedtls_ctr_drbg_seed( &ctx,
                                 ctr_drbg_self_test_entropy,
                                 (void *) entropy_source_pr,
-                                nonce_pers_pr, MBEDTLS_CTR_DRBG_KEYSIZE ) );
+                                pers_pr, MBEDTLS_CTR_DRBG_KEYSIZE ) );
     mbedtls_ctr_drbg_set_prediction_resistance( &ctx, MBEDTLS_CTR_DRBG_PR_ON );
-    CHK( mbedtls_ctr_drbg_random( &ctx, buf, 64 ) );
-    CHK( mbedtls_ctr_drbg_random( &ctx, buf, 64 ) );
-    CHK( memcmp( buf, result_pr, 64 ) );
+    CHK( mbedtls_ctr_drbg_random( &ctx, buf, SELF_TEST_OUPUT_DISCARD_LENGTH ) );
+    CHK( mbedtls_ctr_drbg_random( &ctx, buf, sizeof( result_pr ) ) );
+    CHK( memcmp( buf, result_pr, sizeof( result_pr ) ) );
 
     mbedtls_ctr_drbg_free( &ctx );
 
@@ -874,15 +876,15 @@ int mbedtls_ctr_drbg_self_test( int verbose )
 
     test_offset = 0;
     mbedtls_ctr_drbg_set_entropy_len( &ctx, MBEDTLS_CTR_DRBG_KEYSIZE);
-    mbedtls_ctr_drbg_set_nonce_len( &ctx, MBEDTLS_CTR_DRBG_KEYSIZE >> 1 );
+    mbedtls_ctr_drbg_set_nonce_len( &ctx, MBEDTLS_CTR_DRBG_KEYSIZE / 2 );
     CHK( mbedtls_ctr_drbg_seed( &ctx,
                                 ctr_drbg_self_test_entropy,
                                 (void *) entropy_source_nopr,
-                                nonce_pers_nopr, MBEDTLS_CTR_DRBG_KEYSIZE ) );
+                                pers_nopr, MBEDTLS_CTR_DRBG_KEYSIZE ) );
     CHK( mbedtls_ctr_drbg_reseed( &ctx, NULL, 0 ) );
-    CHK( mbedtls_ctr_drbg_random( &ctx, buf, 64 ) );
-    CHK( mbedtls_ctr_drbg_random( &ctx, buf, 64 ) );
-    CHK( memcmp( buf, result_nopr, 64 ) );
+    CHK( mbedtls_ctr_drbg_random( &ctx, buf, SELF_TEST_OUPUT_DISCARD_LENGTH ) );
+    CHK( mbedtls_ctr_drbg_random( &ctx, buf, sizeof( result_nopr ) ) );
+    CHK( memcmp( buf, result_nopr, sizeof( result_nopr ) ) );
 
     mbedtls_ctr_drbg_free( &ctx );
 

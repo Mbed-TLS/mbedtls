@@ -1224,6 +1224,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
 
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+    if( strcmp( "MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+
 #if defined(MBEDTLS_PSA_CRYPTO_SPM)
     if( strcmp( "MBEDTLS_PSA_CRYPTO_SPM", config ) == 0 )
     {
@@ -2607,6 +2615,14 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO */
+
+#if defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE)
+    if( strcmp( "MBEDTLS_PSA_HMAC_DRBG_MD_TYPE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_HMAC_DRBG_MD_TYPE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_HMAC_DRBG_MD_TYPE */
 
 #if defined(MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT)
     if( strcmp( "MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT", config ) == 0 )

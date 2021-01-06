@@ -1,0 +1,5 @@
+Features
+   * The PSA crypto subsystem can now use HMAC_DRBG instead of CTR_DRBG.
+     CTR_DRBG is used by default if it is available, but you can override
+     this choice by setting MBEDTLS_PSA_HMAC_DRBG_MD_TYPE at compile time.
+     Fix #3354.

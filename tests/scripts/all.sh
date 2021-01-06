@@ -915,10 +915,6 @@ component_test_no_ctr_drbg () {
     msg "build: Full minus CTR_DRBG"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_C # requires CTR_DRBG
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA Crypto
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C # requires PSA Crypto
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO # requires PSA Crypto
 
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -943,6 +939,36 @@ component_test_no_hmac_drbg () {
 
     # No ssl-opt.sh/compat.sh as they never use HMAC_DRBG so far,
     # so there's little value in running those lengthy tests here.
+}
+
+component_test_psa_external_rng_no_drbg () {
+    msg "build: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    scripts/config.py unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
+    scripts/config.py set MBEDTLS_ECP_NO_INTERNAL_RNG
+    make CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG"
+    make test
+
+    # No ssl-opt.sh/compat.sh because they require CTR_DRBG.
+}
+
+component_test_psa_external_rng_use_psa_crypto () {
+    msg "build: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    make CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
+    make test
+
+    # No ssl-opt.sh/compat.sh because they require CTR_DRBG.
 }
 
 component_test_ecp_no_internal_rng () {

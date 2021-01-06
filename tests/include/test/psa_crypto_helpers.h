@@ -36,19 +36,29 @@
 const char *mbedtls_test_helper_is_psa_leaking( void );
 
 /** Check that no PSA Crypto key slots are in use.
+ *
+ * If any slots are in use, mark the current test as failed and jump to
+ * the exit label. This is equivalent to
+ * `TEST_ASSERT( ! mbedtls_test_helper_is_psa_leaking( ) )`
+ * but with a more informative message.
  */
-#define ASSERT_PSA_PRISTINE( )                                  \
-    TEST_ASSERT( ! mbedtls_test_helper_is_psa_leaking( ) )
+#define ASSERT_PSA_PRISTINE( )                                          \
+    do                                                                  \
+    {                                                                   \
+        if( test_fail_if_psa_leaking( __LINE__, __FILE__ ) )            \
+            goto exit;                                                  \
+    }                                                                   \
+    while( 0 )
 
 /** Shut down the PSA Crypto subsystem. Expect a clean shutdown, with no slots
  * in use.
  */
-#define PSA_DONE( )                                     \
-    do                                                  \
-    {                                                   \
-        ASSERT_PSA_PRISTINE( );                         \
-        mbedtls_psa_crypto_free( );                     \
-    }                                                   \
+#define PSA_DONE( )                                                     \
+    do                                                                  \
+    {                                                                   \
+        test_fail_if_psa_leaking( __LINE__, __FILE__ );                 \
+        mbedtls_psa_crypto_free( );                                     \
+    }                                                                   \
     while( 0 )
 
 
@@ -60,8 +70,8 @@ const char *mbedtls_test_helper_is_psa_leaking( void );
  * disabled by default.
  *
  * When MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled and the test
- * helpers are linked into a program, you must enable this before any code
- * that uses the PSA subsystem to generate random data (including internal
+ * helpers are linked into a program, you must enable this before running any
+ * code that uses the PSA subsystem to generate random data (including internal
  * random generation for purposes such as blinding when the random generation
  * is routed through PSA).
  *

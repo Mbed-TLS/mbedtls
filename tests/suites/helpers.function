@@ -421,6 +421,26 @@ void test_skip( const char *test, int line_no, const char* filename )
     test_info.filename = filename;
 }
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+/** Check that no PSA Crypto key slots are in use.
+ *
+ * If any slots are in use, mark the current test as failed.
+ *
+ * \return 0 if the key store is empty, 1 otherwise.
+ */
+int test_fail_if_psa_leaking( int line_no, const char *filename )
+{
+    const char *msg = mbedtls_test_helper_is_psa_leaking( );
+    if( msg == NULL )
+        return 0;
+    else
+    {
+        test_fail( msg, line_no, filename );
+        return 1;
+    }
+}
+#endif /* defined(MBEDTLS_PSA_CRYPTO_C) */
+
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 static int redirect_output( FILE* out_stream, const char* path )
 {

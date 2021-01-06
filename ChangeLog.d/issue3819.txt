@@ -1,0 +1,10 @@
+Security
+   * Fix a security reduction in CTR_DRBG when the initial seeding obtained a
+     nonce from entropy. Applications were affected if they called
+     mbedtls_ctr_drbg_set_nonce_len(), if they called
+     mbedtls_ctr_drbg_set_entropy_len() with a size that was 3/2 times the key
+     length, or when the entropy module uses SHA-256 and CTR_DRBG uses AES-256.
+     In such cases, a random nonce was necessary to achieve the advertised
+     security strength, but the code incorrectly used a constant instead of
+     entropy from the nonce.
+     Found by John Stroebel in #3819 and fixed in #3973.

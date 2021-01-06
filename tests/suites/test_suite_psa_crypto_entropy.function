@@ -79,18 +79,20 @@ void external_rng_failure_sign( int key_type, data_t *key_data, int alg,
     psa_set_key_algorithm( &attributes, alg );
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     size_t input_size = input_size_arg;
-    uint8_t signature[PSA_SIGNATURE_MAX_SIZE];
+    uint8_t *input = NULL;
+    uint8_t *signature = NULL;
+    size_t signature_size = PSA_SIGNATURE_MAX_SIZE;
     size_t signature_length;
 
-    TEST_ASSERT( input_size <= sizeof( signature ) );
+    ASSERT_ALLOC( input, input_size );
+    ASSERT_ALLOC( signature, signature_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
-    memset( signature, 0, input_size );
     PSA_ASSERT( psa_sign_hash( key, alg,
-                               signature, input_size,
-                               signature, sizeof( signature ),
+                               input, input_size,
+                               signature, signature_size,
                                &signature_length ) );
     PSA_ASSERT( psa_destroy_key( key ) );
 
@@ -99,17 +101,18 @@ void external_rng_failure_sign( int key_type, data_t *key_data, int alg,
      * in the key object and this could perturb the test. */
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
-    memset( signature, 0, input_size );
     TEST_EQUAL( PSA_ERROR_INSUFFICIENT_ENTROPY,
                 psa_sign_hash( key, alg,
-                               signature, input_size,
-                               signature, sizeof( signature ),
+                               input, input_size,
+                               signature, signature_size,
                                &signature_length ) );
     PSA_ASSERT( psa_destroy_key( key ) );
 
 exit:
     psa_destroy_key( key );
     PSA_DONE( );
+    mbedtls_free( input );
+    mbedtls_free( signature );
 }
 /* END_CASE */
 

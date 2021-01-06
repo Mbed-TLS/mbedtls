@@ -135,9 +135,11 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
 
 psa_status_t mbedtls_to_psa_error( int ret )
 {
-    /* If there's both a high-level code and low-level code, dispatch on
-     * the high-level code. */
-    switch( ret < -0x7f ? - ( -ret & 0x7f80 ) : ret )
+    /* Mbed TLS error codes can combine a high-level error code and a
+     * low-level error code. The low-level error usually reflects the
+     * root cause better, so dispatch on that preferably. */
+    int low_level_ret = - ( -ret & 0x007f );
+    switch( low_level_ret != 0 ? low_level_ret : ret )
     {
         case 0:
             return( PSA_SUCCESS );

@@ -28,6 +28,39 @@ else
     PYTHON=python
 fi
 
+can_pylint () {
+    # Pylint 1.5.2 from Ubuntu 16.04 is too old.
+    # Pylint 1.8.3 from Ubuntu 18.04 passed on the first commit containing this line.
+    $PYTHON -m pylint 2>/dev/null --version | awk '
+        BEGIN {status = 1}
+        /^(pylint[0-9]*|__main__\.py) +[0-9]+\.[0-9]+/ {
+            split($2, version, /[^0-9]+/);
+            status = !(version[1] >= 2 || (version[1] == 1 && version[2] >= 8));
+            exit; # executes the END block
+        }
+        END {exit status}
+    '
+}
+
+can_mypy () {
+    # Just check that mypy is present and looks sane. I don't know what
+    # minimum version is required. The check is not just "type mypy"
+    # becaues that passes if a mypy exists but is not installed for the current
+    # python version.
+    mypy --version 2>/dev/null >/dev/null
+}
+
+# With just a --can-xxx option, check whether the tool for xxx is available
+# with an acceptable version, and exit without running any checks. The exit
+# status is true if the tool is available and acceptable and false otherwise.
+if [ "$1" = "--can-pylint" ]; then
+    can_pylint
+    exit
+elif [ "$1" = "--can-mypy" ]; then
+    can_mypy
+    exit
+fi
+
 $PYTHON -m pylint -j 2 scripts/mbedtls_dev/*.py scripts/*.py tests/scripts/*.py || {
     echo >&2 "pylint reported errors"
     ret=1

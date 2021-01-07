@@ -1979,7 +1979,8 @@
 /**
  * \def MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
  *
- * Enable modifying the maximum I/O buffer size.
+ * When this option is enabled, the SSL buffer will be resized automatically
+ * based on the negotiated maximum fragment length in each direction.
  *
  * Requires: MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
  */

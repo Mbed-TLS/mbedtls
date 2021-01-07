@@ -685,7 +685,7 @@ static int ssl_write_session_ticket_ext( mbedtls_ssl_context *ssl,
         return( 0 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3,
-        ( "sending session ticket of length %zu", tlen ) );
+        ( "sending session ticket of length %" MBEDTLS_PRINTF_SIZET, tlen ) );
 
     memcpy( p, ssl->session_negotiate->ticket, tlen );
 
@@ -905,7 +905,8 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
     *p++ = (unsigned char)( t >>  8 );
     *p++ = (unsigned char)( t       );
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, current time: %lld", (long long) t ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, current time: %" MBEDTLS_PRINTF_LONGLONG,
+                                (long long) t ) );
 #else
     if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, p, 4 ) ) != 0 )
         return( ret );
@@ -1114,7 +1115,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     for( i = 0; i < n; i++ )
         *p++ = ssl->session_negotiate->id[i];
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, session id len.: %zu", n ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, session id len.: %" MBEDTLS_PRINTF_SIZET, n ) );
     MBEDTLS_SSL_DEBUG_BUF( 3,   "client hello, session id", buf + 39, n );
 
     /*
@@ -1197,7 +1198,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3,
-        ( "client hello, got %zu ciphersuites (excluding SCSVs)", n ) );
+        ( "client hello, got %" MBEDTLS_PRINTF_SIZET " ciphersuites (excluding SCSVs)", n ) );
 
     /*
      * Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV
@@ -1420,7 +1421,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     /* olen unused if all extensions are disabled */
     ((void) olen);
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %zu",
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %" MBEDTLS_PRINTF_SIZET,
                                 ext_len ) );
 
     if( ext_len > 0 )
@@ -2261,7 +2262,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
     mbedtls_ssl_optimize_checksum( ssl, ssl->handshake->ciphersuite_info );
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %zu", n ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %" MBEDTLS_PRINTF_SIZET, n ) );
     MBEDTLS_SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 35, n );
 
     /*
@@ -2373,7 +2374,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     ext = buf + 40 + n;
 
     MBEDTLS_SSL_DEBUG_MSG( 2,
-        ( "server hello, total extension length: %zu", ext_len ) );
+        ( "server hello, total extension length: %" MBEDTLS_PRINTF_SIZET, ext_len ) );
 
     while( ext_len )
     {
@@ -2628,7 +2629,7 @@ static int ssl_parse_server_dh_params( mbedtls_ssl_context *ssl,
 
     if( ssl->handshake->dhm_ctx.len * 8 < ssl->conf->dhm_min_bitlen )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "DHM prime too short: %zu < %u",
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "DHM prime too short: %" MBEDTLS_PRINTF_SIZET " < %u",
                                     ssl->handshake->dhm_ctx.len * 8,
                                     ssl->conf->dhm_min_bitlen ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
@@ -4347,7 +4348,7 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET );
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket length: %zu", ticket_len ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket length: %" MBEDTLS_PRINTF_SIZET, ticket_len ) );
 
     /* We're not waiting for a NewSessionTicket message any more */
     ssl->handshake->new_session_ticket = 0;

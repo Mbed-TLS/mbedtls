@@ -99,6 +99,34 @@
 #define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)
 #endif
 
+/**
+ * \def MBEDTLS_PRINTF_SIZET
+ *
+ * MBEDTLS_PRINTF_xxx: Due to issues with older window compilers
+ * and MinGW we need to define the printf specifier for size_t
+ * and long long per platform.
+ *
+ * Module:  library/debug.c
+ * Caller:
+ *
+ * This module provides debugging functions.
+ */
+#if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER < 1800)
+   #ifdef _WIN32
+      #include <inttypes.h>
+      #ifdef _WIN64
+         #define MBEDTLS_PRINTF_SIZET     PRIuPTR
+         #define MBEDTLS_PRINTF_LONGLONG  "I128d"
+      #else
+         #define MBEDTLS_PRINTF_SIZET     PRIuPTR
+         #define MBEDTLS_PRINTF_LONGLONG  "I64d"
+      #endif
+   #endif
+#else
+   #define MBEDTLS_PRINTF_SIZET     "zu"
+   #define MBEDTLS_PRINTF_LONGLONG  "lld"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

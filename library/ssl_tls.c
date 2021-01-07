@@ -262,8 +262,8 @@ static int resize_buffer( unsigned char **buffer, size_t len_new, size_t *len_ol
 }
 
 static void handle_buffer_resizing( mbedtls_ssl_context *ssl, int downsizing,
-                                    uint32_t in_buf_new_len,
-                                    uint32_t out_buf_new_len )
+                                    size_t in_buf_new_len,
+                                    size_t out_buf_new_len )
 {
     int modified = 0;
     size_t written_in = 0, iv_offset_in = 0, len_offset_in = 0;

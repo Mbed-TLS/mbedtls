@@ -77,6 +77,13 @@ extern "C" {
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdlib.h>
+#define mbedtls_free   free
+#endif
+
 typedef struct {
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
@@ -445,29 +452,18 @@ static inline psa_algorithm_t psa_get_key_algorithm(
     return( attributes->core.policy.alg );
 }
 
-/* This function is declared in crypto_extra.h, which comes after this
- * header file, but we need the function here, so repeat the declaration. */
-psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
-                                           psa_key_type_t type,
-                                           const uint8_t *data,
-                                           size_t data_length);
-
 static inline void psa_set_key_type(psa_key_attributes_t *attributes,
                                     psa_key_type_t type)
 {
-    if( attributes->domain_parameters == NULL )
+    if( attributes->domain_parameters != NULL )
     {
-        /* Common case: quick path */
-        attributes->core.type = type;
+        /* Free the old domain attributes if present */
+        mbedtls_free( attributes->domain_parameters );
+        attributes->domain_parameters = NULL;
+        attributes->domain_parameters_size = 0;
     }
-    else
-    {
-        /* Call the bigger function to free the old domain paramteres.
-         * Ignore any errors which may arise due to type requiring
-         * non-default domain parameters, since this function can't
-         * report errors. */
-        (void) psa_set_key_domain_parameters( attributes, type, NULL, 0 );
-    }
+
+    attributes->core.type = type;
 }
 
 static inline psa_key_type_t psa_get_key_type(

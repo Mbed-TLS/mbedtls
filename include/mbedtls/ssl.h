@@ -2817,9 +2817,9 @@ int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
  *                 - \c mbedtls_ssl_context*: The SSL context to which
  *                                            the operation applies.
  *                 - \c const unsigned char*: The PSK identity
- *                                            selected by the client.
+ *                                            selected by the peer.
  *                 - \c size_t: The length of the PSK identity
- *                              selected by the client.
+ *                              selected by the peer.
  *
  *                 If a valid PSK identity is found, the callback should use
  *                 \c mbedtls_ssl_set_hs_psk() or
@@ -2838,7 +2838,7 @@ int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
  *
  * \param conf     The SSL configuration to register the callback with.
  * \param f_psk    The callback for selecting and setting the PSK based
- *                 in the PSK identity chosen by the client.
+ *                 in the PSK identity chosen by the peer.
  * \param p_psk    A pointer to an opaque structure to be passed to
  *                 the callback, for example a PSK store.
  */

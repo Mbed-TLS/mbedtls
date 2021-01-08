@@ -484,6 +484,11 @@
  * is still present and it is used for group structures not supported by the
  * alternative.
  *
+ * The original implementation can in addition be removed by setting the
+ * MBEDTLS_ECP_NO_FALLBACK, in which case any function for which the
+ * corresponding MBEDTLS_ECP__FUNCTION_NAME__ALT macro is defined will not be
+ * able to fallback to curves not supported by the alternative implementation.
+ *
  * Any of these options become available by defining MBEDTLS_ECP_INTERNAL_ALT
  * and implementing the following functions:
  *      unsigned char mbedtls_internal_ecp_grp_capable(
@@ -502,16 +507,19 @@
  * function, but will use your mbedtls_internal_ecp_double_jac if the group is
  * supported (your mbedtls_internal_ecp_grp_capable function returns 1 when
  * receives it as an argument). If the group is not supported then the original
- * implementation is used. The other functions and the definition of
- * mbedtls_ecp_group and mbedtls_ecp_point will not change, so your
- * implementation of mbedtls_internal_ecp_double_jac and
- * mbedtls_internal_ecp_grp_capable must be compatible with this definition.
+ * implementation is used, unless disabled by MBEDTLS_ECP_NO_FALLBACK. The
+ * other functions and the definition of mbedtls_ecp_group and
+ * mbedtls_ecp_point will not change, so your implementation of
+ * mbedtls_internal_ecp_double_jac and mbedtls_internal_ecp_grp_capable must be
+ * compatible with this definition.
  *
  * Uncomment a macro to enable alternate implementation of the corresponding
  * function.
  */
 /* Required for all the functions in this section */
 //#define MBEDTLS_ECP_INTERNAL_ALT
+/* Turn off software fallback for curves not supported in hardware */
+//#define MBEDTLS_ECP_NO_FALLBACK
 /* Support for Weierstrass curves with Jacobi representation */
 //#define MBEDTLS_ECP_RANDOMIZE_JAC_ALT
 //#define MBEDTLS_ECP_ADD_MIXED_ALT

@@ -656,6 +656,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
+#if defined(MBEDTLS_ECP_NO_FALLBACK)
+    if( strcmp( "MBEDTLS_ECP_NO_FALLBACK", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_ECP_NO_FALLBACK );
+        return( 0 );
+    }
+#endif /* MBEDTLS_ECP_NO_FALLBACK */
+
 #if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT)
     if( strcmp( "MBEDTLS_ECP_RANDOMIZE_JAC_ALT", config ) == 0 )
     {

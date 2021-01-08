@@ -105,6 +105,7 @@ int main( void )
 #define DFL_PSK                 ""
 #define DFL_PSK_OPAQUE          0
 #define DFL_PSK_IDENTITY        "Client_identity"
+#define DFL_PSK_SERVER_IDENTITY "Server_identity"
 #define DFL_PSK_CALLBACK        0
 #define DFL_ECJPAKE_PW          NULL
 #define DFL_EC_MAX_OPS          -1
@@ -213,6 +214,8 @@ int main( void )
     "    psk=%%s              default: \"\" (disabled)\n"     \
     "                          The PSK values are in hex, without 0x.\n" \
     "    psk_identity=%%s     default: \"Client_identity\"\n" \
+    "    psk_server_identity=%%s The expected server identity. Used only in combination with psk_callback.\n" \
+    "                          default: \"Server_identity\"\n" \
     "    psk_callback=%%d     Disable (0) or enable (1) the psk callback function to configure the PSK. \n" \
     "                          default: 0 (disabled)\n"
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -495,6 +498,7 @@ struct options
     const char *key_pwd;        /* the password for the client key          */
     const char *psk;            /* the pre-shared key                       */
     const char *psk_identity;   /* the pre-shared key identity              */
+    const char *psk_server_identity; /* the expected pre-shared key identity of the server */
     int psk_callback;           /* option to enable or disable the psk cb   */
     const char *ecjpake_pw;     /* the EC J-PAKE password                   */
     int ec_max_ops;             /* EC consecutive operations limit          */
@@ -929,6 +933,7 @@ static int send_cb( void *ctx, unsigned char const *buf, size_t len )
 typedef struct {
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
     size_t psk_len;
+    const char *psk_server_identity;
 } psk_entry_t;
 
 static int psk_cb( void *p_psk,  mbedtls_ssl_context *context,
@@ -938,10 +943,16 @@ static int psk_cb( void *p_psk,  mbedtls_ssl_context *context,
 
     mbedtls_printf( "\n  . Receieved server identity: %.*s\n",  (int)identity_len, identity);
 
-    ret = mbedtls_ssl_set_hs_psk(context, psk_info->psk, psk_info->psk_len);
-    if ( ret != 0) {
-        mbedtls_printf( "\n  . Configure PSK failed!\n");
-        return (ret);
+    if (strncmp(psk_info->psk_server_identity, (const char *)identity, identity_len) != 0) {
+        mbedtls_printf( "  . Unknown server identity!\n");
+        ret = MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY;
+    }
+    else
+    {
+        ret = mbedtls_ssl_set_hs_psk(context, psk_info->psk, psk_info->psk_len);
+        if ( ret != 0) {
+            mbedtls_printf( "\n  . Configure PSK failed!\n");
+        }
     }
 
     /* Repeat the handshake print because it was interrupted by this callback */
@@ -1295,6 +1306,7 @@ int main( int argc, char *argv[] )
     opt.ca_callback         = DFL_CA_CALLBACK;
 #endif
     opt.psk_identity        = DFL_PSK_IDENTITY;
+    opt.psk_server_identity = DFL_PSK_SERVER_IDENTITY;
     opt.psk_callback        = DFL_PSK_CALLBACK;
     opt.ecjpake_pw          = DFL_ECJPAKE_PW;
     opt.ec_max_ops          = DFL_EC_MAX_OPS;
@@ -1448,6 +1460,8 @@ int main( int argc, char *argv[] )
 #endif
         else if( strcmp( p, "psk_identity" ) == 0 )
             opt.psk_identity = q;
+        else if( strcmp( p, "psk_server_identity" ) == 0 )
+            opt.psk_server_identity = q;
         else if( strcmp( p, "psk_callback" ) == 0 )
         {
             opt.psk_callback = atoi( q );
@@ -2433,6 +2447,7 @@ int main( int argc, char *argv[] )
         }
         else
         {
+            psk_info.psk_server_identity = opt.psk_server_identity;
             mbedtls_ssl_conf_psk_cb(&conf, &psk_cb, &psk_info);
         }
     }

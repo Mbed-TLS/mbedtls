@@ -247,25 +247,42 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *slot )
     if( status != PSA_SUCCESS )
         goto exit;
 
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( psa_key_lifetime_is_external( slot->attr.lifetime ) )
     {
-        psa_se_key_data_storage_t *data;
-        if( key_data_length != sizeof( *data ) )
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+        const psa_drv_se_t *drv;
+        psa_drv_se_context_t *drv_context;
+        if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )
         {
-            status = PSA_ERROR_STORAGE_FAILURE;
-            goto exit;
+            psa_se_key_data_storage_t *data;
+            if( key_data_length != sizeof( *data ) )
+            {
+                status = PSA_ERROR_STORAGE_FAILURE;
+                goto exit;
+            }
+            data = (psa_se_key_data_storage_t *) key_data;
+            memcpy( &slot->data.se.slot_number, &data->slot_number,
+                    sizeof( slot->data.se.slot_number ) );
         }
-        data = (psa_se_key_data_storage_t *) key_data;
-        memcpy( &slot->data.se.slot_number, &data->slot_number,
-                sizeof( slot->data.se.slot_number ) );
+        else
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+        {
+            /* A key that is successfully loaded from storage with an
+             * external lifetime, but doesn't belong to an SE driver,
+             * must be a PSA driver-associated key which we can just
+             * load like an internal key. */
+            if ( key_data == NULL )
+            {
+                status = PSA_ERROR_STORAGE_FAILURE;
+                goto exit;
+            }
+
+            status = psa_copy_key_material_into_slot( slot, key_data, key_data_length );
+        }
     }
     else
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     {
         status = psa_copy_key_material_into_slot( slot, key_data, key_data_length );
-        if( status != PSA_SUCCESS )
-            goto exit;
     }
 
 exit:
@@ -345,7 +362,14 @@ psa_status_t psa_validate_key_location( psa_key_lifetime_t lifetime,
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
         psa_se_drv_table_entry_t *driver = psa_get_se_driver_entry( lifetime );
         if( driver == NULL )
+        {
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
+            /* Key location for external keys gets checked by the wrapper */
+            return( PSA_SUCCESS );
+#else
             return( PSA_ERROR_INVALID_ARGUMENT );
+#endif
+        }
         else
         {
             if (p_drv != NULL)
@@ -354,7 +378,12 @@ psa_status_t psa_validate_key_location( psa_key_lifetime_t lifetime,
         }
 #else
         (void) p_drv;
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
+        /* Key location for external keys gets checked by the wrapper */
+        return( PSA_SUCCESS );
+#else
         return( PSA_ERROR_INVALID_ARGUMENT );
+#endif
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     }
     else

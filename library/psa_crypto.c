@@ -2325,34 +2325,45 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     if( status != PSA_SUCCESS )
         goto exit;
 
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( driver != NULL )
+    if( psa_key_lifetime_is_external( psa_get_key_lifetime( attributes ) ) )
     {
-        const psa_drv_se_t *drv = psa_get_se_driver_methods( driver );
-        /* The driver should set the number of key bits, however in
-         * case it doesn't, we initialize bits to an invalid value. */
-        size_t bits = PSA_MAX_KEY_BITS + 1;
-        if( drv->key_management == NULL ||
-            drv->key_management->p_import == NULL )
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+        if( driver != NULL )
         {
-            status = PSA_ERROR_NOT_SUPPORTED;
+            const psa_drv_se_t *drv = psa_get_se_driver_methods( driver );
+            /* The driver should set the number of key bits, however in
+             * case it doesn't, we initialize bits to an invalid value. */
+            size_t bits = PSA_MAX_KEY_BITS + 1;
+            if( drv->key_management == NULL ||
+                drv->key_management->p_import == NULL )
+            {
+                status = PSA_ERROR_NOT_SUPPORTED;
+                goto exit;
+            }
+            status = drv->key_management->p_import(
+                psa_get_se_driver_context( driver ),
+                slot->data.se.slot_number, attributes, data, data_length,
+                &bits );
+            if( status != PSA_SUCCESS )
+                goto exit;
+            if( bits > PSA_MAX_KEY_BITS )
+            {
+                status = PSA_ERROR_NOT_SUPPORTED;
+                goto exit;
+            }
+            slot->attr.bits = (psa_key_bits_t) bits;
+        }
+        else
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+        {
+            /* Importing a key with external lifetime through the driver wrapper
+             * interface is not yet supported. Return as if this was an invalid
+             * lifetime. */
+            status = PSA_ERROR_INVALID_ARGUMENT;
             goto exit;
         }
-        status = drv->key_management->p_import(
-            psa_get_se_driver_context( driver ),
-            slot->data.se.slot_number, attributes, data, data_length,
-            &bits );
-        if( status != PSA_SUCCESS )
-            goto exit;
-        if( bits > PSA_MAX_KEY_BITS )
-        {
-            status = PSA_ERROR_NOT_SUPPORTED;
-            goto exit;
-        }
-        slot->attr.bits = (psa_key_bits_t) bits;
     }
     else
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     {
         status = psa_import_key_into_slot( slot, data, data_length );
         if( status != PSA_SUCCESS )

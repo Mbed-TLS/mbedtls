@@ -210,6 +210,13 @@
 #include "mbedtls/xtea.h"
 #endif
 
+#if defined(MBEDTLS_TEST_HOOKS)
+int mbedtls_err_add( int high, int low, const char *file, int line ) {
+    if( mbedtls_test_err_add_hook != NULL )
+        (*mbedtls_test_err_add_hook)( high, low, file, line );
+    return ( high + low );
+}
+#endif
 
 const char * mbedtls_high_level_strerr( int error_code )
 {

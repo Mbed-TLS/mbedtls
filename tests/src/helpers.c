@@ -282,3 +282,16 @@ void mbedtls_param_failed( const char *failure_condition,
     }
 }
 #endif /* MBEDTLS_CHECK_PARAMS */
+
+#if defined(MBEDTLS_TEST_HOOKS)
+void mbedtls_test_err_add_check( int high, int low,
+                                 const char *file, int line )
+{
+    if ( high < -0x0FFF && low > -0x007F )
+    {
+        mbedtls_fprintf( stderr, "\nIncorrect error code addition at %s:%d\n",
+                                file, line );
+        mbedtls_exit( 1 );
+    }
+}
+#endif /* MBEDTLS_TEST_HOOKS */

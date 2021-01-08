@@ -1085,7 +1085,7 @@ cleanup:
     mbedtls_mpi_free( &I );
 
     if( ret != 0 && ret >= -0x007f )
-        return( MBEDTLS_ERR_RSA_PRIVATE_FAILED + ret );
+        return( MBEDTLS_ERR_ADD( MBEDTLS_ERR_RSA_PRIVATE_FAILED, ret ) );
 
     return( ret );
 }

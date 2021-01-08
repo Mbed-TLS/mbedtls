@@ -31,7 +31,7 @@ int main( void )
     mbedtls_printf( "MBEDTLS_SSL_SRV_C not defined.\n" );
     mbedtls_exit( 0 );
 }
-#else
+#else /* !MBEDTLS_SSL_TEST_IMPOSSIBLE && MBEDTLS_SSL_SRV_C */
 
 #include <stdint.h>
 
@@ -4045,6 +4045,4 @@ exit:
     else
         mbedtls_exit( query_config_ret );
 }
-#endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&
-          MBEDTLS_SSL_SRV_C && MBEDTLS_NET_C && MBEDTLS_RSA_C &&
-          MBEDTLS_CTR_DRBG_C */
+#endif /* !MBEDTLS_SSL_TEST_IMPOSSIBLE && MBEDTLS_SSL_SRV_C */

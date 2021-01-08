@@ -112,16 +112,9 @@
  * This module provides debugging functions.
  */
 #if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER < 1800)
-   #ifdef _WIN32
-      #include <inttypes.h>
-      #ifdef _WIN64
-         #define MBEDTLS_PRINTF_SIZET     PRIuPTR
-         #define MBEDTLS_PRINTF_LONGLONG  "I128d"
-      #else
-         #define MBEDTLS_PRINTF_SIZET     PRIuPTR
-         #define MBEDTLS_PRINTF_LONGLONG  "I64d"
-      #endif
-   #endif
+   #include <inttypes.h>
+   #define MBEDTLS_PRINTF_SIZET     PRIuPTR
+   #define MBEDTLS_PRINTF_LONGLONG  "I64d"
 #else
    #define MBEDTLS_PRINTF_SIZET     "zu"
    #define MBEDTLS_PRINTF_LONGLONG  "lld"

@@ -793,6 +793,17 @@ static int cmac_test_subkeys( int verbose,
         if( ( ret = mbedtls_cipher_setkey( &ctx, key, keybits,
                                        MBEDTLS_ENCRYPT ) ) != 0 )
         {
+            /* When CMAC is implemented by an alternative implementation, or
+             * the underlying primitive itself is implemented alternatively,
+             * certain features (e.g. AES-192) may be unavailable. This should
+             * not cause the selftest function to fail. */
+            if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ||
+                ret == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE ) {
+                if( verbose != 0 )
+                    mbedtls_printf( "skipped\n" );
+                goto next_test;
+            }
+
             if( verbose != 0 )
                 mbedtls_printf( "test execution failed\n" );
 
@@ -820,6 +831,7 @@ static int cmac_test_subkeys( int verbose,
         if( verbose != 0 )
             mbedtls_printf( "passed\n" );
 
+next_test:
         mbedtls_cipher_free( &ctx );
     }
 
@@ -864,6 +876,17 @@ static int cmac_test_wth_cipher( int verbose,
         if( ( ret = mbedtls_cipher_cmac( cipher_info, key, keybits, messages,
                                          message_lengths[i], output ) ) != 0 )
         {
+            /* When CMAC is implemented by an alternative implementation, or
+             * the underlying primitive itself is implemented alternatively,
+             * certain features (e.g. AES-192) may be unavailable. This should
+             * not cause the selftest function to fail. */
+            if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ||
+                ret == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE ) {
+                if( verbose != 0 )
+                    mbedtls_printf( "skipped\n" );
+                continue;
+            }
+
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
             goto exit;

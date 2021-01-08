@@ -70,6 +70,17 @@ static int ssl_conf_has_static_psk( mbedtls_ssl_config const *conf )
     return( 0 );
 }
 
+static int ssl_conf_has_dynamic_psk( mbedtls_ssl_context const *ssl )
+{
+    /* psk_identity is currently not set when configuring the psk via callback */
+
+    if( ssl->handshake->psk     != NULL &&
+        ssl->handshake->psk_len != 0 )
+        return( 1 );
+
+    return( 0 );
+}
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 static int ssl_conf_has_static_raw_psk( mbedtls_ssl_config const *conf )
 {
@@ -3637,7 +3648,8 @@ ecdh_calc_secret:
         /*
          * opaque psk_identity<0..2^16-1>;
          */
-        if( ssl_conf_has_static_psk( ssl->conf ) == 0 )
+        if( ssl_conf_has_static_psk( ssl->conf ) == 0 &&
+            ssl_conf_has_dynamic_psk(ssl) == 0 )
         {
             /* This can happen, if a PSK suite is enabled
              * but no PSK has been selected manually or by the PSK identity hint callback. */

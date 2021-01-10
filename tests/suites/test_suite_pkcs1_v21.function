@@ -40,8 +40,7 @@ void pkcs1_rsaes_oaep_encrypt( int mod, data_t * input_N, data_t * input_E,
                                             output ) == result );
     if( result == 0 )
     {
-        TEST_ASSERT( mbedtls_test_hexcmp( output, result_str->x,
-                                          ctx.len, result_str->len ) == 0 );
+        ASSERT_COMPARE( output, ctx.len, result_str->x, result_str->len );
     }
 
 exit:
@@ -101,9 +100,7 @@ void pkcs1_rsaes_oaep_decrypt( int mod, data_t * input_P, data_t * input_Q,
                                                 sizeof( output ) ) == result );
         if( result == 0 )
         {
-            TEST_ASSERT( mbedtls_test_hexcmp( output, result_str->x,
-                                              output_len,
-                                              result_str->len ) == 0 );
+            ASSERT_COMPARE( output, output_len, result_str->x, result_str->len );
         }
     }
 
@@ -155,8 +152,7 @@ void pkcs1_rsassa_pss_sign( int mod, data_t * input_P, data_t * input_Q,
                                          hash_result, output ) == result );
     if( result == 0 )
     {
-        TEST_ASSERT( mbedtls_test_hexcmp( output, result_str->x,
-                                          ctx.len, result_str->len ) == 0 );
+        ASSERT_COMPARE( output, ctx.len, result_str->x, result_str->len );
     }
 
     info.buf = rnd_buf->x;
@@ -167,8 +163,7 @@ void pkcs1_rsassa_pss_sign( int mod, data_t * input_P, data_t * input_Q,
                                                   MBEDTLS_RSA_SALT_LEN_ANY, output ) == result );
     if( result == 0 )
     {
-        TEST_ASSERT( mbedtls_test_hexcmp( output, result_str->x,
-                                          ctx.len, result_str->len ) == 0 );
+        ASSERT_COMPARE( output, ctx.len, result_str->x, result_str->len );
     }
 
 exit:
@@ -219,8 +214,7 @@ void pkcs1_rsassa_pss_sign_ext( int mod, data_t * input_P, data_t *input_Q,
                                                   0, hash_result, fixed_salt_length, output ) == result );
     if( result == 0 )
     {
-        TEST_ASSERT( mbedtls_test_hexcmp( output, result_str->x,
-                                          ctx.len, result_str->len ) == 0 );
+        ASSERT_COMPARE( output, ctx.len, result_str->x, result_str->len );
     }
 
 exit:

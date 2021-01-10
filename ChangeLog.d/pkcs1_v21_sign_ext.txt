@@ -3,4 +3,3 @@ Features
      signature with a specific salt length. This function allows to validate
      test cases provided in the NIST's CAVP test suite. Contributed by Cédric
      Meuter in PR #3183.
-     

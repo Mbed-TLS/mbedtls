@@ -161,14 +161,13 @@ void pkcs1_rsassa_pss_sign( int mod, data_t * input_P, data_t * input_Q,
         info.length = rnd_buf->len;
     }
 
-    TEST_ASSERT( mbedtls_rsa_rsassa_pss_sign_ext( &ctx, &mbedtls_test_rnd_buffer_rand, 
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_sign_ext( &ctx, &mbedtls_test_rnd_buffer_rand,
                                                   &info, digest, 0, hash_result,
                                                   fixed_salt_length, output ) == result );
     if( result == 0 )
     {
         ASSERT_COMPARE( output, ctx.len, result_str->x, result_str->len );
     }
-    
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P );

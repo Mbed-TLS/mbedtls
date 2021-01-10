@@ -25,7 +25,6 @@ void rsa_invalid_param( )
     const int invalid_padding = 42;
     const int valid_mode = MBEDTLS_RSA_PRIVATE;
     const int invalid_mode = 42;
-    const int negative_salt_length = -2;
     unsigned char buf[42] = { 0 };
     size_t olen;
 
@@ -338,11 +337,6 @@ void rsa_invalid_param( )
                                                          0, NULL,
                                                          buf ) );
 
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_rsassa_pss_sign_ext( &ctx, NULL, NULL,
-                                                             0, sizeof( buf ), buf,
-                                                             negative_salt_length,
-                                                             buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsassa_pss_sign_ext( NULL, NULL, NULL,
                                                              0, sizeof( buf ), buf,

@@ -115,70 +115,8 @@ exit:
 void pkcs1_rsassa_pss_sign( int mod, data_t * input_P, data_t * input_Q,
                             data_t * input_N, data_t * input_E, int digest,
                             int hash, data_t * message_str, data_t * rnd_buf,
-                            data_t * result_str, int result )
-{
-    unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
-    unsigned char output[256];
-    mbedtls_rsa_context ctx;
-    mbedtls_test_rnd_buf_info info;
-    mbedtls_mpi N, P, Q, E;
-
-    info.buf = rnd_buf->x;
-    info.length = rnd_buf->len;
-
-    mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P );
-    mbedtls_mpi_init( &Q ); mbedtls_mpi_init( &E );
-    mbedtls_rsa_init( &ctx, MBEDTLS_RSA_PKCS_V21, hash );
-
-    memset( hash_result, 0x00, sizeof( hash_result ) );
-    memset( output, 0x00, sizeof( output ) );
-
-    TEST_ASSERT( mbedtls_mpi_read_binary( &P, input_P->x, input_P->len ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_binary( &Q, input_Q->x, input_Q->len ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_binary( &N, input_N->x, input_N->len ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_binary( &E, input_E->x, input_E->len ) == 0 );
-
-    TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
-    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( ( mod + 7 ) / 8 ) );
-    TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
-    TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
-
-
-    if( mbedtls_md_info_from_type( digest ) != NULL )
-        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
-
-    TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &mbedtls_test_rnd_buffer_rand,
-                                         &info, MBEDTLS_RSA_PRIVATE, digest, 0,
-                                         hash_result, output ) == result );
-    if( result == 0 )
-    {
-        ASSERT_COMPARE( output, ctx.len, result_str->x, result_str->len );
-    }
-
-    info.buf = rnd_buf->x;
-    info.length = rnd_buf->len;
-
-    TEST_ASSERT( mbedtls_rsa_rsassa_pss_sign_ext( &ctx, &mbedtls_test_rnd_buffer_rand,
-                                                  &info, digest, 0, hash_result,
-                                                  MBEDTLS_RSA_SALT_LEN_ANY, output ) == result );
-    if( result == 0 )
-    {
-        ASSERT_COMPARE( output, ctx.len, result_str->x, result_str->len );
-    }
-
-exit:
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P );
-    mbedtls_mpi_free( &Q ); mbedtls_mpi_free( &E );
-    mbedtls_rsa_free( &ctx );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void pkcs1_rsassa_pss_sign_ext( int mod, data_t * input_P, data_t *input_Q,
-                                data_t * input_N, data_t * input_E, int digest,
-                                int hash, data_t * message_str, data_t * rnd_buf,
-                                data_t * result_str, int fixed_salt_length,
-                                int result )
+                            data_t * result_str, int fixed_salt_length,
+                            int result )
 {
     unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
     unsigned char output[512];
@@ -206,16 +144,31 @@ void pkcs1_rsassa_pss_sign_ext( int mod, data_t * input_P, data_t *input_Q,
     TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
-
     if( mbedtls_md_info_from_type( digest ) != NULL )
         TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_rsassa_pss_sign_ext( &ctx, &mbedtls_test_rnd_buffer_rand, &info, digest,
-                                                  0, hash_result, fixed_salt_length, output ) == result );
+    if (fixed_salt_length == MBEDTLS_RSA_SALT_LEN_ANY)
+    {
+        TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &mbedtls_test_rnd_buffer_rand,
+                                             &info, MBEDTLS_RSA_PRIVATE, digest, 0,
+                                             hash_result, output ) == result );
+        if( result == 0 )
+        {
+            ASSERT_COMPARE( output, ctx.len, result_str->x, result_str->len );
+        }
+
+        info.buf = rnd_buf->x;
+        info.length = rnd_buf->len;
+    }
+
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_sign_ext( &ctx, &mbedtls_test_rnd_buffer_rand, 
+                                                  &info, digest, 0, hash_result,
+                                                  fixed_salt_length, output ) == result );
     if( result == 0 )
     {
         ASSERT_COMPARE( output, ctx.len, result_str->x, result_str->len );
     }
+    
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P );

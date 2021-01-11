@@ -22,6 +22,23 @@ import os
 import re
 import sys
 
+def is_systematic_dependency(dep):
+    """Whether dep is a PSA dependency which is determined systematically."""
+    return dep.startswith('PSA_WANT_')
+
+def dependencies_of_symbol(symbol):
+    """Return the dependencies for a symbol that designates a cryptographic mechanism."""
+    return {symbol.replace('_', '_WANT_', 1)}
+
+def systematic_dependencies(file_name, function_name, arguments):
+    #pylint: disable=unused-argument
+    """List the systematically determined dependency for a test case."""
+    deps = set()
+    for arg in arguments:
+        for symbol in re.findall(r'PSA_(?:ALG|KEY_TYPE)_\w+', arg):
+            deps.update(dependencies_of_symbol(symbol))
+    return sorted(deps)
+
 def updated_dependencies(file_name, function_name, arguments, dependencies):
     """Rework the list of dependencies into PSA_WANT_xxx.
 
@@ -31,7 +48,10 @@ def updated_dependencies(file_name, function_name, arguments, dependencies):
     Add systematic PSA_WANT_xxx dependencies based on the called function and
     its arguments, replacing existing PSA_WANT_xxx dependencies.
     """
-    return dependencies #TODO
+    automatic = systematic_dependencies(file_name, function_name, arguments)
+    manual = [dep for dep in dependencies
+              if not is_systematic_dependency(dep)]
+    return automatic + manual
 
 def keep_manual_dependencies(file_name, function_name, arguments):
     #pylint: disable=unused-argument

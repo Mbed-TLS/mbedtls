@@ -33,6 +33,11 @@ def updated_dependencies(file_name, function_name, arguments, dependencies):
     """
     return dependencies #TODO
 
+def keep_manual_dependencies(file_name, function_name, arguments):
+    #pylint: disable=unused-argument
+    """Declare test functions with unusual dependencies here."""
+    return False
+
 def process_data_stanza(stanza, file_name, test_case_number):
     """Update PSA crypto dependencies in one Mbed TLS test case.
 
@@ -55,6 +60,8 @@ def process_data_stanza(stanza, file_name, test_case_number):
                         .format(test_case_number, file_name))
     arguments = content_matches[-1].group(0).split(':')
     function_name = arguments.pop(0)
+    if keep_manual_dependencies(file_name, function_name, arguments):
+        return stanza
     if len(content_matches) == 2:
         # Insert a line for the dependencies. If it turns out that there are
         # no dependencies, we'll remove that empty line below.

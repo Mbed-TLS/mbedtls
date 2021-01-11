@@ -158,15 +158,15 @@ depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V21:MBEDTLS_SHA256_C
 asymmetric_signature_algorithm:PSA_ALG_RSA_PSS( PSA_ALG_SHA_256 ):ALG_IS_RSA_PSS | ALG_IS_HASH_AND_SIGN
 
 Asymmetric signature: randomized ECDSA (no hashing)
-depends_on:MBEDTLS_ECDSA_C
+depends_on:PSA_WANT_ALG_ECDSA
 asymmetric_signature_algorithm:PSA_ALG_ECDSA_ANY:ALG_IS_ECDSA | ALG_IS_RANDOMIZED_ECDSA | ALG_IS_HASH_AND_SIGN
 
 Asymmetric signature: SHA-256 + randomized ECDSA
-depends_on:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C
+depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ALG_SHA_256
 asymmetric_signature_algorithm:PSA_ALG_ECDSA( PSA_ALG_SHA_256 ):ALG_IS_ECDSA | ALG_IS_RANDOMIZED_ECDSA | ALG_IS_HASH_AND_SIGN
 
 Asymmetric signature: SHA-256 + deterministic ECDSA using SHA-256
-depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_SHA256_C
+depends_on:PSA_WANT_ALG_DETERMINISTIC_ECDSA:PSA_WANT_ALG_SHA_256
 asymmetric_signature_algorithm:PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 ):ALG_IS_ECDSA | ALG_IS_DETERMINISTIC_ECDSA | ALG_ECDSA_IS_DETERMINISTIC | ALG_IS_HASH_AND_SIGN
 
 Asymmetric signature: RSA PKCS#1 v1.5 with wildcard hash
@@ -178,11 +178,11 @@ depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V21
 asymmetric_signature_wildcard:PSA_ALG_RSA_PSS( PSA_ALG_ANY_HASH ):ALG_IS_RSA_PSS
 
 Asymmetric signature: randomized ECDSA with wildcard hash
-depends_on:MBEDTLS_ECDSA_C
+depends_on:PSA_WANT_ALG_ECDSA
 asymmetric_signature_wildcard:PSA_ALG_ECDSA( PSA_ALG_ANY_HASH ):ALG_IS_ECDSA | ALG_IS_RANDOMIZED_ECDSA
 
 Asymmetric signature: deterministic ECDSA with wildcard hash
-depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECDSA_DETERMINISTIC
+depends_on:PSA_WANT_ALG_DETERMINISTIC_ECDSA
 asymmetric_signature_wildcard:PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_ANY_HASH ):ALG_IS_ECDSA | ALG_IS_DETERMINISTIC_ECDSA | ALG_ECDSA_IS_DETERMINISTIC
 
 Asymmetric encryption: RSA PKCS#1 v1.5

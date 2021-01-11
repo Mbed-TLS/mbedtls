@@ -5786,6 +5786,7 @@ void persistent_key_load_key_from_storage( data_t *data,
             break;
 
         case DERIVE_KEY:
+#if PSA_WANT_ALG_HKDF && PSA_WANT_ALG_SHA_256
             {
                 /* Create base key */
                 psa_algorithm_t derive_alg = PSA_ALG_HKDF( PSA_ALG_SHA_256 );
@@ -5812,7 +5813,14 @@ void persistent_key_load_key_from_storage( data_t *data,
                 PSA_ASSERT( psa_destroy_key( base_key ) );
                 base_key = MBEDTLS_SVC_KEY_ID_INIT;
             }
-        break;
+#else
+            TEST_ASSUME( ! "KDF not supported in this configuration" );
+#endif
+            break;
+
+        default:
+            TEST_ASSERT( ! "generation_method not implemented in test" );
+            break;
     }
     psa_reset_key_attributes( &attributes );
 

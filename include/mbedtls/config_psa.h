@@ -315,6 +315,7 @@ extern "C" {
 #if defined(MBEDTLS_SHA256_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_SHA_224 1
 #define MBEDTLS_PSA_BUILTIN_ALG_SHA_256 1
+#define PSA_WANT_ALG_SHA_224 1
 #define PSA_WANT_ALG_SHA_256 1
 #endif
 

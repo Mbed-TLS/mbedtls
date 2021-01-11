@@ -2516,7 +2516,7 @@ derive_key:PSA_ALG_HKDF(PSA_ALG_SHA_256):"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b
 # and not expected to be raised any time soon) is less than the maximum
 # output from HKDF-SHA512 (255*64 = 16320 bytes).
 PSA key derivation: largest possible key
-depends_on:MBEDTLS_SHA512_C
+depends_on:MBEDTLS_SHA512_C:HAVE_RAM_AVAILABLE_128K
 derive_key:PSA_ALG_HKDF(PSA_ALG_SHA_512):"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"000102030405060708090a0b0c":"f0f1f2f3f4f5f6f7f8f9":PSA_KEY_TYPE_RAW_DATA:PSA_MAX_KEY_BITS:PSA_SUCCESS
 
 PSA key derivation: key too large

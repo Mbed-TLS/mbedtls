@@ -35,8 +35,33 @@ def is_systematic_dependency(dep):
     """Whether dep is a PSA dependency which is determined systematically."""
     return dep.startswith('PSA_WANT_')
 
+OMITTED_SYSTEMATIC_DEPENDENCIES = frozenset([
+    # Not implemented yet: cipher-related key types and algorithms.
+    # Manually extracted from crypto_values.h.
+    'PSA_KEY_TYPE_AES',
+    'PSA_KEY_TYPE_DES',
+    'PSA_KEY_TYPE_CAMELLIA',
+    'PSA_KEY_TYPE_ARC4',
+    'PSA_KEY_TYPE_CHACHA20',
+    'PSA_ALG_CBC_MAC',
+    'PSA_ALG_CMAC',
+    'PSA_ALG_STREAM_CIPHER',
+    'PSA_ALG_CTR',
+    'PSA_ALG_CFB',
+    'PSA_ALG_OFB',
+    'PSA_ALG_XTS',
+    'PSA_ALG_ECB_NO_PADDING',
+    'PSA_ALG_CBC_NO_PADDING',
+    'PSA_ALG_CBC_PKCS7',
+    'PSA_ALG_CCM',
+    'PSA_ALG_GCM',
+    'PSA_ALG_CHACHA20_POLY1305',
+])
+
 def dependencies_of_symbol(symbol):
     """Return the dependencies for a symbol that designates a cryptographic mechanism."""
+    if symbol in OMITTED_SYSTEMATIC_DEPENDENCIES:
+        return frozenset()
     return {symbol.replace('_', '_WANT_', 1)}
 
 def systematic_dependencies(file_name, function_name, arguments):

@@ -937,14 +937,14 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
     else
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR)
     if( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( type ) )
     {
         /* Just the secret value */
         TEST_EQUAL( exported_length, PSA_BITS_TO_BYTES( bits ) );
     }
     else
-#endif /* MBEDTLS_ECP_C */
+#endif /* PSA_WANT_KEY_TYPE_ECC_KEY_PAIR */
 
     if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
     {
@@ -971,7 +971,7 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
         }
         else
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECP_C)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
         if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( type ) )
         {
             if( PSA_KEY_TYPE_ECC_GET_FAMILY( type ) == PSA_ECC_FAMILY_MONTGOMERY )
@@ -993,7 +993,7 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
             }
         }
         else
-#endif /* MBEDTLS_ECP_C */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
         {
             char message[47];
             mbedtls_snprintf( message, sizeof( message ),

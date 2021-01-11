@@ -22,6 +22,15 @@ import os
 import re
 import sys
 
+CLASSIC_DEPENDENCIES = frozenset([
+])
+
+def is_classic_dependency(dep):
+    """Whether dep is a classic dependency that PSA test cases should not use."""
+    if dep.startswith('!'):
+        dep = dep[1:]
+    return dep in CLASSIC_DEPENDENCIES
+
 def is_systematic_dependency(dep):
     """Whether dep is a PSA dependency which is determined systematically."""
     return dep.startswith('PSA_WANT_')
@@ -50,7 +59,8 @@ def updated_dependencies(file_name, function_name, arguments, dependencies):
     """
     automatic = systematic_dependencies(file_name, function_name, arguments)
     manual = [dep for dep in dependencies
-              if not is_systematic_dependency(dep)]
+              if not (is_systematic_dependency(dep) or
+                      is_classic_dependency(dep))]
     return automatic + manual
 
 def keep_manual_dependencies(file_name, function_name, arguments):

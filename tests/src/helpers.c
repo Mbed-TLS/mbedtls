@@ -287,7 +287,7 @@ void mbedtls_param_failed( const char *failure_condition,
 void mbedtls_test_err_add_check( int high, int low,
                                  const char *file, int line )
 {
-    if ( high < -0x0FFF && low > -0x007F )
+    if ( high > -0x1000 || low < -0x007F )
     {
         mbedtls_fprintf( stderr, "\nIncorrect error code addition at %s:%d\n",
                                 file, line );

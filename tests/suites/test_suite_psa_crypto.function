@@ -484,6 +484,10 @@ static int exercise_aead_key( mbedtls_svc_key_id_t key,
     size_t ciphertext_length = sizeof( ciphertext );
     size_t plaintext_length = sizeof( ciphertext );
 
+    /* Default IV length for AES-GCM is 12 bytes */
+    if( (alg & ~PSA_ALG_AEAD_TAG_LENGTH_MASK) == PSA_ALG_GCM )
+        nonce_length = 12;
+
     if( usage & PSA_KEY_USAGE_ENCRYPT )
     {
         PSA_ASSERT( psa_aead_encrypt( key, alg,

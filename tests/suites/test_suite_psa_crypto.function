@@ -4097,6 +4097,16 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
         goto exit;
     }
 #endif /* AES could be alternatively implemented */
+#if defined(MBEDTLS_GCM_ALT) || \
+    defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
+    if( status == PSA_ERROR_NOT_SUPPORTED &&
+        (alg & ~PSA_ALG_AEAD_TAG_LENGTH_MASK) == PSA_ALG_GCM &&
+        nonce->len != 12 )
+    {
+        test_skip( "AES-GCM with non-12-byte IV is not supported", __LINE__, __FILE__ );
+        goto exit;
+    }
+#endif /* AES-GCM could be alternatively implemented */
 
     PSA_ASSERT( status );
     ASSERT_COMPARE( expected_result->x, expected_result->len,
@@ -4165,6 +4175,16 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
         goto exit;
     }
 #endif /* AES could be alternatively implemented */
+#if defined(MBEDTLS_GCM_ALT) || \
+    defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
+    if( status == PSA_ERROR_NOT_SUPPORTED &&
+        (alg & ~PSA_ALG_AEAD_TAG_LENGTH_MASK) == PSA_ALG_GCM &&
+        nonce->len != 12 )
+    {
+        test_skip( "AES-GCM with non-12-byte IV is not supported", __LINE__, __FILE__ );
+        goto exit;
+    }
+#endif /* AES-GCM could be alternatively implemented */
 
     TEST_EQUAL( status, expected_result );
 

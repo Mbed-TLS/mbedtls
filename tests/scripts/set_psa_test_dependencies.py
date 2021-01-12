@@ -190,6 +190,10 @@ def updated_dependencies(file_name, function_name, arguments, dependencies):
 def keep_manual_dependencies(file_name, function_name, arguments):
     #pylint: disable=unused-argument
     """Declare test functions with unusual dependencies here."""
+    # If there are no arguments, we can't do any useful work. Assume that if
+    # there are dependencies, they are warranted.
+    if not arguments:
+        return True
     # When PSA_ERROR_NOT_SUPPORTED is expected, usually, at least one of the
     # constants mentioned in the test should not be supported. It isn't
     # possible to determine which one in a systematic way. So let the programmer

@@ -114,16 +114,6 @@ extern "C" {
 #define MBEDTLS_ERR_ERROR_GENERIC_ERROR       -0x0001  /**< Generic error */
 #define MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED -0x006E  /**< This is a bug in the library */
 
-#if defined(MBEDTLS_TEST_HOOKS)
-void (*mbedtls_test_err_add_hook)( int, int, const char *, int );
-int mbedtls_err_add( int high, int low, const char *file, int line );
-#define MBEDTLS_ERR_ADD( high, low )  \
-    ( mbedtls_err_add( high, low, __FILE__, __LINE__ ) )
-#else
-#define MBEDTLS_ERR_ADD( high, low ) \
-    ( high + low )
-#endif
-
 /**
  * \brief Translate a mbed TLS error code into a string representation,
  *        Result is truncated if necessary and always includes a terminating

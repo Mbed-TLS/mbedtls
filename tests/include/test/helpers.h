@@ -280,9 +280,9 @@ void mbedtls_test_mutex_usage_check( void );
 
 #if defined(MBEDTLS_TEST_HOOKS)
 /**
- * \brief	Check that a pure high-level error code is being combined with a
- *			pure low-level error code as otherwise the resultant error code
- *			would be corrupted.
+ * \brief   Check that a pure high-level error code is being combined with a
+ *          pure low-level error code as otherwise the resultant error code
+ *          would be corrupted.
  */
 void mbedtls_test_err_add_check( int high, int low,
                                  const char *file, int line);

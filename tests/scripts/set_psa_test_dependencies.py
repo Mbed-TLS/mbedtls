@@ -157,7 +157,6 @@ def dependencies_of_symbol(symbol):
     return {symbol.replace('_', '_WANT_', 1)}
 
 def systematic_dependencies(file_name, function_name, arguments):
-    #pylint: disable=unused-argument
     """List the systematically determined dependency for a test case."""
     deps = set()
 
@@ -170,6 +169,14 @@ def systematic_dependencies(file_name, function_name, arguments):
        arguments[-1].startswith('PSA_ERROR_'):
         arguments[-2] = ''
         arguments[-3] = ''
+
+    # Storage format tests that only look at how the file is structured and
+    # don't care about the format of the key material don't depend on any
+    # cryptographic mechanisms.
+    if os.path.basename(file_name) == 'test_suite_psa_crypto_persistent_key.data' and \
+       function_name in {'format_storage_data_check',
+                         'parse_storage_data_check'}:
+        return []
 
     for arg in arguments:
         for symbol in re.findall(r'PSA_(?:ALG|KEY_TYPE)_\w+', arg):

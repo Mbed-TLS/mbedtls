@@ -1,0 +1,62 @@
+/* BEGIN_HEADER */
+
+#include <stdlib.h>
+
+/* TODO: How are test suites supposed to include internal headers? */
+#include "../library/mps/reader.h"
+
+/*
+ * Compile-time configuration for test suite.
+ */
+
+/* Comment/Uncomment this to disable/enable the
+ * testing of the various MPS layers.
+ * This can be useful for time-consuming instrumentation
+ * tasks such as the conversion of E-ACSL annotations
+ * into runtime assertions. */
+#define TEST_SUITE_MPS_READER
+
+/* End of compile-time configuration. */
+
+/* END_HEADER */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
+void mbedtls_mps_reader_no_pausing_single_step_single_round( int with_acc )
+{
+    /* This test exercises the most basic use of the MPS reader:
+     * - The 'producing' layer provides a buffer
+     * - The 'consuming' layer fetches it in a single go.
+     * - After processing, the consuming layer commit the data
+     *   and returns back to the producing layer.
+     *
+     * Parameters:
+     * - with_acc: 0 if the reader should be initialized without accumulator.
+     *             1 if the reader should be initialized with accumulator.
+     *
+     *             Whether the accumulator is present or not should not matter,
+     *             since the consumer's request can be fulfilled from the data
+     *             that the producer has provided.
+     */
+    unsigned char bufA[100];
+    unsigned char acc[10];
+    unsigned char *tmp;
+    mbedtls_reader rd;
+    for( int i=0; (unsigned) i < sizeof( bufA ); i++ )
+        bufA[i] = (unsigned char) i;
+
+    /* Preparation (lower layer) */
+    if( with_acc == 0 )
+        mbedtls_reader_init( &rd, NULL, 0 );
+    else
+        mbedtls_reader_init( &rd, acc, sizeof( acc ) );
+    TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
+    /* Consumption (upper layer) */
+    /* Consume exactly what's available */
+    TEST_ASSERT( mbedtls_reader_get( &rd, 100, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 100, bufA, 100 );
+    TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+    /* Wrapup (lower layer) */
+    TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
+    mbedtls_reader_free( &rd );
+}
+/* END_CASE */

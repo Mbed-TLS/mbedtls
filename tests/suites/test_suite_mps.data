@@ -54,3 +54,12 @@ mbedtls_mps_reader_pausing_multiple_feeds:1
 
 MPS Reader: Pausing, feed 50 bytes in 49x1b + 51b
 mbedtls_mps_reader_pausing_multiple_feeds:2
+
+MPS Reader: Reclaim with data remaining #0
+mbedtls_mps_reader_reclaim_data_left:0
+
+MPS Reader: Reclaim with data remaining #1
+mbedtls_mps_reader_reclaim_data_left:1
+
+MPS Reader: Reclaim with data remaining #2
+mbedtls_mps_reader_reclaim_data_left:2

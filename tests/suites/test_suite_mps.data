@@ -63,3 +63,6 @@ mbedtls_mps_reader_reclaim_data_left:1
 
 MPS Reader: Reclaim with data remaining #2
 mbedtls_mps_reader_reclaim_data_left:2
+
+MPS Reader: Reclaim with data remaining, continue fetching
+mbedtls_mps_reader_reclaim_data_left_retry:

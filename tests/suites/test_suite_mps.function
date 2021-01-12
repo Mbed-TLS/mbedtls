@@ -559,3 +559,38 @@ void mbedtls_mps_reader_reclaim_data_left( int option )
     mbedtls_reader_free( &rd );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
+void mbedtls_mps_reader_reclaim_data_left_retry()
+{
+    /* This test exercises the behaviour of the MPS reader when an attempt
+     * by the producer to reclaim the reader fails because of more data pending
+     * to be processed, and the consumer subsequently fetches more data. */
+    unsigned char buf[100];
+    unsigned char *tmp;
+    mbedtls_reader rd;
+
+    for( int i=0; (unsigned) i < sizeof( buf ); i++ )
+        buf[i] = (unsigned char) i;
+
+    /* Preparation (lower layer) */
+    mbedtls_reader_init( &rd, NULL, 0 );
+    TEST_ASSERT( mbedtls_reader_feed( &rd, buf, sizeof( buf ) ) == 0 );
+    /* Consumption (upper layer) */
+    TEST_ASSERT( mbedtls_reader_get( &rd, 50, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 50, buf, 50 );
+    TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+    TEST_ASSERT( mbedtls_reader_get( &rd, 50, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 50, buf + 50, 50 );
+    /* Preparation */
+    TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) ==
+                 MBEDTLS_ERR_MPS_READER_DATA_LEFT );
+    /* Consumption */
+    TEST_ASSERT( mbedtls_reader_get( &rd, 50, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 50, buf + 50, 50 );
+    TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+    /* Wrapup */
+    TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
+    mbedtls_reader_free( &rd );
+}
+/* END_CASE */

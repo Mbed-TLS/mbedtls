@@ -21,3 +21,6 @@ mbedtls_mps_reader_no_pausing_multiple_steps_multiple_rounds:0
 
 MPS Reader: Multiple steps, multiple rounds, pausing enabled but unused
 mbedtls_mps_reader_no_pausing_multiple_steps_multiple_rounds:1
+
+MPS Reader: Pausing needed but disabled
+mbedtls_mps_reader_pausing_needed_disabled:

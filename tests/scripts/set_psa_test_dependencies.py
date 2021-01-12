@@ -160,6 +160,13 @@ def systematic_dependencies(file_name, function_name, arguments):
     #pylint: disable=unused-argument
     """List the systematically determined dependency for a test case."""
     deps = set()
+
+    # Run key policy negative tests even if the algorithm to attempt performing
+    # is not supported.
+    if function_name.endswith('_key_policy') and \
+       arguments[-1] != 'PSA_SUCCESS':
+        arguments[-2] = ''
+
     for arg in arguments:
         for symbol in re.findall(r'PSA_(?:ALG|KEY_TYPE)_\w+', arg):
             deps.update(dependencies_of_symbol(symbol))

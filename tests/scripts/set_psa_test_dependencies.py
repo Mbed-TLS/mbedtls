@@ -149,6 +149,11 @@ def dependencies_of_symbol(symbol):
         return frozenset()
     if symbol in SPECIAL_SYSTEMATIC_DEPENDENCIES:
         return SPECIAL_SYSTEMATIC_DEPENDENCIES[symbol]
+    if symbol.startswith('PSA_ALG_CATEGORY_') or \
+       symbol.startswith('PSA_KEY_TYPE_CATEGORY_'):
+        # Categories are used in test data when an unsupported but plausible
+        # mechanism number needed. They have no associated dependency.
+        return frozenset()
     return {symbol.replace('_', '_WANT_', 1)}
 
 def systematic_dependencies(file_name, function_name, arguments):
@@ -178,6 +183,12 @@ def updated_dependencies(file_name, function_name, arguments, dependencies):
 def keep_manual_dependencies(file_name, function_name, arguments):
     #pylint: disable=unused-argument
     """Declare test functions with unusual dependencies here."""
+    # When PSA_ERROR_NOT_SUPPORTED is expected, usually, at least one of the
+    # constants mentioned in the test should not be supported. It isn't
+    # possible to determine which one in a systematic way. So let the programmer
+    # decide.
+    if arguments[-1] == 'PSA_ERROR_NOT_SUPPORTED':
+        return True
     return False
 
 def process_data_stanza(stanza, file_name, test_case_number):

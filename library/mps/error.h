@@ -43,6 +43,24 @@
 #endif
 
 /**
+ * \name SECTION:       MPS general error codes
+ *
+ * \{
+ */
+
+#ifndef MBEDTLS_MPS_ERR_BASE
+#define MBEDTLS_MPS_ERR_BASE ( 1 << 10 )
+#endif
+
+#define MBEDTLS_MPS_MAKE_ERROR(code) \
+    ( -( MBEDTLS_MPS_ERR_BASE | (code) ) )
+
+
+#define MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED  MBEDTLS_MPS_MAKE_ERROR( 0x1 )
+
+/* \} name SECTION: MPS general error codes */
+
+/**
  * \name SECTION:       MPS Reader error codes
  *
  * \{

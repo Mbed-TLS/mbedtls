@@ -34,6 +34,46 @@
  * \{
  */
 
+/*! This flag controls whether the MPS-internal components
+ *  (reader, writer, Layer 1-3) perform validation of the
+ *  expected abstract state at the entry of API calls.
+ *
+ *  Context: All MPS API functions impose assumptions/preconditions on the
+ *  context on which they operate. For example, every structure has a notion of
+ *  state integrity which is established by `xxx_init()` and preserved by any
+ *  calls to the MPS API which satisfy their preconditions and either succeed,
+ *  or fail with an error code which is explicitly documented to not corrupt
+ *  structure integrity (such as WANT_READ and WANT_WRITE);
+ *  apart from `xxx_init()` any function assumes state integrity as a
+ *  precondition (but usually more). If any of the preconditions is violated,
+ *  the function's behavior is entirely undefined.
+ *  In addition to state integrity, all MPS structures have a more refined
+ *  notion of abstract state that the API operates on. For example, all layers
+ *  have a notion of 'abtract read state' which indicates if incoming data has
+ *  been passed to the user, e.g. through mps_l2_read_start() for Layer 2
+ *  or mps_l3_read() in Layer 3. After such a call, it doesn't make sense to
+ *  call these reading functions again until the incoming data has been
+ *  explicitly 'consumed', e.g. through mps_l2_read_consume() for Layer 2 or
+ *  mps_l3_read_consume() on Layer 3. However, even if it doesn't make sense,
+ *  it's a design choice whether the API should fail gracefully on such
+ *  non-sensical calls or not, and that's what this option is about:
+ *
+ *  This option determines whether the expected abstract state
+ *  is part of the API preconditions or not. If it is, the function's
+ *  behavior is undefined if the abstract state is not as expected.
+ *  If it is set, API is required to fail gracefully with error
+ *  #MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED, and without changing the abstract
+ *  state of the input context, if the abstract state is unexpected but
+ *  all other preconditions are satisfied.
+ *
+ *  For example: Enabling this makes mps_l2_read_done() fail if
+ *  no incoming record is currently open; disabling this would
+ *  lead to undefined behavior in this case.
+ *
+ *  Comment this to remove state validation.
+ */
+#define MBEDTLS_MPS_STATE_VALIDATION
+
 /*! This flag enables/disables assertions on the internal state of MPS.
  *
  *  Assertions are sanity checks that should never trigger when MPS
@@ -52,6 +92,28 @@
 /*! This flag controls whether tracing for MPS should be enabled. */
 //#define MBEDTLS_MPS_TRACE
 
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
+
+#define MBEDTLS_MPS_STATE_VALIDATE_RAW( cond, string )           \
+    do                                                           \
+    {                                                            \
+        if( !(cond) )                                            \
+        {                                                        \
+            TRACE( trace_error, string );                        \
+            RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );      \
+        }                                                        \
+    } while( 0 )
+
+#else /* MBEDTLS_MPS_STATE_VALIDATION */
+
+#define MBEDTLS_MPS_STATE_VALIDATE_RAW( cond, string )           \
+    do                                                           \
+    {                                                            \
+        ( cond );                                                \
+    } while( 0 )
+
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+
 #if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
 
 #define MBEDTLS_MPS_ASSERT_RAW( cond, string )                   \
@@ -69,6 +131,7 @@
 #define MBEDTLS_MPS_ASSERT_RAW( cond, string ) do {} while( 0 )
 
 #endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+
 
 /* \} name SECTION: MPS Configuration */
 

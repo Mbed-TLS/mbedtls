@@ -269,3 +269,126 @@ void mbedtls_mps_reader_pausing_needed_buffer_too_small()
     mbedtls_reader_free( &rd );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
+void mbedtls_mps_reader_pausing( int option )
+{
+    /* This test exercises the behaviour of the reader when the
+     * accumulator is used to fufill the consumer's request.
+     *
+     * More detailed:
+     * - The producer feeds some data.
+     * - The consumer asks for more data than what's available.
+     * - The reader remembers the request and goes back to
+     *   producing mode, waiting for more data from the producer.
+     * - The producer provides another chunk of data which is
+     *   sufficient to fulfill the original read request.
+     * - The consumer retries the original read request, which
+     *   should now succeed.
+     *
+     * This test comes in multiple variants controlled by the
+     * `option` parameter and documented below.
+     */
+
+    unsigned char bufA[100], bufB[100];
+    unsigned char *tmp;
+    unsigned char acc[40];
+    mbedtls_reader rd;
+    for( int i=0; (unsigned) i < sizeof( bufA ); i++ )
+        bufA[i] = (unsigned char) i;
+    for( int i=0; (unsigned) i < sizeof( bufB ); i++ )
+        bufB[i] = ~ ((unsigned char) i);
+
+    /* Preparation (lower layer) */
+    mbedtls_reader_init( &rd, acc, sizeof( acc ) );
+    TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
+
+    /* Consumption (upper layer) */
+    /* Ask for more than what's available. */
+    TEST_ASSERT( mbedtls_reader_get( &rd, 80, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 80, bufA, 80 );
+    TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+    TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 10, bufA + 80, 10 );
+    switch( option )
+    {
+        case 0:  /* Single uncommitted fetch at pausing */
+        case 1:
+            TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+            break;
+        default: /* Multiple uncommitted fetches at pausing */
+            break;
+    }
+    TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) ==
+                 MBEDTLS_ERR_MPS_READER_OUT_OF_DATA );
+
+    /* Preparation */
+    TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_reader_feed( &rd, bufB, sizeof( bufB ) ) == 0 );
+
+    /* Consumption */
+    switch( option )
+    {
+        case 0: /* Single fetch at pausing, re-fetch with commit. */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 90, 10 );
+            ASSERT_COMPARE( tmp + 10, 10, bufB, 10 );
+            TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+            break;
+
+        case 1: /* Single fetch at pausing, re-fetch without commit. */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 90, 10 );
+            ASSERT_COMPARE( tmp + 10, 10, bufB, 10 );
+            break;
+
+        case 2: /* Multiple fetches at pausing, repeat without commit. */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 80, 10 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 90, 10 );
+            ASSERT_COMPARE( tmp + 10, 10, bufB, 10 );
+            break;
+
+        case 3: /* Multiple fetches at pausing, repeat with commit 1. */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 80, 10 );
+            TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 90, 10 );
+            ASSERT_COMPARE( tmp + 10, 10, bufB, 10 );
+            break;
+
+        case 4: /* Multiple fetches at pausing, repeat with commit 2. */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 80, 10 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 90, 10 );
+            ASSERT_COMPARE( tmp + 10, 10, bufB, 10 );
+            TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+            break;
+
+        case 5: /* Multiple fetches at pausing, repeat with commit 3. */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 80, 10 );
+            TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 90, 10 );
+            ASSERT_COMPARE( tmp + 10, 10, bufB, 10 );
+            TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+            break;
+
+        default:
+            TEST_ASSERT( 0 );
+    }
+
+    /* In all cases, fetch the rest of the second buffer. */
+    TEST_ASSERT( mbedtls_reader_get( &rd, 90, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 90, bufB + 10, 90 );
+    TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+
+    /* Wrapup */
+    TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
+    mbedtls_reader_free( &rd );
+}
+/* END_CASE */

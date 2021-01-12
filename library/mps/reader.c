@@ -30,6 +30,10 @@
 #define inline __inline
 #endif
 
+#if defined(MBEDTLS_MPS_TRACE)
+static int trace_id = TRACE_BIT_READER;
+#endif /* MBEDTLS_MPS_TRACE */
+
 /*
  * GENERAL NOTE ON CODING STYLE
  *

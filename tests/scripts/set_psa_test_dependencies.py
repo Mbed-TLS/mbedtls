@@ -164,7 +164,7 @@ def systematic_dependencies(file_name, function_name, arguments):
     # Run key policy negative tests even if the algorithm to attempt performing
     # is not supported.
     if function_name.endswith('_key_policy') and \
-       arguments[-1] != 'PSA_SUCCESS':
+       arguments[-1].startswith('PSA_ERROR_'):
         arguments[-2] = ''
 
     for arg in arguments:

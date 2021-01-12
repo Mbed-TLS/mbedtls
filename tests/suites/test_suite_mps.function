@@ -498,3 +498,64 @@ void mbedtls_mps_reader_pausing_multiple_feeds( int option )
     mbedtls_reader_free( &rd );
 }
 /* END_CASE */
+
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
+void mbedtls_mps_reader_reclaim_data_left( int option )
+{
+    /* This test exercises the behaviour of the MPS reader when a
+     * call to mbedtls_reader_reclaim() is made before all data
+     * provided by the producer has been fetched and committed. */
+
+    unsigned char buf[100];
+    unsigned char *tmp;
+    mbedtls_reader rd;
+    for( int i=0; (unsigned) i < sizeof( buf ); i++ )
+        buf[i] = (unsigned char) i;
+
+    /* Preparation (lower layer) */
+    mbedtls_reader_init( &rd, NULL, 0 );
+    TEST_ASSERT( mbedtls_reader_feed( &rd, buf, sizeof( buf ) ) == 0 );
+
+    /* Consumption (upper layer) */
+    switch( option )
+    {
+        case 0:
+            /* Fetch (but not commit) the entire buffer. */
+            TEST_ASSERT( mbedtls_reader_get( &rd, sizeof( buf ), &tmp, NULL )
+                         == 0 );
+            ASSERT_COMPARE( tmp, 100, buf, 100 );
+            break;
+
+        case 1:
+            /* Fetch (but not commit) parts of the buffer. */
+            TEST_ASSERT( mbedtls_reader_get( &rd, sizeof( buf ) / 2,
+                                             &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, sizeof( buf ) / 2, buf, sizeof( buf ) / 2 );
+            break;
+
+        case 2:
+            /* Fetch and commit parts of the buffer, then
+             * fetch but not commit the rest of the buffer. */
+            TEST_ASSERT( mbedtls_reader_get( &rd, sizeof( buf ) / 2,
+                                             &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, sizeof( buf ) / 2, buf, sizeof( buf ) / 2 );
+            TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, sizeof( buf ) / 2,
+                                             &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, sizeof( buf ) / 2,
+                            buf + sizeof( buf ) / 2,
+                            sizeof( buf ) / 2 );
+            break;
+
+        default:
+            TEST_ASSERT( 0 );
+            break;
+    }
+
+    /* Wrapup */
+    TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) ==
+                 MBEDTLS_ERR_MPS_READER_DATA_LEFT );
+    mbedtls_reader_free( &rd );
+}
+/* END_CASE */

@@ -27,3 +27,21 @@ mbedtls_mps_reader_pausing_needed_disabled:
 
 MPS Reader: Pausing needed + enabled, but buffer too small
 mbedtls_mps_reader_pausing_needed_buffer_too_small:
+
+MPS Reader: Pausing, repeat single call without commit
+mbedtls_mps_reader_pausing:0
+
+MPS Reader: Pausing, repeat single call with commit
+mbedtls_mps_reader_pausing:1
+
+MPS Reader: Pausing, repeat multiple calls without commit
+mbedtls_mps_reader_pausing:2
+
+MPS Reader: Pausing, repeat multiple calls with commit #0
+mbedtls_mps_reader_pausing:3
+
+MPS Reader: Pausing, repeat multiple calls with commit #1
+mbedtls_mps_reader_pausing:4
+
+MPS Reader: Pausing, repeat multiple calls with commit #2
+mbedtls_mps_reader_pausing:5

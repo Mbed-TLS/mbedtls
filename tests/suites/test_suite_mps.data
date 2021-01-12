@@ -24,3 +24,6 @@ mbedtls_mps_reader_no_pausing_multiple_steps_multiple_rounds:1
 
 MPS Reader: Pausing needed but disabled
 mbedtls_mps_reader_pausing_needed_disabled:
+
+MPS Reader: Pausing needed + enabled, but buffer too small
+mbedtls_mps_reader_pausing_needed_buffer_too_small:

@@ -160,3 +160,47 @@ void mbedtls_mps_reader_no_pausing_multiple_steps_single_round( int with_acc )
     mbedtls_reader_free( &rd );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
+void mbedtls_mps_reader_no_pausing_multiple_steps_multiple_rounds( int with_acc )
+{
+    /* This test exercises one round of fetching a buffer in multiple chunks
+     * and passing it back to the producer afterwards, followed by another
+     * single-step sequence of feed-fetch-commit-reclaim.
+     */
+    unsigned char bufA[100], bufB[100];
+    unsigned char acc[10];
+    unsigned char *tmp;
+    mbedtls_mps_size_t tmp_len;
+    mbedtls_reader rd;
+    for( int i=0; (unsigned) i < sizeof( bufA ); i++ )
+        bufA[i] = (unsigned char) i;
+    for( int i=0; (unsigned) i < sizeof( bufB ); i++ )
+        bufB[i] = ~ ((unsigned char) i);
+
+    /* Preparation (lower layer) */
+    if( with_acc == 0 )
+        mbedtls_reader_init( &rd, NULL, 0 );
+    else
+        mbedtls_reader_init( &rd, acc, sizeof( acc ) );
+    TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
+    /* Consumption (upper layer) */
+    TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 10, bufA, 10 );
+    TEST_ASSERT( mbedtls_reader_get( &rd, 70, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 70, bufA + 10, 70 );
+    TEST_ASSERT( mbedtls_reader_get( &rd, 30, &tmp, &tmp_len ) == 0 );
+    ASSERT_COMPARE( tmp, tmp_len, bufA + 80, 20 );
+    TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+    /* Preparation */
+    TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_reader_feed( &rd, bufB, sizeof( bufB ) ) == 0 );
+    /* Consumption */
+    TEST_ASSERT( mbedtls_reader_get( &rd, 100, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 100, bufB, 100 );
+    TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+    /* Wrapup */
+    TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
+    mbedtls_reader_free( &rd );
+}
+/* END_CASE */

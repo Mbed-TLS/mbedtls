@@ -911,3 +911,151 @@ void mbedtls_mps_reader_random_usage( int num_out_chunks,
     mbedtls_free( cur_chunk );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
+void mbedtls_reader_inconsistent_usage( int option )
+{
+    /* This test exercises the behaviour of the MPS reader
+     * in the following situation:
+     * - The consumer asks for more data than what's available
+     * - The reader is paused and receives more data from the
+     *   producer until the original read request can be fulfilled.
+     * - The consumer does not repeat the original request but
+     *   requests data in a different way.
+     *
+     * The reader does not guarantee that inconsistent read requests
+     * after pausing will succeed, and this test triggers some cases
+     * where the request fails.
+     */
+
+    unsigned char bufA[100], bufB[100];
+    unsigned char *tmp;
+    unsigned char acc[40];
+    mbedtls_reader rd;
+    int success = 0;
+    for( int i=0; (unsigned) i < sizeof( bufA ); i++ )
+        bufA[i] = (unsigned char) i;
+    for( int i=0; (unsigned) i < sizeof( bufB ); i++ )
+        bufB[i] = ~ ((unsigned char) i);
+
+    /* Preparation (lower layer) */
+    mbedtls_reader_init( &rd, acc, sizeof( acc ) );
+    TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
+    /* Consumption (upper layer) */
+    TEST_ASSERT( mbedtls_reader_get( &rd, 80, &tmp, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+    TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) ==
+                 MBEDTLS_ERR_MPS_READER_OUT_OF_DATA );
+    /* Preparation */
+    TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_reader_feed( &rd, bufB, sizeof( bufB ) ) == 0 );
+    /* Consumption */
+    switch( option )
+    {
+        case 0:
+            /* Ask for buffered data in a single chunk, no commit */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 30, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 20, bufA + 80, 20 );
+            ASSERT_COMPARE( tmp + 20, 10, bufB, 10 );
+            success = 1;
+            break;
+
+        case 1:
+            /* Ask for buffered data in a single chunk, with commit */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 30, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 20, bufA + 80, 20 );
+            ASSERT_COMPARE( tmp + 20, 10, bufB, 10 );
+            TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+            success = 1;
+            break;
+
+        case 2:
+            /* Ask for more than was requested when pausing, #1 */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 31, &tmp, NULL ) ==
+                         MBEDTLS_ERR_MPS_READER_INCONSISTENT_REQUESTS );
+            break;
+
+        case 3:
+            /* Ask for more than was requested when pausing #2 */
+            TEST_ASSERT( mbedtls_reader_get( &rd, (mbedtls_mps_size_t) -1, &tmp, NULL ) ==
+                         MBEDTLS_ERR_MPS_READER_INCONSISTENT_REQUESTS );
+            break;
+
+        case 4:
+            /* Asking for buffered data in different
+             * chunks than before CAN fail. */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 15, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 15, bufA + 80, 15 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) ==
+                         MBEDTLS_ERR_MPS_READER_INCONSISTENT_REQUESTS );
+            break;
+
+        case 5:
+            /* Asking for buffered data different chunks
+             * than before NEED NOT fail - no commits */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 15, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 15, bufA + 80, 15 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 15, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 5, bufA + 95, 5 );
+            ASSERT_COMPARE( tmp + 5, 10, bufB, 10 );
+            success = 1;
+            break;
+
+        case 6:
+            /* Asking for buffered data different chunks
+             * than before NEED NOT fail - intermediate commit */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 15, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 15, bufA + 80, 15 );
+            TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 15, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 5, bufA + 95, 5 );
+            ASSERT_COMPARE( tmp + 5, 10, bufB, 10 );
+            success = 1;
+            break;
+
+        case 7:
+            /* Asking for buffered data different chunks
+             * than before NEED NOT fail - end commit */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 15, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 15, bufA + 80, 15 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 15, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 5, bufA + 95, 5 );
+            ASSERT_COMPARE( tmp + 5, 10, bufB, 10 );
+            TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+            success = 1;
+            break;
+
+        case 8:
+            /* Asking for buffered data different chunks
+             * than before NEED NOT fail - intermediate & end commit */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 15, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 15, bufA + 80, 15 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 15, &tmp, NULL ) == 0 );
+            TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+            ASSERT_COMPARE( tmp, 5, bufA + 95, 5 );
+            ASSERT_COMPARE( tmp + 5, 10, bufB, 10 );
+            TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+            success = 1;
+            break;
+
+        default:
+            TEST_ASSERT( 0 );
+            break;
+    }
+
+    if( success == 1 )
+    {
+        /* In all succeeding cases, fetch the rest of the second buffer. */
+        TEST_ASSERT( mbedtls_reader_get( &rd, 90, &tmp, NULL ) == 0 );
+        ASSERT_COMPARE( tmp, 90, bufB + 10, 90 );
+        TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+
+        /* Wrapup */
+        TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
+    }
+
+    /* Wrapup */
+    mbedtls_reader_free( &rd );
+}
+/* END_CASE */

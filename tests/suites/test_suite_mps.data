@@ -90,3 +90,30 @@ mbedtls_mps_reader_random_usage:10000:1:100:80
 
 MPS Reader: Random usage, 100 rds, feed 100, get 1000, acc 500
 mbedtls_mps_reader_random_usage:100:100:1000:500
+
+MPS Reader: Pausing, inconsistent continuation, #0
+mbedtls_reader_inconsistent_usage:0
+
+MPS Reader: Pausing, inconsistent continuation, #1
+mbedtls_reader_inconsistent_usage:1
+
+MPS Reader: Pausing, inconsistent continuation, #2
+mbedtls_reader_inconsistent_usage:2
+
+MPS Reader: Pausing, inconsistent continuation, #3
+mbedtls_reader_inconsistent_usage:3
+
+MPS Reader: Pausing, inconsistent continuation, #4
+mbedtls_reader_inconsistent_usage:4
+
+MPS Reader: Pausing, inconsistent continuation, #5
+mbedtls_reader_inconsistent_usage:5
+
+MPS Reader: Pausing, inconsistent continuation, #6
+mbedtls_reader_inconsistent_usage:6
+
+MPS Reader: Pausing, inconsistent continuation, #7
+mbedtls_reader_inconsistent_usage:7
+
+MPS Reader: Pausing, inconsistent continuation, #8
+mbedtls_reader_inconsistent_usage:8

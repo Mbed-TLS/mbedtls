@@ -9,3 +9,9 @@ mbedtls_mps_reader_no_pausing_single_step_multiple_rounds:0
 
 MPS Reader: Single step, multiple rounds, pausing enabled but unused
 mbedtls_mps_reader_no_pausing_single_step_multiple_rounds:1
+
+MPS Reader: Multiple steps, single round, pausing disabled
+mbedtls_mps_reader_no_pausing_multiple_steps_single_round:0
+
+MPS Reader: Multiple steps, single round, pausing enabled but unused
+mbedtls_mps_reader_no_pausing_multiple_steps_single_round:1

@@ -204,3 +204,35 @@ void mbedtls_mps_reader_no_pausing_multiple_steps_multiple_rounds( int with_acc 
     mbedtls_reader_free( &rd );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
+void mbedtls_mps_reader_pausing_needed_disabled()
+{
+    /* This test exercises the behaviour of the MPS reader when a read requests
+     * of the consumer exceeds what has been provided by the producer, and when
+     * no accumulator is available in the reader.
+     *
+     * In this case, we expect the reader to fail.
+     */
+
+    unsigned char buf[100];
+    unsigned char *tmp;
+    mbedtls_reader rd;
+    for( int i=0; (unsigned) i < sizeof( buf ); i++ )
+        buf[i] = (unsigned char) i;
+
+    /* Preparation (lower layer) */
+    mbedtls_reader_init( &rd, NULL, 0 );
+    TEST_ASSERT( mbedtls_reader_feed( &rd, buf, sizeof( buf ) ) == 0 );
+    /* Consumption (upper layer) */
+    TEST_ASSERT( mbedtls_reader_get( &rd, 50, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 50, buf, 50 );
+    TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+    TEST_ASSERT( mbedtls_reader_get( &rd, 100, &tmp, NULL ) ==
+                 MBEDTLS_ERR_MPS_READER_OUT_OF_DATA );
+    /* Wrapup (lower layer) */
+    TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) ==
+                 MBEDTLS_ERR_MPS_READER_NEED_ACCUMULATOR );
+    mbedtls_reader_free( &rd );
+}
+/* END_CASE */

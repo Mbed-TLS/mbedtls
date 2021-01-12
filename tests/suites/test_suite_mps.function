@@ -728,3 +728,186 @@ void mbedtls_mps_reader_multiple_pausing( int option )
     mbedtls_reader_free( &rd );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER:MBEDTLS_MPS_STATE_VALIDATION */
+void mbedtls_mps_reader_random_usage( int num_out_chunks,
+                                      int max_chunk_size,
+                                      int max_request,
+                                      int acc_size )
+
+{
+    /* Randomly pass a reader object back and forth between lower and
+     * upper layer and let each of them call the respective reader API
+     * functions in a random fashion.
+     *
+     * On the lower layer, we're tracking and concatenating
+     * the data passed to successful feed calls.
+     *
+     * For the upper layer, we track and concatenate buffers
+     * obtained from successful get calls.
+     *
+     * As long as the lower layer calls reclaim at least once, (resetting the
+     * fetched but not-yet-committed data), this should always lead to the same
+     * stream of outgoing/incoming data for the lower/upper layers, even if
+     * most of the random calls fail.
+     *
+     * NOTE: This test uses rand() for random data, which is not optimal.
+     *       Instead, it would be better to get the random data from a
+     *       static buffer. This both eases reproducibility and allows
+     *       simple conversion to a fuzz target.
+     */
+    int ret;
+    unsigned char *acc = NULL;
+    unsigned char *outgoing = NULL, *incoming = NULL;
+    unsigned char *cur_chunk = NULL;
+    size_t cur_out_chunk, out_pos, in_commit, in_fetch;
+    int rand_op;  /* Lower layer:
+                   * - Reclaim (0)
+                   * - Feed (1)
+                   * Upper layer:
+                   * - Get, do tolerate smaller output (0)
+                   * - Get, don't tolerate smaller output (1)
+                   * - Commit (2) */
+    int mode = 0; /* Lower layer (0) or Upper layer (1) */
+    int reclaimed = 1; /* Have to call reclaim at least once before
+                        * returning the reader to the upper layer. */
+    mbedtls_reader rd;
+
+    if( acc_size > 0 )
+    {
+        ASSERT_ALLOC( acc, acc_size );
+    }
+
+    /* This probably needs to be changed because we want
+     * our tests to be deterministic. */
+    //    srand( time( NULL ) );
+
+    ASSERT_ALLOC( outgoing, num_out_chunks * max_chunk_size );
+    ASSERT_ALLOC( incoming, num_out_chunks * max_chunk_size );
+
+    mbedtls_reader_init( &rd, acc, acc_size );
+
+    cur_out_chunk = 0;
+    in_commit = 0;
+    in_fetch = 0;
+    out_pos = 0;
+    while( cur_out_chunk < (unsigned) num_out_chunks )
+    {
+        if( mode == 0 )
+        {
+            /* Choose randomly between reclaim and feed */
+            rand_op = rand() % 2;
+
+            if( rand_op == 0 )
+            {
+                /* Reclaim */
+                ret = mbedtls_reader_reclaim( &rd, NULL );
+
+                if( ret == 0 )
+                {
+                    TEST_ASSERT( cur_chunk != NULL );
+                    mbedtls_free( cur_chunk );
+                    cur_chunk = NULL;
+                }
+                reclaimed = 1;
+            }
+            else
+            {
+                /* Feed reader with a random chunk */
+                unsigned char *tmp = NULL;
+                size_t tmp_size;
+                if( cur_out_chunk == (unsigned) num_out_chunks )
+                    continue;
+
+                tmp_size = ( rand() % max_chunk_size ) + 1;
+                ASSERT_ALLOC( tmp, tmp_size );
+
+                TEST_ASSERT( mbedtls_test_rnd_std_rand( NULL, tmp, tmp_size ) == 0 );
+                ret = mbedtls_reader_feed( &rd, tmp, tmp_size );
+
+                if( ret == 0 || ret == MBEDTLS_ERR_MPS_READER_NEED_MORE )
+                {
+                    cur_out_chunk++;
+                    memcpy( outgoing + out_pos, tmp, tmp_size );
+                    out_pos += tmp_size;
+                }
+
+                if( ret == 0 )
+                {
+                    TEST_ASSERT( cur_chunk == NULL );
+                    cur_chunk = tmp;
+                }
+                else
+                {
+                    mbedtls_free( tmp );
+                }
+
+            }
+
+            /* Randomly switch to consumption mode if reclaim
+             * was called at least once. */
+            if( reclaimed == 1 && rand() % 3 == 0 )
+            {
+                in_fetch = 0;
+                mode = 1;
+            }
+        }
+        else
+        {
+            /* Choose randomly between get tolerating fewer data,
+             * get not tolerating fewer data, and commit. */
+            rand_op = rand() % 3;
+            if( rand_op == 0 || rand_op == 1 )
+            {
+                mbedtls_mps_size_t get_size, real_size;
+                unsigned char *chunk_get;
+                get_size = ( rand() % max_request ) + 1;
+                if( rand_op == 0 )
+                {
+                    ret = mbedtls_reader_get( &rd, get_size, &chunk_get,
+                                              &real_size );
+                }
+                else
+                {
+                    real_size = get_size;
+                    ret = mbedtls_reader_get( &rd, get_size, &chunk_get, NULL );
+                }
+
+                /* Check if output is in accordance with what was written */
+                if( ret == 0 )
+                {
+                    memcpy( incoming + in_commit + in_fetch,
+                            chunk_get, real_size );
+                    TEST_ASSERT( memcmp( incoming + in_commit + in_fetch,
+                                         outgoing + in_commit + in_fetch,
+                                         real_size ) == 0 );
+                    in_fetch += real_size;
+                }
+            }
+            else if( rand_op == 2 ) /* Commit */
+            {
+                ret = mbedtls_reader_commit( &rd );
+                if( ret == 0 )
+                {
+                    in_commit += in_fetch;
+                    in_fetch = 0;
+                }
+            }
+
+            /* Randomly switch back to preparation */
+            if( rand() % 3 == 0 )
+            {
+                reclaimed = 0;
+                mode = 0;
+            }
+        }
+    }
+
+    /* Cleanup */
+    mbedtls_reader_free( &rd );
+    mbedtls_free( incoming );
+    mbedtls_free( outgoing );
+    mbedtls_free( acc );
+    mbedtls_free( cur_chunk );
+}
+/* END_CASE */

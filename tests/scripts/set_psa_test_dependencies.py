@@ -166,6 +166,10 @@ def systematic_dependencies(file_name, function_name, arguments):
     if function_name.endswith('_key_policy') and \
        arguments[-1].startswith('PSA_ERROR_'):
         arguments[-2] = ''
+    if function_name == 'copy_fail' and \
+       arguments[-1].startswith('PSA_ERROR_'):
+        arguments[-2] = ''
+        arguments[-3] = ''
 
     for arg in arguments:
         for symbol in re.findall(r'PSA_(?:ALG|KEY_TYPE)_\w+', arg):

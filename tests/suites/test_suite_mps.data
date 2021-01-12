@@ -78,3 +78,15 @@ mbedtls_mps_reader_multiple_pausing:2
 
 MPS Reader: Pausing several times, #3
 mbedtls_mps_reader_multiple_pausing:3
+
+MPS Reader: Random usage, 20 rds, feed 100, get 200, acc 50
+mbedtls_mps_reader_random_usage:20:100:200:50
+
+MPS Reader: Random usage, 1000 rds, feed 10, get 100, acc 80
+mbedtls_mps_reader_random_usage:1000:10:100:80
+
+MPS Reader: Random usage, 10000 rds, feed 1, get 100, acc 80
+mbedtls_mps_reader_random_usage:10000:1:100:80
+
+MPS Reader: Random usage, 100 rds, feed 100, get 1000, acc 500
+mbedtls_mps_reader_random_usage:100:100:1000:500

@@ -52,6 +52,24 @@
 /*! This flag controls whether tracing for MPS should be enabled. */
 //#define MBEDTLS_MPS_TRACE
 
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
+
+#define MBEDTLS_MPS_ASSERT_RAW( cond, string )                   \
+    do                                                           \
+    {                                                            \
+        if( !(cond) )                                            \
+        {                                                        \
+            TRACE( trace_error, string );                        \
+            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );            \
+        }                                                        \
+    } while( 0 )
+
+#else /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+
+#define MBEDTLS_MPS_ASSERT_RAW( cond, string ) do {} while( 0 )
+
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+
 /* \} name SECTION: MPS Configuration */
 
 /**

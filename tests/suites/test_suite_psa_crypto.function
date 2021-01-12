@@ -26,23 +26,25 @@ static const size_t INVALID_EXPORT_LENGTH = ~0U;
  *
  * This is used in some smoke tests.
  */
-#if defined(MBEDTLS_MD2_C)
+#if defined(PSA_WANT_ALG_MD2)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_MD2
-#elif defined(MBEDTLS_MD4_C)
+#elif defined(PSA_WANT_ALG_MD4)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_MD4
-#elif defined(MBEDTLS_MD5_C)
+#elif defined(PSA_WANT_ALG_MD5)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_MD5
 /* MBEDTLS_RIPEMD160_C omitted. This is necessary for the sake of
  * exercise_signature_key() because Mbed TLS doesn't support RIPEMD160
  * in RSA PKCS#1v1.5 signatures. A RIPEMD160-only configuration would be
  * implausible anyway. */
-#elif defined(MBEDTLS_SHA1_C)
+#elif defined(PSA_WANT_ALG_SHA_1)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_1
-#elif defined(MBEDTLS_SHA256_C)
+#elif defined(PSA_WANT_ALG_SHA_256)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_256
-#elif defined(MBEDTLS_SHA512_C)
+#elif defined(PSA_WANT_ALG_SHA_384)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_384
-#elif defined(MBEDTLS_SHA3_C)
+#elif defined(PSA_WANT_ALG_SHA_512)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_512
+#elif defined(PSA_WANT_ALG_SHA3_256)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA3_256
 #else
 #undef KNOWN_SUPPORTED_HASH_ALG
@@ -68,7 +70,7 @@ static const size_t INVALID_EXPORT_LENGTH = ~0U;
  *
  * This is used in some smoke tests.
  */
-#if defined(KNOWN_SUPPORTED_HASH_ALG)
+#if defined(KNOWN_SUPPORTED_HASH_ALG) && defined(PSA_WANT_ALG_HMAC)
 #define KNOWN_SUPPORTED_MAC_ALG ( PSA_ALG_HMAC( KNOWN_SUPPORTED_HASH_ALG ) )
 #define KNOWN_SUPPORTED_MAC_KEY_TYPE PSA_KEY_TYPE_HMAC
 #elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(MBEDTLS_CMAC_C)
@@ -2685,7 +2687,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_SHA_256 */
 void hash_bad_order( )
 {
     psa_algorithm_t alg = PSA_ALG_SHA_256;
@@ -2773,7 +2775,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_SHA_256 */
 void hash_verify_bad_args( )
 {
     psa_algorithm_t alg = PSA_ALG_SHA_256;
@@ -2987,7 +2989,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:PSA_WANT_KEY_TYPE_HMAC:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_SHA_256 */
 void mac_bad_order( )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;

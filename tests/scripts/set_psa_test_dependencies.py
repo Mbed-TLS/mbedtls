@@ -108,6 +108,14 @@ def is_systematic_dependency(dep):
     return dep.startswith('PSA_WANT_')
 
 OMITTED_SYSTEMATIC_DEPENDENCIES = frozenset([
+    'PSA_ALG_AEAD_WITH_TAG_LENGTH', # only a modifier
+    'PSA_ALG_ANY_HASH', # only meaningful in policies
+    'PSA_ALG_KEY_AGREEMENT', # only a way to combine algorithms
+    'PSA_ALG_TRUNCATED_MAC', # only a modifier
+    'PSA_KEY_TYPE_NONE', # always supported
+    'PSA_KEY_TYPE_DERIVE', # always supported
+    'PSA_KEY_TYPE_RAW_DATA', # always supported
+
     # Not implemented yet: cipher-related key types and algorithms.
     # Manually extracted from crypto_values.h.
     'PSA_KEY_TYPE_AES',
@@ -130,10 +138,17 @@ OMITTED_SYSTEMATIC_DEPENDENCIES = frozenset([
     'PSA_ALG_CHACHA20_POLY1305',
 ])
 
+SPECIAL_SYSTEMATIC_DEPENDENCIES = {
+    'PSA_ALG_ECDSA_ANY': frozenset(['PSA_WANT_ALG_ECDSA']),
+    'PSA_ALG_RSA_PKCS1V15_SIGN_RAW': frozenset(['PSA_WANT_ALG_RSA_PKCS1V15_SIGN']),
+}
+
 def dependencies_of_symbol(symbol):
     """Return the dependencies for a symbol that designates a cryptographic mechanism."""
     if symbol in OMITTED_SYSTEMATIC_DEPENDENCIES:
         return frozenset()
+    if symbol in SPECIAL_SYSTEMATIC_DEPENDENCIES:
+        return SPECIAL_SYSTEMATIC_DEPENDENCIES[symbol]
     return {symbol.replace('_', '_WANT_', 1)}
 
 def systematic_dependencies(file_name, function_name, arguments):

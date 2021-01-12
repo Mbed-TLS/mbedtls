@@ -26,6 +26,27 @@
 #ifndef MBEDTLS_MPS_COMMON_H
 #define MBEDTLS_MPS_COMMON_H
 
-/* To be populated */
+/**
+ * \name SECTION:       MPS Configuration
+ *
+ * \{
+ */
+
+/*! This flag enables/disables assertions on the internal state of MPS.
+ *
+ *  Assertions are sanity checks that should never trigger when MPS
+ *  is used within the bounds of its API and preconditions.
+ *
+ *  Enabling this increases security by limiting the scope of
+ *  potential bugs, but comes at the cost of increased code size.
+ *
+ *  Note: So far, there is no guiding principle as to what
+ *  expected conditions merit an assertion, and which don't.
+ *
+ *  Comment this to disable assertions.
+ */
+#define MBEDTLS_MPS_ENABLE_ASSERTIONS
+
+/* \} name SECTION: MPS Configuration */
 
 #endif /* MBEDTLS_MPS_COMMON_H */

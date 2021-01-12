@@ -107,7 +107,7 @@ def is_systematic_dependency(dep):
     """Whether dep is a PSA dependency which is determined systematically."""
     return dep.startswith('PSA_WANT_')
 
-OMITTED_SYSTEMATIC_DEPENDENCIES = frozenset([
+WITHOUT_SYSTEMATIC_DEPENDENCIES = frozenset([
     'PSA_ALG_AEAD_WITH_TAG_LENGTH', # only a modifier
     'PSA_ALG_ANY_HASH', # only meaningful in policies
     'PSA_ALG_KEY_AGREEMENT', # only a way to combine algorithms
@@ -145,7 +145,7 @@ SPECIAL_SYSTEMATIC_DEPENDENCIES = {
 
 def dependencies_of_symbol(symbol):
     """Return the dependencies for a symbol that designates a cryptographic mechanism."""
-    if symbol in OMITTED_SYSTEMATIC_DEPENDENCIES:
+    if symbol in WITHOUT_SYSTEMATIC_DEPENDENCIES:
         return frozenset()
     if symbol in SPECIAL_SYSTEMATIC_DEPENDENCIES:
         return SPECIAL_SYSTEMATIC_DEPENDENCIES[symbol]

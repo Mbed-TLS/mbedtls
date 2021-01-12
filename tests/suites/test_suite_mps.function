@@ -392,3 +392,109 @@ void mbedtls_mps_reader_pausing( int option )
     mbedtls_reader_free( &rd );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
+void mbedtls_mps_reader_pausing_multiple_feeds( int option )
+{
+    /* This test exercises the behaviour of the MPS reader
+     * in the following situation:
+     * - The consumer has asked for mre than what's available, so the
+     *   reader pauses and waits for further input data via
+     *   `mbedtls_reader_feed()`
+     * - Multiple such calls to `mbedtls_reader_feed()` are necessary
+     *   to fulfill the original request, and the reader needs to do
+     *   the necessary bookkeeping under the hood.
+     *
+     * This test comes in a few variants differing in the number and
+     * size of feed calls that the producer issues while the reader is
+     * accumulating the necessary data - see the comments below.
+     */
+
+    unsigned char bufA[100], bufB[100];
+    unsigned char *tmp;
+    unsigned char acc[70];
+    mbedtls_reader rd;
+    mbedtls_mps_size_t fetch_len;
+    for( int i=0; (unsigned) i < sizeof( bufA ); i++ )
+        bufA[i] = (unsigned char) i;
+    for( int i=0; (unsigned) i < sizeof( bufB ); i++ )
+        bufB[i] = ~ ((unsigned char) i);
+
+    /* Preparation (lower layer) */
+    mbedtls_reader_init( &rd, acc, sizeof( acc ) );
+    TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
+
+    /* Consumption (upper layer) */
+    /* Ask for more than what's available. */
+    TEST_ASSERT( mbedtls_reader_get( &rd, 80, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 80, bufA, 80 );
+    TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+    /* 20 left, ask for 70 -> 50 overhead */
+    TEST_ASSERT( mbedtls_reader_get( &rd, 70, &tmp, NULL ) ==
+                 MBEDTLS_ERR_MPS_READER_OUT_OF_DATA );
+
+    /* Preparation */
+    TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
+    switch( option )
+    {
+        case 0: /* 10 + 10 + 80 byte feed */
+            TEST_ASSERT( mbedtls_reader_feed( &rd, bufB, 10 ) ==
+                         MBEDTLS_ERR_MPS_READER_NEED_MORE );
+            TEST_ASSERT( mbedtls_reader_feed( &rd, bufB + 10, 10 ) ==
+                         MBEDTLS_ERR_MPS_READER_NEED_MORE );
+            TEST_ASSERT( mbedtls_reader_feed( &rd, bufB + 20, 80 ) == 0 );
+            break;
+
+        case 1: /* 50 x 1byte */
+            for( int num_feed=0; num_feed<49; num_feed++ )
+            {
+                TEST_ASSERT( mbedtls_reader_feed( &rd, bufB + num_feed, 1 ) ==
+                             MBEDTLS_ERR_MPS_READER_NEED_MORE );
+            }
+            TEST_ASSERT( mbedtls_reader_feed( &rd, bufB + 49, 1 ) == 0 );
+            break;
+
+        case 2: /* 49 x 1byte + 51bytes */
+            for( int num_feed=0; num_feed<49; num_feed++ )
+            {
+                TEST_ASSERT( mbedtls_reader_feed( &rd, bufB + num_feed, 1 ) ==
+                             MBEDTLS_ERR_MPS_READER_NEED_MORE );
+            }
+            TEST_ASSERT( mbedtls_reader_feed( &rd, bufB + 49, 51 ) == 0 );
+            break;
+
+        default:
+            TEST_ASSERT( 0 );
+            break;
+    }
+
+    /* Consumption */
+    TEST_ASSERT( mbedtls_reader_get( &rd, 70, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 20, bufA + 80, 20 );
+    ASSERT_COMPARE( tmp + 20, 50, bufB, 50 );
+    TEST_ASSERT( mbedtls_reader_get( &rd, 1000, &tmp, &fetch_len ) == 0 );
+    switch( option )
+    {
+        case 0:
+            TEST_ASSERT( fetch_len == 50 );
+            break;
+
+        case 1:
+            TEST_ASSERT( fetch_len == 0 );
+            break;
+
+        case 2:
+            TEST_ASSERT( fetch_len == 50 );
+            break;
+
+        default:
+            TEST_ASSERT( 0 );
+            break;
+    }
+    TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+
+    /* Wrapup */
+    TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
+    mbedtls_reader_free( &rd );
+}
+/* END_CASE */

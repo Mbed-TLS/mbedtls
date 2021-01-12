@@ -45,3 +45,12 @@ mbedtls_mps_reader_pausing:4
 
 MPS Reader: Pausing, repeat multiple calls with commit #2
 mbedtls_mps_reader_pausing:5
+
+MPS Reader: Pausing, feed 50 bytes in 10b + 10b + 80b
+mbedtls_mps_reader_pausing_multiple_feeds:0
+
+MPS Reader: Pausing, feed 50 bytes in 50x1b
+mbedtls_mps_reader_pausing_multiple_feeds:1
+
+MPS Reader: Pausing, feed 50 bytes in 49x1b + 51b
+mbedtls_mps_reader_pausing_multiple_feeds:2

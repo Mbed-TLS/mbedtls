@@ -1076,10 +1076,10 @@ cleanup:
     mbedtls_mpi_free( &C );
     mbedtls_mpi_free( &I );
 
-    if( ret != 0 )
+    if( ret != 0 && ret >= -0x007f )
         return( MBEDTLS_ERR_RSA_PRIVATE_FAILED + ret );
 
-    return( 0 );
+    return( ret );
 }
 
 #if defined(MBEDTLS_PKCS1_V21)

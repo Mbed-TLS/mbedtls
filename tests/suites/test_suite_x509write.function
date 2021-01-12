@@ -6,24 +6,11 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/rsa.h"
 
-/* These are the same depends as the test function x509_crs_check_opaque(),
- * the only function using PSA here. Using a weaker condition would result in
- * warnings about the static functions defined in psa_crypto_helpers.h being
- * unused. */
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && \
-    defined(MBEDTLS_PEM_WRITE_C) && \
-    defined(MBEDTLS_X509_CSR_WRITE_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
-#include "test/psa_crypto_helpers.h"
 #define PSA_INIT( ) PSA_ASSERT( psa_crypto_init( ) )
-#else
-/* Define empty macros so that we can use them in the preamble and teardown
- * of every test function that uses PSA conditionally based on
- * MBEDTLS_USE_PSA_CRYPTO. */
-#define PSA_INIT( ) ( (void) 0 )
-#define PSA_DONE( ) ( (void) 0 )
-#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_PEM_WRITE_C && MBEDTLS_X509_CSR_WRITE_C */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_RSA_C)
 int mbedtls_rsa_decrypt_func( void *ctx, int mode, size_t *olen,

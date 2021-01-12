@@ -135,9 +135,11 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
 
 psa_status_t mbedtls_to_psa_error( int ret )
 {
-    /* If there's both a high-level code and low-level code, dispatch on
-     * the high-level code. */
-    switch( ret < -0x7f ? - ( -ret & 0x7f80 ) : ret )
+    /* Mbed TLS error codes can combine a high-level error code and a
+     * low-level error code. The low-level error usually reflects the
+     * root cause better, so dispatch on that preferably. */
+    int low_level_ret = - ( -ret & 0x007f );
+    switch( low_level_ret != 0 ? low_level_ret : ret )
     {
         case 0:
             return( PSA_SUCCESS );
@@ -344,7 +346,7 @@ psa_status_t mbedtls_to_psa_error( int ret )
         case MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE:
             return( PSA_ERROR_BUFFER_TOO_SMALL );
         case MBEDTLS_ERR_RSA_RNG_FAILED:
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+            return( PSA_ERROR_INSUFFICIENT_ENTROPY );
         case MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION:
             return( PSA_ERROR_NOT_SUPPORTED );
         case MBEDTLS_ERR_RSA_HW_ACCEL_FAILED:
@@ -372,8 +374,11 @@ psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_INVALID_SIGNATURE );
         case MBEDTLS_ERR_ECP_ALLOC_FAILED:
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        case MBEDTLS_ERR_ECP_RANDOM_FAILED:
+            return( PSA_ERROR_INSUFFICIENT_ENTROPY );
         case MBEDTLS_ERR_ECP_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
+
         case MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED:
             return( PSA_ERROR_CORRUPTION_DETECTED );
 

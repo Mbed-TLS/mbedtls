@@ -9,10 +9,6 @@
 #include "mbedtls/gcm.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "test/psa_crypto_helpers.h"
-#endif
-
 #if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
 #define MBEDTLS_CIPHER_AUTH_CRYPT
 #endif

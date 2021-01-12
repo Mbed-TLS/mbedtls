@@ -164,6 +164,10 @@ $dispatch_code
  */
 void execute_function_ptr(TestWrapper_t fp, void **params)
 {
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+    mbedtls_test_enable_insecure_external_rng( );
+#endif
+
 #if defined(MBEDTLS_CHECK_PARAMS)
     mbedtls_test_param_failed_location_record_t location_record;
 

@@ -1,5 +1,4 @@
 /* BEGIN_HEADER */
-#include "test/psa_crypto_helpers.h"
 #include "psa/crypto_se_driver.h"
 
 #include "psa_crypto_se.h"

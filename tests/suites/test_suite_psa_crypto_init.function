@@ -1,7 +1,6 @@
 /* BEGIN_HEADER */
 #include <stdint.h>
 
-#include "test/psa_crypto_helpers.h"
 /* Some tests in this module configure entropy sources. */
 #include "psa_crypto_invasive.h"
 

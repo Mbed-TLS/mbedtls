@@ -23,6 +23,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#include "query_config.h"
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else

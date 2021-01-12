@@ -268,7 +268,11 @@ ssl/ssl_client1$(EXEXT): ssl/ssl_client1.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_client1.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 SSL_TEST_OBJECTS = test/query_config.o ssl/ssl_test_lib.o
-SSL_TEST_DEPS = $(SSL_TEST_OBJECTS) ssl/ssl_test_lib.h ssl/ssl_test_common_source.c $(DEP)
+SSL_TEST_DEPS = $(SSL_TEST_OBJECTS) \
+		test/query_config.h \
+		ssl/ssl_test_lib.h \
+		ssl/ssl_test_common_source.c \
+		$(DEP)
 
 ssl/ssl_test_lib.o: ssl/ssl_test_lib.c ssl/ssl_test_lib.h $(DEP)
 	echo "  CC    ssl/ssl_test_lib.c"
@@ -286,7 +290,7 @@ ssl/ssl_server2$(EXEXT): ssl/ssl_server2.c $(SSL_TEST_DEPS)
 	echo "  CC    ssl/ssl_server2.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server2.c $(SSL_TEST_OBJECTS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-ssl/ssl_context_info$(EXEXT): ssl/ssl_context_info.c test/query_config.o $(DEP)
+ssl/ssl_context_info$(EXEXT): ssl/ssl_context_info.c test/query_config.o test/query_config.h $(DEP)
 	echo "  CC    ssl/ssl_context_info.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_context_info.c test/query_config.o $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
@@ -314,7 +318,7 @@ test/cpp_dummy_build$(EXEXT): test/cpp_dummy_build.cpp $(DEP)
 	echo "  CXX   test/cpp_dummy_build.cpp"
 	$(CXX) $(LOCAL_CXXFLAGS) $(CXXFLAGS) test/cpp_dummy_build.cpp   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-test/query_config.o: test/query_config.c $(DEP)
+test/query_config.o: test/query_config.c test/query_config.h $(DEP)
 	echo "  CC    test/query_config.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -c test/query_config.c -o $@
 
@@ -330,7 +334,7 @@ test/zeroize$(EXEXT): test/zeroize.c $(DEP)
 	echo "  CC    test/zeroize.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/zeroize.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-test/query_compile_time_config$(EXEXT): test/query_compile_time_config.c test/query_config.o $(DEP)
+test/query_compile_time_config$(EXEXT): test/query_compile_time_config.c test/query_config.o test/query_config.h $(DEP)
 	echo "  CC    test/query_compile_time_config.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/query_compile_time_config.c test/query_config.o $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 

@@ -48,6 +48,7 @@ set(src_crypto
     md5.c
     memory_buffer_alloc.c
     mps/reader.c
+    mps/trace.o
     nist_kw.c
     oid.c
     padlock.c

@@ -47,6 +47,9 @@
  */
 #define MBEDTLS_MPS_ENABLE_ASSERTIONS
 
+/*! This flag controls whether tracing for MPS should be enabled. */
+#define MBEDTLS_MPS_TRACE
+
 /* \} name SECTION: MPS Configuration */
 
 #endif /* MBEDTLS_MPS_COMMON_H */

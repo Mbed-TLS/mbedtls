@@ -594,3 +594,137 @@ void mbedtls_mps_reader_reclaim_data_left_retry()
     mbedtls_reader_free( &rd );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
+void mbedtls_mps_reader_multiple_pausing( int option )
+{
+    /* This test exercises the behaviour of the MPS reader
+     * in the following situation:
+     * - A read request via `mbedtls_reader_get()` can't
+     *   be served and the reader is paused to accumulate
+     *   the desired amount of data from the producer.
+     * - Once enough data is availble, the consumer successfully
+     *   reads the data from the reader, but afterwards exceeds
+     *   the available data again - pausing is necessary for a
+     *   second time.
+     */
+
+    unsigned char bufA[100], bufB[20], bufC[10];
+    unsigned char *tmp;
+    unsigned char acc[50];
+    mbedtls_mps_size_t tmp_len;
+    mbedtls_reader rd;
+    for( int i=0; (unsigned) i < sizeof( bufA ); i++ )
+        bufA[i] = (unsigned char) i;
+    for( int i=0; (unsigned) i < sizeof( bufB ); i++ )
+        bufB[i] = ~ ((unsigned char) i);
+    for( int i=0; (unsigned) i < sizeof( bufC ); i++ )
+        bufC[i] = ~ ((unsigned char) i);
+
+    /* Preparation (lower layer) */
+    mbedtls_reader_init( &rd, acc, sizeof( acc ) );
+    TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
+
+    /* Consumption (upper layer) */
+    /* Ask for more than what's available. */
+    TEST_ASSERT( mbedtls_reader_get( &rd, 80, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 80, bufA, 80 );
+    TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+    TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 10, bufA + 80, 10 );
+    TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) ==
+                 MBEDTLS_ERR_MPS_READER_OUT_OF_DATA );
+
+    /* Preparation */
+    TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_reader_feed( &rd, bufB, sizeof( bufB ) ) == 0 );
+
+    switch( option )
+    {
+        case 0: /* Fetch same chunks, commit afterwards, and
+                 * then exceed bounds of new buffer; accumulator
+                 * large enough. */
+
+            /* Consume */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, &tmp_len ) == 0 );
+            ASSERT_COMPARE( tmp, tmp_len, bufA + 80, 10 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 90, 10 );
+            ASSERT_COMPARE( tmp + 10, 10, bufB, 10 );
+            TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) ==
+                         MBEDTLS_ERR_MPS_READER_OUT_OF_DATA );
+
+            /* Prepare */
+            TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
+            TEST_ASSERT( mbedtls_reader_feed( &rd, bufC, sizeof( bufC ) ) == 0 );;
+
+            /* Consume */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufB + 10, 10 );
+            ASSERT_COMPARE( tmp + 10, 10, bufC, 10 );
+            break;
+
+        case 1: /* Fetch same chunks, commit afterwards, and
+                 * then exceed bounds of new buffer; accumulator
+                 * not large enough. */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 80, 10 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 90, 10 );
+            ASSERT_COMPARE( tmp + 10, 10, bufB, 10 );
+            TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 51, &tmp, NULL ) ==
+                         MBEDTLS_ERR_MPS_READER_OUT_OF_DATA );
+
+            /* Prepare */
+            TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) ==
+                         MBEDTLS_ERR_MPS_READER_ACCUMULATOR_TOO_SMALL );
+            break;
+
+        case 2: /* Fetch same chunks, don't commit afterwards, and
+                 * then exceed bounds of new buffer; accumulator
+                 * large enough. */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 80, 10 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 90, 10 );
+            ASSERT_COMPARE( tmp + 10, 10, bufB, 10 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) ==
+                         MBEDTLS_ERR_MPS_READER_OUT_OF_DATA );
+
+            /* Prepare */
+            TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
+            TEST_ASSERT( mbedtls_reader_feed( &rd, bufC, sizeof( bufC ) ) == 0 );;
+
+            /* Consume */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 50, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 20, bufA + 80, 20 );
+            ASSERT_COMPARE( tmp + 20, 20, bufB, 20 );
+            ASSERT_COMPARE( tmp + 40, 10, bufC, 10 );
+            break;
+
+        case 3: /* Fetch same chunks, don't commit afterwards, and
+                 * then exceed bounds of new buffer; accumulator
+                 * not large enough. */
+            TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 80, 10 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 20, &tmp, NULL ) == 0 );
+            ASSERT_COMPARE( tmp, 10, bufA + 90, 10 );
+            ASSERT_COMPARE( tmp + 10, 10, bufB, 10 );
+            TEST_ASSERT( mbedtls_reader_get( &rd, 21, &tmp, NULL ) ==
+                         MBEDTLS_ERR_MPS_READER_OUT_OF_DATA );
+
+            /* Prepare */
+            TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) ==
+                         MBEDTLS_ERR_MPS_READER_ACCUMULATOR_TOO_SMALL );
+            break;
+
+        default:
+            TEST_ASSERT( 0 );
+            break;
+    }
+
+    mbedtls_reader_free( &rd );
+}
+/* END_CASE */

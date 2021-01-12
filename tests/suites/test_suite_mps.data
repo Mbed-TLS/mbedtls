@@ -66,3 +66,15 @@ mbedtls_mps_reader_reclaim_data_left:2
 
 MPS Reader: Reclaim with data remaining, continue fetching
 mbedtls_mps_reader_reclaim_data_left_retry:
+
+MPS Reader: Pausing several times, #0
+mbedtls_mps_reader_multiple_pausing:0
+
+MPS Reader: Pausing several times, #1
+mbedtls_mps_reader_multiple_pausing:1
+
+MPS Reader: Pausing several times, #2
+mbedtls_mps_reader_multiple_pausing:2
+
+MPS Reader: Pausing several times, #3
+mbedtls_mps_reader_multiple_pausing:3

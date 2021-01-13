@@ -128,13 +128,43 @@ mbedtls_time_t dummy_constant_time( mbedtls_time_t* time );
 
 int dummy_entropy( void *data, unsigned char *output, size_t len );
 
-/** A context for random generation.
+/** A context for random number generation (RNG).
  */
 typedef struct
 {
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context drbg;
 } rng_context_t;
+
+/** Initialize the RNG.
+ *
+ * This function only initializes the memory used by the RNG context.
+ * Before using the RNG, it must be seeded with rng_seed().
+ */
+void rng_init( rng_context_t *rng );
+
+/* Seed the random number generator.
+ *
+ * \param rng           The RNG context to use. It must have been initialized
+ *                      with rng_init().
+ * \param reproducible  If zero, seed the RNG from entropy.
+ *                      If nonzero, use a fixed seed, so that the program
+ *                      will produce the same sequence of random numbers
+ *                      each time it is invoked.
+ * \param pers          A null-terminated string. Different values for this
+ *                      string cause the RNG to emit different output for
+ *                      the same seed.
+ *
+ * return 0 on success, a negative value on error.
+ */
+int rng_seed( rng_context_t *rng, int reproducible, const char *pers );
+
+/** Deinitialize the RNG. Free any embedded resource.
+ *
+ * \param rng           The RNG context to deinitialize. It must have been
+ *                      initialized with rng_init().
+ */
+void rng_free( rng_context_t *rng );
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 int ca_callback( void *data, mbedtls_x509_crt const *child,

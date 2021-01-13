@@ -61,6 +61,52 @@ int dummy_entropy( void *data, unsigned char *output, size_t len )
     return( ret );
 }
 
+void rng_init( rng_context_t *rng )
+{
+    mbedtls_ctr_drbg_init( &rng->drbg );
+    mbedtls_entropy_init( &rng->entropy );
+}
+
+int rng_seed( rng_context_t *rng, int reproducible, const char *pers )
+{
+    int ret = 0;
+
+    if ( reproducible )
+    {
+        srand( 1 );
+        if( ( ret = mbedtls_ctr_drbg_seed( &rng->drbg, dummy_entropy,
+                                           &rng->entropy, (const unsigned char *) pers,
+                                           strlen( pers ) ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
+                            (unsigned int) -ret );
+            goto exit;
+        }
+    }
+    else
+    {
+        if( ( ret = mbedtls_ctr_drbg_seed( &rng->drbg, mbedtls_entropy_func,
+                                           &rng->entropy, (const unsigned char *) pers,
+                                           strlen( pers ) ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
+                            (unsigned int) -ret );
+            goto exit;
+        }
+    }
+
+
+    return( 0 );
+exit:
+    return( 1 );
+}
+
+void rng_free( rng_context_t *rng )
+{
+    mbedtls_ctr_drbg_free( &rng->drbg );
+    mbedtls_entropy_free( &rng->entropy );
+}
+
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 int ca_callback( void *data, mbedtls_x509_crt const *child,
                  mbedtls_x509_crt **candidates )

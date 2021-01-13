@@ -742,8 +742,7 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_config_init( &conf );
     memset( &saved_session, 0, sizeof( mbedtls_ssl_session ) );
     rng_context_t *rng = &rng_context;
-    mbedtls_ctr_drbg_init( &rng->drbg );
-    mbedtls_entropy_init( &rng->entropy );
+    rng_init( rng );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_init( &cacert );
     mbedtls_x509_crt_init( &clicert );
@@ -1536,30 +1535,8 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     int reproducible = opt.reproducible;
-    if ( reproducible )
-    {
-        srand( 1 );
-        if( ( ret = mbedtls_ctr_drbg_seed( &rng->drbg, dummy_entropy,
-                                           &rng->entropy, (const unsigned char *) pers,
-                                           strlen( pers ) ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
-                            (unsigned int) -ret );
-            goto exit;
-        }
-    }
-    else
-    {
-        if( ( ret = mbedtls_ctr_drbg_seed( &rng->drbg, mbedtls_entropy_func,
-                                           &rng->entropy, (const unsigned char *) pers,
-                                           strlen( pers ) ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
-                            (unsigned int) -ret );
-            goto exit;
-        }
-    }
-
+    if( rng_seed( rng, reproducible, pers ) != 0 )
+        goto exit;
     mbedtls_printf( " ok\n" );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -3025,8 +3002,7 @@ exit:
     mbedtls_ssl_session_free( &saved_session );
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );
-    mbedtls_ctr_drbg_free( &rng->drbg );
-    mbedtls_entropy_free( &rng->entropy );
+    rng_free( rng );
     if( session_data != NULL )
         mbedtls_platform_zeroize( session_data, session_data_len );
     mbedtls_free( session_data );

@@ -189,6 +189,14 @@ void rng_free( rng_context_t *rng );
  */
 int rng_get( void *p_rng, unsigned char *output, size_t output_len );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+/* The test implementation of the PSA external RNG is insecure. When
+ * MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled, before using any PSA crypto
+ * function that makes use of an RNG, you must call
+ * mbedtls_test_enable_insecure_external_rng(). */
+#include <test/psa_crypto_helpers.h>
+#endif
+
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 int ca_callback( void *data, mbedtls_x509_crt const *child,
                  mbedtls_x509_crt **candidates );

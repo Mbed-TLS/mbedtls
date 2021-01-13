@@ -1,4 +1,3 @@
-*.o
 fuzz_client
 fuzz_dtlsclient
 fuzz_dtlsserver

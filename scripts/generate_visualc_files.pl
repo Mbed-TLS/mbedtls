@@ -161,6 +161,9 @@ sub gen_app {
         $appname eq "query_compile_time_config" ) {
         $srcs .= "\r\n    <ClCompile Include=\"..\\..\\programs\\test\\query_config.c\" \/>";
     }
+    if( $appname eq "ssl_client2" or $appname eq "ssl_server2" ) {
+        $srcs .= "\r\n    <ClCompile Include=\"..\\..\\programs\\ssl\\ssl_test_lib.c\" \/>";
+    }
 
     my $content = $template;
     $content =~ s/<SOURCES>/$srcs/g;

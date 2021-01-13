@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\programs\ssl\ssl_server2.c" />
     <ClCompile Include="..\..\programs\test\query_config.c" />
+    <ClCompile Include="..\..\programs\ssl\ssl_test_lib.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="mbedTLS.vcxproj">

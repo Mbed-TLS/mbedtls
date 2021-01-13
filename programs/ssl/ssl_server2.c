@@ -1282,7 +1282,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
 #endif
-    rng_context_t rng_context;
+    rng_context_t rng;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
 #if defined(MBEDTLS_TIMING_C)
@@ -1376,8 +1376,7 @@ int main( int argc, char *argv[] )
     mbedtls_net_init( &listen_fd );
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
-    rng_context_t *rng = &rng_context;
-    rng_init( rng );
+    rng_init( &rng );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_init( &cacert );
     mbedtls_x509_crt_init( &srvcert );
@@ -2293,8 +2292,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    int reproducible = opt.reproducible;
-    if( rng_seed( rng, reproducible, pers ) != 0 )
+    if( rng_seed( &rng, opt.reproducible, pers ) != 0 )
         goto exit;
     mbedtls_printf( " ok\n" );
 
@@ -2684,7 +2682,7 @@ int main( int argc, char *argv[] )
 #endif
 #endif
     }
-    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &rng->drbg );
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &rng.drbg );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
 #if defined(MBEDTLS_SSL_CACHE_C)
@@ -2703,7 +2701,7 @@ int main( int argc, char *argv[] )
     if( opt.tickets == MBEDTLS_SSL_SESSION_TICKETS_ENABLED )
     {
         if( ( ret = mbedtls_ssl_ticket_setup( &ticket_ctx,
-                        mbedtls_ctr_drbg_random, &rng->drbg,
+                        mbedtls_ctr_drbg_random, &rng.drbg,
                         MBEDTLS_CIPHER_AES_256_GCM,
                         opt.ticket_timeout ) ) != 0 )
         {
@@ -2725,7 +2723,7 @@ int main( int argc, char *argv[] )
         if( opt.cookies > 0 )
         {
             if( ( ret = mbedtls_ssl_cookie_setup( &cookie_ctx,
-                                          mbedtls_ctr_drbg_random, &rng->drbg ) ) != 0 )
+                                          mbedtls_ctr_drbg_random, &rng.drbg ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_cookie_setup returned %d\n\n", ret );
                 goto exit;
@@ -2878,7 +2876,7 @@ int main( int argc, char *argv[] )
                                         - opt.async_private_error :
                                         opt.async_private_error );
         ssl_async_keys.f_rng = mbedtls_ctr_drbg_random;
-        ssl_async_keys.p_rng = &rng->drbg;
+        ssl_async_keys.p_rng = &rng.drbg;
         mbedtls_ssl_conf_async_private_cb( &conf,
                                            sign,
                                            decrypt,
@@ -3976,7 +3974,7 @@ exit:
 
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );
-    rng_free( rng );
+    rng_free( &rng );
 
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_free( &cache );

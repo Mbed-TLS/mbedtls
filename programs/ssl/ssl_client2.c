@@ -686,7 +686,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
 #endif
-    rng_context_t rng_context;
+    rng_context_t rng;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_ssl_session saved_session;
@@ -741,8 +741,7 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
     memset( &saved_session, 0, sizeof( mbedtls_ssl_session ) );
-    rng_context_t *rng = &rng_context;
-    rng_init( rng );
+    rng_init( &rng );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_init( &cacert );
     mbedtls_x509_crt_init( &clicert );
@@ -1534,8 +1533,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    int reproducible = opt.reproducible;
-    if( rng_seed( rng, reproducible, pers ) != 0 )
+    if( rng_seed( &rng, opt.reproducible, pers ) != 0 )
         goto exit;
     mbedtls_printf( " ok\n" );
 
@@ -1882,7 +1880,7 @@ int main( int argc, char *argv[] )
 #endif
 #endif
     }
-    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &rng->drbg );
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &rng.drbg );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
     mbedtls_ssl_conf_read_timeout( &conf, opt.read_timeout );
@@ -3002,7 +3000,7 @@ exit:
     mbedtls_ssl_session_free( &saved_session );
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );
-    rng_free( rng );
+    rng_free( &rng );
     if( session_data != NULL )
         mbedtls_platform_zeroize( session_data, session_data_len );
     mbedtls_free( session_data );

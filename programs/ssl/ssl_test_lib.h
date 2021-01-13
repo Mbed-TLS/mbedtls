@@ -126,8 +126,6 @@ void my_debug( void *ctx, int level,
 
 mbedtls_time_t dummy_constant_time( mbedtls_time_t* time );
 
-int dummy_entropy( void *data, unsigned char *output, size_t len );
-
 /** A context for random number generation (RNG).
  */
 typedef struct

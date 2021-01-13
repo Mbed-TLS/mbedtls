@@ -46,7 +46,7 @@ mbedtls_time_t dummy_constant_time( mbedtls_time_t* time )
     return 0x5af2a056;
 }
 
-int dummy_entropy( void *data, unsigned char *output, size_t len )
+static int dummy_entropy( void *data, unsigned char *output, size_t len )
 {
     size_t i;
     int ret;
@@ -69,36 +69,24 @@ void rng_init( rng_context_t *rng )
 
 int rng_seed( rng_context_t *rng, int reproducible, const char *pers )
 {
-    int ret = 0;
+    int ( *f_entropy )( void *, unsigned char *, size_t ) =
+        ( reproducible ? dummy_entropy : mbedtls_entropy_func );
 
     if ( reproducible )
-    {
         srand( 1 );
-        if( ( ret = mbedtls_ctr_drbg_seed( &rng->drbg, dummy_entropy,
-                                           &rng->entropy, (const unsigned char *) pers,
-                                           strlen( pers ) ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
-                            (unsigned int) -ret );
-            goto exit;
-        }
-    }
-    else
-    {
-        if( ( ret = mbedtls_ctr_drbg_seed( &rng->drbg, mbedtls_entropy_func,
-                                           &rng->entropy, (const unsigned char *) pers,
-                                           strlen( pers ) ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
-                            (unsigned int) -ret );
-            goto exit;
-        }
-    }
 
+    int ret = mbedtls_ctr_drbg_seed( &rng->drbg,
+                                     f_entropy, &rng->entropy,
+                                     (const unsigned char *) pers,
+                                     strlen( pers ) );
+    if( ret != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
+                        (unsigned int) -ret );
+        return( ret );
+    }
 
     return( 0 );
-exit:
-    return( 1 );
 }
 
 void rng_free( rng_context_t *rng )

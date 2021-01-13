@@ -63,7 +63,14 @@ static int dummy_entropy( void *data, unsigned char *output, size_t len )
 
 void rng_init( rng_context_t *rng )
 {
+#if defined(MBEDTLS_CTR_DRBG_C)
     mbedtls_ctr_drbg_init( &rng->drbg );
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+    mbedtls_hmac_drbg_init( &rng->drbg );
+#else
+#error "No DRBG available"
+#endif
+
     mbedtls_entropy_init( &rng->entropy );
 }
 
@@ -75,10 +82,28 @@ int rng_seed( rng_context_t *rng, int reproducible, const char *pers )
     if ( reproducible )
         srand( 1 );
 
+#if defined(MBEDTLS_CTR_DRBG_C)
     int ret = mbedtls_ctr_drbg_seed( &rng->drbg,
                                      f_entropy, &rng->entropy,
                                      (const unsigned char *) pers,
                                      strlen( pers ) );
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+#if defined(MBEDTLS_SHA256_C)
+    const mbedtls_md_type_t md_type = MBEDTLS_MD_SHA256;
+#elif defined(MBEDTLS_SHA512_C)
+    const mbedtls_md_type_t md_type = MBEDTLS_MD_SHA512;
+#else
+#error "No message digest available for HMAC_DRBG"
+#endif
+    int ret = mbedtls_hmac_drbg_seed( &rng->drbg,
+                                      mbedtls_md_info_from_type( md_type ),
+                                      f_entropy, &rng->entropy,
+                                      (const unsigned char *) pers,
+                                      strlen( pers ) );
+#else
+#error "No DRBG available"
+#endif
+
     if( ret != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
@@ -91,14 +116,27 @@ int rng_seed( rng_context_t *rng, int reproducible, const char *pers )
 
 void rng_free( rng_context_t *rng )
 {
+#if defined(MBEDTLS_CTR_DRBG_C)
     mbedtls_ctr_drbg_free( &rng->drbg );
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+    mbedtls_hmac_drbg_free( &rng->drbg );
+#else
+#error "No DRBG available"
+#endif
+
     mbedtls_entropy_free( &rng->entropy );
 }
 
 int rng_get( void *p_rng, unsigned char *output, size_t output_len )
 {
     rng_context_t *rng = p_rng;
+#if defined(MBEDTLS_CTR_DRBG_C)
     return( mbedtls_ctr_drbg_random( &rng->drbg, output, output_len ) );
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+    return( mbedtls_hmac_drbg_random( &rng->drbg, output, output_len ) );
+#else
+#error "No DRBG available"
+#endif
 }
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)

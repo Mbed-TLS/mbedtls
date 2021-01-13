@@ -919,10 +919,17 @@ component_test_no_ctr_drbg () {
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: no CTR_DRBG"
+    msg "test: Full minus CTR_DRBG - main suites"
     make test
 
-    # no ssl-opt.sh/compat.sh as they all depend on CTR_DRBG so far
+    # In this configuration, the TLS test programs use HMAC_DRBG.
+    # The SSL tests are slow, so run a small subset, just enough to get
+    # confidence that the SSL code copes with HMAC_DRBG.
+    msg "test: Full minus CTR_DRBG - ssl-opt.sh (subset)"
+    if_build_succeeded tests/ssl-opt.sh -f 'Default\|SSL async private.*delay=\|tickets enabled on server'
+
+    msg "test: Full minus CTR_DRBG - compat.sh (subset)"
+    if_build_succeeded tests/compat.sh -m tls1_2 -t 'ECDSA PSK' -V NO -p OpenSSL
 }
 
 component_test_no_hmac_drbg () {
@@ -954,7 +961,7 @@ component_test_psa_external_rng_no_drbg () {
     msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG"
     make test
 
-    # No ssl-opt.sh/compat.sh because they require CTR_DRBG.
+    # no SSL tests as they all depend on having a DRBG
 }
 
 component_test_psa_external_rng_use_psa_crypto () {
@@ -968,7 +975,8 @@ component_test_psa_external_rng_use_psa_crypto () {
     msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
     make test
 
-    # No ssl-opt.sh/compat.sh because they require CTR_DRBG.
+    msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
+    if_build_succeeded tests/ssl-opt.sh -f 'Default\|opaque'
 }
 
 component_test_ecp_no_internal_rng () {

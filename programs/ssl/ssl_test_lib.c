@@ -95,6 +95,12 @@ void rng_free( rng_context_t *rng )
     mbedtls_entropy_free( &rng->entropy );
 }
 
+int rng_get( void *p_rng, unsigned char *output, size_t output_len )
+{
+    rng_context_t *rng = p_rng;
+    return( mbedtls_ctr_drbg_random( &rng->drbg, output, output_len ) );
+}
+
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 int ca_callback( void *data, mbedtls_x509_crt const *child,
                  mbedtls_x509_crt **candidates )

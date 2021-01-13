@@ -164,6 +164,21 @@ int rng_seed( rng_context_t *rng, int reproducible, const char *pers );
  */
 void rng_free( rng_context_t *rng );
 
+/** Generate random data.
+ *
+ * This function is suitable for use as the \c f_rng argument to Mbed TLS
+ * library functions.
+ *
+ * \param p_rng         The CTR_DRBG context. This must be a pointer to a
+ *                      #rng_context_t structure.
+ * \param output        The buffer to fill.
+ * \param output_len    The length of the buffer in bytes.
+ *
+ * \return              \c 0 on success.
+ * \return              An Mbed TLS error code on error.
+ */
+int rng_get( void *p_rng, unsigned char *output, size_t output_len );
+
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 int ca_callback( void *data, mbedtls_x509_crt const *child,
                  mbedtls_x509_crt **candidates );

@@ -2682,7 +2682,7 @@ int main( int argc, char *argv[] )
 #endif
 #endif
     }
-    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &rng.drbg );
+    mbedtls_ssl_conf_rng( &conf, rng_get, &rng );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
 #if defined(MBEDTLS_SSL_CACHE_C)
@@ -2701,7 +2701,7 @@ int main( int argc, char *argv[] )
     if( opt.tickets == MBEDTLS_SSL_SESSION_TICKETS_ENABLED )
     {
         if( ( ret = mbedtls_ssl_ticket_setup( &ticket_ctx,
-                        mbedtls_ctr_drbg_random, &rng.drbg,
+                        rng_get, &rng,
                         MBEDTLS_CIPHER_AES_256_GCM,
                         opt.ticket_timeout ) ) != 0 )
         {
@@ -2723,7 +2723,7 @@ int main( int argc, char *argv[] )
         if( opt.cookies > 0 )
         {
             if( ( ret = mbedtls_ssl_cookie_setup( &cookie_ctx,
-                                          mbedtls_ctr_drbg_random, &rng.drbg ) ) != 0 )
+                                                  rng_get, &rng ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_cookie_setup returned %d\n\n", ret );
                 goto exit;
@@ -2875,8 +2875,8 @@ int main( int argc, char *argv[] )
         ssl_async_keys.inject_error = ( opt.async_private_error < 0 ?
                                         - opt.async_private_error :
                                         opt.async_private_error );
-        ssl_async_keys.f_rng = mbedtls_ctr_drbg_random;
-        ssl_async_keys.p_rng = &rng.drbg;
+        ssl_async_keys.f_rng = rng_get;
+        ssl_async_keys.p_rng = &rng;
         mbedtls_ssl_conf_async_private_cb( &conf,
                                            sign,
                                            decrypt,

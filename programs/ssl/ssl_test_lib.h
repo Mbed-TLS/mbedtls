@@ -128,6 +128,14 @@ mbedtls_time_t dummy_constant_time( mbedtls_time_t* time );
 
 int dummy_entropy( void *data, unsigned char *output, size_t len );
 
+/** A context for random generation.
+ */
+typedef struct
+{
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context drbg;
+} rng_context_t;
+
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 int ca_callback( void *data, mbedtls_x509_crt const *child,
                  mbedtls_x509_crt **candidates );

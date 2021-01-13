@@ -17,11 +17,20 @@
  *  limitations under the License.
  */
 
+#include "common.h"
+
+#include <stddef.h>
+
 #if defined(MBEDTLS_TEST_HOOKS)
-void (*mbedtls_test_err_add_hook)( int, int, const char *, int );
-int mbedtls_err_add( int high, int low, const char *file, int line ) {
-    if( mbedtls_test_err_add_hook != NULL )
-        (*mbedtls_test_err_add_hook)( high, low, file, line );
+static void (*err_add_hook)( int, int, const char *, int );
+void mbedtls_set_err_add_hook(void *hook)
+{
+    err_add_hook = hook;
+}
+int mbedtls_err_add( int high, int low, const char *file, int line )
+{
+    if( err_add_hook != NULL )
+        (*err_add_hook)( high, low, file, line );
     return ( high + low );
 }
 #endif

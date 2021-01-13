@@ -33,6 +33,10 @@
 #include "psa/crypto.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+#if defined(MBEDTLS_TEST_HOOKS)
+#include "common.h"
+#endif
+
 /* Test code may use deprecated identifiers only if the preprocessor symbol
  * MBEDTLS_TEST_DEPRECATED is defined. When building tests, set
  * MBEDTLS_TEST_DEPRECATED explicitly if MBEDTLS_DEPRECATED_WARNING is
@@ -280,7 +284,7 @@ $platform_code
 int main( int argc, const char *argv[] )
 {
 #if defined(MBEDTLS_TEST_HOOKS)
-    mbedtls_test_err_add_hook = &mbedtls_test_err_add_check;
+    mbedtls_set_err_add_hook( &mbedtls_test_err_add_check );
 #endif
 
     int ret = mbedtls_test_platform_setup();

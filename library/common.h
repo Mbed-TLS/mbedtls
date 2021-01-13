@@ -48,12 +48,18 @@
 #define MBEDTLS_STATIC_TESTABLE
 
 /** Helper macro and function to combine a high and low level error code.
- * 
+ *
  * This function uses a hook (`mbedtls_test_err_add_hook`) to allow invasive
  * testing of its inputs. This is used in the test infrastructure to report
  * on errors when combining two error codes of the same level (e.g: two high
  * or two low level errors).
+ *
+ * To set a hook use
+ * ```
+ * mbedtls_set_err_add_hook(&mbedtls_check_foo);
+ * ```
  */
+void mbedtls_set_err_add_hook( void *hook );
 int mbedtls_err_add( int high, int low, const char *file, int line );
 #define MBEDTLS_ERR_ADD( high, low )  \
     ( mbedtls_err_add( high, low, __FILE__, __LINE__ ) )

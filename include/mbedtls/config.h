@@ -3028,9 +3028,11 @@
 /**
  * \def MBEDTLS_PLATFORM_FAULT_CALLBACKS
  *
- * Uncomment to provide your own alternate implementation for mbedtls_platform_fault(),
- * used in library/platform_util.c to signal a fault injection in either
- * mbedtls_platform_memcpy, mbedtls_platform_memset or mbedtls_platform_random_buf.
+ * Uncomment to provide your own alternate implementation for
+ * mbedtls_platform_fault(), used in library/platform_util.c and
+ * tinycrypt/ecc.c to signal a fault injection in either
+ * mbedtls_platform_memcpy, mbedtls_platform_memset, mbedtls_platform_random_buf,
+ * or uECC_vli_mmod.
  *
  * You will need to provide a header "platform_fault.h" and an implementation at
  * compile time.

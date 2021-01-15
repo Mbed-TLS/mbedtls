@@ -2537,6 +2537,20 @@ static const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
 
 psa_status_t psa_hash_abort( psa_hash_operation_t *operation )
 {
+    if( operation->alg == 0 )
+    {
+        /* The object has (apparently) been initialized but it is not
+         * in use. It's ok to call abort on such an object, and there's
+         * nothing to do. */
+        return( PSA_SUCCESS );
+    }
+
+    if( operation->mbedtls_in_use == 0 )
+    {
+        psa_driver_wrapper_hash_abort( &operation->ctx.driver );
+        goto exit;
+    }
+
     switch( operation->alg )
     {
         case 0:
@@ -2592,6 +2606,8 @@ psa_status_t psa_hash_abort( psa_hash_operation_t *operation )
         default:
             return( PSA_ERROR_BAD_STATE );
     }
+
+exit:
     operation->alg = 0;
     return( PSA_SUCCESS );
 }
@@ -2599,6 +2615,7 @@ psa_status_t psa_hash_abort( psa_hash_operation_t *operation )
 psa_status_t psa_hash_setup( psa_hash_operation_t *operation,
                              psa_algorithm_t alg )
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* A context must be freshly initialized before it can be set up. */
@@ -2606,6 +2623,17 @@ psa_status_t psa_hash_setup( psa_hash_operation_t *operation,
     {
         return( PSA_ERROR_BAD_STATE );
     }
+
+    operation->mbedtls_in_use = 0;
+    status = psa_driver_wrapper_hash_setup( &operation->ctx.driver,
+                                            alg );
+    if( status != PSA_ERROR_NOT_SUPPORTED )
+    {
+        goto exit;
+    }
+
+    /* fell through, try mbed TLS functions */
+    operation->mbedtls_in_use = 1;
 
     switch( alg )
     {
@@ -2668,23 +2696,38 @@ psa_status_t psa_hash_setup( psa_hash_operation_t *operation,
                     PSA_ERROR_NOT_SUPPORTED :
                     PSA_ERROR_INVALID_ARGUMENT );
     }
-    if( ret == 0 )
+    status = mbedtls_to_psa_error( ret );
+
+exit:
+    if( status == PSA_SUCCESS )
         operation->alg = alg;
     else
         psa_hash_abort( operation );
-    return( mbedtls_to_psa_error( ret ) );
+    return( status );
 }
 
 psa_status_t psa_hash_update( psa_hash_operation_t *operation,
                               const uint8_t *input,
                               size_t input_length )
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if ( operation->alg == 0 )
+        return( PSA_ERROR_BAD_STATE );
 
     /* Don't require hash implementations to behave correctly on a
      * zero-length input, which may have an invalid pointer. */
     if( input_length == 0 )
         return( PSA_SUCCESS );
+
+    if( operation->mbedtls_in_use == 0 )
+    {
+        status = psa_driver_wrapper_hash_update( &operation->ctx.driver,
+                                                 input,
+                                                 input_length );
+        goto exit;
+    }
 
     switch( operation->alg )
     {
@@ -2747,9 +2790,12 @@ psa_status_t psa_hash_update( psa_hash_operation_t *operation,
             return( PSA_ERROR_BAD_STATE );
     }
 
-    if( ret != 0 )
+    status = mbedtls_to_psa_error( ret );
+
+exit:
+    if( status != PSA_SUCCESS )
         psa_hash_abort( operation );
-    return( mbedtls_to_psa_error( ret ) );
+    return( status );
 }
 
 psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
@@ -2757,9 +2803,12 @@ psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
                               size_t hash_size,
                               size_t *hash_length )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t actual_hash_length = PSA_HASH_SIZE( operation->alg );
+
+    if ( operation->alg == 0 )
+        return( PSA_ERROR_BAD_STATE );
 
     /* Fill the output buffer with something that isn't a valid hash
      * (barring an attack on the hash and deliberately-crafted input),
@@ -2773,6 +2822,15 @@ psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
     if( hash_size < actual_hash_length )
     {
         status = PSA_ERROR_BUFFER_TOO_SMALL;
+        goto exit;
+    }
+
+    if( operation->mbedtls_in_use == 0 )
+    {
+        status = psa_driver_wrapper_hash_finish( &operation->ctx.driver,
+                                                 hash,
+                                                 hash_size,
+                                                 hash_length );
         goto exit;
     }
 
@@ -2867,6 +2925,12 @@ psa_status_t psa_hash_compute( psa_algorithm_t alg,
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
+    status = psa_driver_wrapper_hash_compute( alg, input, input_length,
+                                              hash, hash_size, hash_length );
+
+    if( status != PSA_ERROR_NOT_SUPPORTED )
+        return( status );
+
     *hash_length = hash_size;
     status = psa_hash_setup( &operation, alg );
     if( status != PSA_SUCCESS )
@@ -2890,32 +2954,43 @@ psa_status_t psa_hash_compare( psa_algorithm_t alg,
                                const uint8_t *input, size_t input_length,
                                const uint8_t *hash, size_t hash_length )
 {
-    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    uint8_t actual_hash[MBEDTLS_MD_MAX_SIZE];
+    size_t actual_hash_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    status = psa_hash_setup( &operation, alg );
-    if( status != PSA_SUCCESS )
-        goto exit;
-    status = psa_hash_update( &operation, input, input_length );
-    if( status != PSA_SUCCESS )
-        goto exit;
-    status = psa_hash_verify( &operation, hash, hash_length );
-    if( status != PSA_SUCCESS )
-        goto exit;
+    status = psa_hash_compute( alg, input, input_length,
+                               actual_hash, sizeof(actual_hash),
+                               &actual_hash_length );
 
-exit:
-    if( status == PSA_SUCCESS )
-        status = psa_hash_abort( &operation );
-    else
-        psa_hash_abort( &operation );
-    return( status );
+    if( status != PSA_SUCCESS )
+        return( status );
+    if( actual_hash_length != hash_length )
+        return( PSA_ERROR_INVALID_SIGNATURE );
+    if( safer_memcmp( hash, actual_hash, actual_hash_length ) != 0 )
+        return( PSA_ERROR_INVALID_SIGNATURE );
+    return( PSA_SUCCESS );
 }
 
 psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,
                              psa_hash_operation_t *target_operation )
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
     if( target_operation->alg != 0 )
         return( PSA_ERROR_BAD_STATE );
+
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
+    if ( source_operation->mbedtls_in_use == 0 )
+    {
+        status = psa_driver_wrapper_hash_clone( &source_operation->ctx.driver,
+                                                &target_operation->ctx.driver);
+        if ( status == PSA_SUCCESS )
+            goto exit;
+        /* Cloning a hash operation using a driver needs to succeed since only
+         * that specific driver knows the context structure. */
+        return( status );
+    }
+#endif
 
     switch( source_operation->alg )
     {
@@ -2979,6 +3054,8 @@ psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,
             return( PSA_ERROR_NOT_SUPPORTED );
     }
 
+exit:
+    target_operation->mbedtls_in_use = source_operation->mbedtls_in_use;
     target_operation->alg = source_operation->alg;
     return( PSA_SUCCESS );
 }

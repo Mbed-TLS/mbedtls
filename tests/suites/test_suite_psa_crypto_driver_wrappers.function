@@ -811,3 +811,102 @@ exit:
     test_driver_cipher_hooks = test_driver_cipher_hooks_init();
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void hash_entry_points( int alg_arg, data_t *message, data_t *expected_hash )
+{
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *output = NULL;
+    size_t output_buffer_size = 0;
+    size_t function_output_length = 0;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    test_driver_hash_hooks = test_driver_hash_hooks_init();
+
+    ASSERT_ALLOC( output, PSA_HASH_SIZE(alg) );
+    output_buffer_size = PSA_HASH_SIZE(alg);
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /* Test default case: success (one update) */
+    test_driver_hash_hooks.forced_status = PSA_SUCCESS;
+
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 1 );
+
+    PSA_ASSERT( psa_hash_abort( &operation ) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 2 );
+
+    status = psa_hash_update( &operation,
+                              message->x, message->len );
+    TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 2 );
+
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 3 );
+
+    PSA_ASSERT( psa_hash_update( &operation,
+                                 message->x, message->len ) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 4 );
+
+    PSA_ASSERT( psa_hash_finish( &operation,
+                                 output, output_buffer_size,
+                                 &function_output_length ) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 6 );
+
+    ASSERT_COMPARE( output, function_output_length,
+                    expected_hash->x, expected_hash->len );
+
+    /* Test default case: success (multi-update) */
+    test_driver_hash_hooks.hits = 0;
+    function_output_length = 0;
+    memset(output, 0, output_buffer_size);
+    size_t part1_len = message->len / 2;
+
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 1 );
+
+    PSA_ASSERT( psa_hash_update( &operation,
+                                 message->x, part1_len ) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 2 );
+
+    PSA_ASSERT( psa_hash_update( &operation,
+                                 &message->x[part1_len],
+                                 message->len - part1_len ) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 3 );
+
+    PSA_ASSERT( psa_hash_finish( &operation,
+                                 output, output_buffer_size,
+                                 &function_output_length ) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 5 );
+
+    ASSERT_COMPARE( output, function_output_length,
+                    expected_hash->x, expected_hash->len );
+
+    /* Test default case: success (all-in-one) */
+    test_driver_hash_hooks.hits = 0;
+    function_output_length = 0;
+    memset(output, 0, output_buffer_size);
+
+    PSA_ASSERT( psa_hash_compute( alg, message->x, message->len,
+                                  output, output_buffer_size,
+                                  &function_output_length) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 1 );
+
+    ASSERT_COMPARE( output, function_output_length,
+                    expected_hash->x, expected_hash->len );
+
+    /* Test all-in-one verify */
+    test_driver_hash_hooks.hits = 0;
+
+    PSA_ASSERT( psa_hash_compare( alg, message->x, message->len,
+                                  expected_hash->x, expected_hash->len ) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 1 );
+
+exit:
+    psa_hash_abort( &operation );
+    mbedtls_free( output );
+    PSA_DONE( );
+    test_driver_hash_hooks = test_driver_hash_hooks_init();
+}
+/* END_CASE */

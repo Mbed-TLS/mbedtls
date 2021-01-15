@@ -90,9 +90,10 @@ typedef struct {
 struct psa_hash_operation_s
 {
     psa_algorithm_t alg;
+    unsigned int mbedtls_in_use : 1; /* Indicates mbed TLS is handling the operation. */
     union
     {
-        unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
+        psa_operation_driver_context_t driver;
 #if defined(MBEDTLS_MD2_C)
         mbedtls_md2_context md2;
 #endif
@@ -117,7 +118,7 @@ struct psa_hash_operation_s
     } ctx;
 };
 
-#define PSA_HASH_OPERATION_INIT {0, {0}}
+#define PSA_HASH_OPERATION_INIT {0, 0, {0}}
 static inline struct psa_hash_operation_s psa_hash_operation_init( void )
 {
     const struct psa_hash_operation_s v = PSA_HASH_OPERATION_INIT;

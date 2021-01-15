@@ -185,3 +185,6 @@ cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf715880
 
 Cipher driver: negative testing on all entry points
 cipher_entry_points:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a"
+
+Hash driver: check all expected driver entry points with standard usage
+hash_entry_points:PSA_ALG_SHA_256:"81a723d966":"7516fb8bb11350df2bf386bc3c33bd0f52cb4c67c6e4745e0488e62c2aea2605"

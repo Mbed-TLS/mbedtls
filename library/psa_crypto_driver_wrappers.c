@@ -990,4 +990,225 @@ psa_status_t psa_driver_wrapper_cipher_abort(
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
+/*
+ * Hashing functions
+ */
+psa_status_t psa_driver_wrapper_hash_compute(
+    psa_algorithm_t alg,
+    const uint8_t *input, size_t input_length,
+    uint8_t *hash, size_t hash_size,
+    size_t *hash_length )
+{
+#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+
+    /* Try all declared accelerators in turn until one of them succeeds or there's
+     * none left to try. */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+    status = test_transparent_hash_compute( alg, input, input_length,
+                                            hash, hash_size, hash_length );
+
+    if( status == PSA_SUCCESS )
+        return( status );
+#endif
+    /* Add more accelerators here... */
+
+    /* If none are capable or spliced in, fall through here */
+    (void) alg;
+    (void) input;
+    (void) input_length;
+    (void) hash;
+    (void) hash_size;
+    (void) hash_length;
+    return( PSA_ERROR_NOT_SUPPORTED );
+
+#else /* PSA_CRYPTO_DRIVER_PRESENT && PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+    (void) alg;
+    (void) input;
+    (void) input_length;
+    (void) hash;
+    (void) hash_size;
+    (void) hash_length;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+}
+
+psa_status_t psa_driver_wrapper_hash_setup(
+    psa_operation_driver_context_t *operation,
+    psa_algorithm_t alg )
+{
+#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+
+    /* Try all declared accelerators in turn until one of them succeeds or there's
+     * none left to try. */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+    operation->ctx = mbedtls_calloc( 1, sizeof( test_transparent_hash_operation_t ) );
+    if ( operation->ctx == NULL )
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    status = test_transparent_hash_setup( operation->ctx, alg );
+
+    if( status == PSA_SUCCESS )
+    {
+        operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
+        return( status );
+    }
+    else
+    {
+        mbedtls_free( operation->ctx );
+        operation->ctx = NULL;
+    }
+#endif
+    /* Add more accelerators here... */
+
+    /* If none are capable or spliced in, fall through here */
+    (void) operation;
+    (void) alg;
+    return( PSA_ERROR_NOT_SUPPORTED );
+
+#else /* PSA_CRYPTO_DRIVER_PRESENT && PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+    (void) operation;
+    (void) alg;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+}
+
+psa_status_t psa_driver_wrapper_hash_clone(
+    const psa_operation_driver_context_t *source_operation,
+    psa_operation_driver_context_t *target_operation )
+{
+#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+
+    switch( source_operation->id )
+    {
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
+            target_operation->ctx = mbedtls_calloc( 1, sizeof(test_transparent_hash_operation_t) );
+            if( target_operation->ctx == NULL )
+                return PSA_ERROR_INSUFFICIENT_MEMORY;
+            status = test_transparent_hash_clone( source_operation->ctx,
+                                                  target_operation->ctx );
+            if( status == PSA_SUCCESS )
+                target_operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
+            else
+            {
+                mbedtls_free( target_operation->ctx );
+                target_operation->ctx = NULL;
+            }
+            return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+        default:
+            /* Operation is attached to a driver not known to us */
+            (void) source_operation;
+            (void) target_operation;
+            return( PSA_ERROR_BAD_STATE );
+    }
+
+#else /* PSA_CRYPTO_DRIVER_PRESENT && PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+    (void) source_operation;
+    (void) target_operation;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif
+}
+
+
+psa_status_t psa_driver_wrapper_hash_update( psa_operation_driver_context_t *operation,
+                                             const uint8_t *input,
+                                             size_t input_length )
+{
+#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    switch( operation->id )
+    {
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
+            return( test_transparent_hash_update( operation->ctx, input, input_length ) );
+#endif /* SEMAILBOX_PRESENT */
+        default:
+            /* Key is attached to a driver not known to us */
+            (void) operation;
+            (void) input;
+            (void) input_length;
+            return( PSA_ERROR_BAD_STATE );
+    }
+
+#else /* PSA_CRYPTO_DRIVER_PRESENT && PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+    (void) operation;
+    (void) input;
+    (void) input_length;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif
+}
+
+psa_status_t psa_driver_wrapper_hash_finish( psa_operation_driver_context_t *operation,
+                                             uint8_t *hash,
+                                             size_t hash_size,
+                                             size_t *hash_length )
+{
+#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    switch( operation->id )
+    {
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
+            return( test_transparent_hash_finish( operation->ctx,
+                                                  hash,
+                                                  hash_size,
+                                                  hash_length ) );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+        default:
+            /* Key is attached to a driver not known to us */
+            (void) operation;
+            (void) hash;
+            (void) hash_size;
+            (void) hash_length;
+            return( PSA_ERROR_BAD_STATE );
+    }
+
+#else /* PSA_CRYPTO_DRIVER_PRESENT && PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT*/
+    (void) operation;
+    (void) hash;
+    (void) hash_size;
+    (void) hash_length;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif
+}
+
+psa_status_t psa_driver_wrapper_hash_abort( psa_operation_driver_context_t *operation )
+{
+#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+
+    if( operation->ctx == NULL && operation->id == 0 )
+        return( PSA_SUCCESS );
+
+    switch( operation->id )
+    {
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
+            status = test_transparent_hash_abort( operation->ctx );
+            break;
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+        default:
+            /* Operation is attached to a driver not known to us */
+            (void) operation;
+            return( PSA_ERROR_BAD_STATE );
+    }
+
+    mbedtls_free( operation->ctx );
+    operation->ctx = NULL;
+    operation->id = 0;
+    return( status );
+
+#else /* PSA_CRYPTO_DRIVER_PRESENT && PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+    (void) operation;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif
+}
+
 /* End of automatically generated file. */

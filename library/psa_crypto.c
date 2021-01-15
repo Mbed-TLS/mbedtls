@@ -2976,10 +2976,10 @@ psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( target_operation->alg != 0 )
+    /* To clone, the source must be in progress and the target must be free */
+    if( source_operation->alg == 0 || target_operation->alg != 0 )
         return( PSA_ERROR_BAD_STATE );
 
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
     if ( source_operation->mbedtls_in_use == 0 )
     {
         status = psa_driver_wrapper_hash_clone( &source_operation->ctx.driver,
@@ -2990,12 +2990,9 @@ psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,
          * that specific driver knows the context structure. */
         return( status );
     }
-#endif
 
     switch( source_operation->alg )
     {
-        case 0:
-            return( PSA_ERROR_BAD_STATE );
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_MD2)
         case PSA_ALG_MD2:
             mbedtls_md2_clone( &target_operation->ctx.md2,

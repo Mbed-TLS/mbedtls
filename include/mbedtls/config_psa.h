@@ -244,6 +244,37 @@ extern "C" {
 #endif /*!MBEDTLS_PSA_ACCEL_KEY_TYPE_DES */
 #endif /* PSA_WANT_KEY_TYPE_DES */
 
+#if defined(PSA_WANT_ALG_STREAM_CIPHER)
+    /* Nothing to define */
+#endif /* PSA_WANT_ALG_STREAM_CIPHER */
+
+#if defined(PSA_WANT_ALG_CTR)
+#define MBEDTLS_CIPHER_MODE_CTR
+#endif /* PSA_WANT_ALG_CTR */
+
+#if defined(PSA_WANT_ALG_CFB)
+#define MBEDTLS_CIPHER_MODE_CFB
+#endif /* PSA_WANT_ALG_CFB */
+
+#if defined(PSA_WANT_ALG_OFB)
+#define MBEDTLS_CIPHER_MODE_OFB
+#endif /* PSA_WANT_ALG_OFB */
+
+#if defined(PSA_WANT_ALG_XTS)
+#define MBEDTLS_CIPHER_MODE_XTS
+#endif /* PSA_WANT_ALG_XTS */
+
+#if defined(PSA_WANT_ALG_ECB_NO_PADDING)
+    /* Nothing to define. */
+#endif
+
+#if defined(PSA_WANT_ALG_CBC_NO_PADDING) || defined(PSA_WANT_ALG_CBC_PKCS7)
+#define MBEDTLS_CIPHER_MODE_CBC
+#if defined(PSA_WANT_ALG_CBC_PKCS7)
+#define MBEDTLS_CIPHER_PADDING_PKCS7
+#endif /* PSA_WANT_ALG_CBC_PKCS7 */
+#endif /* PSA_WANT_ALG_CBC_NO_PADDING or PSA_WANT_ALG_CBC_PKCS7 */
+
 #else /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
 /*
@@ -358,6 +389,7 @@ extern "C" {
 
 #if defined(MBEDTLS_ARC4_C)
 #define PSA_WANT_KEY_TYPE_ARC4 1
+#define PSA_WANT_ALG_STREAM_CIPHER 1
 #endif
 
 #if defined(MBEDTLS_CAMELLIA_C)
@@ -366,6 +398,34 @@ extern "C" {
 
 #if defined(MBEDTLS_DES_C)
 #define PSA_WANT_KEY_TYPE_DES 1
+#endif
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+#define PSA_WANT_ALG_CBC_NO_PADDING 1
+#if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+#define PSA_WANT_ALG_CBC_PKCS7 1
+#endif
+#endif
+
+#if defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) || \
+    defined(MBEDTLS_CAMELLIA_C)
+#define PSA_WANT_ALG_ECB_NO_PADDING 1
+#endif
+
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+#define PSA_WANT_ALG_CFB 1
+#endif
+
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+#define PSA_WANT_ALG_CTR 1
+#endif
+
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+#define PSA_WANT_ALG_OFB 1
+#endif
+
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+#define PSA_WANT_ALG_XTS 1
 #endif
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */

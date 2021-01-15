@@ -1421,9 +1421,9 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     uint8_t round_ctrl_table[( 14 + AES_SCA_CM_ROUNDS + 2 )];
 
 #if defined MBEDTLS_AES_128_BIT_MASKED
-    uint32_t rk_masked[MBEDTLS_AES_128_EXPANDED_KEY_SIZE_IN_WORDS] = {0};
-    uint8_t sbox_masked[256] = {0};
-    uint32_t mask[10] = {0};
+    uint32_t rk_masked[MBEDTLS_AES_128_EXPANDED_KEY_SIZE_IN_WORDS];
+    uint8_t sbox_masked[256];
+    uint32_t mask[10];
 #endif
 
 #if defined(MBEDTLS_VALIDATE_AES_KEYS_INTEGRITY)

@@ -93,6 +93,7 @@ struct psa_hash_operation_s
     unsigned int mbedtls_in_use : 1; /* Indicates mbed TLS is handling the operation. */
     union
     {
+        uint32_t dummy; /* Enable easier initializing of the union. */
         psa_operation_driver_context_t driver;
 #if defined(MBEDTLS_MD2_C)
         mbedtls_md2_context md2;

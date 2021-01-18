@@ -4903,6 +4903,8 @@ static void psa_aead_abort_internal( aead_operation_t *operation )
             mbedtls_gcm_free( &operation->ctx.gcm );
             break;
 #endif /* MBEDTLS_GCM_C */
+        default:
+            break;
     }
 
     psa_unlock_key_slot( operation->slot );
@@ -5035,6 +5037,33 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
 
     *ciphertext_length = 0;
 
+    /* Try to use an accelerator first. */
+    status = psa_get_and_lock_key_slot_with_policy( key,
+                                                &operation.slot,
+                                                PSA_KEY_USAGE_ENCRYPT,
+                                                alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    status = psa_driver_wrapper_aead_encrypt( operation.slot,
+                                              alg,
+                                              nonce,
+                                              nonce_length,
+                                              additional_data,
+                                              additional_data_length,
+                                              plaintext,
+                                              plaintext_length,
+                                              ciphertext,
+                                              ciphertext_size,
+                                              ciphertext_length );
+    /* Unlock the slot here, since it will be re-acquired by
+     * psa_aead_setup() in case there's no accelerator support. */
+    psa_unlock_key_slot( operation.slot );
+    if( status != PSA_ERROR_NOT_SUPPORTED ||
+        psa_key_lifetime_is_external( operation.slot->attr.lifetime ) )
+        return( status );
+
+    /* Fall back to software implementation for internal keys */
     status = psa_aead_setup( &operation, key, PSA_KEY_USAGE_ENCRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
@@ -5149,6 +5178,32 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
 
     *plaintext_length = 0;
 
+    /* Try to use an accelerator first. */
+    status = psa_get_and_lock_key_slot_with_policy( key,
+                                                &operation.slot,
+                                                PSA_KEY_USAGE_DECRYPT,
+                                                alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+    status = psa_driver_wrapper_aead_decrypt( operation.slot,
+                                              alg,
+                                              nonce,
+                                              nonce_length,
+                                              additional_data,
+                                              additional_data_length,
+                                              ciphertext,
+                                              ciphertext_length,
+                                              plaintext,
+                                              plaintext_size,
+                                              plaintext_length );
+    /* Unlock the slot here, since it will be re-acquired by
+     * psa_aead_setup() in case there's no accelerator support. */
+    psa_unlock_key_slot( operation.slot );
+    if( status != PSA_ERROR_NOT_SUPPORTED ||
+        psa_key_lifetime_is_external( operation.slot->attr.lifetime ) )
+        return status;
+
+    /* Fall back to software implementation for internal keys */
     status = psa_aead_setup( &operation, key, PSA_KEY_USAGE_DECRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );

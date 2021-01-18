@@ -119,6 +119,25 @@ psa_status_t psa_driver_wrapper_cipher_finish(
 psa_status_t psa_driver_wrapper_cipher_abort(
     psa_operation_driver_context_t *operation );
 
+/*
+ * AEAD functions
+ */
+psa_status_t psa_driver_wrapper_aead_encrypt(
+    psa_key_slot_t *slot,
+    psa_algorithm_t alg,
+    const uint8_t *nonce, size_t nonce_length,
+    const uint8_t *additional_data, size_t additional_data_length,
+    const uint8_t *plaintext, size_t plaintext_length,
+    uint8_t *ciphertext, size_t ciphertext_size, size_t *ciphertext_length );
+
+psa_status_t psa_driver_wrapper_aead_decrypt(
+    psa_key_slot_t *slot,
+    psa_algorithm_t alg,
+    const uint8_t *nonce, size_t nonce_length,
+    const uint8_t *additional_data, size_t additional_data_length,
+    const uint8_t *ciphertext, size_t ciphertext_length,
+    uint8_t *plaintext, size_t plaintext_size, size_t *plaintext_length );
+
 #endif /* PSA_CRYPTO_DRIVER_WRAPPERS_H */
 
 /* End of automatically generated file. */

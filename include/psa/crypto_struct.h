@@ -191,16 +191,18 @@ struct psa_aead_operation_s
     psa_algorithm_t alg;
     unsigned int key_set : 1;
     unsigned int iv_set : 1;
+    unsigned int mbedtls_in_use : 1; /* Indicates mbed TLS is handling the operation. */
     uint8_t iv_size;
     uint8_t block_size;
     union
     {
         unsigned dummy; /* Enable easier initializing of the union. */
         mbedtls_cipher_context_t cipher;
+        psa_operation_driver_context_t driver;
     } ctx;
 };
 
-#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, {0}}
+#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, {0}}
 static inline struct psa_aead_operation_s psa_aead_operation_init( void )
 {
     const struct psa_aead_operation_s v = PSA_AEAD_OPERATION_INIT;

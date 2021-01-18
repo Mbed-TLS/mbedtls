@@ -990,4 +990,163 @@ psa_status_t psa_driver_wrapper_cipher_abort(
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
+/*
+ * AEAD functions
+ */
+psa_status_t psa_driver_wrapper_aead_encrypt(
+    psa_key_slot_t *slot,
+    psa_algorithm_t alg,
+    const uint8_t *nonce, size_t nonce_length,
+    const uint8_t *additional_data, size_t additional_data_length,
+    const uint8_t *plaintext, size_t plaintext_length,
+    uint8_t *ciphertext, size_t ciphertext_size, size_t *ciphertext_length )
+{
+#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime);
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+
+    switch( location )
+    {
+        case PSA_KEY_LOCATION_LOCAL_STORAGE:
+            /* Key is stored in the slot in export representation, so
+             * cycle through all known transparent accelerators */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+            status = test_transparent_aead_encrypt( &attributes,
+                                                    slot->data.key.data,
+                                                    slot->data.key.bytes,
+                                                    alg,
+                                                    nonce,
+                                                    nonce_length,
+                                                    additional_data,
+                                                    additional_data_length,
+                                                    plaintext,
+                                                    plaintext_length,
+                                                    ciphertext,
+                                                    ciphertext_size,
+                                                    ciphertext_length );
+            /* Declared with fallback == true */
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+            /* Fell through, meaning no accelerator supports this operation */
+            return( PSA_ERROR_NOT_SUPPORTED );
+        /* Add cases for opaque driver here */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+            return( test_opaque_aead_encrypt( &attributes,
+                                              slot->data.key.data,
+                                              slot->data.key.bytes,
+                                              alg,
+                                              nonce,
+                                              nonce_length,
+                                              additional_data,
+                                              additional_data_length,
+                                              plaintext,
+                                              plaintext_length,
+                                              ciphertext,
+                                              ciphertext_size,
+                                              ciphertext_length ) );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+        default:
+            /* Key is declared with a lifetime not known to us */
+            return( status );
+    }
+#else /* PSA_CRYPTO_DRIVER_PRESENT */
+    (void) slot;
+    (void) alg;
+    (void) nonce;
+    (void) nonce_length;
+    (void) additional_data;
+    (void) additional_data_length;
+    (void) plaintext;
+    (void) plaintext_length;
+    (void) ciphertext;
+    (void) ciphertext_size;
+    (void) ciphertext_length;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+}
+
+psa_status_t psa_driver_wrapper_aead_decrypt(
+    psa_key_slot_t *slot,
+    psa_algorithm_t alg,
+    const uint8_t *nonce, size_t nonce_length,
+    const uint8_t *additional_data, size_t additional_data_length,
+    const uint8_t *ciphertext, size_t ciphertext_length,
+    uint8_t *plaintext, size_t plaintext_size, size_t *plaintext_length )
+{
+#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime);
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+
+    switch( location )
+    {
+        case PSA_KEY_LOCATION_LOCAL_STORAGE:
+            /* Key is stored in the slot in export representation, so
+             * cycle through all known transparent accelerators */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+            status = test_transparent_aead_decrypt( &attributes,
+                                                    slot->data.key.data,
+                                                    slot->data.key.bytes,
+                                                    alg,
+                                                    nonce,
+                                                    nonce_length,
+                                                    additional_data,
+                                                    additional_data_length,
+                                                    ciphertext,
+                                                    ciphertext_length,
+                                                    plaintext,
+                                                    plaintext_size,
+                                                    plaintext_length );
+            /* Declared with fallback == true */
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+            /* Fell through, meaning no accelerator supports this operation */
+            return( PSA_ERROR_NOT_SUPPORTED );
+        /* Add cases for opaque driver here */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+            return( test_opaque_aead_decrypt( &attributes,
+                                              slot->data.key.data,
+                                              slot->data.key.bytes,
+                                              alg,
+                                              nonce,
+                                              nonce_length,
+                                              additional_data,
+                                              additional_data_length,
+                                              ciphertext,
+                                              ciphertext_length,
+                                              plaintext,
+                                              plaintext_size,
+                                              plaintext_length ) );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+        default:
+            /* Key is declared with a lifetime not known to us */
+            return( status );
+    }
+#else /* PSA_CRYPTO_DRIVER_PRESENT */
+    (void) slot;
+    (void) alg;
+    (void) nonce;
+    (void) nonce_length;
+    (void) additional_data;
+    (void) additional_data_length;
+    (void) ciphertext;
+    (void) ciphertext_length;
+    (void) plaintext;
+    (void) plaintext_size;
+    (void) plaintext_length;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+}
+
 /* End of automatically generated file. */

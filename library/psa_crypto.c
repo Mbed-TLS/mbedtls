@@ -1217,6 +1217,12 @@ psa_status_t psa_export_key( mbedtls_svc_key_id_t key,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
+    /* Reject a zero-length output buffer now, since this can never be a
+     * valid key representation. This way we know that data must be a valid
+     * pointer and we can do things like memset(data, ..., data_size). */
+    if( data_size == 0 )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
     /* Set the key to empty now, so that even when there are errors, we always
      * set data_length to a value between 0 and data_size. On error, setting
      * the key to empty is a good choice because an empty key representation is
@@ -1232,15 +1238,6 @@ psa_status_t psa_export_key( mbedtls_svc_key_id_t key,
     if( status != PSA_SUCCESS )
         return( status );
 
-    /* Reject a zero-length output buffer now, since this can never be a
-     * valid key representation. This way we know that data must be a valid
-     * pointer and we can do things like memset(data, ..., data_size). */
-    if( data_size == 0 )
-    {
-         status = PSA_ERROR_BUFFER_TOO_SMALL;
-         goto exit;
-    }
-
     psa_key_attributes_t attributes = {
         .core = slot->attr
     };
@@ -1248,7 +1245,6 @@ psa_status_t psa_export_key( mbedtls_svc_key_id_t key,
                  slot->key.data, slot->key.bytes,
                  data, data_size, data_length );
 
-exit:
     unlock_status = psa_unlock_key_slot( slot );
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
@@ -1325,6 +1321,12 @@ psa_status_t psa_export_public_key( mbedtls_svc_key_id_t key,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
+    /* Reject a zero-length output buffer now, since this can never be a
+     * valid key representation. This way we know that data must be a valid
+     * pointer and we can do things like memset(data, ..., data_size). */
+    if( data_size == 0 )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
     /* Set the key to empty now, so that even when there are errors, we always
      * set data_length to a value between 0 and data_size. On error, setting
      * the key to empty is a good choice because an empty key representation is
@@ -1339,15 +1341,6 @@ psa_status_t psa_export_public_key( mbedtls_svc_key_id_t key,
     if( ! PSA_KEY_TYPE_IS_ASYMMETRIC( slot->attr.type ) )
     {
          status = PSA_ERROR_INVALID_ARGUMENT;
-         goto exit;
-    }
-
-    /* Reject a zero-length output buffer now, since this can never be a
-     * valid key representation. This way we know that data must be a valid
-     * pointer and we can do things like memset(data, ..., data_size). */
-    if( data_size == 0 )
-    {
-         status = PSA_ERROR_BUFFER_TOO_SMALL;
          goto exit;
     }
 

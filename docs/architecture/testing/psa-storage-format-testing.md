@@ -71,6 +71,15 @@ In particular, the tests must validate that each `PSA_xxx` constant that is stor
 
 Method: Each test case creates a key with `psa_import_key`, purges it from memory, then reads it back and exercises it. Generate test cases automatically based on an enumeration of available constants and some knowledge of what attributes (sizes, algorithms, …) and content to use for keys of a certain type. Note that the generated test cases will be checked into the repository (generating test cases at runtime would not allow us to test the stability of the format, only that a given version is internally consistent).
 
+### Testing with alternative lifetime values
+
+Objective: have test coverage for lifetimes other than the default persistent lifetime (`PSA_KEY_LIFETIME_PERSISTENT`).
+
+Method:
+
+* For alternative locations: have tests conditional on the presence of a driver for that location.
+* For alternative persistence levels: TODO
+
 ## Random generator state
 
 TODO

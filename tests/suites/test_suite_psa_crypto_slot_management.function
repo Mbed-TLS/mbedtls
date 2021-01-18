@@ -343,9 +343,9 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
                         psa_get_key_type( &read_attributes ) );
             TEST_EQUAL( psa_get_key_bits( &attributes ),
                         psa_get_key_bits( &read_attributes ) );
+            ASSERT_ALLOC( reexported, key_data->len );
             if( usage_flags & PSA_KEY_USAGE_EXPORT )
             {
-                ASSERT_ALLOC( reexported, key_data->len );
                 PSA_ASSERT( psa_export_key( id, reexported, key_data->len,
                                             &reexported_length ) );
                 ASSERT_COMPARE( key_data->x, key_data->len,
@@ -353,7 +353,8 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
             }
             else
             {
-                TEST_EQUAL( psa_export_key( id, NULL, 0, &reexported_length ),
+                TEST_EQUAL( psa_export_key( id, reexported,
+                                key_data->len, &reexported_length ),
                             PSA_ERROR_NOT_PERMITTED );
             }
             PSA_ASSERT( psa_close_key( handle ) );

@@ -1028,18 +1028,20 @@ static int exercise_export_key( mbedtls_svc_key_id_t key,
 
     PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
 
+    exported_size = PSA_EXPORT_KEY_OUTPUT_SIZE(
+                        psa_get_key_type( &attributes ),
+                        psa_get_key_bits( &attributes ) );
+    ASSERT_ALLOC( exported, exported_size );
+
     if( ( usage & PSA_KEY_USAGE_EXPORT ) == 0 &&
         ! PSA_KEY_TYPE_IS_PUBLIC_KEY( psa_get_key_type( &attributes ) ) )
     {
-        TEST_EQUAL( psa_export_key( key, NULL, 0, &exported_length ),
+        TEST_EQUAL( psa_export_key( key, exported,
+                                    exported_size, &exported_length ),
                     PSA_ERROR_NOT_PERMITTED );
         ok = 1;
         goto exit;
     }
-
-    exported_size = PSA_EXPORT_KEY_OUTPUT_SIZE( psa_get_key_type( &attributes ),
-                                                psa_get_key_bits( &attributes ) );
-    ASSERT_ALLOC( exported, exported_size );
 
     PSA_ASSERT( psa_export_key( key,
                                 exported, exported_size,
@@ -1071,9 +1073,16 @@ static int exercise_export_public_key( mbedtls_svc_key_id_t key )
     PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
     if( ! PSA_KEY_TYPE_IS_ASYMMETRIC( psa_get_key_type( &attributes ) ) )
     {
-        TEST_EQUAL( psa_export_public_key( key, NULL, 0, &exported_length ),
+        exported_size = PSA_EXPORT_KEY_OUTPUT_SIZE(
+                            psa_get_key_type( &attributes ),
+                            psa_get_key_bits( &attributes ) );
+        ASSERT_ALLOC( exported, exported_size );
+
+        TEST_EQUAL( psa_export_public_key( key, exported,
+                                           exported_size, &exported_length ),
                     PSA_ERROR_INVALID_ARGUMENT );
-        return( 1 );
+        ok = 1;
+        goto exit;
     }
 
     public_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(

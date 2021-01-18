@@ -1,0 +1,3 @@
+Features
+   * MAC operations executed through the PSA API can now be accelerated with
+     a PSA Crypto driver.

@@ -119,6 +119,55 @@ psa_status_t psa_driver_wrapper_cipher_finish(
 psa_status_t psa_driver_wrapper_cipher_abort(
     psa_operation_driver_context_t *operation );
 
+/*
+ * MAC calculation functions
+ */
+psa_status_t psa_driver_wrapper_mac_compute(
+    psa_key_slot_t *slot,
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *mac,
+    size_t mac_size,
+    size_t *mac_length );
+
+psa_status_t psa_driver_wrapper_mac_verify(
+    psa_key_slot_t *slot,
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    const uint8_t *mac,
+    size_t mac_length );
+
+psa_status_t psa_driver_wrapper_mac_sign_setup(
+    psa_operation_driver_context_t *operation,
+    psa_key_slot_t *slot,
+    psa_algorithm_t alg );
+
+psa_status_t psa_driver_wrapper_mac_verify_setup(
+    psa_operation_driver_context_t *operation,
+    psa_key_slot_t *slot,
+    psa_algorithm_t alg );
+
+psa_status_t psa_driver_wrapper_mac_update(
+    psa_operation_driver_context_t *operation,
+    const uint8_t *input,
+    size_t input_length );
+
+psa_status_t psa_driver_wrapper_mac_sign_finish(
+    psa_operation_driver_context_t *operation,
+    uint8_t *mac,
+    size_t mac_size,
+    size_t *mac_length );
+
+psa_status_t psa_driver_wrapper_mac_verify_finish(
+    psa_operation_driver_context_t *operation,
+    const uint8_t *mac,
+    size_t mac_length );
+
+psa_status_t psa_driver_wrapper_mac_abort(
+    psa_operation_driver_context_t *operation );
+
 #endif /* PSA_CRYPTO_DRIVER_WRAPPERS_H */
 
 /* End of automatically generated file. */

@@ -142,10 +142,13 @@ struct psa_mac_operation_s
     unsigned int iv_set : 1;
     unsigned int has_input : 1;
     unsigned int is_sign : 1;
+    unsigned int mbedtls_in_use : 1;
+    unsigned int verify_through_compute : 1;
     uint8_t mac_size;
     union
     {
         unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
+        psa_operation_driver_context_t driver;
 #if defined(MBEDTLS_MD_C)
         psa_hmac_internal_data hmac;
 #endif
@@ -155,7 +158,7 @@ struct psa_mac_operation_s
     } ctx;
 };
 
-#define PSA_MAC_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, {0}}
+#define PSA_MAC_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, {0}}
 static inline struct psa_mac_operation_s psa_mac_operation_init( void )
 {
     const struct psa_mac_operation_s v = PSA_MAC_OPERATION_INIT;

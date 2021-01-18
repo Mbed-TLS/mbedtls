@@ -990,4 +990,323 @@ psa_status_t psa_driver_wrapper_cipher_abort(
 #endif /* PSA_CRYPTO_DRIVER_PRESENT */
 }
 
+/*
+ * MAC calculation functions
+ */
+
+psa_status_t psa_driver_wrapper_mac_sign_setup(
+    psa_operation_driver_context_t *operation,
+    psa_key_slot_t *slot,
+    psa_algorithm_t alg )
+{
+#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime);
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+
+     /* Try all declared accelerators in turn until one of them succeeds or there's
+     * none left to try. */
+switch( location )
+    {
+        case PSA_KEY_LOCATION_LOCAL_STORAGE:
+            /* Key is stored in the slot in export representation, so
+             * cycle through all known transparent accelerators */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+            operation->ctx = mbedtls_calloc( 1, sizeof( test_transparent_mac_operation_t ) );
+            if ( operation->ctx == NULL )
+                return PSA_ERROR_INSUFFICIENT_MEMORY;
+            status = test_transparent_mac_sign_setup( operation->ctx, slot, alg );
+
+             if( status == PSA_SUCCESS )
+            {
+                operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
+                return( status );
+            }
+            else
+            {
+                mbedtls_free( operation->ctx );
+                operation->ctx = NULL;
+            }
+#endif
+            /* Add more accelerators here... */
+
+             /* If none are capable or spliced in, fall through here */
+            (void) operation;
+            (void) attributes;
+            (void) alg;
+            return( PSA_ERROR_NOT_SUPPORTED );
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+            operation->ctx = mbedtls_calloc( 1, sizeof(test_opaque_mac_operation_t) );
+            if( operation->ctx == NULL )
+                return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+            status = test_opaque_mac_sign_setup( operation->ctx,
+                                                 &attributes,
+                                                 slot->data.key.data,
+                                                 slot->data.key.bytes,
+                                                 alg );
+            if( status == PSA_SUCCESS )
+                operation->id = PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID;
+            else
+            {
+                mbedtls_platform_zeroize(
+                    operation->ctx,
+                    sizeof( test_opaque_mac_operation_t ) );
+                mbedtls_free( operation->ctx );
+                operation->ctx = NULL;
+            }
+
+            return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+        default:
+            (void) operation;
+            (void) attributes;
+            (void) alg;
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+ #else /* PSA_CRYPTO_DRIVER_PRESENT && PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+    (void) operation;
+    (void) alg;
+
+     return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+}
+
+psa_status_t psa_driver_wrapper_mac_verify_setup(
+    psa_operation_driver_context_t *operation,
+    psa_key_slot_t *slot,
+    psa_algorithm_t alg )
+{
+#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(slot->attr.lifetime);
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+
+     /* Try all declared accelerators in turn until one of them succeeds or there's
+     * none left to try. */
+switch( location )
+    {
+        case PSA_KEY_LOCATION_LOCAL_STORAGE:
+            /* Key is stored in the slot in export representation, so
+             * cycle through all known transparent accelerators */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+            operation->ctx = mbedtls_calloc( 1, sizeof( test_transparent_mac_operation_t ) );
+            if ( operation->ctx == NULL )
+                return PSA_ERROR_INSUFFICIENT_MEMORY;
+            status = test_transparent_mac_verify_setup( operation->ctx, slot, alg );
+
+             if( status == PSA_SUCCESS )
+            {
+                operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
+                return( status );
+            }
+            else
+            {
+                mbedtls_free( operation->ctx );
+                operation->ctx = NULL;
+            }
+#endif
+            /* Add more accelerators here... */
+
+             /* If none are capable or spliced in, fall through here */
+            (void) operation;
+            (void) attributes;
+            (void) alg;
+            return( PSA_ERROR_NOT_SUPPORTED );
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+            operation->ctx = mbedtls_calloc( 1, sizeof(test_opaque_mac_operation_t) );
+            if( operation->ctx == NULL )
+                return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+            status = test_opaque_mac_verify_setup( operation->ctx,
+                                                   &attributes,
+                                                   slot->data.key.data,
+                                                   slot->data.key.bytes,
+                                                   alg );
+            if( status == PSA_SUCCESS )
+                operation->id = PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID;
+            else
+            {
+                mbedtls_platform_zeroize(
+                    operation->ctx,
+                    sizeof( test_opaque_mac_operation_t ) );
+                mbedtls_free( operation->ctx );
+                operation->ctx = NULL;
+            }
+
+            return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+        default:
+            (void) operation;
+            (void) attributes;
+            (void) alg;
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+ #else /* PSA_CRYPTO_DRIVER_PRESENT && PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+    (void) operation;
+    (void) alg;
+
+     return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+}
+
+psa_status_t psa_driver_wrapper_mac_update(
+    psa_operation_driver_context_t *operation,
+    const uint8_t *input,
+    size_t input_length )
+{
+#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    switch( operation->id )
+    {
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
+            return( test_transparent_mac_update( operation->ctx,
+                                                 input,
+                                                 input_length ) );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID:
+            return( test_opaque_mac_update( operation->ctx,
+                                            input,
+                                            input_length ) );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+        default:
+            /* Key is attached to a driver not known to us */
+            return( PSA_ERROR_BAD_STATE );
+    }
+#else /* PSA_CRYPTO_DRIVER_PRESENT */
+    (void) operation;
+    (void) input;
+    (void) input_length;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+}
+
+psa_status_t psa_driver_wrapper_mac_sign_finish(
+    psa_operation_driver_context_t *operation,
+    uint8_t *mac,
+    size_t mac_size,
+    size_t *mac_length )
+{
+#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    switch( operation->id )
+    {
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
+            return( test_transparent_mac_sign_finish( operation->ctx,
+                                                      mac,
+                                                      mac_size,
+                                                      mac_length ) );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID:
+            return( test_opaque_mac_sign_finish( operation->ctx,
+                                                 mac,
+                                                 mac_size,
+                                                 mac_length ) );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+        default:
+            /* Key is attached to a driver not known to us */
+            return( PSA_ERROR_BAD_STATE );
+    }
+#else /* PSA_CRYPTO_DRIVER_PRESENT */
+    (void) operation;
+    (void) mac;
+    (void) mac_size;
+    (void) mac_length;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+}
+
+psa_status_t psa_driver_wrapper_mac_verify_finish(
+    psa_operation_driver_context_t *operation,
+    const uint8_t *mac,
+    size_t mac_length )
+{
+#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    switch( operation->id )
+    {
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
+            return( test_transparent_mac_verify_finish( operation->ctx,
+                                                        mac,
+                                                        mac_length ) );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID:
+            return( test_opaque_mac_verify_finish( operation->ctx,
+                                                   mac,
+                                                   mac_length ) );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+        default:
+            /* Key is attached to a driver not known to us */
+            return( PSA_ERROR_BAD_STATE );
+    }
+#else /* PSA_CRYPTO_DRIVER_PRESENT */
+    (void) operation;
+    (void) mac;
+    (void) mac_length;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+}
+
+psa_status_t psa_driver_wrapper_mac_abort(
+    psa_operation_driver_context_t *operation )
+{
+#if defined(PSA_CRYPTO_DRIVER_PRESENT) && defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+
+    /* The object has (apparently) been initialized but it is not in use. It's
+     * ok to call abort on such an object, and there's nothing to do. */
+    if( operation->ctx == NULL && operation->id == 0 )
+        return( PSA_SUCCESS );
+
+    switch( operation->id )
+    {
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
+            status = test_transparent_mac_abort( operation->ctx );
+            mbedtls_platform_zeroize(
+                operation->ctx,
+                sizeof( test_transparent_mac_operation_t ) );
+            mbedtls_free( operation->ctx );
+            operation->ctx = NULL;
+            operation->id = 0;
+
+            return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID:
+            status = test_opaque_mac_abort( operation->ctx );
+            mbedtls_platform_zeroize(
+                operation->ctx,
+                sizeof( test_opaque_mac_operation_t ) );
+            mbedtls_free( operation->ctx );
+            operation->ctx = NULL;
+            operation->id = 0;
+
+            return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+        default:
+            /* Operation is attached to a driver not known to us */
+            return( PSA_ERROR_BAD_STATE );
+    }
+#else /* PSA_CRYPTO_DRIVER_PRESENT */
+    (void)operation;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* PSA_CRYPTO_DRIVER_PRESENT */
+}
+
 /* End of automatically generated file. */

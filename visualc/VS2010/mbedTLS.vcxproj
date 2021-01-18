@@ -240,6 +240,7 @@
     <ClInclude Include="..\..\tests\include\test\random.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\cipher.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\key_management.h" />
+    <ClInclude Include="..\..\tests\include\test\drivers\mac.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\signature.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\size.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\test_driver.h" />

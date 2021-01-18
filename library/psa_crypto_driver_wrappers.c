@@ -501,7 +501,9 @@ psa_status_t psa_driver_wrapper_export_key(
     {
         if( ( drv->key_management == NULL   ) ||
             ( drv->key_management->p_export == NULL ) )
+        {
             return( PSA_ERROR_NOT_SUPPORTED );
+        }
 
         return( drv->key_management->p_export(
                      drv_context,
@@ -557,7 +559,9 @@ psa_status_t psa_driver_wrapper_export_public_key(
     {
         if( ( drv->key_management == NULL ) ||
             ( drv->key_management->p_export_public == NULL ) )
+        {
             return( PSA_ERROR_NOT_SUPPORTED );
+        }
 
         return( drv->key_management->p_export_public(
                     drv_context,

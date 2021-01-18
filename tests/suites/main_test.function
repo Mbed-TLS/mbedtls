@@ -182,7 +182,6 @@ void execute_function_ptr(TestWrapper_t fp, void **params)
         test_fail( location_record.failure_condition,
                    location_record.line,
                    location_record.file );
-        test_info.result = TEST_RESULT_FAILED;
     }
 
     mbedtls_test_param_failed_reset_state( );

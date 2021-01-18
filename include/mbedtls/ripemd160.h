@@ -126,7 +126,6 @@ int mbedtls_internal_ripemd160_process( mbedtls_ripemd160_context *ctx,
                                         const unsigned char data[64] );
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED      __attribute__((deprecated))
 #else
 #define MBEDTLS_DEPRECATED
@@ -134,7 +133,6 @@ int mbedtls_internal_ripemd160_process( mbedtls_ripemd160_context *ctx,
 /**
  * \brief          RIPEMD-160 context setup
  *
- * \deprecated     Superseded by mbedtls_ripemd160_starts_ret() in 2.7.0
  *
  * \param ctx      context to be initialized
  */
@@ -158,7 +156,6 @@ MBEDTLS_DEPRECATED void mbedtls_ripemd160_update(
 /**
  * \brief          RIPEMD-160 final digest
  *
- * \deprecated     Superseded by mbedtls_ripemd160_finish_ret() in 2.7.0
  *
  * \param ctx      RIPEMD-160 context
  * \param output   RIPEMD-160 checksum result
@@ -196,7 +193,6 @@ int mbedtls_ripemd160_ret( const unsigned char *input,
                            unsigned char output[20] );
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED      __attribute__((deprecated))
 #else
 #define MBEDTLS_DEPRECATED
@@ -204,7 +200,6 @@ int mbedtls_ripemd160_ret( const unsigned char *input,
 /**
  * \brief          Output = RIPEMD-160( input buffer )
  *
- * \deprecated     Superseded by mbedtls_ripemd160_ret() in 2.7.0
  *
  * \param input    buffer holding the data
  * \param ilen     length of the input data

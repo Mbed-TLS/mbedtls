@@ -169,7 +169,6 @@ int mbedtls_internal_md5_process( mbedtls_md5_context *ctx,
                                   const unsigned char data[64] );
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED      __attribute__((deprecated))
 #else
 #define MBEDTLS_DEPRECATED
@@ -177,7 +176,6 @@ int mbedtls_internal_md5_process( mbedtls_md5_context *ctx,
 /**
  * \brief          MD5 context setup
  *
- * \deprecated     Superseded by mbedtls_md5_starts_ret() in 2.7.0
  *
  * \param ctx      context to be initialized
  *
@@ -191,7 +189,6 @@ MBEDTLS_DEPRECATED void mbedtls_md5_starts( mbedtls_md5_context *ctx );
 /**
  * \brief          MD5 process buffer
  *
- * \deprecated     Superseded by mbedtls_md5_update_ret() in 2.7.0
  *
  * \param ctx      MD5 context
  * \param input    buffer holding the data
@@ -209,7 +206,6 @@ MBEDTLS_DEPRECATED void mbedtls_md5_update( mbedtls_md5_context *ctx,
 /**
  * \brief          MD5 final digest
  *
- * \deprecated     Superseded by mbedtls_md5_finish_ret() in 2.7.0
  *
  * \param ctx      MD5 context
  * \param output   MD5 checksum result
@@ -225,7 +221,6 @@ MBEDTLS_DEPRECATED void mbedtls_md5_finish( mbedtls_md5_context *ctx,
 /**
  * \brief          MD5 process data block (internal use only)
  *
- * \deprecated     Superseded by mbedtls_internal_md5_process() in 2.7.0
  *
  * \param ctx      MD5 context
  * \param data     buffer holding one block of data
@@ -260,7 +255,6 @@ int mbedtls_md5_ret( const unsigned char *input,
                      unsigned char output[16] );
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED      __attribute__((deprecated))
 #else
 #define MBEDTLS_DEPRECATED
@@ -268,7 +262,6 @@ int mbedtls_md5_ret( const unsigned char *input,
 /**
  * \brief          Output = MD5( input buffer )
  *
- * \deprecated     Superseded by mbedtls_md5_ret() in 2.7.0
  *
  * \param input    buffer holding the data
  * \param ilen     length of the input data

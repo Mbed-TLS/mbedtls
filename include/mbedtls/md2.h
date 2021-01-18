@@ -168,7 +168,6 @@ int mbedtls_md2_finish_ret( mbedtls_md2_context *ctx,
 int mbedtls_internal_md2_process( mbedtls_md2_context *ctx );
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED      __attribute__((deprecated))
 #else
 #define MBEDTLS_DEPRECATED
@@ -176,7 +175,6 @@ int mbedtls_internal_md2_process( mbedtls_md2_context *ctx );
 /**
  * \brief          MD2 context setup
  *
- * \deprecated     Superseded by mbedtls_md2_starts_ret() in 2.7.0
  *
  * \param ctx      context to be initialized
  *
@@ -255,7 +253,6 @@ int mbedtls_md2_ret( const unsigned char *input,
                      unsigned char output[16] );
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED      __attribute__((deprecated))
 #else
 #define MBEDTLS_DEPRECATED
@@ -263,7 +260,6 @@ int mbedtls_md2_ret( const unsigned char *input,
 /**
  * \brief          Output = MD2( input buffer )
  *
- * \deprecated     Superseded by mbedtls_md2_ret() in 2.7.0
  *
  * \param input    buffer holding the data
  * \param ilen     length of the input data

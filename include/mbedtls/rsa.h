@@ -576,10 +576,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  *                 It is the generic wrapper for performing a PKCS#1 encryption
  *                 operation using the \p mode from the context.
  *
- * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
- *                 are likely to remove the \p mode argument and have it
- *                 implicitly set to #MBEDTLS_RSA_PUBLIC.
+ * 
  *
  * \note           Alternative implementations of RSA need not support
  *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
@@ -924,10 +921,7 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  * \brief          This function performs a PKCS#1 v1.5 signature
  *                 operation (RSASSA-PKCS1-v1_5-SIGN).
  *
- * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
- *                 are likely to remove the \p mode argument and have it
- *                 implicitly set to #MBEDTLS_RSA_PRIVATE.
+ * 
  *
  * \note           Alternative implementations of RSA need not support
  *                 mode being set to #MBEDTLS_RSA_PUBLIC and might instead
@@ -989,10 +983,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  *                 the key size in bytes), this function returns
  *                 #MBEDTLS_ERR_RSA_BAD_INPUT_DATA.
  *
- * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
- *                 are likely to remove the \p mode argument and have it
- *                 implicitly set to #MBEDTLS_RSA_PRIVATE.
+ * 
  *
  * \note           Alternative implementations of RSA need not support
  *                 mode being set to #MBEDTLS_RSA_PUBLIC and might instead
@@ -1144,10 +1135,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
  *                 same. If \p hash_id in the RSA context is unset,
  *                 the \p md_alg from the function call is used.
  *
- * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
- *                 are likely to remove the \p mode argument and have it
- *                 implicitly set to #MBEDTLS_RSA_PUBLIC.
+ * 
  *
  * \note           Alternative implementations of RSA need not support
  *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead

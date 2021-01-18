@@ -198,7 +198,7 @@ int mbedtls_internal_sha1_process( mbedtls_sha1_context *ctx,
  *                 constitutes a security risk. We recommend considering
  *                 stronger message digests instead.
  *
- * \deprecated     Superseded by mbedtls_sha1_starts_ret() in 2.7.0.
+ * 
  *
  * \param ctx      The SHA-1 context to initialize. This must be initialized.
  *
@@ -213,7 +213,7 @@ MBEDTLS_DEPRECATED void mbedtls_sha1_starts( mbedtls_sha1_context *ctx );
  *                 constitutes a security risk. We recommend considering
  *                 stronger message digests instead.
  *
- * \deprecated     Superseded by mbedtls_sha1_update_ret() in 2.7.0.
+ * 
  *
  * \param ctx      The SHA-1 context. This must be initialized and
  *                 have a hash operation started.
@@ -234,7 +234,6 @@ MBEDTLS_DEPRECATED void mbedtls_sha1_update( mbedtls_sha1_context *ctx,
  *                 constitutes a security risk. We recommend considering
  *                 stronger message digests instead.
  *
- * \deprecated     Superseded by mbedtls_sha1_finish_ret() in 2.7.0.
  *
  * \param ctx      The SHA-1 context. This must be initialized and
  *                 have a hash operation started.
@@ -251,7 +250,6 @@ MBEDTLS_DEPRECATED void mbedtls_sha1_finish( mbedtls_sha1_context *ctx,
  *                 constitutes a security risk. We recommend considering
  *                 stronger message digests instead.
  *
- * \deprecated     Superseded by mbedtls_internal_sha1_process() in 2.7.0.
  *
  * \param ctx      The SHA-1 context. This must be initialized.
  * \param data     The data block being processed.
@@ -310,7 +308,6 @@ int mbedtls_sha1_ret( const unsigned char *input,
  *                 constitutes a security risk. We recommend considering
  *                 stronger message digests instead.
  *
- * \deprecated     Superseded by mbedtls_sha1_ret() in 2.7.0
  *
  * \param input    The buffer holding the input data.
  *                 This must be a readable buffer of length \p ilen Bytes.

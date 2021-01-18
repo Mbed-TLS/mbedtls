@@ -159,7 +159,6 @@ void mbedtls_md_init( mbedtls_md_context_t *ctx );
 void mbedtls_md_free( mbedtls_md_context_t *ctx );
 
 #if ! defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED    __attribute__((deprecated))
 #else
 #define MBEDTLS_DEPRECATED
@@ -171,7 +170,6 @@ void mbedtls_md_free( mbedtls_md_context_t *ctx );
  *                  It should be called after mbedtls_md_init() or mbedtls_md_free().
  *                  Makes it necessary to call mbedtls_md_free() later.
  *
- * \deprecated      Superseded by mbedtls_md_setup() in 2.0.0
  *
  * \param ctx       The context to set up.
  * \param md_info   The information structure of the message-digest algorithm

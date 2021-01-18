@@ -159,7 +159,6 @@ int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
 int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
                                      const unsigned char data[128] );
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED      __attribute__((deprecated))
 #else
 #define MBEDTLS_DEPRECATED
@@ -168,7 +167,6 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
  * \brief          This function starts a SHA-384 or SHA-512 checksum
  *                 calculation.
  *
- * \deprecated     Superseded by mbedtls_sha512_starts_ret() in 2.7.0
  *
  * \param ctx      The SHA-512 context to use. This must be initialized.
  * \param is384    Determines which function to use. This must be either
@@ -184,7 +182,6 @@ MBEDTLS_DEPRECATED void mbedtls_sha512_starts( mbedtls_sha512_context *ctx,
  * \brief          This function feeds an input buffer into an ongoing
  *                 SHA-512 checksum calculation.
  *
- * \deprecated     Superseded by mbedtls_sha512_update_ret() in 2.7.0.
  *
  * \param ctx      The SHA-512 context. This must be initialized
  *                 and have a hash operation started.
@@ -200,7 +197,6 @@ MBEDTLS_DEPRECATED void mbedtls_sha512_update( mbedtls_sha512_context *ctx,
  * \brief          This function finishes the SHA-512 operation, and writes
  *                 the result to the output buffer.
  *
- * \deprecated     Superseded by mbedtls_sha512_finish_ret() in 2.7.0.
  *
  * \param ctx      The SHA-512 context. This must be initialized
  *                 and have a hash operation started.
@@ -215,7 +211,6 @@ MBEDTLS_DEPRECATED void mbedtls_sha512_finish( mbedtls_sha512_context *ctx,
  *                 the ongoing SHA-512 computation. This function is for
  *                 internal use only.
  *
- * \deprecated     Superseded by mbedtls_internal_sha512_process() in 2.7.0.
  *
  * \param ctx      The SHA-512 context. This must be initialized.
  * \param data     The buffer holding one block of data. This must be
@@ -275,7 +270,6 @@ int mbedtls_sha512_ret( const unsigned char *input,
  *                 The SHA-512 result is calculated as
  *                 output = SHA-512(input buffer).
  *
- * \deprecated     Superseded by mbedtls_sha512_ret() in 2.7.0
  *
  * \param input    The buffer holding the data. This must be a
  *                 readable buffer of length \p ilen Bytes.

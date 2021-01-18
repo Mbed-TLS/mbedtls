@@ -56,7 +56,6 @@ typedef struct mbedtls_pkcs11_context
         int len;
 } mbedtls_pkcs11_context;
 
-#if defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED      __attribute__((deprecated))
 #else
 #define MBEDTLS_DEPRECATED
@@ -66,16 +65,14 @@ typedef struct mbedtls_pkcs11_context
  * Initialize a mbedtls_pkcs11_context.
  * (Just making memory references valid.)
  *
- * \deprecated          This function is deprecated and will be removed in a
- *                      future version of the library.
+
  */
 MBEDTLS_DEPRECATED void mbedtls_pkcs11_init( mbedtls_pkcs11_context *ctx );
 
 /**
  * Fill in a mbed TLS certificate, based on the given PKCS11 helper certificate.
  *
- * \deprecated          This function is deprecated and will be removed in a
- *                      future version of the library.
+ 
  *
  * \param cert          X.509 certificate to fill
  * \param pkcs11h_cert  PKCS #11 helper certificate
@@ -118,8 +115,7 @@ MBEDTLS_DEPRECATED void mbedtls_pkcs11_priv_key_free(
  * \brief          Do an RSA private key decrypt, then remove the message
  *                 padding
  *
- * \deprecated     This function is deprecated and will be removed in a future
- *                 version of the library.
+
  *
  * \param ctx      PKCS #11 context
  * \param mode     must be MBEDTLS_RSA_PRIVATE, for compatibility with rsa.c's signature
@@ -143,8 +139,7 @@ MBEDTLS_DEPRECATED int mbedtls_pkcs11_decrypt( mbedtls_pkcs11_context *ctx,
 /**
  * \brief          Do a private RSA to sign a message digest
  *
- * \deprecated     This function is deprecated and will be removed in a future
- *                 version of the library.
+
  *
  * \param ctx      PKCS #11 context
  * \param mode     must be MBEDTLS_RSA_PRIVATE, for compatibility with rsa.c's signature
@@ -184,8 +179,7 @@ MBEDTLS_DEPRECATED static inline int mbedtls_ssl_pkcs11_decrypt( void *ctx,
 /**
  * \brief          This function signs a message digest using RSA.
  *
- * \deprecated     This function is deprecated and will be removed in a future
- *                 version of the library.
+
  *
  * \param ctx      The PKCS #11 context.
  * \param f_rng    The RNG function. This parameter is unused.
@@ -221,8 +215,7 @@ MBEDTLS_DEPRECATED static inline int mbedtls_ssl_pkcs11_sign( void *ctx,
 /**
  * This function gets the length of the private key.
  *
- * \deprecated     This function is deprecated and will be removed in a future
- *                 version of the library.
+
  *
  * \param ctx      The PKCS #11 context.
  *

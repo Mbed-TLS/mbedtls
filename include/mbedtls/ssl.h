@@ -53,9 +53,6 @@
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
 
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#warning "Record compression support via MBEDTLS_ZLIB_SUPPORT is deprecated and will be removed in the next major revision of the library"
-#endif
 
 #if defined(MBEDTLS_DEPRECATED_REMOVED)
 #error "Record compression support via MBEDTLS_ZLIB_SUPPORT is deprecated and cannot be used if MBEDTLS_DEPRECATED_REMOVED is set"
@@ -1404,11 +1401,7 @@ struct mbedtls_ssl_context
 #define MBEDTLS_SSL_CHANNEL_OUTBOUND   MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( 0 )
 #define MBEDTLS_SSL_CHANNEL_INBOUND    MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( 1 )
 
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif /* MBEDTLS_DEPRECATED_WARNING */
+
 
 MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_init)(
                     mbedtls_ssl_context *ssl,
@@ -2917,11 +2910,7 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif
+
 
 /**
  * \brief          Set the Diffie-Hellman public P and G values,
@@ -3744,11 +3733,7 @@ size_t mbedtls_ssl_get_input_max_frag_len( const mbedtls_ssl_context *ssl );
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif
+
 
 /**
  * \brief          This function is a deprecated approach to getting the max

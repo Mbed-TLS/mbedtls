@@ -45,19 +45,19 @@ For a more detailed description, refer to the [Mbed Crypto storage specification
 
 In addition, Mbed TLS includes an implementation of the PSA trusted storage interface on top of C stdio. This document addresses the test strategy for [PSA ITS over file](#psa-its-over-file) in a separate section below.
 
-## Key storage
+## Key storage testing
 
 ### Keystore layout
 
 Objective: test that the key file name corresponds to the key identifier.
 
-Method: store keys having various identifiers and verify that a file with the expected name is created, and no other.
+Method: Create a key with a given identifier (using `psa_import_key`) and verify that a file with the expected name is created, and no other. Repeat for different identifiers.
 
 ### General key format
 
-Objective: test the format of the key file.
+Objective: test the format of the key file: which field goes where and how big it is.
 
-Method: Write the test code based on the storage specification. Ensure that there are test cases covering all fields.
+Method: Create a key with certain metadata with `psa_import_key`. Read the file content and validate that it has the expected layout, deduced from the storage specification. Repeat with different metadata. Ensure that there are test cases covering all fields.
 
 ### Enumeration of test cases for keys
 
@@ -69,7 +69,7 @@ In particular, the tests must validate that each `PSA_xxx` constant that is stor
 * Algorithms in policies: `PSA_ALG_xxx`.
 * Key types: `PSA_KEY_TYPE_xxx`, `PSA_ECC_FAMILY_xxx`, `PSA_DH_FAMILY_xxx`.
 
-Method: Generate test cases automatically based on an enumeration of available constants and some knowledge of what attributes (sizes, algorithms, …) and content to use for keys of a certain type. Note that the generated test cases will be checked into the repository (generating test cases at runtime would not allow us to test the stability of the format, only that a given version is internally consistent).
+Method: Each test case creates a key with `psa_import_key`, purges it from memory, then reads it back and exercises it. Generate test cases automatically based on an enumeration of available constants and some knowledge of what attributes (sizes, algorithms, …) and content to use for keys of a certain type. Note that the generated test cases will be checked into the repository (generating test cases at runtime would not allow us to test the stability of the format, only that a given version is internally consistent).
 
 ## Random generator state
 

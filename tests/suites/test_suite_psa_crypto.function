@@ -9,13 +9,6 @@
  * uses mbedtls_ctr_drbg internally. */
 #include "mbedtls/ctr_drbg.h"
 
-/* Tests that require more than 128kB of RAM plus change have this symbol
- * as a dependency. Currently we always define this symbol, so the tests
- * are always executed. In the future we should make this conditional
- * so that tests that require a lot of memory are skipped on constrained
- * platforms. */
-#define HAVE_RAM_AVAILABLE_128K
-
 #include "psa/crypto.h"
 #include "psa_crypto_slot_management.h"
 
@@ -1588,9 +1581,9 @@ void import_large_key( int type_arg, int byte_size_arg,
     size_t buffer_size = byte_size + 1;
     size_t n;
 
-    /* It would be better to skip the test than fail it if the allocation
-     * fails, but the test framework doesn't support this yet. */
-    ASSERT_ALLOC( buffer, buffer_size );
+    /* Skip the test case if the target running the test cannot
+     * accomodate large keys due to heap size constraints */
+    ASSERT_ALLOC_WEAK( buffer, buffer_size );
     memset( buffer, 'K', byte_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -5333,6 +5326,26 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void derive_large_key( int alg_arg,
+                       data_t *key_data, data_t *input1, data_t *input2,
+                       int type_arg, int bits_arg,
+                       int expected_status_arg )
+{
+    size_t key_bytes = PSA_BITS_TO_BYTES(bits_arg);
+    uint8_t* buffer = NULL;
+
+    /* Check that the target running this test can accomodate large
+     * keys on its heap, before calling the actual generate_key test */
+    ASSERT_ALLOC_WEAK(buffer, key_bytes);
+    mbedtls_free( buffer );
+
+    test_derive_key( alg_arg, key_data, input1, input2, type_arg, bits_arg, expected_status_arg );
+exit:
+    return;
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void key_agreement_setup( int alg_arg,
                           int our_key_type_arg, int our_key_alg_arg,
                           data_t *our_key_data, data_t *peer_key_data,
@@ -5637,6 +5650,27 @@ exit:
 
     psa_destroy_key( key );
     PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void generate_large_key( int type_arg,
+                         int bits_arg,
+                         int usage_arg,
+                         int alg_arg,
+                         int expected_status_arg )
+{
+    size_t key_bytes = PSA_BITS_TO_BYTES(bits_arg);
+    uint8_t* buffer = NULL;
+
+    /* Check that the target running this test can accomodate large
+     * keys on its heap, before calling the actual generate_key test */
+    ASSERT_ALLOC_WEAK(buffer, key_bytes);
+    mbedtls_free( buffer );
+
+    test_generate_key( type_arg, bits_arg, usage_arg, alg_arg, expected_status_arg );
+exit:
+    return;
 }
 /* END_CASE */
 

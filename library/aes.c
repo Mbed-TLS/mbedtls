@@ -1560,8 +1560,6 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         {
             flow_control++;
         }
-        //Cleanup the masked key
-        mbedtls_platform_memset( rk_masked, 0, sizeof(rk_masked) );
 #else
         aes_fround_final( aes_data_ptr->rk_ptr,
             &aes_data_ptr->xy_values[0],

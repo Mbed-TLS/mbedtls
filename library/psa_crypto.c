@@ -3312,7 +3312,6 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH;
     uint8_t truncated = PSA_MAC_TRUNCATED_LENGTH( alg );
     psa_algorithm_t full_length_alg = PSA_ALG_FULL_LENGTH_MAC( alg );
-    psa_algorithm_t hash_alg;
 
     /* A context must be freshly initialized before it can be set up. */
     if( operation->alg != 0 )
@@ -3325,7 +3324,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     /* Pre-populate size of full-length MAC */
     if( PSA_ALG_IS_HMAC( full_length_alg ) )
     {
-        hash_alg = PSA_ALG_HMAC_GET_HASH( alg );
+        psa_algorithm_t hash_alg = PSA_ALG_HMAC_GET_HASH( alg );
         if( hash_alg == 0 )
         {
             status = PSA_ERROR_NOT_SUPPORTED;
@@ -3437,7 +3436,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         status = psa_hmac_setup_internal( &operation->ctx.hmac,
                                           slot->data.key.data,
                                           slot->data.key.bytes,
-                                          hash_alg );
+                                          PSA_ALG_HMAC_GET_HASH( alg ) );
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */

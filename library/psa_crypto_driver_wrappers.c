@@ -1070,6 +1070,7 @@ switch( location )
 
  #else /* PSA_CRYPTO_DRIVER_PRESENT && PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
     (void) operation;
+    (void) slot;
     (void) alg;
 
      return( PSA_ERROR_NOT_SUPPORTED );
@@ -1152,6 +1153,7 @@ switch( location )
 
  #else /* PSA_CRYPTO_DRIVER_PRESENT && PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
     (void) operation;
+    (void) slot;
     (void) alg;
 
      return( PSA_ERROR_NOT_SUPPORTED );

@@ -74,7 +74,7 @@ $PYTHON -m pylint -j 2 scripts/mbedtls_dev/*.py scripts/*.py tests/scripts/*.py 
 }
 
 # Check types if mypy is available
-if type mypy >/dev/null 2>/dev/null; then
+if can_mypy; then
     echo
     echo 'Running mypy ...'
     mypy scripts/*.py tests/scripts/*.py ||

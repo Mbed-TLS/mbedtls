@@ -49,11 +49,10 @@ can_pylint () {
 }
 
 can_mypy () {
-    # Just check that mypy is present and looks sane. I don't know what
-    # minimum version is required. The check is not just "type mypy"
-    # because that passes if a mypy exists but is not installed for the current
-    # python version.
-    $PYTHON -m mypy --version 2>/dev/null >/dev/null
+    # mypy 0.770 is too old:
+    #     tests/scripts/test_psa_constant_names.py:34: error: Cannot find implementation or library stub for module named 'mbedtls_dev'
+    # mypy 0.780 from pip passed on the first commit containing this line.
+    check_version mypy.version 0.780
 }
 
 # With just a --can-xxx option, check whether the tool for xxx is available

@@ -28,19 +28,24 @@ else
     PYTHON=python
 fi
 
+check_version () {
+    $PYTHON - "$2" <<EOF
+import packaging.version
+import sys
+import $1 as package
+actual = package.__version__
+wanted = sys.argv[1]
+if packaging.version.parse(actual) < packaging.version.parse(wanted):
+    sys.stderr.write("$1: version %s is too old (want %s)\n" % (actual, wanted))
+    exit(1)
+EOF
+}
+
 can_pylint () {
     # Pylint 1.5.2 from Ubuntu 16.04 is too old:
     #     E: 34, 0: Unable to import 'mbedtls_dev' (import-error)
     # Pylint 1.8.3 from Ubuntu 18.04 passed on the first commit containing this line.
-    $PYTHON -m pylint 2>/dev/null --version | awk '
-        BEGIN {status = 1}
-        /^(pylint[0-9]*|__main__\.py) +[0-9]+\.[0-9]+/ {
-            split($2, version, /[^0-9]+/);
-            status = !(version[1] >= 2 || (version[1] == 1 && version[2] >= 8));
-            exit; # executes the END block
-        }
-        END {exit status}
-    '
+    check_version pylint 1.8.3
 }
 
 can_mypy () {

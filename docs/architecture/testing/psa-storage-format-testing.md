@@ -47,6 +47,8 @@ In addition, Mbed TLS includes an implementation of the PSA trusted storage inte
 
 ## Key storage testing
 
+This section describes the desired test cases for keys created with the current storage format version. When the storage format changes, if backward compatibility is desired, old test data should be kept as described under [“Keeping up with storage format evolution”](#keeping-up-with-storage-format-evolution).
+
 ### Keystore layout
 
 Objective: test that the key file name corresponds to the key identifier.

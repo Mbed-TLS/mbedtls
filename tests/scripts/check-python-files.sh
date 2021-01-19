@@ -53,7 +53,7 @@ can_mypy () {
     # minimum version is required. The check is not just "type mypy"
     # because that passes if a mypy exists but is not installed for the current
     # python version.
-    mypy --version 2>/dev/null >/dev/null
+    $PYTHON -m mypy --version 2>/dev/null >/dev/null
 }
 
 # With just a --can-xxx option, check whether the tool for xxx is available
@@ -77,7 +77,7 @@ $PYTHON -m pylint -j 2 scripts/mbedtls_dev/*.py scripts/*.py tests/scripts/*.py 
 if can_mypy; then
     echo
     echo 'Running mypy ...'
-    mypy scripts/*.py tests/scripts/*.py ||
+    $PYTHON -m mypy scripts/*.py tests/scripts/*.py ||
       ret=1
 fi
 

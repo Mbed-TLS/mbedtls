@@ -103,7 +103,7 @@ def get_c_expression_values(
     * ``header``: extra code to insert before any function in the generated
       C file.
     * ``expressions``: a list of C language expressions that have the type
-      ``type``.
+      ``cast_to``.
     * ``include_path``: a list of directories containing header files.
     * ``keep_c``: if true, keep the temporary C file (presumably for debugging
       purposes).

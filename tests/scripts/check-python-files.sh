@@ -29,7 +29,8 @@ else
 fi
 
 can_pylint () {
-    # Pylint 1.5.2 from Ubuntu 16.04 is too old.
+    # Pylint 1.5.2 from Ubuntu 16.04 is too old:
+    #     E: 34, 0: Unable to import 'mbedtls_dev' (import-error)
     # Pylint 1.8.3 from Ubuntu 18.04 passed on the first commit containing this line.
     $PYTHON -m pylint 2>/dev/null --version | awk '
         BEGIN {status = 1}
@@ -45,7 +46,7 @@ can_pylint () {
 can_mypy () {
     # Just check that mypy is present and looks sane. I don't know what
     # minimum version is required. The check is not just "type mypy"
-    # becaues that passes if a mypy exists but is not installed for the current
+    # because that passes if a mypy exists but is not installed for the current
     # python version.
     mypy --version 2>/dev/null >/dev/null
 }

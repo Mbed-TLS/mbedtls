@@ -306,7 +306,7 @@ def gather_inputs(headers, test_suites, inputs_class=Inputs):
     return inputs
 
 def run_c(type_word, expressions, include_path=None, keep_c=False):
-    """Generate and run a program to print out numerical values for expressions."""
+    """Generate and run a program to print out numerical values of C expressions."""
     if type_word == 'status':
         cast_to = 'long'
         printf_format = '%ld'

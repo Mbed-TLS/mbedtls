@@ -63,32 +63,6 @@ const char *mbedtls_test_helper_is_psa_leaking( void );
 
 
 
-#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
-/** Enable the insecure implementation of mbedtls_psa_external_get_random().
- *
- * The insecure implementation of mbedtls_psa_external_get_random() is
- * disabled by default.
- *
- * When MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled and the test
- * helpers are linked into a program, you must enable this before running any
- * code that uses the PSA subsystem to generate random data (including internal
- * random generation for purposes such as blinding when the random generation
- * is routed through PSA).
- *
- * You can enable and disable it at any time, regardless of the state
- * of the PSA subsystem. You may disable it temporarily to simulate a
- * depleted entropy source.
- */
-void mbedtls_test_enable_insecure_external_rng( void );
-
-/** Disable the insecure implementation of mbedtls_psa_external_get_random().
- *
- * See mbedtls_test_enable_insecure_external_rng().
- */
-void mbedtls_test_disable_insecure_external_rng( void );
-#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
-
-
 #if defined(RECORD_PSA_STATUS_COVERAGE_LOG)
 psa_status_t mbedtls_test_record_status( psa_status_t status,
                                          const char *func,

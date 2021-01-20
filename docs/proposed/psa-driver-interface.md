@@ -656,7 +656,8 @@ A built-in key is identified by its location and its **slot number**. Drivers th
 psa_status_t acme_get_builtin_key(psa_drv_slot_number_t slot_number,
                                   psa_key_attributes_t *attributes,
                                   uint8_t *key_buffer,
-                                  size_t key_buffer_size);
+                                  size_t key_buffer_size,
+                                  size_t *key_buffer_length);
 ```
 
 If this function returns `PSA_SUCCESS` or `PSA_ERROR_BUFFER_TOO_SMALL`, it must fill `attributes` with the attributes of the key (except for the key identifier). On success, this function must also fill `key_buffer` with the key context.
@@ -669,7 +670,7 @@ Typically, for a built-in key, the key context is a reference to key material th
 
 This entry point may return the following status values:
 
-* `PSA_SUCCESS`: the requested key exists, and the output parameters `attributes` and `key_buffer` contain the key metadata and key data respectively.
+* `PSA_SUCCESS`: the requested key exists, and the output parameters `attributes` and `key_buffer` contain the key metadata and key context respectively, and `*key_buffer_length` contains the length of the data written to `key_buffer`.
 * `PSA_ERROR_BUFFER_TOO_SMALL`: `key_buffer_size` is insufficient. In this case, the driver must pass the key's attributes in `*attributes`. In particular, `get_builtin_key(slot_number, &attributes, NULL, 0)` is a way for the core to obtain the key's attributes.
 * `PSA_ERROR_DOES_NOT_EXIST`: the requested key does not exist.
 * Other error codes such as `PSA_ERROR_COMMUNICATION_FAILURE` or `PSA_ERROR_HARDWARE_FAILURE` indicate a transient or permanent error.

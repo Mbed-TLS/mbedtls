@@ -70,6 +70,12 @@
 #include <string.h>
 #include "mbedtls/platform_util.h"
 
+#if defined(MBEDTLS_PLATFORM_FAULT_CALLBACKS)
+#include "platform_fault.h"
+#else
+static void mbedtls_platform_fault(){}
+#endif
+
 #if defined MBEDTLS_OPTIMIZE_TINYCRYPT_ASM
 #ifndef asm
 #define asm __asm
@@ -1167,6 +1173,12 @@ void uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
 	wordcount_t word_shift = shift / uECC_WORD_BITS;
 	wordcount_t bit_shift = shift % uECC_WORD_BITS;
 	uECC_word_t carry = 0;
+
+	if(word_shift > NUM_ECC_WORDS)
+	{
+		mbedtls_platform_fault();
+	}
+
 	uECC_vli_clear(mod_multiple);
 	if (bit_shift > 0) {
 		for(index = 0; index < (uECC_word_t)num_words; ++index) {

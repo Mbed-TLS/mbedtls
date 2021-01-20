@@ -3306,7 +3306,7 @@ void cipher_setup( int key_type_arg,
     psa_status_t expected_status = expected_status_arg;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_status_t status;
-#if defined(KNOWN_SUPPORTED_MAC_ALG)
+#if defined(KNOWN_SUPPORTED_CIPHER_ALG)
     const uint8_t smoke_test_key_data[16] = "kkkkkkkkkkkkkkkk";
 #endif
 

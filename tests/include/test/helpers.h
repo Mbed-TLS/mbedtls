@@ -51,21 +51,21 @@
 
 typedef enum
 {
-    TEST_RESULT_SUCCESS = 0,
-    TEST_RESULT_FAILED,
-    TEST_RESULT_SKIPPED
-} test_result_t;
+    MBEDTLS_TEST_RESULT_SUCCESS = 0,
+    MBEDTLS_TEST_RESULT_FAILED,
+    MBEDTLS_TEST_RESULT_SKIPPED
+} mbedtls_test_result_t;
 
 typedef struct
 {
-    test_result_t result;
+    mbedtls_test_result_t result;
     const char *test;
     const char *filename;
     int line_no;
     unsigned long step;
 }
-test_info_t;
-extern test_info_t test_info;
+mbedtls_test_info_t;
+extern mbedtls_test_info_t mbedtls_test_info;
 
 int mbedtls_test_platform_setup( void );
 void mbedtls_test_platform_teardown( void );

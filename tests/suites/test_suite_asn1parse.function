@@ -614,7 +614,7 @@ void get_sequence_of( const data_t *input, int tag,
             cur = &head;
             while( *rest )
             {
-                ++test_info.step;
+                ++mbedtls_test_info.step;
                 TEST_ASSERT( cur != NULL );
                 TEST_EQUAL( cur->buf.tag, tag );
                 n = strtoul( rest, (char **) &rest, 0 );

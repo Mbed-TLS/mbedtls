@@ -428,15 +428,15 @@ static void write_outcome_entry( FILE *outcome_file,
  * \param unmet_dependencies         The array of unmet dependencies.
  * \param missing_unmet_dependencies Non-zero if there was a problem tracking
  *                                   all unmet dependencies, 0 otherwise.
- * \param ret           The test dispatch status (DISPATCH_xxx).
- * \param test_info     A pointer to the test info structure.
+ * \param ret                   The test dispatch status (DISPATCH_xxx).
+ * \param mbedtls_test_info     A pointer to the test info structure.
  */
 static void write_outcome_result( FILE *outcome_file,
                                   size_t unmet_dep_count,
                                   int unmet_dependencies[],
                                   int missing_unmet_dependencies,
                                   int ret,
-                                  const test_info_t *info )
+                                  const mbedtls_test_info_t *info )
 {
     if( outcome_file == NULL )
         return;
@@ -462,10 +462,10 @@ static void write_outcome_result( FILE *outcome_file,
             }
             switch( info->result )
             {
-                case TEST_RESULT_SUCCESS:
+                case MBEDTLS_TEST_RESULT_SUCCESS:
                     mbedtls_fprintf( outcome_file, "PASS;" );
                     break;
-                case TEST_RESULT_SKIPPED:
+                case MBEDTLS_TEST_RESULT_SKIPPED:
                     mbedtls_fprintf( outcome_file, "SKIP;Runtime skip" );
                     break;
                 default:
@@ -601,7 +601,7 @@ int execute_tests( int argc , const char ** argv )
     }
 
     /* Initialize the struct that holds information about the last test */
-    memset( &test_info, 0, sizeof( test_info ) );
+    memset( &mbedtls_test_info, 0, sizeof( mbedtls_test_info ) );
 
     /* Now begin to execute the tests in the testfiles */
     for ( testfile_index = 0;
@@ -638,7 +638,8 @@ int execute_tests( int argc , const char ** argv )
             if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
                 break;
             mbedtls_fprintf( stdout, "%s%.66s",
-                    test_info.result == TEST_RESULT_FAILED ? "\n" : "", buf );
+                    mbedtls_test_info.result == MBEDTLS_TEST_RESULT_FAILED ?
+                    "\n" : "", buf );
             mbedtls_fprintf( stdout, " " );
             for( i = strlen( buf ) + 1; i < 67; i++ )
                 mbedtls_fprintf( stdout, "." );
@@ -682,8 +683,8 @@ int execute_tests( int argc , const char ** argv )
             // If there are no unmet dependencies execute the test
             if( unmet_dep_count == 0 )
             {
-                test_info.result = TEST_RESULT_SUCCESS;
-                test_info.step = (unsigned long)( -1 );
+                mbedtls_test_info.result = MBEDTLS_TEST_RESULT_SUCCESS;
+                mbedtls_test_info.step = (unsigned long)( -1 );
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
                 /* Suppress all output from the library unless we're verbose
@@ -723,7 +724,7 @@ int execute_tests( int argc , const char ** argv )
             write_outcome_result( outcome_file,
                                   unmet_dep_count, unmet_dependencies,
                                   missing_unmet_dependencies,
-                                  ret, &test_info );
+                                  ret, &mbedtls_test_info );
             if( unmet_dep_count > 0 || ret == DISPATCH_UNSUPPORTED_SUITE )
             {
                 total_skipped++;
@@ -753,11 +754,11 @@ int execute_tests( int argc , const char ** argv )
             }
             else if( ret == DISPATCH_TEST_SUCCESS )
             {
-                if( test_info.result == TEST_RESULT_SUCCESS )
+                if( mbedtls_test_info.result == MBEDTLS_TEST_RESULT_SUCCESS )
                 {
                     mbedtls_fprintf( stdout, "PASS\n" );
                 }
-                else if( test_info.result == TEST_RESULT_SKIPPED )
+                else if( mbedtls_test_info.result == MBEDTLS_TEST_RESULT_SKIPPED )
                 {
                     mbedtls_fprintf( stdout, "----\n" );
                     total_skipped++;
@@ -767,14 +768,15 @@ int execute_tests( int argc , const char ** argv )
                     total_errors++;
                     mbedtls_fprintf( stdout, "FAILED\n" );
                     mbedtls_fprintf( stdout, "  %s\n  at ",
-                                     test_info.test );
-                    if( test_info.step != (unsigned long)( -1 ) )
+                                     mbedtls_test_info.test );
+                    if( mbedtls_test_info.step != (unsigned long)( -1 ) )
                     {
                         mbedtls_fprintf( stdout, "step %lu, ",
-                                         test_info.step );
+                                         mbedtls_test_info.step );
                     }
                     mbedtls_fprintf( stdout, "line %d, %s",
-                                     test_info.line_no, test_info.filename );
+                                     mbedtls_test_info.line_no,
+                                     mbedtls_test_info.filename );
                 }
                 fflush( stdout );
             }

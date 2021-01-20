@@ -44,7 +44,7 @@ static param_failed_ctx_t param_failed_ctx;
 static mbedtls_platform_context platform_ctx;
 #endif
 
-test_info_t test_info;
+mbedtls_test_info_t mbedtls_test_info;
 
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */
@@ -81,29 +81,29 @@ static int ascii2uc(const char c, unsigned char *uc)
 
 void mbedtls_test_fail( const char *test, int line_no, const char* filename )
 {
-    if( test_info.result == TEST_RESULT_FAILED )
+    if( mbedtls_test_info.result == MBEDTLS_TEST_RESULT_FAILED )
     {
         /* We've already recorded the test as having failed. Don't
          * overwrite any previous information about the failure. */
         return;
     }
-    test_info.result = TEST_RESULT_FAILED;
-    test_info.test = test;
-    test_info.line_no = line_no;
-    test_info.filename = filename;
+    mbedtls_test_info.result = MBEDTLS_TEST_RESULT_FAILED;
+    mbedtls_test_info.test = test;
+    mbedtls_test_info.line_no = line_no;
+    mbedtls_test_info.filename = filename;
 }
 
 void mbedtls_test_set_step( unsigned long step )
 {
-    test_info.step = step;
+    mbedtls_test_info.step = step;
 }
 
 void mbedtls_test_skip( const char *test, int line_no, const char* filename )
 {
-    test_info.result = TEST_RESULT_SKIPPED;
-    test_info.test = test;
-    test_info.line_no = line_no;
-    test_info.filename = filename;
+    mbedtls_test_info.result = MBEDTLS_TEST_RESULT_SKIPPED;
+    mbedtls_test_info.test = test;
+    mbedtls_test_info.line_no = line_no;
+    mbedtls_test_info.filename = filename;
 }
 
 int mbedtls_test_unhexify( unsigned char *obuf,

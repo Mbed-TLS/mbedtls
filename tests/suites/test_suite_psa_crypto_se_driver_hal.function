@@ -45,7 +45,7 @@
     do {                                                    \
        if( ! (TEST) )                                       \
        {                                                    \
-          test_fail( #TEST, __LINE__, __FILE__ );           \
+          mbedtls_test_fail( #TEST, __LINE__, __FILE__ );   \
           return( PSA_ERROR_DETECTED_BY_DRIVER );           \
        }                                                    \
     } while( 0 )
@@ -61,7 +61,7 @@
     do {                                                    \
        if( ! (TEST) )                                       \
        {                                                    \
-          test_fail( #TEST, __LINE__, __FILE__ );           \
+          mbedtls_test_fail( #TEST, __LINE__, __FILE__ );   \
           status = PSA_ERROR_DETECTED_BY_DRIVER;            \
           goto exit;                                        \
        }                                                    \
@@ -72,10 +72,10 @@
  * Run the code \p expr. If this returns \p expected_status,
  * do nothing. If this returns #PSA_ERROR_DETECTED_BY_DRIVER,
  * jump directly to the `exit` label. If this returns any other
- * status, call test_fail() then jump to `exit`.
+ * status, call mbedtls_test_fail() then jump to `exit`.
  *
  * The special case for #PSA_ERROR_DETECTED_BY_DRIVER is because in this
- * case, the test driver code is expected to have called test_fail()
+ * case, the test driver code is expected to have called mbedtls_test_fail()
  * already, so we make sure not to overwrite the failure information.
  */
 #define PSA_ASSERT_VIA_DRIVER( expr, expected_status )                  \
@@ -85,7 +85,7 @@
             goto exit;                                                  \
         if( PSA_ASSERT_VIA_DRIVER_status != ( expected_status ) )       \
         {                                                               \
-            test_fail( #expr, __LINE__, __FILE__ );                     \
+            mbedtls_test_fail( #expr, __LINE__, __FILE__ );                     \
             goto exit;                                                  \
         }                                                               \
     } while( 0 )

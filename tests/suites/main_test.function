@@ -179,9 +179,9 @@ void execute_function_ptr(TestWrapper_t fp, void **params)
     {
         /* Unexpected parameter validation error */
         mbedtls_test_param_failed_get_location_record( &location_record );
-        test_fail( location_record.failure_condition,
-                   location_record.line,
-                   location_record.file );
+        mbedtls_test_fail( location_record.failure_condition,
+                           location_record.line,
+                           location_record.file );
     }
 
     mbedtls_test_param_failed_reset_state( );

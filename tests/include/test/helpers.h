@@ -49,8 +49,40 @@
 #include <stddef.h>
 #include <stdint.h>
 
+typedef enum
+{
+    TEST_RESULT_SUCCESS = 0,
+    TEST_RESULT_FAILED,
+    TEST_RESULT_SKIPPED
+} test_result_t;
+
+typedef struct
+{
+    test_result_t result;
+    const char *test;
+    const char *filename;
+    int line_no;
+    unsigned long step;
+}
+test_info_t;
+extern test_info_t test_info;
+
 int mbedtls_test_platform_setup( void );
 void mbedtls_test_platform_teardown( void );
+
+void mbedtls_test_fail( const char *test, int line_no, const char* filename );
+
+/** Set the test step number for failure reports.
+ *
+ * Call this function to display "step NNN" in addition to the line number
+ * and file name if a test fails. Typically the "step number" is the index
+ * of a for loop but it can be whatever you want.
+ *
+ * \param step  The step number to report.
+ */
+void mbedtls_test_set_step( unsigned long step );
+
+void mbedtls_test_skip( const char *test, int line_no, const char* filename );
 
 /**
  * \brief          This function decodes the hexadecimal representation of

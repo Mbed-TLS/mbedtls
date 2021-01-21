@@ -307,7 +307,7 @@
  * implementation to delay the output until it has a full block. */
 #define PSA_AEAD_UPDATE_OUTPUT_SIZE(alg, input_length)                  \
     (PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?                             \
-     PSA_ROUND_UP_TO_MULTIPLE(PSA_MAX_BLOCK_CIPHER_BLOCK_SIZE, (input_length)) : \
+     PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE, (input_length)) : \
      (input_length))
 
 /** A sufficient ciphertext buffer size for psa_aead_finish().
@@ -358,7 +358,7 @@
 
 #define PSA_RSA_MINIMUM_PADDING_SIZE(alg)                         \
     (PSA_ALG_IS_RSA_OAEP(alg) ?                                   \
-     2 * PSA_HASH_LENGTH(PSA_ALG_RSA_OAEP_GET_HASH(alg)) + 1 :      \
+     2 * PSA_HASH_LENGTH(PSA_ALG_RSA_OAEP_GET_HASH(alg)) + 1 :    \
      11 /*PKCS#1v1.5*/)
 
 /**
@@ -667,7 +667,7 @@
  *         and AEAD algorithm that it recognizes, but does not support.
  */
 #define PSA_AEAD_NONCE_LENGTH(key_type, alg) \
-    (PSA_BLOCK_CIPHER_BLOCK_SIZE(key_type) == 16 && \
+    (PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) == 16 && \
          (PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH(alg) == PSA_ALG_CCM || \
           PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH(alg) == PSA_ALG_GCM) ? 12 : \
      (key_type) == PSA_KEY_TYPE_CHACHA20 && \

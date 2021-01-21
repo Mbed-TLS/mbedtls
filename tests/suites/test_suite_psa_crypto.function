@@ -1592,6 +1592,7 @@ void import_large_key( int type_arg, int byte_size_arg,
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
     psa_set_key_type( &attributes, type );
     status = psa_import_key( &attributes, buffer, byte_size, &key );
+    TEST_ASSUME( status != PSA_ERROR_INSUFFICIENT_MEMORY );
     TEST_EQUAL( status, expected_status );
 
     if( status == PSA_SUCCESS )
@@ -5284,7 +5285,8 @@ exit:
 void derive_key( int alg_arg,
                  data_t *key_data, data_t *input1, data_t *input2,
                  int type_arg, int bits_arg,
-                 int expected_status_arg )
+                 int expected_status_arg,
+                 int is_large_output )
 {
     mbedtls_svc_key_id_t base_key = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t derived_key = MBEDTLS_SVC_KEY_ID_INIT;
@@ -5313,35 +5315,20 @@ void derive_key( int alg_arg,
     psa_set_key_algorithm( &derived_attributes, 0 );
     psa_set_key_type( &derived_attributes, type );
     psa_set_key_bits( &derived_attributes, bits );
-    TEST_EQUAL( psa_key_derivation_output_key( &derived_attributes, &operation,
-                                               &derived_key ),
-                expected_status );
+
+    psa_status_t status =
+      psa_key_derivation_output_key( &derived_attributes,
+                                     &operation,
+                                     &derived_key );
+    if( is_large_output > 0 )
+      TEST_ASSUME( status != PSA_ERROR_INSUFFICIENT_MEMORY );
+    TEST_EQUAL( status, expected_status );
 
 exit:
     psa_key_derivation_abort( &operation );
     psa_destroy_key( base_key );
     psa_destroy_key( derived_key );
     PSA_DONE( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void derive_large_key( int alg_arg,
-                       data_t *key_data, data_t *input1, data_t *input2,
-                       int type_arg, int bits_arg,
-                       int expected_status_arg )
-{
-    size_t key_bytes = PSA_BITS_TO_BYTES(bits_arg);
-    uint8_t* buffer = NULL;
-
-    /* Check that the target running this test can accomodate large
-     * keys on its heap, before calling the actual generate_key test */
-    ASSERT_ALLOC_WEAK(buffer, key_bytes);
-    mbedtls_free( buffer );
-
-    test_derive_key( alg_arg, key_data, input1, input2, type_arg, bits_arg, expected_status_arg );
-exit:
-    return;
 }
 /* END_CASE */
 
@@ -5609,7 +5596,8 @@ void generate_key( int type_arg,
                    int bits_arg,
                    int usage_arg,
                    int alg_arg,
-                   int expected_status_arg )
+                   int expected_status_arg,
+                   int is_large_key )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t type = type_arg;
@@ -5628,7 +5616,11 @@ void generate_key( int type_arg,
     psa_set_key_bits( &attributes, bits );
 
     /* Generate a key */
-    TEST_EQUAL( psa_generate_key( &attributes, &key ), expected_status );
+    psa_status_t status = psa_generate_key( &attributes, &key );
+
+    if( is_large_key > 0 )
+      TEST_ASSUME( status != PSA_ERROR_INSUFFICIENT_MEMORY );
+    TEST_EQUAL( status , expected_status );
     if( expected_status != PSA_SUCCESS )
         goto exit;
 
@@ -5650,27 +5642,6 @@ exit:
 
     psa_destroy_key( key );
     PSA_DONE( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void generate_large_key( int type_arg,
-                         int bits_arg,
-                         int usage_arg,
-                         int alg_arg,
-                         int expected_status_arg )
-{
-    size_t key_bytes = PSA_BITS_TO_BYTES(bits_arg);
-    uint8_t* buffer = NULL;
-
-    /* Check that the target running this test can accomodate large
-     * keys on its heap, before calling the actual generate_key test */
-    ASSERT_ALLOC_WEAK(buffer, key_bytes);
-    mbedtls_free( buffer );
-
-    test_generate_key( type_arg, bits_arg, usage_arg, alg_arg, expected_status_arg );
-exit:
-    return;
 }
 /* END_CASE */
 

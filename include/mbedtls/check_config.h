@@ -252,6 +252,10 @@
 #error "MBEDTLS_ECP_NORMALIZE_MXZ_ALT defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_ECP_NO_FALLBACK) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
+#error "MBEDTLS_ECP_NO_FALLBACK defined, but no alternative implementation enabled"
+#endif
+
 #if defined(MBEDTLS_HAVEGE_C) && !defined(MBEDTLS_TIMING_C)
 #error "MBEDTLS_HAVEGE_C defined, but not all prerequisites"
 #endif

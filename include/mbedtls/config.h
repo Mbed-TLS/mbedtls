@@ -485,7 +485,7 @@
  * alternative.
  *
  * The original implementation can in addition be removed by setting the
- * MBEDTLS_ECP_NO_FALLBACK, in which case any function for which the
+ * MBEDTLS_ECP_NO_FALLBACK option, in which case any function for which the
  * corresponding MBEDTLS_ECP__FUNCTION_NAME__ALT macro is defined will not be
  * able to fallback to curves not supported by the alternative implementation.
  *
@@ -502,16 +502,20 @@
  * called before and after each point operation and provide an opportunity to
  * implement optimized set up and tear down instructions.
  *
- * Example: In case you uncomment MBEDTLS_ECP_INTERNAL_ALT and
- * MBEDTLS_ECP_DOUBLE_JAC_ALT, mbed TLS will still provide the ecp_double_jac
- * function, but will use your mbedtls_internal_ecp_double_jac if the group is
- * supported (your mbedtls_internal_ecp_grp_capable function returns 1 when
- * receives it as an argument). If the group is not supported then the original
- * implementation is used, unless disabled by MBEDTLS_ECP_NO_FALLBACK. The
- * other functions and the definition of mbedtls_ecp_group and
- * mbedtls_ecp_point will not change, so your implementation of
- * mbedtls_internal_ecp_double_jac and mbedtls_internal_ecp_grp_capable must be
- * compatible with this definition.
+ * Example: In case you set MBEDTLS_ECP_INTERNAL_ALT and
+ * MBEDTLS_ECP_DOUBLE_JAC_ALT, mbed TLS will still provide the ecp_double_jac()
+ * function, but will use your mbedtls_internal_ecp_double_jac() if the group
+ * for the operation is supported by your implementation (i.e. your
+ * mbedtls_internal_ecp_grp_capable() function returns 1 for this group). If the
+ * group is not supported by your implementation, then the original mbed TLS
+ * implementation of ecp_double_jac() is used instead, unless this fallback
+ * behaviour is disabled by setting MBEDTLS_ECP_NO_FALLBACK (in which case
+ * ecp_double_jac() will return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE).
+ *
+ * The function prototypes and the definition of mbedtls_ecp_group and
+ * mbedtls_ecp_point will not change based on MBEDTLS_ECP_INTERNAL_ALT, so your
+ * implementation of mbedtls_internal_ecp__function_name__ must be compatible
+ * with their definitions.
  *
  * Uncomment a macro to enable alternate implementation of the corresponding
  * function.

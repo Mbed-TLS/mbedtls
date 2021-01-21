@@ -613,7 +613,10 @@ void import_export( data_t *data,
                         reexported, reexported_length );
         PSA_ASSERT( psa_destroy_key( key2 ) );
     }
-    TEST_ASSERT( exported_length <= PSA_EXPORT_KEY_OUTPUT_SIZE( type, psa_get_key_bits( &got_attributes ) ) );
+    TEST_ASSERT( exported_length <=
+                 PSA_EXPORT_KEY_OUTPUT_SIZE( type,
+                                             psa_get_key_bits( &got_attributes ) ) );
+    TEST_ASSERT( exported_length <= PSA_EXPORT_KEY_PAIR_MAX_SIZE );
 
 destroy:
     /* Destroy the key */
@@ -674,6 +677,10 @@ void import_export_public_key( data_t *data,
         bits = psa_get_key_bits( &attributes );
         TEST_ASSERT( expected_public_key->len <=
                      PSA_EXPORT_KEY_OUTPUT_SIZE( public_type, bits ) );
+        TEST_ASSERT( expected_public_key->len <=
+                     PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE( public_type, bits ) );
+        TEST_ASSERT( expected_public_key->len <=
+                     PSA_EXPORT_PUBLIC_KEY_MAX_SIZE );
         ASSERT_COMPARE( expected_public_key->x, expected_public_key->len,
                         exported, exported_length );
     }
@@ -2399,19 +2406,29 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
         PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
     }
 
-    output_buffer_size = ( (size_t) input->len +
-                           PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
+    output_buffer_size = PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, input->len );
+    TEST_ASSERT( output_buffer_size <=
+                 PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE( input->len ) );
     ASSERT_ALLOC( output, output_buffer_size );
 
     PSA_ASSERT( psa_cipher_update( &operation,
                                    input->x, input->len,
                                    output, output_buffer_size,
                                    &function_output_length ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_SIZE( key_type, alg, input->len ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE( input->len ) );
     total_output_length += function_output_length;
+
     status = psa_cipher_finish( &operation,
                                 output + total_output_length,
                                 output_buffer_size - total_output_length,
                                 &function_output_length );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_SIZE( key_type, alg ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_MAX_SIZE );
     total_output_length += function_output_length;
 
     TEST_EQUAL( status, expected_status );
@@ -2467,8 +2484,9 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
         PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
     }
 
-    output_buffer_size = ( (size_t) input->len +
-                           PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
+    output_buffer_size = PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, input->len );
+    TEST_ASSERT( output_buffer_size <=
+                 PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE( input->len ) );
     ASSERT_ALLOC( output, output_buffer_size );
 
     TEST_ASSERT( first_part_size <= input->len );
@@ -2476,7 +2494,12 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
                                    output, output_buffer_size,
                                    &function_output_length ) );
     TEST_ASSERT( function_output_length == output1_length );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_SIZE( key_type, alg, first_part_size ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE( first_part_size) );
     total_output_length += function_output_length;
+
     PSA_ASSERT( psa_cipher_update( &operation,
                                    input->x + first_part_size,
                                    input->len - first_part_size,
@@ -2484,11 +2507,22 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
                                    output_buffer_size - total_output_length,
                                    &function_output_length ) );
     TEST_ASSERT( function_output_length == output2_length );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_SIZE( key_type,
+                                                alg,
+                                                input->len - first_part_size ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE( input->len ) );
     total_output_length += function_output_length;
+
     PSA_ASSERT( psa_cipher_finish( &operation,
                                    output + total_output_length,
                                    output_buffer_size - total_output_length,
                                    &function_output_length ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_SIZE( key_type, alg ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_MAX_SIZE );
     total_output_length += function_output_length;
     PSA_ASSERT( psa_cipher_abort( &operation ) );
 
@@ -2540,8 +2574,9 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
         PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
     }
 
-    output_buffer_size = ( (size_t) input->len +
-                           PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
+    output_buffer_size = PSA_CIPHER_DECRYPT_OUTPUT_SIZE( key_type, alg, input->len );
+    TEST_ASSERT( output_buffer_size <=
+                 PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE( input->len ) );
     ASSERT_ALLOC( output, output_buffer_size );
 
     TEST_ASSERT( first_part_size <= input->len );
@@ -2550,7 +2585,12 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
                                    output, output_buffer_size,
                                    &function_output_length ) );
     TEST_ASSERT( function_output_length == output1_length );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_SIZE( key_type, alg, first_part_size ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE( first_part_size ) );
     total_output_length += function_output_length;
+
     PSA_ASSERT( psa_cipher_update( &operation,
                                    input->x + first_part_size,
                                    input->len - first_part_size,
@@ -2558,11 +2598,22 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
                                    output_buffer_size - total_output_length,
                                    &function_output_length ) );
     TEST_ASSERT( function_output_length == output2_length );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_SIZE( key_type,
+                                                alg,
+                                                input->len - first_part_size ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE( input->len ) );
     total_output_length += function_output_length;
+
     PSA_ASSERT( psa_cipher_finish( &operation,
                                    output + total_output_length,
                                    output_buffer_size - total_output_length,
                                    &function_output_length ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_SIZE( key_type, alg ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_MAX_SIZE );
     total_output_length += function_output_length;
     PSA_ASSERT( psa_cipher_abort( &operation ) );
 
@@ -2611,19 +2662,29 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
         PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
     }
 
-    output_buffer_size = ( (size_t) input->len +
-                           PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
+    output_buffer_size = PSA_CIPHER_DECRYPT_OUTPUT_SIZE( key_type, alg, input->len );
+    TEST_ASSERT( output_buffer_size <=
+                 PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE( input->len ) );
     ASSERT_ALLOC( output, output_buffer_size );
 
     PSA_ASSERT( psa_cipher_update( &operation,
                                    input->x, input->len,
                                    output, output_buffer_size,
                                    &function_output_length ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_SIZE( key_type, alg, input->len ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE( input->len ) );
     total_output_length += function_output_length;
+
     status = psa_cipher_finish( &operation,
                                 output + total_output_length,
                                 output_buffer_size - total_output_length,
                                 &function_output_length );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_SIZE( key_type, alg ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_MAX_SIZE );
     total_output_length += function_output_length;
     TEST_EQUAL( status, expected_status );
 
@@ -2682,23 +2743,37 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
                                             iv, iv_size,
                                             &iv_length ) );
     }
-    output1_size = ( (size_t) input->len +
-                     PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
+    output1_size = PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, input->len );
+    TEST_ASSERT( output1_size <=
+                 PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE( input->len ) );
     ASSERT_ALLOC( output1, output1_size );
 
     PSA_ASSERT( psa_cipher_update( &operation1, input->x, input->len,
                                    output1, output1_size,
                                    &output1_length ) );
+    TEST_ASSERT( output1_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_SIZE( key_type, alg, input->len ) );
+    TEST_ASSERT( output1_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE( input->len ) );
+
     PSA_ASSERT( psa_cipher_finish( &operation1,
                                    output1 + output1_length,
                                    output1_size - output1_length,
                                    &function_output_length ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_SIZE( key_type, alg ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_MAX_SIZE );
 
     output1_length += function_output_length;
 
     PSA_ASSERT( psa_cipher_abort( &operation1 ) );
 
     output2_size = output1_length;
+    TEST_ASSERT( output2_size <=
+                 PSA_CIPHER_DECRYPT_OUTPUT_SIZE( key_type, alg, output1_length ) );
+    TEST_ASSERT( output2_size <=
+                 PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE( output1_length ) );
     ASSERT_ALLOC( output2, output2_size );
 
     if( iv_length > 0 )
@@ -2710,11 +2785,20 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
     PSA_ASSERT( psa_cipher_update( &operation2, output1, output1_length,
                                    output2, output2_size,
                                    &output2_length ) );
+    TEST_ASSERT( output2_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_SIZE( key_type, alg, output1_length ) );
+    TEST_ASSERT( output2_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE( output1_length ) );
+
     function_output_length = 0;
     PSA_ASSERT( psa_cipher_finish( &operation2,
                                    output2 + output2_length,
                                    output2_size - output2_length,
                                    &function_output_length ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_SIZE( key_type, alg ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_MAX_SIZE );
 
     output2_length += function_output_length;
 
@@ -2776,8 +2860,9 @@ void cipher_verify_output_multipart( int alg_arg,
                                             &iv_length ) );
     }
 
-    output1_buffer_size = ( (size_t) input->len +
-                            PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
+    output1_buffer_size = PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, input->len );
+    TEST_ASSERT( output1_buffer_size <=
+                 PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE( input->len ) );
     ASSERT_ALLOC( output1, output1_buffer_size );
 
     TEST_ASSERT( first_part_size <= input->len );
@@ -2785,6 +2870,10 @@ void cipher_verify_output_multipart( int alg_arg,
     PSA_ASSERT( psa_cipher_update( &operation1, input->x, first_part_size,
                                    output1, output1_buffer_size,
                                    &function_output_length ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_SIZE( key_type, alg, first_part_size ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE( first_part_size ) );
     output1_length += function_output_length;
 
     PSA_ASSERT( psa_cipher_update( &operation1,
@@ -2792,17 +2881,31 @@ void cipher_verify_output_multipart( int alg_arg,
                                    input->len - first_part_size,
                                    output1, output1_buffer_size,
                                    &function_output_length ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_SIZE( key_type,
+                                                alg,
+                                                input->len - first_part_size ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE( input->len - first_part_size ) );
     output1_length += function_output_length;
 
     PSA_ASSERT( psa_cipher_finish( &operation1,
                                    output1 + output1_length,
                                    output1_buffer_size - output1_length,
                                    &function_output_length ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_SIZE( key_type, alg ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_MAX_SIZE );
     output1_length += function_output_length;
 
     PSA_ASSERT( psa_cipher_abort( &operation1 ) );
 
     output2_buffer_size = output1_length;
+    TEST_ASSERT( output2_buffer_size <=
+                 PSA_CIPHER_DECRYPT_OUTPUT_SIZE( key_type, alg, output1_length ) );
+    TEST_ASSERT( output2_buffer_size <=
+                 PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE( output1_length ) );
     ASSERT_ALLOC( output2, output2_buffer_size );
 
     if( iv_length > 0 )
@@ -2814,6 +2917,10 @@ void cipher_verify_output_multipart( int alg_arg,
     PSA_ASSERT( psa_cipher_update( &operation2, output1, first_part_size,
                                    output2, output2_buffer_size,
                                    &function_output_length ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_SIZE( key_type, alg, first_part_size ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE( first_part_size ) );
     output2_length += function_output_length;
 
     PSA_ASSERT( psa_cipher_update( &operation2,
@@ -2821,12 +2928,22 @@ void cipher_verify_output_multipart( int alg_arg,
                                    output1_length - first_part_size,
                                    output2, output2_buffer_size,
                                    &function_output_length ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_SIZE( key_type,
+                                                alg,
+                                                output1_length - first_part_size ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE( output1_length - first_part_size ) );
     output2_length += function_output_length;
 
     PSA_ASSERT( psa_cipher_finish( &operation2,
                                    output2 + output2_length,
                                    output2_buffer_size - output2_length,
                                    &function_output_length ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_SIZE( key_type, alg ) );
+    TEST_ASSERT( function_output_length <=
+                 PSA_CIPHER_FINISH_OUTPUT_MAX_SIZE );
     output2_length += function_output_length;
 
     PSA_ASSERT( psa_cipher_abort( &operation2 ) );
@@ -2898,6 +3015,9 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
         TEST_EQUAL( input_data->len,
                     PSA_AEAD_DECRYPT_OUTPUT_SIZE( alg, output_length ) );
 
+        TEST_ASSERT( input_data->len <=
+                     PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE( output_length ) );
+
         TEST_EQUAL( psa_aead_decrypt( key, alg,
                                       nonce->x, nonce->len,
                                       additional_data->x,
@@ -2942,6 +3062,8 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
      * should be exact. */
     TEST_EQUAL( output_size,
                 PSA_AEAD_ENCRYPT_OUTPUT_SIZE( alg, input_data->len ) );
+    TEST_ASSERT( output_size <=
+                 PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE( input_data->len ) );
     ASSERT_ALLOC( output_data, output_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -3001,11 +3123,15 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
     output_size = input_data->len - tag_length;
-    /* For all currently defined algorithms, PSA_AEAD_DECRYPT_OUTPUT_SIZE
-     * should be exact. */
     if( expected_result != PSA_ERROR_INVALID_ARGUMENT )
+    {
+        /* For all currently defined algorithms, PSA_AEAD_DECRYPT_OUTPUT_SIZE
+         * should be exact. */
         TEST_EQUAL( output_size,
                     PSA_AEAD_DECRYPT_OUTPUT_SIZE( alg, input_data->len ) );
+        TEST_ASSERT( output_size <=
+                     PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE( input_data->len ) );
+    }
     ASSERT_ALLOC( output_data, output_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -3374,7 +3500,9 @@ void asymmetric_encrypt( int key_type_arg,
     /* Determine the maximum output length */
     PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
     key_bits = psa_get_key_bits( &attributes );
+
     output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits, alg );
+    TEST_ASSERT( output_size <= PSA_ASYMMETRIC_ENCRYPT_OUTPUT_MAX_SIZE );
     ASSERT_ALLOC( output, output_size );
 
     /* Encrypt the input */
@@ -3446,9 +3574,15 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
     /* Determine the maximum ciphertext length */
     PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
     key_bits = psa_get_key_bits( &attributes );
+
     output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits, alg );
+    TEST_ASSERT( output_size <= PSA_ASYMMETRIC_ENCRYPT_OUTPUT_MAX_SIZE );
     ASSERT_ALLOC( output, output_size );
+
     output2_size = input_data->len;
+    TEST_ASSERT( output2_size <=
+                 PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE( key_type, key_bits, alg ) );
+    TEST_ASSERT( output2_size <= PSA_ASYMMETRIC_DECRYPT_OUTPUT_MAX_SIZE );
     ASSERT_ALLOC( output2, output2_size );
 
     /* We test encryption by checking that encrypt-then-decrypt gives back
@@ -3496,13 +3630,11 @@ void asymmetric_decrypt( int key_type_arg,
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
     unsigned char *output = NULL;
     size_t output_size = 0;
     size_t output_length = ~0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-
-    output_size = expected_data->len;
-    ASSERT_ALLOC( output, output_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -3512,6 +3644,14 @@ void asymmetric_decrypt( int key_type_arg,
 
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
+
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
+
+    /* Determine the maximum ciphertext length */
+    output_size = PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE( key_type, key_bits, alg );
+    TEST_ASSERT( output_size <= PSA_ASYMMETRIC_DECRYPT_OUTPUT_MAX_SIZE );
+    ASSERT_ALLOC( output, output_size );
 
     PSA_ASSERT( psa_asymmetric_decrypt( key, alg,
                                         input_data->x, input_data->len,
@@ -3910,6 +4050,14 @@ void derive_output( int alg_arg,
                 PSA_ASSERT( psa_import_key( &attributes,
                                             inputs[i]->x, inputs[i]->len,
                                             &keys[i] ) );
+
+                if ( PSA_ALG_IS_TLS12_PSK_TO_MS( alg ) )
+                {
+                    PSA_ASSERT( psa_get_key_attributes( keys[i], &attributes ) );
+                    TEST_ASSERT( PSA_BITS_TO_BYTES( psa_get_key_bits( &attributes ) ) <=
+                                 PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE );
+                }
+
                 PSA_ASSERT( psa_key_derivation_input_key(
                                 &operation, steps[i], keys[i] ) );
                 break;
@@ -4295,6 +4443,7 @@ void raw_key_agreement( int alg_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     unsigned char *output = NULL;
     size_t output_length = ~0;
+    size_t key_bits;
 
     ASSERT_ALLOC( output, expected_output->len );
     PSA_ASSERT( psa_crypto_init( ) );
@@ -4306,12 +4455,19 @@ void raw_key_agreement( int alg_arg,
                                 our_key_data->x, our_key_data->len,
                                 &our_key ) );
 
+    PSA_ASSERT( psa_get_key_attributes( our_key, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
+
     PSA_ASSERT( psa_raw_key_agreement( alg, our_key,
                                        peer_key_data->x, peer_key_data->len,
                                        output, expected_output->len,
                                        &output_length ) );
     ASSERT_COMPARE( output, output_length,
                     expected_output->x, expected_output->len );
+    TEST_ASSERT( output_length <=
+                 PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE( our_key_type, key_bits ) );
+    TEST_ASSERT( output_length <=
+                 PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE );
 
 exit:
     mbedtls_free( output );

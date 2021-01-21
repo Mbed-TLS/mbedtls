@@ -83,10 +83,11 @@ int mbedtls_x509write_csr_set_subject_name( mbedtls_x509write_csr *ctx,
 
 int mbedtls_x509write_csr_set_extension( mbedtls_x509write_csr *ctx,
                                  const char *oid, size_t oid_len,
+                                 int critical,
                                  const unsigned char *val, size_t val_len )
 {
     return mbedtls_x509_set_extension( &ctx->extensions, oid, oid_len,
-                               0, val, val_len );
+                               critical, val, val_len );
 }
 
 int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned char key_usage )
@@ -103,7 +104,7 @@ int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned ch
 
     ret = mbedtls_x509write_csr_set_extension( ctx, MBEDTLS_OID_KEY_USAGE,
                                        MBEDTLS_OID_SIZE( MBEDTLS_OID_KEY_USAGE ),
-                                       c, (size_t)ret );
+                                       0, c, (size_t)ret );
     if( ret != 0 )
         return( ret );
 
@@ -125,7 +126,7 @@ int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
 
     ret = mbedtls_x509write_csr_set_extension( ctx, MBEDTLS_OID_NS_CERT_TYPE,
                                        MBEDTLS_OID_SIZE( MBEDTLS_OID_NS_CERT_TYPE ),
-                                       c, (size_t)ret );
+                                       0, c, (size_t)ret );
     if( ret != 0 )
         return( ret );
 

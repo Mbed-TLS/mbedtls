@@ -8099,8 +8099,10 @@ static int ssl_remember_peer_pubkey( mbedtls_ssl_context *ssl,
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 {
-    int ret = 0;
-    int crt_expected;
+    volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    volatile int ret_verify = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+    volatile int check_cert_initiated = 0;
+    volatile int crt_expected = SSL_CERTIFICATE_EXPECTED;
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     const int authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
                        ? ssl->handshake->sni_authmode
@@ -8116,8 +8118,14 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     crt_expected = ssl_parse_certificate_coordinate( ssl, authmode );
     if( crt_expected == SSL_CERTIFICATE_SKIP )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-        goto exit;
+        mbedtls_platform_random_delay();
+        crt_expected = ssl_parse_certificate_coordinate( ssl, authmode );
+        if( crt_expected == SSL_CERTIFICATE_SKIP )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
+            ret = 0;
+            goto exit;
+        }
     }
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
@@ -8178,22 +8186,28 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         ssl->handshake->ecrs_state = ssl_ecrs_crt_verify;
 
 crt_verify:
+    check_cert_initiated = 1;
     if( ssl->handshake->ecrs_enabled)
         rs_ctx = &ssl->handshake->ecrs_ctx;
 #endif
 
 #if defined(MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION)
-    if (mbedtls_ssl_conf_get_endpoint( ssl->conf ) == MBEDTLS_SSL_IS_CLIENT )
+    if ( mbedtls_ssl_conf_get_endpoint( ssl->conf ) == MBEDTLS_SSL_IS_CLIENT )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "delay server certificate verification" ) );
+        check_cert_initiated = 0;
+        ret = 0;
     }
     else
 #endif /* MBEDTLS_SSL_DELAYED_SERVER_CERT_VERIFICATION */
     {
-        ret = ssl_parse_certificate_verify( ssl, authmode,
-                                            chain, rs_ctx );
-        if( ret != 0 )
+        ret_verify = ssl_parse_certificate_verify( ssl, authmode,
+                                                   chain, rs_ctx );
+        ret = ret_verify;
+        if( ret_verify != 0 )
+        {
             goto exit;
+        }
     }
 
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
@@ -8243,6 +8257,10 @@ crt_verify:
 
 exit:
 
+    if( check_cert_initiated && ( ret == 0 ) )
+    {
+        ret = ret_verify;
+    }
     if( ret == 0 )
     {
         if( ssl->state == MBEDTLS_SSL_CLIENT_CERTIFICATE )

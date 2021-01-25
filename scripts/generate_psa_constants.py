@@ -205,11 +205,8 @@ BIT_TEST_TEMPLATE = '''\
     }\
 '''
 
-class MacroCollector:
+class PSAMacroCollector:
     """Collect PSA crypto macro definitions from C header files.
-
-    1. Call `read_file` on the input header file(s).
-    2. Call `write_file` to write ``psa_constant_names_generated.c``.
     """
 
     def __init__(self):
@@ -302,6 +299,13 @@ class MacroCollector:
                 m = re.search(self._continued_line_re, line)
             line = re.sub(self._nonascii_re, rb'', line).decode('ascii')
             self.read_line(line)
+
+class CaseBuilder(PSAMacroCollector):
+    """Collect PSA crypto macro definitions and write value recognition functions.
+
+    1. Call `read_file` on the input header file(s).
+    2. Call `write_file` to write ``psa_constant_names_generated.c``.
+    """
 
     @staticmethod
     def _make_return_case(name):
@@ -404,7 +408,7 @@ class MacroCollector:
         output_file.write(OUTPUT_TEMPLATE % data)
 
 def generate_psa_constants(header_file_names, output_file_name):
-    collector = MacroCollector()
+    collector = CaseBuilder()
     for header_file_name in header_file_names:
         with open(header_file_name, 'rb') as header_file:
             collector.read_file(header_file)

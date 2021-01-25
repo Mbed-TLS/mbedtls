@@ -715,6 +715,12 @@ component_check_test_cases () {
     unset opt
 }
 
+component_check_verify_psa_macros () {
+    msg "Check: verify PSA Crypto macros against spec" # ~ 2s
+    make -C programs test/verify_psa_macros
+    if_build_succeeded programs/test/verify_psa_macros
+}
+
 component_check_doxygen_warnings () {
     msg "Check: doxygen warnings (builds the documentation)" # ~ 3s
     record_status tests/scripts/doxygen.sh

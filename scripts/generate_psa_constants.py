@@ -213,6 +213,9 @@ class CaseBuilder(macro_collector.PSAMacroCollector):
     2. Call `write_file` to write ``psa_constant_names_generated.c``.
     """
 
+    def __init__(self):
+        super().__init__(include_intermediate=True)
+
     @staticmethod
     def _make_return_case(name):
         return 'case %(name)s: return "%(name)s";' % {'name': name}

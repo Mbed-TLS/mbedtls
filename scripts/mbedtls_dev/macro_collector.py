@@ -22,7 +22,15 @@ class PSAMacroCollector:
     """Collect PSA crypto macro definitions from C header files.
     """
 
-    def __init__(self):
+    def __init__(self, include_intermediate=False):
+        """Set up an object to collect PSA macro definitions.
+
+        Call the read_file method of the constructed object on each header file.
+
+        * include_intermediate: if true, include intermediate macros such as
+          PSA_XXX_BASE that do not designate semantic values.
+        """
+        self.include_intermediate = include_intermediate
         self.statuses = set()
         self.key_types = set()
         self.key_types_from_curve = {}
@@ -37,6 +45,11 @@ class PSAMacroCollector:
 
     def is_internal_name(self, name):
         """Whether this is an internal macro. Internal macros will be skipped."""
+        if not self.include_intermediate:
+            if name.endswith('_BASE') or name.endswith('_NONE'):
+                return True
+            if '_CATEGORY_' in name:
+                return True
         return name.endswith('_FLAG') or name.endswith('MASK')
 
     # "#define" followed by a macro name with either no parameters

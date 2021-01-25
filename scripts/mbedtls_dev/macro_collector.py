@@ -50,7 +50,7 @@ class PSAMacroCollector:
                 return True
             if '_CATEGORY_' in name:
                 return True
-        return name.endswith('_FLAG') or name.endswith('MASK')
+        return name.endswith('_FLAG') or name.endswith('_MASK')
 
     # "#define" followed by a macro name with either no parameters
     # or a single parameter and a non-empty expansion.

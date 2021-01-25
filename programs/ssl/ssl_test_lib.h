@@ -179,8 +179,8 @@ void rng_free( rng_context_t *rng );
  * This function is suitable for use as the \c f_rng argument to Mbed TLS
  * library functions.
  *
- * \param p_rng         The CTR_DRBG context. This must be a pointer to a
- *                      #rng_context_t structure.
+ * \param p_rng         The random generator context. This must be a pointer to
+ *                      a #rng_context_t structure.
  * \param output        The buffer to fill.
  * \param output_len    The length of the buffer in bytes.
  *

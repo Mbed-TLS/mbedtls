@@ -86,6 +86,9 @@ mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
 TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
+# Explicitly depend on this header because on a clean copy of the source tree,
+# it doesn't exist yet and must be generated as part of the build, and
+# therefore the wildcard enumeration above doesn't include it.
 TEST_OBJS_DEPS += include/test/instrument_record_status.h
 endif
 

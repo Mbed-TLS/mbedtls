@@ -1414,8 +1414,8 @@ int main( int argc, char *argv[] )
     }
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
     mbedtls_test_enable_insecure_external_rng( );
-#endif
-#endif
+#endif  /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+#endif  /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if !defined(_WIN32)
     /* Abort cleanly on SIGTERM and SIGINT */

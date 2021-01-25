@@ -35,6 +35,10 @@ class PSAMacroCollector:
         self.algorithms_from_hash = {}
         self.key_usages = set()
 
+    def is_internal_name(self, name):
+        """Whether this is an internal macro. Internal macros will be skipped."""
+        return name.endswith('_FLAG') or name.endswith('MASK')
+
     # "#define" followed by a macro name with either no parameters
     # or a single parameter and a non-empty expansion.
     # Grab the macro name in group 1, the parameter name if any in group 2
@@ -60,7 +64,7 @@ class PSAMacroCollector:
             # backward compatibility aliases that share
             # numerical values with non-deprecated values.
             return
-        if name.endswith('_FLAG') or name.endswith('MASK'):
+        if self.is_internal_name(name):
             # Macro only to build actual values
             return
         elif (name.startswith('PSA_ERROR_') or name == 'PSA_SUCCESS') \

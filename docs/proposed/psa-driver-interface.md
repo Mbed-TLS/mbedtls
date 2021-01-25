@@ -459,7 +459,7 @@ The `"key_context"` property in the [driver description](#driver-description-top
 * `"symmetric_factor"` (integer or string, optional): every key context for a symmetric key includes this many times the key size. If omitted, this value defaults to 0.
 * `"store_public_key"` (boolean, optional): If specified and true, for a key pair, the key context includes space for the public key. If omitted or false, no additional space is added for the public key.
 * `"size_function"` (string, optional): the name of a function that returns the number of bytes that the driver needs in a key context for a key. This may be a pointer to function. This must be a C identifier; more complex expressions are not permitted. If the core uses this function, it supersedes all the other properties except for `"builtin_key_size"` (where applicable, if present).
-* `"builtin_key_size"` (integer or string, optional): If specified, this overrides all other methods (including the `"size_function"` entry point) to determine the size of the key context for [built-in keys](#built-in-keys). This allows drivers to efficiently represent application keys as wrapped key material, but built-in keys by an internal identifer that takes up less space.
+* `"builtin_key_size"` (integer or string, optional): If specified, this overrides all other methods (including the `"size_function"` entry point) to determine the size of the key context for [built-in keys](#built-in-keys). This allows drivers to efficiently represent application keys as wrapped key material, but built-in keys by an internal identifier that takes up less space.
 
 The integer properties must be C language constants. A typical value for `"base_size"` is `sizeof(acme_key_context_t)` where `acme_key_context_t` is a type defined in a driver header file.
 
@@ -692,7 +692,7 @@ For example, the following snippet creates an AES-GCM key which is only accessib
 psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
         PSA_KEY_PERSISTENCE_DEFAULT, PSA_KEY_LOCATION_acme));
-psa_set_key_identifer(&attributes, 42);
+psa_set_key_identifier(&attributes, 42);
 psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
 psa_set_key_size(&attributes, 128);
 psa_set_key_algorithm(&attributes, PSA_ALG_GCM);

@@ -485,8 +485,11 @@ static int exercise_aead_key( mbedtls_svc_key_id_t key,
     size_t plaintext_length = sizeof( ciphertext );
 
     /* Default IV length for AES-GCM is 12 bytes */
-    if( (alg & ~PSA_ALG_AEAD_TAG_LENGTH_MASK) == PSA_ALG_GCM )
+    if( PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, 0 ) ==
+        PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ) )
+    {
         nonce_length = 12;
+    }
 
     if( usage & PSA_KEY_USAGE_ENCRYPT )
     {
@@ -4104,7 +4107,8 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
 #if defined(MBEDTLS_GCM_ALT) || \
     defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
     if( status == PSA_ERROR_NOT_SUPPORTED &&
-        (alg & ~PSA_ALG_AEAD_TAG_LENGTH_MASK) == PSA_ALG_GCM &&
+        ( PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, 0 ) ==
+          PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ) ) &&
         nonce->len != 12 )
     {
         test_skip( "AES-GCM with non-12-byte IV is not supported", __LINE__, __FILE__ );
@@ -4182,7 +4186,8 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
 #if defined(MBEDTLS_GCM_ALT) || \
     defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
     if( status == PSA_ERROR_NOT_SUPPORTED &&
-        (alg & ~PSA_ALG_AEAD_TAG_LENGTH_MASK) == PSA_ALG_GCM &&
+        ( PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, 0 ) ==
+          PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ) ) &&
         nonce->len != 12 )
     {
         test_skip( "AES-GCM with non-12-byte IV is not supported", __LINE__, __FILE__ );

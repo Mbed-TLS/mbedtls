@@ -3896,7 +3896,8 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     if( ret != 0 )
         goto exit;
 
-#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7)
     switch( alg )
     {
         case PSA_ALG_CBC_NO_PADDING:
@@ -3914,7 +3915,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     }
     if( ret != 0 )
         goto exit;
-#endif //MBEDTLS_CIPHER_MODE_WITH_PADDING
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING || MBEDTLS_PADDING_PKCS7 */
 
     operation->block_size = ( PSA_ALG_IS_STREAM_CIPHER( alg ) ? 1 :
                               PSA_BLOCK_CIPHER_BLOCK_LENGTH( slot->attr.type ) );

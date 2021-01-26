@@ -1179,6 +1179,9 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
 static int psa_key_algorithm_permits( psa_algorithm_t policy_alg,
                                       psa_algorithm_t requested_alg )
 {
+    /* A requested algorithm cannot be a collection. */
+    if( PSA_ALG_IS_POLICY( requested_alg ) )
+        return( 0 );
     /* Common case: the policy only allows requested_alg. */
     if( requested_alg == policy_alg )
         return( 1 );
@@ -1199,6 +1202,26 @@ static int psa_key_algorithm_permits( psa_algorithm_t policy_alg,
     {
         return( PSA_ALG_KEY_AGREEMENT_GET_BASE( requested_alg ) ==
                 policy_alg );
+    }
+    /* If policy_alg is a policy, then special rules apply. */
+    if( PSA_ALG_IS_POLICY( policy_alg ) )
+    {
+        if( PSA_ALG_IS_AEAD_POLICY_WITH_MINIMUM_TAG_LENGTH( policy_alg ) &&
+            PSA_ALG_IS_AEAD( requested_alg ) &&
+            ( PSA_ALG_AEAD_POLICY_WITH_MINIMUM_TAG_LENGTH( requested_alg, 0 ) ==
+              PSA_ALG_AEAD_POLICY_WITH_MINIMUM_TAG_LENGTH( policy_alg, 0 ) ) )
+        {
+            return( PSA_ALG_AEAD_GET_TAG_LENGTH( policy_alg ) <=
+                    PSA_ALG_AEAD_GET_TAG_LENGTH( requested_alg ) );
+        }
+        if( PSA_ALG_IS_MAC_POLICY_WITH_MINIMUM_TAG_LENGTH( policy_alg ) &&
+            PSA_ALG_IS_MAC( requested_alg ) &&
+            ( PSA_ALG_MAC_POLICY_WITH_MINIMUM_TAG_LENGTH( requested_alg, 0 ) ==
+              PSA_ALG_MAC_POLICY_WITH_MINIMUM_TAG_LENGTH( policy_alg, 0 ) ) )
+        {
+            return( PSA_MAC_TRUNCATED_LENGTH( policy_alg ) <=
+                    PSA_MAC_TRUNCATED_LENGTH( requested_alg ) );
+        }
     }
     /* If it isn't permitted, it's forbidden. */
     return( 0 );

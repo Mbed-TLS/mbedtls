@@ -260,6 +260,8 @@ static psa_key_usage_t psa_get_key_usage_flags(
  * - An algorithm value permits this particular algorithm.
  * - An algorithm wildcard built from #PSA_ALG_ANY_HASH allows the specified
  *   signature scheme with any hash algorithm.
+ * - An algorithm with the #PSA_ALG_POLICY_FLAG bit set allows the
+ *   algorithm collection specified by that algorithm policy definition.
  *
  * This function overwrites any algorithm policy
  * previously set in \p attributes.

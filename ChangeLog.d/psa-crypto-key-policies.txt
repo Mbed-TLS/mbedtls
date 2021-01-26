@@ -1,0 +1,5 @@
+Features
+   * A key in PSA Crypto can now be defined with a policy instead of a specific
+     algorithm. Policies describe a collection of allowed specific algorithms.
+     Initial policies are PSA_ALG_AEAD_POLICY_WITH_MINIMUM_TAG_LENGTH and
+     PSA_ALG_MAC_POLICY_WITH_MINIMUM_TAG_LENGTH.

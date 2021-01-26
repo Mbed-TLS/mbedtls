@@ -608,7 +608,17 @@
  */
 #define PSA_ALG_VENDOR_FLAG                     ((psa_algorithm_t)0x80000000)
 
-#define PSA_ALG_CATEGORY_MASK                   ((psa_algorithm_t)0x7f000000)
+/** Policy-only flag.
+ *
+ * An algorithm defined by this standard can have the #PSA_ALG_POLICY_FLAG bit
+ * set to indicate the value can only be used in a usage policy definition.
+ * The use case is primarily defining key usage policies, where a policy can
+ * encompass more than one specific algorithm, e.g. AEAD or MAC algorithms
+ * with multiple tag lengths.
+ */
+#define PSA_ALG_POLICY_FLAG                     ((psa_algorithm_t)0x40000000)
+
+#define PSA_ALG_CATEGORY_MASK                   ((psa_algorithm_t)0x3f000000)
 #define PSA_ALG_CATEGORY_HASH                   ((psa_algorithm_t)0x02000000)
 #define PSA_ALG_CATEGORY_MAC                    ((psa_algorithm_t)0x03000000)
 #define PSA_ALG_CATEGORY_CIPHER                 ((psa_algorithm_t)0x04000000)
@@ -625,6 +635,13 @@
 #define PSA_ALG_IS_VENDOR_DEFINED(alg)                                  \
     (((alg) & PSA_ALG_VENDOR_FLAG) != 0)
 
+/** Whether an algorithm is a policy (collection of algorithms).
+ *
+ * See also #PSA_ALG_POLICY_FLAG.
+ */
+#define PSA_ALG_IS_POLICY(alg)                                  \
+    (((alg) & PSA_ALG_POLICY_FLAG) != 0)
+
 /** Whether the specified algorithm is a hash algorithm.
  *
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
@@ -634,7 +651,8 @@
  *         algorithm identifier.
  */
 #define PSA_ALG_IS_HASH(alg)                                            \
-    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_HASH)
+    ((((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_HASH) &&      \
+      !PSA_ALG_IS_POLICY(alg))
 
 /** Whether the specified algorithm is a MAC algorithm.
  *
@@ -645,7 +663,23 @@
  *         algorithm identifier.
  */
 #define PSA_ALG_IS_MAC(alg)                                             \
-    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_MAC)
+    ((((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_MAC) &&       \
+      !PSA_ALG_IS_POLICY(alg))
+
+/** Whether the specified algorithm is a policy containing a MAC
+ * algorithm collection, sharing the same base algorithm but multiple
+ * allowed tag lengths.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \p alg is a MAC algorithm policy with minimum tag length,
+ *         0 otherwise.
+ *         This macro may return either 0 or 1 if \p alg is not a supported
+ *         algorithm identifier.
+ */
+#define PSA_ALG_IS_MAC_POLICY_WITH_MINIMUM_TAG_LENGTH(alg)                                             \
+    ((((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_MAC) &&       \
+      PSA_ALG_IS_POLICY(alg))
 
 /** Whether the specified algorithm is a symmetric cipher algorithm.
  *
@@ -656,7 +690,8 @@
  *         algorithm identifier.
  */
 #define PSA_ALG_IS_CIPHER(alg)                                          \
-    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_CIPHER)
+    ((((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_CIPHER) &&    \
+      !PSA_ALG_IS_POLICY(alg))
 
 /** Whether the specified algorithm is an authenticated encryption
  * with associated data (AEAD) algorithm.
@@ -668,7 +703,23 @@
  *         algorithm identifier.
  */
 #define PSA_ALG_IS_AEAD(alg)                                            \
-    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_AEAD)
+    ((((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_AEAD) &&      \
+      !PSA_ALG_IS_POLICY(alg))
+
+/** Whether the specified algorithm is a policy containing an authenticated
+ * encryption with associated data (AEAD) algorithm collection, sharing the
+ * same base algorithm but multiple allowed tag lengths.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \p alg is an AEAD algorithm policy with minimum tag length,
+ *         0 otherwise.
+ *         This macro may return either 0 or 1 if \p alg is not a supported
+ *         algorithm identifier.
+ */
+#define PSA_ALG_IS_AEAD_POLICY_WITH_MINIMUM_TAG_LENGTH(alg)             \
+    ((((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_AEAD) &&      \
+      PSA_ALG_IS_POLICY(alg))
 
 /** Whether the specified algorithm is an asymmetric signature algorithm,
  * also known as public-key signature algorithm.
@@ -680,7 +731,8 @@
  *         algorithm identifier.
  */
 #define PSA_ALG_IS_SIGN(alg)                                            \
-    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_SIGN)
+    ((((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_SIGN) &&      \
+      !PSA_ALG_IS_POLICY(alg))
 
 /** Whether the specified algorithm is an asymmetric encryption algorithm,
  * also known as public-key encryption algorithm.
@@ -692,7 +744,8 @@
  *         algorithm identifier.
  */
 #define PSA_ALG_IS_ASYMMETRIC_ENCRYPTION(alg)                           \
-    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_ASYMMETRIC_ENCRYPTION)
+    ((((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_ASYMMETRIC_ENCRYPTION) && \
+      !PSA_ALG_IS_POLICY(alg))
 
 /** Whether the specified algorithm is a key agreement algorithm.
  *
@@ -702,8 +755,9 @@
  *         This macro may return either 0 or 1 if \p alg is not a supported
  *         algorithm identifier.
  */
-#define PSA_ALG_IS_KEY_AGREEMENT(alg)                                   \
-    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_AGREEMENT)
+#define PSA_ALG_IS_KEY_AGREEMENT(alg)                                       \
+    ((((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_AGREEMENT) && \
+      !PSA_ALG_IS_POLICY(alg))
 
 /** Whether the specified algorithm is a key derivation algorithm.
  *
@@ -713,8 +767,9 @@
  *         This macro may return either 0 or 1 if \p alg is not a supported
  *         algorithm identifier.
  */
-#define PSA_ALG_IS_KEY_DERIVATION(alg)                                  \
-    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_DERIVATION)
+#define PSA_ALG_IS_KEY_DERIVATION(alg)                                        \
+    ((((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_DERIVATION) &&  \
+      !PSA_ALG_IS_POLICY(alg))
 
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
 /** MD2 */
@@ -914,6 +969,27 @@
     (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_MAC_SUBCATEGORY_MASK)) == \
      PSA_ALG_CIPHER_MAC_BASE)
 
+/** Macro to build a MAC minimum-tag-length algorithm policy.
+ *
+ * A mininimum-tag-length MAC algorithm policy contains all MAC algorithms
+ * sharing the same base algorithm, and where the tag length of the specific
+ * algorithm is equal to or larger then the policy's minimum tag length.
+ *
+ * \param mac_alg       A MAC algorithm identifier (value of type
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_MAC(\p alg)
+ *                      is true).
+ * \param tag_length    Desired minimum length of the authentication tag in
+ *                      bytes.
+ *
+ * \return              The corresponding MAC algorithm policy with the
+ *                      specified minimum length.
+ * \return              Unspecified if \p alg is not a supported
+ *                      MAC algorithm or if \p tag_length is not valid
+ *                      for the specified MAC algorithm.
+ */
+#define PSA_ALG_MAC_POLICY_WITH_MINIMUM_TAG_LENGTH(mac_alg, tag_length) \
+    ( PSA_ALG_TRUNCATED_MAC(mac_alg, tag_length) | PSA_ALG_POLICY_FLAG )
+
 #define PSA_ALG_CIPHER_STREAM_FLAG              ((psa_algorithm_t)0x00800000)
 #define PSA_ALG_CIPHER_FROM_BLOCK_FLAG          ((psa_algorithm_t)0x00400000)
 
@@ -1075,6 +1151,21 @@
      ((tag_length) << PSA_AEAD_TAG_LENGTH_OFFSET &                      \
       PSA_ALG_AEAD_TAG_LENGTH_MASK))
 
+/** Retrieve the tag length of a specified AEAD algorithm
+ *
+ * \param aead_alg      An AEAD algorithm identifier (value of type
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_AEAD(\p alg)
+ *                      is true).
+ *
+ * \return              The tag length specified by the input algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      AEAD algorithm or if \p tag_length is not valid
+ *                      for the specified AEAD algorithm.
+ */
+#define PSA_ALG_AEAD_GET_TAG_LENGTH(aead_alg)                           \
+    (((aead_alg) & PSA_ALG_AEAD_TAG_LENGTH_MASK) >>                     \
+      PSA_AEAD_TAG_LENGTH_OFFSET )
+
 /** Calculate the corresponding AEAD algorithm with the default tag length.
  *
  * \param aead_alg      An AEAD algorithm (\c PSA_ALG_XXX value such that
@@ -1093,6 +1184,28 @@
     PSA_ALG_AEAD_WITH_TAG_LENGTH(aead_alg, 0) ==                         \
     PSA_ALG_AEAD_WITH_TAG_LENGTH(ref, 0) ?                               \
     ref :
+
+/** Macro to build an AEAD minimum-tag-length algorithm policy.
+ *
+ * A mininimum-tag-length AEAD algorithm policy contains all AEAD algorithms
+ * sharing the same base algorithm, and where the tag length of the specific
+ * algorithm is equal to or larger then the policy's minimum tag length.
+ *
+ * \param aead_alg      An AEAD algorithm identifier (value of type
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_AEAD(\p alg)
+ *                      is true).
+ * \param tag_length    Desired minimum length of the authentication tag in
+ *                      bytes.
+ *
+ * \return              The corresponding AEAD algorithm policy with the
+ *                      specified minimum length.
+ * \return              Unspecified if \p alg is not a supported
+ *                      AEAD algorithm or if \p tag_length is not valid
+ *                      for the specified AEAD algorithm.
+ */
+#define PSA_ALG_AEAD_POLICY_WITH_MINIMUM_TAG_LENGTH(aead_alg, tag_length) \
+    ( PSA_ALG_AEAD_WITH_TAG_LENGTH(aead_alg, tag_length) |                \
+      PSA_ALG_POLICY_FLAG )
 
 #define PSA_ALG_RSA_PKCS1V15_SIGN_BASE          ((psa_algorithm_t)0x06000200)
 /** RSA PKCS#1 v1.5 signature with hashing.

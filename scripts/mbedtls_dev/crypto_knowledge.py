@@ -85,3 +85,29 @@ class KeyType:
             assert self.params is not None
             return self.ECC_KEY_SIZES[self.params[0]]
         return self.KEY_TYPE_SIZES[self.private_type]
+
+    # "48657265006973206b6579a064617461"
+    DATA_BLOCK = b'Here\000is key\240data'
+    def key_material(self, bits: int) -> bytes:
+        """Return a byte string containing suitable key material with the given bit length.
+
+        Use the PSA export representation. The resulting byte string is one that
+        can be obtained with the following code:
+        ```
+        psa_set_key_type(&attributes, `self.expression`);
+        psa_set_key_bits(&attributes, `bits`);
+        psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_EXPORT);
+        psa_generate_key(&attributes, &id);
+        psa_export_key(id, `material`, ...);
+        ```
+        """
+        if bits % 8 != 0:
+            raise ValueError('Non-integer number of bytes: {} bits'.format(bits))
+        length = bits // 8
+        if self.name == 'PSA_KEY_TYPE_DES':
+            # "644573206b457901644573206b457902644573206b457904"
+            des3 = b'dEs kEy\001dEs kEy\002dEs kEy\004'
+            return des3[:length]
+        # TODO: ECC, RSA
+        return b''.join([self.DATA_BLOCK] * (length // len(self.DATA_BLOCK)) +
+                        [self.DATA_BLOCK[:length % len(self.DATA_BLOCK)]])

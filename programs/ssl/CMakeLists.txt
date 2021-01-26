@@ -27,7 +27,13 @@ set(executables
 )
 
 foreach(exe IN LISTS executables)
-    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>)
+    set(extra_sources "")
+    if(exe STREQUAL "ssl_client2" OR exe STREQUAL "ssl_server2")
+        list(APPEND extra_sources
+            ${CMAKE_CURRENT_SOURCE_DIR}/../test/query_config.c)
+    endif()
+    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>
+        ${extra_sources})
     target_link_libraries(${exe} ${libs})
     target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
 endforeach()

@@ -293,7 +293,6 @@
     <ClCompile Include="..\..\library\cipher.c" />
     <ClCompile Include="..\..\library\cipher_wrap.c" />
     <ClCompile Include="..\..\library\cmac.c" />
-    <ClCompile Include="..\..\library\common.c" />
     <ClCompile Include="..\..\library\ctr_drbg.c" />
     <ClCompile Include="..\..\library\debug.c" />
     <ClCompile Include="..\..\library\des.c" />

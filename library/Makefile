@@ -84,7 +84,6 @@ OBJS_CRYPTO= \
 	     cipher.o \
 	     cipher_wrap.o \
 	     cmac.o \
-	     common.o \
 	     ctr_drbg.o \
 	     des.o \
 	     dhm.o \

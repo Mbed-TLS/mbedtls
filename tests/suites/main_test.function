@@ -34,7 +34,7 @@
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_TEST_HOOKS)
-#include "common.h"
+#include "mbedtls/error.h"
 #endif
 
 /* Test code may use deprecated identifiers only if the preprocessor symbol

@@ -718,7 +718,7 @@ void find_named_data( data_t *oid0, data_t *oid1, data_t *oid2, data_t *oid3,
     };
     mbedtls_asn1_named_data *pointers[ARRAY_LENGTH( nd ) + 1];
     size_t i;
-    mbedtls_asn1_named_data *found;
+    const mbedtls_asn1_named_data *found;
 
     for( i = 0; i < ARRAY_LENGTH( nd ); i++ )
         pointers[i] = &nd[i];
@@ -726,7 +726,7 @@ void find_named_data( data_t *oid0, data_t *oid1, data_t *oid2, data_t *oid3,
     for( i = 0; i < ARRAY_LENGTH( nd ); i++ )
         nd[i].next = pointers[i+1];
 
-    found = mbedtls_asn1_find_named_data( pointers[from],
+    found = mbedtls_asn1_find_named_data( (const mbedtls_asn1_named_data*) pointers[from],
                                           (const char *) needle->x,
                                           needle->len );
     TEST_ASSERT( found == pointers[position] );

@@ -19,7 +19,7 @@ This module is entirely based on the PSA API.
 # limitations under the License.
 
 import re
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 class KeyType:
     """Knowledge about a PSA key type."""
@@ -49,3 +49,39 @@ class KeyType:
         if self.params is not None:
             self.expression += '(' + ', '.join(self.params) + ')'
         self.private_type = re.sub(r'_PUBLIC_KEY\Z', r'_KEY_PAIR', self.name)
+
+    ECC_KEY_SIZES = {
+        'PSA_ECC_FAMILY_SECP_K1': (192, 224, 256),
+        'PSA_ECC_FAMILY_SECP_R1': (192, 225, 256, 384, 521),
+        'PSA_ECC_FAMILY_SECP_R2': (160,),
+        'PSA_ECC_FAMILY_SECT_K1': (163, 233, 239, 283, 409, 571),
+        'PSA_ECC_FAMILY_SECT_R1': (163, 233, 283, 409, 571),
+        'PSA_ECC_FAMILY_SECT_R2': (163,),
+        'PSA_ECC_FAMILY_BRAINPOOL_P_R1': (160, 192, 224, 256, 320, 384, 512),
+        'PSA_ECC_FAMILY_MONTGOMERY': (255, 448),
+    }
+    KEY_TYPE_SIZES = {
+        'PSA_KEY_TYPE_AES': (128, 192, 256), # exhaustive
+        'PSA_KEY_TYPE_ARC4': (8, 128, 2048), # extremes + sensible
+        'PSA_KEY_TYPE_ARIA': (128, 192, 256), # exhaustive
+        'PSA_KEY_TYPE_CAMELLIA': (128, 192, 256), # exhaustive
+        'PSA_KEY_TYPE_CHACHA20': (256,), # exhaustive
+        'PSA_KEY_TYPE_DERIVE': (120, 128), # sample
+        'PSA_KEY_TYPE_DES': (64, 128, 192), # exhaustive
+        'PSA_KEY_TYPE_HMAC': (128, 160, 224, 256, 384, 512), # standard size for each supported hash
+        'PSA_KEY_TYPE_RAW_DATA': (8, 40, 128), # sample
+        'PSA_KEY_TYPE_RSA_KEY_PAIR': (1024, 1536), # small sample
+    }
+    def sizes_to_test(self) -> Tuple[int, ...]:
+        """Return a tuple of key sizes to test.
+
+        For key types that only allow a single size, or only a small set of
+        sizes, these are all the possible sizes. For key types that allow a
+        wide range of sizes, these are a representative sample of sizes,
+        excluding large sizes for which a typical resource-constrained platform
+        may run out of memory.
+        """
+        if self.private_type == 'PSA_KEY_TYPE_ECC_KEY_PAIR':
+            assert self.params is not None
+            return self.ECC_KEY_SIZES[self.params[0]]
+        return self.KEY_TYPE_SIZES[self.private_type]

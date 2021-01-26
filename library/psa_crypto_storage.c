@@ -374,8 +374,12 @@ psa_status_t psa_save_persistent_key( const psa_core_key_attributes_t *attr,
     uint8_t *storage_data;
     psa_status_t status;
 
+    /* All keys saved to persistent storage always have a key context */
+    if( data == NULL || data_length == 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
     if( data_length > PSA_CRYPTO_MAX_STORAGE_SIZE )
-        return PSA_ERROR_INSUFFICIENT_STORAGE;
+        return( PSA_ERROR_INSUFFICIENT_STORAGE );
     storage_data_length = data_length + sizeof( psa_persistent_key_storage_format );
 
     storage_data = mbedtls_calloc( 1, storage_data_length );
@@ -425,6 +429,11 @@ psa_status_t psa_load_persistent_key( psa_core_key_attributes_t *attr,
 
     status = psa_parse_key_data_from_storage( loaded_data, storage_data_length,
                                               data, data_length, attr );
+
+    /* All keys saved to persistent storage always have a key context */
+    if( status == PSA_SUCCESS &&
+        ( *data == NULL || *data_length == 0 ) )
+        status = PSA_ERROR_STORAGE_FAILURE;
 
 exit:
     mbedtls_free( loaded_data );

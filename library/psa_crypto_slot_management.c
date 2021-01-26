@@ -269,12 +269,6 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *slot )
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    if ( key_data == NULL )
-    {
-        status = PSA_ERROR_STORAGE_FAILURE;
-        goto exit;
-    }
-
     status = psa_copy_key_material_into_slot( slot, key_data, key_data_length );
 
 exit:

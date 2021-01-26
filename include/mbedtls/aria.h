@@ -347,7 +347,7 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
 int mbedtls_aria_crypt_ctr( mbedtls_aria_context *ctx,
                             size_t length,
                             size_t *nc_off,
-                            unsigned char nonce_counter[MBEDTLS_ARIA_BLOCKSIZE],
+                            const unsigned char nonce_counter[MBEDTLS_ARIA_BLOCKSIZE],
                             unsigned char stream_block[MBEDTLS_ARIA_BLOCKSIZE],
                             const unsigned char *input,
                             unsigned char *output );

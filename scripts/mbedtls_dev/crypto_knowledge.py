@@ -21,6 +21,8 @@ This module is entirely based on the PSA API.
 import re
 from typing import List, Optional, Tuple
 
+from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
+
 class KeyType:
     """Knowledge about a PSA key type."""
 
@@ -101,13 +103,18 @@ class KeyType:
         psa_export_key(id, `material`, ...);
         ```
         """
+        if self.expression in ASYMMETRIC_KEY_DATA:
+            if bits not in ASYMMETRIC_KEY_DATA[self.expression]:
+                raise ValueError('No key data for {}-bit {}'
+                                 .format(bits, self.expression))
+            return ASYMMETRIC_KEY_DATA[self.expression][bits]
         if bits % 8 != 0:
-            raise ValueError('Non-integer number of bytes: {} bits'.format(bits))
+            raise ValueError('Non-integer number of bytes: {} bits for {}'
+                             .format(bits, self.expression))
         length = bits // 8
         if self.name == 'PSA_KEY_TYPE_DES':
             # "644573206b457901644573206b457902644573206b457904"
             des3 = b'dEs kEy\001dEs kEy\002dEs kEy\004'
             return des3[:length]
-        # TODO: ECC, RSA
         return b''.join([self.DATA_BLOCK] * (length // len(self.DATA_BLOCK)) +
                         [self.DATA_BLOCK[:length % len(self.DATA_BLOCK)]])

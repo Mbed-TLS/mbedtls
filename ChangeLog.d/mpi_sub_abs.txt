@@ -1,0 +1,7 @@
+Security
+   * Fix a buffer overflow in mbedtls_mpi_sub_abs() when calculating
+     |A| - |B| where |B| is larger than |A| and has more limbs (so the
+     function should return MBEDTLS_ERR_MPI_NEGATIVE_VALUE). Only
+     applications calling mbedtls_mpi_sub_abs() directly are affected:
+     all calls inside the library were safe since this function is
+     only called with |A| >= |B|. Reported by Guido Vranken in #4042.

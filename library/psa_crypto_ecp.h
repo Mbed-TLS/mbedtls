@@ -35,6 +35,7 @@
  *                          when done.
  */
 psa_status_t mbedtls_psa_ecp_load_representation( psa_key_type_t type,
+                                                  size_t curve_bits,
                                                   const uint8_t *data,
                                                   size_t data_length,
                                                   mbedtls_ecp_keypair **p_ecp );

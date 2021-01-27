@@ -56,13 +56,15 @@
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
 psa_status_t mbedtls_psa_ecp_load_representation(
-    psa_key_type_t type, const uint8_t *data, size_t data_length,
+    psa_key_type_t type, size_t curve_bits,
+    const uint8_t *data, size_t data_length,
     mbedtls_ecp_keypair **p_ecp )
 {
     mbedtls_ecp_group_id grp_id = MBEDTLS_ECP_DP_NONE;
     psa_status_t status;
     mbedtls_ecp_keypair *ecp = NULL;
-    size_t curve_size = data_length;
+    size_t curve_bytes = data_length;
+    int explicit_bits = ( curve_bits != 0 );
 
     if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) &&
         PSA_KEY_TYPE_ECC_GET_FAMILY( type ) != PSA_ECC_FAMILY_MONTGOMERY )
@@ -75,13 +77,27 @@ psa_status_t mbedtls_psa_ecp_load_representation(
          */
         if( ( data_length & 1 ) == 0 )
             return( PSA_ERROR_INVALID_ARGUMENT );
-        curve_size = data_length / 2;
+        curve_bytes = data_length / 2;
 
         /* Montgomery public keys are represented in compressed format, meaning
          * their curve_size is equal to the amount of input. */
 
         /* Private keys are represented in uncompressed private random integer
          * format, meaning their curve_size is equal to the amount of input. */
+    }
+
+    if( explicit_bits )
+    {
+        /* With an explicit bit-size, the data must have the matching length. */
+        if( curve_bytes != PSA_BITS_TO_BYTES( curve_bits ) )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+    else
+    {
+        /* We need to infer the bit-size from the data. Since the only
+         * information we have is the length in bytes, the value of curve_bits
+         * at this stage is rounded up to the nearest multiple of 8. */
+        curve_bits = PSA_BYTES_TO_BITS( curve_bytes );
     }
 
     /* Allocate and initialize a key representation. */
@@ -92,10 +108,16 @@ psa_status_t mbedtls_psa_ecp_load_representation(
 
     /* Load the group. */
     grp_id = mbedtls_ecc_group_of_psa( PSA_KEY_TYPE_ECC_GET_FAMILY( type ),
-                                       curve_size );
+                                       curve_bits, !explicit_bits );
     if( grp_id == MBEDTLS_ECP_DP_NONE )
     {
-        status = PSA_ERROR_INVALID_ARGUMENT;
+        /* We can't distinguish between a nonsensical family/size combination
+         * (which would warrant PSA_ERROR_INVALID_ARGUMENT) and a
+         * well-regarded curve that Mbed TLS just doesn't know about (which
+         * would warrant PSA_ERROR_NOT_SUPPORTED). For uniformity with how
+         * curves that Mbed TLS knows about but for which support is disabled
+         * at build time, return NOT_SUPPORTED. */
+        status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }
 
@@ -163,6 +185,7 @@ static psa_status_t ecp_import_key(
 
     /* Parse input */
     status = mbedtls_psa_ecp_load_representation( attributes->core.type,
+                                                  attributes->core.bits,
                                                   data,
                                                   data_length,
                                                   &ecp );
@@ -251,7 +274,8 @@ static psa_status_t ecp_export_public_key(
     mbedtls_ecp_keypair *ecp = NULL;
 
     status = mbedtls_psa_ecp_load_representation(
-                 attributes->core.type, key_buffer, key_buffer_size, &ecp );
+        attributes->core.type, attributes->core.bits,
+        key_buffer, key_buffer_size, &ecp );
     if( status != PSA_SUCCESS )
         return( status );
 

@@ -21,7 +21,7 @@ import argparse
 import os
 import re
 import sys
-from typing import Iterable, List, TypeVar
+from typing import Iterable, List, Optional, TypeVar
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import crypto_knowledge
@@ -31,16 +31,30 @@ from mbedtls_dev import test_case
 T = TypeVar('T') #pylint: disable=invalid-name
 
 
-def test_case_for_key_type_not_supported(verb: str, key_type: str, bits: int,
-                                         dependencies: List[str],
-                                         *args: str) -> test_case.TestCase:
+def psa_want_symbol(name):
+    """Return the PSA_WANT_xxx symbol associated with a PSA crypto feature."""
+    if name.startswith('PSA_'):
+        return name[:4] + 'WANT_' + name[4:]
+    else:
+        raise ValueError('Unable to determine the PSA_WANT_ symbol for ' + name)
+
+
+def test_case_for_key_type_not_supported(
+        verb: str, key_type: str, bits: int,
+        dependencies: List[str],
+        *args: str,
+        param_descr: str = '',
+) -> test_case.TestCase:
     """Return one test case exercising a key creation method
     for an unsupported key type or size.
     """
     tc = test_case.TestCase()
+    short_key_type = re.sub(r'PSA_(KEY_TYPE|ECC_FAMILY)_', r'', key_type)
     adverb = 'not' if dependencies else 'never'
+    if param_descr:
+        adverb = param_descr + ' ' + adverb
     tc.set_description('PSA {} {} {}-bit {} supported'
-                       .format(verb, key_type, bits, adverb))
+                       .format(verb, short_key_type, bits, adverb))
     tc.set_dependencies(dependencies)
     tc.set_function(verb + '_not_supported')
     tc.set_arguments([key_type] + list(args))
@@ -92,14 +106,25 @@ class TestGenerator:
 
     @staticmethod
     def test_cases_for_key_type_not_supported(
-            kt: crypto_knowledge.KeyType
+            kt: crypto_knowledge.KeyType,
+            param: Optional[int] = None,
+            param_descr: str = '',
     ) -> List[test_case.TestCase]:
-        """Return test cases exercising key creation when the given type is unsupported."""
+        """Return test cases exercising key creation when the given type is unsupported.
+
+        If param is present and not None, emit test cases conditioned on this
+        parameter not being supported. If it is absent or None, emit test cases
+        conditioned on the base type not being supported.
+        """
         if kt.name == 'PSA_KEY_TYPE_RAW_DATA':
             # This key type is always supported.
             return []
-        want_symbol = re.sub(r'\APSA_', r'PSA_WANT_', kt.name)
-        import_dependencies = ['!' + want_symbol]
+        import_dependencies = [('!' if param is None else '') +
+                               psa_want_symbol(kt.name)]
+        if kt.params is not None:
+            import_dependencies += [('!' if param == i else '') +
+                                    psa_want_symbol(sym)
+                                    for i, sym in enumerate(kt.params)]
         if kt.name.endswith('_PUBLIC_KEY'):
             generate_dependencies = []
         else:
@@ -107,12 +132,19 @@ class TestGenerator:
         test_cases = []
         for bits in kt.sizes_to_test():
             test_cases.append(test_case_for_key_type_not_supported(
-                'import', kt.name, bits, import_dependencies,
-                test_case.hex_string(kt.key_material(bits))
+                'import', kt.expression, bits, import_dependencies,
+                test_case.hex_string(kt.key_material(bits)),
+                param_descr=param_descr,
             ))
+            if not generate_dependencies and param is not None:
+                # If generation is impossible for this key type, rather than
+                # supported or not depending on implementation capabilities,
+                # only generate the test case once.
+                continue
             test_cases.append(test_case_for_key_type_not_supported(
-                'generate', kt.name, bits, generate_dependencies,
-                str(bits)
+                'generate', kt.expression, bits, generate_dependencies,
+                str(bits),
+                param_descr=param_descr,
             ))
             # To be added: derive
         return test_cases
@@ -123,7 +155,15 @@ class TestGenerator:
         for key_type in sorted(self.constructors.key_types):
             kt = crypto_knowledge.KeyType(key_type)
             test_cases += self.test_cases_for_key_type_not_supported(kt)
-        # To be added: parametrized key types (ECC, FFDH)
+        # To be added: parametrized key types FFDH
+        for curve_family in sorted(self.constructors.ecc_curves):
+            for constr in ('PSA_KEY_TYPE_ECC_KEY_PAIR',
+                           'PSA_KEY_TYPE_ECC_PUBLIC_KEY'):
+                kt = crypto_knowledge.KeyType(constr, [curve_family])
+                test_cases += self.test_cases_for_key_type_not_supported(
+                    kt, param_descr='type')
+                test_cases += self.test_cases_for_key_type_not_supported(
+                    kt, 0, param_descr='curve')
         self.write_test_data_file(
             'test_suite_psa_crypto_not_supported.generated',
             test_cases)

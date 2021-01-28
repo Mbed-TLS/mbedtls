@@ -33,6 +33,13 @@
 #include "psa/crypto.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+/* If MBEDTLS_PSA_CRYPTO_C is defined, make sure MBEDTLS_PSA_CRYPTO_CLIENT
+ * is defined to run tests with dependency on MBEDTLS_PSA_CRYPTO_CLIENT.
+ */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#define MBEDTLS_PSA_CRYPTO_CLIENT
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
 /* Test code may use deprecated identifiers only if the preprocessor symbol
  * MBEDTLS_TEST_DEPRECATED is defined. When building tests, set
  * MBEDTLS_TEST_DEPRECATED explicitly if MBEDTLS_DEPRECATED_WARNING is

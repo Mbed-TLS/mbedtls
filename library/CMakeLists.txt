@@ -61,6 +61,7 @@ set(src_crypto
     platform_util.c
     poly1305.c
     psa_crypto.c
+    psa_crypto_client.c
     psa_crypto_driver_wrappers.c
     psa_crypto_se.c
     psa_crypto_slot_management.c

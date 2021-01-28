@@ -116,8 +116,8 @@
 
 #include <stdio.h>
 
-#include "common.h"
-#include "error.h"
+#include "mps_common.h"
+#include "mps_error.h"
 
 struct mbedtls_reader;
 typedef struct mbedtls_reader mbedtls_reader;

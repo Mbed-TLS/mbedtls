@@ -388,7 +388,7 @@ static inline psa_key_type_t mbedtls_psa_parse_tls_ecc_group(
  * as a subbuffer, and the function merely selects this subbuffer instead
  * of making a copy.
  */
-static inline int mbedtls_psa_tls_psa_ec_to_ecpoint( unsigned char *src,
+static inline int mbedtls_psa_tls_psa_ec_to_ecpoint( unsigned char const *src,
                                                      size_t srclen,
                                                      unsigned char **dst,
                                                      size_t *dstlen )

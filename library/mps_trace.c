@@ -21,7 +21,7 @@
 
 #include "mps_common.h"
 
-#if defined(MBEDTLS_MPS_TRACE)
+#if defined(MBEDTLS_MPS_ENABLE_TRACE)
 
 #include "mps_trace.h"
 #include <stdarg.h>
@@ -50,7 +50,7 @@ static char const * colors[] =
 
 #define MPS_TRACE_BUF_SIZE 100
 
-void trace_print_msg( int id, int line, const char *format, ... )
+void mbedtls_mps_trace_print_msg( int id, int line, const char *format, ... )
 {
     int ret;
     char str[MPS_TRACE_BUF_SIZE];
@@ -66,27 +66,27 @@ void trace_print_msg( int id, int line, const char *format, ... )
     }
 }
 
-int trace_get_depth()
+int mbedtls_mps_trace_get_depth()
 {
     return trace_depth_;
 }
-void trace_dec_depth()
+void mbedtls_mps_trace_dec_depth()
 {
     trace_depth_--;
 }
-void trace_inc_depth()
+void mbedtls_mps_trace_inc_depth()
 {
     trace_depth_++;
 }
 
-void trace_color( int id )
+void mbedtls_mps_trace_color( int id )
 {
     if( id > (int) ( sizeof( colors ) / sizeof( *colors ) ) )
         return;
     printf( "%s", colors[ id ] );
 }
 
-void trace_indent( int level, trace_type ty )
+void mbedtls_mps_trace_indent( int level, mbedtls_mps_trace_type ty )
 {
     if( level > 0 )
     {
@@ -98,19 +98,19 @@ void trace_indent( int level, trace_type ty )
 
     switch( ty )
     {
-        case trace_comment:
+        case mbedtls_mps_trace_comment:
             mbedtls_printf( "@ " );
             break;
 
-        case trace_call:
+        case mbedtls_mps_trace_call:
             mbedtls_printf( "+--> " );
             break;
 
-        case trace_error:
+        case mbedtls_mps_trace_error:
             mbedtls_printf( "E " );
             break;
 
-        case trace_return:
+        case mbedtls_mps_trace_return:
             mbedtls_printf( "< " );
             break;
 
@@ -119,4 +119,4 @@ void trace_indent( int level, trace_type ty )
     }
 }
 
-#endif /* MBEDTLS_MPS_TRACE */
+#endif /* MBEDTLS_MPS_ENABLE_TRACE */

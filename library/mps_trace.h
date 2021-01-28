@@ -23,8 +23,8 @@
  * \brief Tracing module for MPS
  */
 
-#ifndef MBEDTLS_MPS_TRACE_H
-#define MBEDTLS_MPS_TRACE_H
+#ifndef MBEDTLS_MPS_MBEDTLS_MPS_TRACE_H
+#define MBEDTLS_MPS_MBEDTLS_MPS_TRACE_H
 
 #include "common.h"
 #include "mps_common.h"
@@ -38,138 +38,138 @@
 #define mbedtls_vsnprintf vsnprintf
 #endif /* MBEDTLS_PLATFORM_C */
 
-#if defined(MBEDTLS_MPS_TRACE)
+#if defined(MBEDTLS_MPS_ENABLE_TRACE)
 
 /*
  * Adapt this to enable/disable tracing output
  * from the various layers of the MPS.
  */
 
-#define TRACE_ENABLE_LAYER_1
-#define TRACE_ENABLE_LAYER_2
-#define TRACE_ENABLE_LAYER_3
-#define TRACE_ENABLE_LAYER_4
-#define TRACE_ENABLE_READER
-#define TRACE_ENABLE_WRITER
+#define MBEDTLS_MPS_TRACE_ENABLE_LAYER_1
+#define MBEDTLS_MPS_TRACE_ENABLE_LAYER_2
+#define MBEDTLS_MPS_TRACE_ENABLE_LAYER_3
+#define MBEDTLS_MPS_TRACE_ENABLE_LAYER_4
+#define MBEDTLS_MPS_TRACE_ENABLE_READER
+#define MBEDTLS_MPS_TRACE_ENABLE_WRITER
 
 /*
  * To use the existing trace module, only change
- * TRACE_ENABLE_XXX above, but don't modify the
+ * MBEDTLS_MPS_TRACE_ENABLE_XXX above, but don't modify the
  * rest of this file.
  */
 
 typedef enum
 {
-    trace_comment,
-    trace_call,
-    trace_error,
-    trace_return
-} trace_type;
+    mbedtls_mps_trace_comment,
+    mbedtls_mps_trace_call,
+    mbedtls_mps_trace_error,
+    mbedtls_mps_trace_return
+} mbedtls_mps_trace_type;
 
-#define TRACE_BIT_LAYER_1 1
-#define TRACE_BIT_LAYER_2 2
-#define TRACE_BIT_LAYER_3 3
-#define TRACE_BIT_LAYER_4 4
-#define TRACE_BIT_WRITER  5
-#define TRACE_BIT_READER  6
+#define MBEDTLS_MPS_TRACE_BIT_LAYER_1 1
+#define MBEDTLS_MPS_TRACE_BIT_LAYER_2 2
+#define MBEDTLS_MPS_TRACE_BIT_LAYER_3 3
+#define MBEDTLS_MPS_TRACE_BIT_LAYER_4 4
+#define MBEDTLS_MPS_TRACE_BIT_WRITER  5
+#define MBEDTLS_MPS_TRACE_BIT_READER  6
 
-#if defined(TRACE_ENABLE_LAYER_1)
-#define TRACE_MASK_LAYER_1 (1u << TRACE_BIT_LAYER_1 )
+#if defined(MBEDTLS_MPS_TRACE_ENABLE_LAYER_1)
+#define MBEDTLS_MPS_TRACE_MASK_LAYER_1 (1u << MBEDTLS_MPS_TRACE_BIT_LAYER_1 )
 #else
-#define TRACE_MASK_LAYER_1 0
+#define MBEDTLS_MPS_TRACE_MASK_LAYER_1 0
 #endif
 
-#if defined(TRACE_ENABLE_LAYER_2)
-#define TRACE_MASK_LAYER_2 (1u << TRACE_BIT_LAYER_2 )
+#if defined(MBEDTLS_MPS_TRACE_ENABLE_LAYER_2)
+#define MBEDTLS_MPS_TRACE_MASK_LAYER_2 (1u << MBEDTLS_MPS_TRACE_BIT_LAYER_2 )
 #else
-#define TRACE_MASK_LAYER_2 0
+#define MBEDTLS_MPS_TRACE_MASK_LAYER_2 0
 #endif
 
-#if defined(TRACE_ENABLE_LAYER_3)
-#define TRACE_MASK_LAYER_3 (1u << TRACE_BIT_LAYER_3 )
+#if defined(MBEDTLS_MPS_TRACE_ENABLE_LAYER_3)
+#define MBEDTLS_MPS_TRACE_MASK_LAYER_3 (1u << MBEDTLS_MPS_TRACE_BIT_LAYER_3 )
 #else
-#define TRACE_MASK_LAYER_3 0
+#define MBEDTLS_MPS_TRACE_MASK_LAYER_3 0
 #endif
 
-#if defined(TRACE_ENABLE_LAYER_4)
-#define TRACE_MASK_LAYER_4 (1u << TRACE_BIT_LAYER_4 )
+#if defined(MBEDTLS_MPS_TRACE_ENABLE_LAYER_4)
+#define MBEDTLS_MPS_TRACE_MASK_LAYER_4 (1u << MBEDTLS_MPS_TRACE_BIT_LAYER_4 )
 #else
-#define TRACE_MASK_LAYER_4 0
+#define MBEDTLS_MPS_TRACE_MASK_LAYER_4 0
 #endif
 
-#if defined(TRACE_ENABLE_READER)
-#define TRACE_MASK_READER (1u << TRACE_BIT_READER )
+#if defined(MBEDTLS_MPS_TRACE_ENABLE_READER)
+#define MBEDTLS_MPS_TRACE_MASK_READER (1u << MBEDTLS_MPS_TRACE_BIT_READER )
 #else
-#define TRACE_MASK_READER 0
+#define MBEDTLS_MPS_TRACE_MASK_READER 0
 #endif
 
-#if defined(TRACE_ENABLE_WRITER)
-#define TRACE_MASK_WRITER (1u << TRACE_BIT_WRITER )
+#if defined(MBEDTLS_MPS_TRACE_ENABLE_WRITER)
+#define MBEDTLS_MPS_TRACE_MASK_WRITER (1u << MBEDTLS_MPS_TRACE_BIT_WRITER )
 #else
-#define TRACE_MASK_WRITER 0
+#define MBEDTLS_MPS_TRACE_MASK_WRITER 0
 #endif
 
-#define TRACE_MASK ( TRACE_MASK_LAYER_1 |           \
-                     TRACE_MASK_LAYER_2 |           \
-                     TRACE_MASK_LAYER_3 |           \
-                     TRACE_MASK_LAYER_4 |           \
-                     TRACE_MASK_READER  |           \
-                     TRACE_MASK_WRITER )
+#define MBEDTLS_MPS_TRACE_MASK ( MBEDTLS_MPS_TRACE_MASK_LAYER_1 |       \
+                                 MBEDTLS_MPS_TRACE_MASK_LAYER_2 |       \
+                                 MBEDTLS_MPS_TRACE_MASK_LAYER_3 |       \
+                                 MBEDTLS_MPS_TRACE_MASK_LAYER_4 |       \
+                                 MBEDTLS_MPS_TRACE_MASK_READER  |       \
+                                 MBEDTLS_MPS_TRACE_MASK_WRITER )
 
 /* We have to avoid globals because E-ACSL chokes on them...
  * Wrap everything in stub functions. */
-int  trace_get_depth( void );
-void trace_inc_depth( void );
-void trace_dec_depth( void );
+int  mbedtls_mps_trace_get_depth( void );
+void mbedtls_mps_trace_inc_depth( void );
+void mbedtls_mps_trace_dec_depth( void );
 
-void trace_color( int id );
-void trace_indent( int level, trace_type ty );
+void mbedtls_mps_trace_color( int id );
+void mbedtls_mps_trace_indent( int level, mbedtls_mps_trace_type ty );
 
-void trace_print_msg( int id, int line, const char *format, ... );
+void mbedtls_mps_trace_print_msg( int id, int line, const char *format, ... );
 
-#define TRACE( type, ... )                                  \
-    do {                                                    \
-        if( ! ( TRACE_MASK & ( 1u << trace_id ) ) )         \
-            break;                                          \
-        trace_indent( trace_get_depth(), type );            \
-        trace_color( trace_id );                            \
-        trace_print_msg( trace_id, __LINE__, __VA_ARGS__ ); \
-        trace_color( 0 );                                   \
+#define MBEDTLS_MPS_TRACE( type, ... )                                              \
+    do {                                                                            \
+        if( ! ( MBEDTLS_MPS_TRACE_MASK & ( 1u << mbedtls_mps_trace_id ) ) )         \
+            break;                                                                  \
+        mbedtls_mps_trace_indent( mbedtls_mps_trace_get_depth(), type );            \
+        mbedtls_mps_trace_color( mbedtls_mps_trace_id );                            \
+        mbedtls_mps_trace_print_msg( mbedtls_mps_trace_id, __LINE__, __VA_ARGS__ ); \
+        mbedtls_mps_trace_color( 0 );                                               \
     } while( 0 )
 
-#define TRACE_INIT( ... )                                   \
-    do {                                                    \
-        if( ! ( TRACE_MASK & ( 1u << trace_id ) ) )         \
-            break;                                          \
-        TRACE( trace_call, __VA_ARGS__ );                   \
-        trace_inc_depth();                                  \
+#define MBEDTLS_MPS_TRACE_INIT( ... )                                         \
+    do {                                                                      \
+        if( ! ( MBEDTLS_MPS_TRACE_MASK & ( 1u << mbedtls_mps_trace_id ) ) )   \
+            break;                                                            \
+        MBEDTLS_MPS_TRACE( mbedtls_mps_trace_call, __VA_ARGS__ );             \
+        mbedtls_mps_trace_inc_depth();                                        \
     } while( 0 )
 
-#define TRACE_END( val )                                    \
-    do {                                                    \
-        if( ! ( TRACE_MASK & ( 1u << trace_id ) ) )         \
-            break;                                          \
-        TRACE( trace_return, "%d (-%#04x)",                 \
-               (int) (val), -((unsigned)(val)) );           \
-        trace_dec_depth();                                  \
+#define MBEDTLS_MPS_TRACE_END( val )                                        \
+    do {                                                                    \
+        if( ! ( MBEDTLS_MPS_TRACE_MASK & ( 1u << mbedtls_mps_trace_id ) ) ) \
+            break;                                                          \
+        MBEDTLS_MPS_TRACE( mbedtls_mps_trace_return, "%d (-%#04x)",         \
+               (int) (val), -((unsigned)(val)) );                           \
+        mbedtls_mps_trace_dec_depth();                                      \
     } while( 0 )
 
-#define RETURN( val )                           \
+#define MBEDTLS_MPS_TRACE_RETURN( val )         \
     do {                                        \
         /* Breaks tail recursion. */            \
         int ret__ = val;                        \
-        TRACE_END( ret__ );                     \
+        MBEDTLS_MPS_TRACE_END( ret__ );         \
         return( ret__ );                        \
     } while( 0 )
 
 #else /* MBEDTLS_MPS_TRACE */
 
-#define TRACE( type, ... ) do { } while( 0 )
-#define TRACE_INIT( ... )  do { } while( 0 )
-#define TRACE_END          do { } while( 0 )
+#define MBEDTLS_MPS_TRACE( type, ... ) do { } while( 0 )
+#define MBEDTLS_MPS_TRACE_INIT( ... )  do { } while( 0 )
+#define MBEDTLS_MPS_TRACE_END          do { } while( 0 )
 
-#define RETURN( val ) return( val );
+#define MBEDTLS_MPS_TRACE_RETURN( val ) return( val );
 
 #endif /* MBEDTLS_MPS_TRACE */
 
-#endif /* MBEDTLS_MPS_TRACE_H */
+#endif /* MBEDTLS_MPS_MBEDTLS_MPS_TRACE_H */

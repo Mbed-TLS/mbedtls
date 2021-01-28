@@ -30,7 +30,7 @@
 /* TODO: The error code allocation needs to be revisited:
  *
  * - Should we make (some of) the MPS Reader error codes public?
- *   If so, we need to adjust MBEDTLS_READER_MAKE_ERROR() to hit
+ *   If so, we need to adjust MBEDTLS_MPS_READER_MAKE_ERROR() to hit
  *   a gap in the Mbed TLS public error space.
  *   If not, we have to make sure we don't forward those errors
  *   at the level of the public API -- no risk at the moment as
@@ -57,6 +57,7 @@
 
 
 #define MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED  MBEDTLS_MPS_MAKE_ERROR( 0x1 )
+#define MBEDTLS_ERR_MPS_INTERNAL_ERROR        MBEDTLS_MPS_MAKE_ERROR( 0x2 )
 
 /* \} name SECTION: MPS general error codes */
 

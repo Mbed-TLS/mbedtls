@@ -26,6 +26,8 @@
 #ifndef MBEDTLS_MPS_COMMON_H
 #define MBEDTLS_MPS_COMMON_H
 
+#include "mps_error.h"
+
 #include <stdio.h>
 
 /**
@@ -90,18 +92,18 @@
 #define MBEDTLS_MPS_ENABLE_ASSERTIONS
 
 /*! This flag controls whether tracing for MPS should be enabled. */
-//#define MBEDTLS_MPS_TRACE
+//#define MBEDTLS_MPS_ENABLE_TRACE
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
 
-#define MBEDTLS_MPS_STATE_VALIDATE_RAW( cond, string )           \
-    do                                                           \
-    {                                                            \
-        if( !(cond) )                                            \
-        {                                                        \
-            TRACE( trace_error, string );                        \
-            RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );      \
-        }                                                        \
+#define MBEDTLS_MPS_STATE_VALIDATE_RAW( cond, string )                         \
+    do                                                                         \
+    {                                                                          \
+        if( !(cond) )                                                          \
+        {                                                                      \
+            MBEDTLS_MPS_TRACE( mbedtls_mps_trace_error, string );              \
+            MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );  \
+        }                                                                      \
     } while( 0 )
 
 #else /* MBEDTLS_MPS_STATE_VALIDATION */
@@ -116,14 +118,14 @@
 
 #if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
 
-#define MBEDTLS_MPS_ASSERT_RAW( cond, string )                   \
-    do                                                           \
-    {                                                            \
-        if( !(cond) )                                            \
-        {                                                        \
-            TRACE( trace_error, string );                        \
-            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );            \
-        }                                                        \
+#define MBEDTLS_MPS_ASSERT_RAW( cond, string )                          \
+    do                                                                  \
+    {                                                                   \
+        if( !(cond) )                                                   \
+        {                                                               \
+            MBEDTLS_MPS_TRACE( mbedtls_mps_trace_error, string );       \
+            MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR ); \
+        }                                                               \
     } while( 0 )
 
 #else /* MBEDTLS_MPS_ENABLE_ASSERTIONS */

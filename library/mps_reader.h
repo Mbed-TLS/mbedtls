@@ -257,7 +257,7 @@ int mbedtls_reader_free( mbedtls_reader *reader );
  *                  moved to consuming state, and ownership of \p buf
  *                  will be passed to the reader until mbedtls_reader_reclaim()
  *                  is called.
- * \return          \c MBEDTLS_ERR_READER_NEED_MORE if more input data is
+ * \return          \c MBEDTLS_ERR_MPS_READER_NEED_MORE if more input data is
  *                  required to fulfill a previous request to mbedtls_reader_get().
  *                  In this case, the reader remains in producing state and
  *                  takes no ownership of the provided buffer (an internal copy
@@ -308,7 +308,7 @@ int mbedtls_reader_reclaim( mbedtls_reader     *reader,
  *                  (if \c buflen == \c NULL). The user hass ownership
  *                  of the buffer until the next call to mbedtls_reader_commit().
  *                  or mbedtls_reader_reclaim().
- * \return          #MBEDTLS_ERR_READER_OUT_OF_DATA if there is not enough
+ * \return          #MBEDTLS_ERR_MPS_READER_OUT_OF_DATA if there is not enough
  *                  data available to serve the read request. In this case,
  *                  the reader remains intact, and additional data can be
  *                  provided by reclaiming the current input buffer via

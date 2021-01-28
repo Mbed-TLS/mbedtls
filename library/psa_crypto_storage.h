@@ -115,8 +115,8 @@ psa_status_t psa_save_persistent_key( const psa_core_key_attributes_t *attr,
  * metadata and writes them to the appropriate output parameters.
  *
  * Note: This function allocates a buffer and returns a pointer to it through
- * the data parameter. On succesful return, the pointer is guaranteed to be
- * valid and contain at least one byte of data.
+ * the data parameter. On successful return, the pointer is guaranteed to be
+ * valid and the buffer contains at least one byte of data.
  * psa_free_persistent_key_data() must be called on the data buffer
  * afterwards to zeroize and free this buffer.
  *

@@ -66,7 +66,7 @@ static int mbedtls_mps_trace_id = MBEDTLS_MPS_TRACE_BIT_READER;
  *
  */
 
-static inline void mps_reader_zero( mbedtls_reader *rd )
+static inline void mps_reader_zero( mbedtls_mps_reader *rd )
 {
     /* A plain memset() would likely be more efficient,
      * but the current way of zeroing makes it harder
@@ -74,7 +74,7 @@ static inline void mps_reader_zero( mbedtls_reader *rd )
      * It's also more suitable for VF efforts since it
      * doesn't require reasoning about structs being
      * interpreted as unstructured binary blobs. */
-    static mbedtls_reader const zero =
+    static mbedtls_mps_reader const zero =
         { .frag      = NULL,
           .frag_len  = 0,
           .commit    = 0,
@@ -88,9 +88,9 @@ static inline void mps_reader_zero( mbedtls_reader *rd )
     *rd = zero;
 }
 
-int mbedtls_reader_init( mbedtls_reader *rd,
-                         unsigned char *acc,
-                         mbedtls_mps_size_t acc_len )
+int mbedtls_mps_reader_init( mbedtls_mps_reader *rd,
+                             unsigned char *acc,
+                             mbedtls_mps_size_t acc_len )
 {
     MBEDTLS_MPS_TRACE_INIT( "reader_init, acc len %u", (unsigned) acc_len );
     mps_reader_zero( rd );
@@ -99,16 +99,16 @@ int mbedtls_reader_init( mbedtls_reader *rd,
     MBEDTLS_MPS_TRACE_RETURN( 0 );
 }
 
-int mbedtls_reader_free( mbedtls_reader *rd )
+int mbedtls_mps_reader_free( mbedtls_mps_reader *rd )
 {
     MBEDTLS_MPS_TRACE_INIT( "reader_free" );
     mps_reader_zero( rd );
     MBEDTLS_MPS_TRACE_RETURN( 0 );
 }
 
-int mbedtls_reader_feed( mbedtls_reader *rd,
-                         unsigned char *new_frag,
-                         mbedtls_mps_size_t new_frag_len )
+int mbedtls_mps_reader_feed( mbedtls_mps_reader *rd,
+                             unsigned char *new_frag,
+                             mbedtls_mps_size_t new_frag_len )
 {
     unsigned char *acc;
     mbedtls_mps_size_t copy_to_acc;
@@ -119,7 +119,7 @@ int mbedtls_reader_feed( mbedtls_reader *rd,
         MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_READER_INVALID_ARG );
 
     MBEDTLS_MPS_STATE_VALIDATE_RAW( rd->frag == NULL,
-        "mbedtls_reader_feed() requires reader to be in producing mode" );
+        "mbedtls_mps_reader_feed() requires reader to be in producing mode" );
 
     acc = rd->acc;
     if( acc != NULL )
@@ -173,10 +173,10 @@ int mbedtls_reader_feed( mbedtls_reader *rd,
 }
 
 
-int mbedtls_reader_get( mbedtls_reader *rd,
-                        mbedtls_mps_size_t desired,
-                        unsigned char **buffer,
-                        mbedtls_mps_size_t *buflen )
+int mbedtls_mps_reader_get( mbedtls_mps_reader *rd,
+                            mbedtls_mps_size_t desired,
+                            unsigned char **buffer,
+                            mbedtls_mps_size_t *buflen )
 {
     unsigned char *frag, *acc;
     mbedtls_mps_size_t end, fo, fl, frag_fetched, frag_remaining;
@@ -185,7 +185,7 @@ int mbedtls_reader_get( mbedtls_reader *rd,
 
     frag = rd->frag;
     MBEDTLS_MPS_STATE_VALIDATE_RAW( frag != NULL,
-          "mbedtls_reader_get() requires reader to be in consuming mode" );
+          "mbedtls_mps_reader_get() requires reader to be in consuming mode" );
 
     /* The fragment offset indicates the offset of the fragment
      * from the accmulator, if the latter is present. Use a offset
@@ -269,7 +269,7 @@ int mbedtls_reader_get( mbedtls_reader *rd,
              *                fo/frag_offset   aa/acc_avail
              *
              * In case of Allowed #1 and #2 we're switching to serve from
-             * `frag` starting from the next call to mbedtls_reader_get().
+             * `frag` starting from the next call to mbedtls_mps_reader_get().
              */
 
             mbedtls_mps_size_t aa;
@@ -348,14 +348,14 @@ int mbedtls_reader_get( mbedtls_reader *rd,
     MBEDTLS_MPS_TRACE_RETURN( 0 );
 }
 
-int mbedtls_reader_commit( mbedtls_reader *rd )
+int mbedtls_mps_reader_commit( mbedtls_mps_reader *rd )
 {
     unsigned char *acc;
     mbedtls_mps_size_t aa, end, fo, shift;
     MBEDTLS_MPS_TRACE_INIT( "reader_commit" );
 
     MBEDTLS_MPS_STATE_VALIDATE_RAW( rd->frag != NULL,
-       "mbedtls_reader_commit() requires reader to be in consuming mode" );
+       "mbedtls_mps_reader_commit() requires reader to be in consuming mode" );
 
     acc = rd->acc;
     end = rd->end;
@@ -400,8 +400,8 @@ int mbedtls_reader_commit( mbedtls_reader *rd )
     MBEDTLS_MPS_TRACE_RETURN( 0 );
 }
 
-int mbedtls_reader_reclaim( mbedtls_reader *rd,
-                            mbedtls_mps_size_t *paused )
+int mbedtls_mps_reader_reclaim( mbedtls_mps_reader *rd,
+                                mbedtls_mps_size_t *paused )
 {
     unsigned char *frag, *acc;
     mbedtls_mps_size_t pending, commit;
@@ -413,7 +413,7 @@ int mbedtls_reader_reclaim( mbedtls_reader *rd,
 
     frag = rd->frag;
     MBEDTLS_MPS_STATE_VALIDATE_RAW( frag != NULL,
-           "mbedtls_reader_reclaim() requires reader to be in consuming mode" );
+           "mbedtls_mps_reader_reclaim() requires reader to be in consuming mode" );
 
     acc     = rd->acc;
     pending = rd->pending;

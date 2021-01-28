@@ -81,7 +81,7 @@
 /*! An invalid argument was passed to the reader. */
 #define MBEDTLS_ERR_MPS_READER_INVALID_ARG           MBEDTLS_MPS_READER_MAKE_ERROR( 0x2 )
 
-/*! An attempt to move a reader to consuming mode through mbedtls_reader_feed()
+/*! An attempt to move a reader to consuming mode through mbedtls_mps_reader_feed()
  *  after pausing failed because the provided data is not sufficient to serve the
  *  the read requests that lead to the pausing. */
 #define MBEDTLS_ERR_MPS_READER_NEED_MORE             MBEDTLS_MPS_READER_MAKE_ERROR( 0x3 )

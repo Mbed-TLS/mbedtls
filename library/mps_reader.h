@@ -57,9 +57,9 @@
  * From the perspective of the consumer, the state of the
  * reader is a potentially empty list of input buffers that
  * the reader has provided to the consumer.
- * New buffers can be requested through calls to mbedtls_reader_get(),
+ * New buffers can be requested through calls to mbedtls_mps_reader_get(),
  * while previously obtained input buffers can be marked processed
- * through calls to mbedtls_reader_consume(), emptying the list of
+ * through calls to mbedtls_mps_reader_consume(), emptying the list of
  * input buffers and invalidating them from the consumer's perspective.
  * The consumer need not be aware of the distinction between consumer
  * and producer mode, because he only interfaces with the reader
@@ -82,9 +82,9 @@
  * while the Attached state belongs to consuming mode.
  *
  * Transitioning from Unset or Accumulating to Attached is
- * done via calls to mbedtls_reader_feed(), while transitioning
+ * done via calls to mbedtls_mps_reader_feed(), while transitioning
  * from Consuming to either Unset or Accumulating (depending
- * on what has been processed) is done via mbedtls_reader_reclaim().
+ * on what has been processed) is done via mbedtls_mps_reader_reclaim().
  *
  * The following diagram depicts the producer-state progression:
  *
@@ -119,18 +119,18 @@
 #include "mps_common.h"
 #include "mps_error.h"
 
-struct mbedtls_reader;
-typedef struct mbedtls_reader mbedtls_reader;
+struct mbedtls_mps_reader;
+typedef struct mbedtls_mps_reader mbedtls_mps_reader;
 
 /*
  * Structure definitions
  */
 
-struct mbedtls_reader
+struct mbedtls_mps_reader
 {
     unsigned char *frag;  /*!< The fragment of incoming data managed by
                            *   the reader; it is provided to the reader
-                           *   through mbedtls_reader_feed(). The reader
+                           *   through mbedtls_mps_reader_feed(). The reader
                            *   does not own the fragment and does not
                            *   perform any allocation operations on it,
                            *   but does have read and write access to it.   */
@@ -146,18 +146,18 @@ struct mbedtls_reader
     mbedtls_mps_stored_size_t end;
                           /*!< The offset of the end of the last chunk
                            *   passed to the user through a call to
-                           *   mbedtls_reader_get(), relative to the first
+                           *   mbedtls_mps_reader_get(), relative to the first
                            *   byte in the accumulator.
                            *   This is only used when the reader is in
                            *   consuming mode, i.e. \c frag != \c NULL;
                            *   otherwise, its value is \c 0.                */
     mbedtls_mps_stored_size_t pending;
                           /*!< The amount of incoming data missing on the
-                           *   last call to mbedtls_reader_get().
+                           *   last call to mbedtls_mps_reader_get().
                            *   In particular, it is \c 0 if the last call
                            *   was successful.
                            *   If a reader is reclaimed after an
-                           *   unsuccessful call to mbedtls_reader_get(),
+                           *   unsuccessful call to mbedtls_mps_reader_get(),
                            *   this variable is used to have the reader
                            *   remember how much data should be accumulated
                            *   before the reader can be passed back to
@@ -171,7 +171,7 @@ struct mbedtls_reader
      * separate struct and using a pointer here. */
 
     unsigned char *acc;   /*!< The accumulator is used to gather incoming
-                           *   data if a read-request via mbedtls_reader_get()
+                           *   data if a read-request via mbedtls_mps_reader_get()
                            *   cannot be served from the current fragment.   */
     mbedtls_mps_stored_size_t acc_len;
                            /*!< The total size of the accumulator.           */
@@ -218,8 +218,8 @@ struct mbedtls_reader
  *
  * \param reader    The reader to be initialized.
  * \param acc       The buffer to be used as a temporary accumulator
- *                  in case read requests through mbedtls_reader_get()
- *                  exceed the buffer provided by mbedtls_reader_feed().
+ *                  in case read requests through mbedtls_mps_reader_get()
+ *                  exceed the buffer provided by mbedtls_mps_reader_feed().
  *                  This buffer is owned by the caller and exclusive use
  *                  for reading and writing is given to the reade for the
  *                  duration of the reader's lifetime. It is thus the caller's
@@ -231,9 +231,9 @@ struct mbedtls_reader
  * \return          \c 0 on success.
  * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.
  */
-int mbedtls_reader_init( mbedtls_reader *reader,
-                         unsigned char *acc,
-                         mbedtls_mps_size_t acc_len );
+int mbedtls_mps_reader_init( mbedtls_mps_reader *reader,
+                             unsigned char *acc,
+                             mbedtls_mps_size_t acc_len );
 
 /**
  * \brief           Free a reader object
@@ -243,7 +243,7 @@ int mbedtls_reader_init( mbedtls_reader *reader,
  * \return          \c 0 on success.
  * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.
  */
-int mbedtls_reader_free( mbedtls_reader *reader );
+int mbedtls_mps_reader_free( mbedtls_mps_reader *reader );
 
 /**
  * \brief           Pass chunk of data for the reader to manage.
@@ -255,19 +255,19 @@ int mbedtls_reader_free( mbedtls_reader *reader );
  *
  * \return          \c 0 on success. In this case, the reader will be
  *                  moved to consuming state, and ownership of \p buf
- *                  will be passed to the reader until mbedtls_reader_reclaim()
+ *                  will be passed to the reader until mbedtls_mps_reader_reclaim()
  *                  is called.
  * \return          \c MBEDTLS_ERR_MPS_READER_NEED_MORE if more input data is
- *                  required to fulfill a previous request to mbedtls_reader_get().
+ *                  required to fulfill a previous request to mbedtls_mps_reader_get().
  *                  In this case, the reader remains in producing state and
  *                  takes no ownership of the provided buffer (an internal copy
  *                  is made instead).
  * \return          Another negative \c MBEDTLS_ERR_READER_XXX error code on
  *                  different kinds of failures.
  */
-int mbedtls_reader_feed( mbedtls_reader *reader,
-                         unsigned char *buf,
-                         mbedtls_mps_size_t buflen );
+int mbedtls_mps_reader_feed( mbedtls_mps_reader *reader,
+                             unsigned char *buf,
+                             mbedtls_mps_size_t buflen );
 
 /**
  * \brief           Reclaim reader's access to the current input buffer.
@@ -278,14 +278,14 @@ int mbedtls_reader_feed( mbedtls_reader *reader,
  *                  modified to indicate whether the reader has been paused
  *                  (value \c 1) or not (value \c 0). Pausing happens if there
  *                  is uncommitted data and a previous request to
- *                  mbedtls_reader_get() has exceeded the bounds of the
+ *                  mbedtls_mps_reader_get() has exceeded the bounds of the
  *                  input buffer.
  *
  * \return          \c 0 on success.
  * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.
  */
-int mbedtls_reader_reclaim( mbedtls_reader     *reader,
-                            mbedtls_mps_size_t *paused );
+int mbedtls_mps_reader_reclaim( mbedtls_mps_reader *reader,
+                                mbedtls_mps_size_t *paused );
 
 /*
  * Usage API (Upper layer)
@@ -306,14 +306,14 @@ int mbedtls_reader_reclaim( mbedtls_reader     *reader,
  *                  address of a buffer of size \c *buflen
  *                  (if \c buflen != \c NULL) or \c desired
  *                  (if \c buflen == \c NULL). The user hass ownership
- *                  of the buffer until the next call to mbedtls_reader_commit().
- *                  or mbedtls_reader_reclaim().
+ *                  of the buffer until the next call to mbedtls_mps_reader_commit().
+ *                  or mbedtls_mps_reader_reclaim().
  * \return          #MBEDTLS_ERR_MPS_READER_OUT_OF_DATA if there is not enough
  *                  data available to serve the read request. In this case,
  *                  the reader remains intact, and additional data can be
  *                  provided by reclaiming the current input buffer via
- *                  mbedtls_reader_reclaim() and feeding a new one via
- *                  mbedtls_reader_feed().
+ *                  mbedtls_mps_reader_reclaim() and feeding a new one via
+ *                  mbedtls_mps_reader_feed().
  * \return          Another negative \c MBEDTLS_ERR_READER_XXX error
  *                  code for different kinds of failure.
  *
@@ -323,10 +323,10 @@ int mbedtls_reader_reclaim( mbedtls_reader     *reader,
  *                  address as buflen and checking \c *buflen == \c desired
  *                  afterwards.
  */
-int mbedtls_reader_get( mbedtls_reader *reader,
-                        mbedtls_mps_size_t desired,
-                        unsigned char **buffer,
-                        mbedtls_mps_size_t *buflen );
+int mbedtls_mps_reader_get( mbedtls_mps_reader *reader,
+                            mbedtls_mps_size_t desired,
+                            unsigned char **buffer,
+                            mbedtls_mps_size_t *buflen );
 
 /**
  * \brief           Signal that all input buffers previously obtained
@@ -344,6 +344,6 @@ int mbedtls_reader_get( mbedtls_reader *reader,
  *                  pointers corresponding to the committed data anymore.
  *
  */
-int mbedtls_reader_commit( mbedtls_reader *reader );
+int mbedtls_mps_reader_commit( mbedtls_mps_reader *reader );
 
 #endif /* MBEDTLS_READER_H */

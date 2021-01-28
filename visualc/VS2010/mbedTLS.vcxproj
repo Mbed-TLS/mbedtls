@@ -251,6 +251,10 @@
     <ClInclude Include="..\..\tests\include\test\drivers\test_driver.h" />
     <ClInclude Include="..\..\library\check_crypto_config.h" />
     <ClInclude Include="..\..\library\common.h" />
+    <ClInclude Include="..\..\library\mps_common.h" />
+    <ClInclude Include="..\..\library\mps_error.h" />
+    <ClInclude Include="..\..\library\mps_reader.h" />
+    <ClInclude Include="..\..\library\mps_trace.h" />
     <ClInclude Include="..\..\library\psa_crypto_cipher.h" />
     <ClInclude Include="..\..\library\psa_crypto_core.h" />
     <ClInclude Include="..\..\library\psa_crypto_driver_wrappers.h" />
@@ -310,6 +314,8 @@
     <ClCompile Include="..\..\library\md4.c" />
     <ClCompile Include="..\..\library\md5.c" />
     <ClCompile Include="..\..\library\memory_buffer_alloc.c" />
+    <ClCompile Include="..\..\library\mps_reader.c" />
+    <ClCompile Include="..\..\library\mps_trace.c" />
     <ClCompile Include="..\..\library\net_sockets.c" />
     <ClCompile Include="..\..\library\nist_kw.c" />
     <ClCompile Include="..\..\library\oid.c" />

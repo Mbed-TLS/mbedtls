@@ -188,10 +188,11 @@
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 0
 #endif
 
-/** This macro returns the maximum length of the PSK supported
- * by the TLS-1.2 PSK-to-MS key derivation
- * (#PSA_ALG_TLS12_PSK_TO_MS(\p hash_alg)). It is independent from the
- * choice of hash algorithms.
+/** This macro returns the maximum supported length of the PSK for the
+ * TLS-1.2 PSK-to-MS key derivation
+ * (#PSA_ALG_TLS12_PSK_TO_MS(\p hash_alg)).
+ *
+ * The maximum supported length does not depend on the chosen hash algorithm.
  *
  * Quoting RFC 4279, Sect 5.3:
  * TLS implementations supporting these ciphersuites MUST support
@@ -591,7 +592,8 @@
 #define PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(key_bits)   \
     (PSA_BITS_TO_BYTES(key_bits))
 
-/** Sufficient output buffer size for psa_export_key().
+/** Sufficient output buffer size for psa_export_key() or
+ * psa_export_public_key().
  *
  * This macro returns a compile-time constant if its arguments are
  * compile-time constants.
@@ -623,7 +625,7 @@
  *
  * \return If the parameters are valid and supported, return
  *         a buffer size in bytes that guarantees that
- *         psa_export_key() will not fail with
+ *         psa_export_key() or psa_export_public_key() will not fail with
  *         #PSA_ERROR_BUFFER_TOO_SMALL.
  *         If the parameters are a valid combination that is not supported
  *         by the implementation, this macro shall return either a

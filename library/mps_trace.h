@@ -27,10 +27,9 @@
 #define MBEDTLS_MPS_TRACE_H
 
 #include "common.h"
+#include "mps_common.h"
+#include "mps_trace.h"
 
-#include "../common.h"
-
-#include "trace.h"
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else

@@ -19,9 +19,9 @@
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
 
-#include "reader.h"
-#include "common.h"
-#include "trace.h"
+#include "mps_reader.h"
+#include "mps_common.h"
+#include "mps_trace.h"
 
 #include <string.h>
 

@@ -104,8 +104,8 @@ OBJS_CRYPTO= \
 	     md4.o \
 	     md5.o \
 	     memory_buffer_alloc.o \
-             mps/reader.o \
-             mps/trace.o \
+             mps_reader.o \
+             mps_trace.o \
 	     nist_kw.o \
 	     oid.o \
 	     padlock.o \

@@ -559,6 +559,17 @@ int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
  * initialized mutex, so attempting to use zero-initialized memory as a mutex
  * without calling the init function is detected.
  *
+ * The framework attempts to detect missing calls to init and free by counting
+ * calls to init and free. If there are more calls to init than free, this
+ * means that a mutex is not being freed somewhere, which is a memory leak
+ * on platforms where a mutex consumes resources other than the
+ * mbedtls_threading_mutex_t object itself. If there are more calls to free
+ * than init, this indicates a missing init, which is likely to be detected
+ * by an attempt to lock the mutex as well. A limitation of this framework is
+ * that it cannot detect scenarios where there is exactly the same number of
+ * calls to init and free but the calls don't match. A bug like this is
+ * unlikely happen uniformly throughout the whole test suite though.
+ *
  * If an error is detected, this framework will report what happened and the
  * test case will be marked as failed. Unfortunately, the error report cannot
  * indicate the exact location of the problematic call. To locate the error,
@@ -580,6 +591,13 @@ typedef struct
 } mutex_functions_t;
 static mutex_functions_t mutex_functions;
 
+/** The total number of calls to mbedtls_mutex_init(), minus the total number
+ * of calls to mbedtls_mutex_free().
+ *
+ * Reset to 0 after each test case.
+ */
+static int live_mutexes;
+
 static void mbedtls_test_mutex_usage_error( mbedtls_threading_mutex_t *mutex,
                                             const char *msg )
 {
@@ -596,6 +614,8 @@ static void mbedtls_test_mutex_usage_error( mbedtls_threading_mutex_t *mutex,
 static void mbedtls_test_wrap_mutex_init( mbedtls_threading_mutex_t *mutex )
 {
     mutex_functions.init( mutex );
+    if( mutex->is_valid )
+        ++live_mutexes;
 }
 
 static void mbedtls_test_wrap_mutex_free( mbedtls_threading_mutex_t *mutex )
@@ -616,6 +636,8 @@ static void mbedtls_test_wrap_mutex_free( mbedtls_threading_mutex_t *mutex )
             mbedtls_test_mutex_usage_error( mutex, "corrupted state" );
             break;
     }
+    if( mutex->is_valid )
+        --live_mutexes;
     mutex_functions.free( mutex );
 }
 
@@ -677,6 +699,17 @@ static void mbedtls_test_mutex_usage_init( void )
 
 static void mbedtls_test_mutex_usage_check( void )
 {
+    if( live_mutexes != 0 )
+    {
+        /* A positive number (more init than free) means that a mutex resource
+         * is leaking (on platforms where a mutex consumes more than the
+         * mbedtls_threading_mutex_t object itself). The rare case of a
+         * negative number means a missing init somewhere. */
+        mbedtls_fprintf( stdout, "[mutex: %d leaked] ", live_mutexes );
+        live_mutexes = 0;
+        if( test_info.mutex_usage_error == NULL )
+            test_info.mutex_usage_error = "missing free";
+    }
     if( test_info.mutex_usage_error != NULL && ! test_info.failed )
     {
         /* Functionally, the test passed. But there was a mutex usage error,

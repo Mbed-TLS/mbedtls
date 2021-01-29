@@ -2358,6 +2358,15 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     }
     else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+    if( psa_key_lifetime_is_external( psa_get_key_lifetime( attributes ) ) )
+    {
+        /* Importing a key with external lifetime through the driver wrapper
+         * interface is not yet supported. Return as if this was an invalid
+         * lifetime. */
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+    else
     {
         status = psa_import_key_into_slot( slot, data, data_length );
         if( status != PSA_SUCCESS )

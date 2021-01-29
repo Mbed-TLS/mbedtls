@@ -248,7 +248,11 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *slot )
         goto exit;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( psa_key_lifetime_is_external( slot->attr.lifetime ) )
+    /* Special handling is required for loading keys associated with a
+     * dynamically registered SE interface. */
+    const psa_drv_se_t *drv;
+    psa_drv_se_context_t *drv_context;
+    if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )
     {
         psa_se_key_data_storage_t *data;
         if( key_data_length != sizeof( *data ) )
@@ -259,14 +263,13 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *slot )
         data = (psa_se_key_data_storage_t *) key_data;
         memcpy( &slot->data.se.slot_number, &data->slot_number,
                 sizeof( slot->data.se.slot_number ) );
+
+        status = PSA_SUCCESS;
+        goto exit;
     }
-    else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    {
-        status = psa_copy_key_material_into_slot( slot, key_data, key_data_length );
-        if( status != PSA_SUCCESS )
-            goto exit;
-    }
+
+    status = psa_copy_key_material_into_slot( slot, key_data, key_data_length );
 
 exit:
     psa_free_persistent_key_data( key_data, key_data_length );
@@ -343,19 +346,26 @@ psa_status_t psa_validate_key_location( psa_key_lifetime_t lifetime,
     if ( psa_key_lifetime_is_external( lifetime ) )
     {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+        /* Check whether a driver is registered against this lifetime */
         psa_se_drv_table_entry_t *driver = psa_get_se_driver_entry( lifetime );
-        if( driver == NULL )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        else
+        if( driver != NULL )
         {
             if (p_drv != NULL)
                 *p_drv = driver;
             return( PSA_SUCCESS );
         }
-#else
+#else /* MBEDTLS_PSA_CRYPTO_SE_C */
         (void) p_drv;
-        return( PSA_ERROR_INVALID_ARGUMENT );
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
+        /* Key location for external keys gets checked by the wrapper */
+        return( PSA_SUCCESS );
+#else /* MBEDTLS_PSA_CRYPTO_DRIVERS */
+        /* No support for external lifetimes at all, or dynamic interface
+         * did not find driver for requested lifetime. */
+        return( PSA_ERROR_INVALID_ARGUMENT );
+#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
     }
     else
         /* Local/internal keys are always valid */

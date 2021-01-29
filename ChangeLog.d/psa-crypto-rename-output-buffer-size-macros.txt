@@ -1,0 +1,9 @@
+API changes
+   * Renamed the PSA Crypto API output buffer size macros to bring them in line
+     with version 1.0.0 of the specification.
+
+New deprecations
+   * PSA_KEY_EXPORT_MAX_SIZE, PSA_HASH_SIZE, PSA_MAC_FINAL_SIZE,
+     PSA_BLOCK_CIPHER_BLOCK_SIZE, PSA_MAX_BLOCK_CIPHER_BLOCK_SIZE and
+     PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN have been renamed, and the old names
+     deprecated.

@@ -292,8 +292,8 @@ static psa_status_t ram_fake_generate( psa_drv_se_context_t *context,
 {
     psa_status_t status;
     size_t required_storage =
-        PSA_KEY_EXPORT_MAX_SIZE( psa_get_key_type( attributes ),
-                                 psa_get_key_bits( attributes ) );
+        PSA_EXPORT_KEY_OUTPUT_SIZE( psa_get_key_type( attributes ),
+                                    psa_get_key_bits( attributes ) );
 
     DRIVER_ASSERT_RETURN( *pubkey_length == 0 );
     if( ! PSA_KEY_TYPE_IS_KEY_PAIR( psa_get_key_type( attributes ) ) )

@@ -46,6 +46,12 @@ typedef UINT32 uint32_t;
 #include <strings.h>
 #endif
 
+#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_PTHREAD) && \
+    defined(MBEDTLS_TEST_HOOKS)
+#include "mbedtls/threading.h"
+#define MBEDTLS_TEST_MUTEX_USAGE
+#endif
+
 /*
  * Define the two macros
  *
@@ -777,3 +783,52 @@ int mbedtls_test_hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_le
     }
     return ret;
 }
+
+/** Mutex usage verification framework.
+ *
+ */
+
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+typedef struct
+{
+    void (*init)( mbedtls_threading_mutex_t * );
+    void (*free)( mbedtls_threading_mutex_t * );
+    int (*lock)( mbedtls_threading_mutex_t * );
+    int (*unlock)( mbedtls_threading_mutex_t * );
+} mutex_functions_t;
+static mutex_functions_t mutex_functions;
+
+static void mbedtls_test_wrap_mutex_init( mbedtls_threading_mutex_t *mutex )
+{
+    mutex_functions.init( mutex );
+}
+
+static void mbedtls_test_wrap_mutex_free( mbedtls_threading_mutex_t *mutex )
+{
+    mutex_functions.free( mutex );
+}
+
+static int mbedtls_test_wrap_mutex_lock( mbedtls_threading_mutex_t *mutex )
+{
+    int ret = mutex_functions.lock( mutex );
+    return( ret );
+}
+
+static int mbedtls_test_wrap_mutex_unlock( mbedtls_threading_mutex_t *mutex )
+{
+    return( mutex_functions.unlock( mutex ) );
+}
+
+static void mbedtls_test_mutex_usage_init( void )
+{
+    mutex_functions.init = mbedtls_mutex_init;
+    mutex_functions.free = mbedtls_mutex_free;
+    mutex_functions.lock = mbedtls_mutex_lock;
+    mutex_functions.unlock = mbedtls_mutex_unlock;
+    mbedtls_mutex_init = &mbedtls_test_wrap_mutex_init;
+    mbedtls_mutex_free = &mbedtls_test_wrap_mutex_free;
+    mbedtls_mutex_lock = &mbedtls_test_wrap_mutex_lock;
+    mbedtls_mutex_unlock = &mbedtls_test_wrap_mutex_unlock;
+}
+
+#endif /* MBEDTLS_TEST_MUTEX_USAGE */

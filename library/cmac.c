@@ -783,8 +783,8 @@ static int cmac_test_subkeys( int verbose,
         {
             /* When CMAC is implemented by an alternative implementation, or
              * the underlying primitive itself is implemented alternatively,
-             * certain features (e.g. AES-192) may be unavailable. This should
-             * not cause the selftest function to fail. */
+             * AES-192 may be unavailable. This should not cause the selftest
+             * function to fail. */
             if( ( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ||
                   ret == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE ) &&
                   cipher_type == MBEDTLS_CIPHER_AES_192_ECB ) {
@@ -867,8 +867,8 @@ static int cmac_test_wth_cipher( int verbose,
         {
             /* When CMAC is implemented by an alternative implementation, or
              * the underlying primitive itself is implemented alternatively,
-             * certain features (e.g. AES-192) may be unavailable. This should
-             * not cause the selftest function to fail. */
+             * AES-192 may be unavailable. This should not cause the selftest
+             * function to fail. */
             if( ( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ||
                   ret == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE ) &&
                   cipher_type == MBEDTLS_CIPHER_AES_192_ECB ) {

@@ -114,19 +114,17 @@ extern "C" {
 #define MBEDTLS_ERR_ERROR_GENERIC_ERROR       -0x0001  /**< Generic error */
 #define MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED -0x006E  /**< This is a bug in the library */
 
-/** Helper macro and function to combine a high and low level error code.
- *
- * This function uses a hook (`mbedtls_test_err_add_hook`) to allow invasive
- * testing of its inputs. This is used in the test infrastructure to report
- * on errors when combining two error codes of the same level (e.g: two high
- * or two low level errors).
- *
- * To set a hook use
- * ```
- * mbedtls_set_err_add_hook(&mbedtls_check_foo);
- * ```
- */
+
 #if defined(MBEDTLS_TEST_HOOKS)
+/**
+ * \brief Set a function pointer (hook) to allow for invasive testing of error
+ *        code addition.
+ *
+ * This hook is used in the test infrastructure to report on errors when
+ * combining two error codes of the same level.
+ *
+ * \param hook    hook to invasive testing function
+ */
 void mbedtls_set_err_add_hook( void *hook );
 int mbedtls_err_add( int high, int low, const char *file, int line );
 #define MBEDTLS_ERR_ADD( high, low )  \

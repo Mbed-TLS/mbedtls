@@ -287,10 +287,34 @@ void mbedtls_param_failed( const char *failure_condition,
 void mbedtls_test_err_add_check( int high, int low,
                                  const char *file, int line )
 {
-    if ( high > -0x1000 || low < -0x007F )
+    if ( high > -0x1000 )
     {
-        mbedtls_fprintf( stderr, "\nIncorrect error code addition at %s:%d\n",
-                                file, line );
+        mbedtls_fprintf( stderr, "\n'high' is not a high-level error code - "
+                                 "%s:%d\n", file, line );
+        mbedtls_exit( 1 );
+    }
+    else if ( high < -0x7F80 )
+    {
+        mbedtls_fprintf( stderr, "\n'high' is greater than 16-bits - "
+                                 "%s:%d\n", file, line );
+        mbedtls_exit( 1 );
+    }
+    else if ( ( high & 0x7F ) != 0 )
+    {
+        mbedtls_fprintf( stderr, "\n'high' contains a low-level error code - "
+                                 "%s:%d\n", file, line );
+        mbedtls_exit( 1 );
+    }
+    else if ( low < -0x007F )
+    {
+        mbedtls_fprintf( stderr, "\n'low' is greater than 8-bits - "
+                                 "%s:%d\n", file, line );
+        mbedtls_exit( 1 );
+    }
+    else if ( low > 0 )
+    {
+        mbedtls_fprintf( stderr, "\n'low' is zero or greater - "
+                                 "%s:%d\n", file, line );
         mbedtls_exit( 1 );
     }
 }

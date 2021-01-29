@@ -111,6 +111,7 @@ DISPATCH_FUNCTION
         fflush( stdout );
         ret = DISPATCH_TEST_FN_NOT_FOUND;
     }
+
 #else
     ret = DISPATCH_UNSUPPORTED_SUITE;
 #endif
@@ -457,6 +458,10 @@ int main(int argc, const char *argv[])
                 }
 #endif /* __unix__ || __APPLE__ __MACH__ */
 
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+                if( ret == DISPATCH_TEST_SUCCESS )
+                    mbedtls_test_mutex_usage_check( );
+#endif /* MBEDTLS_TEST_MUTEX_USAGE */
             }
 
             if( unmet_dep_count > 0 || ret == DISPATCH_UNSUPPORTED_SUITE )

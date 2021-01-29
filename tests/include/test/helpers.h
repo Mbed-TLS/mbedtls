@@ -260,4 +260,13 @@ void mbedtls_test_param_failed_reset_state( void );
 #include "test/fake_external_rng_for_test.h"
 #endif
 
+#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_PTHREAD) && \
+    defined(MBEDTLS_TEST_HOOKS)
+#define MBEDTLS_TEST_MUTEX_USAGE
+
+/** Permanently activate the mutex usage verification framework. See
+ * threading_helpers.c for information. */
+void mbedtls_test_mutex_usage_init( void );
+#endif /* MBEDTLS_TEST_MUTEX_USAGE */
+
 #endif /* TEST_HELPERS_H */

@@ -1,0 +1,4 @@
+Features
+   * Automatic fallback to a software implementation of ECP when
+     MBEDTLS_ECP_xxx_ALT accelerator hooks are in use can now be turned off
+     through setting the new configuration flag MBEDTLS_ECP_NO_FALLBACK.

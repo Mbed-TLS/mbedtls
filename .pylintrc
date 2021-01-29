@@ -1,3 +1,6 @@
+[MASTER]
+init-hook='import sys; sys.path.append("scripts")'
+
 [BASIC]
 # We're ok with short funtion argument names.
 # [invalid-name]

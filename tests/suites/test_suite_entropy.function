@@ -217,6 +217,9 @@ void entropy_func_len( int len, int ret )
 
     for( j = len; j < sizeof( buf ); j++ )
         TEST_ASSERT( acc[j] == 0 );
+
+exit:
+    mbedtls_entropy_free( &ctx );
 }
 /* END_CASE */
 

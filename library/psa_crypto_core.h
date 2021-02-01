@@ -223,8 +223,8 @@ psa_status_t mbedtls_to_psa_error( int ret );
  * \param[in]  data             The buffer containing the key data in import
  *                              format.
  * \param[in]  data_length      Size of the \p data buffer in bytes.
- * \param[out] key_buffer       The buffer containing the key data in output
- *                              format.
+ * \param[out] key_buffer       The buffer to contain the key data in output
+ *                              format upon successful return.
  * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes. This
  *                              size is greater or equal to \p data_length.
  * \param[out] key_buffer_length  The length of the data written in \p

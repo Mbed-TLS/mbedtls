@@ -499,6 +499,9 @@ void mbedtls_rsa_init( mbedtls_rsa_context *ctx,
     mbedtls_rsa_set_padding( ctx, padding, hash_id );
 
 #if defined(MBEDTLS_THREADING_C)
+    /* Set ctx->ver to nonzero to indicate that the mutex has been
+     * initialized and will need to be freed. */
+    ctx->ver = 1;
     mbedtls_mutex_init( &ctx->mutex );
 #endif
 }
@@ -2325,7 +2328,6 @@ int mbedtls_rsa_copy( mbedtls_rsa_context *dst, const mbedtls_rsa_context *src )
 {
     int ret;
 
-    dst->ver = src->ver;
     dst->len = src->len;
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &dst->N, &src->N ) );
@@ -2375,7 +2377,12 @@ void mbedtls_rsa_free( mbedtls_rsa_context *ctx )
 #endif /* MBEDTLS_RSA_NO_CRT */
 
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_free( &ctx->mutex );
+    /* Free the mutex, but only if it hasn't been freed already. */
+    if( ctx->ver != 0 )
+    {
+        mbedtls_mutex_free( &ctx->mutex );
+        ctx->ver = 0;
+    }
 #endif
 }
 

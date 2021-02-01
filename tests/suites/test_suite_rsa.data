@@ -1,3 +1,9 @@
+RSA init-free-free
+rsa_init_free:0
+
+RSA init-free-init-free
+rsa_init_free:1
+
 RSA PKCS1 Verify v1.5 CAVS #1
 depends_on:MBEDTLS_SHA1_C:MBEDTLS_PKCS1_V15
 # Good padding but wrong hash

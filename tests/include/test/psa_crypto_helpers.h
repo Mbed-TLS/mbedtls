@@ -22,10 +22,19 @@
 #define PSA_CRYPTO_HELPERS_H
 
 #include "test/helpers.h"
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+
 #include "test/psa_helpers.h"
 
 #include <psa/crypto.h>
 #include <psa_crypto_slot_management.h>
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "mbedtls/psa_util.h"
+#endif
+
+#define PSA_INIT( ) PSA_ASSERT( psa_crypto_init( ) )
 
 /** Check for things that have not been cleaned up properly in the
  * PSA subsystem.
@@ -184,5 +193,30 @@ psa_status_t mbedtls_test_record_status( psa_status_t status,
         }                                                                  \
     }                                                                      \
     while( 0 )
+
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
+/** \def USE_PSA_INIT
+ *
+ * Call this macro to initialize the PSA subsystem if #MBEDTLS_USE_PSA_CRYPTO
+ * is enabled and do nothing otherwise. If the initialization fails, mark
+ * the test case as failed and jump to the \p exit label.
+ */
+/** \def USE_PSA_DONE
+ *
+ * Call this macro at the end of a test case if you called #USE_PSA_INIT.
+ * This is like #PSA_DONE, except that it does nothing if
+ * #MBEDTLS_USE_PSA_CRYPTO is disabled.
+ */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define USE_PSA_INIT( ) PSA_INIT( )
+#define USE_PSA_DONE( ) PSA_DONE( )
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+/* Define empty macros so that we can use them in the preamble and teardown
+ * of every test function that uses PSA conditionally based on
+ * MBEDTLS_USE_PSA_CRYPTO. */
+#define USE_PSA_INIT( ) ( (void) 0 )
+#define USE_PSA_DONE( ) ( (void) 0 )
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
 
 #endif /* PSA_CRYPTO_HELPERS_H */

@@ -540,9 +540,6 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( f_rng != NULL );
 
-    if( nbits < 128 || exponent < 3 || nbits % 2 != 0 )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-
     /*
      * If the modulus is 1024 bit long or shorter, then the security strength of
      * the RSA algorithm is less than or equal to 80 bits and therefore an error
@@ -554,6 +551,12 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
     mbedtls_mpi_init( &H );
     mbedtls_mpi_init( &G );
     mbedtls_mpi_init( &L );
+
+    if( nbits < 128 || exponent < 3 || nbits % 2 != 0 )
+    {
+        ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+        goto cleanup;
+    }
 
     /*
      * find primes P and Q with Q < P so that:
@@ -632,7 +635,9 @@ cleanup:
     if( ret != 0 )
     {
         mbedtls_rsa_free( ctx );
-        return( MBEDTLS_ERR_RSA_KEY_GEN_FAILED + ret );
+        if( ( -ret & ~0x7f ) == 0 )
+            ret = MBEDTLS_ERR_RSA_KEY_GEN_FAILED + ret;
+        return( ret );
     }
 
     return( 0 );

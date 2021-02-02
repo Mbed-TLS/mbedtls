@@ -667,6 +667,7 @@ exit:
     mbedtls_x509_crt_free( &crt );
     mbedtls_x509_crt_free( &ca );
     mbedtls_x509_crl_free( &crl );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -733,6 +734,7 @@ void x509_verify_callback( char *crt_file, char *ca_file, char *name,
 exit:
     mbedtls_x509_crt_free( &crt );
     mbedtls_x509_crt_free( &ca );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -1049,6 +1051,7 @@ void mbedtls_x509_crt_verify_max( char *ca_file, char *chain_dir, int nb_int,
 exit:
     mbedtls_x509_crt_free( &chain );
     mbedtls_x509_crt_free( &trusted );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -1092,6 +1095,7 @@ void mbedtls_x509_crt_verify_chain(  char *chain_paths, char *trusted_ca,
 exit:
     mbedtls_x509_crt_free( &trusted );
     mbedtls_x509_crt_free( &chain );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 

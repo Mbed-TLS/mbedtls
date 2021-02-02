@@ -734,6 +734,8 @@ int main( int argc, char *argv[] )
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
 #endif
 
+    test_hooks_init( );
+
     /*
      * Make sure memory references are valid.
      */
@@ -3035,6 +3037,14 @@ exit:
         mbedtls_platform_zeroize( context_buf, context_buf_len );
     mbedtls_free( context_buf );
 #endif
+
+    if( test_hooks_failure_detected( ) )
+    {
+        if( ret == 0 )
+            ret = 1;
+        mbedtls_printf( "Test hooks detected errors.\n" );
+    }
+    test_hooks_free( );
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #if defined(MBEDTLS_MEMORY_DEBUG)

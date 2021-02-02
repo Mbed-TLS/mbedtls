@@ -321,4 +321,21 @@ int idle( mbedtls_net_context *fd,
     return( 0 );
 }
 
+#if defined(MBEDTLS_TEST_HOOKS)
+
+void test_hooks_init( void )
+{
+}
+
+int test_hooks_failure_detected( void )
+{
+    return( 0 );
+}
+
+void test_hooks_free( void )
+{
+}
+
+#endif /* MBEDTLS_TEST_HOOKS */
+
 #endif /* !defined(MBEDTLS_SSL_TEST_IMPOSSIBLE) */

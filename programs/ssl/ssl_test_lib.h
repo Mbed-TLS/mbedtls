@@ -258,5 +258,36 @@ int idle( mbedtls_net_context *fd,
 #endif
           int idle_reason );
 
+#if defined(MBEDTLS_TEST_HOOKS)
+/** Initialize whatever test hooks are enabled by the compile-time
+ * configuration and make sense for the TLS test programs. */
+void test_hooks_init( void );
+
+/** Check if any test hooks detected a problem.
+ *
+ * If a problem was detected, make sure to print an explanation to stderr,
+ * either at the time of detection or during the call to this function.
+ *
+ * \return Nonzero if a problem was detected.
+ *         \c 0 if no problem was detected.
+ */
+int test_hooks_failure_detected( void );
+
+/** Free any resources allocated for the sake of test hooks.
+ *
+ * Call this at the end of the program so that resource leak analyzers
+ * don't complain.
+ */
+void test_hooks_free( void );
+
+#else /* MBEDTLS_TEST_HOOKS */
+
+/* Define macros that do nothing, for convenience. */
+#define test_hooks_init( ) ( (void) 0 )
+#define test_hooks_failure_detected( ) 0
+#define test_hooks_free( ) ( (void) 0 )
+
+#endif /* !MBEDTLS_TEST_HOOKS */
+
 #endif /* MBEDTLS_SSL_TEST_IMPOSSIBLE conditions: else */
 #endif /* MBEDTLS_PROGRAMS_SSL_SSL_TEST_LIB_H */

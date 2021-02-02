@@ -538,14 +538,14 @@ int mbedtls_rsa_gen_key( mbedtls_rsa_context *ctx,
     int ret;
     mbedtls_mpi H, G;
 
-    if( f_rng == NULL || nbits < 128 || exponent < 3 )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-
-    if( nbits % 2 )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-
     mbedtls_mpi_init( &H );
     mbedtls_mpi_init( &G );
+
+    if( f_rng == NULL || nbits < 128 || exponent < 3 || nbits % 2 != 0 )
+    {
+        ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+        goto cleanup;
+    }
 
     /*
      * find primes P and Q with Q < P so that:
@@ -610,7 +610,9 @@ cleanup:
     if( ret != 0 )
     {
         mbedtls_rsa_free( ctx );
-        return( MBEDTLS_ERR_RSA_KEY_GEN_FAILED + ret );
+        if( ( -ret & ~0x7f ) == 0 )
+            ret = MBEDTLS_ERR_RSA_KEY_GEN_FAILED + ret;
+        return( ret );
     }
 
     return( 0 );

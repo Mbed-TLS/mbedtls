@@ -601,7 +601,7 @@ int execute_tests( int argc , const char ** argv )
     }
 
     /* Initialize the struct that holds information about the last test */
-    memset( &mbedtls_test_info, 0, sizeof( mbedtls_test_info ) );
+    mbedtls_test_info_reset();
 
     /* Now begin to execute the tests in the testfiles */
     for ( testfile_index = 0;
@@ -683,8 +683,7 @@ int execute_tests( int argc , const char ** argv )
             // If there are no unmet dependencies execute the test
             if( unmet_dep_count == 0 )
             {
-                mbedtls_test_info.result = MBEDTLS_TEST_RESULT_SUCCESS;
-                mbedtls_test_info.step = (unsigned long)( -1 );
+                mbedtls_test_info_reset();
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
                 /* Suppress all output from the library unless we're verbose

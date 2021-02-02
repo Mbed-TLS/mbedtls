@@ -71,6 +71,7 @@ int mbedtls_test_platform_setup( void );
 void mbedtls_test_platform_teardown( void );
 
 void mbedtls_test_fail( const char *test, int line_no, const char* filename );
+void mbedtls_test_skip( const char *test, int line_no, const char* filename );
 
 /** Set the test step number for failure reports.
  *
@@ -82,7 +83,7 @@ void mbedtls_test_fail( const char *test, int line_no, const char* filename );
  */
 void mbedtls_test_set_step( unsigned long step );
 
-void mbedtls_test_skip( const char *test, int line_no, const char* filename );
+void mbedtls_test_info_reset( void );
 
 /**
  * \brief          This function decodes the hexadecimal representation of

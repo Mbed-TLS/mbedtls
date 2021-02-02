@@ -93,17 +93,26 @@ void mbedtls_test_fail( const char *test, int line_no, const char* filename )
     mbedtls_test_info.filename = filename;
 }
 
-void mbedtls_test_set_step( unsigned long step )
-{
-    mbedtls_test_info.step = step;
-}
-
 void mbedtls_test_skip( const char *test, int line_no, const char* filename )
 {
     mbedtls_test_info.result = MBEDTLS_TEST_RESULT_SKIPPED;
     mbedtls_test_info.test = test;
     mbedtls_test_info.line_no = line_no;
     mbedtls_test_info.filename = filename;
+}
+
+void mbedtls_test_set_step( unsigned long step )
+{
+    mbedtls_test_info.step = step;
+}
+
+void mbedtls_test_info_reset( void )
+{
+    mbedtls_test_info.result = MBEDTLS_TEST_RESULT_SUCCESS;
+    mbedtls_test_info.step = (unsigned long)( -1 );
+    mbedtls_test_info.test = 0;
+    mbedtls_test_info.line_no = 0;
+    mbedtls_test_info.filename = 0;
 }
 
 int mbedtls_test_unhexify( unsigned char *obuf,

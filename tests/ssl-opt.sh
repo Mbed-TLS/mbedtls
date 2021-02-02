@@ -770,6 +770,7 @@ run_test() {
         # terminate the server (and the proxy)
         kill $SRV_PID
         wait $SRV_PID
+        SRV_RET=$?
 
         if [ -n "$PXY_CMD" ]; then
             kill $PXY_PID >/dev/null 2>&1
@@ -804,8 +805,8 @@ run_test() {
     fi
 
     # check server exit code
-    if [ $? != 0 ]; then
-        fail "server fail"
+    if [ $SRV_RET != 0 ]; then
+        fail "Server exited with status $SRV_RET"
         return
     fi
 

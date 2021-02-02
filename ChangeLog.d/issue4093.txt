@@ -1,0 +1,6 @@
+Security
+   * Fix an errorneous estimation for an internal buffer in
+     mbedtls_pk_write_key_pem(). If MBEDTLS_MPI_MAX_SIZE is set to an odd
+     value the function might fail to write a private RSA keys of the largest
+     supported size.
+     Found by Daniel Otte, reported in #4093 and fixed in #4094.

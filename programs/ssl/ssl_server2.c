@@ -4000,11 +4000,17 @@ exit:
     mbedtls_free( context_buf );
 #endif
 
-    if( test_hooks_failure_detected( ) )
+    /* Let test hooks detect errors such as resource leaks.
+     * Don't do it in query_config mode, because some test code prints
+     * information to stdout and this gets mixed with the regular output. */
+    if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
     {
-        if( ret == 0 )
-            ret = 1;
-        mbedtls_printf( "Test hooks detected errors.\n" );
+        if( test_hooks_failure_detected( ) )
+        {
+            if( ret == 0 )
+                ret = 1;
+            mbedtls_printf( "Test hooks detected errors.\n" );
+        }
     }
     test_hooks_free( );
 

@@ -3038,6 +3038,10 @@ exit:
     mbedtls_free( context_buf );
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free( );
+#endif
+
     if( test_hooks_failure_detected( ) )
     {
         if( ret == 0 )

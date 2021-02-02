@@ -4000,6 +4000,10 @@ exit:
     mbedtls_free( context_buf );
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free( );
+#endif
+
     /* Let test hooks detect errors such as resource leaks.
      * Don't do it in query_config mode, because some test code prints
      * information to stdout and this gets mixed with the regular output. */

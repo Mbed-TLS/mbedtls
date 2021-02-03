@@ -1,6 +1,9 @@
 /** \file psa_crypto_random_impl.h
  *
  * \brief PSA crypto random generator implementation abstraction.
+ *
+ * The definitions here need to be consistent with the declarations
+ * in include/mbedtls/psa_util.h.
  */
 /*
  *  Copyright The Mbed TLS Contributors

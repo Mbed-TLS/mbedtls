@@ -71,27 +71,40 @@ int mbedtls_test_platform_setup( void );
 void mbedtls_test_platform_teardown( void );
 
 /**
- * \brief           Record the given, usually current, test as a failure.
+ * \brief           Record the current test case as a failure.
  *
- * \param test      Name of the test to fail.
+ *                  This function can be called directly however it is usually
+ *                  called via macros such as TEST_ASSERT, TEST_EQUAL,
+ *                  PSA_ASSERT, etc...
+ *
+ * \note            If the test case was already marked as failed, calling
+ *                  `mbedtls_test_fail( )` again will not overwrite any
+ *                  previous information about the failure.
+ *
+ * \param test      Description of the failure or assertion that failed. This
+ *                  MUST be a string literal.
  * \param line_no   Line number where the failure originated.
  * \param filename  Filename where the failure originated.
  */
 void mbedtls_test_fail( const char *test, int line_no, const char* filename );
 
 /**
- * \brief           Record the given, usually current, test as skipped.
+ * \brief           Record the current test case as skipped.
  *
- * \param test      Name of the test to skip.
- * \param line_no   Line number where the test skipped.
- * \param filename  Filename where the test skipped.
+ *                  This function can be called directly however it is usually
+ *                  called via the TEST_ASSUME macro.
+ *
+ * \param test      Description of the assumption that caused the test case to
+ *                  be skipped. This MUST be a string literal.
+ * \param line_no   Line number where the test case was skipped.
+ * \param filename  Filename where the test case was skipped.
  */
 void mbedtls_test_skip( const char *test, int line_no, const char* filename );
 
 /**
  * \brief       Set the test step number for failure reports.
  *
- * \note        Call this function to display "step NNN" in addition to the
+ *              Call this function to display "step NNN" in addition to the
  *              line number and file name if a test fails. Typically the "step
  *              number" is the index of a for loop but it can be whatever you
  *              want.
@@ -102,9 +115,6 @@ void mbedtls_test_set_step( unsigned long step );
 
 /**
  * \brief       Reset mbedtls_test_info to a ready/starting state.
- *
- * \note        Clears the test, line_no, filename, step and result from any
- *              previously stored values and initialises them ready to be used.
  */
 void mbedtls_test_info_reset( void );
 

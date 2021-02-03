@@ -2795,7 +2795,7 @@ cleanup:
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /*
- * R = m * P with shortcuts for m == 1 and m == -1
+ * R = m * P with shortcuts for m == 0, m == 1 and m == -1
  * NOT constant-time - ONLY for short Weierstrass!
  */
 static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
@@ -2806,7 +2806,11 @@ static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if( mbedtls_mpi_cmp_int( m, 1 ) == 0 )
+    if ( mbedtls_mpi_cmp_int( m, 0 ) == 0 )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_set_zero( R ) );
+    }
+    else if( mbedtls_mpi_cmp_int( m, 1 ) == 0 )
     {
         MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, P ) );
     }

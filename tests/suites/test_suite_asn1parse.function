@@ -594,6 +594,7 @@ void get_sequence_of( const data_t *input, int tag,
     unsigned char *p = input->x;
     const char *rest = description;
     unsigned long n;
+    unsigned int step = 0;
 
     TEST_EQUAL( mbedtls_asn1_get_sequence_of( &p, input->x + input->len,
                                               &head, tag ),
@@ -614,7 +615,7 @@ void get_sequence_of( const data_t *input, int tag,
             cur = &head;
             while( *rest )
             {
-                mbedtls_test_set_step( mbedtls_test_info.step + 1 );
+                mbedtls_test_set_step( step );
                 TEST_ASSERT( cur != NULL );
                 TEST_EQUAL( cur->buf.tag, tag );
                 n = strtoul( rest, (char **) &rest, 0 );
@@ -625,6 +626,7 @@ void get_sequence_of( const data_t *input, int tag,
                 if( *rest )
                     ++rest;
                 cur = cur->next;
+                ++step;
             }
             TEST_ASSERT( cur == NULL );
         }

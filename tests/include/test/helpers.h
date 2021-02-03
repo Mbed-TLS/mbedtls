@@ -70,19 +70,42 @@ extern mbedtls_test_info_t mbedtls_test_info;
 int mbedtls_test_platform_setup( void );
 void mbedtls_test_platform_teardown( void );
 
+/**
+ * \brief           Record the given, usually current, test as a failure.
+ *
+ * \param test      Name of the test to fail.
+ * \param line_no   Line number where the failure originated.
+ * \param filename  Filename where the failure originated.
+ */
 void mbedtls_test_fail( const char *test, int line_no, const char* filename );
+
+/**
+ * \brief           Record the given, usually current, test as skipped.
+ *
+ * \param test      Name of the test to skip.
+ * \param line_no   Line number where the test skipped.
+ * \param filename  Filename where the test skipped.
+ */
 void mbedtls_test_skip( const char *test, int line_no, const char* filename );
 
-/** Set the test step number for failure reports.
+/**
+ * \brief       Set the test step number for failure reports.
  *
- * Call this function to display "step NNN" in addition to the line number
- * and file name if a test fails. Typically the "step number" is the index
- * of a for loop but it can be whatever you want.
+ * \note        Call this function to display "step NNN" in addition to the
+ *              line number and file name if a test fails. Typically the "step
+ *              number" is the index of a for loop but it can be whatever you
+ *              want.
  *
  * \param step  The step number to report.
  */
 void mbedtls_test_set_step( unsigned long step );
 
+/**
+ * \brief       Reset mbedtls_test_info to a ready/starting state.
+ *
+ * \note        Clears the test, line_no, filename, step and result from any
+ *              previously stored values and initialises them ready to be used.
+ */
 void mbedtls_test_info_reset( void );
 
 /**

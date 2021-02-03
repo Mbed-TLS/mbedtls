@@ -2295,7 +2295,8 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    if( rng_seed( &rng, opt.reproducible, pers ) != 0 )
+    ret = rng_seed( &rng, opt.reproducible, pers );
+    if( ret != 0 )
         goto exit;
     mbedtls_printf( " ok\n" );
 

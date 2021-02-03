@@ -1354,7 +1354,8 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
                     t_in->taglen = 8;
                     break;
                 default:
-                    return( 1 );
+                    ret = 1;
+                    goto cleanup;
             }
             break;
 
@@ -1374,7 +1375,8 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
                     t_in->taglen = 8;
                     break;
                 default:
-                    return( 1 );
+                    ret = 1;
+                    goto cleanup;
             }
             break;
 
@@ -1395,11 +1397,13 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
                     t_in->maclen = 10;
                     break;
                 default:
-                    return( 1 );
+                    ret = 1;
+                    goto cleanup;
             }
             break;
         default:
-            return( 1 );
+            ret = 1;
+            goto cleanup;
             break;
     }
 

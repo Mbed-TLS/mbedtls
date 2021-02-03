@@ -76,6 +76,14 @@ void rng_init( rng_context_t *rng )
 
 int rng_seed( rng_context_t *rng, int reproducible, const char *pers )
 {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( reproducible )
+    {
+        mbedtls_fprintf( stderr,
+                         "MBEDTLS_USE_PSA_CRYPTO does not support reproducible mode.\n" );
+        return( -1 );
+    }
+#endif
     int ( *f_entropy )( void *, unsigned char *, size_t ) =
         ( reproducible ? dummy_entropy : mbedtls_entropy_func );
 

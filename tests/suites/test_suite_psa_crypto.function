@@ -532,7 +532,8 @@ static int exercise_signature_key( mbedtls_svc_key_id_t key,
         hash_alg = KNOWN_SUPPORTED_HASH_ALG;
         alg ^= PSA_ALG_ANY_HASH ^ hash_alg;
 #else
-        test_fail( "No hash algorithm for hash-and-sign testing", __LINE__, __FILE__ );
+        mbedtls_test_fail( "No hash algorithm for hash-and-sign testing",
+                            __LINE__, __FILE__ );
         return( 1 );
 #endif
     }
@@ -992,7 +993,7 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
             mbedtls_snprintf( message, sizeof( message ),
                               "No sanity check for public key type=0x%08lx",
                               (unsigned long) type );
-            test_fail( message, __LINE__, __FILE__ );
+            mbedtls_test_fail( message, __LINE__, __FILE__ );
             (void) p;
             (void) end;
             return( 0 );
@@ -1115,8 +1116,8 @@ exit:
  * asymmetric, also check \p psa_export_public_key.
  *
  * If the key fails the tests, this function calls the test framework's
- * `test_fail` function and returns false. Otherwise this function returns
- * true. Therefore it should be used as follows:
+ * `mbedtls_test_fail` function and returns false. Otherwise this function
+ * returns true. Therefore it should be used as follows:
  * ```
  * if( ! exercise_key( ... ) ) goto exit;
  * ```
@@ -1162,7 +1163,7 @@ static int exercise_key( mbedtls_svc_key_id_t key,
         mbedtls_snprintf( message, sizeof( message ),
                           "No code to exercise alg=0x%08lx",
                           (unsigned long) alg );
-        test_fail( message, __LINE__, __FILE__ );
+        mbedtls_test_fail( message, __LINE__, __FILE__ );
         ok = 0;
     }
 
@@ -2677,7 +2678,7 @@ void hash_compute_compare( int alg_arg, data_t *input,
     /* Compare with corrupted value */
     for( i = 0; i < output_length; i++ )
     {
-        test_set_step( i );
+        mbedtls_test_set_step( i );
         output[i] ^= 1;
         TEST_EQUAL( psa_hash_compare( alg, input->x, input->len,
                                       output, output_length ),
@@ -3152,7 +3153,7 @@ void mac_sign( int key_type_arg,
             ( output_size >= expected_mac->len ? PSA_SUCCESS :
               PSA_ERROR_BUFFER_TOO_SMALL );
 
-        test_set_step( output_size );
+        mbedtls_test_set_step( output_size );
         ASSERT_ALLOC( actual_mac, output_size );
 
         /* Calculate the MAC. */
@@ -3238,7 +3239,7 @@ void mac_verify( int key_type_arg,
     /* Test changing one byte. */
     for( size_t i = 0; i < expected_mac->len; i++ )
     {
-        test_set_step( i );
+        mbedtls_test_set_step( i );
         perturbed_mac[i] ^= 1;
         PSA_ASSERT( psa_mac_verify_setup( &operation, key, alg ) );
         PSA_ASSERT( psa_mac_update( &operation,

@@ -108,7 +108,7 @@ typedef struct data_tag
     do {                                                    \
        if( ! (TEST) )                                       \
        {                                                    \
-          test_fail( #TEST, __LINE__, __FILE__ );           \
+          mbedtls_test_fail( #TEST, __LINE__, __FILE__ );   \
           goto exit;                                        \
        }                                                    \
     } while( 0 )
@@ -201,13 +201,13 @@ typedef struct data_tag
  *
  * \param   TEST    The test expression to be tested.
  */
-#define TEST_ASSUME( TEST )                         \
-    do {                                            \
-        if( ! (TEST) )                              \
-        {                                           \
-            test_skip( #TEST, __LINE__, __FILE__ ); \
-            goto exit;                              \
-        }                                           \
+#define TEST_ASSUME( TEST )                                 \
+    do {                                                    \
+        if( ! (TEST) )                                      \
+        {                                                   \
+            mbedtls_test_skip( #TEST, __LINE__, __FILE__ ); \
+            goto exit;                                      \
+        }                                                   \
     } while( 0 )
 
 #if defined(MBEDTLS_CHECK_PARAMS) && !defined(MBEDTLS_PARAM_FAILED_ALT)
@@ -237,7 +237,7 @@ typedef struct data_tag
         if( ( ( TEST ) != ( PARAM_ERR_VALUE ) ) ||                      \
             ( mbedtls_test_param_failed_check_expected_call( ) != 0 ) ) \
         {                                                               \
-            test_fail( #TEST, __LINE__, __FILE__ );                     \
+            mbedtls_test_fail( #TEST, __LINE__, __FILE__ );             \
             goto exit;                                                  \
         }                                                               \
         mbedtls_test_param_failed_check_expected_call( );               \
@@ -270,7 +270,7 @@ typedef struct data_tag
         if( setjmp(  mbedtls_test_param_failed_get_state_buf( ) ) == 0 ) \
         {                                                                \
             TEST;                                                        \
-            test_fail( #TEST, __LINE__, __FILE__ );                      \
+            mbedtls_test_fail( #TEST, __LINE__, __FILE__ );              \
             goto exit;                                                   \
         }                                                                \
         mbedtls_test_param_failed_reset_state( );                        \
@@ -346,24 +346,6 @@ typedef struct data_tag
 /*----------------------------------------------------------------------------*/
 /* Global variables */
 
-typedef enum
-{
-    TEST_RESULT_SUCCESS = 0,
-    TEST_RESULT_FAILED,
-    TEST_RESULT_SKIPPED
-} test_result_t;
-
-typedef struct
-{
-    test_result_t result;
-    const char *test;
-    const char *filename;
-    int line_no;
-    unsigned long step;
-}
-test_info_t;
-static test_info_t test_info;
-
 #if defined(MBEDTLS_CHECK_PARAMS)
 jmp_buf jmp_tmp;
 #endif
@@ -386,41 +368,6 @@ jmp_buf jmp_tmp;
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */
 
-/** Set the test step number for failure reports.
- *
- * Call this function to display "step NNN" in addition to the line number
- * and file name if a test fails. Typically the "step number" is the index
- * of a for loop but it can be whatever you want.
- *
- * \param step  The step number to report.
- */
-void test_set_step( unsigned long step )
-{
-    test_info.step = step;
-}
-
-void test_fail( const char *test, int line_no, const char* filename )
-{
-    if( test_info.result == TEST_RESULT_FAILED )
-    {
-        /* We've already recorded the test as having failed. Don't
-         * overwrite any previous information about the failure. */
-        return;
-    }
-    test_info.result = TEST_RESULT_FAILED;
-    test_info.test = test;
-    test_info.line_no = line_no;
-    test_info.filename = filename;
-}
-
-void test_skip( const char *test, int line_no, const char* filename )
-{
-    test_info.result = TEST_RESULT_SKIPPED;
-    test_info.test = test;
-    test_info.line_no = line_no;
-    test_info.filename = filename;
-}
-
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /** Check that no PSA Crypto key slots are in use.
  *
@@ -435,7 +382,7 @@ int test_fail_if_psa_leaking( int line_no, const char *filename )
         return 0;
     else
     {
-        test_fail( msg, line_no, filename );
+        mbedtls_test_fail( msg, line_no, filename );
         return 1;
     }
 }

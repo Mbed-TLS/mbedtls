@@ -130,7 +130,7 @@ int get_len_step( const data_t *input, size_t buffer_size,
     size_t parsed_length;
     int ret;
 
-    test_set_step( buffer_size );
+    mbedtls_test_set_step( buffer_size );
     /* Allocate a new buffer of exactly the length to parse each time.
      * This gives memory sanitizers a chance to catch buffer overreads. */
     if( buffer_size == 0 )
@@ -198,7 +198,7 @@ static int traverse_callback( void *ctx, int tag,
 
     TEST_ASSERT( content > state->input_start );
     offset = content - state->input_start;
-    test_set_step( offset );
+    mbedtls_test_set_step( offset );
 
     if( *rest == 0 )
         return( RET_TRAVERSE_STOP );
@@ -252,7 +252,7 @@ void parse_prefixes( const data_t *input,
      */
     for( buffer_size = 1; buffer_size <= input->len + 1; buffer_size++ )
     {
-        test_set_step( buffer_size );
+        mbedtls_test_set_step( buffer_size );
         /* Allocate a new buffer of exactly the length to parse each time.
          * This gives memory sanitizers a chance to catch buffer overreads. */
         ASSERT_ALLOC( buf, buffer_size );
@@ -594,6 +594,7 @@ void get_sequence_of( const data_t *input, int tag,
     unsigned char *p = input->x;
     const char *rest = description;
     unsigned long n;
+    unsigned int step = 0;
 
     TEST_EQUAL( mbedtls_asn1_get_sequence_of( &p, input->x + input->len,
                                               &head, tag ),
@@ -614,7 +615,7 @@ void get_sequence_of( const data_t *input, int tag,
             cur = &head;
             while( *rest )
             {
-                ++test_info.step;
+                mbedtls_test_set_step( step );
                 TEST_ASSERT( cur != NULL );
                 TEST_EQUAL( cur->buf.tag, tag );
                 n = strtoul( rest, (char **) &rest, 0 );
@@ -625,6 +626,7 @@ void get_sequence_of( const data_t *input, int tag,
                 if( *rest )
                     ++rest;
                 cur = cur->next;
+                ++step;
             }
             TEST_ASSERT( cur == NULL );
         }

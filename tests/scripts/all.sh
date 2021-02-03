@@ -1018,12 +1018,16 @@ component_test_psa_external_rng_no_drbg_classic () {
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
     scripts/config.py set MBEDTLS_ECP_NO_INTERNAL_RNG
-    make CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
+    # When MBEDTLS_USE_PSA_CRYPTO is disabled and there is no DRBG,
+    # the SSL test programs don't have an RNG and can't work. Explicitly
+    # make them use the PSA RNG with -DMBEDTLS_TEST_USE_PSA_CRYPTO_RNG.
+    make CFLAGS="$ASAN_CFLAGS -O2 -DMBEDTLS_TEST_USE_PSA_CRYPTO_RNG" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, classic crypto - main suites"
     make test
 
-    # no SSL tests as they all depend on having a DRBG
+    msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, classic crypto - ssl-opt.sh (subset)"
+    if_build_succeeded tests/ssl-opt.sh -f 'Default'
 }
 
 component_test_psa_external_rng_no_drbg_use_psa () {
@@ -1038,6 +1042,9 @@ component_test_psa_external_rng_no_drbg_use_psa () {
 
     msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto - main suites"
     make test
+
+    msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto - ssl-opt.sh (subset)"
+    if_build_succeeded tests/ssl-opt.sh -f 'Default\|opaque'
 }
 
 component_test_psa_external_rng_use_psa_crypto () {

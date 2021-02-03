@@ -130,10 +130,38 @@ void my_debug( void *ctx, int level,
 
 mbedtls_time_t dummy_constant_time( mbedtls_time_t* time );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/* If MBEDTLS_TEST_USE_PSA_CRYPTO_RNG is defined, the SSL test programs will use
+ * mbedtls_psa_get_random() rather than entropy+DRBG as a random generator.
+ *
+ * The constraints are:
+ * - Without the entropy module, the PSA RNG is the only option.
+ * - Without at least one of the DRBG modules, the PSA RNG is the only option.
+ * - The PSA RNG does not support explicit seeding, so it is incompatible with
+ *   the reproducible mode used by test programs.
+ * - For good overall test coverage, there should be at least one configuration
+ *   where the test programs use the PSA RNG while the PSA RNG is itself based
+ *   on entropy+DRBG, and at least one configuration where the test programs
+ *   do not use the PSA RNG even though it's there.
+ *
+ * A simple choice that meets the constraints is to use the PSA RNG whenever
+ * MBEDTLS_USE_PSA_CRYPTO is enabled. There's no real technical reason the
+ * choice to use the PSA RNG in the test programs and the choice to use
+ * PSA crypto when TLS code needs crypto have to be tied together, but it
+ * happens to be a good match. It's also a good match from an application
+ * perspective: either PSA is preferred for TLS (both for crypto and for
+ * random generation) or it isn't.
+ */
+#define MBEDTLS_TEST_USE_PSA_CRYPTO_RNG
+#endif
+
 /** A context for random number generation (RNG).
  */
 typedef struct
 {
+#if defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
+    unsigned char dummy;
+#else /* MBEDTLS_TEST_USE_PSA_CRYPTO_RNG */
     mbedtls_entropy_context entropy;
 #if defined(MBEDTLS_CTR_DRBG_C)
     mbedtls_ctr_drbg_context drbg;
@@ -142,6 +170,7 @@ typedef struct
 #else
 #error "No DRBG available"
 #endif
+#endif /* MBEDTLS_TEST_USE_PSA_CRYPTO_RNG */
 } rng_context_t;
 
 /** Initialize the RNG.

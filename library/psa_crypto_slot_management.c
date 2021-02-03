@@ -255,16 +255,15 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *slot )
     if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )
     {
         psa_se_key_data_storage_t *data;
+
         if( key_data_length != sizeof( *data ) )
         {
             status = PSA_ERROR_STORAGE_FAILURE;
             goto exit;
         }
         data = (psa_se_key_data_storage_t *) key_data;
-        memcpy( &slot->data.se.slot_number, &data->slot_number,
-                sizeof( slot->data.se.slot_number ) );
-
-        status = PSA_SUCCESS;
+        status = psa_copy_key_material_into_slot(
+                     slot, data->slot_number, sizeof( data->slot_number ) );
         goto exit;
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */

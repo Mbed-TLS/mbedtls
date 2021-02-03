@@ -62,23 +62,13 @@ typedef struct
      */
     size_t lock_count;
 
-    union
+    /* Dynamically allocated key data buffer.
+     * Format as specified in psa_export_key(). */
+    struct key_data
     {
-        /* Dynamically allocated key data buffer.
-         * Format as specified in psa_export_key(). */
-        struct key_data
-        {
-            uint8_t *data;
-            size_t bytes;
-        } key;
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-        /* Any key type in a secure element */
-        struct se
-        {
-            psa_key_slot_number_t slot_number;
-        } se;
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    } data;
+        uint8_t *data;
+        size_t bytes;
+    } key;
 } psa_key_slot_t;
 
 /* A mask of key attribute flags used only internally.
@@ -163,6 +153,20 @@ static inline void psa_key_slot_clear_bits( psa_key_slot_t *slot,
     slot->attr.flags &= ~mask;
 }
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+/** Get the SE slot number of a key from the key slot storing its description.
+ *
+ * \param[in]  slot  The key slot to query. This must be a key slot storing
+ *                   the description of a key of a dynamically registered
+ *                   secure element, otherwise the behaviour is undefined.
+ */
+static inline psa_key_slot_number_t psa_key_slot_get_slot_number(
+    const psa_key_slot_t *slot )
+{
+    return( *( (psa_key_slot_number_t *)( slot->key.data ) ) );
+}
+#endif
+
 /** Completely wipe a slot in memory, including its policy.
  *
  * Persistent storage is not affected.
@@ -207,5 +211,92 @@ psa_status_t psa_copy_key_material_into_slot( psa_key_slot_t *slot,
  * \return              The corresponding PSA error code
  */
 psa_status_t mbedtls_to_psa_error( int ret );
+
+/** Import a key in binary format.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       import_key entry point. This function behaves as an import_key
+ *       entry point as defined in the PSA driver interface specification for
+ *       transparent drivers.
+ *
+ * \param[in]  attributes       The attributes for the key to import.
+ * \param[in]  data             The buffer containing the key data in import
+ *                              format.
+ * \param[in]  data_length      Size of the \p data buffer in bytes.
+ * \param[out] key_buffer       The buffer to contain the key data in output
+ *                              format upon successful return.
+ * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes. This
+ *                              size is greater or equal to \p data_length.
+ * \param[out] key_buffer_length  The length of the data written in \p
+ *                                key_buffer in bytes.
+ * \param[out] bits             The key size in number of bits.
+ *
+ * \retval #PSA_SUCCESS  The key was imported successfully.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key data is not correctly formatted.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ */
+psa_status_t psa_import_key_into_slot(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *data, size_t data_length,
+    uint8_t *key_buffer, size_t key_buffer_size,
+    size_t *key_buffer_length, size_t *bits );
+
+/** Export a key in binary format
+ *
+ * \note The signature of this function is that of a PSA driver export_key
+ *       entry point. This function behaves as an export_key entry point as
+ *       defined in the PSA driver interface specification.
+ *
+ * \param[in]  attributes       The attributes for the key to export.
+ * \param[in]  key_buffer       Material or context of the key to export.
+ * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes.
+ * \param[out] data             Buffer where the key data is to be written.
+ * \param[in]  data_size        Size of the \p data buffer in bytes.
+ * \param[out] data_length      On success, the number of bytes written in
+ *                              \p data
+ *
+ * \retval #PSA_SUCCESS  The key was exported successfully.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+psa_status_t psa_export_key_internal(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    uint8_t *data, size_t data_size, size_t *data_length );
+
+/** Export a public key or the public part of a key pair in binary format.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       export_public_key entry point. This function behaves as an
+ *       export_public_key entry point as defined in the PSA driver interface
+ *       specification.
+ *
+ * \param[in]  attributes       The attributes for the key to export.
+ * \param[in]  key_buffer       Material or context of the key to export.
+ * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes.
+ * \param[out] data             Buffer where the key data is to be written.
+ * \param[in]  data_size        Size of the \p data buffer in bytes.
+ * \param[out] data_length      On success, the number of bytes written in
+ *                              \p data
+ *
+ * \retval #PSA_SUCCESS  The public key was exported successfully.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+psa_status_t psa_export_public_key_internal(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    uint8_t *data, size_t data_size, size_t *data_length );
 
 #endif /* PSA_CRYPTO_CORE_H */

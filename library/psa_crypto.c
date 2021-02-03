@@ -1596,6 +1596,13 @@ static psa_status_t psa_start_key_creation(
  *
  * \retval #PSA_SUCCESS
  *         The key was successfully created.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ *
  * \return If this function fails, the key slot is an invalid state.
  *         You must call psa_fail_key_creation() to wipe and free the slot.
  */
@@ -6252,7 +6259,7 @@ static psa_status_t psa_crypto_recover_transaction(
         default:
             /* We found an unsupported transaction in the storage.
              * We don't know what state the storage is in. Give up. */
-            return( PSA_ERROR_STORAGE_FAILURE );
+            return( PSA_ERROR_DATA_INVALID );
     }
 }
 #endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */

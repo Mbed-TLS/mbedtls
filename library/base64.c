@@ -96,6 +96,44 @@ static const unsigned char base64_dec_map[128] =
 
 #define BASE64_SIZE_T_MAX   ( (size_t) -1 ) /* SIZE_T_MAX is not standard */
 
+static void mbedtls_base64_cond_assign(unsigned char * dest, const unsigned char * const src,
+                                       unsigned char condition)
+{
+    /* make sure assign is 0 or 1 in a time-constant manner */
+    condition = (condition | (unsigned char)-condition) >> 7;
+
+    *dest = ( *dest ) * ( 1 - condition ) + ( *src ) * condition;
+}
+
+/*
+ * Constant time check for equality
+*/
+static unsigned char mbedtls_base64_eq(uint32_t in_a, uint32_t in_b)
+{
+    uint32_t difference = in_a ^ in_b;
+
+    difference |= -difference;
+    difference >>= 31;
+    return (unsigned char) ( 1 ^ difference );
+}
+
+/*
+ * Constant time lookup into table.
+*/
+static unsigned char mbedtls_base64_table_lookup(const unsigned char * const table,
+                                                 const size_t table_size, const size_t table_index)
+{
+    size_t i;
+    unsigned char result = 0;
+
+    for( i = 0; i < table_size; ++i )
+    {
+        mbedtls_base64_cond_assign(&result, &table[i], mbedtls_base64_eq(i, table_index));
+    }
+
+    return result;
+}
+
 /*
  * Encode a buffer into base64 format
  */
@@ -136,10 +174,17 @@ int mbedtls_base64_encode( unsigned char *dst, size_t dlen, size_t *olen,
         C2 = *src++;
         C3 = *src++;
 
-        *p++ = base64_enc_map[(C1 >> 2) & 0x3F];
-        *p++ = base64_enc_map[(((C1 &  3) << 4) + (C2 >> 4)) & 0x3F];
-        *p++ = base64_enc_map[(((C2 & 15) << 2) + (C3 >> 6)) & 0x3F];
-        *p++ = base64_enc_map[C3 & 0x3F];
+        *p++ = mbedtls_base64_table_lookup( base64_enc_map, sizeof( base64_enc_map ),
+                                            ( ( C1 >> 2 ) & 0x3F ) );
+
+        *p++ = mbedtls_base64_table_lookup( base64_enc_map, sizeof( base64_enc_map ),
+                                            ( ( ( ( C1 &  3 ) << 4 ) + ( C2 >> 4 ) ) & 0x3F ) );
+
+        *p++ = mbedtls_base64_table_lookup( base64_enc_map, sizeof( base64_enc_map ),
+                                            ( ( ( ( C2 & 15 ) << 2 ) + ( C3 >> 6 ) ) & 0x3F ) );
+
+        *p++ = mbedtls_base64_table_lookup( base64_enc_map, sizeof( base64_enc_map ),
+                                            ( C3 & 0x3F ) );
     }
 
     if( i < slen )
@@ -147,11 +192,15 @@ int mbedtls_base64_encode( unsigned char *dst, size_t dlen, size_t *olen,
         C1 = *src++;
         C2 = ( ( i + 1 ) < slen ) ? *src++ : 0;
 
-        *p++ = base64_enc_map[(C1 >> 2) & 0x3F];
-        *p++ = base64_enc_map[(((C1 & 3) << 4) + (C2 >> 4)) & 0x3F];
+        *p++ = mbedtls_base64_table_lookup( base64_enc_map, sizeof( base64_enc_map ),
+                                            ( ( C1 >> 2 ) & 0x3F ) );
+
+        *p++ = mbedtls_base64_table_lookup( base64_enc_map, sizeof( base64_enc_map ),
+                                            ( ( ( ( C1 & 3 ) << 4 ) + ( C2 >> 4 ) ) & 0x3F ) );
 
         if( ( i + 1 ) < slen )
-             *p++ = base64_enc_map[((C2 & 15) << 2) & 0x3F];
+             *p++ = mbedtls_base64_table_lookup( base64_enc_map, sizeof( base64_enc_map ),
+                                                 ( ( ( C2 & 15 ) << 2 ) & 0x3F ) );
         else *p++ = '=';
 
         *p++ = '=';
@@ -202,7 +251,8 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
         if( src[i] == '=' && ++j > 2 )
             return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
 
-        if( src[i] > 127 || base64_dec_map[src[i]] == 127 )
+        if( src[i] > 127 ||
+            mbedtls_base64_table_lookup( base64_dec_map, sizeof( base64_dec_map ), src[i] ) == 127 )
             return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
 
         if( base64_dec_map[src[i]] < 64 && j != 0 )
@@ -235,8 +285,9 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
         if( *src == '\r' || *src == '\n' || *src == ' ' )
             continue;
 
-        j -= ( base64_dec_map[*src] == 64 );
-        x  = ( x << 6 ) | ( base64_dec_map[*src] & 0x3F );
+        j -= ( mbedtls_base64_table_lookup(base64_dec_map, sizeof( base64_dec_map ), *src ) == 64 );
+        x  = ( x << 6 ) |
+            ( mbedtls_base64_table_lookup( base64_dec_map, sizeof( base64_dec_map ), *src ) & 0x3F );
 
         if( ++n == 4 )
         {

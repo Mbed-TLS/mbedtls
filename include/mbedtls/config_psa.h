@@ -252,24 +252,58 @@ extern "C" {
 #define MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER 1
 #endif /* PSA_WANT_ALG_STREAM_CIPHER */
 
+/* The MBEDTLS_PSA_HAVE_SOFT_KEY_TYPE_* are defined if a key type is selected,
+ * but we are configured to accelerate this key type. */
+#if defined(PSA_WANT_KEY_TYPE_AES) && !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
+#define PSA_HAVE_SOFT_KEY_TYPE_AES 1
+#endif
+
+#if defined(PSA_WANT_KEY_TYPE_DES) && !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DES)
+#define PSA_HAVE_SOFT_KEY_TYPE_DES 1
+#endif
+
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA) && !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA)
+#define PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA 1
+#endif
+
 #if defined(PSA_WANT_ALG_CTR)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_CTR) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_DES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
 #define MBEDTLS_PSA_BUILTIN_ALG_CTR 1
 #define MBEDTLS_CIPHER_MODE_CTR
+#endif
 #endif /* PSA_WANT_ALG_CTR */
 
 #if defined(PSA_WANT_ALG_CFB)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_CFB) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_DES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
 #define MBEDTLS_PSA_BUILTIN_ALG_CFB 1
 #define MBEDTLS_CIPHER_MODE_CFB
+#endif
 #endif /* PSA_WANT_ALG_CFB */
 
 #if defined(PSA_WANT_ALG_OFB)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_OFB) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_DES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
 #define MBEDTLS_PSA_BUILTIN_ALG_OFB 1
 #define MBEDTLS_CIPHER_MODE_OFB
+#endif
 #endif /* PSA_WANT_ALG_OFB */
 
 #if defined(PSA_WANT_ALG_XTS)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_XTS) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_DES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
 #define MBEDTLS_PSA_BUILTIN_ALG_XTS 1
 #define MBEDTLS_CIPHER_MODE_XTS
+#endif
 #endif /* PSA_WANT_ALG_XTS */
 
 #if defined(PSA_WANT_ALG_ECB_NO_PADDING)
@@ -284,11 +318,21 @@ extern "C" {
 #endif /* PSA_WANT_ALG_CBC_NO_PADDING || PSA_WANT_ALG_CBC_PKCS7 */
 
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_DES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
 #define MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING 1
+#endif
 #endif /* PSA_WANT_ALG_CBC_NO_PADDING */
 
 #if defined(PSA_WANT_ALG_CBC_PKCS7)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_PKCS7) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_DES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
 #define MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7 1
+#endif
 #endif /* PSA_WANT_ALG_CBC_PKCS7 */
 
 #else /* MBEDTLS_PSA_CRYPTO_CONFIG */

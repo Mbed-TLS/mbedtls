@@ -5957,24 +5957,21 @@ psa_status_t mbedtls_psa_inject_entropy( const uint8_t *seed,
 }
 #endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 
-/** Get the key buffer size for the key material in export format
+/** Validate the key type and size for key generation
  *
- * \param[in] type  The key type
- * \param[in] bits  The number of bits of the key
- * \param[out] key_buffer_size  Minimum buffer size to contain the key material
- *                              in export format
+ * \param  type  The key type
+ * \param  bits  The number of bits of the key
  *
  * \retval #PSA_SUCCESS
- *         The minimum size for a buffer to contain the key material in export
- *         format has been returned successfully.
+ *         The key type and size are valid.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The size in bits of the key is not valid.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The type and/or the size in bits of the key or the combination of
  *         the two is not supported.
  */
-static psa_status_t psa_get_key_buffer_size(
-    psa_key_type_t type, size_t bits, size_t *key_buffer_size )
+static psa_status_t psa_validate_key_type_and_size_for_key_generation(
+    psa_key_type_t type, size_t bits )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -5983,7 +5980,6 @@ static psa_status_t psa_get_key_buffer_size(
         status = validate_unstructured_key_bit_size( type, bits );
         if( status != PSA_SUCCESS )
             return( status );
-        *key_buffer_size = PSA_BITS_TO_BYTES( bits );
     }
     else
 #if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR)
@@ -5996,8 +5992,6 @@ static psa_status_t psa_get_key_buffer_size(
          * in psa_import_rsa_key(). */
         if( bits % 8 != 0 )
             return( PSA_ERROR_NOT_SUPPORTED );
-
-        *key_buffer_size = PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE( bits );
     }
     else
 #endif /* defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR) */
@@ -6005,7 +5999,6 @@ static psa_status_t psa_get_key_buffer_size(
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR)
     if( PSA_KEY_TYPE_IS_ECC( type ) && PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
     {
-        *key_buffer_size = PSA_BITS_TO_BYTES( bits );
     }
     else
 #endif /* defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) */
@@ -6098,17 +6091,22 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
         if ( PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime ) ==
              PSA_KEY_LOCATION_LOCAL_STORAGE )
         {
-            status = psa_get_key_buffer_size( attributes->core.type,
-                                              attributes->core.bits,
-                                              &key_buffer_size );
+            status = psa_validate_key_type_and_size_for_key_generation(
+                attributes->core.type, attributes->core.bits );
+            if( status != PSA_SUCCESS )
+                goto exit;
+
+            key_buffer_size = PSA_EXPORT_KEY_OUTPUT_SIZE(
+                                  attributes->core.type,
+                                  attributes->core.bits );
         }
         else
         {
             status = psa_driver_wrapper_get_key_buffer_size(
                          attributes, &key_buffer_size );
+            if( status != PSA_SUCCESS )
+                goto exit;
         }
-        if( status != PSA_SUCCESS )
-            goto exit;
 
         status = psa_allocate_buffer_to_slot( slot, key_buffer_size );
         if( status != PSA_SUCCESS )

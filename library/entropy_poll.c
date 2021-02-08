@@ -205,13 +205,13 @@ int mbedtls_null_entropy_poll( void *data,
 {
     ((void) data);
     ((void) output);
-    *olen = 0;
 
+    *olen = 0;
     if( len < sizeof(unsigned char) )
         return( 0 );
 
+    output[0] = 0;
     *olen = sizeof(unsigned char);
-
     return( 0 );
 }
 #endif

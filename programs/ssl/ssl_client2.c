@@ -3002,19 +3002,6 @@ exit:
 #endif
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-    mbedtls_ssl_session_free( &saved_session );
-    mbedtls_ssl_free( &ssl );
-    mbedtls_ssl_config_free( &conf );
-    rng_free( &rng );
-    if( session_data != NULL )
-        mbedtls_platform_zeroize( session_data, session_data_len );
-    mbedtls_free( session_data );
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-    if( context_buf != NULL )
-        mbedtls_platform_zeroize( context_buf, context_buf_len );
-    mbedtls_free( context_buf );
-#endif
-
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.psk_opaque != 0 )
@@ -3035,6 +3022,19 @@ exit:
     }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED &&
           MBEDTLS_USE_PSA_CRYPTO */
+
+    mbedtls_ssl_session_free( &saved_session );
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
+    rng_free( &rng );
+    if( session_data != NULL )
+        mbedtls_platform_zeroize( session_data, session_data_len );
+    mbedtls_free( session_data );
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( context_buf != NULL )
+        mbedtls_platform_zeroize( context_buf, context_buf_len );
+    mbedtls_free( context_buf );
+#endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #if defined(MBEDTLS_MEMORY_DEBUG)

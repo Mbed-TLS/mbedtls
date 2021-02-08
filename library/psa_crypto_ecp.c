@@ -80,10 +80,10 @@ psa_status_t mbedtls_psa_ecp_load_representation(
         curve_bytes = data_length / 2;
 
         /* Montgomery public keys are represented in compressed format, meaning
-         * their curve_size is equal to the amount of input. */
+         * their curve_bytes is equal to the amount of input. */
 
         /* Private keys are represented in uncompressed private random integer
-         * format, meaning their curve_size is equal to the amount of input. */
+         * format, meaning their curve_bytes is equal to the amount of input. */
     }
 
     if( explicit_bits )

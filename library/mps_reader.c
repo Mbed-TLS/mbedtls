@@ -350,53 +350,14 @@ int mbedtls_mps_reader_get( mbedtls_mps_reader *rd,
 
 int mbedtls_mps_reader_commit( mbedtls_mps_reader *rd )
 {
-    unsigned char *acc;
-    mbedtls_mps_size_t aa, end, fo, shift;
+    mbedtls_mps_size_t end;
     MBEDTLS_MPS_TRACE_INIT( "reader_commit" );
-
     MBEDTLS_MPS_STATE_VALIDATE_RAW( rd->frag != NULL,
        "mbedtls_mps_reader_commit() requires reader to be in consuming mode" );
 
-    acc = rd->acc;
     end = rd->end;
-
-    if( acc == NULL )
-    {
-        MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
-                           "No accumulator, just shift end" );
-        rd->commit = end;
-        MBEDTLS_MPS_TRACE_RETURN( 0 );
-    }
-
-    fo = rd->acc_share.frag_offset;
-    if( end >= fo )
-    {
-        MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
-                           "Started to serve fragment, get rid of accumulator" );
-        shift = fo;
-        aa = 0;
-    }
-    else
-    {
-        MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
-                           "Still serving from accumulator" );
-        aa = rd->acc_avail;
-        shift = end;
-        memmove( acc, acc + shift, aa - shift );
-        aa -= shift;
-    }
-
-    end -= shift;
-    fo -= shift;
-
-    rd->acc_share.frag_offset = fo;
-    rd->acc_avail = aa;
     rd->commit = end;
-    rd->end = end;
 
-    MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
-                       "Final state: (end=commit,fo,avail) = (%u,%u,%u)",
-                       (unsigned) end, (unsigned) fo, (unsigned) aa );
     MBEDTLS_MPS_TRACE_RETURN( 0 );
 }
 
@@ -406,7 +367,7 @@ int mbedtls_mps_reader_reclaim( mbedtls_mps_reader *rd,
     unsigned char *frag, *acc;
     mbedtls_mps_size_t pending, commit;
     mbedtls_mps_size_t al, fo, fl;
-    MBEDTLS_MPS_TRACE_INIT( "reader_reclaim" );
+    MBEDTLS_MPS_TRACE_INIT( "mbedtls_mps_reader_reclaim" );
 
     if( paused != NULL )
         *paused = 0;
@@ -429,6 +390,7 @@ int mbedtls_mps_reader_reclaim( mbedtls_mps_reader *rd,
     {
         MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
                            "No unsatisfied read-request has been logged." );
+
         /* Check if there's data left to be consumed. */
         if( commit < fo || commit - fo < fl )
         {
@@ -437,16 +399,28 @@ int mbedtls_mps_reader_reclaim( mbedtls_mps_reader *rd,
             rd->end = commit;
             MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_READER_DATA_LEFT );
         }
+
+        rd->acc_avail = 0;
+        rd->acc_share.acc_remaining = 0;
+
         MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
-            "The fragment has been completely processed and committed." );
+                           "Fragment has been fully processed and committed." );
     }
     else
     {
+        int overflow;
+
+        mbedtls_mps_size_t acc_backup_offset;
+        mbedtls_mps_size_t acc_backup_len;
         mbedtls_mps_size_t frag_backup_offset;
         mbedtls_mps_size_t frag_backup_len;
+
+        mbedtls_mps_size_t backup_len;
+        mbedtls_mps_size_t acc_len_needed;
+
         MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
-           "There has been an unsatisfied read-request with %u bytes overhead.",
-           (unsigned) pending );
+               "There has been an unsatisfied read with %u bytes overhead.",
+               (unsigned) pending );
 
         if( acc == NULL )
         {
@@ -462,69 +436,61 @@ int mbedtls_mps_reader_reclaim( mbedtls_mps_reader *rd,
         if( commit < fo )
         {
             /* No, accumulator is still being processed. */
-            int overflow;
-            MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
-                     "Still processing data from the accumulator" );
-
-            overflow =
-                ( fo + fl < fo ) || ( fo + fl + pending < fo + fl );
-            if( overflow || al < fo + fl + pending )
-            {
-                rd->end = commit;
-                rd->pending = 0;
-                MBEDTLS_MPS_TRACE( mbedtls_mps_trace_error,
-                         "The accumulator is too small to handle the backup." );
-                MBEDTLS_MPS_TRACE( mbedtls_mps_trace_error,
-                         "* Remaining size: %u", (unsigned) al );
-                MBEDTLS_MPS_TRACE( mbedtls_mps_trace_error,
-                         "* Needed: %u (%u + %u + %u)",
-                        (unsigned) ( fo + fl + pending ),
-                        (unsigned) fo, (unsigned) fl, (unsigned) pending );
-                MBEDTLS_MPS_TRACE_RETURN(
-                    MBEDTLS_ERR_MPS_READER_ACCUMULATOR_TOO_SMALL );
-            }
             frag_backup_offset = 0;
             frag_backup_len = fl;
+            acc_backup_offset = commit;
+            acc_backup_len = fo - commit;
         }
         else
         {
             /* Yes, the accumulator is already processed. */
-            int overflow;
-            MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
-                      "The accumulator has already been processed" );
-
-            frag_backup_offset = commit;
-            frag_backup_len = fl - commit;
-            overflow = ( frag_backup_len + pending < pending );
-
-            if( overflow ||
-                al - fo < frag_backup_len + pending )
-            {
-                rd->end = commit;
-                rd->pending = 0;
-
-                MBEDTLS_MPS_TRACE( mbedtls_mps_trace_error,
-                        "The accumulator is too small to handle the backup." );
-                MBEDTLS_MPS_TRACE( mbedtls_mps_trace_error,
-                        "* Remaining size: %u", (unsigned) ( al - fo ) );
-                MBEDTLS_MPS_TRACE( mbedtls_mps_trace_error,
-                        "* Needed: %u (%u + %u)",
-                        (unsigned) ( frag_backup_len + pending ),
-                        (unsigned) frag_backup_len, (unsigned) pending );
-                MBEDTLS_MPS_TRACE_RETURN(
-                        MBEDTLS_ERR_MPS_READER_ACCUMULATOR_TOO_SMALL );
-            }
+            frag_backup_offset = commit - fo;
+            frag_backup_len = fl - frag_backup_offset;
+            acc_backup_offset = 0;
+            acc_backup_len = 0;
         }
 
-        frag += frag_backup_offset;
-        acc += fo;
-        memcpy( acc, frag, frag_backup_len );
+        backup_len = acc_backup_len + frag_backup_len;
+        acc_len_needed = backup_len + pending;
+
+        overflow  = 0;
+        overflow |= ( backup_len     < acc_backup_len );
+        overflow |= ( acc_len_needed < backup_len );
+
+        if( overflow || al < acc_len_needed )
+        {
+            /* Except for the different return code, we behave as if
+             * there hadn't been a call to mbedtls_mps_reader_get()
+             * since the last commit. */
+            rd->end = commit;
+            rd->pending = 0;
+            MBEDTLS_MPS_TRACE( mbedtls_mps_trace_error,
+                               "The accumulator is too small to handle the backup." );
+            MBEDTLS_MPS_TRACE( mbedtls_mps_trace_error,
+                               "* Size: %u", (unsigned) al );
+            MBEDTLS_MPS_TRACE( mbedtls_mps_trace_error,
+                               "* Needed: %u (%u + %u)",
+                               (unsigned) acc_len_needed,
+                               (unsigned) backup_len, (unsigned) pending );
+            MBEDTLS_MPS_TRACE_RETURN(
+                MBEDTLS_ERR_MPS_READER_ACCUMULATOR_TOO_SMALL );
+        }
 
         MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
-                           "Backup %u bytes into accumulator",
-                           (unsigned) frag_backup_len );
+                         "Fragment backup: %u", (unsigned) frag_backup_len );
+        MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
+                         "Accumulator backup: %u", (unsigned) acc_backup_len );
 
-        rd->acc_avail = fo + frag_backup_len;
+        /* Move uncommitted parts from the accumulator to the front
+         * of the accumulator. */
+        memmove( acc, acc + acc_backup_offset, acc_backup_len );
+
+        /* Copy uncmmitted parts of the current fragment to the
+         * accumulator. */
+        memcpy( acc + acc_backup_len,
+                frag + frag_backup_offset, frag_backup_len );
+
+        rd->acc_avail = backup_len;
         rd->acc_share.acc_remaining = pending;
 
         if( paused != NULL )
@@ -534,14 +500,13 @@ int mbedtls_mps_reader_reclaim( mbedtls_mps_reader *rd,
     rd->frag     = NULL;
     rd->frag_len = 0;
 
-    rd->commit = 0;
-    rd->end    = 0;
-    rd->pending  = 0;
+    rd->commit  = 0;
+    rd->end     = 0;
+    rd->pending = 0;
 
     MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
                        "Final state: aa %u, al %u, ar %u",
                        (unsigned) rd->acc_avail, (unsigned) rd->acc_len,
                        (unsigned) rd->acc_share.acc_remaining );
-
     MBEDTLS_MPS_TRACE_RETURN( 0 );
 }

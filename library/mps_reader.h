@@ -45,7 +45,7 @@
  *   moving it from 'producing' to 'consuming' mode.
  * - The consumer subsequently fetches and processes the buffer
  *   content. Once that's done -- or partially done and a consumer's
- *   requests can't be fulfilled -- the producer revokes the reader's
+ *   request can't be fulfilled -- the producer revokes the reader's
  *   access to the incoming data buffer, putting the reader back to
  *   producing mode.
  * - The producer subsequently gathers more incoming data and hands

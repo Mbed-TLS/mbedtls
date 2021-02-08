@@ -1127,15 +1127,6 @@ static int x509_get_crt_ext( unsigned char **p,
                 return ( ret );
             }
             break;
-        case MBEDTLS_X509_EXT_AUTHORITY_KEY_IDENTIFIER:
-            /* Parse authority key identifier */
-            if ((ret = x509_get_authority_key_id(p, end_ext_data,
-                &crt->authority_key_id)) != 0)
-            {
-                return (ret);
-            }
-            break;
-
         case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
             /* Parse subject alt name */
             if( ( ret = x509_get_subject_alt_name( p, end_ext_octet,

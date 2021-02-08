@@ -281,7 +281,7 @@ int mbedtls_mps_reader_feed( mbedtls_mps_reader *reader,
  *
  * \param reader    The reader context to use. The reader must be
  *                  in producing state.
- * \param paused    If not \c NULL, the intger at address \p paused will be
+ * \param paused    If not \c NULL, the integer at address \p paused will be
  *                  modified to indicate whether the reader has been paused
  *                  (value \c 1) or not (value \c 0). Pausing happens if there
  *                  is uncommitted data and a previous request to

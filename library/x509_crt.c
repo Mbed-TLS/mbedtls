@@ -625,11 +625,11 @@ static int x509_get_subject_key_id(unsigned char** p,
 
 /*
  * AuthorityKeyIdentifier ::= SEQUENCE {
- *		keyIdentifier [0] KeyIdentifier OPTIONAL,
- *		authorityCertIssuer [1] GeneralNames OPTIONAL,
- *		authorityCertSerialNumber [2] CertificateSerialNumber OPTIONAL }
+ *        keyIdentifier [0] KeyIdentifier OPTIONAL,
+ *        authorityCertIssuer [1] GeneralNames OPTIONAL,
+ *        authorityCertSerialNumber [2] CertificateSerialNumber OPTIONAL }
  *
- *	KeyIdentifier ::= OCTET STRING
+ *    KeyIdentifier ::= OCTET STRING
  */
 static int x509_get_authority_key_id(unsigned char** p,
     const unsigned char* end,

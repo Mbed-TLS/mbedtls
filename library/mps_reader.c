@@ -71,7 +71,7 @@ static inline void mps_reader_zero( mbedtls_mps_reader *rd )
     /* A plain memset() would likely be more efficient,
      * but the current way of zeroing makes it harder
      * to overlook fields which should not be zero-initialized.
-     * It's also more suitable for VF efforts since it
+     * It's also more suitable for FV efforts since it
      * doesn't require reasoning about structs being
      * interpreted as unstructured binary blobs. */
     static mbedtls_mps_reader const zero =

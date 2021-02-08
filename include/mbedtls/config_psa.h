@@ -253,7 +253,7 @@ extern "C" {
 #endif /* PSA_WANT_ALG_STREAM_CIPHER */
 
 /* The MBEDTLS_PSA_HAVE_SOFT_KEY_TYPE_* are defined if a key type is selected,
- * but we are configured to accelerate this key type. */
+ * but we aren't configured to accelerate this key type. */
 #if defined(PSA_WANT_KEY_TYPE_AES) && !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
 #define PSA_HAVE_SOFT_KEY_TYPE_AES 1
 #endif

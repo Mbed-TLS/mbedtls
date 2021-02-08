@@ -123,15 +123,15 @@ static inline void mps_reader_zero( mbedtls_mps_reader *rd )
      * doesn't require reasoning about structs being
      * interpreted as unstructured binary blobs. */
     static mbedtls_mps_reader const zero =
-        { .frag      = NULL,
-          .frag_len  = 0,
-          .commit    = 0,
-          .end       = 0,
-          .pending   = 0,
-          .acc       = NULL,
-          .acc_len   = 0,
-          .acc_avail = 0,
-          .acc_share  = { .acc_remaining = 0 }
+        { .frag          = NULL,
+          .frag_len      = 0,
+          .commit        = 0,
+          .end           = 0,
+          .pending       = 0,
+          .acc           = NULL,
+          .acc_len       = 0,
+          .acc_available = 0,
+          .acc_share     = { .acc_remaining = 0 }
         };
     *rd = zero;
 }
@@ -175,7 +175,7 @@ int mbedtls_mps_reader_feed( mbedtls_mps_reader *rd,
     {
         unsigned char *acc    = rd->acc;
         mbedtls_mps_size_t ar = rd->acc_share.acc_remaining;
-        mbedtls_mps_size_t aa = rd->acc_avail;
+        mbedtls_mps_size_t aa = rd->acc_available;
 
         /* Skip over parts of the accumulator that have already been filled. */
         acc += aa;
@@ -199,7 +199,7 @@ int mbedtls_mps_reader_feed( mbedtls_mps_reader *rd,
             /* We need to accumulate more data. Stay in producing mode. */
             aa += copy_to_acc;
             rd->acc_share.acc_remaining = ar;
-            rd->acc_avail = aa;
+            rd->acc_available = aa;
             MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_READER_NEED_MORE );
         }
 
@@ -211,7 +211,7 @@ int mbedtls_mps_reader_feed( mbedtls_mps_reader *rd,
         /* Remember overlap of accumulator and fragment. */
         rd->acc_share.frag_offset = aa;
         aa += copy_to_acc;
-        rd->acc_avail = aa;
+        rd->acc_available = aa;
     }
     else /* Not accumulating */
     {
@@ -266,7 +266,7 @@ int mbedtls_mps_reader_get( mbedtls_mps_reader *rd,
              *        |          acc              |
              *        +---------------------------+
              *                          |         |
-             *                   fo/frag_offset aa/acc_avail
+             *                   fo/frag_offset aa/acc_available
              *
              * - Allowed #2
              *
@@ -280,7 +280,7 @@ int mbedtls_mps_reader_get( mbedtls_mps_reader *rd,
              *        |          acc              |
              *        +---------------------------+
              *                          |         |
-             *                   fo/frag_offset aa/acc_avail
+             *                   fo/frag_offset aa/acc_available
              *
              * - Not allowed #1 (could be served, but we don't actually use it):
              *
@@ -294,7 +294,7 @@ int mbedtls_mps_reader_get( mbedtls_mps_reader *rd,
              *        |          acc              |
              *        +---------------------------+
              *                      |              |
-             *                fo/frag_offset   aa/acc_avail
+             *                fo/frag_offset   aa/acc_available
              *
              *
              * - Not allowed #2 (can't be served with a contiguous buffer):
@@ -309,14 +309,14 @@ int mbedtls_mps_reader_get( mbedtls_mps_reader *rd,
              *        |            acc            |
              *        +---------------------------+
              *                      |             |
-             *                fo/frag_offset   aa/acc_avail
+             *                fo/frag_offset   aa/acc_available
              *
              * In case of Allowed #1 and #2 we're switching to serve from
              * `frag` starting from the next call to mbedtls_mps_reader_get().
              */
 
             mbedtls_mps_size_t aa;
-            aa = rd->acc_avail;
+            aa = rd->acc_available;
             if( aa - end != desired )
             {
                 /* It might be possible to serve some of these situations by
@@ -445,7 +445,7 @@ int mbedtls_mps_reader_reclaim( mbedtls_mps_reader *rd,
             MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_READER_DATA_LEFT );
         }
 
-        rd->acc_avail = 0;
+        rd->acc_available = 0;
         rd->acc_share.acc_remaining = 0;
 
         MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
@@ -535,7 +535,7 @@ int mbedtls_mps_reader_reclaim( mbedtls_mps_reader *rd,
         memcpy( acc + acc_backup_len,
                 frag + frag_backup_offset, frag_backup_len );
 
-        rd->acc_avail = backup_len;
+        rd->acc_available = backup_len;
         rd->acc_share.acc_remaining = pending;
 
         if( paused != NULL )
@@ -551,7 +551,7 @@ int mbedtls_mps_reader_reclaim( mbedtls_mps_reader *rd,
 
     MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
                        "Final state: aa %u, al %u, ar %u",
-                       (unsigned) rd->acc_avail, (unsigned) rd->acc_len,
+                       (unsigned) rd->acc_available, (unsigned) rd->acc_len,
                        (unsigned) rd->acc_share.acc_remaining );
     MBEDTLS_MPS_TRACE_RETURN( 0 );
 }

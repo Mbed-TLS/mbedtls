@@ -36,7 +36,6 @@
 #include "mbedtls/bn_mul.h"
 #include "mbedtls/camellia.h"
 #include "mbedtls/ccm.h"
-#include "mbedtls/certs.h"
 #include "mbedtls/chacha20.h"
 #include "mbedtls/chachapoly.h"
 #include "mbedtls/check_config.h"
@@ -98,6 +97,7 @@
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/xtea.h"
+#include "test/certs.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"

@@ -820,10 +820,6 @@
 #error "MBEDTLS_X509_CREATE_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_CERTS_C) && !defined(MBEDTLS_X509_USE_C)
-#error "MBEDTLS_CERTS_C defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && ( !defined(MBEDTLS_X509_USE_C) )
 #error "MBEDTLS_X509_CRT_PARSE_C defined, but not all prerequisites"
 #endif

@@ -65,12 +65,12 @@
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
-#include "mbedtls/certs.h"
 #include "mbedtls/x509.h"
 #include "mbedtls/error.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/timing.h"
 #include "mbedtls/base64.h"
+#include "test/certs.h"
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"

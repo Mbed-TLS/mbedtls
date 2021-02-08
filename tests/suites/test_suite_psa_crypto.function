@@ -5543,7 +5543,6 @@ exit:
 void generate_random( int bytes_arg )
 {
     size_t bytes = bytes_arg;
-    const unsigned char trail[] = "don't overwrite me";
     unsigned char *output = NULL;
     unsigned char *changed = NULL;
     size_t i;
@@ -5551,9 +5550,8 @@ void generate_random( int bytes_arg )
 
     TEST_ASSERT( bytes_arg >= 0 );
 
-    ASSERT_ALLOC( output, bytes + sizeof( trail ) );
+    ASSERT_ALLOC( output, bytes );
     ASSERT_ALLOC( changed, bytes );
-    memcpy( output + bytes, trail, sizeof( trail ) );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -5565,10 +5563,6 @@ void generate_random( int bytes_arg )
         if( bytes != 0 )
             memset( output, 0, bytes );
         PSA_ASSERT( psa_generate_random( output, bytes ) );
-
-        /* Check that no more than bytes have been overwritten */
-        ASSERT_COMPARE( output + bytes, sizeof( trail ),
-                        trail, sizeof( trail ) );
 
         for( i = 0; i < bytes; i++ )
         {

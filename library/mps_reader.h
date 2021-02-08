@@ -167,8 +167,8 @@ struct mbedtls_mps_reader
                            *   unsuccessful call to mbedtls_mps_reader_get(),
                            *   this variable is used to have the reader
                            *   remember how much data should be accumulated
-                           *   before the reader can be passed back to
-                           *   the user again.
+                           *   so that the call to mbedtls_mps_reader_get()
+                           *   succeeds next time.
                            *   This is only used when the reader is in
                            *   consuming mode, i.e. \c frag != \c NULL;
                            *   otherwise, its value is \c 0.                */

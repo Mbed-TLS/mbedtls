@@ -43,22 +43,32 @@
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif
 
-#if !defined(MBEDTLS_ENTROPY_C) ||                          \
-    !defined(MBEDTLS_NET_C) ||                              \
+#undef HAVE_RNG
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&         \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) ||                \
+      defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG) )
+#define HAVE_RNG
+#elif defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_CTR_DRBG_C)
+#define HAVE_RNG
+#elif defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_HMAC_DRBG_C) &&     \
+    ( defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA512_C) )
+#define HAVE_RNG
+#endif
+
+#if !defined(MBEDTLS_NET_C) ||                              \
     !defined(MBEDTLS_SSL_TLS_C) ||                          \
     defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 #define MBEDTLS_SSL_TEST_IMPOSSIBLE                             \
-    "MBEDTLS_ENTROPY_C and/or "                                 \
     "MBEDTLS_NET_C and/or "                                     \
     "MBEDTLS_SSL_TLS_C not defined, "                           \
     "and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\n"
-#elif !( defined(MBEDTLS_CTR_DRBG_C) ||                                 \
-         defined(MBEDTLS_HMAC_DRBG_C) && ( defined(MBEDTLS_SHA256_C) || \
-                                           defined(MBEDTLS_SHA512_C) ) )
-#define MBEDTLS_SSL_TEST_IMPOSSIBLE                                     \
-    "Neither MBEDTLS_CTR_DRBG_C, nor MBEDTLS_HMAC_DRBG_C and a supported hash defined.\n"
+#elif !defined(HAVE_RNG)
+#define MBEDTLS_SSL_TEST_IMPOSSIBLE             \
+    "No random generator is available.\n"
 #else
 #undef MBEDTLS_SSL_TEST_IMPOSSIBLE
+
+#undef HAVE_RNG
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,7 +86,7 @@
 #include "mbedtls/timing.h"
 #include "mbedtls/base64.h"
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
 #endif

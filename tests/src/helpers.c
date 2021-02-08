@@ -289,33 +289,25 @@ void mbedtls_test_err_add_check( int high, int low,
 {
     if ( high > -0x1000 )
     {
-        mbedtls_fprintf( stderr, "\n'high' is not a high-level error code - "
-                                 "%s:%d\n", file, line );
-        mbedtls_exit( 1 );
+        mbedtls_test_fail( "'high' is not a high-level error code",
+                            line, file );
     }
     else if ( high < -0x7F80 )
     {
-        mbedtls_fprintf( stderr, "\n'high' is greater than 16-bits - "
-                                 "%s:%d\n", file, line );
-        mbedtls_exit( 1 );
+        mbedtls_test_fail( "'high' is greater than 16-bits", line, file );
     }
     else if ( ( high & 0x7F ) != 0 )
     {
-        mbedtls_fprintf( stderr, "\n'high' contains a low-level error code - "
-                                 "%s:%d\n", file, line );
-        mbedtls_exit( 1 );
+        mbedtls_test_fail( "'high' contains a low-level error code",
+                            line, file );
     }
     else if ( low < -0x007F )
     {
-        mbedtls_fprintf( stderr, "\n'low' is greater than 8-bits - "
-                                 "%s:%d\n", file, line );
-        mbedtls_exit( 1 );
+        mbedtls_test_fail( "'low' is greater than 8-bits", line, file );
     }
     else if ( low > 0 )
     {
-        mbedtls_fprintf( stderr, "\n'low' is zero or greater - "
-                                 "%s:%d\n", file, line );
-        mbedtls_exit( 1 );
+        mbedtls_test_fail( "'low' is zero or greater", line, file );
     }
 }
 #endif /* MBEDTLS_TEST_HOOKS */

@@ -220,11 +220,27 @@ extern "C" {
 #endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY */
 #endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */
 
+/* If any of the block modes are requested that don't have an
+ * associated HW assist, define PSA_HAVE_SOFT_BLOCK_MODE for checking
+ * in the block cipher key types. */
+#if (defined(PSA_WANT_ALG_CTR) && !defined(MBEDTLS_PSA_ACCEL_ALG_CTR)) || \
+    (defined(PSA_WANT_ALG_CBF) && !defined(MBEDTLS_PSA_ACCEL_ALG_CFB)) || \
+    (defined(PSA_WANT_ALG_OFB) && !defined(MBEDTLS_PSA_ACCEL_ALG_OFB)) || \
+    (defined(PSA_WANT_ALG_XTS) && !defined(MBEDTLS_PSA_ACCEL_ALG_XTS)) || \
+    defined(PSA_WANT_ALG_ECB_NO_PADDING) || \
+    (defined(PSA_WANT_ALG_CBC_NO_PADDING) && \
+     !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING)) || \
+    (defined(PSA_WANT_ALG_CBC_PKCS7) && \
+     !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_PKCS7))
+#define PSA_HAVE_SOFT_BLOCK_MODE 1
+#endif
+
 #if defined(PSA_WANT_KEY_TYPE_AES)
-#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES) || \
+    defined(PSA_HAVE_SOFT_BLOCK_MODE)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_AES 1
 #define MBEDTLS_AES_C
-#endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_AES */
+#endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_AES || PSA_HAVE_SOFT_BLOCK_MODE */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
 #if defined(PSA_WANT_KEY_TYPE_ARC4)
@@ -235,17 +251,19 @@ extern "C" {
 #endif /* PSA_WANT_KEY_TYPE_ARC4 */
 
 #if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
-#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA) || \
+    defined(PSA_HAVE_SOFT_BLOCK_MODE)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_CAMELLIA 1
 #define MBEDTLS_CAMELLIA_C
-#endif /*!MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA */
+#endif /*!MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA || PSA_HAVE_SOFT_BLOCK_MODE */
 #endif /* PSA_WANT_KEY_TYPE_CAMELLIA */
 
 #if defined(PSA_WANT_KEY_TYPE_DES)
-#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DES)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DES) || \
+    defined(PSA_HAVE_SOFT_BLOCK_MODE)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES 1
 #define MBEDTLS_DES_C
-#endif /*!MBEDTLS_PSA_ACCEL_KEY_TYPE_DES */
+#endif /*!MBEDTLS_PSA_ACCEL_KEY_TYPE_DES || PSA_HAVE_SOFT_BLOCK_MODE */
 #endif /* PSA_WANT_KEY_TYPE_DES */
 
 #if defined(PSA_WANT_ALG_STREAM_CIPHER)

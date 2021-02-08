@@ -1,0 +1,5 @@
+API changes
+   * Remove certs module from the API.
+     Transfer keys and certificates embedded in the library to the test component.
+     This contributes to minimizing library API and discourages users
+     from using unsafe keys in production.

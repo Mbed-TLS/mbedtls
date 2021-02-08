@@ -49,8 +49,7 @@
     !defined(MBEDTLS_SSL_COOKIE_C) || !defined(MBEDTLS_NET_C) ||          \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) ||        \
     !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_RSA_C) ||      \
-    !defined(MBEDTLS_CERTS_C) || !defined(MBEDTLS_PEM_PARSE_C) ||         \
-    !defined(MBEDTLS_TIMING_C)
+    !defined(MBEDTLS_PEM_PARSE_C) || !defined(MBEDTLS_TIMING_C)
 
 int main( void )
 {
@@ -58,8 +57,7 @@ int main( void )
             "MBEDTLS_SSL_COOKIE_C and/or MBEDTLS_NET_C and/or "
             "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
             "MBEDTLS_X509_CRT_PARSE_C and/or MBEDTLS_RSA_C and/or "
-            "MBEDTLS_CERTS_C and/or MBEDTLS_PEM_PARSE_C and/or "
-            "MBEDTLS_TIMING_C not defined.\n" );
+            "MBEDTLS_PEM_PARSE_C and/or MBEDTLS_TIMING_C not defined.\n" );
     mbedtls_exit( 0 );
 }
 #else
@@ -74,7 +72,6 @@ int main( void )
 
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
-#include "mbedtls/certs.h"
 #include "mbedtls/x509.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/ssl_cookie.h"
@@ -82,6 +79,7 @@ int main( void )
 #include "mbedtls/error.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/timing.h"
+#include "test/certs.h"
 
 #if defined(MBEDTLS_SSL_CACHE_C)
 #include "mbedtls/ssl_cache.h"
@@ -434,4 +432,4 @@ exit:
 #endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_PROTO_DTLS &&
           MBEDTLS_SSL_COOKIE_C && MBEDTLS_NET_C && MBEDTLS_ENTROPY_C &&
           MBEDTLS_CTR_DRBG_C && MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_RSA_C
-          && MBEDTLS_CERTS_C && MBEDTLS_PEM_PARSE_C && MBEDTLS_TIMING_C */
+          && MBEDTLS_PEM_PARSE_C && MBEDTLS_TIMING_C */

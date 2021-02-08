@@ -405,8 +405,8 @@ psa_status_t mbedtls_transparent_test_driver_ecp_export_public_key(
 #endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) ||
           defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) */
 
-#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) \
-    && defined(MBEDTLS_GENPRIME)
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) && \
+    defined(MBEDTLS_GENPRIME)
 psa_status_t mbedtls_transparent_test_driver_ecp_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
@@ -414,7 +414,7 @@ psa_status_t mbedtls_transparent_test_driver_ecp_generate_key(
     return( ecp_generate_key( attributes, key_buffer, key_buffer_size,
                               key_buffer_length ) );
 }
-#endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) ||
+#endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) &&
           defined(MBEDTLS_GENPRIME) */
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */

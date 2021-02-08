@@ -264,12 +264,14 @@ static psa_key_usage_t psa_get_key_usage_flags(
  * - An algorithm value permits this particular algorithm.
  * - An algorithm wildcard built from #PSA_ALG_ANY_HASH allows the specified
  *   signature scheme with any hash algorithm.
- * - An algorithm value for which PSA_ALG_IS_WILDCARD() evaluates to true
- *   allows any algorithm specified by that usage algorithm definition.
- *   E.g. a usage algorithm built from PSA_ALG_MAC_WITH_MINIMUM_LENGTH_TAG()
- *   allows using the key for any algorithm with the same base MAC algorithm as
- *   long as the used algorithm isn't truncated to less than the minimum tag
- *   length declared in the usage algorithm.
+ * - An algorithm built from #PSA_ALG_MAC_WITH_MINIMUM_LENGTH_TAG allows
+ *   any MAC algorithm from the same base class (e.g. CMAC) which
+ *   generates/verifies a MAC length greater than or equal to the length
+ *   encoded in the wildcard algorithm.
+ * - An algorithm built from #PSA_ALG_AEAD_WITH_MINIMUM_LENGTH_TAG allows
+ *   any AEAD algorithm from the same base class (e.g. CCM) which
+ *   generates/verifies a tag length greater than or equal to the length
+ *   encoded in the wildcard algorithm.
  *
  * This function overwrites any algorithm policy
  * previously set in \p attributes.

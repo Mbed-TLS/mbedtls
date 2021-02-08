@@ -1,8 +1,0 @@
-Features
-   * Added PSA_ALG_AEAD_WITH_MINIMUM_LENGTH_TAG and
-     PSA_ALG_MAC_WITH_MINIMUM_LENGTH_TAG as usage algorithms for declaring key
-     usage in PSA Crypto. These algorithm values describe that a key is allowed
-     to be used with any algorithm that matches the specified base algorithm
-     (e.g PSA_ALG_CCM for AEAD or PSA_ALG_CMAC for MAC) and has a tag length
-     which is at least as long as the one encoded in the MINIMUM_TAG_LENGTH
-     usage algorithm.

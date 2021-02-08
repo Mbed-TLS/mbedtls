@@ -146,7 +146,8 @@ struct mbedtls_mps_reader
                            *   Must be 0 if \c frag == \c NULL.             */
     mbedtls_mps_stored_size_t commit;
                           /*!< The offset of the last commit, relative
-                           *   to the first byte in the accumulator.
+                           *   to the first byte in the fragment or, if
+                           *   present, the accumulator.
                            *   This is only used when the reader is in
                            *   consuming mode, i.e. \c frag != \c NULL;
                            *   otherwise, its value is \c 0.                */

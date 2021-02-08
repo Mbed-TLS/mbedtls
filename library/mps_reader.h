@@ -182,7 +182,7 @@ struct mbedtls_mps_reader
                            *   cannot be served from the current fragment.   */
     mbedtls_mps_stored_size_t acc_len;
                            /*!< The total size of the accumulator.           */
-    mbedtls_mps_stored_size_t acc_avail;
+    mbedtls_mps_stored_size_t acc_available;
                           /*!< The number of bytes currently gathered in
                            *   the accumulator. This is both used in
                            *   producing and in consuming mode:
@@ -204,7 +204,7 @@ struct mbedtls_mps_reader
                                *   fragment from the beginning of the
                                *   accumulator.
                                *   It is only used in consuming mode.
-                               *   Must not be larger than \c acc_avail.     */
+                               *   Must not be larger than \c acc_available. */
     } acc_share;
 };
 

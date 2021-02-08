@@ -260,7 +260,7 @@ static psa_status_t rsa_export_public_key(
         * defined(BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
 #if defined(BUILTIN_KEY_TYPE_RSA_KEY_PAIR)
-static psa_status_t psa_read_rsa_exponent( const uint8_t *domain_parameters,
+static psa_status_t psa_rsa_read_exponent( const uint8_t *domain_parameters,
                                            size_t domain_parameters_size,
                                            int *exponent )
 {
@@ -295,7 +295,7 @@ static psa_status_t rsa_generate_key(
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     int exponent;
 
-    status = psa_read_rsa_exponent( attributes->domain_parameters,
+    status = psa_rsa_read_exponent( attributes->domain_parameters,
                                     attributes->domain_parameters_size,
                                     &exponent );
     if( status != PSA_SUCCESS )

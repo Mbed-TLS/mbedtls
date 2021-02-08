@@ -896,7 +896,7 @@ const char * mbedtls_low_level_strerr( int error_code )
 #if defined(MBEDTLS_TEST_HOOKS)
 static void (*err_add_hook)( int, int, const char *, int );
 
-void mbedtls_set_err_add_hook(void *hook)
+void mbedtls_set_err_add_hook( void (*hook)( int, int, const char *, int ) )
 {
     err_add_hook = hook;
 }

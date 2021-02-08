@@ -125,7 +125,7 @@ extern "C" {
  *
  * \param hook    hook to invasive testing function
  */
-void mbedtls_set_err_add_hook( void *hook );
+void mbedtls_set_err_add_hook( void (*hook)( int, int, const char *, int ) );
 int mbedtls_err_add( int high, int low, const char *file, int line );
 #define MBEDTLS_ERR_ADD( high, low )  \
     ( mbedtls_err_add( high, low, __FILE__, __LINE__ ) )

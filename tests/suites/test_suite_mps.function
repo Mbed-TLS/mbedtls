@@ -245,12 +245,19 @@ void mbedtls_mps_reader_pausing_needed_buffer_too_small()
      * current read buffer, _and_ the reader's accumulator is too small to
      * hold the requested amount of data.
      *
-     * In this case, we expect the reader to fail. */
+     * In this case, we expect mbedtls_mps_reader_reclaim() to fail,
+     * but it should be possible to continue fetching data as if
+     * there had been no excess request via mbedtls_mps_reader_get()
+     * and the call to mbedtls_mps_reader_reclaim() had been rejected
+     * because of data remaining.
+     */
 
     unsigned char buf[100];
     unsigned char acc[10];
     unsigned char *tmp;
     mbedtls_mps_reader rd;
+    mbedtls_mps_size_t tmp_len;
+
     for( int i=0; (unsigned) i < sizeof( buf ); i++ )
         buf[i] = (unsigned char) i;
 
@@ -261,11 +268,17 @@ void mbedtls_mps_reader_pausing_needed_buffer_too_small()
     TEST_ASSERT( mbedtls_mps_reader_get( &rd, 50, &tmp, NULL ) == 0 );
     ASSERT_COMPARE( tmp, 50, buf, 50 );
     TEST_ASSERT( mbedtls_mps_reader_commit( &rd ) == 0 );
+    TEST_ASSERT( mbedtls_mps_reader_get( &rd, 10, &tmp, NULL ) == 0 );
+    ASSERT_COMPARE( tmp, 10, buf + 50, 10 );
     TEST_ASSERT( mbedtls_mps_reader_get( &rd, 100, &tmp, NULL ) ==
                  MBEDTLS_ERR_MPS_READER_OUT_OF_DATA );
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_mps_reader_reclaim( &rd, NULL ) ==
                  MBEDTLS_ERR_MPS_READER_ACCUMULATOR_TOO_SMALL );
+
+    TEST_ASSERT( mbedtls_mps_reader_get( &rd, 50, &tmp, &tmp_len ) == 0 );
+    ASSERT_COMPARE( tmp, tmp_len, buf + 50, 50 );
+
     mbedtls_mps_reader_free( &rd );
 }
 /* END_CASE */

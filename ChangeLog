@@ -20,7 +20,7 @@ Requirement changes
      warning on CMake 3.19.0. #3801
 
 New deprecations
-   * PSA_KEY_TYPE_CHACHA20 and PSA_KEY_TYPE_ARC4 have been deprecated.
+   * PSA_ALG_CHACHA20 and PSA_ALG_ARC4 have been deprecated.
      Use PSA_ALG_STREAM_CIPHER instead.
    * The functions mbedtls_cipher_auth_encrypt() and
      mbedtls_cipher_auth_decrypt() are deprecated in favour of the new

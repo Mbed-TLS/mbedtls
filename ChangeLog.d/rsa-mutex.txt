@@ -6,3 +6,8 @@ Bugfix
    * Fix a resource leak in a bad-arguments case of mbedtls_rsa_gen_key()
      when MBEDTLS_THREADING_C is enabled on platforms where initializing
      a mutex allocates resources.
+
+Default behavior changes
+   * In mbedtls_rsa_context objects, the ver field was formerly documented
+     as always 0. It is now reserved for internal purposes and may take
+     different values.

@@ -95,6 +95,7 @@ void mbedtls_ctr_drbg_free( mbedtls_ctr_drbg_context *ctx )
         return;
 
 #if defined(MBEDTLS_THREADING_C)
+    /* The mutex is initialized iff f_entropy is set. */
     if( ctx->f_entropy != NULL )
         mbedtls_mutex_free( &ctx->mutex );
 #endif
@@ -416,6 +417,7 @@ int mbedtls_ctr_drbg_seed( mbedtls_ctr_drbg_context *ctx,
 
     memset( key, 0, MBEDTLS_CTR_DRBG_KEYSIZE );
 
+    /* The mutex is initialized iff f_entropy is set. */
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &ctx->mutex );
 #endif

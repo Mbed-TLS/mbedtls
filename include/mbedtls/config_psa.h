@@ -282,15 +282,22 @@ extern "C" {
 #endif /*!MBEDTLS_PSA_ACCEL_KEY_TYPE_CHACHA20 */
 #endif /* PSA_WANT_KEY_TYPE_CHACHA20 */
 
+/* If any of the software block ciphers are selected, define
+ * PSA_HAVE_SOFT_BLOCK_CIPHER, which can be used in any of these
+ * situations. */
+#if defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_DES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
+#define PSA_HAVE_SOFT_BLOCK_CIPHER 1
+#endif
+
 #if defined(PSA_WANT_ALG_STREAM_CIPHER)
 #define MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER 1
 #endif /* PSA_WANT_ALG_STREAM_CIPHER */
 
 #if defined(PSA_WANT_ALG_CTR)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_CTR) || \
-    defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
-    defined(PSA_HAVE_SOFT_KEY_TYPE_DES) || \
-    defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
+    defined(PSA_HAVE_SOFT_BLOCK_CIPHER)
 #define MBEDTLS_PSA_BUILTIN_ALG_CTR 1
 #define MBEDTLS_CIPHER_MODE_CTR
 #endif
@@ -298,9 +305,7 @@ extern "C" {
 
 #if defined(PSA_WANT_ALG_CFB)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_CFB) || \
-    defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
-    defined(PSA_HAVE_SOFT_KEY_TYPE_DES) || \
-    defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
+    defined(PSA_HAVE_SOFT_BLOCK_CIPHER)
 #define MBEDTLS_PSA_BUILTIN_ALG_CFB 1
 #define MBEDTLS_CIPHER_MODE_CFB
 #endif
@@ -308,9 +313,7 @@ extern "C" {
 
 #if defined(PSA_WANT_ALG_OFB)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_OFB) || \
-    defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
-    defined(PSA_HAVE_SOFT_KEY_TYPE_DES) || \
-    defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
+    defined(PSA_HAVE_SOFT_BLOCK_CIPHER)
 #define MBEDTLS_PSA_BUILTIN_ALG_OFB 1
 #define MBEDTLS_CIPHER_MODE_OFB
 #endif
@@ -318,9 +321,7 @@ extern "C" {
 
 #if defined(PSA_WANT_ALG_XTS)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_XTS) || \
-    defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
-    defined(PSA_HAVE_SOFT_KEY_TYPE_DES) || \
-    defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
+    defined(PSA_HAVE_SOFT_BLOCK_CIPHER)
 #define MBEDTLS_PSA_BUILTIN_ALG_XTS 1
 #define MBEDTLS_CIPHER_MODE_XTS
 #endif

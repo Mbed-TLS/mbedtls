@@ -101,6 +101,14 @@ typedef struct mbedtls_hmac_drbg_context
     void *p_entropy;            /*!< context for the entropy function        */
 
 #if defined(MBEDTLS_THREADING_C)
+    /* Invariant: the mutex is initialized if and only if
+     * md_ctx->md_info != NULL. This means that the mutex is initialized
+     * during the initial seeding in mbedtls_hmac_drbg_seed() or
+     * mbedtls_hmac_drbg_seed_buf() and freed in mbedtls_ctr_drbg_free().
+     *
+     * Note that this invariant may change without notice. Do not rely on it
+     * and do not access the mutex directly in application code.
+     */
     mbedtls_threading_mutex_t mutex;
 #endif
 } mbedtls_hmac_drbg_context;

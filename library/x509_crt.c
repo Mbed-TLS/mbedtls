@@ -637,14 +637,14 @@ static int x509_get_authority_key_id(unsigned char** p,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0u;
-#if 0
+
     if ((ret = mbedtls_asn1_get_tag(p, end, &len,
         MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0)
     {
         mbedtls_free(authority_key_id);
         return(ret);
     }
-
+#if 0
     if ((ret = mbedtls_asn1_get_tag(p, end, &len,
         MBEDTLS_ASN1_CONTEXT_SPECIFIC)) != 0)
     {

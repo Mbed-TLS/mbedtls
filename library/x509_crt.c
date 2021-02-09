@@ -637,7 +637,7 @@ static int x509_get_authority_key_id(unsigned char** p,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0u;
-
+#if 0
     if ((ret = mbedtls_asn1_get_tag(p, end, &len,
         MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0)
     {
@@ -720,6 +720,7 @@ static int x509_get_authority_key_id(unsigned char** p,
         return(MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
             MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
+#endif
     return(0);
 }
 

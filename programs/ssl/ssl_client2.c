@@ -760,10 +760,10 @@ int main( int argc, char *argv[] )
         ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
         goto exit;
     }
+#endif  /* MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
     mbedtls_test_enable_insecure_external_rng( );
 #endif  /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
-#endif  /* MBEDTLS_USE_PSA_CRYPTO */
 
     if( argc == 0 )
     {

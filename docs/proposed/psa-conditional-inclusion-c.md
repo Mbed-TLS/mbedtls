@@ -86,7 +86,7 @@ For asymmetric cryptography, `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR` determines whether
 
 #### Configuration symbols for curves
 
-For elliptic curve key types, only the specified curves are included. To include a curve, include a symbol of the form **`PSA_WANT_ECC_family_size`**. For example: `PSA_WANT_ECC_SECP_R1_256` for secp256r1, `PSA_WANT_ECC_MONTGOMERY_CURVE25519`. It is an error to require an ECC key type but no curve, and Mbed TLS will reject this at compile time.
+For elliptic curve key types, only the specified curves are included. To include a curve, include a symbol of the form **`PSA_WANT_ECC_family_size`**. For example: `PSA_WANT_ECC_SECP_R1_256` for secp256r1, `PSA_WANT_ECC_MONTGOMERY_255` for Curve25519. It is an error to require an ECC key type but no curve, and Mbed TLS will reject this at compile time.
 
 #### Configuration symbols for algorithms
 

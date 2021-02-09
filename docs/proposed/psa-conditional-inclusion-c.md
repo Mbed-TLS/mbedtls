@@ -5,8 +5,6 @@ This document is a proposed interface for deciding at build time which cryptogra
 
 This is currently a proposal for Mbed TLS. It is not currently on track for standardization in PSA.
 
-Time-stamp: "2020/11/26 09:30:50 GMT"
-
 ## Introduction
 
 ### Purpose of this specification

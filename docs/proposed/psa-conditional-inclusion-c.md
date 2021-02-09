@@ -90,6 +90,12 @@ For elliptic curve key types, only the specified curves are included. To include
 
 Rationale: this is a deviation of the general principle that `PSA_ECC_FAMILY_xxx` would have a corresponding symbol `PSA_WANT_ECC_FAMILY_xxx`. This deviation is justified by the fact that it is very common to wish to include only certain curves in a family, and that can lead to a significant gain in code size.
 
+#### Configuration symbols for Diffie-Hellman groups
+
+There are no configuration symbols for Diffie-Hellman groups (`PSA_DH_GROUP_xxx`).
+
+Rationale: Finite-field Diffie-Hellman code is usually not specialized for any particular group, so reducing the number of available groups at compile time only saves a little code space. Constrained implementations tend to omit FFDH anyway, so the small code size gain is not important.
+
 #### Configuration symbols for algorithms
 
 For each constant or constructor macro of the form `PSA_ALG_xxx`, the symbol **`PSA_WANT_ALG_xxx`** indicates that support for this algorithm is desired.

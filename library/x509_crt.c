@@ -713,7 +713,7 @@ static int x509_get_authority_key_id(unsigned char** p,
             *p += len;
         }
     }
-    
+
     if (*p != end)
     {
         mbedtls_free(authority_key_id);
@@ -1134,6 +1134,14 @@ static int x509_get_crt_ext( unsigned char **p,
                     &crt->subject_key_id ) ) != 0 )
             {
                 return ( ret );
+            }
+            break;
+        case MBEDTLS_X509_EXT_AUTHORITY_KEY_IDENTIFIER:
+            /* Parse authority key identifier */
+            if ( (ret = x509_get_authority_key_id(p, end_ext_octet,
+                    &crt->authority_key_id)) != 0 )
+            {
+                return (ret);
             }
             break;
         case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:

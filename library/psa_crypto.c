@@ -5147,7 +5147,7 @@ static psa_status_t psa_generate_derived_key_internal(
 
     status = psa_allocate_buffer_to_slot( slot, bytes );
     if( status != PSA_SUCCESS )
-        return( status );
+        goto exit;
 
     slot->attr.bits = (psa_key_bits_t) bits;
     psa_key_attributes_t attributes = {

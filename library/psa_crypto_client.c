@@ -19,11 +19,10 @@
  */
 
 #include "common.h"
-
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) || defined(MBEDTLS_PSA_CRYPTO_C)
-
 #include "psa_crypto_service_integration.h"
 #include "psa/crypto.h"
+
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 
 #include <string.h>
 #include "mbedtls/platform.h"
@@ -81,4 +80,4 @@ psa_status_t psa_get_key_domain_parameters(
     return( PSA_SUCCESS );
 }
 
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT || MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */

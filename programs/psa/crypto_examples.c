@@ -43,13 +43,13 @@
         }                                                                     \
     } while ( 0 )
 
-#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(PSA_WANT_KEY_TYPE_AES) || \
+#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_AES_C) || \
     !defined(MBEDTLS_CIPHER_MODE_CBC) || !defined(MBEDTLS_CIPHER_MODE_CTR) || \
     !defined(MBEDTLS_CIPHER_MODE_WITH_PADDING) || \
     defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main( void )
 {
-    printf( "MBEDTLS_PSA_CRYPTO_C and/or PSA_WANT_KEY_TYPE_AES and/or "
+    printf( "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_AES_C and/or "
             "MBEDTLS_CIPHER_MODE_CBC and/or MBEDTLS_CIPHER_MODE_CTR "
             "and/or MBEDTLS_CIPHER_MODE_WITH_PADDING "
             "not defined and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER"
@@ -327,5 +327,5 @@ exit:
     mbedtls_psa_crypto_free( );
     return( 0 );
 }
-#endif /* MBEDTLS_PSA_CRYPTO_C && PSA_WANT_KEY_TYPE_AES && MBEDTLS_CIPHER_MODE_CBC &&
+#endif /* MBEDTLS_PSA_CRYPTO_C && MBEDTLS_AES_C && MBEDTLS_CIPHER_MODE_CBC &&
           MBEDTLS_CIPHER_MODE_CTR && MBEDTLS_CIPHER_MODE_WITH_PADDING */

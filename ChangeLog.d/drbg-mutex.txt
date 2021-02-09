@@ -1,0 +1,5 @@
+Bugfix
+   * Fix a resource leak in CTR_DRBG and HMAC_DRBG when MBEDTLS_THREADING_C
+     is enabled, on platforms where initializing a mutex allocates resources.
+     This was a regression introduced in the previous release. Reported in
+     #4017, #4045 and #4071.

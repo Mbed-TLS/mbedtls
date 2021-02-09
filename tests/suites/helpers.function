@@ -575,8 +575,13 @@ int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
  * indicate the exact location of the problematic call. To locate the error,
  * use a debugger and set a breakpoint on mbedtls_test_mutex_usage_error().
  */
-enum value_of_mutex_is_valid
+enum value_of_mutex_is_valid_field
 {
+    /* Potential values for the is_valid field of mbedtls_threading_mutex_t.
+     * Note that MUTEX_FREED must be 0 and MUTEX_IDLE must be 1 for
+     * compatibility with threading_mutex_init_pthread() and
+     * threading_mutex_free_pthread(). MUTEX_LOCKED could be any nonzero
+     * value. */
     MUTEX_FREED = 0, //!< Set by threading_mutex_free_pthread
     MUTEX_IDLE = 1, //!< Set by threading_mutex_init_pthread and by our unlock
     MUTEX_LOCKED = 2, //!< Set by our lock

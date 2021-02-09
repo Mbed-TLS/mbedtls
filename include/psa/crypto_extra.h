@@ -637,16 +637,21 @@ static inline psa_ecc_family_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id gr
  *
  * \param curve         A PSA elliptic curve identifier
  *                      (`PSA_ECC_FAMILY_xxx`).
- * \param byte_length   The byte-length of a private key on \p curve.
+ * \param bits          The bit-length of a private key on \p curve.
+ * \param bits_is_sloppy If true, \p bits may be the bit-length rounded up
+ *                      to the nearest multiple of 8. This allows the caller
+ *                      to infer the exact curve from the length of a key
+ *                      which is supplied as a byte string.
  *
  * \return              The corresponding Mbed TLS elliptic curve identifier
  *                      (`MBEDTLS_ECP_DP_xxx`).
  * \return              #MBEDTLS_ECP_DP_NONE if \c curve is not recognized.
- * \return              #MBEDTLS_ECP_DP_NONE if \p byte_length is not
+ * \return              #MBEDTLS_ECP_DP_NONE if \p bits is not
  *                      correct for \p curve.
  */
 mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
-                                               size_t byte_length );
+                                               size_t bits,
+                                               int bits_is_sloppy );
 #endif /* MBEDTLS_ECP_C */
 
 /**@}*/

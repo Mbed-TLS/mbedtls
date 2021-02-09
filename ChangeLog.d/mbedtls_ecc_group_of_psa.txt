@@ -1,0 +1,4 @@
+API changes
+   * The API glue function mbedtls_ecc_group_of_psa() now takes the curve size
+     in bits rather than bytes, with an additional flag to indicate if the
+     size may have been rounded up to a whole number of bytes.

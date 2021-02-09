@@ -76,7 +76,7 @@ psa_status_t test_transparent_generate_key(
         mbedtls_ecp_group_id grp_id =
             mbedtls_ecc_group_of_psa(
                 curve,
-                PSA_BITS_TO_BYTES( psa_get_key_bits( attributes ) ) );
+                psa_get_key_bits( attributes ), 0 );
         const mbedtls_ecp_curve_info *curve_info =
             mbedtls_ecp_curve_info_from_grp_id( grp_id );
         mbedtls_ecp_keypair ecp;

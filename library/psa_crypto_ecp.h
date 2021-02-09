@@ -27,6 +27,14 @@
 /** Load the contents of a key buffer into an internal ECP representation
  *
  * \param[in] type          The type of key contained in \p data.
+ * \param[in] curve_bits    The nominal bit-size of the curve.
+ *                          It must be consistent with the representation
+ *                          passed in \p data.
+ *                          This can be 0, in which case the bit-size
+ *                          is inferred from \p data_length (which is possible
+ *                          for all key types and representation formats
+ *                          formats that are currently supported or will
+ *                          be in the foreseeable future).
  * \param[in] data          The buffer from which to load the representation.
  * \param[in] data_length   The size in bytes of \p data.
  * \param[out] p_ecp        Returns a pointer to an ECP context on success.
@@ -35,6 +43,7 @@
  *                          when done.
  */
 psa_status_t mbedtls_psa_ecp_load_representation( psa_key_type_t type,
+                                                  size_t curve_bits,
                                                   const uint8_t *data,
                                                   size_t data_length,
                                                   mbedtls_ecp_keypair **p_ecp );

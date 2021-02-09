@@ -226,8 +226,8 @@ typedef mbedtls_asn1_named_data mbedtls_x509_name;
  */
 typedef mbedtls_asn1_sequence mbedtls_x509_sequence;
 
-/* 
- * Container for the fields of the Authority Key Identifier object 
+/*
+ * Container for the fields of the Authority Key Identifier object
  */
 typedef struct mbedtls_x509_authority
 {

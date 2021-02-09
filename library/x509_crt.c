@@ -708,7 +708,7 @@ static int x509_get_authority_key_id(unsigned char** p,
             *p += len;
         }
     }
-    
+
     if( *p != end )
         return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );

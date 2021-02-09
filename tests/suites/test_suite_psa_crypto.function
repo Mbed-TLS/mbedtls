@@ -12,6 +12,8 @@
 #include "psa/crypto.h"
 #include "psa_crypto_slot_management.h"
 
+#include "test/psa_crypto_helpers.h"
+
 /** An invalid export length that will never be set by psa_export_key(). */
 static const size_t INVALID_EXPORT_LENGTH = ~0U;
 
@@ -4093,28 +4095,14 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
                                output_data, output_size,
                                &output_length );
 
-#if defined(MBEDTLS_AES_ALT) || \
-    defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
-    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
-    if( status == PSA_ERROR_NOT_SUPPORTED &&
-        key_type == PSA_KEY_TYPE_AES &&
-        key_data->len == 24 )
+    /* If the operation is not supported, just skip and not fail in case the
+     * encryption involves a common limitation of cryptography hardwares and
+     * an alternative implementation. */
+    if( status == PSA_ERROR_NOT_SUPPORTED )
     {
-        test_skip( "AES-192 not supported", __LINE__, __FILE__ );
-        goto exit;
+        MBEDTLS_TEST_PSA_SKIP_IF_ALT_AES_192( key_type, key_data->len * 8 );
+        MBEDTLS_TEST_PSA_SKIP_IF_ALT_GCM_NOT_12BYTES_NONCE( alg, nonce->len );
     }
-#endif /* AES could be alternatively implemented */
-#if defined(MBEDTLS_GCM_ALT) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
-    if( status == PSA_ERROR_NOT_SUPPORTED &&
-        ( PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, 0 ) ==
-          PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ) ) &&
-        nonce->len != 12 )
-    {
-        test_skip( "AES-GCM with non-12-byte IV is not supported", __LINE__, __FILE__ );
-        goto exit;
-    }
-#endif /* AES-GCM could be alternatively implemented */
 
     PSA_ASSERT( status );
     ASSERT_COMPARE( expected_result->x, expected_result->len,
@@ -4172,28 +4160,14 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
                                output_data, output_size,
                                &output_length );
 
-#if defined(MBEDTLS_AES_ALT) || \
-    defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
-    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
-    if( status == PSA_ERROR_NOT_SUPPORTED &&
-        key_type == PSA_KEY_TYPE_AES &&
-        key_data->len == 24 )
+    /* If the operation is not supported, just skip and not fail in case the
+     * decryption involves a common limitation of cryptography hardwares and
+     * an alternative implementation. */
+    if( status == PSA_ERROR_NOT_SUPPORTED )
     {
-        test_skip( "AES-192 not supported", __LINE__, __FILE__ );
-        goto exit;
+        MBEDTLS_TEST_PSA_SKIP_IF_ALT_AES_192( key_type, key_data->len * 8 );
+        MBEDTLS_TEST_PSA_SKIP_IF_ALT_GCM_NOT_12BYTES_NONCE( alg, nonce->len );
     }
-#endif /* AES could be alternatively implemented */
-#if defined(MBEDTLS_GCM_ALT) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
-    if( status == PSA_ERROR_NOT_SUPPORTED &&
-        ( PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, 0 ) ==
-          PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ) ) &&
-        nonce->len != 12 )
-    {
-        test_skip( "AES-GCM with non-12-byte IV is not supported", __LINE__, __FILE__ );
-        goto exit;
-    }
-#endif /* AES-GCM could be alternatively implemented */
 
     TEST_EQUAL( status, expected_result );
 

@@ -804,8 +804,10 @@ run_test() {
         fi
     fi
 
-    # check server exit code
-    if [ $SRV_RET != 0 ]; then
+    # Check server exit code (only for Mbed TLS: GnuTLS and OpenSSL don't
+    # exit with status 0 when interrupted by a signal, and we don't really
+    # care anyway), in case e.g. the server reports a memory leak.
+    if [ $SRV_RET != 0 ] && is_polar "$SRV_CMD"; then
         fail "Server exited with status $SRV_RET"
         return
     fi

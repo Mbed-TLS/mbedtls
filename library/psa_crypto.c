@@ -5063,7 +5063,7 @@ exit:
     return( status );
 }
 
-#if defined(PSA_WANT_KEY_TYPE_DES)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
 static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
 {
     if( data_size >= 8 )
@@ -5073,7 +5073,7 @@ static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
     if( data_size >= 24 )
         mbedtls_des_key_set_parity( data + 16 );
 }
-#endif /* PSA_WANT_KEY_TYPE_DES */
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES */
 
 static psa_status_t psa_generate_derived_key_internal(
     psa_key_slot_t *slot,

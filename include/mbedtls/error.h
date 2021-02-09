@@ -115,7 +115,7 @@ extern "C" {
 #define MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED -0x006E  /**< This is a bug in the library */
 
 
-#if defined(MBEDTLS_TEST_HOOKS)
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ERROR_C)
 /**
  * \brief Set a function pointer (hook) to allow for invasive testing of error
  *        code addition.

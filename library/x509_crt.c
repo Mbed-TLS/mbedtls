@@ -715,7 +715,7 @@ static int x509_get_authority_key_id(unsigned char** p,
             MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
 #endif
-	*p = end_ext_octet;
+	*p = end;
     return(0);
 }
 

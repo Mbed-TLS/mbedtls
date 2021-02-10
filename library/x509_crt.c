@@ -601,7 +601,7 @@ static int x509_get_ext_key_usage( unsigned char **p,
 * KeyIdentifier ::= OCTET STRING
 */
 static int x509_get_subject_key_id(unsigned char** p,
-    unsigned char* end,
+    const unsigned char* end,
     mbedtls_x509_buf* subject_key_id)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -632,7 +632,7 @@ static int x509_get_subject_key_id(unsigned char** p,
  *    KeyIdentifier ::= OCTET STRING
  */
 static int x509_get_authority_key_id(unsigned char** p,
-    const unsigned char* end,
+    unsigned char* end,
     mbedtls_x509_authority* authority_key_id)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

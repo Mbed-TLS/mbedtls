@@ -101,20 +101,21 @@ psa_status_t mbedtls_test_record_status( psa_status_t status,
 
 #endif /* defined(RECORD_PSA_STATUS_COVERAGE_LOG) */
 
-/** Skip a test case if the given key is an 192 bits AES key and the AES
- *  implementation is at least partially an alternative implementation.
- *
- *  Call this macro in a test case when a cryptography operation that may
- *  involve an AES operation returns with the PSA_ERROR_NOT_SUPPORTED error
- *  code to skip and not fail the test case in case the operation involves an
- *  192 bits AES key and the AES implementation is at least partially an
+/** Skip a test case if the given key is a 192 bits AES key and the AES
+ *  implementation is at least partially provided by an accelerator or
  *  alternative implementation.
  *
- *  Hardware AES implementations are likely to not support 192 bits keys.
+ *  Call this macro in a test case when a cryptographic operation that may
+ *  involve an AES operation returns a #PSA_ERROR_NOT_SUPPORTED error code.
+ *  The macro call will skip and not fail the test case in case the operation
+ *  involves a 192 bits AES key and the AES implementation is at least
+ *  partially provided by an accelerator or alternative implementation.
+ *
+ *  Hardware AES implementations not supporting 192 bits keys commonly exist.
  *  Consequently, PSA test cases aim at not failing when an AES operation with
- *  an 192 bits key performed by an alternative AES implementation returns
- *  with the PSA_ERROR_NOT_SUPPORTED error code. The purpose of this macro
- *  is to facilitate this and make the related code more readable.
+ *  a 192 bits key performed by an alternative AES implementation returns
+ *  with the #PSA_ERROR_NOT_SUPPORTED error code. The purpose of this macro
+ *  is to facilitate this and make the test case code more readable.
  *
  *  \param key_type  Key type
  *  \param key_bits  Key length in number of bits.
@@ -140,27 +141,28 @@ psa_status_t mbedtls_test_record_status( psa_status_t status,
     }                                                                     \
     while( 0 )
 
-/** Skip a test case in case of a GCM operation with a nonce length different
- *  from 12 bytes.
+/** Skip a test case if a GCM operation with a nonce length different from
+ *  12 bytes fails and was performed by an accelerator or alternative
+ *  implementation.
  *
  *  Call this macro in a test case when an AEAD cryptography operation that
- *  may involve the GCM mode returns with the PSA_ERROR_NOT_SUPPORTED error
- *  code to skip and not fail the test case in case the operation involves the
- *  GCM mode, a nonce with a length different from 12 bytes and the GCM mode
- *  implementation is an alternative one.
+ *  may involve the GCM mode returns with a #PSA_ERROR_NOT_SUPPORTED error
+ *  code. The macro call will skip and not fail the test case in case the
+ *  operation involves the GCM mode, a nonce with a length different from
+ *  12 bytes and the GCM mode implementation is an alternative one.
  *
- *  Hardware GCM implementations are likely to not support nonce lengths
- *  different from 12 are those imply additional computations involving the
- *  GHASH function. Consequently, PSA test cases aim at not failing when an
- *  AEAD operation in GCM mode with a nonce length different from 12 bytes
- *  performed by an alternative GCM implementation returns with the
- *  PSA_ERROR_NOT_SUPPORTED error code. The purpose of this macro is to
- *  facilitate this and make the related code more readable.
+ *  Hardware GCM implementations not supporting nonce lengths different from
+ *  12 bytes commonly exist, as supporting a non-12-byte nonce requires
+ *  additional computations involving the GHASH function.
+ *  Consequently, PSA test cases aim at not failing when an AEAD operation in
+ *  GCM mode with a nonce length different from 12 bytes is performed by an
+ *  alternative GCM implementation and returns with a #PSA_ERROR_NOT_SUPPORTED
+ *  error code. The purpose of this macro is to facilitate this check and make
+ *  the test case code more readable.
  *
- *  \param  alg  The AEAD algorithm.
- *  \param  nonce_length  The nonce length in number of bytes.
+ *  \param  alg             The AEAD algorithm.
+ *  \param  nonce_length    The nonce length in number of bytes.
  */
-
 #if defined(MBEDTLS_GCM_ALT) || \
     defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
 #define MBEDTLS_TEST_HAVE_ALT_GCM  1

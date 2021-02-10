@@ -684,7 +684,7 @@ static int x509_get_authority_key_id(unsigned char** p,
 
                 if ((ret = mbedtls_x509_get_name(p, *p + len, &authority_key_id->authorityCertIssuer)) != 0)
                 {
-                    mbedtls_free(authority_key_id);
+                    mbedtls_free(&authority_key_id->authorityCertIssuer);
                     return(ret);
                 }
 
@@ -692,7 +692,7 @@ static int x509_get_authority_key_id(unsigned char** p,
             }
         }
     }
-#if 0
+
     if ( *p < end )
     {
         if ((ret = mbedtls_asn1_get_tag(p, end, &len,
@@ -715,8 +715,7 @@ static int x509_get_authority_key_id(unsigned char** p,
         return(MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
             MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
-#endif
-	*p = end;
+
     return(0);
 }
 

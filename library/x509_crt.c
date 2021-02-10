@@ -657,7 +657,7 @@ static int x509_get_authority_key_id(unsigned char** p,
 
         *p += len;
     }
-#if 0
+
     if ( *p < end )
     {
         if ((ret = mbedtls_asn1_get_tag(p, end, &len,
@@ -691,7 +691,7 @@ static int x509_get_authority_key_id(unsigned char** p,
             }
         }
     }
-
+#if 0
     if ( *p < end )
     {
         if ((ret = mbedtls_asn1_get_tag(p, end, &len,

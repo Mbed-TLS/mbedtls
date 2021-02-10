@@ -3487,7 +3487,7 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
             name_cur = name_cur->next;
             mbedtls_platform_zeroize(name_prv, sizeof(mbedtls_x509_name));
             mbedtls_free(name_prv);
-        }        
+        }
 
         if( cert_cur->raw.p != NULL && cert_cur->own_buffer )
         {

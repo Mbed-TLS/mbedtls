@@ -684,7 +684,6 @@ static int x509_get_authority_key_id(unsigned char** p,
 
                 if ((ret = mbedtls_x509_get_name(p, *p + len, &authority_key_id->authorityCertIssuer)) != 0)
                 {
-                    mbedtls_free(&authority_key_id->authorityCertIssuer);
                     return(ret);
                 }
 
@@ -3480,6 +3479,15 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
                                       sizeof( mbedtls_x509_sequence ) );
             mbedtls_free( seq_prv );
         }
+
+        name_cur = cert_cur->authority_key_id.authorityCertIssuer.next;
+        while (name_cur != NULL)
+        {
+            name_prv = name_cur;
+            name_cur = name_cur->next;
+            mbedtls_platform_zeroize(name_prv, sizeof(mbedtls_x509_name));
+            mbedtls_free(name_prv);
+        }        
 
         if( cert_cur->raw.p != NULL && cert_cur->own_buffer )
         {

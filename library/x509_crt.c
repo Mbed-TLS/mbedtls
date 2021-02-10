@@ -643,7 +643,7 @@ static int x509_get_authority_key_id(unsigned char** p,
     {
         return(ret);
     }
-#if 0
+
     if ((ret = mbedtls_asn1_get_tag(p, end, &len,
         MBEDTLS_ASN1_CONTEXT_SPECIFIC)) != 0)
     {
@@ -714,8 +714,6 @@ static int x509_get_authority_key_id(unsigned char** p,
         return(MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
             MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
-#endif
-	*p = end;
 
     return(0);
 }

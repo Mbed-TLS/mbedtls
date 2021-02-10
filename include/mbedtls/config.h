@@ -1759,9 +1759,6 @@
  * risk of vulnerabilities, and more gadgets that can make exploits easier.
  * Therefore this feature must never be enabled in production.
  *
- * See `docs/architecture/testing/mbed-crypto-invasive-testing.md` for more
- * information.
- *
  * Uncomment to enable invasive tests.
  */
 //#define MBEDTLS_TEST_HOOKS

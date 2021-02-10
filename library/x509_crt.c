@@ -682,10 +682,10 @@ static int x509_get_authority_key_id(unsigned char** p,
                     return(ret);
                 }
 
-                if ((ret = mbedtls_x509_get_name(p, *p + len, &authority_key_id->authorityCertIssuer)) != 0)
+                /*if ((ret = mbedtls_x509_get_name(p, *p + len, &authority_key_id->authorityCertIssuer)) != 0)
                 {
                     return(ret);
-                }
+                }*/
 
                 authority_key_id->raw.len = *p - authority_key_id->raw.p;
             }

@@ -50,6 +50,22 @@ fi
 : ${GNUTLS_SERV:=gnutls-serv}
 : ${PERL:=perl}
 
+# Supply a configuration file to OpenSSL so that we can control default behaviour
+export OPENSSL_CONF="/tmp/ssl-opt.sh.openssl.conf"
+cat <<EOT > $OPENSSL_CONF
+openssl_conf = default_conf
+
+[ default_conf ]
+ssl_conf = ssl_sect
+
+[ssl_sect]
+system_default = system_default_sect
+
+[system_default_sect]
+# this line stops OpenSSL from requiring a 2048-bit DH key
+CipherString = DEFAULT:@SECLEVEL=1
+EOT
+
 guess_config_name() {
     if git diff --quiet ../include/mbedtls/config.h 2>/dev/null; then
         echo "default"

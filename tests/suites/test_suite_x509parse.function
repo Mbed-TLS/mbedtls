@@ -1250,6 +1250,91 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP256K1_ENABLED */
+void mbedtls_x509_crt_parse_subjectkeyid( char * crt_path, char *subjectKeyId, int subjectKeyIdLength, int retVal )
+{
+    mbedtls_x509_crt crt;
+    int i = 0;
+    int result = 0;
+    char buff[2];
+
+    mbedtls_x509_crt_init( &crt );
+
+    TEST_ASSERT( (mbedtls_x509_crt_parse_file( &crt, crt_path )& 0xFFFF) == retVal );
+
+    if(retVal != 0)
+    {
+        while(i < subjectKeyIdLength)
+        {
+            snprintf(&buff[0], 3, "%02X", crt.subject_key_id.p[i]);
+            result |= buff[0] != subjectKeyId[i*2];
+            result |= buff[1] != subjectKeyId[i*2+1];
+            i++;
+        }
+
+        TEST_ASSERT(result == 0);
+    }
+
+exit:
+    mbedtls_x509_crt_free( &crt );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP256K1_ENABLED */
+void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyId_keyId, int keyIdLength, char *authorityKeyId_issuer, char *authorityKeyId_serial, int serialLength , int retVal)
+{
+    mbedtls_x509_crt crt;
+    int i = 0;
+    int result = 0;
+    int bufferCounter = 0;
+    size_t issuerCounter = 0;
+    char buff[2];
+
+    mbedtls_x509_crt_init( &crt );
+
+    TEST_ASSERT( (mbedtls_x509_crt_parse_file( &crt, crt_path )& 0xFFFF) == retVal );
+
+    if (retVal != 0)
+    {
+        /* KeyId test */
+        while(i < keyIdLength)
+        {
+            snprintf(&buff[0], 3, "%02X", crt.authority_key_id.keyIdentifier.p[i]);
+            result |= buff[0] != authorityKeyId_keyId[i*2];
+            result |= buff[1] != authorityKeyId_keyId[i*2+1];
+            i++;
+        }
+        
+        /* Issuer test */
+        mbedtls_x509_name* issuerPtr = &crt.authority_key_id.authorityCertIssuer;
+        while (issuerPtr != NULL)
+        {
+            for (issuerCounter = 0u; issuerCounter < issuerPtr->val.len; issuerCounter++)
+            {
+                result |= (authorityKeyId_issuer[bufferCounter++] != issuerPtr->val.p[issuerCounter]);
+            }
+            bufferCounter++; /* Skipping the slash */
+            issuerPtr = issuerPtr->next;
+        }
+        
+        /* Serial test */
+        i = 0;
+        while(i < serialLength)
+        {
+            snprintf(&buff[0], 3, "%02X", crt.authority_key_id.authorityCertSerialNumber.p[i]);
+            result |= buff[0] != authorityKeyId_serial[i*2];
+            result |= buff[1] != authorityKeyId_serial[i*2+1];
+            i++;
+        }
+
+        TEST_ASSERT(result == 0);
+    }
+
+exit:
+    mbedtls_x509_crt_free( &crt );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_SELF_TEST */
 void x509_selftest(  )
 {

@@ -21,6 +21,7 @@
 #ifndef PSA_CRYPTO_HELPERS_H
 #define PSA_CRYPTO_HELPERS_H
 
+#include "test/helpers.h"
 #include "test/psa_helpers.h"
 
 #include <psa/crypto.h>
@@ -99,5 +100,89 @@ psa_status_t mbedtls_test_record_status( psa_status_t status,
 #include "instrument_record_status.h"
 
 #endif /* defined(RECORD_PSA_STATUS_COVERAGE_LOG) */
+
+/** Skip a test case if the given key is a 192 bits AES key and the AES
+ *  implementation is at least partially provided by an accelerator or
+ *  alternative implementation.
+ *
+ *  Call this macro in a test case when a cryptographic operation that may
+ *  involve an AES operation returns a #PSA_ERROR_NOT_SUPPORTED error code.
+ *  The macro call will skip and not fail the test case in case the operation
+ *  involves a 192 bits AES key and the AES implementation is at least
+ *  partially provided by an accelerator or alternative implementation.
+ *
+ *  Hardware AES implementations not supporting 192 bits keys commonly exist.
+ *  Consequently, PSA test cases aim at not failing when an AES operation with
+ *  a 192 bits key performed by an alternative AES implementation returns
+ *  with the #PSA_ERROR_NOT_SUPPORTED error code. The purpose of this macro
+ *  is to facilitate this and make the test case code more readable.
+ *
+ *  \param key_type  Key type
+ *  \param key_bits  Key length in number of bits.
+ */
+#if defined(MBEDTLS_AES_ALT) || \
+    defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
+#define MBEDTLS_TEST_HAVE_ALT_AES 1
+#else
+#define MBEDTLS_TEST_HAVE_ALT_AES 0
+#endif
+
+#define MBEDTLS_TEST_PSA_SKIP_IF_ALT_AES_192( key_type, key_bits )        \
+    do                                                                    \
+    {                                                                     \
+        if( ( MBEDTLS_TEST_HAVE_ALT_AES ) &&                              \
+            ( ( key_type ) == PSA_KEY_TYPE_AES ) &&                       \
+            ( key_bits == 192 ) )                                         \
+        {                                                                 \
+            mbedtls_test_skip( "AES-192 not supported", __LINE__, __FILE__ );     \
+            goto exit;                                                    \
+        }                                                                 \
+    }                                                                     \
+    while( 0 )
+
+/** Skip a test case if a GCM operation with a nonce length different from
+ *  12 bytes fails and was performed by an accelerator or alternative
+ *  implementation.
+ *
+ *  Call this macro in a test case when an AEAD cryptography operation that
+ *  may involve the GCM mode returns with a #PSA_ERROR_NOT_SUPPORTED error
+ *  code. The macro call will skip and not fail the test case in case the
+ *  operation involves the GCM mode, a nonce with a length different from
+ *  12 bytes and the GCM mode implementation is an alternative one.
+ *
+ *  Hardware GCM implementations not supporting nonce lengths different from
+ *  12 bytes commonly exist, as supporting a non-12-byte nonce requires
+ *  additional computations involving the GHASH function.
+ *  Consequently, PSA test cases aim at not failing when an AEAD operation in
+ *  GCM mode with a nonce length different from 12 bytes is performed by an
+ *  alternative GCM implementation and returns with a #PSA_ERROR_NOT_SUPPORTED
+ *  error code. The purpose of this macro is to facilitate this check and make
+ *  the test case code more readable.
+ *
+ *  \param  alg             The AEAD algorithm.
+ *  \param  nonce_length    The nonce length in number of bytes.
+ */
+#if defined(MBEDTLS_GCM_ALT) || \
+    defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
+#define MBEDTLS_TEST_HAVE_ALT_GCM  1
+#else
+#define MBEDTLS_TEST_HAVE_ALT_GCM  0
+#endif
+
+#define MBEDTLS_TEST_PSA_SKIP_IF_ALT_GCM_NOT_12BYTES_NONCE( alg,           \
+                                                            nonce_length ) \
+    do                                                                     \
+    {                                                                      \
+        if( ( MBEDTLS_TEST_HAVE_ALT_GCM ) &&                               \
+            ( PSA_ALG_AEAD_WITH_TAG_LENGTH( ( alg ) , 0 ) ==               \
+              PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ) ) &&          \
+            ( ( nonce_length ) != 12 ) )                                   \
+        {                                                                  \
+            mbedtls_test_skip( "GCM with non-12-byte IV is not supported", __LINE__, __FILE__ ); \
+            goto exit;                                                     \
+        }                                                                  \
+    }                                                                      \
+    while( 0 )
 
 #endif /* PSA_CRYPTO_HELPERS_H */

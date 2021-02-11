@@ -12,6 +12,8 @@
 #include "psa/crypto.h"
 #include "psa_crypto_slot_management.h"
 
+#include "test/psa_crypto_helpers.h"
+
 /** An invalid export length that will never be set by psa_export_key(). */
 static const size_t INVALID_EXPORT_LENGTH = ~0U;
 
@@ -483,6 +485,13 @@ static int exercise_aead_key( mbedtls_svc_key_id_t key,
     unsigned char ciphertext[48] = "(wabblewebblewibblewobblewubble)";
     size_t ciphertext_length = sizeof( ciphertext );
     size_t plaintext_length = sizeof( ciphertext );
+
+    /* Default IV length for AES-GCM is 12 bytes */
+    if( PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, 0 ) ==
+        PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ) )
+    {
+        nonce_length = 12;
+    }
 
     if( usage & PSA_KEY_USAGE_ENCRYPT )
     {
@@ -4061,6 +4070,7 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
     size_t output_length = 0;
     size_t tag_length = PSA_AEAD_TAG_LENGTH( alg );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
     output_size = input_data->len + tag_length;
     /* For all currently defined algorithms, PSA_AEAD_ENCRYPT_OUTPUT_SIZE
@@ -4078,13 +4088,23 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
 
-    PSA_ASSERT( psa_aead_encrypt( key, alg,
-                                  nonce->x, nonce->len,
-                                  additional_data->x, additional_data->len,
-                                  input_data->x, input_data->len,
-                                  output_data, output_size,
-                                  &output_length ) );
+    status = psa_aead_encrypt( key, alg,
+                               nonce->x, nonce->len,
+                               additional_data->x, additional_data->len,
+                               input_data->x, input_data->len,
+                               output_data, output_size,
+                               &output_length );
 
+    /* If the operation is not supported, just skip and not fail in case the
+     * encryption involves a common limitation of cryptography hardwares and
+     * an alternative implementation. */
+    if( status == PSA_ERROR_NOT_SUPPORTED )
+    {
+        MBEDTLS_TEST_PSA_SKIP_IF_ALT_AES_192( key_type, key_data->len * 8 );
+        MBEDTLS_TEST_PSA_SKIP_IF_ALT_GCM_NOT_12BYTES_NONCE( alg, nonce->len );
+    }
+
+    PSA_ASSERT( status );
     ASSERT_COMPARE( expected_result->x, expected_result->len,
                     output_data, output_length );
 
@@ -4113,6 +4133,7 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
     size_t tag_length = PSA_AEAD_TAG_LENGTH( alg );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t expected_result = expected_result_arg;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
     output_size = input_data->len - tag_length;
     /* For all currently defined algorithms, PSA_AEAD_DECRYPT_OUTPUT_SIZE
@@ -4131,14 +4152,24 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
 
-    TEST_EQUAL( psa_aead_decrypt( key, alg,
-                                  nonce->x, nonce->len,
-                                  additional_data->x,
-                                  additional_data->len,
-                                  input_data->x, input_data->len,
-                                  output_data, output_size,
-                                  &output_length ),
-                expected_result );
+    status = psa_aead_decrypt( key, alg,
+                               nonce->x, nonce->len,
+                               additional_data->x,
+                               additional_data->len,
+                               input_data->x, input_data->len,
+                               output_data, output_size,
+                               &output_length );
+
+    /* If the operation is not supported, just skip and not fail in case the
+     * decryption involves a common limitation of cryptography hardwares and
+     * an alternative implementation. */
+    if( status == PSA_ERROR_NOT_SUPPORTED )
+    {
+        MBEDTLS_TEST_PSA_SKIP_IF_ALT_AES_192( key_type, key_data->len * 8 );
+        MBEDTLS_TEST_PSA_SKIP_IF_ALT_GCM_NOT_12BYTES_NONCE( alg, nonce->len );
+    }
+
+    TEST_EQUAL( status, expected_result );
 
     if( expected_result == PSA_SUCCESS )
         ASSERT_COMPARE( expected_data->x, expected_data->len,

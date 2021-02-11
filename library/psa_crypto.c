@@ -3875,7 +3875,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     if( ret != 0 )
         goto exit;
 
-#if defined(PSA_WANT_KEY_TYPE_DES)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
     if( slot->attr.type == PSA_KEY_TYPE_DES && key_bits == 128 )
     {
         /* Two-key Triple-DES is 3-key Triple-DES with K1=K3 */
@@ -5095,7 +5095,7 @@ static psa_status_t psa_generate_derived_key_internal(
     status = psa_key_derivation_output_bytes( operation, data, bytes );
     if( status != PSA_SUCCESS )
         goto exit;
-#if defined(PSA_WANT_KEY_TYPE_DES)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
     if( slot->attr.type == PSA_KEY_TYPE_DES )
         psa_des_set_key_parity( data, bytes );
 #endif /* PSA_WANT_KEY_TYPE_DES */
@@ -6029,7 +6029,7 @@ psa_status_t psa_generate_key_internal(
         if( status != PSA_SUCCESS )
             return( status );
 
-#if defined(PSA_WANT_KEY_TYPE_DES)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
         if( type == PSA_KEY_TYPE_DES )
             psa_des_set_key_parity( key_buffer, key_buffer_size );
 #endif /* MBEDTLS_DES_C */

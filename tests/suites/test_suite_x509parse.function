@@ -1257,6 +1257,7 @@ void mbedtls_x509_crt_parse_subjectkeyid( char * crt_path, char *subjectKeyId, i
     int i = 0;
     int result = 0;
     char buff[2];
+	char* buffPtr = buff;
 
     mbedtls_x509_crt_init( &crt );
 
@@ -1266,7 +1267,7 @@ void mbedtls_x509_crt_parse_subjectkeyid( char * crt_path, char *subjectKeyId, i
     {
         while(i < subjectKeyIdLength)
         {
-            mbedtls_snprintf(&buff[0], 2, "%02X", crt.subject_key_id.p[i]);
+            mbedtls_snprintf(buffPtr, 2, "%02X", crt.subject_key_id.p[i]);
             result |= buff[0] != subjectKeyId[i*2];
             result |= buff[1] != subjectKeyId[i*2+1];
             i++;
@@ -1289,6 +1290,7 @@ void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyI
     int bufferCounter = 0;
     size_t issuerCounter = 0;
     char buff[2];
+	char* buffPtr = buff;
 
     mbedtls_x509_crt_init( &crt );
 
@@ -1299,7 +1301,7 @@ void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyI
         /* KeyId test */
         while(i < keyIdLength)
         {
-            mbedtls_snprintf(&buff[0], 2, "%02X", crt.authority_key_id.keyIdentifier.p[i]);
+            mbedtls_snprintf(buffPtr, 2, "%02X", crt.authority_key_id.keyIdentifier.p[i]);
             result |= buff[0] != authorityKeyId_keyId[i*2];
             result |= buff[1] != authorityKeyId_keyId[i*2+1];
             i++;
@@ -1321,7 +1323,7 @@ void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyI
         i = 0;
         while(i < serialLength)
         {
-            mbedtls_snprintf(&buff[0], 2, "%02X", crt.authority_key_id.authorityCertSerialNumber.p[i]);
+            mbedtls_snprintf(buffPtr, 2, "%02X", crt.authority_key_id.authorityCertSerialNumber.p[i]);
             result |= buff[0] != authorityKeyId_serial[i*2];
             result |= buff[1] != authorityKeyId_serial[i*2+1];
             i++;

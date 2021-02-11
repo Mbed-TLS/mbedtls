@@ -328,7 +328,7 @@ extern "C" {
 #endif /* PSA_WANT_ALG_XTS */
 
 #if defined(PSA_WANT_ALG_ECB_NO_PADDING)
-#define MBEDTLS_PSA_BUILTIN_ALG_ECB 1
+#define MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING 1
 #endif
 
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
@@ -509,7 +509,6 @@ extern "C" {
 
 #if defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) || \
     defined(MBEDTLS_CAMELLIA_C)
-#define MBEDTLS_PSA_BUILTIN_ALG_ECB 1
 #define MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING 1
 #define PSA_WANT_ALG_ECB_NO_PADDING 1
 #endif

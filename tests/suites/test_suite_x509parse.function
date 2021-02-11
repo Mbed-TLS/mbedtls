@@ -1304,7 +1304,7 @@ void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyI
             result |= buff[1] != authorityKeyId_keyId[i*2+1];
             i++;
         }
-        
+
         /* Issuer test */
         mbedtls_x509_name* issuerPtr = &crt.authority_key_id.authorityCertIssuer;
         while (issuerPtr != NULL)
@@ -1316,7 +1316,7 @@ void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyI
             bufferCounter++; /* Skipping the slash */
             issuerPtr = issuerPtr->next;
         }
-        
+
         /* Serial test */
         i = 0;
         while(i < serialLength)

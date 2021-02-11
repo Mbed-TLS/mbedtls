@@ -1257,7 +1257,7 @@ void mbedtls_x509_crt_parse_subjectkeyid( char * crt_path, char *subjectKeyId, i
     int i = 0;
     int result = 0;
     char buff[2];
-	char* buffPtr = buff;
+    char* buffPtr = buff;
 
     mbedtls_x509_crt_init( &crt );
 
@@ -1290,7 +1290,7 @@ void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyI
     int bufferCounter = 0;
     size_t issuerCounter = 0;
     char buff[2];
-	char* buffPtr = buff;
+    char* buffPtr = buff;
 
     mbedtls_x509_crt_init( &crt );
 

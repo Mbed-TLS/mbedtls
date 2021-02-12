@@ -103,16 +103,10 @@ static const size_t INVALID_EXPORT_LENGTH = ~0U;
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-int lifetime_is_dynamic_secure_element( psa_key_lifetime_t lifetime )
+static int lifetime_is_dynamic_secure_element( psa_key_lifetime_t lifetime )
 {
     return( PSA_KEY_LIFETIME_GET_LOCATION( lifetime ) !=
             PSA_KEY_LOCATION_LOCAL_STORAGE );
-}
-#else
-int lifetime_is_secure_element( psa_key_lifetime_t lifetime )
-{
-    (void) lifetime;
-    return( 0 );
 }
 #endif
 
@@ -222,7 +216,7 @@ static int construct_fake_rsa_key( unsigned char *buffer,
     return( len );
 }
 
-int check_key_attributes_sanity( mbedtls_svc_key_id_t key )
+static int check_key_attributes_sanity( mbedtls_svc_key_id_t key )
 {
     int ok = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -616,12 +610,13 @@ exit:
     return( 0 );
 }
 
-static int setup_key_derivation_wrap( psa_key_derivation_operation_t* operation,
-                                      mbedtls_svc_key_id_t key,
-                                      psa_algorithm_t alg,
-                                      unsigned char* input1, size_t input1_length,
-                                      unsigned char* input2, size_t input2_length,
-                                      size_t capacity )
+int mbedtls_test_psa_setup_key_derivation_wrap(
+    psa_key_derivation_operation_t* operation,
+    mbedtls_svc_key_id_t key,
+    psa_algorithm_t alg,
+    unsigned char* input1, size_t input1_length,
+    unsigned char* input2, size_t input2_length,
+    size_t capacity )
 {
     PSA_ASSERT( psa_key_derivation_setup( operation, alg ) );
     if( PSA_ALG_IS_HKDF( alg ) )
@@ -679,9 +674,10 @@ static int exercise_key_derivation_key( mbedtls_svc_key_id_t key,
 
     if( usage & PSA_KEY_USAGE_DERIVE )
     {
-        if( !setup_key_derivation_wrap( &operation, key, alg,
-                                        input1, input1_length,
-                                        input2, input2_length, capacity ) )
+        if( !mbedtls_test_psa_setup_key_derivation_wrap( &operation, key, alg,
+                                                         input1, input1_length,
+                                                         input2, input2_length,
+                                                         capacity ) )
             goto exit;
 
         PSA_ASSERT( psa_key_derivation_output_bytes( &operation,
@@ -698,7 +694,7 @@ exit:
 
 /* We need two keys to exercise key agreement. Exercise the
  * private key against its own public key. */
-static psa_status_t key_agreement_with_self(
+psa_status_t mbedtls_test_psa_key_agreement_with_self(
     psa_key_derivation_operation_t *operation,
     mbedtls_svc_key_id_t key )
 {
@@ -738,8 +734,9 @@ exit:
 
 /* We need two keys to exercise key agreement. Exercise the
  * private key against its own public key. */
-static psa_status_t raw_key_agreement_with_self( psa_algorithm_t alg,
-                                                 mbedtls_svc_key_id_t key )
+psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
+    psa_algorithm_t alg,
+    mbedtls_svc_key_id_t key )
 {
     psa_key_type_t private_key_type;
     psa_key_type_t public_key_type;
@@ -788,7 +785,7 @@ static int exercise_raw_key_agreement_key( mbedtls_svc_key_id_t key,
     {
         /* We need two keys to exercise key agreement. Exercise the
          * private key against its own public key. */
-        PSA_ASSERT( raw_key_agreement_with_self( alg, key ) );
+        PSA_ASSERT( mbedtls_test_psa_raw_key_agreement_with_self( alg, key ) );
     }
     ok = 1;
 
@@ -809,7 +806,7 @@ static int exercise_key_agreement_key( mbedtls_svc_key_id_t key,
         /* We need two keys to exercise key agreement. Exercise the
          * private key against its own public key. */
         PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
-        PSA_ASSERT( key_agreement_with_self( &operation, key ) );
+        PSA_ASSERT( mbedtls_test_psa_key_agreement_with_self( &operation, key ) );
         PSA_ASSERT( psa_key_derivation_output_bytes( &operation,
                                                      output,
                                                      sizeof( output ) ) );
@@ -865,8 +862,9 @@ exit:
     return( 0 );
 }
 
-static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
-                                      uint8_t *exported, size_t exported_length )
+int mbedtls_test_psa_exported_key_sanity_check(
+    psa_key_type_t type, size_t bits,
+    uint8_t *exported, size_t exported_length )
 {
     if( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) )
         TEST_EQUAL( exported_length, ( bits + 7 ) / 8 );
@@ -1049,9 +1047,9 @@ static int exercise_export_key( mbedtls_svc_key_id_t key,
     PSA_ASSERT( psa_export_key( key,
                                 exported, exported_size,
                                 &exported_length ) );
-    ok = exported_key_sanity_check( psa_get_key_type( &attributes ),
-                                    psa_get_key_bits( &attributes ),
-                                    exported, exported_length );
+    ok = mbedtls_test_psa_exported_key_sanity_check(
+        psa_get_key_type( &attributes ), psa_get_key_bits( &attributes ),
+        exported, exported_length );
 
 exit:
     /*
@@ -1097,9 +1095,9 @@ static int exercise_export_public_key( mbedtls_svc_key_id_t key )
     PSA_ASSERT( psa_export_public_key( key,
                                        exported, exported_size,
                                        &exported_length ) );
-    ok = exported_key_sanity_check( public_type,
-                                    psa_get_key_bits( &attributes ),
-                                    exported, exported_length );
+    ok = mbedtls_test_psa_exported_key_sanity_check(
+        public_type, psa_get_key_bits( &attributes ),
+        exported, exported_length );
 
 exit:
     /*
@@ -1139,9 +1137,9 @@ exit:
  * \retval 0 The key failed the smoke tests.
  * \retval 1 The key passed the smoke tests.
  */
-static int exercise_key( mbedtls_svc_key_id_t key,
-                         psa_key_usage_t usage,
-                         psa_algorithm_t alg )
+int mbedtls_test_psa_exercise_key( mbedtls_svc_key_id_t key,
+                                   psa_key_usage_t usage,
+                                   psa_algorithm_t alg )
 {
     int ok;
 
@@ -1182,8 +1180,8 @@ static int exercise_key( mbedtls_svc_key_id_t key,
     return( ok );
 }
 
-static psa_key_usage_t usage_to_exercise( psa_key_type_t type,
-                                          psa_algorithm_t alg )
+psa_key_usage_t mbedtls_test_psa_usage_to_exercise( psa_key_type_t type,
+                                                    psa_algorithm_t alg )
 {
     if( PSA_ALG_IS_MAC( alg ) || PSA_ALG_IS_SIGN( alg ) )
     {
@@ -1715,7 +1713,7 @@ void import_and_exercise_key( data_t *data,
     psa_key_type_t type = type_arg;
     size_t bits = bits_arg;
     psa_algorithm_t alg = alg_arg;
-    psa_key_usage_t usage = usage_to_exercise( type, alg );
+    psa_key_usage_t usage = mbedtls_test_psa_usage_to_exercise( type, alg );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
@@ -1734,7 +1732,7 @@ void import_and_exercise_key( data_t *data,
     TEST_EQUAL( psa_get_key_bits( &got_attributes ), bits );
 
     /* Do something with the key according to its type and permitted usage. */
-    if( ! exercise_key( key, usage, alg ) )
+    if( ! mbedtls_test_psa_exercise_key( key, usage, alg ) )
         goto exit;
 
     PSA_ASSERT( psa_destroy_key( key ) );
@@ -2187,7 +2185,7 @@ void agreement_key_policy( int policy_usage,
                                 &key ) );
 
     PSA_ASSERT( psa_key_derivation_setup( &operation, exercise_alg ) );
-    status = key_agreement_with_self( &operation, key );
+    status = mbedtls_test_psa_key_agreement_with_self( &operation, key );
 
     TEST_EQUAL( status, expected_status );
 
@@ -2224,9 +2222,9 @@ void key_policy_alg2( int key_type_arg, data_t *key_data,
     TEST_EQUAL( psa_get_key_algorithm( &got_attributes ), alg );
     TEST_EQUAL( psa_get_key_enrollment_algorithm( &got_attributes ), alg2 );
 
-    if( ! exercise_key( key, usage, alg ) )
+    if( ! mbedtls_test_psa_exercise_key( key, usage, alg ) )
         goto exit;
-    if( ! exercise_key( key, usage, alg2 ) )
+    if( ! mbedtls_test_psa_exercise_key( key, usage, alg2 ) )
         goto exit;
 
 exit:
@@ -2265,7 +2263,7 @@ void raw_agreement_key_policy( int policy_usage,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
 
-    status = raw_key_agreement_with_self( exercise_alg, key );
+    status = mbedtls_test_psa_raw_key_agreement_with_self( exercise_alg, key );
 
     TEST_EQUAL( status, expected_status );
 
@@ -2348,9 +2346,9 @@ void copy_success( int source_usage_arg,
         ASSERT_COMPARE( material->x, material->len,
                         export_buffer, length );
     }
-    if( ! exercise_key( target_key, expected_usage, expected_alg ) )
+    if( ! mbedtls_test_psa_exercise_key( target_key, expected_usage, expected_alg ) )
         goto exit;
-    if( ! exercise_key( target_key, expected_usage, expected_alg2 ) )
+    if( ! mbedtls_test_psa_exercise_key( target_key, expected_usage, expected_alg2 ) )
         goto exit;
 
     PSA_ASSERT( psa_destroy_key( target_key ) );
@@ -4740,7 +4738,8 @@ void derive_input( int alg_arg,
             {
                 // When taking a private key as secret input, use key agreement
                 // to add the shared secret to the derivation
-                TEST_EQUAL( key_agreement_with_self( &operation, keys[i] ),
+                TEST_EQUAL( mbedtls_test_psa_key_agreement_with_self(
+                                &operation, keys[i] ),
                             expected_statuses[i] );
             }
             else
@@ -4815,10 +4814,10 @@ void test_derive_invalid_key_derivation_state( int alg_arg )
                                 &key ) );
 
     /* valid key derivation */
-    if( !setup_key_derivation_wrap( &operation, key, alg,
-                                    input1, input1_length,
-                                    input2, input2_length,
-                                    capacity ) )
+    if( !mbedtls_test_psa_setup_key_derivation_wrap( &operation, key, alg,
+                                                     input1, input1_length,
+                                                     input2, input2_length,
+                                                     capacity ) )
         goto exit;
 
     /* state of operation shouldn't allow additional generation */
@@ -5007,10 +5006,10 @@ void derive_full( int alg_arg,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
 
-    if( !setup_key_derivation_wrap( &operation, key, alg,
-                                    input1->x, input1->len,
-                                    input2->x, input2->len,
-                                    requested_capacity ) )
+    if( !mbedtls_test_psa_setup_key_derivation_wrap( &operation, key, alg,
+                                                     input1->x, input1->len,
+                                                     input2->x, input2->len,
+                                                     requested_capacity ) )
         goto exit;
 
     PSA_ASSERT( psa_key_derivation_get_capacity( &operation,
@@ -5076,9 +5075,10 @@ void derive_key_exercise( int alg_arg,
                                 &base_key ) );
 
     /* Derive a key. */
-    if ( setup_key_derivation_wrap( &operation, base_key, alg,
-                                    input1->x, input1->len,
-                                    input2->x, input2->len, capacity ) )
+    if ( mbedtls_test_psa_setup_key_derivation_wrap( &operation, base_key, alg,
+                                                     input1->x, input1->len,
+                                                     input2->x, input2->len,
+                                                     capacity ) )
         goto exit;
 
     psa_set_key_usage_flags( &attributes, derived_usage );
@@ -5094,7 +5094,7 @@ void derive_key_exercise( int alg_arg,
     TEST_EQUAL( psa_get_key_bits( &got_attributes ), derived_bits );
 
     /* Exercise the derived key. */
-    if( ! exercise_key( derived_key, derived_usage, derived_alg ) )
+    if( ! mbedtls_test_psa_exercise_key( derived_key, derived_usage, derived_alg ) )
         goto exit;
 
 exit:
@@ -5143,9 +5143,10 @@ void derive_key_export( int alg_arg,
                                 &base_key ) );
 
     /* Derive some material and output it. */
-    if( !setup_key_derivation_wrap( &operation, base_key, alg,
-                                    input1->x, input1->len,
-                                    input2->x, input2->len, capacity ) )
+    if( !mbedtls_test_psa_setup_key_derivation_wrap( &operation, base_key, alg,
+                                                     input1->x, input1->len,
+                                                     input2->x, input2->len,
+                                                     capacity ) )
         goto exit;
 
     PSA_ASSERT( psa_key_derivation_output_bytes( &operation,
@@ -5154,9 +5155,10 @@ void derive_key_export( int alg_arg,
     PSA_ASSERT( psa_key_derivation_abort( &operation ) );
 
     /* Derive the same output again, but this time store it in key objects. */
-    if( !setup_key_derivation_wrap( &operation, base_key, alg,
-                                    input1->x, input1->len,
-                                    input2->x, input2->len, capacity ) )
+    if( !mbedtls_test_psa_setup_key_derivation_wrap( &operation, base_key, alg,
+                                                     input1->x, input1->len,
+                                                     input2->x, input2->len,
+                                                     capacity ) )
         goto exit;
 
     psa_set_key_usage_flags( &derived_attributes, PSA_KEY_USAGE_EXPORT );
@@ -5217,9 +5219,10 @@ void derive_key( int alg_arg,
     PSA_ASSERT( psa_import_key( &base_attributes, key_data->x, key_data->len,
                                 &base_key ) );
 
-    if( !setup_key_derivation_wrap( &operation, base_key, alg,
-                                    input1->x, input1->len,
-                                    input2->x, input2->len, SIZE_MAX ) )
+    if( !mbedtls_test_psa_setup_key_derivation_wrap( &operation, base_key, alg,
+                                                     input1->x, input1->len,
+                                                     input2->x, input2->len,
+                                                     SIZE_MAX ) )
         goto exit;
 
     psa_set_key_usage_flags( &derived_attributes, PSA_KEY_USAGE_EXPORT );
@@ -5535,7 +5538,7 @@ void generate_key( int type_arg,
     TEST_EQUAL( psa_get_key_bits( &got_attributes ), bits );
 
     /* Do something with the key according to its type and permitted usage. */
-    if( ! exercise_key( key, usage, alg ) )
+    if( ! mbedtls_test_psa_exercise_key( key, usage, alg ) )
         goto exit;
 
 exit:
@@ -5607,7 +5610,7 @@ void generate_key_rsa( int bits_arg,
         ASSERT_COMPARE( e_read_buffer, e_read_length, e_arg->x, e_arg->len );
 
     /* Do something with the key according to its type and permitted usage. */
-    if( ! exercise_key( key, usage, alg ) )
+    if( ! mbedtls_test_psa_exercise_key( key, usage, alg ) )
         goto exit;
 
     /* Export the key and check the public exponent. */
@@ -5783,7 +5786,7 @@ void persistent_key_load_key_from_storage( data_t *data,
     }
 
     /* Do something with the key according to its type and permitted usage. */
-    if( ! exercise_key( key, usage_flags, alg ) )
+    if( ! mbedtls_test_psa_exercise_key( key, usage_flags, alg ) )
         goto exit;
 
 exit:

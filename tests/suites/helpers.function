@@ -376,7 +376,6 @@ jmp_buf jmp_tmp;
 #if defined(MBEDTLS_TEST_NULL_ENTROPY) ||             \
     ( !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES) && \
       ( !defined(MBEDTLS_NO_PLATFORM_ENTROPY)  ||     \
-         defined(MBEDTLS_HAVEGE_C)             ||     \
          defined(MBEDTLS_ENTROPY_HARDWARE_ALT) ||     \
          defined(ENTROPY_NV_SEED) ) )
 #define ENTROPY_HAVE_STRONG

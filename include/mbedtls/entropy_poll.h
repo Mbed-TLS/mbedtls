@@ -38,7 +38,6 @@ extern "C" {
  * Default thresholds for built-in sources, in bytes
  */
 #define MBEDTLS_ENTROPY_MIN_PLATFORM     32     /**< Minimum for platform source    */
-#define MBEDTLS_ENTROPY_MIN_HAVEGE       32     /**< Minimum for HAVEGE             */
 #define MBEDTLS_ENTROPY_MIN_HARDCLOCK     4     /**< Minimum for mbedtls_timing_hardclock()        */
 #if !defined(MBEDTLS_ENTROPY_MIN_HARDWARE)
 #define MBEDTLS_ENTROPY_MIN_HARDWARE     32     /**< Minimum for the hardware source */
@@ -58,16 +57,6 @@ extern "C" {
  */
 int mbedtls_platform_entropy_poll( void *data,
                            unsigned char *output, size_t len, size_t *olen );
-#endif
-
-#if defined(MBEDTLS_HAVEGE_C)
-/**
- * \brief           HAVEGE based entropy poll callback
- *
- * Requires an HAVEGE state as its data pointer.
- */
-int mbedtls_havege_poll( void *data,
-                 unsigned char *output, size_t len, size_t *olen );
 #endif
 
 #if defined(MBEDTLS_TIMING_C)

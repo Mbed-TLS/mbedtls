@@ -210,8 +210,7 @@
 #error "MBEDTLS_TEST_NULL_ENTROPY defined, but not all prerequisites"
 #endif
 #if defined(MBEDTLS_TEST_NULL_ENTROPY) && \
-     ( defined(MBEDTLS_ENTROPY_NV_SEED) || defined(MBEDTLS_ENTROPY_HARDWARE_ALT) || \
-    defined(MBEDTLS_HAVEGE_C) )
+     ( defined(MBEDTLS_ENTROPY_NV_SEED) || defined(MBEDTLS_ENTROPY_HARDWARE_ALT) )
 #error "MBEDTLS_TEST_NULL_ENTROPY defined, but entropy sources too"
 #endif
 
@@ -250,10 +249,6 @@
 
 #if defined(MBEDTLS_ECP_NORMALIZE_MXZ_ALT) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
 #error "MBEDTLS_ECP_NORMALIZE_MXZ_ALT defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_HAVEGE_C) && !defined(MBEDTLS_TIMING_C)
-#error "MBEDTLS_HAVEGE_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_HKDF_C) && !defined(MBEDTLS_MD_C)

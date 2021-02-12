@@ -26,5 +26,143 @@
 
 #include <psa/crypto.h>
 
+/* A hash algorithm that is known to be supported.
+ *
+ * This is used in some smoke tests.
+ */
+#if defined(PSA_WANT_ALG_MD2)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_MD2
+#elif defined(PSA_WANT_ALG_MD4)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_MD4
+#elif defined(PSA_WANT_ALG_MD5)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_MD5
+/* MBEDTLS_RIPEMD160_C omitted. This is necessary for the sake of
+ * exercise_signature_key() because Mbed TLS doesn't support RIPEMD160
+ * in RSA PKCS#1v1.5 signatures. A RIPEMD160-only configuration would be
+ * implausible anyway. */
+#elif defined(PSA_WANT_ALG_SHA_1)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_1
+#elif defined(PSA_WANT_ALG_SHA_256)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_256
+#elif defined(PSA_WANT_ALG_SHA_384)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_384
+#elif defined(PSA_WANT_ALG_SHA_512)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_512
+#elif defined(PSA_WANT_ALG_SHA3_256)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA3_256
+#else
+#undef KNOWN_SUPPORTED_HASH_ALG
+#endif
+
+/* A block cipher that is known to be supported.
+ *
+ * For simplicity's sake, stick to block ciphers with 16-byte blocks.
+ */
+#if defined(MBEDTLS_AES_C)
+#define KNOWN_SUPPORTED_BLOCK_CIPHER PSA_KEY_TYPE_AES
+#elif defined(MBEDTLS_ARIA_C)
+#define KNOWN_SUPPORTED_BLOCK_CIPHER PSA_KEY_TYPE_ARIA
+#elif defined(MBEDTLS_CAMELLIA_C)
+#define KNOWN_SUPPORTED_BLOCK_CIPHER PSA_KEY_TYPE_CAMELLIA
+#undef KNOWN_SUPPORTED_BLOCK_CIPHER
+#endif
+
+/* A MAC mode that is known to be supported.
+ *
+ * It must either be HMAC with #KNOWN_SUPPORTED_HASH_ALG or
+ * a block cipher-based MAC with #KNOWN_SUPPORTED_BLOCK_CIPHER.
+ *
+ * This is used in some smoke tests.
+ */
+#if defined(KNOWN_SUPPORTED_HASH_ALG) && defined(PSA_WANT_ALG_HMAC)
+#define KNOWN_SUPPORTED_MAC_ALG ( PSA_ALG_HMAC( KNOWN_SUPPORTED_HASH_ALG ) )
+#define KNOWN_SUPPORTED_MAC_KEY_TYPE PSA_KEY_TYPE_HMAC
+#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(MBEDTLS_CMAC_C)
+#define KNOWN_SUPPORTED_MAC_ALG PSA_ALG_CMAC
+#define KNOWN_SUPPORTED_MAC_KEY_TYPE KNOWN_SUPPORTED_BLOCK_CIPHER
+#else
+#undef KNOWN_SUPPORTED_MAC_ALG
+#undef KNOWN_SUPPORTED_MAC_KEY_TYPE
+#endif
+
+/* A cipher algorithm and key type that are known to be supported.
+ *
+ * This is used in some smoke tests.
+ */
+#if defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(MBEDTLS_CIPHER_MODE_CTR)
+#define KNOWN_SUPPORTED_BLOCK_CIPHER_ALG PSA_ALG_CTR
+#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(MBEDTLS_CIPHER_MODE_CBC)
+#define KNOWN_SUPPORTED_BLOCK_CIPHER_ALG PSA_ALG_CBC_NO_PADDING
+#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(MBEDTLS_CIPHER_MODE_CFB)
+#define KNOWN_SUPPORTED_BLOCK_CIPHER_ALG PSA_ALG_CFB
+#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(MBEDTLS_CIPHER_MODE_OFB)
+#define KNOWN_SUPPORTED_BLOCK_CIPHER_ALG PSA_ALG_OFB
+#else
+#undef KNOWN_SUPPORTED_BLOCK_CIPHER_ALG
+#endif
+#if defined(KNOWN_SUPPORTED_BLOCK_CIPHER_ALG)
+#define KNOWN_SUPPORTED_CIPHER_ALG KNOWN_SUPPORTED_BLOCK_CIPHER_ALG
+#define KNOWN_SUPPORTED_CIPHER_KEY_TYPE KNOWN_SUPPORTED_BLOCK_CIPHER
+#elif defined(MBEDTLS_RC4_C)
+#define KNOWN_SUPPORTED_CIPHER_ALG PSA_ALG_RC4
+#define KNOWN_SUPPORTED_CIPHER_KEY_TYPE PSA_KEY_TYPE_RC4
+#else
+#undef KNOWN_SUPPORTED_CIPHER_ALG
+#undef KNOWN_SUPPORTED_CIPHER_KEY_TYPE
+#endif
+
+int mbedtls_test_psa_setup_key_derivation_wrap(
+    psa_key_derivation_operation_t* operation,
+    mbedtls_svc_key_id_t key,
+    psa_algorithm_t alg,
+    unsigned char* input1, size_t input1_length,
+    unsigned char* input2, size_t input2_length,
+    size_t capacity );
+
+psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
+    psa_algorithm_t alg,
+    mbedtls_svc_key_id_t key );
+
+psa_status_t mbedtls_test_psa_key_agreement_with_self(
+    psa_key_derivation_operation_t *operation,
+    mbedtls_svc_key_id_t key );
+
+int mbedtls_test_psa_exported_key_sanity_check(
+    psa_key_type_t type, size_t bits,
+    uint8_t *exported, size_t exported_length );
+
+/** Do smoke tests on a key.
+ *
+ * Perform one of each operation indicated by \p alg (decrypt/encrypt,
+ * sign/verify, or derivation) that is permitted according to \p usage.
+ * \p usage and \p alg should correspond to the expected policy on the
+ * key.
+ *
+ * Export the key if permitted by \p usage, and check that the output
+ * looks sensible. If \p usage forbids export, check that
+ * \p psa_export_key correctly rejects the attempt. If the key is
+ * asymmetric, also check \p psa_export_public_key.
+ *
+ * If the key fails the tests, this function calls the test framework's
+ * `mbedtls_test_fail` function and returns false. Otherwise this function
+ * returns true. Therefore it should be used as follows:
+ * ```
+ * if( ! exercise_key( ... ) ) goto exit;
+ * ```
+ *
+ * \param key       The key to exercise. It should be capable of performing
+ *                  \p alg.
+ * \param usage     The usage flags to assume.
+ * \param alg       The algorithm to exercise.
+ *
+ * \retval 0 The key failed the smoke tests.
+ * \retval 1 The key passed the smoke tests.
+ */
+int mbedtls_test_psa_exercise_key( mbedtls_svc_key_id_t key,
+                                   psa_key_usage_t usage,
+                                   psa_algorithm_t alg );
+
+psa_key_usage_t mbedtls_test_psa_usage_to_exercise( psa_key_type_t type,
+                                                    psa_algorithm_t alg );
 
 #endif /* PSA_EXERCISE_KEY_H */

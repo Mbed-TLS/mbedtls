@@ -1607,7 +1607,11 @@ void import_export( data_t *data,
         goto destroy;
     }
 
-    if( ! exercise_export_key( key, usage_arg ) )
+    /* Run sanity checks on the exported key. For non-canonical inputs,
+     * this validates the canonical representations. For canonical inputs,
+     * this doesn't directly validate the implementation, but it still helps
+     * by cross-validating the test data with the sanity check code. */
+    if( ! mbedtls_test_psa_exercise_key( key, usage_arg, 0 ) )
         goto exit;
 
     if( canonical_input )

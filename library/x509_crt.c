@@ -587,6 +587,227 @@ static int x509_get_ext_key_usage(unsigned char **p,
 }
 
 /*
+ * SubjectKeyIdentifier ::= KeyIdentifier
+ *
+ * KeyIdentifier ::= OCTET STRING
+ */
+static int x509_get_subject_key_id(unsigned char **p,
+                                   const unsigned char *end,
+                                   mbedtls_x509_buf *subject_key_id)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len = 0u;
+
+    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                    MBEDTLS_ASN1_OCTET_STRING)) != 0) {
+        return ret;
+    } else {
+        subject_key_id->len = len;
+        subject_key_id->tag = MBEDTLS_ASN1_OCTET_STRING;
+        subject_key_id->p = *p;
+        *p += len;
+    }
+
+    return 0;
+}
+
+/*
+ * AuthorityKeyIdentifier ::= SEQUENCE {
+ *        keyIdentifier [0] KeyIdentifier OPTIONAL,
+ *        authorityCertIssuer [1] GeneralNames OPTIONAL,
+ *        authorityCertSerialNumber [2] CertificateSerialNumber OPTIONAL }
+ *
+ *    KeyIdentifier ::= OCTET STRING
+ */
+static int x509_get_authority_key_id(unsigned char **p,
+                                     unsigned char *end,
+                                     mbedtls_x509_authority *authority_key_id)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len = 0u;
+
+    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+        return ret;
+    }
+
+    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                    MBEDTLS_ASN1_CONTEXT_SPECIFIC)) != 0) {
+        /* KeyIdentifier is an OPTIONAL field */
+    } else {
+        authority_key_id->keyIdentifier.len = len;
+        authority_key_id->keyIdentifier.p = *p;
+        authority_key_id->keyIdentifier.tag = MBEDTLS_ASN1_OCTET_STRING;
+
+        *p += len;
+    }
+
+    if (*p < end) {
+        if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED |
+                                        MBEDTLS_ASN1_BOOLEAN)) != 0) {
+            /* authorityCertIssuer is an OPTIONAL field */
+        } else {
+            if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                            MBEDTLS_ASN1_CONTEXT_SPECIFIC |
+                                            MBEDTLS_ASN1_CONSTRUCTED |
+                                            MBEDTLS_ASN1_OCTET_STRING)) != 0) {
+                return ret;
+            } else {
+                authority_key_id->raw.p = *p;
+
+                if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                                MBEDTLS_ASN1_CONSTRUCTED |
+                                                MBEDTLS_ASN1_SEQUENCE)) != 0) {
+                    return ret;
+                }
+
+                if ((ret =
+                         mbedtls_x509_get_name(p, *p + len,
+                                               &authority_key_id->authorityCertIssuer)) != 0) {
+                    return ret;
+                }
+
+                authority_key_id->raw.len = *p - authority_key_id->raw.p;
+            }
+        }
+    }
+
+    if (*p < end) {
+        if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_INTEGER)) !=
+            0) {
+            /* authorityCertSerialNumber is an OPTIONAL field, but if there are still data it must be the serial number */
+            return ret;
+        } else {
+            authority_key_id->authorityCertSerialNumber.len = len;
+            authority_key_id->authorityCertSerialNumber.p = *p;
+            authority_key_id->authorityCertSerialNumber.tag = MBEDTLS_ASN1_OCTET_STRING;
+            *p += len;
+        }
+    }
+
+    if (*p != end) {
+        return MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+               MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+    }
+
+    return 0;
+}
+
+/*
+ * SubjectAltName ::= GeneralNames
+ *
+ * GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName
+ *
+ * GeneralName ::= CHOICE {
+ *      otherName                       [0]     OtherName,
+ *      rfc822Name                      [1]     IA5String,
+ *      dNSName                         [2]     IA5String,
+ *      x400Address                     [3]     ORAddress,
+ *      directoryName                   [4]     Name,
+ *      ediPartyName                    [5]     EDIPartyName,
+ *      uniformResourceIdentifier       [6]     IA5String,
+ *      iPAddress                       [7]     OCTET STRING,
+ *      registeredID                    [8]     OBJECT IDENTIFIER }
+ *
+ * OtherName ::= SEQUENCE {
+ *      type-id    OBJECT IDENTIFIER,
+ *      value      [0] EXPLICIT ANY DEFINED BY type-id }
+ *
+ * EDIPartyName ::= SEQUENCE {
+ *      nameAssigner            [0]     DirectoryString OPTIONAL,
+ *      partyName               [1]     DirectoryString }
+ *
+ * NOTE: we list all types, but only use dNSName and otherName
+ * of type HwModuleName, as defined in RFC 4108, at this point.
+ */
+static int x509_get_subject_alt_name(unsigned char **p,
+                                     const unsigned char *end,
+                                     mbedtls_x509_sequence *subject_alt_name)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len, tag_len;
+    mbedtls_asn1_buf *buf;
+    unsigned char tag;
+    mbedtls_asn1_sequence *cur = subject_alt_name;
+
+    /* Get main sequence tag */
+    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+    }
+
+    if (*p + len != end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
+
+    while (*p < end) {
+        mbedtls_x509_subject_alternative_name dummy_san_buf;
+        memset(&dummy_san_buf, 0, sizeof(dummy_san_buf));
+
+        tag = **p;
+        (*p)++;
+        if ((ret = mbedtls_asn1_get_len(p, end, &tag_len)) != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+        }
+
+        if ((tag & MBEDTLS_ASN1_TAG_CLASS_MASK) !=
+            MBEDTLS_ASN1_CONTEXT_SPECIFIC) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
+        }
+
+        /*
+         * Check that the SAN is structured correctly.
+         */
+        ret = mbedtls_x509_parse_subject_alt_name(&(cur->buf), &dummy_san_buf);
+        /*
+         * In case the extension is malformed, return an error,
+         * and clear the allocated sequences.
+         */
+        if (ret != 0 && ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE) {
+            mbedtls_asn1_sequence_free(subject_alt_name->next);
+            subject_alt_name->next = NULL;
+            return ret;
+        }
+
+        /* Allocate and assign next pointer */
+        if (cur->buf.p != NULL) {
+            if (cur->next != NULL) {
+                return MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
+            }
+
+            cur->next = mbedtls_calloc(1, sizeof(mbedtls_asn1_sequence));
+
+            if (cur->next == NULL) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                         MBEDTLS_ERR_ASN1_ALLOC_FAILED);
+            }
+
+            cur = cur->next;
+        }
+
+        buf = &(cur->buf);
+        buf->tag = tag;
+        buf->p = *p;
+        buf->len = tag_len;
+        *p += buf->len;
+    }
+
+    /* Set final sequence entry's next pointer to NULL */
+    cur->next = NULL;
+
+    if (*p != end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
+
+    return 0;
+}
+
+/*
  * id-ce-certificatePolicies OBJECT IDENTIFIER ::=  { id-ce 32 }
  *
  * anyPolicy OBJECT IDENTIFIER ::= { id-ce-certificatePolicies 0 }
@@ -883,7 +1104,20 @@ static int x509_get_crt_ext(unsigned char **p,
                     return ret;
                 }
                 break;
-
+            case MBEDTLS_X509_EXT_SUBJECT_KEY_IDENTIFIER:
+                /* Parse subject key identifier */
+                if ((ret = x509_get_subject_key_id(p, end_ext_data,
+                                                   &crt->subject_key_id)) != 0) {
+                    return ret;
+                }
+                break;
+            case MBEDTLS_X509_EXT_AUTHORITY_KEY_IDENTIFIER:
+                /* Parse authority key identifier */
+                if ((ret = x509_get_authority_key_id(p, end_ext_octet,
+                                                     &crt->authority_key_id)) != 0) {
+                    return ret;
+                }
+                break;
             case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
                 /* Parse subject alt name */
                 if ((ret = mbedtls_x509_get_subject_alt_name(p, end_ext_octet,
@@ -2837,6 +3071,14 @@ void mbedtls_x509_crt_free(mbedtls_x509_crt *crt)
         mbedtls_asn1_sequence_free(cert_cur->ext_key_usage.next);
         mbedtls_asn1_sequence_free(cert_cur->subject_alt_names.next);
         mbedtls_asn1_sequence_free(cert_cur->certificate_policies.next);
+
+        name_cur = cert_cur->authority_key_id.authorityCertIssuer.next;
+        while (name_cur != NULL) {
+            name_prv = name_cur;
+            name_cur = name_cur->next;
+            mbedtls_platform_zeroize(name_prv, sizeof(mbedtls_x509_name));
+            mbedtls_free(name_prv);
+        }
 
         if (cert_cur->raw.p != NULL && cert_cur->own_buffer) {
             mbedtls_platform_zeroize(cert_cur->raw.p, cert_cur->raw.len);

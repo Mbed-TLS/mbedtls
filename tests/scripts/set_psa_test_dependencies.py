@@ -108,7 +108,7 @@ def is_systematic_dependency(dep):
     return dep.startswith('PSA_WANT_')
 
 WITHOUT_SYSTEMATIC_DEPENDENCIES = frozenset([
-    'PSA_ALG_AEAD_WITH_TAG_LENGTH', # only a modifier
+    'PSA_ALG_AEAD_WITH_SHORTENED_TAG', # only a modifier
     'PSA_ALG_ANY_HASH', # only meaningful in policies
     'PSA_ALG_KEY_AGREEMENT', # only a way to combine algorithms
     'PSA_ALG_TRUNCATED_MAC', # only a modifier

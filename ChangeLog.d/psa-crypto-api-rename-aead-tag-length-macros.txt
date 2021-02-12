@@ -1,0 +1,7 @@
+API changes
+   * Renamed the PSA Crypto API AEAD tag length macros to bring them in line
+     with version 1.0.0 of the specification.
+
+New deprecations
+   * PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH and PSA_ALG_AEAD_WITH_TAG_LENGTH
+     have been renamed, and the old names deprecated.

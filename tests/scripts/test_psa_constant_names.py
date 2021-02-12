@@ -227,11 +227,11 @@ class Inputs:
     _excluded_names = set([
         # Macros that provide an alternative way to build the same
         # algorithm as another macro.
-        'PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH',
+        'PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG',
         'PSA_ALG_FULL_LENGTH_MAC',
         # Auxiliary macro whose name doesn't fit the usual patterns for
         # auxiliary macros.
-        'PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH_CASE',
+        'PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG_CASE',
     ])
     def parse_header_line(self, line):
         """Parse a C header line, looking for "#define PSA_xxx"."""

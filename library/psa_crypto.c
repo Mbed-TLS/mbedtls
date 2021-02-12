@@ -2483,7 +2483,7 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     mbedtls_cipher_id_t cipher_id_tmp;
 
     if( PSA_ALG_IS_AEAD( alg ) )
-        alg = PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, 0 );
+        alg = PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 );
 
     if( PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) )
     {
@@ -2510,13 +2510,13 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
             case PSA_ALG_CBC_PKCS7:
                 mode = MBEDTLS_MODE_CBC;
                 break;
-            case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_CCM, 0 ):
+            case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ):
                 mode = MBEDTLS_MODE_CCM;
                 break;
-            case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ):
+            case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ):
                 mode = MBEDTLS_MODE_GCM;
                 break;
-            case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_CHACHA20_POLY1305, 0 ):
+            case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CHACHA20_POLY1305, 0 ):
                 mode = MBEDTLS_MODE_CHACHAPOLY;
                 break;
             default:
@@ -4420,10 +4420,10 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
         goto cleanup;
     }
 
-    switch( PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, 0 ) )
+    switch( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) )
     {
 #if defined(MBEDTLS_CCM_C)
-        case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_CCM, 0 ):
+        case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ):
             operation->core_alg = PSA_ALG_CCM;
             operation->full_tag_length = 16;
             /* CCM allows the following tag lengths: 4, 6, 8, 10, 12, 14, 16.
@@ -4445,7 +4445,7 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
 #endif /* MBEDTLS_CCM_C */
 
 #if defined(MBEDTLS_GCM_C)
-        case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ):
+        case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ):
             operation->core_alg = PSA_ALG_GCM;
             operation->full_tag_length = 16;
             /* GCM allows the following tag lengths: 4, 8, 12, 13, 14, 15, 16.
@@ -4467,7 +4467,7 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
 #endif /* MBEDTLS_GCM_C */
 
 #if defined(MBEDTLS_CHACHAPOLY_C)
-        case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_CHACHA20_POLY1305, 0 ):
+        case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CHACHA20_POLY1305, 0 ):
             operation->core_alg = PSA_ALG_CHACHA20_POLY1305;
             operation->full_tag_length = 16;
             /* We only support the default tag length. */

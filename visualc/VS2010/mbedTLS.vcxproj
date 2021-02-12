@@ -232,6 +232,7 @@
     <ClInclude Include="..\..\include\psa\crypto_struct.h" />
     <ClInclude Include="..\..\include\psa\crypto_types.h" />
     <ClInclude Include="..\..\include\psa\crypto_values.h" />
+    <ClInclude Include="..\..\tests\include\test\asn1_helpers.h" />
     <ClInclude Include="..\..\tests\include\test\constant_flow.h" />
     <ClInclude Include="..\..\tests\include\test\fake_external_rng_for_test.h" />
     <ClInclude Include="..\..\tests\include\test\helpers.h" />
@@ -355,6 +356,7 @@
     <ClCompile Include="..\..\library\x509write_crt.c" />
     <ClCompile Include="..\..\library\x509write_csr.c" />
     <ClCompile Include="..\..\library\xtea.c" />
+    <ClCompile Include="..\..\tests\src\asn1_helpers.c" />
     <ClCompile Include="..\..\tests\src\fake_external_rng_for_test.c" />
     <ClCompile Include="..\..\tests\src\helpers.c" />
     <ClCompile Include="..\..\tests\src\psa_crypto_helpers.c" />

@@ -1,2 +1,2 @@
 Bugfix
-   * Fix memory leak that occured in error case in psa_generate_derived_key_internal()
+   * Fix a memory leak in an error case in psa_generate_derived_key_internal().

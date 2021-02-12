@@ -5098,7 +5098,7 @@ static psa_status_t psa_generate_derived_key_internal(
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
     if( slot->attr.type == PSA_KEY_TYPE_DES )
         psa_des_set_key_parity( data, bytes );
-#endif /* PSA_WANT_KEY_TYPE_DES */
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES */
 
     status = psa_allocate_buffer_to_slot( slot, bytes );
     if( status != PSA_SUCCESS )
@@ -6032,7 +6032,7 @@ psa_status_t psa_generate_key_internal(
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
         if( type == PSA_KEY_TYPE_DES )
             psa_des_set_key_parity( key_buffer, key_buffer_size );
-#endif /* MBEDTLS_DES_C */
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES */
     }
     else
 

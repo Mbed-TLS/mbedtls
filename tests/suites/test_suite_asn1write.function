@@ -304,7 +304,7 @@ void test_asn1_write_bitstrings( data_t *bitstring, int bits,
 {
     generic_write_data_t data = { NULL, NULL, NULL, NULL, 0 };
     int ret;
-    int ( *func )( unsigned char **p, unsigned char *start,
+    int ( *func )( unsigned char **p, const unsigned char *start,
                    const unsigned char *buf, size_t bits ) =
         ( is_named ? mbedtls_asn1_write_named_bitstring :
           mbedtls_asn1_write_bitstring );

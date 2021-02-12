@@ -1256,8 +1256,6 @@ void mbedtls_x509_crt_parse_subjectkeyid( char * crt_path, char *subjectKeyId, i
     mbedtls_x509_crt crt;
     int i = 0;
     int result = 0;
-    char buff[2];
-    char* buffPtr = buff;
 
     mbedtls_x509_crt_init( &crt );
 
@@ -1267,9 +1265,8 @@ void mbedtls_x509_crt_parse_subjectkeyid( char * crt_path, char *subjectKeyId, i
     {
         while(i < subjectKeyIdLength)
         {
-            mbedtls_snprintf(buffPtr, 2, "%02X", crt.subject_key_id.p[i]);
-            result |= buff[0] != subjectKeyId[i*2];
-            result |= buff[1] != subjectKeyId[i*2+1];
+            result |= crt.subject_key_id.p[i] != subjectKeyId[i*2];
+            result |= crt.subject_key_id.p[i+1] != subjectKeyId[i*2+1];
             i++;
         }
 
@@ -1289,8 +1286,6 @@ void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyI
     int result = 0;
     int bufferCounter = 0;
     size_t issuerCounter = 0;
-    char buff[2];
-    char* buffPtr = buff;
 
     mbedtls_x509_crt_init( &crt );
 
@@ -1301,9 +1296,8 @@ void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyI
         /* KeyId test */
         while(i < keyIdLength)
         {
-            mbedtls_snprintf(buffPtr, 2, "%02X", crt.authority_key_id.keyIdentifier.p[i]);
-            result |= buff[0] != authorityKeyId_keyId[i*2];
-            result |= buff[1] != authorityKeyId_keyId[i*2+1];
+            result |= crt.authority_key_id.keyIdentifier.p[i] != authorityKeyId_keyId[i*2];
+            result |= crt.authority_key_id.keyIdentifier.p[i+1] != authorityKeyId_keyId[i*2+1];
             i++;
         }
 
@@ -1323,9 +1317,8 @@ void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyI
         i = 0;
         while(i < serialLength)
         {
-            mbedtls_snprintf(buffPtr, 2, "%02X", crt.authority_key_id.authorityCertSerialNumber.p[i]);
-            result |= buff[0] != authorityKeyId_serial[i*2];
-            result |= buff[1] != authorityKeyId_serial[i*2+1];
+            result |= crt.authority_key_id.authorityCertSerialNumber.p[i] != authorityKeyId_serial[i*2];
+            result |= crt.authority_key_id.authorityCertSerialNumber.p[i+1] != authorityKeyId_serial[i*2+1];
             i++;
         }
 

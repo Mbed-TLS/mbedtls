@@ -53,7 +53,7 @@ static mbedtls_svc_key_id_t key_ids_used_in_test[9];
 static size_t num_key_ids_used;
 
 /* Record a key id as potentially used in a test case. */
-static int test_uses_key_id( mbedtls_svc_key_id_t key_id )
+int mbedtls_test_uses_key_id( mbedtls_svc_key_id_t key_id )
 {
     size_t i;
     if( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key_id ) >
@@ -74,10 +74,10 @@ static int test_uses_key_id( mbedtls_svc_key_id_t key_id )
     return( 1 );
 }
 #define TEST_USES_KEY_ID( key_id )                       \
-    TEST_ASSERT( test_uses_key_id( key_id ) )
+    TEST_ASSERT( mbedtls_test_uses_key_id( key_id ) )
 
 /* Destroy all key ids that may have been created by the current test case. */
-static void psa_purge_key_storage( void )
+void mbedtls_test_psa_purge_key_storage( void )
 {
     size_t i;
     for( i = 0; i < num_key_ids_used; i++ )
@@ -383,7 +383,7 @@ exit:
     psa_reset_key_attributes( &read_attributes );
 
     PSA_DONE( );
-    psa_purge_key_storage( );
+    mbedtls_test_psa_purge_key_storage( );
     mbedtls_free( reexported );
 }
 /* END_CASE */
@@ -457,7 +457,7 @@ exit:
     psa_reset_key_attributes( &attributes );
 
     PSA_DONE( );
-    psa_purge_key_storage( );
+    mbedtls_test_psa_purge_key_storage( );
 }
 /* END_CASE */
 
@@ -517,7 +517,7 @@ void create_fail( int lifetime_arg, int id_arg,
 exit:
     PSA_DONE( );
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    psa_purge_key_storage( );
+    mbedtls_test_psa_purge_key_storage( );
 #endif
 }
 /* END_CASE */
@@ -655,7 +655,7 @@ exit:
     PSA_DONE( );
     mbedtls_free( export_buffer );
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    psa_purge_key_storage( );
+    mbedtls_test_psa_purge_key_storage( );
 #endif
 }
 /* END_CASE */
@@ -773,7 +773,7 @@ exit:
     PSA_DONE( );
     mbedtls_free( export_buffer );
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    psa_purge_key_storage( );
+    mbedtls_test_psa_purge_key_storage( );
 #endif
 }
 /* END_CASE */

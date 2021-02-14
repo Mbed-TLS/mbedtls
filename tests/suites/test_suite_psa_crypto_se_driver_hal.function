@@ -767,40 +767,47 @@ exit:
     return( ok );
 }
 
-static mbedtls_svc_key_id_t key_ids_used_in_test[10];
+static mbedtls_svc_key_id_t key_ids_used_in_test[9];
 static size_t num_key_ids_used;
 
 /* Record a key id as potentially used in a test case. */
-static int test_uses_key_id( mbedtls_svc_key_id_t key_id )
+int mbedtls_test_uses_key_id( mbedtls_svc_key_id_t key_id )
 {
     size_t i;
-
+    if( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key_id ) >
+        PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
+    {
+        /* Don't touch key id values that designate non-key files. */
+        return( 1 );
+    }
     for( i = 0; i < num_key_ids_used ; i++ )
     {
         if( mbedtls_svc_key_id_equal( key_id, key_ids_used_in_test[i] ) )
             return( 1 );
     }
-
-    if( num_key_ids_used >= ARRAY_LENGTH( key_ids_used_in_test ) )
+    if( num_key_ids_used == ARRAY_LENGTH( key_ids_used_in_test ) )
         return( 0 );
-
     key_ids_used_in_test[num_key_ids_used] = key_id;
     ++num_key_ids_used;
-
     return( 1 );
 }
-
 #define TEST_USES_KEY_ID( key_id )                       \
-    TEST_ASSERT( test_uses_key_id( key_id ) )
+    TEST_ASSERT( mbedtls_test_uses_key_id( key_id ) )
 
-static void psa_purge_storage( void )
+/* Destroy all key ids that may have been created by the current test case. */
+void mbedtls_test_psa_purge_key_storage( void )
 {
     size_t i;
-    psa_key_location_t location;
-
     for( i = 0; i < num_key_ids_used; i++ )
         psa_destroy_persistent_key( key_ids_used_in_test[i] );
     num_key_ids_used = 0;
+}
+
+static void psa_purge_storage( void )
+{
+    psa_key_location_t location;
+
+    mbedtls_test_psa_purge_key_storage( );
 
     /* Purge the transaction file. */
     psa_crypto_stop_transaction( );

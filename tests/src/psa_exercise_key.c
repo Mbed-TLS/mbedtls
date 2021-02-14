@@ -578,30 +578,11 @@ int mbedtls_test_psa_exported_key_sanity_check(
     psa_key_type_t type, size_t bits,
     const uint8_t *exported, size_t exported_length )
 {
-    if( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) )
-        TEST_EQUAL( exported_length, ( bits + 7 ) / 8 );
-    else
-        TEST_ASSERT( exported_length <= PSA_EXPORT_KEY_OUTPUT_SIZE( type, bits ) );
+    TEST_ASSERT( exported_length <= PSA_EXPORT_KEY_OUTPUT_SIZE( type, bits ) );
 
-#if defined(MBEDTLS_DES_C)
-    if( type == PSA_KEY_TYPE_DES )
-    {
-        /* Check the parity bits. */
-        unsigned i;
-        for( i = 0; i < bits / 8; i++ )
-        {
-            unsigned bit_count = 0;
-            unsigned m;
-            for( m = 1; m <= 0x100; m <<= 1 )
-            {
-                if( exported[i] & m )
-                    ++bit_count;
-            }
-            TEST_ASSERT( bit_count % 2 != 0 );
-        }
-    }
+    if( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) )
+        TEST_EQUAL( exported_length, PSA_BITS_TO_BYTES( bits ) );
     else
-#endif
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C)
     if( type == PSA_KEY_TYPE_RSA_KEY_PAIR )
@@ -707,20 +688,28 @@ int mbedtls_test_psa_exported_key_sanity_check(
     else
 #endif /* MBEDTLS_ECP_C */
 
-    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
     {
-        char message[47];
-        mbedtls_snprintf( message, sizeof( message ),
-                          "No sanity check for public key type=0x%08lx",
-                          (unsigned long) type );
-        mbedtls_test_fail( message, __LINE__, __FILE__ );
-        return( 0 );
+        TEST_ASSERT( ! "Sanity check not implemented for this key type" );
     }
-    else
 
+#if defined(MBEDTLS_DES_C)
+    if( type == PSA_KEY_TYPE_DES )
     {
-        /* No sanity checks for other types */
+        /* Check the parity bits. */
+        unsigned i;
+        for( i = 0; i < bits / 8; i++ )
+        {
+            unsigned bit_count = 0;
+            unsigned m;
+            for( m = 1; m <= 0x100; m <<= 1 )
+            {
+                if( exported[i] & m )
+                    ++bit_count;
+            }
+            TEST_ASSERT( bit_count % 2 != 0 );
+        }
     }
+#endif
 
     return( 1 );
 

@@ -123,6 +123,7 @@ void transient_slot_lifecycle( int owner_id_arg,
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
+    mbedtls_test_set_step( 1 );
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Import a key. */
@@ -169,6 +170,7 @@ void transient_slot_lifecycle( int owner_id_arg,
     psa_reset_key_attributes( &attributes );
 
     /* Do something that invalidates the key. */
+    mbedtls_test_set_step( 2 );
     if( ! invalidate_key( invalidate_method, key ) )
         goto exit;
     if( ! invalidate_psa( invalidate_method ) )
@@ -218,6 +220,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
 
     TEST_USES_KEY_ID( id );
 
+    mbedtls_test_set_step( 1 );
     PSA_ASSERT( psa_crypto_init( ) );
 
     psa_set_key_id( &attributes, id );
@@ -267,6 +270,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
      * Do something that wipes key data in volatile memory or destroy the
      * key.
      */
+    mbedtls_test_set_step( 2 );
     if( ! invalidate_key( invalidate_method, id ) )
         goto exit;
     if( ! invalidate_psa( invalidate_method ) )

@@ -1467,6 +1467,7 @@ void register_key_smoke_test( int lifetime_arg,
             ( validate > 0 ? PSA_SUCCESS : PSA_ERROR_NOT_PERMITTED );
     }
 
+    mbedtls_test_set_step( 1 );
     PSA_ASSERT( psa_register_se_driver( MIN_DRIVER_LOCATION, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -1496,6 +1497,7 @@ void register_key_smoke_test( int lifetime_arg,
     PSA_ASSERT( psa_purge_key( id ) );
 
     /* Restart and try again. */
+    mbedtls_test_set_step( 2 );
     PSA_SESSION_DONE( );
     PSA_ASSERT( psa_register_se_driver( location, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );

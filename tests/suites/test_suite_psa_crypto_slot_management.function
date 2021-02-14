@@ -86,8 +86,7 @@ static int invalidate_psa( invalidate_method_t invalidate_method )
         case INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN:
         case INVALIDATE_BY_PURGING_WITH_SHUTDOWN:
             /* All keys must have been closed. */
-            mbedtls_test_psa_purge_key_cache( );
-            PSA_DONE( );
+            PSA_SESSION_DONE( );
             break;
         case INVALIDATE_BY_SHUTDOWN:
             /* Some keys may remain behind, and we're testing that this
@@ -339,7 +338,6 @@ exit:
     psa_reset_key_attributes( &read_attributes );
 
     PSA_DONE( );
-    mbedtls_test_psa_purge_key_storage( );
     mbedtls_free( reexported );
 }
 /* END_CASE */
@@ -413,7 +411,6 @@ exit:
     psa_reset_key_attributes( &attributes );
 
     PSA_DONE( );
-    mbedtls_test_psa_purge_key_storage( );
 }
 /* END_CASE */
 
@@ -472,9 +469,6 @@ void create_fail( int lifetime_arg, int id_arg,
 
 exit:
     PSA_DONE( );
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    mbedtls_test_psa_purge_key_storage( );
-#endif
 }
 /* END_CASE */
 
@@ -610,9 +604,6 @@ exit:
 
     PSA_DONE( );
     mbedtls_free( export_buffer );
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    mbedtls_test_psa_purge_key_storage( );
-#endif
 }
 /* END_CASE */
 
@@ -728,9 +719,6 @@ exit:
 
     PSA_DONE( );
     mbedtls_free( export_buffer );
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    mbedtls_test_psa_purge_key_storage( );
-#endif
 }
 /* END_CASE */
 

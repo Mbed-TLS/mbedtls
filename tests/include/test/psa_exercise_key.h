@@ -143,8 +143,8 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
     psa_key_derivation_operation_t* operation,
     mbedtls_svc_key_id_t key,
     psa_algorithm_t alg,
-    unsigned char* input1, size_t input1_length,
-    unsigned char* input2, size_t input2_length,
+    const unsigned char* input1, size_t input1_length,
+    const unsigned char* input2, size_t input2_length,
     size_t capacity );
 
 /** Perform a key agreement using the given key pair against its public key
@@ -198,7 +198,7 @@ psa_status_t mbedtls_test_psa_key_agreement_with_self(
  */
 int mbedtls_test_psa_exported_key_sanity_check(
     psa_key_type_t type, size_t bits,
-    uint8_t *exported, size_t exported_length );
+    const uint8_t *exported, size_t exported_length );
 
 /** Do smoke tests on a key.
  *

@@ -659,64 +659,62 @@ int mbedtls_test_psa_exported_key_sanity_check(
     else
 #endif /* MBEDTLS_ECP_C */
 
-    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
+#if defined(MBEDTLS_RSA_C)
+    if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY )
     {
         uint8_t *p = exported;
         uint8_t *end = exported + exported_length;
-#if defined(MBEDTLS_RSA_C)
-        if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY )
-        {
-            size_t len;
-            /*   RSAPublicKey ::= SEQUENCE {
-             *      modulus            INTEGER,    -- n
-             *      publicExponent     INTEGER  }  -- e
-             */
-            TEST_EQUAL( mbedtls_asn1_get_tag( &p, end, &len,
-                                              MBEDTLS_ASN1_SEQUENCE |
-                                              MBEDTLS_ASN1_CONSTRUCTED ),
-                        0 );
-            TEST_EQUAL( p + len, end );
-            if( ! mbedtls_test_asn1_skip_integer( &p, end, bits, bits, 1 ) )
-                goto exit;
-            if( ! mbedtls_test_asn1_skip_integer( &p, end, 2, bits, 1 ) )
-                goto exit;
-            TEST_EQUAL( p, end );
-        }
-        else
+        size_t len;
+        /*   RSAPublicKey ::= SEQUENCE {
+         *      modulus            INTEGER,    -- n
+         *      publicExponent     INTEGER  }  -- e
+         */
+        TEST_EQUAL( mbedtls_asn1_get_tag( &p, end, &len,
+                                          MBEDTLS_ASN1_SEQUENCE |
+                                          MBEDTLS_ASN1_CONSTRUCTED ),
+                    0 );
+        TEST_EQUAL( p + len, end );
+        if( ! mbedtls_test_asn1_skip_integer( &p, end, bits, bits, 1 ) )
+            goto exit;
+        if( ! mbedtls_test_asn1_skip_integer( &p, end, 2, bits, 1 ) )
+            goto exit;
+        TEST_EQUAL( p, end );
+    }
+    else
 #endif /* MBEDTLS_RSA_C */
+
 #if defined(MBEDTLS_ECP_C)
-        if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( type ) )
+    if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( type ) )
+    {
+        if( PSA_KEY_TYPE_ECC_GET_FAMILY( type ) == PSA_ECC_FAMILY_MONTGOMERY )
         {
-            if( PSA_KEY_TYPE_ECC_GET_FAMILY( type ) == PSA_ECC_FAMILY_MONTGOMERY )
-            {
-                /* The representation of an ECC Montgomery public key is
-                 * the raw compressed point */
-                 TEST_EQUAL( p + PSA_BITS_TO_BYTES( bits ), end );
-            }
-            else
-            {
-                /* The representation of an ECC Weierstrass public key is:
-                 *      - The byte 0x04;
-                 *      - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
-                 *      - `y_P` as a `ceiling(m/8)`-byte string, big-endian;
-                 *      - where m is the bit size associated with the curve.
-                 */
-                TEST_EQUAL( p + 1 + 2 * PSA_BITS_TO_BYTES( bits ), end );
-                TEST_EQUAL( p[0], 4 );
-            }
+            /* The representation of an ECC Montgomery public key is
+             * the raw compressed point */
+             TEST_EQUAL( PSA_BITS_TO_BYTES( bits ), exported_length );
         }
         else
-#endif /* MBEDTLS_ECP_C */
         {
-            char message[47];
-            mbedtls_snprintf( message, sizeof( message ),
-                              "No sanity check for public key type=0x%08lx",
-                              (unsigned long) type );
-            mbedtls_test_fail( message, __LINE__, __FILE__ );
-            (void) p;
-            (void) end;
-            return( 0 );
+            /* The representation of an ECC Weierstrass public key is:
+             *      - The byte 0x04;
+             *      - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
+             *      - `y_P` as a `ceiling(m/8)`-byte string, big-endian;
+             *      - where m is the bit size associated with the curve.
+             */
+            TEST_EQUAL( 1 + 2 * PSA_BITS_TO_BYTES( bits ), exported_length );
+            TEST_EQUAL( exported[0], 4 );
         }
+    }
+    else
+#endif /* MBEDTLS_ECP_C */
+
+    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
+    {
+        char message[47];
+        mbedtls_snprintf( message, sizeof( message ),
+                          "No sanity check for public key type=0x%08lx",
+                          (unsigned long) type );
+        mbedtls_test_fail( message, __LINE__, __FILE__ );
+        return( 0 );
     }
     else
 

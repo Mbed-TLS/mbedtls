@@ -291,9 +291,7 @@ static int exercise_signature_key( mbedtls_svc_key_id_t key,
         hash_alg = KNOWN_SUPPORTED_HASH_ALG;
         alg ^= PSA_ALG_ANY_HASH ^ hash_alg;
 #else
-        mbedtls_test_fail( "No hash algorithm for hash-and-sign testing",
-                            __LINE__, __FILE__ );
-        return( 1 );
+        TEST_ASSERT( ! "No hash algorithm for hash-and-sign testing" );
 #endif
     }
 
@@ -813,7 +811,7 @@ int mbedtls_test_psa_exercise_key( mbedtls_svc_key_id_t key,
                                    psa_key_usage_t usage,
                                    psa_algorithm_t alg )
 {
-    int ok;
+    int ok = 0;
 
     if( ! check_key_attributes_sanity( key ) )
         return( 0 );
@@ -837,18 +835,12 @@ int mbedtls_test_psa_exercise_key( mbedtls_svc_key_id_t key,
     else if( PSA_ALG_IS_KEY_AGREEMENT( alg ) )
         ok = exercise_key_agreement_key( key, usage, alg );
     else
-    {
-        char message[40];
-        mbedtls_snprintf( message, sizeof( message ),
-                          "No code to exercise alg=0x%08lx",
-                          (unsigned long) alg );
-        mbedtls_test_fail( message, __LINE__, __FILE__ );
-        ok = 0;
-    }
+        TEST_ASSERT( ! "No code to exercise this category of algorithm" );
 
     ok = ok && exercise_export_key( key, usage );
     ok = ok && exercise_export_public_key( key );
 
+exit:
     return( ok );
 }
 

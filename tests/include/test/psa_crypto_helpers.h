@@ -35,16 +35,46 @@
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-/* All test functions that create persistent keys must call
- * `TEST_USES_KEY_ID( key_id )` before creating a persistent key with this
- * identifier, and must call psa_purge_key_storage() in their cleanup
- * code. */
+
+/* Internal function for #TEST_USES_KEY_ID. Return 1 on success, 0 on failure. */
 int mbedtls_test_uses_key_id( mbedtls_svc_key_id_t key_id );
+
+/** Destroy persistent keys recorded with #TEST_USES_KEY_ID.
+ */
 void mbedtls_test_psa_purge_key_storage( void );
-#define TEST_USES_KEY_ID( key_id )                       \
+
+/** \def TEST_USES_KEY_ID
+ *
+ * Call this macro in a test function before potentially creating a
+ * persistent key. Test functions that use this mechanism must call
+ * mbedtls_test_psa_purge_key_storage() in their cleanup code.
+ *
+ * This macro records a persistent key identifier as potentially used in the
+ * current test case. Recorded key identifiers will be cleaned up at the end
+ * of the test case, even on failure.
+ *
+ * This macro has no effect on volatile keys. Therefore, it is safe to call
+ * this macro in a test function that creates either volatile or persistent
+ * keys depending on the test data.
+ *
+ * This macro currently has no effect on special identifiers
+ * used to store implementation-specific files.
+ *
+ * Calling this macro multiple times on the same key identifier in the same
+ * test case has no effect.
+ *
+ * This macro can fail the test case if there isn't enough memory to
+ * record the key id.
+ *
+ * \param key_id    The PSA key identifier to record.
+ */
+#define TEST_USES_KEY_ID( key_id )                      \
     TEST_ASSERT( mbedtls_test_uses_key_id( key_id ) )
+
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
+
 #define TEST_USES_KEY_ID( key_id ) ( (void) ( key_id ) )
+
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
 #define PSA_INIT( ) PSA_ASSERT( psa_crypto_init( ) )

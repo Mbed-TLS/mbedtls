@@ -35,7 +35,6 @@
 static mbedtls_svc_key_id_t key_ids_used_in_test[9];
 static size_t num_key_ids_used;
 
-/* Record a key id as potentially used in a test case. */
 int mbedtls_test_uses_key_id( mbedtls_svc_key_id_t key_id )
 {
     size_t i;
@@ -57,7 +56,6 @@ int mbedtls_test_uses_key_id( mbedtls_svc_key_id_t key_id )
     return( 1 );
 }
 
-/* Destroy all key ids that may have been created by the current test case. */
 void mbedtls_test_psa_purge_key_storage( void )
 {
     size_t i;

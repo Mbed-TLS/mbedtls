@@ -370,8 +370,8 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
     psa_key_derivation_operation_t* operation,
     mbedtls_svc_key_id_t key,
     psa_algorithm_t alg,
-    unsigned char* input1, size_t input1_length,
-    unsigned char* input2, size_t input2_length,
+    const unsigned char* input1, size_t input1_length,
+    const unsigned char* input2, size_t input2_length,
     size_t capacity )
 {
     PSA_ASSERT( psa_key_derivation_setup( operation, alg ) );
@@ -576,7 +576,7 @@ exit:
 
 int mbedtls_test_psa_exported_key_sanity_check(
     psa_key_type_t type, size_t bits,
-    uint8_t *exported, size_t exported_length )
+    const uint8_t *exported, size_t exported_length )
 {
     if( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) )
         TEST_EQUAL( exported_length, ( bits + 7 ) / 8 );
@@ -606,8 +606,8 @@ int mbedtls_test_psa_exported_key_sanity_check(
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C)
     if( type == PSA_KEY_TYPE_RSA_KEY_PAIR )
     {
-        uint8_t *p = exported;
-        uint8_t *end = exported + exported_length;
+        uint8_t *p = (uint8_t*) exported;
+        const uint8_t *end = exported + exported_length;
         size_t len;
         /*   RSAPrivateKey ::= SEQUENCE {
          *       version             INTEGER,  -- must be 0
@@ -662,8 +662,8 @@ int mbedtls_test_psa_exported_key_sanity_check(
 #if defined(MBEDTLS_RSA_C)
     if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY )
     {
-        uint8_t *p = exported;
-        uint8_t *end = exported + exported_length;
+        uint8_t *p = (uint8_t*) exported;
+        const uint8_t *end = exported + exported_length;
         size_t len;
         /*   RSAPublicKey ::= SEQUENCE {
          *      modulus            INTEGER,    -- n

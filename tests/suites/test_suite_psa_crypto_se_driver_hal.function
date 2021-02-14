@@ -769,10 +769,10 @@ exit:
 
 static void psa_purge_storage( void )
 {
+    /* The generic code in mbedtls_test_psa_purge_key_storage()
+     * (which is called by PSA_DONE()) doesn't take care of things that are
+     * specific to dynamic secure elements. */
     psa_key_location_t location;
-
-    mbedtls_test_psa_purge_key_storage( );
-
     /* Purge the transaction file. */
     psa_crypto_stop_transaction( );
     /* Purge driver persistent data. */
@@ -1496,7 +1496,7 @@ void register_key_smoke_test( int lifetime_arg,
     PSA_ASSERT( psa_purge_key( id ) );
 
     /* Restart and try again. */
-    PSA_DONE( );
+    PSA_SESSION_DONE( );
     PSA_ASSERT( psa_register_se_driver( location, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
     if( ! check_key_attributes( id, &attributes ) )

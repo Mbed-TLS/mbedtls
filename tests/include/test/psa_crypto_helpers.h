@@ -45,6 +45,9 @@ void mbedtls_test_psa_purge_key_storage( void );
 
 /** Purge the in-memory cache of persistent keys recorded with
  * #TEST_USES_KEY_ID.
+ *
+ * Call this function before calling PSA_DONE() if it's ok for
+ * persistent keys to still exist at this point.
  */
 void mbedtls_test_psa_purge_key_cache( void );
 
@@ -79,6 +82,8 @@ void mbedtls_test_psa_purge_key_cache( void );
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
 #define TEST_USES_KEY_ID( key_id ) ( (void) ( key_id ) )
+#define mbedtls_test_psa_purge_key_storage( ) ( (void) 0 )
+#define mbedtls_test_psa_purge_key_cache( ) ( (void) 0 )
 
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
@@ -108,13 +113,36 @@ const char *mbedtls_test_helper_is_psa_leaking( void );
     }                                                                   \
     while( 0 )
 
-/** Shut down the PSA Crypto subsystem. Expect a clean shutdown, with no slots
- * in use.
+/** Shut down the PSA Crypto subsystem and destroy persistent keys.
+ * Expect a clean shutdown, with no slots in use.
+ *
+ * If some key slots are still in use, record the test case as failed,
+ * but continue executing. This macro is suitable (and primarily intended)
+ * for use in the cleanup section of test functions.
+ *
+ * \note Persistent keys must be recorded with #TEST_USES_KEY_ID before
+ *       creating them.
  */
 #define PSA_DONE( )                                                     \
     do                                                                  \
     {                                                                   \
         test_fail_if_psa_leaking( __LINE__, __FILE__ );                 \
+        mbedtls_test_psa_purge_key_storage( );                          \
+        mbedtls_psa_crypto_free( );                                     \
+    }                                                                   \
+    while( 0 )
+
+/** Shut down the PSA Crypto subsystem, allowing persistent keys to survive.
+ * Expect a clean shutdown, with no slots in use.
+ *
+ * If some key slots are still in use, record the test case as failed and
+ * jump to the `exit` label.
+ */
+#define PSA_SESSION_DONE( )                                             \
+    do                                                                  \
+    {                                                                   \
+        mbedtls_test_psa_purge_key_cache( );                            \
+        ASSERT_PSA_PRISTINE( );                                         \
         mbedtls_psa_crypto_free( );                                     \
     }                                                                   \
     while( 0 )

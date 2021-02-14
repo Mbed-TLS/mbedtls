@@ -26,7 +26,9 @@
 
 #include <psa/crypto.h>
 
-/* A hash algorithm that is known to be supported.
+/** \def KNOWN_SUPPORTED_HASH_ALG
+ *
+ * A hash algorithm that is known to be supported.
  *
  * This is used in some smoke tests.
  */
@@ -54,7 +56,9 @@
 #undef KNOWN_SUPPORTED_HASH_ALG
 #endif
 
-/* A block cipher that is known to be supported.
+/** \def KNOWN_SUPPORTED_BLOCK_CIPHER
+ *
+ * A block cipher that is known to be supported.
  *
  * For simplicity's sake, stick to block ciphers with 16-byte blocks.
  */
@@ -67,7 +71,9 @@
 #undef KNOWN_SUPPORTED_BLOCK_CIPHER
 #endif
 
-/* A MAC mode that is known to be supported.
+/** \def KNOWN_SUPPORTED_MAC_ALG
+ *
+ * A MAC mode that is known to be supported.
  *
  * It must either be HMAC with #KNOWN_SUPPORTED_HASH_ALG or
  * a block cipher-based MAC with #KNOWN_SUPPORTED_BLOCK_CIPHER.
@@ -85,7 +91,9 @@
 #undef KNOWN_SUPPORTED_MAC_KEY_TYPE
 #endif
 
-/* A cipher algorithm and key type that are known to be supported.
+/** \def KNOWN_SUPPORTED_BLOCK_CIPHER_ALG
+ *
+ * A cipher algorithm and key type that are known to be supported.
  *
  * This is used in some smoke tests.
  */
@@ -111,6 +119,26 @@
 #undef KNOWN_SUPPORTED_CIPHER_KEY_TYPE
 #endif
 
+/** Convenience function to set up a key derivation.
+ *
+ * In case of failure, mark the current test case as failed.
+ *
+ * The inputs \p input1 and \p input2 are, in order:
+ * - HKDF: salt, info.
+ * - TKS 1.2 PRF, TLS 1.2 PSK-to-MS: seed, label.
+ *
+ * \param operation         The operation object to use.
+ *                          It must be in the initialized state.
+ * \param key               The key to use.
+ * \param alg               The algorithm to use.
+ * \param input1            The first input to pass.
+ * \param input1_length     The length of \p input1 in bytes.
+ * \param input1            The first input to pass.
+ * \param input1_length     The length of \p input1 in bytes.
+ * \param capacity          The capacity to set.
+ *
+ * \return                  \c 1 on success, \c 0 on failure.
+ */
 int mbedtls_test_psa_setup_key_derivation_wrap(
     psa_key_derivation_operation_t* operation,
     mbedtls_svc_key_id_t key,
@@ -119,14 +147,55 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
     unsigned char* input2, size_t input2_length,
     size_t capacity );
 
+/** Perform a key agreement using the given key pair against its public key
+ * using psa_raw_key_agreement().
+ *
+ * The result is discarded. The purpose of this function is to smoke-test a key.
+ *
+ * In case of failure, mark the current test case as failed.
+ *
+ * \param alg               A key agreement algorithm compatible with \p key.
+ * \param key               A key that allows key agreement with \p alg.
+ *
+ * \return                  \c 1 on success, \c 0 on failure.
+ */
 psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
     psa_algorithm_t alg,
     mbedtls_svc_key_id_t key );
 
+/** Perform a key agreement using the given key pair against its public key
+ * using psa_key_derivation_raw_key().
+ *
+ * The result is discarded. The purpose of this function is to smoke-test a key.
+ *
+ * In case of failure, mark the current test case as failed.
+ *
+ * \param alg               A key agreement algorithm compatible with \p key.
+ * \param key               A key that allows key agreement with \p alg.
+ *
+ * \return                  \c 1 on success, \c 0 on failure.
+ */
 psa_status_t mbedtls_test_psa_key_agreement_with_self(
     psa_key_derivation_operation_t *operation,
     mbedtls_svc_key_id_t key );
 
+/** Perform sanity checks on the given key representation.
+ *
+ * If any of the checks fail, mark the current test case as failed.
+ *
+ * The checks depend on the key type.
+ * - All types: check the export size against maximum-size macros.
+ * - DES: parity bits.
+ * - RSA: check the ASN.1 structure and the size and parity of the integers.
+ * - ECC private or public key: exact representation length.
+ * - Montgomery public key: first byte.
+ *
+ * \param type              The key type.
+ * \param size              The key size in bits.
+ * \param exported          A buffer containing
+ *
+ * \return                  \c 1 if all checks passed, \c 0 on failure.
+ */
 int mbedtls_test_psa_exported_key_sanity_check(
     psa_key_type_t type, size_t bits,
     uint8_t *exported, size_t exported_length );

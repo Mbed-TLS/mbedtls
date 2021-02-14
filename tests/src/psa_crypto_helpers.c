@@ -63,6 +63,14 @@ void mbedtls_test_psa_purge_key_storage( void )
         psa_destroy_persistent_key( key_ids_used_in_test[i] );
     num_key_ids_used = 0;
 }
+
+void mbedtls_test_psa_purge_key_cache( void )
+{
+    size_t i;
+    for( i = 0; i < num_key_ids_used; i++ )
+        psa_purge_key( key_ids_used_in_test[i] );
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
 const char *mbedtls_test_helper_is_psa_leaking( void )

@@ -86,6 +86,7 @@ static int invalidate_psa( invalidate_method_t invalidate_method )
         case INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN:
         case INVALIDATE_BY_PURGING_WITH_SHUTDOWN:
             /* All keys must have been closed. */
+            mbedtls_test_psa_purge_key_cache( );
             PSA_DONE( );
             break;
         case INVALIDATE_BY_SHUTDOWN:

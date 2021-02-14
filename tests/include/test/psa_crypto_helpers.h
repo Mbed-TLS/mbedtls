@@ -43,6 +43,11 @@ int mbedtls_test_uses_key_id( mbedtls_svc_key_id_t key_id );
  */
 void mbedtls_test_psa_purge_key_storage( void );
 
+/** Purge the in-memory cache of persistent keys recorded with
+ * #TEST_USES_KEY_ID.
+ */
+void mbedtls_test_psa_purge_key_cache( void );
+
 /** \def TEST_USES_KEY_ID
  *
  * Call this macro in a test function before potentially creating a

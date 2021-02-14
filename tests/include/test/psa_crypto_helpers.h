@@ -34,6 +34,19 @@
 #include "mbedtls/psa_util.h"
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+/* All test functions that create persistent keys must call
+ * `TEST_USES_KEY_ID( key_id )` before creating a persistent key with this
+ * identifier, and must call psa_purge_key_storage() in their cleanup
+ * code. */
+int mbedtls_test_uses_key_id( mbedtls_svc_key_id_t key_id );
+void mbedtls_test_psa_purge_key_storage( void );
+#define TEST_USES_KEY_ID( key_id )                       \
+    TEST_ASSERT( mbedtls_test_uses_key_id( key_id ) )
+#else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
+#define TEST_USES_KEY_ID( key_id ) ( (void) ( key_id ) )
+#endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
+
 #define PSA_INIT( ) PSA_ASSERT( psa_crypto_init( ) )
 
 /** Check for things that have not been cleaned up properly in the

@@ -28,6 +28,45 @@
 
 #include <psa/crypto.h>
 
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+
+#include <psa_crypto_storage.h>
+
+static mbedtls_svc_key_id_t key_ids_used_in_test[9];
+static size_t num_key_ids_used;
+
+/* Record a key id as potentially used in a test case. */
+int mbedtls_test_uses_key_id( mbedtls_svc_key_id_t key_id )
+{
+    size_t i;
+    if( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key_id ) >
+        PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
+    {
+        /* Don't touch key id values that designate non-key files. */
+        return( 1 );
+    }
+    for( i = 0; i < num_key_ids_used ; i++ )
+    {
+        if( mbedtls_svc_key_id_equal( key_id, key_ids_used_in_test[i] ) )
+            return( 1 );
+    }
+    if( num_key_ids_used == ARRAY_LENGTH( key_ids_used_in_test ) )
+        return( 0 );
+    key_ids_used_in_test[num_key_ids_used] = key_id;
+    ++num_key_ids_used;
+    return( 1 );
+}
+
+/* Destroy all key ids that may have been created by the current test case. */
+void mbedtls_test_psa_purge_key_storage( void )
+{
+    size_t i;
+    for( i = 0; i < num_key_ids_used; i++ )
+        psa_destroy_persistent_key( key_ids_used_in_test[i] );
+    num_key_ids_used = 0;
+}
+#endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
+
 const char *mbedtls_test_helper_is_psa_leaking( void )
 {
     mbedtls_psa_stats_t stats;

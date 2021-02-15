@@ -46,7 +46,7 @@ static int check_key_attributes_sanity( mbedtls_svc_key_id_t key )
     psa_key_lifetime_t lifetime;
     mbedtls_svc_key_id_t id;
     psa_key_type_t type;
-    psa_key_type_t bits;
+    size_t bits;
 
     PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
     lifetime = psa_get_key_lifetime( &attributes );

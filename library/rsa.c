@@ -811,11 +811,9 @@ static int rsa_prepare_blinding( mbedtls_rsa_context *ctx,
          * which one, we just loop and choose new values for both of them.
          * (Each iteration succeeds with overwhelming probability.) */
         ret = mbedtls_mpi_inv_mod( &ctx->Vi, &ctx->Vi, &ctx->N );
-        if( ret != 0 && ret != MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
-            goto cleanup;
-
     } while( ret == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE );
-
+    if( ret != 0 )
+        goto cleanup;
     /* Finish the computation of Vf^-1 = R * (R Vf)^-1 */
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->Vi, &ctx->Vi, &R ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->Vi, &ctx->Vi, &ctx->N ) );

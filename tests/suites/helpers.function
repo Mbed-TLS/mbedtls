@@ -568,7 +568,7 @@ int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
  * by an attempt to lock the mutex as well. A limitation of this framework is
  * that it cannot detect scenarios where there is exactly the same number of
  * calls to init and free but the calls don't match. A bug like this is
- * unlikely happen uniformly throughout the whole test suite though.
+ * unlikely to happen uniformly throughout the whole test suite though.
  *
  * If an error is detected, this framework will report what happened and the
  * test case will be marked as failed. Unfortunately, the error report cannot

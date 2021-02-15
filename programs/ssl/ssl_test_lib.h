@@ -265,8 +265,9 @@ void test_hooks_init( void );
 
 /** Check if any test hooks detected a problem.
  *
- * If a problem was detected, make sure to print an explanation to stderr,
- * either at the time of detection or during the call to this function.
+ * \note When implementing a test hook, make sure to print a message
+ *       to standard error either at the time the problem is detected
+ *       or during the execution of this function.
  *
  * \return Nonzero if a problem was detected.
  *         \c 0 if no problem was detected.

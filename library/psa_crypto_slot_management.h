@@ -25,12 +25,6 @@
 #include "psa_crypto_core.h"
 #include "psa_crypto_se.h"
 
-/* Number of key slots (plus one because 0 is not used).
- * The value is a compile-time constant for now, for simplicity. */
-#if !defined(PSA_KEY_SLOT_COUNT)
-#define PSA_KEY_SLOT_COUNT 32
-#endif
-
 /** Range of volatile key identifiers.
  *
  *  The last PSA_KEY_SLOT_COUNT identifiers of the implementation range

@@ -2,7 +2,8 @@ Features
    * Partial implementation of the PSA crypto driver interface: Mbed TLS can
      now use an external random generator instead of the library's own
      entropy collection and DRBG code. Enable MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
-     and See the documentatio of mbedtls_psa_external_get_random() for details.
-   * Applications using PSA crypto can now use its random generator in the
-     mbedtls_xxx API. See the documentation of mbedtls_psa_get_random() for
-     details.
+     and see the documentation of mbedtls_psa_external_get_random() for details.
+   * Applications using both mbedtls_xxx and psa_xxx functions (for example,
+     applications using TLS and MBEDTLS_USE_PSA_CRYPTO) can now use the PSA
+     random generator with mbedtls_xxx functions. See the documentation of
+     mbedtls_psa_get_random() for details.

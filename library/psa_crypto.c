@@ -4535,6 +4535,7 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
     else
 #endif /* MBEDTLS_CHACHAPOLY_C */
     {
+        (void) tag;
         return( PSA_ERROR_NOT_SUPPORTED );
     }
 
@@ -5041,6 +5042,7 @@ psa_status_t psa_key_derivation_output_bytes(
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF ||
         * MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
     {
+        (void) kdf_alg;
         return( PSA_ERROR_BAD_STATE );
     }
 
@@ -5525,6 +5527,9 @@ static psa_status_t psa_key_derivation_input_internal(
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
     {
         /* This can't happen unless the operation object was not initialized */
+        (void) data;
+        (void) data_length;
+        (void) kdf_alg;
         return( PSA_ERROR_BAD_STATE );
     }
 

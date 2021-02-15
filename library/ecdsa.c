@@ -470,6 +470,8 @@ static int ecdsa_sign_det_restartable( mbedtls_ecp_group *grp,
 sign:
 #endif
 #if defined(MBEDTLS_ECDSA_SIGN_ALT)
+    (void) f_rng_blind;
+    (void) p_rng_blind;
     ret = mbedtls_ecdsa_sign( grp, r, s, d, buf, blen,
                               mbedtls_hmac_drbg_random, p_rng );
 #else

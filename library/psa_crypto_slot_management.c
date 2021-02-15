@@ -45,7 +45,7 @@
 
 typedef struct
 {
-    psa_key_slot_t key_slots[PSA_KEY_SLOT_COUNT];
+    psa_key_slot_t key_slots[MBEDTLS_PSA_KEY_SLOT_COUNT];
     unsigned key_slots_initialized : 1;
 } psa_global_data_t;
 
@@ -128,13 +128,13 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
         if( status != PSA_SUCCESS )
             return( status );
 
-        for( slot_idx = 0; slot_idx < PSA_KEY_SLOT_COUNT; slot_idx++ )
+        for( slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++ )
         {
             slot = &global_data.key_slots[ slot_idx ];
             if( mbedtls_svc_key_id_equal( key, slot->attr.id ) )
                 break;
         }
-        status = ( slot_idx < PSA_KEY_SLOT_COUNT ) ?
+        status = ( slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT ) ?
                  PSA_SUCCESS : PSA_ERROR_DOES_NOT_EXIST;
     }
 
@@ -161,7 +161,7 @@ void psa_wipe_all_key_slots( void )
 {
     size_t slot_idx;
 
-    for( slot_idx = 0; slot_idx < PSA_KEY_SLOT_COUNT; slot_idx++ )
+    for( slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++ )
     {
         psa_key_slot_t *slot = &global_data.key_slots[ slot_idx ];
         slot->lock_count = 1;
@@ -184,7 +184,7 @@ psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
     }
 
     selected_slot = unlocked_persistent_key_slot = NULL;
-    for( slot_idx = 0; slot_idx < PSA_KEY_SLOT_COUNT; slot_idx++ )
+    for( slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++ )
     {
         psa_key_slot_t *slot = &global_data.key_slots[ slot_idx ];
         if( ! psa_is_key_slot_occupied( slot ) )
@@ -453,7 +453,7 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
 
     memset( stats, 0, sizeof( *stats ) );
 
-    for( slot_idx = 0; slot_idx < PSA_KEY_SLOT_COUNT; slot_idx++ )
+    for( slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++ )
     {
         const psa_key_slot_t *slot = &global_data.key_slots[ slot_idx ];
         if( psa_is_key_slot_locked( slot ) )

@@ -3671,7 +3671,7 @@
  */
 //#define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA256
 
-/** \def PSA_KEY_SLOT_COUNT
+/** \def MBEDTLS_PSA_KEY_SLOT_COUNT
  * Restrict the PSA library to supporting a maximum amount of simultaneously
  * loaded keys. A loaded key is a key stored by the PSA Crypto core as a
  * volatile key, or a persistent key which is loaded temporarily by the
@@ -3680,7 +3680,7 @@
  * If this option is unset, the library will fall back to a default value of
  * 32 keys.
  */
-//#define PSA_KEY_SLOT_COUNT 32
+//#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
 
 /* SSL Cache options */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */

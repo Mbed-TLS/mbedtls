@@ -40,8 +40,8 @@ extern "C" {
 #define PSA_CRYPTO_ITS_RANDOM_SEED_UID 0xFFFFFF52
 
 /* See config.h for definition */
-#if !defined(PSA_KEY_SLOT_COUNT)
-#define PSA_KEY_SLOT_COUNT 32
+#if !defined(MBEDTLS_PSA_KEY_SLOT_COUNT)
+#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
 #endif
 
 /** \addtogroup attributes

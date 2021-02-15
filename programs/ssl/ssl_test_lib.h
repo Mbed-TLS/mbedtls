@@ -265,9 +265,16 @@ void test_hooks_init( void );
 
 /** Check if any test hooks detected a problem.
  *
- * \note When implementing a test hook, make sure to print a message
- *       to standard error either at the time the problem is detected
- *       or during the execution of this function.
+ * If a problem was detected, it's ok for the calling program to keep going,
+ * but it should ultimately exit with an error status.
+ *
+ * \note When implementing a test hook that detects errors on its own
+ *       (as opposed to e.g. leaving the error for a memory sanitizer to
+ *       report), make sure to print a message to standard error either at
+ *       the time the problem is detected or during the execution of this
+ *       function. This function does not indicate what problem was detected,
+ *       so printing a message is the only way to provide feedback in the
+ *       logs of the calling program.
  *
  * \return Nonzero if a problem was detected.
  *         \c 0 if no problem was detected.

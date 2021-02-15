@@ -798,6 +798,17 @@ component_test_psa_crypto_key_id_encodes_owner () {
     make test
 }
 
+component_test_psa_crypto_client () {
+    msg "build: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT, make"
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CLIENT
+    make
+
+    msg "test: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT, make"
+    make test
+}
+
 component_test_zlib_make() {
     msg "build: zlib enabled, make"
     scripts/config.py set MBEDTLS_ZLIB_SUPPORT

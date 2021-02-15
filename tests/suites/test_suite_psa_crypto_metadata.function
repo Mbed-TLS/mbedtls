@@ -184,7 +184,7 @@ exit: ;
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_PSA_CRYPTO_C
+ * depends_on:MBEDTLS_PSA_CRYPTO_CLIENT
  * END_DEPENDENCIES
  */
 

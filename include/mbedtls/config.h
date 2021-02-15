@@ -1338,6 +1338,22 @@
  */
 #define MBEDTLS_PKCS1_V21
 
+/** \def MBEDTLS_PSA_CRYPTO_CLIENT
+ *
+ * Enable support for PSA crypto client.
+ *
+ * \note This option allows to include the code necessary for a PSA
+ *       crypto client when the PSA crypto implementation is not included in
+ *       the library (MBEDTLS_PSA_CRYPTO_C disabled). The code included is the
+ *       code to set and get PSA key attributes.
+ *       The development of PSA drivers partially relying on the library to
+ *       fulfill the hardware gaps is another possible usage of this option.
+ *
+ * \warning This interface is experimental and may change or be removed
+ * without notice.
+ */
+//#define MBEDTLS_PSA_CRYPTO_CLIENT
+
 /** \def MBEDTLS_PSA_CRYPTO_DRIVERS
  *
  * Enable support for the experimental PSA crypto driver interface.

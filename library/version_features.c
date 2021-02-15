@@ -438,6 +438,9 @@ static const char * const features[] = {
 #if defined(MBEDTLS_PKCS1_V21)
     "MBEDTLS_PKCS1_V21",
 #endif /* MBEDTLS_PKCS1_V21 */
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+    "MBEDTLS_PSA_CRYPTO_CLIENT",
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
     "MBEDTLS_PSA_CRYPTO_DRIVERS",
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */

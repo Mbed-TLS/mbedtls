@@ -1,0 +1,4 @@
+Changes
+   * A new library C file psa_crypto_client.c has been created to contain
+     the PSA code needed by a PSA crypto client when the PSA crypto
+     implementation is not included into the library.

@@ -5165,7 +5165,7 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
 /* Key derivation */
 /****************************************************************/
 
-#ifdef AT_LEAST_ONE_BUILTIN_KDF
+#if defined(AT_LEAST_ONE_BUILTIN_KDF)
 static psa_status_t psa_key_derivation_setup_kdf(
     psa_key_derivation_operation_t *operation,
     psa_algorithm_t kdf_alg )
@@ -5224,17 +5224,23 @@ psa_status_t psa_key_derivation_setup( psa_key_derivation_operation_t *operation
 
     if( PSA_ALG_IS_RAW_KEY_AGREEMENT( alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
-#ifdef AT_LEAST_ONE_BUILTIN_KDF
     else if( PSA_ALG_IS_KEY_AGREEMENT( alg ) )
     {
+#if defined(AT_LEAST_ONE_BUILTIN_KDF)
         psa_algorithm_t kdf_alg = PSA_ALG_KEY_AGREEMENT_GET_KDF( alg );
         status = psa_key_derivation_setup_kdf( operation, kdf_alg );
+#else
+        return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* AT_LEAST_ONE_BUILTIN_KDF */
     }
     else if( PSA_ALG_IS_KEY_DERIVATION( alg ) )
     {
+#if defined(AT_LEAST_ONE_BUILTIN_KDF)
         status = psa_key_derivation_setup_kdf( operation, alg );
+#else
+        return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* AT_LEAST_ONE_BUILTIN_KDF */
     }
-#endif
     else
         return( PSA_ERROR_INVALID_ARGUMENT );
 

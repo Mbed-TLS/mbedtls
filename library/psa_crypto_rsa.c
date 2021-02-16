@@ -24,6 +24,7 @@
 
 #include <psa/crypto.h>
 #include "psa_crypto_core.h"
+#include "psa_crypto_random_impl.h"
 #include "psa_crypto_rsa.h"
 
 #include <stdlib.h>
@@ -258,6 +259,66 @@ static psa_status_t rsa_export_public_key(
 #endif /* defined(BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
         * defined(BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
+#if defined(BUILTIN_KEY_TYPE_RSA_KEY_PAIR)
+static psa_status_t psa_rsa_read_exponent( const uint8_t *domain_parameters,
+                                           size_t domain_parameters_size,
+                                           int *exponent )
+{
+    size_t i;
+    uint32_t acc = 0;
+
+    if( domain_parameters_size == 0 )
+    {
+        *exponent = 65537;
+        return( PSA_SUCCESS );
+    }
+
+    /* Mbed TLS encodes the public exponent as an int. For simplicity, only
+     * support values that fit in a 32-bit integer, which is larger than
+     * int on just about every platform anyway. */
+    if( domain_parameters_size > sizeof( acc ) )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    for( i = 0; i < domain_parameters_size; i++ )
+        acc = ( acc << 8 ) | domain_parameters[i];
+    if( acc > INT_MAX )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    *exponent = acc;
+    return( PSA_SUCCESS );
+}
+
+static psa_status_t rsa_generate_key(
+    const psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
+{
+    psa_status_t status;
+    mbedtls_rsa_context rsa;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int exponent;
+
+    status = psa_rsa_read_exponent( attributes->domain_parameters,
+                                    attributes->domain_parameters_size,
+                                    &exponent );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_NONE );
+    ret = mbedtls_rsa_gen_key( &rsa,
+                               mbedtls_psa_get_random,
+                               MBEDTLS_PSA_RANDOM_STATE,
+                               (unsigned int)attributes->core.bits,
+                               exponent );
+    if( ret != 0 )
+        return( mbedtls_to_psa_error( ret ) );
+
+    status = mbedtls_psa_rsa_export_key( attributes->core.type,
+                                         &rsa, key_buffer, key_buffer_size,
+                                         key_buffer_length );
+    mbedtls_rsa_free( &rsa );
+
+    return( status );
+}
+#endif /* defined(BUILTIN_KEY_TYPE_RSA_KEY_PAIR) */
+
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
 
@@ -283,6 +344,16 @@ psa_status_t mbedtls_psa_rsa_export_public_key(
 
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
+
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR)
+psa_status_t mbedtls_psa_rsa_generate_key(
+    const psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
+{
+    return( rsa_generate_key( attributes, key_buffer, key_buffer_size,
+                              key_buffer_length ) );
+}
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) */
 
 /*
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
@@ -315,6 +386,16 @@ psa_status_t mbedtls_transparent_test_driver_rsa_export_public_key(
 
 #endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) ||
           defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY) */
+
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR)
+psa_status_t mbedtls_transparent_test_driver_rsa_generate_key(
+    const psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
+{
+    return( rsa_generate_key( attributes, key_buffer, key_buffer_size,
+                              key_buffer_length ) );
+}
+#endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) */
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 

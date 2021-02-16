@@ -292,6 +292,51 @@ static psa_status_t ecp_export_public_key(
 #endif /* defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
 
+#if defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR)
+static psa_status_t ecp_generate_key(
+    const psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(
+                                 attributes->core.type );
+    mbedtls_ecp_group_id grp_id =
+         mbedtls_ecc_group_of_psa( curve, attributes->core.bits, 0 );
+
+    const mbedtls_ecp_curve_info *curve_info =
+        mbedtls_ecp_curve_info_from_grp_id( grp_id );
+    mbedtls_ecp_keypair ecp;
+
+    if( attributes->domain_parameters_size != 0 )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    mbedtls_ecp_keypair_init( &ecp );
+    ret = mbedtls_ecp_gen_key( grp_id, &ecp,
+                               mbedtls_psa_get_random,
+                               MBEDTLS_PSA_RANDOM_STATE );
+    if( ret != 0 )
+    {
+        mbedtls_ecp_keypair_free( &ecp );
+        return( mbedtls_to_psa_error( ret ) );
+    }
+
+    status = mbedtls_to_psa_error(
+        mbedtls_ecp_write_key( &ecp, key_buffer, key_buffer_size ) );
+
+    mbedtls_ecp_keypair_free( &ecp );
+
+    if( status == PSA_SUCCESS )
+        *key_buffer_length = key_buffer_size;
+
+    return( status );
+}
+#endif /* defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) */
+
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
 
@@ -317,6 +362,16 @@ psa_status_t mbedtls_psa_ecp_export_public_key(
 
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
+
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR)
+psa_status_t mbedtls_psa_ecp_generate_key(
+    const psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
+{
+    return( ecp_generate_key( attributes, key_buffer, key_buffer_size,
+                              key_buffer_length ) );
+}
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) */
 
 /*
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
@@ -349,6 +404,18 @@ psa_status_t mbedtls_transparent_test_driver_ecp_export_public_key(
 
 #endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) ||
           defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) */
+
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) && \
+    defined(MBEDTLS_GENPRIME)
+psa_status_t mbedtls_transparent_test_driver_ecp_generate_key(
+    const psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
+{
+    return( ecp_generate_key( attributes, key_buffer, key_buffer_size,
+                              key_buffer_length ) );
+}
+#endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) &&
+          defined(MBEDTLS_GENPRIME) */
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 

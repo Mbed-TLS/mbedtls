@@ -1,0 +1,5 @@
+Features
+   * The PSA crypto subsystem can now be configured to use less static RAM by
+     tweaking the setting for the maximum amount of keys simultaneously in RAM.
+     MBEDTLS_PSA_KEY_SLOT_COUNT sets the maximum number of volatile keys that
+     can exist simultaneously. It has a sensible default if not overridden.

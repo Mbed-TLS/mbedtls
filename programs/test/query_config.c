@@ -2642,6 +2642,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PSA_HMAC_DRBG_MD_TYPE */
 
+#if defined(MBEDTLS_PSA_KEY_SLOT_COUNT)
+    if( strcmp( "MBEDTLS_PSA_KEY_SLOT_COUNT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_KEY_SLOT_COUNT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_KEY_SLOT_COUNT */
+
 #if defined(MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT)
     if( strcmp( "MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT", config ) == 0 )
     {

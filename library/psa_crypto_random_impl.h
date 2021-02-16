@@ -125,8 +125,18 @@ typedef struct
 } mbedtls_psa_random_context_t;
 
 /* Defined in include/mbedtls/psa_util.h so that it's visible to
- * application code. */
+ * application code. The declaration here is redundant, but included
+ * as a safety net to make it more likely that a future change that
+ * accidentally causes the implementation to diverge from the interface
+ * will be noticed. */
+/* Do not include the declaration under MSVC because it doesn't accept it
+ * ("error C2370: 'mbedtls_psa_get_random' : redefinition; different storage class").
+ * Observed with Visual Studio 2013. A known bug apparently:
+ * https://stackoverflow.com/questions/8146541/duplicate-external-static-declarations-not-allowed-in-visual-studio
+ */
+#if !defined(_MSC_VER)
 static mbedtls_f_rng_t *const mbedtls_psa_get_random;
+#endif
 
 /** The maximum number of bytes that mbedtls_psa_get_random() is expected to
  * return.

@@ -3,7 +3,7 @@
 #include "psa/crypto.h"
 #include "test/psa_crypto_helpers.h"
 
-#define INVALID_KEY_ID 0xfedcba98
+#define INVALID_KEY_ID mbedtls_svc_key_id_make( 0, 0xfedcba98 )
 
 /* END_HEADER */
 
@@ -16,7 +16,7 @@
 void import_not_supported( int key_type, data_t *key_material )
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_id_t key_id = INVALID_KEY_ID;
+    mbedtls_svc_key_id_t key_id = INVALID_KEY_ID;
 
     PSA_ASSERT( psa_crypto_init( ) );
     psa_set_key_type( &attributes, key_type );
@@ -24,7 +24,7 @@ void import_not_supported( int key_type, data_t *key_material )
                                 key_material->x, key_material->len,
                                 &key_id ),
                 PSA_ERROR_NOT_SUPPORTED );
-    TEST_EQUAL( key_id, 0 );
+    TEST_ASSERT( mbedtls_svc_key_id_equal( key_id, MBEDTLS_SVC_KEY_ID_INIT ) );
 
 exit:
     psa_destroy_key( key_id );
@@ -36,14 +36,14 @@ exit:
 void generate_not_supported( int key_type, int bits )
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_id_t key_id = INVALID_KEY_ID;
+    mbedtls_svc_key_id_t key_id = INVALID_KEY_ID;
 
     PSA_ASSERT( psa_crypto_init( ) );
     psa_set_key_type( &attributes, key_type );
     psa_set_key_bits( &attributes, bits );
     TEST_EQUAL( psa_generate_key( &attributes, &key_id ),
                 PSA_ERROR_NOT_SUPPORTED );
-    TEST_EQUAL( key_id, 0 );
+    TEST_ASSERT( mbedtls_svc_key_id_equal( key_id, MBEDTLS_SVC_KEY_ID_INIT ) );
 
 exit:
     psa_destroy_key( key_id );

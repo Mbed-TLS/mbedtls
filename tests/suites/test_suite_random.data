@@ -34,6 +34,10 @@ mbedtls_psa_get_random_length:1
 PSA classic wrapper: 256 bytes
 mbedtls_psa_get_random_length:256
 
+# An external RNG is supposed to handle arbitrary request lengths. Test it
+# with something larger than any RNG call made by Mbed TLS itself expects.
+# CTR_DRBG and HMAC_DRBG have their own maximum request lengths which may
+# be lower than the value chosen here and are tested separately.
 PSA classic wrapper: external RNG large
 depends_on:MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
 mbedtls_psa_get_random_length:1024

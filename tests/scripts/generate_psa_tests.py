@@ -21,7 +21,7 @@ import argparse
 import os
 import re
 import sys
-from typing import Iterable, List, Optional, TypeVar
+from typing import FrozenSet, Iterable, List, Optional, TypeVar
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import crypto_knowledge
@@ -54,6 +54,21 @@ def finish_family_dependencies(dependencies: List[str], bits: int) -> List[str]:
     """
     return [finish_family_dependency(dep, bits) for dep in dependencies]
 
+# A temporary hack: at the time of writing, not all dependency symbols
+# are implemented yet. Skip test cases for which the dependency symbols are
+# not available. Once all dependency symbols are available, this hack must
+# be removed so that a bug in the dependency symbols proprely leads to a test
+# failure.
+def read_implemented_dependencies(filename: str) -> FrozenSet[str]:
+    return frozenset(symbol
+                     for line in open(filename)
+                     for symbol in re.findall(r'\bPSA_WANT_\w+\b', line))
+IMPLEMENTED_DEPENDENCIES = read_implemented_dependencies('include/psa/crypto_config.h')
+def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
+    if not all(dep.lstrip('!') in IMPLEMENTED_DEPENDENCIES
+               for dep in dependencies):
+        dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
+
 def test_case_for_key_type_not_supported(
         verb: str, key_type: str, bits: int,
         dependencies: List[str],
@@ -63,6 +78,7 @@ def test_case_for_key_type_not_supported(
     """Return one test case exercising a key creation method
     for an unsupported key type or size.
     """
+    hack_dependencies_not_implemented(dependencies)
     tc = test_case.TestCase()
     short_key_type = re.sub(r'PSA_(KEY_TYPE|ECC_FAMILY)_', r'', key_type)
     adverb = 'not' if dependencies else 'never'

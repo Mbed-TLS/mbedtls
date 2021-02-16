@@ -5707,7 +5707,7 @@ void persistent_key_load_key_from_storage( data_t *data,
             break;
 
         case DERIVE_KEY:
-#if PSA_WANT_ALG_HKDF && PSA_WANT_ALG_SHA_256
+#if defined(PSA_WANT_ALG_HKDF) && defined(PSA_WANT_ALG_SHA_256)
             {
                 /* Create base key */
                 psa_algorithm_t derive_alg = PSA_ALG_HKDF( PSA_ALG_SHA_256 );

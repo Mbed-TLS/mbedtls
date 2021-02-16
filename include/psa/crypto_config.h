@@ -53,6 +53,8 @@
 #define PSA_WANT_ALG_CBC_NO_PADDING             1
 #define PSA_WANT_ALG_CBC_PKCS7                  1
 #define PSA_WANT_ALG_CFB                        1
+#define PSA_WANT_ALG_CHACHA20_POLY1305          1
+#define PSA_WANT_ALG_CTR                        1
 #define PSA_WANT_ALG_DETERMINISTIC_ECDSA        1
 #define PSA_WANT_ALG_ECB_NO_PADDING             1
 #define PSA_WANT_ALG_ECDH                       1
@@ -76,12 +78,13 @@
 #define PSA_WANT_ALG_STREAM_CIPHER              1
 #define PSA_WANT_ALG_TLS12_PRF                  1
 #define PSA_WANT_ALG_TLS12_PSK_TO_MS            1
+#define PSA_WANT_ALG_XTS                        1
 #define PSA_WANT_KEY_TYPE_DERIVE                1
 #define PSA_WANT_KEY_TYPE_HMAC                  1
-#define PSA_WANT_ALG_XTS                        1
 #define PSA_WANT_KEY_TYPE_AES                   1
 #define PSA_WANT_KEY_TYPE_ARC4                  1
 #define PSA_WANT_KEY_TYPE_CAMELLIA              1
+#define PSA_WANT_KEY_TYPE_CHACHA20              1
 #define PSA_WANT_KEY_TYPE_DES                   1
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR          1
 #define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY        1

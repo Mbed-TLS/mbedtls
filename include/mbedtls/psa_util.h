@@ -437,12 +437,12 @@ typedef int mbedtls_f_rng_t( void *p_rng, unsigned char *output, size_t output_s
 /** The random generator function for the PSA subsystem.
  *
  * This function is suitable as the `f_rng` random generator function
- * parameter of many `mbedtls_xxx` functions. It must be used in combination
- * with the random generator state #MBEDTLS_PSA_RANDOM_STATE.
+ * parameter of many `mbedtls_xxx` functions. Use #MBEDTLS_PSA_RANDOM_STATE
+ * to obtain the \p p_rng parameter.
  *
  * The implementation of this function depends on the configuration of the
  * library.
-
+ *
  * \note Depending on the configuration, this may be a function or
  *       a pointer to a function.
  *
@@ -465,6 +465,7 @@ typedef int mbedtls_f_rng_t( void *p_rng, unsigned char *output, size_t output_s
  *
  * \return              \c 0 on success.
  * \return              An `MBEDTLS_ERR_ENTROPY_xxx`,
+ *                      `MBEDTLS_ERR_PLATFORM_xxx,
  *                      `MBEDTLS_ERR_CTR_DRBG_xxx` or
  *                      `MBEDTLS_ERR_HMAC_DRBG_xxx` on error.
  */

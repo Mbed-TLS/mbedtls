@@ -288,13 +288,6 @@ int test_hooks_failure_detected( void );
  */
 void test_hooks_free( void );
 
-#else /* MBEDTLS_TEST_HOOKS */
-
-/* Define macros that do nothing, for convenience. */
-#define test_hooks_init( ) ( (void) 0 )
-#define test_hooks_failure_detected( ) 0
-#define test_hooks_free( ) ( (void) 0 )
-
 #endif /* !MBEDTLS_TEST_HOOKS */
 
 #endif /* MBEDTLS_SSL_TEST_IMPOSSIBLE conditions: else */

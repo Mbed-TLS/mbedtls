@@ -3,7 +3,12 @@
  * \brief PSA crypto random generator implementation abstraction.
  *
  * The definitions here need to be consistent with the declarations
- * in include/mbedtls/psa_util.h.
+ * in include/mbedtls/psa_util.h. This file contains some redundant
+ * declarations to increase the chance that a compiler will detect
+ * inconsistencies if one file is changed without updating the other,
+ * but not all potential inconsistencies can be enforced, so make sure
+ * to check the public declarations and contracts in
+ * include/mbedtls/psa_util.h if you modify this file.
  */
 /*
  *  Copyright The Mbed TLS Contributors
@@ -24,6 +29,8 @@
 
 #ifndef PSA_CRYPTO_RANDOM_IMPL_H
 #define PSA_CRYPTO_RANDOM_IMPL_H
+
+#include <mbedtls/psa_util.h>
 
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 
@@ -78,14 +85,6 @@ int mbedtls_psa_get_random( void *p_rng,
 
 #include "mbedtls/entropy.h"
 
-/** The type of the PSA DRBG context.
- */
-#if defined(MBEDTLS_CTR_DRBG_C)
-typedef mbedtls_ctr_drbg_context mbedtls_psa_drbg_context_t;
-#elif defined(MBEDTLS_HMAC_DRBG_C)
-typedef mbedtls_hmac_drbg_context mbedtls_psa_drbg_context_t;
-#endif
-
 /** Initialize the PSA DRBG.
  *
  * \param p_rng        Pointer to the Mbed TLS DRBG state.
@@ -125,34 +124,9 @@ typedef struct
     mbedtls_psa_drbg_context_t drbg;
 } mbedtls_psa_random_context_t;
 
-/* The type of an Mbed TLS random generator function. This should be
- * part of the public API instead of repeating the type everywhere.
- * For the time being, declare it here. Declaring a type is necessary
- * to define mbedtls_psa_get_random as a variable of a function pointer
- * type without incurring the wrath of check-names.sh. */
-typedef int mbedtls_f_rng_t( void *p_rng, unsigned char *output, size_t output_size );
-
-/** Return random data.
- *
- * This function is suitable as the \p f_rng parameter to Mbed TLS functions
- * that require a random generator. Use #MBEDTLS_PSA_RANDOM_STATE to
- * obtain the \p p_rng parameter.
- *
- * \param p_rng         The DRBG context. This must be
- *                      #MBEDTLS_PSA_RANDOM_STATE.
- * \param output        The buffer to fill.
- * \param output_len    The length of the buffer in bytes.
- *                      It must be at most #MBEDTLS_PSA_RANDOM_MAX_REQUEST.
- *
- * \retval              \c 0 on success.
- * \return              \c MBEDTLS_ERR_xxx_DRBG_xxx or
- *                      \c MBEDTLS_ERR_PLATFORM_xxx on failure.
- */
-#if defined(MBEDTLS_CTR_DRBG_C)
-static mbedtls_f_rng_t *const mbedtls_psa_get_random = mbedtls_ctr_drbg_random;
-#elif defined(MBEDTLS_HMAC_DRBG_C)
-static mbedtls_f_rng_t *const mbedtls_psa_get_random = mbedtls_hmac_drbg_random;
-#endif
+/* Defined in include/mbedtls/psa_util.h so that it's visible to
+ * application code. */
+static mbedtls_f_rng_t *const mbedtls_psa_get_random;
 
 /** The maximum number of bytes that mbedtls_psa_get_random() is expected to
  * return.
@@ -170,6 +144,9 @@ static mbedtls_f_rng_t *const mbedtls_psa_get_random = mbedtls_hmac_drbg_random;
  */
 /* psa_crypto.c sets this variable to a pointer to the DRBG state in the
  * global PSA crypto state. */
+/* The type `mbedtls_psa_drbg_context_t` is defined in
+ * include/mbedtls/psa_util.h so that `mbedtls_psa_random_state` can be
+ * declared there and be visible to application code. */
 extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
 
 /** A pointer to the PSA DRBG state.

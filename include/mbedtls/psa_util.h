@@ -420,8 +420,9 @@ static inline int mbedtls_psa_tls_ecpoint_to_psa_ec( unsigned char const *src,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /* Expose whatever RNG the PSA subsystem uses to applications using the
- * mbedtls_xxx API. The declarations here need to be consistent with the
- * implementation in library/psa_crypto_random_impl.h. */
+ * mbedtls_xxx API. The declarations and definitions here need to be
+ * consistent with the implementation in library/psa_crypto_random_impl.h.
+ * See that file for implementation documentation. */
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
 /* The type of a `f_rng` random generator function that many library functions

@@ -31,13 +31,28 @@ from mbedtls_dev import test_case
 T = TypeVar('T') #pylint: disable=invalid-name
 
 
-def psa_want_symbol(name):
+def psa_want_symbol(name: str) -> str:
     """Return the PSA_WANT_xxx symbol associated with a PSA crypto feature."""
     if name.startswith('PSA_'):
         return name[:4] + 'WANT_' + name[4:]
     else:
         raise ValueError('Unable to determine the PSA_WANT_ symbol for ' + name)
 
+def finish_family_dependency(dep: str, bits: int) -> str:
+    """Finish dep if it's a family dependency symbol prefix.
+
+    A family dependency symbol prefix is a PSA_WANT_ symbol that needs to be
+    qualified by the key size. If dep is such a symbol, finish it by adjusting
+    the prefix and appending the key size. Other symbols are left unchanged.
+    """
+    return re.sub(r'_FAMILY_(.*)', r'_\1_' + str(bits), dep)
+
+def finish_family_dependencies(dependencies: List[str], bits: int) -> List[str]:
+    """Finish any family dependency symbol prefixes.
+
+    Apply `finish_family_dependency` to each element of `dependencies`.
+    """
+    return [finish_family_dependency(dep, bits) for dep in dependencies]
 
 def test_case_for_key_type_not_supported(
         verb: str, key_type: str, bits: int,
@@ -132,7 +147,8 @@ class TestGenerator:
         test_cases = []
         for bits in kt.sizes_to_test():
             test_cases.append(test_case_for_key_type_not_supported(
-                'import', kt.expression, bits, import_dependencies,
+                'import', kt.expression, bits,
+                finish_family_dependencies(import_dependencies, bits),
                 test_case.hex_string(kt.key_material(bits)),
                 param_descr=param_descr,
             ))
@@ -142,7 +158,8 @@ class TestGenerator:
                 # only generate the test case once.
                 continue
             test_cases.append(test_case_for_key_type_not_supported(
-                'generate', kt.expression, bits, generate_dependencies,
+                'generate', kt.expression, bits,
+                finish_family_dependencies(generate_dependencies, bits),
                 str(bits),
                 param_descr=param_descr,
             ))

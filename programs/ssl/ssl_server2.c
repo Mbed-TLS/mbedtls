@@ -2684,7 +2684,7 @@ int main( int argc, char *argv[] )
 #else
         fprintf( stderr, "Warning: reproducible option used without constant time\n" );
 #endif
-#endif
+#endif  /* MBEDTLS_HAVE_TIME */
     }
     mbedtls_ssl_conf_rng( &conf, rng_get, &rng );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
@@ -4003,7 +4003,7 @@ exit:
     mbedtls_memory_buffer_alloc_status();
 #endif
     mbedtls_memory_buffer_alloc_free();
-#endif
+#endif  /* MBEDTLS_MEMORY_BUFFER_ALLOC_C */
 
     if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
     {

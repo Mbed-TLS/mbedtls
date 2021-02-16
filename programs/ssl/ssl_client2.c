@@ -703,7 +703,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_id_t key_slot = 0; /* invalid key slot */
 #endif
-#endif
+#endif  /* MBEDTLS_X509_CRT_PARSE_C */
     char *p, *q;
     const int *list;
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
@@ -1882,7 +1882,7 @@ int main( int argc, char *argv[] )
 #else
         fprintf( stderr, "Warning: reproducible option used without constant time\n" );
 #endif
-#endif
+#endif  /* MBEDTLS_HAVE_TIME */
     }
     mbedtls_ssl_conf_rng( &conf, rng_get, &rng );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
@@ -1928,7 +1928,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-#endif
+#endif  /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_ECP_C)
     if( opt.curves != NULL &&
@@ -3000,7 +3000,8 @@ exit:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_destroy_key( key_slot );
 #endif
-#endif
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
     mbedtls_ssl_session_free( &saved_session );
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );
@@ -3040,7 +3041,7 @@ exit:
     mbedtls_memory_buffer_alloc_status();
 #endif
     mbedtls_memory_buffer_alloc_free();
-#endif
+#endif  /* MBEDTLS_MEMORY_BUFFER_ALLOC_C */
 
 #if defined(_WIN32)
     if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )

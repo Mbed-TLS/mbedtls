@@ -519,7 +519,7 @@ static psa_status_t validate_unstructured_key_bit_size( psa_key_type_t type,
                 return( PSA_ERROR_INVALID_ARGUMENT );
             break;
 #endif
-#if defined(MBEDTLS_CHACHA20_C)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_CHACHA20)
         case PSA_KEY_TYPE_CHACHA20:
             if( bits != 256 )
                 return( PSA_ERROR_INVALID_ARGUMENT );
@@ -3924,7 +3924,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     {
         operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH( slot->attr.type );
     }
-#if defined(MBEDTLS_CHACHA20_C)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_CHACHA20)
     else
     if( alg == PSA_ALG_STREAM_CIPHER && slot->attr.type == PSA_KEY_TYPE_CHACHA20 )
         operation->iv_size = 12;

@@ -19,15 +19,9 @@
 import binascii
 import os
 import sys
-from typing import Any, Iterable, List, Optional
-import typing_extensions #pylint: disable=import-error
+from typing import Iterable, List, Optional
 
-class Writable(typing_extensions.Protocol):
-    """Abstract class for typing hints."""
-    # pylint: disable=no-self-use,too-few-public-methods,unused-argument
-    def write(self, text: str) -> Any:
-        ...
-
+from mbedtls_dev import typing_util
 
 def hex_string(data: bytes) -> str:
     return '"' + binascii.hexlify(data).decode('ascii') + '"'
@@ -70,7 +64,7 @@ class TestCase:
         if self.function is None:
             raise MissingFunction
 
-    def write(self, out: Writable) -> None:
+    def write(self, out: typing_util.Writable) -> None:
         """Write the .data file paragraph for this test case.
 
         The output starts and ends with a single newline character. If the

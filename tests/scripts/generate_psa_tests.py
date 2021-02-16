@@ -73,7 +73,7 @@ def test_case_for_key_type_not_supported(
         verb: str, key_type: str, bits: int,
         dependencies: List[str],
         *args: str,
-        param_descr: str = '',
+        param_descr: str = ''
 ) -> test_case.TestCase:
     """Return one test case exercising a key creation method
     for an unsupported key type or size.

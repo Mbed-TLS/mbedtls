@@ -5999,6 +5999,8 @@ static psa_status_t psa_validate_key_type_and_size_for_key_generation(
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR)
     if( PSA_KEY_TYPE_IS_ECC( type ) && PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
     {
+        /* To avoid empty block, return successfully here. */
+        return( PSA_SUCCESS );
     }
     else
 #endif /* defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) */

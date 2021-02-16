@@ -80,22 +80,6 @@ PSA generate CHACHA20 256-bit not supported
 depends_on:!PSA_WANT_KEY_TYPE_CHACHA20
 generate_not_supported:PSA_KEY_TYPE_CHACHA20:256
 
-PSA import DERIVE 120-bit not supported
-depends_on:!PSA_WANT_KEY_TYPE_DERIVE
-import_not_supported:PSA_KEY_TYPE_DERIVE:"48657265006973206b6579a0646174"
-
-PSA generate DERIVE 120-bit not supported
-depends_on:!PSA_WANT_KEY_TYPE_DERIVE
-generate_not_supported:PSA_KEY_TYPE_DERIVE:120
-
-PSA import DERIVE 128-bit not supported
-depends_on:!PSA_WANT_KEY_TYPE_DERIVE
-import_not_supported:PSA_KEY_TYPE_DERIVE:"48657265006973206b6579a064617461"
-
-PSA generate DERIVE 128-bit not supported
-depends_on:!PSA_WANT_KEY_TYPE_DERIVE
-generate_not_supported:PSA_KEY_TYPE_DERIVE:128
-
 PSA import DES 64-bit not supported
 depends_on:!PSA_WANT_KEY_TYPE_DES
 import_not_supported:PSA_KEY_TYPE_DES:"644573206b457901"

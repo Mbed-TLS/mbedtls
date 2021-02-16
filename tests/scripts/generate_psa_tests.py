@@ -119,8 +119,12 @@ class TestGenerator:
         filename = os.path.join(self.test_suite_directory, basename + '.data')
         test_case.write_data_file(filename, test_cases)
 
-    @staticmethod
+    ALWAYS_SUPPORTED = frozenset([
+        'PSA_KEY_TYPE_DERIVE',
+        'PSA_KEY_TYPE_RAW_DATA',
+    ])
     def test_cases_for_key_type_not_supported(
+            self,
             kt: crypto_knowledge.KeyType,
             param: Optional[int] = None,
             param_descr: str = '',
@@ -131,8 +135,9 @@ class TestGenerator:
         parameter not being supported. If it is absent or None, emit test cases
         conditioned on the base type not being supported.
         """
-        if kt.name == 'PSA_KEY_TYPE_RAW_DATA':
-            # This key type is always supported.
+        if kt.name in self.ALWAYS_SUPPORTED:
+            # Don't generate test cases for key types that are always supported.
+            # They would be skipped in all configurations, which is noise.
             return []
         import_dependencies = [('!' if param is None else '') +
                                psa_want_symbol(kt.name)]

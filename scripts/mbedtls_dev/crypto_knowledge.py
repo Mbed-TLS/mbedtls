@@ -30,27 +30,40 @@ class KeyType:
         """Analyze a key type.
 
         The key type must be specified in PSA syntax. In its simplest form,
-        this is a string 'PSA_KEY_TYPE_xxx' which is the name of a PSA key
+        `name` is a string 'PSA_KEY_TYPE_xxx' which is the name of a PSA key
         type macro. For key types that take arguments, the arguments can
         be passed either through the optional argument `params` or by
         passing an expression of the form 'PSA_KEY_TYPE_xxx(param1, param2)'
-        as the a string.
+        in `name` as a string.
         """
         self.name = name.strip()
+        """The key type macro name (``PSA_KEY_TYPE_xxx``).
+
+        For key types constructed from a macro with arguments, this is the
+        name of the macro, and the arguments are in `self.params`.
+        """
         if params is None:
             if '(' in self.name:
                 m = re.match(r'(\w+)\s*\((.*)\)\Z', self.name)
                 assert m is not None
                 self.name = m.group(1)
                 params = ','.split(m.group(2))
-        if params is None:
-            self.params = params
-        else:
-            self.params = [param.strip() for param in params]
+        self.params = (None if params is None else
+                       [param.strip() for param in params])
+        """The parameters of the key type, if there are any.
+
+        None if the key type is a macro without arguments.
+        """
         self.expression = self.name
+        """A C expression whose value is the key type encoding."""
         if self.params is not None:
             self.expression += '(' + ', '.join(self.params) + ')'
         self.private_type = re.sub(r'_PUBLIC_KEY\Z', r'_KEY_PAIR', self.name)
+        """The key type macro name for the corresponding key pair type.
+
+        For everything other than a public key type, this is the same as
+        `self.name`.
+        """
 
     ECC_KEY_SIZES = {
         'PSA_ECC_FAMILY_SECP_K1': (192, 224, 256),

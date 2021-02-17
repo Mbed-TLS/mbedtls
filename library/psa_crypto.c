@@ -3384,16 +3384,23 @@ psa_status_t psa_sign_hash( mbedtls_svc_key_id_t key,
         psa_key_lifetime_is_external( slot->attr.lifetime ) )
         goto exit;
 
+    psa_key_attributes_t attributes_struct = {
+       .core = slot->attr
+    };
+    psa_key_attributes_t *attributes = &attributes_struct;
+    const uint8_t *key_buffer = slot->key.data;
+    size_t key_buffer_size = slot->key.bytes;
+
     /* If the operation was not supported by any accelerator, try fallback. */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
-    if( slot->attr.type == PSA_KEY_TYPE_RSA_KEY_PAIR )
+    if( attributes->core.type == PSA_KEY_TYPE_RSA_KEY_PAIR )
     {
         mbedtls_rsa_context *rsa = NULL;
 
-        status = mbedtls_psa_rsa_load_representation( slot->attr.type,
-                                                      slot->key.data,
-                                                      slot->key.bytes,
+        status = mbedtls_psa_rsa_load_representation( attributes->core.type,
+                                                      key_buffer,
+                                                      key_buffer_size,
                                                       &rsa );
         if( status != PSA_SUCCESS )
             goto exit;
@@ -3410,7 +3417,7 @@ psa_status_t psa_sign_hash( mbedtls_svc_key_id_t key,
     else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) */
-    if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
+    if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
     {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
@@ -3423,10 +3430,10 @@ psa_status_t psa_sign_hash( mbedtls_svc_key_id_t key,
             )
         {
             mbedtls_ecp_keypair *ecp = NULL;
-            status = mbedtls_psa_ecp_load_representation( slot->attr.type,
-                                                          slot->attr.bits,
-                                                          slot->key.data,
-                                                          slot->key.bytes,
+            status = mbedtls_psa_ecp_load_representation( attributes->core.type,
+                                                          attributes->core.bits,
+                                                          key_buffer,
+                                                          key_buffer_size,
                                                           &ecp );
             if( status != PSA_SUCCESS )
                 goto exit;
@@ -3496,15 +3503,22 @@ psa_status_t psa_verify_hash( mbedtls_svc_key_id_t key,
         psa_key_lifetime_is_external( slot->attr.lifetime ) )
         goto exit;
 
+    psa_key_attributes_t attributes_struct = {
+       .core = slot->attr
+    };
+    psa_key_attributes_t *attributes = &attributes_struct;
+    const uint8_t *key_buffer = slot->key.data;
+    size_t key_buffer_size = slot->key.bytes;
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
-    if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
+    if( PSA_KEY_TYPE_IS_RSA( attributes->core.type ) )
     {
         mbedtls_rsa_context *rsa = NULL;
 
-        status = mbedtls_psa_rsa_load_representation( slot->attr.type,
-                                                      slot->key.data,
-                                                      slot->key.bytes,
+        status = mbedtls_psa_rsa_load_representation( attributes->core.type,
+                                                      key_buffer,
+                                                      key_buffer_size,
                                                       &rsa );
         if( status != PSA_SUCCESS )
             goto exit;
@@ -3520,17 +3534,17 @@ psa_status_t psa_verify_hash( mbedtls_svc_key_id_t key,
     else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) */
-    if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
+    if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
     {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
         if( PSA_ALG_IS_ECDSA( alg ) )
         {
             mbedtls_ecp_keypair *ecp = NULL;
-            status = mbedtls_psa_ecp_load_representation( slot->attr.type,
-                                                          slot->attr.bits,
-                                                          slot->key.data,
-                                                          slot->key.bytes,
+            status = mbedtls_psa_ecp_load_representation( attributes->core.type,
+                                                          attributes->core.bits,
+                                                          key_buffer,
+                                                          key_buffer_size,
                                                           &ecp );
             if( status != PSA_SUCCESS )
                 goto exit;

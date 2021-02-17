@@ -495,31 +495,31 @@ static psa_status_t validate_unstructured_key_bit_size( psa_key_type_t type,
         case PSA_KEY_TYPE_HMAC:
         case PSA_KEY_TYPE_DERIVE:
             break;
-#if defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_AES)
         case PSA_KEY_TYPE_AES:
             if( bits != 128 && bits != 192 && bits != 256 )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             break;
 #endif
-#if defined(MBEDTLS_CAMELLIA_C)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_CAMELLIA)
         case PSA_KEY_TYPE_CAMELLIA:
             if( bits != 128 && bits != 192 && bits != 256 )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             break;
 #endif
-#if defined(MBEDTLS_DES_C)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
         case PSA_KEY_TYPE_DES:
             if( bits != 64 && bits != 128 && bits != 192 )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             break;
 #endif
-#if defined(MBEDTLS_ARC4_C)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ARC4)
         case PSA_KEY_TYPE_ARC4:
             if( bits < 8 || bits > 2048 )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             break;
 #endif
-#if defined(MBEDTLS_CHACHA20_C)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_CHACHA20)
         case PSA_KEY_TYPE_CHACHA20:
             if( bits != 256 )
                 return( PSA_ERROR_INVALID_ARGUMENT );
@@ -3875,7 +3875,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     if( ret != 0 )
         goto exit;
 
-#if defined(MBEDTLS_DES_C)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
     if( slot->attr.type == PSA_KEY_TYPE_DES && key_bits == 128 )
     {
         /* Two-key Triple-DES is 3-key Triple-DES with K1=K3 */
@@ -3896,7 +3896,8 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     if( ret != 0 )
         goto exit;
 
-#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7)
     switch( alg )
     {
         case PSA_ALG_CBC_NO_PADDING:
@@ -3914,7 +3915,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     }
     if( ret != 0 )
         goto exit;
-#endif //MBEDTLS_CIPHER_MODE_WITH_PADDING
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING || MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7 */
 
     operation->block_size = ( PSA_ALG_IS_STREAM_CIPHER( alg ) ? 1 :
                               PSA_BLOCK_CIPHER_BLOCK_LENGTH( slot->attr.type ) );
@@ -3923,7 +3924,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     {
         operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH( slot->attr.type );
     }
-#if defined(MBEDTLS_CHACHA20_C)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_CHACHA20)
     else
     if( alg == PSA_ALG_STREAM_CIPHER && slot->attr.type == PSA_KEY_TYPE_CHACHA20 )
         operation->iv_size = 12;
@@ -5062,7 +5063,7 @@ exit:
     return( status );
 }
 
-#if defined(MBEDTLS_DES_C)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
 static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
 {
     if( data_size >= 8 )
@@ -5072,7 +5073,7 @@ static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
     if( data_size >= 24 )
         mbedtls_des_key_set_parity( data + 16 );
 }
-#endif /* MBEDTLS_DES_C */
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES */
 
 static psa_status_t psa_generate_derived_key_internal(
     psa_key_slot_t *slot,
@@ -5094,10 +5095,10 @@ static psa_status_t psa_generate_derived_key_internal(
     status = psa_key_derivation_output_bytes( operation, data, bytes );
     if( status != PSA_SUCCESS )
         goto exit;
-#if defined(MBEDTLS_DES_C)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
     if( slot->attr.type == PSA_KEY_TYPE_DES )
         psa_des_set_key_parity( data, bytes );
-#endif /* MBEDTLS_DES_C */
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES */
 
     status = psa_allocate_buffer_to_slot( slot, bytes );
     if( status != PSA_SUCCESS )
@@ -6028,10 +6029,10 @@ psa_status_t psa_generate_key_internal(
         if( status != PSA_SUCCESS )
             return( status );
 
-#if defined(MBEDTLS_DES_C)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
         if( type == PSA_KEY_TYPE_DES )
             psa_des_set_key_parity( key_buffer, key_buffer_size );
-#endif /* MBEDTLS_DES_C */
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES */
     }
     else
 

@@ -36,6 +36,7 @@ class KeyType:
         passing an expression of the form 'PSA_KEY_TYPE_xxx(param1, param2)'
         in `name` as a string.
         """
+
         self.name = name.strip()
         """The key type macro name (``PSA_KEY_TYPE_xxx``).
 
@@ -54,10 +55,13 @@ class KeyType:
 
         None if the key type is a macro without arguments.
         """
+        assert re.match(r'PSA_KEY_TYPE_\w+\Z', self.name)
+
         self.expression = self.name
         """A C expression whose value is the key type encoding."""
         if self.params is not None:
             self.expression += '(' + ', '.join(self.params) + ')'
+
         self.private_type = re.sub(r'_PUBLIC_KEY\Z', r'_KEY_PAIR', self.name)
         """The key type macro name for the corresponding key pair type.
 

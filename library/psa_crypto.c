@@ -3077,8 +3077,6 @@ psa_status_t psa_sign_hash_internal(
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
     uint8_t *signature, size_t signature_size, size_t *signature_length )
 {
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
     if( attributes->core.type == PSA_KEY_TYPE_RSA_KEY_PAIR )
@@ -3114,15 +3112,22 @@ psa_status_t psa_sign_hash_internal(
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
         {
-            status = PSA_ERROR_INVALID_ARGUMENT;
+            return( PSA_ERROR_INVALID_ARGUMENT );
         }
     }
     else
     {
-        status = PSA_ERROR_NOT_SUPPORTED;
-    }
+        (void)key_buffer;
+        (void)key_buffer_size;
+        (void)alg;
+        (void)hash;
+        (void)hash_length;
+        (void)signature;
+        (void)signature_size;
+        (void)signature_length;
 
-    return( status );
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
 }
 
 psa_status_t psa_sign_hash( mbedtls_svc_key_id_t key,
@@ -3190,8 +3195,6 @@ psa_status_t psa_verify_hash_internal(
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
     const uint8_t *signature, size_t signature_length )
 {
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
     if( PSA_KEY_TYPE_IS_RSA( attributes->core.type ) )
@@ -3221,17 +3224,21 @@ psa_status_t psa_verify_hash_internal(
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
         {
-            status =  PSA_ERROR_INVALID_ARGUMENT;
-            goto exit;
+            return( PSA_ERROR_INVALID_ARGUMENT );
         }
     }
     else
     {
-        status = PSA_ERROR_NOT_SUPPORTED;
-    }
+        (void)key_buffer;
+        (void)key_buffer_size;
+        (void)alg;
+        (void)hash;
+        (void)hash_length;
+        (void)signature;
+        (void)signature_length;
 
-exit:
-    return( status );
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
 }
 
 psa_status_t psa_verify_hash( mbedtls_svc_key_id_t key,

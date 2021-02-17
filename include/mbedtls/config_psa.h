@@ -224,7 +224,7 @@ extern "C" {
  * associated HW assist, define PSA_HAVE_SOFT_BLOCK_MODE for checking
  * in the block cipher key types. */
 #if (defined(PSA_WANT_ALG_CTR) && !defined(MBEDTLS_PSA_ACCEL_ALG_CTR)) || \
-    (defined(PSA_WANT_ALG_CBF) && !defined(MBEDTLS_PSA_ACCEL_ALG_CFB)) || \
+    (defined(PSA_WANT_ALG_CFB) && !defined(MBEDTLS_PSA_ACCEL_ALG_CFB)) || \
     (defined(PSA_WANT_ALG_OFB) && !defined(MBEDTLS_PSA_ACCEL_ALG_OFB)) || \
     (defined(PSA_WANT_ALG_XTS) && !defined(MBEDTLS_PSA_ACCEL_ALG_XTS)) || \
     defined(PSA_WANT_ALG_ECB_NO_PADDING) || \

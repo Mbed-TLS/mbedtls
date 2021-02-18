@@ -963,7 +963,7 @@
  *                        algorithm or if \p min_mac_length is less than 1 or
  *                        too large for the specified MAC algorithm.
  */
-#define PSA_ALG_MAC_WITH_MINIMUM_LENGTH_TAG(mac_alg, min_mac_length) \
+#define PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(mac_alg, min_mac_length) \
     ( PSA_ALG_TRUNCATED_MAC(mac_alg, min_mac_length) | PSA_ALG_MAC_MINIMUM_LENGTH_FLAG )
 
 #define PSA_ALG_CIPHER_MAC_BASE                 ((psa_algorithm_t)0x03c00000)

@@ -264,7 +264,7 @@ static psa_key_usage_t psa_get_key_usage_flags(
  * - An algorithm value permits this particular algorithm.
  * - An algorithm wildcard built from #PSA_ALG_ANY_HASH allows the specified
  *   signature scheme with any hash algorithm.
- * - An algorithm built from #PSA_ALG_MAC_WITH_MINIMUM_LENGTH_TAG allows
+ * - An algorithm built from #PSA_ALG_AT_LEAST_THIS_LENGTH_MAC allows
  *   any MAC algorithm from the same base class (e.g. CMAC) which
  *   generates/verifies a MAC length greater than or equal to the length
  *   encoded in the wildcard algorithm.

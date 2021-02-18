@@ -243,6 +243,13 @@ static int exercise_aead_key( mbedtls_svc_key_id_t key,
         nonce_length = 12;
     }
 
+    /* IV length for CCM needs to be between 7 and 13 bytes */
+    if( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) ==
+        PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ) )
+    {
+        nonce_length = 12;
+    }
+
     if( usage & PSA_KEY_USAGE_ENCRYPT )
     {
         PSA_ASSERT( psa_aead_encrypt( key, alg,

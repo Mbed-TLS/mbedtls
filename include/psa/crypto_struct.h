@@ -89,35 +89,10 @@ typedef struct {
 
 struct psa_hash_operation_s
 {
-    psa_algorithm_t alg;
-    union
-    {
-        unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
-#if defined(MBEDTLS_MD2_C)
-        mbedtls_md2_context md2;
-#endif
-#if defined(MBEDTLS_MD4_C)
-        mbedtls_md4_context md4;
-#endif
-#if defined(MBEDTLS_MD5_C)
-        mbedtls_md5_context md5;
-#endif
-#if defined(MBEDTLS_RIPEMD160_C)
-        mbedtls_ripemd160_context ripemd160;
-#endif
-#if defined(MBEDTLS_SHA1_C)
-        mbedtls_sha1_context sha1;
-#endif
-#if defined(MBEDTLS_SHA256_C)
-        mbedtls_sha256_context sha256;
-#endif
-#if defined(MBEDTLS_SHA512_C)
-        mbedtls_sha512_context sha512;
-#endif
-    } ctx;
+    psa_operation_driver_context_t ctx;
 };
 
-#define PSA_HASH_OPERATION_INIT {0, {0}}
+#define PSA_HASH_OPERATION_INIT {{0, 0}}
 static inline struct psa_hash_operation_s psa_hash_operation_init( void )
 {
     const struct psa_hash_operation_s v = PSA_HASH_OPERATION_INIT;
@@ -127,6 +102,8 @@ static inline struct psa_hash_operation_s psa_hash_operation_init( void )
 #if defined(MBEDTLS_MD_C)
 typedef struct
 {
+        /** The HMAC algorithm in use */
+        psa_algorithm_t alg;
         /** The hash context. */
         struct psa_hash_operation_s hash_ctx;
         /** The HMAC part of the context. */

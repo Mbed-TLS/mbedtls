@@ -2298,25 +2298,18 @@ psa_status_t psa_hash_compare( psa_algorithm_t alg,
                                const uint8_t *input, size_t input_length,
                                const uint8_t *hash, size_t hash_length )
 {
-    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-    status = psa_hash_setup( &operation, alg );
+    uint8_t actual_hash[MBEDTLS_MD_MAX_SIZE];
+    size_t actual_hash_length;
+    psa_status_t status = psa_hash_compute( alg, input, input_length,
+                                            actual_hash, sizeof(actual_hash),
+                                            &actual_hash_length );
     if( status != PSA_SUCCESS )
-        goto exit;
-    status = psa_hash_update( &operation, input, input_length );
-    if( status != PSA_SUCCESS )
-        goto exit;
-    status = psa_hash_verify( &operation, hash, hash_length );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-exit:
-    if( status == PSA_SUCCESS )
-        status = psa_hash_abort( &operation );
-    else
-        psa_hash_abort( &operation );
-    return( status );
+        return( status );
+    if( actual_hash_length != hash_length )
+        return( PSA_ERROR_INVALID_SIGNATURE );
+    if( safer_memcmp( hash, actual_hash, actual_hash_length ) != 0 )
+        return( PSA_ERROR_INVALID_SIGNATURE );
+    return( PSA_SUCCESS );
 }
 
 psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,

@@ -941,28 +941,30 @@
 
 /** Macro to build a MAC minimum-MAC-length wildcard algorithm.
  *
- * A mininimum-MAC-length MAC wildcard algorithm contains all MAC algorithms
+ * A mininimum-MAC-length MAC wildcard algorithm permits all MAC algorithms
  * sharing the same base algorithm, and where the (potentially truncated) MAC
  * length of the specific algorithm is equal to or larger then the wildcard
  * algorithm's minimum MAC length.
  *
- * \param mac_alg       A MAC algorithm identifier (value of type
- *                      #psa_algorithm_t such that #PSA_ALG_IS_MAC(\p mac_alg)
- *                      is true).
- * \param mac_length    Desired minimum length of the message authentication
- *                      code in bytes. This must be at most the full length of
- *                      the MAC and must be at least an implementation-specified
- *                      minimum. The implementation-specified minimum
- *                      shall not be zero.
+ * \note    When setting the minimum required MAC length to less than the
+ *          smallest MAC length allowed by the base algorithm, this effectively
+ *          becomes an 'any-MAC-length-allowed' policy for that base algorithm.
  *
- * \return              The corresponding MAC wildcard algorithm with the
- *                      specified minimum length.
- * \return              Unspecified if \p mac_alg is not a supported MAC
- *                      algorithm or if \p mac_length is too small or too large
- *                      for the specified MAC algorithm.
+ * \param mac_alg         A MAC algorithm identifier (value of type
+ *                        #psa_algorithm_t such that #PSA_ALG_IS_MAC(\p mac_alg)
+ *                        is true).
+ * \param min_mac_length  Desired minimum length of the message authentication
+ *                        code in bytes. This must be at most the untruncated
+ *                        length of the MAC and must be at least 1.
+ *
+ * \return                The corresponding MAC wildcard algorithm with the
+ *                        specified minimum length.
+ * \return                Unspecified if \p mac_alg is not a supported MAC
+ *                        algorithm or if \p min_mac_length is less than 1 or
+ *                        too large for the specified MAC algorithm.
  */
-#define PSA_ALG_MAC_WITH_MINIMUM_LENGTH_TAG(mac_alg, mac_length) \
-    ( PSA_ALG_TRUNCATED_MAC(mac_alg, mac_length) | PSA_ALG_MAC_MINIMUM_LENGTH_FLAG )
+#define PSA_ALG_MAC_WITH_MINIMUM_LENGTH_TAG(mac_alg, min_mac_length) \
+    ( PSA_ALG_TRUNCATED_MAC(mac_alg, min_mac_length) | PSA_ALG_MAC_MINIMUM_LENGTH_FLAG )
 
 #define PSA_ALG_CIPHER_MAC_BASE                 ((psa_algorithm_t)0x03c00000)
 /** The CBC-MAC construction over a block cipher
@@ -1190,25 +1192,30 @@
 
 /** Macro to build an AEAD minimum-tag-length wildcard algorithm.
  *
- * A mininimum-tag-length AEAD wildcard algorithm contains all AEAD algorithms
+ * A mininimum-tag-length AEAD wildcard algorithm permits all AEAD algorithms
  * sharing the same base algorithm, and where the tag length of the specific
  * algorithm is equal to or larger then the minimum tag length specified by the
  * wildcard algorithm.
  *
- * \param aead_alg      An AEAD algorithm identifier (value of type
- *                      #psa_algorithm_t such that #PSA_ALG_IS_AEAD(\p aead_alg)
- *                      is true).
- * \param tag_length    Desired minimum length of the authentication tag in
- *                      bytes.
+ * \note    When setting the minimum required tag length to less than the
+ *          smallest tag length allowed by the base algorithm, this effectively
+ *          becomes an 'any-tag-length-allowed' policy for that base algorithm.
  *
- * \return              The corresponding AEAD wildcard algorithm with the
- *                      specified minimum length.
- * \return              Unspecified if \p aead_alg is not a supported
- *                      AEAD algorithm or if \p tag_length is not valid
- *                      for the specified AEAD algorithm.
+ * \param aead_alg        An AEAD algorithm identifier (value of type
+ *                        #psa_algorithm_t such that
+ *                        #PSA_ALG_IS_AEAD(\p aead_alg) is true).
+ * \param min_tag_length  Desired minimum length of the authentication tag in
+ *                        bytes. This must be at least 1 and at most the largest
+ *                        allowed tag length of the algorithm.
+ *
+ * \return                The corresponding AEAD wildcard algorithm with the
+ *                        specified minimum length.
+ * \return                Unspecified if \p aead_alg is not a supported
+ *                        AEAD algorithm or if \p min_tag_length is less than 1
+ *                        or too large for the specified AEAD algorithm.
  */
-#define PSA_ALG_AEAD_WITH_MINIMUM_LENGTH_TAG(aead_alg, tag_length) \
-    ( PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, tag_length) | PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG )
+#define PSA_ALG_AEAD_WITH_MINIMUM_LENGTH_TAG(aead_alg, min_tag_length) \
+    ( PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, min_tag_length) | PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG )
 
 #define PSA_ALG_RSA_PKCS1V15_SIGN_BASE          ((psa_algorithm_t)0x06000200)
 /** RSA PKCS#1 v1.5 signature with hashing.

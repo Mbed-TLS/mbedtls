@@ -1409,14 +1409,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-    if( strcmp( "MBEDTLS_SSL_PROTO_SSL3", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_PROTO_SSL3 );
-        return( 0 );
-    }
-#endif /* MBEDTLS_SSL_PROTO_SSL3 */
-
 #if defined(MBEDTLS_SSL_PROTO_TLS1)
     if( strcmp( "MBEDTLS_SSL_PROTO_TLS1", config ) == 0 )
     {

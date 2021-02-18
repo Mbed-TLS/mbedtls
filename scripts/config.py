@@ -299,10 +299,6 @@ def crypto_adapter(adapter):
         return adapter(name, active, section)
     return continuation
 
-DEPRECATED = frozenset([
-    'MBEDTLS_SSL_PROTO_SSL3',
-])
-
 def no_deprecated_adapter(adapter):
     """Modify an adapter to disable deprecated symbols.
 
@@ -313,8 +309,6 @@ def no_deprecated_adapter(adapter):
     def continuation(name, active, section):
         if name == 'MBEDTLS_DEPRECATED_REMOVED':
             return True
-        if name in DEPRECATED:
-            return False
         if adapter is None:
             return active
         return adapter(name, active, section)

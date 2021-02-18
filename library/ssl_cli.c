@@ -1,5 +1,5 @@
 /*
- *  SSLv3/TLSv1 client-side functions
+ *  TLS client-side functions
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -599,8 +599,7 @@ static int ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
 
     *olen = 0;
 
-    if( ssl->conf->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED ||
-        ssl->conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+    if( ssl->conf->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED )
         return( 0 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3,
@@ -630,8 +629,7 @@ static int ssl_write_extended_ms_ext( mbedtls_ssl_context *ssl,
 
     *olen = 0;
 
-    if( ssl->conf->extended_ms == MBEDTLS_SSL_EXTENDED_MS_DISABLED ||
-        ssl->conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+    if( ssl->conf->extended_ms == MBEDTLS_SSL_EXTENDED_MS_DISABLED )
         return( 0 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3,
@@ -1163,7 +1161,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     /*
      * Ciphersuite list
      */
-    ciphersuites = ssl->conf->ciphersuite_list[ssl->minor_ver];
+    ciphersuites = mbedtls_ssl_get_protocol_version_ciphersuites( ssl->conf,
+                                                                ssl->minor_ver );
 
     /* Skip writing ciphersuite length for now */
     n = 0;
@@ -1619,7 +1618,6 @@ static int ssl_parse_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
                                          size_t len )
 {
     if( ssl->conf->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED ||
-        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ||
         len != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
@@ -1645,7 +1643,6 @@ static int ssl_parse_extended_ms_ext( mbedtls_ssl_context *ssl,
                                          size_t len )
 {
     if( ssl->conf->extended_ms == MBEDTLS_SSL_EXTENDED_MS_DISABLED ||
-        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ||
         len != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
@@ -2314,7 +2311,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     i = 0;
     while( 1 )
     {
-        if( ssl->conf->ciphersuite_list[ssl->minor_ver][i] == 0 )
+        if( mbedtls_ssl_get_protocol_version_ciphersuites( ssl->conf, ssl->minor_ver )[i] == 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
             mbedtls_ssl_send_alert_message(
@@ -2324,7 +2321,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
 
-        if( ssl->conf->ciphersuite_list[ssl->minor_ver][i++] ==
+        if( mbedtls_ssl_get_protocol_version_ciphersuites( ssl->conf, ssl->minor_ver )[i++] ==
             ssl->session_negotiate->ciphersuite )
         {
             break;
@@ -2841,7 +2838,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
                                     size_t pms_offset )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len_bytes = ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ? 0 : 2;
+    size_t len_bytes = 2;
     unsigned char *p = ssl->handshake->premaster + pms_offset;
     mbedtls_pk_context * peer_pk;
 
@@ -3296,8 +3293,7 @@ start_processing:
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
         if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
         {
             pk_alg = mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
@@ -3344,8 +3340,7 @@ start_processing:
         /*
          * Compute the hash that has been signed
          */
-#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
         if( md_alg == MBEDTLS_MD_NONE )
         {
             hashlen = 36;
@@ -3355,8 +3350,7 @@ start_processing:
                 return( ret );
         }
         else
-#endif /* MBEDTLS_SSL_PROTO_SSL3 || MBEDTLS_SSL_PROTO_TLS1 || \
-          MBEDTLS_SSL_PROTO_TLS1_1 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( md_alg != MBEDTLS_MD_NONE )
@@ -4174,8 +4168,7 @@ sign:
 
     ssl->handshake->calc_verify( ssl, hash, &hashlen );
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
     if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         /*
@@ -4203,8 +4196,7 @@ sign:
         }
     }
     else
-#endif /* MBEDTLS_SSL_PROTO_SSL3 || MBEDTLS_SSL_PROTO_TLS1 || \
-          MBEDTLS_SSL_PROTO_TLS1_1 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {

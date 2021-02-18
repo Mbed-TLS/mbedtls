@@ -505,10 +505,10 @@ int main( void )
     "    min_version=%%s      default: (library default: tls1)\n"       \
     "    max_version=%%s      default: (library default: tls1_2)\n"     \
     "    force_version=%%s    default: \"\" (none)\n"       \
-    "                        options: ssl3, tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
+    "                        options: tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
     "\n"                                                                \
-    "    version_suites=a,b,c,d      per-version ciphersuites\n"        \
-    "                                in order from ssl3 to tls1_2\n"    \
+    "    version_suites=a,b,c        per-version ciphersuites\n"        \
+    "                                in order from tls1 to tls1_2\n"    \
     "                                default: all enabled\n"            \
     "    force_ciphersuite=<name>    default: all enabled\n"            \
     "    query_config=<name>         return 0 if the specified\n"       \
@@ -1260,7 +1260,7 @@ int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags, exchanges_left;
     int query_config_ret = 0;
-    int version_suites[4][2];
+    int version_suites[3][2];
     io_ctx_t io_ctx;
     unsigned char* buf = 0;
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
@@ -1724,9 +1724,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "min_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_0;
-            else if( strcmp( q, "tls1" ) == 0 )
+            if( strcmp( q, "tls1" ) == 0 )
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
             else if( strcmp( q, "tls1_1" ) == 0 ||
                      strcmp( q, "dtls1" ) == 0 )
@@ -1739,9 +1737,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "max_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_0;
-            else if( strcmp( q, "tls1" ) == 0 )
+            if( strcmp( q, "tls1" ) == 0 )
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
             else if( strcmp( q, "tls1_1" ) == 0 ||
                      strcmp( q, "dtls1" ) == 0 )
@@ -1772,12 +1768,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "force_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_0;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_0;
-            }
-            else if( strcmp( q, "tls1" ) == 0 )
+            if( strcmp( q, "tls1" ) == 0 )
             {
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
@@ -2128,11 +2119,11 @@ int main( int argc, char *argv[] )
 
     if( opt.version_suites != NULL )
     {
-        const char *name[4] = { 0 };
+        const char *name[3] = { 0 };
 
         /* Parse 4-element coma-separated list */
         for( i = 0, p = (char *) opt.version_suites;
-             i < 4 && *p != '\0';
+             i < 3 && *p != '\0';
              i++ )
         {
             name[i] = p;
@@ -2144,7 +2135,7 @@ int main( int argc, char *argv[] )
                 *p++ = '\0';
         }
 
-        if( i != 4 )
+        if( i != 3 )
         {
             mbedtls_printf( "too few values for version_suites\n" );
             ret = 1;
@@ -2154,7 +2145,7 @@ int main( int argc, char *argv[] )
         memset( version_suites, 0, sizeof( version_suites ) );
 
         /* Get the suites identifiers from their name */
-        for( i = 0; i < 4; i++ )
+        for( i = 0; i < 3; i++ )
         {
             version_suites[i][0] = mbedtls_ssl_get_ciphersuite_id( name[i] );
 
@@ -2793,14 +2784,11 @@ int main( int argc, char *argv[] )
     {
         mbedtls_ssl_conf_ciphersuites_for_version( &conf, version_suites[0],
                                           MBEDTLS_SSL_MAJOR_VERSION_3,
-                                          MBEDTLS_SSL_MINOR_VERSION_0 );
+                                          MBEDTLS_SSL_MINOR_VERSION_1 );
         mbedtls_ssl_conf_ciphersuites_for_version( &conf, version_suites[1],
                                           MBEDTLS_SSL_MAJOR_VERSION_3,
-                                          MBEDTLS_SSL_MINOR_VERSION_1 );
-        mbedtls_ssl_conf_ciphersuites_for_version( &conf, version_suites[2],
-                                          MBEDTLS_SSL_MAJOR_VERSION_3,
                                           MBEDTLS_SSL_MINOR_VERSION_2 );
-        mbedtls_ssl_conf_ciphersuites_for_version( &conf, version_suites[3],
+        mbedtls_ssl_conf_ciphersuites_for_version( &conf, version_suites[2],
                                           MBEDTLS_SSL_MAJOR_VERSION_3,
                                           MBEDTLS_SSL_MINOR_VERSION_3 );
     }

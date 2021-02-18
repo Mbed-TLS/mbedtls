@@ -137,8 +137,14 @@
 /*
  * Various constants
  */
+
+/* These are the high an low bytes of ProtocolVersion as defined by:
+ * - RFC 2246: ProtocolVersion version = { 3, 1 };     // TLS v1.0
+ * - RFC 4346: ProtocolVersion version = { 3, 2 };     // TLS v1.1
+ * - RFC 5246: ProtocolVersion version = { 3, 3 };     // TLS v1.2
+ * - RFC 8446: see section 4.2.1
+ */
 #define MBEDTLS_SSL_MAJOR_VERSION_3             3
-#define MBEDTLS_SSL_MINOR_VERSION_0             0   /*!< SSL v3.0 */
 #define MBEDTLS_SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 */
 #define MBEDTLS_SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
 #define MBEDTLS_SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
@@ -296,11 +302,7 @@
 /*
  * Length of the verify data for secure renegotiation
  */
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-#define MBEDTLS_SSL_VERIFY_DATA_MAX_LEN 36
-#else
 #define MBEDTLS_SSL_VERIFY_DATA_MAX_LEN 12
-#endif
 
 /*
  * Signaling ciphersuite values (SCSV)
@@ -499,7 +501,6 @@ mbedtls_ssl_states;
 typedef enum
 {
    MBEDTLS_SSL_TLS_PRF_NONE,
-   MBEDTLS_SSL_TLS_PRF_SSL3,
    MBEDTLS_SSL_TLS_PRF_TLS1,
    MBEDTLS_SSL_TLS_PRF_SHA384,
    MBEDTLS_SSL_TLS_PRF_SHA256
@@ -961,7 +962,10 @@ struct mbedtls_ssl_config
      * Pointers
      */
 
-    const int *ciphersuite_list[4]; /*!< allowed ciphersuites per version   */
+    /** Allowed ciphersuites per version. To access list's elements, please use
+     *  \c mbedtls_ssl_get_protocol_version_ciphersuites
+     */
+    const int *ciphersuite_list[3];
 
     /** Callback for printing debug output                                  */
     void (*f_dbg)(void *, int, const char *, int, const char *);
@@ -1212,7 +1216,7 @@ struct mbedtls_ssl_context
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
     int major_ver;              /*!< equal to  MBEDTLS_SSL_MAJOR_VERSION_3    */
-    int minor_ver;              /*!< either 0 (SSL3) or 1 (TLS1.0)    */
+    int minor_ver;              /*!< one of MBEDTLS_SSL_MINOR_VERSION_x macros */
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned badmac_seen;       /*!< records with a bad MAC received    */
@@ -2557,6 +2561,17 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                    const int *ciphersuites );
 
+/**
+ * \brief               Get ciphersuite for given protocol's minor version.
+ *
+ * \param conf          The SSL configuration.
+ * \param prot_version  Protocol version. One of MBEDTLS_SSL_MINOR_VERSION_x macros.
+ * \return              Ciphersuites pointer if succesful.
+ * \return              \c NULL if no ciphersuites where found.
+ */
+const int *mbedtls_ssl_get_protocol_version_ciphersuites(
+    const mbedtls_ssl_config *conf, int prot_version );
+
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0
 #define MBEDTLS_SSL_UNEXPECTED_CID_FAIL   1
@@ -2608,8 +2623,8 @@ int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf, size_t len,
  * \param ciphersuites  0-terminated list of allowed ciphersuites
  * \param major         Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3
  *                      supported)
- * \param minor         Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
- *                      MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
+ * \param minor         Minor version number (MBEDTLS_SSL_MINOR_VERSION_1,
+ *                      MBEDTLS_SSL_MINOR_VERSION_2,
  *                      MBEDTLS_SSL_MINOR_VERSION_3 supported)
  *
  * \note                With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0
@@ -3296,8 +3311,7 @@ void mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ss
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
- * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
- *                 MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
+ * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
  *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
 void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor );
@@ -3309,15 +3323,13 @@ void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int mino
  * \note           Input outside of the SSL_MAX_XXXXX_VERSION and
  *                 SSL_MIN_XXXXX_VERSION range is ignored.
  *
- * \note           MBEDTLS_SSL_MINOR_VERSION_0 (SSL v3) should be avoided.
- *
  * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
  *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
- * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
- *                 MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
+ * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_1,
+ *                 MBEDTLS_SSL_MINOR_VERSION_2,
  *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
 void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor );
@@ -3463,7 +3475,7 @@ void mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate );
  * \brief          Enable / Disable 1/n-1 record splitting
  *                 (Default: MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED)
  *
- * \note           Only affects SSLv3 and TLS 1.0, not higher versions.
+ * \note           Only affects TLS 1.0, not higher versions.
  *                 Does not affect non-CBC ciphersuites in any version.
  *
  * \param conf     SSL configuration
@@ -3687,11 +3699,11 @@ uint32_t mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl );
 const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl );
 
 /**
- * \brief          Return the current SSL version (SSLv3/TLSv1/etc)
+ * \brief          Return the current TLS version
  *
  * \param ssl      SSL context
  *
- * \return         a string containing the SSL version
+ * \return         a string containing the TLS version
  */
 const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl );
 

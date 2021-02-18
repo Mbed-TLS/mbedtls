@@ -80,7 +80,7 @@
 #include "mbedtls/psa_util.h"
 #include "mbedtls/ripemd160.h"
 #include "mbedtls/rsa.h"
-#include "mbedtls/rsa_internal.h"
+#include "rsa_internal.h"
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"

@@ -1,5 +1,5 @@
 Features
-   * Added PSA_ALG_AEAD_WITH_MINIMUM_LENGTH_TAG and
+   * Added PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG and
      PSA_ALG_AT_LEAST_THIS_LENGTH_MAC as wildcard algorithms in PSA Crypto.
      These algorithm values describe that a key is allowed to be used with any
      algorithm that matches the specified base algorithm (e.g PSA_ALG_CCM for

@@ -689,7 +689,7 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
         if( ( ( alg1 & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) &&
             ( ( alg2 & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) )
         {
-            return( PSA_ALG_AEAD_WITH_MINIMUM_LENGTH_TAG( alg1, max_len ) );
+            return( PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG( alg1, max_len ) );
         }
         /* If only one is a wildcard, return specific algorithm if compatible. */
         if( ( ( alg1 & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) &&

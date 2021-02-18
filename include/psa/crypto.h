@@ -268,8 +268,8 @@ static psa_key_usage_t psa_get_key_usage_flags(
  *   any MAC algorithm from the same base class (e.g. CMAC) which
  *   generates/verifies a MAC length greater than or equal to the length
  *   encoded in the wildcard algorithm.
- * - An algorithm built from #PSA_ALG_AEAD_WITH_MINIMUM_LENGTH_TAG allows
- *   any AEAD algorithm from the same base class (e.g. CCM) which
+ * - An algorithm built from #PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG
+ *   allows any AEAD algorithm from the same base class (e.g. CCM) which
  *   generates/verifies a tag length greater than or equal to the length
  *   encoded in the wildcard algorithm.
  *

@@ -1214,7 +1214,7 @@
  *                        AEAD algorithm or if \p min_tag_length is less than 1
  *                        or too large for the specified AEAD algorithm.
  */
-#define PSA_ALG_AEAD_WITH_MINIMUM_LENGTH_TAG(aead_alg, min_tag_length) \
+#define PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(aead_alg, min_tag_length) \
     ( PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, min_tag_length) | PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG )
 
 #define PSA_ALG_RSA_PKCS1V15_SIGN_BASE          ((psa_algorithm_t)0x06000200)

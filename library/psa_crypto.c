@@ -663,78 +663,78 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
     /* Common case: both sides actually specify the same policy. */
     if( alg1 == alg2 )
         return( alg1 );
-    /* Special case: one or both sides contain a wildcard. */
-    if( PSA_ALG_IS_WILDCARD( alg1 ) || PSA_ALG_IS_WILDCARD( alg2 ) )
+    /* If the policies are from the same hash-and-sign family, check
+     * if one is a wildcard. If so the other has the specific algorithm. */
+    if( PSA_ALG_IS_HASH_AND_SIGN( alg1 ) &&
+        PSA_ALG_IS_HASH_AND_SIGN( alg2 ) &&
+        ( alg1 & ~PSA_ALG_HASH_MASK ) == ( alg2 & ~PSA_ALG_HASH_MASK ) )
     {
-        /* If the policies are from the same hash-and-sign family, check
-         * if one is a wildcard. If so the other has the specific algorithm. */
-        if( PSA_ALG_IS_HASH_AND_SIGN( alg1 ) &&
-            PSA_ALG_IS_HASH_AND_SIGN( alg2 ) &&
-            ( alg1 & ~PSA_ALG_HASH_MASK ) == ( alg2 & ~PSA_ALG_HASH_MASK ) )
-        {
-            if( PSA_ALG_SIGN_GET_HASH( alg1 ) == PSA_ALG_ANY_HASH )
-                return( alg2 );
-            if( PSA_ALG_SIGN_GET_HASH( alg2 ) == PSA_ALG_ANY_HASH )
-                return( alg1 );
-        }
-        /* If the policies are from the same AEAD family, then at least one
-         * of them is a minimum-tag-length policy. Calculate the most
-         * restrictive tag length. */
-        if( PSA_ALG_IS_AEAD( alg1 ) && PSA_ALG_IS_AEAD( alg2 ) &&
-            ( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg1, 0 ) ==
-              PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg2, 0 ) ) )
-        {
-            size_t alg1_len = PSA_ALG_AEAD_GET_TAG_LENGTH( alg1 );
-            size_t alg2_len = PSA_ALG_AEAD_GET_TAG_LENGTH( alg2 );
-            size_t max_len = alg1_len > alg2_len ? alg1_len : alg2_len;
+        if( PSA_ALG_SIGN_GET_HASH( alg1 ) == PSA_ALG_ANY_HASH )
+            return( alg2 );
+        if( PSA_ALG_SIGN_GET_HASH( alg2 ) == PSA_ALG_ANY_HASH )
+            return( alg1 );
+    }
+    /* If the policies are from the same AEAD family, check whether
+     * one f them is a minimum-tag-length wildcard. Calculate the most
+     * restrictive tag length. */
+    if( PSA_ALG_IS_AEAD( alg1 ) && PSA_ALG_IS_AEAD( alg2 ) &&
+        ( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg1, 0 ) ==
+          PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg2, 0 ) ) )
+    {
+        size_t alg1_len = PSA_ALG_AEAD_GET_TAG_LENGTH( alg1 );
+        size_t alg2_len = PSA_ALG_AEAD_GET_TAG_LENGTH( alg2 );
+        size_t max_len = alg1_len > alg2_len ? alg1_len : alg2_len;
 
-            /* If both are wildcards, return most restricitve wildcard */
-            if( PSA_ALG_IS_WILDCARD( alg1 ) && PSA_ALG_IS_WILDCARD( alg2 ) )
-            {
-                return( PSA_ALG_AEAD_WITH_MINIMUM_LENGTH_TAG( alg1, max_len ) );
-            }
-            /* If only one is a wildcard, return specific algorithm if compatible. */
-            if( PSA_ALG_IS_WILDCARD( alg1 ) && (alg1_len <= alg2_len) )
-            {
-                return( alg2 );
-            }
-            if( PSA_ALG_IS_WILDCARD( alg2 ) && (alg2_len <= alg1_len) )
-            {
-                return( alg1 );
-            }
-        }
-        /* If the policies are from the same MAC family, then at least one
-         * of them is a minimum-tag-length policy. Calculate the most
-         * restrictive tag length. */
-        if( PSA_ALG_IS_MAC( alg1 ) && PSA_ALG_IS_MAC( alg2 ) &&
-            ( PSA_ALG_FULL_LENGTH_MAC( alg1 ) ==
-              PSA_ALG_FULL_LENGTH_MAC( alg2 ) ) )
+        /* If both are wildcards, return most restricitve wildcard */
+        if( ( ( alg1 & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) &&
+            ( ( alg2 & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) )
         {
-            size_t alg1_len = PSA_MAC_TRUNCATED_LENGTH( alg1 );
-            size_t alg2_len = PSA_MAC_TRUNCATED_LENGTH( alg2 );
-            size_t max_len = alg1_len > alg2_len ? alg1_len : alg2_len;
+            return( PSA_ALG_AEAD_WITH_MINIMUM_LENGTH_TAG( alg1, max_len ) );
+        }
+        /* If only one is a wildcard, return specific algorithm if compatible. */
+        if( ( ( alg1 & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) &&
+            ( alg1_len <= alg2_len ) )
+        {
+            return( alg2 );
+        }
+        if( ( ( alg2 & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) &&
+            ( alg2_len <= alg1_len ) )
+        {
+            return( alg1 );
+        }
+    }
+    /* If the policies are from the same MAC family, check whether one
+     * of them is a minimum-MAC-length policy. Calculate the most
+     * restrictive tag length. */
+    if( PSA_ALG_IS_MAC( alg1 ) && PSA_ALG_IS_MAC( alg2 ) &&
+        ( PSA_ALG_FULL_LENGTH_MAC( alg1 ) ==
+          PSA_ALG_FULL_LENGTH_MAC( alg2 ) ) )
+    {
+        size_t alg1_len = PSA_MAC_TRUNCATED_LENGTH( alg1 );
+        size_t alg2_len = PSA_MAC_TRUNCATED_LENGTH( alg2 );
+        size_t max_len = alg1_len > alg2_len ? alg1_len : alg2_len;
 
-            /* If both are wildcards, return most restricitve wildcard */
-            if( PSA_ALG_IS_WILDCARD( alg1 ) && PSA_ALG_IS_WILDCARD( alg2 ) )
-            {
-                return( PSA_ALG_MAC_WITH_MINIMUM_LENGTH_TAG( alg1, max_len ) );
-            }
-            /* If only one is a wildcard, return specific algorithm if compatible.
-             * Special case: specific MAC algorithm with '0' as length means full-
-             * length MAC, which is always allowed by a wildcard with the same
-             * base algorithm. */
-            if( PSA_ALG_IS_WILDCARD( alg1 ) &&
-                ( ( alg1_len <= alg2_len) ||
-                  ( alg2 == PSA_ALG_FULL_LENGTH_MAC( alg1 ) ) ) )
-            {
-                return( alg2 );
-            }
-            if( PSA_ALG_IS_WILDCARD( alg2 ) &&
-                ( (alg2_len <= alg1_len) ||
-                  ( alg1 == PSA_ALG_FULL_LENGTH_MAC( alg2 ) ) ) )
-            {
-                return( alg1 );
-            }
+        /* If both are wildcards, return most restricitve wildcard */
+        if( ( ( alg1 & PSA_ALG_MAC_MINIMUM_LENGTH_FLAG ) != 0 ) &&
+            ( ( alg2 & PSA_ALG_MAC_MINIMUM_LENGTH_FLAG ) != 0 ) )
+        {
+            return( PSA_ALG_MAC_WITH_MINIMUM_LENGTH_TAG( alg1, max_len ) );
+        }
+        /* If only one is a wildcard, return specific algorithm if compatible.
+         * Special case: specific MAC algorithm with '0' as length means full-
+         * length MAC, which is always allowed by a wildcard with the same
+         * base algorithm. */
+        if( ( ( alg1 & PSA_ALG_MAC_MINIMUM_LENGTH_FLAG ) != 0 ) &&
+            ( ( alg1_len <= alg2_len ) ||
+              ( alg2 == PSA_ALG_FULL_LENGTH_MAC( alg1 ) ) ) )
+        {
+            return( alg2 );
+        }
+        if( ( ( alg2 & PSA_ALG_MAC_MINIMUM_LENGTH_FLAG ) != 0 ) &&
+            ( ( alg2_len <= alg1_len ) ||
+              ( alg1 == PSA_ALG_FULL_LENGTH_MAC( alg2 ) ) ) )
+        {
+            return( alg1 );
         }
     }
     /* If the policies are incompatible, allow nothing. */
@@ -750,45 +750,43 @@ static int psa_key_algorithm_permits( psa_algorithm_t policy_alg,
     /* Common case: the policy only allows requested_alg. */
     if( requested_alg == policy_alg )
         return( 1 );
-    /* Special cases: the policy is an algorithm collection. */
-    if( PSA_ALG_IS_WILDCARD( policy_alg ) )
+    /* If policy_alg is a hash-and-sign with a wildcard for the hash,
+     * and requested_alg is the same hash-and-sign family with any hash,
+     * then requested_alg is compliant with policy_alg. */
+    if( PSA_ALG_IS_HASH_AND_SIGN( requested_alg ) &&
+        PSA_ALG_SIGN_GET_HASH( policy_alg ) == PSA_ALG_ANY_HASH )
     {
-        /* If policy_alg is a hash-and-sign with a wildcard for the hash,
-         * and requested_alg is the same hash-and-sign family with any hash,
-         * then requested_alg is compliant with policy_alg. */
-        if( PSA_ALG_IS_HASH_AND_SIGN( requested_alg ) &&
-            PSA_ALG_SIGN_GET_HASH( policy_alg ) == PSA_ALG_ANY_HASH )
-        {
-            return( ( policy_alg & ~PSA_ALG_HASH_MASK ) ==
-                    ( requested_alg & ~PSA_ALG_HASH_MASK ) );
-        }
-        /* If policy_alg is a wildcard AEAD algorithm of the same base as
-         * the requested algorithm, check the requested tag length to be
-         * equal-length or longer than the wildcard-specified length. */
-        if( PSA_ALG_IS_AEAD( policy_alg ) &&
-            PSA_ALG_IS_AEAD( requested_alg ) &&
-            ( PSA_ALG_AEAD_WITH_SHORTENED_TAG( policy_alg, 0 ) ==
-              PSA_ALG_AEAD_WITH_SHORTENED_TAG( requested_alg, 0 ) ) )
-        {
-            return( PSA_ALG_AEAD_GET_TAG_LENGTH( policy_alg ) <=
-                    PSA_ALG_AEAD_GET_TAG_LENGTH( requested_alg ) );
-        }
-        /* If policy_alg is a wildcard MAC algorithm of the same base as
-         * the requested algorithm, check the requested tag length to be
-         * equal-length or longer than the wildcard-specified length. */
-        if( PSA_ALG_IS_MAC( policy_alg ) &&
-            PSA_ALG_IS_MAC( requested_alg ) &&
-            ( PSA_ALG_FULL_LENGTH_MAC( policy_alg ) ==
-              PSA_ALG_FULL_LENGTH_MAC( requested_alg ) ) )
-        {
-            /* Special case: full-length MAC is encoded with 0-length.
-             * A minimum-length policy will always allow a full-length MAC. */
-            if( PSA_ALG_FULL_LENGTH_MAC( requested_alg ) == requested_alg )
-                return( 1 );
+        return( ( policy_alg & ~PSA_ALG_HASH_MASK ) ==
+                ( requested_alg & ~PSA_ALG_HASH_MASK ) );
+    }
+    /* If policy_alg is a wildcard AEAD algorithm of the same base as
+     * the requested algorithm, check the requested tag length to be
+     * equal-length or longer than the wildcard-specified length. */
+    if( PSA_ALG_IS_AEAD( policy_alg ) &&
+        PSA_ALG_IS_AEAD( requested_alg ) &&
+        ( PSA_ALG_AEAD_WITH_SHORTENED_TAG( policy_alg, 0 ) ==
+          PSA_ALG_AEAD_WITH_SHORTENED_TAG( requested_alg, 0 ) ) &&
+        ( ( policy_alg & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) )
+    {
+        return( PSA_ALG_AEAD_GET_TAG_LENGTH( policy_alg ) <=
+                PSA_ALG_AEAD_GET_TAG_LENGTH( requested_alg ) );
+    }
+    /* If policy_alg is a wildcard MAC algorithm of the same base as
+     * the requested algorithm, check the requested tag length to be
+     * equal-length or longer than the wildcard-specified length. */
+    if( PSA_ALG_IS_MAC( policy_alg ) &&
+        PSA_ALG_IS_MAC( requested_alg ) &&
+        ( PSA_ALG_FULL_LENGTH_MAC( policy_alg ) ==
+          PSA_ALG_FULL_LENGTH_MAC( requested_alg ) ) &&
+        ( ( policy_alg & PSA_ALG_MAC_MINIMUM_LENGTH_FLAG ) != 0 ) )
+    {
+        /* Special case: full-length MAC is encoded with 0-length.
+         * A minimum-length policy will always allow a full-length MAC. */
+        if( PSA_ALG_FULL_LENGTH_MAC( requested_alg ) == requested_alg )
+            return( 1 );
 
-            return( PSA_MAC_TRUNCATED_LENGTH( policy_alg ) <=
-                    PSA_MAC_TRUNCATED_LENGTH( requested_alg ) );
-        }
+        return( PSA_MAC_TRUNCATED_LENGTH( policy_alg ) <=
+                PSA_MAC_TRUNCATED_LENGTH( requested_alg ) );
     }
     /* If policy_alg is a generic key agreement operation, then using it for
      * a key derivation with that key agreement should also be allowed. This

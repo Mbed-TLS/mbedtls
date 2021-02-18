@@ -900,7 +900,7 @@
  *                      too large for the specified MAC algorithm.
  */
 #define PSA_ALG_TRUNCATED_MAC(mac_alg, mac_length)                      \
-    (((mac_alg) & ~PSA_ALG_MAC_TRUNCATION_MASK) |                       \
+    (((mac_alg) & ~(PSA_ALG_MAC_TRUNCATION_MASK | PSA_ALG_MAC_MINIMUM_LENGTH_FLAG)) | \
      ((mac_length) << PSA_MAC_TRUNCATION_OFFSET & PSA_ALG_MAC_TRUNCATION_MASK))
 
 /** Macro to build the base MAC algorithm corresponding to a truncated
@@ -916,7 +916,7 @@
  *                      MAC algorithm.
  */
 #define PSA_ALG_FULL_LENGTH_MAC(mac_alg)        \
-    ((mac_alg) & ~PSA_ALG_MAC_TRUNCATION_MASK)
+    ((mac_alg) & ~(PSA_ALG_MAC_TRUNCATION_MASK | PSA_ALG_MAC_MINIMUM_LENGTH_FLAG))
 
 /** Length to which a MAC algorithm is truncated.
  *
@@ -931,6 +931,34 @@
  */
 #define PSA_MAC_TRUNCATED_LENGTH(mac_alg)                               \
     (((mac_alg) & PSA_ALG_MAC_TRUNCATION_MASK) >> PSA_MAC_TRUNCATION_OFFSET)
+
+/* In the encoding of a MAC algorithm, the bit corresponding to
+ * PSA_ALG_MAC_MINIMUM_LENGTH_FLAG encodes the fact that the algorithm is
+ * a usage algorithm, which allows any algorithm corresponding to the same
+ * base class and a tag length greater or equal than the one encoded in
+ * PSA_ALG_MAC_TRUNCATION_MASK. */
+#define PSA_ALG_MAC_MINIMUM_LENGTH_FLAG         ((psa_algorithm_t)0x00008000)
+
+/** Macro to build a MAC minimum-tag-length usage algorithm.
+ *
+ * A mininimum-tag-length MAC usage algorithm contains all MAC algorithms
+ * sharing the same base algorithm, and where the tag length of the specific
+ * algorithm is equal to or larger then the usage's minimum tag length.
+ *
+ * \param mac_alg       A MAC algorithm identifier (value of type
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_MAC(\p alg)
+ *                      is true).
+ * \param tag_length    Desired minimum length of the authentication tag in
+ *                      bytes.
+ *
+ * \return              The corresponding MAC usage algorithm with the
+ *                      specified minimum length.
+ * \return              Unspecified if \p alg is not a supported
+ *                      MAC algorithm or if \p tag_length is not valid
+ *                      for the specified MAC algorithm.
+ */
+#define PSA_ALG_MAC_WITH_MINIMUM_LENGTH_TAG(mac_alg, tag_length) \
+    ( PSA_ALG_TRUNCATED_MAC(mac_alg, tag_length) | PSA_ALG_MAC_MINIMUM_LENGTH_FLAG )
 
 #define PSA_ALG_CIPHER_MAC_BASE                 ((psa_algorithm_t)0x03c00000)
 /** The CBC-MAC construction over a block cipher
@@ -1111,9 +1139,24 @@
  *                      for the specified AEAD algorithm.
  */
 #define PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, tag_length)           \
-    (((aead_alg) & ~PSA_ALG_AEAD_TAG_LENGTH_MASK) |                     \
+    (((aead_alg) & ~(PSA_ALG_AEAD_TAG_LENGTH_MASK | PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG)) | \
      ((tag_length) << PSA_AEAD_TAG_LENGTH_OFFSET &                      \
       PSA_ALG_AEAD_TAG_LENGTH_MASK))
+
+/** Retrieve the tag length of a specified AEAD algorithm
+ *
+ * \param aead_alg      An AEAD algorithm identifier (value of type
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_AEAD(\p alg)
+ *                      is true).
+ *
+ * \return              The tag length specified by the input algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      AEAD algorithm or if \p tag_length is not valid
+ *                      for the specified AEAD algorithm.
+ */
+#define PSA_ALG_AEAD_GET_TAG_LENGTH(aead_alg)                           \
+    (((aead_alg) & PSA_ALG_AEAD_TAG_LENGTH_MASK) >>                     \
+      PSA_AEAD_TAG_LENGTH_OFFSET )
 
 /** Calculate the corresponding AEAD algorithm with the default tag length.
  *
@@ -1133,6 +1176,34 @@
     PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, 0) ==                      \
     PSA_ALG_AEAD_WITH_SHORTENED_TAG(ref, 0) ?                            \
     ref :
+
+/* In the encoding of an AEAD algorithm, the bit corresponding to
+ * PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG encodes the fact that the algorithm is
+ * a usage algorithm, which allows any algorithm corresponding to the same
+ * base class and a tag length greater or equal than the one encoded in
+ * PSA_ALG_AEAD_TAG_LENGTH_MASK. */
+#define PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG        ((psa_algorithm_t)0x00008000)
+
+/** Macro to build an AEAD minimum-tag-length usage algorithm.
+ *
+ * A mininimum-tag-length AEAD usage algorithm contains all AEAD algorithms
+ * sharing the same base algorithm, and where the tag length of the specific
+ * algorithm is equal to or larger then the usage's minimum tag length.
+ *
+ * \param aead_alg      An AEAD algorithm identifier (value of type
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_AEAD(\p alg)
+ *                      is true).
+ * \param tag_length    Desired minimum length of the authentication tag in
+ *                      bytes.
+ *
+ * \return              The corresponding AEAD usage algorithm with the
+ *                      specified minimum length.
+ * \return              Unspecified if \p alg is not a supported
+ *                      AEAD algorithm or if \p tag_length is not valid
+ *                      for the specified AEAD algorithm.
+ */
+#define PSA_ALG_AEAD_WITH_MINIMUM_LENGTH_TAG(aead_alg, tag_length) \
+    ( PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, tag_length) | PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG )
 
 #define PSA_ALG_RSA_PKCS1V15_SIGN_BASE          ((psa_algorithm_t)0x06000200)
 /** RSA PKCS#1 v1.5 signature with hashing.
@@ -1580,10 +1651,14 @@
  * \return This macro may return either 0 or 1 if \c alg is not a supported
  *         algorithm identifier.
  */
-#define PSA_ALG_IS_WILDCARD(alg)                        \
-    (PSA_ALG_IS_HASH_AND_SIGN(alg) ?                    \
-     PSA_ALG_SIGN_GET_HASH(alg) == PSA_ALG_ANY_HASH :   \
-     (alg) == PSA_ALG_ANY_HASH)
+#define PSA_ALG_IS_WILDCARD(alg)                          \
+    (PSA_ALG_IS_HASH_AND_SIGN(alg) ?                      \
+     PSA_ALG_SIGN_GET_HASH(alg) == PSA_ALG_ANY_HASH :     \
+      (PSA_ALG_IS_MAC(alg) ?                              \
+        (alg & PSA_ALG_MAC_MINIMUM_LENGTH_FLAG) != 0 :    \
+        (PSA_ALG_IS_AEAD(alg) ?                           \
+          (alg & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG) != 0 : \
+          (alg) == PSA_ALG_ANY_HASH)))
 
 /**@}*/
 

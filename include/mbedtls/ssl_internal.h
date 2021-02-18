@@ -68,9 +68,6 @@
 /* Determine minimum supported version */
 #define MBEDTLS_SSL_MIN_MAJOR_VERSION           MBEDTLS_SSL_MAJOR_VERSION_3
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-#define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_0
-#else
 #if defined(MBEDTLS_SSL_PROTO_TLS1)
 #define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_1
 #else
@@ -82,7 +79,6 @@
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_1 */
 #endif /* MBEDTLS_SSL_PROTO_TLS1   */
-#endif /* MBEDTLS_SSL_PROTO_SSL3   */
 
 #define MBEDTLS_SSL_MIN_VALID_MINOR_VERSION MBEDTLS_SSL_MINOR_VERSION_1
 #define MBEDTLS_SSL_MIN_VALID_MAJOR_VERSION MBEDTLS_SSL_MAJOR_VERSION_3
@@ -99,9 +95,6 @@
 #if defined(MBEDTLS_SSL_PROTO_TLS1)
 #define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_1
 #else
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-#define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_0
-#endif /* MBEDTLS_SSL_PROTO_SSL3   */
 #endif /* MBEDTLS_SSL_PROTO_TLS1   */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_1 */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
@@ -153,8 +146,7 @@
 #define MBEDTLS_SSL_SOME_SUITES_USE_CBC
 #endif
 
-/* This macro determines whether the CBC construct used in TLS 1.0-1.2 (as
- * opposed to the very different CBC construct used in SSLv3) is supported. */
+/* This macro determines whether the CBC construct used in TLS 1.0-1.2 is supported. */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) && \
     ( defined(MBEDTLS_SSL_PROTO_TLS1) ||        \
       defined(MBEDTLS_SSL_PROTO_TLS1_1) ||      \
@@ -563,8 +555,7 @@ struct mbedtls_ssl_handshake_params
     /*
      * Checksum contexts
      */
-#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
        mbedtls_md5_context fin_md5;
       mbedtls_sha1_context fin_sha1;
 #endif
@@ -636,8 +627,8 @@ typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
  * - CBC block cipher transformations ([D]TLS versions <= 1.2 only)
  *   In addition to the distinction of the order of encryption and
  *   authentication, there's a fundamental difference between the
- *   handling in SSL3 & TLS 1.0 and TLS 1.1 and TLS 1.2: For SSL3
- *   and TLS 1.0, the final IV after processing a record is used
+ *   handling in TLS 1.0 and TLS 1.1 and TLS 1.2: For TLS 1.0,
+ *   the final IV after processing a record is used
  *   as the IV for the next record. No explicit IV is contained
  *   in an encrypted record. The IV for the first record is extracted
  *   at key extraction time. In contrast, for TLS 1.1 and 1.2, no
@@ -666,7 +657,7 @@ typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
  * - For stream/CBC, (static) encryption/decryption keys for the digest.
  * - For AEAD transformations, the size (potentially 0) of an explicit,
  *   random initialization vector placed in encrypted records.
- * - For some transformations (currently AEAD and CBC in SSL3 and TLS 1.0)
+ * - For some transformations (currently AEAD and CBC in TLS 1.0)
  *   an implicit IV. It may be static (e.g. AEAD) or dynamic (e.g. CBC)
  *   and (if present) is combined with the explicit IV in a transformation-
  *   dependent way (e.g. appending in TLS 1.2 and XOR'ing in TLS 1.3).
@@ -674,7 +665,7 @@ typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
  * - The details of the transformation depend on the SSL/TLS version.
  * - The length of the authentication tag.
  *
- * Note: Except for CBC in SSL3 and TLS 1.0, these parameters are
+ * Note: Except for CBC in TLS 1.0, these parameters are
  *       constant across multiple encryption/decryption operations.
  *       For CBC, the implicit IV needs to be updated after each
  *       operation.
@@ -691,13 +682,11 @@ typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
  * - For stream/CBC transformations, the message digest contexts
  *   used for the MAC's are stored in md_ctx_{enc/dec}. These contexts
  *   are unused for AEAD transformations.
- * - For stream/CBC transformations and versions > SSL3, the
+ * - For stream/CBC transformations and versions >= TLS 1.0, the
  *   MAC keys are not stored explicitly but maintained within
  *   md_ctx_{enc/dec}.
- * - For stream/CBC transformations and version SSL3, the MAC
- *   keys are stored explicitly in mac_enc, mac_dec and have
- *   a fixed size of 20 bytes. These fields are unused for
- *   AEAD transformations or transformations >= TLS 1.0.
+ * - The mac_enc and mac_dec fields are unused for EAD transformations or
+ *   transformations >= TLS 1.0.
  * - For transformations using an implicit IV maintained within
  *   the transformation context, its contents are stored within
  *   iv_{enc/dec}.
@@ -711,7 +700,7 @@ typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
  *   and indicates the length of the static part of the IV which is
  *   constant throughout the communication, and which is stored in
  *   the first fixed_ivlen bytes of the iv_{enc/dec} arrays.
- *   Note: For CBC in SSL3 and TLS 1.0, the fields iv_{enc/dec}
+ *   Note: For CBC in TLS 1.0, the fields iv_{enc/dec}
  *   still store IV's for continued use across multiple transformations,
  *   so it is not true that fixed_ivlen == 0 means that iv_{enc/dec} are
  *   not being used!
@@ -740,12 +729,6 @@ struct mbedtls_ssl_transform
     unsigned char iv_dec[16];           /*!<  IV (decryption)         */
 
 #if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
-
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-    /* Needed only for SSL v3.0 secret */
-    unsigned char mac_enc[20];          /*!<  SSL v3.0 secret (enc)   */
-    unsigned char mac_dec[20];          /*!<  SSL v3.0 secret (dec)   */
-#endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
     mbedtls_md_context_t md_ctx_enc;            /*!<  MAC (encryption)        */
     mbedtls_md_context_t md_ctx_dec;            /*!<  MAC (decryption)        */
@@ -1232,13 +1215,11 @@ static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t
     return( diff );
 }
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
 int mbedtls_ssl_get_key_exchange_md_ssl_tls( mbedtls_ssl_context *ssl,
                                         unsigned char *output,
                                         unsigned char *data, size_t data_len );
-#endif /* MBEDTLS_SSL_PROTO_SSL3 || MBEDTLS_SSL_PROTO_TLS1 || \
-          MBEDTLS_SSL_PROTO_TLS1_1 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)

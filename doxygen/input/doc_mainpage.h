@@ -38,7 +38,7 @@
  *
  * @section mainpage_modules Modules
  *
- * mbed TLS supports SSLv3 up to TLSv1.2 communication by providing the
+ * mbed TLS supports TLSv1.0 up to TLSv1.2 communication by providing the
  * following:
  * - TCP/IP communication functions: listen, connect, accept, read/write.
  * - SSL/TLS communication functions: init, handshake, read/write.

@@ -1383,7 +1383,7 @@
 /**
  * \def MBEDTLS_SSL_CBC_RECORD_SPLITTING
  *
- * Enable 1/n-1 record splitting for CBC mode in SSLv3 and TLS 1.0.
+ * Enable 1/n-1 record splitting for CBC mode in TLS 1.0.
  *
  * This is a countermeasure to the BEAST attack, which also minimizes the risk
  * of interoperability issues compared to sending 0-length records.
@@ -1432,18 +1432,6 @@
  * Comment this macro to disable support for the max_fragment_length extension
  */
 #define MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-
-/**
- * \def MBEDTLS_SSL_PROTO_SSL3
- *
- * Enable support for SSL 3.0.
- *
- * Requires: MBEDTLS_MD5_C
- *           MBEDTLS_SHA1_C
- *
- * Comment this macro to disable support for SSL 3.0
- */
-//#define MBEDTLS_SSL_PROTO_SSL3
 
 /**
  * \def MBEDTLS_SSL_PROTO_TLS1

@@ -127,6 +127,39 @@ psa_status_t psa_driver_wrapper_cipher_finish(
 psa_status_t psa_driver_wrapper_cipher_abort(
     psa_operation_driver_context_t *operation );
 
+/*
+ * Hashing functions
+ */
+psa_status_t psa_driver_wrapper_hash_compute(
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *hash,
+    size_t hash_size,
+    size_t *hash_length);
+
+psa_status_t psa_driver_wrapper_hash_setup(
+    psa_operation_driver_context_t *operation,
+    psa_algorithm_t alg );
+
+psa_status_t psa_driver_wrapper_hash_clone(
+    const psa_operation_driver_context_t *source_operation,
+    psa_operation_driver_context_t *target_operation );
+
+psa_status_t psa_driver_wrapper_hash_update(
+    psa_operation_driver_context_t *operation,
+    const uint8_t *input,
+    size_t input_length );
+
+psa_status_t psa_driver_wrapper_hash_finish(
+    psa_operation_driver_context_t *operation,
+    uint8_t *hash,
+    size_t hash_size,
+    size_t *hash_length );
+
+psa_status_t psa_driver_wrapper_hash_abort(
+    psa_operation_driver_context_t *operation );
+
 #endif /* PSA_CRYPTO_DRIVER_WRAPPERS_H */
 
 /* End of automatically generated file. */

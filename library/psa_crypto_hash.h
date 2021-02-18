@@ -30,6 +30,18 @@
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_MD2) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_MD4) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_MD5) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_RIPEMD160) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_1) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512)
+#define MBEDTLS_PSA_BUILTIN_HASH
+#endif
+
 typedef struct
 {
     psa_algorithm_t alg;

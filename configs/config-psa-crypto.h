@@ -1415,16 +1415,6 @@
 #define MBEDTLS_SSL_RENEGOTIATION
 
 /**
- * \def MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
- *
- * Enable support for receiving and parsing SSLv2 Client Hello messages for the
- * SSL Server module (MBEDTLS_SSL_SRV_C).
- *
- * Uncomment this macro to enable support for SSLv2 Client Hello messages.
- */
-//#define MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
-
-/**
  * \def MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE
  *
  * Pick the ciphersuite according to the client's preferences rather than ours

@@ -48,7 +48,7 @@ int main( void )
 #include "mbedtls/error.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/md.h"
-#include "mbedtls/md_internal.h"
+#include "../../library/md_internal.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/ssl_ciphersuites.h"
 

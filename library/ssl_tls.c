@@ -813,9 +813,6 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
                                    int trunc_hmac,
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 #endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-                                   int compression,
-#endif
                                    ssl_tls_prf_t tls_prf,
                                    const unsigned char randbytes[64],
                                    int minor_ver,
@@ -1300,26 +1297,6 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 
-    /* Initialize Zlib contexts */
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    if( compression == MBEDTLS_SSL_COMPRESS_DEFLATE )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Initializing zlib states" ) );
-
-        memset( &transform->ctx_deflate, 0, sizeof( transform->ctx_deflate ) );
-        memset( &transform->ctx_inflate, 0, sizeof( transform->ctx_inflate ) );
-
-        if( deflateInit( &transform->ctx_deflate,
-                         Z_DEFAULT_COMPRESSION )   != Z_OK ||
-            inflateInit( &transform->ctx_inflate ) != Z_OK )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Failed to initialize compression" ) );
-            ret = MBEDTLS_ERR_SSL_COMPRESSION_FAILED;
-            goto end;
-        }
-    }
-#endif /* MBEDTLS_ZLIB_SUPPORT */
-
 end:
     mbedtls_platform_zeroize( keyblk, sizeof( keyblk ) );
     return( ret );
@@ -1572,9 +1549,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                   ssl->session_negotiate->trunc_hmac,
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 #endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-                                  ssl->session_negotiate->compression,
-#endif
                                   ssl->handshake->tls_prf,
                                   ssl->handshake->randbytes,
                                   ssl->minor_ver,
@@ -1589,22 +1563,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     /* We no longer need Server/ClientHello.random values */
     mbedtls_platform_zeroize( ssl->handshake->randbytes,
                       sizeof( ssl->handshake->randbytes ) );
-
-    /* Allocate compression buffer */
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    if( ssl->session_negotiate->compression == MBEDTLS_SSL_COMPRESS_DEFLATE &&
-        ssl->compress_buf == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Allocating compression buffer" ) );
-        ssl->compress_buf = mbedtls_calloc( 1, MBEDTLS_SSL_COMPRESS_BUFFER_LEN );
-        if( ssl->compress_buf == NULL )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
-                                        MBEDTLS_SSL_COMPRESS_BUFFER_LEN ) );
-            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-        }
-    }
-#endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= derive keys" ) );
 
@@ -6288,9 +6246,6 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
                   ssl->session->trunc_hmac,
 #endif
 #endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-                  ssl->session->compression,
-#endif
                   ssl_tls12prf_from_cs( ssl->session->ciphersuite ),
                   p, /* currently pointing to randbytes */
                   MBEDTLS_SSL_MINOR_VERSION_3, /* (D)TLS 1.2 is forced */
@@ -6505,14 +6460,6 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
         mbedtls_free( ssl->in_buf );
         ssl->in_buf = NULL;
     }
-
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    if( ssl->compress_buf != NULL )
-    {
-        mbedtls_platform_zeroize( ssl->compress_buf, MBEDTLS_SSL_COMPRESS_BUFFER_LEN );
-        mbedtls_free( ssl->compress_buf );
-    }
-#endif
 
     if( ssl->transform )
     {

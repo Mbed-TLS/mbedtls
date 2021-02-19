@@ -597,9 +597,6 @@ static const char * const features[] = {
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     "MBEDTLS_X509_RSASSA_PSS_SUPPORT",
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    "MBEDTLS_ZLIB_SUPPORT",
-#endif /* MBEDTLS_ZLIB_SUPPORT */
 #if defined(MBEDTLS_AESNI_C)
     "MBEDTLS_AESNI_C",
 #endif /* MBEDTLS_AESNI_C */

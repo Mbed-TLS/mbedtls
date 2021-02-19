@@ -51,19 +51,6 @@
 #include "mbedtls/ecdh.h"
 #endif
 
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#warning "Record compression support via MBEDTLS_ZLIB_SUPPORT is deprecated and will be removed in the next major revision of the library"
-#endif
-
-#if defined(MBEDTLS_DEPRECATED_REMOVED)
-#error "Record compression support via MBEDTLS_ZLIB_SUPPORT is deprecated and cannot be used if MBEDTLS_DEPRECATED_REMOVED is set"
-#endif
-
-#include "zlib.h"
-#endif
-
 #if defined(MBEDTLS_HAVE_TIME)
 #include "mbedtls/platform_time.h"
 #endif
@@ -107,7 +94,6 @@
 #define MBEDTLS_ERR_SSL_ALLOC_FAILED                      -0x7F00  /**< Memory allocation failed */
 #define MBEDTLS_ERR_SSL_HW_ACCEL_FAILED                   -0x7F80  /**< Hardware acceleration function returned with error */
 #define MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH              -0x6F80  /**< Hardware acceleration function skipped / left alone data */
-#define MBEDTLS_ERR_SSL_COMPRESSION_FAILED                -0x6F00  /**< Processing of the compression / decompression failed */
 #define MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION           -0x6E80  /**< Handshake protocol not within min/max boundaries */
 #define MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET         -0x6E00  /**< Processing of the NewSessionTicket handshake message failed. */
 #define MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED            -0x6D80  /**< Session ticket has expired. */
@@ -183,7 +169,6 @@
 #define MBEDTLS_SSL_ETM_ENABLED                 1
 
 #define MBEDTLS_SSL_COMPRESS_NULL               0
-#define MBEDTLS_SSL_COMPRESS_DEFLATE            1
 
 #define MBEDTLS_SSL_VERIFY_NONE                 0
 #define MBEDTLS_SSL_VERIFY_OPTIONAL             1
@@ -1334,9 +1319,6 @@ struct mbedtls_ssl_context
     uint16_t mtu;               /*!< path mtu, used to fragment outgoing messages */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    unsigned char *compress_buf;        /*!<  zlib data buffer        */
-#endif /* MBEDTLS_ZLIB_SUPPORT */
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     signed char split_done;     /*!< current record already splitted? */
 #endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
@@ -1497,9 +1479,8 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
  *                 pointers and data.
  *
  * \param ssl      SSL context
- * \return         0 if successful, or MBEDTLS_ERR_SSL_ALLOC_FAILED,
-                   MBEDTLS_ERR_SSL_HW_ACCEL_FAILED or
- *                 MBEDTLS_ERR_SSL_COMPRESSION_FAILED
+ * \return         0 if successful, or MBEDTLS_ERR_SSL_ALLOC_FAILED or
+                   MBEDTLS_ERR_SSL_HW_ACCEL_FAILED
  */
 int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl );
 
@@ -1813,9 +1794,6 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
  *
  * \note           Values lower than the current record layer expansion will
  *                 result in an error when trying to send data.
- *
- * \note           Using record compression together with a non-zero MTU value
- *                 will result in an error when trying to send data.
  *
  * \param ssl      SSL context
  * \param mtu      Value of the path MTU in bytes
@@ -3711,14 +3689,9 @@ const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl );
  * \brief          Return the (maximum) number of bytes added by the record
  *                 layer: header + encryption/MAC overhead (inc. padding)
  *
- * \note           This function is not available (always returns an error)
- *                 when record compression is enabled.
- *
  * \param ssl      SSL context
  *
- * \return         Current maximum record expansion in bytes, or
- *                 MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if compression is
- *                 enabled, which makes expansion much less predictable
+ * \return         Current maximum record expansion in bytes
  */
 int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
 
@@ -3794,9 +3767,6 @@ MBEDTLS_DEPRECATED size_t mbedtls_ssl_get_max_frag_len(
  *                 necessary and return the number of bytes written; it is up
  *                 to the caller to call \c mbedtls_ssl_write() again in
  *                 order to send the remaining bytes if any.
- *
- * \note           This function is not available (always returns an error)
- *                 when record compression is enabled.
  *
  * \sa             mbedtls_ssl_set_mtu()
  * \sa             mbedtls_ssl_get_output_max_frag_len()

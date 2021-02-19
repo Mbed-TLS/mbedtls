@@ -1649,14 +1649,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
 
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    if( strcmp( "MBEDTLS_ZLIB_SUPPORT", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_ZLIB_SUPPORT );
-        return( 0 );
-    }
-#endif /* MBEDTLS_ZLIB_SUPPORT */
-
 #if defined(MBEDTLS_AESNI_C)
     if( strcmp( "MBEDTLS_AESNI_C", config ) == 0 )
     {

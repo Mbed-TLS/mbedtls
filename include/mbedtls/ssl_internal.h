@@ -127,15 +127,8 @@
 
 /*
  * Allow extra bytes for record, authentication and encryption overhead:
- * counter (8) + header (5) + IV(16) + MAC (16-48) + padding (0-256)
- * and allow for a maximum of 1024 of compression expansion if
- * enabled.
+ * counter (8) + header (5) + IV(16) + MAC (16-48) + padding (0-256).
  */
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-#define MBEDTLS_SSL_COMPRESSION_ADD          1024
-#else
-#define MBEDTLS_SSL_COMPRESSION_ADD             0
-#endif
 
 /* This macro determines whether CBC is supported. */
 #if defined(MBEDTLS_CIPHER_MODE_CBC) &&                               \
@@ -185,8 +178,7 @@
 #define MBEDTLS_SSL_MAX_CID_EXPANSION        0
 #endif
 
-#define MBEDTLS_SSL_PAYLOAD_OVERHEAD ( MBEDTLS_SSL_COMPRESSION_ADD +    \
-                                       MBEDTLS_MAX_IV_LENGTH +          \
+#define MBEDTLS_SSL_PAYLOAD_OVERHEAD ( MBEDTLS_MAX_IV_LENGTH +          \
                                        MBEDTLS_SSL_MAC_ADD +            \
                                        MBEDTLS_SSL_PADDING_ADD +        \
                                        MBEDTLS_SSL_MAX_CID_EXPANSION    \
@@ -290,15 +282,6 @@ static inline size_t mbedtls_ssl_get_input_buflen( const mbedtls_ssl_context *ct
                + MBEDTLS_SSL_HEADER_LEN + MBEDTLS_SSL_PAYLOAD_OVERHEAD;
 #endif
 }
-#endif
-
-#ifdef MBEDTLS_ZLIB_SUPPORT
-/* Compression buffer holds both IN and OUT buffers, so should be size of the larger */
-#define MBEDTLS_SSL_COMPRESS_BUFFER_LEN (                               \
-        ( MBEDTLS_SSL_IN_BUFFER_LEN > MBEDTLS_SSL_OUT_BUFFER_LEN )      \
-        ? MBEDTLS_SSL_IN_BUFFER_LEN                                     \
-        : MBEDTLS_SSL_OUT_BUFFER_LEN                                    \
-        )
 #endif
 
 /*
@@ -749,14 +732,6 @@ struct mbedtls_ssl_transform
     unsigned char in_cid [ MBEDTLS_SSL_CID_OUT_LEN_MAX ];
     unsigned char out_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ];
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-
-    /*
-     * Session specific compression layer
-     */
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    z_stream ctx_deflate;               /*!<  compression context     */
-    z_stream ctx_inflate;               /*!<  decompression context   */
-#endif
 
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     /* We need the Hello random bytes in order to re-derive keys from the

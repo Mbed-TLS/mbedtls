@@ -232,4 +232,63 @@ psa_status_t test_opaque_export_public_key(
     return( PSA_ERROR_NOT_SUPPORTED );
 }
 
+/* The opaque test driver exposes two built-in keys when builtin key support is
+ * compiled in.
+ * The key in slot #PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT is an AES-128 key which allows CTR mode
+ * The key in slot #PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT is a secp256r1 private key which allows ECDSA sign & verify
+ * The key buffer format for these is the raw format of psa_drv_slot_number_t
+ * (i.e. for an actual driver this would mean 'builtin_key_size' = sizeof(psa_drv_slot_number_t))
+ */
+psa_status_t test_opaque_get_builtin_key(
+    psa_drv_slot_number_t slot_number,
+    psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
+{
+#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
+    switch( slot_number )
+    {
+        case PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT:
+            if( key_buffer_size < sizeof( psa_drv_slot_number_t ) )
+                return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+            psa_set_key_type( attributes, PSA_KEY_TYPE_AES );
+            psa_set_key_bits( attributes, 128 );
+            psa_set_key_usage_flags( attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
+            psa_set_key_algorithm( attributes, PSA_ALG_CTR );
+
+            *( (psa_drv_slot_number_t*) key_buffer ) =
+                PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT;
+            *key_buffer_length = sizeof( psa_drv_slot_number_t );
+            return( PSA_SUCCESS );
+        case PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT:
+            if( key_buffer_size < sizeof( psa_drv_slot_number_t ) )
+                return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+            psa_set_key_type( attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1) );
+            psa_set_key_bits( attributes, 256 );
+            psa_set_key_usage_flags( attributes, PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH );
+            psa_set_key_algorithm( attributes, PSA_ALG_ECDSA( PSA_ALG_ANY_HASH ) );
+
+            *( (psa_drv_slot_number_t*) key_buffer) =
+                PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT;
+            *key_buffer_length = sizeof( psa_drv_slot_number_t );
+            return( PSA_SUCCESS );
+        default:
+            (void) slot_number;
+            (void) attributes;
+            (void) key_buffer;
+            (void) key_buffer_size;
+            (void) key_buffer_length;
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+#else
+    (void) slot_number;
+    (void) attributes;
+    (void) key_buffer;
+    (void) key_buffer_size;
+    (void) key_buffer_length;
+    return( PSA_ERROR_DOES_NOT_EXIST );
+#endif
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

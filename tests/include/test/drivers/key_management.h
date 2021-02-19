@@ -29,6 +29,11 @@
 #if defined(PSA_CRYPTO_DRIVER_TEST)
 #include <psa/crypto_driver_common.h>
 
+#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
+#define PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT     0
+#define PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT   1
+#endif
+
 typedef struct {
     /* If non-null, on success, copy this to the output. */
     void *forced_output;
@@ -81,6 +86,11 @@ psa_status_t test_transparent_import_key(
     size_t key_buffer_size,
     size_t *key_buffer_length,
     size_t *bits);
+
+psa_status_t test_opaque_get_builtin_key(
+    psa_drv_slot_number_t slot_number,
+    psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length );
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_TEST_DRIVERS_KEY_MANAGEMENT_H */

@@ -285,16 +285,33 @@ void mbedtls_param_failed( const char *failure_condition,
 
 #if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
 #include <psa/crypto.h>
+
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+#include "test/drivers/test_driver.h"
+#endif
+
 typedef struct
 {
     psa_key_id_t builtin_key_id;
     psa_key_location_t location;
     psa_drv_slot_number_t slot_number;
 } mbedtls_psa_builtin_key_description_t;
+
 static const mbedtls_psa_builtin_key_description_t builtin_keys[] = {
-    // TODO: declare some keys
-    {0, 0, 0},
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+    /* For testing, assign the AES builtin key slot to the boundary values.
+     * ECDSA can be exercised on key ID MBEDTLS_PSA_KEY_ID_BUILTIN_MIN + 1. */
+    {MBEDTLS_PSA_KEY_ID_BUILTIN_MIN - 1, PSA_CRYPTO_TEST_DRIVER_LIFETIME, PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT},
+    {MBEDTLS_PSA_KEY_ID_BUILTIN_MIN, PSA_CRYPTO_TEST_DRIVER_LIFETIME, PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT},
+    {MBEDTLS_PSA_KEY_ID_BUILTIN_MIN + 1, PSA_CRYPTO_TEST_DRIVER_LIFETIME, PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT},
+    {MBEDTLS_PSA_KEY_ID_BUILTIN_MAX - 1, PSA_CRYPTO_TEST_DRIVER_LIFETIME, PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT},
+    {MBEDTLS_PSA_KEY_ID_BUILTIN_MAX, PSA_CRYPTO_TEST_DRIVER_LIFETIME, PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT},
+    {MBEDTLS_PSA_KEY_ID_BUILTIN_MAX + 1, PSA_CRYPTO_TEST_DRIVER_LIFETIME, PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT},
+#else
+    {0, 0, 0}
+#endif
 };
+
 psa_status_t mbedtls_psa_platform_get_builtin_key(
     psa_key_attributes_t *attributes, psa_drv_slot_number_t *slot_number )
 {

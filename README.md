@@ -1,4 +1,4 @@
-This is a AEGIS port for the mbedTLS Library. This work was part of my master thesis in 2018. AEGIS should improve the overall security situation of modern cars. The embedded controllers should be able to use AEGIS efficiently.
+This is an AEGIS port for the mbedTLS Library. This work was part of my master thesis in 2018. AEGIS should improve the overall security situation of modern cars. The embedded controllers should be able to use AEGIS efficiently.
 
 /*
  *  The AEGIS block cipher was designed by Hongjun Wu and Bart Preneel.

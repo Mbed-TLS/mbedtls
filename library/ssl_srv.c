@@ -1575,17 +1575,6 @@ read_record_header:
                       buf + comp_offset + 1, comp_len );
 
     ssl->session_negotiate->compression = MBEDTLS_SSL_COMPRESS_NULL;
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    for( i = 0; i < comp_len; ++i )
-    {
-        if( buf[comp_offset + 1 + i] == MBEDTLS_SSL_COMPRESS_DEFLATE )
-        {
-            ssl->session_negotiate->compression = MBEDTLS_SSL_COMPRESS_DEFLATE;
-            break;
-        }
-    }
-#endif
-
     /* See comments in ssl_write_client_hello() */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )

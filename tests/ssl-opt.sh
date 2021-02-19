@@ -1186,18 +1186,6 @@ run_test    "TLS: password protected server key, two certificates" \
             "$P_CLI" \
             0
 
-requires_config_enabled MBEDTLS_ZLIB_SUPPORT
-run_test    "Default (compression enabled)" \
-            "$P_SRV debug_level=3" \
-            "$P_CLI debug_level=3" \
-            0 \
-            -s "Allocating compression buffer" \
-            -c "Allocating compression buffer" \
-            -s "Record expansion is unknown (compression)" \
-            -c "Record expansion is unknown (compression)" \
-            -S "error" \
-            -C "error"
-
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "CA callback on client" \
             "$P_SRV debug_level=3" \

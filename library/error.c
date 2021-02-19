@@ -470,8 +470,6 @@ const char * mbedtls_high_level_strerr( int error_code )
             return( "SSL - Hardware acceleration function returned with error" );
         case -(MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH):
             return( "SSL - Hardware acceleration function skipped / left alone data" );
-        case -(MBEDTLS_ERR_SSL_COMPRESSION_FAILED):
-            return( "SSL - Processing of the compression / decompression failed" );
         case -(MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION):
             return( "SSL - Handshake protocol not within min/max boundaries" );
         case -(MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET):

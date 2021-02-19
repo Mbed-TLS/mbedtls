@@ -798,45 +798,6 @@ component_test_psa_crypto_key_id_encodes_owner () {
     make test
 }
 
-component_test_zlib_make() {
-    msg "build: zlib enabled, make"
-    scripts/config.py set MBEDTLS_ZLIB_SUPPORT
-    make ZLIB=1 CFLAGS='-Werror -O1'
-
-    msg "test: main suites (zlib, make)"
-    make test
-
-    msg "test: ssl-opt.sh (zlib, make)"
-    if_build_succeeded tests/ssl-opt.sh
-}
-support_test_zlib_make () {
-    base=support_test_zlib_$$
-    cat <<'EOF' > ${base}.c
-#include "zlib.h"
-int main(void) { return 0; }
-EOF
-    gcc -o ${base}.exe ${base}.c -lz 2>/dev/null
-    ret=$?
-    rm -f ${base}.*
-    return $ret
-}
-
-component_test_zlib_cmake() {
-    msg "build: zlib enabled, cmake"
-    scripts/config.py set MBEDTLS_ZLIB_SUPPORT
-    cmake -D ENABLE_ZLIB_SUPPORT=On -D CMAKE_BUILD_TYPE:String=Check .
-    make
-
-    msg "test: main suites (zlib, cmake)"
-    make test
-
-    msg "test: ssl-opt.sh (zlib, cmake)"
-    if_build_succeeded tests/ssl-opt.sh
-}
-support_test_zlib_cmake () {
-    support_test_zlib_make "$@"
-}
-
 component_test_ref_configs () {
     msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .

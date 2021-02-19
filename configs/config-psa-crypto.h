@@ -1708,31 +1708,6 @@
  * Comment this macro to disallow using RSASSA-PSS in certificates.
  */
 #define MBEDTLS_X509_RSASSA_PSS_SUPPORT
-
-/**
- * \def MBEDTLS_ZLIB_SUPPORT
- *
- * If set, the SSL/TLS module uses ZLIB to support compression and
- * decompression of packet data.
- *
- * \warning TLS-level compression MAY REDUCE SECURITY! See for example the
- * CRIME attack. Before enabling this option, you should examine with care if
- * CRIME or similar exploits may be applicable to your use case.
- *
- * \note Currently compression can't be used with DTLS.
- *
- * \deprecated This feature is deprecated and will be removed
- *             in the next major revision of the library.
- *
- * Used in: library/ssl_tls.c
- *          library/ssl_cli.c
- *          library/ssl_srv.c
- *
- * This feature requires zlib library and headers to be present.
- *
- * Uncomment to enable use of ZLIB
- */
-//#define MBEDTLS_ZLIB_SUPPORT
 /* \} name SECTION: mbed TLS feature support */
 
 /**

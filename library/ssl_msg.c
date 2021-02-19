@@ -1758,115 +1758,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 #undef MAC_PLAINTEXT
 #undef MAC_CIPHERTEXT
 
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-/*
- * Compression/decompression functions
- */
-static int ssl_compress_buf( mbedtls_ssl_context *ssl )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *msg_post = ssl->out_msg;
-    ptrdiff_t bytes_written = ssl->out_msg - ssl->out_buf;
-    size_t len_pre = ssl->out_msglen;
-    unsigned char *msg_pre = ssl->compress_buf;
-#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
-    size_t out_buf_len = ssl->out_buf_len;
-#else
-    size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN;
-#endif
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> compress buf" ) );
-
-    if( len_pre == 0 )
-        return( 0 );
-
-    memcpy( msg_pre, ssl->out_msg, len_pre );
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "before compression: msglen = %d, ",
-                   ssl->out_msglen ) );
-
-    MBEDTLS_SSL_DEBUG_BUF( 4, "before compression: output payload",
-                   ssl->out_msg, ssl->out_msglen );
-
-    ssl->transform_out->ctx_deflate.next_in = msg_pre;
-    ssl->transform_out->ctx_deflate.avail_in = len_pre;
-    ssl->transform_out->ctx_deflate.next_out = msg_post;
-    ssl->transform_out->ctx_deflate.avail_out = out_buf_len - bytes_written;
-
-    ret = deflate( &ssl->transform_out->ctx_deflate, Z_SYNC_FLUSH );
-    if( ret != Z_OK )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "failed to perform compression (%d)", ret ) );
-        return( MBEDTLS_ERR_SSL_COMPRESSION_FAILED );
-    }
-
-    ssl->out_msglen = out_buf_len -
-                      ssl->transform_out->ctx_deflate.avail_out - bytes_written;
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "after compression: msglen = %d, ",
-                   ssl->out_msglen ) );
-
-    MBEDTLS_SSL_DEBUG_BUF( 4, "after compression: output payload",
-                   ssl->out_msg, ssl->out_msglen );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= compress buf" ) );
-
-    return( 0 );
-}
-
-static int ssl_decompress_buf( mbedtls_ssl_context *ssl )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *msg_post = ssl->in_msg;
-    ptrdiff_t header_bytes = ssl->in_msg - ssl->in_buf;
-    size_t len_pre = ssl->in_msglen;
-    unsigned char *msg_pre = ssl->compress_buf;
-#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
-    size_t in_buf_len = ssl->in_buf_len;
-#else
-    size_t in_buf_len = MBEDTLS_SSL_IN_BUFFER_LEN;
-#endif
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> decompress buf" ) );
-
-    if( len_pre == 0 )
-        return( 0 );
-
-    memcpy( msg_pre, ssl->in_msg, len_pre );
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "before decompression: msglen = %d, ",
-                   ssl->in_msglen ) );
-
-    MBEDTLS_SSL_DEBUG_BUF( 4, "before decompression: input payload",
-                   ssl->in_msg, ssl->in_msglen );
-
-    ssl->transform_in->ctx_inflate.next_in = msg_pre;
-    ssl->transform_in->ctx_inflate.avail_in = len_pre;
-    ssl->transform_in->ctx_inflate.next_out = msg_post;
-    ssl->transform_in->ctx_inflate.avail_out = in_buf_len - header_bytes;
-
-    ret = inflate( &ssl->transform_in->ctx_inflate, Z_SYNC_FLUSH );
-    if( ret != Z_OK )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "failed to perform decompression (%d)", ret ) );
-        return( MBEDTLS_ERR_SSL_COMPRESSION_FAILED );
-    }
-
-    ssl->in_msglen = in_buf_len -
-                     ssl->transform_in->ctx_inflate.avail_out - header_bytes;
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "after decompression: msglen = %d, ",
-                   ssl->in_msglen ) );
-
-    MBEDTLS_SSL_DEBUG_BUF( 4, "after decompression: input payload",
-                   ssl->in_msg, ssl->in_msglen );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= decompress buf" ) );
-
-    return( 0 );
-}
-#endif /* MBEDTLS_ZLIB_SUPPORT */
-
 /*
  * Fill the input message buffer by appending data to it.
  * The amount of data already fetched is in ssl->in_left.
@@ -2692,20 +2583,6 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
     uint8_t flush = force_flush;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write record" ) );
-
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    if( ssl->transform_out != NULL &&
-        ssl->session_out->compression == MBEDTLS_SSL_COMPRESS_DEFLATE )
-    {
-        if( ( ret = ssl_compress_buf( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_compress_buf", ret );
-            return( ret );
-        }
-
-        len = ssl->out_msglen;
-    }
-#endif /*MBEDTLS_ZLIB_SUPPORT */
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_write != NULL )
@@ -4745,26 +4622,6 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
     ssl->in_len[0] = (unsigned char)( rec.data_len >> 8 );
     ssl->in_len[1] = (unsigned char)( rec.data_len      );
 
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    if( ssl->transform_in != NULL &&
-        ssl->session_in->compression == MBEDTLS_SSL_COMPRESS_DEFLATE )
-    {
-        if( ( ret = ssl_decompress_buf( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_decompress_buf", ret );
-            return( ret );
-        }
-
-        /* Check actual (decompress) record content length against
-         * configured maximum. */
-        if( ssl->in_msglen > MBEDTLS_SSL_IN_CONTENT_LEN )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
-            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
-        }
-    }
-#endif /* MBEDTLS_ZLIB_SUPPORT */
-
     return( 0 );
 }
 
@@ -5220,11 +5077,6 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 
     if( transform == NULL )
         return( (int) out_hdr_len );
-
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    if( ssl->session_out->compression != MBEDTLS_SSL_COMPRESS_NULL )
-        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-#endif
 
     switch( mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_enc ) )
     {
@@ -5788,11 +5640,6 @@ void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform )
 {
     if( transform == NULL )
         return;
-
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    deflateEnd( &transform->ctx_deflate );
-    inflateEnd( &transform->ctx_inflate );
-#endif
 
     mbedtls_cipher_free( &transform->cipher_ctx_enc );
     mbedtls_cipher_free( &transform->cipher_ctx_dec );

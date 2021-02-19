@@ -979,7 +979,6 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     unsigned char *p, *q;
     const unsigned char *end;
 
-    unsigned char offer_compress;
     const int *ciphersuites;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
@@ -1228,45 +1227,13 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     *q++ = (unsigned char)( n >> 7 );
     *q++ = (unsigned char)( n << 1 );
 
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    offer_compress = 1;
-#else
-    offer_compress = 0;
-#endif
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 1 ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, compress alg.: %d",
+                        MBEDTLS_SSL_COMPRESS_NULL ) );
 
-    /*
-     * We don't support compression with DTLS right now: if many records come
-     * in the same datagram, uncompressing one could overwrite the next one.
-     * We don't want to add complexity for handling that case unless there is
-     * an actual need for it.
-     */
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        offer_compress = 0;
-#endif
-
-    if( offer_compress )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 2 ) );
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, compress alg.: %d %d",
-                                    MBEDTLS_SSL_COMPRESS_DEFLATE,
-                                    MBEDTLS_SSL_COMPRESS_NULL ) );
-
-        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 3 );
-        *p++ = 2;
-        *p++ = MBEDTLS_SSL_COMPRESS_DEFLATE;
-        *p++ = MBEDTLS_SSL_COMPRESS_NULL;
-    }
-    else
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 1 ) );
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, compress alg.: %d",
-                            MBEDTLS_SSL_COMPRESS_NULL ) );
-
-        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-        *p++ = 1;
-        *p++ = MBEDTLS_SSL_COMPRESS_NULL;
-    }
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
+    *p++ = 1;
+    *p++ = MBEDTLS_SSL_COMPRESS_NULL;
 
     /* First write extensions, then the total length */
 
@@ -2048,9 +2015,6 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     size_t ext_len;
     unsigned char *buf, *ext;
     unsigned char comp;
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    int accept_comp;
-#endif
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     int renegotiation_info_seen = 0;
 #endif
@@ -2219,20 +2183,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      */
     comp = buf[37 + n];
 
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    /* See comments in ssl_write_client_hello() */
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        accept_comp = 0;
-    else
-#endif
-        accept_comp = 1;
-
-    if( comp != MBEDTLS_SSL_COMPRESS_NULL &&
-        ( comp != MBEDTLS_SSL_COMPRESS_DEFLATE || accept_comp == 0 ) )
-#else /* MBEDTLS_ZLIB_SUPPORT */
     if( comp != MBEDTLS_SSL_COMPRESS_NULL )
-#endif/* MBEDTLS_ZLIB_SUPPORT */
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
             ( "server hello, bad compression: %d", comp ) );
@@ -2353,9 +2304,6 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #endif
 
     if( comp != MBEDTLS_SSL_COMPRESS_NULL
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-        && comp != MBEDTLS_SSL_COMPRESS_DEFLATE
-#endif
       )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );

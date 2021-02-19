@@ -713,6 +713,99 @@ psa_status_t mbedtls_psa_external_get_random(
 
 /**@}*/
 
+/** \defgroup psa_builtin_keys Built-in keys
+ * @{
+ */
+
+/** The minimum value for a key identifier that is built into the
+ * implementation.
+ *
+ * The range of key identifiers from #MBEDTLS_PSA_KEY_ID_BUILTIN_MIN
+ * to #MBEDTLS_PSA_KEY_ID_BUILTIN_MAX within the range from
+ * #PSA_KEY_ID_VENDOR_MIN and #PSA_KEY_ID_VENDOR_MAX and must not intersect
+ * with any other set of implementation-chosen key identifiers.
+ *
+ * This value is part of the library's ABI since changing it would invalidate
+ * the values of built-in key identifiers in applications.
+ */
+#define MBEDTLS_PSA_KEY_ID_BUILTIN_MIN          ((psa_key_id_t)0x7fff0000)
+
+/** The maximum value for a key identifier that is built into the
+ * implementation.
+ *
+ * See #MBEDTLS_PSA_KEY_ID_BUILTIN_MIN for more information.
+ */
+#define MBEDTLS_PSA_KEY_ID_BUILTIN_MAX          ((psa_key_id_t)0x7fffefff)
+
+/** A slot number identifying a key in a driver.
+ *
+ * Values of this type are used to identify built-in keys.
+ */
+typedef uint64_t psa_drv_slot_number_t;
+
+#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
+/** Test whether a key identifier belongs to the builtin key range.
+ *
+ * \param key_id  Key identifier to test.
+ *
+ * \retval 1
+ *         The key identifier is a builtin key identifier.
+ * \retval 0
+ *         The key identifier is not a builtin key identifier.
+ */
+static inline int psa_key_id_is_builtin( psa_key_id_t key_id )
+{
+    return( ( key_id >= MBEDTLS_PSA_KEY_ID_BUILTIN_MIN ) &&
+            ( key_id <= MBEDTLS_PSA_KEY_ID_BUILTIN_MAX ) );
+}
+
+/** Platform function to obtain the data of a built-in key.
+ *
+ * An application-specific implementation of this function must be provided if
+ * #MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS is enabled. This would typically provided
+ * as part of a platform's system image.
+ *
+ * Call psa_get_key_id(\p attributes) to obtain the key identifier \c key_id.
+ * #MBEDTLS_SVC_KEY_ID_GET_KEY_ID(\p key_id) is in the range from
+ * #MBEDTLS_PSA_KEY_ID_BUILTIN_MIN to #MBEDTLS_PSA_KEY_ID_BUILTIN_MAX.
+ *
+ * In a multi-application configuration
+ * (\c MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER is defined),
+ * this function should check that #MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(\p key_id)
+ * is allowed to use the given key.
+ *
+ * \param[in,out] attributes    On entry, this is #PSA_KEY_ATTRIBUTES_INIT or
+ *                              an equivalent value, except that the key
+ *                              identifier field is set.
+ *                              On successful return, this function must set
+ *                              the attributes of the key: lifetime, type,
+ *                              bit-size, usage policy.
+ * \param[out] slot_number      On successful return, this function must
+ *                              this to the slot number known to the driver for
+ *                              the lifetime location reported through
+ *                              \p attributes which corresponds to the
+ *                              requested built-in key.
+ *
+ * \retval #PSA_SUCCESS
+ *         The requested key identifier designates a built-in key.
+ *         In a multi-application configuration, the requested owner
+ *         is allowed to access it.
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
+ *         The requested key identifier is not a built-in key which is known
+ *         to this function. If a key exists in the key storage with this
+ *         identifier, the data from the storage will be used.
+ * \retval (any other error)
+ *         Any other error is propagated to the function that requested the key.
+ *         Common errors include:
+ *         - #PSA_ERROR_NOT_PERMITTED: the key exists but the requested owner
+ *           is not allowed to access it.
+ */
+psa_status_t mbedtls_psa_platform_get_builtin_key(
+    psa_key_attributes_t *attributes, psa_drv_slot_number_t *slot_number );
+#endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif

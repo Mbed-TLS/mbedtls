@@ -1226,6 +1226,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PKCS1_V21 */
 
+#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
+    if( strcmp( "MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
     if( strcmp( "MBEDTLS_PSA_CRYPTO_CLIENT", config ) == 0 )
     {

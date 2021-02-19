@@ -1338,6 +1338,22 @@
  */
 #define MBEDTLS_PKCS1_V21
 
+/** \def MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
+ *
+ * Enable support for platform built-in keys. If you enable this feature,
+ * you must implement the function mbedtls_psa_platform_get_builtin_key().
+ * See the documentation of that function for more information.
+ *
+ * Built-in keys are typically derived from a hardware unique key or
+ * stored in a secure element.
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C.
+ *
+ * \warning This interface is experimental and may change or be removed
+ * without notice.
+ */
+//#define MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
+
 /** \def MBEDTLS_PSA_CRYPTO_CLIENT
  *
  * Enable support for PSA crypto client.

@@ -574,6 +574,23 @@ psa_status_t psa_driver_wrapper_export_public_key(
     }
 }
 
+psa_status_t psa_driver_wrapper_get_builtin_key(
+    psa_drv_slot_number_t slot_number,
+    psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
+{
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
+    switch( location )
+    {
+        default:
+            (void) slot_number;
+            (void) key_buffer;
+            (void) key_buffer_size;
+            (void) key_buffer_length;
+            return( PSA_ERROR_DOES_NOT_EXIST );
+    }
+}
+
 /*
  * Cipher functions
  */

@@ -26,7 +26,7 @@
 #if defined(MBEDTLS_MD_C)
 
 #include "mbedtls/md.h"
-#include "mbedtls/md_internal.h"
+#include "md_internal.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 

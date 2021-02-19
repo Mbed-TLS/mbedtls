@@ -158,7 +158,6 @@
     <ClInclude Include="..\..\include\mbedtls\chachapoly.h" />
     <ClInclude Include="..\..\include\mbedtls\check_config.h" />
     <ClInclude Include="..\..\include\mbedtls\cipher.h" />
-    <ClInclude Include="..\..\include\mbedtls\cipher_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\cmac.h" />
     <ClInclude Include="..\..\include\mbedtls\config.h" />
     <ClInclude Include="..\..\include\mbedtls\config_psa.h" />
@@ -170,7 +169,6 @@
     <ClInclude Include="..\..\include\mbedtls\ecdsa.h" />
     <ClInclude Include="..\..\include\mbedtls\ecjpake.h" />
     <ClInclude Include="..\..\include\mbedtls\ecp.h" />
-    <ClInclude Include="..\..\include\mbedtls\ecp_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\entropy.h" />
     <ClInclude Include="..\..\include\mbedtls\entropy_poll.h" />
     <ClInclude Include="..\..\include\mbedtls\error.h" />
@@ -181,7 +179,6 @@
     <ClInclude Include="..\..\include\mbedtls\md2.h" />
     <ClInclude Include="..\..\include\mbedtls\md4.h" />
     <ClInclude Include="..\..\include\mbedtls\md5.h" />
-    <ClInclude Include="..\..\include\mbedtls\md_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\memory_buffer_alloc.h" />
     <ClInclude Include="..\..\include\mbedtls\net.h" />
     <ClInclude Include="..\..\include\mbedtls\net_sockets.h" />
@@ -190,7 +187,6 @@
     <ClInclude Include="..\..\include\mbedtls\padlock.h" />
     <ClInclude Include="..\..\include\mbedtls\pem.h" />
     <ClInclude Include="..\..\include\mbedtls\pk.h" />
-    <ClInclude Include="..\..\include\mbedtls\pk_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs11.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs12.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs5.h" />
@@ -208,7 +204,6 @@
     <ClInclude Include="..\..\include\mbedtls\ssl_cache.h" />
     <ClInclude Include="..\..\include\mbedtls\ssl_ciphersuites.h" />
     <ClInclude Include="..\..\include\mbedtls\ssl_cookie.h" />
-    <ClInclude Include="..\..\include\mbedtls\ssl_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\ssl_ticket.h" />
     <ClInclude Include="..\..\include\mbedtls\threading.h" />
     <ClInclude Include="..\..\include\mbedtls\timing.h" />
@@ -241,7 +236,11 @@
     <ClInclude Include="..\..\tests\include\test\drivers\size.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\test_driver.h" />
     <ClInclude Include="..\..\library\check_crypto_config.h" />
+    <ClInclude Include="..\..\library\cipher_internal.h" />
     <ClInclude Include="..\..\library\common.h" />
+    <ClInclude Include="..\..\library\ecp_internal.h" />
+    <ClInclude Include="..\..\library\md_internal.h" />
+    <ClInclude Include="..\..\library\pk_internal.h" />
     <ClInclude Include="..\..\library\psa_crypto_core.h" />
     <ClInclude Include="..\..\library\psa_crypto_driver_wrappers.h" />
     <ClInclude Include="..\..\library\psa_crypto_invasive.h" />
@@ -252,6 +251,7 @@
     <ClInclude Include="..\..\library\psa_crypto_slot_management.h" />
     <ClInclude Include="..\..\library\psa_crypto_storage.h" />
     <ClInclude Include="..\..\library\rsa_internal.h" />
+    <ClInclude Include="..\..\library\ssl_internal.h" />
     <ClInclude Include="..\..\library\ssl_invasive.h" />
     <ClInclude Include="..\..\library\ssl_tls13_keys.h" />
     <ClInclude Include="..\..\3rdparty\everest\include\everest\everest.h" />

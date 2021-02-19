@@ -34,7 +34,7 @@
 #endif
 
 #include "mbedtls/ssl_cache.h"
-#include "mbedtls/ssl_internal.h"
+#include "ssl_internal.h"
 
 #include <string.h>
 

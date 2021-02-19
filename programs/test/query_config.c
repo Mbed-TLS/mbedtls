@@ -92,7 +92,6 @@
 #include "mbedtls/ssl_cache.h"
 #include "mbedtls/ssl_ciphersuites.h"
 #include "mbedtls/ssl_cookie.h"
-#include "mbedtls/ssl_internal.h"
 #include "mbedtls/ssl_ticket.h"
 #include "mbedtls/threading.h"
 #include "mbedtls/timing.h"
@@ -102,6 +101,7 @@
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/xtea.h"
+#include "../../library/ssl_internal.h"
 
 #include <string.h>
 

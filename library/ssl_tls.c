@@ -998,13 +998,6 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
         if( trunc_hmac == MBEDTLS_SSL_TRUNC_HMAC_ENABLED )
         {
             transform->maclen = MBEDTLS_SSL_TRUNCATED_HMAC_LEN;
-
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT)
-            /* Fall back to old, non-compliant version of the truncated
-             * HMAC implementation which also truncates the key
-             * (Mbed TLS versions from 1.3 to 2.6.0) */
-            mac_key_len = transform->maclen;
-#endif
         }
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 

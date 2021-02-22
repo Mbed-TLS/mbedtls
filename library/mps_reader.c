@@ -294,7 +294,7 @@ int mbedtls_mps_reader_get( mbedtls_mps_reader *rd,
              *        +------v-------------v------+
              *        |          acc              |
              *        +---------------------------+
-             *                      |              |
+             *                      |             |
              *                fo/frag_offset   aa/acc_available
              *
              *

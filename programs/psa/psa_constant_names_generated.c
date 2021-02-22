@@ -150,7 +150,7 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
     unsigned long length_modifier = NO_LENGTH_MODIFIER;
     if (PSA_ALG_IS_MAC(alg)) {
         core_alg = PSA_ALG_TRUNCATED_MAC(alg, 0);
-        if (alg & PSA_ALG_MAC_MINIMUM_LENGTH_FLAG) {
+        if (alg & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG) {
             append(&buffer, buffer_size, &required_size,
                    "PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(", 33);
             length_modifier = PSA_MAC_TRUNCATED_LENGTH(alg);
@@ -163,7 +163,7 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
         }
     } else if (PSA_ALG_IS_AEAD(alg)) {
         core_alg = PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg);
-        if (alg & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG) {
+        if (alg & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG) {
             if (core_alg == 0) {
                 /* For unknown AEAD algorithms, there is no "default tag length". */
                 core_alg = alg;

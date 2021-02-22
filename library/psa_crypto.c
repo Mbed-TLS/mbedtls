@@ -686,18 +686,18 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
         size_t max_len = alg1_len > alg2_len ? alg1_len : alg2_len;
 
         /* If both are wildcards, return most restrictive wildcard */
-        if( ( ( alg1 & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) &&
-            ( ( alg2 & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) )
+        if( ( ( alg1 & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) &&
+            ( ( alg2 & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) )
         {
             return( PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG( alg1, max_len ) );
         }
         /* If only one is a wildcard, return specific algorithm if compatible. */
-        if( ( ( alg1 & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) &&
+        if( ( ( alg1 & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) &&
             ( alg1_len <= alg2_len ) )
         {
             return( alg2 );
         }
-        if( ( ( alg2 & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) &&
+        if( ( ( alg2 & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) &&
             ( alg2_len <= alg1_len ) )
         {
             return( alg1 );
@@ -715,8 +715,8 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
         size_t max_len = alg1_len > alg2_len ? alg1_len : alg2_len;
 
         /* If both are wildcards, return most restricitve wildcard */
-        if( ( ( alg1 & PSA_ALG_MAC_MINIMUM_LENGTH_FLAG ) != 0 ) &&
-            ( ( alg2 & PSA_ALG_MAC_MINIMUM_LENGTH_FLAG ) != 0 ) )
+        if( ( ( alg1 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) &&
+            ( ( alg2 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) )
         {
             return( PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( alg1, max_len ) );
         }
@@ -724,13 +724,13 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
          * Special case: specific MAC algorithm with '0' as length means full-
          * length MAC, which is always allowed by a wildcard with the same
          * base algorithm. */
-        if( ( ( alg1 & PSA_ALG_MAC_MINIMUM_LENGTH_FLAG ) != 0 ) &&
+        if( ( ( alg1 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) &&
             ( ( alg1_len <= alg2_len ) ||
               ( alg2 == PSA_ALG_FULL_LENGTH_MAC( alg1 ) ) ) )
         {
             return( alg2 );
         }
-        if( ( ( alg2 & PSA_ALG_MAC_MINIMUM_LENGTH_FLAG ) != 0 ) &&
+        if( ( ( alg2 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) &&
             ( ( alg2_len <= alg1_len ) ||
               ( alg1 == PSA_ALG_FULL_LENGTH_MAC( alg2 ) ) ) )
         {
@@ -766,7 +766,7 @@ static int psa_key_algorithm_permits( psa_algorithm_t policy_alg,
         PSA_ALG_IS_AEAD( requested_alg ) &&
         ( PSA_ALG_AEAD_WITH_SHORTENED_TAG( policy_alg, 0 ) ==
           PSA_ALG_AEAD_WITH_SHORTENED_TAG( requested_alg, 0 ) ) &&
-        ( ( policy_alg & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) )
+        ( ( policy_alg & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) )
     {
         return( PSA_ALG_AEAD_GET_TAG_LENGTH( policy_alg ) <=
                 PSA_ALG_AEAD_GET_TAG_LENGTH( requested_alg ) );
@@ -778,7 +778,7 @@ static int psa_key_algorithm_permits( psa_algorithm_t policy_alg,
         PSA_ALG_IS_MAC( requested_alg ) &&
         ( PSA_ALG_FULL_LENGTH_MAC( policy_alg ) ==
           PSA_ALG_FULL_LENGTH_MAC( requested_alg ) ) &&
-        ( ( policy_alg & PSA_ALG_MAC_MINIMUM_LENGTH_FLAG ) != 0 ) )
+        ( ( policy_alg & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) )
     {
         /* Special case: full-length MAC is encoded with 0-length.
          * A minimum-length policy will always allow a full-length MAC. */

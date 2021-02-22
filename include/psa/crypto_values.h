@@ -866,6 +866,13 @@
 #define PSA_ALG_MAC_TRUNCATION_MASK             ((psa_algorithm_t)0x003f0000)
 #define PSA_MAC_TRUNCATION_OFFSET 16
 
+/* In the encoding of a MAC algorithm, the bit corresponding to
+ * #PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG encodes the fact that the algorithm
+ * is a wildcard algorithm, which allows any algorithm corresponding to the
+ * same base class and having a (potentially truncated) MAC length greater or
+ * equal than the one encoded in #PSA_ALG_MAC_TRUNCATION_MASK. */
+#define PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG   ((psa_algorithm_t)0x00008000)
+
 /** Macro to build a truncated MAC algorithm.
  *
  * A truncated MAC algorithm is identical to the corresponding MAC
@@ -900,7 +907,7 @@
  *                      too large for the specified MAC algorithm.
  */
 #define PSA_ALG_TRUNCATED_MAC(mac_alg, mac_length)                      \
-    (((mac_alg) & ~(PSA_ALG_MAC_TRUNCATION_MASK | PSA_ALG_MAC_MINIMUM_LENGTH_FLAG)) | \
+    (((mac_alg) & ~(PSA_ALG_MAC_TRUNCATION_MASK | PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG)) | \
      ((mac_length) << PSA_MAC_TRUNCATION_OFFSET & PSA_ALG_MAC_TRUNCATION_MASK))
 
 /** Macro to build the base MAC algorithm corresponding to a truncated
@@ -916,7 +923,7 @@
  *                      MAC algorithm.
  */
 #define PSA_ALG_FULL_LENGTH_MAC(mac_alg)        \
-    ((mac_alg) & ~(PSA_ALG_MAC_TRUNCATION_MASK | PSA_ALG_MAC_MINIMUM_LENGTH_FLAG))
+    ((mac_alg) & ~(PSA_ALG_MAC_TRUNCATION_MASK | PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG))
 
 /** Length to which a MAC algorithm is truncated.
  *
@@ -931,13 +938,6 @@
  */
 #define PSA_MAC_TRUNCATED_LENGTH(mac_alg)                               \
     (((mac_alg) & PSA_ALG_MAC_TRUNCATION_MASK) >> PSA_MAC_TRUNCATION_OFFSET)
-
-/* In the encoding of a MAC algorithm, the bit corresponding to
- * #PSA_ALG_MAC_MINIMUM_LENGTH_FLAG encodes the fact that the algorithm is
- * a wildcard algorithm, which allows any algorithm corresponding to the same
- * base class and having a (potentially truncated) MAC length greater or equal
- * than the one encoded in #PSA_ALG_MAC_TRUNCATION_MASK. */
-#define PSA_ALG_MAC_MINIMUM_LENGTH_FLAG         ((psa_algorithm_t)0x00008000)
 
 /** Macro to build a MAC minimum-MAC-length wildcard algorithm.
  *
@@ -964,7 +964,7 @@
  *                        too large for the specified MAC algorithm.
  */
 #define PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(mac_alg, min_mac_length) \
-    ( PSA_ALG_TRUNCATED_MAC(mac_alg, min_mac_length) | PSA_ALG_MAC_MINIMUM_LENGTH_FLAG )
+    ( PSA_ALG_TRUNCATED_MAC(mac_alg, min_mac_length) | PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG )
 
 #define PSA_ALG_CIPHER_MAC_BASE                 ((psa_algorithm_t)0x03c00000)
 /** The CBC-MAC construction over a block cipher
@@ -1126,6 +1126,13 @@
 #define PSA_ALG_AEAD_TAG_LENGTH_MASK            ((psa_algorithm_t)0x003f0000)
 #define PSA_AEAD_TAG_LENGTH_OFFSET 16
 
+/* In the encoding of an AEAD algorithm, the bit corresponding to
+ * #PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG encodes the fact that the algorithm
+ * is a wildcard algorithm, which allows any algorithm corresponding to the
+ * same base class and having a tag length greater than or equal to the one
+ * encoded in #PSA_ALG_AEAD_TAG_LENGTH_MASK. */
+#define PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG  ((psa_algorithm_t)0x00008000)
+
 /** Macro to build a shortened AEAD algorithm.
  *
  * A shortened AEAD algorithm is similar to the corresponding AEAD
@@ -1145,7 +1152,7 @@
  *                      for the specified AEAD algorithm.
  */
 #define PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, tag_length)           \
-    (((aead_alg) & ~(PSA_ALG_AEAD_TAG_LENGTH_MASK | PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG)) | \
+    (((aead_alg) & ~(PSA_ALG_AEAD_TAG_LENGTH_MASK | PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)) | \
      ((tag_length) << PSA_AEAD_TAG_LENGTH_OFFSET &                      \
       PSA_ALG_AEAD_TAG_LENGTH_MASK))
 
@@ -1183,13 +1190,6 @@
     PSA_ALG_AEAD_WITH_SHORTENED_TAG(ref, 0) ?                            \
     ref :
 
-/* In the encoding of an AEAD algorithm, the bit corresponding to
- * #PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG encodes the fact that the algorithm is
- * a wildcard algorithm, which allows any algorithm corresponding to the same
- * base class and having a tag length greater than or equal to the one encoded
- * in #PSA_ALG_AEAD_TAG_LENGTH_MASK. */
-#define PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG        ((psa_algorithm_t)0x00008000)
-
 /** Macro to build an AEAD minimum-tag-length wildcard algorithm.
  *
  * A mininimum-tag-length AEAD wildcard algorithm permits all AEAD algorithms
@@ -1215,7 +1215,7 @@
  *                        or too large for the specified AEAD algorithm.
  */
 #define PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(aead_alg, min_tag_length) \
-    ( PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, min_tag_length) | PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG )
+    ( PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, min_tag_length) | PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG )
 
 #define PSA_ALG_RSA_PKCS1V15_SIGN_BASE          ((psa_algorithm_t)0x06000200)
 /** RSA PKCS#1 v1.5 signature with hashing.
@@ -1663,13 +1663,13 @@
  * \return This macro may return either 0 or 1 if \c alg is not a supported
  *         algorithm identifier.
  */
-#define PSA_ALG_IS_WILDCARD(alg)                      \
-    (PSA_ALG_IS_HASH_AND_SIGN(alg) ?                  \
-     PSA_ALG_SIGN_GET_HASH(alg) == PSA_ALG_ANY_HASH : \
-     PSA_ALG_IS_MAC(alg) ?                            \
-     (alg & PSA_ALG_MAC_MINIMUM_LENGTH_FLAG) != 0 :   \
-     PSA_ALG_IS_AEAD(alg) ?                           \
-     (alg & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG) != 0 :  \
+#define PSA_ALG_IS_WILDCARD(alg)                            \
+    (PSA_ALG_IS_HASH_AND_SIGN(alg) ?                        \
+     PSA_ALG_SIGN_GET_HASH(alg) == PSA_ALG_ANY_HASH :       \
+     PSA_ALG_IS_MAC(alg) ?                                  \
+     (alg & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG) != 0 :   \
+     PSA_ALG_IS_AEAD(alg) ?                                 \
+     (alg & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG) != 0 :  \
      (alg) == PSA_ALG_ANY_HASH)
 
 /**@}*/

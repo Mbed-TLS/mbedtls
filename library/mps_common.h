@@ -169,7 +169,7 @@
  *
  */
 typedef size_t mbedtls_mps_stored_size_t;
-#define MBEDTLS_MPS_SIZE_MAX  ( (mbedtls_mps_size_t) -1 )
+#define MBEDTLS_MPS_STORED_SIZE_MAX  ( (mbedtls_mps_stored_size_t) -1 )
 
 /** \brief The type of buffer sizes and offsets used in the MPS API
  *         and implementation.
@@ -183,8 +183,9 @@ typedef size_t mbedtls_mps_stored_size_t;
  *         so almost 10%.
  */
 typedef size_t mbedtls_mps_size_t;
+#define MBEDTLS_MPS_SIZE_MAX  ( (mbedtls_mps_size_t) -1 )
 
-#if (mbedtls_mps_size_t) -1 > (mbedtls_mps_stored_size_t) -1
+#if MBEDTLS_MPS_STORED_SIZE_MAX > MBEDTLS_MPS_SIZE_MAX
 #error "Misconfiguration of mbedtls_mps_size_t and mbedtls_mps_stored_size_t."
 #endif
 

@@ -1,0 +1,4 @@
+Features
+   * Added support for built-in driver keys through the PSA opaque crypto
+     driver interface. Refer to the documentation of
+     MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS for more information.

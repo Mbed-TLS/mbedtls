@@ -78,22 +78,22 @@
 
 /*! An attempt to move a reader to consuming mode through mbedtls_mps_reader_feed()
  *  after pausing failed because the provided data is not sufficient to serve the
- *  the read requests that lead to the pausing. */
+ *  read requests that led to the pausing. */
 #define MBEDTLS_ERR_MPS_READER_NEED_MORE             MBEDTLS_MPS_READER_MAKE_ERROR( 0x3 )
 
-/*! A read request failed because not enough data is available in the reader. */
+/*! A get request failed because not enough data is available in the reader. */
 #define MBEDTLS_ERR_MPS_READER_OUT_OF_DATA           MBEDTLS_MPS_READER_MAKE_ERROR( 0x4 )
 
-/*!< A read request after pausing and reactivating the reader failed because
+/*!< A get request after pausing and reactivating the reader failed because
  *   the request is not in line with the request made prior to pausing. The user
  *   must not change it's 'strategy' after pausing and reactivating a reader. */
 #define MBEDTLS_ERR_MPS_READER_INCONSISTENT_REQUESTS MBEDTLS_MPS_READER_MAKE_ERROR( 0x5 )
 
-/*! An attempt to reclaim the data buffer from a reader fails because the reader
+/*! An attempt to reclaim the data buffer from a reader failed because the reader
  *  has no accumulator it can use to backup the data that hasn't been processed. */
 #define MBEDTLS_ERR_MPS_READER_NEED_ACCUMULATOR      MBEDTLS_MPS_READER_MAKE_ERROR( 0x6 )
 
-/*! An attempt to reclaim the data buffer from a reader fails beacuse the
+/*! An attempt to reclaim the data buffer from a reader failed because the
  *  accumulator passed to the reader is not large enough to hold both the
  *  data that hasn't been processed and the excess of the last read-request. */
 #define MBEDTLS_ERR_MPS_READER_ACCUMULATOR_TOO_SMALL MBEDTLS_MPS_READER_MAKE_ERROR( 0x7 )

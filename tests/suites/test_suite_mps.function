@@ -25,8 +25,8 @@ void mbedtls_mps_reader_no_pausing_single_step_single_round( int with_acc )
     /* This test exercises the most basic use of the MPS reader:
      * - The 'producing' layer provides a buffer
      * - The 'consuming' layer fetches it in a single go.
-     * - After processing, the consuming layer commit the data
-     *   and returns back to the producing layer.
+     * - After processing, the consuming layer commits the data
+     *   and the reader is moved back to producing mode.
      *
      * Parameters:
      * - with_acc: 0 if the reader should be initialized without accumulator.
@@ -63,11 +63,11 @@ void mbedtls_mps_reader_no_pausing_single_step_single_round( int with_acc )
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
 void mbedtls_mps_reader_no_pausing_single_step_multiple_rounds( int with_acc )
 {
-    /* This test exercises multiple rounds o fthe basic use of the MPS reader:
+    /* This test exercises multiple rounds of the basic use of the MPS reader:
      * - The 'producing' layer provides a buffer
      * - The 'consuming' layer fetches it in a single go.
-     * - After processing, the consuming layer commit the data
-     *   and returns back to the producing layer.
+     * - After processing, the consuming layer commits the data
+     *   and the reader is moved back to producing mode.
      *
      * Parameters:
      * - with_acc: 0 if the reader should be initialized without accumulator.
@@ -117,16 +117,16 @@ void mbedtls_mps_reader_no_pausing_multiple_steps_single_round( int with_acc )
     /* This test exercises one round of the following:
      * - The 'producing' layer provides a buffer
      * - The 'consuming' layer fetches it in multiple calls
-     *   to `mbedtls_mps_reader_get()`, without comitting in between.
-     * - After processing, the consuming layer commit the data
-     *   and returns back to the producing layer.
+     *   to `mbedtls_mps_reader_get()`, without committing in between.
+     * - After processing, the consuming layer commits the data
+     *   and the reader is moved back to producing mode.
      *
      * Parameters:
      * - with_acc: 0 if the reader should be initialized without accumulator.
      *             1 if the reader should be initialized with accumulator.
      *
      *             Whether the accumulator is present or not should not matter,
-     *             since the consumer's request can be fulfilled from the data
+     *             since the consumer's requests can be fulfilled from the data
      *             that the producer has provided.
      */
 
@@ -207,7 +207,7 @@ void mbedtls_mps_reader_no_pausing_multiple_steps_multiple_rounds( int with_acc 
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
 void mbedtls_mps_reader_pausing_needed_disabled()
 {
-    /* This test exercises the behaviour of the MPS reader when a read requests
+    /* This test exercises the behaviour of the MPS reader when a read request
      * of the consumer exceeds what has been provided by the producer, and when
      * no accumulator is available in the reader.
      *
@@ -240,7 +240,7 @@ void mbedtls_mps_reader_pausing_needed_disabled()
 void mbedtls_mps_reader_pausing_needed_buffer_too_small()
 {
     /* This test exercises the behaviour of the MPS reader with accumulator
-     * in the situation where a read requests goes beyond the bounds of the
+     * in the situation where a read request goes beyond the bounds of the
      * current read buffer, _and_ the reader's accumulator is too small to
      * hold the requested amount of data.
      *
@@ -286,7 +286,7 @@ void mbedtls_mps_reader_pausing_needed_buffer_too_small()
 void mbedtls_mps_reader_pausing( int option )
 {
     /* This test exercises the behaviour of the reader when the
-     * accumulator is used to fufill the consumer's request.
+     * accumulator is used to fufill a consumer's request.
      *
      * More detailed:
      * - The producer feeds some data.
@@ -410,7 +410,7 @@ void mbedtls_mps_reader_pausing_multiple_feeds( int option )
 {
     /* This test exercises the behaviour of the MPS reader
      * in the following situation:
-     * - The consumer has asked for mre than what's available, so the
+     * - The consumer has asked for more than what's available, so the
      *   reader pauses and waits for further input data via
      *   `mbedtls_mps_reader_feed()`
      * - Multiple such calls to `mbedtls_mps_reader_feed()` are necessary
@@ -615,7 +615,7 @@ void mbedtls_mps_reader_multiple_pausing( int option )
      * - A read request via `mbedtls_mps_reader_get()` can't
      *   be served and the reader is paused to accumulate
      *   the desired amount of data from the producer.
-     * - Once enough data is availble, the consumer successfully
+     * - Once enough data is available, the consumer successfully
      *   reads the data from the reader, but afterwards exceeds
      *   the available data again - pausing is necessary for a
      *   second time.
@@ -1076,7 +1076,7 @@ void mbedtls_reader_inconsistent_usage( int option )
 void mbedtls_mps_reader_feed_empty( int option )
 {
     /* This test exercises the behaviour of the reader when it is
-     * fed a NULL buffer. */
+     * fed with a NULL buffer. */
     unsigned char buf[100];
     unsigned char *tmp;
     mbedtls_mps_reader rd;

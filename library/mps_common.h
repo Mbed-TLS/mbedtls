@@ -61,12 +61,15 @@
  *  non-sensical calls or not, and that's what this option is about:
  *
  *  This option determines whether the expected abstract state
- *  is part of the API preconditions or not. If it is, the function's
- *  behavior is undefined if the abstract state is not as expected.
- *  If it is set, API is required to fail gracefully with error
- *  #MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED, and without changing the abstract
- *  state of the input context, if the abstract state is unexpected but
- *  all other preconditions are satisfied.
+ *  is part of the API preconditions or not: If the option is set,
+ *  then the abstract state is not part of the precondition and is
+ *  thus required to be validated by the implementation. If an unexpected
+ *  abstract state is encountered, the implementation must fail gracefully
+ *  with error #MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED.
+ *  Conversely, if this option is not set, then the expected abstract state
+ *  is included in the preconditions of the respective API calls, and
+ *  an implementation's behaviour is undefined if the abstract state is
+ *  not as expected.
  *
  *  For example: Enabling this makes mps_l2_read_done() fail if
  *  no incoming record is currently open; disabling this would

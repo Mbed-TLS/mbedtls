@@ -247,75 +247,75 @@ int mbedtls_mps_reader_get( mbedtls_mps_reader *rd,
     /* Check if we're still serving from the accumulator. */
     if( mps_reader_serving_from_accumulator( rd ) )
     {
+        /* Illustration of supported and unsupported cases:
+         *
+         * - Allowed #1
+         *
+         *                          +-----------------------------------+
+         *                          |               frag                |
+         *                          +-----------------------------------+
+         *
+         *             end end+desired
+         *              |       |
+         *        +-----v-------v-------------+
+         *        |          acc              |
+         *        +---------------------------+
+         *                          |         |
+         *                   fo/frag_offset aa/acc_available
+         *
+         * - Allowed #2
+         *
+         *                          +-----------------------------------+
+         *                          |               frag                |
+         *                          +-----------------------------------+
+         *
+         *                  end          end+desired
+         *                   |                |
+         *        +----------v----------------v
+         *        |          acc              |
+         *        +---------------------------+
+         *                          |         |
+         *                   fo/frag_offset aa/acc_available
+         *
+         * - Not allowed #1 (could be served, but we don't actually use it):
+         *
+         *                      +-----------------------------------+
+         *                      |               frag                |
+         *                      +-----------------------------------+
+         *
+         *              end        end+desired
+         *               |             |
+         *        +------v-------------v------+
+         *        |          acc              |
+         *        +---------------------------+
+         *                      |             |
+         *                fo/frag_offset   aa/acc_available
+         *
+         *
+         * - Not allowed #2 (can't be served with a contiguous buffer):
+         *
+         *                      +-----------------------------------+
+         *                      |               frag                |
+         *                      +-----------------------------------+
+         *
+         *              end                 end + desired
+         *               |                        |
+         *        +------v--------------------+   v
+         *        |            acc            |
+         *        +---------------------------+
+         *                      |             |
+         *                fo/frag_offset   aa/acc_available
+         *
+         * In case of Allowed #2 we're switching to serve from
+         * `frag` starting from the next call to mbedtls_mps_reader_get().
+         */
+
         unsigned char *acc;
 
         MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
                            "Serve the request from the accumulator" );
         if( frag_offset - end < desired )
         {
-            /* Illustration of supported and unsupported cases:
-             *
-             * - Allowed #1
-             *
-             *                          +-----------------------------------+
-             *                          |               frag                |
-             *                          +-----------------------------------+
-             *
-             *             end end+desired
-             *              |       |
-             *        +-----v-------v-------------+
-             *        |          acc              |
-             *        +---------------------------+
-             *                          |         |
-             *                   fo/frag_offset aa/acc_available
-             *
-             * - Allowed #2
-             *
-             *                          +-----------------------------------+
-             *                          |               frag                |
-             *                          +-----------------------------------+
-             *
-             *                  end          end+desired
-             *                   |                |
-             *        +----------v----------------v
-             *        |          acc              |
-             *        +---------------------------+
-             *                          |         |
-             *                   fo/frag_offset aa/acc_available
-             *
-             * - Not allowed #1 (could be served, but we don't actually use it):
-             *
-             *                      +-----------------------------------+
-             *                      |               frag                |
-             *                      +-----------------------------------+
-             *
-             *              end        end+desired
-             *               |             |
-             *        +------v-------------v------+
-             *        |          acc              |
-             *        +---------------------------+
-             *                      |             |
-             *                fo/frag_offset   aa/acc_available
-             *
-             *
-             * - Not allowed #2 (can't be served with a contiguous buffer):
-             *
-             *                      +-----------------------------------+
-             *                      |               frag                |
-             *                      +-----------------------------------+
-             *
-             *              end                 end + desired
-             *               |                        |
-             *        +------v--------------------+   v
-             *        |            acc            |
-             *        +---------------------------+
-             *                      |             |
-             *                fo/frag_offset   aa/acc_available
-             *
-             * In case of Allowed #1 and #2 we're switching to serve from
-             * `frag` starting from the next call to mbedtls_mps_reader_get().
-             */
-
             mbedtls_mps_size_t acc_available;
             acc_available = rd->acc_available;
             if( acc_available - end != desired )

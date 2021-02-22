@@ -38,10 +38,6 @@
  *   public API.
  */
 
-#ifndef MBEDTLS_MPS_ERR_BASE
-#define MBEDTLS_MPS_ERR_BASE    ( 1 << 0 )
-#endif
-
 /**
  * \name SECTION:       MPS general error codes
  *
@@ -49,12 +45,11 @@
  */
 
 #ifndef MBEDTLS_MPS_ERR_BASE
-#define MBEDTLS_MPS_ERR_BASE ( 1 << 10 )
+#define MBEDTLS_MPS_ERR_BASE ( 0 )
 #endif
 
 #define MBEDTLS_MPS_MAKE_ERROR(code) \
     ( -( MBEDTLS_MPS_ERR_BASE | (code) ) )
-
 
 #define MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED  MBEDTLS_MPS_MAKE_ERROR( 0x1 )
 #define MBEDTLS_ERR_MPS_INTERNAL_ERROR        MBEDTLS_MPS_MAKE_ERROR( 0x2 )
@@ -68,7 +63,7 @@
  */
 
 #ifndef MBEDTLS_MPS_READER_ERR_BASE
-#define MBEDTLS_MPS_READER_ERR_BASE ( 1 << 7 )
+#define MBEDTLS_MPS_READER_ERR_BASE ( 1 << 8 )
 #endif
 
 #define MBEDTLS_MPS_READER_MAKE_ERROR(code) \

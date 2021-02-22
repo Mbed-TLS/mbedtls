@@ -2,8 +2,7 @@
 
 #include <stdlib.h>
 
-/* TODO: How are test suites supposed to include internal headers? */
-#include "../library/mps_reader.h"
+#include "mps_reader.h"
 
 /*
  * Compile-time configuration for test suite.

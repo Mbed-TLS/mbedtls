@@ -43,8 +43,9 @@ static int mbedtls_mps_trace_id = MBEDTLS_MPS_TRACE_BIT_READER;
  * and significantly increases the C-code line count, but
  * should not increase the size of generated assembly.
  *
- * This reason for this is twofold:
+ * The reason for this is twofold:
  * (1) It will ease verification efforts using the VST
+ *     (Verified Software Toolchain)
  *     whose program logic cannot directly reason
  *     about instructions containing a load or store in
  *     addition to other operations (e.g. *p = *q or

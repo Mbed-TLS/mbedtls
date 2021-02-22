@@ -311,7 +311,7 @@ int mbedtls_mps_reader_feed( mbedtls_mps_reader *reader,
  * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.
  */
 int mbedtls_mps_reader_reclaim( mbedtls_mps_reader *reader,
-                                mbedtls_mps_size_t *paused );
+                                int *paused );
 
 /*
  * Usage API (Upper layer)

@@ -256,7 +256,7 @@ void* mbedtls_test_param_failed_get_state_buf( void );
 void mbedtls_test_param_failed_reset_state( void );
 #endif /* MBEDTLS_CHECK_PARAMS */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 #include "test/fake_external_rng_for_test.h"
 #endif
 

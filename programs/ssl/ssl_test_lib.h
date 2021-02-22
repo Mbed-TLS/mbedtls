@@ -43,22 +43,32 @@
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif
 
-#if !defined(MBEDTLS_ENTROPY_C) ||                          \
-    !defined(MBEDTLS_NET_C) ||                              \
+#undef HAVE_RNG
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&         \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) ||                \
+      defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG) )
+#define HAVE_RNG
+#elif defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_CTR_DRBG_C)
+#define HAVE_RNG
+#elif defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_HMAC_DRBG_C) &&     \
+    ( defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA512_C) )
+#define HAVE_RNG
+#endif
+
+#if !defined(MBEDTLS_NET_C) ||                              \
     !defined(MBEDTLS_SSL_TLS_C) ||                          \
     defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 #define MBEDTLS_SSL_TEST_IMPOSSIBLE                             \
-    "MBEDTLS_ENTROPY_C and/or "                                 \
     "MBEDTLS_NET_C and/or "                                     \
     "MBEDTLS_SSL_TLS_C not defined, "                           \
     "and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\n"
-#elif !( defined(MBEDTLS_CTR_DRBG_C) ||                                 \
-         defined(MBEDTLS_HMAC_DRBG_C) && ( defined(MBEDTLS_SHA256_C) || \
-                                           defined(MBEDTLS_SHA512_C) ) )
-#define MBEDTLS_SSL_TEST_IMPOSSIBLE                                     \
-    "Neither MBEDTLS_CTR_DRBG_C, nor MBEDTLS_HMAC_DRBG_C and a supported hash defined.\n"
+#elif !defined(HAVE_RNG)
+#define MBEDTLS_SSL_TEST_IMPOSSIBLE             \
+    "No random generator is available.\n"
 #else
 #undef MBEDTLS_SSL_TEST_IMPOSSIBLE
+
+#undef HAVE_RNG
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,7 +86,7 @@
 #include "mbedtls/timing.h"
 #include "mbedtls/base64.h"
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
 #endif
@@ -130,10 +140,38 @@ void my_debug( void *ctx, int level,
 
 mbedtls_time_t dummy_constant_time( mbedtls_time_t* time );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/* If MBEDTLS_TEST_USE_PSA_CRYPTO_RNG is defined, the SSL test programs will use
+ * mbedtls_psa_get_random() rather than entropy+DRBG as a random generator.
+ *
+ * The constraints are:
+ * - Without the entropy module, the PSA RNG is the only option.
+ * - Without at least one of the DRBG modules, the PSA RNG is the only option.
+ * - The PSA RNG does not support explicit seeding, so it is incompatible with
+ *   the reproducible mode used by test programs.
+ * - For good overall test coverage, there should be at least one configuration
+ *   where the test programs use the PSA RNG while the PSA RNG is itself based
+ *   on entropy+DRBG, and at least one configuration where the test programs
+ *   do not use the PSA RNG even though it's there.
+ *
+ * A simple choice that meets the constraints is to use the PSA RNG whenever
+ * MBEDTLS_USE_PSA_CRYPTO is enabled. There's no real technical reason the
+ * choice to use the PSA RNG in the test programs and the choice to use
+ * PSA crypto when TLS code needs crypto have to be tied together, but it
+ * happens to be a good match. It's also a good match from an application
+ * perspective: either PSA is preferred for TLS (both for crypto and for
+ * random generation) or it isn't.
+ */
+#define MBEDTLS_TEST_USE_PSA_CRYPTO_RNG
+#endif
+
 /** A context for random number generation (RNG).
  */
 typedef struct
 {
+#if defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
+    unsigned char dummy;
+#else /* MBEDTLS_TEST_USE_PSA_CRYPTO_RNG */
     mbedtls_entropy_context entropy;
 #if defined(MBEDTLS_CTR_DRBG_C)
     mbedtls_ctr_drbg_context drbg;
@@ -142,6 +180,7 @@ typedef struct
 #else
 #error "No DRBG available"
 #endif
+#endif /* MBEDTLS_TEST_USE_PSA_CRYPTO_RNG */
 } rng_context_t;
 
 /** Initialize the RNG.

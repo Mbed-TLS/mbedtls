@@ -364,15 +364,13 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
     status = PSA_ERROR_DOES_NOT_EXIST;
 #if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
     status = psa_load_builtin_key_into_slot( *p_slot );
-    if( status == PSA_SUCCESS )
-        goto exit;
 #endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    status = psa_load_persistent_key_into_slot( *p_slot );
+    if( status == PSA_ERROR_DOES_NOT_EXIST )
+        status = psa_load_persistent_key_into_slot( *p_slot );
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
-exit:
     if( status != PSA_SUCCESS )
     {
         psa_wipe_key_slot( *p_slot );

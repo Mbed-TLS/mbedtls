@@ -675,7 +675,7 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
             return( alg1 );
     }
     /* If the policies are from the same AEAD family, check whether
-     * one f them is a minimum-tag-length wildcard. Calculate the most
+     * one of them is a minimum-tag-length wildcard. Calculate the most
      * restrictive tag length. */
     if( PSA_ALG_IS_AEAD( alg1 ) && PSA_ALG_IS_AEAD( alg2 ) &&
         ( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg1, 0 ) ==
@@ -685,7 +685,7 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
         size_t alg2_len = PSA_ALG_AEAD_GET_TAG_LENGTH( alg2 );
         size_t max_len = alg1_len > alg2_len ? alg1_len : alg2_len;
 
-        /* If both are wildcards, return most restricitve wildcard */
+        /* If both are wildcards, return most restrictive wildcard */
         if( ( ( alg1 & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) &&
             ( ( alg2 & PSA_ALG_AEAD_MINIMUM_LENGTH_FLAG ) != 0 ) )
         {

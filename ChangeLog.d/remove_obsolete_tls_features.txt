@@ -3,3 +3,4 @@ API changes
    * Drop support for SSLv3 (MBEDTLS_SSL_PROTO_SSL3).
    * Drop support for compatibility with our own previous buggy implementation of truncated HMAC (MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT).
    * Drop support for TLS record-level compression (MBEDTLS_ZLIB_SUPPORT).
+   * Drop support for RC4 TLS ciphersuites.

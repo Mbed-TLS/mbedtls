@@ -190,7 +190,6 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_PSA_CRYPTO_SPM', # platform dependency (PSA SPM)
     'MBEDTLS_PSA_INJECT_ENTROPY', # build dependency (hook functions)
     'MBEDTLS_REMOVE_3DES_CIPHERSUITES', # removes a feature
-    'MBEDTLS_REMOVE_ARC4_CIPHERSUITES', # removes a feature
     'MBEDTLS_RSA_NO_CRT', # influences the use of RSA in X.509 and TLS
     'MBEDTLS_SHA512_NO_SHA384', # removes a feature
     'MBEDTLS_SSL_HW_RECORD_ACCEL', # build dependency (hook functions)

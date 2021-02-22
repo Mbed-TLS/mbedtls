@@ -69,7 +69,6 @@ int main( void )
 #define DFL_EXCHANGES           1
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
-#define DFL_ARC4                -1
 #define DFL_SHA1                -1
 #define DFL_AUTH_MODE           -1
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
@@ -419,7 +418,6 @@ int main( void )
     USAGE_DHMLEN                                            \
     "\n"
 #define USAGE4 \
-    "    arc4=%%d             default: (library default: 0)\n" \
     "    allow_sha1=%%d       default: 0\n"                             \
     "    min_version=%%s      default: (library default: tls1)\n"       \
     "    max_version=%%s      default: (library default: tls1_2)\n"     \
@@ -477,7 +475,6 @@ struct options
     int exchanges;              /* number of data exchanges                 */
     int min_version;            /* minimum protocol version accepted        */
     int max_version;            /* maximum protocol version accepted        */
-    int arc4;                   /* flag for arc4 suites support             */
     int allow_sha1;             /* flag for SHA-1 support                   */
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
@@ -826,7 +823,6 @@ int main( int argc, char *argv[] )
     opt.exchanges           = DFL_EXCHANGES;
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
-    opt.arc4                = DFL_ARC4;
     opt.allow_sha1          = DFL_SHA1;
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
@@ -1114,15 +1110,6 @@ int main( int argc, char *argv[] )
             else
                 goto usage;
         }
-        else if( strcmp( p, "arc4" ) == 0 )
-        {
-            switch( atoi( q ) )
-            {
-                case 0:     opt.arc4 = MBEDTLS_SSL_ARC4_DISABLED;   break;
-                case 1:     opt.arc4 = MBEDTLS_SSL_ARC4_ENABLED;    break;
-                default:    goto usage;
-            }
-        }
         else if( strcmp( p, "allow_sha1" ) == 0 )
         {
             switch( atoi( q ) )
@@ -1380,19 +1367,6 @@ int main( int argc, char *argv[] )
             if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
                 opt.min_version < MBEDTLS_SSL_MINOR_VERSION_2 )
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-        }
-
-        /* Enable RC4 if needed and not explicitly disabled */
-        if( ciphersuite_info->cipher == MBEDTLS_CIPHER_ARC4_128 )
-        {
-            if( opt.arc4 == MBEDTLS_SSL_ARC4_DISABLED )
-            {
-                mbedtls_printf( "forced RC4 ciphersuite with RC4 disabled\n" );
-                ret = 2;
-                goto usage;
-            }
-
-            opt.arc4 = MBEDTLS_SSL_ARC4_ENABLED;
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1906,11 +1880,6 @@ int main( int argc, char *argv[] )
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         mbedtls_ssl_conf_ciphersuites( &conf, opt.force_ciphersuite );
-
-#if defined(MBEDTLS_ARC4_C)
-    if( opt.arc4 != DFL_ARC4 )
-        mbedtls_ssl_conf_arc4_support( &conf, opt.arc4 );
-#endif
 
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )
         mbedtls_ssl_conf_legacy_renegotiation( &conf, opt.allow_legacy );

@@ -673,19 +673,6 @@
 //#define MBEDTLS_ENABLE_WEAK_CIPHERSUITES
 
 /**
- * \def MBEDTLS_REMOVE_ARC4_CIPHERSUITES
- *
- * Remove RC4 ciphersuites by default in SSL / TLS.
- * This flag removes the ciphersuites based on RC4 from the default list as
- * returned by mbedtls_ssl_list_ciphersuites(). However, it is still possible to
- * enable (some of) them with mbedtls_ssl_conf_ciphersuites() by including them
- * explicitly.
- *
- * Uncomment this macro to remove RC4 ciphersuites by default.
- */
-#define MBEDTLS_REMOVE_ARC4_CIPHERSUITES
-
-/**
  * \def MBEDTLS_ECP_DP_SECP192R1_ENABLED
  *
  * MBEDTLS_ECP_XXXX_ENABLED: Enables specific curves within the Elliptic Curve
@@ -774,7 +761,6 @@
  *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_PSK_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_PSK_WITH_RC4_128_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
 
@@ -798,7 +784,6 @@
  *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_DHE_PSK_WITH_RC4_128_SHA
  *
  * \warning    Using DHE constitutes a security risk as it
  *             is not possible to validate custom DH parameters.
@@ -825,7 +810,6 @@
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_ECDHE_PSK_WITH_RC4_128_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 
@@ -850,7 +834,6 @@
  *      MBEDTLS_TLS_RSA_PSK_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_RSA_PSK_WITH_RC4_128_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
 
@@ -877,8 +860,6 @@
  *      MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_CBC_SHA
  *      MBEDTLS_TLS_RSA_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_RSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_RSA_WITH_RC4_128_MD5
  */
 #define MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
 
@@ -936,7 +917,6 @@
  *      MBEDTLS_TLS_ECDHE_RSA_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_ECDHE_RSA_WITH_RC4_128_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 
@@ -960,7 +940,6 @@
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 
@@ -973,7 +952,6 @@
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_RC4_128_SHA
  *      MBEDTLS_TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA
  *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA
@@ -997,7 +975,6 @@
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
- *      MBEDTLS_TLS_ECDH_RSA_WITH_RC4_128_SHA
  *      MBEDTLS_TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA
  *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_256_CBC_SHA
@@ -1816,16 +1793,6 @@
  *
  * This module enables the following ciphersuites (if other requisites are
  * enabled as well):
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_ECDH_RSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_ECDHE_RSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_ECDHE_PSK_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_DHE_PSK_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_RSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_RSA_WITH_RC4_128_MD5
- *      MBEDTLS_TLS_RSA_PSK_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_PSK_WITH_RC4_128_SHA
  *
  * \warning   ARC4 is considered a weak cipher and its use constitutes a
  *            security risk. If possible, we recommend avoidng dependencies on

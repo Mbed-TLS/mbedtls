@@ -147,7 +147,7 @@
 #define MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC
 #endif
 
-#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER) ||   \
+#if defined(MBEDTLS_CIPHER_NULL_CIPHER) ||   \
     defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC)
 #define MBEDTLS_SSL_SOME_MODES_USE_MAC
 #endif

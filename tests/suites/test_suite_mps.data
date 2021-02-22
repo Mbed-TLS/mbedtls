@@ -119,4 +119,4 @@ MPS Reader: Pausing, inconsistent continuation, #8
 mbedtls_reader_inconsistent_usage:8
 
 MPS Reader: Feed with invalid buffer (NULL)
-mbedtls_mps_reader_feed_empty:0
+mbedtls_mps_reader_feed_empty:

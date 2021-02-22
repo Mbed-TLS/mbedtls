@@ -150,7 +150,7 @@
 /** \brief   The type of buffer sizes and offsets used in MPS structures.
  *
  *           This is an unsigned integer type that should be large enough to
- *           hold the length of any buffer resp. message processed by MPS.
+ *           hold the length of any buffer or message processed by MPS.
  *
  *           The reason to pick a value as small as possible here is
  *           to reduce the size of MPS structures.

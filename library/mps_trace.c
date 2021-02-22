@@ -26,7 +26,7 @@
 #include "mps_trace.h"
 #include <stdarg.h>
 
-static int trace_depth_ = 0;
+static int trace_depth = 0;
 
 #define color_default  "\x1B[0m"
 #define color_red      "\x1B[1;31m"
@@ -68,15 +68,15 @@ void mbedtls_mps_trace_print_msg( int id, int line, const char *format, ... )
 
 int mbedtls_mps_trace_get_depth()
 {
-    return trace_depth_;
+    return trace_depth;
 }
 void mbedtls_mps_trace_dec_depth()
 {
-    trace_depth_--;
+    trace_depth--;
 }
 void mbedtls_mps_trace_inc_depth()
 {
-    trace_depth_++;
+    trace_depth++;
 }
 
 void mbedtls_mps_trace_color( int id )

@@ -1338,19 +1338,6 @@ void copy_success( int source_usage_arg,
                         export_buffer, length );
     }
 
-    /* Convert wildcard algorithm to exercisable algorithm */
-    if( PSA_ALG_IS_WILDCARD( expected_alg ) )
-    {
-      if( PSA_ALG_IS_MAC( expected_alg ) )
-        expected_alg = PSA_ALG_TRUNCATED_MAC(
-                        expected_alg,
-                        PSA_MAC_TRUNCATED_LENGTH( expected_alg ) );
-      if( PSA_ALG_IS_AEAD( expected_alg ) )
-        expected_alg = PSA_ALG_AEAD_WITH_SHORTENED_TAG(
-                        expected_alg,
-                        PSA_ALG_AEAD_GET_TAG_LENGTH( expected_alg ) );
-    }
-
     if( ! mbedtls_test_psa_exercise_key( target_key, expected_usage, expected_alg ) )
         goto exit;
     if( ! mbedtls_test_psa_exercise_key( target_key, expected_usage, expected_alg2 ) )

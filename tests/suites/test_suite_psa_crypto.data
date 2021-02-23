@@ -404,21 +404,53 @@ PSA key policy: MAC, neither sign nor verify
 depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_HMAC
 mac_key_policy:0:PSA_ALG_HMAC(PSA_ALG_SHA_256):PSA_KEY_TYPE_HMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_HMAC(PSA_ALG_SHA_256):PSA_ERROR_NOT_PERMITTED
 
-PSA key policy: MAC, sign-verify, tag length > min-length policy
+PSA key policy: HMAC, sign-verify, tag length > min-length policy
 depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_HMAC
 mac_key_policy:PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH:PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(PSA_ALG_HMAC(PSA_ALG_SHA_256), 20):PSA_KEY_TYPE_HMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_TRUNCATED_MAC(PSA_ALG_HMAC(PSA_ALG_SHA_256), 30):PSA_SUCCESS
 
-PSA key policy: MAC, sign-verify, tag length = min-length policy
+PSA key policy: HMAC, sign-verify, tag length = min-length policy
 depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_HMAC
 mac_key_policy:PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH:PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(PSA_ALG_HMAC(PSA_ALG_SHA_256), 20):PSA_KEY_TYPE_HMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_TRUNCATED_MAC(PSA_ALG_HMAC(PSA_ALG_SHA_256), 20):PSA_SUCCESS
 
-PSA key policy: MAC, sign-verify, tag length < min-length policy
+PSA key policy: HMAC, sign-verify, tag length < min-length policy
 depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_HMAC
 mac_key_policy:PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH:PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(PSA_ALG_HMAC(PSA_ALG_SHA_256), 20):PSA_KEY_TYPE_HMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_TRUNCATED_MAC(PSA_ALG_HMAC(PSA_ALG_SHA_256), 10):PSA_ERROR_NOT_PERMITTED
+
+PSA key policy: CMAC, sign-verify, tag length > min-length policy
+depends_on:MBEDTLS_AES_C:MBEDTLS_CMAC_C
+mac_key_policy:PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH:PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(PSA_ALG_CMAC, 10):PSA_KEY_TYPE_AES:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_TRUNCATED_MAC(PSA_ALG_CMAC, 16):PSA_SUCCESS
+
+PSA key policy: CMAC, sign-verify, tag length = min-length policy
+depends_on:MBEDTLS_AES_C:MBEDTLS_CMAC_C
+mac_key_policy:PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH:PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(PSA_ALG_CMAC, 10):PSA_KEY_TYPE_AES:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_TRUNCATED_MAC(PSA_ALG_CMAC, 10):PSA_SUCCESS
+
+PSA key policy: CMAC, sign-verify, tag length < min-length policy
+depends_on:MBEDTLS_AES_C:MBEDTLS_CMAC_C
+mac_key_policy:PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH:PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(PSA_ALG_CMAC, 10):PSA_KEY_TYPE_AES:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_TRUNCATED_MAC(PSA_ALG_CMAC, 8):PSA_ERROR_NOT_PERMITTED
+
+PSA key policy: MAC, sign-verify, default tag length > min-length policy
+depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_HMAC
+mac_key_policy:PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH:PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(PSA_ALG_HMAC(PSA_ALG_SHA_256), 31):PSA_KEY_TYPE_HMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_HMAC(PSA_ALG_SHA_256):PSA_SUCCESS
+
+PSA key policy: MAC, sign-verify, default tag length = min-length policy
+depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_HMAC
+mac_key_policy:PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH:PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(PSA_ALG_HMAC(PSA_ALG_SHA_256), 32):PSA_KEY_TYPE_HMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_HMAC(PSA_ALG_SHA_256):PSA_SUCCESS
+
+PSA key policy: MAC, sign-verify, default tag length < min-length policy
+depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_HMAC
+mac_key_policy:PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH:PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(PSA_ALG_HMAC(PSA_ALG_SHA_256), 33):PSA_KEY_TYPE_HMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_HMAC(PSA_ALG_SHA_256):PSA_ERROR_NOT_PERMITTED
 
 PSA key policy: MAC, sign-verify, min-length policy, unmatched base alg
 depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_HMAC:MBEDTLS_CMAC_C
 mac_key_policy:PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH:PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(PSA_ALG_HMAC(PSA_ALG_SHA_256), 20):PSA_KEY_TYPE_HMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_TRUNCATED_MAC(PSA_ALG_CMAC, 20):PSA_ERROR_NOT_PERMITTED
+
+PSA key policy: MAC, sign-verify, min-length policy, unmatched base alg (different hash base)
+depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_SHA_224:PSA_WANT_KEY_TYPE_HMAC
+mac_key_policy:PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH:PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(PSA_ALG_HMAC(PSA_ALG_SHA_256), 20):PSA_KEY_TYPE_HMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_TRUNCATED_MAC(PSA_ALG_HMAC(PSA_ALG_SHA_224), 20):PSA_ERROR_NOT_PERMITTED
+
+PSA key policy: MAC, sign-verify, min-length policy, unmatched base alg (different algorithm)
+depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_HMAC:MBEDTLS_CMAC_C
+mac_key_policy:PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH:PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(PSA_ALG_HMAC(PSA_ALG_SHA_256), 10):PSA_KEY_TYPE_HMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_CMAC:PSA_ERROR_NOT_PERMITTED
 
 PSA key policy: MAC, sign-verify, min-length policy used as algorithm
 depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_HMAC
@@ -484,17 +516,41 @@ PSA key policy: AEAD, neither encrypt nor decrypt
 depends_on:MBEDTLS_AES_C:MBEDTLS_CCM_C
 aead_key_policy:0:PSA_ALG_CCM:PSA_KEY_TYPE_AES:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":13:16:PSA_ALG_CCM:PSA_ERROR_NOT_PERMITTED
 
-PSA key policy: AEAD, tag length > min-length policy
+PSA key policy: AEAD, tag length > min-length policy, CCM
 depends_on:MBEDTLS_AES_C:MBEDTLS_CCM_C
 aead_key_policy:PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT:PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(PSA_ALG_CCM, 4):PSA_KEY_TYPE_AES:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":13:8:PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 8):PSA_SUCCESS
 
-PSA key policy: AEAD, tag length = min-length policy
+PSA key policy: AEAD, tag length = min-length policy, CCM
 depends_on:MBEDTLS_AES_C:MBEDTLS_CCM_C
 aead_key_policy:PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT:PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(PSA_ALG_CCM, 4):PSA_KEY_TYPE_AES:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":13:4:PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 4):PSA_SUCCESS
 
-PSA key policy: AEAD, tag length < min-length policy
+PSA key policy: AEAD, tag length < min-length policy, CCM
 depends_on:MBEDTLS_AES_C:MBEDTLS_CCM_C
 aead_key_policy:PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT:PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(PSA_ALG_CCM, 8):PSA_KEY_TYPE_AES:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":13:4:PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 4):PSA_ERROR_NOT_PERMITTED
+
+PSA key policy: AEAD, tag length > min-length policy, GCM
+depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
+aead_key_policy:PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT:PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(PSA_ALG_GCM, 4):PSA_KEY_TYPE_AES:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":12:8:PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 8):PSA_SUCCESS
+
+PSA key policy: AEAD, tag length = min-length policy, GCM
+depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
+aead_key_policy:PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT:PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(PSA_ALG_GCM, 4):PSA_KEY_TYPE_AES:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":12:4:PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 4):PSA_SUCCESS
+
+PSA key policy: AEAD, tag length < min-length policy, GCM
+depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
+aead_key_policy:PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT:PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(PSA_ALG_GCM, 8):PSA_KEY_TYPE_AES:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":12:4:PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 4):PSA_ERROR_NOT_PERMITTED
+
+PSA key policy: AEAD, default tag length > min-length policy
+depends_on:MBEDTLS_AES_C:MBEDTLS_CCM_C
+aead_key_policy:PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT:PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(PSA_ALG_CCM, 8):PSA_KEY_TYPE_AES:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":13:16:PSA_ALG_CCM:PSA_SUCCESS
+
+PSA key policy: AEAD, default tag length = min-length policy
+depends_on:MBEDTLS_AES_C:MBEDTLS_CCM_C
+aead_key_policy:PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT:PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(PSA_ALG_CCM, 16):PSA_KEY_TYPE_AES:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":13:16:PSA_ALG_CCM:PSA_SUCCESS
+
+PSA key policy: AEAD, default tag length < min-length policy
+depends_on:MBEDTLS_AES_C:MBEDTLS_CCM_C
+aead_key_policy:PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT:PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(PSA_ALG_CCM, 17):PSA_KEY_TYPE_AES:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":13:16:PSA_ALG_CCM:PSA_ERROR_NOT_PERMITTED
 
 PSA key policy: AEAD, min-length policy, unmatched base alg
 depends_on:MBEDTLS_AES_C:MBEDTLS_CCM_C:MBEDTLS_GCM_C

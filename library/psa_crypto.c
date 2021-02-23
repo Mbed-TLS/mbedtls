@@ -2913,7 +2913,28 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
 
     if( truncated == 0 )
     {
-        /* The "normal" case: untruncated algorithm. Nothing to do. */
+        /* The "normal" case: untruncated algorithm. Re-validate the
+         * key policy with explicit MAC length set in the algorithm
+         * when the algorithm policy is at-least-this-length to catch
+         * a corner case due to the default MAC length being unknown
+         * at key loading time. */
+        if( PSA_ALG_IS_MAC( slot->attr.policy.alg ) &&
+            ( PSA_ALG_FULL_LENGTH_MAC( slot->attr.policy.alg ) == full_length_alg ) &&
+            ( slot->attr.policy.alg & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) )
+        {
+            /* validate policy length */
+            if( PSA_MAC_TRUNCATED_LENGTH( slot->attr.policy.alg ) > operation->mac_size )
+                status = PSA_ERROR_NOT_PERMITTED;
+        }
+
+        if( PSA_ALG_IS_MAC( slot->attr.policy.alg2 ) &&
+            ( PSA_ALG_FULL_LENGTH_MAC( slot->attr.policy.alg2 ) == full_length_alg ) &&
+            ( slot->attr.policy.alg2 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) )
+        {
+            /* validate policy length */
+            if( PSA_MAC_TRUNCATED_LENGTH( slot->attr.policy.alg2 ) > operation->mac_size )
+                status = PSA_ERROR_NOT_PERMITTED;
+        }
     }
     else if( truncated < 4 )
     {

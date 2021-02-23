@@ -133,8 +133,8 @@
  * \param alg               The algorithm to use.
  * \param input1            The first input to pass.
  * \param input1_length     The length of \p input1 in bytes.
- * \param input1            The first input to pass.
- * \param input1_length     The length of \p input1 in bytes.
+ * \param input2            The first input to pass.
+ * \param input2_length     The length of \p input2 in bytes.
  * \param capacity          The capacity to set.
  *
  * \return                  \c 1 on success, \c 0 on failure.
@@ -170,8 +170,11 @@ psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
  *
  * In case of failure, mark the current test case as failed.
  *
- * \param alg               A key agreement algorithm compatible with \p key.
- * \param key               A key that allows key agreement with \p alg.
+ * \param operation         An operation that has been set up for a key
+ *                          agreement algorithm that is compatible with
+ *                          \p key.
+ * \param key               A key pair object that is suitable for a key
+ *                          agreement with \p operation.
  *
  * \return                  \c 1 on success, \c 0 on failure.
  */
@@ -191,8 +194,9 @@ psa_status_t mbedtls_test_psa_key_agreement_with_self(
  * - Montgomery public key: first byte.
  *
  * \param type              The key type.
- * \param size              The key size in bits.
- * \param exported          A buffer containing
+ * \param bits              The key size in bits.
+ * \param exported          A buffer containing the key representation.
+ * \param exported_length   The length of \p exported in bytes.
  *
  * \return                  \c 1 if all checks passed, \c 0 on failure.
  */

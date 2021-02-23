@@ -744,9 +744,6 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
 static int psa_key_algorithm_permits( psa_algorithm_t policy_alg,
                                       psa_algorithm_t requested_alg )
 {
-    /* A requested algorithm cannot be a wildcard. */
-    if( PSA_ALG_IS_WILDCARD( requested_alg ) )
-        return( 0 );
     /* Common case: the policy only allows requested_alg. */
     if( requested_alg == policy_alg )
         return( 1 );
@@ -804,12 +801,25 @@ static int psa_key_algorithm_permits( psa_algorithm_t policy_alg,
 /** Test whether a policy permits an algorithm.
  *
  * The caller must test usage flags separately.
+ *
+ * \retval PSA_SUCCESS                  When \p alg is a specific algorithm
+ *                                      allowed by the \p policy.
+ * \retval PSA_ERROR_INVALID_ARGUMENT   When \p alg is not a specific algorithm
+ * \retval PSA_ERROR_NOT_PERMITTED      When \p alg is a specific algorithm, but
+ *                                      the \p policy does not allow it.
  */
-static int psa_key_policy_permits( const psa_key_policy_t *policy,
-                                   psa_algorithm_t alg )
+static psa_status_t psa_key_policy_permits( const psa_key_policy_t *policy,
+                                            psa_algorithm_t alg )
 {
-    return( psa_key_algorithm_permits( policy->alg, alg ) ||
-            psa_key_algorithm_permits( policy->alg2, alg ) );
+    /* A requested algorithm cannot be a wildcard. */
+    if( PSA_ALG_IS_WILDCARD( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    if( psa_key_algorithm_permits( policy->alg, alg ) ||
+        psa_key_algorithm_permits( policy->alg2, alg ) )
+        return( PSA_SUCCESS );
+    else
+        return( PSA_ERROR_NOT_PERMITTED );
 }
 
 /** Restrict a key policy based on a constraint.
@@ -880,8 +890,12 @@ static psa_status_t psa_get_and_lock_key_slot_with_policy(
         goto error;
 
     /* Enforce that the usage policy permits the requested algortihm. */
-    if( alg != 0 && ! psa_key_policy_permits( &slot->attr.policy, alg ) )
-        goto error;
+    if( alg != 0 )
+    {
+        status = psa_key_policy_permits( &slot->attr.policy, alg );
+        if( status != PSA_SUCCESS )
+            goto error;
+    }
 
     return( PSA_SUCCESS );
 

@@ -466,6 +466,29 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void rsa_init_free( int reinit )
+{
+    mbedtls_rsa_context ctx;
+
+    /* Double free is not explicitly documented to work, but we rely on it
+     * even inside the library so that you can call mbedtls_rsa_free()
+     * unconditionally on an error path without checking whether it has
+     * already been called in the success path. */
+
+    mbedtls_rsa_init( &ctx, 0, 0 );
+    mbedtls_rsa_free( &ctx );
+
+    if( reinit )
+        mbedtls_rsa_init( &ctx, 0, 0 );
+    mbedtls_rsa_free( &ctx );
+
+    /* This test case always succeeds, functionally speaking. A plausible
+     * bug might trigger an invalid pointer dereference or a memory leak. */
+    goto exit;
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
                              int digest, int mod, int radix_P, char * input_P,
                              int radix_Q, char * input_Q, int radix_N,

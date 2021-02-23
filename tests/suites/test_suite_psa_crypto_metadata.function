@@ -264,6 +264,24 @@ void mac_algorithm( int alg_arg, int classification_flags,
         TEST_EQUAL( PSA_ALG_TRUNCATED_MAC( truncated_alg, length ),
                     PSA_ALG_TRUNCATED_MAC( alg, length ) );
     }
+
+    /* At-leat-this-length versions */
+    for( n = 1; n <= length; n++ )
+    {
+        psa_algorithm_t policy_alg = PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( alg, n );
+        mac_algorithm_core( policy_alg, classification_flags | ALG_IS_WILDCARD,
+                            key_type, key_bits, n );
+        TEST_EQUAL( PSA_ALG_FULL_LENGTH_MAC( policy_alg ), alg );
+        /* Check that calling PSA_ALG_TRUNCATED_MAC twice gives the length
+         * of the outer truncation (even if the outer length is smaller than
+         * the inner length). */
+        TEST_EQUAL( PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( policy_alg, 1 ),
+                    PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( alg, 1 ) );
+        TEST_EQUAL( PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( policy_alg, length - 1 ),
+                    PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( alg, length - 1) );
+        TEST_EQUAL( PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( policy_alg, length ),
+                    PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( alg, length ) );
+    }
 }
 /* END_CASE */
 
@@ -338,6 +356,24 @@ void aead_algorithm( int alg_arg, int classification_flags,
                     PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, tag_length - 1) );
         TEST_EQUAL( PSA_ALG_AEAD_WITH_SHORTENED_TAG( truncated_alg, tag_length ),
                     PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, tag_length ) );
+    }
+
+    /* At-leat-this-length versions */
+    for( n = 1; n <= tag_length; n++ )
+    {
+        psa_algorithm_t policy_alg = PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG( alg, n );
+        aead_algorithm_core( policy_alg, classification_flags | ALG_IS_WILDCARD, n );
+        TEST_EQUAL( PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG( policy_alg ),
+                    alg );
+        /* Check that calling PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG twice gives
+         * the length of the outer truncation (even if the outer length is
+         * smaller than the inner length). */
+        TEST_EQUAL( PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG( policy_alg, 1 ),
+                    PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG( alg, 1 ) );
+        TEST_EQUAL( PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG( policy_alg, tag_length - 1 ),
+                    PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG( alg, tag_length - 1) );
+        TEST_EQUAL( PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG( policy_alg, tag_length ),
+                    PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG( alg, tag_length ) );
     }
 }
 /* END_CASE */

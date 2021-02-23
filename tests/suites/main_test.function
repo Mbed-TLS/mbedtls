@@ -188,6 +188,10 @@ void execute_function_ptr(TestWrapper_t fp, void **params)
 #else
     fp( params );
 #endif
+
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+    mbedtls_test_mutex_usage_check( );
+#endif /* MBEDTLS_TEST_MUTEX_USAGE */
 }
 
 /**

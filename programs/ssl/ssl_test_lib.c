@@ -22,6 +22,10 @@
 
 #include "ssl_test_lib.h"
 
+#if defined(MBEDTLS_TEST_HOOKS)
+#include "test/helpers.h"
+#endif
+
 #if !defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
 
 void my_debug( void *ctx, int level,
@@ -320,5 +324,34 @@ int idle( mbedtls_net_context *fd,
 
     return( 0 );
 }
+
+#if defined(MBEDTLS_TEST_HOOKS)
+
+void test_hooks_init( void )
+{
+    mbedtls_test_info_reset( );
+
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+    mbedtls_test_mutex_usage_init( );
+#endif
+}
+
+int test_hooks_failure_detected( void )
+{
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+    /* Errors are reported via mbedtls_test_info. */
+    mbedtls_test_mutex_usage_check( );
+#endif
+
+    if( mbedtls_test_info.result != MBEDTLS_TEST_RESULT_SUCCESS )
+        return( 1 );
+    return( 0 );
+}
+
+void test_hooks_free( void )
+{
+}
+
+#endif /* MBEDTLS_TEST_HOOKS */
 
 #endif /* !defined(MBEDTLS_SSL_TEST_IMPOSSIBLE) */

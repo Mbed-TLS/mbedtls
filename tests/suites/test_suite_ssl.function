@@ -3836,9 +3836,7 @@ void ssl_tls_prf( int type, data_t * secret, data_t * random,
     if( output == NULL )
         goto exit;
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    TEST_ASSERT( psa_crypto_init() == 0 );
-#endif
+    USE_PSA_INIT( );
 
     TEST_ASSERT( mbedtls_ssl_tls_prf( type, secret->x, secret->len,
                                       label, random->x, random->len,
@@ -3852,6 +3850,7 @@ void ssl_tls_prf( int type, data_t * secret, data_t * random,
 exit:
 
     mbedtls_free( output );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 

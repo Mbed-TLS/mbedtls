@@ -1369,6 +1369,10 @@ int main( int argc, char *argv[] )
 #endif  /* MBEDTLS_MEMORY_DEBUG */
 #endif  /* MBEDTLS_MEMORY_BUFFER_ALLOC_C */
 
+#if defined(MBEDTLS_TEST_HOOKS)
+    test_hooks_init( );
+#endif /* MBEDTLS_TEST_HOOKS */
+
     /*
      * Make sure memory references are valid in case we exit early.
      */
@@ -3997,6 +4001,26 @@ exit:
         mbedtls_platform_zeroize( context_buf, context_buf_len );
     mbedtls_free( context_buf );
 #endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free( );
+#endif
+
+#if defined(MBEDTLS_TEST_HOOKS)
+    /* Let test hooks detect errors such as resource leaks.
+     * Don't do it in query_config mode, because some test code prints
+     * information to stdout and this gets mixed with the regular output. */
+    if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
+    {
+        if( test_hooks_failure_detected( ) )
+        {
+            if( ret == 0 )
+                ret = 1;
+            mbedtls_printf( "Test hooks detected errors.\n" );
+        }
+    }
+    test_hooks_free( );
+#endif /* MBEDTLS_TEST_HOOKS */
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #if defined(MBEDTLS_MEMORY_DEBUG)

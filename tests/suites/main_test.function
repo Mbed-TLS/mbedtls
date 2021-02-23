@@ -1,4 +1,4 @@
-#line 1 "main_test.function"
+#line 2 "main_test.function"
 SUITE_PRE_DEP
 #define TEST_SUITE_ACTIVE
 
@@ -111,6 +111,7 @@ DISPATCH_FUNCTION
         fflush( stdout );
         ret = DISPATCH_TEST_FN_NOT_FOUND;
     }
+
 #else
     ret = DISPATCH_UNSUPPORTED_SUITE;
 #endif
@@ -285,6 +286,10 @@ int main(int argc, const char *argv[])
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
 #endif
 
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+    mbedtls_test_mutex_usage_init( );
+#endif
+
     /*
      * The C standard doesn't guarantee that all-bits-0 is the representation
      * of a NULL pointer. We do however use that in our code for initializing
@@ -453,6 +458,10 @@ int main(int argc, const char *argv[])
                 }
 #endif /* __unix__ || __APPLE__ __MACH__ */
 
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+                if( ret == DISPATCH_TEST_SUCCESS )
+                    mbedtls_test_mutex_usage_check( );
+#endif /* MBEDTLS_TEST_MUTEX_USAGE */
             }
 
             if( unmet_dep_count > 0 || ret == DISPATCH_UNSUPPORTED_SUITE )

@@ -67,6 +67,10 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-function")
 endif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
 
+if(CMAKE_COMPILER_IS_CLANG)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code")
+endif(CMAKE_COMPILER_IS_CLANG)
+
 if(MSVC)
     # If a warning level has been defined, suppress all warnings for test code
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W0")

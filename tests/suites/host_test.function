@@ -360,8 +360,6 @@ static int test_snprintf( size_t n, const char *ref_buf, int ref_ret )
 /**
  * \brief       Tests snprintf implementation.
  *
- * \param none
- *
  * \return      0 for success else 1
  */
 static int run_test_snprintf( void )
@@ -428,8 +426,8 @@ static void write_outcome_entry( FILE *outcome_file,
  * \param unmet_dependencies         The array of unmet dependencies.
  * \param missing_unmet_dependencies Non-zero if there was a problem tracking
  *                                   all unmet dependencies, 0 otherwise.
- * \param ret                   The test dispatch status (DISPATCH_xxx).
- * \param mbedtls_test_info     A pointer to the test info structure.
+ * \param ret                        The test dispatch status (DISPATCH_xxx).
+ * \param info                       A pointer to the test info structure.
  */
 static void write_outcome_result( FILE *outcome_file,
                                   size_t unmet_dep_count,

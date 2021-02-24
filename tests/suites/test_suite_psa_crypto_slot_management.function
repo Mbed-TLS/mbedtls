@@ -43,51 +43,6 @@ typedef enum
     INVALID_HANDLE_HUGE,
 } invalid_handle_construction_t;
 
-/* All test functions that create persistent keys must call
- * `TEST_USES_KEY_ID( key_id )` before creating a persistent key with this
- * identifier, and must call psa_purge_key_storage() in their cleanup
- * code. */
-
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-static mbedtls_svc_key_id_t key_ids_used_in_test[9];
-static size_t num_key_ids_used;
-
-/* Record a key id as potentially used in a test case. */
-static int test_uses_key_id( mbedtls_svc_key_id_t key_id )
-{
-    size_t i;
-    if( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key_id ) >
-        PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
-    {
-        /* Don't touch key id values that designate non-key files. */
-        return( 1 );
-    }
-    for( i = 0; i < num_key_ids_used ; i++ )
-    {
-        if( mbedtls_svc_key_id_equal( key_id, key_ids_used_in_test[i] ) )
-            return( 1 );
-    }
-    if( num_key_ids_used == ARRAY_LENGTH( key_ids_used_in_test ) )
-        return( 0 );
-    key_ids_used_in_test[num_key_ids_used] = key_id;
-    ++num_key_ids_used;
-    return( 1 );
-}
-#define TEST_USES_KEY_ID( key_id )                       \
-    TEST_ASSERT( test_uses_key_id( key_id ) )
-
-/* Destroy all key ids that may have been created by the current test case. */
-static void psa_purge_key_storage( void )
-{
-    size_t i;
-    for( i = 0; i < num_key_ids_used; i++ )
-        psa_destroy_persistent_key( key_ids_used_in_test[i] );
-    num_key_ids_used = 0;
-}
-#else
-#define TEST_USES_KEY_ID( key_id ) ( (void) ( key_id ) )
-#endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
-
 /** Apply \p invalidate_method to invalidate the specified key:
  * close it, destroy it, or do nothing;
  */
@@ -131,7 +86,7 @@ static int invalidate_psa( invalidate_method_t invalidate_method )
         case INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN:
         case INVALIDATE_BY_PURGING_WITH_SHUTDOWN:
             /* All keys must have been closed. */
-            PSA_DONE( );
+            PSA_SESSION_DONE( );
             break;
         case INVALIDATE_BY_SHUTDOWN:
             /* Some keys may remain behind, and we're testing that this
@@ -168,6 +123,7 @@ void transient_slot_lifecycle( int owner_id_arg,
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
+    mbedtls_test_set_step( 1 );
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Import a key. */
@@ -214,6 +170,7 @@ void transient_slot_lifecycle( int owner_id_arg,
     psa_reset_key_attributes( &attributes );
 
     /* Do something that invalidates the key. */
+    mbedtls_test_set_step( 2 );
     if( ! invalidate_key( invalidate_method, key ) )
         goto exit;
     if( ! invalidate_psa( invalidate_method ) )
@@ -263,6 +220,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
 
     TEST_USES_KEY_ID( id );
 
+    mbedtls_test_set_step( 1 );
     PSA_ASSERT( psa_crypto_init( ) );
 
     psa_set_key_id( &attributes, id );
@@ -312,6 +270,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
      * Do something that wipes key data in volatile memory or destroy the
      * key.
      */
+    mbedtls_test_set_step( 2 );
     if( ! invalidate_key( invalidate_method, id ) )
         goto exit;
     if( ! invalidate_psa( invalidate_method ) )
@@ -383,7 +342,6 @@ exit:
     psa_reset_key_attributes( &read_attributes );
 
     PSA_DONE( );
-    psa_purge_key_storage( );
     mbedtls_free( reexported );
 }
 /* END_CASE */
@@ -457,7 +415,6 @@ exit:
     psa_reset_key_attributes( &attributes );
 
     PSA_DONE( );
-    psa_purge_key_storage( );
 }
 /* END_CASE */
 
@@ -516,9 +473,6 @@ void create_fail( int lifetime_arg, int id_arg,
 
 exit:
     PSA_DONE( );
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    psa_purge_key_storage( );
-#endif
 }
 /* END_CASE */
 
@@ -654,9 +608,6 @@ exit:
 
     PSA_DONE( );
     mbedtls_free( export_buffer );
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    psa_purge_key_storage( );
-#endif
 }
 /* END_CASE */
 
@@ -772,9 +723,6 @@ exit:
 
     PSA_DONE( );
     mbedtls_free( export_buffer );
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    psa_purge_key_storage( );
-#endif
 }
 /* END_CASE */
 

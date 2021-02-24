@@ -709,6 +709,8 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
  *   For Weierstrass curves, this is the content of the `privateKey` field of
  *   the `ECPrivateKey` format defined by RFC 5915.  For Montgomery curves,
  *   the format is defined by RFC 7748, and output is masked according to §5.
+ *   For twisted Edwards curves, the private key is as defined by RFC 8032
+ *   (a 32-byte string for Edwards25519, a 57-byte string for Edwards448).
  * - For Diffie-Hellman key exchange key pairs (key types for which
  *   #PSA_KEY_TYPE_IS_DH_KEY_PAIR is true), the
  *   format is the representation of the private key `x` as a big-endian byte
@@ -774,7 +776,12 @@ psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
  *      modulus            INTEGER,    -- n
  *      publicExponent     INTEGER  }  -- e
  *   ```
- * - For elliptic curve public keys (key types for which
+ * - For elliptic curve keys on a twisted Edwards curve (key types for which
+ *   #PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY is true and #PSA_KEY_TYPE_GET_CURVE
+ *   returns #PSA_ECC_FAMILY_TWISTED_EDWARDS), the public key is as defined
+ *   by RFC 8032
+ *   (a 32-byte string for Edwards25519, a 57-byte string for Edwards448).
+ * - For other elliptic curve public keys (key types for which
  *   #PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY is true), the format is the uncompressed
  *   representation defined by SEC1 &sect;2.3.3 as the content of an ECPoint.
  *   Let `m` be the bit size associated with the curve, i.e. the bit size of

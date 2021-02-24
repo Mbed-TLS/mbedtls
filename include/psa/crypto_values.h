@@ -569,6 +569,20 @@
  */
 #define PSA_ECC_FAMILY_MONTGOMERY        ((psa_ecc_family_t) 0x41)
 
+/** The twisted Edwards curves Ed25519 and Ed448.
+ *
+ * These curves are suitable for EdDSA.
+ *
+ * This family comprises the following twisted Edwards curves:
+ * - 256-bit: Edwards25519, the twisted Edwards curve birationally equivalent
+ *   to Curve25519.
+ *   Bernstein et al., _Twisted Edwards curves_, Africacrypt 2008.
+ * - 448-bit: Edwards448, the twisted Edwards curve birationally equivalent
+ *   to Curve448.
+ *   Hamburg, _Ed448-Goldilocks, a new elliptic curve_, NIST ECC Workshop, 2015.
+ */
+#define PSA_ECC_FAMILY_TWISTED_EDWARDS   ((psa_ecc_family_t) 0x42)
+
 #define PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE             ((psa_key_type_t)0x4200)
 #define PSA_KEY_TYPE_DH_KEY_PAIR_BASE               ((psa_key_type_t)0x7200)
 #define PSA_KEY_TYPE_DH_GROUP_MASK                  ((psa_key_type_t)0x00ff)

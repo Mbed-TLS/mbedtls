@@ -40,6 +40,7 @@ static const char *psa_ecc_family_name(psa_ecc_family_t curve)
     case PSA_ECC_FAMILY_SECT_K1: return "PSA_ECC_FAMILY_SECT_K1";
     case PSA_ECC_FAMILY_SECT_R1: return "PSA_ECC_FAMILY_SECT_R1";
     case PSA_ECC_FAMILY_SECT_R2: return "PSA_ECC_FAMILY_SECT_R2";
+    case PSA_ECC_FAMILY_TWISTED_EDWARDS: return "PSA_ECC_FAMILY_TWISTED_EDWARDS";
     default: return NULL;
     }
 }

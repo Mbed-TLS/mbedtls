@@ -182,6 +182,10 @@ int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
 /**
  * \brief          Check and wait for the context to be ready for read/write
  *
+ * \note           The current implementation of this function uses
+ *                 select() and returns an error if the file descriptor
+ *                 is beyond \c FD_SETSIZE.
+ *
  * \param ctx      Socket to check
  * \param rw       Bitflag composed of MBEDTLS_NET_POLL_READ and
  *                 MBEDTLS_NET_POLL_WRITE specifying the events
@@ -262,6 +266,10 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len );
  * \brief          Read at most 'len' characters, blocking for at most
  *                 'timeout' seconds. If no error occurs, the actual amount
  *                 read is returned.
+ *
+ * \note           The current implementation of this function uses
+ *                 select() and returns an error if the file descriptor
+ *                 is beyond \c FD_SETSIZE.
  *
  * \param ctx      Socket
  * \param buf      The buffer to write to

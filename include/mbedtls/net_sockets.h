@@ -219,6 +219,10 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len );
  *                 'timeout' seconds. If no error occurs, the actual amount
  *                 read is returned.
  *
+ * \note           The current implementation of this function uses
+ *                 select() and returns an error if the file descriptor
+ *                 is beyond \c FD_SETSIZE.
+ *
  * \param ctx      Socket
  * \param buf      The buffer to write to
  * \param len      Maximum length of the buffer

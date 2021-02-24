@@ -2847,7 +2847,8 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
  *
  * Note that to perform a hash-and-sign signature algorithm, you must
  * first calculate the hash by calling psa_hash_setup(), psa_hash_update()
- * and psa_hash_finish(). Then pass the resulting hash as the \p hash
+ * and psa_hash_finish(), or alternatively by calling psa_hash_compute().
+ * Then pass the resulting hash as the \p hash
  * parameter to this function. You can use #PSA_ALG_SIGN_GET_HASH(\p alg)
  * to determine the hash algorithm to use.
  *
@@ -2898,7 +2899,8 @@ psa_status_t psa_sign_hash(mbedtls_svc_key_id_t key,
  *
  * Note that to perform a hash-and-sign signature algorithm, you must
  * first calculate the hash by calling psa_hash_setup(), psa_hash_update()
- * and psa_hash_finish(). Then pass the resulting hash as the \p hash
+ * and psa_hash_finish(), or alternatively by calling psa_hash_compute().
+ * Then pass the resulting hash as the \p hash
  * parameter to this function. You can use #PSA_ALG_SIGN_GET_HASH(\p alg)
  * to determine the hash algorithm to use.
  *

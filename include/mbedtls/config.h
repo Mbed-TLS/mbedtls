@@ -702,10 +702,6 @@
  * Warning: Only do so when you know what you are doing. This allows for
  * channels with virtually no security at all!
  *
- * This enables the following ciphersuites:
- *      MBEDTLS_TLS_RSA_WITH_DES_CBC_SHA
- *      MBEDTLS_TLS_DHE_RSA_WITH_DES_CBC_SHA
- *
  * Uncomment this macro to enable weak ciphersuites
  *
  * \warning   DES is considered a weak cipher and its use constitutes a

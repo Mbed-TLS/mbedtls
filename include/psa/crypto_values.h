@@ -1344,6 +1344,11 @@
 #define PSA_ALG_IS_RANDOMIZED_ECDSA(alg)                                \
     (PSA_ALG_IS_ECDSA(alg) && !PSA_ALG_ECDSA_IS_DETERMINISTIC(alg))
 
+/* Default definition, to be overridden if the library is extended with
+ * more hash-and-sign algorithms that we want to keep out of this header
+ * file. */
+#define PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg) 0
+
 /** Whether the specified algorithm is a hash-and-sign algorithm.
  *
  * Hash-and-sign algorithms are asymmetric (public-key) signature algorithms
@@ -1359,7 +1364,8 @@
  */
 #define PSA_ALG_IS_HASH_AND_SIGN(alg)                                   \
     (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||    \
-     PSA_ALG_IS_ECDSA(alg))
+     PSA_ALG_IS_ECDSA(alg) ||                                           \
+     PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg))
 
 /** Get the hash used by a hash-and-sign signature algorithm.
  *

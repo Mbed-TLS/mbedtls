@@ -170,6 +170,18 @@ Asymmetric signature: SHA-256 + deterministic ECDSA using SHA-256
 depends_on:PSA_WANT_ALG_DETERMINISTIC_ECDSA:PSA_WANT_ALG_SHA_256
 asymmetric_signature_algorithm:PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 ):ALG_IS_ECDSA | ALG_IS_DETERMINISTIC_ECDSA | ALG_ECDSA_IS_DETERMINISTIC | ALG_IS_HASH_AND_SIGN
 
+Asymmetric signature: pure EdDSA
+#depends_on:PSA_WANT_ALG_EDDSA
+asymmetric_signature_algorithm:PSA_ALG_PURE_EDDSA:0
+
+Asymmetric signature: Ed25519ph
+#depends_on:PSA_WANT_ALG_EDDSA
+asymmetric_signature_algorithm:PSA_ALG_ED25519PH:ALG_IS_HASH_EDDSA | ALG_IS_HASH_AND_SIGN
+
+Asymmetric signature: Ed448ph
+#depends_on:PSA_WANT_ALG_EDDSA
+asymmetric_signature_algorithm:PSA_ALG_ED448PH:ALG_IS_HASH_EDDSA | ALG_IS_HASH_AND_SIGN
+
 Asymmetric signature: RSA PKCS#1 v1.5 with wildcard hash
 depends_on:PSA_WANT_ALG_RSA_PKCS1V15_SIGN
 asymmetric_signature_wildcard:PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH ):ALG_IS_RSA_PKCS1V15_SIGN

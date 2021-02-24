@@ -571,7 +571,9 @@
 
 /** The twisted Edwards curves Ed25519 and Ed448.
  *
- * These curves are suitable for EdDSA.
+ * These curves are suitable for EdDSA (#PSA_ALG_PURE_EDDSA for both curves,
+ * #PSA_ALG_ED25519PH for the 256-bit curve,
+ * #PSA_ALG_ED448PH for the 448-bit curve).
  *
  * This family comprises the following twisted Edwards curves:
  * - 256-bit: Edwards25519, the twisted Edwards curve birationally equivalent
@@ -801,6 +803,13 @@
 #define PSA_ALG_SHA3_384                        ((psa_algorithm_t)0x02000012)
 /** SHA3-512 */
 #define PSA_ALG_SHA3_512                        ((psa_algorithm_t)0x02000013)
+/** The first 64 bytes of the SHAKE256 output.
+ *
+ * This is the prehashing for Ed448ph (see #PSA_ALG_ED448PH). For other
+ * scenarios where a hash function based on SHA3/SHAKE is desired, SHA3-512
+ * has the same output size and a (theoretically) higher security strength.
+ */
+#define PSA_ALG_SHAKE256_64                     ((psa_algorithm_t)0x02000014)
 
 /** In a hash-and-sign algorithm policy, allow any hash algorithm.
  *
@@ -1358,6 +1367,74 @@
 #define PSA_ALG_IS_RANDOMIZED_ECDSA(alg)                                \
     (PSA_ALG_IS_ECDSA(alg) && !PSA_ALG_ECDSA_IS_DETERMINISTIC(alg))
 
+/** Edwards-curve digital signature algorithm without prehashing (PureEdDSA),
+ * using standard parameters.
+ *
+ * Contexts are not supported in the current version of this specification
+ * because there is no suitable signature interface that can take the
+ * context as a parameter. A future version of this specification may add
+ * suitable functions and extend this algorithm to support contexts.
+ *
+ * PureEdDSA requires an elliptic curve key on a twisted Edwards curve.
+ * In this specification, the following curves are supported:
+ * - #PSA_ECC_FAMILY_TWISTED_EDWARDS, 255-bit: Ed25519 as specified
+ *   in RFC 8032.
+ *   The curve is Edwards25519.
+ *   The hash function used internally is SHA-512.
+ * - #PSA_ECC_FAMILY_TWISTED_EDWARDS, 448-bit: Ed448 as specified
+ *   in RFC 8032.
+ *   The curve is Edwards448.
+ *   The hash function used internally is the first 114 bytes of the
+ *   SHAKE256 output, with
+ *   `dom4(1, "") = ASCII("SigEd448") || 0x01 0x00`
+ *   prepended to the input.
+ *
+ * This algorithm can be used with psa_sign_message() and
+ * psa_verify_message(). Since there is no prehashing, it cannot be used
+ * with psa_sign_hash() or psa_verify_hash().
+ *
+ * The signature format is the concatenation of R and S as defined by
+ * RFC 8032 §5.1.6 and §5.2.6 (a 64-byte string for Ed25519, a 114-byte
+ * string for Ed448).
+ */
+#define PSA_ALG_PURE_EDDSA                      ((psa_algorithm_t)0x06000800)
+
+#define PSA_ALG_HASH_EDDSA_BASE                 ((psa_algorithm_t)0x06000900)
+#define PSA_ALG_IS_HASH_EDDSA(alg)              \
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HASH_EDDSA_BASE)
+
+/** Edwards-curve digital signature algorithm with prehashing (HashEdDSA),
+ * using SHAKE256 and the Edwards448 curve.
+ *
+ * See #PSA_ALG_PURE_EDDSA regarding context support and the signature format.
+ *
+ * This algorithm is Ed25519 as specified in RFC 8032.
+ * The curve is Edwards25519.
+ * The input is first hashed with SHA-512.
+ * The hash function used internally is SHA-512, with
+ * `dom2(0, "") = ASCII("SigEd25519 no Ed25519 collisions") || 0x00 0x00`
+ * prepended to the input.
+ */
+#define PSA_ALG_ED25519PH                               \
+    (PSA_ALG_HASH_EDDSA_BASE | (PSA_ALG_SHA_512 & PSA_ALG_HASH_MASK))
+
+/** Edwards-curve digital signature algorithm with prehashing (HashEdDSA),
+ * using SHAKE256 and the Edwards448 curve.
+ *
+ * See #PSA_ALG_PURE_EDDSA regarding context support and the signature format.
+ *
+ * This algorithm is Ed448 as specified in RFC 8032.
+ * The curve is Edwards448.
+ * The input is first hashed by taking the first 64 bytes of the SHAKE256
+ * output.
+ * The hash function used internally is the first 114 bytes of the
+ * SHAKE256 output, with
+ * `dom4(0, "") = ASCII("SigEd448") || 0x00 0x00`
+ * prepended to the input.
+ */
+#define PSA_ALG_ED448PH                                 \
+    (PSA_ALG_HASH_EDDSA_BASE | (PSA_ALG_SHAKE256_64 & PSA_ALG_HASH_MASK))
+
 /* Default definition, to be overridden if the library is extended with
  * more hash-and-sign algorithms that we want to keep out of this header
  * file. */
@@ -1378,7 +1455,7 @@
  */
 #define PSA_ALG_IS_HASH_AND_SIGN(alg)                                   \
     (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||    \
-     PSA_ALG_IS_ECDSA(alg) ||                                           \
+     PSA_ALG_IS_ECDSA(alg) || PSA_ALG_IS_HASH_EDDSA(alg) ||             \
      PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg))
 
 /** Get the hash used by a hash-and-sign signature algorithm.

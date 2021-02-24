@@ -286,6 +286,13 @@ static int ecjpake_zkp_read( const mbedtls_md_info_t *md_info,
      * Verification
      */
     MBEDTLS_MPI_CHK( ecjpake_hash( md_info, grp, pf, G, &V, X, id, &h ) );
+
+    if( mbedtls_mpi_cmp_int( &r,0 ) == 0 )
+    {
+        ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+        goto cleanup;
+    }
+
     MBEDTLS_MPI_CHK( mbedtls_ecp_muladd( (mbedtls_ecp_group *) grp,
                      &VV, &h, X, &r, G ) );
 

@@ -1,0 +1,28 @@
+/* BEGIN_HEADER */
+
+#include "mbedtls/net_sockets.h"
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_NET_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void context_init_free( int reinit )
+{
+    mbedtls_net_context ctx;
+
+    mbedtls_net_init( &ctx );
+    mbedtls_net_free( &ctx );
+
+    if( reinit )
+        mbedtls_net_init( &ctx );
+    mbedtls_net_free( &ctx );
+
+    /* This test case always succeeds, functionally speaking. A plausible
+     * bug might trigger an invalid pointer dereference or a memory leak. */
+    goto exit;
+}
+/* END_CASE */

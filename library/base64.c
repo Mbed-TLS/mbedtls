@@ -96,6 +96,9 @@ static const unsigned char base64_dec_map[128] =
 
 #define BASE64_SIZE_T_MAX   ( (size_t) -1 ) /* SIZE_T_MAX is not standard */
 
+/*
+ * Constant flow conditional assignment
+*/
 static void mbedtls_base64_cond_assign(unsigned char * dest, const unsigned char * const src,
                                        unsigned char condition)
 {
@@ -106,19 +109,31 @@ static void mbedtls_base64_cond_assign(unsigned char * dest, const unsigned char
 }
 
 /*
- * Constant time check for equality
+ * Constant flow check for equality
 */
-static unsigned char mbedtls_base64_eq(uint32_t in_a, uint32_t in_b)
+static unsigned char mbedtls_base64_eq(size_t in_a, size_t in_b)
 {
     uint32_t difference = in_a ^ in_b;
 
+    /* MSVC has a warning about unary minus on unsigned integer types,
+     * but this is well-defined and precisely what we want to do here. */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
+
     difference |= -difference;
+
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+
     difference >>= 31;
     return (unsigned char) ( 1 ^ difference );
 }
 
 /*
- * Constant time lookup into table.
+ * Constant flow lookup into table.
 */
 static unsigned char mbedtls_base64_table_lookup(const unsigned char * const table,
                                                  const size_t table_size, const size_t table_index)

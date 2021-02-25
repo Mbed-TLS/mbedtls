@@ -30,13 +30,17 @@ will put security first but provide a compatibility option. (So far we never
 had to break ABI compatibility in an LTS branch, but we occasionally had to
 increase code size for a security fix.)
 
-## Currently maintained branches
+For contributors, see the [Backwards Compatibility section of
+CONTRIBUTING](CONTRIBUTING.md#cackwords-compatibility).
+
+## Current Branches
 
 The following branches are currently maintained:
 
-- development (2.x.y releases)
-- Mbed TLS 2.16, maintained until at least the end of 2021, see
+- [development](https://github.com/ARMmbed/mbedtls/)
+- [mbedtls-2.16](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.16)
+ maintained until at least the end of 2021, see
   <https://tls.mbed.org/tech-updates/blog/announcing-lts-branch-mbedtls-2.16>
-- Mbed TLS 2.7 - end of life in March 2021!
+- [mbedtls-2.7](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.7) - end of life in March 2021!
 
 Users are urged to always use the latest version of a maintained branch.

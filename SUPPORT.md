@@ -2,7 +2,8 @@
 
 Here are some useful sources of information about using Mbed TLS:
 
-- API documentation (see `make apidoc` or directly the header files);
+- API documentation, see the [Documentation section of the
+  README](README.md#License);
 - the `docs` directory in the source tree;
 - the [Mbed TLS knowledge Base](https://tls.mbed.org/kb);
 - the [Mbed TLS mailing-list

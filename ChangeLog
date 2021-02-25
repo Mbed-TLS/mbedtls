@@ -152,6 +152,9 @@ Bugfix
      option on. In this configuration key management methods that are required
      for MBEDTLS_CIPHER_MODE_XTS were excluded from the build and made it fail.
      Fixes #3818. Reported by John Stroebel.
+   * Fix a bug in EC J-PAKE that would cause it fail when the payload is all-
+     bits-zero. 
+     Fixes #1792
 
 Changes
    * Reduce stack usage significantly during sliding window exponentiation.

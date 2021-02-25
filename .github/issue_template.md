@@ -1,7 +1,16 @@
-Note: This is just a template, so feel free to use/remove the unnecessary things
+_Note:_ this is a template, please remove the parts that are not
+applicable (these initial notes, and the "Bug" section for a Feature request
+and vice-versa).
 
+**Note:** to report a security vulnerability, see `SECURITY.md`. Please do not
+use github issues for vulnerabilities.
+
+_Note:_ To get support, see `SUPPORT.md`. Please do o't use github issues for
+questions.
+
+---------------------------------------------------------------
 ### Description
-- Type: Bug | Enhancement\Feature Request
+- Type: Bug | Enhancement / Feature Request
 - Priority: Blocker | Major | Minor
 
 ---------------------------------------------------------------
@@ -28,14 +37,9 @@ Version:
 **Steps to reproduce**  
 
 ----------------------------------------------------------------
-## Enhancement\Feature Request
-
-**Justification - why does the library need this feature?**  
+## Enhancement / Feature Request
 
 **Suggested enhancement**  
 
------------------------------------------------------------------
+**Justification - why does the library need this feature?**  
 
-## Question
-
-**Please first check for answers in the [Mbed TLS knowledge Base](https://tls.mbed.org/kb). If you can't find the answer you're looking for then please use the [Mbed TLS mailing list](https://lists.trustedfirmware.org/mailman/listinfo/mbed-tls)**

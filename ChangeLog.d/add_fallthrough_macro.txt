@@ -1,0 +1,3 @@
+Features
+   * Add a macro to mark deliberate fallthrough in a case statement, to stop
+   warnings being generated with newer compilers.

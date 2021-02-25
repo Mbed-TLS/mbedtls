@@ -50,4 +50,25 @@
 #define MBEDTLS_STATIC_TESTABLE static
 #endif
 
+/** Helper to mark a deliberate fallthrough in a case statement.
+ *
+ * Note this will only be defined for compilers that support it,
+ * however with newer versions of GCC and Clang not using this
+ * generates warnings.
+ *
+ * Usage:
+ *
+ * ```
+ *   case MBEDTLS_MD_NONE:  // Intentional fallthrough
+ *        MBEDTLS_FALLTHROUGH;
+ *   default:
+ *       return( 0 );
+ * ```
+ */
+#if __has_attribute(fallthrough)
+#define MBEDTLS_FALLTHROUGH __attribute(fallthrough)
+#else
+#define MBEDTLS_FALLTHROUGH
+#endif
+
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

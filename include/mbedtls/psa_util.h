@@ -94,6 +94,7 @@ static inline psa_algorithm_t mbedtls_psa_translate_cipher_mode(
                 return( PSA_ALG_CBC_NO_PADDING );
             /* Intentional fallthrough for taglen != 0 */
             /* fallthrough */
+            MBEDTLS_FALLTHROUGH;
         default:
             return( 0 );
     }
@@ -152,6 +153,7 @@ static inline psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg
         return( PSA_ALG_RIPEMD160 );
 #endif
     case MBEDTLS_MD_NONE:  /* Intentional fallthrough */
+        MBEDTLS_FALLTHROUGH;
     default:
         return( 0 );
     }

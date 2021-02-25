@@ -811,6 +811,10 @@ static int psa_key_algorithm_permits( psa_algorithm_t policy_alg,
 static psa_status_t psa_key_policy_permits( const psa_key_policy_t *policy,
                                             psa_algorithm_t alg )
 {
+    /* '0' is not a valid algorithm */
+    if( alg == 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
     /* A requested algorithm cannot be a wildcard. */
     if( PSA_ALG_IS_WILDCARD( alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
@@ -856,7 +860,8 @@ static psa_status_t psa_restrict_key_policy(
  *  and lock it.
  *
  * The key must have allow all the usage flags set in \p usage. If \p alg is
- * nonzero, the key must allow operations with this algorithm.
+ * nonzero, the key must allow operations with this algorithm. If \p alg is
+ * zero, the algorithm is not checked.
  *
  * In case of a persistent key, the function loads the description of the key
  * into a key slot if not already done.

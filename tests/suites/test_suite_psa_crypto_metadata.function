@@ -272,9 +272,9 @@ void mac_algorithm( int alg_arg, int classification_flags,
         mac_algorithm_core( policy_alg, classification_flags | ALG_IS_WILDCARD,
                             key_type, key_bits, n );
         TEST_EQUAL( PSA_ALG_FULL_LENGTH_MAC( policy_alg ), alg );
-        /* Check that calling PSA_ALG_TRUNCATED_MAC twice gives the length
-         * of the outer truncation (even if the outer length is smaller than
-         * the inner length). */
+        /* Check that calling PSA_ALG_AT_LEAST_THIS_LENGTH_MAC twice gives the
+         * length of the outer truncation (even if the outer length is smaller
+         * than the inner length). */
         TEST_EQUAL( PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( policy_alg, 1 ),
                     PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( alg, 1 ) );
         TEST_EQUAL( PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( policy_alg, length - 1 ),
@@ -347,7 +347,7 @@ void aead_algorithm( int alg_arg, int classification_flags,
         aead_algorithm_core( truncated_alg, classification_flags, n );
         TEST_EQUAL( PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG( truncated_alg ),
                     alg );
-        /* Check that calling PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG twice gives
+        /* Check that calling PSA_ALG_AEAD_WITH_SHORTENED_TAG twice gives
          * the length of the outer truncation (even if the outer length is
          * smaller than the inner length). */
         TEST_EQUAL( PSA_ALG_AEAD_WITH_SHORTENED_TAG( truncated_alg, 1 ),
@@ -365,8 +365,8 @@ void aead_algorithm( int alg_arg, int classification_flags,
         aead_algorithm_core( policy_alg, classification_flags | ALG_IS_WILDCARD, n );
         TEST_EQUAL( PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG( policy_alg ),
                     alg );
-        /* Check that calling PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG twice gives
-         * the length of the outer truncation (even if the outer length is
+        /* Check that calling PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG twice
+         * gives the length of the outer truncation (even if the outer length is
          * smaller than the inner length). */
         TEST_EQUAL( PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG( policy_alg, 1 ),
                     PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG( alg, 1 ) );

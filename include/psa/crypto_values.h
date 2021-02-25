@@ -941,7 +941,7 @@
 
 /** Macro to build a MAC minimum-MAC-length wildcard algorithm.
  *
- * A mininimum-MAC-length MAC wildcard algorithm permits all MAC algorithms
+ * A minimum-MAC-length MAC wildcard algorithm permits all MAC algorithms
  * sharing the same base algorithm, and where the (potentially truncated) MAC
  * length of the specific algorithm is equal to or larger then the wildcard
  * algorithm's minimum MAC length.
@@ -1192,7 +1192,7 @@
 
 /** Macro to build an AEAD minimum-tag-length wildcard algorithm.
  *
- * A mininimum-tag-length AEAD wildcard algorithm permits all AEAD algorithms
+ * A minimum-tag-length AEAD wildcard algorithm permits all AEAD algorithms
  * sharing the same base algorithm, and where the tag length of the specific
  * algorithm is equal to or larger then the minimum tag length specified by the
  * wildcard algorithm.

@@ -714,7 +714,7 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
         size_t alg2_len = PSA_MAC_TRUNCATED_LENGTH( alg2 );
         size_t max_len = alg1_len > alg2_len ? alg1_len : alg2_len;
 
-        /* If both are wildcards, return most restricitve wildcard */
+        /* If both are wildcards, return most restrictive wildcard */
         if( ( ( alg1 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) &&
             ( ( alg2 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) )
         {

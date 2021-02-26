@@ -3649,7 +3649,7 @@ ecdh_calc_secret:
          * opaque psk_identity<0..2^16-1>;
          */
         if( ssl_conf_has_static_psk( ssl->conf ) == 0 &&
-            ssl_conf_has_dynamic_psk(ssl) == 0 )
+            ssl_conf_has_dynamic_psk( ssl ) == 0 )
         {
             /* This can happen, if a PSK suite is enabled
              * but no PSK has been selected manually or by the PSK identity hint callback. */

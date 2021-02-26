@@ -937,21 +937,21 @@ typedef struct {
 } psk_entry_t;
 
 static int psk_cb( void *p_psk,  mbedtls_ssl_context *context,
-                   const unsigned char *identity, size_t  identity_len) {
+                   const unsigned char *identity, size_t  identity_len ) {
     psk_entry_t *psk_info = (psk_entry_t*)p_psk;
     int ret = 0;
 
-    mbedtls_printf( "\n  . Receieved server identity: %.*s\n",  (int)identity_len, identity);
+    mbedtls_printf( "\n  . Receieved server identity: %.*s\n",  (int)identity_len, identity );
 
-    if (strncmp(psk_info->psk_server_identity, (const char *)identity, identity_len) != 0) {
+    if ( strncmp( psk_info->psk_server_identity, (const char *)identity, identity_len ) != 0 ) {
         mbedtls_printf( "  . Unknown server identity!\n");
         ret = MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY;
     }
     else
     {
-        ret = mbedtls_ssl_set_hs_psk(context, psk_info->psk, psk_info->psk_len);
-        if ( ret != 0) {
-            mbedtls_printf( "\n  . Configure PSK failed!\n");
+        ret = mbedtls_ssl_set_hs_psk( context, psk_info->psk, psk_info->psk_len );
+        if ( ret != 0 ) {
+            mbedtls_printf( "\n  . Configure PSK failed!\n" );
         }
     }
 

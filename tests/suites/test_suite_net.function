@@ -75,8 +75,9 @@ void context_init_free( int reinit )
 void poll_beyond_fd_setsize( )
 {
     /* Test that mbedtls_net_poll does not misbehave when given a file
-     * descriptor beyond FD_SETSIZE. This code is specific to platforms
-     * with a Unix-like select() function. */
+     * descriptor greater or equal to FD_SETSIZE. This code is specific to
+     * platforms with a Unix-like select() function, which is where
+     * FD_SETSIZE is a concern. */
 
     struct rlimit rlim_nofile;
     int restore_rlim_nofile = 0;
@@ -87,15 +88,15 @@ void poll_beyond_fd_setsize( )
     mbedtls_net_init( &ctx );
 
     /* On many systems, by default, the maximum permitted file descriptor
-     * number is less or equal to FD_SETSIZE. If so, raise the limit if
+     * number is less than FD_SETSIZE. If so, raise the limit if
      * possible.
      *
-     * If the limit can't be raised, a newly open file descriptor
-     * won't be higher than FD_SETSIZE, so the test is not necessary and we
-     * mark it as skipped.
+     * If the limit can't be raised, a file descriptor opened by the
+     * net_sockets module will be less than FD_SETSIZE, so the test
+     * is not necessary and we mark it as skipped.
      */
     TEST_ASSERT( getrlimit( RLIMIT_NOFILE, &rlim_nofile ) == 0 );
-    if( rlim_nofile.rlim_cur <= FD_SETSIZE + 1 )
+    if( rlim_nofile.rlim_cur < FD_SETSIZE + 1 )
     {
         rlim_t old_rlim_cur = rlim_nofile.rlim_cur;
         rlim_nofile.rlim_cur = FD_SETSIZE + 1;
@@ -109,8 +110,8 @@ void poll_beyond_fd_setsize( )
     /* In principle, mbedtls_net_poll() with valid arguments should succeed.
      * However, we know that on Unix-like platforms (and others), this function
      * is implemented on top of select() and fd_set, which do not support
-     * file descriptors  beyond FD_SETSIZE. So we expect to hit this platform
-     * limitation.
+     * file descriptors greater or equal to FD_SETSIZE. So we expect to hit
+     * this platform limitation.
      *
      * If mbedtls_net_poll() does not proprely check that ctx.fd is in range,
      * it may still happen to return the expected failure code, but if this

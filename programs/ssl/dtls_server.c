@@ -114,7 +114,7 @@ int main( void )
 #include "mbedtls/ssl_cache.h"
 #endif
 
-#define READ_TIMEOUT_MS 10000   /* 5 seconds */
+#define READ_TIMEOUT_MS 10000   /* 10 seconds */
 #define DEBUG_LEVEL 0
 
 

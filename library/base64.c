@@ -238,6 +238,7 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
     size_t i, n;
     uint32_t j, x;
     unsigned char *p;
+    unsigned char dec_map_lookup;
 
     /* First pass: check for validity and get output length */
     for( i = n = j = 0; i < slen; i++ )
@@ -268,11 +269,12 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
         if( src[i] == '=' && ++j > 2 )
             return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
 
-        if( src[i] > 127 ||
-            mbedtls_base64_table_lookup( base64_dec_map, sizeof( base64_dec_map ), src[i] ) == 127 )
+        dec_map_lookup = mbedtls_base64_table_lookup( base64_dec_map, sizeof( base64_dec_map ), src[i] );
+
+        if( src[i] > 127 || dec_map_lookup == 127 )
             return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
 
-        if( base64_dec_map[src[i]] < 64 && j != 0 )
+        if( dec_map_lookup < 64 && j != 0 )
             return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
 
         n++;
@@ -302,9 +304,10 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
         if( *src == '\r' || *src == '\n' || *src == ' ' )
             continue;
 
-        j -= ( mbedtls_base64_table_lookup(base64_dec_map, sizeof( base64_dec_map ), *src ) == 64 );
-        x  = ( x << 6 ) |
-            ( mbedtls_base64_table_lookup( base64_dec_map, sizeof( base64_dec_map ), *src ) & 0x3F );
+        dec_map_lookup = mbedtls_base64_table_lookup(base64_dec_map, sizeof( base64_dec_map ), *src );
+
+        j -= ( dec_map_lookup == 64 );
+        x  = ( x << 6 ) | ( dec_map_lookup & 0x3F );
 
         if( ++n == 4 )
         {

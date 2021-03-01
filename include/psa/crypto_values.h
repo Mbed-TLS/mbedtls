@@ -1410,10 +1410,21 @@
  *
  * This algorithm is Ed25519 as specified in RFC 8032.
  * The curve is Edwards25519.
- * The input is first hashed with SHA-512.
+ * The prehash is SHA-512.
  * The hash function used internally is SHA-512, with
  * `dom2(0, "") = ASCII("SigEd25519 no Ed25519 collisions") || 0x00 0x00`
  * prepended to the input.
+ *
+ * This is a hash-and-sign algorithm: to calculate a signature,
+ * you can either:
+ * - call psa_sign_message() on the message;
+ * - or calculate the SHA-512 hash of the message
+ *   with psa_hash_compute()
+ *   or with a multi-part hash operation started with psa_hash_setup(),
+ *   using the hash algorithm #PSA_ALG_SHA_512,
+ *   then sign the calculated hash with psa_sign_hash().
+ * Verifying a signature is similar, using psa_verify_message() or
+ * psa_verify_hash() instead of the signature function.
  */
 #define PSA_ALG_ED25519PH                               \
     (PSA_ALG_HASH_EDDSA_BASE | (PSA_ALG_SHA_512 & PSA_ALG_HASH_MASK))
@@ -1425,12 +1436,22 @@
  *
  * This algorithm is Ed448 as specified in RFC 8032.
  * The curve is Edwards448.
- * The input is first hashed by taking the first 64 bytes of the SHAKE256
- * output.
+ * The prehash is the first 64 bytes of the SHAKE256 output.
  * The hash function used internally is the first 114 bytes of the
  * SHAKE256 output, with
  * `dom4(0, "") = ASCII("SigEd448") || 0x00 0x00`
  * prepended to the input.
+ *
+ * This is a hash-and-sign algorithm: to calculate a signature,
+ * you can either:
+ * - call psa_sign_message() on the message;
+ * - or calculate the first 64 bytes of the SHAKE256 output of the message
+ *   with psa_hash_compute()
+ *   or with a multi-part hash operation started with psa_hash_setup(),
+ *   using the hash algorithm #PSA_ALG_SHAKE256_64,
+ *   then sign the calculated hash with psa_sign_hash().
+ * Verifying a signature is similar, using psa_verify_message() or
+ * psa_verify_hash() instead of the signature function.
  */
 #define PSA_ALG_ED448PH                                 \
     (PSA_ALG_HASH_EDDSA_BASE | (PSA_ALG_SHAKE256_64 & PSA_ALG_HASH_MASK))

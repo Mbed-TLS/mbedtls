@@ -157,7 +157,7 @@ int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
  *
  * \note           The current implementation of this function uses
  *                 select() and returns an error if the file descriptor
- *                 is beyond \c FD_SETSIZE.
+ *                 is \c FD_SETSIZE or greater.
  *
  * \param ctx      Socket to check
  * \param rw       Bitflag composed of MBEDTLS_NET_POLL_READ and
@@ -242,7 +242,7 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len );
  *
  * \note           The current implementation of this function uses
  *                 select() and returns an error if the file descriptor
- *                 is beyond \c FD_SETSIZE.
+ *                 is \c FD_SETSIZE or greater.
  *
  * \param ctx      Socket
  * \param buf      The buffer to write to

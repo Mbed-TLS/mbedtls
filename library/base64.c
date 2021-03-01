@@ -97,9 +97,9 @@ static const unsigned char base64_dec_map[128] =
 #define BASE64_SIZE_T_MAX   ( (size_t) -1 ) /* SIZE_T_MAX is not standard */
 
 /*
- * Constant flow conditional assignment
+ * Constant flow conditional assignment to unsigned char
 */
-static void mbedtls_base64_cond_assign(unsigned char * dest, const unsigned char * const src,
+static void mbedtls_base64_cond_assign_uchar(unsigned char * dest, const unsigned char * const src,
                                        unsigned char condition)
 {
     /* make sure assign is 0 or 1 in a time-constant manner */
@@ -107,6 +107,19 @@ static void mbedtls_base64_cond_assign(unsigned char * dest, const unsigned char
 
     *dest = ( *dest ) * ( 1 - condition ) + ( *src ) * condition;
 }
+
+/*
+ * Constant flow conditional assignment to uint_32
+*/
+static void mbedtls_base64_cond_assign_uint32(uint32_t * dest, const uint32_t src,
+                                       unsigned char condition)
+{
+    /* make sure assign is 0 or 1 in a time-constant manner */
+    condition = (condition | (unsigned char)-condition) >> 7;
+
+    *dest = ( *dest ) * ( 1 - condition ) + ( src ) * condition;
+}
+
 
 /*
  * Constant flow check for equality
@@ -145,7 +158,7 @@ static unsigned char mbedtls_base64_table_lookup(const unsigned char * const tab
 
     for( i = 0; i < table_size; ++i )
     {
-        mbedtls_base64_cond_assign(&result, &table[i], mbedtls_base64_eq(i, table_index));
+        mbedtls_base64_cond_assign_uchar(&result, &table[i], mbedtls_base64_eq(i, table_index));
     }
 
     return result;
@@ -306,7 +319,7 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
 
         dec_map_lookup = mbedtls_base64_table_lookup(base64_dec_map, sizeof( base64_dec_map ), *src );
 
-        j -= ( dec_map_lookup == 64 );
+        mbedtls_base64_cond_assign_uint32( &j, j - 1, mbedtls_base64_eq( dec_map_lookup, 64 ) );
         x  = ( x << 6 ) | ( dec_map_lookup & 0x3F );
 
         if( ++n == 4 )

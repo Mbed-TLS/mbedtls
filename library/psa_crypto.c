@@ -3481,6 +3481,107 @@ psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
     return( PSA_SUCCESS );
 }
 
+psa_status_t psa_cipher_encrypt( mbedtls_svc_key_id_t key,
+                                 psa_algorithm_t alg,
+                                 const uint8_t *input,
+                                 size_t input_length,
+                                 uint8_t *output,
+                                 size_t output_size,
+                                 size_t *output_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+    size_t iv_length = 0;;
+    size_t olength;
+
+    status = psa_cipher_encrypt_setup( &operation, key, alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    *output_length = 0;
+    if( operation.iv_required )
+    {
+        status = psa_cipher_generate_iv( &operation, output,
+                                         operation.default_iv_length,
+                                         &iv_length );
+        *output_length += iv_length;
+        if( status != PSA_SUCCESS )
+            goto exit;
+    }
+
+    olength = 0;
+    status = psa_cipher_update( &operation, input, input_length,
+                                output + iv_length, output_size - iv_length,
+                                &olength );
+    *output_length += olength;
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    olength = 0;
+    status = psa_cipher_finish( &operation, output + *output_length,
+                                output_size - *output_length, &olength );
+    *output_length += olength;
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+exit:
+    if ( status == PSA_SUCCESS )
+        status = psa_cipher_abort( &operation );
+    else
+        psa_cipher_abort( &operation );
+
+    return ( status );
+}
+
+psa_status_t psa_cipher_decrypt( mbedtls_svc_key_id_t key,
+                                 psa_algorithm_t alg,
+                                 const uint8_t *input,
+                                 size_t input_length,
+                                 uint8_t *output,
+                                 size_t output_size,
+                                 size_t *output_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+    size_t olength;
+
+    status = psa_cipher_decrypt_setup( &operation, key, alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    if( operation.iv_required )
+    {
+        status = psa_cipher_set_iv( &operation, input,
+                                    operation.default_iv_length );
+        if( status != PSA_SUCCESS )
+            goto exit;
+    }
+
+    olength = 0;
+    status = psa_cipher_update( &operation, input + operation.default_iv_length,
+                                input_length - operation.default_iv_length,
+                                output, output_size, &olength );
+    *output_length = olength;
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    olength = 0;
+    status = psa_cipher_finish( &operation, output + *output_length,
+                                output_size - *output_length, &olength );
+    *output_length += olength;
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+exit:
+    if ( status == PSA_SUCCESS )
+        status = psa_cipher_abort( &operation );
+    else
+        psa_cipher_abort( &operation );
+
+    return ( status );
+}
+
+
 /****************************************************************/
 /* AEAD */
 /****************************************************************/

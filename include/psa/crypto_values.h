@@ -1404,7 +1404,7 @@
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HASH_EDDSA_BASE)
 
 /** Edwards-curve digital signature algorithm with prehashing (HashEdDSA),
- * using SHAKE256 and the Edwards448 curve.
+ * using SHA-512 and the Edwards25519 curve.
  *
  * See #PSA_ALG_PURE_EDDSA regarding context support and the signature format.
  *

@@ -94,6 +94,10 @@ void poll_beyond_fd_setsize( )
      * If the limit can't be raised, a file descriptor opened by the
      * net_sockets module will be less than FD_SETSIZE, so the test
      * is not necessary and we mark it as skipped.
+     * A file descriptor could still be higher than FD_SETSIZE if it was
+     * opened before the limit was lowered (which is something an application
+     * might do); but we don't do such things in our test code, so the unit
+     * test will run if it can.
      */
     TEST_ASSERT( getrlimit( RLIMIT_NOFILE, &rlim_nofile ) == 0 );
     if( rlim_nofile.rlim_cur < FD_SETSIZE + 1 )

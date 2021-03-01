@@ -536,9 +536,9 @@ int mbedtls_net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
         return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
 
     /* A limitation of select() is that it only works with file descriptors
-     * up to FD_SETSIZE. This is a limitation of the fd_set type. Error out
-     * early, because attempting to call FD_SET on a large file descriptor
-     * is a buffer overflow on typical platforms. */
+     * that are strictly less than FD_SETSIZE. This is a limitation of the
+     * fd_set type. Error out early, because attempting to call FD_SET on a
+     * large file descriptor is a buffer overflow on typical platforms. */
     if( fd >= FD_SETSIZE )
         return( MBEDTLS_ERR_NET_RECV_FAILED );
 

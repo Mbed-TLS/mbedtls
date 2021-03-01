@@ -221,7 +221,7 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len );
  *
  * \note           The current implementation of this function uses
  *                 select() and returns an error if the file descriptor
- *                 is beyond \c FD_SETSIZE.
+ *                 is \c FD_SETSIZE or greater.
  *
  * \param ctx      Socket
  * \param buf      The buffer to write to

@@ -113,7 +113,7 @@ static void mbedtls_base64_cond_assign(unsigned char * dest, const unsigned char
 */
 static unsigned char mbedtls_base64_eq(size_t in_a, size_t in_b)
 {
-    uint32_t difference = in_a ^ in_b;
+    size_t difference = in_a ^ in_b;
 
     /* MSVC has a warning about unary minus on unsigned integer types,
      * but this is well-defined and precisely what we want to do here. */
@@ -128,7 +128,9 @@ static unsigned char mbedtls_base64_eq(size_t in_a, size_t in_b)
 #pragma warning( pop )
 #endif
 
-    difference >>= 31;
+    /* cope with the varying size of size_t per platform */
+    difference >>= ( sizeof( difference ) * 8 - 1 );
+
     return (unsigned char) ( 1 ^ difference );
 }
 

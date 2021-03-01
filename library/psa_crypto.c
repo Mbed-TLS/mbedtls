@@ -2504,7 +2504,68 @@ cleanup:
     return( status == PSA_SUCCESS ? abort_status : status );
 }
 
+psa_status_t psa_mac_compute( mbedtls_svc_key_id_t key,
+                              psa_algorithm_t alg,
+                              const uint8_t *input,
+                              size_t input_length,
+                              uint8_t *mac,
+                              size_t mac_size,
+                              size_t *mac_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
 
+    status = psa_mac_sign_setup( &operation, key, alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_mac_update( &operation, input, input_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_mac_sign_finish( &operation, mac, mac_size, mac_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+exit:
+    if ( status == PSA_SUCCESS )
+        status = psa_mac_abort( &operation );
+    else
+        psa_mac_abort( &operation );
+
+    return ( status );
+}
+
+psa_status_t psa_mac_verify( mbedtls_svc_key_id_t key,
+                             psa_algorithm_t alg,
+                             const uint8_t *input,
+                             size_t input_length,
+                             const uint8_t *mac,
+                             size_t mac_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+
+    status = psa_mac_verify_setup( &operation, key, alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_mac_update( &operation, input, input_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_mac_verify_finish( &operation, mac, mac_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+exit:
+    if ( status == PSA_SUCCESS )
+        status = psa_mac_abort( &operation );
+    else
+        psa_mac_abort( &operation );
+
+    return ( status );
+}
 
 /****************************************************************/
 /* Asymmetric cryptography */

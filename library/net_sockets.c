@@ -497,9 +497,9 @@ int mbedtls_net_poll( mbedtls_net_context *ctx, uint32_t rw, uint32_t timeout )
         return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
 
     /* A limitation of select() is that it only works with file descriptors
-     * up to FD_SETSIZE. This is a limitation of the fd_set type. Error out
-     * early, because attempting to call FD_SET on a large file descriptor
-     * is a buffer overflow on typical platforms. */
+     * that are strictly less than FD_SETSIZE. This is a limitation of the
+     * fd_set type. Error out early, because attempting to call FD_SET on a
+     * large file descriptor is a buffer overflow on typical platforms. */
     if( fd >= FD_SETSIZE )
         return( MBEDTLS_ERR_NET_POLL_FAILED );
 
@@ -623,9 +623,9 @@ int mbedtls_net_recv_timeout( void *ctx, unsigned char *buf,
         return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
 
     /* A limitation of select() is that it only works with file descriptors
-     * up to FD_SETSIZE. This is a limitation of the fd_set type. Error out
-     * early, because attempting to call FD_SET on a large file descriptor
-     * is a buffer overflow on typical platforms. */
+     * that are strictly less than FD_SETSIZE. This is a limitation of the
+     * fd_set type. Error out early, because attempting to call FD_SET on a
+     * large file descriptor is a buffer overflow on typical platforms. */
     if( fd >= FD_SETSIZE )
         return( MBEDTLS_ERR_NET_POLL_FAILED );
 

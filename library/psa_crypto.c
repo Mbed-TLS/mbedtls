@@ -890,9 +890,11 @@ static psa_status_t psa_get_and_lock_key_slot_with_policy(
     if( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->attr.type ) )
         usage &= ~PSA_KEY_USAGE_EXPORT;
 
-    status = PSA_ERROR_NOT_PERMITTED;
     if( ( slot->attr.policy.usage & usage ) != usage )
+    {
+        status = PSA_ERROR_NOT_PERMITTED;
         goto error;
+    }
 
     /* Enforce that the usage policy permits the requested algortihm. */
     if( alg != 0 )
@@ -2938,21 +2940,29 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
          * a corner case due to the default MAC length being unknown
          * at key loading time. */
         if( PSA_ALG_IS_MAC( slot->attr.policy.alg ) &&
-            ( PSA_ALG_FULL_LENGTH_MAC( slot->attr.policy.alg ) == full_length_alg ) &&
+            ( PSA_ALG_FULL_LENGTH_MAC( slot->attr.policy.alg ) ==
+                full_length_alg ) &&
             ( slot->attr.policy.alg & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) )
         {
             /* validate policy length */
-            if( PSA_MAC_TRUNCATED_LENGTH( slot->attr.policy.alg ) > operation->mac_size )
+            if( PSA_MAC_TRUNCATED_LENGTH( slot->attr.policy.alg ) >
+                    operation->mac_size )
+            {
                 status = PSA_ERROR_NOT_PERMITTED;
+            }
         }
 
         if( PSA_ALG_IS_MAC( slot->attr.policy.alg2 ) &&
-            ( PSA_ALG_FULL_LENGTH_MAC( slot->attr.policy.alg2 ) == full_length_alg ) &&
+            ( PSA_ALG_FULL_LENGTH_MAC( slot->attr.policy.alg2 ) ==
+                full_length_alg ) &&
             ( slot->attr.policy.alg2 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) )
         {
             /* validate policy length */
-            if( PSA_MAC_TRUNCATED_LENGTH( slot->attr.policy.alg2 ) > operation->mac_size )
+            if( PSA_MAC_TRUNCATED_LENGTH( slot->attr.policy.alg2 ) >
+                    operation->mac_size )
+            {
                 status = PSA_ERROR_NOT_PERMITTED;
+            }
         }
     }
     else if( truncated < 4 )

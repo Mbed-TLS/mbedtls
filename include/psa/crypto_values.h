@@ -868,7 +868,8 @@
 
 /* In the encoding of a MAC algorithm, the bit corresponding to
  * #PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG encodes the fact that the algorithm
- * is a wildcard algorithm, which allows any algorithm corresponding to the
+ * is a wildcard algorithm. A key with such wildcard algorithm as permitted
+ * algorithm policy can be used with any algorithm corresponding to the
  * same base class and having a (potentially truncated) MAC length greater or
  * equal than the one encoded in #PSA_ALG_MAC_TRUNCATION_MASK. */
 #define PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG   ((psa_algorithm_t)0x00008000)
@@ -906,8 +907,9 @@
  *                      MAC algorithm or if \p mac_length is too small or
  *                      too large for the specified MAC algorithm.
  */
-#define PSA_ALG_TRUNCATED_MAC(mac_alg, mac_length)                      \
-    (((mac_alg) & ~(PSA_ALG_MAC_TRUNCATION_MASK | PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG)) | \
+#define PSA_ALG_TRUNCATED_MAC(mac_alg, mac_length)              \
+    (((mac_alg) & ~(PSA_ALG_MAC_TRUNCATION_MASK |               \
+                    PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG)) |   \
      ((mac_length) << PSA_MAC_TRUNCATION_OFFSET & PSA_ALG_MAC_TRUNCATION_MASK))
 
 /** Macro to build the base MAC algorithm corresponding to a truncated
@@ -922,8 +924,9 @@
  * \return              Unspecified if \p alg is not a supported
  *                      MAC algorithm.
  */
-#define PSA_ALG_FULL_LENGTH_MAC(mac_alg)        \
-    ((mac_alg) & ~(PSA_ALG_MAC_TRUNCATION_MASK | PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG))
+#define PSA_ALG_FULL_LENGTH_MAC(mac_alg)                        \
+    ((mac_alg) & ~(PSA_ALG_MAC_TRUNCATION_MASK |                \
+                   PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG))
 
 /** Length to which a MAC algorithm is truncated.
  *
@@ -963,8 +966,9 @@
  *                        algorithm or if \p min_mac_length is less than 1 or
  *                        too large for the specified MAC algorithm.
  */
-#define PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(mac_alg, min_mac_length) \
-    ( PSA_ALG_TRUNCATED_MAC(mac_alg, min_mac_length) | PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG )
+#define PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(mac_alg, min_mac_length)   \
+    ( PSA_ALG_TRUNCATED_MAC(mac_alg, min_mac_length) |              \
+      PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG )
 
 #define PSA_ALG_CIPHER_MAC_BASE                 ((psa_algorithm_t)0x03c00000)
 /** The CBC-MAC construction over a block cipher
@@ -1128,7 +1132,8 @@
 
 /* In the encoding of an AEAD algorithm, the bit corresponding to
  * #PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG encodes the fact that the algorithm
- * is a wildcard algorithm, which allows any algorithm corresponding to the
+ * is a wildcard algorithm. A key with such wildcard algorithm as permitted
+ * algorithm policy can be used with any algorithm corresponding to the
  * same base class and having a tag length greater than or equal to the one
  * encoded in #PSA_ALG_AEAD_TAG_LENGTH_MASK. */
 #define PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG  ((psa_algorithm_t)0x00008000)
@@ -1152,7 +1157,8 @@
  *                      for the specified AEAD algorithm.
  */
 #define PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, tag_length)           \
-    (((aead_alg) & ~(PSA_ALG_AEAD_TAG_LENGTH_MASK | PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)) | \
+    (((aead_alg) & ~(PSA_ALG_AEAD_TAG_LENGTH_MASK |                     \
+                     PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)) |         \
      ((tag_length) << PSA_AEAD_TAG_LENGTH_OFFSET &                      \
       PSA_ALG_AEAD_TAG_LENGTH_MASK))
 
@@ -1215,7 +1221,8 @@
  *                        or too large for the specified AEAD algorithm.
  */
 #define PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(aead_alg, min_tag_length) \
-    ( PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, min_tag_length) | PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG )
+    ( PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, min_tag_length) |            \
+      PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG )
 
 #define PSA_ALG_RSA_PKCS1V15_SIGN_BASE          ((psa_algorithm_t)0x06000200)
 /** RSA PKCS#1 v1.5 signature with hashing.

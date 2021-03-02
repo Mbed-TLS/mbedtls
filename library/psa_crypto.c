@@ -917,6 +917,11 @@ static int psa_key_algorithm_permits( psa_key_type_t key_type,
  *
  * The caller must test usage flags separately.
  *
+ * \note This function requires providing the key type for which the policy is
+ *       being validated, since some algorithm policy definitions (e.g. MAC)
+ *       have different properties depending on what kind of cipher it is
+ *       combined with.
+ *
  * \retval PSA_SUCCESS                  When \p alg is a specific algorithm
  *                                      allowed by the \p policy.
  * \retval PSA_ERROR_INVALID_ARGUMENT   When \p alg is not a specific algorithm
@@ -943,6 +948,11 @@ static psa_status_t psa_key_policy_permits( const psa_key_policy_t *policy,
 }
 
 /** Restrict a key policy based on a constraint.
+ *
+ * \note This function requires providing the key type for which the policy is
+ *       being restricted, since some algorithm policy definitions (e.g. MAC)
+ *       have different properties depending on what kind of cipher it is
+ *       combined with.
  *
  * \param[in] key_type      The key type for which to restrict the policy
  * \param[in,out] policy    The policy to restrict.

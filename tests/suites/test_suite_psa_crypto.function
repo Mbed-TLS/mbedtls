@@ -2860,6 +2860,7 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
     unsigned char *output_data2 = NULL;
     size_t output_length2 = 0;
     size_t tag_length = PSA_AEAD_TAG_LENGTH( alg );
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     psa_status_t expected_result = expected_result_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
@@ -2880,14 +2881,24 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
 
-    TEST_EQUAL( psa_aead_encrypt( key, alg,
-                                  nonce->x, nonce->len,
-                                  additional_data->x,
-                                  additional_data->len,
-                                  input_data->x, input_data->len,
-                                  output_data, output_size,
-                                  &output_length ),
-                expected_result );
+    status = psa_aead_encrypt( key, alg,
+                               nonce->x, nonce->len,
+                               additional_data->x,
+                               additional_data->len,
+                               input_data->x, input_data->len,
+                               output_data, output_size,
+                               &output_length );
+
+    /* If the operation is not supported, just skip and not fail in case the
+     * encryption involves a common limitation of cryptography hardwares and
+     * an alternative implementation. */
+    if( status == PSA_ERROR_NOT_SUPPORTED )
+    {
+        MBEDTLS_TEST_PSA_SKIP_IF_ALT_AES_192( key_type, key_data->len * 8 );
+        MBEDTLS_TEST_PSA_SKIP_IF_ALT_GCM_NOT_12BYTES_NONCE( alg, nonce->len );
+    }
+
+    TEST_EQUAL( status, expected_result );
 
     if( PSA_SUCCESS == expected_result )
     {

@@ -564,9 +564,10 @@ static inline size_t psa_get_key_slot_bits( const psa_key_slot_t *slot )
  *         \p algorithm tries to truncate the MAC to a size which would be
  *         larger than the underlying algorithm's maximum output length.
  */
-static psa_status_t psa_get_mac_output_length( psa_algorithm_t algorithm,
-                                               psa_key_type_t key_type,
-                                               size_t *length )
+MBEDTLS_STATIC_TESTABLE psa_status_t psa_get_mac_output_length(
+    psa_algorithm_t algorithm,
+    psa_key_type_t key_type,
+    size_t *length )
 {
     /* Get the default length for the algorithm and key combination. None of the
      * currently supported algorithms have a default output length dependent on

@@ -9,6 +9,7 @@
 #endif
 
 #include "psa/crypto.h"
+#include "psa_crypto_invasive.h"
 
 /* Flags for algorithm classification macros. There is a flag for every
  * algorithm classification macro PSA_ALG_IS_xxx except for the
@@ -157,6 +158,12 @@ void mac_algorithm_core( psa_algorithm_t alg, int classification_flags,
 
     /* Length */
     TEST_EQUAL( length, PSA_MAC_LENGTH( key_type, key_bits, alg ) );
+
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_PSA_CRYPTO_C)
+    size_t output_length = 0;
+    PSA_ASSERT( psa_get_mac_output_length( alg, key_type, &output_length ) );
+    TEST_EQUAL( length, output_length );
+#endif
 
 exit: ;
 }

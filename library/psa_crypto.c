@@ -1363,7 +1363,7 @@ static psa_status_t psa_validate_key_attributes(
     if( status != PSA_SUCCESS )
         return( status );
 
-    status = psa_validate_key_persistence( lifetime );
+    status = psa_validate_key_persistence( lifetime, key );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -1907,6 +1907,11 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
 exit:
     if( status != PSA_SUCCESS )
         psa_fail_key_creation( target_slot, driver );
+
+    /* Return invalid handle as per PSA API 1.0.0 if trying to copy persistent
+     * key which do not exist. */
+    if( status == PSA_ERROR_DOES_NOT_EXIST )
+        status = PSA_ERROR_INVALID_HANDLE;
 
     unlock_status = psa_unlock_key_slot( source_slot );
 
@@ -3364,6 +3369,11 @@ psa_status_t psa_sign_hash( mbedtls_svc_key_id_t key,
     status = psa_get_and_lock_key_slot_with_policy( key, &slot,
                                                     PSA_KEY_USAGE_SIGN_HASH,
                                                     alg );
+    /* Return invalid handle as per PSA API 1.0.0 if trying to copy persistent
+     * key which do not exist. */
+    if( status == PSA_ERROR_DOES_NOT_EXIST )
+        status = PSA_ERROR_INVALID_HANDLE;
+
     if( status != PSA_SUCCESS )
         goto exit;
     if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->attr.type ) )

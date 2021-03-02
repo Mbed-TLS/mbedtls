@@ -371,7 +371,8 @@ psa_status_t psa_validate_key_location( psa_key_lifetime_t lifetime,
         return( PSA_SUCCESS );
 }
 
-psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime )
+psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime,
+                                           mbedtls_svc_key_id_t key_id )
 {
     if ( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
     {
@@ -382,8 +383,13 @@ psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime )
     {
         /* Persistent keys require storage support */
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-        return( PSA_SUCCESS );
+        if( PSA_SUCCESS == psa_validate_key_id( key_id,
+                                 psa_key_lifetime_is_external( lifetime ) ) )
+            return( PSA_SUCCESS );
+        else
+            return( PSA_ERROR_INVALID_ARGUMENT );
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
+        (void) key_id;
         return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* !MBEDTLS_PSA_CRYPTO_STORAGE_C */
     }

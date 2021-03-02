@@ -203,12 +203,16 @@ psa_status_t psa_validate_key_location( psa_key_lifetime_t lifetime,
 /** Validate the persistence of a key.
  *
  * \param[in] lifetime  The key lifetime attribute.
+ * \param[in] key_id    The key identifier.
  *
  * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ *         \p key_id is not a valid key identifier.
  * \retval #PSA_ERROR_INVALID_ARGUMENT The key is persistent but persistent
  *         keys are not supported.
  */
-psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime );
+psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime,
+                                           mbedtls_svc_key_id_t key_id );
 
 /** Validate a key identifier.
  *

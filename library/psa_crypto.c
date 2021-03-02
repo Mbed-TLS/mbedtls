@@ -2762,7 +2762,7 @@ static psa_status_t psa_mac_init( psa_mac_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
 
-    operation->alg = alg;
+    operation->alg = PSA_ALG_FULL_LENGTH_MAC( alg );
     operation->key_set = 0;
     operation->iv_set = 0;
     operation->iv_required = 0;
@@ -2770,7 +2770,7 @@ static psa_status_t psa_mac_init( psa_mac_operation_t *operation,
     operation->is_sign = 0;
 
 #if defined(MBEDTLS_CMAC_C)
-    if( alg == PSA_ALG_CMAC )
+    if( operation->alg == PSA_ALG_CMAC )
     {
         operation->iv_required = 0;
         mbedtls_cipher_init( &operation->ctx.cmac );
@@ -2854,23 +2854,26 @@ bad_state:
 }
 
 #if defined(MBEDTLS_CMAC_C)
-static int psa_cmac_setup( psa_mac_operation_t *operation,
-                           size_t key_bits,
-                           psa_key_slot_t *slot,
-                           const mbedtls_cipher_info_t *cipher_info )
+static psa_status_t psa_cmac_setup( psa_mac_operation_t *operation,
+                                    psa_key_slot_t *slot )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    operation->mac_size = cipher_info->block_size;
+    const mbedtls_cipher_info_t *cipher_info =
+            mbedtls_cipher_info_from_psa( PSA_ALG_CMAC,
+                                          slot->attr.type, slot->attr.bits,
+                                          NULL );
+    if( cipher_info == NULL )
+        return( PSA_ERROR_NOT_SUPPORTED );
 
     ret = mbedtls_cipher_setup( &operation->ctx.cmac, cipher_info );
     if( ret != 0 )
-        return( ret );
+        goto exit;
 
     ret = mbedtls_cipher_cmac_starts( &operation->ctx.cmac,
                                       slot->key.data,
-                                      key_bits );
-    return( ret );
+                                      slot->attr.bits );
+exit:
+    return( mbedtls_to_psa_error( ret ) );
 }
 #endif /* MBEDTLS_CMAC_C */
 
@@ -2946,11 +2949,9 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
-    size_t key_bits;
+    size_t output_length = 0;
     psa_key_usage_t usage =
         is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH;
-    uint8_t truncated = PSA_MAC_TRUNCATED_LENGTH( alg );
-    psa_algorithm_t full_length_alg = PSA_ALG_FULL_LENGTH_MAC( alg );
 
     /* A context must be freshly initialized before it can be set up. */
     if( operation->alg != 0 )
@@ -2958,7 +2959,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    status = psa_mac_init( operation, full_length_alg );
+    status = psa_mac_init( operation, alg );
     if( status != PSA_SUCCESS )
         return( status );
     if( is_sign )
@@ -2968,37 +2969,34 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
                  key, &slot, usage, alg );
     if( status != PSA_SUCCESS )
         goto exit;
-    key_bits = psa_get_key_slot_bits( slot );
+
+    status = psa_get_mac_output_length( alg, slot->attr.type,
+                                        &output_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    operation->mac_size = (uint8_t) output_length;
+
+    if( operation->mac_size < 4 )
+    {
+        /* A very short MAC is too short for security since it can be
+         * brute-forced. Ancient protocols with 32-bit MACs do exist,
+         * so we make this our minimum, even though 32 bits is still
+         * too small for security. */
+        status = PSA_ERROR_NOT_SUPPORTED;
+        goto exit;
+    }
 
 #if defined(MBEDTLS_CMAC_C)
-    if( full_length_alg == PSA_ALG_CMAC )
+    if( PSA_ALG_FULL_LENGTH_MAC( alg ) == PSA_ALG_CMAC )
     {
-        const mbedtls_cipher_info_t *cipher_info =
-            mbedtls_cipher_info_from_psa( full_length_alg,
-                                          slot->attr.type, key_bits, NULL );
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-        if( cipher_info == NULL )
-        {
-            status = PSA_ERROR_NOT_SUPPORTED;
-            goto exit;
-        }
-        operation->mac_size = cipher_info->block_size;
-        ret = psa_cmac_setup( operation, key_bits, slot, cipher_info );
-        status = mbedtls_to_psa_error( ret );
+        status = psa_cmac_setup( operation, slot );
     }
     else
 #endif /* MBEDTLS_CMAC_C */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-    if( PSA_ALG_IS_HMAC( full_length_alg ) )
+    if( PSA_ALG_IS_HMAC( alg ) )
     {
-        psa_algorithm_t hash_alg = PSA_ALG_HMAC_GET_HASH( alg );
-        if( hash_alg == 0 )
-        {
-            status = PSA_ERROR_NOT_SUPPORTED;
-            goto exit;
-        }
-
-        operation->mac_size = PSA_HASH_LENGTH( hash_alg );
         /* Sanity check. This shouldn't fail on a valid configuration. */
         if( operation->mac_size == 0 ||
             operation->mac_size > sizeof( operation->ctx.hmac.opad ) )
@@ -3016,34 +3014,13 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         status = psa_hmac_setup_internal( &operation->ctx.hmac,
                                           slot->key.data,
                                           slot->key.bytes,
-                                          hash_alg );
+                                          PSA_ALG_HMAC_GET_HASH( alg ) );
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
     {
-        (void) key_bits;
         status = PSA_ERROR_NOT_SUPPORTED;
     }
-
-    if( truncated == 0 )
-    {
-        /* The "normal" case: untruncated algorithm. Nothing to do. */
-    }
-    else if( truncated < 4 )
-    {
-        /* A very short MAC is too short for security since it can be
-         * brute-forced. Ancient protocols with 32-bit MACs do exist,
-         * so we make this our minimum, even though 32 bits is still
-         * too small for security. */
-        status = PSA_ERROR_NOT_SUPPORTED;
-    }
-    else if( truncated > operation->mac_size )
-    {
-        /* It's impossible to "truncate" to a larger length. */
-        status = PSA_ERROR_INVALID_ARGUMENT;
-    }
-    else
-        operation->mac_size = truncated;
 
 exit:
     if( status != PSA_SUCCESS )

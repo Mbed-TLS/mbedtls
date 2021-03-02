@@ -3932,6 +3932,40 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len );
 
 /**
+ * \brief          Dispatch all previously queued application data
+ *
+ * \param ssl      The SSL context to use.
+ *
+ * \return         \c 0 if all data previously queued for dispatch via
+ *                 mbedtls_ssl_write() has been passed to the underlying
+ *                 transport.
+ * \return         #MBEDTLS_ERR_SSL_WANT_READ or #MBEDTLS_ERR_SSL_WANT_WRITE
+ *                 if the underlying transport was not available.
+ * \return         #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if an asynchronous
+ *                 operation is in progress (see
+ *                 mbedtls_ssl_conf_async_private_cb()) - in this case you
+ *                 must call this function again when the operation is ready.
+ * \return         #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS if a cryptographic
+ *                 operation is in progress (see mbedtls_ecp_set_max_ops()) -
+ *                 in this case you must call this function again to complete
+ *                 the handshake when you're done attending other tasks.
+ * \return         Another SSL error code - in this case you must stop using
+ *                 the context (see below).
+ *
+ * \warning        If this function returns something other than
+ *                 a non-negative value,
+ *                 #MBEDTLS_ERR_SSL_WANT_READ,
+ *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
+ *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS,
+ *                 you must stop using the SSL context for reading or writing,
+ *                 and either free it or call \c mbedtls_ssl_session_reset()
+ *                 on it before re-using it for a new connection; the current
+ *                 connection must be closed.
+ */
+int mbedtls_ssl_flush( mbedtls_ssl_context *ssl );
+
+/**
  * \brief           Send an alert message
  *
  * \param ssl       SSL context

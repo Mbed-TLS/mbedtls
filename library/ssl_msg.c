@@ -1957,6 +1957,11 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
 /*
  * Flush any data not yet written
  */
+int mbedtls_ssl_flush( mbedtls_ssl_context *ssl )
+{
+    return( mbedtls_ssl_flush_output( ssl ) );
+}
+
 int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

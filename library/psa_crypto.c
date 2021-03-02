@@ -547,7 +547,7 @@ static inline size_t psa_get_key_slot_bits( const psa_key_slot_t *slot )
 
 /** Return the output MAC length of a MAC algorithm, in bytes
  *
- * \param[in] algorithm     The specific MAC algorithm
+ * \param[in] algorithm     The specific (non-wildcard) MAC algorithm.
  * \param[in] key_type      The key type of the key to be used with the
  *                          \p algorithm.
  * \param[out] length       The calculated output length of the given MAC
@@ -556,40 +556,30 @@ static inline size_t psa_get_key_slot_bits( const psa_key_slot_t *slot )
  *
  * \retval #PSA_SUCCESS
  *         The \p length has been successfully calculated
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         \p algorithm is a MAC algorithm, but ubsupported by this PSA core.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p algorithm is not a valid, specific MAC algorithm or \p key_type
- *         describes a key incompatible with the specified \p algorithm.
+ *         \p algorithm is not a valid, specific MAC algorithm recognized and
+ *         supported by this core, or \p key_type describes a key which is
+ *         inconsistent with the specified \p algorithm.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p algorithm tries to truncate the MAC to a size which would be
+ *         larger than the underlying algorithm's maximum output length.
  */
 static psa_status_t psa_get_mac_output_length( psa_algorithm_t algorithm,
                                                psa_key_type_t key_type,
                                                size_t *length )
 {
-    if( !PSA_ALG_IS_MAC( algorithm ) || PSA_ALG_IS_WILDCARD( algorithm ) )
+    /* Get the default length for the algorithm and key combination. None of the
+     * currently supported algorithms have a default output length dependent on
+     * key size, so setting it to a bogus value is OK. */
+    size_t default_length = PSA_MAC_LENGTH( key_type, 0,
+                                            PSA_ALG_FULL_LENGTH_MAC( algorithm ) );
+
+    /* PSA_MAC_LENGTH, when called on a full-length algorithm identifier, can
+     * currently return either 0 (unknown algorithm) or 1 (cipher-MAC with
+     * stream cipher) in cases where the key type / algorithm combination would
+     * be invalid. */
+    if( default_length == 0 || default_length == 1 )
         return( PSA_ERROR_INVALID_ARGUMENT );
-
-    size_t default_length = 0;
-
-    if( PSA_ALG_FULL_LENGTH_MAC( algorithm ) == PSA_ALG_CMAC ||
-        PSA_ALG_FULL_LENGTH_MAC( algorithm ) == PSA_ALG_CBC_MAC )
-    {
-        default_length = PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type );
-        /* CMAC and CBC-MAC are only defined on block ciphers */
-        if( default_length == 0 )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-    }
-    else if( PSA_ALG_IS_HMAC( algorithm ) )
-    {
-        /* HMAC output length is dictated by the underlying hash operation */
-        psa_algorithm_t hash_alg = PSA_ALG_HMAC_GET_HASH( algorithm );
-        default_length = PSA_HASH_LENGTH( hash_alg );
-
-        if( hash_alg == 0 || default_length == 0 )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-    }
-    else
-        return( PSA_ERROR_NOT_SUPPORTED );
 
     /* Output the expected (potentially truncated) length as long as it can
      * actually be output by the algorithm */

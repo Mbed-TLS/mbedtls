@@ -5482,16 +5482,6 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
         return( ret );
     }
 
-    /* Dispatch any pending outgoing data to the underlying transport. */
-    if( ssl->out_left != 0 )
-    {
-        if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flush_output", ret );
-            return( ret );
-        }
-    }
-
     if( len > max_len )
     {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -5549,6 +5539,13 @@ int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_handshake", ret );
             return( ret );
         }
+    }
+
+    /* Dispatch any pending outgoing data to the underlying transport. */
+    if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flush_output", ret );
+        return( ret );
     }
 
     ret = ssl_write_real( ssl, buf, len );

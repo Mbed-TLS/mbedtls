@@ -2527,20 +2527,34 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
  */
 
 /*
- * Write current record.
+ * Prepare and queue a new outgoing record without sending it
  *
- * Uses:
- *  - ssl->out_msgtype: type of the message (AppData, Handshake, Alert, CCS)
- *  - ssl->out_msglen: length of the record content (excl headers)
- *  - ssl->out_msg: record content
+ * Initially:
+ *  - ssl->out_msgtype: The type of the record to be prepared.
+ *                      This should be prepared by the caller.
+ *  - ssl->out_msg: The start of the buffer holding the record plaintext.
+ *                  The caller should prepare the content in this buffer,
+ *                  but not modify the pointer itself.
+ *  - ssl->out_length: The length of the record plaintext content.
+ *                     This should be prepared by the caller.
+ *
+ * When this function finishes,
+ *  - ssl->out_left: The total number of bytes that are ready to be
+ *                   passed to the underlying transport.
+ *  - ssl->out_hdr: The first byte after the buffer holding the data
+ *                  ready to be passed to the underlying transport.
+ *
+ *  In particular, the buffer of data ready to be passed to the underlying
+ *  transport is [ssl->out_hdr - ssl->out_left, ssl->out_hdr).
+ *
+ *  This function does not interface with the underlying transport.
  */
-int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
+int mbedtls_ssl_prepare_record( mbedtls_ssl_context *ssl )
 {
     int ret, done = 0;
     size_t len = ssl->out_msglen;
-    uint8_t flush = force_flush;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write record" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> prepare record" ) );
 
     if( !done )
     {
@@ -2647,6 +2661,44 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "outgoing message counter would wrap" ) );
             return( MBEDTLS_ERR_SSL_COUNTER_WRAPPING );
         }
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= prepare record" ) );
+    return( 0 );
+}
+
+/*
+ * Write and potentially dispatch the current record.
+ *
+ * Initially:
+ *  - ssl->out_msgtype: The type of the record to be prepared.
+ *                      This should be prepared by the caller.
+ *  - ssl->out_msg: The start of the buffer holding the record plaintext.
+ *                  The caller should prepare the content in this buffer,
+ *                  but not modify the pointer itself.
+ *  - ssl->out_length: The length of the record plaintext content.
+ *                     This should be prepared by the caller.
+ *
+ * This function prepares the current record for delivery to the underlying
+ * transport. If `force_flush` is set, it will attempt to send the record
+ * immediately. If `force_flush` is unset, it may attempt delivery.
+ *
+ * In either case, if this function returns with either 0 or
+ * MBEDTLS_ERR_SSL_WANT_WRITE, the record has at least been queued
+ * internally, and the caller can progress to writing the next record.
+ */
+int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
+{
+    int ret;
+    uint8_t flush = force_flush;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write record" ) );
+
+    ret = mbedtls_ssl_prepare_record( ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_prepare_record()", ret );
+        return( ret );
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

@@ -719,6 +719,7 @@ psa_status_t psa_import_key_into_slot(
  * Return 0 (which allows no operation) on incompatibility.
  */
 static psa_algorithm_t psa_key_policy_algorithm_intersection(
+    psa_key_type_t key_type,
     psa_algorithm_t alg1,
     psa_algorithm_t alg2 )
 {
@@ -772,8 +773,28 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
         ( PSA_ALG_FULL_LENGTH_MAC( alg1 ) ==
           PSA_ALG_FULL_LENGTH_MAC( alg2 ) ) )
     {
-        size_t alg1_len = PSA_MAC_TRUNCATED_LENGTH( alg1 );
-        size_t alg2_len = PSA_MAC_TRUNCATED_LENGTH( alg2 );
+        /* Calculate the actual requested output length for both sides. In case
+         * of at-least-this-length wildcard algorithms, the requested output
+         * length is the shortest allowed length. */
+        size_t alg1_len = 0;
+        size_t alg2_len = 0;
+        if( PSA_SUCCESS != psa_get_mac_output_length(
+                                PSA_ALG_TRUNCATED_MAC( alg1,
+                                    PSA_MAC_TRUNCATED_LENGTH( alg1 ) ),
+                                key_type,
+                                &alg1_len ) )
+        {
+            return( 0 );
+        }
+        if( PSA_SUCCESS != psa_get_mac_output_length(
+                                PSA_ALG_TRUNCATED_MAC( alg2,
+                                    PSA_MAC_TRUNCATED_LENGTH( alg2 ) ),
+                                key_type,
+                                &alg2_len ) )
+        {
+            return( 0 );
+        }
+
         size_t max_len = alg1_len > alg2_len ? alg1_len : alg2_len;
 
         /* If both are wildcards, return most restrictive wildcard */
@@ -782,22 +803,26 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
         {
             return( PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( alg1, max_len ) );
         }
-        /* If only one is a wildcard, return specific algorithm if compatible.
-         * Special case: specific MAC algorithm with '0' as length means full-
-         * length MAC, which is always allowed by a wildcard with the same
-         * base algorithm. */
-        if( ( ( alg1 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) &&
-            ( ( alg1_len <= alg2_len ) ||
-              ( alg2 == PSA_ALG_FULL_LENGTH_MAC( alg1 ) ) ) )
+        /* If only one is a wildcard, return specific algorithm if compatible. */
+        if( ( alg1 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 )
         {
-            return( alg2 );
+            if( alg1_len <= alg2_len )
+                return( alg2 );
+            else
+                return( 0 );
         }
-        if( ( ( alg2 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) &&
-            ( ( alg2_len <= alg1_len ) ||
-              ( alg1 == PSA_ALG_FULL_LENGTH_MAC( alg2 ) ) ) )
+        if( ( alg2 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 )
         {
-            return( alg1 );
+            if( alg2_len <= alg1_len )
+                return( alg1 );
+            else
+                return( 0 );
         }
+        /* If none of them are wildcards, check whether we can match
+         * default-length with exact-length, and return exact-length in that
+         * case. */
+        if( alg1_len == alg2_len )
+            return( PSA_ALG_TRUNCATED_MAC( alg1, alg1_len ) );
     }
     /* If the policies are incompatible, allow nothing. */
     return( 0 );
@@ -919,6 +944,7 @@ static psa_status_t psa_key_policy_permits( const psa_key_policy_t *policy,
 
 /** Restrict a key policy based on a constraint.
  *
+ * \param[in] key_type      The key type for which to restrict the policy
  * \param[in,out] policy    The policy to restrict.
  * \param[in] constraint    The policy constraint to apply.
  *
@@ -926,17 +952,20 @@ static psa_status_t psa_key_policy_permits( const psa_key_policy_t *policy,
  *         \c *policy contains the intersection of the original value of
  *         \c *policy and \c *constraint.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \c *policy and \c *constraint are incompatible.
+ *         \c key_type, \c *policy and \c *constraint are incompatible.
  *         \c *policy is unchanged.
  */
 static psa_status_t psa_restrict_key_policy(
+    psa_key_type_t key_type,
     psa_key_policy_t *policy,
     const psa_key_policy_t *constraint )
 {
     psa_algorithm_t intersection_alg =
-        psa_key_policy_algorithm_intersection( policy->alg, constraint->alg );
+        psa_key_policy_algorithm_intersection( key_type, policy->alg,
+                                               constraint->alg );
     psa_algorithm_t intersection_alg2 =
-        psa_key_policy_algorithm_intersection( policy->alg2, constraint->alg2 );
+        psa_key_policy_algorithm_intersection( key_type, policy->alg2,
+                                               constraint->alg2 );
     if( intersection_alg == 0 && policy->alg != 0 && constraint->alg != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
     if( intersection_alg2 == 0 && policy->alg2 != 0 && constraint->alg2 != 0 )
@@ -2089,7 +2118,8 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_restrict_key_policy( &actual_attributes.core.policy,
+    status = psa_restrict_key_policy( source_slot->attr.type,
+                                      &actual_attributes.core.policy,
                                       &source_slot->attr.policy );
     if( status != PSA_SUCCESS )
         goto exit;

@@ -248,6 +248,19 @@ static int write_ssl_data( mbedtls_ssl_context *ssl, unsigned char *buf, size_t 
         }
     }
 
+    /* Make sure all data is flushed. */
+    while( 1 )
+    {
+        ret = mbedtls_ssl_flush( ssl );
+        if( ret != MBEDTLS_ERR_SSL_WANT_WRITE )
+            break;
+    }
+    if( ret < 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_flush returned %d\n\n", ret );
+        return -1;
+    }
+
     return( 0 );
 }
 
@@ -266,6 +279,19 @@ static int write_ssl_and_get_response( mbedtls_ssl_context *ssl, unsigned char *
             mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
             return -1;
         }
+    }
+
+    /* Make sure all data is flushed. */
+    while( 1 )
+    {
+        ret = mbedtls_ssl_flush( ssl );
+        if( ret != MBEDTLS_ERR_SSL_WANT_WRITE )
+            break;
+    }
+    if( ret < 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_flush returned %d\n\n", ret );
+        return -1;
     }
 
     do

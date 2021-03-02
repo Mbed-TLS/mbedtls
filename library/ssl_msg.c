@@ -5473,30 +5473,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 static int ssl_write_real( mbedtls_ssl_context *ssl,
                            const unsigned char *buf, size_t len )
 {
-    int ret = mbedtls_ssl_get_max_out_record_payload( ssl );
-    const size_t max_len = (size_t) ret;
-
-    if( ret < 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_get_max_out_record_payload", ret );
-        return( ret );
-    }
-
-    if( len > max_len )
-    {
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "fragment larger than the (negotiated) "
-                                "maximum fragment length: %" MBEDTLS_PRINTF_SIZET
-                                " > %" MBEDTLS_PRINTF_SIZET,
-                                len, max_len ) );
-            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-        }
-        else
-#endif
-            len = max_len;
-    }
+    int ret;
 
     /* Prepare and queue new outgoing data, but don't attempt to dispatch. */
     ssl->out_msglen  = len;
@@ -5518,6 +5495,7 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t max_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write" ) );
 
@@ -5546,6 +5524,30 @@ int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flush_output", ret );
         return( ret );
+    }
+
+    /* Truncate outgoing data to ensure that it fits in a record. */
+    ret = mbedtls_ssl_get_max_out_record_payload( ssl );
+    if( ret < 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_get_max_out_record_payload", ret );
+        return( ret );
+    }
+    max_len = (size_t) ret;
+
+    if( len > max_len )
+    {
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "fragment larger than the (negotiated) "
+                                "maximum fragment length: %d > %d",
+                                len, max_len ) );
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        }
+        else
+#endif
+            len = max_len;
     }
 
     ret = ssl_write_real( ssl, buf, len );

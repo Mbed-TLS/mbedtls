@@ -583,8 +583,9 @@ MBEDTLS_STATIC_TESTABLE psa_status_t psa_get_mac_output_length(
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     /* Output the expected (potentially truncated) length as long as it can
-     * actually be output by the algorithm */
-    if( PSA_ALG_FULL_LENGTH_MAC( algorithm ) == algorithm )
+     * actually be output by the algorithm. Truncation length of '0' means
+     * default output length of the keytype-algorithm combination. */
+    if( PSA_MAC_TRUNCATED_LENGTH( algorithm ) == 0 )
     {
         *length = default_length;
         return( PSA_SUCCESS );

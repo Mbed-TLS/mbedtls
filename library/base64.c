@@ -102,22 +102,44 @@ static const unsigned char base64_dec_map[128] =
 static void mbedtls_base64_cond_assign_uchar(unsigned char * dest, const unsigned char * const src,
                                        unsigned char condition)
 {
-    /* make sure assign is 0 or 1 in a time-constant manner */
-    condition = (condition | (unsigned char)-condition) >> 7;
+    /* MSVC has a warning about unary minus on unsigned integer types,
+     * but this is well-defined and precisely what we want to do here. */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
 
-    *dest = ( *dest ) * ( 1 - condition ) + ( *src ) * condition;
+    /* Generate bitmask from condition, mask will either be 0xFFFFFFFF or 0 */
+    unsigned char mask =  -( unsigned char )( ( condition | -condition ) >> 7 );
+
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+
+    *dest = ( ( *src ) & mask ) | ( ( *dest ) & ~mask );
 }
 
 /*
  * Constant flow conditional assignment to uint_32
 */
 static void mbedtls_base64_cond_assign_uint32(uint32_t * dest, const uint32_t src,
-                                       unsigned char condition)
+                                       uint32_t condition)
 {
-    /* make sure assign is 0 or 1 in a time-constant manner */
-    condition = (condition | (unsigned char)-condition) >> 7;
+    /* MSVC has a warning about unary minus on unsigned integer types,
+     * but this is well-defined and precisely what we want to do here. */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
 
-    *dest = ( *dest ) * ( 1 - condition ) + ( src ) * condition;
+    /* Generate bitmask from condition, mask will either be 0xFFFFFFFF or 0 */
+    uint32_t mask =  -( uint32_t )( ( condition | -condition ) >> 31 );
+
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+
+    *dest = ( src & mask ) | ( ( *dest ) & ~mask );
 }
 
 

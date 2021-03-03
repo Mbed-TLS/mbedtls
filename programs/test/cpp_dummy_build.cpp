@@ -33,7 +33,6 @@
 #include "mbedtls/base64.h"
 #include "mbedtls/bignum.h"
 #include "mbedtls/blowfish.h"
-#include "mbedtls/bn_mul.h"
 #include "mbedtls/camellia.h"
 #include "mbedtls/ccm.h"
 #include "mbedtls/certs.h"
@@ -41,7 +40,6 @@
 #include "mbedtls/chachapoly.h"
 #include "mbedtls/check_config.h"
 #include "mbedtls/cipher.h"
-#include "cipher_internal.h"
 #include "mbedtls/cmac.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/debug.h"
@@ -51,7 +49,6 @@
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/ecjpake.h"
 #include "mbedtls/ecp.h"
-#include "ecp_internal.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
 #include "mbedtls/error.h"
@@ -62,7 +59,6 @@
 #include "mbedtls/md2.h"
 #include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
-#include "md_internal.h"
 #include "mbedtls/net.h"
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/nist_kw.h"
@@ -70,7 +66,6 @@
 #include "mbedtls/padlock.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/pk.h"
-#include "pk_internal.h"
 #include "mbedtls/pkcs11.h"
 #include "mbedtls/pkcs12.h"
 #include "mbedtls/pkcs5.h"
@@ -80,7 +75,6 @@
 #include "mbedtls/psa_util.h"
 #include "mbedtls/ripemd160.h"
 #include "mbedtls/rsa.h"
-#include "rsa_internal.h"
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
@@ -88,7 +82,6 @@
 #include "mbedtls/ssl_cache.h"
 #include "mbedtls/ssl_ciphersuites.h"
 #include "mbedtls/ssl_cookie.h"
-#include "ssl_internal.h"
 #include "mbedtls/ssl_ticket.h"
 #include "mbedtls/threading.h"
 #include "mbedtls/timing.h"
@@ -109,7 +102,6 @@
 
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
-#include "../library/psa_crypto_its.h"
 
 int main()
 {

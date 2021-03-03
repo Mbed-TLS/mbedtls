@@ -150,7 +150,6 @@
     <ClInclude Include="..\..\include\mbedtls\base64.h" />
     <ClInclude Include="..\..\include\mbedtls\bignum.h" />
     <ClInclude Include="..\..\include\mbedtls\blowfish.h" />
-    <ClInclude Include="..\..\include\mbedtls\bn_mul.h" />
     <ClInclude Include="..\..\include\mbedtls\camellia.h" />
     <ClInclude Include="..\..\include\mbedtls\ccm.h" />
     <ClInclude Include="..\..\include\mbedtls\certs.h" />
@@ -235,6 +234,7 @@
     <ClInclude Include="..\..\tests\include\test\drivers\signature.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\size.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\test_driver.h" />
+    <ClInclude Include="..\..\library\bn_mul.h" />
     <ClInclude Include="..\..\library\check_crypto_config.h" />
     <ClInclude Include="..\..\library\cipher_internal.h" />
     <ClInclude Include="..\..\library\common.h" />

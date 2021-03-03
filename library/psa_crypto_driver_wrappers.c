@@ -63,8 +63,6 @@ psa_status_t psa_driver_wrapper_sign_hash(
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
     uint8_t *signature, size_t signature_size, size_t *signature_length )
 {
-    (void)key_buffer_size;
-
     /* Try dynamically-registered SE interface first */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     const psa_drv_se_t *drv;
@@ -149,8 +147,6 @@ psa_status_t psa_driver_wrapper_verify_hash(
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
     const uint8_t *signature, size_t signature_length )
 {
-    (void)key_buffer_size;
-
     /* Try dynamically-registered SE interface first */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     const psa_drv_se_t *drv;

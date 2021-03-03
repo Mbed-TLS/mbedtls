@@ -160,9 +160,7 @@ void mac_algorithm_core( psa_algorithm_t alg, int classification_flags,
     TEST_EQUAL( length, PSA_MAC_LENGTH( key_type, key_bits, alg ) );
 
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_PSA_CRYPTO_C)
-    size_t output_length = 0;
-    PSA_ASSERT( psa_get_mac_output_length( alg, key_type, &output_length ) );
-    TEST_EQUAL( length, output_length );
+    PSA_ASSERT( psa_mac_key_can_do( alg, key_type ) );
 #endif
 
 exit: ;

@@ -545,58 +545,44 @@ static inline size_t psa_get_key_slot_bits( const psa_key_slot_t *slot )
     return( slot->attr.bits );
 }
 
-/** Return the output MAC length of a MAC algorithm, in bytes
+/** Check whether a given key type is valid for use with a given MAC algorithm
  *
- * \param[in] algorithm     The specific (non-wildcard) MAC algorithm.
+ * Upon successful return of this function, the behavioud of #PSA_MAC_LENGTH
+ * will be defined when called with the validated \p algorithm and \p key_type
+ *
+ * \param[in] algorithm     The specific MAC algorithm (can be wildcard).
  * \param[in] key_type      The key type of the key to be used with the
  *                          \p algorithm.
- * \param[out] length       The calculated output length of the given MAC
- *                          \p algorithm when used with a key corresponding to
- *                          the given \p key_type
  *
  * \retval #PSA_SUCCESS
- *         The \p length has been successfully calculated
+ *         The \p key_type is valid for use with the \p algorithm
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p algorithm is not a valid, specific MAC algorithm recognized and
- *         supported by this core, or \p key_type describes a key which is
- *         inconsistent with the specified \p algorithm.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p algorithm tries to truncate the MAC to a size which would be
- *         larger than the underlying algorithm's maximum output length.
+ *         The \p key_type is not valid for use with the \p algorithm
  */
-MBEDTLS_STATIC_TESTABLE psa_status_t psa_get_mac_output_length(
+MBEDTLS_STATIC_TESTABLE psa_status_t psa_mac_key_can_do(
     psa_algorithm_t algorithm,
-    psa_key_type_t key_type,
-    size_t *length )
+    psa_key_type_t key_type )
 {
-    /* Get the default length for the algorithm and key combination. None of the
-     * currently supported algorithms have a default output length dependent on
-     * key size, so setting it to a bogus value is OK. */
-    size_t default_length = PSA_MAC_LENGTH( key_type, 0,
-                                            PSA_ALG_FULL_LENGTH_MAC( algorithm ) );
-
-    /* PSA_MAC_LENGTH, when called on a full-length algorithm identifier, can
-     * currently return either 0 (unknown algorithm) or 1 (cipher-MAC with
-     * stream cipher) in cases where the key type / algorithm combination would
-     * be invalid. */
-    if( default_length == 0 || default_length == 1 )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    /* Output the expected (potentially truncated) length as long as it can
-     * actually be output by the algorithm. Truncation length of '0' means
-     * default output length of the keytype-algorithm combination. */
-    if( PSA_MAC_TRUNCATED_LENGTH( algorithm ) == 0 )
-    {
-        *length = default_length;
-        return( PSA_SUCCESS );
+    if( PSA_ALG_IS_HMAC( algorithm ) ) {
+        if( key_type == PSA_KEY_TYPE_HMAC )
+            return( PSA_SUCCESS );
     }
-    else if( PSA_MAC_TRUNCATED_LENGTH( algorithm ) <= default_length )
+
+    if( PSA_ALG_IS_BLOCK_CIPHER_MAC( algorithm ) )
     {
-        *length = PSA_MAC_TRUNCATED_LENGTH( algorithm );
-        return( PSA_SUCCESS );
+        /* Check that we're calling PSA_BLOCK_CIPHER_BLOCK_LENGTH with a cipher
+         * key. */
+        if( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) ==
+            PSA_KEY_TYPE_CATEGORY_SYMMETRIC )
+        {
+            /* PSA_BLOCK_CIPHER_BLOCK_LENGTH returns 1 for stream ciphers and
+             * the block length (larger than 1) for block ciphers. */
+            if( PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) > 1 )
+                return( PSA_SUCCESS );
+        }
     }
-    else
-        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    return( PSA_ERROR_INVALID_ARGUMENT );
 }
 
 /** Try to allocate a buffer to an empty key slot.
@@ -765,28 +751,19 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
         ( PSA_ALG_FULL_LENGTH_MAC( alg1 ) ==
           PSA_ALG_FULL_LENGTH_MAC( alg2 ) ) )
     {
-        /* Calculate the actual requested output length for both sides. In case
-         * of at-least-this-length wildcard algorithms, the requested output
-         * length is the shortest allowed length. */
-        size_t alg1_len = 0;
-        size_t alg2_len = 0;
-        if( PSA_SUCCESS != psa_get_mac_output_length(
-                                PSA_ALG_TRUNCATED_MAC( alg1,
-                                    PSA_MAC_TRUNCATED_LENGTH( alg1 ) ),
-                                key_type,
-                                &alg1_len ) )
-        {
+        /* Validate the combination of key type and algorithm. Since the base
+         * algorithm of alg1 and alg2 are the same, we only need this once. */
+        if( PSA_SUCCESS != psa_mac_key_can_do( alg1, key_type ) )
             return( 0 );
-        }
-        if( PSA_SUCCESS != psa_get_mac_output_length(
-                                PSA_ALG_TRUNCATED_MAC( alg2,
-                                    PSA_MAC_TRUNCATED_LENGTH( alg2 ) ),
-                                key_type,
-                                &alg2_len ) )
-        {
-            return( 0 );
-        }
 
+        /* Get the output length for the algorithm and key combination. None of
+         * the currently supported algorithms have an output length dependent on
+         * actual key size, so setting it to a bogus value is currently OK.
+         * Note that for at-least-this-length wildcard algorithms, the output
+         * length is set to the shortest allowed length, which allows us to
+         * calculate the most restrictive tag length for the intersection. */
+        size_t alg1_len = PSA_MAC_LENGTH( key_type, 0, alg1 );
+        size_t alg2_len = PSA_MAC_LENGTH( key_type, 0, alg2 );
         size_t max_len = alg1_len > alg2_len ? alg1_len : alg2_len;
 
         /* If both are wildcards, return most restrictive wildcard */
@@ -810,9 +787,10 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
             else
                 return( 0 );
         }
-        /* If none of them are wildcards, check whether we can match
-         * default-length with exact-length, and return exact-length in that
-         * case. */
+        /* If none of them are wildcards, check whether this is a case of one
+         * specifying the default length and the other a specific length. If the
+         * specific length equals the default length for this key type, the
+         * intersection would be the specific-length algorithm. */
         if( alg1_len == alg2_len )
             return( PSA_ALG_TRUNCATED_MAC( alg1, alg1_len ) );
     }
@@ -853,27 +831,25 @@ static int psa_key_algorithm_permits( psa_key_type_t key_type,
         ( PSA_ALG_FULL_LENGTH_MAC( policy_alg ) ==
           PSA_ALG_FULL_LENGTH_MAC( requested_alg ) ) )
     {
-        size_t actual_output_length;
-        size_t default_output_length;
-        if( PSA_SUCCESS != psa_get_mac_output_length(
-                            requested_alg,
-                            key_type,
-                            &actual_output_length ) )
-        {
+        /* Validate the combination of key type and algorithm. Since the policy
+         * and requested algorithms are the same, we only need this once. */
+        if( PSA_SUCCESS != psa_mac_key_can_do( policy_alg, key_type ) )
             return( 0 );
-        }
-        if( PSA_SUCCESS != psa_get_mac_output_length(
-                            PSA_ALG_FULL_LENGTH_MAC( requested_alg ),
-                            key_type,
-                            &default_output_length ) )
-        {
-            return( 0 );
-        }
+
+        /* Get both the requested and the default output length for this
+         * algorithm and key combination. None of the currently supported
+         * algorithms have an output length dependent on actual key size, so
+         * setting it to a bogus value is currently OK. */
+        size_t requested_output_length = PSA_MAC_LENGTH(
+                                            key_type, 0, requested_alg );
+        size_t default_output_length = PSA_MAC_LENGTH(
+                                        key_type, 0,
+                                        PSA_ALG_FULL_LENGTH_MAC( requested_alg ) );
 
         /* If the policy is default-length, only allow an algorithm with
          * a declared exact-length matching the default. */
         if( PSA_MAC_TRUNCATED_LENGTH( policy_alg ) == 0 )
-            return( actual_output_length == default_output_length );
+            return( requested_output_length == default_output_length );
 
         /* If the requested algorithm is default-length, allow it if the policy
          * is exactly the default length. */
@@ -889,7 +865,7 @@ static int psa_key_algorithm_permits( psa_key_type_t key_type,
         if( ( policy_alg & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 )
         {
             return( PSA_MAC_TRUNCATED_LENGTH( policy_alg ) <=
-                    actual_output_length );
+                    requested_output_length );
         }
     }
     /* If policy_alg is a generic key agreement operation, then using it for
@@ -2981,7 +2957,6 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
-    size_t output_length = 0;
     psa_key_usage_t usage =
         is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH;
 
@@ -3002,12 +2977,15 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_get_mac_output_length( alg, slot->attr.type,
-                                        &output_length );
+    /* Validate the combination of key type and algorithm */
+    status = psa_mac_key_can_do( alg, slot->attr.type );
     if( status != PSA_SUCCESS )
         goto exit;
 
-    operation->mac_size = (uint8_t) output_length;
+    /* Get the output length for the algorithm and key combination. None of the
+     * currently supported algorithms have an output length dependent on actual
+     * key size, so setting it to a bogus value is currently OK. */
+    operation->mac_size = PSA_MAC_LENGTH( slot->attr.type, 0, alg );
 
     if( operation->mac_size < 4 )
     {
@@ -3016,6 +2994,15 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
          * so we make this our minimum, even though 32 bits is still
          * too small for security. */
         status = PSA_ERROR_NOT_SUPPORTED;
+        goto exit;
+    }
+
+    if( operation->mac_size >
+        PSA_MAC_LENGTH( slot->attr.type, 0, PSA_ALG_FULL_LENGTH_MAC( alg ) ) )
+    {
+        /* It's impossible to "truncate" to a larger length than the full length
+         * of the algorithm. */
+        status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
 

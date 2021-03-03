@@ -79,7 +79,9 @@ static void mbedtls_base64_cond_assign_uchar(unsigned char * dest, const unsigne
 #endif
 
     /* Generate bitmask from condition, mask will either be 0xFFFFFFFF or 0 */
-    unsigned char mask =  -( unsigned char )( ( condition | -condition ) >> 7 );
+    unsigned char mask = ( condition | -condition );
+    mask >>= 7;
+    mask = -mask;
 
 #if defined(_MSC_VER)
 #pragma warning( pop )
@@ -102,7 +104,9 @@ static void mbedtls_base64_cond_assign_uint32(uint32_t * dest, const uint32_t sr
 #endif
 
     /* Generate bitmask from condition, mask will either be 0xFFFFFFFF or 0 */
-    uint32_t mask =  -( uint32_t )( ( condition | -condition ) >> 31 );
+    uint32_t mask = ( condition | -condition );
+    mask >>= 31;
+    mask = -mask;
 
 #if defined(_MSC_VER)
 #pragma warning( pop )
@@ -110,7 +114,6 @@ static void mbedtls_base64_cond_assign_uint32(uint32_t * dest, const uint32_t sr
 
     *dest = ( src & mask ) | ( ( *dest ) & ~mask );
 }
-
 
 /*
  * Constant flow check for equality

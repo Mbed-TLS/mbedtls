@@ -5486,7 +5486,7 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
         return( ret );
     }
 
-    return( len );
+    return( (int) len );
 }
 
 /*

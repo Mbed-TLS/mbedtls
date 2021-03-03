@@ -48,7 +48,7 @@
  * Used in:
  *      library/aria.c
  *      library/timing.c
- *      include/mbedtls/bn_mul.h
+ *      library/bn_mul.h
  *
  * Required by:
  *      MBEDTLS_AESNI_C

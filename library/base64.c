@@ -78,7 +78,7 @@ static void mbedtls_base64_cond_assign_uchar(unsigned char * dest, const unsigne
 #pragma warning( disable : 4146 )
 #endif
 
-    /* Generate bitmask from condition, mask will either be 0xFFFFFFFF or 0 */
+    /* Generate bitmask from condition, mask will either be 0xFF or 0 */
     unsigned char mask = ( condition | -condition );
     mask >>= 7;
     mask = -mask;

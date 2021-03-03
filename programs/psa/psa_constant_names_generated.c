@@ -67,7 +67,7 @@ static const char *psa_hash_algorithm_name(psa_algorithm_t hash_alg)
     case PSA_ALG_SHA3_256: return "PSA_ALG_SHA3_256";
     case PSA_ALG_SHA3_384: return "PSA_ALG_SHA3_384";
     case PSA_ALG_SHA3_512: return "PSA_ALG_SHA3_512";
-    case PSA_ALG_SHAKE256_64: return "PSA_ALG_SHAKE256_64";
+    case PSA_ALG_SHAKE256_512: return "PSA_ALG_SHAKE256_512";
     case PSA_ALG_SHA_1: return "PSA_ALG_SHA_1";
     case PSA_ALG_SHA_224: return "PSA_ALG_SHA_224";
     case PSA_ALG_SHA_256: return "PSA_ALG_SHA_256";
@@ -231,7 +231,7 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
     case PSA_ALG_SHA3_256: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA3_256", 16); break;
     case PSA_ALG_SHA3_384: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA3_384", 16); break;
     case PSA_ALG_SHA3_512: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA3_512", 16); break;
-    case PSA_ALG_SHAKE256_64: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHAKE256_64", 19); break;
+    case PSA_ALG_SHAKE256_512: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHAKE256_512", 20); break;
     case PSA_ALG_SHA_1: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA_1", 13); break;
     case PSA_ALG_SHA_224: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA_224", 15); break;
     case PSA_ALG_SHA_256: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA_256", 15); break;

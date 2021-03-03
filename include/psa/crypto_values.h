@@ -809,7 +809,7 @@
  * scenarios where a hash function based on SHA3/SHAKE is desired, SHA3-512
  * has the same output size and a (theoretically) higher security strength.
  */
-#define PSA_ALG_SHAKE256_64                     ((psa_algorithm_t)0x02000014)
+#define PSA_ALG_SHAKE256_64                     ((psa_algorithm_t)0x02000015)
 
 /** In a hash-and-sign algorithm policy, allow any hash algorithm.
  *

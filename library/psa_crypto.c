@@ -756,9 +756,11 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
         if( PSA_SUCCESS != psa_mac_key_can_do( alg1, key_type ) )
             return( 0 );
 
-        /* Get the output length for the algorithm and key combination. None of
-         * the currently supported algorithms have an output length dependent on
-         * actual key size, so setting it to a bogus value is currently OK.
+        /* Get the (exact or at-least) output lengths for both sides of the
+         * requested intersection. None of the currently supported algorithms
+         * have an output length dependent on the actual key size, so setting it
+         * to a bogus value of 0 is currently OK.
+         *
          * Note that for at-least-this-length wildcard algorithms, the output
          * length is set to the shortest allowed length, which allows us to
          * calculate the most restrictive tag length for the intersection. */
@@ -772,7 +774,10 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
         {
             return( PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( alg1, max_len ) );
         }
-        /* If only one is a wildcard, return specific algorithm if compatible. */
+
+        /* If only one is an at-least-this-length policy, the intersection would
+         * be the other (fixed-length) policy as long as said fixed length is
+         * equal to or larger than the shortest allowed length. */
         if( ( alg1 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 )
         {
             if( alg1_len <= alg2_len )
@@ -787,6 +792,7 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
             else
                 return( 0 );
         }
+
         /* If none of them are wildcards, check whether this is a case of one
          * specifying the default length and the other a specific length. If the
          * specific length equals the default length for this key type, the
@@ -836,10 +842,11 @@ static int psa_key_algorithm_permits( psa_key_type_t key_type,
         if( PSA_SUCCESS != psa_mac_key_can_do( policy_alg, key_type ) )
             return( 0 );
 
-        /* Get both the requested and the default output length for this
-         * algorithm and key combination. None of the currently supported
-         * algorithms have an output length dependent on actual key size, so
-         * setting it to a bogus value is currently OK. */
+        /* Get both the requested output length for the algorithm which is to be
+         * verified, and the default output length for the base algorithm.
+         * Note that none of the currently supported algorithms have an output
+         * length dependent on actual key size, so setting it to a bogus value
+         * of 0 is currently OK. */
         size_t requested_output_length = PSA_MAC_LENGTH(
                                             key_type, 0, requested_alg );
         size_t default_output_length = PSA_MAC_LENGTH(
@@ -859,9 +866,9 @@ static int psa_key_algorithm_permits( psa_key_type_t key_type,
             return( 1 );
         }
 
-        /* If policy_alg is a wildcard MAC algorithm of the same base as
-         * the requested algorithm, check the requested tag length to be
-         * equal-length or longer than the wildcard-specified length. */
+        /* If policy_alg is an at-least-this-length wildcard MAC algorithm of
+         * the same base as the requested algorithm, check for the requested MAC
+         * length to be equal to or longer than the minimum allowed length. */
         if( ( policy_alg & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 )
         {
             return( PSA_MAC_TRUNCATED_LENGTH( policy_alg ) <=

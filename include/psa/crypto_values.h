@@ -803,13 +803,13 @@
 #define PSA_ALG_SHA3_384                        ((psa_algorithm_t)0x02000012)
 /** SHA3-512 */
 #define PSA_ALG_SHA3_512                        ((psa_algorithm_t)0x02000013)
-/** The first 64 bytes of the SHAKE256 output.
+/** The first 512 bits (64 bytes) of the SHAKE256 output.
  *
  * This is the prehashing for Ed448ph (see #PSA_ALG_ED448PH). For other
  * scenarios where a hash function based on SHA3/SHAKE is desired, SHA3-512
  * has the same output size and a (theoretically) higher security strength.
  */
-#define PSA_ALG_SHAKE256_64                     ((psa_algorithm_t)0x02000015)
+#define PSA_ALG_SHAKE256_512                    ((psa_algorithm_t)0x02000015)
 
 /** In a hash-and-sign algorithm policy, allow any hash algorithm.
  *
@@ -1448,13 +1448,13 @@
  * - or calculate the first 64 bytes of the SHAKE256 output of the message
  *   with psa_hash_compute()
  *   or with a multi-part hash operation started with psa_hash_setup(),
- *   using the hash algorithm #PSA_ALG_SHAKE256_64,
+ *   using the hash algorithm #PSA_ALG_SHAKE256_512,
  *   then sign the calculated hash with psa_sign_hash().
  * Verifying a signature is similar, using psa_verify_message() or
  * psa_verify_hash() instead of the signature function.
  */
 #define PSA_ALG_ED448PH                                 \
-    (PSA_ALG_HASH_EDDSA_BASE | (PSA_ALG_SHAKE256_64 & PSA_ALG_HASH_MASK))
+    (PSA_ALG_HASH_EDDSA_BASE | (PSA_ALG_SHAKE256_512 & PSA_ALG_HASH_MASK))
 
 /* Default definition, to be overridden if the library is extended with
  * more hash-and-sign algorithms that we want to keep out of this header

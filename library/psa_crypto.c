@@ -3165,7 +3165,6 @@ psa_status_t psa_sign_hash( mbedtls_svc_key_id_t key,
       .core = slot->attr
     };
 
-    /* Try any of the available accelerators first */
     status = psa_driver_wrapper_sign_hash(
         &attributes, slot->key.data, slot->key.bytes,
         alg, hash, hash_length,
@@ -3262,7 +3261,6 @@ psa_status_t psa_verify_hash( mbedtls_svc_key_id_t key,
       .core = slot->attr
     };
 
-    /* Try any of the available accelerators first */
     status = psa_driver_wrapper_verify_hash(
         &attributes, slot->key.data, slot->key.bytes,
         alg, hash, hash_length,

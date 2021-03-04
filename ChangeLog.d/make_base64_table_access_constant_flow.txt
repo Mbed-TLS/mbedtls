@@ -1,4 +1,4 @@
 Security
    * Guard against strong local side channel attack against base64 tables by
-    making access aceess to them use constant flow code.
+     making access aceess to them use constant flow code.
 

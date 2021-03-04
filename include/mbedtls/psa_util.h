@@ -34,6 +34,8 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 
+#include "mbedtls/platform_util.h"
+
 #include "psa/crypto.h"
 
 #include "mbedtls/ecp.h"
@@ -93,8 +95,8 @@ static inline psa_algorithm_t mbedtls_psa_translate_cipher_mode(
             if( taglen == 0 )
                 return( PSA_ALG_CBC_NO_PADDING );
             /* Intentional fallthrough for taglen != 0 */
-            /* fallthrough */
             MBEDTLS_FALLTHROUGH;
+            /* fallthrough */
         default:
             return( 0 );
     }
@@ -152,8 +154,9 @@ static inline psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg
     case MBEDTLS_MD_RIPEMD160:
         return( PSA_ALG_RIPEMD160 );
 #endif
-    case MBEDTLS_MD_NONE:  /* Intentional fallthrough */
+        case MBEDTLS_MD_NONE:  /* Intentional fallthrough */
         MBEDTLS_FALLTHROUGH;
+        /* fallthrough */
     default:
         return( 0 );
     }

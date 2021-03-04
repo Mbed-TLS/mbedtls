@@ -187,6 +187,35 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
                                       struct tm *tm_buf );
 #endif /* MBEDTLS_HAVE_TIME_DATE */
 
+/** Helper to mark a deliberate fallthrough in a case statement.
+ *
+ * Note this will only be defined for compilers that support it,
+ * however with newer versions of GCC and Clang not using this
+ * generates warnings.
+ *
+ * Usage:
+ *
+ * ```
+ *   case MBEDTLS_MD_NONE:
+ *        MBEDTLS_FALLTHROUGH;
+ *        // fallthrough
+ *   default:
+ *       return( 0 );
+ * ```
+ * Note that the 'fallthrough' comment should still be on its own on the
+ * line before the deliberate fallthrough for backward compatibility with
+ * compilers that do not support the attribute.
+ */
+#if ( defined(__GNUC__) && __GNUC__ >= 7 ) || ( defined __clang__ )
+#if __has_attribute(fallthrough)
+#define MBEDTLS_FALLTHROUGH __attribute__((fallthrough))
+#else /* __has_attribute(fallthrough) */
+#define MBEDTLS_FALLTHROUGH
+#endif /* __has_attribute(fallthrough) */
+#else /* ( defined(__GNUC__) && __GNUC__ >= 7 ) || ( defined __clang__ ) */
+#define MBEDTLS_FALLTHROUGH
+#endif /* ( defined(__GNUC__) && __GNUC__ >= 7 ) || ( defined __clang__ ) */
+
 #ifdef __cplusplus
 }
 #endif

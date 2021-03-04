@@ -28,6 +28,9 @@
 
 /* Include all structure definitions for the drivers that have been included
  * during the auto-generation of this file (autogeneration not yet in place) */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+#include "test/drivers/test_driver.h"
+#endif
 
 /* Include the structure definitions for the mbed TLS software drivers */
 #include "psa_crypto_hash.h"
@@ -42,6 +45,9 @@
 union psa_driver_hash_context_u {
     unsigned dummy; /* Make sure this structure is always non-empty */
     mbedtls_psa_hash_operation_t mbedtls_ctx;
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+    test_transparent_hash_operation_t test_ctx;
+#endif
 };
 
 #endif /* PSA_CRYPTO_DRIVER_WRAPPERS_CONTEXTS_H */

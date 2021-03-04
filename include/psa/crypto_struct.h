@@ -68,14 +68,9 @@ extern "C" {
 #include "mbedtls/cipher.h"
 #include "mbedtls/cmac.h"
 #include "mbedtls/gcm.h"
-#include "mbedtls/md.h"
-#include "mbedtls/md2.h"
-#include "mbedtls/md4.h"
-#include "mbedtls/md5.h"
-#include "mbedtls/ripemd160.h"
-#include "mbedtls/sha1.h"
-#include "mbedtls/sha256.h"
-#include "mbedtls/sha512.h"
+
+/* Include the context definition for the compiled-in drivers */
+#include "../../library/psa_crypto_driver_wrappers_contexts.h"
 
 typedef struct {
     /** Unique ID indicating which driver got assigned to do the
@@ -89,10 +84,17 @@ typedef struct {
 
 struct psa_hash_operation_s
 {
-    psa_operation_driver_context_t ctx;
+    /** Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_driver_wrappers.h
+     * ID value zero means the context is not valid or not assigned to
+     * any driver (i.e. none of the driver contexts are active). */
+    unsigned int id;
+    union psa_driver_hash_context_u ctx;
 };
 
-#define PSA_HASH_OPERATION_INIT {{0, 0}}
+#define PSA_HASH_OPERATION_INIT {0, {0}}
 static inline struct psa_hash_operation_s psa_hash_operation_init( void )
 {
     const struct psa_hash_operation_s v = PSA_HASH_OPERATION_INIT;

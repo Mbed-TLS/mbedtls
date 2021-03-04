@@ -250,6 +250,7 @@
     <ClInclude Include="..\..\library\common.h" />
     <ClInclude Include="..\..\library\psa_crypto_core.h" />
     <ClInclude Include="..\..\library\psa_crypto_driver_wrappers.h" />
+    <ClInclude Include="..\..\library\psa_crypto_driver_wrappers_contexts.h" />
     <ClInclude Include="..\..\library\psa_crypto_ecp.h" />
     <ClInclude Include="..\..\library\psa_crypto_hash.h" />
     <ClInclude Include="..\..\library\psa_crypto_invasive.h" />

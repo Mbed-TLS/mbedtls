@@ -59,9 +59,6 @@
 #include "psa_crypto_se.h"
 #endif
 
-/* Include software fallback when present */
-#include "psa_crypto_hash.h"
-
 /* Start delegation functions */
 psa_status_t psa_driver_wrapper_sign_hash(
     const psa_key_attributes_t *attributes,
@@ -1109,31 +1106,18 @@ psa_status_t psa_driver_wrapper_hash_compute(
 }
 
 psa_status_t psa_driver_wrapper_hash_setup(
-    psa_operation_driver_context_t *operation,
+    psa_hash_operation_t *operation,
     psa_algorithm_t alg )
 {
     psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-
-    /* A context must be freshly initialized before it can be set up. */
-    if( operation->id != 0 || operation->ctx != NULL )
-        return( PSA_ERROR_BAD_STATE );
 
     /* Try setup on accelerators first */
 
     /* If software fallback is compiled in, try fallback */
 #if defined(MBEDTLS_PSA_BUILTIN_HASH)
-    operation->ctx = mbedtls_calloc( 1, sizeof(mbedtls_psa_hash_operation_t) );
-    status = mbedtls_psa_hash_setup( operation->ctx, alg );
+    status = mbedtls_psa_hash_setup( &operation->ctx.mbedtls_ctx, alg );
     if( status == PSA_SUCCESS )
-    {
         operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
-    }
-    else
-    {
-        mbedtls_free( operation->ctx );
-        operation->ctx = NULL;
-        operation->id = 0;
-    }
 
     if( status != PSA_ERROR_NOT_SUPPORTED )
         return( status );
@@ -1146,131 +1130,77 @@ psa_status_t psa_driver_wrapper_hash_setup(
 }
 
 psa_status_t psa_driver_wrapper_hash_clone(
-    const psa_operation_driver_context_t *source_operation,
-    psa_operation_driver_context_t *target_operation )
+    const psa_hash_operation_t *source_operation,
+    psa_hash_operation_t *target_operation )
 {
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-
-    if( source_operation->ctx == NULL || source_operation->id == 0 )
-        return( PSA_ERROR_BAD_STATE );
-    if( target_operation->ctx != NULL || target_operation->id != 0 )
-        return( PSA_ERROR_BAD_STATE );
-
     switch( source_operation->id )
     {
 #if defined(MBEDTLS_PSA_BUILTIN_HASH)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            target_operation->ctx = mbedtls_calloc( 1, sizeof(mbedtls_psa_hash_operation_t) );
-            if( target_operation->ctx == NULL )
-            {
-                status = PSA_ERROR_INSUFFICIENT_MEMORY;
-                break;
-            }
             target_operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
-            status = mbedtls_psa_hash_clone( source_operation->ctx,
-                                             target_operation->ctx );
-            break;
+            return( mbedtls_psa_hash_clone( &source_operation->ctx.mbedtls_ctx,
+                                            &target_operation->ctx.mbedtls_ctx ) );
 #endif
         default:
-            (void) status;
             (void) source_operation;
             (void) target_operation;
             return( PSA_ERROR_BAD_STATE );
     }
-
-    if( status != PSA_SUCCESS )
-        psa_driver_wrapper_hash_abort( target_operation );
-    return( status );
 }
 
 psa_status_t psa_driver_wrapper_hash_update(
-    psa_operation_driver_context_t *operation,
+    psa_hash_operation_t *operation,
     const uint8_t *input,
     size_t input_length )
 {
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-
-    if( operation->ctx == NULL || operation->id == 0 )
-        return( PSA_ERROR_BAD_STATE );
-
     switch( operation->id )
     {
 #if defined(MBEDTLS_PSA_BUILTIN_HASH)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            status = mbedtls_psa_hash_update( operation->ctx,
-                                              input, input_length );
-            break;
+            return( mbedtls_psa_hash_update( &operation->ctx.mbedtls_ctx,
+                                             input, input_length ) );
 #endif
         default:
-            (void) status;
             (void) operation;
             (void) input;
             (void) input_length;
             return( PSA_ERROR_BAD_STATE );
     }
-
-    if( status != PSA_SUCCESS )
-        psa_driver_wrapper_hash_abort( operation );
-    return( status );
 }
 
 psa_status_t psa_driver_wrapper_hash_finish(
-    psa_operation_driver_context_t *operation,
+    psa_hash_operation_t *operation,
     uint8_t *hash,
     size_t hash_size,
     size_t *hash_length )
 {
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-
-    if( operation->ctx == NULL || operation->id == 0 )
-        return( PSA_ERROR_BAD_STATE );
-
     switch( operation->id )
     {
 #if defined(MBEDTLS_PSA_BUILTIN_HASH)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            status = mbedtls_psa_hash_finish( operation->ctx,
-                                              hash, hash_size, hash_length );
+            return( mbedtls_psa_hash_finish( &operation->ctx.mbedtls_ctx,
+                                             hash, hash_size, hash_length ) );
             break;
 #endif
         default:
-            (void) status;
             (void) operation;
             (void) hash;
             (void) hash_size;
             (void) hash_length;
             return( PSA_ERROR_BAD_STATE );
     }
-
-    psa_driver_wrapper_hash_abort( operation );
-    return( status );
 }
 
 psa_status_t psa_driver_wrapper_hash_abort(
-    psa_operation_driver_context_t *operation )
+    psa_hash_operation_t *operation )
 {
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-
     switch( operation->id )
     {
-        case 0:
-            if( operation->ctx == NULL )
-                return( PSA_SUCCESS );
-            else
-                return( PSA_ERROR_BAD_STATE );
 #if defined(MBEDTLS_PSA_BUILTIN_HASH)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            if( operation->ctx != NULL )
-            {
-                status = mbedtls_psa_hash_abort( operation->ctx );
-                mbedtls_free( operation->ctx );
-                operation->ctx = NULL;
-            }
-            operation->id = 0;
-            return( PSA_SUCCESS );
+            return( mbedtls_psa_hash_abort( &operation->ctx.mbedtls_ctx ) );
 #endif
         default:
-            (void) status;
             return( PSA_ERROR_BAD_STATE );
     }
 }

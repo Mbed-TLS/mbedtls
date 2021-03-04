@@ -1,3 +1,2 @@
-Features
-   * Add a macro to mark deliberate fallthrough in a case statement, to stop
-   warnings being generated with newer compilers.
+Changes
+      * Fix the build with Clang ≥10 and -Wimplicit-fallthrough when MBEDTLS_USE_PSA_CRYPTO is enabled.

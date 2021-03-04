@@ -42,13 +42,13 @@
  * are formatted as `'drivername'_ctx`. This allows for procedural generation
  * of both this file and the content of psa_crypto_driver_wrappers.c */
 
-union psa_driver_hash_context_u {
+typedef union {
     unsigned dummy; /* Make sure this structure is always non-empty */
     mbedtls_psa_hash_operation_t mbedtls_ctx;
 #if defined(PSA_CRYPTO_DRIVER_TEST)
     test_transparent_hash_operation_t test_ctx;
 #endif
-};
+} psa_driver_hash_context_t;
 
 #endif /* PSA_CRYPTO_DRIVER_WRAPPERS_CONTEXTS_H */
 /* End of automatically generated file. */

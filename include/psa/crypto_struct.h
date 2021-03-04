@@ -91,7 +91,7 @@ struct psa_hash_operation_s
      * ID value zero means the context is not valid or not assigned to
      * any driver (i.e. none of the driver contexts are active). */
     unsigned int id;
-    union psa_driver_hash_context_u ctx;
+    psa_driver_hash_context_t ctx;
 };
 
 #define PSA_HASH_OPERATION_INIT {0, {0}}

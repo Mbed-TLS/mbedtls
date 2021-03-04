@@ -202,6 +202,8 @@ psa_status_t mbedtls_psa_hash_clone(
             break;
 #endif
         default:
+            (void) source_operation;
+            (void) target_operation;
             return( PSA_ERROR_NOT_SUPPORTED );
     }
 
@@ -273,7 +275,8 @@ psa_status_t mbedtls_psa_hash_update(
             break;
 #endif
         default:
-            (void)input;
+            (void) input;
+            (void) input_length;
             return( PSA_ERROR_BAD_STATE );
     }
 
@@ -355,6 +358,7 @@ psa_status_t mbedtls_psa_hash_finish(
             break;
 #endif
         default:
+            (void) hash;
             return( PSA_ERROR_BAD_STATE );
     }
     status = mbedtls_to_psa_error( ret );

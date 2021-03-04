@@ -2226,6 +2226,11 @@ psa_status_t psa_hash_update( psa_hash_operation_t *operation,
     if( operation->id == 0 )
         return( PSA_ERROR_BAD_STATE );
 
+    /* Don't require hash implementations to behave correctly on a
+     * zero-length input, which may have an invalid pointer. */
+    if( input_length == 0 )
+        return( PSA_SUCCESS );
+
     psa_status_t status = psa_driver_wrapper_hash_update( operation,
                                                           input, input_length );
     if( status != PSA_SUCCESS )

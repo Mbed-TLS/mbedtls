@@ -216,11 +216,6 @@ psa_status_t mbedtls_psa_hash_update(
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    /* Don't require hash implementations to behave correctly on a
-     * zero-length input, which may have an invalid pointer. */
-    if( input_length == 0 )
-        return( PSA_SUCCESS );
-
     switch( operation->alg )
     {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_MD2)

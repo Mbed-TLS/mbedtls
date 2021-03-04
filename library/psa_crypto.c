@@ -3090,10 +3090,10 @@ psa_status_t psa_sign_hash_internal(
     else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) */
-    if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
-    {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+    if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
+    {
         if( PSA_ALG_IS_ECDSA( alg ) )
         {
             return( mbedtls_psa_ecdsa_sign_hash(
@@ -3103,14 +3103,15 @@ psa_status_t psa_sign_hash_internal(
                         signature, signature_size, signature_length ) );
         }
         else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
         {
             return( PSA_ERROR_INVALID_ARGUMENT );
         }
     }
     else
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
     {
+        (void)attributes;
         (void)key_buffer;
         (void)key_buffer_size;
         (void)alg;

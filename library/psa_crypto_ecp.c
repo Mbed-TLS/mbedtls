@@ -401,7 +401,7 @@ static psa_status_t ecdsa_sign_hash(
                              mbedtls_psa_get_random,
                              MBEDTLS_PSA_RANDOM_STATE ) );
 #else
-       ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+       ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
        goto cleanup;
 #endif /* defined(BUILTIN_ALG_DETERMINISTIC_ECDSA) */
     }

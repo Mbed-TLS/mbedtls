@@ -3094,13 +3094,7 @@ psa_status_t psa_sign_hash_internal(
     {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
-        if(
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
-            PSA_ALG_IS_ECDSA( alg )
-#else
-            PSA_ALG_IS_RANDOMIZED_ECDSA( alg )
-#endif
-            )
+        if( PSA_ALG_IS_ECDSA( alg ) )
         {
             return( mbedtls_psa_ecdsa_sign_hash(
                         attributes,

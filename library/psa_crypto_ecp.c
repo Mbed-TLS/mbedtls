@@ -388,9 +388,9 @@ static psa_status_t ecdsa_sign_hash(
         goto cleanup;
     }
 
-#if defined(BUILTIN_ALG_DETERMINISTIC_ECDSA)
-    if( PSA_ALG_DSA_IS_DETERMINISTIC( alg ) )
+    if( PSA_ALG_ECDSA_IS_DETERMINISTIC( alg ) )
     {
+#if defined(BUILTIN_ALG_DETERMINISTIC_ECDSA)
         psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
         const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
         mbedtls_md_type_t md_alg = mbedtls_md_get_type( md_info );
@@ -400,9 +400,12 @@ static psa_status_t ecdsa_sign_hash(
                              hash_length, md_alg,
                              mbedtls_psa_get_random,
                              MBEDTLS_PSA_RANDOM_STATE ) );
+#else
+       ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+       goto cleanup;
+#endif /* defined(BUILTIN_ALG_DETERMINISTIC_ECDSA) */
     }
     else
-#endif /* defined(BUILTIN_ALG_DETERMINISTIC_ECDSA) */
     {
         (void) alg;
         MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign( &ecp->grp, &r, &s, &ecp->d,

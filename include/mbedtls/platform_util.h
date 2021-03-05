@@ -206,15 +206,15 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
  * line before the deliberate fallthrough for backward compatibility with
  * compilers that do not support the attribute.
  */
-#if ( defined(__GNUC__) && __GNUC__ >= 7 ) || ( defined __clang__ )
+#if defined (__has_attribute)
 #if __has_attribute(fallthrough)
 #define MBEDTLS_FALLTHROUGH __attribute__((fallthrough))
 #else /* __has_attribute(fallthrough) */
 #define MBEDTLS_FALLTHROUGH
 #endif /* __has_attribute(fallthrough) */
-#else /* ( defined(__GNUC__) && __GNUC__ >= 7 ) || ( defined __clang__ ) */
+#else /* (__has_attribute) */
 #define MBEDTLS_FALLTHROUGH
-#endif /* ( defined(__GNUC__) && __GNUC__ >= 7 ) || ( defined __clang__ ) */
+#endif /* (__has_attribute) */
 
 #ifdef __cplusplus
 }

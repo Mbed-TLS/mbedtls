@@ -19,6 +19,10 @@
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
 
+#include "common.h"
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+
 #include "mps_reader.h"
 #include "mps_common.h"
 #include "mps_trace.h"
@@ -557,3 +561,5 @@ int mbedtls_mps_reader_reclaim( mbedtls_mps_reader *rd,
                        (unsigned) rd->acc_share.acc_remaining );
     MBEDTLS_MPS_TRACE_RETURN( 0 );
 }
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */

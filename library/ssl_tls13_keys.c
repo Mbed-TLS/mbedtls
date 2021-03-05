@@ -22,7 +22,7 @@
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
 #include "mbedtls/hkdf.h"
-#include "ssl_internal.h"
+#include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
 
 #include <stdint.h>

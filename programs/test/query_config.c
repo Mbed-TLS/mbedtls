@@ -101,7 +101,7 @@
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/xtea.h"
-#include "../../library/ssl_internal.h"
+#include "../../library/ssl_misc.h"
 
 #include <string.h>
 

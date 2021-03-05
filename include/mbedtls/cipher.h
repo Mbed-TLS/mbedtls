@@ -229,13 +229,13 @@ enum {
 /** Maximum length of any IV, in Bytes. */
 /* This should ideally be derived automatically from list of ciphers.
  * This should be kept in sync with MBEDTLS_SSL_MAX_IV_LENGTH defined
- * in ssl_internal.h. */
+ * in ssl_misc.h. */
 #define MBEDTLS_MAX_IV_LENGTH      16
 
 /** Maximum block size of any cipher, in Bytes. */
 /* This should ideally be derived automatically from list of ciphers.
  * This should be kept in sync with MBEDTLS_SSL_MAX_BLOCK_LENGTH defined
- * in ssl_internal.h. */
+ * in ssl_misc.h. */
 #define MBEDTLS_MAX_BLOCK_LENGTH   16
 
 /** Maximum key length, in Bytes. */
@@ -243,7 +243,7 @@ enum {
  * For now, only check whether XTS is enabled which uses 64 Byte keys,
  * and use 32 Bytes as an upper bound for the maximum key length otherwise.
  * This should be kept in sync with MBEDTLS_SSL_MAX_BLOCK_LENGTH defined
- * in ssl_internal.h, which however deliberately ignores the case of XTS
+ * in ssl_misc.h, which however deliberately ignores the case of XTS
  * since the latter isn't used in SSL/TLS. */
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
 #define MBEDTLS_MAX_KEY_LENGTH     64

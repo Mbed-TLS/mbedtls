@@ -33,7 +33,7 @@
 #endif
 
 #include "mbedtls/ssl_cookie.h"
-#include "ssl_internal.h"
+#include "ssl_misc.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 

@@ -18,7 +18,7 @@
  */
 
 /**
- * \file trace.h
+ * \file mps_trace.h
  *
  * \brief Tracing module for MPS
  */

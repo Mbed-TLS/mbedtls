@@ -84,18 +84,22 @@
  * \def MBEDTLS_PRINTF_ATTRIBUTE
  *
  * Mark a function as having printf attributes, and thus enable checking
- * via -wFormat and other flags. This does nothing in windows builds as the
- * windows compiler does not support it.
+ * via -wFormat and other flags. This does nothing on builds with compilers
+ * that do not support the format attribute
  *
  * Module:  library/debug.c
  * Caller:
  *
  * This module provides debugging functions.
  */
-#if defined(__GNUC__)
+#if defined(__has_attribute)
+#if __has_attribute(format)
 #define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)    \
     __attribute__((format (printf, string_index, first_to_check)))
-#else
+#else /* __has_attribute(format) */
+#define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)
+#endif /* __has_attribute(format) */
+#else /* defined(__has_attribute) */
 #define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)
 #endif
 
@@ -115,10 +119,10 @@
    #include <inttypes.h>
    #define MBEDTLS_PRINTF_SIZET     PRIuPTR
    #define MBEDTLS_PRINTF_LONGLONG  "I64d"
-#else
+#else /* defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER < 1800) */
    #define MBEDTLS_PRINTF_SIZET     "zu"
    #define MBEDTLS_PRINTF_LONGLONG  "lld"
-#endif
+#endif /* defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER < 1800) */
 
 #ifdef __cplusplus
 extern "C" {

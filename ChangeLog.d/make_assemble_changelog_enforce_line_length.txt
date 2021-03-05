@@ -1,0 +1,2 @@
+Changes
+   * Make assemble_changelog.py script enforce 80 character line limit

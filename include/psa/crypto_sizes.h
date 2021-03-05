@@ -352,10 +352,10 @@
  */
 #define PSA_AEAD_NONCE_LENGTH(key_type, alg) \
     (PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) == 16 && \
-         (PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH(alg) == PSA_ALG_CCM || \
-          PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH(alg) == PSA_ALG_GCM) ? 12 : \
+         (PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg) == PSA_ALG_CCM || \
+          PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg) == PSA_ALG_GCM) ? 12 : \
      (key_type) == PSA_KEY_TYPE_CHACHA20 && \
-          PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH(alg) == PSA_ALG_CHACHA20_POLY1305 ? 12 : \
+          PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg) == PSA_ALG_CHACHA20_POLY1305 ? 12 : \
      0)
 
 /** The maximum default nonce size among all supported pairs of key types and
@@ -1050,7 +1050,7 @@
  * \param input_length  Size of the input in bytes.
  */
 #define PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE(input_length)     \
-    ((input_length) + PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE)
+    (PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE, input_length))
 
 /** A sufficient ciphertext buffer size for psa_cipher_finish().
  *

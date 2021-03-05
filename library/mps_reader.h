@@ -18,7 +18,7 @@
  */
 
 /**
- * \file reader.h
+ * \file mps_reader.h
  *
  * \brief This file defines reader objects, which together with their
  *        sibling writer objects form the basis for the communication

@@ -18,7 +18,7 @@
  */
 
 /**
- * \file error.h
+ * \file mps_error.h
  *
  * \brief Error codes used by MPS
  */

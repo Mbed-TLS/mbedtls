@@ -18,7 +18,7 @@
  */
 
 /**
- * \file common.h
+ * \file mps_common.h
  *
  * \brief Common functions and macros used by MPS
  */

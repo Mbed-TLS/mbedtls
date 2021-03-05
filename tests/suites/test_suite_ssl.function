@@ -1,6 +1,6 @@
 /* BEGIN_HEADER */
 #include <mbedtls/ssl.h>
-#include <ssl_internal.h>
+#include <ssl_misc.h>
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/certs.h>

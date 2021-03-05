@@ -19,6 +19,11 @@
 
 /* END_HEADER */
 
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+ * END_DEPENDENCIES
+ */
+
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
 void mbedtls_mps_reader_no_pausing_single_step_single_round( int with_acc )
 {

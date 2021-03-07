@@ -1145,8 +1145,8 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
 #else
         mbedtls_printf( "All test CRTs loaded via MBEDTLS_CERTS_C are PEM-encoded, but MBEDTLS_PEM_PARSE_C is disabled." );
-    }
 #endif /* MBEDTLS_CERTS_C */
+    }
 #endif /* MBEDTLS_CERTS_C && MBEDTLS_PEM_PARSE_C */
     if( ret < 0 )
     {
@@ -1182,8 +1182,8 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
 #else
         mbedtls_printf( "All test CRTs loaded via MBEDTLS_CERTS_C are PEM-encoded, but MBEDTLS_PEM_PARSE_C is disabled." );
-    }
 #endif /* MBEDTLS_CERTS_C */
+    }
 #endif /* MBEDTLS_CERTS_C && MBEDTLS_PEM_PARSE_C */
     if( ret != 0 )
     {
@@ -1209,8 +1209,8 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
 #else
         mbedtls_printf( "All test keys loaded via MBEDTLS_CERTS_C are PEM-encoded, but MBEDTLS_PEM_PARSE_C is disabled." );
-    }
 #endif /* MBEDTLS_CERTS_C */
+    }
 #endif /* MBEDTLS_CERTS_C && MBEDTLS_PEM_PARSE_C */
     if( ret != 0 )
     {

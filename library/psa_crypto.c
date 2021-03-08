@@ -2244,6 +2244,7 @@ psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
                               size_t hash_size,
                               size_t *hash_length )
 {
+    *hash_length = 0;
     if( operation->id == 0 )
         return( PSA_ERROR_BAD_STATE );
 
@@ -2277,6 +2278,7 @@ psa_status_t psa_hash_compute( psa_algorithm_t alg,
                                uint8_t *hash, size_t hash_size,
                                size_t *hash_length )
 {
+    *hash_length = 0;
     if( !PSA_ALG_IS_HASH( alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 

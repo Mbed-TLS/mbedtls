@@ -834,12 +834,14 @@ void mac_key_policy( int policy_usage,
                      int policy_alg,
                      int key_type,
                      data_t *key_data,
-                     int exercise_alg )
+                     int exercise_alg,
+                     int expected_status_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
     psa_status_t status;
+    psa_status_t expected_status = expected_status_arg;
     unsigned char mac[PSA_MAC_MAX_SIZE];
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -852,20 +854,19 @@ void mac_key_policy( int policy_usage,
                                 &key ) );
 
     status = psa_mac_sign_setup( &operation, key, exercise_alg );
-    if( policy_alg == exercise_alg &&
-        ( policy_usage & PSA_KEY_USAGE_SIGN_HASH ) != 0 )
-        PSA_ASSERT( status );
-    else
+    if( ( policy_usage & PSA_KEY_USAGE_SIGN_HASH ) == 0 )
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+    else
+        TEST_EQUAL( status, expected_status );
+
     psa_mac_abort( &operation );
 
     memset( mac, 0, sizeof( mac ) );
     status = psa_mac_verify_setup( &operation, key, exercise_alg );
-    if( policy_alg == exercise_alg &&
-        ( policy_usage & PSA_KEY_USAGE_VERIFY_HASH ) != 0 )
-        PSA_ASSERT( status );
-    else
+    if( ( policy_usage & PSA_KEY_USAGE_VERIFY_HASH ) == 0 )
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+    else
+        TEST_EQUAL( status, expected_status );
 
 exit:
     psa_mac_abort( &operation );
@@ -924,11 +925,13 @@ void aead_key_policy( int policy_usage,
                       data_t *key_data,
                       int nonce_length_arg,
                       int tag_length_arg,
-                      int exercise_alg )
+                      int exercise_alg,
+                      int expected_status_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status;
+    psa_status_t expected_status = expected_status_arg;
     unsigned char nonce[16] = {0};
     size_t nonce_length = nonce_length_arg;
     unsigned char tag[16];
@@ -953,9 +956,8 @@ void aead_key_policy( int policy_usage,
                                NULL, 0,
                                tag, tag_length,
                                &output_length );
-    if( policy_alg == exercise_alg &&
-        ( policy_usage & PSA_KEY_USAGE_ENCRYPT ) != 0 )
-        PSA_ASSERT( status );
+    if( ( policy_usage & PSA_KEY_USAGE_ENCRYPT ) != 0 )
+        TEST_EQUAL( status, expected_status );
     else
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
 
@@ -966,11 +968,12 @@ void aead_key_policy( int policy_usage,
                                tag, tag_length,
                                NULL, 0,
                                &output_length );
-    if( policy_alg == exercise_alg &&
-        ( policy_usage & PSA_KEY_USAGE_DECRYPT ) != 0 )
+    if( ( policy_usage & PSA_KEY_USAGE_DECRYPT ) == 0 )
+        TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+    else if( expected_status == PSA_SUCCESS )
         TEST_EQUAL( status, PSA_ERROR_INVALID_SIGNATURE );
     else
-        TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+        TEST_EQUAL( status, expected_status );
 
 exit:
     psa_destroy_key( key );
@@ -1334,6 +1337,7 @@ void copy_success( int source_usage_arg,
         ASSERT_COMPARE( material->x, material->len,
                         export_buffer, length );
     }
+
     if( ! mbedtls_test_psa_exercise_key( target_key, expected_usage, expected_alg ) )
         goto exit;
     if( ! mbedtls_test_psa_exercise_key( target_key, expected_usage, expected_alg2 ) )

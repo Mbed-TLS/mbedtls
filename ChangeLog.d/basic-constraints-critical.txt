@@ -1,0 +1,8 @@
+Bugfix
+   * This change makes 'mbedtls_x509write_crt_set_basic_constraints'
+     consistent with RFC 5280 4.2.1.9 which says: "Conforming CAs MUST
+     include this extension in all CA certificates that contain public keys
+     used to validate digital signatures on certificates and MUST mark the
+     extension as critical in such certificates." Previous to this change,
+     the extension was always marked as non-critical. This was fixed by
+     #3698.

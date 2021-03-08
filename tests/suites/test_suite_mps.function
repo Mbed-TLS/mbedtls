@@ -44,6 +44,7 @@ void mbedtls_mps_reader_no_pausing_single_step_single_round( int with_acc )
     unsigned char bufA[100];
     unsigned char acc[10];
     unsigned char *tmp;
+    int paused;
     mbedtls_mps_reader rd;
     for( size_t i=0; (unsigned) i < sizeof( bufA ); i++ )
         bufA[i] = (unsigned char) i;
@@ -60,7 +61,8 @@ void mbedtls_mps_reader_no_pausing_single_step_single_round( int with_acc )
     ASSERT_COMPARE( tmp, 100, bufA, 100 );
     TEST_ASSERT( mbedtls_mps_reader_commit( &rd ) == 0 );
     /* Wrapup (lower layer) */
-    TEST_ASSERT( mbedtls_mps_reader_reclaim( &rd, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_mps_reader_reclaim( &rd, &paused ) == 0 );
+    TEST_ASSERT( paused == 0 );
     mbedtls_mps_reader_free( &rd );
 }
 /* END_CASE */
@@ -310,6 +312,7 @@ void mbedtls_mps_reader_pausing( int option )
     unsigned char bufA[100], bufB[100];
     unsigned char *tmp;
     unsigned char acc[40];
+    int paused;
     mbedtls_mps_reader rd;
     for( size_t i=0; (unsigned) i < sizeof( bufA ); i++ )
         bufA[i] = (unsigned char) i;
@@ -340,7 +343,8 @@ void mbedtls_mps_reader_pausing( int option )
                  MBEDTLS_ERR_MPS_READER_OUT_OF_DATA );
 
     /* Preparation */
-    TEST_ASSERT( mbedtls_mps_reader_reclaim( &rd, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_mps_reader_reclaim( &rd, &paused ) == 0 );
+    TEST_ASSERT( paused == 1 );
     TEST_ASSERT( mbedtls_mps_reader_feed( &rd, bufB, sizeof( bufB ) ) == 0 );
 
     /* Consumption */

@@ -892,7 +892,7 @@
  *          for policy comparison purposes.
  *
  * \param mac_alg       A MAC algorithm identifier (value of type
- *                      #psa_algorithm_t such that #PSA_ALG_IS_MAC(\p alg)
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_MAC(\p mac_alg)
  *                      is true). This may be a truncated or untruncated
  *                      MAC algorithm.
  * \param mac_length    Desired length of the truncated MAC in bytes.
@@ -903,7 +903,7 @@
  *
  * \return              The corresponding MAC algorithm with the specified
  *                      length.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p mac_alg is not a supported
  *                      MAC algorithm or if \p mac_length is too small or
  *                      too large for the specified MAC algorithm.
  */
@@ -916,12 +916,12 @@
  * MAC algorithm.
  *
  * \param mac_alg       A MAC algorithm identifier (value of type
- *                      #psa_algorithm_t such that #PSA_ALG_IS_MAC(\p alg)
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_MAC(\p mac_alg)
  *                      is true). This may be a truncated or untruncated
  *                      MAC algorithm.
  *
  * \return              The corresponding base MAC algorithm.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p mac_alg is not a supported
  *                      MAC algorithm.
  */
 #define PSA_ALG_FULL_LENGTH_MAC(mac_alg)                        \
@@ -931,12 +931,12 @@
 /** Length to which a MAC algorithm is truncated.
  *
  * \param mac_alg       A MAC algorithm identifier (value of type
- *                      #psa_algorithm_t such that #PSA_ALG_IS_MAC(\p alg)
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_MAC(\p mac_alg)
  *                      is true).
  *
  * \return              Length of the truncated MAC in bytes.
- * \return              0 if \p alg is a non-truncated MAC algorithm.
- * \return              Unspecified if \p alg is not a supported
+ * \return              0 if \p mac_alg is a non-truncated MAC algorithm.
+ * \return              Unspecified if \p mac_alg is not a supported
  *                      MAC algorithm.
  */
 #define PSA_MAC_TRUNCATED_LENGTH(mac_alg)                               \
@@ -1146,13 +1146,13 @@
  * of the ciphertext.
  *
  * \param aead_alg      An AEAD algorithm identifier (value of type
- *                      #psa_algorithm_t such that #PSA_ALG_IS_AEAD(\p alg)
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_AEAD(\p aead_alg)
  *                      is true).
  * \param tag_length    Desired length of the authentication tag in bytes.
  *
  * \return              The corresponding AEAD algorithm with the specified
  *                      length.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p aead_alg is not a supported
  *                      AEAD algorithm or if \p tag_length is not valid
  *                      for the specified AEAD algorithm.
  */
@@ -1165,11 +1165,11 @@
 /** Retrieve the tag length of a specified AEAD algorithm
  *
  * \param aead_alg      An AEAD algorithm identifier (value of type
- *                      #psa_algorithm_t such that #PSA_ALG_IS_AEAD(\p alg)
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_AEAD(\p aead_alg)
  *                      is true).
  *
  * \return              The tag length specified by the input algorithm.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p aead_alg is not a supported
  *                      AEAD algorithm.
  */
 #define PSA_ALG_AEAD_GET_TAG_LENGTH(aead_alg)                           \
@@ -1179,7 +1179,7 @@
 /** Calculate the corresponding AEAD algorithm with the default tag length.
  *
  * \param aead_alg      An AEAD algorithm (\c PSA_ALG_XXX value such that
- *                      #PSA_ALG_IS_AEAD(\p alg) is true).
+ *                      #PSA_ALG_IS_AEAD(\p aead_alg) is true).
  *
  * \return              The corresponding AEAD algorithm with the default
  *                      tag length for that algorithm.

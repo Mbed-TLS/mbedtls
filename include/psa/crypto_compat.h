@@ -313,9 +313,9 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
  *         number of open keys, the number of open key handles, or available
  *         memory.
  * \retval #PSA_ERROR_DOES_NOT_EXIST
- *         There is no persistent key with key identifier \p id.
+ *         There is no persistent key with key identifier \p key.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p id is not a valid persistent key identifier.
+ *         \p key is not a valid persistent key identifier.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The specified key exists, but the application does not have the
  *         permission to access it. Note that this specification does not

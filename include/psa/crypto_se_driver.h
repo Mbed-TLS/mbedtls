@@ -1365,16 +1365,16 @@ typedef struct {
  *
  * \return #PSA_SUCCESS
  *         The driver was successfully registered. Applications can now
- *         use \p lifetime to access keys through the methods passed to
+ *         use \p location to access keys through the methods passed to
  *         this function.
  * \return #PSA_ERROR_BAD_STATE
  *         This function was called after the initialization of the
  *         cryptography module, and this implementation does not support
  *         driver registration at this stage.
  * \return #PSA_ERROR_ALREADY_EXISTS
- *         There is already a registered driver for this value of \p lifetime.
+ *         There is already a registered driver for this value of \p location.
  * \return #PSA_ERROR_INVALID_ARGUMENT
- *         \p lifetime is a reserved value.
+ *         \p location is a reserved value.
  * \return #PSA_ERROR_NOT_SUPPORTED
  *         `methods->hal_version` is not supported by this implementation.
  * \return #PSA_ERROR_INSUFFICIENT_MEMORY

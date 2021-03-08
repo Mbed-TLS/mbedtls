@@ -120,3 +120,6 @@ mbedtls_reader_inconsistent_usage:8
 
 MPS Reader: Feed with invalid buffer (NULL)
 mbedtls_mps_reader_feed_empty:
+
+MPS Reader: Excess request leading to integer overflow
+mbedtls_mps_reader_reclaim_overflow:

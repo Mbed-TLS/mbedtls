@@ -547,8 +547,8 @@ static inline size_t psa_get_key_slot_bits( const psa_key_slot_t *slot )
 
 /** Check whether a given key type is valid for use with a given MAC algorithm
  *
- * Upon successful return of this function, the behavioud of #PSA_MAC_LENGTH
- * will be defined when called with the validated \p algorithm and \p key_type
+ * Upon successful return of this function, the behavior of #PSA_MAC_LENGTH
+ * when called with the validated \p algorithm and \p key_type is well-defined.
  *
  * \param[in] algorithm     The specific MAC algorithm (can be wildcard).
  * \param[in] key_type      The key type of the key to be used with the
@@ -563,7 +563,8 @@ MBEDTLS_STATIC_TESTABLE psa_status_t psa_mac_key_can_do(
     psa_algorithm_t algorithm,
     psa_key_type_t key_type )
 {
-    if( PSA_ALG_IS_HMAC( algorithm ) ) {
+    if( PSA_ALG_IS_HMAC( algorithm ) )
+    {
         if( key_type == PSA_KEY_TYPE_HMAC )
             return( PSA_SUCCESS );
     }
@@ -724,13 +725,14 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
     {
         size_t alg1_len = PSA_ALG_AEAD_GET_TAG_LENGTH( alg1 );
         size_t alg2_len = PSA_ALG_AEAD_GET_TAG_LENGTH( alg2 );
-        size_t max_len = alg1_len > alg2_len ? alg1_len : alg2_len;
+        size_t restricted_len = alg1_len > alg2_len ? alg1_len : alg2_len;
 
         /* If both are wildcards, return most restrictive wildcard */
         if( ( ( alg1 & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) &&
             ( ( alg2 & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) )
         {
-            return( PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG( alg1, max_len ) );
+            return( PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(
+                        alg1, restricted_len ) );
         }
         /* If only one is a wildcard, return specific algorithm if compatible. */
         if( ( ( alg1 & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) &&
@@ -766,13 +768,13 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
          * calculate the most restrictive tag length for the intersection. */
         size_t alg1_len = PSA_MAC_LENGTH( key_type, 0, alg1 );
         size_t alg2_len = PSA_MAC_LENGTH( key_type, 0, alg2 );
-        size_t max_len = alg1_len > alg2_len ? alg1_len : alg2_len;
+        size_t restricted_len = alg1_len > alg2_len ? alg1_len : alg2_len;
 
         /* If both are wildcards, return most restrictive wildcard */
         if( ( ( alg1 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) &&
             ( ( alg2 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 ) )
         {
-            return( PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( alg1, max_len ) );
+            return( PSA_ALG_AT_LEAST_THIS_LENGTH_MAC( alg1, restricted_len ) );
         }
 
         /* If only one is an at-least-this-length policy, the intersection would
@@ -780,23 +782,17 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
          * equal to or larger than the shortest allowed length. */
         if( ( alg1 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 )
         {
-            if( alg1_len <= alg2_len )
-                return( alg2 );
-            else
-                return( 0 );
+            return( ( alg1_len <= alg2_len ) ? alg2 : 0 );
         }
         if( ( alg2 & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 )
         {
-            if( alg2_len <= alg1_len )
-                return( alg1 );
-            else
-                return( 0 );
+            return( ( alg2_len <= alg1_len ) ? alg1 : 0 );
         }
 
-        /* If none of them are wildcards, check whether this is a case of one
-         * specifying the default length and the other a specific length. If the
-         * specific length equals the default length for this key type, the
-         * intersection would be the specific-length algorithm. */
+        /* If none of them are wildcards, check whether they define the same tag
+         * length. This is still possible here when one is default-length and
+         * the other specific-length. Ensure to always return the
+         * specific-length version for the intersection. */
         if( alg1_len == alg2_len )
             return( PSA_ALG_TRUNCATED_MAC( alg1, alg1_len ) );
     }
@@ -832,6 +828,8 @@ static int psa_key_algorithm_permits( psa_key_type_t key_type,
         return( PSA_ALG_AEAD_GET_TAG_LENGTH( policy_alg ) <=
                 PSA_ALG_AEAD_GET_TAG_LENGTH( requested_alg ) );
     }
+    /* If policy_alg is a MAC algorithm of the same base as the requested
+     * algorithm, check whether their MAC lengths are compatible. */
     if( PSA_ALG_IS_MAC( policy_alg ) &&
         PSA_ALG_IS_MAC( requested_alg ) &&
         ( PSA_ALG_FULL_LENGTH_MAC( policy_alg ) ==
@@ -859,16 +857,16 @@ static int psa_key_algorithm_permits( psa_key_type_t key_type,
             return( requested_output_length == default_output_length );
 
         /* If the requested algorithm is default-length, allow it if the policy
-         * is exactly the default length. */
+         * length exactly matches the default length. */
         if( PSA_MAC_TRUNCATED_LENGTH( requested_alg ) == 0 &&
             PSA_MAC_TRUNCATED_LENGTH( policy_alg ) == default_output_length )
         {
             return( 1 );
         }
 
-        /* If policy_alg is an at-least-this-length wildcard MAC algorithm of
-         * the same base as the requested algorithm, check for the requested MAC
-         * length to be equal to or longer than the minimum allowed length. */
+        /* If policy_alg is an at-least-this-length wildcard MAC algorithm,
+         * check for the requested MAC length to be equal to or longer than the
+         * minimum allowed length. */
         if( ( policy_alg & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG ) != 0 )
         {
             return( PSA_MAC_TRUNCATED_LENGTH( policy_alg ) <=

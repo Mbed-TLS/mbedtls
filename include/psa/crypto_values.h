@@ -1170,8 +1170,7 @@
  *
  * \return              The tag length specified by the input algorithm.
  * \return              Unspecified if \p alg is not a supported
- *                      AEAD algorithm or if \p tag_length is not valid
- *                      for the specified AEAD algorithm.
+ *                      AEAD algorithm.
  */
 #define PSA_ALG_AEAD_GET_TAG_LENGTH(aead_alg)                           \
     (((aead_alg) & PSA_ALG_AEAD_TAG_LENGTH_MASK) >>                     \

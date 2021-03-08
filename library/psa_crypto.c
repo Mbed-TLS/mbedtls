@@ -2277,6 +2277,9 @@ psa_status_t psa_hash_compute( psa_algorithm_t alg,
                                uint8_t *hash, size_t hash_size,
                                size_t *hash_length )
 {
+    if( !PSA_ALG_IS_HASH( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
     return( psa_driver_wrapper_hash_compute( alg, input, input_length,
                                              hash, hash_size, hash_length ) );
 }
@@ -2287,6 +2290,10 @@ psa_status_t psa_hash_compare( psa_algorithm_t alg,
 {
     uint8_t actual_hash[MBEDTLS_MD_MAX_SIZE];
     size_t actual_hash_length;
+
+    if( !PSA_ALG_IS_HASH( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
     psa_status_t status = psa_driver_wrapper_hash_compute(
                             alg, input, input_length,
                             actual_hash, sizeof(actual_hash),

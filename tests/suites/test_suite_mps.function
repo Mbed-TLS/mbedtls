@@ -463,7 +463,7 @@ void mbedtls_mps_reader_pausing_multiple_feeds( int option )
             break;
 
         case 1: /* 50 x 1byte */
-            for( size_t num_feed=0; num_feed<49; num_feed++ )
+            for( size_t num_feed = 0; num_feed < 49; num_feed++ )
             {
                 TEST_ASSERT( mbedtls_mps_reader_feed( &rd, bufB + num_feed, 1 ) ==
                              MBEDTLS_ERR_MPS_READER_NEED_MORE );
@@ -472,7 +472,7 @@ void mbedtls_mps_reader_pausing_multiple_feeds( int option )
             break;
 
         case 2: /* 49 x 1byte + 51bytes */
-            for( size_t num_feed=0; num_feed<49; num_feed++ )
+            for( size_t num_feed = 0; num_feed < 49; num_feed++ )
             {
                 TEST_ASSERT( mbedtls_mps_reader_feed( &rd, bufB + num_feed, 1 ) ==
                              MBEDTLS_ERR_MPS_READER_NEED_MORE );

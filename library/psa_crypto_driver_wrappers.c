@@ -1080,7 +1080,7 @@ psa_status_t psa_driver_wrapper_hash_compute(
     size_t hash_size,
     size_t *hash_length)
 {
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     /* Try accelerators first */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -1097,25 +1097,22 @@ psa_status_t psa_driver_wrapper_hash_compute(
     if( status != PSA_ERROR_NOT_SUPPORTED )
         return( status );
 #endif
-    if( status == PSA_ERROR_NOT_SUPPORTED )
-    {
-        (void) alg;
-        (void) input;
-        (void) input_length;
-        (void) hash;
-        (void) hash_size;
-        (void) hash_length;
+    (void) status;
+    (void) alg;
+    (void) input;
+    (void) input_length;
+    (void) hash;
+    (void) hash_size;
+    (void) hash_length;
 
-        return( PSA_ERROR_NOT_SUPPORTED );
-    }
-    return( status );
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t psa_driver_wrapper_hash_setup(
     psa_hash_operation_t *operation,
     psa_algorithm_t alg )
 {
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     /* Try setup on accelerators first */
 #if defined(PSA_CRYPTO_DRIVER_TEST)

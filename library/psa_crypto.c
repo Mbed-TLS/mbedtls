@@ -3022,8 +3022,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     if( PSA_ALG_IS_HMAC( alg ) )
     {
         /* Sanity check. This shouldn't fail on a valid configuration. */
-        if( operation->mac_size == 0 ||
-            operation->mac_size > sizeof( operation->ctx.hmac.opad ) )
+        if( operation->mac_size > sizeof( operation->ctx.hmac.opad ) )
         {
             status = PSA_ERROR_NOT_SUPPORTED;
             goto exit;

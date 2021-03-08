@@ -190,8 +190,7 @@ int mbedtls_mps_reader_feed( mbedtls_mps_reader *rd,
             copy_to_acc = new_frag_len;
 
         /* Copy new contents to accumulator. */
-        if( copy_to_acc > 0 )
-            memcpy( acc, new_frag, copy_to_acc );
+        memcpy( acc, new_frag, copy_to_acc );
 
         MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
                 "Copy new data of size %u of %u into accumulator at offset %u",

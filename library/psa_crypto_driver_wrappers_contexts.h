@@ -46,7 +46,7 @@ typedef union {
     unsigned dummy; /* Make sure this structure is always non-empty */
     mbedtls_psa_hash_operation_t mbedtls_ctx;
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-    test_transparent_hash_operation_t test_ctx;
+    mbedtls_transparent_test_driver_hash_operation_t test_ctx;
 #endif
 } psa_driver_hash_context_t;
 

@@ -278,9 +278,9 @@ psa_status_t mbedtls_psa_hash_abort(
 #if defined(PSA_CRYPTO_DRIVER_TEST)
 typedef struct {
     mbedtls_psa_hash_operation_t operation;
-} test_transparent_hash_operation_t;
+} mbedtls_transparent_test_driver_hash_operation_t;
 
-psa_status_t test_transparent_hash_compute(
+psa_status_t mbedtls_transparent_test_driver_hash_compute(
     psa_algorithm_t alg,
     const uint8_t *input,
     size_t input_length,
@@ -288,27 +288,27 @@ psa_status_t test_transparent_hash_compute(
     size_t hash_size,
     size_t *hash_length);
 
-psa_status_t test_transparent_hash_setup(
-    test_transparent_hash_operation_t *operation,
+psa_status_t mbedtls_transparent_test_driver_hash_setup(
+    mbedtls_transparent_test_driver_hash_operation_t *operation,
     psa_algorithm_t alg );
 
-psa_status_t test_transparent_hash_clone(
-    const test_transparent_hash_operation_t *source_operation,
-    test_transparent_hash_operation_t *target_operation );
+psa_status_t mbedtls_transparent_test_driver_hash_clone(
+    const mbedtls_transparent_test_driver_hash_operation_t *source_operation,
+    mbedtls_transparent_test_driver_hash_operation_t *target_operation );
 
-psa_status_t test_transparent_hash_update(
-    test_transparent_hash_operation_t *operation,
+psa_status_t mbedtls_transparent_test_driver_hash_update(
+    mbedtls_transparent_test_driver_hash_operation_t *operation,
     const uint8_t *input,
     size_t input_length );
 
-psa_status_t test_transparent_hash_finish(
-    test_transparent_hash_operation_t *operation,
+psa_status_t mbedtls_transparent_test_driver_hash_finish(
+    mbedtls_transparent_test_driver_hash_operation_t *operation,
     uint8_t *hash,
     size_t hash_size,
     size_t *hash_length );
 
-psa_status_t test_transparent_hash_abort(
-    test_transparent_hash_operation_t *operation );
+psa_status_t mbedtls_transparent_test_driver_hash_abort(
+    mbedtls_transparent_test_driver_hash_operation_t *operation );
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 

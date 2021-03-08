@@ -285,11 +285,11 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
  *                            the ciphertext, return 0.
  *                            If the AEAD algorithm is not recognized, return 0.
  */
-#define PSA_AEAD_TAG_LENGTH_1_ARG(alg)                                           \
-    MBEDTLS_DEPRECATED_CONSTANT(size_t,                                          \
-        PSA_ALG_IS_AEAD(alg) ?                                                   \
-        (((alg) & PSA_ALG_AEAD_TAG_LENGTH_MASK) >> PSA_AEAD_TAG_LENGTH_OFFSET) : \
-        0)
+#define PSA_AEAD_TAG_LENGTH_1_ARG( alg )                                         \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t,                                         \
+        PSA_ALG_IS_AEAD( alg ) ?                                                 \
+        ( (alg) & PSA_ALG_AEAD_TAG_LENGTH_MASK ) >> PSA_AEAD_TAG_LENGTH_OFFSET : \
+        0 )
 
 /** The maximum size of the output of psa_aead_encrypt(), in bytes.
  *
@@ -311,11 +311,11 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
  *                            algorithm.
  *                            If the AEAD algorithm is not recognized, return 0.
  */
-#define PSA_AEAD_ENCRYPT_OUTPUT_SIZE_2_ARG(alg, plaintext_length) \
-    MBEDTLS_DEPRECATED_CONSTANT(size_t,                           \
-        PSA_AEAD_TAG_LENGTH_1_ARG(alg) != 0 ?                     \
-        (plaintext_length) + PSA_AEAD_TAG_LENGTH_1_ARG(alg) :     \
-        0)
+#define PSA_AEAD_ENCRYPT_OUTPUT_SIZE_2_ARG( alg, plaintext_length ) \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t,                            \
+        PSA_AEAD_TAG_LENGTH_1_ARG( alg ) != 0 ?                     \
+        (plaintext_length) + PSA_AEAD_TAG_LENGTH_1_ARG( alg ) :     \
+        0 )
 
 /** The maximum size of the output of psa_aead_decrypt(), in bytes.
  *
@@ -337,11 +337,11 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
  *                            algorithm.
  *                            If the AEAD algorithm is not recognized, return 0.
  */
-#define PSA_AEAD_DECRYPT_OUTPUT_SIZE_2_ARG(alg, ciphertext_length) \
-    MBEDTLS_DEPRECATED_CONSTANT(size_t,                            \
-        PSA_AEAD_TAG_LENGTH_1_ARG(alg) != 0 ?                      \
-        (ciphertext_length) - PSA_AEAD_TAG_LENGTH_1_ARG(alg) :     \
-        0)
+#define PSA_AEAD_DECRYPT_OUTPUT_SIZE_2_ARG( alg, ciphertext_length ) \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t,                             \
+        PSA_AEAD_TAG_LENGTH_1_ARG( alg ) != 0 ?                      \
+        (ciphertext_length) - PSA_AEAD_TAG_LENGTH_1_ARG( alg ) :     \
+        0 )
 
 /** A sufficient output buffer size for psa_aead_update().
  *
@@ -367,11 +367,11 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
  * to emit output without delay. However, hardware may not always be
  * capable of this. So for modes based on a block cipher, allow the
  * implementation to delay the output until it has a full block. */
-#define PSA_AEAD_UPDATE_OUTPUT_SIZE_2_ARG(alg, input_length)                        \
-    MBEDTLS_DEPRECATED_CONSTANT(size_t,                                             \
-        PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?                                      \
-        PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE, (input_length)) : \
-        (input_length))
+#define PSA_AEAD_UPDATE_OUTPUT_SIZE_2_ARG( alg, input_length )                        \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t,                                              \
+        PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER( alg ) ?                                      \
+        PSA_ROUND_UP_TO_MULTIPLE( PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE, (input_length) ) : \
+        (input_length) )
 
 /** A sufficient ciphertext buffer size for psa_aead_finish().
  *
@@ -388,11 +388,11 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
  *                            specified algorithm.
  *                            If the AEAD algorithm is not recognized, return 0.
  */
-#define PSA_AEAD_FINISH_OUTPUT_SIZE_1_ARG(alg)                          \
-    MBEDTLS_DEPRECATED_CONSTANT(size_t,                                 \
-        PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?                          \
+#define PSA_AEAD_FINISH_OUTPUT_SIZE_1_ARG( alg )                        \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t,                                \
+        PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER( alg ) ?                        \
         PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE :                               \
-        0)
+        0 )
 
 /** A sufficient plaintext buffer size for psa_aead_verify().
  *
@@ -409,11 +409,11 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
  *                            specified algorithm.
  *                            If the AEAD algorithm is not recognized, return 0.
  */
-#define PSA_AEAD_VERIFY_OUTPUT_SIZE_1_ARG(alg)                          \
-    MBEDTLS_DEPRECATED_CONSTANT(size_t,                                 \
-        PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?                          \
+#define PSA_AEAD_VERIFY_OUTPUT_SIZE_1_ARG( alg )                        \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t,                                \
+        PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER( alg ) ?                        \
         PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE :                               \
-        0)
+        0 )
 
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 

@@ -250,6 +250,7 @@
     <ClInclude Include="..\..\tests\include\test\drivers\test_driver.h" />
     <ClInclude Include="..\..\library\check_crypto_config.h" />
     <ClInclude Include="..\..\library\common.h" />
+    <ClInclude Include="..\..\library\psa_crypto_cipher.h" />
     <ClInclude Include="..\..\library\psa_crypto_core.h" />
     <ClInclude Include="..\..\library\psa_crypto_driver_wrappers.h" />
     <ClInclude Include="..\..\library\psa_crypto_ecp.h" />
@@ -324,6 +325,7 @@
     <ClCompile Include="..\..\library\platform_util.c" />
     <ClCompile Include="..\..\library\poly1305.c" />
     <ClCompile Include="..\..\library\psa_crypto.c" />
+    <ClCompile Include="..\..\library\psa_crypto_cipher.c" />
     <ClCompile Include="..\..\library\psa_crypto_client.c" />
     <ClCompile Include="..\..\library\psa_crypto_driver_wrappers.c" />
     <ClCompile Include="..\..\library\psa_crypto_ecp.c" />

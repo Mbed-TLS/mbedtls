@@ -1,0 +1,4 @@
+Bugfix
+   * Fixes a bug where, if the library was configured to include support for
+     both the old SE interface and the new PSA driver interface, external keys were
+     not loaded from storage. This was fixed by #3996.

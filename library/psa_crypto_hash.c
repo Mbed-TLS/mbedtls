@@ -68,18 +68,9 @@
 #define BUILTIN_ALG_SHA_512     1
 #endif
 
-#if ( defined(BUILTIN_ALG_MD2) && !defined(MBEDTLS_PSA_ACCEL_ALG_MD2) ) || \
-    ( defined(BUILTIN_ALG_MD4) && !defined(MBEDTLS_PSA_ACCEL_ALG_MD4) ) || \
-    ( defined(BUILTIN_ALG_MD5) && !defined(MBEDTLS_PSA_ACCEL_ALG_MD5) ) || \
-    ( defined(BUILTIN_ALG_RIPEMD160) && !defined(MBEDTLS_PSA_ACCEL_ALG_RIPEMD160) ) || \
-    ( defined(BUILTIN_ALG_SHA_1) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_1) ) || \
-    ( defined(BUILTIN_ALG_SHA_224) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_224) ) || \
-    ( defined(BUILTIN_ALG_SHA_256) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_256) ) || \
-    ( defined(BUILTIN_ALG_SHA_384) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_384) ) || \
-    ( defined(BUILTIN_ALG_SHA_512) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512) )
-#define INCLUDE_HASH_MBEDTLS_DRIVER    1
-#endif
-
+/* If at least one of the hash algorithms is to be exercised through the
+ * transparent test driver, then the mbedtls_transparent_test_driver_hash_*
+ * entry points need to be implemented.  */
 #if defined(PSA_CRYPTO_DRIVER_TEST) && \
     ( defined(MBEDTLS_PSA_ACCEL_ALG_MD2) || \
       defined(MBEDTLS_PSA_ACCEL_ALG_MD4) || \
@@ -93,7 +84,9 @@
 #define INCLUDE_HASH_TEST_DRIVER
 #endif
 
-#if defined(INCLUDE_HASH_MBEDTLS_DRIVER) || \
+/* If either of the built-in or test driver entry points need to be implemented, then
+ * the core implementation should be present. */
+#if defined(MBEDTLS_PSA_BUILTIN_HASH) || \
     defined(INCLUDE_HASH_TEST_DRIVER)
 #define INCLUDE_HASH_CORE       1
 #endif
@@ -511,7 +504,7 @@ exit:
 }
 #endif /* INCLUDE_HASH_CORE */
 
-#if defined(INCLUDE_HASH_MBEDTLS_DRIVER)
+#if defined(MBEDTLS_PSA_BUILTIN_HASH)
 psa_status_t mbedtls_psa_hash_compute(
     psa_algorithm_t alg,
     const uint8_t *input,
@@ -560,7 +553,7 @@ psa_status_t mbedtls_psa_hash_abort(
 {
     return( hash_abort( operation ) );
 }
-#endif /* INCLUDE_HASH_MBEDTLS_DRIVER */
+#endif /* MBEDTLS_PSA_BUILTIN_HASH */
 
  /*
   * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.

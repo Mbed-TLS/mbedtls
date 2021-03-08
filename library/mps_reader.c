@@ -179,13 +179,13 @@ int mbedtls_mps_reader_feed( mbedtls_mps_reader *rd,
     if( mps_reader_is_accumulating( rd ) )
     {
         unsigned char *acc    = rd->acc;
-        mbedtls_mps_size_t ar = rd->acc_share.acc_remaining;
-        mbedtls_mps_size_t aa = rd->acc_available;
+        mbedtls_mps_size_t acc_remaining = rd->acc_share.acc_remaining;
+        mbedtls_mps_size_t acc_available = rd->acc_available;
 
         /* Skip over parts of the accumulator that have already been filled. */
-        acc += aa;
+        acc += acc_available;
 
-        copy_to_acc = ar;
+        copy_to_acc = acc_remaining;
         if( copy_to_acc > new_frag_len )
             copy_to_acc = new_frag_len;
 
@@ -195,16 +195,16 @@ int mbedtls_mps_reader_feed( mbedtls_mps_reader *rd,
 
         MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
                 "Copy new data of size %u of %u into accumulator at offset %u",
-                (unsigned) copy_to_acc, (unsigned) new_frag_len, (unsigned) aa );
+                (unsigned) copy_to_acc, (unsigned) new_frag_len, (unsigned) acc_available );
 
         /* Check if, with the new fragment, we have enough data. */
-        ar -= copy_to_acc;
-        if( ar > 0 )
+        acc_remaining -= copy_to_acc;
+        if( acc_remaining > 0 )
         {
             /* We need to accumulate more data. Stay in producing mode. */
-            aa += copy_to_acc;
-            rd->acc_share.acc_remaining = ar;
-            rd->acc_available = aa;
+            acc_available += copy_to_acc;
+            rd->acc_share.acc_remaining = acc_remaining;
+            rd->acc_available = acc_available;
             MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_READER_NEED_MORE );
         }
 
@@ -214,9 +214,9 @@ int mbedtls_mps_reader_feed( mbedtls_mps_reader *rd,
                            "Enough data available to serve user request" );
 
         /* Remember overlap of accumulator and fragment. */
-        rd->acc_share.frag_offset = aa;
-        aa += copy_to_acc;
-        rd->acc_available = aa;
+        rd->acc_share.frag_offset = acc_available;
+        acc_available += copy_to_acc;
+        rd->acc_available = acc_available;
     }
     else /* Not accumulating */
     {

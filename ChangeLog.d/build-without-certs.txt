@@ -1,3 +1,0 @@
-Bugfix
-   * Fix the build of sample programs when MBEDTLS_PEM_C is enabled but
-     MBEDTLS_CERTS_C is disabled. Reported by Michael Schuster in #4206.

@@ -1,5 +1,0 @@
-Features
-   * In the PSA API, the policy for a MAC or AEAD algorithm can specify a
-     minimum MAC or tag length thanks to the new wildcards
-     PSA_ALG_AT_LEAST_THIS_LENGTH_MAC and
-     PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG.

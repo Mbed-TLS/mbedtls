@@ -30,7 +30,7 @@
 #include <string.h>
 
 /* Use builtin defines specific to this compilation unit, since the test driver
- * relies on this software driver. */
+ * relies on the software driver. */
 #if( defined(MBEDTLS_PSA_BUILTIN_ALG_MD2) || \
     ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_MD2) ) )
 #define BUILTIN_ALG_MD2         1
@@ -68,37 +68,102 @@
 #define BUILTIN_ALG_SHA_512     1
 #endif
 
-psa_status_t mbedtls_psa_hash_compute(
-    psa_algorithm_t alg,
-    const uint8_t *input,
-    size_t input_length,
-    uint8_t *hash,
-    size_t hash_size,
-    size_t *hash_length)
+#if ( defined(BUILTIN_ALG_MD2) && !defined(MBEDTLS_PSA_ACCEL_ALG_MD2) ) || \
+    ( defined(BUILTIN_ALG_MD4) && !defined(MBEDTLS_PSA_ACCEL_ALG_MD4) ) || \
+    ( defined(BUILTIN_ALG_MD5) && !defined(MBEDTLS_PSA_ACCEL_ALG_MD5) ) || \
+    ( defined(BUILTIN_ALG_RIPEMD160) && !defined(MBEDTLS_PSA_ACCEL_ALG_RIPEMD160) ) || \
+    ( defined(BUILTIN_ALG_SHA_1) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_1) ) || \
+    ( defined(BUILTIN_ALG_SHA_224) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_224) ) || \
+    ( defined(BUILTIN_ALG_SHA_256) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_256) ) || \
+    ( defined(BUILTIN_ALG_SHA_384) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_384) ) || \
+    ( defined(BUILTIN_ALG_SHA_512) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512) )
+#define INCLUDE_HASH_MBEDTLS_DRIVER    1
+#endif
+
+#if defined(PSA_CRYPTO_DRIVER_TEST) && \
+    ( defined(MBEDTLS_PSA_ACCEL_ALG_MD2) || \
+      defined(MBEDTLS_PSA_ACCEL_ALG_MD4) || \
+      defined(MBEDTLS_PSA_ACCEL_ALG_MD5) || \
+      defined(MBEDTLS_PSA_ACCEL_ALG_RIPEMD160) || \
+      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_1) || \
+      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_224) || \
+      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_256) || \
+      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_384) || \
+      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512) )
+#define INCLUDE_HASH_TEST_DRIVER
+#endif
+
+#if defined(INCLUDE_HASH_MBEDTLS_DRIVER) || \
+    defined(INCLUDE_HASH_TEST_DRIVER)
+#define INCLUDE_HASH_CORE       1
+#endif
+
+/* Implement the PSA driver hash interface on top of mbed TLS if either the
+ * software driver or the test driver requires it. */
+#if defined(INCLUDE_HASH_CORE)
+static psa_status_t hash_abort(
+    mbedtls_psa_hash_operation_t *operation )
 {
-    mbedtls_psa_hash_operation_t operation = MBEDTLS_PSA_HASH_OPERATION_INIT;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-    *hash_length = hash_size;
-    status = mbedtls_psa_hash_setup( &operation, alg );
-    if( status != PSA_SUCCESS )
-        goto exit;
-    status = mbedtls_psa_hash_update( &operation, input, input_length );
-    if( status != PSA_SUCCESS )
-        goto exit;
-    status = mbedtls_psa_hash_finish( &operation, hash, hash_size, hash_length );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-exit:
-    if( status == PSA_SUCCESS )
-        status = mbedtls_psa_hash_abort( &operation );
-    else
-        mbedtls_psa_hash_abort( &operation );
-    return( status );
+    switch( operation->alg )
+    {
+        case 0:
+            /* The object has (apparently) been initialized but it is not
+             * in use. It's ok to call abort on such an object, and there's
+             * nothing to do. */
+            break;
+#if defined(BUILTIN_ALG_MD2)
+        case PSA_ALG_MD2:
+            mbedtls_md2_free( &operation->ctx.md2 );
+            break;
+#endif
+#if defined(BUILTIN_ALG_MD4)
+        case PSA_ALG_MD4:
+            mbedtls_md4_free( &operation->ctx.md4 );
+            break;
+#endif
+#if defined(BUILTIN_ALG_MD5)
+        case PSA_ALG_MD5:
+            mbedtls_md5_free( &operation->ctx.md5 );
+            break;
+#endif
+#if defined(BUILTIN_ALG_RIPEMD160)
+        case PSA_ALG_RIPEMD160:
+            mbedtls_ripemd160_free( &operation->ctx.ripemd160 );
+            break;
+#endif
+#if defined(BUILTIN_ALG_SHA_1)
+        case PSA_ALG_SHA_1:
+            mbedtls_sha1_free( &operation->ctx.sha1 );
+            break;
+#endif
+#if defined(BUILTIN_ALG_SHA_224)
+        case PSA_ALG_SHA_224:
+            mbedtls_sha256_free( &operation->ctx.sha256 );
+            break;
+#endif
+#if defined(BUILTIN_ALG_SHA_256)
+        case PSA_ALG_SHA_256:
+            mbedtls_sha256_free( &operation->ctx.sha256 );
+            break;
+#endif
+#if defined(BUILTIN_ALG_SHA_384)
+        case PSA_ALG_SHA_384:
+            mbedtls_sha512_free( &operation->ctx.sha512 );
+            break;
+#endif
+#if defined(BUILTIN_ALG_SHA_512)
+        case PSA_ALG_SHA_512:
+            mbedtls_sha512_free( &operation->ctx.sha512 );
+            break;
+#endif
+        default:
+            return( PSA_ERROR_BAD_STATE );
+    }
+    operation->alg = 0;
+    return( PSA_SUCCESS );
 }
 
-psa_status_t mbedtls_psa_hash_setup(
+static psa_status_t hash_setup(
     mbedtls_psa_hash_operation_t *operation,
     psa_algorithm_t alg )
 {
@@ -174,11 +239,11 @@ psa_status_t mbedtls_psa_hash_setup(
     if( ret == 0 )
         operation->alg = alg;
     else
-        mbedtls_psa_hash_abort( operation );
+        hash_abort( operation );
     return( mbedtls_to_psa_error( ret ) );
 }
 
-psa_status_t mbedtls_psa_hash_clone(
+static psa_status_t hash_clone(
     const mbedtls_psa_hash_operation_t *source_operation,
     mbedtls_psa_hash_operation_t *target_operation )
 {
@@ -250,7 +315,7 @@ psa_status_t mbedtls_psa_hash_clone(
     return( PSA_SUCCESS );
 }
 
-psa_status_t mbedtls_psa_hash_update(
+static psa_status_t hash_update(
     mbedtls_psa_hash_operation_t *operation,
     const uint8_t *input,
     size_t input_length )
@@ -320,11 +385,11 @@ psa_status_t mbedtls_psa_hash_update(
     }
 
     if( ret != 0 )
-        mbedtls_psa_hash_abort( operation );
+        hash_abort( operation );
     return( mbedtls_to_psa_error( ret ) );
 }
 
-psa_status_t mbedtls_psa_hash_finish(
+static psa_status_t hash_finish(
     mbedtls_psa_hash_operation_t *operation,
     uint8_t *hash,
     size_t hash_size,
@@ -406,93 +471,101 @@ exit:
     if( status == PSA_SUCCESS )
     {
         *hash_length = actual_hash_length;
-        return( mbedtls_psa_hash_abort( operation ) );
+        return( hash_abort( operation ) );
     }
     else
     {
-        mbedtls_psa_hash_abort( operation );
+        hash_abort( operation );
         return( status );
     }
+}
+
+static psa_status_t hash_compute(
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *hash,
+    size_t hash_size,
+    size_t *hash_length)
+{
+    mbedtls_psa_hash_operation_t operation = MBEDTLS_PSA_HASH_OPERATION_INIT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    *hash_length = hash_size;
+    status = hash_setup( &operation, alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    status = hash_update( &operation, input, input_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    status = hash_finish( &operation, hash, hash_size, hash_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+exit:
+    if( status == PSA_SUCCESS )
+        status = hash_abort( &operation );
+    else
+        hash_abort( &operation );
+    return( status );
+}
+#endif /* INCLUDE_HASH_CORE */
+
+#if defined(INCLUDE_HASH_MBEDTLS_DRIVER)
+psa_status_t mbedtls_psa_hash_compute(
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *hash,
+    size_t hash_size,
+    size_t *hash_length)
+{
+    return( hash_compute( alg, input, input_length,
+                          hash, hash_size, hash_length ) );
+}
+
+psa_status_t mbedtls_psa_hash_setup(
+    mbedtls_psa_hash_operation_t *operation,
+    psa_algorithm_t alg )
+{
+    return( hash_setup( operation, alg ) );
+}
+
+psa_status_t mbedtls_psa_hash_clone(
+    const mbedtls_psa_hash_operation_t *source_operation,
+    mbedtls_psa_hash_operation_t *target_operation )
+{
+    return( hash_clone( source_operation, target_operation ) );
+}
+
+psa_status_t mbedtls_psa_hash_update(
+    mbedtls_psa_hash_operation_t *operation,
+    const uint8_t *input,
+    size_t input_length )
+{
+    return( hash_update( operation, input, input_length ) );
+}
+
+psa_status_t mbedtls_psa_hash_finish(
+    mbedtls_psa_hash_operation_t *operation,
+    uint8_t *hash,
+    size_t hash_size,
+    size_t *hash_length )
+{
+    return( hash_finish( operation, hash, hash_size, hash_length ) );
 }
 
 psa_status_t mbedtls_psa_hash_abort(
     mbedtls_psa_hash_operation_t *operation )
 {
-    switch( operation->alg )
-    {
-        case 0:
-            /* The object has (apparently) been initialized but it is not
-             * in use. It's ok to call abort on such an object, and there's
-             * nothing to do. */
-            break;
-#if defined(BUILTIN_ALG_MD2)
-        case PSA_ALG_MD2:
-            mbedtls_md2_free( &operation->ctx.md2 );
-            break;
-#endif
-#if defined(BUILTIN_ALG_MD4)
-        case PSA_ALG_MD4:
-            mbedtls_md4_free( &operation->ctx.md4 );
-            break;
-#endif
-#if defined(BUILTIN_ALG_MD5)
-        case PSA_ALG_MD5:
-            mbedtls_md5_free( &operation->ctx.md5 );
-            break;
-#endif
-#if defined(BUILTIN_ALG_RIPEMD160)
-        case PSA_ALG_RIPEMD160:
-            mbedtls_ripemd160_free( &operation->ctx.ripemd160 );
-            break;
-#endif
-#if defined(BUILTIN_ALG_SHA_1)
-        case PSA_ALG_SHA_1:
-            mbedtls_sha1_free( &operation->ctx.sha1 );
-            break;
-#endif
-#if defined(BUILTIN_ALG_SHA_224)
-        case PSA_ALG_SHA_224:
-            mbedtls_sha256_free( &operation->ctx.sha256 );
-            break;
-#endif
-#if defined(BUILTIN_ALG_SHA_256)
-        case PSA_ALG_SHA_256:
-            mbedtls_sha256_free( &operation->ctx.sha256 );
-            break;
-#endif
-#if defined(BUILTIN_ALG_SHA_384)
-        case PSA_ALG_SHA_384:
-            mbedtls_sha512_free( &operation->ctx.sha512 );
-            break;
-#endif
-#if defined(BUILTIN_ALG_SHA_512)
-        case PSA_ALG_SHA_512:
-            mbedtls_sha512_free( &operation->ctx.sha512 );
-            break;
-#endif
-        default:
-            return( PSA_ERROR_BAD_STATE );
-    }
-    operation->alg = 0;
-    return( PSA_SUCCESS );
+    return( hash_abort( operation ) );
 }
+#endif /* INCLUDE_HASH_MBEDTLS_DRIVER */
 
  /*
   * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
   */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-
-#if defined(MBEDTLS_PSA_ACCEL_ALG_MD2) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_MD4) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_MD5) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_RIPEMD160) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_SHA_1) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_SHA_224) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_SHA_256) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_SHA_384) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512)
-#define INCLUDE_HASH_TEST_DRIVER
-#endif
 
 #if defined(INCLUDE_HASH_TEST_DRIVER)
 psa_status_t is_hash_accelerated( psa_algorithm_t alg )
@@ -551,8 +624,8 @@ psa_status_t mbedtls_transparent_test_driver_hash_compute(
 {
 #if defined(INCLUDE_HASH_TEST_DRIVER)
     if( is_hash_accelerated( alg ) == PSA_SUCCESS )
-        return( mbedtls_psa_hash_compute( alg, input, input_length,
-                                          hash, hash_size, hash_length ) );
+        return( hash_compute( alg, input, input_length,
+                              hash, hash_size, hash_length ) );
     else
         return( PSA_ERROR_NOT_SUPPORTED );
 #else
@@ -572,7 +645,7 @@ psa_status_t mbedtls_transparent_test_driver_hash_setup(
 {
 #if defined(INCLUDE_HASH_TEST_DRIVER)
     if( is_hash_accelerated( alg ) == PSA_SUCCESS )
-        return( mbedtls_psa_hash_setup( &operation->operation, alg ) );
+        return( hash_setup( &operation->operation, alg ) );
     else
         return( PSA_ERROR_NOT_SUPPORTED );
 #else
@@ -588,8 +661,8 @@ psa_status_t mbedtls_transparent_test_driver_hash_clone(
 {
 #if defined(INCLUDE_HASH_TEST_DRIVER)
     if( is_hash_accelerated( source_operation->operation.alg ) == PSA_SUCCESS )
-        return( mbedtls_psa_hash_clone( &source_operation->operation,
-                                        &target_operation->operation ) );
+        return( hash_clone( &source_operation->operation,
+                            &target_operation->operation ) );
     else
         return( PSA_ERROR_BAD_STATE );
 #else
@@ -606,8 +679,8 @@ psa_status_t mbedtls_transparent_test_driver_hash_update(
 {
 #if defined(INCLUDE_HASH_TEST_DRIVER)
     if( is_hash_accelerated( operation->operation.alg ) == PSA_SUCCESS )
-        return( mbedtls_psa_hash_update( &operation->operation,
-                                         input, input_length ) );
+        return( hash_update( &operation->operation,
+                             input, input_length ) );
     else
         return( PSA_ERROR_BAD_STATE );
 #else
@@ -626,8 +699,8 @@ psa_status_t mbedtls_transparent_test_driver_hash_finish(
 {
 #if defined(INCLUDE_HASH_TEST_DRIVER)
     if( is_hash_accelerated( operation->operation.alg ) == PSA_SUCCESS )
-        return( mbedtls_psa_hash_finish( &operation->operation,
-                                         hash, hash_size, hash_length ) );
+        return( hash_finish( &operation->operation,
+                             hash, hash_size, hash_length ) );
     else
         return( PSA_ERROR_BAD_STATE );
 #else
@@ -643,7 +716,7 @@ psa_status_t mbedtls_transparent_test_driver_hash_abort(
     mbedtls_transparent_test_driver_hash_operation_t *operation )
 {
 #if defined(INCLUDE_HASH_TEST_DRIVER)
-    return( mbedtls_psa_hash_abort( &operation->operation ) );
+    return( hash_abort( &operation->operation ) );
 #else
     (void) operation;
     return( PSA_ERROR_NOT_SUPPORTED );

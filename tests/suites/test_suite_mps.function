@@ -293,7 +293,7 @@ void mbedtls_mps_reader_pausing_needed_buffer_too_small()
 void mbedtls_mps_reader_pausing( int option )
 {
     /* This test exercises the behaviour of the reader when the
-     * accumulator is used to fufill a consumer's request.
+     * accumulator is used to fulfill a consumer's request.
      *
      * More detailed:
      * - The producer feeds some data.

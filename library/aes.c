@@ -34,7 +34,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 #if defined(MBEDTLS_PADLOCK_C)
-#include "mbedtls/padlock.h"
+#include "padlock.h"
 #endif
 #if defined(MBEDTLS_AESNI_C)
 #include "aesni.h"

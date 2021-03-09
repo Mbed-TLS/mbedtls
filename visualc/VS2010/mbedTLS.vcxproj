@@ -182,7 +182,6 @@
     <ClInclude Include="..\..\include\mbedtls\net_sockets.h" />
     <ClInclude Include="..\..\include\mbedtls\nist_kw.h" />
     <ClInclude Include="..\..\include\mbedtls\oid.h" />
-    <ClInclude Include="..\..\include\mbedtls\padlock.h" />
     <ClInclude Include="..\..\include\mbedtls\pem.h" />
     <ClInclude Include="..\..\include\mbedtls\pk.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs11.h" />
@@ -240,6 +239,7 @@
     <ClInclude Include="..\..\library\common.h" />
     <ClInclude Include="..\..\library\ecp_alt.h" />
     <ClInclude Include="..\..\library\md_wrap.h" />
+    <ClInclude Include="..\..\library\padlock.h" />
     <ClInclude Include="..\..\library\pk_wrap.h" />
     <ClInclude Include="..\..\library\psa_crypto_core.h" />
     <ClInclude Include="..\..\library\psa_crypto_driver_wrappers.h" />

@@ -20,7 +20,7 @@
 #include "common.h"
 
 #if defined(MBEDTLS_PK_C)
-#include "pk_internal.h"
+#include "pk_wrap.h"
 #include "mbedtls/error.h"
 
 /* Even if RSA not activated, for the sake of RSA-alt */

@@ -26,7 +26,7 @@
 #if defined(MBEDTLS_CIPHER_C)
 
 #include "mbedtls/cipher.h"
-#include "cipher_internal.h"
+#include "cipher_wrap.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 

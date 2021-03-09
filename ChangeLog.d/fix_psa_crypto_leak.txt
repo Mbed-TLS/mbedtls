@@ -1,2 +1,0 @@
-Bugfix
-   * Fix a memory leak in an error case in psa_generate_derived_key_internal().

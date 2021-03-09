@@ -21,6 +21,8 @@
 
 #include "psa_crypto_core.h"
 #include "psa_crypto_driver_wrappers.h"
+#include "psa_crypto_hash.h"
+
 #include "mbedtls/platform.h"
 
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
@@ -41,13 +43,13 @@
 /* Auto-generated values depending on which drivers are registered.
  * ID 0 is reserved for unallocated operations.
  * ID 1 is reserved for the Mbed TLS software driver. */
+#define PSA_CRYPTO_MBED_TLS_DRIVER_ID (1)
+
 #if defined(PSA_CRYPTO_DRIVER_TEST)
 #define PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID (2)
 #define PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID (3)
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
-
-#define PSA_CRYPTO_MBED_TLS_DRIVER_ID (1)
 
 /* Support the 'old' SE interface when asked to */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)

@@ -70,7 +70,7 @@ extern "C" {
 #include "mbedtls/gcm.h"
 
 /* Include the context definition for the compiled-in drivers */
-#include "../../library/psa_crypto_driver_wrappers_contexts.h"
+#include "psa/crypto_driver_contexts.h"
 
 typedef struct {
     /** Unique ID indicating which driver got assigned to do the

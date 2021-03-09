@@ -1,5 +1,52 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.16.10 branch released 2021-03-12
+
+Default behavior changes
+   * In mbedtls_rsa_context objects, the ver field was formerly documented
+     as always 0. It is now reserved for internal purposes and may take
+     different values.
+
+Security
+   * Fix a buffer overflow in mbedtls_mpi_sub_abs() when calculating
+     |A| - |B| where |B| is larger than |A| and has more limbs (so the
+     function should return MBEDTLS_ERR_MPI_NEGATIVE_VALUE). Only
+     applications calling mbedtls_mpi_sub_abs() directly are affected:
+     all calls inside the library were safe since this function is
+     only called with |A| >= |B|. Reported by Guido Vranken in #4042.
+   * Fix an errorneous estimation for an internal buffer in
+     mbedtls_pk_write_key_pem(). If MBEDTLS_MPI_MAX_SIZE is set to an odd
+     value the function might fail to write a private RSA keys of the largest
+     supported size.
+     Found by Daniel Otte, reported in #4093 and fixed in #4094,
+     backported in #4100.
+   * Fix a stack buffer overflow with mbedtls_net_poll() and
+     mbedtls_net_recv_timeout() when given a file descriptor that is
+     beyond FD_SETSIZE. Reported by FigBug in #4169.
+   * Guard against strong local side channel attack against base64 tables by
+     making access aceess to them use constant flow code.
+
+Bugfix
+   * Fix an incorrect error code if an RSA private operation glitched.
+   * Fix a resource leak in CTR_DRBG and HMAC_DRBG when MBEDTLS_THREADING_C
+     is enabled, on platforms where initializing a mutex allocates resources.
+     This was a regression introduced in the previous release. Reported in
+     #4017, #4045 and #4071.
+   * Ensure that calling mbedtls_rsa_free() or mbedtls_entropy_free()
+     twice is safe. This happens for RSA when some Mbed TLS library functions
+     fail. Such a double-free was not safe when MBEDTLS_THREADING_C was
+     enabled on platforms where freeing a mutex twice is not safe.
+   * Fix a resource leak in a bad-arguments case of mbedtls_rsa_gen_key()
+     when MBEDTLS_THREADING_C is enabled on platforms where initializing
+     a mutex allocates resources.
+   * This change makes 'mbedtls_x509write_crt_set_basic_constraints'
+     consistent with RFC 5280 4.2.1.9 which says: "Conforming CAs MUST
+     include this extension in all CA certificates that contain public keys
+     used to validate digital signatures on certificates and MUST mark the
+     extension as critical in such certificates." Previous to this change,
+     the extension was always marked as non-critical. This was fixed by
+     #4044.
+
 = mbed TLS 2.16.9 branch released 2020-12-11
 
 Security

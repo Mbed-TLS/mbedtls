@@ -1,6 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/hkdf.h"
-#include "md_internal.h"
+#include "md_wrap.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

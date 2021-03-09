@@ -21,7 +21,7 @@
 
 #if defined(MBEDTLS_PK_C)
 #include "mbedtls/pk.h"
-#include "pk_internal.h"
+#include "pk_wrap.h"
 
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"

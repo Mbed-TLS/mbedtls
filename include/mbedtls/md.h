@@ -79,7 +79,7 @@ typedef enum {
 #endif
 
 /**
- * Opaque struct defined in md_internal.h.
+ * Opaque struct defined in md_wrap.h.
  */
 typedef struct mbedtls_md_info_t mbedtls_md_info_t;
 

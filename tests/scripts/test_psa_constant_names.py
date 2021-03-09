@@ -29,6 +29,7 @@ import os
 import re
 import subprocess
 import sys
+from typing import Dict, Iterable, Iterator, List, Set
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import c_build_helper
@@ -46,31 +47,31 @@ class PSAMacroEnumerator:
     enumerated here.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Set up an empty set of known constructor macros.
         """
-        self.statuses = set()
-        self.algorithms = set()
-        self.ecc_curves = set()
-        self.dh_groups = set()
-        self.key_types = set()
-        self.key_usage_flags = set()
-        self.hash_algorithms = set()
-        self.mac_algorithms = set()
-        self.ka_algorithms = set()
-        self.kdf_algorithms = set()
-        self.aead_algorithms = set()
+        self.statuses = set() #type: Set[str]
+        self.algorithms = set() #type: Set[str]
+        self.ecc_curves = set() #type: Set[str]
+        self.dh_groups = set() #type: Set[str]
+        self.key_types = set() #type: Set[str]
+        self.key_usage_flags = set() #type: Set[str]
+        self.hash_algorithms = set() #type: Set[str]
+        self.mac_algorithms = set() #type: Set[str]
+        self.ka_algorithms = set() #type: Set[str]
+        self.kdf_algorithms = set() #type: Set[str]
+        self.aead_algorithms = set() #type: Set[str]
         # macro name -> list of argument names
-        self.argspecs = {}
+        self.argspecs = {} #type: Dict[str, List[str]]
         # argument name -> list of values
         self.arguments_for = {
             'mac_length': [],
             'min_mac_length': [],
             'tag_length': [],
             'min_tag_length': [],
-        }
+        } #type: Dict[str, List[str]]
 
-    def gather_arguments(self):
+    def gather_arguments(self) -> None:
         """Populate the list of values for macro arguments.
 
         Call this after parsing all the inputs.
@@ -84,16 +85,16 @@ class PSAMacroEnumerator:
         self.arguments_for['group'] = sorted(self.dh_groups)
 
     @staticmethod
-    def _format_arguments(name, arguments):
+    def _format_arguments(name: str, arguments: Iterable[str]) -> str:
         """Format a macro call with arguments.."""
         return name + '(' + ', '.join(arguments) + ')'
 
     _argument_split_re = re.compile(r' *, *')
     @classmethod
-    def _argument_split(cls, arguments):
+    def _argument_split(cls, arguments: str) -> List[str]:
         return re.split(cls._argument_split_re, arguments)
 
-    def distribute_arguments(self, name):
+    def distribute_arguments(self, name: str) -> Iterator[str]:
         """Generate macro calls with each tested argument set.
 
         If name is a macro without arguments, just yield "name".
@@ -123,7 +124,7 @@ class PSAMacroEnumerator:
         except BaseException as e:
             raise Exception('distribute_arguments({})'.format(name)) from e
 
-    def generate_expressions(self, names):
+    def generate_expressions(self, names: Iterable[str]) -> Iterator[str]:
         """Generate expressions covering values constructed from the given names.
 
         `names` can be any iterable collection of macro names.

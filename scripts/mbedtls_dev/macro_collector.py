@@ -17,12 +17,13 @@
 # limitations under the License.
 
 import re
+from typing import Dict, Set
 
 class PSAMacroCollector:
     """Collect PSA crypto macro definitions from C header files.
     """
 
-    def __init__(self, include_intermediate=False):
+    def __init__(self, include_intermediate: bool = False) -> None:
         """Set up an object to collect PSA macro definitions.
 
         Call the read_file method of the constructed object on each header file.
@@ -31,19 +32,19 @@ class PSAMacroCollector:
           PSA_XXX_BASE that do not designate semantic values.
         """
         self.include_intermediate = include_intermediate
-        self.statuses = set()
-        self.key_types = set()
-        self.key_types_from_curve = {}
-        self.key_types_from_group = {}
-        self.ecc_curves = set()
-        self.dh_groups = set()
-        self.algorithms = set()
-        self.hash_algorithms = set()
-        self.ka_algorithms = set()
-        self.algorithms_from_hash = {}
-        self.key_usages = set()
+        self.statuses = set() #type: Set[str]
+        self.key_types = set() #type: Set[str]
+        self.key_types_from_curve = {} #type: Dict[str, str]
+        self.key_types_from_group = {} #type: Dict[str, str]
+        self.ecc_curves = set() #type: Set[str]
+        self.dh_groups = set() #type: Set[str]
+        self.algorithms = set() #type: Set[str]
+        self.hash_algorithms = set() #type: Set[str]
+        self.ka_algorithms = set() #type: Set[str]
+        self.algorithms_from_hash = {} #type: Dict[str, str]
+        self.key_usages = set() #type: Set[str]
 
-    def is_internal_name(self, name):
+    def is_internal_name(self, name: str) -> bool:
         """Whether this is an internal macro. Internal macros will be skipped."""
         if not self.include_intermediate:
             if name.endswith('_BASE') or name.endswith('_NONE'):

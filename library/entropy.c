@@ -28,7 +28,7 @@
 #endif
 
 #include "mbedtls/entropy.h"
-#include "mbedtls/entropy_poll.h"
+#include "entropy_poll.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 

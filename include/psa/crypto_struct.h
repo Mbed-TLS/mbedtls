@@ -144,7 +144,6 @@ static inline struct psa_mac_operation_s psa_mac_operation_init( void )
 struct psa_cipher_operation_s
 {
     psa_algorithm_t alg;
-    unsigned int key_set : 1;
     unsigned int iv_required : 1;
     unsigned int iv_set : 1;
     unsigned int mbedtls_in_use : 1; /* Indicates mbed TLS is handling the operation. */
@@ -158,7 +157,7 @@ struct psa_cipher_operation_s
     } ctx;
 };
 
-#define PSA_CIPHER_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, {0}}
+#define PSA_CIPHER_OPERATION_INIT {0, 0, 0, 0, 0, 0, {0}}
 static inline struct psa_cipher_operation_s psa_cipher_operation_init( void )
 {
     const struct psa_cipher_operation_s v = PSA_CIPHER_OPERATION_INIT;

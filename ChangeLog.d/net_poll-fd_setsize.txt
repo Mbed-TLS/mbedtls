@@ -1,3 +1,0 @@
-Security
-   * Fix a stack buffer overflow with mbedtls_net_recv_timeout() when given a
-     file descriptor that is beyond FD_SETSIZE. Reported by FigBug in #4169.

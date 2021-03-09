@@ -142,7 +142,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\mbedtls\aes.h" />
-    <ClInclude Include="..\..\include\mbedtls\aesni.h" />
     <ClInclude Include="..\..\include\mbedtls\arc4.h" />
     <ClInclude Include="..\..\include\mbedtls\aria.h" />
     <ClInclude Include="..\..\include\mbedtls\asn1.h" />
@@ -234,6 +233,7 @@
     <ClInclude Include="..\..\tests\include\test\drivers\signature.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\size.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\test_driver.h" />
+    <ClInclude Include="..\..\library\aesni.h" />
     <ClInclude Include="..\..\library\bn_mul.h" />
     <ClInclude Include="..\..\library\check_crypto_config.h" />
     <ClInclude Include="..\..\library\cipher_wrap.h" />

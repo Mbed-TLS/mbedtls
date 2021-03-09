@@ -25,7 +25,6 @@
 #endif
 
 #include "mbedtls/aes.h"
-#include "mbedtls/aesni.h"
 #include "mbedtls/arc4.h"
 #include "mbedtls/aria.h"
 #include "mbedtls/asn1.h"

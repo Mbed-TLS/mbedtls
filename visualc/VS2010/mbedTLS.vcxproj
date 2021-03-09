@@ -238,7 +238,7 @@
     <ClInclude Include="..\..\library\check_crypto_config.h" />
     <ClInclude Include="..\..\library\cipher_internal.h" />
     <ClInclude Include="..\..\library\common.h" />
-    <ClInclude Include="..\..\library\ecp_internal.h" />
+    <ClInclude Include="..\..\library\ecp_alt.h" />
     <ClInclude Include="..\..\library\md_internal.h" />
     <ClInclude Include="..\..\library\pk_internal.h" />
     <ClInclude Include="..\..\library\psa_crypto_core.h" />

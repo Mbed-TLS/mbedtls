@@ -37,7 +37,6 @@
  * default value when that configuration is not set in the config.h.
  */
 #include "mbedtls/aes.h"
-#include "mbedtls/aesni.h"
 #include "mbedtls/arc4.h"
 #include "mbedtls/aria.h"
 #include "mbedtls/asn1.h"
@@ -101,7 +100,6 @@
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/xtea.h"
-#include "../../library/ssl_misc.h"
 
 #include <string.h>
 

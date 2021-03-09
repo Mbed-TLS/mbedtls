@@ -3408,7 +3408,6 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     /* Initialize the operation struct members, except for alg. The alg member
      * is used to indicate to psa_cipher_abort that there are resources to free,
      * so we only set it after resources have been allocated/initialized. */
-    operation->key_set = 0;
     operation->iv_set = 0;
     operation->mbedtls_in_use = 0;
     operation->iv_size = 0;
@@ -3444,12 +3443,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     }
 
 exit:
-    if( status == PSA_SUCCESS )
-    {
-        /* Update operation flags for both driver and software implementations */
-        operation->key_set = 1;
-    }
-    else
+    if( status != PSA_SUCCESS )
         psa_cipher_abort( operation );
 
     unlock_status = psa_unlock_key_slot( slot );
@@ -3607,7 +3601,6 @@ psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
     psa_driver_wrapper_cipher_abort( operation );
 
     operation->alg = 0;
-    operation->key_set = 0;
     operation->iv_set = 0;
     operation->mbedtls_in_use = 0;
     operation->iv_size = 0;

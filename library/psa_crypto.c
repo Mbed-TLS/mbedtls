@@ -2310,7 +2310,7 @@ psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,
 /* MAC */
 /****************************************************************/
 
-static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
+const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     psa_algorithm_t alg,
     psa_key_type_t key_type,
     size_t key_bits,

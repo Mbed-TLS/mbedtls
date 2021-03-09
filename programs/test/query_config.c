@@ -60,7 +60,6 @@
 #include "mbedtls/ecjpake.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/entropy.h"
-#include "mbedtls/entropy_poll.h"
 #include "mbedtls/error.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/hkdf.h"

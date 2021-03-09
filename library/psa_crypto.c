@@ -6482,7 +6482,7 @@ int mbedtls_psa_get_random( void *p_rng,
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
-#include "mbedtls/entropy_poll.h"
+#include "entropy_poll.h"
 
 psa_status_t mbedtls_psa_inject_entropy( const uint8_t *seed,
                                          size_t seed_size )

@@ -1,6 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/rsa.h"
-#include "rsa_internal.h"
+#include "rsa_alt_helpers.h"
 #include "mbedtls/md2.h"
 #include "mbedtls/md4.h"
 #include "mbedtls/md5.h"

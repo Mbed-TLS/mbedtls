@@ -2031,6 +2031,32 @@ static void mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N,
     mpi_montmul( A, &U, N, mm, T );
 }
 
+/**
+ * Select an MPI from a table without leaking the index.
+ *
+ * This is functionally equivalent to mbedtls_mpi_copy(R, T[idx]) except it
+ * reads the entire table in order to avoid leaking the value of idx to an
+ * attacker able to observe memory access patterns.
+ *
+ * \param[out] R        Where to write the selected MPI.
+ * \param[in] T         The table to read from.
+ * \param[in] T_size    The number of elements in the table.
+ * \param[in] idx       The index of the element to select;
+ *                      this must satisfy 0 <= idx < T_size.
+ *
+ * \return \c 0 on success, or a negative error code.
+ */
+static int mpi_select( mbedtls_mpi *R, const mbedtls_mpi *T, size_t T_size, size_t idx )
+{
+    int ret;
+
+    for( size_t i = 0; i < T_size; i++ )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( R, &T[i], i == idx ) );
+
+cleanup:
+    return( ret );
+}
+
 /*
  * Sliding-window exponentiation: X = A^E mod N  (HAC 14.85)
  */
@@ -2043,7 +2069,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     size_t i, j, nblimbs;
     size_t bufsize, nbits;
     mbedtls_mpi_uint ei, mm, state;
-    mbedtls_mpi RR, T, W[ 1 << MBEDTLS_MPI_WINDOW_SIZE ], Apos;
+    mbedtls_mpi RR, T, W[ 1 << MBEDTLS_MPI_WINDOW_SIZE ], WW, Apos;
     int neg;
 
     MPI_VALIDATE_RET( X != NULL );
@@ -2067,6 +2093,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     mpi_montg_init( &mm, N );
     mbedtls_mpi_init( &RR ); mbedtls_mpi_init( &T );
     mbedtls_mpi_init( &Apos );
+    mbedtls_mpi_init( &WW );
     memset( W, 0, sizeof( W ) );
 
     i = mbedtls_mpi_bitlen( E );
@@ -2207,7 +2234,8 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
             /*
              * X = X * W[wbits] R^-1 mod N
              */
-            mpi_montmul( X, &W[wbits], N, mm, &T );
+            MBEDTLS_MPI_CHK( mpi_select( &WW, W, 1 << wsize, wbits ) );
+            mpi_montmul( X, &WW, N, mm, &T );
 
             state--;
             nbits = 0;
@@ -2245,6 +2273,7 @@ cleanup:
         mbedtls_mpi_free( &W[i] );
 
     mbedtls_mpi_free( &W[1] ); mbedtls_mpi_free( &T ); mbedtls_mpi_free( &Apos );
+    mbedtls_mpi_free( &WW );
 
     if( _RR == NULL || _RR->p == NULL )
         mbedtls_mpi_free( &RR );

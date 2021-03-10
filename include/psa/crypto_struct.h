@@ -65,17 +65,11 @@ extern "C" {
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "mbedtls/cipher.h"
 #include "mbedtls/cmac.h"
 #include "mbedtls/gcm.h"
 
 /* Include the context definition for the compiled-in drivers */
 #include "psa/crypto_driver_contexts.h"
-
-typedef struct {
-    /** Context structure for the assigned driver, when id is not zero. */
-    void* ctx;
-} psa_operation_driver_context_t;
 
 struct psa_hash_operation_s
 {
@@ -136,14 +130,6 @@ static inline struct psa_mac_operation_s psa_mac_operation_init( void )
     return( v );
 }
 
-typedef struct {
-    /** Context structure for the Mbed TLS cipher implementation. */
-    psa_algorithm_t alg;
-    uint8_t iv_size;
-    uint8_t block_size;
-    mbedtls_cipher_context_t cipher;
-} mbedtls_psa_cipher_operation_t;
-
 struct psa_cipher_operation_s
 {
     /** Unique ID indicating which driver got assigned to do the
@@ -156,12 +142,8 @@ struct psa_cipher_operation_s
 
     unsigned int iv_required : 1;
     unsigned int iv_set : 1;
-    union
-    {
-        unsigned dummy; /* Enable easier initializing of the union. */
-        mbedtls_psa_cipher_operation_t mbedtls_ctx;
-        psa_operation_driver_context_t driver;
-    } ctx;
+
+    psa_driver_cipher_context_t ctx;
 };
 
 #define PSA_CIPHER_OPERATION_INIT {0, 0, 0, {0}}

@@ -73,11 +73,6 @@ extern "C" {
 #include "psa/crypto_driver_contexts.h"
 
 typedef struct {
-    /** Unique ID indicating which driver got assigned to do the
-     * operation. Since driver contexts are driver-specific, swapping
-     * drivers halfway through the operation is not supported.
-     * ID values are auto-generated in psa_driver_wrappers.h */
-    unsigned int id;
     /** Context structure for the assigned driver, when id is not zero. */
     void* ctx;
 } psa_operation_driver_context_t;
@@ -143,10 +138,17 @@ static inline struct psa_mac_operation_s psa_mac_operation_init( void )
 
 struct psa_cipher_operation_s
 {
+    /** Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_crypto_driver_wrappers.h
+     * ID value zero means the context is not valid or not assigned to
+     * any driver (i.e. none of the driver contexts are active). */
+    unsigned int id;
+
     psa_algorithm_t alg;
     unsigned int iv_required : 1;
     unsigned int iv_set : 1;
-    unsigned int mbedtls_in_use : 1; /* Indicates mbed TLS is handling the operation. */
     uint8_t iv_size;
     uint8_t block_size;
     union

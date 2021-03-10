@@ -446,6 +446,8 @@ static int pbcrypt_file( mbedtls_ctr_drbg_context *drbg,
             mbedtls_cipher_info_from_string( configuration->cipher_name );
         metadata.salt_length = PBCRYPT_SALT_LENGTH;
         metadata.iterations = configuration->iterations;
+        CHECK( check_metadata( &metadata ) );
+
         CHECK( fseek( input_file, 0, SEEK_END ) );
         metadata.payload_size = ftell( input_file );
         CHECK( fseek( input_file, 0, SEEK_SET ) );
@@ -460,9 +462,9 @@ static int pbcrypt_file( mbedtls_ctr_drbg_context *drbg,
         CHECK_FREAD( header, PBCRYPT_HEADER_SIZE, input_file );
         CHECK( pbcrypt_deserialize_header( &metadata, header ) );
         CHECK_FREAD( salt, metadata.salt_length, input_file );
+        CHECK( check_metadata( &metadata ) );
     }
 
-    CHECK( check_metadata( &metadata ) );
     key_size = ( metadata.cipher->key_bitlen + 7 ) / 8;
 
     /* Calculate the key from the password and salt. */
@@ -515,6 +517,8 @@ static int cipher_is_aead( const mbedtls_cipher_info_t *info )
             /* CCM is an AEAD cipher, but it doesn't support the multipart
              * interface, so skip it. */
             return( 0 );
+        case MBEDTLS_MODE_CHACHAPOLY:
+            return( 1 );
         default:
             return( 0 );
     }

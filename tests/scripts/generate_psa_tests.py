@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 """Generate test data for PSA cryptographic mechanisms.
+
+With no arguments, generate all test data. With non-option arguments,
+generate only the specified files.
 """
 
 # Copyright The Mbed TLS Contributors
@@ -21,7 +24,7 @@ import argparse
 import os
 import re
 import sys
-from typing import FrozenSet, Iterable, List, Optional, TypeVar
+from typing import Callable, Dict, FrozenSet, Iterable, List, Optional, TypeVar
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import crypto_knowledge
@@ -210,27 +213,52 @@ class TestGenerator:
         value = getattr(options, name, None)
         return default if value is None else value
 
+    def filename_for(self, basename: str) -> str:
+        """The location of the data file with the specified base name."""
+        return os.path.join(self.test_suite_directory, basename + '.data')
+
     def write_test_data_file(self, basename: str,
                              test_cases: Iterable[test_case.TestCase]) -> None:
         """Write the test cases to a .data file.
 
         The output file is ``basename + '.data'`` in the test suite directory.
         """
-        filename = os.path.join(self.test_suite_directory, basename + '.data')
+        filename = self.filename_for(basename)
         test_case.write_data_file(filename, test_cases)
 
-    def generate_all(self) -> None:
-        test_cases = NotSupported(self.info).generate_not_supported()
-        self.write_test_data_file(
-            'test_suite_psa_crypto_not_supported.generated',
-            test_cases)
+    TARGETS = {
+        'test_suite_psa_crypto_not_supported.generated':
+        lambda info: NotSupported(info).generate_not_supported(),
+    } #type: Dict[str, Callable[[Information], Iterable[test_case.TestCase]]]
+
+    def generate_target(self, name: str) -> None:
+        test_cases = self.TARGETS[name](self.info)
+        self.write_test_data_file(name, test_cases)
 
 def main(args):
     """Command line entry point."""
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--list', action='store_true',
+                        help='List available targets and exit')
+    parser.add_argument('targets', nargs='*', metavar='TARGET',
+                        help='Target file to generate (default: all; "-": none)')
     options = parser.parse_args(args)
     generator = TestGenerator(options)
-    generator.generate_all()
+    if options.list:
+        for name in sorted(generator.TARGETS):
+            print(generator.filename_for(name))
+        return
+    if options.targets:
+        # Allow "-" as a special case so you can run
+        # ``generate_psa_tests.py - $targets`` and it works uniformly whether
+        # ``$targets`` is empty or not.
+        options.targets = [os.path.basename(re.sub(r'\.data\Z', r'', target))
+                           for target in options.targets
+                           if target != '-']
+    else:
+        options.targets = sorted(generator.TARGETS)
+    for target in options.targets:
+        generator.generate_target(target)
 
 if __name__ == '__main__':
     main(sys.argv[1:])

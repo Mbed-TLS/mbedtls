@@ -2862,7 +2862,7 @@ mbedtls_x509_crt_parse_subjectkeyid:"data_files/authorityKeyId_subjectKeyId.crt"
 
 X509 CRT parse Subject Key Id - Wrong
 depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_parse_subjectkeyid:"data_files/authorityKeyId_subjectKeyId_wrong_SubjectKeyId.crt":"":0:0xff9e
+mbedtls_x509_crt_parse_subjectkeyid:"data_files/authorityKeyId_subjectKeyId_wrong_SubjectKeyId.crt":"":0:MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CRT parse Authority Key Id - Correct
 depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C
@@ -2870,24 +2870,24 @@ mbedtls_x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId.cr
 
 X509 CRT parse Authority Key Id - Wrong Sequence
 depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_wrong_AuthorityKeyId_Sequence.crt":"":0:"":"0":0:0xff9e
+mbedtls_x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_wrong_AuthorityKeyId_Sequence.crt":"":0:"":"0":0:MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CRT parse Authority Key Id - Wrong KeyId Tag
 depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_wrong_AuthorityKeyId_KeyId.crt":"":0:"":"0":0:0xff9e
+mbedtls_x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_wrong_AuthorityKeyId_KeyId.crt":"":0:"":"0":0:MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CRT parse Authority Key Id - Wrong Issuer Tag 1
 depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_wrong_Issuer1.crt":"":0:"":"0":0:0xff9e
+mbedtls_x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_wrong_Issuer1.crt":"":0:"":"0":0:MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CRT parse Authority Key Id - Wrong Issuer Tag 2
 depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_wrong_Issuer2.crt":"":0:"":"0":0:0xff9e
+mbedtls_x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_wrong_Issuer2.crt":"":0:"":"0":0:MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CRT parse Authority Key Id - Wrong Issuer Tag 3
 depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_wrong_Issuer3.crt":"":0:"":"0":0:0xff9e
+mbedtls_x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_wrong_Issuer3.crt":"":0:"":"0":0:MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CRT parse Authority Key Id - Wrong Issuer Tag 4
 depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C
-mbedtls_x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_wrong_Issuer4.crt":"":0:"":"0":0:0xdc1e
+mbedtls_x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_wrong_Issuer4.crt":"":0:"":"0":0:MBEDTLS_ERR_ASN1_UNEXPECTED_TAG|MBEDTLS_ERR_X509_INVALID_NAME

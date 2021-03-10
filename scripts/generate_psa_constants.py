@@ -304,7 +304,7 @@ class CaseBuilder(macro_collector.PSAMacroCollector):
 
     def _make_key_usage_code(self):
         return '\n'.join([self._make_bit_test('usage', bit)
-                          for bit in sorted(self.key_usages)])
+                          for bit in sorted(self.key_usage_flags)])
 
     def write_file(self, output_file):
         """Generate the pretty-printer function code from the gathered

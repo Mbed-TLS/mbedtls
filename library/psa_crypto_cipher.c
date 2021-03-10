@@ -49,13 +49,7 @@ static psa_status_t cipher_setup(
      * available for the given algorithm & key. */
     mbedtls_cipher_init( &operation->ctx.cipher );
 
-    /* Once the cipher context is initialised, it needs to be freed using
-     * psa_cipher_abort. Indicate there is something to be freed through setting
-     * alg, and indicate the operation is being done using mbedtls crypto through
-     * setting mbedtls_in_use. */
     operation->alg = alg;
-    operation->mbedtls_in_use = 1;
-
     key_bits = attributes->core.bits;
     cipher_info = mbedtls_cipher_info_from_psa( alg, key_type,
                                                 key_bits, NULL );

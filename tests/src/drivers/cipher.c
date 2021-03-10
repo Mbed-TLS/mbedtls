@@ -206,7 +206,7 @@ psa_status_t test_transparent_cipher_decrypt(
 }
 
 psa_status_t test_transparent_cipher_encrypt_setup(
-    test_transparent_cipher_operation_t *operation,
+    mbedtls_transparent_test_driver_cipher_operation_t *operation,
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
     psa_algorithm_t alg)
@@ -230,7 +230,7 @@ psa_status_t test_transparent_cipher_encrypt_setup(
 }
 
 psa_status_t test_transparent_cipher_decrypt_setup(
-    test_transparent_cipher_operation_t *operation,
+    mbedtls_transparent_test_driver_cipher_operation_t *operation,
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
     psa_algorithm_t alg)
@@ -248,7 +248,7 @@ psa_status_t test_transparent_cipher_decrypt_setup(
 }
 
 psa_status_t test_transparent_cipher_abort(
-    test_transparent_cipher_operation_t *operation)
+    mbedtls_transparent_test_driver_cipher_operation_t *operation)
 {
     test_driver_cipher_hooks.hits++;
 
@@ -267,7 +267,7 @@ psa_status_t test_transparent_cipher_abort(
 }
 
 psa_status_t test_transparent_cipher_generate_iv(
-    test_transparent_cipher_operation_t *operation,
+    mbedtls_transparent_test_driver_cipher_operation_t *operation,
     uint8_t *iv,
     size_t iv_size,
     size_t *iv_length)
@@ -284,7 +284,7 @@ psa_status_t test_transparent_cipher_generate_iv(
 }
 
 psa_status_t test_transparent_cipher_set_iv(
-    test_transparent_cipher_operation_t *operation,
+    mbedtls_transparent_test_driver_cipher_operation_t *operation,
     const uint8_t *iv,
     size_t iv_length)
 {
@@ -299,7 +299,7 @@ psa_status_t test_transparent_cipher_set_iv(
 }
 
 psa_status_t test_transparent_cipher_update(
-    test_transparent_cipher_operation_t *operation,
+    mbedtls_transparent_test_driver_cipher_operation_t *operation,
     const uint8_t *input,
     size_t input_length,
     uint8_t *output,
@@ -331,7 +331,7 @@ psa_status_t test_transparent_cipher_update(
 }
 
 psa_status_t test_transparent_cipher_finish(
-    test_transparent_cipher_operation_t *operation,
+    mbedtls_transparent_test_driver_cipher_operation_t *operation,
     uint8_t *output,
     size_t output_size,
     size_t *output_length)
@@ -401,7 +401,7 @@ psa_status_t test_opaque_cipher_decrypt(
 }
 
 psa_status_t test_opaque_cipher_encrypt_setup(
-    test_opaque_cipher_operation_t *operation,
+    mbedtls_opaque_test_driver_cipher_operation_t *operation,
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
     psa_algorithm_t alg)
@@ -415,7 +415,7 @@ psa_status_t test_opaque_cipher_encrypt_setup(
 }
 
 psa_status_t test_opaque_cipher_decrypt_setup(
-    test_opaque_cipher_operation_t *operation,
+    mbedtls_opaque_test_driver_cipher_operation_t *operation,
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
     psa_algorithm_t alg)
@@ -429,14 +429,14 @@ psa_status_t test_opaque_cipher_decrypt_setup(
 }
 
 psa_status_t test_opaque_cipher_abort(
-    test_opaque_cipher_operation_t *operation)
+    mbedtls_opaque_test_driver_cipher_operation_t *operation )
 {
     (void) operation;
     return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t test_opaque_cipher_generate_iv(
-    test_opaque_cipher_operation_t *operation,
+    mbedtls_opaque_test_driver_cipher_operation_t *operation,
     uint8_t *iv,
     size_t iv_size,
     size_t *iv_length)
@@ -449,7 +449,7 @@ psa_status_t test_opaque_cipher_generate_iv(
 }
 
 psa_status_t test_opaque_cipher_set_iv(
-    test_opaque_cipher_operation_t *operation,
+    mbedtls_opaque_test_driver_cipher_operation_t *operation,
     const uint8_t *iv,
     size_t iv_length)
 {
@@ -460,7 +460,7 @@ psa_status_t test_opaque_cipher_set_iv(
 }
 
 psa_status_t test_opaque_cipher_update(
-    test_opaque_cipher_operation_t *operation,
+    mbedtls_opaque_test_driver_cipher_operation_t *operation,
     const uint8_t *input,
     size_t input_length,
     uint8_t *output,
@@ -477,7 +477,7 @@ psa_status_t test_opaque_cipher_update(
 }
 
 psa_status_t test_opaque_cipher_finish(
-    test_opaque_cipher_operation_t *operation,
+    mbedtls_opaque_test_driver_cipher_operation_t *operation,
     uint8_t *output,
     size_t output_size,
     size_t *output_length)

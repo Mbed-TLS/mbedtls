@@ -185,8 +185,16 @@ typedef struct
 
 static const pbcrypt_configuration_t pbcrypt_default_configuration =
 {
+#if defined(MBEDTLS_SHA512_C)
+    "SHA512",
+#else
     "SHA256",
-    "AES-128-GCM",
+#endif
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    "CHACHA20-POLY1305",
+#else
+    "AES-256-GCM",
+#endif
     16,
     10000,
 };

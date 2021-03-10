@@ -1,10 +1,10 @@
 Bugfix
-   * Add printf function attributes to mbedtls_debug_print_msg because we were
-     not actually getting any printf format specifier warnings prior to this.
-     Also add extra printf compiler warning flags to builds.
+   * Add printf function attributes to mbedtls_debug_print_msg to ensure we
+     get printf format specifier warnings.
+Changes
+   * Add extra printf compiler warning flags to builds.
 Requirement changes
-   * Use %zu for print of type size_t in new work, however please do not use
-     them in backports, and preferably not in code that needs to be
-     backported.
-
-
+   * The library now uses the %zu format specifier with the printf() family of
+     functions, so requires a toolchain that supports it. This change does not
+     affect the maintained LTS branches, so when contributing changes please
+     bear this in mind and do not add them to backported code.

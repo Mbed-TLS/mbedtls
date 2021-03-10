@@ -283,7 +283,8 @@ static void handle_buffer_resizing( mbedtls_ssl_context *ssl, int downsizing,
             }
             else
             {
-                MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reallocating in_buf to %d", in_buf_new_len ) );
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reallocating in_buf to %" MBEDTLS_PRINTF_SIZET,
+                                            in_buf_new_len ) );
                 modified = 1;
             }
         }
@@ -304,7 +305,8 @@ static void handle_buffer_resizing( mbedtls_ssl_context *ssl, int downsizing,
             }
             else
             {
-                MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reallocating out_buf to %d", out_buf_new_len ) );
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reallocating out_buf to %" MBEDTLS_PRINTF_SIZET,
+                                            out_buf_new_len ) );
                 modified = 1;
             }
         }

@@ -191,6 +191,24 @@ static const pbcrypt_configuration_t pbcrypt_default_configuration =
     10000,
 };
 
+
+static int cipher_is_aead( const mbedtls_cipher_info_t *info )
+{
+    switch( info->mode )
+    {
+        case MBEDTLS_MODE_GCM:
+            return( 1 );
+        case MBEDTLS_MODE_CCM:
+            /* CCM is an AEAD cipher, but it doesn't support the multipart
+             * interface, so skip it. */
+            return( 0 );
+        case MBEDTLS_MODE_CHACHAPOLY:
+            return( 1 );
+        default:
+            return( 0 );
+    }
+}
+
 static int check_metadata( const pbcrypt_metadata_t *metadata )
 {
     if( metadata->md == NULL )
@@ -201,6 +219,11 @@ static int check_metadata( const pbcrypt_metadata_t *metadata )
     if( metadata->cipher == NULL )
     {
         mbedtls_fprintf( stderr, "Cipher algorithm not supported.\n" );
+        return( PBCRYPT_ERR );
+    }
+    if( !cipher_is_aead( metadata->cipher ) )
+    {
+        mbedtls_fprintf( stderr, "Cipher algorithm is not authenticated.\n" );
         return( PBCRYPT_ERR );
     }
     if( metadata->iterations > INT_MAX )
@@ -505,23 +528,6 @@ exit:
         mbedtls_free( temp_file_name );
     }
     return( ret );
-}
-
-static int cipher_is_aead( const mbedtls_cipher_info_t *info )
-{
-    switch( info->mode )
-    {
-        case MBEDTLS_MODE_GCM:
-            return( 1 );
-        case MBEDTLS_MODE_CCM:
-            /* CCM is an AEAD cipher, but it doesn't support the multipart
-             * interface, so skip it. */
-            return( 0 );
-        case MBEDTLS_MODE_CHACHAPOLY:
-            return( 1 );
-        default:
-            return( 0 );
-    }
 }
 
 #define DESCRIPTION                             \

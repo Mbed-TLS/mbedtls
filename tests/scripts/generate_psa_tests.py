@@ -340,11 +340,41 @@ class StorageFormat:
         #     for group in sorted(self.constructors.dh_groups):
         #         yield from self.keys_for_type(key_type, [group])
 
+    def keys_for_algorithm(self, alg: str) -> Iterator[StorageKey]:
+        """Generate test keys for the specified algorithm."""
+        # For now, we don't have information on the compatibility of key
+        # types and algorithms. So we just test the encoding of algorithms,
+        # and not that operations can be performed with them.
+        descr = alg
+        usage = 'PSA_KEY_USAGE_EXPORT'
+        key1 = StorageKey(version=self.version,
+                          id=1, lifetime=0x00000001,
+                          type='PSA_KEY_TYPE_RAW_DATA', bits=8,
+                          usage=usage, alg=alg, alg2=0,
+                          material=b'K',
+                          description='alg: ' + descr)
+        yield key1
+        key2 = StorageKey(version=self.version,
+                          id=1, lifetime=0x00000001,
+                          type='PSA_KEY_TYPE_RAW_DATA', bits=8,
+                          usage=usage, alg=0, alg2=alg,
+                          material=b'L',
+                          description='alg2: ' + descr)
+        yield key2
+
+    def all_keys_for_algorithms(self) -> Iterator[StorageKey]:
+        """Generate test keys covering algorithm encodings."""
+        for alg in sorted(self.constructors.algorithms):
+            yield from self.keys_for_algorithm(alg)
+        # To do: algorithm constructors with parameters
+
     def all_test_cases(self) -> Iterator[test_case.TestCase]:
         """Generate all storage format test cases."""
         for key in self.all_keys_for_usage_flags():
             yield self.make_test_case(key)
         for key in self.all_keys_for_types():
+            yield self.make_test_case(key)
+        for key in self.all_keys_for_algorithms():
             yield self.make_test_case(key)
         # To do: vary id, lifetime
 

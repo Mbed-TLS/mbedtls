@@ -29,6 +29,7 @@ from typing import Callable, Dict, FrozenSet, Iterable, Iterator, List, Optional
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import crypto_knowledge
 from mbedtls_dev import macro_collector
+from mbedtls_dev import psa_storage
 from mbedtls_dev import test_case
 
 T = TypeVar('T') #pylint: disable=invalid-name
@@ -195,6 +196,96 @@ class NotSupported:
                     kt, 0, param_descr='curve')
 
 
+class StorageKey(psa_storage.Key):
+    """Representation of a key for storage format testing."""
+
+    def __init__(self, *, description: str, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.description = description #type: str
+
+class StorageFormat:
+    """Storage format stability test cases."""
+
+    def __init__(self, info: Information, version: int, forward: bool) -> None:
+        """Prepare to generate test cases for storage format stability.
+
+        * `info`: information about the API. See the `Information` class.
+        * `version`: the storage format version to generate test cases for.
+        * `forward`: if true, generate forward compatibility test cases which
+          save a key and check that its representation is as intended. Otherwise
+          generate backward compatibility test cases which inject a key
+          representation and check that it can be read and used.
+        """
+        self.constructors = info.constructors
+        self.version = version
+        self.forward = forward
+
+    def make_test_case(self, key: StorageKey) -> test_case.TestCase:
+        """Construct a storage format test case for the given key.
+
+        If ``forward`` is true, generate a forward compatibility test case:
+        create a key and validate that it has the expected representation.
+        Otherwise generate a backward compatibility test case: inject the
+        key representation into storage and validate that it can be read
+        correctly.
+        """
+        verb = 'save' if self.forward else 'read'
+        tc = test_case.TestCase()
+        tc.set_description('PSA storage {}: {}'.format(verb, key.description))
+        tc.set_function('key_storage_' + verb)
+        if self.forward:
+            extra_arguments = []
+        else:
+            # Some test keys have the RAW_DATA type and attributes that don't
+            # necessarily make sense. We do this to validate numerical
+            # encodings of the attributes.
+            # Raw data keys have no useful exercise anyway so there is no
+            # loss of test coverage.
+            exercise = key.type.string != 'PSA_KEY_TYPE_RAW_DATA'
+            extra_arguments = ['1' if exercise else '0']
+        tc.set_arguments([key.lifetime.string,
+                          key.type.string, str(key.bits),
+                          key.usage.string, key.alg.string, key.alg2.string,
+                          '"' + key.material.hex() + '"',
+                          '"' + key.hex() + '"',
+                          *extra_arguments])
+        return tc
+
+    def key_for_usage_flags(
+            self,
+            usage_flags: List[str],
+            short: Optional[str] = None
+    ) -> StorageKey:
+        """Construct a test key for the given key usage."""
+        usage = ' | '.join(usage_flags) if usage_flags else '0'
+        if short is None:
+            short = re.sub(r'\bPSA_KEY_USAGE_', r'', usage)
+        description = 'usage: ' + short
+        key = StorageKey(version=self.version,
+                         id=1, lifetime=0x00000001,
+                         type='PSA_KEY_TYPE_RAW_DATA', bits=8,
+                         usage=usage, alg=0, alg2=0,
+                         material=b'K',
+                         description=description)
+        return key
+
+    def all_keys_for_usage_flags(self) -> Iterator[StorageKey]:
+        """Generate test keys covering usage flags."""
+        known_flags = sorted(self.constructors.key_usage_flags)
+        yield self.key_for_usage_flags(['0'])
+        for usage_flag in known_flags:
+            yield self.key_for_usage_flags([usage_flag])
+        for flag1, flag2 in zip(known_flags,
+                                known_flags[1:] + [known_flags[0]]):
+            yield self.key_for_usage_flags([flag1, flag2])
+        yield self.key_for_usage_flags(known_flags, short='all known')
+
+    def all_test_cases(self) -> Iterator[test_case.TestCase]:
+        """Generate all storage format test cases."""
+        for key in self.all_keys_for_usage_flags():
+            yield self.make_test_case(key)
+
+
 class TestGenerator:
     """Generate test data."""
 
@@ -224,6 +315,10 @@ class TestGenerator:
     TARGETS = {
         'test_suite_psa_crypto_not_supported.generated':
         lambda info: NotSupported(info).test_cases_for_not_supported(),
+        'test_suite_psa_crypto_storage_format.current':
+        lambda info: StorageFormat(info, 0, True).all_test_cases(),
+        'test_suite_psa_crypto_storage_format.v0':
+        lambda info: StorageFormat(info, 0, False).all_test_cases(),
     } #type: Dict[str, Callable[[Information], Iterable[test_case.TestCase]]]
 
     def generate_target(self, name: str) -> None:

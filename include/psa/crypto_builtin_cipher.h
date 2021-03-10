@@ -25,6 +25,17 @@
 #include <psa/crypto_driver_common.h>
 #include "mbedtls/cipher.h"
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CTR) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CFB) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_OFB) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_XTS) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7)
+#define MBEDTLS_PSA_BUILTIN_CIPHER  1
+#endif
+
 typedef struct {
     /** Context structure for the Mbed TLS cipher implementation. */
     psa_algorithm_t alg;

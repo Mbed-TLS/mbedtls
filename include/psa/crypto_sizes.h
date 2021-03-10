@@ -952,8 +952,8 @@
 #define PSA_CIPHER_ENCRYPT_OUTPUT_SIZE(key_type, alg, input_length)             \
     (alg == PSA_ALG_CBC_PKCS7 ?                                                 \
      PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type),          \
-                              (input_length) + PSA_CIPHER_IV_LENGTH((key_type), \
-                                                                    (alg))) :   \
+                              (input_length) + 1) +                             \
+     PSA_CIPHER_IV_LENGTH((key_type), (alg)) :                                  \
      (PSA_ALG_IS_CIPHER(alg) ?                                                  \
       (input_length) + PSA_CIPHER_IV_LENGTH((key_type), (alg)) :                \
      0))

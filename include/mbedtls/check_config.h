@@ -901,4 +901,13 @@
  */
 typedef int mbedtls_iso_c_forbids_empty_translation_units;
 
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY) && !defined(MBEDTLS_MPS_READER_C)
+#error "MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_SSL_HANDSHAKE_REASSEMBLY_MAX_MESSAGE_SIZE) && \
+    !defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+#error "MBEDTLS_SSL_HANDSHAKE_REASSEMBLY_MAX_MESSAGE_SIZE defined, but not all prerequisites"
+#endif
+
 #endif /* MBEDTLS_CHECK_CONFIG_H */

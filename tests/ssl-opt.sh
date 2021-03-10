@@ -9845,6 +9845,51 @@ run_test    "export keys functionality" \
             -c "EAP-TLS IV is:" \
             -s "EAP-TLS IV is:"
 
+# Test fragmentation of the client handshake
+requires_config_enabled MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY
+requires_config_enabled MBEDTLS_MPS_READER_C
+run_test    "TLS reassembly: fragmentation disabled (openssl server)" \
+            "$O_SRV -mtu 2048" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -c "handshake: done"
+
+requires_config_enabled MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY
+requires_config_enabled MBEDTLS_MPS_READER_C
+run_test    "TLS reassembly: no fragmentation (openssl server)" \
+            "$O_SRV -mtu 512" \
+            "$P_CLI debug_level=3 max_frag_len=512" \
+            1 \
+            -c "TLS handshake fragmentation not enabled"
+
+requires_config_enabled MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY
+requires_config_enabled MBEDTLS_MPS_READER_C
+run_test    "TLS reassembly: some fragmentation (openssl server)" \
+            "$O_SRV -mtu 512" \
+            "$P_CLI debug_level=3 max_frag_len=512 max_hs_msg_len=2048" \
+            0 \
+            -c "handshake: done" \
+            -C "TLS handshake fragmentation not enabled"
+
+requires_config_enabled MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY
+requires_config_enabled MBEDTLS_MPS_READER_C
+run_test    "TLS reassembly: more fragmentation (openssl server)" \
+            "$O_SRV -mtu 128" \
+            "$P_CLI debug_level=3 max_frag_len=512 max_hs_msg_len=2048" \
+            0 \
+            -c "handshake: done" \
+            -C "TLS handshake fragmentation not enabled"
+
+requires_config_enabled MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY
+requires_config_enabled MBEDTLS_MPS_READER_C
+run_test    "TLS reassembly: more fragmentation, nbio (openssl server)" \
+            "$O_SRV -mtu 128" \
+            "$P_CLI debug_level=3 nbio=2 max_frag_len=512 max_hs_msg_len=2048" \
+            0 \
+            -c "handshake: done" \
+            -C "TLS handshake fragmentation not enabled"
+
+# Test heap memory usage after handshake
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG
 requires_config_enabled MBEDTLS_MEMORY_BUFFER_ALLOC_C

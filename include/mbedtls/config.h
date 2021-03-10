@@ -1752,6 +1752,32 @@
 #define MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 
 /**
+ * \def MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY
+ *
+ * Allows the client to reassemble fragmented TLS handshake messages.
+ *
+ * Requires: MBEDTLS_MPS_READER_C
+ *
+ */
+#define MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY
+
+/**
+ * \def MBEDTLS_SSL_HANDSHAKE_REASSEMBLY_MAX_MESSAGE_SIZE
+ *
+ * Sets the maximal length for the reasembled TLS handshake message,
+ * including the handshake message header.
+ *
+ * If not defined, the limit defaults to 16384
+ *
+ * This value of this option controls the amount of RAM that will be
+ * dynamically allocated by the handshake reassembly module when
+ * it receives a fragmented handshake message.
+ *
+ * Requires: MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY
+ */
+//#define MBEDTLS_SSL_HANDSHAKE_REASSEMBLY_MAX_MESSAGE_SIZE 16384
+
+/**
  * \def MBEDTLS_SSL_PROTO_SSL3
  *
  * Enable support for SSL 3.0.
@@ -3162,6 +3188,16 @@
  * This module enables abstraction of common (libc) functions.
  */
 #define MBEDTLS_PLATFORM_C
+
+/**
+ * \def MBEDTLS_MPS_READER_C
+ *
+ * Enable the MPS reader, which allows accumulation and resegmentation
+ * of incoming data. It is a dependency for TLS handshake reassembly. 
+ *
+ * Enabling MBEDTLS_MPS_READER_C will increase the binary size.
+ */
+#define MBEDTLS_MPS_READER_C
 
 /**
  * \def MBEDTLS_POLY1305_C

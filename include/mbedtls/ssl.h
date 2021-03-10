@@ -133,6 +133,8 @@
 #define MBEDTLS_ERR_SSL_VERSION_MISMATCH                  -0x5F00  /**< An operation failed due to an unexpected version or configuration. */
 #define MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS                -0x7000  /**< A cryptographic operation is in progress. Try again later. */
 #define MBEDTLS_ERR_SSL_BAD_CONFIG                        -0x5E80  /**< Invalid value in SSL config */
+#define MBEDTLS_ERR_SSL_HS_REASSEMBLY_MAX_MESSAGE_SIZE_EXCEEDED -0x5E00  /**< Requested max reassembed size exceeds the
+                                                                              compile-time limitation */
 
 /*
  * Various constants
@@ -1141,6 +1143,10 @@ struct mbedtls_ssl_config
     unsigned char max_minor_ver;    /*!< max. minor version used            */
     unsigned char min_major_ver;    /*!< min. major version used            */
     unsigned char min_minor_ver;    /*!< min. minor version used            */
+
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+    unsigned int hs_msg_max_size;   /*!< max. size of reassembled hs msg    */
+#endif
 
     /*
      * Flags (bitfields)
@@ -3445,6 +3451,24 @@ void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
  */
 int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_code );
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+/**
+ * \brief          Sets maximal length of a reassembled handshake message.
+ *
+ * The `max_size` paramter controls the amount of RAM that will be dynamically
+ * allocated by the handshake reassembly module when it receieves a fragmented
+ * handshake message.
+ *
+ * If the `max_size` paramter is set to 0, handshake reassembly is disabled.
+ * This is the default setting.
+ *
+ *
+ * \param conf     SSL configuration
+ * \param max_size Maximal length of the reassembled messsage. 0 disables reassembly.
+ */
+int mbedtls_ssl_conf_hs_reassembly_max_size( mbedtls_ssl_config *conf, unsigned int max_size );
+#endif
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
 /**

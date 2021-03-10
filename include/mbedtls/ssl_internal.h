@@ -60,6 +60,10 @@
 #include "mbedtls/psa_util.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+#include "mbedtls/mps/reader.h"
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -274,6 +278,13 @@
       + ( MBEDTLS_SSL_CID_OUT_LEN_MAX ) )
 #endif
 
+/* Defragmentation buffer size */
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+#if !defined(MBEDTLS_SSL_HANDSHAKE_REASSEMBLY_MAX_MESSAGE_SIZE)
+#define MBEDTLS_SSL_HANDSHAKE_REASSEMBLY_MAX_MESSAGE_SIZE 16384
+#endif
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
+
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
 static inline size_t mbedtls_ssl_get_output_buflen( const mbedtls_ssl_context *ctx )
 {
@@ -420,6 +431,29 @@ struct mbedtls_ssl_key_set
                      *   server_write_iv, in Bytes. */
 };
 typedef struct mbedtls_ssl_key_set mbedtls_ssl_key_set;
+
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+typedef struct mbedtls_ssl_hs_reassembly       mbedtls_ssl_hs_reassembly;
+typedef enum   mbedtls_ssl_hs_reassembly_state mbedtls_ssl_hs_reassembly_state;
+
+/**
+ * \brief Initialize the handshake reassembly control block.
+ *
+ * \param rcb           Reassembly control block.
+ * \param max_msg_size  Maximal allowed handshake message size (including the header).
+ *
+ * \return 0 iff successfully initialized.
+ */
+int mbedtls_ssl_hs_reassembly_init( mbedtls_ssl_hs_reassembly *rcb,
+                                    unsigned int max_msg_size );
+
+/**
+ * \brief Free the handshake reassembly control block.
+ *
+ * \param rcb Reassembly control block. NULL value is allowed.
+ */
+void mbedtls_ssl_hs_reassembly_free( mbedtls_ssl_hs_reassembly *rcb );
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
 
 /*
  * This structure contains the parameters only needed during handshake.
@@ -622,6 +656,49 @@ struct mbedtls_ssl_handshake_params
      * The library does not use it internally. */
     void *user_async_ctx;
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+    /**
+     * Handshake reassembly control block.
+     *
+     * The reassembly is performed by the MPS reader, using the `acc` arena
+     * to accumulate fragments of handshake messages.
+     *
+     * The header and the body of the reassembled message can potentially
+     * reside in different memory arenas. For example, consider a situation
+     * where a handshake message has its header split between two TLS records,
+     * while its body is fully contained in the second TLS record
+     *
+     *               +--------------------------+
+     *               | TLS handshake message m  |
+     * +------------------------+ +----------------+
+     * | ...         | hdr[0.2] | | hdr[3] body |  |
+     * +------------------------+ +----------------+
+     * TLS record k               TLS record k+1
+     *
+     * In situation like the above, the message header requires reassembly,
+     * while the message body can be read directly from the TLS record area.
+     *
+     * TODO: use more compact representation of the header.
+     * TODO: reconcile the documentation block with docs/hs_reassembly.md
+     *
+     */
+    struct mbedtls_ssl_hs_reassembly
+    {
+        mbedtls_reader *reader;     /*!< MPS reader for consuming HS messages */
+        size_t         acc_len;     /*!< Length of the accumulator arena */
+        unsigned char  *acc;        /*!< Accumulator arena */
+        unsigned char  *pmsg;       /*!< Ptr to the reassembled handshake message */
+        unsigned char  hdr[4];      /*!< Copy of the handshake header */
+
+        enum mbedtls_ssl_hs_reassembly_state
+        {
+           RCB_STATE_NONE,          /*!< No data available */
+           RCB_STATE_HAS_HDR,       /*!< Has handshake header */
+           RCB_STATE_HAS_FULL_MSG,  /*!< Has the entire message */
+        } state;
+    } hs_rcb;
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
 };
 
 typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
@@ -1305,5 +1382,84 @@ size_t mbedtls_ssl_get_current_mtu( const mbedtls_ssl_context *ssl );
 void mbedtls_ssl_buffering_free( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+/* Checks whether client handshake defragmentation is enabled */
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+static inline int mbedtls_ssl_hs_reassembly_enabled( const mbedtls_ssl_context *ssl )
+{
+    return( ( ssl->handshake ) &&
+            ( ssl->handshake->hs_rcb.acc ) &&
+            ( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_STREAM ) );
+}
+#else
+#define mbedtls_ssl_hs_reassembly_enabled(x) 0
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
+
+/* Returns a pointer to the header of the handshake message */
+static inline unsigned char *mbedtls_ssl_hs_hdr_ptr( const mbedtls_ssl_context *ssl )
+{
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+    if( mbedtls_ssl_hs_reassembly_enabled( ssl ) )
+        return( &ssl->handshake->hs_rcb.hdr[0] );
+    else
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
+    return( ssl->in_msg );
+}
+
+/* Returns the type of the handshake message */
+static inline unsigned char mbedtls_ssl_hs_msg_type( const mbedtls_ssl_context *ssl )
+{
+    unsigned char *hdr = mbedtls_ssl_hs_hdr_ptr( ssl );
+    return( hdr[0] );
+}
+
+/* Returns pointer to the (possibly reassembled) body of a handshake message */
+static inline unsigned char *mbedtls_ssl_hs_body_ptr( const mbedtls_ssl_context *ssl )
+{
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+    if( mbedtls_ssl_hs_reassembly_enabled( ssl ) )
+        return( ssl->handshake->hs_rcb.pmsg );
+    else
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
+    return( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ) );
+}
+
+/* Returns the length of the (possibly reassembled) handshake message */
+static inline size_t mbedtls_ssl_hs_body_len( const mbedtls_ssl_context *ssl )
+{
+    unsigned char *hdr = mbedtls_ssl_hs_hdr_ptr( ssl );
+    return( ( hdr[1] << 16 ) |
+            ( hdr[2] << 8  ) |
+            ( hdr[3]       ) );
+}
+
+/* Returns the length of the (possibly reassembled) handshake message,
+ * including the header */
+static inline size_t mbedtls_ssl_hs_len( const mbedtls_ssl_context *ssl )
+{
+    return( mbedtls_ssl_hs_hdr_len( ssl ) + mbedtls_ssl_hs_body_len( ssl ) );
+}
+
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+/* Checks the status of the current state of the reassembly */
+static inline mbedtls_ssl_hs_reassembly_state mbedtls_ssl_hs_reassembly_get_state( const mbedtls_ssl_context *ssl )
+{
+    return( ssl->handshake->hs_rcb.state );
+}
+
+/* Updates the status of the ressembly message */
+static inline void mbedtls_ssl_hs_reassembly_set_state(
+        const mbedtls_ssl_context *ssl, mbedtls_ssl_hs_reassembly_state new_state )
+{
+    ssl->handshake->hs_rcb.state = new_state;
+}
+
+/* Resets the status of the ressembly message */
+static inline void mbedtls_ssl_hs_reassembly_reset_state( const mbedtls_ssl_context *ssl )
+{
+   ssl->handshake->hs_rcb.state = RCB_STATE_NONE;
+   ssl->handshake->hs_rcb.pmsg  = NULL;
+}
+#endif /* MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY */
 
 #endif /* ssl_internal.h */

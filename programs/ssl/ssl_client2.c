@@ -108,6 +108,7 @@ int main( void )
 #define DFL_USE_SRTP            0
 #define DFL_SRTP_FORCE_PROFILE  0
 #define DFL_SRTP_MKI            ""
+#define DFL_HS_DEFRAG_ACC_SIZE  0
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
@@ -519,6 +520,7 @@ struct options
     int use_srtp;               /* Support SRTP                             */
     int force_srtp_profile;     /* SRTP protection profile to use or all    */
     const char *mki;            /* The dtls mki value to use                */
+    int max_hs_msg_len;         /* max size of (reassembled) handshake msg  */
 } opt;
 
 #include "ssl_test_common_source.c"
@@ -865,6 +867,7 @@ int main( int argc, char *argv[] )
     opt.use_srtp            = DFL_USE_SRTP;
     opt.force_srtp_profile  = DFL_SRTP_FORCE_PROFILE;
     opt.mki                 = DFL_SRTP_MKI;
+    opt.max_hs_msg_len  = DFL_HS_DEFRAG_ACC_SIZE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -1302,6 +1305,12 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "mki" ) == 0 )
         {
             opt.mki = q;
+        }
+        else if( strcmp( p, "max_hs_msg_len" ) == 0 )
+        {
+            opt.max_hs_msg_len = atoi( q );
+            if( opt.max_hs_msg_len < 0 )
+                goto usage;
         }
         else
             goto usage;
@@ -1993,6 +2002,11 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV)
     if( opt.fallback != DFL_FALLBACK )
         mbedtls_ssl_conf_fallback( &conf, opt.fallback );
+#endif
+
+#if defined(MBEDTLS_SSL_TLS_HANDSHAKE_REASSEMBLY)
+    if( opt.max_hs_msg_len > 0 )
+        mbedtls_ssl_conf_hs_reassembly_max_size( &conf, opt.max_hs_msg_len );
 #endif
 
     if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )

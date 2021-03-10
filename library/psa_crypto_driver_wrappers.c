@@ -741,6 +741,7 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
                 return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+#if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
             /* Fell through, meaning no accelerator supports this operation */
             status = mbedtls_psa_cipher_encrypt_setup( &operation->ctx.mbedtls_ctx,
                                                        attributes,
@@ -751,6 +752,8 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
                 operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
 
             return( status );
+#endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
+            return( PSA_ERROR_NOT_SUPPORTED );
 
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
@@ -771,6 +774,9 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
         default:
             /* Key is declared with a lifetime not known to us */
             (void)status;
+            (void)key_buffer;
+            (void)key_buffer_size;
+            (void)alg;
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 }
@@ -806,6 +812,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
                 return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+#if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
             /* Fell through, meaning no accelerator supports this operation */
             status = mbedtls_psa_cipher_decrypt_setup( &operation->ctx.mbedtls_ctx,
                                                        attributes,
@@ -816,6 +823,8 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
                 operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
 
             return( status );
+#endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
+            return( PSA_ERROR_NOT_SUPPORTED );
 
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
@@ -836,6 +845,9 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
         default:
             /* Key is declared with a lifetime not known to us */
             (void)status;
+            (void)key_buffer;
+            (void)key_buffer_size;
+            (void)alg;
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 }
@@ -848,11 +860,14 @@ psa_status_t psa_driver_wrapper_cipher_generate_iv(
 {
     switch( operation->id )
     {
+#if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
             return( mbedtls_psa_cipher_generate_iv( &operation->ctx.mbedtls_ctx,
                                                     iv,
                                                     iv_size,
                                                     iv_length ) );
+#endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
+
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
@@ -870,6 +885,10 @@ psa_status_t psa_driver_wrapper_cipher_generate_iv(
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
     }
 
+    (void)iv;
+    (void)iv_size;
+    (void)iv_length;
+
     return( PSA_ERROR_INVALID_ARGUMENT );
 }
 
@@ -880,10 +899,12 @@ psa_status_t psa_driver_wrapper_cipher_set_iv(
 {
     switch( operation->id )
     {
+#if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
             return( mbedtls_psa_cipher_set_iv( &operation->ctx.mbedtls_ctx,
                                                iv,
                                                iv_length ) );
+#endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -900,6 +921,9 @@ psa_status_t psa_driver_wrapper_cipher_set_iv(
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
     }
 
+    (void)iv;
+    (void)iv_length;
+
     return( PSA_ERROR_INVALID_ARGUMENT );
 }
 
@@ -913,6 +937,7 @@ psa_status_t psa_driver_wrapper_cipher_update(
 {
     switch( operation->id )
     {
+#if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
             return( mbedtls_psa_cipher_update( &operation->ctx.mbedtls_ctx,
                                                input,
@@ -920,6 +945,8 @@ psa_status_t psa_driver_wrapper_cipher_update(
                                                output,
                                                output_size,
                                                output_length ) );
+#endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
+
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
@@ -937,6 +964,12 @@ psa_status_t psa_driver_wrapper_cipher_update(
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
     }
 
+    (void)input;
+    (void)input_length;
+    (void)output;
+    (void)output_size;
+    (void)output_length;
+
     return( PSA_ERROR_INVALID_ARGUMENT );
 }
 
@@ -948,12 +981,13 @@ psa_status_t psa_driver_wrapper_cipher_finish(
 {
     switch( operation->id )
     {
+#if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
             return( mbedtls_psa_cipher_finish( &operation->ctx.mbedtls_ctx,
                                                output,
                                                output_size,
                                                output_length ) );
-
+#endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -970,6 +1004,10 @@ psa_status_t psa_driver_wrapper_cipher_finish(
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
     }
 
+    (void)output;
+    (void)output_size;
+    (void)output_length;
+
     return( PSA_ERROR_INVALID_ARGUMENT );
 }
 
@@ -980,8 +1018,10 @@ psa_status_t psa_driver_wrapper_cipher_abort(
 
     switch( operation->id )
     {
+#if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
             return( mbedtls_psa_cipher_abort( &operation->ctx.mbedtls_ctx ) );
+#endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)

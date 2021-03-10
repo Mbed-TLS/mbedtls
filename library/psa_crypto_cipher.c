@@ -31,6 +31,32 @@
 
 #include <string.h>
 
+#if ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES) || \
+      ( defined(PSA_CRYPTO_DRIVER_TEST) && \
+        defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DES) ) )
+#define BUILTIN_KEY_TYPE_DES  1
+#endif
+
+#if ( defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING) || \
+      ( defined(PSA_CRYPTO_DRIVER_TEST) && \
+        defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING) ) )
+#define BUILTIN_ALG_CBC_NO_PADDING  1
+#endif
+
+#if ( defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7) || \
+      ( defined(PSA_CRYPTO_DRIVER_TEST) && \
+        defined(MBEDTLS_PSA_ACCEL_ALG_CBC_PKCS7) ) )
+#define BUILTIN_ALG_CBC_PKCS7  1
+#endif
+
+#if ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_CHACHA20) || \
+      ( defined(PSA_CRYPTO_DRIVER_TEST) && \
+        defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CHACHA20) ) )
+#define BUILTIN_KEY_TYPE_CHACHA20  1
+#endif
+
+#if defined(MBEDTLS_PSA_BUILTIN_CIPHER) || defined(PSA_CRYPTO_DRIVER_TEST)
+
 static psa_status_t cipher_setup(
     mbedtls_psa_cipher_operation_t *operation,
     const psa_key_attributes_t *attributes,
@@ -60,7 +86,7 @@ static psa_status_t cipher_setup(
     if( ret != 0 )
         goto exit;
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
+#if defined(BUILTIN_KEY_TYPE_DES)
     if( key_type == PSA_KEY_TYPE_DES && key_bits == 128 )
     {
         /* Two-key Triple-DES is 3-key Triple-DES with K1=K3 */
@@ -80,8 +106,8 @@ static psa_status_t cipher_setup(
     if( ret != 0 )
         goto exit;
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7)
+#if defined(BUILTIN_ALG_CBC_NO_PADDING) || \
+    defined(BUILTIN_ALG_CBC_PKCS7)
     switch( alg )
     {
         case PSA_ALG_CBC_NO_PADDING:
@@ -99,7 +125,7 @@ static psa_status_t cipher_setup(
     }
     if( ret != 0 )
         goto exit;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING || MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7 */
+#endif /* BUILTIN_ALG_CBC_NO_PADDING || BUILTIN_ALG_CBC_PKCS7 */
 
     operation->block_size = ( PSA_ALG_IS_STREAM_CIPHER( alg ) ? 1 :
                               PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
@@ -108,7 +134,7 @@ static psa_status_t cipher_setup(
     {
         operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type );
     }
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_CHACHA20)
+#if defined(BUILTIN_KEY_TYPE_CHACHA20)
     else
     if( ( alg == PSA_ALG_STREAM_CIPHER ) &&
         ( key_type == PSA_KEY_TYPE_CHACHA20 ) )
@@ -359,7 +385,9 @@ static psa_status_t cipher_abort( mbedtls_psa_cipher_operation_t *operation )
 
     return( PSA_SUCCESS );
 }
+#endif /* MBEDTLS_PSA_BUILTIN_CIPHER || PSA_CRYPTO_DRIVER_TEST */
 
+#if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
 psa_status_t mbedtls_psa_cipher_encrypt_setup(
     mbedtls_psa_cipher_operation_t *operation,
     const psa_key_attributes_t *attributes,
@@ -417,6 +445,7 @@ psa_status_t mbedtls_psa_cipher_abort( mbedtls_psa_cipher_operation_t *operation
 {
     return( cipher_abort( operation ) );
 }
+#endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
 
 /*
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.

@@ -18,12 +18,15 @@
 
 import re
 import struct
-from typing import Optional, Union
+from typing import Dict, List, Optional, Set, Union
 import unittest
+
+from mbedtls_dev import c_build_helper
 
 
 class Expr:
     """Representation of a C expression with a known or knowable numerical value."""
+
     def __init__(self, content: Union[int, str]):
         if isinstance(content, int):
             digits = 8 if content > 0xffff else 4
@@ -31,16 +34,28 @@ class Expr:
             self.value_if_known = content #type: Optional[int]
         else:
             self.string = content
+            self.unknown_values.add(self.normalize(content))
             self.value_if_known = None
 
-    value_cache = {
-        # Hard-coded for initial testing
-        'PSA_KEY_LIFETIME_PERSISTENT': 0x00000001,
-        'PSA_KEY_TYPE_RAW_DATA': 0x1001,
-    }
+    value_cache = {} #type: Dict[str, int]
+    """Cache of known values of expressions."""
+
+    unknown_values = set() #type: Set[str]
+    """Expressions whose values are not present in `value_cache` yet."""
 
     def update_cache(self) -> None:
-        pass #not implemented yet
+        """Update `value_cache` for expressions registered in `unknown_values`."""
+        expressions = sorted(self.unknown_values)
+        values = c_build_helper.get_c_expression_values(
+            'unsigned long', '%lu',
+            expressions,
+            header="""
+            #include <psa/crypto.h>
+            """,
+            include_path=['include']) #type: List[str]
+        for e, v in zip(expressions, values):
+            self.value_cache[e] = int(v, 0)
+        self.unknown_values.clear()
 
     @staticmethod
     def normalize(string: str) -> str:

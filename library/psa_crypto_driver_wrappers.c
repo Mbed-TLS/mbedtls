@@ -756,13 +756,13 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
             /* Fell through, meaning no accelerator supports this operation */
-            status = mbedtls_psa_cipher_encrypt_setup( operation,
+            status = mbedtls_psa_cipher_encrypt_setup( &operation->ctx.mbedtls_ctx,
                                                        attributes,
                                                        key_buffer,
                                                        key_buffer_size,
                                                        alg );
             if( status == PSA_SUCCESS )
-                 operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
+                operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
 
             return( status );
 
@@ -849,7 +849,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
             /* Fell through, meaning no accelerator supports this operation */
-            status = mbedtls_psa_cipher_decrypt_setup( operation,
+            status = mbedtls_psa_cipher_decrypt_setup( &operation->ctx.mbedtls_ctx,
                                                        attributes,
                                                        key_buffer,
                                                        key_buffer_size,
@@ -905,7 +905,7 @@ psa_status_t psa_driver_wrapper_cipher_generate_iv(
     switch( operation->id )
     {
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_cipher_generate_iv( operation,
+            return( mbedtls_psa_cipher_generate_iv( &operation->ctx.mbedtls_ctx,
                                                     iv,
                                                     iv_size,
                                                     iv_length ) );
@@ -939,7 +939,7 @@ psa_status_t psa_driver_wrapper_cipher_set_iv(
     switch( operation->id )
     {
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_cipher_set_iv( operation,
+            return( mbedtls_psa_cipher_set_iv( &operation->ctx.mbedtls_ctx,
                                                iv,
                                                iv_length ) );
 
@@ -972,7 +972,7 @@ psa_status_t psa_driver_wrapper_cipher_update(
     switch( operation->id )
     {
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_cipher_update( operation,
+            return( mbedtls_psa_cipher_update( &operation->ctx.mbedtls_ctx,
                                                input,
                                                input_length,
                                                output,
@@ -1010,7 +1010,7 @@ psa_status_t psa_driver_wrapper_cipher_finish(
     switch( operation->id )
     {
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_cipher_finish( operation,
+            return( mbedtls_psa_cipher_finish( &operation->ctx.mbedtls_ctx,
                                                output,
                                                output_size,
                                                output_length ) );
@@ -1051,7 +1051,7 @@ psa_status_t psa_driver_wrapper_cipher_abort(
     switch( operation->id )
     {
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_cipher_abort( operation ) );
+            return( mbedtls_psa_cipher_abort( &operation->ctx.mbedtls_ctx ) );
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)

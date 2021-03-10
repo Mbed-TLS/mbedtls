@@ -58,6 +58,18 @@ def finish_family_dependencies(dependencies: List[str], bits: int) -> List[str]:
     """
     return [finish_family_dependency(dep, bits) for dep in dependencies]
 
+def automatic_dependencies(*expressions: str) -> List[str]:
+    """Infer dependencies of a test case by looking for PSA_xxx symbols.
+
+    The arguments are strings which should be C expressions. Do not use
+    string literals or comments as this function is not smart enough to
+    skip them.
+    """
+    used = set()
+    for expr in expressions:
+        used.update(re.findall(r'PSA_(?:ALG|ECC_FAMILY|KEY_TYPE)_\w+', expr))
+    return sorted(psa_want_symbol(name) for name in used)
+
 # A temporary hack: at the time of writing, not all dependency symbols
 # are implemented yet. Skip test cases for which the dependency symbols are
 # not available. Once all dependency symbols are available, this hack must
@@ -232,6 +244,12 @@ class StorageFormat:
         verb = 'save' if self.forward else 'read'
         tc = test_case.TestCase()
         tc.set_description('PSA storage {}: {}'.format(verb, key.description))
+        dependencies = automatic_dependencies(
+            key.lifetime.string, key.type.string,
+            key.usage.string, key.alg.string, key.alg2.string,
+        )
+        dependencies = finish_family_dependencies(dependencies, key.bits)
+        tc.set_dependencies(dependencies)
         tc.set_function('key_storage_' + verb)
         if self.forward:
             extra_arguments = []
@@ -280,10 +298,55 @@ class StorageFormat:
             yield self.key_for_usage_flags([flag1, flag2])
         yield self.key_for_usage_flags(known_flags, short='all known')
 
+    def keys_for_type(
+            self,
+            key_type: str,
+            params: Optional[Iterable[str]] = None
+    ) -> Iterator[StorageKey]:
+        """Generate test keys for the given key type.
+
+        For key types that depend on a parameter (e.g. elliptic curve family),
+        `param` is the parameter to pass to the constructor. Only a single
+        parameter is supported.
+        """
+        kt = crypto_knowledge.KeyType(key_type, params)
+        for bits in kt.sizes_to_test():
+            usage_flags = 'PSA_KEY_USAGE_EXPORT'
+            alg = 0
+            alg2 = 0
+            key_material = kt.key_material(bits)
+            short_expression = re.sub(r'\bPSA_(?:KEY_TYPE|ECC_FAMILY)_',
+                                      r'',
+                                      kt.expression)
+            description = 'type: {} {}-bit'.format(short_expression, bits)
+            key = StorageKey(version=self.version,
+                             id=1, lifetime=0x00000001,
+                             type=kt.expression, bits=bits,
+                             usage=usage_flags, alg=alg, alg2=alg2,
+                             material=key_material,
+                             description=description)
+            yield key
+
+    def all_keys_for_types(self) -> Iterator[StorageKey]:
+        """Generate test keys covering key types and their representations."""
+        for key_type in sorted(self.constructors.key_types):
+            yield from self.keys_for_type(key_type)
+        for key_type in sorted(self.constructors.key_types_from_curve):
+            for curve in sorted(self.constructors.ecc_curves):
+                yield from self.keys_for_type(key_type, [curve])
+        ## Diffie-Hellman (FFDH) is not supported yet, either in
+        ## crypto_knowledge.py or in Mbed TLS.
+        # for key_type in sorted(self.constructors.key_types_from_group):
+        #     for group in sorted(self.constructors.dh_groups):
+        #         yield from self.keys_for_type(key_type, [group])
+
     def all_test_cases(self) -> Iterator[test_case.TestCase]:
         """Generate all storage format test cases."""
         for key in self.all_keys_for_usage_flags():
             yield self.make_test_case(key)
+        for key in self.all_keys_for_types():
+            yield self.make_test_case(key)
+        # To do: vary id, lifetime
 
 
 class TestGenerator:

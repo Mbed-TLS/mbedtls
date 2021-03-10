@@ -136,6 +136,14 @@ static inline struct psa_mac_operation_s psa_mac_operation_init( void )
     return( v );
 }
 
+typedef struct {
+    /** Context structure for the Mbed TLS cipher implementation. */
+    psa_algorithm_t alg;
+    uint8_t iv_size;
+    uint8_t block_size;
+    mbedtls_cipher_context_t cipher;
+} mbedtls_psa_cipher_operation_t;
+
 struct psa_cipher_operation_s
 {
     /** Unique ID indicating which driver got assigned to do the
@@ -146,20 +154,17 @@ struct psa_cipher_operation_s
      * any driver (i.e. none of the driver contexts are active). */
     unsigned int id;
 
-    psa_algorithm_t alg;
     unsigned int iv_required : 1;
     unsigned int iv_set : 1;
-    uint8_t iv_size;
-    uint8_t block_size;
     union
     {
         unsigned dummy; /* Enable easier initializing of the union. */
-        mbedtls_cipher_context_t cipher;
+        mbedtls_psa_cipher_operation_t mbedtls_ctx;
         psa_operation_driver_context_t driver;
     } ctx;
 };
 
-#define PSA_CIPHER_OPERATION_INIT {0, 0, 0, 0, 0, 0, {0}}
+#define PSA_CIPHER_OPERATION_INIT {0, 0, 0, {0}}
 static inline struct psa_cipher_operation_s psa_cipher_operation_init( void )
 {
     const struct psa_cipher_operation_s v = PSA_CIPHER_OPERATION_INIT;

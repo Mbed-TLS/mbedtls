@@ -3409,10 +3409,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
      * is used to indicate to psa_cipher_abort that there are resources to free,
      * so we only set it (in the driver wrapper) after resources have been
      * allocated/initialized. */
-    operation->alg = alg;
     operation->iv_set = 0;
-    operation->iv_size = 0;
-    operation->block_size = 0;
     if( alg == PSA_ALG_ECB_NO_PADDING )
         operation->iv_required = 0;
     else
@@ -3587,18 +3584,10 @@ psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
         return( PSA_SUCCESS );
     }
 
-    /* Sanity check (shouldn't happen: operation->alg should
-     * always have been initialized to a valid value). */
-    if( ! PSA_ALG_IS_CIPHER( operation->alg ) )
-        return( PSA_ERROR_BAD_STATE );
-
     psa_driver_wrapper_cipher_abort( operation );
 
     operation->id = 0;
-    operation->alg = 0;
     operation->iv_set = 0;
-    operation->iv_size = 0;
-    operation->block_size = 0;
     operation->iv_required = 0;
 
     return( PSA_SUCCESS );

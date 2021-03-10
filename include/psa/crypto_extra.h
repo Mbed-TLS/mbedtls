@@ -297,7 +297,7 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats );
  * \param[in] seed          Buffer containing the seed value to inject.
  * \param[in] seed_size     Size of the \p seed buffer.
  *                          The size of the seed in bytes must be greater
- *                          or equal to both #MBEDTLS_ENTROPY_MIN_PLATFORM
+ *                          or equal to both MBEDTLS_ENTROPY_MIN_PLATFORM
  *                          and #MBEDTLS_ENTROPY_BLOCK_SIZE.
  *                          It must be less or equal to
  *                          #MBEDTLS_ENTROPY_MAX_SEED_SIZE.

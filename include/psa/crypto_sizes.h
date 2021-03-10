@@ -971,7 +971,8 @@
  */
 #define PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE(input_length)                        \
     (PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE,                  \
-                              (input_length) + PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE))
+                              (input_length) + 1) +                             \
+     PSA_CIPHER_IV_MAX_SIZE)
 
 /** The maximum size of the output of psa_cipher_decrypt(), in bytes.
  *

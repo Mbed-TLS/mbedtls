@@ -31,7 +31,7 @@
 #include <psa/crypto.h>
 
 #include "mbedtls/cipher.h"
-typedef psa_cipher_operation_t test_transparent_cipher_operation_t;
+typedef mbedtls_psa_cipher_operation_t test_transparent_cipher_operation_t;
 
 typedef struct{
     unsigned int initialised : 1;

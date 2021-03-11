@@ -547,7 +547,8 @@
  * hardware entropy collector.
  *
  * Your function must be called \c mbedtls_hardware_poll(), have the same
- * prototype as declared in entropy_poll.h, and accept NULL as first argument.
+ * prototype as declared in library/entropy_poll.h, and accept NULL as first
+ * argument.
  *
  * Uncomment to use your own hardware entropy collector.
  */
@@ -2400,7 +2401,7 @@
  *          library/ecp.c
  *          library/ecdsa.c
  *          library/rsa.c
- *          library/rsa_alt_helpers.h
+ *          library/rsa_alt_helpers.c
  *          library/ssl_tls.c
  *
  * This module is required for RSA, DHM and ECC (ECDH, ECDSA) support.
@@ -3198,7 +3199,7 @@
  * Enable the RSA public-key cryptosystem.
  *
  * Module:  library/rsa.c
- *          library/rsa_alt_helpers.h
+ *          library/rsa_alt_helpers.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
  *          library/ssl_tls.c

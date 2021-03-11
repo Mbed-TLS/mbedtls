@@ -1259,7 +1259,7 @@ void mbedtls_x509_crt_parse_subjectkeyid( char * crt_path, char *subjectKeyId, i
 
     mbedtls_x509_crt_init( &crt );
 
-    TEST_ASSERT( (mbedtls_x509_crt_parse_file( &crt, crt_path )& 0xFFFF) == retVal );
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_path ) == retVal );
 
     if(retVal != 0)
     {
@@ -1289,7 +1289,7 @@ void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyI
 
     mbedtls_x509_crt_init( &crt );
 
-    TEST_ASSERT( (mbedtls_x509_crt_parse_file( &crt, crt_path )& 0xFFFF) == retVal );
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_path ) == retVal );
 
     if (retVal != 0)
     {

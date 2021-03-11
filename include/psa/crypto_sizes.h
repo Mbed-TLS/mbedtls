@@ -398,7 +398,7 @@
 #define PSA_AEAD_UPDATE_OUTPUT_SIZE(alg, input_length)                              \
     (PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?                                         \
      PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE, (input_length)) :    \
-     (input_length)) :                                                              \
+     (input_length))
 
 /** A sufficient output buffer size for psa_aead_update(), for any of the
  *  supported key types and AEAD algorithms.

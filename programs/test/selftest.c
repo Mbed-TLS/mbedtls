@@ -55,7 +55,6 @@
 #include "mbedtls/ecjpake.h"
 #include "mbedtls/timing.h"
 #include "mbedtls/nist_kw.h"
-#include "../library/entropy_poll.h"
 
 #include <string.h>
 

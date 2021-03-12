@@ -1,0 +1,6 @@
+API changes
+   * Move internal headers.
+     All internal headers have been moved to library/ to unify them in one
+     location that is separate from the public API. This includes some files
+     that were previously not explicitly internal such as: `bn_mul.h`,
+     `aesni.h`, `padlock.h` and `entropy_poll.h`.

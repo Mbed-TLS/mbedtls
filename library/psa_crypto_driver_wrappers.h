@@ -28,20 +28,17 @@
 /*
  * Signature functions
  */
-psa_status_t psa_driver_wrapper_sign_hash( psa_key_slot_t *slot,
-                                           psa_algorithm_t alg,
-                                           const uint8_t *hash,
-                                           size_t hash_length,
-                                           uint8_t *signature,
-                                           size_t signature_size,
-                                           size_t *signature_length );
+psa_status_t psa_driver_wrapper_sign_hash(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    uint8_t *signature, size_t signature_size, size_t *signature_length );
 
-psa_status_t psa_driver_wrapper_verify_hash( psa_key_slot_t *slot,
-                                             psa_algorithm_t alg,
-                                             const uint8_t *hash,
-                                             size_t hash_length,
-                                             const uint8_t *signature,
-                                             size_t signature_length );
+psa_status_t psa_driver_wrapper_verify_hash(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length );
 
 /*
  * Key handling functions

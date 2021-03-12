@@ -1,0 +1,2 @@
+Changes
+   * Fix memsan build false positive in x509_crt.c with clang 11

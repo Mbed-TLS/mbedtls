@@ -633,7 +633,7 @@ psa_status_t mbedtls_psa_rsa_verify_hash(
 #if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY)
 
-psa_status_t mbedtls_transparent_test_driver_rsa_import_key(
+psa_status_t libtestdriver1_mbedtls_psa_rsa_import_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *data, size_t data_length,
     uint8_t *key_buffer, size_t key_buffer_size,
@@ -644,7 +644,7 @@ psa_status_t mbedtls_transparent_test_driver_rsa_import_key(
                             key_buffer_length, bits ) );
 }
 
-psa_status_t mbedtls_transparent_test_driver_rsa_export_public_key(
+psa_status_t libtestdriver1_mbedtls_psa_rsa_export_public_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     uint8_t *data, size_t data_size, size_t *data_length )
@@ -657,7 +657,7 @@ psa_status_t mbedtls_transparent_test_driver_rsa_export_public_key(
           defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY) */
 
 #if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR)
-psa_status_t mbedtls_transparent_test_driver_rsa_generate_key(
+psa_status_t libtestdriver1_mbedtls_psa_rsa_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
 {
@@ -668,7 +668,7 @@ psa_status_t mbedtls_transparent_test_driver_rsa_generate_key(
 
 #if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS)
-psa_status_t mbedtls_transparent_test_driver_rsa_sign_hash(
+psa_status_t libtestdriver1_mbedtls_psa_rsa_sign_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
@@ -695,7 +695,7 @@ psa_status_t mbedtls_transparent_test_driver_rsa_sign_hash(
 #endif
 }
 
-psa_status_t mbedtls_transparent_test_driver_rsa_verify_hash(
+psa_status_t libtestdriver1_mbedtls_psa_rsa_verify_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,

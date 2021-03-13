@@ -137,35 +137,35 @@ psa_status_t mbedtls_test_opaque_cipher_finish(
     uint8_t *output, size_t output_size, size_t *output_length);
 
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
-psa_status_t mbedtls_transparent_test_driver_cipher_encrypt_setup(
+psa_status_t libtestdriver1_mbedtls_psa_cipher_encrypt_setup(
     mbedtls_psa_cipher_operation_t *operation,
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg );
 
-psa_status_t mbedtls_transparent_test_driver_cipher_decrypt_setup(
+psa_status_t libtestdriver1_mbedtls_psa_cipher_decrypt_setup(
     mbedtls_psa_cipher_operation_t *operation,
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg );
 
-psa_status_t mbedtls_transparent_test_driver_cipher_set_iv(
+psa_status_t libtestdriver1_mbedtls_psa_cipher_set_iv(
     mbedtls_psa_cipher_operation_t *operation,
     const uint8_t *iv, size_t iv_length );
 
-psa_status_t mbedtls_transparent_test_driver_cipher_update(
+psa_status_t libtestdriver1_mbedtls_psa_cipher_update(
     mbedtls_psa_cipher_operation_t *operation,
     const uint8_t *input, size_t input_length,
     uint8_t *output, size_t output_size, size_t *output_length );
 
-psa_status_t mbedtls_transparent_test_driver_cipher_finish(
+psa_status_t libtestdriver1_mbedtls_psa_cipher_finish(
     mbedtls_psa_cipher_operation_t *operation,
     uint8_t *output, size_t output_size, size_t *output_length );
 
-psa_status_t mbedtls_transparent_test_driver_cipher_abort(
+psa_status_t libtestdriver1_mbedtls_psa_cipher_abort(
     mbedtls_psa_cipher_operation_t *operation );
 
-psa_status_t mbedtls_transparent_test_driver_cipher_encrypt(
+psa_status_t libtestdriver1_mbedtls_psa_cipher_encrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -176,7 +176,7 @@ psa_status_t mbedtls_transparent_test_driver_cipher_encrypt(
     size_t output_size,
     size_t *output_length );
 
-psa_status_t mbedtls_transparent_test_driver_cipher_decrypt(
+psa_status_t libtestdriver1_mbedtls_psa_cipher_decrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,

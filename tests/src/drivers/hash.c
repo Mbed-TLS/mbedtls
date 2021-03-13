@@ -43,7 +43,7 @@ psa_status_t mbedtls_test_transparent_hash_compute(
     {
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
         mbedtls_test_driver_hash_hooks.driver_status =
-            mbedtls_transparent_test_driver_hash_compute(
+            libtestdriver1_mbedtls_psa_hash_compute(
                 alg, input, input_length,
                 hash, hash_size, hash_length );
 #elif defined(MBEDTLS_PSA_BUILTIN_HASH)
@@ -80,7 +80,7 @@ psa_status_t mbedtls_test_transparent_hash_setup(
     {
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
         mbedtls_test_driver_hash_hooks.driver_status =
-            mbedtls_transparent_test_driver_hash_setup( operation, alg );
+            libtestdriver1_mbedtls_psa_hash_setup( operation, alg );
 #elif defined(MBEDTLS_PSA_BUILTIN_HASH)
         mbedtls_test_driver_hash_hooks.driver_status =
             mbedtls_psa_hash_setup( operation, alg );
@@ -109,8 +109,8 @@ psa_status_t mbedtls_test_transparent_hash_clone(
     {
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
         mbedtls_test_driver_hash_hooks.driver_status =
-            mbedtls_transparent_test_driver_hash_clone( source_operation,
-                                                        target_operation );
+            libtestdriver1_mbedtls_psa_hash_clone( source_operation,
+                                                   target_operation );
 #elif defined(MBEDTLS_PSA_BUILTIN_HASH)
         mbedtls_test_driver_hash_hooks.driver_status =
             mbedtls_psa_hash_clone( source_operation, target_operation );
@@ -140,7 +140,7 @@ psa_status_t mbedtls_test_transparent_hash_update(
     {
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
         mbedtls_test_driver_hash_hooks.driver_status =
-            mbedtls_transparent_test_driver_hash_update(
+            libtestdriver1_mbedtls_psa_hash_update(
                 operation, input, input_length );
 #elif defined(MBEDTLS_PSA_BUILTIN_HASH)
         mbedtls_test_driver_hash_hooks.driver_status =
@@ -173,7 +173,7 @@ psa_status_t mbedtls_test_transparent_hash_finish(
     {
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
         mbedtls_test_driver_hash_hooks.driver_status =
-            mbedtls_transparent_test_driver_hash_finish(
+            libtestdriver1_mbedtls_psa_hash_finish(
                 operation, hash, hash_size, hash_length );
 #elif defined(MBEDTLS_PSA_BUILTIN_HASH)
         mbedtls_test_driver_hash_hooks.driver_status =
@@ -204,7 +204,7 @@ psa_status_t mbedtls_test_transparent_hash_abort(
     {
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
         mbedtls_test_driver_hash_hooks.driver_status =
-            mbedtls_transparent_test_driver_hash_abort( operation );
+            libtestdriver1_mbedtls_psa_hash_abort( operation );
 #elif defined(MBEDTLS_PSA_BUILTIN_HASH)
         mbedtls_test_driver_hash_hooks.driver_status =
             mbedtls_psa_hash_abort( operation );

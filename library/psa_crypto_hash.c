@@ -564,7 +564,7 @@ static int is_hash_accelerated( psa_algorithm_t alg )
     }
 }
 
-psa_status_t mbedtls_transparent_test_driver_hash_compute(
+psa_status_t libtestdriver1_mbedtls_psa_hash_compute(
     psa_algorithm_t alg,
     const uint8_t *input,
     size_t input_length,
@@ -579,7 +579,7 @@ psa_status_t mbedtls_transparent_test_driver_hash_compute(
         return( PSA_ERROR_NOT_SUPPORTED );
 }
 
-psa_status_t mbedtls_transparent_test_driver_hash_setup(
+psa_status_t libtestdriver1_mbedtls_psa_hash_setup(
     mbedtls_psa_hash_operation_t *operation,
     psa_algorithm_t alg )
 {
@@ -589,7 +589,7 @@ psa_status_t mbedtls_transparent_test_driver_hash_setup(
         return( PSA_ERROR_NOT_SUPPORTED );
 }
 
-psa_status_t mbedtls_transparent_test_driver_hash_clone(
+psa_status_t libtestdriver1_mbedtls_psa_hash_clone(
     const mbedtls_psa_hash_operation_t *source_operation,
     mbedtls_psa_hash_operation_t *target_operation )
 {
@@ -599,7 +599,7 @@ psa_status_t mbedtls_transparent_test_driver_hash_clone(
         return( PSA_ERROR_BAD_STATE );
 }
 
-psa_status_t mbedtls_transparent_test_driver_hash_update(
+psa_status_t libtestdriver1_mbedtls_psa_hash_update(
     mbedtls_psa_hash_operation_t *operation,
     const uint8_t *input,
     size_t input_length )
@@ -610,7 +610,7 @@ psa_status_t mbedtls_transparent_test_driver_hash_update(
         return( PSA_ERROR_BAD_STATE );
 }
 
-psa_status_t mbedtls_transparent_test_driver_hash_finish(
+psa_status_t libtestdriver1_mbedtls_psa_hash_finish(
     mbedtls_psa_hash_operation_t *operation,
     uint8_t *hash,
     size_t hash_size,
@@ -622,7 +622,7 @@ psa_status_t mbedtls_transparent_test_driver_hash_finish(
         return( PSA_ERROR_BAD_STATE );
 }
 
-psa_status_t mbedtls_transparent_test_driver_hash_abort(
+psa_status_t libtestdriver1_mbedtls_psa_hash_abort(
     mbedtls_psa_hash_operation_t *operation )
 {
     return( hash_abort( operation ) );

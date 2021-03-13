@@ -62,11 +62,24 @@ const uint8_t mbedtls_test_driver_ecdsa_pubkey[65] =
 
 psa_status_t mbedtls_test_transparent_init( void )
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
+    status = libtestdriver1_psa_crypto_init( );
+    if( status != PSA_SUCCESS )
+        return( status );
+#endif
+
+    (void)status;
     return( PSA_SUCCESS );
 }
 
 void mbedtls_test_transparent_free( void )
 {
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
+    libtestdriver1_mbedtls_psa_crypto_free( );
+#endif
+
     return;
 }
 

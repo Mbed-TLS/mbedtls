@@ -101,7 +101,7 @@ class Inputs:
         # PSA_ALG_IS_xxx macros, but are also not currently assigned and are
         # not likely to be assigned in the near future.
         self.hash_algorithms = set(['0x020000fe']) # 0x020000ff is PSA_ALG_ANY_HASH
-        self.mac_algorithms = set(['0x0300ffff'])
+        self.mac_algorithms = set(['0x03007fff'])
         self.ka_algorithms = set(['0x09fc0000'])
         self.kdf_algorithms = set(['0x080000ff'])
         # For AEAD algorithms, the only variability is over the tag length,
@@ -146,6 +146,8 @@ class Inputs:
         self.arguments_for = {
             'mac_length': ['1', '63'],
             'tag_length': ['1', '63'],
+            'min_mac_length': ['1', '63'],
+            'min_tag_length': ['1', '63'],
         }
 
     def get_names(self, type_word):

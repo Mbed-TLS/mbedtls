@@ -1,3 +1,0 @@
-Changes
-   * On recent enough versions of FreeBSD and DragonFlyBSD, the entropy module
-     now uses the getrandom syscall instead of reading from /dev/urandom.

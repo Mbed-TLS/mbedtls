@@ -1658,7 +1658,7 @@ int main( int argc, char *argv[] )
                                                PSA_ALG_SHA_256 ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  "
-                            "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", -ret );
+                            "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
             goto exit;
         }
     }

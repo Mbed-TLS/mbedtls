@@ -122,6 +122,12 @@ static int exercise_mac_key( mbedtls_svc_key_id_t key,
     unsigned char mac[PSA_MAC_MAX_SIZE] = {0};
     size_t mac_length = sizeof( mac );
 
+    /* Convert wildcard algorithm to exercisable algorithm */
+    if( alg & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG )
+    {
+        alg = PSA_ALG_TRUNCATED_MAC( alg, PSA_MAC_TRUNCATED_LENGTH( alg ) );
+    }
+
     if( usage & PSA_KEY_USAGE_SIGN_HASH )
     {
         PSA_ASSERT( psa_mac_sign_setup( &operation, key, alg ) );
@@ -236,9 +242,22 @@ static int exercise_aead_key( mbedtls_svc_key_id_t key,
     size_t ciphertext_length = sizeof( ciphertext );
     size_t plaintext_length = sizeof( ciphertext );
 
+    /* Convert wildcard algorithm to exercisable algorithm */
+    if( alg & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG )
+    {
+        alg = PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, PSA_ALG_AEAD_GET_TAG_LENGTH( alg ) );
+    }
+
     /* Default IV length for AES-GCM is 12 bytes */
     if( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) ==
         PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ) )
+    {
+        nonce_length = 12;
+    }
+
+    /* IV length for CCM needs to be between 7 and 13 bytes */
+    if( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) ==
+        PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ) )
     {
         nonce_length = 12;
     }
@@ -467,7 +486,7 @@ psa_status_t mbedtls_test_psa_key_agreement_with_self(
     private_key_type = psa_get_key_type( &attributes );
     key_bits = psa_get_key_bits( &attributes );
     public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR( private_key_type );
-    public_key_length = PSA_EXPORT_KEY_OUTPUT_SIZE( public_key_type, key_bits );
+    public_key_length = PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE( public_key_type, key_bits );
     ASSERT_ALLOC( public_key, public_key_length );
     PSA_ASSERT( psa_export_public_key( key, public_key, public_key_length,
                                        &public_key_length ) );
@@ -509,7 +528,7 @@ psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
     private_key_type = psa_get_key_type( &attributes );
     key_bits = psa_get_key_bits( &attributes );
     public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR( private_key_type );
-    public_key_length = PSA_EXPORT_KEY_OUTPUT_SIZE( public_key_type, key_bits );
+    public_key_length = PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE( public_key_type, key_bits );
     ASSERT_ALLOC( public_key, public_key_length );
     PSA_ASSERT( psa_export_public_key( key,
                                        public_key, public_key_length,
@@ -518,6 +537,15 @@ psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
     status = psa_raw_key_agreement( alg, key,
                                     public_key, public_key_length,
                                     output, sizeof( output ), &output_length );
+    if ( status == PSA_SUCCESS )
+    {
+        TEST_ASSERT( output_length <=
+                     PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE( private_key_type,
+                                                        key_bits ) );
+        TEST_ASSERT( output_length <=
+                     PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE );
+    }
+
 exit:
     /*
      * Key attributes may have been returned by psa_get_key_attributes()
@@ -625,6 +653,8 @@ int mbedtls_test_psa_exported_key_sanity_check(
         if( ! mbedtls_test_asn1_skip_integer( &p, end, 1, bits / 2 + 1, 0 ) )
             goto exit;
         TEST_EQUAL( p, end );
+
+        TEST_ASSERT( exported_length <= PSA_EXPORT_KEY_PAIR_MAX_SIZE );
     }
     else
 #endif /* MBEDTLS_RSA_C */
@@ -634,6 +664,8 @@ int mbedtls_test_psa_exported_key_sanity_check(
     {
         /* Just the secret value */
         TEST_EQUAL( exported_length, PSA_BITS_TO_BYTES( bits ) );
+
+        TEST_ASSERT( exported_length <= PSA_EXPORT_KEY_PAIR_MAX_SIZE );
     }
     else
 #endif /* MBEDTLS_ECP_C */
@@ -658,6 +690,12 @@ int mbedtls_test_psa_exported_key_sanity_check(
         if( ! mbedtls_test_asn1_skip_integer( &p, end, 2, bits, 1 ) )
             goto exit;
         TEST_EQUAL( p, end );
+
+
+        TEST_ASSERT( exported_length <=
+                     PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE( type, bits ) );
+        TEST_ASSERT( exported_length <=
+                     PSA_EXPORT_PUBLIC_KEY_MAX_SIZE );
     }
     else
 #endif /* MBEDTLS_RSA_C */
@@ -665,6 +703,12 @@ int mbedtls_test_psa_exported_key_sanity_check(
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( type ) )
     {
+
+        TEST_ASSERT( exported_length <=
+                     PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE( type, bits ) );
+        TEST_ASSERT( exported_length <=
+                     PSA_EXPORT_PUBLIC_KEY_MAX_SIZE );
+
         if( PSA_KEY_TYPE_ECC_GET_FAMILY( type ) == PSA_ECC_FAMILY_MONTGOMERY )
         {
             /* The representation of an ECC Montgomery public key is
@@ -785,8 +829,8 @@ static int exercise_export_public_key( mbedtls_svc_key_id_t key )
 
     public_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(
         psa_get_key_type( &attributes ) );
-    exported_size = PSA_EXPORT_KEY_OUTPUT_SIZE( public_type,
-                                                psa_get_key_bits( &attributes ) );
+    exported_size = PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE( public_type,
+                                                       psa_get_key_bits( &attributes ) );
     ASSERT_ALLOC( exported, exported_size );
 
     PSA_ASSERT( psa_export_public_key( key,

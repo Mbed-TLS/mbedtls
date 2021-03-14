@@ -65,8 +65,6 @@
  *
  * \return The hash size for the specified hash algorithm.
  *         If the hash algorithm is not recognized, return 0.
- *         An implementation may return either 0 or the correct size
- *         for a hash algorithm that it recognizes, but does not support.
  */
 #define PSA_HASH_LENGTH(alg)                                        \
     (                                                               \
@@ -91,9 +89,8 @@
  *
  * Maximum size of a hash.
  *
- * This macro must expand to a compile-time constant integer. This value
- * should be the maximum size of a hash supported by the implementation,
- * in bytes, and must be no smaller than this maximum.
+ * This macro expands to a compile-time constant integer. This value
+ * is the maximum size of a hash in bytes.
  */
 /* Note: for HMAC-SHA-3, the block size is 144 bytes for HMAC-SHA3-226,
  * 136 bytes for HMAC-SHA3-256, 104 bytes for SHA3-384, 72 bytes for
@@ -110,9 +107,8 @@
  *
  * Maximum size of a MAC.
  *
- * This macro must expand to a compile-time constant integer. This value
- * should be the maximum size of a MAC supported by the implementation,
- * in bytes, and must be no smaller than this maximum.
+ * This macro expands to a compile-time constant integer. This value
+ * is the maximum size of a MAC in bytes.
  */
 /* All non-HMAC MACs have a maximum size that's smaller than the
  * minimum possible value of PSA_HASH_MAX_SIZE in this implementation. */
@@ -132,14 +128,17 @@
  *                            tag that can be distinguished from the rest of
  *                            the ciphertext, return 0.
  *                            If the AEAD algorithm is not recognized, return 0.
- *                            An implementation may return either 0 or a
- *                            correct size for an AEAD algorithm that it
- *                            recognizes, but does not support.
  */
 #define PSA_AEAD_TAG_LENGTH(alg)                                        \
     (PSA_ALG_IS_AEAD(alg) ?                                             \
      (((alg) & PSA_ALG_AEAD_TAG_LENGTH_MASK) >> PSA_AEAD_TAG_LENGTH_OFFSET) : \
      0)
+
+/** The maximum tag size for all supported AEAD algorithms, in bytes.
+ *
+ * See also #PSA_AEAD_TAG_LENGTH(\p alg).
+ */
+#define PSA_AEAD_TAG_MAX_SIZE       16
 
 /* The maximum size of an RSA key on this implementation, in bits.
  * This is a vendor-specific macro.
@@ -205,7 +204,7 @@
  */
 #define PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE 128
 
-/** The maximum size of a block cipher supported by the implementation. */
+/** The maximum size of a block cipher. */
 #define PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE 16
 
 /** The size of the output of psa_mac_sign_finish(), in bytes.
@@ -242,6 +241,10 @@
  * insufficient buffer size. Depending on the algorithm, the actual size of
  * the ciphertext may be smaller.
  *
+ * \warning This macro may evaluate its arguments multiple times or
+ *          zero times, so you should not pass arguments that contain
+ *          side effects.
+ *
  * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
  *                            #PSA_ALG_IS_AEAD(\p alg) is true).
@@ -250,14 +253,32 @@
  * \return                    The AEAD ciphertext size for the specified
  *                            algorithm.
  *                            If the AEAD algorithm is not recognized, return 0.
- *                            An implementation may return either 0 or a
- *                            correct size for an AEAD algorithm that it
- *                            recognizes, but does not support.
  */
 #define PSA_AEAD_ENCRYPT_OUTPUT_SIZE(alg, plaintext_length)       \
     (PSA_AEAD_TAG_LENGTH(alg) != 0 ?                              \
      (plaintext_length) + PSA_AEAD_TAG_LENGTH(alg) :              \
      0)
+
+/** A sufficient output buffer size for psa_aead_encrypt(), for any of the
+ *  supported key types and AEAD algorithms.
+ *
+ * If the size of the ciphertext buffer is at least this large, it is guaranteed
+ * that psa_aead_encrypt() will not fail due to an insufficient buffer size.
+ *
+ * \note This macro returns a compile-time constant if its arguments are
+ *       compile-time constants.
+ *
+ * See also #PSA_AEAD_ENCRYPT_OUTPUT_SIZE(\p alg, \p plaintext_length).
+ *
+ * \param plaintext_length    Size of the plaintext in bytes.
+ *
+ * \return                    A sufficient output buffer size for any of the
+ *                            supported key types and AEAD algorithms.
+ *
+ */
+#define PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE(plaintext_length)          \
+    ((plaintext_length) + PSA_AEAD_TAG_MAX_SIZE)
+
 
 /** The maximum size of the output of psa_aead_decrypt(), in bytes.
  *
@@ -265,6 +286,10 @@
  * guaranteed that psa_aead_decrypt() will not fail due to an
  * insufficient buffer size. Depending on the algorithm, the actual size of
  * the plaintext may be smaller.
+ *
+ * \warning This macro may evaluate its arguments multiple times or
+ *          zero times, so you should not pass arguments that contain
+ *          side effects.
  *
  * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
@@ -274,14 +299,77 @@
  * \return                    The AEAD ciphertext size for the specified
  *                            algorithm.
  *                            If the AEAD algorithm is not recognized, return 0.
- *                            An implementation may return either 0 or a
- *                            correct size for an AEAD algorithm that it
- *                            recognizes, but does not support.
  */
 #define PSA_AEAD_DECRYPT_OUTPUT_SIZE(alg, ciphertext_length)      \
     (PSA_AEAD_TAG_LENGTH(alg) != 0 ?                              \
      (ciphertext_length) - PSA_AEAD_TAG_LENGTH(alg) :             \
      0)
+
+/** A sufficient output buffer size for psa_aead_decrypt(), for any of the
+ *  supported key types and AEAD algorithms.
+ *
+ * If the size of the plaintext buffer is at least this large, it is guaranteed
+ * that psa_aead_decrypt() will not fail due to an insufficient buffer size.
+ *
+ * \note This macro returns a compile-time constant if its arguments are
+ *       compile-time constants.
+ *
+ * See also #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\p alg, \p ciphertext_length).
+ *
+ * \param ciphertext_length   Size of the ciphertext in bytes.
+ *
+ * \return                    A sufficient output buffer size for any of the
+ *                            supported key types and AEAD algorithms.
+ *
+ */
+#define PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE(ciphertext_length)     \
+     (ciphertext_length)
+
+/** The default nonce size for an AEAD algorithm, in bytes.
+ *
+ * This macro can be used to allocate a buffer of sufficient size to
+ * store the nonce output from #psa_aead_generate_nonce().
+ *
+ * See also #PSA_AEAD_NONCE_MAX_SIZE.
+ *
+ * \note This is not the maximum size of nonce supported as input to
+ *       #psa_aead_set_nonce(), #psa_aead_encrypt() or #psa_aead_decrypt(),
+ *       just the default size that is generated by #psa_aead_generate_nonce().
+ *
+ * \warning This macro may evaluate its arguments multiple times or
+ *          zero times, so you should not pass arguments that contain
+ *          side effects.
+ *
+ * \param key_type  A symmetric key type that is compatible with
+ *                  algorithm \p alg.
+ *
+ * \param alg       An AEAD algorithm (\c PSA_ALG_XXX value such that
+ *                  #PSA_ALG_IS_AEAD(\p alg) is true).
+ *
+ * \return The default nonce size for the specified key type and algorithm.
+ *         If the key type or AEAD algorithm is not recognized,
+ *         or the parameters are incompatible, return 0.
+ */
+#define PSA_AEAD_NONCE_LENGTH(key_type, alg) \
+    (PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) == 16 && \
+         (PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg) == PSA_ALG_CCM || \
+          PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg) == PSA_ALG_GCM) ? 12 : \
+     (key_type) == PSA_KEY_TYPE_CHACHA20 && \
+          PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg) == PSA_ALG_CHACHA20_POLY1305 ? 12 : \
+     0)
+
+/** The maximum default nonce size among all supported pairs of key types and
+ *  AEAD algorithms, in bytes.
+ *
+ * This is equal to or greater than any value that #PSA_AEAD_NONCE_LENGTH()
+ * may return.
+ *
+ * \note This is not the maximum size of nonce supported as input to
+ *       #psa_aead_set_nonce(), #psa_aead_encrypt() or #psa_aead_decrypt(),
+ *       just the largest size that may be generated by
+ *       #psa_aead_generate_nonce().
+ */
+#define PSA_AEAD_NONCE_MAX_SIZE 12
 
 /** A sufficient output buffer size for psa_aead_update().
  *
@@ -289,6 +377,10 @@
  * guaranteed that psa_aead_update() will not fail due to an
  * insufficient buffer size. The actual size of the output may be smaller
  * in any given call.
+ *
+ * \warning This macro may evaluate its arguments multiple times or
+ *          zero times, so you should not pass arguments that contain
+ *          side effects.
  *
  * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
@@ -298,18 +390,28 @@
  * \return                    A sufficient output buffer size for the specified
  *                            algorithm.
  *                            If the AEAD algorithm is not recognized, return 0.
- *                            An implementation may return either 0 or a
- *                            correct size for an AEAD algorithm that it
- *                            recognizes, but does not support.
  */
 /* For all the AEAD modes defined in this specification, it is possible
  * to emit output without delay. However, hardware may not always be
  * capable of this. So for modes based on a block cipher, allow the
  * implementation to delay the output until it has a full block. */
-#define PSA_AEAD_UPDATE_OUTPUT_SIZE(alg, input_length)                  \
-    (PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?                             \
-     PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE, (input_length)) : \
+#define PSA_AEAD_UPDATE_OUTPUT_SIZE(alg, input_length)                              \
+    (PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?                                         \
+     PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE, (input_length)) :    \
      (input_length))
+
+/** A sufficient output buffer size for psa_aead_update(), for any of the
+ *  supported key types and AEAD algorithms.
+ *
+ * If the size of the output buffer is at least this large, it is guaranteed
+ * that psa_aead_update() will not fail due to an insufficient buffer size.
+ *
+ * See also #PSA_AEAD_UPDATE_OUTPUT_SIZE(\p alg, \p input_length).
+ *
+ * \param input_length      Size of the input in bytes.
+ */
+#define PSA_AEAD_UPDATE_OUTPUT_MAX_SIZE(input_length)                           \
+    (PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE, (input_length)))
 
 /** A sufficient ciphertext buffer size for psa_aead_finish().
  *
@@ -325,14 +427,18 @@
  * \return                    A sufficient ciphertext buffer size for the
  *                            specified algorithm.
  *                            If the AEAD algorithm is not recognized, return 0.
- *                            An implementation may return either 0 or a
- *                            correct size for an AEAD algorithm that it
- *                            recognizes, but does not support.
  */
 #define PSA_AEAD_FINISH_OUTPUT_SIZE(alg)                                \
     (PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?                             \
      PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE :                                  \
      0)
+
+/** A sufficient ciphertext buffer size for psa_aead_finish(), for any of the
+ *  supported key types and AEAD algorithms.
+ *
+ * See also #PSA_AEAD_FINISH_OUTPUT_SIZE(\p alg).
+ */
+#define PSA_AEAD_FINISH_OUTPUT_MAX_SIZE     (PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE)
 
 /** A sufficient plaintext buffer size for psa_aead_verify().
  *
@@ -348,14 +454,18 @@
  * \return                    A sufficient plaintext buffer size for the
  *                            specified algorithm.
  *                            If the AEAD algorithm is not recognized, return 0.
- *                            An implementation may return either 0 or a
- *                            correct size for an AEAD algorithm that it
- *                            recognizes, but does not support.
  */
 #define PSA_AEAD_VERIFY_OUTPUT_SIZE(alg)                                \
     (PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?                             \
      PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE :                                  \
      0)
+
+/** A sufficient plaintext buffer size for psa_aead_verify(), for any of the
+ *  supported key types and AEAD algorithms.
+ *
+ * See also #PSA_AEAD_VERIFY_OUTPUT_SIZE(\p alg).
+ */
+#define PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE     (PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE)
 
 #define PSA_RSA_MINIMUM_PADDING_SIZE(alg)                         \
     (PSA_ALG_IS_RSA_OAEP(alg) ?                                   \
@@ -393,9 +503,8 @@
  *         a buffer size in bytes that guarantees that
  *         psa_sign_hash() will not fail with
  *         #PSA_ERROR_BUFFER_TOO_SMALL.
- *         If the parameters are a valid combination that is not supported
- *         by the implementation, this macro shall return either a
- *         sensible size or 0.
+ *         If the parameters are a valid combination that is not supported,
+ *         return either a sensible size or 0.
  *         If the parameters are not valid, the
  *         return value is unspecified.
  */
@@ -411,9 +520,8 @@
  *
  * Maximum size of an asymmetric signature.
  *
- * This macro must expand to a compile-time constant integer. This value
- * should be the maximum size of a signature supported by the implementation,
- * in bytes, and must be no smaller than this maximum.
+ * This macro expands to a compile-time constant integer. This value
+ * is the maximum size of a signature in bytes.
  */
 #define PSA_SIGNATURE_MAX_SIZE                               \
     (PSA_BITS_TO_BYTES(PSA_VENDOR_RSA_MAX_KEY_BITS) > PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE ? \
@@ -440,9 +548,8 @@
  *         a buffer size in bytes that guarantees that
  *         psa_asymmetric_encrypt() will not fail with
  *         #PSA_ERROR_BUFFER_TOO_SMALL.
- *         If the parameters are a valid combination that is not supported
- *         by the implementation, this macro shall return either a
- *         sensible size or 0.
+ *         If the parameters are a valid combination that is not supported,
+ *         return either a sensible size or 0.
  *         If the parameters are not valid, the
  *         return value is unspecified.
  */
@@ -450,6 +557,15 @@
     (PSA_KEY_TYPE_IS_RSA(key_type) ?                                    \
      ((void)alg, PSA_BITS_TO_BYTES(key_bits)) :                         \
      0)
+
+/** A sufficient output buffer size for psa_asymmetric_encrypt(), for any
+ *  supported asymmetric encryption.
+ *
+ * See also #PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(\p key_type, \p key_bits, \p alg).
+ */
+/* This macro assumes that RSA is the only supported asymmetric encryption. */
+#define PSA_ASYMMETRIC_ENCRYPT_OUTPUT_MAX_SIZE          \
+    (PSA_BITS_TO_BYTES(PSA_VENDOR_RSA_MAX_KEY_BITS))
 
 /** Sufficient output buffer size for psa_asymmetric_decrypt().
  *
@@ -471,9 +587,8 @@
  *         a buffer size in bytes that guarantees that
  *         psa_asymmetric_decrypt() will not fail with
  *         #PSA_ERROR_BUFFER_TOO_SMALL.
- *         If the parameters are a valid combination that is not supported
- *         by the implementation, this macro shall return either a
- *         sensible size or 0.
+ *         If the parameters are a valid combination that is not supported,
+ *         return either a sensible size or 0.
  *         If the parameters are not valid, the
  *         return value is unspecified.
  */
@@ -481,6 +596,16 @@
     (PSA_KEY_TYPE_IS_RSA(key_type) ?                                    \
      PSA_BITS_TO_BYTES(key_bits) - PSA_RSA_MINIMUM_PADDING_SIZE(alg) :  \
      0)
+
+/** A sufficient output buffer size for psa_asymmetric_decrypt(), for any
+ *  supported asymmetric decryption.
+ *
+ * This macro assumes that RSA is the only supported asymmetric encryption.
+ *
+ * See also #PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(\p key_type, \p key_bits, \p alg).
+ */
+#define PSA_ASYMMETRIC_DECRYPT_OUTPUT_MAX_SIZE          \
+    (PSA_BITS_TO_BYTES(PSA_VENDOR_RSA_MAX_KEY_BITS))
 
 /* Maximum size of the ASN.1 encoding of an INTEGER with the specified
  * number of bits.
@@ -627,11 +752,9 @@
  *         a buffer size in bytes that guarantees that
  *         psa_export_key() or psa_export_public_key() will not fail with
  *         #PSA_ERROR_BUFFER_TOO_SMALL.
- *         If the parameters are a valid combination that is not supported
- *         by the implementation, this macro shall return either a
- *         sensible size or 0.
- *         If the parameters are not valid, the
- *         return value is unspecified.
+ *         If the parameters are a valid combination that is not supported,
+ *         return either a sensible size or 0.
+ *         If the parameters are not valid, the return value is unspecified.
  */
 #define PSA_EXPORT_KEY_OUTPUT_SIZE(key_type, key_bits)                                              \
     (PSA_KEY_TYPE_IS_UNSTRUCTURED(key_type) ? PSA_BITS_TO_BYTES(key_bits) :                         \
@@ -643,48 +766,123 @@
      PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY(key_type) ? PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(key_bits) :  \
      0)
 
-/** The default nonce size for an AEAD algorithm, in bytes.
+/** Sufficient output buffer size for psa_export_public_key().
  *
- * This macro can be used to allocate a buffer of sufficient size to
- * store the nonce output from #psa_aead_generate_nonce().
- *
- * See also #PSA_AEAD_NONCE_MAX_SIZE.
- *
- * \note This is not the maximum size of nonce supported as input to #psa_aead_set_nonce(),
- *       #psa_aead_encrypt() or #psa_aead_decrypt(), just the default size that is generated by
- *       #psa_aead_generate_nonce().
+ * This macro returns a compile-time constant if its arguments are
+ * compile-time constants.
  *
  * \warning This macro may evaluate its arguments multiple times or
  *          zero times, so you should not pass arguments that contain
  *          side effects.
  *
- * \param key_type  A symmetric key type that is compatible with algorithm \p alg.
+ * The following code illustrates how to allocate enough memory to export
+ * a public key by querying the key type and size at runtime.
+ * \code{c}
+ * psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+ * psa_status_t status;
+ * status = psa_get_key_attributes(key, &attributes);
+ * if (status != PSA_SUCCESS) handle_error(...);
+ * psa_key_type_t key_type = psa_get_key_type(&attributes);
+ * size_t key_bits = psa_get_key_bits(&attributes);
+ * size_t buffer_size = PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(key_type, key_bits);
+ * psa_reset_key_attributes(&attributes);
+ * uint8_t *buffer = malloc(buffer_size);
+ * if (buffer == NULL) handle_error(...);
+ * size_t buffer_length;
+ * status = psa_export_public_key(key, buffer, buffer_size, &buffer_length);
+ * if (status != PSA_SUCCESS) handle_error(...);
+ * \endcode
  *
- * \param alg       An AEAD algorithm (\c PSA_ALG_XXX value such that #PSA_ALG_IS_AEAD(\p alg) is true).
+ * \param key_type      A public key or key pair key type.
+ * \param key_bits      The size of the key in bits.
  *
- * \return The default nonce size for the specified key type and algorithm.
- *         If the key type or AEAD algorithm is not recognized,
- *         or the parameters are incompatible, return 0.
- *         An implementation can return either 0 or a correct size for a key type
- *         and AEAD algorithm that it recognizes, but does not support.
+ * \return              If the parameters are valid and supported, return
+ *                      a buffer size in bytes that guarantees that
+ *                      psa_export_public_key() will not fail with
+ *                      #PSA_ERROR_BUFFER_TOO_SMALL.
+ *                      If the parameters are a valid combination that is not
+ *                      supported, return either a sensible size or 0.
+ *                      If the parameters are not valid,
+ *                      the return value is unspecified.
+ *
+ *                      If the parameters are valid and supported,
+ *                      return the same result as
+ *                      #PSA_EXPORT_KEY_OUTPUT_SIZE(
+ *                          \p #PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(\p key_type),
+ *                          \p key_bits).
  */
-#define PSA_AEAD_NONCE_LENGTH(key_type, alg) \
-    (PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) == 16 && \
-         (PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg) == PSA_ALG_CCM || \
-          PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg) == PSA_ALG_GCM) ? 12 : \
-     (key_type) == PSA_KEY_TYPE_CHACHA20 && \
-          PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg) == PSA_ALG_CHACHA20_POLY1305 ? 12 : \
+#define PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(key_type, key_bits)                           \
+    (PSA_KEY_TYPE_IS_RSA(key_type) ? PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(key_bits) : \
+     PSA_KEY_TYPE_IS_ECC(key_type) ? PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(key_bits) : \
      0)
 
-/** The maximum default nonce size among all supported pairs of key types and AEAD algorithms, in bytes.
+/** Sufficient buffer size for exporting any asymmetric key pair.
  *
- * This is equal to or greater than any value that #PSA_AEAD_NONCE_LENGTH() may return.
+ * This macro expands to a compile-time constant integer. This value is
+ * a sufficient buffer size when calling psa_export_key() to export any
+ * asymmetric key pair, regardless of the exact key type and key size.
  *
- * \note This is not the maximum size of nonce supported as input to #psa_aead_set_nonce(),
- *       #psa_aead_encrypt() or #psa_aead_decrypt(), just the largest size that may be generated by
- *       #psa_aead_generate_nonce().
+ * See also #PSA_EXPORT_KEY_OUTPUT_SIZE(\p key_type, \p key_bits).
  */
-#define PSA_AEAD_NONCE_MAX_SIZE 12
+#define PSA_EXPORT_KEY_PAIR_MAX_SIZE                                            \
+    (PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS) >        \
+     PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS) ?      \
+     PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS) :        \
+     PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS))
+
+/** Sufficient buffer size for exporting any asymmetric public key.
+ *
+ * This macro expands to a compile-time constant integer. This value is
+ * a sufficient buffer size when calling psa_export_key() or
+ * psa_export_public_key() to export any asymmetric public key,
+ * regardless of the exact key type and key size.
+ *
+ * See also #PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(\p key_type, \p key_bits).
+ */
+#define PSA_EXPORT_PUBLIC_KEY_MAX_SIZE                                          \
+    (PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS) >      \
+     PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS) ?    \
+     PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS) :      \
+     PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS))
+
+/** Sufficient output buffer size for psa_raw_key_agreement().
+ *
+ * This macro returns a compile-time constant if its arguments are
+ * compile-time constants.
+ *
+ * \warning This macro may evaluate its arguments multiple times or
+ *          zero times, so you should not pass arguments that contain
+ *          side effects.
+ *
+ * See also #PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE.
+ *
+ * \param key_type      A supported key type.
+ * \param key_bits      The size of the key in bits.
+ *
+ * \return              If the parameters are valid and supported, return
+ *                      a buffer size in bytes that guarantees that
+ *                      psa_raw_key_agreement() will not fail with
+ *                      #PSA_ERROR_BUFFER_TOO_SMALL.
+ *                      If the parameters are a valid combination that
+ *                      is not supported, return either a sensible size or 0.
+ *                      If the parameters are not valid,
+ *                      the return value is unspecified.
+ */
+/* FFDH is not yet supported in PSA. */
+#define PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(key_type, key_bits)   \
+    (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type) ?                   \
+     PSA_BITS_TO_BYTES(key_bits) :                              \
+     0)
+
+/** Maximum size of the output from psa_raw_key_agreement().
+ *
+ * This macro expands to a compile-time constant integer. This value is the
+ * maximum size of the output any raw key agreement algorithm, in bytes.
+ *
+ * See also #PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(\p key_type, \p key_bits).
+ */
+#define PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE   \
+    (PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS))
 
 /** The default IV size for a cipher algorithm, in bytes.
  *
@@ -709,8 +907,6 @@
  *         If the algorithm does not use an IV, return 0.
  *         If the key type or cipher algorithm is not recognized,
  *         or the parameters are incompatible, return 0.
- *         An implementation can return either 0 or a correct size for a key type
- *         and cipher algorithm that it recognizes, but does not support.
  */
 #define PSA_CIPHER_IV_LENGTH(key_type, alg) \
     (PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) > 1 && \
@@ -729,5 +925,164 @@
  * See also #PSA_CIPHER_IV_LENGTH().
  */
 #define PSA_CIPHER_IV_MAX_SIZE 16
+
+/** The maximum size of the output of psa_cipher_encrypt(), in bytes.
+ *
+ * If the size of the output buffer is at least this large, it is guaranteed
+ * that psa_cipher_encrypt() will not fail due to an insufficient buffer size.
+ * Depending on the algorithm, the actual size of the output might be smaller.
+ *
+ * See also #PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE(\p input_length).
+ *
+ * \warning This macro may evaluate its arguments multiple times or
+ *          zero times, so you should not pass arguments that contain
+ *          side effects.
+ *
+ * \param key_type      A symmetric key type that is compatible with algorithm
+ *                      alg.
+ * \param alg           A cipher algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_CIPHER(\p alg) is true).
+ * \param input_length  Size of the input in bytes.
+ *
+ * \return              A sufficient output size for the specified key type and
+ *                      algorithm. If the key type or cipher algorithm is not
+ *                      recognized, or the parameters are incompatible,
+ *                      return 0.
+ */
+#define PSA_CIPHER_ENCRYPT_OUTPUT_SIZE(key_type, alg, input_length)             \
+    (alg == PSA_ALG_CBC_PKCS7 ?                                                 \
+     PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type),          \
+                              (input_length) + 1) +                             \
+     PSA_CIPHER_IV_LENGTH((key_type), (alg)) :                                  \
+     (PSA_ALG_IS_CIPHER(alg) ?                                                  \
+      (input_length) + PSA_CIPHER_IV_LENGTH((key_type), (alg)) :                \
+     0))
+
+/** A sufficient output buffer size for psa_cipher_encrypt(), for any of the
+ *  supported key types and cipher algorithms.
+ *
+ * If the size of the output buffer is at least this large, it is guaranteed
+ * that psa_cipher_encrypt() will not fail due to an insufficient buffer size.
+ *
+ * See also #PSA_CIPHER_ENCRYPT_OUTPUT_SIZE(\p key_type, \p alg, \p input_length).
+ *
+ * \param input_length  Size of the input in bytes.
+ *
+ */
+#define PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE(input_length)                        \
+    (PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE,                  \
+                              (input_length) + 1) +                             \
+     PSA_CIPHER_IV_MAX_SIZE)
+
+/** The maximum size of the output of psa_cipher_decrypt(), in bytes.
+ *
+ * If the size of the output buffer is at least this large, it is guaranteed
+ * that psa_cipher_decrypt() will not fail due to an insufficient buffer size.
+ * Depending on the algorithm, the actual size of the output might be smaller.
+ *
+ * See also #PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE(\p input_length).
+ *
+ * \param key_type      A symmetric key type that is compatible with algorithm
+ *                      alg.
+ * \param alg           A cipher algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_CIPHER(\p alg) is true).
+ * \param input_length  Size of the input in bytes.
+ *
+ * \return              A sufficient output size for the specified key type and
+ *                      algorithm. If the key type or cipher algorithm is not
+ *                      recognized, or the parameters are incompatible,
+ *                      return 0.
+ */
+#define PSA_CIPHER_DECRYPT_OUTPUT_SIZE(key_type, alg, input_length)                 \
+    (PSA_ALG_IS_CIPHER(alg) &&                                                      \
+     ((key_type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_SYMMETRIC ? \
+     (input_length) :                                                               \
+     0)
+
+/** A sufficient output buffer size for psa_cipher_decrypt(), for any of the
+ *  supported key types and cipher algorithms.
+ *
+ * If the size of the output buffer is at least this large, it is guaranteed
+ * that psa_cipher_decrypt() will not fail due to an insufficient buffer size.
+ *
+ * See also #PSA_CIPHER_DECRYPT_OUTPUT_SIZE(\p key_type, \p alg, \p input_length).
+ *
+ * \param input_length  Size of the input in bytes.
+ */
+#define PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE(input_length)    \
+    (input_length)
+
+/** A sufficient output buffer size for psa_cipher_update().
+ *
+ * If the size of the output buffer is at least this large, it is guaranteed
+ * that psa_cipher_update() will not fail due to an insufficient buffer size.
+ * The actual size of the output might be smaller in any given call.
+ *
+ * See also #PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE(\p input_length).
+ *
+ * \param key_type      A symmetric key type that is compatible with algorithm
+ *                      alg.
+ * \param alg           A cipher algorithm (PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_CIPHER(\p alg) is true).
+ * \param input_length  Size of the input in bytes.
+ *
+ * \return              A sufficient output size for the specified key type and
+ *                      algorithm. If the key type or cipher algorithm is not
+ *                      recognized, or the parameters are incompatible, return 0.
+ */
+#define PSA_CIPHER_UPDATE_OUTPUT_SIZE(key_type, alg, input_length)              \
+    (PSA_ALG_IS_CIPHER(alg) ?                                                   \
+     (((alg) == PSA_ALG_CBC_PKCS7      ||                                       \
+       (alg) == PSA_ALG_CBC_NO_PADDING ||                                       \
+       (alg) == PSA_ALG_ECB_NO_PADDING) ?                                       \
+      PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type),         \
+                                input_length) :                                 \
+      (input_length)) :                                                         \
+     0)
+
+/** A sufficient output buffer size for psa_cipher_update(), for any of the
+ *  supported key types and cipher algorithms.
+ *
+ * If the size of the output buffer is at least this large, it is guaranteed
+ * that psa_cipher_update() will not fail due to an insufficient buffer size.
+ *
+ * See also #PSA_CIPHER_UPDATE_OUTPUT_SIZE(\p key_type, \p alg, \p input_length).
+ *
+ * \param input_length  Size of the input in bytes.
+ */
+#define PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE(input_length)     \
+    (PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE, input_length))
+
+/** A sufficient ciphertext buffer size for psa_cipher_finish().
+ *
+ * If the size of the ciphertext buffer is at least this large, it is
+ * guaranteed that psa_cipher_finish() will not fail due to an insufficient
+ * ciphertext buffer size. The actual size of the output might be smaller in
+ * any given call.
+ *
+ * See also #PSA_CIPHER_FINISH_OUTPUT_MAX_SIZE().
+ *
+ * \param key_type      A symmetric key type that is compatible with algorithm
+ *                      alg.
+ * \param alg           A cipher algorithm (PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_CIPHER(\p alg) is true).
+ * \return              A sufficient output size for the specified key type and
+ *                      algorithm. If the key type or cipher algorithm is not
+ *                      recognized, or the parameters are incompatible, return 0.
+ */
+#define PSA_CIPHER_FINISH_OUTPUT_SIZE(key_type, alg)    \
+    (PSA_ALG_IS_CIPHER(alg) ?                           \
+     (alg == PSA_ALG_CBC_PKCS7 ?                        \
+      PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) :         \
+      0) :                                              \
+     0)
+
+/** A sufficient ciphertext buffer size for psa_cipher_finish(), for any of the
+ *  supported key types and cipher algorithms.
+ *
+ * See also #PSA_CIPHER_FINISH_OUTPUT_SIZE(\p key_type, \p alg).
+ */
+#define PSA_CIPHER_FINISH_OUTPUT_MAX_SIZE           \
+    (PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE)
 
 #endif /* PSA_CRYPTO_SIZES_H */

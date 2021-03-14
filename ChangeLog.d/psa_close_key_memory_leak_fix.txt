@@ -1,3 +1,0 @@
-Bugfix
-   * Fix memory leak that occured when calling psa_close_key() on a
-     wrapped key with MBEDTLS_PSA_CRYPTO_SE_C defined.

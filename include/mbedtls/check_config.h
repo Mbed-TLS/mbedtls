@@ -690,7 +690,7 @@
 #endif
 
 // TODO [TR] for #4029: Trevis failure is triggered here - what is legal selection?
-#if defined(MBEDTLS_SSL_TLS_C) && /* (defined(MBEDTLS_SSL_PROTO_SSL3) && */ \
+#if defined(MBEDTLS_SSL_TLS_C) && ( /* defined(MBEDTLS_SSL_PROTO_SSL3) && */ \
     defined(MBEDTLS_SSL_PROTO_TLS1_1) && !defined(MBEDTLS_SSL_PROTO_TLS1))
 #error "Illegal protocol selection"
 #endif

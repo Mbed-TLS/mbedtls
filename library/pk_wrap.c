@@ -941,7 +941,7 @@ static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
 
     /* this is only reached if the signature was invalid */
     if( len == 0 )
-        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED ); // TODO [TR] for #4029: MBEDTLS_ERR_PK_HW_ACCEL_FAILED is deprecated - most probably we should return other error code here, but which one?
 
     /* if the msb is 1, ASN.1 requires that we prepend a 0.
      * Neither r nor s can be 0, so we can assume len > 0 at all times. */

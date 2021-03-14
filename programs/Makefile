@@ -1,6 +1,5 @@
 
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
-# To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
 
 CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -Wextra
@@ -48,11 +47,6 @@ else
 DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
-endif
-
-# Zlib shared library extensions:
-ifdef ZLIB
-LOCAL_LDFLAGS += -lz
 endif
 
 APPS = \

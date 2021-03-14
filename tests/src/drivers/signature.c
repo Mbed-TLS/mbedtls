@@ -73,7 +73,7 @@ psa_status_t test_transparent_signature_sign_hash(
     mbedtls_ecp_group_id grp_id;
     switch( psa_get_key_type( attributes ) )
     {
-        case PSA_ECC_CURVE_SECP_R1:
+        case PSA_ECC_CURVE_SECP_R1:  // TODO [TR] for #4029: PSA_ECC_CURVE_SECP_R1 has been deprecated - what to do here?
             switch( psa_get_key_bits( attributes ) )
             {
                 case 256:
@@ -116,7 +116,7 @@ psa_status_t test_transparent_signature_sign_hash(
         status = PSA_ERROR_BUFFER_TOO_SMALL;
         goto cleanup;
     }
-    MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_det( &ecp.grp, &r, &s, &ecp.d,
+    MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_det( &ecp.grp, &r, &s, &ecp.d, // TDOD [TR]: what to do here? *_ext has additional parameters.
                                   hash, hash_length, md_alg ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &r,
                                                signature,
@@ -185,7 +185,7 @@ psa_status_t test_transparent_signature_verify_hash(
     mbedtls_ecp_group_id grp_id;
     switch( psa_get_key_type( attributes ) )
     {
-        case PSA_ECC_CURVE_SECP_R1:
+        case PSA_ECC_CURVE_SECP_R1: // TODO [TR] for #4029: PSA_ECC_CURVE_SECP_R1 has been deprecated - what to do here?
             switch( psa_get_key_bits( attributes ) )
             {
                 case 256:

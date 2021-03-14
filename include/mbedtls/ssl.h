@@ -51,19 +51,6 @@
 #include "mbedtls/ecdh.h"
 #endif
 
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#warning "Record compression support via MBEDTLS_ZLIB_SUPPORT is deprecated and will be removed in the next major revision of the library"
-#endif
-
-#if defined(MBEDTLS_DEPRECATED_REMOVED)
-#error "Record compression support via MBEDTLS_ZLIB_SUPPORT is deprecated and cannot be used if MBEDTLS_DEPRECATED_REMOVED is set"
-#endif
-
-#include "zlib.h"
-#endif
-
 #if defined(MBEDTLS_HAVE_TIME)
 #include "mbedtls/platform_time.h"
 #endif
@@ -296,11 +283,7 @@
 /*
  * Length of the verify data for secure renegotiation
  */
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-#define MBEDTLS_SSL_VERIFY_DATA_MAX_LEN 36
-#else
 #define MBEDTLS_SSL_VERIFY_DATA_MAX_LEN 12
-#endif
 
 /*
  * Signaling ciphersuite values (SCSV)
@@ -1330,9 +1313,6 @@ struct mbedtls_ssl_context
     uint16_t mtu;               /*!< path mtu, used to fragment outgoing messages */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    unsigned char *compress_buf;        /*!<  zlib data buffer        */
-#endif /* MBEDTLS_ZLIB_SUPPORT */
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     signed char split_done;     /*!< current record already splitted? */
 #endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
@@ -1396,44 +1376,6 @@ struct mbedtls_ssl_context
                             *   and #MBEDTLS_SSL_CID_DISABLED. */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 };
-
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-
-#define MBEDTLS_SSL_CHANNEL_OUTBOUND   MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( 0 )
-#define MBEDTLS_SSL_CHANNEL_INBOUND    MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( 1 )
-
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif /* MBEDTLS_DEPRECATED_WARNING */
-
-MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_init)(
-                    mbedtls_ssl_context *ssl,
-                    const unsigned char *key_enc, const unsigned char *key_dec,
-                    size_t keylen,
-                    const unsigned char *iv_enc,  const unsigned char *iv_dec,
-                    size_t ivlen,
-                    const unsigned char *mac_enc, const unsigned char *mac_dec,
-                    size_t maclen);
-MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_activate)(
-                                                    mbedtls_ssl_context *ssl,
-                                                    int direction );
-MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_reset)(
-                                                    mbedtls_ssl_context *ssl );
-MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_write)(
-                                                    mbedtls_ssl_context *ssl );
-MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_read)(
-                                                    mbedtls_ssl_context *ssl );
-MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_finish)(
-                                                    mbedtls_ssl_context *ssl );
-
-#undef MBEDTLS_DEPRECATED
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
-
-#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 
 /**
  * \brief               Return the name of the ciphersuite associated with the
@@ -2915,33 +2857,6 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif
-
-/**
- * \brief          Set the Diffie-Hellman public P and G values,
- *                 read as hexadecimal strings (server-side only)
- *                 (Default values: MBEDTLS_DHM_RFC3526_MODP_2048_[PG])
- *
- * \param conf     SSL configuration
- * \param dhm_P    Diffie-Hellman-Merkle modulus
- * \param dhm_G    Diffie-Hellman-Merkle generator
- *
- * \deprecated     Superseded by \c mbedtls_ssl_conf_dh_param_bin.
- *
- * \return         0 if successful
- */
-MBEDTLS_DEPRECATED int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf,
-                                                  const char *dhm_P,
-                                                  const char *dhm_G );
-
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-
 /**
  * \brief          Set the Diffie-Hellman public P and G values
  *                 from big-endian binary presentations.
@@ -3383,7 +3298,7 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
  * \warning        Use of RC4 in DTLS/TLS has been prohibited by RFC 7465
  *                 for security reasons. Use at your own risk.
  *
- * \note           This function is deprecated and will be removed in
+ * \note           This function is !deprecated! and will be removed in
  *                 a future version of the library.
  *                 RC4 is disabled by default at compile time and needs to be
  *                 actively enabled for use with legacy systems.
@@ -3391,6 +3306,8 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
  * \param conf     SSL configuration
  * \param arc4     MBEDTLS_SSL_ARC4_ENABLED or MBEDTLS_SSL_ARC4_DISABLED
  */
+// TODO [TR] for #4029: seems that this feature is deprecated but is still used in the code. What to do here?
+// should we deprecate the MBEDTLS_ARC4_C as well?
 void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 );
 #endif /* MBEDTLS_ARC4_C */
 
@@ -3463,7 +3380,7 @@ void mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate );
  * \brief          Enable / Disable 1/n-1 record splitting
  *                 (Default: MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED)
  *
- * \note           Only affects SSLv3 and TLS 1.0, not higher versions.
+ * \note           Only affects TLS 1.0, not higher versions.
  *                 Does not affect non-CBC ciphersuites in any version.
  *
  * \param conf     SSL configuration
@@ -3687,7 +3604,7 @@ uint32_t mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl );
 const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl );
 
 /**
- * \brief          Return the current SSL version (SSLv3/TLSv1/etc)
+ * \brief          Return the current SSL version (TLSv1/etc)
  *
  * \param ssl      SSL context
  *
@@ -3731,7 +3648,7 @@ size_t mbedtls_ssl_get_output_max_frag_len( const mbedtls_ssl_context *ssl );
  *                 the input buffer. This is the negotiated maximum fragment
  *                 length, or, if there is none, MBEDTLS_SSL_MAX_CONTENT_LEN.
  *                 If it is not defined either, the value is 2^14. This function
- *                 works as its predecessor, \c mbedtls_ssl_get_max_frag_len().
+ *                 works as its predecessor, \c mbedtls_ssl_get_input_max_frag_len().
  *
  * \sa             mbedtls_ssl_conf_max_frag_len()
  * \sa             mbedtls_ssl_get_max_record_payload()
@@ -3742,31 +3659,6 @@ size_t mbedtls_ssl_get_output_max_frag_len( const mbedtls_ssl_context *ssl );
  */
 size_t mbedtls_ssl_get_input_max_frag_len( const mbedtls_ssl_context *ssl );
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif
-
-/**
- * \brief          This function is a deprecated approach to getting the max
- *                 fragment length. Its an alias for
- *                 \c mbedtls_ssl_get_output_max_frag_len(), as the behaviour
- *                 is the same. See \c mbedtls_ssl_get_output_max_frag_len() for
- *                 more detail.
- *
- * \sa             mbedtls_ssl_get_input_max_frag_len()
- * \sa             mbedtls_ssl_get_output_max_frag_len()
- *
- * \param ssl      SSL context
- *
- * \return         Current maximum fragment length for the output buffer.
- */
-MBEDTLS_DEPRECATED size_t mbedtls_ssl_get_max_frag_len(
-                                        const mbedtls_ssl_context *ssl );
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 /**

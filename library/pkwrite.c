@@ -271,7 +271,7 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
 
         key_id = *((psa_key_id_t*) key->pk_ctx );
         if( PSA_SUCCESS != psa_get_key_attributes( key_id, &attributes ) )
-            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED ); // TODO [TR] for #4029: MBEDTLS_ERR_PK_HW_ACCEL_FAILED is deprecated - most probably we should return other error code here, but which one?
         key_type = psa_get_key_type( &attributes );
         bits = psa_get_key_bits( &attributes );
         psa_reset_key_attributes( &attributes );

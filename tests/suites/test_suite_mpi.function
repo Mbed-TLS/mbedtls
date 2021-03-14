@@ -1246,7 +1246,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_GENPRIME */
-void mbedtls_mpi_is_prime( int radix_X, char * input_X, int div_result )
+void mbedtls_mpi_is_prime_ext( int radix_X, char * input_X, int div_result )
 {
     mbedtls_mpi X;
     int res;

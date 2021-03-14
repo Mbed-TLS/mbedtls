@@ -525,7 +525,7 @@ sign:
         /*
          * Since the output of the RNGs is always the same for the same key and
          * message, this limits the efficiency of blinding and leaks information
-         * through side channels. After mbedtls_ecdsa_sign_det() is removed NULL
+         * through side channels. After mbedtls_ecdsa_sign_det() is removed NULL TODO [TR]: what should be done here?
          * won't be a valid value for f_rng_blind anymore. Therefore it should
          * be checked by the caller and this branch and check can be removed.
          */
@@ -552,23 +552,6 @@ cleanup:
 /*
  * Deterministic signature wrappers
  */
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r,
-                            mbedtls_mpi *s, const mbedtls_mpi *d,
-                            const unsigned char *buf, size_t blen,
-                            mbedtls_md_type_t md_alg )
-{
-    ECDSA_VALIDATE_RET( grp   != NULL );
-    ECDSA_VALIDATE_RET( r     != NULL );
-    ECDSA_VALIDATE_RET( s     != NULL );
-    ECDSA_VALIDATE_RET( d     != NULL );
-    ECDSA_VALIDATE_RET( buf   != NULL || blen == 0 );
-
-    return( ecdsa_sign_det_restartable( grp, r, s, d, buf, blen, md_alg,
-                                        NULL, NULL, NULL ) );
-}
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 int mbedtls_ecdsa_sign_det_ext( mbedtls_ecp_group *grp, mbedtls_mpi *r,
                                 mbedtls_mpi *s, const mbedtls_mpi *d,
@@ -810,22 +793,6 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx,
     return( mbedtls_ecdsa_write_signature_restartable(
                 ctx, md_alg, hash, hlen, sig, slen, f_rng, p_rng, NULL ) );
 }
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED) && \
-    defined(MBEDTLS_ECDSA_DETERMINISTIC)
-int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
-                               const unsigned char *hash, size_t hlen,
-                               unsigned char *sig, size_t *slen,
-                               mbedtls_md_type_t md_alg )
-{
-    ECDSA_VALIDATE_RET( ctx  != NULL );
-    ECDSA_VALIDATE_RET( hash != NULL );
-    ECDSA_VALIDATE_RET( sig  != NULL );
-    ECDSA_VALIDATE_RET( slen != NULL );
-    return( mbedtls_ecdsa_write_signature( ctx, md_alg, hash, hlen, sig, slen,
-                                   NULL, NULL ) );
-}
-#endif
 
 /*
  * Read and check signature

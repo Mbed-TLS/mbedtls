@@ -505,10 +505,10 @@ int main( void )
     "    min_version=%%s      default: (library default: tls1)\n"       \
     "    max_version=%%s      default: (library default: tls1_2)\n"     \
     "    force_version=%%s    default: \"\" (none)\n"       \
-    "                        options: ssl3, tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
+    "                        options: tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
     "\n"                                                                \
     "    version_suites=a,b,c,d      per-version ciphersuites\n"        \
-    "                                in order from ssl3 to tls1_2\n"    \
+    "                                in order from tls1 to tls1_2\n"    \
     "                                default: all enabled\n"            \
     "    force_ciphersuite=<name>    default: all enabled\n"            \
     "    query_config=<name>         return 0 if the specified\n"       \
@@ -1730,9 +1730,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "min_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_0;
-            else if( strcmp( q, "tls1" ) == 0 )
+            if( strcmp( q, "tls1" ) == 0 )
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
             else if( strcmp( q, "tls1_1" ) == 0 ||
                      strcmp( q, "dtls1" ) == 0 )
@@ -1745,9 +1743,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "max_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_0;
-            else if( strcmp( q, "tls1" ) == 0 )
+            if( strcmp( q, "tls1" ) == 0 )
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
             else if( strcmp( q, "tls1_1" ) == 0 ||
                      strcmp( q, "dtls1" ) == 0 )
@@ -1778,12 +1774,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "force_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_0;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_0;
-            }
-            else if( strcmp( q, "tls1" ) == 0 )
+            if( strcmp( q, "tls1" ) == 0 )
             {
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
@@ -3003,7 +2994,7 @@ int main( int argc, char *argv[] )
 #endif
     if( ret != 0 )
     {
-        mbedtls_printf( "  failed\n  mbedtls_ssl_conf_dh_param returned -0x%04X\n\n", (unsigned int) -ret );
+        mbedtls_printf( "  failed\n  mbedtls_ssl_conf_dh_param_ctx returned -0x%04X\n\n", (unsigned int) -ret );
         goto exit;
     }
 #endif

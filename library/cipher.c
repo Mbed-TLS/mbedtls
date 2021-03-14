@@ -1239,6 +1239,10 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
         else
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+        // TODO [TR] for #4029 - the MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED
+        // is deprecated nd what's more it's not listed as possible return values
+        // in function prototype description! What to do here?
+
         /* In the following, we can immediately return on an error,
          * because the PSA Crypto API guarantees that cipher operations
          * are terminated by unsuccessful calls to psa_cipher_update(),
@@ -1289,7 +1293,7 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
 #if defined(MBEDTLS_CIPHER_MODE_AEAD)
 /*
  * Packet-oriented encryption for AEAD modes: internal function shared by
- * mbedtls_cipher_auth_encrypt() and mbedtls_cipher_auth_encrypt_ext().
+ * mbedtls_cipher_auth_encrypt_ext().
  */
 static int mbedtls_cipher_aead_encrypt( mbedtls_cipher_context_t *ctx,
                          const unsigned char *iv, size_t iv_len,
@@ -1369,7 +1373,7 @@ static int mbedtls_cipher_aead_encrypt( mbedtls_cipher_context_t *ctx,
 
 /*
  * Packet-oriented encryption for AEAD modes: internal function shared by
- * mbedtls_cipher_auth_encrypt() and mbedtls_cipher_auth_encrypt_ext().
+ * mbedtls_cipher_auth_encrypt_ext().
  */
 static int mbedtls_cipher_aead_decrypt( mbedtls_cipher_context_t *ctx,
                          const unsigned char *iv, size_t iv_len,
@@ -1468,54 +1472,6 @@ static int mbedtls_cipher_aead_decrypt( mbedtls_cipher_context_t *ctx,
 
     return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
 }
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-/*
- * Packet-oriented encryption for AEAD modes: public legacy function.
- */
-int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
-                         const unsigned char *iv, size_t iv_len,
-                         const unsigned char *ad, size_t ad_len,
-                         const unsigned char *input, size_t ilen,
-                         unsigned char *output, size_t *olen,
-                         unsigned char *tag, size_t tag_len )
-{
-    CIPHER_VALIDATE_RET( ctx != NULL );
-    CIPHER_VALIDATE_RET( iv_len == 0 || iv != NULL );
-    CIPHER_VALIDATE_RET( ad_len == 0 || ad != NULL );
-    CIPHER_VALIDATE_RET( ilen == 0 || input != NULL );
-    CIPHER_VALIDATE_RET( ilen == 0 || output != NULL );
-    CIPHER_VALIDATE_RET( olen != NULL );
-    CIPHER_VALIDATE_RET( tag_len == 0 || tag != NULL );
-
-    return( mbedtls_cipher_aead_encrypt( ctx, iv, iv_len, ad, ad_len,
-                                         input, ilen, output, olen,
-                                         tag, tag_len ) );
-}
-
-/*
- * Packet-oriented decryption for AEAD modes: public legacy function.
- */
-int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
-                         const unsigned char *iv, size_t iv_len,
-                         const unsigned char *ad, size_t ad_len,
-                         const unsigned char *input, size_t ilen,
-                         unsigned char *output, size_t *olen,
-                         const unsigned char *tag, size_t tag_len )
-{
-    CIPHER_VALIDATE_RET( ctx != NULL );
-    CIPHER_VALIDATE_RET( iv_len == 0 || iv != NULL );
-    CIPHER_VALIDATE_RET( ad_len == 0 || ad != NULL );
-    CIPHER_VALIDATE_RET( ilen == 0 || input != NULL );
-    CIPHER_VALIDATE_RET( ilen == 0 || output != NULL );
-    CIPHER_VALIDATE_RET( olen != NULL );
-    CIPHER_VALIDATE_RET( tag_len == 0 || tag != NULL );
-
-    return( mbedtls_cipher_aead_decrypt( ctx, iv, iv_len, ad, ad_len,
-                                         input, ilen, output, olen,
-                                         tag, tag_len ) );
-}
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_CIPHER_MODE_AEAD */
 
 #if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)

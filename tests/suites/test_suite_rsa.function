@@ -630,7 +630,7 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
         TEST_ASSERT( res == 0 );
 #else
         TEST_ASSERT( ( res == 0 ) ||
-                     ( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION ) );
+                     ( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION ) ); // TODO [TR] for #4029: MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION is deprecated - most probably we should return other error code here, but which one?
 #endif
 
         if( res == 0 )
@@ -691,7 +691,7 @@ void rsa_pkcs1_verify_raw( data_t * hash_result,
         TEST_ASSERT( res == 0 );
 #else
         TEST_ASSERT( ( res == 0 ) ||
-                     ( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION ) );
+                     ( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION ) ); // TODO [TR] for #4029: MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION is deprecated - most probably we should return other error code here, but which one?
 #endif
 
         if( res == 0 )

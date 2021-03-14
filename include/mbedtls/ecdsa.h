@@ -32,9 +32,9 @@
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
-#else
+#else // !defined(MBEDTLS_CONFIG_FILE)
 #include MBEDTLS_CONFIG_FILE
-#endif
+#endif // !defined(MBEDTLS_CONFIG_FILE)
 
 #include "mbedtls/ecp.h"
 #include "mbedtls/md.h"
@@ -66,7 +66,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif // __cplusplus
 
 /**
  * \brief           The ECDSA context structure.
@@ -100,7 +100,7 @@ typedef struct mbedtls_ecdsa_restart_sig mbedtls_ecdsa_restart_sig_ctx;
  * \note            Opaque struct, defined in ecdsa.c
  */
 typedef struct mbedtls_ecdsa_restart_det mbedtls_ecdsa_restart_det_ctx;
-#endif
+#endif // defined(MBEDTLS_ECDSA_DETERMINISTIC)
 
 /**
  * \brief           General context for resuming ECDSA operations
@@ -113,7 +113,7 @@ typedef struct
     mbedtls_ecdsa_restart_sig_ctx *sig; /*!<  ecdsa_sign() sub-context      */
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
     mbedtls_ecdsa_restart_det_ctx *det; /*!<  ecdsa_sign_det() sub-context  */
-#endif
+#endif // defined(MBEDTLS_ECDSA_DETERMINISTIC)
 } mbedtls_ecdsa_restart_ctx;
 
 #else /* MBEDTLS_ECP_RESTARTABLE */
@@ -138,7 +138,7 @@ int mbedtls_ecdsa_can_do( mbedtls_ecp_group_id gid );
  *                  previously-hashed message.
  *
  * \note            The deterministic version implemented in
- *                  mbedtls_ecdsa_sign_det() is usually preferred.
+ *                  mbedtls_ecdsa_sign_det_ext() is usually preferred.
  *
  * \note            If the bitlength of the message hash is larger than the
  *                  bitlength of the group order, then the hash is truncated
@@ -177,9 +177,9 @@ int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
 #if ! defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED    __attribute__((deprecated))
-#else
+#else // defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED
-#endif
+#endif // defined(MBEDTLS_DEPRECATED_WARNING)
 /**
  * \brief           This function computes the ECDSA signature of a
  *                  previously-hashed message, deterministic version.
@@ -425,9 +425,9 @@ int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
 #if ! defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED    __attribute__((deprecated))
-#else
+#else // defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED
-#endif
+#endif // defined(MBEDTLS_DEPRECATED_WARNING)
 /**
  * \brief           This function computes an ECDSA signature and writes
  *                  it to a buffer, serialized as defined in <em>RFC-4492:
@@ -621,6 +621,6 @@ void mbedtls_ecdsa_restart_free( mbedtls_ecdsa_restart_ctx *ctx );
 
 #ifdef __cplusplus
 }
-#endif
+#endif // __cplusplus
 
-#endif /* ecdsa.h */
+#endif /* MBEDTLS_ECDSA_H */

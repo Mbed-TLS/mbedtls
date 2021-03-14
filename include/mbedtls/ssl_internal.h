@@ -68,9 +68,6 @@
 /* Determine minimum supported version */
 #define MBEDTLS_SSL_MIN_MAJOR_VERSION           MBEDTLS_SSL_MAJOR_VERSION_3
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-#define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_0
-#else
 #if defined(MBEDTLS_SSL_PROTO_TLS1)
 #define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_1
 #else
@@ -82,7 +79,6 @@
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_1 */
 #endif /* MBEDTLS_SSL_PROTO_TLS1   */
-#endif /* MBEDTLS_SSL_PROTO_SSL3   */
 
 #define MBEDTLS_SSL_MIN_VALID_MINOR_VERSION MBEDTLS_SSL_MINOR_VERSION_1
 #define MBEDTLS_SSL_MIN_VALID_MAJOR_VERSION MBEDTLS_SSL_MAJOR_VERSION_3
@@ -99,9 +95,6 @@
 #if defined(MBEDTLS_SSL_PROTO_TLS1)
 #define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_1
 #else
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-#define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_0
-#endif /* MBEDTLS_SSL_PROTO_SSL3   */
 #endif /* MBEDTLS_SSL_PROTO_TLS1   */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_1 */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
@@ -132,17 +125,7 @@
 #define MBEDTLS_SSL_RETRANS_WAITING         2
 #define MBEDTLS_SSL_RETRANS_FINISHED        3
 
-/*
- * Allow extra bytes for record, authentication and encryption overhead:
- * counter (8) + header (5) + IV(16) + MAC (16-48) + padding (0-256)
- * and allow for a maximum of 1024 of compression expansion if
- * enabled.
- */
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-#define MBEDTLS_SSL_COMPRESSION_ADD          1024
-#else
 #define MBEDTLS_SSL_COMPRESSION_ADD             0
-#endif
 
 /* This macro determines whether CBC is supported. */
 #if defined(MBEDTLS_CIPHER_MODE_CBC) &&                               \
@@ -298,15 +281,6 @@ static inline size_t mbedtls_ssl_get_input_buflen( const mbedtls_ssl_context *ct
                + MBEDTLS_SSL_HEADER_LEN + MBEDTLS_SSL_PAYLOAD_OVERHEAD;
 #endif
 }
-#endif
-
-#ifdef MBEDTLS_ZLIB_SUPPORT
-/* Compression buffer holds both IN and OUT buffers, so should be size of the larger */
-#define MBEDTLS_SSL_COMPRESS_BUFFER_LEN (                               \
-        ( MBEDTLS_SSL_IN_BUFFER_LEN > MBEDTLS_SSL_OUT_BUFFER_LEN )      \
-        ? MBEDTLS_SSL_IN_BUFFER_LEN                                     \
-        : MBEDTLS_SSL_OUT_BUFFER_LEN                                    \
-        )
 #endif
 
 /*
@@ -563,7 +537,7 @@ struct mbedtls_ssl_handshake_params
     /*
      * Checksum contexts
      */
-#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
        mbedtls_md5_context fin_md5;
       mbedtls_sha1_context fin_sha1;
@@ -741,12 +715,6 @@ struct mbedtls_ssl_transform
 
 #if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-    /* Needed only for SSL v3.0 secret */
-    unsigned char mac_enc[20];          /*!<  SSL v3.0 secret (enc)   */
-    unsigned char mac_dec[20];          /*!<  SSL v3.0 secret (dec)   */
-#endif /* MBEDTLS_SSL_PROTO_SSL3 */
-
     mbedtls_md_context_t md_ctx_enc;            /*!<  MAC (encryption)        */
     mbedtls_md_context_t md_ctx_dec;            /*!<  MAC (decryption)        */
 
@@ -766,14 +734,6 @@ struct mbedtls_ssl_transform
     unsigned char in_cid [ MBEDTLS_SSL_CID_OUT_LEN_MAX ];
     unsigned char out_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ];
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-
-    /*
-     * Session specific compression layer
-     */
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    z_stream ctx_deflate;               /*!<  compression context     */
-    z_stream ctx_inflate;               /*!<  decompression context   */
-#endif
 
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     /* We need the Hello random bytes in order to re-derive keys from the
@@ -1232,12 +1192,12 @@ static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t
     return( diff );
 }
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
 int mbedtls_ssl_get_key_exchange_md_ssl_tls( mbedtls_ssl_context *ssl,
                                         unsigned char *output,
                                         unsigned char *data, size_t data_len );
-#endif /* MBEDTLS_SSL_PROTO_SSL3 || MBEDTLS_SSL_PROTO_TLS1 || \
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || \
           MBEDTLS_SSL_PROTO_TLS1_1 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \

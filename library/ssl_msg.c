@@ -106,7 +106,7 @@ int mbedtls_ssl_check_record( mbedtls_ssl_context const *ssl,
 
     /* We don't support record checking in TLS because
      * (a) there doesn't seem to be a usecase for it, and
-     * (b) In SSLv3 and TLS 1.0, CBC record decryption has state
+     * (b) In TLS 1.0, CBC record decryption has state
      *     and we'd need to backup the transform here.
      */
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_STREAM )
@@ -297,21 +297,6 @@ static void ssl_reset_retransmit_timeout( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-int (*mbedtls_ssl_hw_record_init)( mbedtls_ssl_context *ssl,
-                     const unsigned char *key_enc, const unsigned char *key_dec,
-                     size_t keylen,
-                     const unsigned char *iv_enc,  const unsigned char *iv_dec,
-                     size_t ivlen,
-                     const unsigned char *mac_enc, const unsigned char *mac_dec,
-                     size_t maclen ) = NULL;
-int (*mbedtls_ssl_hw_record_activate)( mbedtls_ssl_context *ssl, int direction) = NULL;
-int (*mbedtls_ssl_hw_record_reset)( mbedtls_ssl_context *ssl ) = NULL;
-int (*mbedtls_ssl_hw_record_write)( mbedtls_ssl_context *ssl ) = NULL;
-int (*mbedtls_ssl_hw_record_read)( mbedtls_ssl_context *ssl ) = NULL;
-int (*mbedtls_ssl_hw_record_finish)( mbedtls_ssl_context *ssl ) = NULL;
-#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
-
 /*
  * Encryption/decryption functions
  */
@@ -468,53 +453,6 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
 
     *add_data_len = cur - add_data;
 }
-
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-
-#define SSL3_MAC_MAX_BYTES   20  /* MD-5 or SHA-1 */
-
-/*
- * SSLv3.0 MAC functions
- */
-static void ssl_mac( mbedtls_md_context_t *md_ctx,
-                     const unsigned char *secret,
-                     const unsigned char *buf, size_t len,
-                     const unsigned char *ctr, int type,
-                     unsigned char out[SSL3_MAC_MAX_BYTES] )
-{
-    unsigned char header[11];
-    unsigned char padding[48];
-    int padlen;
-    int md_size = mbedtls_md_get_size( md_ctx->md_info );
-    int md_type = mbedtls_md_get_type( md_ctx->md_info );
-
-    /* Only MD5 and SHA-1 supported */
-    if( md_type == MBEDTLS_MD_MD5 )
-        padlen = 48;
-    else
-        padlen = 40;
-
-    memcpy( header, ctr, 8 );
-    header[ 8] = (unsigned char)  type;
-    header[ 9] = (unsigned char)( len >> 8 );
-    header[10] = (unsigned char)( len      );
-
-    memset( padding, 0x36, padlen );
-    mbedtls_md_starts( md_ctx );
-    mbedtls_md_update( md_ctx, secret,  md_size );
-    mbedtls_md_update( md_ctx, padding, padlen  );
-    mbedtls_md_update( md_ctx, header,  11      );
-    mbedtls_md_update( md_ctx, buf,     len     );
-    mbedtls_md_finish( md_ctx, out              );
-
-    memset( padding, 0x5C, padlen );
-    mbedtls_md_starts( md_ctx );
-    mbedtls_md_update( md_ctx, secret,    md_size );
-    mbedtls_md_update( md_ctx, padding,   padlen  );
-    mbedtls_md_update( md_ctx, out,       md_size );
-    mbedtls_md_finish( md_ctx, out                );
-}
-#endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
 #if defined(MBEDTLS_GCM_C) || \
     defined(MBEDTLS_CCM_C) || \
@@ -712,16 +650,6 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-        if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
-        {
-            unsigned char mac[SSL3_MAC_MAX_BYTES];
-            ssl_mac( &transform->md_ctx_enc, transform->mac_enc,
-                     data, rec->data_len, rec->ctr, rec->type, mac );
-            memcpy( data + rec->data_len, mac, transform->maclen );
-        }
-        else
-#endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
         defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( transform->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
@@ -858,7 +786,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                    &rec->data_len,
                    transform->taglen ) ) != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_auth_encrypt", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_auth_encrypt_ext", ret );
             return( ret );
         }
         MBEDTLS_SSL_DEBUG_BUF( 4, "after encrypt: tag",
@@ -966,11 +894,11 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1)
+#if defined(MBEDTLS_SSL_PROTO_TLS1)
         if( transform->minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
         {
             /*
-             * Save IV in SSL3 and TLS1
+             * Save IV in TLS1
              */
             memcpy( transform->iv_enc, transform->cipher_ctx_enc.iv,
                     transform->ivlen );
@@ -1414,7 +1342,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
          * explicit_iv_len Bytes preceeding data, and taglen
          * bytes following data + data_len. This justifies
          * the debug message and the invocation of
-         * mbedtls_cipher_auth_decrypt() below. */
+         * mbedtls_cipher_auth_decrypt_ext() below. */
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used", iv, transform->ivlen );
         MBEDTLS_SSL_DEBUG_BUF( 4, "TAG used", data + rec->data_len,
@@ -1430,7 +1358,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                   data, rec->buf_len - (data - rec->buf), &olen,    /* dst */
                   transform->taglen ) ) != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_auth_decrypt", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_auth_decrypt_ext", ret );
 
             if( ret == MBEDTLS_ERR_CIPHER_AUTH_FAILED )
                 return( MBEDTLS_ERR_SSL_INVALID_MAC );
@@ -1591,11 +1519,11 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1)
+#if defined(MBEDTLS_SSL_PROTO_TLS1)
         if( transform->minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
         {
             /*
-             * Save IV in SSL3 and TLS1, where CBC decryption of consecutive
+             * Save IV in TLS1, where CBC decryption of consecutive
              * records is equivalent to CBC decryption of the concatenation
              * of the records; in other words, IVs are maintained across
              * record decryptions.
@@ -1643,25 +1571,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         /* Regardless of the validity of the padding,
          * we have data_len >= padlen here. */
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-        if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
-        {
-            /* This is the SSL 3.0 path, we don't have to worry about Lucky
-             * 13, because there's a strictly worse padding attack built in
-             * the protocol (known as part of POODLE), so we don't care if the
-             * code is not constant-time, in particular branches are OK. */
-            if( padlen > transform->ivlen )
-            {
-#if defined(MBEDTLS_SSL_DEBUG_ALL)
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad padding length: is %d, "
-                                            "should be no more than %d",
-                                            padlen, transform->ivlen ) );
-#endif
-                correct = 0;
-            }
-        }
-        else
-#endif /* MBEDTLS_SSL_PROTO_SSL3 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( transform->minor_ver > MBEDTLS_SSL_MINOR_VERSION_0 )
@@ -1753,18 +1662,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
                                           transform->minor_ver );
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-        if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
-        {
-            ssl_mac( &transform->md_ctx_dec,
-                     transform->mac_dec,
-                     data, rec->data_len,
-                     rec->ctr, rec->type,
-                     mac_expect );
-            memcpy( mac_peer, data + rec->data_len, transform->maclen );
-        }
-        else
-#endif /* MBEDTLS_SSL_PROTO_SSL3 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
         defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( transform->minor_ver > MBEDTLS_SSL_MINOR_VERSION_0 )
@@ -1865,115 +1762,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 #undef MAC_NONE
 #undef MAC_PLAINTEXT
 #undef MAC_CIPHERTEXT
-
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-/*
- * Compression/decompression functions
- */
-static int ssl_compress_buf( mbedtls_ssl_context *ssl )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *msg_post = ssl->out_msg;
-    ptrdiff_t bytes_written = ssl->out_msg - ssl->out_buf;
-    size_t len_pre = ssl->out_msglen;
-    unsigned char *msg_pre = ssl->compress_buf;
-#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
-    size_t out_buf_len = ssl->out_buf_len;
-#else
-    size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN;
-#endif
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> compress buf" ) );
-
-    if( len_pre == 0 )
-        return( 0 );
-
-    memcpy( msg_pre, ssl->out_msg, len_pre );
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "before compression: msglen = %d, ",
-                   ssl->out_msglen ) );
-
-    MBEDTLS_SSL_DEBUG_BUF( 4, "before compression: output payload",
-                   ssl->out_msg, ssl->out_msglen );
-
-    ssl->transform_out->ctx_deflate.next_in = msg_pre;
-    ssl->transform_out->ctx_deflate.avail_in = len_pre;
-    ssl->transform_out->ctx_deflate.next_out = msg_post;
-    ssl->transform_out->ctx_deflate.avail_out = out_buf_len - bytes_written;
-
-    ret = deflate( &ssl->transform_out->ctx_deflate, Z_SYNC_FLUSH );
-    if( ret != Z_OK )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "failed to perform compression (%d)", ret ) );
-        return( MBEDTLS_ERR_SSL_COMPRESSION_FAILED );
-    }
-
-    ssl->out_msglen = out_buf_len -
-                      ssl->transform_out->ctx_deflate.avail_out - bytes_written;
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "after compression: msglen = %d, ",
-                   ssl->out_msglen ) );
-
-    MBEDTLS_SSL_DEBUG_BUF( 4, "after compression: output payload",
-                   ssl->out_msg, ssl->out_msglen );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= compress buf" ) );
-
-    return( 0 );
-}
-
-static int ssl_decompress_buf( mbedtls_ssl_context *ssl )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *msg_post = ssl->in_msg;
-    ptrdiff_t header_bytes = ssl->in_msg - ssl->in_buf;
-    size_t len_pre = ssl->in_msglen;
-    unsigned char *msg_pre = ssl->compress_buf;
-#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
-    size_t in_buf_len = ssl->in_buf_len;
-#else
-    size_t in_buf_len = MBEDTLS_SSL_IN_BUFFER_LEN;
-#endif
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> decompress buf" ) );
-
-    if( len_pre == 0 )
-        return( 0 );
-
-    memcpy( msg_pre, ssl->in_msg, len_pre );
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "before decompression: msglen = %d, ",
-                   ssl->in_msglen ) );
-
-    MBEDTLS_SSL_DEBUG_BUF( 4, "before decompression: input payload",
-                   ssl->in_msg, ssl->in_msglen );
-
-    ssl->transform_in->ctx_inflate.next_in = msg_pre;
-    ssl->transform_in->ctx_inflate.avail_in = len_pre;
-    ssl->transform_in->ctx_inflate.next_out = msg_post;
-    ssl->transform_in->ctx_inflate.avail_out = in_buf_len - header_bytes;
-
-    ret = inflate( &ssl->transform_in->ctx_inflate, Z_SYNC_FLUSH );
-    if( ret != Z_OK )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "failed to perform decompression (%d)", ret ) );
-        return( MBEDTLS_ERR_SSL_COMPRESSION_FAILED );
-    }
-
-    ssl->in_msglen = in_buf_len -
-                     ssl->transform_in->ctx_inflate.avail_out - header_bytes;
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "after decompression: msglen = %d, ",
-                   ssl->in_msglen ) );
-
-    MBEDTLS_SSL_DEBUG_BUF( 4, "after decompression: input payload",
-                   ssl->in_msg, ssl->in_msglen );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= decompress buf" ) );
-
-    return( 0 );
-}
-#endif /* MBEDTLS_ZLIB_SUPPORT */
 
 /*
  * Fill the input message buffer by appending data to it.
@@ -2367,18 +2155,6 @@ static int ssl_swap_epochs( mbedtls_ssl_context *ssl )
     /* Adjust to the newly activated transform */
     mbedtls_ssl_update_out_pointers( ssl, ssl->transform_out );
 
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-    if( mbedtls_ssl_hw_record_activate != NULL )
-    {
-        int ret = mbedtls_ssl_hw_record_activate( ssl, MBEDTLS_SSL_CHANNEL_OUTBOUND );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_activate", ret );
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
-    }
-#endif
-
     return( 0 );
 }
 
@@ -2656,16 +2432,8 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
     if( ssl->out_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE          &&
         ssl->out_msgtype != MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC )
     {
-        /* In SSLv3, the client might send a NoCertificate alert. */
-#if defined(MBEDTLS_SSL_PROTO_SSL3) && defined(MBEDTLS_SSL_CLI_C)
-        if( ! ( ssl->minor_ver      == MBEDTLS_SSL_MINOR_VERSION_0 &&
-                ssl->out_msgtype    == MBEDTLS_SSL_MSG_ALERT       &&
-                ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT ) )
-#endif /* MBEDTLS_SSL_PROTO_SSL3 && MBEDTLS_SSL_SRV_C */
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
+		MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+		return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
     /* Whenever we send anything different from a
@@ -2809,36 +2577,6 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write record" ) );
 
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    if( ssl->transform_out != NULL &&
-        ssl->session_out->compression == MBEDTLS_SSL_COMPRESS_DEFLATE )
-    {
-        if( ( ret = ssl_compress_buf( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_compress_buf", ret );
-            return( ret );
-        }
-
-        len = ssl->out_msglen;
-    }
-#endif /*MBEDTLS_ZLIB_SUPPORT */
-
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-    if( mbedtls_ssl_hw_record_write != NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "going for mbedtls_ssl_hw_record_write()" ) );
-
-        ret = mbedtls_ssl_hw_record_write( ssl );
-        if( ret != 0 && ret != MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_write", ret );
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
-
-        if( ret == 0 )
-            done = 1;
-    }
-#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
     if( !done )
     {
         unsigned i;
@@ -3858,22 +3596,6 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 4, "input record from network",
                            rec->buf, rec->buf_len );
 
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-    if( mbedtls_ssl_hw_record_read != NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "going for mbedtls_ssl_hw_record_read()" ) );
-
-        ret = mbedtls_ssl_hw_record_read( ssl );
-        if( ret != 0 && ret != MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_read", ret );
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
-
-        if( ret == 0 )
-            done = 1;
-    }
-#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
     if( !done && ssl->transform_in != NULL )
     {
         unsigned char const old_msg_type = rec->type;
@@ -4861,26 +4583,6 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
     ssl->in_len[0] = (unsigned char)( rec.data_len >> 8 );
     ssl->in_len[1] = (unsigned char)( rec.data_len      );
 
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    if( ssl->transform_in != NULL &&
-        ssl->session_in->compression == MBEDTLS_SSL_COMPRESS_DEFLATE )
-    {
-        if( ( ret = ssl_decompress_buf( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_decompress_buf", ret );
-            return( ret );
-        }
-
-        /* Check actual (decompress) record content length against
-         * configured maximum. */
-        if( ssl->in_msglen > MBEDTLS_SSL_IN_CONTENT_LEN )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
-            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
-        }
-    }
-#endif /* MBEDTLS_ZLIB_SUPPORT */
-
     return( 0 );
 }
 
@@ -4973,18 +4675,6 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
             return( 0 );
         }
 #endif
-
-#if defined(MBEDTLS_SSL_PROTO_SSL3) && defined(MBEDTLS_SSL_SRV_C)
-        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 &&
-            ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
-            ssl->in_msg[0] == MBEDTLS_SSL_ALERT_LEVEL_WARNING &&
-            ssl->in_msg[1] == MBEDTLS_SSL_ALERT_MSG_NO_CERT )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "is a SSLv3 no_cert" ) );
-            /* Will be handled in mbedtls_ssl_parse_certificate() */
-            return( 0 );
-        }
-#endif /* MBEDTLS_SSL_PROTO_SSL3 && MBEDTLS_SSL_SRV_C */
 
         /* Silently ignore: fetch new message */
         return MBEDTLS_ERR_SSL_NON_FATAL;
@@ -5127,19 +4817,6 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
     memset( ssl->in_ctr, 0, 8 );
 
     mbedtls_ssl_update_in_pointers( ssl );
-
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-    if( mbedtls_ssl_hw_record_activate != NULL )
-    {
-        if( ( ret = mbedtls_ssl_hw_record_activate( ssl, MBEDTLS_SSL_CHANNEL_INBOUND ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_activate", ret );
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                            MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
-    }
-#endif
 
     ssl->state++;
 
@@ -5349,11 +5026,6 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 
     if( transform == NULL )
         return( (int) out_hdr_len );
-
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    if( ssl->session_out->compression != MBEDTLS_SSL_COMPRESS_NULL )
-        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-#endif
 
     switch( mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_enc ) )
     {
@@ -5609,17 +5281,6 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "refusing renegotiation, sending alert" ) );
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-                if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
-                {
-                    /* SSLv3 does not have a "no_renegotiation" warning, so
-                       we send a fatal alert and abort the connection. */
-                    mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                                    MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
-                    return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
-                }
-                else
-#endif /* MBEDTLS_SSL_PROTO_SSL3 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
                 if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
@@ -5928,11 +5589,6 @@ void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform )
 {
     if( transform == NULL )
         return;
-
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    deflateEnd( &transform->ctx_deflate );
-    inflateEnd( &transform->ctx_inflate );
-#endif
 
     mbedtls_cipher_free( &transform->cipher_ctx_enc );
     mbedtls_cipher_free( &transform->cipher_ctx_dec );

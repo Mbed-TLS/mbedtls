@@ -158,7 +158,7 @@ int main( int argc, char **argv )
 
     if( ( ret = mbedtls_mpi_is_prime_ext( &Q, 50, mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_is_prime returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_mpi_is_prime_ext returned %d\n\n", ret );
         goto exit;
     }
 

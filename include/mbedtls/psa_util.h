@@ -352,11 +352,11 @@ static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
         case PSA_ERROR_COMMUNICATION_FAILURE:
         case PSA_ERROR_HARDWARE_FAILURE:
         case PSA_ERROR_CORRUPTION_DETECTED:
-            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED ); // TODO [TR] for #4029: MBEDTLS_ERR_PK_HW_ACCEL_FAILED is deprecated. What to do here?
         default: /* We return the same as for the 'other failures',
                   * but list them separately nonetheless to indicate
                   * which failure conditions we have considered. */
-            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED ); // TODO [TR] for #4029: MBEDTLS_ERR_PK_HW_ACCEL_FAILED is deprecated. What to do here?
     }
 }
 

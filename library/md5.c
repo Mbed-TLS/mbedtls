@@ -101,13 +101,6 @@ int mbedtls_md5_starts_ret( mbedtls_md5_context *ctx )
     return( 0 );
 }
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-void mbedtls_md5_starts( mbedtls_md5_context *ctx )
-{
-    mbedtls_md5_starts_ret( ctx );
-}
-#endif
-
 #if !defined(MBEDTLS_MD5_PROCESS_ALT)
 int mbedtls_internal_md5_process( mbedtls_md5_context *ctx,
                                   const unsigned char data[64] )
@@ -244,13 +237,6 @@ int mbedtls_internal_md5_process( mbedtls_md5_context *ctx,
     return( 0 );
 }
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-void mbedtls_md5_process( mbedtls_md5_context *ctx,
-                          const unsigned char data[64] )
-{
-    mbedtls_internal_md5_process( ctx, data );
-}
-#endif
 #endif /* !MBEDTLS_MD5_PROCESS_ALT */
 
 /*
@@ -303,15 +289,6 @@ int mbedtls_md5_update_ret( mbedtls_md5_context *ctx,
 
     return( 0 );
 }
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-void mbedtls_md5_update( mbedtls_md5_context *ctx,
-                         const unsigned char *input,
-                         size_t ilen )
-{
-    mbedtls_md5_update_ret( ctx, input, ilen );
-}
-#endif
 
 /*
  * MD5 final digest
@@ -370,14 +347,6 @@ int mbedtls_md5_finish_ret( mbedtls_md5_context *ctx,
     return( 0 );
 }
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-void mbedtls_md5_finish( mbedtls_md5_context *ctx,
-                         unsigned char output[16] )
-{
-    mbedtls_md5_finish_ret( ctx, output );
-}
-#endif
-
 #endif /* !MBEDTLS_MD5_ALT */
 
 /*
@@ -406,15 +375,6 @@ exit:
 
     return( ret );
 }
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-void mbedtls_md5( const unsigned char *input,
-                  size_t ilen,
-                  unsigned char output[16] )
-{
-    mbedtls_md5_ret( input, ilen, output );
-}
-#endif
 
 #if defined(MBEDTLS_SELF_TEST)
 /*

@@ -241,7 +241,7 @@
  *
  * Uncomment to get warnings on using deprecated functions and features.
  */
-//#define MBEDTLS_DEPRECATED_WARNING
+#define MBEDTLS_DEPRECATED_WARNING
 
 /**
  * \def MBEDTLS_DEPRECATED_REMOVED
@@ -253,7 +253,7 @@
  *
  * Uncomment to get errors on using deprecated functions and features.
  */
-//#define MBEDTLS_DEPRECATED_REMOVED
+#define MBEDTLS_DEPRECATED_REMOVED
 
 /**
  * \def MBEDTLS_CHECK_PARAMS
@@ -416,16 +416,14 @@
  * used, in contrast to the MBEDTLS__MODULE_NAME__ALT flags.
  *
  * Example: In case you uncomment MBEDTLS_SHA256_PROCESS_ALT, mbed TLS will
- * no longer provide the mbedtls_sha1_process() function, but it will still provide
- * the other function (using your mbedtls_sha1_process() function) and the definition
- * of mbedtls_sha1_context, so your implementation of mbedtls_sha1_process must be compatible
+ * no longer provide the mbedtls_internal_sha1_process() function, but it will still provide
+ * the other function (using your mbedtls_internal_sha1_process() function) and the definition
+ * of mbedtls_sha1_context, so your implementation of mbedtls_internal_sha1_process must be compatible
  * with this definition.
  *
  * \note Because of a signature change, the core AES encryption and decryption routines are
  *       currently named mbedtls_aes_internal_encrypt and mbedtls_aes_internal_decrypt,
- *       respectively. When setting up alternative implementations, these functions should
- *       be overridden, but the wrapper functions mbedtls_aes_decrypt and mbedtls_aes_encrypt
- *       must stay untouched.
+ *       respectively.
  *
  * \note If you use the AES_xxx_ALT macros, then is is recommended to also set
  *       MBEDTLS_AES_ROM_TABLES in order to help the linker garbage-collect the AES
@@ -446,7 +444,7 @@
  *            the ephemeral key and nothing else. If this is not possible, then
  *            MBEDTLS_ECDSA_DETERMINISTIC should be disabled and an alternative
  *            implementation should be provided for mbedtls_ecdsa_sign_det_ext()
- *            (and for mbedtls_ecdsa_sign_det() too if backward compatibility is
+ *            (and for mbedtls_ecdsa_sign_det_ext() too if backward compatibility is
  *            desirable).
  *
  */
@@ -1457,7 +1455,7 @@
  * The default implementation is meant to be a reasonnable compromise between
  * performance and size. This version optimizes more aggressively for size at
  * the expense of performance. Eg on Cortex-M4 it reduces the size of
- * mbedtls_sha256_process() from ~2KB to ~0.5KB for a performance hit of about
+ * mbedtls_internal_sha256_process() from ~2KB to ~0.5KB for a performance hit of about
  * 30%.
  *
  * Uncomment to enable the smaller implementation of SHA256.
@@ -1673,22 +1671,9 @@
 #define MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 
 /**
- * \def MBEDTLS_SSL_HW_RECORD_ACCEL
- *
- * Enable hooking functions in SSL module for hardware acceleration of
- * individual records.
- *
- * \deprecated This option is deprecated and will be removed in a future
- *             version of Mbed TLS.
- *
- * Uncomment this macro to enable hooking functions.
- */
-//#define MBEDTLS_SSL_HW_RECORD_ACCEL
-
-/**
  * \def MBEDTLS_SSL_CBC_RECORD_SPLITTING
  *
- * Enable 1/n-1 record splitting for CBC mode in SSLv3 and TLS 1.0.
+ * Enable 1/n-1 record splitting for CBC mode in TLS 1.0.
  *
  * This is a countermeasure to the BEAST attack, which also minimizes the risk
  * of interoperability issues compared to sending 0-length records.
@@ -1720,19 +1705,6 @@
 #define MBEDTLS_SSL_RENEGOTIATION
 
 /**
- * \def MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
- *
- * Enable support for receiving and parsing SSLv2 Client Hello messages for the
- * SSL Server module (MBEDTLS_SSL_SRV_C).
- *
- * \deprecated This option is deprecated and will be removed in a future
- *             version of Mbed TLS.
- *
- * Uncomment this macro to enable support for SSLv2 Client Hello messages.
- */
-//#define MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
-
-/**
  * \def MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE
  *
  * Pick the ciphersuite according to the client's preferences rather than ours
@@ -1750,21 +1722,6 @@
  * Comment this macro to disable support for the max_fragment_length extension
  */
 #define MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-
-/**
- * \def MBEDTLS_SSL_PROTO_SSL3
- *
- * Enable support for SSL 3.0.
- *
- * Requires: MBEDTLS_MD5_C
- *           MBEDTLS_SHA1_C
- *
- * \deprecated This option is deprecated and will be removed in a future
- *             version of Mbed TLS.
- *
- * Comment this macro to disable support for SSL 3.0
- */
-//#define MBEDTLS_SSL_PROTO_SSL3
 
 /**
  * \def MBEDTLS_SSL_PROTO_TLS1
@@ -1979,30 +1936,6 @@
  * Comment this macro to disable support for truncated HMAC in SSL
  */
 #define MBEDTLS_SSL_TRUNCATED_HMAC
-
-/**
- * \def MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT
- *
- * Fallback to old (pre-2.7), non-conforming implementation of the truncated
- * HMAC extension which also truncates the HMAC key. Note that this option is
- * only meant for a transitory upgrade period and will be removed in a future
- * version of the library.
- *
- * \warning The old implementation is non-compliant and has a security weakness
- *          (2^80 brute force attack on the HMAC key used for a single,
- *          uninterrupted connection). This should only be enabled temporarily
- *          when (1) the use of truncated HMAC is essential in order to save
- *          bandwidth, and (2) the peer is an Mbed TLS stack that doesn't use
- *          the fixed implementation yet (pre-2.7).
- *
- * \deprecated This option is deprecated and will be removed in a
- *             future version of Mbed TLS.
- *
- * Uncomment to fallback to old, non-compliant truncated HMAC implementation.
- *
- * Requires: MBEDTLS_SSL_TRUNCATED_HMAC
- */
-//#define MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT
 
 /**
  * \def MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
@@ -2228,30 +2161,6 @@
  */
 #define MBEDTLS_X509_RSASSA_PSS_SUPPORT
 
-/**
- * \def MBEDTLS_ZLIB_SUPPORT
- *
- * If set, the SSL/TLS module uses ZLIB to support compression and
- * decompression of packet data.
- *
- * \warning TLS-level compression MAY REDUCE SECURITY! See for example the
- * CRIME attack. Before enabling this option, you should examine with care if
- * CRIME or similar exploits may be applicable to your use case.
- *
- * \note Currently compression can't be used with DTLS.
- *
- * \deprecated This feature is deprecated and will be removed
- *             in the next major revision of the library.
- *
- * Used in: library/ssl_tls.c
- *          library/ssl_cli.c
- *          library/ssl_srv.c
- *
- * This feature requires zlib library and headers to be present.
- *
- * Uncomment to enable use of ZLIB
- */
-//#define MBEDTLS_ZLIB_SUPPORT
 /* \} name SECTION: mbed TLS feature support */
 
 /**
@@ -3108,24 +3017,6 @@
  * This module adds support for the PKCS#5 functions.
  */
 #define MBEDTLS_PKCS5_C
-
-/**
- * \def MBEDTLS_PKCS11_C
- *
- * Enable wrapper for PKCS#11 smartcard support via the pkcs11-helper library.
- *
- * \deprecated This option is deprecated and will be removed in a future
- *             version of Mbed TLS.
- *
- * Module:  library/pkcs11.c
- * Caller:  library/pk.c
- *
- * Requires: MBEDTLS_PK_C
- *
- * This module enables SSL/TLS PKCS #11 smartcard support.
- * Requires the presence of the PKCS#11 helper library (libpkcs11-helper)
- */
-//#define MBEDTLS_PKCS11_C
 
 /**
  * \def MBEDTLS_PKCS12_C

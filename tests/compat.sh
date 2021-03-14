@@ -163,9 +163,6 @@ is_dtls()
 minor_ver()
 {
     case "$1" in
-        ssl3)
-            echo 0
-            ;;
         tls1)
             echo 1
             ;;
@@ -872,9 +869,6 @@ setup_arguments()
 {
     G_MODE=""
     case "$MODE" in
-        "ssl3")
-            G_PRIO_MODE="+VERS-SSL3.0"
-            ;;
         "tls1")
             G_PRIO_MODE="+VERS-TLS1.0"
             ;;

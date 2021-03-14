@@ -626,7 +626,7 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
 
     /* import private key into PSA */
     if( PSA_SUCCESS != psa_import_key( &attributes, d, d_len, key ) )
-        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED ); // TODO [TR] for #4029: MBEDTLS_ERR_PK_HW_ACCEL_FAILED is deprecated - most probably we should return other error code here, but which one?
 
     /* make PK context wrap the key slot */
     mbedtls_pk_free( pk );

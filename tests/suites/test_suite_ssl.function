@@ -1287,15 +1287,6 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
             CHK( mbedtls_md_hmac_starts( &t_out->md_ctx_dec,
                                          md0, maclen ) == 0 );
         }
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-        else
-        {
-            memcpy( &t_in->mac_enc, md0, maclen );
-            memcpy( &t_in->mac_dec, md1, maclen );
-            memcpy( &t_out->mac_enc, md1, maclen );
-            memcpy( &t_out->mac_dec, md0, maclen );
-        }
-#endif
     }
 #else
     ((void) hash_id);
@@ -4227,7 +4218,7 @@ void handshake_version( int dtls, int client_min_version, int client_max_version
     options.expected_negotiated_version = expected_negotiated_version;
 
     options.dtls = dtls;
-    /* By default, SSLv3.0 and TLSv1.0 use 1/n-1 splitting when sending data, so
+    /* By default, TLSv1.0 use 1/n-1 splitting when sending data, so
      * the number of fragments will be twice as big. */
     if( expected_negotiated_version == MBEDTLS_SSL_MINOR_VERSION_0 ||
         expected_negotiated_version == MBEDTLS_SSL_MINOR_VERSION_1 )

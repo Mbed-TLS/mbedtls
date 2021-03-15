@@ -72,15 +72,7 @@
  * transparent test driver, then the mbedtls_transparent_test_driver_hash_*
  * entry points need to be implemented.  */
 #if defined(PSA_CRYPTO_DRIVER_TEST) && \
-    ( defined(MBEDTLS_PSA_ACCEL_ALG_MD2) || \
-      defined(MBEDTLS_PSA_ACCEL_ALG_MD4) || \
-      defined(MBEDTLS_PSA_ACCEL_ALG_MD5) || \
-      defined(MBEDTLS_PSA_ACCEL_ALG_RIPEMD160) || \
-      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_1) || \
-      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_224) || \
-      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_256) || \
-      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_384) || \
-      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512) )
+    defined(MBEDTLS_PSA_ACCEL_HASH)
 #define INCLUDE_HASH_TEST_DRIVER
 #endif
 
@@ -558,9 +550,8 @@ psa_status_t mbedtls_psa_hash_abort(
  /*
   * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
   */
-#if defined(PSA_CRYPTO_DRIVER_TEST)
-
 #if defined(INCLUDE_HASH_TEST_DRIVER)
+
 psa_status_t is_hash_accelerated( psa_algorithm_t alg )
 {
     switch( alg )
@@ -605,7 +596,6 @@ psa_status_t is_hash_accelerated( psa_algorithm_t alg )
             return( PSA_ERROR_NOT_SUPPORTED );
     }
 }
-#endif /* INCLUDE_HASH_TEST_DRIVER */
 
 psa_status_t mbedtls_transparent_test_driver_hash_compute(
     psa_algorithm_t alg,
@@ -615,54 +605,32 @@ psa_status_t mbedtls_transparent_test_driver_hash_compute(
     size_t hash_size,
     size_t *hash_length)
 {
-#if defined(INCLUDE_HASH_TEST_DRIVER)
     if( is_hash_accelerated( alg ) == PSA_SUCCESS )
         return( hash_compute( alg, input, input_length,
                               hash, hash_size, hash_length ) );
     else
         return( PSA_ERROR_NOT_SUPPORTED );
-#else
-    (void) alg;
-    (void) input;
-    (void) input_length;
-    (void) hash;
-    (void) hash_size;
-    (void) hash_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif
 }
 
 psa_status_t mbedtls_transparent_test_driver_hash_setup(
     mbedtls_transparent_test_driver_hash_operation_t *operation,
     psa_algorithm_t alg )
 {
-#if defined(INCLUDE_HASH_TEST_DRIVER)
     if( is_hash_accelerated( alg ) == PSA_SUCCESS )
         return( hash_setup( &operation->operation, alg ) );
     else
         return( PSA_ERROR_NOT_SUPPORTED );
-#else
-    (void) alg;
-    (void) operation;
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif
 }
 
 psa_status_t mbedtls_transparent_test_driver_hash_clone(
     const mbedtls_transparent_test_driver_hash_operation_t *source_operation,
     mbedtls_transparent_test_driver_hash_operation_t *target_operation )
 {
-#if defined(INCLUDE_HASH_TEST_DRIVER)
     if( is_hash_accelerated( source_operation->operation.alg ) == PSA_SUCCESS )
         return( hash_clone( &source_operation->operation,
                             &target_operation->operation ) );
     else
         return( PSA_ERROR_BAD_STATE );
-#else
-    (void) source_operation;
-    (void) target_operation;
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif
 }
 
 psa_status_t mbedtls_transparent_test_driver_hash_update(
@@ -670,18 +638,11 @@ psa_status_t mbedtls_transparent_test_driver_hash_update(
     const uint8_t *input,
     size_t input_length )
 {
-#if defined(INCLUDE_HASH_TEST_DRIVER)
     if( is_hash_accelerated( operation->operation.alg ) == PSA_SUCCESS )
         return( hash_update( &operation->operation,
                              input, input_length ) );
     else
         return( PSA_ERROR_BAD_STATE );
-#else
-    (void) operation;
-    (void) input;
-    (void) input_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif
 }
 
 psa_status_t mbedtls_transparent_test_driver_hash_finish(
@@ -690,32 +651,19 @@ psa_status_t mbedtls_transparent_test_driver_hash_finish(
     size_t hash_size,
     size_t *hash_length )
 {
-#if defined(INCLUDE_HASH_TEST_DRIVER)
     if( is_hash_accelerated( operation->operation.alg ) == PSA_SUCCESS )
         return( hash_finish( &operation->operation,
                              hash, hash_size, hash_length ) );
     else
         return( PSA_ERROR_BAD_STATE );
-#else
-    (void) operation;
-    (void) hash;
-    (void) hash_size;
-    (void) hash_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif
 }
 
 psa_status_t mbedtls_transparent_test_driver_hash_abort(
     mbedtls_transparent_test_driver_hash_operation_t *operation )
 {
-#if defined(INCLUDE_HASH_TEST_DRIVER)
     return( hash_abort( &operation->operation ) );
-#else
-    (void) operation;
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif
 }
 
-#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* INCLUDE_HASH_TEST_DRIVER */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

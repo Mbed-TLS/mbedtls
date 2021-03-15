@@ -24,6 +24,17 @@
 #include <psa/crypto.h>
 #include <psa/crypto_builtin_hash.h>
 
+#include <mbedtls/md_internal.h>
+
+/** Get Mbed TLS MD information of a hash algorithm given its PSA identifier
+ *
+ * \param[in] alg  PSA hash algorithm identifier
+ *
+ * \return  The Mbed TLS MD information of the hash algorithm. \c NULL if the
+ *          PSA hash algorithm is not supported.
+ */
+const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg );
+
 /** Calculate the hash (digest) of a message using Mbed TLS routines.
  *
  * \note The signature of this function is that of a PSA driver hash_compute

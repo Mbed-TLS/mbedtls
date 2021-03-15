@@ -33,6 +33,7 @@
 #include "psa_crypto_invasive.h"
 #include "psa_crypto_driver_wrappers.h"
 #include "psa_crypto_ecp.h"
+#include "psa_crypto_hash.h"
 #include "psa_crypto_rsa.h"
 #include "psa_crypto_ecp.h"
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -2140,59 +2141,6 @@ exit:
 /****************************************************************/
 /* Message digests */
 /****************************************************************/
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
-const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
-{
-    switch( alg )
-    {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_MD2)
-        case PSA_ALG_MD2:
-            return( &mbedtls_md2_info );
-#endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_MD4)
-        case PSA_ALG_MD4:
-            return( &mbedtls_md4_info );
-#endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_MD5)
-        case PSA_ALG_MD5:
-            return( &mbedtls_md5_info );
-#endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_RIPEMD160)
-        case PSA_ALG_RIPEMD160:
-            return( &mbedtls_ripemd160_info );
-#endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_1)
-        case PSA_ALG_SHA_1:
-            return( &mbedtls_sha1_info );
-#endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224)
-        case PSA_ALG_SHA_224:
-            return( &mbedtls_sha224_info );
-#endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256)
-        case PSA_ALG_SHA_256:
-            return( &mbedtls_sha256_info );
-#endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
-        case PSA_ALG_SHA_384:
-            return( &mbedtls_sha384_info );
-#endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512)
-        case PSA_ALG_SHA_512:
-            return( &mbedtls_sha512_info );
-#endif
-        default:
-            return( NULL );
-    }
-}
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
 
 psa_status_t psa_hash_abort( psa_hash_operation_t *operation )
 {

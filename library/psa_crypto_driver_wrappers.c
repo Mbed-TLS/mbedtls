@@ -39,6 +39,7 @@
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 
 /* Repeat above block for each JSON-declared driver during autogeneration */
+#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
 
 /* Auto-generated values depending on which drivers are registered.
  * ID 0 is reserved for unallocated operations.
@@ -49,7 +50,6 @@
 #define PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID (2)
 #define PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID (3)
 #endif /* PSA_CRYPTO_DRIVER_TEST */
-#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
 
 /* Support the 'old' SE interface when asked to */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)

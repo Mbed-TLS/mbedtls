@@ -1163,7 +1163,6 @@ psa_status_t psa_driver_wrapper_hash_clone(
                                             &target_operation->ctx.mbedtls_ctx ) );
 #endif
         default:
-            (void) source_operation;
             (void) target_operation;
             return( PSA_ERROR_BAD_STATE );
     }
@@ -1188,7 +1187,6 @@ psa_status_t psa_driver_wrapper_hash_update(
                                              input, input_length ) );
 #endif
         default:
-            (void) operation;
             (void) input;
             (void) input_length;
             return( PSA_ERROR_BAD_STATE );
@@ -1216,7 +1214,6 @@ psa_status_t psa_driver_wrapper_hash_finish(
             break;
 #endif
         default:
-            (void) operation;
             (void) hash;
             (void) hash_size;
             (void) hash_length;

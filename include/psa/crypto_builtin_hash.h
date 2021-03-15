@@ -92,11 +92,9 @@ typedef struct
  */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
 
-typedef struct {
-    mbedtls_psa_hash_operation_t operation;
-} mbedtls_transparent_test_driver_hash_operation_t;
+typedef mbedtls_psa_hash_operation_t mbedtls_transparent_test_driver_hash_operation_t;
 
-#define MBEDTLS_TRANSPARENT_TEST_DRIVER_HASH_OPERATION_INIT { MBEDTLS_PSA_HASH_OPERATION_INIT }
+#define MBEDTLS_TRANSPARENT_TEST_DRIVER_HASH_OPERATION_INIT MBEDTLS_PSA_HASH_OPERATION_INIT
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 

@@ -670,7 +670,7 @@ psa_status_t mbedtls_transparent_test_driver_hash_setup(
     psa_algorithm_t alg )
 {
     if( is_hash_accelerated( alg ) == PSA_SUCCESS )
-        return( hash_setup( &operation->operation, alg ) );
+        return( hash_setup( operation, alg ) );
     else
         return( PSA_ERROR_NOT_SUPPORTED );
 }
@@ -679,9 +679,8 @@ psa_status_t mbedtls_transparent_test_driver_hash_clone(
     const mbedtls_transparent_test_driver_hash_operation_t *source_operation,
     mbedtls_transparent_test_driver_hash_operation_t *target_operation )
 {
-    if( is_hash_accelerated( source_operation->operation.alg ) == PSA_SUCCESS )
-        return( hash_clone( &source_operation->operation,
-                            &target_operation->operation ) );
+    if( is_hash_accelerated( source_operation->alg ) == PSA_SUCCESS )
+        return( hash_clone( source_operation, target_operation ) );
     else
         return( PSA_ERROR_BAD_STATE );
 }
@@ -691,9 +690,8 @@ psa_status_t mbedtls_transparent_test_driver_hash_update(
     const uint8_t *input,
     size_t input_length )
 {
-    if( is_hash_accelerated( operation->operation.alg ) == PSA_SUCCESS )
-        return( hash_update( &operation->operation,
-                             input, input_length ) );
+    if( is_hash_accelerated( operation->alg ) == PSA_SUCCESS )
+        return( hash_update( operation, input, input_length ) );
     else
         return( PSA_ERROR_BAD_STATE );
 }
@@ -704,9 +702,8 @@ psa_status_t mbedtls_transparent_test_driver_hash_finish(
     size_t hash_size,
     size_t *hash_length )
 {
-    if( is_hash_accelerated( operation->operation.alg ) == PSA_SUCCESS )
-        return( hash_finish( &operation->operation,
-                             hash, hash_size, hash_length ) );
+    if( is_hash_accelerated( operation->alg ) == PSA_SUCCESS )
+        return( hash_finish( operation, hash, hash_size, hash_length ) );
     else
         return( PSA_ERROR_BAD_STATE );
 }
@@ -714,7 +711,7 @@ psa_status_t mbedtls_transparent_test_driver_hash_finish(
 psa_status_t mbedtls_transparent_test_driver_hash_abort(
     mbedtls_transparent_test_driver_hash_operation_t *operation )
 {
-    return( hash_abort( &operation->operation ) );
+    return( hash_abort( operation ) );
 }
 
 #endif /* INCLUDE_HASH_TEST_DRIVER */

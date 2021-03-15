@@ -305,13 +305,15 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
 
     status = psa_load_persistent_key_into_slot( *p_slot );
     if( status != PSA_SUCCESS )
+    {
         psa_wipe_key_slot( *p_slot );
-
+        if( status == PSA_ERROR_DOES_NOT_EXIST )
+            status = PSA_ERROR_INVALID_HANDLE;
+    }
     return( status );
 #else
-    return( PSA_ERROR_DOES_NOT_EXIST );
+    return( PSA_ERROR_INVALID_HANDLE );
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
-
 }
 
 psa_status_t psa_unlock_key_slot( psa_key_slot_t *slot )
@@ -399,6 +401,9 @@ psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
     if( status != PSA_SUCCESS )
     {
         *handle = PSA_KEY_HANDLE_INIT;
+        if( status == PSA_ERROR_INVALID_HANDLE )
+            status = PSA_ERROR_DOES_NOT_EXIST;
+
         return( status );
     }
 
@@ -423,8 +428,12 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
 
     status = psa_get_and_lock_key_slot_in_memory( handle, &slot );
     if( status != PSA_SUCCESS )
-        return( status );
+    {
+        if( status == PSA_ERROR_DOES_NOT_EXIST )
+            status = PSA_ERROR_INVALID_HANDLE;
 
+        return( status );
+    }
     if( slot->lock_count <= 1 )
         return( psa_wipe_key_slot( slot ) );
     else

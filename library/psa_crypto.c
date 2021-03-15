@@ -2164,7 +2164,8 @@ psa_status_t psa_hash_setup( psa_hash_operation_t *operation,
     if( !PSA_ALG_IS_HASH( alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    /* Ensure all of the context is zeroized, not just the dummy int */
+    /* Ensure all of the context is zeroized, since PSA_HASH_OPERATION_INIT only
+     * directly zeroes the int-sized dummy member of the context union. */
     memset( &operation->ctx, 0, sizeof( operation->ctx ) );
 
     return( psa_driver_wrapper_hash_setup( operation, alg ) );

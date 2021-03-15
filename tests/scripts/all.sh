@@ -2314,12 +2314,6 @@ component_build_armcc () {
     armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
 }
 
-component_build_ssl_hw_record_accel() {
-    msg "build: default config with MBEDTLS_SSL_HW_RECORD_ACCEL enabled"
-    scripts/config.pl set MBEDTLS_SSL_HW_RECORD_ACCEL
-    make CFLAGS='-Werror -O1'
-}
-
 component_test_allow_sha1 () {
     msg "build: allow SHA1 in certificates by default"
     scripts/config.py set MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES

@@ -1361,14 +1361,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-    if( strcmp( "MBEDTLS_SSL_HW_RECORD_ACCEL", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_HW_RECORD_ACCEL );
-        return( 0 );
-    }
-#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
-
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     if( strcmp( "MBEDTLS_SSL_CBC_RECORD_SPLITTING", config ) == 0 )
     {

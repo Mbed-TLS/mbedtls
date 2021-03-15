@@ -5,3 +5,4 @@ API changes
    * Drop support for TLS record-level compression (MBEDTLS_ZLIB_SUPPORT).
    * Drop support for RC4 TLS ciphersuites.
    * Drop single-DES ciphersuites.
+   * Drop support for MBEDTLS_SSL_HW_RECORD_ACCEL.

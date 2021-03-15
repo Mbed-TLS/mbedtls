@@ -798,7 +798,6 @@ typedef int ssl_tls_prf_t(const unsigned char *, size_t, const char *,
  * - [in] minor_ver: SSL/TLS minor version
  * - [in] endpoint: client or server
  * - [in] ssl: optionally used for:
- *        - MBEDTLS_SSL_HW_RECORD_ACCEL: whole context (non-const)
  *        - MBEDTLS_SSL_EXPORT_KEYS: ssl->conf->{f,p}_export_keys
  *        - MBEDTLS_DEBUG_C: ssl->conf->{f,p}_dbg
  */
@@ -817,10 +816,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
                                    const unsigned char randbytes[64],
                                    int minor_ver,
                                    unsigned endpoint,
-#if !defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-                                   const
-#endif
-                                   mbedtls_ssl_context *ssl )
+                                   const mbedtls_ssl_context *ssl )
 {
     int ret = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -838,8 +834,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     const mbedtls_cipher_info_t *cipher_info;
     const mbedtls_md_info_t *md_info;
 
-#if !defined(MBEDTLS_SSL_HW_RECORD_ACCEL) && \
-    !defined(MBEDTLS_SSL_EXPORT_KEYS) && \
+#if !defined(MBEDTLS_SSL_EXPORT_KEYS) && \
     !defined(MBEDTLS_DEBUG_C)
     ssl = NULL; /* make sure we don't use it except for those cases */
     (void) ssl;
@@ -1130,28 +1125,8 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     }
 #endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
 
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-    if( mbedtls_ssl_hw_record_init != NULL )
-    {
-        ret = 0;
-
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "going for mbedtls_ssl_hw_record_init()" ) );
-
-        if( ( ret = mbedtls_ssl_hw_record_init( ssl, key1, key2, keylen,
-                                        transform->iv_enc, transform->iv_dec,
-                                        iv_copy_len,
-                                        mac_enc, mac_dec,
-                                        mac_key_len ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_init", ret );
-            ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
-            goto end;
-        }
-    }
-#else
     ((void) mac_dec);
     ((void) mac_enc);
-#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
     if( ssl->conf->f_export_keys != NULL )
@@ -3171,17 +3146,6 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
     ssl->transform_out = ssl->transform_negotiate;
     ssl->session_out = ssl->session_negotiate;
 
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-    if( mbedtls_ssl_hw_record_activate != NULL )
-    {
-        if( ( ret = mbedtls_ssl_hw_record_activate( ssl, MBEDTLS_SSL_CHANNEL_OUTBOUND ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_activate", ret );
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
-    }
-#endif
-
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         mbedtls_ssl_send_flight_completed( ssl );
@@ -3640,18 +3604,6 @@ int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
         ssl->in_left = 0;
         memset( ssl->in_buf, 0, in_buf_len );
     }
-
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-    if( mbedtls_ssl_hw_record_reset != NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "going for mbedtls_ssl_hw_record_reset()" ) );
-        if( ( ret = mbedtls_ssl_hw_record_reset( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_reset", ret );
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
-    }
-#endif
 
     if( ssl->transform )
     {
@@ -6482,14 +6434,6 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
     {
         mbedtls_platform_zeroize( ssl->hostname, strlen( ssl->hostname ) );
         mbedtls_free( ssl->hostname );
-    }
-#endif
-
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-    if( mbedtls_ssl_hw_record_finish != NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "going for mbedtls_ssl_hw_record_finish()" ) );
-        mbedtls_ssl_hw_record_finish( ssl );
     }
 #endif
 

@@ -422,8 +422,6 @@ static psa_status_t hash_update(
             return( PSA_ERROR_BAD_STATE );
     }
 
-    if( ret != 0 )
-        hash_abort( operation );
     return( mbedtls_to_psa_error( ret ) );
 }
 
@@ -507,15 +505,8 @@ static psa_status_t hash_finish(
 
 exit:
     if( status == PSA_SUCCESS )
-    {
         *hash_length = actual_hash_length;
-        return( hash_abort( operation ) );
-    }
-    else
-    {
-        hash_abort( operation );
-        return( status );
-    }
+    return( status );
 }
 
 static psa_status_t hash_compute(
@@ -528,6 +519,7 @@ static psa_status_t hash_compute(
 {
     mbedtls_psa_hash_operation_t operation = MBEDTLS_PSA_HASH_OPERATION_INIT;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
 
     *hash_length = hash_size;
     status = hash_setup( &operation, alg );
@@ -541,11 +533,12 @@ static psa_status_t hash_compute(
         goto exit;
 
 exit:
+    abort_status = hash_abort( &operation );
     if( status == PSA_SUCCESS )
-        status = hash_abort( &operation );
+        return( abort_status );
     else
-        hash_abort( &operation );
-    return( status );
+        return( status );
+
 }
 #endif /* INCLUDE_HASH_CORE */
 

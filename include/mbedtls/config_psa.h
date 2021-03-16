@@ -348,6 +348,20 @@ extern "C" {
 #endif
 #endif /* PSA_WANT_ALG_CBC_PKCS7 */
 
+#if defined(PSA_WANT_ALG_CCM)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_CCM)
+#define MBEDTLS_PSA_BUILTIN_ALG_CCM 1
+#define MBEDTLS_CCM_C
+#endif
+#endif /* PSA_WANT_ALG_CCM */
+
+#if defined(PSA_WANT_ALG_GCM)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
+#define MBEDTLS_PSA_BUILTIN_ALG_GCM 1
+#define MBEDTLS_GCM_C
+#endif
+#endif /* PSA_WANT_ALG_GCM */
+
 #if defined(PSA_WANT_ALG_CHACHA20_POLY1305)
 #if defined(PSA_WANT_KEY_TYPE_CHACHA20)
 #define MBEDTLS_CHACHAPOLY_C
@@ -529,6 +543,16 @@ extern "C" {
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
 #define MBEDTLS_PSA_BUILTIN_ALG_XTS 1
 #define PSA_WANT_ALG_XTS 1
+#endif
+
+#if defined(MBEDTLS_CCM_C)
+#define MBEDTLS_PSA_BUILTIN_ALG_CCM 1
+#define PSA_WANT_ALG_CCM 1
+#endif
+
+#if defined(MBEDTLS_GCM_C)
+#define MBEDTLS_PSA_BUILTIN_ALG_GCM 1
+#define PSA_WANT_ALG_GCM 1
 #endif
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */

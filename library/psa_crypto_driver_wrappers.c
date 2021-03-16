@@ -21,6 +21,7 @@
 
 #include "psa_crypto_core.h"
 #include "psa_crypto_driver_wrappers.h"
+#include "psa_crypto_aead.h"
 #include "psa_crypto_hash.h"
 
 #include "mbedtls/platform.h"
@@ -1237,6 +1238,307 @@ psa_status_t psa_driver_wrapper_hash_abort(
         default:
             return( PSA_ERROR_BAD_STATE );
     }
+}
+
+/*
+ * AEAD functions
+ */
+psa_status_t psa_driver_wrapper_aead_encrypt(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *nonce,
+    size_t nonce_length,
+    const uint8_t *additional_data,
+    size_t additional_data_length,
+    const uint8_t *plaintext,
+    size_t plaintext_length,
+    uint8_t *ciphertext,
+    size_t ciphertext_size,
+    size_t *ciphertext_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_location_t location =
+        PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
+
+    switch( location )
+    {
+        case PSA_KEY_LOCATION_LOCAL_STORAGE:
+            /* Key is stored in the slot in export representation, so
+             * cycle through all known transparent accelerators */
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+            status = mbedtls_transparent_test_driver_aead_encrypt(
+                attributes, key_buffer, key_buffer_size, alg,
+                nonce, nonce_length,
+                additional_data, additional_data_length,
+                plaintext, plaintext_length,
+                ciphertext, ciphertext_size, ciphertext_length );
+            /* Declared with fallback == true */
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+#if defined(MBEDTLS_PSA_BUILTIN_AEAD)
+            /* Fell through, meaning no accelerator supports this operation */
+            status = mbedtls_psa_aead_encrypt(
+                attributes, key_buffer, key_buffer_size, alg,
+                nonce, nonce_length,
+                additional_data, additional_data_length,
+                plaintext, plaintext_length,
+                ciphertext, ciphertext_size, ciphertext_length );
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return( status );
+#endif /* MBEDTLS_PSA_BUILTIN_AEAD */
+            return( PSA_ERROR_NOT_SUPPORTED );
+
+        /* Add cases for opaque driver here */
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+            status = mbedtls_opaque_test_driver_aead_encrypt(
+                attributes, key_buffer, key_buffer_size, alg,
+                nonce, nonce_length,
+                additional_data, additional_data_length,
+                plaintext, plaintext_length,
+                ciphertext, ciphertext_size, ciphertext_length );
+
+            return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+        default:
+            /* Key is declared with a lifetime not known to us */
+            (void) key_buffer;
+            (void) key_buffer_size;
+            (void) alg;
+            (void) nonce;
+            (void) nonce_length;
+            (void) additional_data;
+            (void) additional_data_length;
+            (void) plaintext;
+            (void) plaintext_length,
+            (void) ciphertext;
+            (void) ciphertext_size;
+            (void) ciphertext_length;
+            (void) status;
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+}
+
+psa_status_t psa_driver_wrapper_aead_decrypt(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *nonce,
+    size_t nonce_length,
+    const uint8_t *additional_data,
+    size_t additional_data_length,
+    const uint8_t *ciphertext,
+    size_t ciphertext_length,
+    uint8_t *plaintext,
+    size_t plaintext_size,
+    size_t *plaintext_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_location_t location =
+        PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
+
+    switch( location )
+    {
+        case PSA_KEY_LOCATION_LOCAL_STORAGE:
+            /* Key is stored in the slot in export representation, so
+             * cycle through all known transparent accelerators */
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+            status = mbedtls_transparent_test_driver_aead_decrypt(
+                attributes, key_buffer, key_buffer_size, alg,
+                nonce, nonce_length,
+                additional_data, additional_data_length,
+                ciphertext, ciphertext_length,
+                plaintext, plaintext_size, plaintext_length );
+            /* Declared with fallback == true */
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+#if defined(MBEDTLS_PSA_BUILTIN_AEAD)
+            /* Fell through, meaning no accelerator supports this operation */
+            status = mbedtls_psa_aead_decrypt(
+                attributes, key_buffer, key_buffer_size, alg,
+                nonce, nonce_length,
+                additional_data, additional_data_length,
+                ciphertext, ciphertext_length,
+                plaintext, plaintext_size, plaintext_length );
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return( status );
+#endif /* MBEDTLS_PSA_BUILTIN_AEAD */
+            return( PSA_ERROR_NOT_SUPPORTED );
+
+        /* Add cases for opaque driver here */
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+            status = mbedtls_opaque_test_driver_aead_decrypt(
+                attributes, key_buffer, key_buffer_size, alg,
+                nonce, nonce_length,
+                additional_data, additional_data_length,
+                ciphertext, ciphertext_length,
+                plaintext, plaintext_size, plaintext_length );
+
+            return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+        default:
+            /* Key is declared with a lifetime not known to us */
+            (void) key_buffer;
+            (void) key_buffer_size;
+            (void) alg;
+            (void) nonce;
+            (void) nonce_length;
+            (void) additional_data;
+            (void) additional_data_length;
+            (void) ciphertext;
+            (void) ciphertext_length,
+            (void) plaintext;
+            (void) plaintext_size;
+            (void) plaintext_length;
+            (void) status;
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+}
+
+psa_status_t psa_driver_wrapper_aead_encrypt_setup(
+    psa_aead_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg )
+{
+    /* Multi-part AEAD is not implemented in this PSA core yet */
+    (void) operation;
+    (void) attributes;
+    (void) key_buffer;
+    (void) key_buffer_size;
+    (void) alg;
+    return( PSA_ERROR_NOT_SUPPORTED );
+}
+
+psa_status_t psa_driver_wrapper_aead_decrypt_setup(
+    psa_aead_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg )
+{
+    /* Multi-part AEAD is not implemented in this PSA core yet */
+    (void) operation;
+    (void) attributes;
+    (void) key_buffer;
+    (void) key_buffer_size;
+    (void) alg;
+    return( PSA_ERROR_NOT_SUPPORTED );
+}
+
+psa_status_t psa_driver_wrapper_aead_set_nonce(
+    psa_aead_operation_t *operation,
+    size_t ad_length,
+    size_t plaintext_length )
+{
+    /* Multi-part AEAD is not implemented in this PSA core yet */
+    (void) operation;
+    (void) ad_length;
+    (void) plaintext_length;
+    return( PSA_ERROR_NOT_SUPPORTED );
+}
+
+psa_status_t psa_driver_wrapper_aead_set_lengths(
+    psa_aead_operation_t *operation,
+    const uint8_t *nonce,
+    size_t nonce_length )
+{
+    /* Multi-part AEAD is not implemented in this PSA core yet */
+    (void) operation;
+    (void) nonce;
+    (void) nonce_length;
+    return( PSA_ERROR_NOT_SUPPORTED );
+}
+
+psa_status_t psa_driver_wrapper_aead_update_ad(
+    psa_aead_operation_t *operation,
+    const uint8_t *input,
+    size_t input_length)
+{
+    /* Multi-part AEAD is not implemented in this PSA core yet */
+    (void) operation;
+    (void) input;
+    (void) input_length;
+    return( PSA_ERROR_NOT_SUPPORTED );
+}
+
+psa_status_t psa_driver_wrapper_aead_update(
+    psa_aead_operation_t *operation,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length )
+{
+    /* Multi-part AEAD is not implemented in this PSA core yet */
+    (void) operation;
+    (void) input;
+    (void) input_length;
+    (void) output;
+    (void) output_size;
+    (void) output_length;
+    return( PSA_ERROR_NOT_SUPPORTED );
+}
+
+psa_status_t psa_driver_wrapper_aead_finish(
+    psa_aead_operation_t *operation,
+    uint8_t *ciphertext,
+    size_t ciphertext_size,
+    size_t *ciphertext_length,
+    uint8_t *tag,
+    size_t tag_size,
+    size_t *tag_length )
+{
+    /* Multi-part AEAD is not implemented in this PSA core yet */
+    (void) operation;
+    (void) ciphertext;
+    (void) ciphertext_size;
+    (void) ciphertext_length;
+    (void) tag;
+    (void) tag_size;
+    (void) tag_length;
+    return( PSA_ERROR_NOT_SUPPORTED );
+}
+
+psa_status_t psa_driver_wrapper_aead_verify(
+    psa_aead_operation_t *operation,
+    uint8_t *plaintext,
+    size_t plaintext_size,
+    size_t *plaintext_length,
+    const uint8_t *tag,
+    size_t tag_length )
+{
+    /* Multi-part AEAD is not implemented in this PSA core yet */
+    (void) operation;
+    (void) plaintext;
+    (void) plaintext_size;
+    (void) plaintext_length;
+    (void) tag;
+    (void) tag_length;
+    return( PSA_ERROR_NOT_SUPPORTED );
+}
+
+psa_status_t psa_driver_wrapper_aead_abort(
+    psa_aead_operation_t *operation )
+{
+    /* Multi-part AEAD is not implemented in this PSA core yet */
+    (void) operation;
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 /* End of automatically generated file. */

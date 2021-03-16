@@ -2243,10 +2243,10 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
         /*
          * skip leading 0s
          */
-        if( ei == 0 && state == 0 )
+        if( state == 0 && ei == 0 )
             continue;
 
-        if( ei == 0 && state == 1 )
+        if( state == 1 && ei == 0 )
         {
             /*
              * out of window, square X

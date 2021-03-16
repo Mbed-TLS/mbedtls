@@ -80,9 +80,9 @@
 #define PSA_WANT_ALG_TLS12_PSK_TO_MS            1
 #define PSA_WANT_ALG_XTS                        1
 
-#define PSA_WANT_ECC_BRAINPOOL_P_R1_256                  1
-#define PSA_WANT_ECC_BRAINPOOL_P_R1_384                  1
-#define PSA_WANT_ECC_BRAINPOOL_P_R1_512                  1
+#define PSA_WANT_ECC_BRAINPOOL_P_R1_256         1
+#define PSA_WANT_ECC_BRAINPOOL_P_R1_384         1
+#define PSA_WANT_ECC_BRAINPOOL_P_R1_512         1
 #define PSA_WANT_ECC_MONTGOMERY_255             1
 #define PSA_WANT_ECC_MONTGOMERY_448             1
 #define PSA_WANT_ECC_SECP_K1_192                1

@@ -68,21 +68,6 @@
 #define BUILTIN_ALG_SHA_512     1
 #endif
 
-/* If at least one of the hash algorithms is to be exercised through the
- * transparent test driver, then the mbedtls_transparent_test_driver_hash_*
- * entry points need to be implemented.  */
-#if defined(PSA_CRYPTO_DRIVER_TEST) && \
-    defined(MBEDTLS_PSA_ACCEL_HASH)
-#define INCLUDE_HASH_TEST_DRIVER
-#endif
-
-/* If either of the built-in or test driver entry points need to be implemented, then
- * the core implementation should be present. */
-#if defined(MBEDTLS_PSA_BUILTIN_HASH) || \
-    defined(INCLUDE_HASH_TEST_DRIVER)
-#define INCLUDE_HASH_CORE       1
-#endif
-
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) || \
@@ -138,7 +123,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
 
 /* Implement the PSA driver hash interface on top of mbed TLS if either the
  * software driver or the test driver requires it. */
-#if defined(INCLUDE_HASH_CORE)
+#if defined(MBEDTLS_PSA_BUILTIN_HASH) || defined(PSA_CRYPTO_DRIVER_TEST)
 static psa_status_t hash_abort(
     mbedtls_psa_hash_operation_t *operation )
 {
@@ -540,7 +525,7 @@ exit:
         return( status );
 
 }
-#endif /* INCLUDE_HASH_CORE */
+#endif /* MBEDTLS_PSA_BUILTIN_HASH || PSA_CRYPTO_DRIVER_TEST */
 
 #if defined(MBEDTLS_PSA_BUILTIN_HASH)
 psa_status_t mbedtls_psa_hash_compute(
@@ -596,7 +581,7 @@ psa_status_t mbedtls_psa_hash_abort(
  /*
   * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
   */
-#if defined(INCLUDE_HASH_TEST_DRIVER)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
 
 psa_status_t is_hash_accelerated( psa_algorithm_t alg )
 {
@@ -707,6 +692,6 @@ psa_status_t mbedtls_transparent_test_driver_hash_abort(
     return( hash_abort( operation ) );
 }
 
-#endif /* INCLUDE_HASH_TEST_DRIVER */
+#endif /* PSA_CRYPTO_DRIVER_TEST */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

@@ -1085,7 +1085,7 @@ psa_status_t psa_driver_wrapper_hash_compute(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     /* Try accelerators first */
-#if defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_HASH)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
     status = mbedtls_transparent_test_driver_hash_compute(
                 alg, input, input_length, hash, hash_size, hash_length );
     if( status != PSA_ERROR_NOT_SUPPORTED )
@@ -1117,7 +1117,7 @@ psa_status_t psa_driver_wrapper_hash_setup(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     /* Try setup on accelerators first */
-#if defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_HASH)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
     status = mbedtls_transparent_test_driver_hash_setup(
                 &operation->ctx.test_driver_ctx, alg );
     if( status == PSA_SUCCESS )
@@ -1155,7 +1155,7 @@ psa_status_t psa_driver_wrapper_hash_clone(
             return( mbedtls_psa_hash_clone( &source_operation->ctx.mbedtls_ctx,
                                             &target_operation->ctx.mbedtls_ctx ) );
 #endif
-#if defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_HASH)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
             target_operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
             return( mbedtls_transparent_test_driver_hash_clone(
@@ -1180,7 +1180,7 @@ psa_status_t psa_driver_wrapper_hash_update(
             return( mbedtls_psa_hash_update( &operation->ctx.mbedtls_ctx,
                                              input, input_length ) );
 #endif
-#if defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_HASH)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
             return( mbedtls_transparent_test_driver_hash_update(
                         &operation->ctx.test_driver_ctx,
@@ -1206,7 +1206,7 @@ psa_status_t psa_driver_wrapper_hash_finish(
             return( mbedtls_psa_hash_finish( &operation->ctx.mbedtls_ctx,
                                              hash, hash_size, hash_length ) );
 #endif
-#if defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_HASH)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
             return( mbedtls_transparent_test_driver_hash_finish(
                         &operation->ctx.test_driver_ctx,
@@ -1229,7 +1229,7 @@ psa_status_t psa_driver_wrapper_hash_abort(
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
             return( mbedtls_psa_hash_abort( &operation->ctx.mbedtls_ctx ) );
 #endif
-#if defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_HASH)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
             return( mbedtls_transparent_test_driver_hash_abort(
                         &operation->ctx.test_driver_ctx ) );

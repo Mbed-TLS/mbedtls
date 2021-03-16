@@ -451,9 +451,15 @@
  */
 #define PSA_KEY_TYPE_CHACHA20                       ((psa_key_type_t)0x2004)
 
-/** RSA public key. */
+/** RSA public key.
+ *
+ * The size of an RSA key is the bit size of the modulus.
+ */
 #define PSA_KEY_TYPE_RSA_PUBLIC_KEY                 ((psa_key_type_t)0x4001)
-/** RSA key pair (private and public key). */
+/** RSA key pair (private and public key).
+ *
+ * The size of an RSA key is the bit size of the modulus.
+ */
 #define PSA_KEY_TYPE_RSA_KEY_PAIR                   ((psa_key_type_t)0x7001)
 /** Whether a key type is an RSA key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_RSA(type)                                       \
@@ -464,12 +470,20 @@
 #define PSA_KEY_TYPE_ECC_CURVE_MASK                 ((psa_key_type_t)0x00ff)
 /** Elliptic curve key pair.
  *
+ * The size of an elliptic curve key is the bit size associated with the curve,
+ * i.e. the bit size of *q* for a curve over a field *F<sub>q</sub>*.
+ * See the documentation of `PSA_ECC_FAMILY_xxx` curve families for details.
+ *
  * \param curve     A value of type ::psa_ecc_family_t that
  *                  identifies the ECC curve to be used.
  */
 #define PSA_KEY_TYPE_ECC_KEY_PAIR(curve)         \
     (PSA_KEY_TYPE_ECC_KEY_PAIR_BASE | (curve))
 /** Elliptic curve public key.
+ *
+ * The size of an elliptic curve public key is the same as the corresponding
+ * private key (see #PSA_KEY_TYPE_ECC_KEY_PAIR and the documentation of
+ * `PSA_ECC_FAMILY_xxx` curve families).
  *
  * \param curve     A value of type ::psa_ecc_family_t that
  *                  identifies the ECC curve to be used.

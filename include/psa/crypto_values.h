@@ -586,11 +586,11 @@
 /** The twisted Edwards curves Ed25519 and Ed448.
  *
  * These curves are suitable for EdDSA (#PSA_ALG_PURE_EDDSA for both curves,
- * #PSA_ALG_ED25519PH for the 256-bit curve,
+ * #PSA_ALG_ED25519PH for the 255-bit curve,
  * #PSA_ALG_ED448PH for the 448-bit curve).
  *
  * This family comprises the following twisted Edwards curves:
- * - 256-bit: Edwards25519, the twisted Edwards curve birationally equivalent
+ * - 255-bit: Edwards25519, the twisted Edwards curve birationally equivalent
  *   to Curve25519.
  *   Bernstein et al., _Twisted Edwards curves_, Africacrypt 2008.
  * - 448-bit: Edwards448, the twisted Edwards curve birationally equivalent

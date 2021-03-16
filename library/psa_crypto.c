@@ -3636,35 +3636,21 @@ static psa_status_t psa_aead_setup(
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
-                               psa_algorithm_t alg,
-                               const uint8_t *nonce,
-                               size_t nonce_length,
-                               const uint8_t *additional_data,
-                               size_t additional_data_length,
-                               const uint8_t *plaintext,
-                               size_t plaintext_length,
-                               uint8_t *ciphertext,
-                               size_t ciphertext_size,
-                               size_t *ciphertext_length )
+static psa_status_t psa_aead_encrypt_internal(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *nonce, size_t nonce_length,
+    const uint8_t *additional_data, size_t additional_data_length,
+    const uint8_t *plaintext, size_t plaintext_length,
+    uint8_t *ciphertext, size_t ciphertext_size, size_t *ciphertext_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
     aead_operation_t operation = AEAD_OPERATION_INIT;
     uint8_t *tag;
+    (void) key_buffer_size;
 
-    *ciphertext_length = 0;
-
-    status = psa_get_and_lock_transparent_key_slot_with_policy(
-                 key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    psa_key_attributes_t attributes = {
-      .core = slot->attr
-    };
-
-    status = psa_aead_setup( &operation, &attributes, slot->key.data, alg );
+    status = psa_aead_setup( &operation, attributes, key_buffer, alg );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -3730,15 +3716,54 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
         return( PSA_ERROR_NOT_SUPPORTED );
     }
 
-    if( status != PSA_SUCCESS && ciphertext_size != 0 )
-        memset( ciphertext, 0, ciphertext_size );
+    if( status == PSA_SUCCESS )
+        *ciphertext_length = plaintext_length + operation.tag_length;
 
 exit:
     psa_aead_abort_internal( &operation );
+
+    return( status );
+}
+
+psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
+                               psa_algorithm_t alg,
+                               const uint8_t *nonce,
+                               size_t nonce_length,
+                               const uint8_t *additional_data,
+                               size_t additional_data_length,
+                               const uint8_t *plaintext,
+                               size_t plaintext_length,
+                               uint8_t *ciphertext,
+                               size_t ciphertext_size,
+                               size_t *ciphertext_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+
+    *ciphertext_length = 0;
+
+    status = psa_get_and_lock_transparent_key_slot_with_policy(
+                 key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+
+    status = psa_aead_encrypt_internal(
+        &attributes, slot->key.data, slot->key.bytes,
+        alg,
+        nonce, nonce_length,
+        additional_data, additional_data_length,
+        plaintext, plaintext_length,
+        ciphertext, ciphertext_size, ciphertext_length );
+
+    if( status != PSA_SUCCESS && ciphertext_size != 0 )
+        memset( ciphertext, 0, ciphertext_size );
+
     psa_unlock_key_slot( slot );
 
-    if( status == PSA_SUCCESS )
-        *ciphertext_length = plaintext_length + operation.tag_length;
     return( status );
 }
 
@@ -3763,35 +3788,21 @@ static psa_status_t psa_aead_unpadded_locate_tag( size_t tag_length,
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
-                               psa_algorithm_t alg,
-                               const uint8_t *nonce,
-                               size_t nonce_length,
-                               const uint8_t *additional_data,
-                               size_t additional_data_length,
-                               const uint8_t *ciphertext,
-                               size_t ciphertext_length,
-                               uint8_t *plaintext,
-                               size_t plaintext_size,
-                               size_t *plaintext_length )
+static psa_status_t psa_aead_decrypt_internal(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *nonce, size_t nonce_length,
+    const uint8_t *additional_data, size_t additional_data_length,
+    const uint8_t *ciphertext, size_t ciphertext_length,
+    uint8_t *plaintext, size_t plaintext_size, size_t *plaintext_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
     aead_operation_t operation = AEAD_OPERATION_INIT;
     const uint8_t *tag = NULL;
+    (void) key_buffer_size;
 
-    *plaintext_length = 0;
-
-    status = psa_get_and_lock_transparent_key_slot_with_policy(
-                 key, &slot, PSA_KEY_USAGE_DECRYPT, alg );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    psa_key_attributes_t attributes = {
-      .core = slot->attr
-    };
-
-    status = psa_aead_setup( &operation, &attributes, slot->key.data, alg );
+    status = psa_aead_setup( &operation, attributes, key_buffer, alg );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -3853,15 +3864,56 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
         return( PSA_ERROR_NOT_SUPPORTED );
     }
 
-    if( status != PSA_SUCCESS && plaintext_size != 0 )
-        memset( plaintext, 0, plaintext_size );
+    if( status == PSA_SUCCESS )
+        *plaintext_length = ciphertext_length - operation.tag_length;
 
 exit:
     psa_aead_abort_internal( &operation );
-    psa_unlock_key_slot( slot );
 
     if( status == PSA_SUCCESS )
         *plaintext_length = ciphertext_length - operation.tag_length;
+    return( status );
+}
+
+psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
+                               psa_algorithm_t alg,
+                               const uint8_t *nonce,
+                               size_t nonce_length,
+                               const uint8_t *additional_data,
+                               size_t additional_data_length,
+                               const uint8_t *ciphertext,
+                               size_t ciphertext_length,
+                               uint8_t *plaintext,
+                               size_t plaintext_size,
+                               size_t *plaintext_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+
+    *plaintext_length = 0;
+
+    status = psa_get_and_lock_transparent_key_slot_with_policy(
+                 key, &slot, PSA_KEY_USAGE_DECRYPT, alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+
+    status = psa_aead_decrypt_internal(
+        &attributes, slot->key.data, slot->key.bytes,
+        alg,
+        nonce, nonce_length,
+        additional_data, additional_data_length,
+        ciphertext, ciphertext_length,
+        plaintext, plaintext_size, plaintext_length );
+
+    if( status != PSA_SUCCESS && plaintext_size != 0 )
+        memset( plaintext, 0, plaintext_size );
+
+    psa_unlock_key_slot( slot );
+
     return( status );
 }
 

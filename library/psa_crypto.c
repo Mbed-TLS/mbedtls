@@ -4022,86 +4022,30 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
                                size_t ciphertext_size,
                                size_t *ciphertext_length )
 {
-    psa_status_t status;
-    aead_operation_t operation = AEAD_OPERATION_INIT;
-    uint8_t *tag;
-
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
     *ciphertext_length = 0;
 
-    status = psa_aead_setup( &operation, key, PSA_KEY_USAGE_ENCRYPT, alg );
+    status = psa_get_and_lock_key_slot_with_policy(
+                 key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
 
-    /* For all currently supported modes, the tag is at the end of the
-     * ciphertext. */
-    if( ciphertext_size < ( plaintext_length + operation.tag_length ) )
-    {
-        status = PSA_ERROR_BUFFER_TOO_SMALL;
-        goto exit;
-    }
-    tag = ciphertext + plaintext_length;
+    psa_key_attributes_t attributes = {
+        .core = slot->attr
+    };
 
-#if defined(MBEDTLS_GCM_C)
-    if( operation.core_alg == PSA_ALG_GCM )
-    {
-        status = mbedtls_to_psa_error(
-            mbedtls_gcm_crypt_and_tag( &operation.ctx.gcm,
-                                       MBEDTLS_GCM_ENCRYPT,
-                                       plaintext_length,
-                                       nonce, nonce_length,
-                                       additional_data, additional_data_length,
-                                       plaintext, ciphertext,
-                                       operation.tag_length, tag ) );
-    }
-    else
-#endif /* MBEDTLS_GCM_C */
-#if defined(MBEDTLS_CCM_C)
-    if( operation.core_alg == PSA_ALG_CCM )
-    {
-        status = mbedtls_to_psa_error(
-            mbedtls_ccm_encrypt_and_tag( &operation.ctx.ccm,
-                                         plaintext_length,
-                                         nonce, nonce_length,
-                                         additional_data,
-                                         additional_data_length,
-                                         plaintext, ciphertext,
-                                         tag, operation.tag_length ) );
-    }
-    else
-#endif /* MBEDTLS_CCM_C */
-#if defined(MBEDTLS_CHACHAPOLY_C)
-    if( operation.core_alg == PSA_ALG_CHACHA20_POLY1305 )
-    {
-        if( nonce_length != 12 || operation.tag_length != 16 )
-        {
-            status = PSA_ERROR_NOT_SUPPORTED;
-            goto exit;
-        }
-        status = mbedtls_to_psa_error(
-            mbedtls_chachapoly_encrypt_and_tag( &operation.ctx.chachapoly,
-                                                plaintext_length,
-                                                nonce,
-                                                additional_data,
-                                                additional_data_length,
-                                                plaintext,
-                                                ciphertext,
-                                                tag ) );
-    }
-    else
-#endif /* MBEDTLS_CHACHAPOLY_C */
-    {
-        (void) tag;
-        return( PSA_ERROR_NOT_SUPPORTED );
-    }
+    status = psa_driver_wrapper_aead_encrypt(
+                &attributes, slot->key.data, slot->key.bytes, alg,
+                nonce, nonce_length,
+                additional_data, additional_data_length,
+                plaintext, plaintext_length,
+                ciphertext, ciphertext_size, ciphertext_length );
 
-    if( status != PSA_SUCCESS && ciphertext_size != 0 )
-        memset( ciphertext, 0, ciphertext_size );
+    unlock_status = psa_unlock_key_slot( slot );
 
-exit:
-    psa_aead_abort_internal( &operation );
-    if( status == PSA_SUCCESS )
-        *ciphertext_length = plaintext_length + operation.tag_length;
-    return( status );
+    return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
 /* Locate the tag in a ciphertext buffer containing the encrypted data

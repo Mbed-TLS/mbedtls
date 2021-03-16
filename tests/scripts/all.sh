@@ -1466,6 +1466,9 @@ component_test_psa_crypto_config_basic() {
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_256"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_384"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_512"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_CCM"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_GCM"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_CHACHA20_POLY1305"
     loc_cflags="${loc_cflags} -I../tests/include -O2"
 
     make CC=gcc CFLAGS="$loc_cflags" LDFLAGS="$ASAN_CFLAGS"
@@ -2254,6 +2257,9 @@ component_test_psa_crypto_drivers () {
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_256"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_384"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_512"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_CCM"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_GCM"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_CHACHA20_POLY1305"
     loc_cflags="${loc_cflags} -I../tests/include -O2"
 
     make CC=gcc CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"

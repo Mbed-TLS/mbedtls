@@ -2,6 +2,9 @@
 
 At any point in time, we have a number of maintained branches consisting of:
 
+- The [`master`](https://github.com/ARMmbed/mbedtls/tree/master) branch:
+  this always contains the latest release, including all publicly available
+  security fixes.
 - The [`development`](https://github.com/ARMmbed/mbedtls/tree/development) branch:
   this is where new features land,
   as well as bug fixes and security fixes.
@@ -9,7 +12,7 @@ At any point in time, we have a number of maintained branches consisting of:
   these only get bug fixes and security fixes.
 
 We use [Semantic Versioning](https://semver.org/). In particular, we maintain
-API compatibility in the development branch between major version changes. We
+API compatibility in the `master` branch between major version changes. We
 also maintain ABI compatibility within LTS branches; see the next section for
 details.
 
@@ -43,6 +46,7 @@ CONTRIBUTING](CONTRIBUTING.md#cackwords-compatibility).
 
 The following branches are currently maintained:
 
+- [master](https://github.com/ARMmbed/mbedtls/tree/master)
 - [`development`](https://github.com/ARMmbed/mbedtls/)
 - [`mbedtls-2.16`](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.16)
  maintained until at least the end of 2021, see

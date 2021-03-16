@@ -51,6 +51,5 @@ The following branches are currently maintained:
 - [`mbedtls-2.16`](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.16)
  maintained until at least the end of 2021, see
   <https://tls.mbed.org/tech-updates/blog/announcing-lts-branch-mbedtls-2.16>
-- [mbedtls-2.7](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.7) - end of life in March 2021!
 
 Users are urged to always use the latest version of a maintained branch.

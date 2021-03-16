@@ -51,9 +51,6 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
-#if defined(MBEDTLS_HAVEGE_C)
-#include "mbedtls/havege.h"
-#endif
 
 #define ENTROPY_MAX_LOOP    256     /**< Maximum amount to loop before error */
 
@@ -71,9 +68,6 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
     mbedtls_sha512_init( &ctx->accumulator );
 #else
     mbedtls_sha256_init( &ctx->accumulator );
-#endif
-#if defined(MBEDTLS_HAVEGE_C)
-    mbedtls_havege_init( &ctx->havege_data );
 #endif
 
     /* Reminder: Update ENTROPY_HAVE_STRONG in the test files
@@ -94,11 +88,6 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
     mbedtls_entropy_add_source( ctx, mbedtls_hardclock_poll, NULL,
                                 MBEDTLS_ENTROPY_MIN_HARDCLOCK,
                                 MBEDTLS_ENTROPY_SOURCE_WEAK );
-#endif
-#if defined(MBEDTLS_HAVEGE_C)
-    mbedtls_entropy_add_source( ctx, mbedtls_havege_poll, &ctx->havege_data,
-                                MBEDTLS_ENTROPY_MIN_HAVEGE,
-                                MBEDTLS_ENTROPY_SOURCE_STRONG );
 #endif
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
     mbedtls_entropy_add_source( ctx, mbedtls_hardware_poll, NULL,
@@ -121,9 +110,6 @@ void mbedtls_entropy_free( mbedtls_entropy_context *ctx )
     if( ctx->accumulator_started == -1 )
         return;
 
-#if defined(MBEDTLS_HAVEGE_C)
-    mbedtls_havege_free( &ctx->havege_data );
-#endif
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_free( &ctx->mutex );
 #endif

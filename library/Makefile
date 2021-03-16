@@ -96,7 +96,6 @@ OBJS_CRYPTO= \
 	     entropy_poll.o \
 	     error.o \
 	     gcm.o \
-	     havege.o \
 	     hkdf.o \
 	     hmac_drbg.o \
 	     md.o \

@@ -2,9 +2,11 @@
 
 At any point in time, we have a number of maintained branches consisting of:
 
-- the development branch: this is where new features lands, as well as bug
-  fixes and security fixes
-- one or more LTS branches: these only get bug fixes and security fixes.
+- The [`development`](https://github.com/ARMmbed/mbedtls/tree/development) branch:
+  this is where new features land,
+  as well as bug fixes and security fixes.
+- One or more long-time support (LTS) branches:
+  these only get bug fixes and security fixes.
 
 We use [Semantic Versioning](https://semver.org/). In particular, we maintain
 API compatibility in the development branch between major version changes. We
@@ -13,13 +15,17 @@ details.
 
 ## Backwards Compatibility
 
-If you have code that's working and secure with Mbed TLS x.y.z, then you
-should be able to re-compile it without modification with any later release
-x.y'.z' with the same major version number, and your code will still build, be
-secure, and work - unless it was relying on something that became insecure in
-the meantime (for example, crypto that was found to be weak). In case security
-comes in conflict with backwards compatibility, we will put security first,
-but always attempt to provide a compatibility option.
+We maintain API compatibility in released versions of Mbed TLS. If you have
+code that's working and secure with Mbed TLS x.y.z and does not rely on
+undocumented features, then you should be able to re-compile it without
+modification with any later release x.y'.z' with the same major version
+number, and your code will still build, be secure, and work.
+
+There are rare exceptions: code that was relying on something that became
+insecure in the meantime (for example, crypto that was found to be weak) may
+need to be changed. In case security comes in conflict with backwards
+compatibility, we will put security first, but always attempt to provide a
+compatibility option.
 
 For the LTS branches, additionally we try very hard to also maintain ABI
 compatibility (same definition as API except with re-linking instead of
@@ -37,8 +43,8 @@ CONTRIBUTING](CONTRIBUTING.md#cackwords-compatibility).
 
 The following branches are currently maintained:
 
-- [development](https://github.com/ARMmbed/mbedtls/)
-- [mbedtls-2.16](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.16)
+- [`development`](https://github.com/ARMmbed/mbedtls/)
+- [`mbedtls-2.16`](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.16)
  maintained until at least the end of 2021, see
   <https://tls.mbed.org/tech-updates/blog/announcing-lts-branch-mbedtls-2.16>
 - [mbedtls-2.7](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.7) - end of life in March 2021!

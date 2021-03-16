@@ -297,9 +297,6 @@ def crypto_adapter(adapter):
         return adapter(name, active, section)
     return continuation
 
-DEPRECATED = frozenset([
-])
-
 def no_deprecated_adapter(adapter):
     """Modify an adapter to disable deprecated symbols.
 

@@ -423,8 +423,8 @@
 
 /** Key for a cipher or MAC algorithm based on DES or 3DES (Triple-DES).
  *
- * The size of the key can be 8 bytes (single DES), 16 bytes (2-key 3DES) or
- * 24 bytes (3-key 3DES).
+ * The size of the key can be 64 bits (single DES), 128 bits (2-key 3DES) or
+ * 192 bits (3-key 3DES).
  *
  * Note that single DES and 2-key 3DES are weak and strongly
  * deprecated and should only be used to decrypt legacy data. 3-key 3DES

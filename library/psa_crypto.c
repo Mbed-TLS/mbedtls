@@ -3564,18 +3564,11 @@ static void psa_aead_abort_internal( aead_operation_t *operation )
 }
 
 static psa_status_t psa_aead_setup( aead_operation_t *operation,
-                                    mbedtls_svc_key_id_t key,
-                                    psa_key_usage_t usage,
                                     psa_algorithm_t alg )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t key_bits;
     mbedtls_cipher_id_t cipher_id;
-
-    status = psa_get_and_lock_transparent_key_slot_with_policy(
-                 key, &operation->slot, usage, alg );
-    if( status != PSA_SUCCESS )
-        return( status );
 
     key_bits = psa_get_key_slot_bits( operation->slot );
 
@@ -3690,7 +3683,12 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
 
     *ciphertext_length = 0;
 
-    status = psa_aead_setup( &operation, key, PSA_KEY_USAGE_ENCRYPT, alg );
+    status = psa_get_and_lock_transparent_key_slot_with_policy(
+                 key, &operation.slot, PSA_KEY_USAGE_ENCRYPT, alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    status = psa_aead_setup( &operation, alg );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -3805,7 +3803,12 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
 
     *plaintext_length = 0;
 
-    status = psa_aead_setup( &operation, key, PSA_KEY_USAGE_DECRYPT, alg );
+    status = psa_get_and_lock_transparent_key_slot_with_policy(
+                 key, &operation.slot, PSA_KEY_USAGE_DECRYPT, alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    status = psa_aead_setup( &operation, alg );
     if( status != PSA_SUCCESS )
         return( status );
 

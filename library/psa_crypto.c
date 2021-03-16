@@ -3568,7 +3568,7 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
                                     psa_key_usage_t usage,
                                     psa_algorithm_t alg )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t key_bits;
     mbedtls_cipher_id_t cipher_id;
 
@@ -3684,7 +3684,7 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
                                size_t ciphertext_size,
                                size_t *ciphertext_length )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     aead_operation_t operation = AEAD_OPERATION_INIT;
     uint8_t *tag;
 
@@ -3799,7 +3799,7 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
                                size_t plaintext_size,
                                size_t *plaintext_length )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     aead_operation_t operation = AEAD_OPERATION_INIT;
     const uint8_t *tag = NULL;
 

@@ -1399,9 +1399,7 @@
  *   in RFC 8032.
  *   The curve is Edwards448.
  *   The hash function used internally is the first 114 bytes of the
- *   SHAKE256 output, with
- *   `dom4(1, "") = ASCII("SigEd448") || 0x01 0x00`
- *   prepended to the input.
+ *   SHAKE256 output.
  *
  * This algorithm can be used with psa_sign_message() and
  * psa_verify_message(). Since there is no prehashing, it cannot be used
@@ -1425,9 +1423,7 @@
  * This algorithm is Ed25519 as specified in RFC 8032.
  * The curve is Edwards25519.
  * The prehash is SHA-512.
- * The hash function used internally is SHA-512, with
- * `dom2(0, "") = ASCII("SigEd25519 no Ed25519 collisions") || 0x00 0x00`
- * prepended to the input.
+ * The hash function used internally is SHA-512.
  *
  * This is a hash-and-sign algorithm: to calculate a signature,
  * you can either:
@@ -1452,9 +1448,7 @@
  * The curve is Edwards448.
  * The prehash is the first 64 bytes of the SHAKE256 output.
  * The hash function used internally is the first 114 bytes of the
- * SHAKE256 output, with
- * `dom4(0, "") = ASCII("SigEd448") || 0x00 0x00`
- * prepended to the input.
+ * SHAKE256 output.
  *
  * This is a hash-and-sign algorithm: to calculate a signature,
  * you can either:

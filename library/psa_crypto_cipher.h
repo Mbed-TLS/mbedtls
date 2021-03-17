@@ -21,7 +21,24 @@
 #ifndef PSA_CRYPTO_CIPHER_H
 #define PSA_CRYPTO_CIPHER_H
 
+#include <mbedtls/cipher.h>
 #include <psa/crypto.h>
+
+/** Get Mbed TLS cipher information given the cipher algorithm PSA identifier
+ *  as well as the PSA type and size of the key to be used with the cipher
+ *  algorithm.
+ *
+ * \param       alg        PSA cipher algorithm identifier
+ * \param       key_type   PSA key type
+ * \param       key_bits   Size of the key in bits
+ * \param[out]  cipher_id  Mbed TLS cipher algorithm identifier
+ *
+ * \return  The Mbed TLS cipher information of the cipher algorithm.
+ *          \c NULL if the PSA cipher algorithm is not supported.
+ */
+const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
+    psa_algorithm_t alg, psa_key_type_t key_type, size_t key_bits,
+    mbedtls_cipher_id_t *cipher_id );
 
 /**
  * \brief Set the key for a multipart symmetric encryption operation.

@@ -189,7 +189,7 @@
 
 /** This macro returns the maximum supported length of the PSK for the
  * TLS-1.2 PSK-to-MS key derivation
- * (#PSA_ALG_TLS12_PSK_TO_MS(\p hash_alg)).
+ * (#PSA_ALG_TLS12_PSK_TO_MS(\c hash_alg)).
  *
  * The maximum supported length does not depend on the chosen hash algorithm.
  *

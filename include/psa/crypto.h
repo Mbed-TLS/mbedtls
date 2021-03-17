@@ -3465,7 +3465,8 @@ psa_status_t psa_key_derivation_output_bytes(
  * state and must be aborted by calling psa_key_derivation_abort().
  *
  * How much output is produced and consumed from the operation, and how
- * the key is derived, depends on the key type:
+ * the key is derived, depends on the key type and on the key size
+ * (denoted \c bits below):
  *
  * - For key types for which the key is an arbitrary sequence of bytes
  *   of a given size, this function is functionally equivalent to
@@ -3475,7 +3476,7 @@ psa_status_t psa_key_derivation_output_bytes(
  *   if the implementation provides an isolation boundary then
  *   the key material is not exposed outside the isolation boundary.
  *   As a consequence, for these key types, this function always consumes
- *   exactly (\p bits / 8) bytes from the operation.
+ *   exactly (\c bits / 8) bytes from the operation.
  *   The following key types defined in this specification follow this scheme:
  *
  *     - #PSA_KEY_TYPE_AES;
@@ -3496,8 +3497,8 @@ psa_status_t psa_key_derivation_output_bytes(
  *       string and process it as specified in RFC 7748 &sect;5.
  *
  * - For key types for which the key is represented by a single sequence of
- *   \p bits bits with constraints as to which bit sequences are acceptable,
- *   this function draws a byte string of length (\p bits / 8) bytes rounded
+ *   \c bits bits with constraints as to which bit sequences are acceptable,
+ *   this function draws a byte string of length (\c bits / 8) bytes rounded
  *   up to the nearest whole number of bytes. If the resulting byte string
  *   is acceptable, it becomes the key, otherwise the drawn bytes are discarded.
  *   This process is repeated until an acceptable byte string is drawn.

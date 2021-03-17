@@ -158,20 +158,30 @@ typedef union {
 #endif /* MBEDTLS_CHACHAPOLY_C */
 } mbedtls_aead_context_t;
 
-static psa_status_t is_aead_implemented( psa_status_t alg )
+static psa_status_t aead_validate_and_get_tag_length( psa_status_t alg,
+                                                      size_t *tag_length )
 {
     switch( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) )
     {
 #if defined(BUILTIN_ALG_CCM)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ):
+            if( PSA_AEAD_TAG_LENGTH( alg ) > 16 )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            *tag_length = PSA_AEAD_TAG_LENGTH( alg );
             return( PSA_SUCCESS );
 #endif /* BUILTIN_ALG_CCM */
 #if defined(BUILTIN_ALG_GCM)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ):
+            if( PSA_AEAD_TAG_LENGTH( alg ) > 16 )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            *tag_length = PSA_AEAD_TAG_LENGTH( alg );
             return( PSA_SUCCESS );
 #endif /* BUILTIN_ALG_CCM */
 #if defined(BUILTIN_ALG_CHACHA20_POLY1305)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CHACHA20_POLY1305, 0 ):
+            if( PSA_AEAD_TAG_LENGTH( alg ) > 16 )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            *tag_length = PSA_AEAD_TAG_LENGTH( alg );
             return( PSA_SUCCESS );
 #endif /* BUILTIN_ALG_CHACHA20_POLY1305 */
     }
@@ -225,13 +235,19 @@ static psa_status_t aead_encrypt( const psa_key_attributes_t *attributes,
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_id_t cipher_id;
     mbedtls_aead_context_t ctx;
-    size_t tag_length = 0;
-    size_t full_tag_length = 0;
+    size_t tag_length = PSA_AEAD_TAG_LENGTH( alg );
     uint8_t *tag;
 
-    /* Check the algorithm is present in this library */
-    if( ( status = is_aead_implemented( alg ) ) != PSA_SUCCESS )
+    /* Validate that the requested algorithm is capable of the requested tag
+     * length, and simultaneously validate that this library is capable of
+     * executing the requested algorithm. */
+    status = aead_validate_and_get_tag_length( alg, &tag_length );
+    if( status != PSA_SUCCESS )
         return( status );
+
+    /* Now that we know we should be able to execute this algorithm, set up a
+     * Mbed TLS context structure. */
+    aead_context_setup( &ctx );
 
     /* Check the underlying cipher is available in this library */
     cipher_info = mbedtls_cipher_info_from_psa( alg,
@@ -244,16 +260,11 @@ static psa_status_t aead_encrypt( const psa_key_attributes_t *attributes,
     if( PSA_BITS_TO_BYTES( cipher_info->key_bitlen ) != key_buffer_size )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    /* Now that we know we should be able to execute this algorithm, set up a
-     * Mbed TLS context structure. */
-    aead_context_setup( &ctx );
-
     /* Set the key on the Mbed TLS context structure */
     switch( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) )
     {
 #if defined(BUILTIN_ALG_CCM)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ):
-            full_tag_length = 16;
             /* CCM allows the following tag lengths: 4, 6, 8, 10, 12, 14, 16.
              * The call to mbedtls_ccm_encrypt_and_tag or
              * mbedtls_ccm_auth_decrypt will validate the tag length. */
@@ -274,7 +285,6 @@ static psa_status_t aead_encrypt( const psa_key_attributes_t *attributes,
 
 #if defined(BUILTIN_ALG_GCM)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ):
-            full_tag_length = 16;
             /* GCM allows the following tag lengths: 4, 8, 12, 13, 14, 15, 16.
              * The call to mbedtls_gcm_crypt_and_tag or
              * mbedtls_gcm_auth_decrypt will validate the tag length. */
@@ -295,7 +305,6 @@ static psa_status_t aead_encrypt( const psa_key_attributes_t *attributes,
 
 #if defined(BUILTIN_ALG_CHACHA20_POLY1305)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CHACHA20_POLY1305, 0 ):
-            full_tag_length = 16;
             /* We only support the default tag length. */
             if( alg != PSA_ALG_CHACHA20_POLY1305 )
             {
@@ -316,14 +325,6 @@ static psa_status_t aead_encrypt( const psa_key_attributes_t *attributes,
             status = PSA_ERROR_NOT_SUPPORTED;
             goto exit;
     }
-
-    if( PSA_AEAD_TAG_LENGTH( alg ) > full_tag_length )
-    {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto exit;
-    }
-    tag_length = PSA_AEAD_TAG_LENGTH( alg );
-
 
     /* For all currently supported modes, the tag is at the end of the
      * ciphertext. */
@@ -441,12 +442,18 @@ static psa_status_t aead_decrypt( const psa_key_attributes_t *attributes,
     mbedtls_cipher_id_t cipher_id;
     mbedtls_aead_context_t ctx;
     size_t tag_length = 0;
-    size_t full_tag_length = 0;
     const uint8_t *tag;
 
-    /* Check the algorithm is present in this library */
-    if( ( status = is_aead_implemented( alg ) ) != PSA_SUCCESS )
+    /* Validate that the requested algorithm is capable of the requested tag
+     * length, and simultaneously validate that this library is capable of
+     * executing the requested algorithm. */
+    status = aead_validate_and_get_tag_length( alg, &tag_length );
+    if( status != PSA_SUCCESS )
         return( status );
+
+    /* Now that we know we should be able to execute this algorithm, set up a
+     * Mbed TLS context structure. */
+    aead_context_setup( &ctx );
 
     /* Check the underlying cipher is available in this library */
     cipher_info = mbedtls_cipher_info_from_psa( alg,
@@ -459,16 +466,11 @@ static psa_status_t aead_decrypt( const psa_key_attributes_t *attributes,
     if( PSA_BITS_TO_BYTES( cipher_info->key_bitlen ) != key_buffer_size )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    /* Now that we know we should be able to execute this algorithm, set up a
-     * Mbed TLS context structure. */
-    aead_context_setup( &ctx );
-
     /* Set the key on the Mbed TLS context structure */
     switch( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) )
     {
 #if defined(BUILTIN_ALG_CCM)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ):
-            full_tag_length = 16;
             /* CCM allows the following tag lengths: 4, 6, 8, 10, 12, 14, 16.
              * The call to mbedtls_ccm_encrypt_and_tag or
              * mbedtls_ccm_auth_decrypt will validate the tag length. */
@@ -489,7 +491,6 @@ static psa_status_t aead_decrypt( const psa_key_attributes_t *attributes,
 
 #if defined(BUILTIN_ALG_GCM)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ):
-            full_tag_length = 16;
             /* GCM allows the following tag lengths: 4, 8, 12, 13, 14, 15, 16.
              * The call to mbedtls_gcm_crypt_and_tag or
              * mbedtls_gcm_auth_decrypt will validate the tag length. */
@@ -510,7 +511,6 @@ static psa_status_t aead_decrypt( const psa_key_attributes_t *attributes,
 
 #if defined(BUILTIN_ALG_CHACHA20_POLY1305)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CHACHA20_POLY1305, 0 ):
-            full_tag_length = 16;
             /* We only support the default tag length. */
             if( alg != PSA_ALG_CHACHA20_POLY1305 )
             {
@@ -531,13 +531,6 @@ static psa_status_t aead_decrypt( const psa_key_attributes_t *attributes,
             status = PSA_ERROR_NOT_SUPPORTED;
             goto exit;
     }
-
-    if( PSA_AEAD_TAG_LENGTH( alg ) > full_tag_length )
-    {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto exit;
-    }
-    tag_length = PSA_AEAD_TAG_LENGTH( alg );
 
     status = psa_aead_unpadded_locate_tag( tag_length,
                                            ciphertext, ciphertext_length,

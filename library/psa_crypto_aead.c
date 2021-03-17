@@ -363,9 +363,6 @@ static psa_status_t aead_encrypt( const psa_key_attributes_t *attributes,
             break;
     }
 
-    if( status != PSA_SUCCESS && ciphertext_size != 0 )
-        memset( ciphertext, 0, ciphertext_size );
-
 exit:
     aead_context_teardown( alg, &ctx );
     if( status == PSA_SUCCESS )
@@ -490,9 +487,6 @@ static psa_status_t aead_decrypt( const psa_key_attributes_t *attributes,
             status = PSA_ERROR_CORRUPTION_DETECTED;
             break;
     }
-
-    if( status != PSA_SUCCESS && plaintext_size != 0 )
-        memset( plaintext, 0, plaintext_size );
 
 exit:
     aead_context_teardown( alg, &ctx );

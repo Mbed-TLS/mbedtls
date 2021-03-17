@@ -3896,6 +3896,9 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
 
     unlock_status = psa_unlock_key_slot( slot );
 
+    if( status != PSA_SUCCESS && ciphertext_size != 0 )
+        memset( ciphertext, 0, ciphertext_size );
+
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
@@ -3936,6 +3939,9 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
                 plaintext, plaintext_size, plaintext_length );
 
     unlock_status = psa_unlock_key_slot( slot );
+
+    if( status != PSA_SUCCESS && plaintext_size != 0 )
+        memset( plaintext, 0, plaintext_size );
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }

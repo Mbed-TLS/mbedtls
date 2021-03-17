@@ -26,6 +26,7 @@
 #include "psa_crypto_core.h"
 #include "psa_crypto_ecp.h"
 #include "psa_crypto_random_impl.h"
+#include "psa_crypto_hash.h"
 
 #include <stdlib.h>
 #include <string.h>

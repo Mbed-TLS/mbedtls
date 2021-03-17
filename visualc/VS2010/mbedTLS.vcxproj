@@ -222,9 +222,11 @@
     <ClInclude Include="..\..\include\mbedtls\x509_csr.h" />
     <ClInclude Include="..\..\include\mbedtls\xtea.h" />
     <ClInclude Include="..\..\include\psa\crypto.h" />
+    <ClInclude Include="..\..\include\psa\crypto_builtin_hash.h" />
     <ClInclude Include="..\..\include\psa\crypto_compat.h" />
     <ClInclude Include="..\..\include\psa\crypto_config.h" />
     <ClInclude Include="..\..\include\psa\crypto_driver_common.h" />
+    <ClInclude Include="..\..\include\psa\crypto_driver_contexts.h" />
     <ClInclude Include="..\..\include\psa\crypto_extra.h" />
     <ClInclude Include="..\..\include\psa\crypto_platform.h" />
     <ClInclude Include="..\..\include\psa\crypto_se_driver.h" />
@@ -251,6 +253,7 @@
     <ClInclude Include="..\..\library\psa_crypto_core.h" />
     <ClInclude Include="..\..\library\psa_crypto_driver_wrappers.h" />
     <ClInclude Include="..\..\library\psa_crypto_ecp.h" />
+    <ClInclude Include="..\..\library\psa_crypto_hash.h" />
     <ClInclude Include="..\..\library\psa_crypto_invasive.h" />
     <ClInclude Include="..\..\library\psa_crypto_its.h" />
     <ClInclude Include="..\..\library\psa_crypto_random_impl.h" />
@@ -324,6 +327,7 @@
     <ClCompile Include="..\..\library\psa_crypto_client.c" />
     <ClCompile Include="..\..\library\psa_crypto_driver_wrappers.c" />
     <ClCompile Include="..\..\library\psa_crypto_ecp.c" />
+    <ClCompile Include="..\..\library\psa_crypto_hash.c" />
     <ClCompile Include="..\..\library\psa_crypto_rsa.c" />
     <ClCompile Include="..\..\library\psa_crypto_se.c" />
     <ClCompile Include="..\..\library\psa_crypto_slot_management.c" />

@@ -68,14 +68,9 @@ extern "C" {
 #include "mbedtls/cipher.h"
 #include "mbedtls/cmac.h"
 #include "mbedtls/gcm.h"
-#include "mbedtls/md.h"
-#include "mbedtls/md2.h"
-#include "mbedtls/md4.h"
-#include "mbedtls/md5.h"
-#include "mbedtls/ripemd160.h"
-#include "mbedtls/sha1.h"
-#include "mbedtls/sha256.h"
-#include "mbedtls/sha512.h"
+
+/* Include the context definition for the compiled-in drivers */
+#include "psa/crypto_driver_contexts.h"
 
 typedef struct {
     /** Unique ID indicating which driver got assigned to do the
@@ -89,32 +84,14 @@ typedef struct {
 
 struct psa_hash_operation_s
 {
-    psa_algorithm_t alg;
-    union
-    {
-        unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
-#if defined(MBEDTLS_MD2_C)
-        mbedtls_md2_context md2;
-#endif
-#if defined(MBEDTLS_MD4_C)
-        mbedtls_md4_context md4;
-#endif
-#if defined(MBEDTLS_MD5_C)
-        mbedtls_md5_context md5;
-#endif
-#if defined(MBEDTLS_RIPEMD160_C)
-        mbedtls_ripemd160_context ripemd160;
-#endif
-#if defined(MBEDTLS_SHA1_C)
-        mbedtls_sha1_context sha1;
-#endif
-#if defined(MBEDTLS_SHA256_C)
-        mbedtls_sha256_context sha256;
-#endif
-#if defined(MBEDTLS_SHA512_C)
-        mbedtls_sha512_context sha512;
-#endif
-    } ctx;
+    /** Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_driver_wrappers.h
+     * ID value zero means the context is not valid or not assigned to
+     * any driver (i.e. none of the driver contexts are active). */
+    unsigned int id;
+    psa_driver_hash_context_t ctx;
 };
 
 #define PSA_HASH_OPERATION_INIT {0, {0}}
@@ -127,6 +104,8 @@ static inline struct psa_hash_operation_s psa_hash_operation_init( void )
 #if defined(MBEDTLS_MD_C)
 typedef struct
 {
+        /** The HMAC algorithm in use */
+        psa_algorithm_t alg;
         /** The hash context. */
         struct psa_hash_operation_s hash_ctx;
         /** The HMAC part of the context. */

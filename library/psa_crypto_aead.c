@@ -53,7 +53,7 @@
  * software driver or the test driver requires it. */
 #if defined(MBEDTLS_PSA_BUILTIN_AEAD) || defined(PSA_CRYPTO_DRIVER_TEST)
 
-static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
+static const mbedtls_cipher_info_t *mbedtls_aead_cipher_info_from_psa(
     psa_algorithm_t alg,
     psa_key_type_t key_type,
     size_t key_bits,
@@ -62,51 +62,20 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     mbedtls_cipher_mode_t mode;
     mbedtls_cipher_id_t cipher_id_tmp;
 
-    if( PSA_ALG_IS_AEAD( alg ) )
-        alg = PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 );
-
-    if( PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) )
+    switch( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) )
     {
-        switch( alg )
-        {
-            case PSA_ALG_STREAM_CIPHER:
-                mode = MBEDTLS_MODE_STREAM;
-                break;
-            case PSA_ALG_CTR:
-                mode = MBEDTLS_MODE_CTR;
-                break;
-            case PSA_ALG_CFB:
-                mode = MBEDTLS_MODE_CFB;
-                break;
-            case PSA_ALG_OFB:
-                mode = MBEDTLS_MODE_OFB;
-                break;
-            case PSA_ALG_ECB_NO_PADDING:
-                mode = MBEDTLS_MODE_ECB;
-                break;
-            case PSA_ALG_CBC_NO_PADDING:
-                mode = MBEDTLS_MODE_CBC;
-                break;
-            case PSA_ALG_CBC_PKCS7:
-                mode = MBEDTLS_MODE_CBC;
-                break;
-            case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ):
-                mode = MBEDTLS_MODE_CCM;
-                break;
-            case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ):
-                mode = MBEDTLS_MODE_GCM;
-                break;
-            case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CHACHA20_POLY1305, 0 ):
-                mode = MBEDTLS_MODE_CHACHAPOLY;
-                break;
-            default:
-                return( NULL );
-        }
+        case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ):
+            mode = MBEDTLS_MODE_CCM;
+            break;
+        case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ):
+            mode = MBEDTLS_MODE_GCM;
+            break;
+        case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CHACHA20_POLY1305, 0 ):
+            mode = MBEDTLS_MODE_CHACHAPOLY;
+            break;
+        default:
+            return( NULL );
     }
-    else if( alg == PSA_ALG_CMAC )
-        mode = MBEDTLS_MODE_ECB;
-    else
-        return( NULL );
 
     switch( key_type )
     {
@@ -227,10 +196,11 @@ static psa_status_t aead_set_key( mbedtls_aead_context_t *ctx,
     mbedtls_cipher_id_t cipher_id;
 
     /* Check the underlying cipher is available in this library */
-    cipher_info = mbedtls_cipher_info_from_psa( alg,
-                                                psa_get_key_type( attributes ),
-                                                psa_get_key_bits( attributes ),
-                                                &cipher_id );
+    cipher_info = mbedtls_aead_cipher_info_from_psa(
+                    alg,
+                    psa_get_key_type( attributes ),
+                    psa_get_key_bits( attributes ),
+                    &cipher_id );
     if( cipher_info == NULL )
         return( PSA_ERROR_NOT_SUPPORTED );
 

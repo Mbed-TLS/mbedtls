@@ -205,7 +205,7 @@ static int test_operations_on_invalid_key( mbedtls_svc_key_id_t key )
     psa_set_key_algorithm( &attributes, PSA_ALG_CTR );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
     TEST_EQUAL( psa_get_key_attributes( key, &attributes ),
-                PSA_ERROR_DOES_NOT_EXIST );
+                PSA_ERROR_INVALID_HANDLE );
     TEST_EQUAL(
         MBEDTLS_SVC_KEY_ID_GET_KEY_ID( psa_get_key_id( &attributes ) ), 0 );
     TEST_EQUAL(
@@ -217,10 +217,10 @@ static int test_operations_on_invalid_key( mbedtls_svc_key_id_t key )
     TEST_EQUAL( psa_get_key_bits( &attributes ), 0 );
 
     TEST_EQUAL( psa_export_key( key, buffer, sizeof( buffer ), &length ),
-                PSA_ERROR_DOES_NOT_EXIST );
+                PSA_ERROR_INVALID_HANDLE );
     TEST_EQUAL( psa_export_public_key( key,
                                        buffer, sizeof( buffer ), &length ),
-                PSA_ERROR_DOES_NOT_EXIST );
+                PSA_ERROR_INVALID_HANDLE );
 
     ok = 1;
 

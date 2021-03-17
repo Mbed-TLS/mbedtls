@@ -178,7 +178,7 @@ void transient_slot_lifecycle( int owner_id_arg,
 
     /* Test that the key is now invalid. */
     TEST_EQUAL( psa_get_key_attributes( key, &attributes ),
-                PSA_ERROR_DOES_NOT_EXIST );
+                PSA_ERROR_INVALID_HANDLE );
     TEST_EQUAL( psa_close_key( key ), PSA_ERROR_INVALID_HANDLE );
 
 exit:
@@ -326,10 +326,10 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
              * existing key.
              */
             TEST_EQUAL( psa_get_key_attributes( handle, &read_attributes ),
-                        PSA_ERROR_DOES_NOT_EXIST );
+                        PSA_ERROR_INVALID_HANDLE );
             TEST_EQUAL( psa_close_key( handle ), PSA_ERROR_INVALID_HANDLE );
             TEST_EQUAL( psa_get_key_attributes( id, &read_attributes ),
-                        PSA_ERROR_DOES_NOT_EXIST );
+                        PSA_ERROR_INVALID_HANDLE );
             break;
     }
 
@@ -728,13 +728,12 @@ exit:
 
 /* BEGIN_CASE */
 void invalid_handle( int handle_construction,
-                     int close_status_arg, int usage_status_arg )
+                     int close_status_arg )
 {
     psa_key_handle_t valid_handle = PSA_KEY_HANDLE_INIT;
     psa_key_handle_t invalid_handle = PSA_KEY_HANDLE_INIT;
     psa_key_id_t key_id;
     psa_status_t close_status = close_status_arg;
-    psa_status_t usage_status = usage_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t material[1] = "a";
 
@@ -793,7 +792,7 @@ void invalid_handle( int handle_construction,
 
     /* Attempt to use the invalid handle. */
     TEST_EQUAL( psa_get_key_attributes( invalid_handle, &attributes ),
-                usage_status );
+                PSA_ERROR_INVALID_HANDLE );
     TEST_EQUAL( psa_close_key( invalid_handle ), close_status );
     TEST_EQUAL( psa_destroy_key( invalid_handle ), close_status );
 

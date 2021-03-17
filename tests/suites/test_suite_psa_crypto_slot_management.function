@@ -179,7 +179,7 @@ void transient_slot_lifecycle( int owner_id_arg,
     /* Test that the key is now invalid. */
     TEST_EQUAL( psa_get_key_attributes( key, &attributes ),
                 PSA_ERROR_DOES_NOT_EXIST );
-    TEST_EQUAL( psa_close_key( key ), PSA_ERROR_DOES_NOT_EXIST );
+    TEST_EQUAL( psa_close_key( key ), PSA_ERROR_INVALID_HANDLE );
 
 exit:
     /*
@@ -327,7 +327,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
              */
             TEST_EQUAL( psa_get_key_attributes( handle, &read_attributes ),
                         PSA_ERROR_DOES_NOT_EXIST );
-            TEST_EQUAL( psa_close_key( handle ), PSA_ERROR_DOES_NOT_EXIST );
+            TEST_EQUAL( psa_close_key( handle ), PSA_ERROR_INVALID_HANDLE );
             TEST_EQUAL( psa_get_key_attributes( id, &read_attributes ),
                         PSA_ERROR_DOES_NOT_EXIST );
             break;

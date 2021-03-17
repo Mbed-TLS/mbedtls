@@ -142,7 +142,7 @@ static void *handle_ssl_connection( void *data )
     if( ( ret = mbedtls_ssl_setup( &ssl, thread_info->config ) ) != 0 )
     {
         mbedtls_printf( "  [ #%ld ]  failed: mbedtls_ssl_setup returned -0x%04x\n",
-                thread_id, -ret );
+                thread_id, ( unsigned int ) -ret );
         goto thread_exit;
     }
 
@@ -158,7 +158,7 @@ static void *handle_ssl_connection( void *data )
         if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( "  [ #%ld ]  failed: mbedtls_ssl_handshake returned -0x%04x\n",
-                    thread_id, -ret );
+                    thread_id, ( unsigned int ) -ret );
             goto thread_exit;
         }
     }
@@ -195,7 +195,7 @@ static void *handle_ssl_connection( void *data )
 
                 default:
                     mbedtls_printf( "  [ #%ld ]  mbedtls_ssl_read returned -0x%04x\n",
-                            thread_id, -ret );
+                            thread_id, ( unsigned int ) -ret );
                     goto thread_exit;
             }
         }
@@ -229,7 +229,7 @@ static void *handle_ssl_connection( void *data )
         if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( "  [ #%ld ]  failed: mbedtls_ssl_write returned -0x%04x\n",
-                    thread_id, ret );
+                    thread_id, ( unsigned int ) ret );
             goto thread_exit;
         }
     }
@@ -246,7 +246,7 @@ static void *handle_ssl_connection( void *data )
             ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( "  [ #%ld ]  failed: mbedtls_ssl_close_notify returned -0x%04x\n",
-                    thread_id, ret );
+                    thread_id, ( unsigned int ) ret );
             goto thread_exit;
         }
     }
@@ -263,7 +263,7 @@ thread_exit:
         char error_buf[100];
         mbedtls_strerror( ret, error_buf, 100 );
         mbedtls_printf("  [ #%ld ]  Last error was: -0x%04x - %s\n\n",
-               thread_id, -ret, error_buf );
+               thread_id, ( unsigned int ) -ret, error_buf );
     }
 #endif
 
@@ -408,7 +408,7 @@ int main( void )
                                strlen( pers ) ) ) != 0 )
     {
         mbedtls_printf( " failed: mbedtls_ctr_drbg_seed returned -0x%04x\n",
-                -ret );
+                ( unsigned int ) -ret );
         goto exit;
     }
 
@@ -425,7 +425,7 @@ int main( void )
                     MBEDTLS_SSL_PRESET_DEFAULT ) ) != 0 )
     {
         mbedtls_printf( " failed: mbedtls_ssl_config_defaults returned -0x%04x\n",
-                -ret );
+                ( unsigned int ) -ret );
         goto exit;
     }
 
@@ -470,7 +470,8 @@ reset:
     {
         char error_buf[100];
         mbedtls_strerror( ret, error_buf, 100 );
-        mbedtls_printf( "  [ main ]  Last error was: -0x%04x - %s\n", -ret, error_buf );
+        mbedtls_printf( "  [ main ]  Last error was: -0x%04x - %s\n", ( unsigned int ) -ret,
+                        error_buf );
     }
 #endif
 
@@ -482,7 +483,8 @@ reset:
     if( ( ret = mbedtls_net_accept( &listen_fd, &client_fd,
                                     NULL, 0, NULL ) ) != 0 )
     {
-        mbedtls_printf( "  [ main ] failed: mbedtls_net_accept returned -0x%04x\n", ret );
+        mbedtls_printf( "  [ main ] failed: mbedtls_net_accept returned -0x%04x\n",
+                        ( unsigned int ) ret );
         goto exit;
     }
 

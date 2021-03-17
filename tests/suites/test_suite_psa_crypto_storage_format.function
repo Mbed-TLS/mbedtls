@@ -167,7 +167,7 @@ void key_storage_save( int lifetime_arg, int type_arg, int bits_arg,
 
     /* This is the current storage format. Test that we know exactly how
      * the key is stored. The stability of the test data in future
-     * versions of the Mbed TLS will guarantee that future versions
+     * versions of Mbed TLS will guarantee that future versions
      * can read back what this version wrote. */
     TEST_ASSERT( test_written_key( &attributes, material,
                                    uid, representation ) );
@@ -211,7 +211,7 @@ void key_storage_read( int lifetime_arg, int type_arg, int bits_arg,
 
     /* Test that we can use a key with the given representation. This
      * guarantees backward compatibility with keys that were stored by
-     * past versionf of Mbed TLS. */
+     * past versions of Mbed TLS. */
     TEST_ASSERT( test_read_key( &attributes, material,
                                 uid, representation, exercise ) );
 

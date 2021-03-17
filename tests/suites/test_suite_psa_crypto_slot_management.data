@@ -89,15 +89,15 @@ create_existent:PSA_KEY_LIFETIME_PERSISTENT:0x3617:1:KEEP_OPEN
 
 Open failure: invalid identifier (0)
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
-open_fail:0:PSA_ERROR_INVALID_HANDLE
+open_fail:0:PSA_ERROR_DOES_NOT_EXIST
 
 Open failure: invalid identifier (random seed UID)
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
-open_fail:PSA_CRYPTO_ITS_RANDOM_SEED_UID:PSA_ERROR_INVALID_HANDLE
+open_fail:PSA_CRYPTO_ITS_RANDOM_SEED_UID:PSA_ERROR_DOES_NOT_EXIST
 
 Open failure: invalid identifier (reserved range)
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
-open_fail:PSA_KEY_ID_VENDOR_MAX + 1:PSA_ERROR_INVALID_HANDLE
+open_fail:PSA_KEY_ID_VENDOR_MAX + 1:PSA_ERROR_DOES_NOT_EXIST
 
 Open failure: invalid identifier (implementation range)
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C

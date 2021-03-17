@@ -3535,7 +3535,7 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
       .core = slot->attr
     };
 
-    status = mbedtls_psa_aead_encrypt(
+    status = psa_driver_wrapper_aead_encrypt(
         &attributes, slot->key.data, slot->key.bytes,
         alg,
         nonce, nonce_length,
@@ -3577,7 +3577,7 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
       .core = slot->attr
     };
 
-    status = mbedtls_psa_aead_decrypt(
+    status = psa_driver_wrapper_aead_decrypt(
         &attributes, slot->key.data, slot->key.bytes,
         alg,
         nonce, nonce_length,

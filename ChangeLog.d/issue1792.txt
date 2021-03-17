@@ -1,4 +1,4 @@
 Bugfix
-   * Fix a bug in EC J-PAKE that would cause it fail when the payload is all-
-     bits-zero.
-     Found by Gilles Peskine, reported in #1792.
+   * Fix a bug in ECDSA that would cause it to fail when the payload is all-bits
+     zero.
+     Fixes #1792

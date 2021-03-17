@@ -2806,7 +2806,7 @@ static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if ( mbedtls_mpi_cmp_int( m, 0 ) == 0 )
+    if( mbedtls_mpi_cmp_int( m, 0 ) == 0 )
     {
         MBEDTLS_MPI_CHK( mbedtls_ecp_set_zero( R ) );
     }

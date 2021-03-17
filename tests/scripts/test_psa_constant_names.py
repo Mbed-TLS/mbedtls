@@ -365,7 +365,7 @@ def main():
                         help='Program to test')
     parser.add_argument('--show',
                         action='store_true',
-                        help='Keep the intermediate C file')
+                        help='Show tested values on stdout')
     parser.add_argument('--no-show',
                         action='store_false', dest='show',
                         help='Don\'t show tested values (default)')

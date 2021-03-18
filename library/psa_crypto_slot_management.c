@@ -299,20 +299,21 @@ static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
     /* If the key should exist according to the platform, load it through the
      * driver interface. */
     uint8_t *key_buffer = NULL;
+    size_t key_buffer_size = 0;
     size_t key_buffer_length = 0;
 
     status = psa_driver_wrapper_get_key_buffer_size( &attributes,
-                                                     &key_buffer_length );
+                                                     &key_buffer_size );
     if( status != PSA_SUCCESS )
         return( status );
 
-    key_buffer = mbedtls_calloc( 1, key_buffer_length );
+    key_buffer = mbedtls_calloc( 1, key_buffer_size );
     if( key_buffer == NULL )
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
     status = psa_driver_wrapper_get_builtin_key(
                 slot_number, &attributes,
-                key_buffer, key_buffer_length, &key_buffer_length );
+                key_buffer, key_buffer_size, &key_buffer_length );
     if( status != PSA_SUCCESS )
         goto exit;
 

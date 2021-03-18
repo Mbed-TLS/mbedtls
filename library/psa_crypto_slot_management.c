@@ -321,14 +321,8 @@ static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
     if( status != PSA_SUCCESS )
         goto exit;
 
-    /* Copy core attributes into the slot on success.
-     * Use static allocations to make the compiler yell at us should one
-     * of the two structures change type. */
-    psa_core_key_attributes_t* builtin_key_core_attributes = &attributes.core;
-    psa_core_key_attributes_t* slot_core_attributes = &slot->attr;
-    memcpy( slot_core_attributes,
-            builtin_key_core_attributes,
-            sizeof( psa_core_key_attributes_t ) );
+    /* Copy core attributes into the slot on success */
+    slot->attr = attributes.core;
 
 exit:
     mbedtls_free( key_buffer );

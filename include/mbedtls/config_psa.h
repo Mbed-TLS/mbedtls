@@ -40,6 +40,20 @@ extern "C" {
 
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 
+#if defined(PSA_WANT_ALG_CCM)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_CCM)
+#define MBEDTLS_PSA_BUILTIN_ALG_CCM 1
+#define MBEDTLS_CCM_C
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_CCM */
+#endif /* PSA_WANT_ALG_CCM */
+
+#if defined(PSA_WANT_ALG_CMAC)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_CMAC)
+#define MBEDTLS_PSA_BUILTIN_ALG_CMAC 1
+#define MBEDTLS_CMAC_C
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_CMAC */
+#endif /* PSA_WANT_ALG_CMAC */
+
 #if defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA)
 #define MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA 1
@@ -65,6 +79,13 @@ extern "C" {
 #define MBEDTLS_ECDSA_C
 #endif /* !MBEDTLS_PSA_ACCEL_ALG_ECDSA */
 #endif /* PSA_WANT_ALG_ECDSA */
+
+#if defined(PSA_WANT_ALG_GCM)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_GCM)
+#define MBEDTLS_PSA_BUILTIN_ALG_GCM 1
+#define MBEDTLS_GCM_C
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_GCM */
+#endif /* PSA_WANT_ALG_GCM */
 
 #if defined(PSA_WANT_ALG_HKDF)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_HKDF)
@@ -453,6 +474,16 @@ extern "C" {
  * is not defined
  */
 
+#if defined(MBEDTLS_CCM_C)
+#define MBEDTLS_PSA_BUILTIN_ALG_CCM 1
+#define PSA_WANT_ALG_CCM 1
+#endif /* MBEDTLS_CCM_C */
+
+#if defined(MBEDTLS_CMAC_C)
+#define MBEDTLS_PSA_BUILTIN_ALG_CMAC 1
+#define PSA_WANT_ALG_CMAC 1
+#endif /* MBEDTLS_CMAC_C */
+
 #if defined(MBEDTLS_ECDH_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_ECDH 1
 #define PSA_WANT_ALG_ECDH 1
@@ -476,6 +507,11 @@ extern "C" {
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY 1
 #define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY 1
 #endif /* MBEDTLS_ECP_C */
+
+#if defined(MBEDTLS_GCM_C)
+#define MBEDTLS_PSA_BUILTIN_ALG_GCM 1
+#define PSA_WANT_ALG_GCM 1
+#endif /* MBEDTLS_GCM_C */
 
 #if defined(MBEDTLS_HKDF_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_HMAC 1

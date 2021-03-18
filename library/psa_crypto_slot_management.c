@@ -26,6 +26,7 @@
 #include "psa/crypto.h"
 
 #include "psa_crypto_core.h"
+#include "psa_crypto_driver_wrappers.h"
 #include "psa_crypto_slot_management.h"
 #include "psa_crypto_storage.h"
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -275,7 +276,6 @@ exit:
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
 #if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
-#include "psa_crypto_driver_wrappers.h"
 
 static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
 {

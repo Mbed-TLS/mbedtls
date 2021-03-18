@@ -246,14 +246,12 @@ class ChangeLog:
                                        category.name.decode('utf8'))
 
             body_split = category.body.splitlines()
-            line_number = 1
-            for line in body_split:
+            for line_number, line in enumerate(body_split, 1):
                 if len(line) > MAX_LINE_LENGTH:
                     raise InputFormatError(filename,
-                                           line_offset + category.title_line + line_number,
+                                           category.body_line + line_number,
                                            'Line is longer than allowed: Length {} (Max {})',
                                            len(line), MAX_LINE_LENGTH)
-                line_number += 1
 
             self.categories[category.name] += category.body
 

@@ -990,7 +990,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+/* BEGIN_CASE depends_on:PSA_CRYPTO_DRIVER_TEST:MBEDTLS_PSA_CRYPTO_DRIVERS:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 void builtin_pubkey_export( int builtin_key_id_arg,
                             int builtin_key_type_arg,
                             int builtin_key_bits_arg,

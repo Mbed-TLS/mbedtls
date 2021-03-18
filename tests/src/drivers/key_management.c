@@ -41,7 +41,6 @@
 test_driver_key_management_hooks_t test_driver_key_management_hooks =
     TEST_DRIVER_KEY_MANAGEMENT_INIT;
 
-#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
 const uint8_t test_driver_aes_key[16] =
     { 0x36, 0x77, 0x39, 0x7A, 0x24, 0x43, 0x26, 0x46,
       0x29, 0x4A, 0x40, 0x4E, 0x63, 0x52, 0x66, 0x55 };
@@ -60,12 +59,6 @@ const uint8_t test_driver_ecdsa_pubkey[65] =
       0x7a, 0x20, 0xb3, 0x80, 0xe8, 0x66, 0x58, 0x4b,
       0xbc, 0x25, 0x16, 0xc3, 0xd2, 0x70, 0x2d, 0x79,
       0x2f, 0x13, 0x1a, 0x92, 0x20, 0x95, 0xfd, 0x6c };
-
-static const psa_drv_slot_number_t aes_slot =
-    PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT;
-static const psa_drv_slot_number_t ecdsa_slot =
-    PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT;
-#endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 
 psa_status_t test_transparent_generate_key(
     const psa_key_attributes_t *attributes,
@@ -180,72 +173,66 @@ psa_status_t test_opaque_export_key(
     const uint8_t *key, size_t key_length,
     uint8_t *data, size_t data_size, size_t *data_length )
 {
-#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
-    if( psa_key_id_is_builtin(
-            MBEDTLS_SVC_KEY_ID_GET_KEY_ID( psa_get_key_id( attributes ) ) ) )
+    if( key_length == sizeof( psa_drv_slot_number_t ) )
     {
-        if( key_length != sizeof( psa_drv_slot_number_t ) )
-            return( PSA_ERROR_INVALID_ARGUMENT );
+        /* Assume this is a builtin key based on the key material length. */
+        psa_drv_slot_number_t slot_number = *( ( psa_drv_slot_number_t* ) key );
 
-        if( memcmp( key, &ecdsa_slot, sizeof( psa_drv_slot_number_t ) ) == 0 )
+        switch( slot_number )
         {
-            /* This is the ECDSA slot. Verify key attributes before returning
-             * the private key. */
-            if( psa_get_key_type( attributes ) !=
-                PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
-            if( psa_get_key_bits( attributes ) != 256 )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
-            if( psa_get_key_algorithm( attributes ) !=
-                PSA_ALG_ECDSA( PSA_ALG_ANY_HASH ) )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
-            if( ( psa_get_key_usage_flags( attributes ) &
-                  PSA_KEY_USAGE_EXPORT ) == 0 )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
+            case PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT:
+                /* This is the ECDSA slot. Verify the key's attributes before
+                 * returning the private key. */
+                if( psa_get_key_type( attributes ) !=
+                    PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) )
+                    return( PSA_ERROR_CORRUPTION_DETECTED );
+                if( psa_get_key_bits( attributes ) != 256 )
+                    return( PSA_ERROR_CORRUPTION_DETECTED );
+                if( psa_get_key_algorithm( attributes ) !=
+                    PSA_ALG_ECDSA( PSA_ALG_ANY_HASH ) )
+                    return( PSA_ERROR_CORRUPTION_DETECTED );
+                if( ( psa_get_key_usage_flags( attributes ) &
+                      PSA_KEY_USAGE_EXPORT ) == 0 )
+                    return( PSA_ERROR_CORRUPTION_DETECTED );
 
-            if( data_size < sizeof( test_driver_ecdsa_key ) )
-                return( PSA_ERROR_BUFFER_TOO_SMALL );
+                if( data_size < sizeof( test_driver_ecdsa_key ) )
+                    return( PSA_ERROR_BUFFER_TOO_SMALL );
 
-            memcpy( data, test_driver_ecdsa_key,
-                    sizeof( test_driver_ecdsa_key ) );
-            *data_length = sizeof( test_driver_ecdsa_key );
-            return( PSA_SUCCESS );
+                memcpy( data, test_driver_ecdsa_key,
+                        sizeof( test_driver_ecdsa_key ) );
+                *data_length = sizeof( test_driver_ecdsa_key );
+                return( PSA_SUCCESS );
+
+            case PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT:
+                /* This is the AES slot. Verify the key's attributes before
+                 * returning the key. */
+                if( psa_get_key_type( attributes ) != PSA_KEY_TYPE_AES )
+                    return( PSA_ERROR_CORRUPTION_DETECTED );
+                if( psa_get_key_bits( attributes ) != 128 )
+                    return( PSA_ERROR_CORRUPTION_DETECTED );
+                if( psa_get_key_algorithm( attributes ) != PSA_ALG_CTR )
+                    return( PSA_ERROR_CORRUPTION_DETECTED );
+                if( ( psa_get_key_usage_flags( attributes ) &
+                      PSA_KEY_USAGE_EXPORT ) == 0 )
+                    return( PSA_ERROR_CORRUPTION_DETECTED );
+
+                if( data_size < sizeof( test_driver_aes_key ) )
+                    return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+                memcpy( data, test_driver_aes_key,
+                        sizeof( test_driver_aes_key ) );
+                *data_length = sizeof( test_driver_aes_key );
+                return( PSA_SUCCESS );
+
+            default:
+                return( PSA_ERROR_DOES_NOT_EXIST );
         }
-
-        if( memcmp( key, &aes_slot, sizeof( psa_drv_slot_number_t ) ) == 0 )
-        {
-            /* This is the AES slot. Verify key attributes before returning
-             * the key. */
-            if( psa_get_key_type( attributes ) != PSA_KEY_TYPE_AES )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
-            if( psa_get_key_bits( attributes ) != 128 )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
-            if( psa_get_key_algorithm( attributes ) != PSA_ALG_CTR )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
-            if( ( psa_get_key_usage_flags( attributes ) &
-                  PSA_KEY_USAGE_EXPORT ) == 0 )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
-
-            if( data_size < sizeof( test_driver_aes_key ) )
-                return( PSA_ERROR_BUFFER_TOO_SMALL );
-
-            memcpy( data, test_driver_aes_key, sizeof( test_driver_aes_key ) );
-            *data_length = sizeof( test_driver_aes_key );
-            return( PSA_SUCCESS );
-        }
-
-        /* Potentially add more slots here */
-
-        return( PSA_ERROR_DOES_NOT_EXIST );
     }
-#endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
-    (void) attributes;
-    (void) key;
-    (void) key_length;
-    (void) data;
-    (void) data_size;
-    (void) data_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    else
+    {
+        /* Test driver does not support generic opaque key handling yet. */
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
 }
 
 psa_status_t test_transparent_export_public_key(
@@ -308,47 +295,41 @@ psa_status_t test_opaque_export_public_key(
     const uint8_t *key, size_t key_length,
     uint8_t *data, size_t data_size, size_t *data_length )
 {
-#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
-    if( psa_key_id_is_builtin(
-            MBEDTLS_SVC_KEY_ID_GET_KEY_ID( psa_get_key_id( attributes ) ) ) )
+    if( key_length == sizeof( psa_drv_slot_number_t ) )
     {
-        if( key_length != sizeof( psa_drv_slot_number_t ) )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-
-        if( memcmp( key, &ecdsa_slot, sizeof( psa_drv_slot_number_t ) ) == 0 )
+        /* Assume this is a builtin key based on the key material length. */
+        psa_drv_slot_number_t slot_number = *( ( psa_drv_slot_number_t* ) key );
+        switch( slot_number )
         {
-            /* This is the ECDSA slot. Verify key attributes before returning
-             * the public key. */
-            if( psa_get_key_type( attributes ) !=
-                PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
-            if( psa_get_key_bits( attributes ) != 256 )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
-            if( psa_get_key_algorithm( attributes ) !=
-                PSA_ALG_ECDSA( PSA_ALG_ANY_HASH ) )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
+            case PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT:
+                /* This is the ECDSA slot. Verify the key's attributes before
+                 * returning the public key. */
+                if( psa_get_key_type( attributes ) !=
+                    PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) )
+                    return( PSA_ERROR_CORRUPTION_DETECTED );
+                if( psa_get_key_bits( attributes ) != 256 )
+                    return( PSA_ERROR_CORRUPTION_DETECTED );
+                if( psa_get_key_algorithm( attributes ) !=
+                    PSA_ALG_ECDSA( PSA_ALG_ANY_HASH ) )
+                    return( PSA_ERROR_CORRUPTION_DETECTED );
 
-            if( data_size < sizeof( test_driver_ecdsa_pubkey ) )
-                return( PSA_ERROR_BUFFER_TOO_SMALL );
+                if( data_size < sizeof( test_driver_ecdsa_pubkey ) )
+                    return( PSA_ERROR_BUFFER_TOO_SMALL );
 
-            memcpy( data, test_driver_ecdsa_pubkey,
-                    sizeof( test_driver_ecdsa_pubkey ) );
-            *data_length = sizeof( test_driver_ecdsa_pubkey );
-            return( PSA_SUCCESS );
+                memcpy( data, test_driver_ecdsa_pubkey,
+                        sizeof( test_driver_ecdsa_pubkey ) );
+                *data_length = sizeof( test_driver_ecdsa_pubkey );
+                return( PSA_SUCCESS );
+
+            default:
+                return( PSA_ERROR_DOES_NOT_EXIST );
         }
-
-        /* Potentially add more slots here */
-
-        return( PSA_ERROR_DOES_NOT_EXIST );
     }
-#endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
-    (void) attributes;
-    (void) key;
-    (void) key_length;
-    (void) data;
-    (void) data_size;
-    (void) data_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    else
+    {
+        /* Test driver does not support generic opaque key handling yet. */
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
 }
 
 /* The opaque test driver exposes two built-in keys when builtin key support is
@@ -366,13 +347,12 @@ psa_status_t test_opaque_get_builtin_key(
     psa_key_attributes_t *attributes,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
 {
-#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
+    if( key_buffer_size < sizeof( psa_drv_slot_number_t ) )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
     switch( slot_number )
     {
         case PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT:
-            if( key_buffer_size < sizeof( psa_drv_slot_number_t ) )
-                return( PSA_ERROR_BUFFER_TOO_SMALL );
-
             psa_set_key_type( attributes, PSA_KEY_TYPE_AES );
             psa_set_key_bits( attributes, 128 );
             psa_set_key_usage_flags(
@@ -387,9 +367,6 @@ psa_status_t test_opaque_get_builtin_key(
             *key_buffer_length = sizeof( psa_drv_slot_number_t );
             return( PSA_SUCCESS );
         case PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT:
-            if( key_buffer_size < sizeof( psa_drv_slot_number_t ) )
-                return( PSA_ERROR_BUFFER_TOO_SMALL );
-
             psa_set_key_type(
                 attributes,
                 PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) );
@@ -407,21 +384,8 @@ psa_status_t test_opaque_get_builtin_key(
             *key_buffer_length = sizeof( psa_drv_slot_number_t );
             return( PSA_SUCCESS );
         default:
-            (void) slot_number;
-            (void) attributes;
-            (void) key_buffer;
-            (void) key_buffer_size;
-            (void) key_buffer_length;
-            return( PSA_ERROR_INVALID_ARGUMENT );
+            return( PSA_ERROR_DOES_NOT_EXIST );
     }
-#else /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
-    (void) slot_number;
-    (void) attributes;
-    (void) key_buffer;
-    (void) key_buffer_size;
-    (void) key_buffer_length;
-    return( PSA_ERROR_DOES_NOT_EXIST );
-#endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

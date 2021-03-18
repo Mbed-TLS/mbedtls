@@ -29,13 +29,8 @@
 #if defined(PSA_CRYPTO_DRIVER_TEST)
 #include <psa/crypto_driver_common.h>
 
-#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
 #define PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT     0
 #define PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT   1
-
-extern const uint8_t test_driver_aes_key[16];
-extern const uint8_t test_driver_ecdsa_key[32];
-#endif
 
 typedef struct {
     /* If non-null, on success, copy this to the output. */

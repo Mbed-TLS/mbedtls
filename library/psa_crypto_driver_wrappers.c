@@ -594,14 +594,10 @@ psa_status_t psa_driver_wrapper_get_builtin_key(
     {
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
-#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
             return( test_opaque_get_builtin_key(
                         slot_number,
                         attributes,
                         key_buffer, key_buffer_size, key_buffer_length ) );
-#else
-            return( PSA_ERROR_DOES_NOT_EXIST );
-#endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             (void) slot_number;

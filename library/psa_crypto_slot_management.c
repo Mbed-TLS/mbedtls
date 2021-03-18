@@ -279,6 +279,13 @@ exit:
 
 static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_drv_slot_number_t slot_number = 0;
+    uint8_t *key_buffer = NULL;
+    size_t key_buffer_size = 0;
+    size_t key_buffer_length = 0;
+
     /* Load keys in the 'builtin' range through their own interface */
     if( ! psa_key_id_is_builtin(
             MBEDTLS_SVC_KEY_ID_GET_KEY_ID( slot->attr.id ) ) )
@@ -287,21 +294,13 @@ static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
     }
 
     /* Check the platform function to see whether this key actually exists */
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_drv_slot_number_t slot_number;
-
     psa_set_key_id( &attributes, slot->attr.id );
-    psa_status_t status = mbedtls_psa_platform_get_builtin_key(
-                            &attributes, &slot_number );
+    status = mbedtls_psa_platform_get_builtin_key( &attributes, &slot_number );
     if( status != PSA_SUCCESS )
         return( status );
 
     /* If the key should exist according to the platform, load it through the
      * driver interface. */
-    uint8_t *key_buffer = NULL;
-    size_t key_buffer_size = 0;
-    size_t key_buffer_length = 0;
-
     status = psa_driver_wrapper_get_key_buffer_size( &attributes,
                                                      &key_buffer_size );
     if( status != PSA_SUCCESS )

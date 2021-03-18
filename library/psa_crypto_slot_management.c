@@ -281,6 +281,7 @@ static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_lifetime_t lifetime = PSA_KEY_LIFETIME_VOLATILE;
     psa_drv_slot_number_t slot_number = 0;
     uint8_t *key_buffer = NULL;
     size_t key_buffer_size = 0;
@@ -295,9 +296,13 @@ static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
 
     /* Check the platform function to see whether this key actually exists */
     psa_set_key_id( &attributes, slot->attr.id );
-    status = mbedtls_psa_platform_get_builtin_key( &attributes, &slot_number );
+    status = mbedtls_psa_platform_get_builtin_key(
+                slot->attr.id, &lifetime, &slot_number );
     if( status != PSA_SUCCESS )
         return( status );
+
+    /* Set mapped lifetime on the attributes */
+    psa_set_key_lifetime( &attributes, lifetime );
 
     /* If the key should exist according to the platform, load it through the
      * driver interface. */

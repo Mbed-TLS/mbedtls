@@ -759,14 +759,13 @@ static inline int psa_key_id_is_builtin( psa_key_id_t key_id )
             ( key_id <= MBEDTLS_PSA_KEY_ID_BUILTIN_MAX ) );
 }
 
-/** Platform function to obtain the data of a built-in key.
+/** Platform function to obtain the location and slot of a built-in key.
  *
  * An application-specific implementation of this function must be provided if
  * #MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS is enabled. This would typically be provided
  * as part of a platform's system image.
  *
- * Call psa_get_key_id(\p attributes) to obtain the key identifier \c key_id.
- * #MBEDTLS_SVC_KEY_ID_GET_KEY_ID(\p key_id) is in the range from
+ * #MBEDTLS_SVC_KEY_ID_GET_KEY_ID(\p key_id) needs to be in the range from
  * #MBEDTLS_PSA_KEY_ID_BUILTIN_MIN to #MBEDTLS_PSA_KEY_ID_BUILTIN_MAX.
  *
  * In a multi-application configuration
@@ -774,16 +773,15 @@ static inline int psa_key_id_is_builtin( psa_key_id_t key_id )
  * this function should check that #MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(\p key_id)
  * is allowed to use the given key.
  *
- * \param[in,out] attributes    On entry, this is #PSA_KEY_ATTRIBUTES_INIT or
- *                              an equivalent value, except that the key
- *                              identifier field is set.
- *                              On successful return, this function must set
- *                              the attributes of the key: lifetime, type,
- *                              bit-size, usage policy.
- * \param[out] slot_number      On successful return, this function must set
- *                              this to the slot number known to the driver for
- *                              the lifetime location reported through
- *                              \p attributes which corresponds to the
+ * \param key_id                The key ID for which to retrieve the
+ *                              location and slot attributes.
+ * \param[out] lifetime         On success, the lifetime associated with the key
+ *                              corresponding to \p key_id. Lifetime is a
+ *                              combination of which driver contains the key,
+ *                              and with what lifecycle the key can be used.
+ * \param[out] slot_number      On success, the slot number known to the driver
+ *                              registered at the lifetime location reported
+ *                              through \p location which corresponds to the
  *                              requested built-in key.
  *
  * \retval #PSA_SUCCESS
@@ -801,7 +799,9 @@ static inline int psa_key_id_is_builtin( psa_key_id_t key_id )
  *           is not allowed to access it.
  */
 psa_status_t mbedtls_psa_platform_get_builtin_key(
-    psa_key_attributes_t *attributes, psa_drv_slot_number_t *slot_number );
+    mbedtls_svc_key_id_t key_id,
+    psa_key_lifetime_t *lifetime,
+    psa_drv_slot_number_t *slot_number );
 #endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 
 /** @} */

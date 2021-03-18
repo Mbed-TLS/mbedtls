@@ -30,7 +30,7 @@
 typedef struct
 {
     psa_key_id_t builtin_key_id;
-    psa_key_location_t location;
+    psa_key_lifetime_t lifetime;
     psa_drv_slot_number_t slot_number;
 } mbedtls_psa_builtin_key_description_t;
 
@@ -38,28 +38,41 @@ static const mbedtls_psa_builtin_key_description_t builtin_keys[] = {
 #if defined(PSA_CRYPTO_DRIVER_TEST)
     /* For testing, assign the AES builtin key slot to the boundary values.
      * ECDSA can be exercised on key ID MBEDTLS_PSA_KEY_ID_BUILTIN_MIN + 1. */
-    { MBEDTLS_PSA_KEY_ID_BUILTIN_MIN - 1, PSA_CRYPTO_TEST_DRIVER_LIFETIME,
-        PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT },
-    { MBEDTLS_PSA_KEY_ID_BUILTIN_MIN, PSA_CRYPTO_TEST_DRIVER_LIFETIME,
-        PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT },
-    { MBEDTLS_PSA_KEY_ID_BUILTIN_MIN + 1, PSA_CRYPTO_TEST_DRIVER_LIFETIME,
-        PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT},
-    { MBEDTLS_PSA_KEY_ID_BUILTIN_MAX - 1, PSA_CRYPTO_TEST_DRIVER_LIFETIME,
-        PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT},
-    { MBEDTLS_PSA_KEY_ID_BUILTIN_MAX, PSA_CRYPTO_TEST_DRIVER_LIFETIME,
-        PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT},
-    { MBEDTLS_PSA_KEY_ID_BUILTIN_MAX + 1, PSA_CRYPTO_TEST_DRIVER_LIFETIME,
-        PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT},
+    { MBEDTLS_PSA_KEY_ID_BUILTIN_MIN - 1,
+      PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+        PSA_KEY_PERSISTENCE_READ_ONLY, PSA_CRYPTO_TEST_DRIVER_LIFETIME ),
+      PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT },
+    { MBEDTLS_PSA_KEY_ID_BUILTIN_MIN,
+      PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+        PSA_KEY_PERSISTENCE_READ_ONLY, PSA_CRYPTO_TEST_DRIVER_LIFETIME ),
+      PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT },
+    { MBEDTLS_PSA_KEY_ID_BUILTIN_MIN + 1,
+      PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+        PSA_KEY_PERSISTENCE_READ_ONLY, PSA_CRYPTO_TEST_DRIVER_LIFETIME ),
+      PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT},
+    { MBEDTLS_PSA_KEY_ID_BUILTIN_MAX - 1,
+      PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+        PSA_KEY_PERSISTENCE_READ_ONLY, PSA_CRYPTO_TEST_DRIVER_LIFETIME ),
+      PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT},
+    { MBEDTLS_PSA_KEY_ID_BUILTIN_MAX,
+      PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+        PSA_KEY_PERSISTENCE_READ_ONLY, PSA_CRYPTO_TEST_DRIVER_LIFETIME ),
+      PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT},
+    { MBEDTLS_PSA_KEY_ID_BUILTIN_MAX + 1,
+      PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+        PSA_KEY_PERSISTENCE_READ_ONLY, PSA_CRYPTO_TEST_DRIVER_LIFETIME ),
+      PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT},
 #else
     {0, 0, 0}
 #endif
 };
 
 psa_status_t mbedtls_psa_platform_get_builtin_key(
-    psa_key_attributes_t *attributes, psa_drv_slot_number_t *slot_number )
+    mbedtls_svc_key_id_t key_id,
+    psa_key_lifetime_t *lifetime,
+    psa_drv_slot_number_t *slot_number )
 {
-    mbedtls_svc_key_id_t svc_key_id = psa_get_key_id( attributes );
-    psa_key_id_t app_key_id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( svc_key_id );
+    psa_key_id_t app_key_id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key_id );
     const mbedtls_psa_builtin_key_description_t *builtin_key;
 
     for( size_t i = 0;
@@ -68,10 +81,7 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
         builtin_key = &builtin_keys[i];
         if( builtin_key->builtin_key_id == app_key_id )
         {
-            psa_set_key_lifetime( attributes,
-                          PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
-                              PSA_KEY_PERSISTENCE_READ_ONLY,
-                              builtin_key->location ) );
+            *lifetime = builtin_key->lifetime;
             *slot_number = builtin_key->slot_number;
             return( PSA_SUCCESS );
         }

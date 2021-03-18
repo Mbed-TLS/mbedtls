@@ -2445,7 +2445,7 @@ static psa_status_t psa_mac_init( psa_mac_operation_t *operation,
     operation->has_input = 0;
     operation->is_sign = 0;
 
-#if defined(MBEDTLS_CMAC_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
     if( operation->alg == PSA_ALG_CMAC )
     {
         operation->iv_required = 0;
@@ -2453,7 +2453,7 @@ static psa_status_t psa_mac_init( psa_mac_operation_t *operation,
         status = PSA_SUCCESS;
     }
     else
-#endif /* MBEDTLS_CMAC_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
@@ -2491,13 +2491,13 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
         return( PSA_SUCCESS );
     }
     else
-#if defined(MBEDTLS_CMAC_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
     if( operation->alg == PSA_ALG_CMAC )
     {
         mbedtls_cipher_free( &operation->ctx.cmac );
     }
     else
-#endif /* MBEDTLS_CMAC_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
@@ -2529,7 +2529,7 @@ bad_state:
     return( PSA_ERROR_BAD_STATE );
 }
 
-#if defined(MBEDTLS_CMAC_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
 static psa_status_t psa_cmac_setup( psa_mac_operation_t *operation,
                                     psa_key_slot_t *slot )
 {
@@ -2551,7 +2551,7 @@ static psa_status_t psa_cmac_setup( psa_mac_operation_t *operation,
 exit:
     return( mbedtls_to_psa_error( ret ) );
 }
-#endif /* MBEDTLS_CMAC_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
 static psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
@@ -2676,13 +2676,13 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         goto exit;
     }
 
-#if defined(MBEDTLS_CMAC_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
     if( PSA_ALG_FULL_LENGTH_MAC( alg ) == PSA_ALG_CMAC )
     {
         status = psa_cmac_setup( operation, slot );
     }
     else
-#endif /* MBEDTLS_CMAC_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
     if( PSA_ALG_IS_HMAC( alg ) )
     {
@@ -2750,7 +2750,7 @@ psa_status_t psa_mac_update( psa_mac_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     operation->has_input = 1;
 
-#if defined(MBEDTLS_CMAC_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
     if( operation->alg == PSA_ALG_CMAC )
     {
         int ret = mbedtls_cipher_cmac_update( &operation->ctx.cmac,
@@ -2758,7 +2758,7 @@ psa_status_t psa_mac_update( psa_mac_operation_t *operation,
         status = mbedtls_to_psa_error( ret );
     }
     else
-#endif /* MBEDTLS_CMAC_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
@@ -2830,7 +2830,7 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
     if( mac_size < operation->mac_size )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
-#if defined(MBEDTLS_CMAC_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
     if( operation->alg == PSA_ALG_CMAC )
     {
         uint8_t tmp[PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE];
@@ -2841,7 +2841,7 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
         return( mbedtls_to_psa_error( ret ) );
     }
     else
-#endif /* MBEDTLS_CMAC_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
@@ -3892,15 +3892,15 @@ typedef struct
     union
     {
         unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
-#if defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
         mbedtls_ccm_context ccm;
-#endif /* MBEDTLS_CCM_C */
-#if defined(MBEDTLS_GCM_C)
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
         mbedtls_gcm_context gcm;
-#endif /* MBEDTLS_GCM_C */
-#if defined(MBEDTLS_CHACHAPOLY_C)
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
         mbedtls_chachapoly_context chachapoly;
-#endif /* MBEDTLS_CHACHAPOLY_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     } ctx;
     psa_algorithm_t core_alg;
     uint8_t full_tag_length;
@@ -3913,16 +3913,16 @@ static void psa_aead_abort_internal( aead_operation_t *operation )
 {
     switch( operation->core_alg )
     {
-#if defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
         case PSA_ALG_CCM:
             mbedtls_ccm_free( &operation->ctx.ccm );
             break;
-#endif /* MBEDTLS_CCM_C */
-#if defined(MBEDTLS_GCM_C)
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
         case PSA_ALG_GCM:
             mbedtls_gcm_free( &operation->ctx.gcm );
             break;
-#endif /* MBEDTLS_GCM_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
     }
 
     psa_unlock_key_slot( operation->slot );
@@ -3955,7 +3955,7 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
 
     switch( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) )
     {
-#if defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ):
             operation->core_alg = PSA_ALG_CCM;
             operation->full_tag_length = 16;
@@ -3975,9 +3975,9 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
             if( status != 0 )
                 goto cleanup;
             break;
-#endif /* MBEDTLS_CCM_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ):
             operation->core_alg = PSA_ALG_GCM;
             operation->full_tag_length = 16;
@@ -3997,9 +3997,9 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
             if( status != 0 )
                 goto cleanup;
             break;
-#endif /* MBEDTLS_GCM_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
 
-#if defined(MBEDTLS_CHACHAPOLY_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CHACHA20_POLY1305, 0 ):
             operation->core_alg = PSA_ALG_CHACHA20_POLY1305;
             operation->full_tag_length = 16;
@@ -4016,7 +4016,7 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
             if( status != 0 )
                 goto cleanup;
             break;
-#endif /* MBEDTLS_CHACHAPOLY_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
 
         default:
             status = PSA_ERROR_NOT_SUPPORTED;
@@ -4068,7 +4068,7 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
     }
     tag = ciphertext + plaintext_length;
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation.core_alg == PSA_ALG_GCM )
     {
         status = mbedtls_to_psa_error(
@@ -4081,8 +4081,8 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
                                        operation.tag_length, tag ) );
     }
     else
-#endif /* MBEDTLS_GCM_C */
-#if defined(MBEDTLS_CCM_C)
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation.core_alg == PSA_ALG_CCM )
     {
         status = mbedtls_to_psa_error(
@@ -4095,8 +4095,8 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
                                          tag, operation.tag_length ) );
     }
     else
-#endif /* MBEDTLS_CCM_C */
-#if defined(MBEDTLS_CHACHAPOLY_C)
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation.core_alg == PSA_ALG_CHACHA20_POLY1305 )
     {
         if( nonce_length != 12 || operation.tag_length != 16 )
@@ -4115,7 +4115,7 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
                                                 tag ) );
     }
     else
-#endif /* MBEDTLS_CHACHAPOLY_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
         (void) tag;
         return( PSA_ERROR_NOT_SUPPORTED );
@@ -4180,7 +4180,7 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
     if( status != PSA_SUCCESS )
         goto exit;
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation.core_alg == PSA_ALG_GCM )
     {
         status = mbedtls_to_psa_error(
@@ -4193,8 +4193,8 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
                                       ciphertext, plaintext ) );
     }
     else
-#endif /* MBEDTLS_GCM_C */
-#if defined(MBEDTLS_CCM_C)
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation.core_alg == PSA_ALG_CCM )
     {
         status = mbedtls_to_psa_error(
@@ -4207,8 +4207,8 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
                                       tag, operation.tag_length ) );
     }
     else
-#endif /* MBEDTLS_CCM_C */
-#if defined(MBEDTLS_CHACHAPOLY_C)
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation.core_alg == PSA_ALG_CHACHA20_POLY1305 )
     {
         if( nonce_length != 12 || operation.tag_length != 16 )
@@ -4227,7 +4227,7 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
                                              plaintext ) );
     }
     else
-#endif /* MBEDTLS_CHACHAPOLY_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }

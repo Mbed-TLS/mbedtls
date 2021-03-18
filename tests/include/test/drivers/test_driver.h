@@ -20,7 +20,7 @@
 #ifndef PSA_CRYPTO_TEST_DRIVER_H
 #define PSA_CRYPTO_TEST_DRIVER_H
 
-#define PSA_CRYPTO_TEST_DRIVER_LIFETIME 0x7fffff
+#define PSA_CRYPTO_TEST_DRIVER_LOCATION 0x7fffff
 
 #include "test/drivers/aead.h"
 #include "test/drivers/signature.h"

@@ -117,17 +117,26 @@
  */
 #define PSA_MAC_MAX_SIZE PSA_HASH_MAX_SIZE
 
-/** The tag size for an AEAD algorithm, in bytes.
+/** The length of a tag for an AEAD algorithm, in bytes.
  *
+ * This macro can be used to allocate a buffer of sufficient size to store the
+ * tag output from psa_aead_finish().
+ *
+ * See also #PSA_AEAD_TAG_MAX_SIZE.
+ *
+ * \param key_type            The type of the AEAD key.
+ * \param key_bits            The size of the AEAD key in bits.
  * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
  *                            #PSA_ALG_IS_AEAD(\p alg) is true).
  *
- * \return                    The tag size for the specified algorithm.
+ * \return                    The tag size for the specified algorithm and key.
  *                            If the AEAD algorithm does not have an identified
  *                            tag that can be distinguished from the rest of
  *                            the ciphertext, return 0.
- *                            If the AEAD algorithm is not recognized, return 0.
+ *                            If the key type or AEAD algorithm is not
+ *                            recognized, or the parameters are incompatible,
+ *                            return 0.
  */
 #define PSA_AEAD_TAG_LENGTH(key_type, key_bits, alg)                        \
     (PSA_AEAD_NONCE_LENGTH(key_type, alg) ?                                 \
@@ -136,7 +145,7 @@
 
 /** The maximum tag size for all supported AEAD algorithms, in bytes.
  *
- * See also #PSA_AEAD_TAG_LENGTH(\p alg).
+ * See also #PSA_AEAD_TAG_LENGTH(\p key_type, \p key_bits, \p alg).
  */
 #define PSA_AEAD_TAG_MAX_SIZE       16
 
@@ -241,10 +250,14 @@
  * insufficient buffer size. Depending on the algorithm, the actual size of
  * the ciphertext may be smaller.
  *
+ * See also #PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE(\p plaintext_length).
+ *
  * \warning This macro may evaluate its arguments multiple times or
  *          zero times, so you should not pass arguments that contain
  *          side effects.
  *
+ * \param key_type            A symmetric key type that is
+ *                            compatible with algorithm \p alg.
  * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
  *                            #PSA_ALG_IS_AEAD(\p alg) is true).
@@ -252,7 +265,9 @@
  *
  * \return                    The AEAD ciphertext size for the specified
  *                            algorithm.
- *                            If the AEAD algorithm is not recognized, return 0.
+ *                            If the key type or AEAD algorithm is not
+ *                            recognized, or the parameters are incompatible,
+ *                            return 0.
  */
 #define PSA_AEAD_ENCRYPT_OUTPUT_SIZE(key_type, alg, plaintext_length) \
     (PSA_AEAD_NONCE_LENGTH(key_type, alg) ?                           \
@@ -268,7 +283,8 @@
  * \note This macro returns a compile-time constant if its arguments are
  *       compile-time constants.
  *
- * See also #PSA_AEAD_ENCRYPT_OUTPUT_SIZE(\p alg, \p plaintext_length).
+ * See also #PSA_AEAD_ENCRYPT_OUTPUT_SIZE(\p key_type, \p alg,
+ * \p plaintext_length).
  *
  * \param plaintext_length    Size of the plaintext in bytes.
  *
@@ -287,10 +303,14 @@
  * insufficient buffer size. Depending on the algorithm, the actual size of
  * the plaintext may be smaller.
  *
+ * See also #PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE(\p ciphertext_length).
+ *
  * \warning This macro may evaluate its arguments multiple times or
  *          zero times, so you should not pass arguments that contain
  *          side effects.
  *
+ * \param key_type            A symmetric key type that is
+ *                            compatible with algorithm \p alg.
  * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
  *                            #PSA_ALG_IS_AEAD(\p alg) is true).
@@ -298,7 +318,9 @@
  *
  * \return                    The AEAD ciphertext size for the specified
  *                            algorithm.
- *                            If the AEAD algorithm is not recognized, return 0.
+ *                            If the key type or AEAD algorithm is not
+ *                            recognized, or the parameters are incompatible,
+ *                            return 0.
  */
 #define PSA_AEAD_DECRYPT_OUTPUT_SIZE(key_type, alg, ciphertext_length) \
     (PSA_AEAD_NONCE_LENGTH(key_type, alg) ?                            \
@@ -314,7 +336,8 @@
  * \note This macro returns a compile-time constant if its arguments are
  *       compile-time constants.
  *
- * See also #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\p alg, \p ciphertext_length).
+ * See also #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\p key_type, \p alg,
+ * \p ciphertext_length).
  *
  * \param ciphertext_length   Size of the ciphertext in bytes.
  *
@@ -379,10 +402,14 @@
  * insufficient buffer size. The actual size of the output may be smaller
  * in any given call.
  *
+ * See also #PSA_AEAD_UPDATE_OUTPUT_MAX_SIZE(\p input_length).
+ *
  * \warning This macro may evaluate its arguments multiple times or
  *          zero times, so you should not pass arguments that contain
  *          side effects.
  *
+ * \param key_type            A symmetric key type that is
+ *                            compatible with algorithm \p alg.
  * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
  *                            #PSA_ALG_IS_AEAD(\p alg) is true).
@@ -390,7 +417,9 @@
  *
  * \return                    A sufficient output buffer size for the specified
  *                            algorithm.
- *                            If the AEAD algorithm is not recognized, return 0.
+ *                            If the key type or AEAD algorithm is not
+ *                            recognized, or the parameters are incompatible,
+ *                            return 0.
  */
 /* For all the AEAD modes defined in this specification, it is possible
  * to emit output without delay. However, hardware may not always be
@@ -409,7 +438,7 @@
  * If the size of the output buffer is at least this large, it is guaranteed
  * that psa_aead_update() will not fail due to an insufficient buffer size.
  *
- * See also #PSA_AEAD_UPDATE_OUTPUT_SIZE(\p alg, \p input_length).
+ * See also #PSA_AEAD_UPDATE_OUTPUT_SIZE(\p key_type, \p alg, \p input_length).
  *
  * \param input_length      Size of the input in bytes.
  */
@@ -423,13 +452,19 @@
  * insufficient ciphertext buffer size. The actual size of the output may
  * be smaller in any given call.
  *
+ * See also #PSA_AEAD_FINISH_OUTPUT_MAX_SIZE.
+ *
+ * \param key_type            A symmetric key type that is
+                              compatible with algorithm \p alg.
  * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
  *                            #PSA_ALG_IS_AEAD(\p alg) is true).
  *
  * \return                    A sufficient ciphertext buffer size for the
  *                            specified algorithm.
- *                            If the AEAD algorithm is not recognized, return 0.
+ *                            If the key type or AEAD algorithm is not
+ *                            recognized, or the parameters are incompatible,
+ *                            return 0.
  */
 #define PSA_AEAD_FINISH_OUTPUT_SIZE(key_type, alg)                                  \
     (PSA_AEAD_NONCE_LENGTH(key_type, alg) && PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ? \
@@ -439,7 +474,7 @@
 /** A sufficient ciphertext buffer size for psa_aead_finish(), for any of the
  *  supported key types and AEAD algorithms.
  *
- * See also #PSA_AEAD_FINISH_OUTPUT_SIZE(\p alg).
+ * See also #PSA_AEAD_FINISH_OUTPUT_SIZE(\p key_type, \p alg).
  */
 #define PSA_AEAD_FINISH_OUTPUT_MAX_SIZE     (PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE)
 
@@ -450,13 +485,19 @@
  * insufficient plaintext buffer size. The actual size of the output may
  * be smaller in any given call.
  *
+ * See also #PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE.
+ *
+ * \param key_type            A symmetric key type that is
+ *                            compatible with algorithm \p alg.
  * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
  *                            #PSA_ALG_IS_AEAD(\p alg) is true).
  *
  * \return                    A sufficient plaintext buffer size for the
  *                            specified algorithm.
- *                            If the AEAD algorithm is not recognized, return 0.
+ *                            If the key type or AEAD algorithm is not
+ *                            recognized, or the parameters are incompatible,
+ *                            return 0.
  */
 #define PSA_AEAD_VERIFY_OUTPUT_SIZE(key_type, alg)                                  \
     (PSA_AEAD_NONCE_LENGTH(key_type, alg) && PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ? \
@@ -466,7 +507,7 @@
 /** A sufficient plaintext buffer size for psa_aead_verify(), for any of the
  *  supported key types and AEAD algorithms.
  *
- * See also #PSA_AEAD_VERIFY_OUTPUT_SIZE(\p alg).
+ * See also #PSA_AEAD_VERIFY_OUTPUT_SIZE(\p key_type, \p alg).
  */
 #define PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE     (PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE)
 

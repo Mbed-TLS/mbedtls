@@ -280,58 +280,59 @@ exit:
 static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
 {
     /* Load keys in the 'builtin' range through their own interface */
-    if( psa_key_id_is_builtin( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( slot->attr.id ) ) )
+    if( ! psa_key_id_is_builtin(
+            MBEDTLS_SVC_KEY_ID_GET_KEY_ID( slot->attr.id ) ) )
     {
-        /* Check the platform function to see whether this key actually exists */
-        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-        psa_drv_slot_number_t slot_number;
-
-        psa_set_key_id(&attributes, slot->attr.id);
-        psa_status_t status = mbedtls_psa_platform_get_builtin_key(
-                                &attributes, &slot_number );
-        if( status != PSA_SUCCESS )
-            return( status );
-
-        /* If the key should exist according to the platform, load it through
-         * the driver interface. */
-        uint8_t *key_buffer = NULL;
-        size_t key_buffer_length = 0;
-
-        status = psa_driver_wrapper_get_key_buffer_size( &attributes, &key_buffer_length );
-        if( status != PSA_SUCCESS )
-            return( status );
-
-        key_buffer = mbedtls_calloc( 1, key_buffer_length );
-        if( key_buffer == NULL )
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
-
-        status = psa_driver_wrapper_get_builtin_key(
-                    slot_number, &attributes,
-                    key_buffer, key_buffer_length, &key_buffer_length );
-        if( status != PSA_SUCCESS )
-            goto exit;
-
-        status = psa_copy_key_material_into_slot( slot, key_buffer, key_buffer_length );
-        if( status != PSA_SUCCESS )
-            goto exit;
-
-        /* Copy core attributes into the slot on success.
-         * Use static allocations to make the compiler yell at us should one
-         * of the two structures change type. */
-        psa_core_key_attributes_t* builtin_key_core_attributes =
-            &attributes.core;
-        psa_core_key_attributes_t* slot_core_attributes =
-            &slot->attr;
-        memcpy( slot_core_attributes,
-                builtin_key_core_attributes,
-                sizeof(psa_core_key_attributes_t) );
-
-exit:
-        mbedtls_free( key_buffer );
-        return( status );
-    } else {
         return( PSA_ERROR_DOES_NOT_EXIST );
     }
+
+    /* Check the platform function to see whether this key actually exists */
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_drv_slot_number_t slot_number;
+
+    psa_set_key_id( &attributes, slot->attr.id );
+    psa_status_t status = mbedtls_psa_platform_get_builtin_key(
+                            &attributes, &slot_number );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    /* If the key should exist according to the platform, load it through the
+     * driver interface. */
+    uint8_t *key_buffer = NULL;
+    size_t key_buffer_length = 0;
+
+    status = psa_driver_wrapper_get_key_buffer_size( &attributes,
+                                                     &key_buffer_length );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    key_buffer = mbedtls_calloc( 1, key_buffer_length );
+    if( key_buffer == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+    status = psa_driver_wrapper_get_builtin_key(
+                slot_number, &attributes,
+                key_buffer, key_buffer_length, &key_buffer_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_copy_key_material_into_slot(
+                slot, key_buffer, key_buffer_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    /* Copy core attributes into the slot on success.
+     * Use static allocations to make the compiler yell at us should one
+     * of the two structures change type. */
+    psa_core_key_attributes_t* builtin_key_core_attributes = &attributes.core;
+    psa_core_key_attributes_t* slot_core_attributes = &slot->attr;
+    memcpy( slot_core_attributes,
+            builtin_key_core_attributes,
+            sizeof( psa_core_key_attributes_t ) );
+
+exit:
+    mbedtls_free( key_buffer );
+    return( status );
 }
 #endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 

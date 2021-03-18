@@ -952,7 +952,7 @@ void builtin_key_export( int builtin_key_id_arg,
     psa_status_t expected_status = expected_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    mbedtls_svc_key_id_t key = mbedtls_svc_key_id_make(0, builtin_key_id);
+    mbedtls_svc_key_id_t key = mbedtls_svc_key_id_make( 0, builtin_key_id );
     uint8_t* output_buffer = NULL;
     size_t output_size = 0;
     psa_status_t actual_status;
@@ -977,7 +977,7 @@ void builtin_key_export( int builtin_key_id_arg,
     else
     {
         if( actual_status != expected_status )
-            fprintf(stderr, "Expected %d but got %d\n", expected_status, actual_status);
+            fprintf( stderr, "Expected %d but got %d\n", expected_status, actual_status );
         TEST_EQUAL( actual_status, expected_status );
         TEST_EQUAL( output_size, 0 );
     }
@@ -1005,7 +1005,7 @@ void builtin_pubkey_export( int builtin_key_id_arg,
     psa_status_t expected_status = expected_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    mbedtls_svc_key_id_t key = mbedtls_svc_key_id_make(0, builtin_key_id);
+    mbedtls_svc_key_id_t key = mbedtls_svc_key_id_make( 0, builtin_key_id );
     uint8_t* output_buffer = NULL;
     size_t output_size = 0;
     psa_status_t actual_status;

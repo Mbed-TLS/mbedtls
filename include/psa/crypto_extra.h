@@ -762,7 +762,7 @@ static inline int psa_key_id_is_builtin( psa_key_id_t key_id )
 /** Platform function to obtain the data of a built-in key.
  *
  * An application-specific implementation of this function must be provided if
- * #MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS is enabled. This would typically provided
+ * #MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS is enabled. This would typically be provided
  * as part of a platform's system image.
  *
  * Call psa_get_key_id(\p attributes) to obtain the key identifier \c key_id.
@@ -780,7 +780,7 @@ static inline int psa_key_id_is_builtin( psa_key_id_t key_id )
  *                              On successful return, this function must set
  *                              the attributes of the key: lifetime, type,
  *                              bit-size, usage policy.
- * \param[out] slot_number      On successful return, this function must
+ * \param[out] slot_number      On successful return, this function must set
  *                              this to the slot number known to the driver for
  *                              the lifetime location reported through
  *                              \p attributes which corresponds to the
@@ -794,7 +794,7 @@ static inline int psa_key_id_is_builtin( psa_key_id_t key_id )
  *         The requested key identifier is not a built-in key which is known
  *         to this function. If a key exists in the key storage with this
  *         identifier, the data from the storage will be used.
- * \retval (any other error)
+ * \return (any other error)
  *         Any other error is propagated to the function that requested the key.
  *         Common errors include:
  *         - #PSA_ERROR_NOT_PERMITTED: the key exists but the requested owner

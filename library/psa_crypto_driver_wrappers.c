@@ -263,7 +263,7 @@ psa_status_t psa_driver_wrapper_get_key_buffer_size(
                     MBEDTLS_SVC_KEY_ID_GET_KEY_ID(
                         psa_get_key_id( attributes ) ) ) )
             {
-                *key_buffer_size = sizeof(psa_drv_slot_number_t);
+                *key_buffer_size = sizeof( psa_drv_slot_number_t );
                 return( PSA_SUCCESS );
             }
 #endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */

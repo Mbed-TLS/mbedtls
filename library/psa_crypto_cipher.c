@@ -221,17 +221,7 @@ static psa_status_t cipher_setup(
 
     operation->block_length = ( PSA_ALG_IS_STREAM_CIPHER( alg ) ? 1 :
                                 PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
-    if( ( alg & PSA_ALG_CIPHER_FROM_BLOCK_FLAG ) != 0 &&
-        alg != PSA_ALG_ECB_NO_PADDING )
-    {
-        operation->iv_length = PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type );
-    }
-#if defined(BUILTIN_KEY_TYPE_CHACHA20)
-    else
-    if( ( alg == PSA_ALG_STREAM_CIPHER ) &&
-        ( key_type == PSA_KEY_TYPE_CHACHA20 ) )
-        operation->iv_length = 12;
-#endif
+    operation->iv_length = PSA_CIPHER_IV_LENGTH( key_type, alg );
 
 exit:
     return( mbedtls_to_psa_error( ret ) );

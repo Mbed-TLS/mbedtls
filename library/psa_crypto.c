@@ -2354,45 +2354,23 @@ psa_status_t psa_mac_verify_setup( psa_mac_operation_t *operation,
     return( psa_mac_setup( operation, key, alg, 0 ) );
 }
 
-psa_status_t psa_mac_update( psa_mac_operation_t *psa_operation,
+psa_status_t psa_mac_update( psa_mac_operation_t *operation,
                              const uint8_t *input,
                              size_t input_length )
 {
-    /* Temporary recast to avoid changing a lot of lines */
-    mbedtls_psa_mac_operation_t* operation = &psa_operation->ctx.mbedtls_ctx;
-
-    psa_status_t status = PSA_ERROR_BAD_STATE;
-    if( ! operation->key_set )
+    if( operation->id == 0 )
         return( PSA_ERROR_BAD_STATE );
-    if( operation->iv_required && ! operation->iv_set )
-        return( PSA_ERROR_BAD_STATE );
-    operation->has_input = 1;
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
-    if( operation->alg == PSA_ALG_CMAC )
-    {
-        int ret = mbedtls_cipher_cmac_update( &operation->ctx.cmac,
-                                              input, input_length );
-        status = mbedtls_to_psa_error( ret );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-    if( PSA_ALG_IS_HMAC( operation->alg ) )
-    {
-        status = psa_hash_update( &operation->ctx.hmac.hash_ctx, input,
-                                  input_length );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
-    {
-        /* This shouldn't happen if `operation` was initialized by
-         * a setup function. */
-        return( PSA_ERROR_BAD_STATE );
-    }
+    /* Don't require hash implementations to behave correctly on a
+     * zero-length input, which may have an invalid pointer. */
+    if( input_length == 0 )
+        return( PSA_SUCCESS );
 
+    psa_status_t status = psa_driver_wrapper_mac_update( operation,
+                                                         input, input_length );
     if( status != PSA_SUCCESS )
-        psa_mac_abort( psa_operation );
+        psa_mac_abort( operation );
+
     return( status );
 }
 

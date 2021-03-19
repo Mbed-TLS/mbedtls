@@ -56,4 +56,3 @@ massif-*
 /TAGS
 /cscope*.out
 /tags
-/cmake_baremetal/tests/test_suite_aes.ecb.datax

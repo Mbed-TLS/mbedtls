@@ -35,6 +35,7 @@
 #include "psa_crypto_driver_wrappers.h"
 #include "psa_crypto_ecp.h"
 #include "psa_crypto_hash.h"
+#include "psa_crypto_mac.h"
 #include "psa_crypto_rsa.h"
 #include "psa_crypto_ecp.h"
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -2246,35 +2247,6 @@ psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,
 /* MAC */
 /****************************************************************/
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-static size_t psa_get_hash_block_size( psa_algorithm_t alg )
-{
-    switch( alg )
-    {
-        case PSA_ALG_MD2:
-            return( 16 );
-        case PSA_ALG_MD4:
-            return( 64 );
-        case PSA_ALG_MD5:
-            return( 64 );
-        case PSA_ALG_RIPEMD160:
-            return( 64 );
-        case PSA_ALG_SHA_1:
-            return( 64 );
-        case PSA_ALG_SHA_224:
-            return( 64 );
-        case PSA_ALG_SHA_256:
-            return( 64 );
-        case PSA_ALG_SHA_384:
-            return( 128 );
-        case PSA_ALG_SHA_512:
-            return( 128 );
-        default:
-            return( 0 );
-    }
-}
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC) */
-
 /* Initialize the MAC operation structure. Once this function has been
  * called, psa_mac_abort can run and will do the right thing. */
 static psa_status_t psa_mac_init( mbedtls_psa_mac_operation_t *operation,
@@ -2316,14 +2288,6 @@ static psa_status_t psa_mac_init( mbedtls_psa_mac_operation_t *operation,
         memset( operation, 0, sizeof( *operation ) );
     return( status );
 }
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-static psa_status_t psa_hmac_abort_internal( psa_hmac_internal_data *hmac )
-{
-    mbedtls_platform_zeroize( hmac->opad, sizeof( hmac->opad ) );
-    return( psa_hash_abort( &hmac->hash_ctx ) );
-}
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
 
 psa_status_t psa_mac_abort( psa_mac_operation_t *psa_operation )
 {
@@ -2399,72 +2363,6 @@ exit:
     return( mbedtls_to_psa_error( ret ) );
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-static psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
-                                             const uint8_t *key,
-                                             size_t key_length,
-                                             psa_algorithm_t hash_alg )
-{
-    uint8_t ipad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
-    size_t i;
-    size_t hash_size = PSA_HASH_LENGTH( hash_alg );
-    size_t block_size = psa_get_hash_block_size( hash_alg );
-    psa_status_t status;
-
-    hmac->alg = hash_alg;
-
-    /* Sanity checks on block_size, to guarantee that there won't be a buffer
-     * overflow below. This should never trigger if the hash algorithm
-     * is implemented correctly. */
-    /* The size checks against the ipad and opad buffers cannot be written
-     * `block_size > sizeof( ipad ) || block_size > sizeof( hmac->opad )`
-     * because that triggers -Wlogical-op on GCC 7.3. */
-    if( block_size > sizeof( ipad ) )
-        return( PSA_ERROR_NOT_SUPPORTED );
-    if( block_size > sizeof( hmac->opad ) )
-        return( PSA_ERROR_NOT_SUPPORTED );
-    if( block_size < hash_size )
-        return( PSA_ERROR_NOT_SUPPORTED );
-
-    if( key_length > block_size )
-    {
-        status = psa_hash_compute( hash_alg, key, key_length,
-                                   ipad, sizeof( ipad ), &key_length );
-        if( status != PSA_SUCCESS )
-            goto cleanup;
-    }
-    /* A 0-length key is not commonly used in HMAC when used as a MAC,
-     * but it is permitted. It is common when HMAC is used in HKDF, for
-     * example. Don't call `memcpy` in the 0-length because `key` could be
-     * an invalid pointer which would make the behavior undefined. */
-    else if( key_length != 0 )
-        memcpy( ipad, key, key_length );
-
-    /* ipad contains the key followed by garbage. Xor and fill with 0x36
-     * to create the ipad value. */
-    for( i = 0; i < key_length; i++ )
-        ipad[i] ^= 0x36;
-    memset( ipad + key_length, 0x36, block_size - key_length );
-
-    /* Copy the key material from ipad to opad, flipping the requisite bits,
-     * and filling the rest of opad with the requisite constant. */
-    for( i = 0; i < key_length; i++ )
-        hmac->opad[i] = ipad[i] ^ 0x36 ^ 0x5C;
-    memset( hmac->opad + key_length, 0x5C, block_size - key_length );
-
-    status = psa_hash_setup( &hmac->hash_ctx, hash_alg );
-    if( status != PSA_SUCCESS )
-        goto cleanup;
-
-    status = psa_hash_update( &hmac->hash_ctx, ipad, block_size );
-
-cleanup:
-    mbedtls_platform_zeroize( ipad, sizeof( ipad ) );
-
-    return( status );
-}
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
 
 static psa_status_t psa_mac_setup( psa_mac_operation_t *psa_operation,
                                    mbedtls_svc_key_id_t key,
@@ -2630,46 +2528,6 @@ psa_status_t psa_mac_update( psa_mac_operation_t *psa_operation,
         psa_mac_abort( psa_operation );
     return( status );
 }
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-static psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
-                                              uint8_t *mac,
-                                              size_t mac_size )
-{
-    uint8_t tmp[MBEDTLS_MD_MAX_SIZE];
-    psa_algorithm_t hash_alg = hmac->alg;
-    size_t hash_size = 0;
-    size_t block_size = psa_get_hash_block_size( hash_alg );
-    psa_status_t status;
-
-    status = psa_hash_finish( &hmac->hash_ctx, tmp, sizeof( tmp ), &hash_size );
-    if( status != PSA_SUCCESS )
-        return( status );
-    /* From here on, tmp needs to be wiped. */
-
-    status = psa_hash_setup( &hmac->hash_ctx, hash_alg );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    status = psa_hash_update( &hmac->hash_ctx, hmac->opad, block_size );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    status = psa_hash_update( &hmac->hash_ctx, tmp, hash_size );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    status = psa_hash_finish( &hmac->hash_ctx, tmp, sizeof( tmp ), &hash_size );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    memcpy( mac, tmp, mac_size );
-
-exit:
-    mbedtls_platform_zeroize( tmp, hash_size );
-    return( status );
-}
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
 
 static psa_status_t psa_mac_finish_internal( mbedtls_psa_mac_operation_t *operation,
                                              uint8_t *mac,

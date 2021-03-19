@@ -304,6 +304,9 @@ void mbedtls_mps_reader_reclaim_overflow()
     unsigned char *tmp;
     mbedtls_mps_reader rd;
 
+    for( size_t i=0; (unsigned) i < sizeof( buf ); i++ )
+        buf[i] = (unsigned char) i;
+
     /* Preparation (lower layer) */
     mbedtls_mps_reader_init( &rd, acc, sizeof( acc ) );
     TEST_ASSERT( mbedtls_mps_reader_feed( &rd, buf, sizeof( buf ) ) == 0 );

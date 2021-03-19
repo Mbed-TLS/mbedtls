@@ -2298,124 +2298,19 @@ psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,
 /* MAC */
 /****************************************************************/
 
-/* Initialize the MAC operation structure. Once this function has been
- * called, psa_mac_abort can run and will do the right thing. */
-static psa_status_t psa_mac_init( mbedtls_psa_mac_operation_t *operation,
-                                  psa_algorithm_t alg )
+psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
 {
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
+    /* Aborting a non-active operation is allowed */
+    if( operation->id == 0 )
+        return( PSA_SUCCESS );
 
-    operation->alg = PSA_ALG_FULL_LENGTH_MAC( alg );
-    operation->key_set = 0;
-    operation->iv_set = 0;
-    operation->iv_required = 0;
-    operation->has_input = 0;
-    operation->is_sign = 0;
+    psa_status_t status = psa_driver_wrapper_mac_abort( operation );
+    operation->id = 0;
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
-    if( operation->alg == PSA_ALG_CMAC )
-    {
-        operation->iv_required = 0;
-        mbedtls_cipher_init( &operation->ctx.cmac );
-        status = PSA_SUCCESS;
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-    if( PSA_ALG_IS_HMAC( operation->alg ) )
-    {
-        /* We'll set up the hash operation later in psa_hmac_setup_internal. */
-        operation->ctx.hmac.alg = 0;
-        status = PSA_SUCCESS;
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
-    {
-        if( ! PSA_ALG_IS_MAC( alg ) )
-            status = PSA_ERROR_INVALID_ARGUMENT;
-    }
-
-    if( status != PSA_SUCCESS )
-        memset( operation, 0, sizeof( *operation ) );
     return( status );
 }
 
-psa_status_t psa_mac_abort( psa_mac_operation_t *psa_operation )
-{
-    /* Temporary recast to avoid changing a lot of lines */
-    mbedtls_psa_mac_operation_t* operation = &psa_operation->ctx.mbedtls_ctx;
-
-    if( operation->alg == 0 )
-    {
-        /* The object has (apparently) been initialized but it is not
-         * in use. It's ok to call abort on such an object, and there's
-         * nothing to do. */
-        return( PSA_SUCCESS );
-    }
-    else
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
-    if( operation->alg == PSA_ALG_CMAC )
-    {
-        mbedtls_cipher_free( &operation->ctx.cmac );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-    if( PSA_ALG_IS_HMAC( operation->alg ) )
-    {
-        psa_hmac_abort_internal( &operation->ctx.hmac );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
-    {
-        /* Sanity check (shouldn't happen: operation->alg should
-         * always have been initialized to a valid value). */
-        goto bad_state;
-    }
-
-    operation->alg = 0;
-    operation->key_set = 0;
-    operation->iv_set = 0;
-    operation->iv_required = 0;
-    operation->has_input = 0;
-    operation->is_sign = 0;
-
-    return( PSA_SUCCESS );
-
-bad_state:
-    /* If abort is called on an uninitialized object, we can't trust
-     * anything. Wipe the object in case it contains confidential data.
-     * This may result in a memory leak if a pointer gets overwritten,
-     * but it's too late to do anything about this. */
-    memset( operation, 0, sizeof( *operation ) );
-    return( PSA_ERROR_BAD_STATE );
-}
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
-static psa_status_t psa_cmac_setup( mbedtls_psa_mac_operation_t *operation,
-                                    psa_key_slot_t *slot )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const mbedtls_cipher_info_t *cipher_info =
-            mbedtls_cipher_info_from_psa( PSA_ALG_CMAC,
-                                          slot->attr.type, slot->attr.bits,
-                                          NULL );
-    if( cipher_info == NULL )
-        return( PSA_ERROR_NOT_SUPPORTED );
-
-    ret = mbedtls_cipher_setup( &operation->ctx.cmac, cipher_info );
-    if( ret != 0 )
-        goto exit;
-
-    ret = mbedtls_cipher_cmac_starts( &operation->ctx.cmac,
-                                      slot->key.data,
-                                      slot->attr.bits );
-exit:
-    return( mbedtls_to_psa_error( ret ) );
-}
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
-
-static psa_status_t psa_mac_setup( psa_mac_operation_t *psa_operation,
+static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
                                    mbedtls_svc_key_id_t key,
                                    psa_algorithm_t alg,
                                    int is_sign )
@@ -2425,38 +2320,32 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *psa_operation,
     psa_key_slot_t *slot;
     psa_key_usage_t usage =
         is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH;
-
-    /* Temporary recast to avoid changing a lot of lines */
-    mbedtls_psa_mac_operation_t* operation = &psa_operation->ctx.mbedtls_ctx;
+    size_t mac_size = 0;
 
     /* A context must be freshly initialized before it can be set up. */
-    if( operation->alg != 0 )
-    {
+    if( operation->id != 0 )
         return( PSA_ERROR_BAD_STATE );
-    }
 
-    status = psa_mac_init( operation, alg );
-    if( status != PSA_SUCCESS )
-        return( status );
-    if( is_sign )
-        operation->is_sign = 1;
-
-    status = psa_get_and_lock_transparent_key_slot_with_policy(
+    status = psa_get_and_lock_key_slot_with_policy(
                  key, &slot, usage, alg );
     if( status != PSA_SUCCESS )
         goto exit;
 
+    psa_key_attributes_t attributes = {
+        .core = slot->attr
+    };
+
     /* Validate the combination of key type and algorithm */
-    status = psa_mac_key_can_do( alg, slot->attr.type );
+    status = psa_mac_key_can_do( alg, psa_get_key_type( &attributes ) );
     if( status != PSA_SUCCESS )
         goto exit;
 
     /* Get the output length for the algorithm and key combination. None of the
      * currently supported algorithms have an output length dependent on actual
      * key size, so setting it to a bogus value is currently OK. */
-    operation->mac_size = PSA_MAC_LENGTH( slot->attr.type, 0, alg );
+    mac_size = PSA_MAC_LENGTH( psa_get_key_type( &attributes ), 0, alg );
 
-    if( operation->mac_size < 4 )
+    if( mac_size < 4 )
     {
         /* A very short MAC is too short for security since it can be
          * brute-forced. Ancient protocols with 32-bit MACs do exist,
@@ -2466,8 +2355,8 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *psa_operation,
         goto exit;
     }
 
-    if( operation->mac_size >
-        PSA_MAC_LENGTH( slot->attr.type, 0, PSA_ALG_FULL_LENGTH_MAC( alg ) ) )
+    if( mac_size > PSA_MAC_LENGTH( psa_get_key_type( &attributes ), 0,
+                                   PSA_ALG_FULL_LENGTH_MAC( alg ) ) )
     {
         /* It's impossible to "truncate" to a larger length than the full length
          * of the algorithm. */
@@ -2475,49 +2364,27 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *psa_operation,
         goto exit;
     }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
-    if( PSA_ALG_FULL_LENGTH_MAC( alg ) == PSA_ALG_CMAC )
+    /* Dispatch the MAC setup call with validated input */
+    if( is_sign )
     {
-        status = psa_cmac_setup( operation, slot );
+        status = psa_driver_wrapper_mac_sign_setup( operation,
+                                                    &attributes,
+                                                    slot->key.data,
+                                                    slot->key.bytes,
+                                                    alg );
     }
     else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-    if( PSA_ALG_IS_HMAC( alg ) )
     {
-        /* Sanity check. This shouldn't fail on a valid configuration. */
-        if( operation->mac_size > sizeof( operation->ctx.hmac.opad ) )
-        {
-            status = PSA_ERROR_NOT_SUPPORTED;
-            goto exit;
-        }
-
-        if( slot->attr.type != PSA_KEY_TYPE_HMAC )
-        {
-            status = PSA_ERROR_INVALID_ARGUMENT;
-            goto exit;
-        }
-
-        status = psa_hmac_setup_internal( &operation->ctx.hmac,
-                                          slot->key.data,
-                                          slot->key.bytes,
-                                          PSA_ALG_HMAC_GET_HASH( alg ) );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
-    {
-        status = PSA_ERROR_NOT_SUPPORTED;
+        status = psa_driver_wrapper_mac_verify_setup( operation,
+                                                      &attributes,
+                                                      slot->key.data,
+                                                      slot->key.bytes,
+                                                      alg );
     }
 
 exit:
     if( status != PSA_SUCCESS )
-    {
-        psa_mac_abort( psa_operation );
-    }
-    else
-    {
-        operation->key_set = 1;
-    }
+        psa_mac_abort( operation );
 
     unlock_status = psa_unlock_key_slot( slot );
 

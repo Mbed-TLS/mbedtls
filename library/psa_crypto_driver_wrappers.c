@@ -1610,33 +1610,25 @@ psa_status_t psa_driver_wrapper_mac_verify_finish(
 psa_status_t psa_driver_wrapper_mac_abort(
     psa_mac_operation_t *operation )
 {
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     switch( operation->id )
     {
 #if defined(MBEDTLS_PSA_BUILTIN_MAC)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            status = mbedtls_psa_mac_abort( &operation->ctx.mbedtls_ctx );
-            break;
+            return( mbedtls_psa_mac_abort( &operation->ctx.mbedtls_ctx ) );
 #endif /* MBEDTLS_PSA_BUILTIN_MAC */
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
-            status = mbedtls_transparent_test_driver_mac_abort(
-                        &operation->ctx.transparent_test_driver_ctx );
-            break;
+            return( mbedtls_transparent_test_driver_mac_abort(
+                        &operation->ctx.transparent_test_driver_ctx ) );
         case PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID:
-            status = mbedtls_opaque_test_driver_mac_abort(
-                        &operation->ctx.opaque_test_driver_ctx );
-            break;
+            return( mbedtls_opaque_test_driver_mac_abort(
+                        &operation->ctx.opaque_test_driver_ctx ) );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
-            status = PSA_ERROR_INVALID_ARGUMENT;
-            break;
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
-
-    operation->id = 0;
-    return( status );
 }
 /* End of automatically generated file. */

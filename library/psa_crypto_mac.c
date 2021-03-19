@@ -427,11 +427,34 @@ static psa_status_t mac_update(
     const uint8_t *input,
     size_t input_length )
 {
-    /* To be fleshed out in a subsequent commit */
-    (void) operation;
-    (void) input;
-    (void) input_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    if( ! operation->key_set )
+        return( PSA_ERROR_BAD_STATE );
+    if( operation->iv_required && ! operation->iv_set )
+        return( PSA_ERROR_BAD_STATE );
+    operation->has_input = 1;
+
+#if defined(BUILTIN_ALG_CMAC)
+    if( operation->alg == PSA_ALG_CMAC )
+    {
+        return( mbedtls_to_psa_error(
+                    mbedtls_cipher_cmac_update( &operation->ctx.cmac,
+                                                input, input_length ) ) );
+    }
+    else
+#endif /* BUILTIN_ALG_CMAC */
+#if defined(BUILTIN_ALG_HMAC)
+    if( PSA_ALG_IS_HMAC( operation->alg ) )
+    {
+        return( psa_hash_update( &operation->ctx.hmac.hash_ctx, input,
+                                 input_length ) );
+    }
+    else
+#endif /* BUILTIN_ALG_HMAC */
+    {
+        /* This shouldn't happen if `operation` was initialized by
+         * a setup function. */
+        return( PSA_ERROR_BAD_STATE );
+    }
 }
 
 static psa_status_t mac_sign_finish(

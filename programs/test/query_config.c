@@ -101,7 +101,6 @@
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/xtea.h"
-#include "test/certs.h"
 
 #include <string.h>
 

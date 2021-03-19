@@ -130,28 +130,17 @@ static inline struct psa_cipher_operation_s psa_cipher_operation_init( void )
 
 struct psa_mac_operation_s
 {
-    psa_algorithm_t alg;
-    unsigned int key_set : 1;
-    unsigned int iv_required : 1;
-    unsigned int iv_set : 1;
-    unsigned int has_input : 1;
-    unsigned int is_sign : 1;
-    uint8_t mac_size;
+    /** Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_driver_wrappers.h
+     * ID value zero means the context is not valid or not assigned to
+     * any driver (i.e. none of the driver contexts are active). */
     unsigned int id;
-    union
-    {
-        unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
-#if defined(MBEDTLS_MD_C)
-        psa_hmac_internal_data hmac;
-#endif
-#if defined(MBEDTLS_CMAC_C)
-        mbedtls_cipher_context_t cmac;
-#endif
-        psa_driver_mac_context_t driver;
-    } ctx;
+    psa_driver_mac_context_t ctx;
 };
 
-#define PSA_MAC_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, {0}}
+#define PSA_MAC_OPERATION_INIT {0, {0}}
 static inline struct psa_mac_operation_s psa_mac_operation_init( void )
 {
     const struct psa_mac_operation_s v = PSA_MAC_OPERATION_INIT;

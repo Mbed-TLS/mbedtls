@@ -193,7 +193,7 @@ static psa_status_t aead_set_key( mbedtls_aead_context_t *ctx,
                                   size_t key_buffer_size )
 {
     const mbedtls_cipher_info_t *cipher_info;
-    mbedtls_cipher_id_t cipher_id;
+    mbedtls_cipher_id_t cipher_id = MBEDTLS_CIPHER_ID_NONE;
 
     /* Check the underlying cipher is available in this library */
     cipher_info = mbedtls_aead_cipher_info_from_psa(

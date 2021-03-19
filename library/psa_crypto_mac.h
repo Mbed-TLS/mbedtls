@@ -23,6 +23,17 @@
 
 #include <psa/crypto.h>
 
+psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
+                                      const uint8_t *key,
+                                      size_t key_length,
+                                      psa_algorithm_t hash_alg );
+
+psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
+                                       uint8_t *mac,
+                                       size_t mac_size );
+
+psa_status_t psa_hmac_abort_internal( psa_hmac_internal_data *hmac );
+
 /** Calculate the MAC (message authentication code) of a message using Mbed TLS.
  *
  * \note The signature of this function is that of a PSA driver mac_compute

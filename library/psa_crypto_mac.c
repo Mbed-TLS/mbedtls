@@ -25,6 +25,7 @@
 #include <psa/crypto.h>
 #include "psa_crypto_core.h"
 #include "psa_crypto_mac.h"
+#include <mbedtls/md.h>
 
 #include <mbedtls/error.h>
 #include <string.h>
@@ -40,6 +41,143 @@
 #define BUILTIN_ALG_HMAC        1
 #endif
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC) || defined(PSA_CRYPTO_DRIVER_TEST)
+static size_t psa_get_hash_block_size( psa_algorithm_t alg )
+{
+    switch( alg )
+    {
+        case PSA_ALG_MD2:
+            return( 16 );
+        case PSA_ALG_MD4:
+            return( 64 );
+        case PSA_ALG_MD5:
+            return( 64 );
+        case PSA_ALG_RIPEMD160:
+            return( 64 );
+        case PSA_ALG_SHA_1:
+            return( 64 );
+        case PSA_ALG_SHA_224:
+            return( 64 );
+        case PSA_ALG_SHA_256:
+            return( 64 );
+        case PSA_ALG_SHA_384:
+            return( 128 );
+        case PSA_ALG_SHA_512:
+            return( 128 );
+        default:
+            return( 0 );
+    }
+}
+
+psa_status_t psa_hmac_abort_internal( psa_hmac_internal_data *hmac )
+{
+    mbedtls_platform_zeroize( hmac->opad, sizeof( hmac->opad ) );
+    return( psa_hash_abort( &hmac->hash_ctx ) );
+}
+
+psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
+                                      const uint8_t *key,
+                                      size_t key_length,
+                                      psa_algorithm_t hash_alg )
+{
+    uint8_t ipad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
+    size_t i;
+    size_t hash_size = PSA_HASH_LENGTH( hash_alg );
+    size_t block_size = psa_get_hash_block_size( hash_alg );
+    psa_status_t status;
+
+    hmac->alg = hash_alg;
+
+    /* Sanity checks on block_size, to guarantee that there won't be a buffer
+     * overflow below. This should never trigger if the hash algorithm
+     * is implemented correctly. */
+    /* The size checks against the ipad and opad buffers cannot be written
+     * `block_size > sizeof( ipad ) || block_size > sizeof( hmac->opad )`
+     * because that triggers -Wlogical-op on GCC 7.3. */
+    if( block_size > sizeof( ipad ) )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    if( block_size > sizeof( hmac->opad ) )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    if( block_size < hash_size )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    if( key_length > block_size )
+    {
+        status = psa_hash_compute( hash_alg, key, key_length,
+                                   ipad, sizeof( ipad ), &key_length );
+        if( status != PSA_SUCCESS )
+            goto cleanup;
+    }
+    /* A 0-length key is not commonly used in HMAC when used as a MAC,
+     * but it is permitted. It is common when HMAC is used in HKDF, for
+     * example. Don't call `memcpy` in the 0-length because `key` could be
+     * an invalid pointer which would make the behavior undefined. */
+    else if( key_length != 0 )
+        memcpy( ipad, key, key_length );
+
+    /* ipad contains the key followed by garbage. Xor and fill with 0x36
+     * to create the ipad value. */
+    for( i = 0; i < key_length; i++ )
+        ipad[i] ^= 0x36;
+    memset( ipad + key_length, 0x36, block_size - key_length );
+
+    /* Copy the key material from ipad to opad, flipping the requisite bits,
+     * and filling the rest of opad with the requisite constant. */
+    for( i = 0; i < key_length; i++ )
+        hmac->opad[i] = ipad[i] ^ 0x36 ^ 0x5C;
+    memset( hmac->opad + key_length, 0x5C, block_size - key_length );
+
+    status = psa_hash_setup( &hmac->hash_ctx, hash_alg );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+
+    status = psa_hash_update( &hmac->hash_ctx, ipad, block_size );
+
+cleanup:
+    mbedtls_platform_zeroize( ipad, sizeof( ipad ) );
+
+    return( status );
+}
+
+psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
+                                       uint8_t *mac,
+                                       size_t mac_size )
+{
+    uint8_t tmp[MBEDTLS_MD_MAX_SIZE];
+    psa_algorithm_t hash_alg = hmac->alg;
+    size_t hash_size = 0;
+    size_t block_size = psa_get_hash_block_size( hash_alg );
+    psa_status_t status;
+
+    status = psa_hash_finish( &hmac->hash_ctx, tmp, sizeof( tmp ), &hash_size );
+    if( status != PSA_SUCCESS )
+        return( status );
+    /* From here on, tmp needs to be wiped. */
+
+    status = psa_hash_setup( &hmac->hash_ctx, hash_alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_hash_update( &hmac->hash_ctx, hmac->opad, block_size );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_hash_update( &hmac->hash_ctx, tmp, hash_size );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_hash_finish( &hmac->hash_ctx, tmp, sizeof( tmp ), &hash_size );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    memcpy( mac, tmp, mac_size );
+
+exit:
+    mbedtls_platform_zeroize( tmp, hash_size );
+    return( status );
+}
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC || PSA_CRYPTO_DRIVER_TEST */
+
 /* Implement the PSA driver MAC interface on top of mbed TLS if either the
  * software driver or the test driver requires it. */
 #if defined(MBEDTLS_PSA_BUILTIN_MAC) || defined(PSA_CRYPTO_DRIVER_TEST)
@@ -54,7 +192,7 @@ static psa_status_t mac_compute(
     size_t mac_size,
     size_t *mac_length )
 {
-    /* To be fleshed out in a subsequent commit */
+    /* One-shot MAC has not been implemented in this PSA implementation yet. */
     (void) attributes;
     (void) key_buffer;
     (void) key_buffer_size;

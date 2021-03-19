@@ -38,8 +38,12 @@
 /*
  * MAC multi-part operation definitions.
  */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
+#define MBEDTLS_PSA_BUILTIN_MAC
+#endif
 
-#if defined(MBEDTLS_MD_C)
+#if defined(PSA_WANT_ALG_HMAC)
 typedef struct
 {
         /** The HMAC algorithm in use */
@@ -49,22 +53,33 @@ typedef struct
         /** The HMAC part of the context. */
         uint8_t opad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
 } psa_hmac_internal_data;
-#endif /* MBEDTLS_MD_C */
+#endif /* PSA_WANT_ALG_HMAC */
 
 #include "mbedtls/cmac.h"
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-#define MBEDTLS_PSA_BUILTIN_MAC
-#endif
 
 typedef struct
 {
     psa_algorithm_t alg;
-    /* To be fleshed out in a later commit. */
+    unsigned int key_set : 1;
+    unsigned int iv_required : 1;
+    unsigned int iv_set : 1;
+    unsigned int has_input : 1;
+    unsigned int is_sign : 1;
+    uint8_t mac_size;
+    unsigned int id;
+    union
+    {
+        unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
+#if defined(PSA_WANT_ALG_HMAC)
+        psa_hmac_internal_data hmac;
+#endif
+#if defined(MBEDTLS_CMAC_C)
+        mbedtls_cipher_context_t cmac;
+#endif
+    } ctx;
 } mbedtls_psa_mac_operation_t;
 
-#define MBEDTLS_PSA_MAC_OPERATION_INIT {0, {0}}
+#define MBEDTLS_PSA_MAC_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, {0}}
 
 /*
  * BEYOND THIS POINT, TEST DRIVER DECLARATIONS ONLY.

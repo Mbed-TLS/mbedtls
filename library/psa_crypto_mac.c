@@ -457,18 +457,77 @@ static psa_status_t mac_update(
     }
 }
 
+static psa_status_t mac_finish_internal( mbedtls_psa_mac_operation_t *operation,
+                                         uint8_t *mac,
+                                         size_t mac_size )
+{
+    if( ! operation->key_set )
+        return( PSA_ERROR_BAD_STATE );
+    if( operation->iv_required && ! operation->iv_set )
+        return( PSA_ERROR_BAD_STATE );
+
+    if( mac_size < operation->mac_size )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+#if defined(BUILTIN_ALG_CMAC)
+    if( operation->alg == PSA_ALG_CMAC )
+    {
+        uint8_t tmp[PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE];
+        int ret = mbedtls_cipher_cmac_finish( &operation->ctx.cmac, tmp );
+        if( ret == 0 )
+            memcpy( mac, tmp, operation->mac_size );
+        mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
+        return( mbedtls_to_psa_error( ret ) );
+    }
+    else
+#endif /* BUILTIN_ALG_CMAC */
+#if defined(BUILTIN_ALG_HMAC)
+    if( PSA_ALG_IS_HMAC( operation->alg ) )
+    {
+        return( psa_hmac_finish_internal( &operation->ctx.hmac,
+                                          mac, operation->mac_size ) );
+    }
+    else
+#endif /* BUILTIN_ALG_HMAC */
+    {
+        /* This shouldn't happen if `operation` was initialized by
+         * a setup function. */
+        return( PSA_ERROR_BAD_STATE );
+    }
+}
+
 static psa_status_t mac_sign_finish(
     mbedtls_psa_mac_operation_t *operation,
     uint8_t *mac,
     size_t mac_size,
     size_t *mac_length )
 {
-    /* To be fleshed out in a subsequent commit */
-    (void) operation;
-    (void) mac;
-    (void) mac_size;
-    (void) mac_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    psa_status_t status;
+
+    if( operation->alg == 0 )
+        return( PSA_ERROR_BAD_STATE );
+
+    if( ! operation->is_sign )
+        return( PSA_ERROR_BAD_STATE );
+
+    status = mac_finish_internal( operation, mac, mac_size );
+
+    if( status == PSA_SUCCESS )
+        *mac_length = operation->mac_size;
+
+    return( status );
+}
+
+/* constant-time buffer comparison */
+static inline int safer_memcmp( const uint8_t *a, const uint8_t *b, size_t n )
+{
+    size_t i;
+    unsigned char diff = 0;
+
+    for( i = 0; i < n; i++ )
+        diff |= a[i] ^ b[i];
+
+    return( diff );
 }
 
 static psa_status_t mac_verify_finish(
@@ -476,11 +535,32 @@ static psa_status_t mac_verify_finish(
     const uint8_t *mac,
     size_t mac_length )
 {
-    /* To be fleshed out in a subsequent commit */
-    (void) operation;
-    (void) mac;
-    (void) mac_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    uint8_t actual_mac[PSA_MAC_MAX_SIZE];
+    psa_status_t status;
+
+    if( operation->alg == 0 )
+        return( PSA_ERROR_BAD_STATE );
+
+    if( operation->is_sign )
+        return( PSA_ERROR_BAD_STATE );
+
+    if( operation->mac_size != mac_length )
+    {
+        status = PSA_ERROR_INVALID_SIGNATURE;
+        goto cleanup;
+    }
+
+    status = mac_finish_internal( operation, actual_mac, sizeof( actual_mac ) );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+
+    if( safer_memcmp( mac, actual_mac, mac_length ) != 0 )
+        status = PSA_ERROR_INVALID_SIGNATURE;
+
+cleanup:
+    mbedtls_platform_zeroize( actual_mac, sizeof( actual_mac ) );
+
+    return( status );
 }
 #endif /* MBEDTLS_PSA_BUILTIN_MAC || PSA_CRYPTO_DRIVER_TEST */
 

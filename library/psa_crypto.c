@@ -2374,59 +2374,16 @@ psa_status_t psa_mac_update( psa_mac_operation_t *operation,
     return( status );
 }
 
-static psa_status_t psa_mac_finish_internal( mbedtls_psa_mac_operation_t *operation,
-                                             uint8_t *mac,
-                                             size_t mac_size )
-{
-    if( ! operation->key_set )
-        return( PSA_ERROR_BAD_STATE );
-    if( operation->iv_required && ! operation->iv_set )
-        return( PSA_ERROR_BAD_STATE );
-
-    if( mac_size < operation->mac_size )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
-    if( operation->alg == PSA_ALG_CMAC )
-    {
-        uint8_t tmp[PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE];
-        int ret = mbedtls_cipher_cmac_finish( &operation->ctx.cmac, tmp );
-        if( ret == 0 )
-            memcpy( mac, tmp, operation->mac_size );
-        mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
-        return( mbedtls_to_psa_error( ret ) );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-    if( PSA_ALG_IS_HMAC( operation->alg ) )
-    {
-        return( psa_hmac_finish_internal( &operation->ctx.hmac,
-                                          mac, operation->mac_size ) );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
-    {
-        /* This shouldn't happen if `operation` was initialized by
-         * a setup function. */
-        return( PSA_ERROR_BAD_STATE );
-    }
-}
-
-psa_status_t psa_mac_sign_finish( psa_mac_operation_t *psa_operation,
+psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
                                   uint8_t *mac,
                                   size_t mac_size,
                                   size_t *mac_length )
 {
-    /* Temporary recast to avoid changing a lot of lines */
-    mbedtls_psa_mac_operation_t* operation = &psa_operation->ctx.mbedtls_ctx;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    psa_status_t status;
-
-    if( operation->alg == 0 )
-    {
+    if( operation->id == 0 )
         return( PSA_ERROR_BAD_STATE );
-    }
 
     /* Fill the output buffer with something that isn't a valid mac
      * (barring an attack on the mac and deliberately-crafted input),
@@ -2437,68 +2394,32 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *psa_operation,
     if( mac_size != 0 )
         memset( mac, '!', mac_size );
 
-    if( ! operation->is_sign )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
+    status = psa_driver_wrapper_mac_sign_finish( operation,
+                                                 mac, mac_size, mac_length );
 
-    status = psa_mac_finish_internal( operation, mac, mac_size );
+    abort_status = psa_mac_abort( operation );
 
-    if( status == PSA_SUCCESS )
-    {
-        status = psa_mac_abort( psa_operation );
-        if( status == PSA_SUCCESS )
-            *mac_length = operation->mac_size;
-        else
-            memset( mac, '!', mac_size );
-    }
-    else
-        psa_mac_abort( psa_operation );
-    return( status );
+    if( status != PSA_SUCCESS && mac_size > 0 )
+        memset( mac, '!', mac_size );
+
+    return( status == PSA_SUCCESS ? abort_status : status );
 }
 
-psa_status_t psa_mac_verify_finish( psa_mac_operation_t *psa_operation,
+psa_status_t psa_mac_verify_finish( psa_mac_operation_t *operation,
                                     const uint8_t *mac,
                                     size_t mac_length )
 {
-    /* Temporary recast to avoid changing a lot of lines */
-    mbedtls_psa_mac_operation_t* operation = &psa_operation->ctx.mbedtls_ctx;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    uint8_t actual_mac[PSA_MAC_MAX_SIZE];
-    psa_status_t status;
-
-    if( operation->alg == 0 )
-    {
+    if( operation->id == 0 )
         return( PSA_ERROR_BAD_STATE );
-    }
 
-    if( operation->is_sign )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
-    if( operation->mac_size != mac_length )
-    {
-        status = PSA_ERROR_INVALID_SIGNATURE;
-        goto cleanup;
-    }
+    status = psa_driver_wrapper_mac_verify_finish( operation,
+                                                   mac, mac_length );
+    abort_status = psa_mac_abort( operation );
 
-    status = psa_mac_finish_internal( operation,
-                                      actual_mac, sizeof( actual_mac ) );
-    if( status != PSA_SUCCESS )
-        goto cleanup;
-
-    if( safer_memcmp( mac, actual_mac, mac_length ) != 0 )
-        status = PSA_ERROR_INVALID_SIGNATURE;
-
-cleanup:
-    if( status == PSA_SUCCESS )
-        status = psa_mac_abort( psa_operation );
-    else
-        psa_mac_abort( psa_operation );
-
-    mbedtls_platform_zeroize( actual_mac, sizeof( actual_mac ) );
-
-    return( status );
+    return( status == PSA_SUCCESS ? abort_status : status );
 }
 
 

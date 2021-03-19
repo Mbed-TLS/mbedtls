@@ -137,6 +137,7 @@ struct psa_mac_operation_s
     unsigned int has_input : 1;
     unsigned int is_sign : 1;
     uint8_t mac_size;
+    unsigned int id;
     union
     {
         unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
@@ -146,10 +147,11 @@ struct psa_mac_operation_s
 #if defined(MBEDTLS_CMAC_C)
         mbedtls_cipher_context_t cmac;
 #endif
+        psa_driver_mac_context_t driver;
     } ctx;
 };
 
-#define PSA_MAC_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, {0}}
+#define PSA_MAC_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, {0}}
 static inline struct psa_mac_operation_s psa_mac_operation_init( void )
 {
     const struct psa_mac_operation_s v = PSA_MAC_OPERATION_INIT;

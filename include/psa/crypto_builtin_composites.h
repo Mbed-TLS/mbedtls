@@ -51,4 +51,32 @@ typedef struct
 } psa_hmac_internal_data;
 #endif /* MBEDTLS_MD_C */
 
+#include "mbedtls/cmac.h"
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
+#define MBEDTLS_PSA_BUILTIN_MAC
+#endif
+
+typedef struct
+{
+    psa_algorithm_t alg;
+    /* To be fleshed out in a later commit. */
+} mbedtls_psa_mac_operation_t;
+
+#define MBEDTLS_PSA_MAC_OPERATION_INIT {0, {0}}
+
+/*
+ * BEYOND THIS POINT, TEST DRIVER DECLARATIONS ONLY.
+ */
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+
+typedef mbedtls_psa_mac_operation_t mbedtls_transparent_test_driver_mac_operation_t;
+typedef mbedtls_psa_mac_operation_t mbedtls_opaque_test_driver_mac_operation_t;
+
+#define MBEDTLS_TRANSPARENT_TEST_DRIVER_MAC_OPERATION_INIT MBEDTLS_PSA_MAC_OPERATION_INIT
+#define MBEDTLS_OPAQUE_TEST_DRIVER_MAC_OPERATION_INIT MBEDTLS_PSA_MAC_OPERATION_INIT
+
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+
 #endif /* PSA_CRYPTO_BUILTIN_COMPOSITES_H */

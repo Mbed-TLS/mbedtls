@@ -183,6 +183,53 @@ psa_status_t psa_driver_wrapper_aead_decrypt(
     const uint8_t *ciphertext, size_t ciphertext_length,
     uint8_t *plaintext, size_t plaintext_size, size_t *plaintext_length );
 
+/*
+ * MAC functions
+ */
+psa_status_t psa_driver_wrapper_mac_compute(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *mac,
+    size_t mac_size,
+    size_t *mac_length );
+
+psa_status_t psa_driver_wrapper_mac_sign_setup(
+    psa_mac_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg );
+
+psa_status_t psa_driver_wrapper_mac_verify_setup(
+    psa_mac_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg );
+
+psa_status_t psa_driver_wrapper_mac_update(
+    psa_mac_operation_t *operation,
+    const uint8_t *input,
+    size_t input_length );
+
+psa_status_t psa_driver_wrapper_mac_sign_finish(
+    psa_mac_operation_t *operation,
+    uint8_t *mac,
+    size_t mac_size,
+    size_t *mac_length );
+
+psa_status_t psa_driver_wrapper_mac_verify_finish(
+    psa_mac_operation_t *operation,
+    const uint8_t *mac,
+    size_t mac_length );
+
+psa_status_t psa_driver_wrapper_mac_abort(
+    psa_mac_operation_t *operation );
+
 #endif /* PSA_CRYPTO_DRIVER_WRAPPERS_H */
 
 /* End of automatically generated file. */

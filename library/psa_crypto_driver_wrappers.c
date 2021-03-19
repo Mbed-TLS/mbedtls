@@ -751,7 +751,8 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
             if( status == PSA_SUCCESS )
                 operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
 
-            return( status );
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return( status );
 #endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
             return( PSA_ERROR_NOT_SUPPORTED );
 

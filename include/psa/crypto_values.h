@@ -2381,4 +2381,38 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 
 /**@}*/
 
+/** \defgroup pake Password-authenticated key exchange
+ * @{
+ */
+
+/** The first peer in a balanced PAKE.
+ *
+ * Although balanced PAKE protocols are symmetric, some of them needs an
+ * ordering of peers for the transcript calculations. If the protocol does not
+ * need this, either #PSA_PAKE_SIDE_FIRST or #PSA_PAKE_SIDE_SECOND are
+ * accepted.
+ */
+#define PSA_PAKE_SIDE_FIRST                ((psa_pake_side_t)0x0001)
+
+/** The second peer in a balanced PAKE.
+ *
+ * Although balanced PAKE protocols are symmetric, some of them needs an
+ * ordering of peers for the transcript calculations. If the protocol does not
+ * need this, either #PSA_PAKE_SIDE_FIRST or #PSA_PAKE_SIDE_SECOND are
+ * accepted.
+ */
+#define PSA_PAKE_SIDE_SECOND                ((psa_pake_side_t)0x0002)
+
+/** The client in an augmented PAKE.
+ *
+ * Augmented PAKE protocols need to differentiate between client and server.
+ */
+#define PSA_PAKE_SIDE_CLIENT                ((psa_pake_side_t)0x0101)
+
+/** The server in an augmented PAKE.
+ *
+ * Augmented PAKE protocols need to differentiate between client and server.
+ */
+#define PSA_PAKE_SIDE_SERVER                ((psa_pake_side_t)0x0102)
+/**@}*/
 #endif /* PSA_CRYPTO_VALUES_H */

@@ -380,4 +380,15 @@ typedef uint16_t psa_key_derivation_step_t;
 
 /**@}*/
 
+/** \defgroup pake Password-authenticated key exchange
+ * @{
+ */
+
+/** \brief Encoding of the side of PAKE */
+typedef uint16_t psa_pake_side_t;
+
+/** \brief Encoding of the type of input/output for PAKE */
+typedef uint16_t psa_pake_data_t;
+
+/**@}*/
 #endif /* PSA_CRYPTO_TYPES_H */

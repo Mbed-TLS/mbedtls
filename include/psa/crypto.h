@@ -4366,6 +4366,9 @@ psa_status_t psa_pake_get_key_share(psa_pake_operation_t *operation,
  * Depending on the protocol being executed, you might need to call this
  * function several times or you might not need to call this at all.
  *
+ * Calling this function with PSA_PAKE_DATA_KEY_SHARE as \p type is equivalent
+ * to calling psa_pake_get_key_share().
+ *
  * The exact sequence of calls to perform a password-authenticated key
  * exchange depends on the protocol in use.  Refer to the documentation of
  * individual PAKE algorithm types (`PSA_ALG_XXX` values of type
@@ -4442,6 +4445,9 @@ psa_status_t psa_pake_set_key_share(psa_pake_operation_t *operation,
  *
  * Depending on the protocol being executed, you might need to call this
  * function several times or you might not need to call this at all.
+ *
+ * Calling this function with PSA_PAKE_DATA_KEY_SHARE as \p type is equivalent
+ * to calling psa_pake_set_key_share().
  *
  * The exact sequence of calls to perform a password-authenticated key
  * exchange depends on the protocol in use.  Refer to the documentation of

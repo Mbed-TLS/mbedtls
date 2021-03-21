@@ -387,8 +387,13 @@ typedef uint16_t psa_key_derivation_step_t;
 /** \brief Encoding of the side of PAKE */
 typedef uint16_t psa_pake_side_t;
 
-/** \brief Encoding of the type of input/output for PAKE */
-typedef uint16_t psa_pake_data_t;
+/** Encoding of input and output indicators for PAKE.
+ *
+ * Some PAKE protocols need to exchange more data than just a single key share.
+ * This type is for encoding additional input and output data for such
+ * protocols.
+ */
+typedef uint8_t psa_pake_data_t;
 
 /** Encoding of the type of the PAKE's primitive.
  *

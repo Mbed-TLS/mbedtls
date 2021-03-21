@@ -731,6 +731,7 @@
 #define PSA_ALG_CATEGORY_ASYMMETRIC_ENCRYPTION  ((psa_algorithm_t)0x07000000)
 #define PSA_ALG_CATEGORY_KEY_DERIVATION         ((psa_algorithm_t)0x08000000)
 #define PSA_ALG_CATEGORY_KEY_AGREEMENT          ((psa_algorithm_t)0x09000000)
+#define PSA_ALG_CATEGORY_PAKE                   ((psa_algorithm_t)0x0a000000)
 
 /** Whether an algorithm is vendor-defined.
  *
@@ -847,6 +848,18 @@
 #define PSA_ALG_IS_KEY_DERIVATION_STRETCHING(alg)                                  \
     (PSA_ALG_IS_KEY_DERIVATION(alg) &&              \
      (alg) & PSA_ALG_KEY_DERIVATION_STRETCHING_FLAG)
+
+/** Whether the specified algorithm is a password-authenticated key exchange.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \p alg is a password-authenticated key exchange (PAKE)
+ *         algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \p alg is not a supported
+ *         algorithm identifier.
+ */
+#define PSA_ALG_IS_PAKE(alg)                                        \
+    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_PAKE)
 
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
 /** MD2 */
@@ -1953,6 +1966,58 @@
 #define PSA_ALG_GET_HASH(alg) \
         (((alg) & 0x000000ff) == 0 ? ((psa_algorithm_t)0) : 0x02000000 | ((alg) & 0x000000ff))
 
+/** The Password-authenticated key exchange by juggling (J-PAKE) protocol.
+ *
+ * J-PAKE can be instantiated over finite fields or elliptic curves. This can
+ * be achieved by passing either #PSA_PAKE_PRIMITIVE_TYPE_FIELD or
+ * #PSA_PAKE_PRIMITIVE_TYPE_CURVE to #PSA_PAKE_PRIMITIVE respectively, when
+ * creating the cipher suite.
+ *
+ * In theory the protocol works with any non-interactive zero-knowledge proof.
+ * Implementations of the present specification use Schnorr NIZK and this does
+ * not need to be configured in the cipher suites.
+ *
+ * J-PAKE can be used with any secure cryptographic hash function, the choice
+ * of hash must be supplied to the psa_pake_cipher_suite() as the second
+ * parameter (\p hash).
+ *
+ * All the remaining parameters passed to psa_pake_cipher_suite() when creating
+ * the cipher suite must be 0.
+ *
+ * The key exchange flow for JPAKE is as follows:
+ * -# To get the first round data that needs to be sent to the peer, call
+ *      psa_pake_get_key_share(operation, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE_2, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PUBLIC_2, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF_2, ...);
+ * -# To provide the first round data received from the peer to the operation,
+ *    call
+ *      psa_pake_set_key_share(operation, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE_2, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PUBLIC_2, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF_2, ...);
+ * -# To get the second round data that needs to be sent to the peer, call
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE_3, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PUBLIC_3, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF_3, ...);
+ * -# To provide the second round data received from the peer to the operation,
+ *    call
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE_3, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PUBLIC_3, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF_3, ...);
+ * -# Call psa_pake_get_implicit_key() for accessing the shared secret.
+ *
+ * For more information consult the documentation of the individual
+ * PSA_PAKE_DATA_XXX constants.
+ *
+ * J-PAKE is standardised for example in RFC 8236 and in THREAD.
+ */
+#define PSA_ALG_PAKE_JPAKE                   ((psa_algorithm_t)0x0a000001)
+
 /**@}*/
 
 /** \defgroup key_lifetimes Key lifetimes
@@ -2415,21 +2480,39 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  */
 #define PSA_PAKE_SIDE_SERVER                ((psa_pake_side_t)0x0102)
 
-/** The pake uses finite fields.
- *
- * The corresponding family type is ::psa_dh_family_t. In determining a
- * specific curve in the family ::psa_pake_bits_t values are interpreted in the
- * exact same way as ::psa_key_bits_t would.
- */
-#define PSA_PAKE_PRIMITIVE_TYPE_FIELD       ((psa_pake_primitive_type_t)0x01)
-
-/** The pake uses elliptic curves.
+/** The PAKE uses elliptic curves.
  *
  * The corresponding family type is ::psa_ecc_family_t. in determining a
  * specific curve in the family ::psa_pake_bits_t values are interpreted in the
  * exact same way as ::psa_key_bits_t would.
+ *
+ * Input and output during the operation can involve group elements and scalar
+ * values:
+ * -# The format for group elements is the same as for public keys on the
+ *  specific curve would be. For more information, consult the documentation of
+ *  psa_export_public_key().
+ * -# The format for scalars is the same as for private keys on the specific
+ *  curve would be. For more information, consult the documentation of
+ *  psa_export_key().
  */
-#define PSA_PAKE_PRIMITIVE_TYPE_CURVE       ((psa_pake_primitive_type_t)0x02)
+#define PSA_PAKE_PRIMITIVE_TYPE_CURVE       ((psa_pake_primitive_type_t)0x01)
+
+/** The PAKE uses finite fields based Diffie-Hellman groups.
+ *
+ * The corresponding family type is ::psa_dh_family_t. In determining a
+ * specific group in the family ::psa_pake_bits_t values are interpreted in the
+ * exact same way as ::psa_key_bits_t would.
+ *
+ * Input and output during the operation can involve group elements and scalar
+ * values:
+ * -# The format for group elements is the same as for public keys on the
+ *  specific group would be. For more information, consult the documentation of
+ *  psa_export_public_key().
+ * -# The format for scalars is the same as for private keys on the specific
+ *  group would be. For more information, consult the documentation of
+ *  psa_export_key().
+ */
+#define PSA_PAKE_PRIMITIVE_TYPE_FIELD_DH       ((psa_pake_primitive_type_t)0x02)
 
 /** Construct a PAKE primitive from type, family and bitsize.
  *
@@ -2450,6 +2533,88 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  */
 #define PSA_PAKE_PRIMITIVE(type, family, bits) \
     ((psa_pake_primitive_t) (((type) << 24 | (persistence) << 16) | (bits)))
+
+
+/** The key share being sent to or received from the peer.
+ *
+ * Unless the documentation of the PAKE algorithm says otherwise this is a
+ * group element.
+ *
+ * For information regarding representation consult the documentation of
+ * individual ::psa_pake_primitive_type_t constants.
+ *
+ * Some PAKE protocols need to exchange several key shares. If that is the
+ * case, this value marks the first key share sent and the first key share
+ * received. For values sent or received afterwards, use
+ * #PSA_PAKE_DATA_KEY_SHARE_2 and #PSA_PAKE_DATA_KEY_SHARE_3.
+ */
+#define PSA_PAKE_DATA_KEY_SHARE                 ((psa_pake_data_t)0x01)
+
+
+/** A Schnorr NIZKP public key.
+ *
+ * This is a group element.
+ *
+ * For information regarding representation consult the documentation of
+ * individual ::psa_pake_primitive_type_t constants.
+ *
+ * Some PAKE protocols need to perform several zero-knowledge proofs. If that
+ * is the case, this value marks the first public key sent and the first public
+ * key received. For values sent or received afterwards, use
+ * #PSA_PAKE_DATA_ZK_PUBLIC_2 and #PSA_PAKE_DATA_ZK_PUBLIC_3.
+ */
+#define PSA_PAKE_DATA_ZK_PUBLIC                 ((psa_pake_data_t)0x02)
+
+
+/** A Schnorr NIZKP proof.
+ *
+ * This is a skalar value.
+ *
+ * For information regarding representation consult the documentation of
+ * individual ::psa_pake_primitive_type_t constants.
+ *
+ * Some PAKE protocols need to perform several zero-knowledge proofs. If that
+ * is the case, this value marks the first proof sent and the first proof
+ * received. For values sent or received afterwards, use
+ * #PSA_PAKE_DATA_ZK_PROOF_2 and #PSA_PAKE_DATA_ZK_PROOF_3.
+ */
+#define PSA_PAKE_DATA_ZK_PROOF                  ((psa_pake_data_t)0x03)
+
+/** Marks the second key share sent and received.
+ *
+ * See #PSA_PAKE_DATA_KEY_SHARE.
+ */
+#define PSA_PAKE_DATA_KEY_SHARE_2               ((psa_pake_data_t)0x04)
+
+/** Marks the second Schnorr NIZKP public key sent and received.
+ *
+ * See #PSA_PAKE_DATA_ZK_PUBLIC.
+ */
+#define PSA_PAKE_DATA_ZK_PUBLIC_2               ((psa_pake_data_t)0x05)
+
+/** Marks the second Schnorr NIZKP proof sent and received.
+ *
+ * See #PSA_PAKE_DATA_ZK_PROOF.
+ */
+#define PSA_PAKE_DATA_ZK_PROOF_2                ((psa_pake_data_t)0x06)
+
+/** Marks the third key share sent and received.
+ *
+ * See #PSA_PAKE_DATA_KEY_SHARE.
+ */
+#define PSA_PAKE_DATA_KEY_SHARE_3               ((psa_pake_data_t)0x07)
+
+/** Marks the third Schnorr NIZKP public key sent and received.
+ *
+ * See #PSA_PAKE_DATA_ZK_PUBLIC.
+ */
+#define PSA_PAKE_DATA_ZK_PUBLIC_3               ((psa_pake_data_t)0x08)
+
+/** Marks the third Schnorr NIZKP proof sent and received.
+ *
+ * See #PSA_PAKE_DATA_ZK_PROOF.
+ */
+#define PSA_PAKE_DATA_ZK_PROOF_3                ((psa_pake_data_t)0x09)
 
 /**@}*/
 #endif /* PSA_CRYPTO_VALUES_H */

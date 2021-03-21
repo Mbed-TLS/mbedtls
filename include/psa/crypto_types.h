@@ -380,7 +380,7 @@ typedef uint16_t psa_key_derivation_step_t;
 
 /**@}*/
 
-/** \defgroup pake Password-authenticated key exchange
+/** \defgroup pake Password-authenticated key exchange (PAKE)
  * @{
  */
 
@@ -411,6 +411,14 @@ typedef uint16_t psa_pake_bits_t;
  * algebraic structures (eg. SRP or PQC schemes).
  */
 typedef uint32_t psa_pake_primitive_t;
+
+/** Encoding of additional options for PAKE.
+ *
+ * This type is for encoding additional options into PAKE cipher suites.
+ * (Options like for example EnvelopeMode in OPAQUE or "Per-User M and N" in
+ * SPAKE2.)
+ */
+typedef uint32_t psa_pake_cipher_suite_options_t;
 
 /**@}*/
 #endif /* PSA_CRYPTO_TYPES_H */

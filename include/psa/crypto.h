@@ -4131,6 +4131,47 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
  * @{
  */
 
+/** The type of the data strucure for PAKE cipher suites.
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure except
+ * as directed by the documentation of a specific implementation.
+ */
+typedef struct psa_pake_cipher_suite_s psa_pake_cipher_suite_t;
+
+/** Construct a cipher suite for a password-authenticated key exchange.
+ *
+ * \param primitive          The primitive used in the cipher suite.
+ * \param hash               The hash involved in the cipher suite.
+ *                           (`PSA_ALG_XXX` values of type ::psa_algorithm_t
+ *                           such that #PSA_ALG_IS_HASH(\c alg) is true.)
+ * \param algorithm1         Additional algorithm if needed in the cipher suite,
+ *                           0 otherwise.
+ * \param bits1              A bit size qualifier if needed for \p algorithm1,
+ *                           0 otherwise.
+ * \param algorithm2         Additional algorithm if needed in the cipher suite,
+ *                           0 otherwise.
+ * \param bits2              A bit size qualifier if needed for \p algorithm2,
+ *                           0 otherwise.
+ * \param options            Additional options to be included with the cipher
+ *                           suite if needed, 0 otherwise.
+ *
+ * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
+ * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
+ * for more information.
+ *
+ * \retval The constructed cipher suite.
+ */
+static psa_pake_cipher_suite_t psa_pake_cipher_suite(
+                                    psa_pake_primitive_t primitive,
+                                    psa_algorithm_t hash,
+                                    psa_algorithm_t algorithm1,
+                                    psa_pake_bits_t bits1,
+                                    psa_algorithm_t algorithm2,
+                                    psa_pake_bits_t bits2,
+                                    psa_pake_cipher_suite_options_t options
+                                    );
+
 /** The type of the state data structure for PAKE operations.
  *
  * Before calling any function on a PAKE operation object, the application

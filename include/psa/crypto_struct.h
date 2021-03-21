@@ -461,6 +461,39 @@ static inline size_t psa_get_key_bits(
     return( attributes->core.bits );
 }
 
+struct psa_pake_cipher_suite_s
+{
+    psa_pake_primitive_t primitive;
+    psa_algorithm_t hash;
+    psa_algorithm_t algorithm1;
+    psa_pake_bits_t bits1;
+    psa_algorithm_t algorithm2;
+    psa_pake_bits_t bits2;
+    psa_pake_cipher_suite_options_t options;
+};
+
+static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite(
+                                    psa_pake_primitive_t primitive,
+                                    psa_algorithm_t hash,
+                                    psa_algorithm_t algorithm1,
+                                    psa_pake_bits_t bits1,
+                                    psa_algorithm_t algorithm2,
+                                    psa_pake_bits_t bits2,
+                                    psa_pake_cipher_suite_options_t options
+                                    )
+{
+    struct psa_pake_cipher_suite_s cipher_suite;
+
+    cipher_suite.primitive = primitive;
+    cipher_suite.hash = hash;
+    cipher_suite.algorithm1 = algorithm1;
+    cipher_suite.bits1 = bits1;
+    cipher_suite.algorithm2 = algorithm2;
+    cipher_suite.bits2 = bits2;
+    cipher_suite.options = options;
+
+    return cipher_suite;
+}
 #ifdef __cplusplus
 }
 #endif

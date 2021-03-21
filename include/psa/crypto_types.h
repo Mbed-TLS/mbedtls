@@ -390,5 +390,27 @@ typedef uint16_t psa_pake_side_t;
 /** \brief Encoding of the type of input/output for PAKE */
 typedef uint16_t psa_pake_data_t;
 
+/** Encoding of the type of the PAKE's primitive.
+ *
+ * Values defined by this standard will never be in the range 0x80-0xff.
+ * Vendors who define additional types must use an encoding in this range.
+ */
+typedef uint8_t psa_pake_primitive_type_t;
+
+/** Encoding of the bitsize for the PAKE's primitive.
+ *
+ * The type and family is not enough to identify the primitive to use in the
+ * PAKE, the implementation needs to know the bitsize too.
+ */
+typedef uint16_t psa_pake_bits_t;
+
+/** Encoding of the PAKE's primitive.
+ *
+ * In most of the PAKEs the primitives are prime order groups, but some of
+ * them might need the ring structure or just are using completely different
+ * algebraic structures (eg. SRP or PQC schemes).
+ */
+typedef uint32_t psa_pake_primitive_t;
+
 /**@}*/
 #endif /* PSA_CRYPTO_TYPES_H */

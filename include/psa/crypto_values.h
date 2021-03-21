@@ -2414,5 +2414,42 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * Augmented PAKE protocols need to differentiate between client and server.
  */
 #define PSA_PAKE_SIDE_SERVER                ((psa_pake_side_t)0x0102)
+
+/** The pake uses finite fields.
+ *
+ * The corresponding family type is ::psa_dh_family_t. In determining a
+ * specific curve in the family ::psa_pake_bits_t values are interpreted in the
+ * exact same way as ::psa_key_bits_t would.
+ */
+#define PSA_PAKE_PRIMITIVE_TYPE_FIELD       ((psa_pake_primitive_type_t)0x01)
+
+/** The pake uses elliptic curves.
+ *
+ * The corresponding family type is ::psa_ecc_family_t. in determining a
+ * specific curve in the family ::psa_pake_bits_t values are interpreted in the
+ * exact same way as ::psa_key_bits_t would.
+ */
+#define PSA_PAKE_PRIMITIVE_TYPE_CURVE       ((psa_pake_primitive_type_t)0x02)
+
+/** Construct a PAKE primitive from type, family and bitsize.
+ *
+ * \param type          The type of the primitive
+ *                      (value of type ::psa_pake_primitive_type_t).
+ * \param family        The family of the primitive
+ *                      (the type and interpretation of this parameter depends
+ *                      on \p type, for more information consult the
+ *                      documentation of individual ::psa_pake_primitive_type_t
+ *                      constants).
+ * \param bits          The bitwise of the primitive
+ *                      (Value of type ::psa_pake_bits_t. The interpretation
+ *                      of this parameter depends on \p family, for more
+ *                      information consult the documentation of individual
+ *                      ::psa_pake_primitive_type_t constants).
+ *
+ * \return The constructed primitive value.
+ */
+#define PSA_PAKE_PRIMITIVE(type, family, bits) \
+    ((psa_pake_primitive_t) (((type) << 24 | (persistence) << 16) | (bits)))
+
 /**@}*/
 #endif /* PSA_CRYPTO_VALUES_H */

@@ -494,6 +494,25 @@ static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite(
 
     return cipher_suite;
 }
+
+struct psa_pake_operation_s
+{
+    psa_algorithm_t alg;
+    union
+    {
+        /* Make the union non-empty even with no supported algorithms. */
+        uint8_t dummy;
+    } ctx;
+};
+
+/* This only zeroes out the first byte in the union, the rest is unspecified. */
+#define PSA_PAKE_OPERATION_INIT {0, {0}}
+static inline struct psa_pake_operation_s psa_pake_operation_init( void )
+{
+    const struct psa_pake_operation_s v = PSA_PAKE_OPERATION_INIT;
+    return( v );
+}
+
 #ifdef __cplusplus
 }
 #endif

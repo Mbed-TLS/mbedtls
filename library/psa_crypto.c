@@ -3382,19 +3382,19 @@ static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkd
             return( status );
         if( hkdf->block_number != 1 )
         {
-            status = psa_hash_update( &hkdf->hmac.hash_ctx,
-                                      hkdf->output_block,
-                                      hash_length );
+            status = psa_hmac_update_internal( &hkdf->hmac,
+                                               hkdf->output_block,
+                                               hash_length );
             if( status != PSA_SUCCESS )
                 return( status );
         }
-        status = psa_hash_update( &hkdf->hmac.hash_ctx,
-                                  hkdf->info,
-                                  hkdf->info_length );
+        status = psa_hmac_update_internal( &hkdf->hmac,
+                                           hkdf->info,
+                                           hkdf->info_length );
         if( status != PSA_SUCCESS )
             return( status );
-        status = psa_hash_update( &hkdf->hmac.hash_ctx,
-                                  &hkdf->block_number, 1 );
+        status = psa_hmac_update_internal( &hkdf->hmac,
+                                           &hkdf->block_number, 1 );
         if( status != PSA_SUCCESS )
             return( status );
         status = psa_hmac_finish_internal( &hkdf->hmac,
@@ -3416,7 +3416,7 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
 {
     psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( alg );
     uint8_t hash_length = PSA_HASH_LENGTH( hash_alg );
-    psa_hash_operation_t backup = PSA_HASH_OPERATION_INIT;
+    psa_hmac_internal_data backup = MBEDTLS_PSA_HMAC_OPERATION_INIT;
     psa_status_t status, cleanup_status;
 
     /* We can't be wanting more output after block 0xff, otherwise
@@ -3451,7 +3451,7 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
     /* Save the hash context before using it, to preserve the hash state with
      * only the inner padding in it. We need this, because inner padding depends
      * on the key (secret in the RFC's terminology). */
-    status = psa_hash_clone( &tls12_prf->hmac.hash_ctx, &backup );
+    status = psa_hmac_clone_internal( &tls12_prf->hmac, &backup );
     if( status != PSA_SUCCESS )
         goto cleanup;
 
@@ -3461,20 +3461,22 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
         /* A(1) = HMAC_hash(secret, A(0)), where A(0) = seed. (The RFC overloads
          * the variable seed and in this instance means it in the context of the
          * P_hash function, where seed = label + seed.) */
-        status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
-                                  tls12_prf->label, tls12_prf->label_length );
+        status = psa_hmac_update_internal( &tls12_prf->hmac,
+                                           tls12_prf->label,
+                                           tls12_prf->label_length );
         if( status != PSA_SUCCESS )
             goto cleanup;
-        status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
-                                  tls12_prf->seed, tls12_prf->seed_length );
+        status = psa_hmac_update_internal( &tls12_prf->hmac,
+                                           tls12_prf->seed,
+                                           tls12_prf->seed_length );
         if( status != PSA_SUCCESS )
             goto cleanup;
     }
     else
     {
         /* A(i) = HMAC_hash(secret, A(i-1)) */
-        status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
-                                  tls12_prf->Ai, hash_length );
+        status = psa_hmac_update_internal( &tls12_prf->hmac,
+                                           tls12_prf->Ai, hash_length );
         if( status != PSA_SUCCESS )
             goto cleanup;
     }
@@ -3483,35 +3485,35 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
                                        tls12_prf->Ai, hash_length );
     if( status != PSA_SUCCESS )
         goto cleanup;
-    status = psa_hash_clone( &backup, &tls12_prf->hmac.hash_ctx );
+    status = psa_hmac_clone_internal( &backup, &tls12_prf->hmac );
     if( status != PSA_SUCCESS )
         goto cleanup;
 
     /* Calculate HMAC_hash(secret, A(i) + label + seed). */
-    status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
-                              tls12_prf->Ai, hash_length );
+    status = psa_hmac_update_internal( &tls12_prf->hmac,
+                                       tls12_prf->Ai, hash_length );
     if( status != PSA_SUCCESS )
         goto cleanup;
-    status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
-                              tls12_prf->label, tls12_prf->label_length );
+    status = psa_hmac_update_internal( &tls12_prf->hmac,
+                                       tls12_prf->label, tls12_prf->label_length );
     if( status != PSA_SUCCESS )
         goto cleanup;
-    status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
-                              tls12_prf->seed, tls12_prf->seed_length );
+    status = psa_hmac_update_internal( &tls12_prf->hmac,
+                                       tls12_prf->seed, tls12_prf->seed_length );
     if( status != PSA_SUCCESS )
         goto cleanup;
     status = psa_hmac_finish_internal( &tls12_prf->hmac,
                                        tls12_prf->output_block, hash_length );
     if( status != PSA_SUCCESS )
         goto cleanup;
-    status = psa_hash_clone( &backup, &tls12_prf->hmac.hash_ctx );
+    status = psa_hmac_clone_internal( &backup, &tls12_prf->hmac );
     if( status != PSA_SUCCESS )
         goto cleanup;
 
 
 cleanup:
 
-    cleanup_status = psa_hash_abort( &backup );
+    cleanup_status = psa_hmac_abort_internal( &backup );
     if( status == PSA_SUCCESS && cleanup_status != PSA_SUCCESS )
         status = cleanup_status;
 
@@ -3857,8 +3859,8 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
             }
             if( hkdf->state != HKDF_STATE_STARTED )
                 return( PSA_ERROR_BAD_STATE );
-            status = psa_hash_update( &hkdf->hmac.hash_ctx,
-                                      data, data_length );
+            status = psa_hmac_update_internal( &hkdf->hmac,
+                                               data, data_length );
             if( status != PSA_SUCCESS )
                 return( status );
             status = psa_hmac_finish_internal( &hkdf->hmac,

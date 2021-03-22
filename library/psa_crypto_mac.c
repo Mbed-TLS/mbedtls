@@ -139,6 +139,13 @@ cleanup:
     return( status );
 }
 
+psa_status_t psa_hmac_update_internal( psa_hmac_internal_data *hmac,
+                                       const uint8_t *data,
+                                       size_t data_length )
+{
+    return( psa_hash_update( &hmac->hash_ctx, data, data_length ) );
+}
+
 psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
                                        uint8_t *mac,
                                        size_t mac_size )
@@ -174,6 +181,22 @@ psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
 
 exit:
     mbedtls_platform_zeroize( tmp, hash_size );
+    return( status );
+}
+
+psa_status_t psa_hmac_clone_internal( const psa_hmac_internal_data *source,
+                                      psa_hmac_internal_data *destination )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    destination->alg = source->alg;
+    destination->hash_ctx = psa_hash_operation_init();
+    status = psa_hash_clone( &source->hash_ctx, &destination->hash_ctx );
+    memcpy( destination->opad, source->opad, sizeof( destination->opad ) );
+
+    if( status != PSA_SUCCESS )
+        memset( destination, 0, sizeof( *destination ) );
+
     return( status );
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC || PSA_CRYPTO_DRIVER_TEST */

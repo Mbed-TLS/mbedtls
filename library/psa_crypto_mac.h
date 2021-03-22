@@ -39,7 +39,7 @@
  * \return Any error code reported by psa_hash_compute(), psa_hash_setup() or
  *         psa_hash_update().
  */
-psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
+psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data_t *hmac,
                                       const uint8_t *key,
                                       size_t key_length,
                                       psa_algorithm_t hash_alg );
@@ -59,7 +59,7 @@ psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
  *         Success.
  * \return Any error code reported by psa_hash_update().
  */
-psa_status_t psa_hmac_update_internal( psa_hmac_internal_data *hmac,
+psa_status_t psa_hmac_update_internal( psa_hmac_internal_data_t *hmac,
                                        const uint8_t *data,
                                        size_t data_length );
 
@@ -78,7 +78,7 @@ psa_status_t psa_hmac_update_internal( psa_hmac_internal_data *hmac,
  * \return Any error code reported by psa_hash_setup(), psa_hash_update() or
  *         psa_hash_finish().
  */
-psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
+psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data_t *hmac,
                                        uint8_t *mac,
                                        size_t mac_size );
 
@@ -96,8 +96,8 @@ psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
  *         Success.
  * \return Any error code reported by psa_hash_clone().
  */
-psa_status_t psa_hmac_clone_internal( const psa_hmac_internal_data *source,
-                                      psa_hmac_internal_data *destination );
+psa_status_t psa_hmac_clone_internal( const psa_hmac_internal_data_t *source,
+                                      psa_hmac_internal_data_t *destination );
 
 /** Internal API for aborting an HMAC operation, using PSA hash primitives.
  *
@@ -110,7 +110,7 @@ psa_status_t psa_hmac_clone_internal( const psa_hmac_internal_data *source,
  *         Success.
  * \return Any error code reported by psa_hash_abort().
  */
-psa_status_t psa_hmac_abort_internal( psa_hmac_internal_data *hmac );
+psa_status_t psa_hmac_abort_internal( psa_hmac_internal_data_t *hmac );
 
 /** Calculate the MAC (message authentication code) of a message using Mbed TLS.
  *

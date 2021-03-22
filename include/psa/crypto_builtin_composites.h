@@ -53,6 +53,8 @@ typedef struct
         /** The HMAC part of the context. */
         uint8_t opad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
 } psa_hmac_internal_data;
+
+#define MBEDTLS_PSA_HMAC_OPERATION_INIT {0, {0}, {0}}
 #endif /* PSA_WANT_ALG_HMAC */
 
 #include "mbedtls/cmac.h"

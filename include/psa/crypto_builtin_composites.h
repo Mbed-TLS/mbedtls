@@ -46,15 +46,15 @@
 #if defined(PSA_WANT_ALG_HMAC)
 typedef struct
 {
-        /** The HMAC algorithm in use */
-        psa_algorithm_t alg;
-        /** The hash context. */
-        struct psa_hash_operation_s hash_ctx;
-        /** The HMAC part of the context. */
-        uint8_t opad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
-} psa_hmac_internal_data;
+    /** The HMAC algorithm in use */
+    psa_algorithm_t alg;
+    /** The hash context. */
+    struct psa_hash_operation_s hash_ctx;
+    /** The HMAC part of the context. */
+    uint8_t opad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
+} psa_hmac_internal_data_t;
 
-#define MBEDTLS_PSA_HMAC_OPERATION_INIT {0, {0}, {0}}
+#define MBEDTLS_PSA_HMAC_OPERATION_INIT {0, PSA_HASH_OPERATION_INIT, {0}}
 #endif /* PSA_WANT_ALG_HMAC */
 
 #include "mbedtls/cmac.h"
@@ -73,7 +73,7 @@ typedef struct
     {
         unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
 #if defined(PSA_WANT_ALG_HMAC)
-        psa_hmac_internal_data hmac;
+        psa_hmac_internal_data_t hmac;
 #endif
 #if defined(MBEDTLS_CMAC_C)
         mbedtls_cipher_context_t cmac;

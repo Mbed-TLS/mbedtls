@@ -3416,7 +3416,7 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
 {
     psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( alg );
     uint8_t hash_length = PSA_HASH_LENGTH( hash_alg );
-    psa_hmac_internal_data backup = MBEDTLS_PSA_HMAC_OPERATION_INIT;
+    psa_hmac_internal_data_t backup = MBEDTLS_PSA_HMAC_OPERATION_INIT;
     psa_status_t status, cleanup_status;
 
     /* We can't be wanting more output after block 0xff, otherwise

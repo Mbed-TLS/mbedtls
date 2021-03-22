@@ -19,14 +19,14 @@ This module is entirely based on the PSA API.
 # limitations under the License.
 
 import re
-from typing import List, Optional, Tuple
+from typing import Iterable, Optional, Tuple
 
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
 
 class KeyType:
     """Knowledge about a PSA key type."""
 
-    def __init__(self, name: str, params: Optional[List[str]] = None):
+    def __init__(self, name: str, params: Optional[Iterable[str]] = None):
         """Analyze a key type.
 
         The key type must be specified in PSA syntax. In its simplest form,

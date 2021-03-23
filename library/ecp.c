@@ -3057,6 +3057,97 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp,
     return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 }
 
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_gen_privkey_mx( size_t n_bits,
+                                mbedtls_mpi *d,
+                                int (*f_rng)(void *, unsigned char *, size_t),
+                                void *p_rng )
+{
+    int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    size_t b;
+    size_t n_bytes = ( n_bits + 7 ) / 8;
+
+    /* [Curve25519] page 5 */
+    do {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_bytes, f_rng, p_rng ) );
+    } while( mbedtls_mpi_bitlen( d ) == 0);
+
+    /* Make sure the most significant bit is n_bits */
+    b = mbedtls_mpi_bitlen( d ) - 1; /* mbedtls_mpi_bitlen is one-based */
+    if( b > n_bits )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, b - n_bits ) );
+    else
+        MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, n_bits, 1 ) );
+
+    /* Make sure the last two bits are unset for Curve448, three bits for
+       Curve25519 */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 0, 0 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 1, 0 ) );
+    if( n_bits == 254 )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 2, 0 ) );
+    }
+
+cleanup:
+    return( ret );
+}
+#endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
+
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_gen_privkey_sw( const mbedtls_mpi *N, size_t n_bits,
+                                mbedtls_mpi *d,
+                                int (*f_rng)(void *, unsigned char *, size_t),
+                                void *p_rng )
+{
+    /* SEC1 3.2.1: Generate d such that 1 <= n < N */
+    int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    int count = 0;
+    unsigned cmp = 0;
+    size_t n_bytes = ( n_bits + 7 ) / 8;
+
+    /*
+     * Match the procedure given in RFC 6979 §3.3 (deterministic ECDSA)
+     * when f_rng is a suitably parametrized instance of HMAC_DRBG:
+     * - use the same byte ordering;
+     * - keep the leftmost n_bits bits of the generated octet string;
+     * - try until result is in the desired range.
+     * This also avoids any bias, which is especially important for ECDSA.
+     */
+    do
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_bytes, f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, 8 * n_bytes - n_bits ) );
+
+        /*
+         * Each try has at worst a probability 1/2 of failing (the msb has
+         * a probability 1/2 of being 0, and then the result will be < N),
+         * so after 30 tries failure probability is a most 2**(-30).
+         *
+         * For most curves, 1 try is enough with overwhelming probability,
+         * since N starts with a lot of 1s in binary, but some curves
+         * such as secp224k1 are actually very close to the worst case.
+         */
+        if( ++count > 30 )
+        {
+            ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
+            goto cleanup;
+        }
+
+        ret = mbedtls_mpi_lt_mpi_ct( d, N, &cmp );
+        if( ret != 0 )
+        {
+            goto cleanup;
+        }
+    }
+    while( mbedtls_mpi_cmp_int( d, 1 ) < 0 || cmp != 1 );
+
+cleanup:
+    return( ret );
+}
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+
 /*
  * Generate a private key
  */
@@ -3065,94 +3156,22 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
-    int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-    size_t n_bits;
-    const mbedtls_mpi *N = NULL;
-
     ECP_VALIDATE_RET( grp   != NULL );
     ECP_VALIDATE_RET( d     != NULL );
     ECP_VALIDATE_RET( f_rng != NULL );
 
-    N = &grp->N;
-    n_bits = grp->nbits;
-
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
-    {
-        size_t b;
-        size_t n_bytes = ( n_bits + 7 ) / 8;
-
-        /* [Curve25519] page 5 */
-        do {
-            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_bytes, f_rng, p_rng ) );
-        } while( mbedtls_mpi_bitlen( d ) == 0);
-
-        /* Make sure the most significant bit is n_bits */
-        b = mbedtls_mpi_bitlen( d ) - 1; /* mbedtls_mpi_bitlen is one-based */
-        if( b > n_bits )
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, b - n_bits ) );
-        else
-            MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, n_bits, 1 ) );
-
-        /* Make sure the last two bits are unset for Curve448, three bits for
-           Curve25519 */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 0, 0 ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 1, 0 ) );
-        if( n_bits == 254 )
-        {
-            MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 2, 0 ) );
-        }
-    }
+        return( mbedtls_ecp_gen_privkey_mx( grp->nbits, d, f_rng, p_rng ) );
 #endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
-    {
-        /* SEC1 3.2.1: Generate d such that 1 <= n < N */
-        int count = 0;
-        unsigned cmp = 0;
-        size_t n_bytes = ( n_bits + 7 ) / 8;
-
-        /*
-         * Match the procedure given in RFC 6979 §3.3 (deterministic ECDSA)
-         * when f_rng is a suitably parametrized instance of HMAC_DRBG:
-         * - use the same byte ordering;
-         * - keep the leftmost n_bits bits of the generated octet string;
-         * - try until result is in the desired range.
-         * This also avoids any bias, which is especially important for ECDSA.
-         */
-        do
-        {
-            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_bytes, f_rng, p_rng ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, 8 * n_bytes - n_bits ) );
-
-            /*
-             * Each try has at worst a probability 1/2 of failing (the msb has
-             * a probability 1/2 of being 0, and then the result will be < N),
-             * so after 30 tries failure probability is a most 2**(-30).
-             *
-             * For most curves, 1 try is enough with overwhelming probability,
-             * since N starts with a lot of 1s in binary, but some curves
-             * such as secp224k1 are actually very close to the worst case.
-             */
-            if( ++count > 30 )
-            {
-                ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
-                goto cleanup;
-            }
-
-            ret = mbedtls_mpi_lt_mpi_ct( d, N, &cmp );
-            if( ret != 0 )
-            {
-                goto cleanup;
-            }
-        }
-        while( mbedtls_mpi_cmp_int( d, 1 ) < 0 || cmp != 1 );
-    }
+        return( mbedtls_ecp_gen_privkey_sw( &grp->N, grp->nbits, d,
+                                            f_rng, p_rng ) );
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
-cleanup:
-    return( ret );
+    return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 }
 
 /*

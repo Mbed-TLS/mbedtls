@@ -105,6 +105,8 @@ def is_classic_dependency(dep):
 
 def is_systematic_dependency(dep):
     """Whether dep is a PSA dependency which is determined systematically."""
+    if dep.startswith('PSA_WANT_ECC_'):
+        return False
     return dep.startswith('PSA_WANT_')
 
 WITHOUT_SYSTEMATIC_DEPENDENCIES = frozenset([

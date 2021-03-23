@@ -274,15 +274,14 @@ static psa_status_t cipher_generate_iv(
     mbedtls_psa_cipher_operation_t *operation,
     uint8_t *iv, size_t iv_size, size_t *iv_length )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int status = PSA_ERROR_CORRUPTION_DETECTED;
 
     if( iv_size < operation->iv_size )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
-    ret = mbedtls_psa_get_random( MBEDTLS_PSA_RANDOM_STATE,
-                                  iv, operation->iv_size );
-    if( ret != 0 )
-        return( mbedtls_to_psa_error( ret ) );
+    status = psa_generate_random( iv, operation->iv_size );
+    if( status != PSA_SUCCESS )
+        return( status );
 
     *iv_length = operation->iv_size;
 

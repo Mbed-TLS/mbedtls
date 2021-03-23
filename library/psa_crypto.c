@@ -423,62 +423,89 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
         case PSA_ECC_FAMILY_SECP_R1:
             switch( bits )
             {
+#if defined(PSA_WANT_ECC_SECP_R1_192)
                 case 192:
                     return( MBEDTLS_ECP_DP_SECP192R1 );
+#endif
+#if defined(PSA_WANT_ECC_SECP_R1_224)
                 case 224:
                     return( MBEDTLS_ECP_DP_SECP224R1 );
+#endif
+#if defined(PSA_WANT_ECC_SECP_R1_256)
                 case 256:
                     return( MBEDTLS_ECP_DP_SECP256R1 );
+#endif
+#if defined(PSA_WANT_ECC_SECP_R1_384)
                 case 384:
                     return( MBEDTLS_ECP_DP_SECP384R1 );
+#endif
+#if defined(PSA_WANT_ECC_SECP_R1_521)
                 case 521:
                     return( MBEDTLS_ECP_DP_SECP521R1 );
                 case 528:
                     if( bits_is_sloppy )
                         return( MBEDTLS_ECP_DP_SECP521R1 );
                     break;
+#endif
             }
             break;
 
         case PSA_ECC_FAMILY_BRAINPOOL_P_R1:
             switch( bits )
             {
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
                 case 256:
                     return( MBEDTLS_ECP_DP_BP256R1 );
+#endif
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
                 case 384:
                     return( MBEDTLS_ECP_DP_BP384R1 );
+#endif
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
                 case 512:
                     return( MBEDTLS_ECP_DP_BP512R1 );
+#endif
             }
             break;
 
         case PSA_ECC_FAMILY_MONTGOMERY:
             switch( bits )
             {
+#if defined(PSA_WANT_ECC_MONTGOMERY_255)
                 case 255:
                     return( MBEDTLS_ECP_DP_CURVE25519 );
                 case 256:
                     if( bits_is_sloppy )
                         return( MBEDTLS_ECP_DP_CURVE25519 );
                     break;
+#endif
+#if defined(PSA_WANT_ECC_MONTGOMERY_448)
                 case 448:
                     return( MBEDTLS_ECP_DP_CURVE448 );
+#endif
             }
             break;
 
         case PSA_ECC_FAMILY_SECP_K1:
             switch( bits )
             {
+#if defined(PSA_WANT_ECC_SECP_K1_192)
                 case 192:
                     return( MBEDTLS_ECP_DP_SECP192K1 );
+#endif
+#if defined(PSA_WANT_ECC_SECP_K1_224)
                 case 224:
                     return( MBEDTLS_ECP_DP_SECP224K1 );
+#endif
+#if defined(PSA_WANT_ECC_SECP_K1_256)
                 case 256:
                     return( MBEDTLS_ECP_DP_SECP256K1 );
+#endif
             }
             break;
     }
 
+    (void) bits_is_sloppy;
     return( MBEDTLS_ECP_DP_NONE );
 }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||

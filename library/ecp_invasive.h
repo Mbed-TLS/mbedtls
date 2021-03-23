@@ -27,6 +27,7 @@
 #define MBEDTLS_ECP_INVASIVE_H
 
 #include "common.h"
+#include "mbedtls/bignum.h"
 #include "mbedtls/ecp.h"
 
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_C)
@@ -45,6 +46,57 @@
  */
 void mbedtls_ecp_fix_negative( mbedtls_mpi *N, signed char c, size_t bits );
 #endif
+
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
+/** Generate a private key on a Montgomery curve (Curve25519 or Curve448).
+ *
+ * This function implements key generation for the set of secret keys
+ * specified in [Curve25519] p. 5 and in [Curve448]. The resulting value
+ * has the lower bits masked but is not necessarily canonical.
+ *
+ * \note            - [Curve25519] http://cr.yp.to/ecdh/curve25519-20060209.pdf
+ *                  - [RFC7748] https://tools.ietf.org/html/rfc7748
+ *
+ * \p n_bits        The position of the high-order bit of the key to generate.
+ *                  This is the bit-size of the key minus 1:
+ *                  254 for Curve25519 or 447 for Curve448.
+ * \param d         The randomly generated key. This is a number of size
+ *                  exactly \p n_bits + 1 bits, with the least significant bits
+ *                  masked as specified in [Curve25519] and in [RFC7748] §5.
+ * \param f_rng     The RNG function.
+ * \param p_rng     The RNG context to be passed to \p f_rng.
+ *
+ * \return          \c 0 on success.
+ * \return          \c MBEDTLS_ERR_ECP_xxx or MBEDTLS_ERR_MPI_xxx on failure.
+ */
+int mbedtls_ecp_gen_privkey_mx( size_t n_bits,
+                                mbedtls_mpi *d,
+                                int (*f_rng)(void *, unsigned char *, size_t),
+                                void *p_rng );
+
+#endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
+
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+/** Generate a private key on a short Weierstrass curve.
+ *
+ * The procedure complies with RFC 6979 §3.3 (deterministic ECDSA)
+ * when the RNG is a suitably parametrized instance of HMAC_DRBG.
+ *
+ * \p N             The upper bound of the range.
+ * \p n_bits        The size of \p N in bits. This value must be correct,
+ *                  otherwise the result is unpredictable.
+ * \param d         A random number, uniformly generated in the range [1, N-1].
+ * \param f_rng     The RNG function.
+ * \param p_rng     The RNG context to be passed to \p f_rng.
+ *
+ * \return          \c 0 on success.
+ * \return          \c MBEDTLS_ERR_ECP_xxx or MBEDTLS_ERR_MPI_xxx on failure.
+ */
+int mbedtls_ecp_gen_privkey_sw( const mbedtls_mpi *N, size_t n_bits,
+                                mbedtls_mpi *d,
+                                int (*f_rng)(void *, unsigned char *, size_t),
+                                void *p_rng );
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_ECP_C */
 

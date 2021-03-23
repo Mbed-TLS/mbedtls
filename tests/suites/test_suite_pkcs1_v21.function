@@ -18,6 +18,8 @@ void pkcs1_rsaes_oaep_encrypt( int mod, data_t * input_N, data_t * input_E,
     mbedtls_test_rnd_buf_info info;
     mbedtls_mpi N, E;
 
+    info.fallback_f_rng = mbedtls_test_rnd_std_rand;
+    info.fallback_p_rng = NULL;
     info.buf = rnd_buf->x;
     info.length = rnd_buf->len;
 
@@ -122,6 +124,8 @@ void pkcs1_rsassa_pss_sign( int mod, data_t * input_P, data_t * input_Q,
     mbedtls_test_rnd_buf_info info;
     mbedtls_mpi N, P, Q, E;
 
+    info.fallback_f_rng = mbedtls_test_rnd_std_rand;
+    info.fallback_p_rng = NULL;
     info.buf = rnd_buf->x;
     info.length = rnd_buf->len;
 

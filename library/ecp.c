@@ -3049,36 +3049,39 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
                      void *p_rng )
 {
     int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-    size_t n_size;
+    size_t n_bits;
+    const mbedtls_mpi *N = NULL;
 
     ECP_VALIDATE_RET( grp   != NULL );
     ECP_VALIDATE_RET( d     != NULL );
     ECP_VALIDATE_RET( f_rng != NULL );
 
-    n_size = ( grp->nbits + 7 ) / 8;
+    N = &grp->N;
+    n_bits = grp->nbits;
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
     {
-        /* [M225] page 5 */
         size_t b;
+        size_t n_bytes = ( n_bits + 7 ) / 8;
 
+        /* [Curve25519] page 5 */
         do {
-            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_size, f_rng, p_rng ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_bytes, f_rng, p_rng ) );
         } while( mbedtls_mpi_bitlen( d ) == 0);
 
-        /* Make sure the most significant bit is nbits */
+        /* Make sure the most significant bit is n_bits */
         b = mbedtls_mpi_bitlen( d ) - 1; /* mbedtls_mpi_bitlen is one-based */
-        if( b > grp->nbits )
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, b - grp->nbits ) );
+        if( b > n_bits )
+            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, b - n_bits ) );
         else
-            MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, grp->nbits, 1 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, n_bits, 1 ) );
 
         /* Make sure the last two bits are unset for Curve448, three bits for
            Curve25519 */
         MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 0, 0 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 1, 0 ) );
-        if( grp->nbits == 254 )
+        if( n_bits == 254 )
         {
             MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 2, 0 ) );
         }
@@ -3091,18 +3094,20 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
         /* SEC1 3.2.1: Generate d such that 1 <= n < N */
         int count = 0;
         unsigned cmp = 0;
+        size_t n_bytes = ( n_bits + 7 ) / 8;
 
         /*
-         * Match the procedure given in RFC 6979 (deterministic ECDSA):
+         * Match the procedure given in RFC 6979 §3.3 (deterministic ECDSA)
+         * when f_rng is a suitably parametrized instance of HMAC_DRBG:
          * - use the same byte ordering;
-         * - keep the leftmost nbits bits of the generated octet string;
+         * - keep the leftmost n_bits bits of the generated octet string;
          * - try until result is in the desired range.
-         * This also avoids any biais, which is especially important for ECDSA.
+         * This also avoids any bias, which is especially important for ECDSA.
          */
         do
         {
-            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_size, f_rng, p_rng ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, 8 * n_size - grp->nbits ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_bytes, f_rng, p_rng ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, 8 * n_bytes - n_bits ) );
 
             /*
              * Each try has at worst a probability 1/2 of failing (the msb has
@@ -3119,7 +3124,7 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
                 goto cleanup;
             }
 
-            ret = mbedtls_mpi_lt_mpi_ct( d, &grp->N, &cmp );
+            ret = mbedtls_mpi_lt_mpi_ct( d, N, &cmp );
             if( ret != 0 )
             {
                 goto cleanup;

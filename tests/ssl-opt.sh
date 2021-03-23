@@ -1306,8 +1306,13 @@ requires_config_enabled MBEDTLS_ECP_DP_BP256R1_ENABLED
 run_test_psa_force_curve "brainpoolP256r1"
 requires_config_enabled MBEDTLS_ECP_DP_SECP224R1_ENABLED
 run_test_psa_force_curve "secp224r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP224K1_ENABLED
-run_test_psa_force_curve "secp224k1"
+## SECP224K1 is buggy via the PSA API
+## (https://github.com/ARMmbed/mbedtls/issues/3541),
+## so it is disabled in PSA even when it's enabled in Mbed TLS.
+## The proper dependency would be on PSA_WANT_ECC_SECP_K1_224 but
+## dependencies on PSA symbols in ssl-opt.sh are not implemented yet.
+#requires_config_enabled MBEDTLS_ECP_DP_SECP224K1_ENABLED
+#run_test_psa_force_curve "secp224k1"
 requires_config_enabled MBEDTLS_ECP_DP_SECP192R1_ENABLED
 run_test_psa_force_curve "secp192r1"
 requires_config_enabled MBEDTLS_ECP_DP_SECP192K1_ENABLED

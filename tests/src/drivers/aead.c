@@ -28,6 +28,8 @@
 
 #include "test/drivers/aead.h"
 
+test_driver_aead_hooks_t test_driver_aead_hooks = TEST_DRIVER_AEAD_INIT;
+
 psa_status_t test_transparent_aead_encrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
@@ -37,13 +39,26 @@ psa_status_t test_transparent_aead_encrypt(
     const uint8_t *plaintext, size_t plaintext_length,
     uint8_t *ciphertext, size_t ciphertext_size, size_t *ciphertext_length )
 {
-    return( mbedtls_psa_aead_encrypt(
+    test_driver_aead_hooks.hits++;
+
+    if( test_driver_aead_hooks.forced_status != PSA_SUCCESS )
+    {
+         test_driver_aead_hooks.driver_status =
+             test_driver_aead_hooks.forced_status;
+    }
+    else
+    {
+        test_driver_aead_hooks.driver_status =
+            mbedtls_psa_aead_encrypt(
                 attributes, key_buffer, key_buffer_size,
                 alg,
                 nonce, nonce_length,
                 additional_data, additional_data_length,
                 plaintext, plaintext_length,
-                ciphertext, ciphertext_size, ciphertext_length ) );
+                ciphertext, ciphertext_size, ciphertext_length );
+    }
+
+    return( test_driver_aead_hooks.driver_status );
 }
 
 psa_status_t test_transparent_aead_decrypt(
@@ -55,13 +70,26 @@ psa_status_t test_transparent_aead_decrypt(
     const uint8_t *ciphertext, size_t ciphertext_length,
     uint8_t *plaintext, size_t plaintext_size, size_t *plaintext_length )
 {
-    return( mbedtls_psa_aead_decrypt(
+    test_driver_aead_hooks.hits++;
+
+    if( test_driver_aead_hooks.forced_status != PSA_SUCCESS )
+    {
+         test_driver_aead_hooks.driver_status =
+             test_driver_aead_hooks.forced_status;
+    }
+    else
+    {
+        test_driver_aead_hooks.driver_status =
+            mbedtls_psa_aead_decrypt(
                 attributes, key_buffer, key_buffer_size,
                 alg,
                 nonce, nonce_length,
                 additional_data, additional_data_length,
                 ciphertext, ciphertext_length,
-                plaintext, plaintext_size, plaintext_length ) );
+                plaintext, plaintext_size, plaintext_length );
+    }
+
+    return( test_driver_aead_hooks.driver_status );
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

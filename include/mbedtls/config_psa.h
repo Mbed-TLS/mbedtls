@@ -642,7 +642,8 @@ extern "C" {
 #define PSA_WANT_ECC_MONTGOMERY_255
 #endif
 
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+/* Curve448 is not yet supported via the PSA API (https://github.com/ARMmbed/mbedtls/issues/4249) */
+#if 0 && defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 #define MBEDTLS_PSA_BUILTIN_ECC_MONTGOMERY_448 1
 #define PSA_WANT_ECC_MONTGOMERY_448
 #endif

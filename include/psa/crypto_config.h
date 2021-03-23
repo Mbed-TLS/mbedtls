@@ -87,7 +87,8 @@
 /* Curve448 is not yet supported via the PSA API (https://github.com/ARMmbed/mbedtls/issues/4249) */
 //#define PSA_WANT_ECC_MONTGOMERY_448             1
 #define PSA_WANT_ECC_SECP_K1_192                1
-#define PSA_WANT_ECC_SECP_K1_224                1
+/* SECP224K1 is buggy via the PSA API (https://github.com/ARMmbed/mbedtls/issues/3541) */
+//#define PSA_WANT_ECC_SECP_K1_224                1
 #define PSA_WANT_ECC_SECP_K1_256                1
 #define PSA_WANT_ECC_SECP_R1_192                1
 #define PSA_WANT_ECC_SECP_R1_224                1

@@ -1059,7 +1059,7 @@ psa_status_t psa_driver_wrapper_hash_compute(
 
     /* Try accelerators first */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-    status = mbedtls_transparent_test_driver_hash_compute(
+    status = test_transparent_hash_compute(
                 alg, input, input_length, hash, hash_size, hash_length );
     if( status != PSA_ERROR_NOT_SUPPORTED )
         return( status );
@@ -1091,7 +1091,7 @@ psa_status_t psa_driver_wrapper_hash_setup(
 
     /* Try setup on accelerators first */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-    status = mbedtls_transparent_test_driver_hash_setup(
+    status = test_transparent_hash_setup(
                 &operation->ctx.test_driver_ctx, alg );
     if( status == PSA_SUCCESS )
         operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
@@ -1131,7 +1131,7 @@ psa_status_t psa_driver_wrapper_hash_clone(
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
             target_operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
-            return( mbedtls_transparent_test_driver_hash_clone(
+            return( test_transparent_hash_clone(
                         &source_operation->ctx.test_driver_ctx,
                         &target_operation->ctx.test_driver_ctx ) );
 #endif
@@ -1155,7 +1155,7 @@ psa_status_t psa_driver_wrapper_hash_update(
 #endif
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
-            return( mbedtls_transparent_test_driver_hash_update(
+            return( test_transparent_hash_update(
                         &operation->ctx.test_driver_ctx,
                         input, input_length ) );
 #endif
@@ -1181,7 +1181,7 @@ psa_status_t psa_driver_wrapper_hash_finish(
 #endif
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
-            return( mbedtls_transparent_test_driver_hash_finish(
+            return( test_transparent_hash_finish(
                         &operation->ctx.test_driver_ctx,
                         hash, hash_size, hash_length ) );
 #endif
@@ -1204,7 +1204,7 @@ psa_status_t psa_driver_wrapper_hash_abort(
 #endif
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
-            return( mbedtls_transparent_test_driver_hash_abort(
+            return( test_transparent_hash_abort(
                         &operation->ctx.test_driver_ctx ) );
 #endif
         default:

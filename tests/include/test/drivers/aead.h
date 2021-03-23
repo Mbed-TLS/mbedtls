@@ -29,6 +29,25 @@
 #if defined(PSA_CRYPTO_DRIVER_TEST)
 #include <psa/crypto_driver_common.h>
 
+typedef struct {
+    /* If not PSA_SUCCESS, return this error code instead of processing the
+     * function call. */
+    psa_status_t forced_status;
+    /* Count the amount of times AEAD driver functions are called. */
+    unsigned long hits;
+    /* Status returned by the last AEAD driver function call. */
+    psa_status_t driver_status;
+} test_driver_aead_hooks_t;
+
+#define TEST_DRIVER_AEAD_INIT { 0, 0, 0 }
+static inline test_driver_aead_hooks_t test_driver_aead_hooks_init( void )
+{
+    const test_driver_aead_hooks_t v = TEST_DRIVER_AEAD_INIT;
+    return( v );
+}
+
+extern test_driver_aead_hooks_t test_driver_aead_hooks;
+
 psa_status_t test_transparent_aead_encrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,

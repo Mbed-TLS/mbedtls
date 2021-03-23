@@ -36,8 +36,11 @@
 
 typedef struct
 {
-    unsigned char *buf;
+    unsigned char *buf; /* Pointer to a buffer of length bytes. */
     size_t length;
+    /* If fallback_f_rng is NULL, fail after delivering length bytes. */
+    int ( *fallback_f_rng )( void*, unsigned char *, size_t );
+    void *fallback_p_rng;
 } mbedtls_test_rnd_buf_info;
 
 /**
@@ -84,7 +87,9 @@ int mbedtls_test_rnd_zero_rand( void *rng_state,
  * the random function is specified by per_call. (Can be between
  * 1 and 4)
  *
- * After the buffer is empty it will return mbedtls_test_rnd_std_rand().
+ * After the buffer is empty, this function will call the fallback RNG in the
+ * #mbedtls_test_rnd_buf_info structure if there is one, and
+ * will return #MBEDTLS_ERR_ENTROPY_SOURCE_FAILED otherwise.
  */
 int mbedtls_test_rnd_buffer_rand( void *rng_state,
                                   unsigned char *output,

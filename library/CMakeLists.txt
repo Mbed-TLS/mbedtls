@@ -89,7 +89,6 @@ set(src_crypto
 list(APPEND src_crypto ${thirdparty_src})
 
 set(src_x509
-    pkcs11.c
     x509.c
     x509_create.c
     x509_crl.c
@@ -135,10 +134,6 @@ endif()
 if(HAIKU)
     set(libs ${libs} network)
 endif(HAIKU)
-
-if(USE_PKCS11_HELPER_LIBRARY)
-    set(libs ${libs} pkcs11-helper)
-endif(USE_PKCS11_HELPER_LIBRARY)
 
 if(LINK_WITH_PTHREAD)
     set(libs ${libs} pthread)

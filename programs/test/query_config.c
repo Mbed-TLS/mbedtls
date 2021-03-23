@@ -73,7 +73,6 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/pk.h"
-#include "mbedtls/pkcs11.h"
 #include "mbedtls/pkcs12.h"
 #include "mbedtls/pkcs5.h"
 #include "mbedtls/platform_time.h"
@@ -1987,14 +1986,6 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_PKCS5_C */
-
-#if defined(MBEDTLS_PKCS11_C)
-    if( strcmp( "MBEDTLS_PKCS11_C", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_PKCS11_C );
-        return( 0 );
-    }
-#endif /* MBEDTLS_PKCS11_C */
 
 #if defined(MBEDTLS_PKCS12_C)
     if( strcmp( "MBEDTLS_PKCS12_C", config ) == 0 )

@@ -3065,13 +3065,16 @@ int mbedtls_ecp_gen_privkey_mx( size_t high_bit,
                                 void *p_rng )
 {
     int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-    size_t n_bytes = ( high_bit + 7 ) / 8;
+    size_t n_random_bytes = high_bit / 8 + 1;
 
     /* [Curve25519] page 5 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_bytes, f_rng, p_rng ) );
+    /* Generate a (high_bit+1)-bit random number by generating just enough
+     * random bytes, then shifting out extra bits from the top (necessary
+     * when (high_bit+1) is not a multiple of 8). */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_random_bytes,
+                                              f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, 8 * n_random_bytes - high_bit - 1 ) );
 
-    /* Make sure the most significant bit is exactly at high_bit */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, 8 * n_bytes - high_bit - 1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, high_bit, 1 ) );
 
     /* Make sure the last two bits are unset for Curve448, three bits for

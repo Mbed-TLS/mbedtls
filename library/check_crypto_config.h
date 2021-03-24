@@ -54,7 +54,6 @@
 
 #if defined(PSA_WANT_ALG_GCM) && \
     !( defined(PSA_WANT_KEY_TYPE_AES) || \
-       defined(PSA_WANT_KEY_TYPE_ARIA) || \
        defined(PSA_WANT_KEY_TYPE_CAMELLIA) )
 #error "PSA_WANT_ALG_GCM defined, but not all prerequisites"
 #endif

@@ -57,7 +57,7 @@ void mbedtls_ecp_fix_negative( mbedtls_mpi *N, signed char c, size_t bits );
  * \note            - [Curve25519] http://cr.yp.to/ecdh/curve25519-20060209.pdf
  *                  - [RFC7748] https://tools.ietf.org/html/rfc7748
  *
- * \p n_bits        The position of the high-order bit of the key to generate.
+ * \p high_bit      The position of the high-order bit of the key to generate.
  *                  This is the bit-size of the key minus 1:
  *                  254 for Curve25519 or 447 for Curve448.
  * \param d         The randomly generated key. This is a number of size

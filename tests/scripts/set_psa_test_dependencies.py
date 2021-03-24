@@ -165,9 +165,14 @@ def systematic_dependencies(file_name, function_name, arguments):
     deps = set()
 
     # Run key policy negative tests even if the algorithm to attempt performing
-    # is not supported.
+    # is not supported but in the case where the test is to check an
+    # incompatibility between a requested algorithm for a cryptographic
+    # operation and a key policy. In the latter, we want to filter out the
+    # cases # where PSA_ERROR_NOT_SUPPORTED is returned instead of
+    # PSA_ERROR_NOT_PERMITTED.
     if function_name.endswith('_key_policy') and \
-       arguments[-1].startswith('PSA_ERROR_'):
+       arguments[-1].startswith('PSA_ERROR_') and \
+       arguments[-1] != ('PSA_ERROR_NOT_PERMITTED'):
         arguments[-2] = ''
     if function_name == 'copy_fail' and \
        arguments[-1].startswith('PSA_ERROR_'):

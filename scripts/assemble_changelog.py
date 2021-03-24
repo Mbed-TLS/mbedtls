@@ -220,7 +220,8 @@ class ChangeLog:
 
             body_split = category.body.splitlines()
             for line_number, line in enumerate(body_split, 1):
-                if len(line) > MAX_LINE_LENGTH:
+                if not re.match('.*http[s]?://.*', line.decode('utf-8')) and \
+                   len(line) > MAX_LINE_LENGTH:
                     raise InputFormatError(filename,
                                            category.body_line + line_number,
                                            'Line is longer than allowed: Length {} (Max {})',

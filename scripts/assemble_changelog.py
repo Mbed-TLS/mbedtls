@@ -219,8 +219,9 @@ class ChangeLog:
                                        category.name.decode('utf8'))
 
             body_split = category.body.splitlines()
+            re_has_url = re.compile('.*http[s]?://.*')
             for line_number, line in enumerate(body_split, 1):
-                if not re.match('.*http[s]?://.*', line.decode('utf-8')) and \
+                if not re_has_url.match(line.decode('utf-8')) and \
                    len(line) > MAX_LINE_LENGTH:
                     raise InputFormatError(filename,
                                            category.body_line + line_number,

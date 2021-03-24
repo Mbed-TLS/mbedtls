@@ -3069,14 +3069,12 @@ int mbedtls_ecp_gen_privkey_mx( size_t high_bit,
     size_t n_bytes = ( high_bit + 7 ) / 8;
 
     /* [Curve25519] page 5 */
-    do {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_bytes, f_rng, p_rng ) );
-    } while( mbedtls_mpi_bitlen( d ) == 0);
+    MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_bytes, f_rng, p_rng ) );
 
     /* Make sure the most significant bit is high_bit */
-    b = mbedtls_mpi_bitlen( d ) - 1; /* position of the highest bit in d */
-    if( b > high_bit )
-        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, b - high_bit ) );
+    b = mbedtls_mpi_bitlen( d ); /* mbedtls_mpi_bitlen is one-based */
+    if( b > high_bit + 1 )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, b - 1 - high_bit ) );
     else
         MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, high_bit, 1 ) );
 

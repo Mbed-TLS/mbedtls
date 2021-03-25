@@ -87,10 +87,18 @@
 #define PSA_WANT_ECC_BRAINPOOL_P_R1_384         1
 #define PSA_WANT_ECC_BRAINPOOL_P_R1_512         1
 #define PSA_WANT_ECC_MONTGOMERY_255             1
-/* Curve448 is not yet supported via the PSA API (https://github.com/ARMmbed/mbedtls/issues/4249) */
+/*
+ * Curve448 is not yet supported via the PSA API in Mbed TLS
+ * (https://github.com/ARMmbed/mbedtls/issues/4249). Thus, do not enable it by
+ * default.
+ */
 //#define PSA_WANT_ECC_MONTGOMERY_448             1
 #define PSA_WANT_ECC_SECP_K1_192                1
-/* SECP224K1 is buggy via the PSA API (https://github.com/ARMmbed/mbedtls/issues/3541) */
+/*
+ * SECP224K1 is buggy via the PSA API in Mbed TLS
+ * (https://github.com/ARMmbed/mbedtls/issues/3541). Thus, do not enable it by
+ * default.
+ */
 //#define PSA_WANT_ECC_SECP_K1_224                1
 #define PSA_WANT_ECC_SECP_K1_256                1
 #define PSA_WANT_ECC_SECP_R1_192                1

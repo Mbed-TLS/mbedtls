@@ -1064,10 +1064,9 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
 #endif
 
 #if defined(MBEDTLS_ARC4_C)
-    if( ssl->conf->arc4_disabled == MBEDTLS_SSL_ARC4_DISABLED &&
-            suite_info->cipher == MBEDTLS_CIPHER_ARC4_128 )
+    if( ssl->conf->arc4_disabled == MBEDTLS_SSL_ARC4_ENABLED )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: rc4" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite deprecated: rc4" ) );
         return( 0 );
     }
 #endif

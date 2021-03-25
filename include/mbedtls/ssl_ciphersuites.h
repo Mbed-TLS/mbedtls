@@ -42,8 +42,8 @@ extern "C" {
 #define MBEDTLS_TLS_RSA_WITH_NULL_MD5                    0x01   /**< Weak! */
 #define MBEDTLS_TLS_RSA_WITH_NULL_SHA                    0x02   /**< Weak! */
 
-#define MBEDTLS_TLS_RSA_WITH_RC4_128_MD5                 0x04
-#define MBEDTLS_TLS_RSA_WITH_RC4_128_SHA                 0x05
+#define MBEDTLS_TLS_RSA_WITH_RC4_128_MD5                 0x04   /**< Weak! */
+#define MBEDTLS_TLS_RSA_WITH_RC4_128_SHA                 0x05   /**< Weak! */
 #define MBEDTLS_TLS_RSA_WITH_DES_CBC_SHA                 0x09   /**< Weak! Not in TLS 1.2 */
 
 #define MBEDTLS_TLS_RSA_WITH_3DES_EDE_CBC_SHA            0x0A
@@ -73,17 +73,17 @@ extern "C" {
 #define MBEDTLS_TLS_RSA_WITH_CAMELLIA_256_CBC_SHA        0x84
 #define MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA    0x88
 
-#define MBEDTLS_TLS_PSK_WITH_RC4_128_SHA                 0x8A
+#define MBEDTLS_TLS_PSK_WITH_RC4_128_SHA                 0x8A   /**< Weak! */
 #define MBEDTLS_TLS_PSK_WITH_3DES_EDE_CBC_SHA            0x8B
 #define MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA             0x8C
 #define MBEDTLS_TLS_PSK_WITH_AES_256_CBC_SHA             0x8D
 
-#define MBEDTLS_TLS_DHE_PSK_WITH_RC4_128_SHA             0x8E
+#define MBEDTLS_TLS_DHE_PSK_WITH_RC4_128_SHA             0x8E   /**< Weak! */
 #define MBEDTLS_TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA        0x8F
 #define MBEDTLS_TLS_DHE_PSK_WITH_AES_128_CBC_SHA         0x90
 #define MBEDTLS_TLS_DHE_PSK_WITH_AES_256_CBC_SHA         0x91
 
-#define MBEDTLS_TLS_RSA_PSK_WITH_RC4_128_SHA             0x92
+#define MBEDTLS_TLS_RSA_PSK_WITH_RC4_128_SHA             0x92   /**< Weak! */
 #define MBEDTLS_TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA        0x93
 #define MBEDTLS_TLS_RSA_PSK_WITH_AES_128_CBC_SHA         0x94
 #define MBEDTLS_TLS_RSA_PSK_WITH_AES_256_CBC_SHA         0x95

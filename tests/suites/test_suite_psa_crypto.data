@@ -1337,11 +1337,6 @@ depends_on:MBEDTLS_CIPHER_MODE_CTR
 # Either INVALID_ARGUMENT or NOT_SUPPORTED would be reasonable here
 cipher_setup:PSA_KEY_TYPE_RAW_DATA:"000102030405060708090a0b0c0d0e0f":PSA_ALG_CTR:PSA_ERROR_NOT_SUPPORTED
 
-PSA cipher setup: incompatible key ARC4 for CTR
-depends_on:MBEDTLS_ARC4_C:MBEDTLS_CIPHER_MODE_CTR
-# Either INVALID_ARGUMENT or NOT_SUPPORTED would be reasonable here
-cipher_setup:PSA_KEY_TYPE_ARC4:"000102030405060708090a0b0c0d0e0f":PSA_ALG_CTR:PSA_ERROR_NOT_SUPPORTED
-
 PSA cipher: bad order function calls
 cipher_bad_order:
 

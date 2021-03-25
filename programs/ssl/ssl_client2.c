@@ -1891,6 +1891,11 @@ int main( int argc, char *argv[] )
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         mbedtls_ssl_conf_ciphersuites( &conf, opt.force_ciphersuite );
 
+#if defined(MBEDTLS_ARC4_C)
+    if( opt.arc4 != DFL_ARC4 )
+        mbedtls_ssl_conf_arc4_support( &conf, opt.arc4 );
+#endif
+
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )
         mbedtls_ssl_conf_legacy_renegotiation( &conf, opt.allow_legacy );
 #if defined(MBEDTLS_SSL_RENEGOTIATION)

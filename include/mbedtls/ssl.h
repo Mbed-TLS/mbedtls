@@ -3290,6 +3290,25 @@ void mbedtls_ssl_conf_encrypt_then_mac( mbedtls_ssl_config *conf, char etm );
 void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems );
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
+#if defined(MBEDTLS_ARC4_C)
+/**
+ * \brief          Disable or enable support for RC4
+ *                 (Default: MBEDTLS_SSL_ARC4_DISABLED)
+ *
+ * \warning        Use of RC4 in DTLS/TLS has been prohibited by RFC 7465
+ *                 for security reasons. Use at your own risk.
+ *
+ * \note           This function is deprecated and will be removed in
+ *                 a future version of the library.
+ *                 RC4 is disabled by default at compile time and needs to be
+ *                 actively enabled for use with legacy systems.
+ *
+ * \param conf     SSL configuration
+ * \param arc4     MBEDTLS_SSL_ARC4_ENABLED or MBEDTLS_SSL_ARC4_DISABLED
+ */
+void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 );
+#endif /* MBEDTLS_ARC4_C */
+
 #if defined(MBEDTLS_SSL_SRV_C)
 /**
  * \brief          Whether to send a list of acceptable CAs in

@@ -314,8 +314,8 @@ add_common_ciphersuites()
                 TLS-RSA-WITH-AES-128-CBC-SHA            \
                 TLS-RSA-WITH-CAMELLIA-128-CBC-SHA       \
                 TLS-RSA-WITH-3DES-EDE-CBC-SHA           \
-                TLS-RSA-WITH-RC4-128-SHA                \
-                TLS-RSA-WITH-RC4-128-MD5                \
+#                TLS-RSA-WITH-RC4-128-SHA                \
+#                TLS-RSA-WITH-RC4-128-MD5                \
                 TLS-RSA-WITH-NULL-MD5                   \
                 TLS-RSA-WITH-NULL-SHA                   \
                 "
@@ -357,7 +357,7 @@ add_common_ciphersuites()
                     TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA      \
                     TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA      \
                     TLS-ECDHE-RSA-WITH-3DES-EDE-CBC-SHA     \
-                    TLS-ECDHE-RSA-WITH-RC4-128-SHA          \
+#                    TLS-ECDHE-RSA-WITH-RC4-128-SHA          \
                     TLS-ECDHE-RSA-WITH-NULL-SHA             \
                     "
                 G_CIPHERS="$G_CIPHERS                       \
@@ -425,7 +425,7 @@ add_common_ciphersuites()
 
         "PSK")
             M_CIPHERS="$M_CIPHERS                       \
-                TLS-PSK-WITH-RC4-128-SHA                \
+#                TLS-PSK-WITH-RC4-128-SHA                \
                 TLS-PSK-WITH-3DES-EDE-CBC-SHA           \
                 TLS-PSK-WITH-AES-128-CBC-SHA            \
                 TLS-PSK-WITH-AES-256-CBC-SHA            \
@@ -465,7 +465,7 @@ add_openssl_ciphersuites()
             then
                 M_CIPHERS="$M_CIPHERS                       \
                     TLS-ECDH-ECDSA-WITH-NULL-SHA            \
-                    TLS-ECDH-ECDSA-WITH-RC4-128-SHA         \
+#                    TLS-ECDH-ECDSA-WITH-RC4-128-SHA         \
                     TLS-ECDH-ECDSA-WITH-3DES-EDE-CBC-SHA    \
                     TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA     \
                     TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA     \
@@ -658,7 +658,7 @@ add_gnutls_ciphersuites()
                 TLS-DHE-PSK-WITH-3DES-EDE-CBC-SHA               \
                 TLS-DHE-PSK-WITH-AES-128-CBC-SHA                \
                 TLS-DHE-PSK-WITH-AES-256-CBC-SHA                \
-                TLS-DHE-PSK-WITH-RC4-128-SHA                    \
+#                TLS-DHE-PSK-WITH-RC4-128-SHA                    \
                 "
             G_CIPHERS="$G_CIPHERS                               \
                 +DHE-PSK:+3DES-CBC:+SHA1                        \
@@ -672,7 +672,7 @@ add_gnutls_ciphersuites()
                     TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA          \
                     TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA          \
                     TLS-ECDHE-PSK-WITH-3DES-EDE-CBC-SHA         \
-                    TLS-ECDHE-PSK-WITH-RC4-128-SHA              \
+#                    TLS-ECDHE-PSK-WITH-RC4-128-SHA              \
                     TLS-RSA-PSK-WITH-3DES-EDE-CBC-SHA           \
                     TLS-RSA-PSK-WITH-AES-256-CBC-SHA            \
                     TLS-RSA-PSK-WITH-AES-128-CBC-SHA            \

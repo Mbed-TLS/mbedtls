@@ -950,8 +950,7 @@ static int ssl_validate_ciphersuite(
 #endif
 
 #if defined(MBEDTLS_ARC4_C)
-    if( ssl->conf->arc4_disabled == MBEDTLS_SSL_ARC4_DISABLED &&
-            suite_info->cipher == MBEDTLS_CIPHER_ARC4_128 )
+    if( ssl->conf->arc4_disabled == MBEDTLS_SSL_ARC4_ENABLED )
         return( 1 );
 #endif
 

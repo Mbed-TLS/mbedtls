@@ -303,6 +303,13 @@ extern "C" {
 #define MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER 1
 #endif /* PSA_WANT_ALG_STREAM_CIPHER */
 
+#if defined(PSA_WANT_ALG_CBC_MAC)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_MAC)
+#error "CBC-MAC is not yet supported via the PSA API in Mbed TLS."
+#define MBEDTLS_PSA_BUILTIN_ALG_CBC_MAC 1
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_CBC_MAC */
+#endif /* PSA_WANT_ALG_CBC_MAC */
+
 #if defined(PSA_WANT_ALG_CMAC)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_CMAC) || \
     defined(PSA_HAVE_SOFT_BLOCK_CIPHER)

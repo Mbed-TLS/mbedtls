@@ -89,8 +89,6 @@ set(src_crypto
     xtea.c
 )
 
-list(APPEND src_crypto ${thirdparty_src})
-
 set(src_x509
     certs.c
     pkcs11.c
@@ -194,6 +192,10 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
     set_target_properties(${mbedcrypto_static_target} PROPERTIES OUTPUT_NAME mbedcrypto)
     target_link_libraries(${mbedcrypto_static_target} PUBLIC ${libs})
 
+    if(TARGET everest)
+        target_link_libraries(${mbedcrypto_static_target} PUBLIC everest)
+    endif()
+
     add_library(${mbedx509_static_target} STATIC ${src_x509})
     set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509)
     target_link_libraries(${mbedx509_static_target} PUBLIC ${libs} ${mbedcrypto_static_target})
@@ -208,6 +210,10 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     add_library(${mbedcrypto_target} SHARED ${src_crypto})
     set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 2.28.9 SOVERSION 7)
     target_link_libraries(${mbedcrypto_target} PUBLIC ${libs})
+
+    if(TARGET everest)
+        target_link_libraries(${mbedcrypto_target} PUBLIC everest)
+    endif()
 
     add_library(${mbedx509_target} SHARED ${src_x509})
     set_target_properties(${mbedx509_target} PROPERTIES VERSION 2.28.9 SOVERSION 1)
@@ -225,26 +231,16 @@ foreach(target IN LISTS target_libraries)
     # /library needs to be listed explicitly when building .c files outside
     # of /library (which currently means: under /3rdparty).
     target_include_directories(${target}
-        PUBLIC ${MBEDTLS_DIR}/include/
-        PUBLIC ${thirdparty_inc_public}
-        PRIVATE ${MBEDTLS_DIR}/library/
-        PRIVATE ${thirdparty_inc}
-        # Needed to include psa_crypto_driver_wrappers.h
-        ${CMAKE_CURRENT_BINARY_DIR})
-    target_compile_definitions(${target}
-        PRIVATE ${thirdparty_def})
-    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
-    if(MBEDTLS_CONFIG_FILE)
-        target_compile_definitions(${target}
-            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
-    endif()
-    if(MBEDTLS_USER_CONFIG_FILE)
-        target_compile_definitions(${target}
-            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
-    endif()
-    install(TARGETS ${target}
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
+        PUBLIC $<BUILD_INTERFACE:${MBEDTLS_DIR}/include/>
+               $<INSTALL_INTERFACE:include/>
+        PRIVATE ${MBEDTLS_DIR}/library/)
+    install(
+        TARGETS ${target}
+        EXPORT MbedTLSTargets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 endforeach(target)
 
 set(lib_target "${MBEDTLS_TARGET_PREFIX}lib")

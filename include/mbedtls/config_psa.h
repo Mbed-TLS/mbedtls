@@ -419,6 +419,11 @@ extern "C" {
 
 #if defined(PSA_WANT_ECC_MONTGOMERY_448)
 #if !defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_448)
+/*
+ * Curve448 is not yet supported via the PSA API in Mbed TLS
+ * (https://github.com/ARMmbed/mbedtls/issues/4249).
+ */
+#error "Curve448 is not yet supported via the PSA API in Mbed TLS."
 #define MBEDTLS_ECP_DP_CURVE448_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_MONTGOMERY_448 1
 #endif /* !MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_448 */
@@ -468,6 +473,11 @@ extern "C" {
 
 #if defined(PSA_WANT_ECC_SECP_K1_224)
 #if !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_224)
+/*
+ * SECP224K1 is buggy via the PSA API in Mbed TLS
+ * (https://github.com/ARMmbed/mbedtls/issues/3541).
+ */
+#error "SECP224K1 is buggy via the PSA API in Mbed TLS."
 #define MBEDTLS_ECP_DP_SECP224K1_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_SECP_K1_224 1
 #endif /* !MBEDTLS_PSA_ACCEL_ECC_SECP_K1_224 */

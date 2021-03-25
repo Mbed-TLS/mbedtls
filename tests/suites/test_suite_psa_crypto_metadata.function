@@ -597,7 +597,7 @@ void stream_cipher_key_type( int type_arg )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
+/* BEGIN_CASE depends_on:PSA_KEY_TYPE_ECC_PUBLIC_KEY:PSA_KEY_TYPE_ECC_KEY_PAIR */
 void ecc_key_family( int curve_arg )
 {
     psa_ecc_family_t curve = curve_arg;

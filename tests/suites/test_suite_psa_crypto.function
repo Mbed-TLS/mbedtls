@@ -1699,7 +1699,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_SHA_256 */
 void hash_finish_bad_args( )
 {
     psa_algorithm_t alg = PSA_ALG_SHA_256;
@@ -1721,7 +1721,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_SHA_256 */
 void hash_clone_source_state( )
 {
     psa_algorithm_t alg = PSA_ALG_SHA_256;
@@ -1766,7 +1766,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_SHA_256 */
 void hash_clone_target_state( )
 {
     psa_algorithm_t alg = PSA_ALG_SHA_256;
@@ -2223,7 +2223,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7 */
+/* BEGIN_CASE depends_on:PSA_WANT_KEY_TYPE_AES:PSA_WANT_ALG_CBC_PKCS7 */
 void cipher_bad_order( )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
@@ -4718,7 +4718,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME:MBEDTLS_PKCS1_V15 */
+/* BEGIN_CASE depends_on:PSA_WANT_KEY_TYPE_RSA_KEY_PAIR:PSA_WANT_ALG_RSA_PKCS1V15_CRYPT:PSA_WANT_ALG_RSA_PKCS1V15_SIGN:MBEDTLS_GENPRIME */
 void generate_key_rsa( int bits_arg,
                        data_t *e_arg,
                        int expected_status_arg )

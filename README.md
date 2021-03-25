@@ -181,6 +181,33 @@ Regarding variables, also note that if you set CFLAGS when invoking cmake,
 your value of CFLAGS doesn't override the content provided by cmake (depending
 on the build mode as seen above), it's merely prepended to it.
 
+#### Consuming Mbed TLS
+
+Mbed TLS provides a package config file for consumption as a dependency in other
+CMake projects. You can include Mbed TLS's CMake targets yourself with:
+
+    find_package(MbedTLS)
+
+If prompted, set `MbedTLS_DIR` to `${YOUR_MBEDTLS_INSTALL_DIR}/cmake`. This
+creates the following targets:
+
+- `MbedTLS::mbedcrypto` (Crypto library)
+- `MbedTLS::mbedtls` (TLS library)
+- `MbedTLS::mbedx509` (X509 library)
+
+You can then use these directly through `target_link_libraries()`:
+
+    add_executable(xyz)
+
+    target_link_libraries(xyz
+        PUBLIC MbedTLS::mbedtls
+               MbedTLS::mbedcrypto
+               MbedTLS::mbedx509)
+
+This will link the Mbed TLS libraries to your library or application, and add
+its include directories to your target (transitively, in the case of `PUBLIC` or
+`INTERFACE` link libraries).
+
 #### Mbed TLS as a subproject
 
 Mbed TLS supports being built as a CMake subproject. One can

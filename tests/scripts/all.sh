@@ -273,7 +273,7 @@ cleanup()
            -iname CMakeFiles -exec rm -rf {} \+ -o \
            \( -iname cmake_install.cmake -o \
               -iname CTestTestfile.cmake -o \
-              -iname CMakeCache.txt \) -exec rm {} \+
+              -iname CMakeCache.txt \) -exec rm -f {} \+
     # Recover files overwritten by in-tree CMake builds
     rm -f include/Makefile include/mbedtls/Makefile programs/*/Makefile
     git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile
@@ -283,6 +283,16 @@ cleanup()
     rm -rf programs/test/cmake_subproject/build
     rm -f programs/test/cmake_subproject/Makefile
     rm -f programs/test/cmake_subproject/cmake_subproject
+
+    # Remove any artifacts from the component_test_cmake_as_package test.
+    rm -rf programs/test/cmake_package/build
+    rm -f programs/test/cmake_package/Makefile
+    rm -f programs/test/cmake_package/cmake_package
+
+    # Remove any artifacts from the component_test_cmake_as_installed_package test.
+    rm -rf programs/test/cmake_package_install/build
+    rm -f programs/test/cmake_package_install/Makefile
+    rm -f programs/test/cmake_package_install/cmake_package_install
 
     if [ -f "$CONFIG_BAK" ]; then
         mv "$CONFIG_BAK" "$CONFIG_H"
@@ -2604,6 +2614,32 @@ component_test_cmake_as_subdirectory () {
     cmake .
     make
     if_build_succeeded ./cmake_subproject
+
+    cd "$MBEDTLS_ROOT_DIR"
+    unset MBEDTLS_ROOT_DIR
+}
+
+component_test_cmake_as_package () {
+    msg "build: cmake 'as-package' build"
+    MBEDTLS_ROOT_DIR="$PWD"
+
+    cd programs/test/cmake_package
+    cmake .
+    make
+    if_build_succeeded ./cmake_package
+
+    cd "$MBEDTLS_ROOT_DIR"
+    unset MBEDTLS_ROOT_DIR
+}
+
+component_test_cmake_as_package_install () {
+    msg "build: cmake 'as-installed-package' build"
+    MBEDTLS_ROOT_DIR="$PWD"
+
+    cd programs/test/cmake_package_install
+    cmake .
+    make
+    if_build_succeeded ./cmake_package_install
 
     cd "$MBEDTLS_ROOT_DIR"
     unset MBEDTLS_ROOT_DIR

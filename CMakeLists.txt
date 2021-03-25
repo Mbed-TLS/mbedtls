@@ -18,6 +18,8 @@
 
 cmake_minimum_required(VERSION 2.8.12)
 
+include(CMakePackageConfigHelpers)
+
 # https://cmake.org/cmake/help/latest/policy/CMP0011.html
 # Setting this policy is required in CMake >= 3.18.0, otherwise a warning is generated. The OLD
 # policy setting is deprecated, and will be removed in future versions.
@@ -221,7 +223,6 @@ endif()
 add_subdirectory(include)
 
 add_subdirectory(3rdparty)
-list(APPEND libs ${thirdparty_lib})
 
 add_subdirectory(library)
 
@@ -299,4 +300,38 @@ if(ENABLE_TESTING)
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DartConfiguration.tcl
                     ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl COPYONLY)
     endif()
+endif()
+
+configure_package_config_file(
+    "cmake/MbedTLSConfig.cmake.in"
+    "cmake/MbedTLSConfig.cmake"
+        INSTALL_DESTINATION "cmake")
+
+write_basic_package_version_file(
+    "cmake/MbedTLSConfigVersion.cmake"
+        COMPATIBILITY SameMajorVersion
+        VERSION 2.26.0)
+
+install(
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"
+          "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfigVersion.cmake"
+    DESTINATION "cmake")
+
+export(
+    EXPORT MbedTLSTargets
+    NAMESPACE MbedTLS::
+    FILE "cmake/MbedTLSTargets.cmake")
+
+install(
+    EXPORT MbedTLSTargets
+    NAMESPACE MbedTLS::
+    DESTINATION "cmake"
+    FILE "MbedTLSTargets.cmake")
+
+if(CMAKE_VERSION VERSION_GREATER 3.14)
+    # Do not export the package by default
+    cmake_policy(SET CMP0090 NEW)
+
+    # Make this package visible to the system
+    export(PACKAGE MbedTLS)
 endif()

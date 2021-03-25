@@ -50,6 +50,10 @@
 #ifndef PSA_CRYPTO_CONFIG_H
 #define PSA_CRYPTO_CONFIG_H
 
+/*
+ * CBC-MAC is not yet supported via the PSA API in Mbed TLS.
+ */
+//#define PSA_WANT_ALG_CBC_MAC                    1
 #define PSA_WANT_ALG_CBC_NO_PADDING             1
 #define PSA_WANT_ALG_CBC_PKCS7                  1
 #define PSA_WANT_ALG_CCM                        1

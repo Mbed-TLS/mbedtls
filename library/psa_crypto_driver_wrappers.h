@@ -98,7 +98,9 @@ psa_status_t psa_driver_wrapper_get_builtin_key(
  * Cipher functions
  */
 psa_status_t psa_driver_wrapper_cipher_encrypt(
-    psa_key_slot_t *slot,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
     psa_algorithm_t alg,
     const uint8_t *input,
     size_t input_length,
@@ -107,7 +109,9 @@ psa_status_t psa_driver_wrapper_cipher_encrypt(
     size_t *output_length );
 
 psa_status_t psa_driver_wrapper_cipher_decrypt(
-    psa_key_slot_t *slot,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
     psa_algorithm_t alg,
     const uint8_t *input,
     size_t input_length,

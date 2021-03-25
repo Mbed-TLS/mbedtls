@@ -3490,47 +3490,51 @@ psa_status_t psa_cipher_encrypt( mbedtls_svc_key_id_t key,
                                  size_t *output_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
-    size_t iv_length = 0;;
-    size_t olength;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+    psa_key_type_t key_type;
+    size_t iv_length;
 
-    status = psa_cipher_encrypt_setup( &operation, key, alg );
+    /* The requested algorithm must be one that can be processed by cipher. */
+    if( ! PSA_ALG_IS_CIPHER( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    /* Fetch key material from key storage. */
+    status = psa_get_and_lock_key_slot_with_policy( key, &slot,
+                                                    PSA_KEY_USAGE_ENCRYPT,
+                                                    alg );
     if( status != PSA_SUCCESS )
-        goto exit;
+        return( status );
 
-    *output_length = 0;
-    if( operation.iv_required )
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+
+    key_type = slot->attr.type;
+    iv_length = PSA_CIPHER_IV_LENGTH( key_type, alg );
+
+    if( iv_length > 0 )
     {
-        status = psa_cipher_generate_iv( &operation, output,
-                                         operation.default_iv_length,
-                                         &iv_length );
-        *output_length += iv_length;
+        if( output_size < iv_length )
+        {
+            status = PSA_ERROR_BUFFER_TOO_SMALL;
+            goto exit;
+        }
+
+        status = psa_generate_random( output, iv_length );
         if( status != PSA_SUCCESS )
             goto exit;
     }
 
-    olength = 0;
-    status = psa_cipher_update( &operation, input, input_length,
-                                output + iv_length, output_size - iv_length,
-                                &olength );
-    *output_length += olength;
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    olength = 0;
-    status = psa_cipher_finish( &operation, output + *output_length,
-                                output_size - *output_length, &olength );
-    *output_length += olength;
-    if( status != PSA_SUCCESS )
-        goto exit;
+    status = psa_driver_wrapper_cipher_encrypt(
+        &attributes, slot->key.data, slot->key.bytes,
+        alg, input, input_length,
+        output, output_size, output_length );
 
 exit:
-    if ( status == PSA_SUCCESS )
-        status = psa_cipher_abort( &operation );
-    else
-        psa_cipher_abort( &operation );
+    unlock_status = psa_unlock_key_slot( slot );
 
-    return ( status );
+    return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
 psa_status_t psa_cipher_decrypt( mbedtls_svc_key_id_t key,
@@ -3542,43 +3546,32 @@ psa_status_t psa_cipher_decrypt( mbedtls_svc_key_id_t key,
                                  size_t *output_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
-    size_t olength;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
 
-    status = psa_cipher_decrypt_setup( &operation, key, alg );
+    /* The requested algorithm must be one that can be processed by cipher. */
+    if( ! PSA_ALG_IS_CIPHER( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    /* Fetch key material from key storage. */
+    status = psa_get_and_lock_key_slot_with_policy( key, &slot,
+                                                    PSA_KEY_USAGE_DECRYPT,
+                                                    alg );
     if( status != PSA_SUCCESS )
-        goto exit;
+        return( status );
 
-    if( operation.iv_required )
-    {
-        status = psa_cipher_set_iv( &operation, input,
-                                    operation.default_iv_length );
-        if( status != PSA_SUCCESS )
-            goto exit;
-    }
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
 
-    olength = 0;
-    status = psa_cipher_update( &operation, input + operation.default_iv_length,
-                                input_length - operation.default_iv_length,
-                                output, output_size, &olength );
-    *output_length = olength;
-    if( status != PSA_SUCCESS )
-        goto exit;
+    status = psa_driver_wrapper_cipher_decrypt(
+        &attributes, slot->key.data, slot->key.bytes,
+        alg, input, input_length,
+        output, output_size, output_length );
 
-    olength = 0;
-    status = psa_cipher_finish( &operation, output + *output_length,
-                                output_size - *output_length, &olength );
-    *output_length += olength;
-    if( status != PSA_SUCCESS )
-        goto exit;
+    unlock_status = psa_unlock_key_slot( slot );
 
-exit:
-    if ( status == PSA_SUCCESS )
-        status = psa_cipher_abort( &operation );
-    else
-        psa_cipher_abort( &operation );
-
-    return ( status );
+    return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
 

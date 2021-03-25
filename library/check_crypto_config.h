@@ -36,6 +36,7 @@
 
 #if defined(PSA_WANT_ALG_CMAC) && \
     !( defined(PSA_WANT_KEY_TYPE_AES) || \
+       defined(PSA_WANT_KEY_TYPE_CAMELLIA) || \
        defined(PSA_WANT_KEY_TYPE_DES) )
 #error "PSA_WANT_ALG_CMAC defined, but not all prerequisites"
 #endif

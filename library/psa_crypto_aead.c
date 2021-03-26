@@ -32,7 +32,6 @@
 
 typedef struct
 {
-    const mbedtls_cipher_info_t *cipher_info;
     union
     {
         unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
@@ -47,11 +46,10 @@ typedef struct
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     } ctx;
     psa_algorithm_t core_alg;
-    uint8_t full_tag_length;
     uint8_t tag_length;
 } aead_operation_t;
 
-#define AEAD_OPERATION_INIT {0, {0}, 0, 0, 0}
+#define AEAD_OPERATION_INIT {{0}, 0, 0}
 
 static void psa_aead_abort_internal( aead_operation_t *operation )
 {
@@ -78,14 +76,16 @@ static psa_status_t psa_aead_setup(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t key_bits;
+    const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_id_t cipher_id;
+    size_t full_tag_length = 0;
 
     key_bits = attributes->core.bits;
 
-    operation->cipher_info =
-        mbedtls_cipher_info_from_psa( alg, attributes->core.type, key_bits,
-                                      &cipher_id );
-    if( operation->cipher_info == NULL )
+    cipher_info = mbedtls_cipher_info_from_psa( alg,
+                                                attributes->core.type, key_bits,
+                                                &cipher_id );
+    if( cipher_info == NULL )
         return( PSA_ERROR_NOT_SUPPORTED );
 
     switch( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) )
@@ -93,7 +93,7 @@ static psa_status_t psa_aead_setup(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ):
             operation->core_alg = PSA_ALG_CCM;
-            operation->full_tag_length = 16;
+            full_tag_length = 16;
             /* CCM allows the following tag lengths: 4, 6, 8, 10, 12, 14, 16.
              * The call to mbedtls_ccm_encrypt_and_tag or
              * mbedtls_ccm_auth_decrypt will validate the tag length. */
@@ -112,7 +112,7 @@ static psa_status_t psa_aead_setup(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ):
             operation->core_alg = PSA_ALG_GCM;
-            operation->full_tag_length = 16;
+            full_tag_length = 16;
             /* GCM allows the following tag lengths: 4, 8, 12, 13, 14, 15, 16.
              * The call to mbedtls_gcm_crypt_and_tag or
              * mbedtls_gcm_auth_decrypt will validate the tag length. */
@@ -131,7 +131,7 @@ static psa_status_t psa_aead_setup(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CHACHA20_POLY1305, 0 ):
             operation->core_alg = PSA_ALG_CHACHA20_POLY1305;
-            operation->full_tag_length = 16;
+            full_tag_length = 16;
             /* We only support the default tag length. */
             if( alg != PSA_ALG_CHACHA20_POLY1305 )
                 return( PSA_ERROR_NOT_SUPPORTED );
@@ -149,7 +149,7 @@ static psa_status_t psa_aead_setup(
             return( PSA_ERROR_NOT_SUPPORTED );
     }
 
-    if( PSA_AEAD_TAG_LENGTH( alg ) > operation->full_tag_length )
+    if( PSA_AEAD_TAG_LENGTH( alg ) > full_tag_length )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     operation->tag_length = PSA_AEAD_TAG_LENGTH( alg );

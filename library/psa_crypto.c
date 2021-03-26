@@ -3322,6 +3322,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
         operation->iv_required = 0;
     else
         operation->iv_required = 1;
+    operation->default_iv_length = PSA_CIPHER_IV_LENGTH( slot->attr.type, alg );
 
     psa_key_attributes_t attributes = {
       .core = slot->attr
@@ -3371,6 +3372,8 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
+    *iv_length = 0;
+
     if( operation->id == 0 )
     {
         return( PSA_ERROR_BAD_STATE );
@@ -3381,13 +3384,26 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    status = psa_driver_wrapper_cipher_generate_iv( operation,
-                                                    iv,
-                                                    iv_size,
-                                                    iv_length );
+    if( iv_size < operation->default_iv_length )
+    {
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+        goto exit;
+    }
 
+    status = psa_generate_random( iv, operation->default_iv_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_driver_wrapper_cipher_set_iv( operation,
+                                               iv,
+                                               operation->default_iv_length );
+
+exit:
     if( status == PSA_SUCCESS )
+    {
         operation->iv_set = 1;
+        *iv_length = operation->default_iv_length;
+    }
     else
         psa_cipher_abort( operation );
 

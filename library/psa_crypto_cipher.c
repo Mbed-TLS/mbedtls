@@ -260,24 +260,6 @@ static psa_status_t cipher_set_iv( mbedtls_psa_cipher_operation_t *operation,
                                        iv, iv_length ) ) );
 }
 
-static psa_status_t cipher_generate_iv(
-    mbedtls_psa_cipher_operation_t *operation,
-    uint8_t *iv, size_t iv_size, size_t *iv_length )
-{
-    int status = PSA_ERROR_CORRUPTION_DETECTED;
-
-    if( iv_size < operation->iv_length )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
-
-    status = psa_generate_random( iv, operation->iv_length );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    *iv_length = operation->iv_length;
-
-    return( cipher_set_iv( operation, iv, *iv_length ) );
-}
-
 /* Process input for which the algorithm is set to ECB mode. This requires
  * manual processing, since the PSA API is defined as being able to process
  * arbitrary-length calls to psa_cipher_update() with ECB mode, but the
@@ -489,13 +471,6 @@ psa_status_t mbedtls_psa_cipher_decrypt_setup(
                 operation, attributes, key_buffer, key_buffer_size, alg ) );
 }
 
-psa_status_t mbedtls_psa_cipher_generate_iv(
-    mbedtls_psa_cipher_operation_t *operation,
-    uint8_t *iv, size_t iv_size, size_t *iv_length )
-{
-    return( cipher_generate_iv( operation, iv, iv_size, iv_length ) );
-}
-
 psa_status_t mbedtls_psa_cipher_set_iv( mbedtls_psa_cipher_operation_t *operation,
                                         const uint8_t *iv,
                                         size_t iv_length )
@@ -551,13 +526,6 @@ psa_status_t mbedtls_transparent_test_driver_cipher_decrypt_setup(
 {
     return( cipher_decrypt_setup(
                 operation, attributes, key_buffer, key_buffer_size, alg ) );
-}
-
-psa_status_t mbedtls_transparent_test_driver_cipher_generate_iv(
-    mbedtls_psa_cipher_operation_t *operation,
-    uint8_t *iv, size_t iv_size, size_t *iv_length )
-{
-    return( cipher_generate_iv( operation, iv, iv_size, iv_length ) );
 }
 
 psa_status_t mbedtls_transparent_test_driver_cipher_set_iv(

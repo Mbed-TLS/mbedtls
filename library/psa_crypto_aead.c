@@ -65,6 +65,11 @@ static void psa_aead_abort_internal( aead_operation_t *operation )
             mbedtls_gcm_free( &operation->ctx.gcm );
             break;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
+        case PSA_ALG_CHACHA20_POLY1305:
+            mbedtls_chachapoly_free( &operation->ctx.chachapoly );
+            break;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     }
 }
 

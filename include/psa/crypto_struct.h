@@ -143,10 +143,12 @@ struct psa_cipher_operation_s
     unsigned int iv_required : 1;
     unsigned int iv_set : 1;
 
+    uint8_t default_iv_length;
+
     psa_driver_cipher_context_t ctx;
 };
 
-#define PSA_CIPHER_OPERATION_INIT {0, 0, 0, {0}}
+#define PSA_CIPHER_OPERATION_INIT {0, 0, 0, 0, {0}}
 static inline struct psa_cipher_operation_s psa_cipher_operation_init( void )
 {
     const struct psa_cipher_operation_s v = PSA_CIPHER_OPERATION_INIT;

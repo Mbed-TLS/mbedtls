@@ -100,32 +100,6 @@ psa_status_t mbedtls_psa_cipher_decrypt_setup(
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg );
 
-/** Generate an IV for a symmetric encryption operation.
- *
- * This function generates a random IV (initialization vector), nonce
- * or initial counter value for the encryption operation as appropriate
- * for the chosen algorithm, key type and key size.
- *
- * \note The signature of this function is that of a PSA driver
- *       cipher_generate_iv entry point. This function behaves as a
- *       cipher_generate_iv entry point as defined in the PSA driver
- *       interface specification for transparent drivers.
- *
- * \param[in,out] operation     Active cipher operation.
- * \param[out] iv               Buffer where the generated IV is to be written.
- * \param[in]  iv_size          Size of the \p iv buffer in bytes.
- * \param[out] iv_length        On success, the number of bytes of the
- *                              generated IV.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         The size of the \p iv buffer is too small.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- */
-psa_status_t mbedtls_psa_cipher_generate_iv(
-    mbedtls_psa_cipher_operation_t *operation,
-    uint8_t *iv, size_t iv_size, size_t *iv_length );
-
 /** Set the IV for a symmetric encryption or decryption operation.
  *
  * This function sets the IV (initialization vector), nonce
@@ -241,10 +215,6 @@ psa_status_t mbedtls_transparent_test_driver_cipher_decrypt_setup(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg );
-
-psa_status_t mbedtls_transparent_test_driver_cipher_generate_iv(
-    mbedtls_psa_cipher_operation_t *operation,
-    uint8_t *iv, size_t iv_size, size_t *iv_length );
 
 psa_status_t mbedtls_transparent_test_driver_cipher_set_iv(
     mbedtls_psa_cipher_operation_t *operation,

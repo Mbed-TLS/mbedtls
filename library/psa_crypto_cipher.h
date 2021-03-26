@@ -138,7 +138,9 @@ psa_status_t mbedtls_psa_cipher_generate_iv(
  *
  * \param[in,out] operation     Active cipher operation.
  * \param[in] iv                Buffer containing the IV to use.
- * \param[in] iv_length         Size of the IV in bytes.
+ * \param[in] iv_length         Size of the IV in bytes. It is guaranteed by
+ *                              the core to be less or equal to
+ *                              PSA_CIPHER_IV_MAX_SIZE.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_ARGUMENT

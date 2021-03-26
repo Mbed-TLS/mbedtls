@@ -3401,14 +3401,13 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     if( operation->id == 0 )
-    {
         return( PSA_ERROR_BAD_STATE );
-    }
 
     if( operation->iv_set || ! operation->iv_required )
-    {
         return( PSA_ERROR_BAD_STATE );
-    }
+
+    if( iv_length > PSA_CIPHER_IV_MAX_SIZE )
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_driver_wrapper_cipher_set_iv( operation,
                                                iv,

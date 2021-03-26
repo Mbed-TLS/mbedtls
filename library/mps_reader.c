@@ -264,7 +264,7 @@ int mbedtls_mps_reader_get( mbedtls_mps_reader *rd,
          *        |          acc              |
          *        +---------------------------+
          *                          |         |
-         *                   fo/frag_offset aa/acc_available
+         *                     frag_offset  acc_available
          *
          * - Allowed #2
          *
@@ -278,7 +278,7 @@ int mbedtls_mps_reader_get( mbedtls_mps_reader *rd,
          *        |          acc              |
          *        +---------------------------+
          *                          |         |
-         *                   fo/frag_offset aa/acc_available
+         *                   frag_offset acc_available
          *
          * - Not allowed #1 (could be served, but we don't actually use it):
          *
@@ -292,7 +292,7 @@ int mbedtls_mps_reader_get( mbedtls_mps_reader *rd,
          *        |          acc              |
          *        +---------------------------+
          *                      |             |
-         *                fo/frag_offset   aa/acc_available
+         *                frag_offset   acc_available
          *
          *
          * - Not allowed #2 (can't be served with a contiguous buffer):
@@ -307,7 +307,7 @@ int mbedtls_mps_reader_get( mbedtls_mps_reader *rd,
          *        |            acc            |
          *        +---------------------------+
          *                      |             |
-         *                fo/frag_offset   aa/acc_available
+         *                frag_offset   acc_available
          *
          * In case of Allowed #2 we're switching to serve from
          * `frag` starting from the next call to mbedtls_mps_reader_get().

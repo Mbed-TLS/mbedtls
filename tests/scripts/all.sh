@@ -1443,29 +1443,59 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
 }
 
 component_test_psa_crypto_config_basic() {
-    # full plus MBEDTLS_PSA_CRYPTO_CONFIG
-    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG"
+    # Test the library excluding all Mbed TLS cryptographic support for which
+    # we have an accelerator support. Acceleration is faked with the
+    # transparent test driver.
+    msg "test: full + MBEDTLS_PSA_CRYPTO_CONFIG + as much acceleration as supported"
     scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+
+    # There is no intended accelerator support for ALG STREAM_CIPHER and
+    # ALG_ECB_NO_PADDING. Therefore, asking for them in the build implies the
+    # inclusion of the Mbed TLS cipher operations. As we want to test here with
+    # cipher operations solely supported by accelerators, disabled those
+    # PSA configuration options.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+
+    # Don't test DES encryption as:
+    # 1) It is not an issue if we don't test all cipher types here.
+    # 2) That way we don't have to modify in psa_crypto.c the compilation
+    #    guards MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES for the code they guard to be
+    #    available to the test driver. Modifications that we would need to
+    #    revert when we move to compile the test driver separately.
+    # We also disable MBEDTLS_DES_C as the dependencies on DES in PSA test
+    # suites are still based on MBEDTLS_DES_C and not PSA_WANT_KEY_TYPE_DES.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_DES
+    scripts/config.py unset MBEDTLS_DES_C
+
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST"
-    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_KEY_TYPE_AES"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR"
-    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN"
-    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_RSA_PSS"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_CBC_PKCS7"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_CTR"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_CFB"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_ECDSA"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_MD2"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_MD4"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_MD5"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_OFB"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_RIPEMD160"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_RSA_PSS"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_1"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_224"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_256"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_384"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_512"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_XTS"
     loc_cflags="${loc_cflags} -I../tests/include -O2"
 
     make CC=gcc CFLAGS="$loc_cflags" LDFLAGS="$ASAN_CFLAGS"
@@ -2239,21 +2269,29 @@ component_test_psa_crypto_drivers () {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST"
-    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_KEY_TYPE_AES"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR"
-    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN"
-    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_RSA_PSS"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_CBC_PKCS7"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_CTR"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_CFB"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_ECDSA"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_MD2"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_MD4"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_MD5"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_OFB"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_RIPEMD160"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_RSA_PSS"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_1"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_224"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_256"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_384"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_SHA_512"
+    loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_ALG_XTS"
     loc_cflags="${loc_cflags} -I../tests/include -O2"
 
     make CC=gcc CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"

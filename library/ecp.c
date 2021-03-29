@@ -3093,15 +3093,17 @@ cleanup:
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_gen_privkey_sw( const mbedtls_mpi *N, size_t n_bits,
-                                mbedtls_mpi *d,
-                                int (*f_rng)(void *, unsigned char *, size_t),
-                                void *p_rng )
+int mbedtls_mpi_random( mbedtls_mpi *X,
+                        mbedtls_mpi_sint min,
+                        const mbedtls_mpi *N,
+                        int (*f_rng)(void *, unsigned char *, size_t),
+                        void *p_rng )
 {
-    /* SEC1 3.2.1: Generate d such that 1 <= n < N */
-    int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    /* SEC1 3.2.1: Generate X such that 1 <= n < N */
+    int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
     int count = 0;
     unsigned cmp = 0;
+    size_t n_bits = mbedtls_mpi_bitlen( N );
     size_t n_bytes = ( n_bits + 7 ) / 8;
 
     /*
@@ -3114,8 +3116,8 @@ int mbedtls_ecp_gen_privkey_sw( const mbedtls_mpi *N, size_t n_bits,
      */
     do
     {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_bytes, f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, 8 * n_bytes - n_bits ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( X, n_bytes, f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( X, 8 * n_bytes - n_bits ) );
 
         /*
          * Each try has at worst a probability 1/2 of failing (the msb has
@@ -3128,17 +3130,17 @@ int mbedtls_ecp_gen_privkey_sw( const mbedtls_mpi *N, size_t n_bits,
          */
         if( ++count > 30 )
         {
-            ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
+            ret = MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
             goto cleanup;
         }
 
-        ret = mbedtls_mpi_lt_mpi_ct( d, N, &cmp );
+        ret = mbedtls_mpi_lt_mpi_ct( X, N, &cmp );
         if( ret != 0 )
         {
             goto cleanup;
         }
     }
-    while( mbedtls_mpi_cmp_int( d, 1 ) < 0 || cmp != 1 );
+    while( mbedtls_mpi_cmp_int( X, min ) < 0 || cmp != 1 );
 
 cleanup:
     return( ret );
@@ -3164,8 +3166,7 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
-        return( mbedtls_ecp_gen_privkey_sw( &grp->N, grp->nbits, d,
-                                            f_rng, p_rng ) );
+        return( mbedtls_mpi_random( d, 1, &grp->N, f_rng, p_rng ) );
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
     return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );

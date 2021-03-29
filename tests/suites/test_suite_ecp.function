@@ -1324,7 +1324,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
-void genkey_sw_many( data_t *bound_bytes, int iterations )
+void mpi_random_many( int min, data_t *bound_bytes, int iterations )
 {
     /* Generate numbers in the range 1..bound-1. Do it iterations times.
      * This function assumes that the value of bound is at least 2 and
@@ -1332,11 +1332,11 @@ void genkey_sw_many( data_t *bound_bytes, int iterations )
      * effectively never occurs.
      */
 
-    mbedtls_mpi bound;
+    mbedtls_mpi upper_bound;
     size_t n_bits;
     mbedtls_mpi result;
     size_t b;
-    /* If bound is small, stats[b] is the number of times the value b
+    /* If upper_bound is small, stats[b] is the number of times the value b
      * has been generated. Otherwise stats[b] is the number of times a
      * value with bit b set has been generated. */
     size_t *stats = NULL;
@@ -1344,12 +1344,12 @@ void genkey_sw_many( data_t *bound_bytes, int iterations )
     int full_stats;
     size_t i;
 
-    mbedtls_mpi_init( &bound );
+    mbedtls_mpi_init( &upper_bound );
     mbedtls_mpi_init( &result );
 
-    TEST_EQUAL( 0, mbedtls_mpi_read_binary( &bound,
+    TEST_EQUAL( 0, mbedtls_mpi_read_binary( &upper_bound,
                                             bound_bytes->x, bound_bytes->len ) );
-    n_bits = mbedtls_mpi_bitlen( &bound );
+    n_bits = mbedtls_mpi_bitlen( &upper_bound );
     /* Consider a bound "small" if it's less than 2^5. This value is chosen
      * to be small enough that the probability of missing one value is
      * negligible given the number of iterations. It must be less than
@@ -1370,12 +1370,11 @@ void genkey_sw_many( data_t *bound_bytes, int iterations )
     for( i = 0; i < (size_t) iterations; i++ )
     {
         mbedtls_test_set_step( i );
-        TEST_EQUAL( 0, mbedtls_ecp_gen_privkey_sw(
-                        &bound, n_bits, &result,
-                        mbedtls_test_rnd_std_rand, NULL ) );
+        TEST_EQUAL( 0, mbedtls_mpi_random( &result, min, &upper_bound,
+                                           mbedtls_test_rnd_std_rand, NULL ) );
 
-        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &result, &bound ) < 0 );
-        TEST_ASSERT( mbedtls_mpi_cmp_int( &result, 1 ) >= 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &result, &upper_bound ) < 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_int( &result, min ) >= 0 );
         if( full_stats )
         {
             uint8_t value;
@@ -1425,7 +1424,7 @@ void genkey_sw_many( data_t *bound_bytes, int iterations )
     }
 
 exit:
-    mbedtls_mpi_free( &bound );
+    mbedtls_mpi_free( &upper_bound );
     mbedtls_mpi_free( &result );
     mbedtls_free( stats );
 }

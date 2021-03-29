@@ -3074,6 +3074,22 @@ cleanup:
 }
 #endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+static int mbedtls_ecp_gen_privkey_sw(
+    const mbedtls_mpi *N, mbedtls_mpi *d,
+    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret = mbedtls_mpi_random( d, 1, N, f_rng, p_rng );
+    switch( ret )
+    {
+        case MBEDTLS_ERR_MPI_NOT_ACCEPTABLE:
+            return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
+        default:
+            return( ret );
+    }
+}
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+
 /*
  * Generate a private key
  */
@@ -3093,7 +3109,7 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
-        return( mbedtls_mpi_random( d, 1, &grp->N, f_rng, p_rng ) );
+        return( mbedtls_ecp_gen_privkey_sw( &grp->N, d, f_rng, p_rng ) );
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
     return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );

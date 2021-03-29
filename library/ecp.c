@@ -3091,62 +3091,6 @@ cleanup:
 }
 #endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 
-#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
-MBEDTLS_STATIC_TESTABLE
-int mbedtls_mpi_random( mbedtls_mpi *X,
-                        mbedtls_mpi_sint min,
-                        const mbedtls_mpi *N,
-                        int (*f_rng)(void *, unsigned char *, size_t),
-                        void *p_rng )
-{
-    /* SEC1 3.2.1: Generate X such that 1 <= n < N */
-    int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
-    int count = 0;
-    unsigned cmp = 0;
-    size_t n_bits = mbedtls_mpi_bitlen( N );
-    size_t n_bytes = ( n_bits + 7 ) / 8;
-
-    /*
-     * Match the procedure given in RFC 6979 §3.3 (deterministic ECDSA)
-     * when f_rng is a suitably parametrized instance of HMAC_DRBG:
-     * - use the same byte ordering;
-     * - keep the leftmost n_bits bits of the generated octet string;
-     * - try until result is in the desired range.
-     * This also avoids any bias, which is especially important for ECDSA.
-     */
-    do
-    {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( X, n_bytes, f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( X, 8 * n_bytes - n_bits ) );
-
-        /*
-         * Each try has at worst a probability 1/2 of failing (the msb has
-         * a probability 1/2 of being 0, and then the result will be < N),
-         * so after 30 tries failure probability is a most 2**(-30).
-         *
-         * For most curves, 1 try is enough with overwhelming probability,
-         * since N starts with a lot of 1s in binary, but some curves
-         * such as secp224k1 are actually very close to the worst case.
-         */
-        if( ++count > 30 )
-        {
-            ret = MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
-            goto cleanup;
-        }
-
-        ret = mbedtls_mpi_lt_mpi_ct( X, N, &cmp );
-        if( ret != 0 )
-        {
-            goto cleanup;
-        }
-    }
-    while( mbedtls_mpi_cmp_int( X, min ) < 0 || cmp != 1 );
-
-cleanup:
-    return( ret );
-}
-#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
-
 /*
  * Generate a private key
  */

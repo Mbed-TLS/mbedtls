@@ -101,12 +101,6 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg );
 
-psa_status_t psa_driver_wrapper_cipher_generate_iv(
-    psa_cipher_operation_t *operation,
-    uint8_t *iv,
-    size_t iv_size,
-    size_t *iv_length );
-
 psa_status_t psa_driver_wrapper_cipher_set_iv(
     psa_cipher_operation_t *operation,
     const uint8_t *iv,

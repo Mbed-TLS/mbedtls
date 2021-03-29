@@ -260,21 +260,6 @@ psa_status_t test_transparent_cipher_abort(
     return( test_driver_cipher_hooks.forced_status );
 }
 
-psa_status_t test_transparent_cipher_generate_iv(
-    mbedtls_transparent_test_driver_cipher_operation_t *operation,
-    uint8_t *iv,
-    size_t iv_size,
-    size_t *iv_length)
-{
-    test_driver_cipher_hooks.hits++;
-
-    if( test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
-        return( test_driver_cipher_hooks.forced_status );
-
-    return( mbedtls_transparent_test_driver_cipher_generate_iv(
-                operation, iv, iv_size, iv_length ) );
-}
-
 psa_status_t test_transparent_cipher_set_iv(
     mbedtls_transparent_test_driver_cipher_operation_t *operation,
     const uint8_t *iv,
@@ -421,19 +406,6 @@ psa_status_t test_opaque_cipher_abort(
     mbedtls_opaque_test_driver_cipher_operation_t *operation )
 {
     (void) operation;
-    return( PSA_ERROR_NOT_SUPPORTED );
-}
-
-psa_status_t test_opaque_cipher_generate_iv(
-    mbedtls_opaque_test_driver_cipher_operation_t *operation,
-    uint8_t *iv,
-    size_t iv_size,
-    size_t *iv_length)
-{
-    (void) operation;
-    (void) iv;
-    (void) iv_size;
-    (void) iv_length;
     return( PSA_ERROR_NOT_SUPPORTED );
 }
 

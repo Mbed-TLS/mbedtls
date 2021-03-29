@@ -15,6 +15,43 @@
 #define ECP_PT_RESET( x )           \
     mbedtls_ecp_point_free( x );    \
     mbedtls_ecp_point_init( x );
+
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+/* Test whether bytes represents (in big-endian base 256) a number B that
+ * is "significantly" above a power of 2, which is defined as follows.
+ * Let n be the integer such that 2^n <= B < 2^{n+1}. B is significantly
+ * above a power of 2 if (B - 2^n) / 2^n is not negligible. "Negligible"
+ * is defined as having a negligible chance that if you draw an integer
+ * in the range [1, B-1] K times, the number will always be less than 2^n,
+ * where K is the iteration count passed to genkey_sw_many.
+ */
+static int is_significantly_above_a_power_of_2( data_t *bytes )
+{
+    const uint8_t *p = bytes->x;
+    size_t len = bytes->len;
+    unsigned x;
+    while( len > 0 && p[0] == 0 )
+    {
+        ++p;
+        --len;
+    }
+    if( len == 0 )
+        return( 0 );
+    else if( len == 1 )
+        x = p[0];
+    else
+        x = ( p[0] << 8 ) | p[1];
+
+    if( x <= 4 )
+        return( 0 );
+
+    while( ( x & 0x8000 ) == 0 )
+        x <<= 1;
+    x &= 0x7fff;
+    return( x >= 0x1000 );
+}
+#endif
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -1283,6 +1320,114 @@ void genkey_mx_known_answer( int bits, data_t *seed, data_t *expected )
 exit:
     mbedtls_free( actual );
     mbedtls_mpi_free( &d );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+void genkey_sw_many( data_t *bound_bytes, int iterations )
+{
+    /* Generate numbers in the range 1..bound-1. Do it iterations times.
+     * This function assumes that the value of bound is at least 2 and
+     * that iterations is large enough that a one-in-2^iterations chance
+     * effectively never occurs.
+     */
+
+    mbedtls_mpi bound;
+    size_t n_bits;
+    mbedtls_mpi result;
+    size_t b;
+    /* If bound is small, stats[b] is the number of times the value b
+     * has been generated. Otherwise stats[b] is the number of times a
+     * value with bit b set has been generated. */
+    size_t *stats = NULL;
+    size_t stats_len;
+    int full_stats;
+    size_t i;
+
+    mbedtls_mpi_init( &bound );
+    mbedtls_mpi_init( &result );
+
+    TEST_EQUAL( 0, mbedtls_mpi_read_binary( &bound,
+                                            bound_bytes->x, bound_bytes->len ) );
+    n_bits = mbedtls_mpi_bitlen( &bound );
+    /* Consider a bound "small" if it's less than 2^5. This value is chosen
+     * to be small enough that the probability of missing one value is
+     * negligible given the number of iterations. It must be less than
+     * 256 because some of the code below assumes that "small" values
+     * fit in a byte. */
+    if( n_bits <= 5 )
+    {
+        full_stats = 1;
+        stats_len = bound_bytes->x[bound_bytes->len - 1];
+    }
+    else
+    {
+        full_stats = 0;
+        stats_len = n_bits;
+    }
+    ASSERT_ALLOC( stats, stats_len );
+
+    for( i = 0; i < (size_t) iterations; i++ )
+    {
+        mbedtls_test_set_step( i );
+        TEST_EQUAL( 0, mbedtls_ecp_gen_privkey_sw(
+                        &bound, n_bits, &result,
+                        mbedtls_test_rnd_std_rand, NULL ) );
+
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &result, &bound ) < 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_int( &result, 1 ) >= 0 );
+        if( full_stats )
+        {
+            uint8_t value;
+            TEST_EQUAL( 0, mbedtls_mpi_write_binary( &result, &value, 1 ) );
+            TEST_ASSERT( value < stats_len );
+            ++stats[value];
+        }
+        else
+        {
+            for( b = 0; b < n_bits; b++ )
+                stats[b] += mbedtls_mpi_get_bit( &result, b );
+        }
+    }
+
+    if( full_stats )
+    {
+        for( b = 1; b < stats_len; b++ )
+        {
+            mbedtls_test_set_step( 1000000 + b );
+            /* Assert that each value has been reached at least once.
+             * This is almost guaranteed if the iteration count is large
+             * enough. This is a very crude way of checking the distribution.
+             */
+            TEST_ASSERT( stats[b] > 0 );
+        }
+    }
+    else
+    {
+        for( b = 0; b < n_bits; b++ )
+        {
+            mbedtls_test_set_step( 1000000 + b );
+            /* Assert that each bit has been set in at least one result and
+             * clear in at least one result. Provided that iterations is not
+             * too small, it would be extremely unlikely for this not to be
+             * the case if the results are uniformly distributed.
+             *
+             * As an exception, the top bit may legitimately never be set
+             * if bound is a power of 2 or only slightly above.
+             */
+            if( b != n_bits - 1 ||
+                is_significantly_above_a_power_of_2( bound_bytes ) )
+            {
+                TEST_ASSERT( stats[b] > 0 );
+            }
+            TEST_ASSERT( stats[b] < (size_t) iterations );
+        }
+    }
+
+exit:
+    mbedtls_mpi_free( &bound );
+    mbedtls_mpi_free( &result );
+    mbedtls_free( stats );
 }
 /* END_CASE */
 

@@ -2445,6 +2445,11 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
     size_t n_bits = mbedtls_mpi_bitlen( N );
     size_t n_bytes = ( n_bits + 7 ) / 8;
 
+    if( min < 0 )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    if( mbedtls_mpi_cmp_int( N, min ) <= 0 )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
     /*
      * Match the procedure given in RFC 6979 §3.3 (deterministic ECDSA)
      * when f_rng is a suitably parametrized instance of HMAC_DRBG:

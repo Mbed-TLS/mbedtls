@@ -1,0 +1,4 @@
+Bugfix
+   * Add a parenthesis that was missing from ecp.c when
+     MBEDTLS_ECP_RANDOMIZE_MXZ_ALT is defined. Found and reported by
+     mbeniamino in #4217.

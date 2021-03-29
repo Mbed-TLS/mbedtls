@@ -77,25 +77,36 @@ int mbedtls_ecp_gen_privkey_mx( size_t n_bits,
 #endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
-/** Generate a private key on a short Weierstrass curve.
+/** Generate a random number uniformly in a range.
+ *
+ * This function generates a random number between \p min inclusive and
+ * \p N exclusive.
  *
  * The procedure complies with RFC 6979 §3.3 (deterministic ECDSA)
- * when the RNG is a suitably parametrized instance of HMAC_DRBG.
+ * when the RNG is a suitably parametrized instance of HMAC_DRBG
+ * and \p min is \c 1.
  *
- * \p N             The upper bound of the range.
- * \p n_bits        The size of \p N in bits. This value must be correct,
- *                  otherwise the result is unpredictable.
- * \param d         A random number, uniformly generated in the range [1, N-1].
- * \param f_rng     The RNG function.
- * \param p_rng     The RNG context to be passed to \p f_rng.
+ * \note           There are `N - min` possible outputs. The lower bound
+ *                 \p min can be reached, but the upper bound \p N cannot.
  *
- * \return          \c 0 on success.
- * \return          \c MBEDTLS_ERR_ECP_xxx or MBEDTLS_ERR_MPI_xxx on failure.
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param min      The minimum value to return.
+ *                 It must be nonnegative.
+ * \param N        The upper bound of the range, exclusive.
+ *                 In other words, this is one plus the maximum value to return.
+ *                 \p N must be strictly larger than \p min.
+ * \param f_rng    The RNG function to use. This must not be \c NULL.
+ * \param p_rng    The RNG parameter to be passed to \p f_rng.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
+ * \return         Another negative error code on failure.
  */
-int mbedtls_ecp_gen_privkey_sw( const mbedtls_mpi *N, size_t n_bits,
-                                mbedtls_mpi *d,
-                                int (*f_rng)(void *, unsigned char *, size_t),
-                                void *p_rng );
+int mbedtls_mpi_random( mbedtls_mpi *X,
+                        mbedtls_mpi_sint min,
+                        const mbedtls_mpi *N,
+                        int (*f_rng)(void *, unsigned char *, size_t),
+                        void *p_rng );
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_ECP_C */

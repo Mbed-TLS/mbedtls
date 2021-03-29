@@ -36,7 +36,6 @@
 #include "mbedtls/bn_mul.h"
 #include "mbedtls/camellia.h"
 #include "mbedtls/ccm.h"
-#include "mbedtls/certs.h"
 #include "mbedtls/chacha20.h"
 #include "mbedtls/chachapoly.h"
 #include "mbedtls/check_config.h"

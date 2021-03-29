@@ -153,7 +153,6 @@
     <ClInclude Include="..\..\include\mbedtls\bn_mul.h" />
     <ClInclude Include="..\..\include\mbedtls\camellia.h" />
     <ClInclude Include="..\..\include\mbedtls\ccm.h" />
-    <ClInclude Include="..\..\include\mbedtls\certs.h" />
     <ClInclude Include="..\..\include\mbedtls\chacha20.h" />
     <ClInclude Include="..\..\include\mbedtls\chachapoly.h" />
     <ClInclude Include="..\..\include\mbedtls\check_config.h" />
@@ -230,6 +229,7 @@
     <ClInclude Include="..\..\include\psa\crypto_struct.h" />
     <ClInclude Include="..\..\include\psa\crypto_types.h" />
     <ClInclude Include="..\..\include\psa\crypto_values.h" />
+    <ClInclude Include="..\..\tests\include\test\certs.h" />
     <ClInclude Include="..\..\tests\include\test\constant_flow.h" />
     <ClInclude Include="..\..\tests\include\test\helpers.h" />
     <ClInclude Include="..\..\tests\include\test\macros.h" />
@@ -271,7 +271,6 @@
     <ClCompile Include="..\..\library\blowfish.c" />
     <ClCompile Include="..\..\library\camellia.c" />
     <ClCompile Include="..\..\library\ccm.c" />
-    <ClCompile Include="..\..\library\certs.c" />
     <ClCompile Include="..\..\library\chacha20.c" />
     <ClCompile Include="..\..\library\chachapoly.c" />
     <ClCompile Include="..\..\library\cipher.c" />
@@ -345,6 +344,7 @@
     <ClCompile Include="..\..\library\x509write_crt.c" />
     <ClCompile Include="..\..\library\x509write_csr.c" />
     <ClCompile Include="..\..\library\xtea.c" />
+    <ClCompile Include="..\..\tests\src\certs.c" />
     <ClCompile Include="..\..\tests\src\helpers.c" />
     <ClCompile Include="..\..\tests\src\psa_crypto_helpers.c" />
     <ClCompile Include="..\..\tests\src\random.c" />

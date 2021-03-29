@@ -2340,7 +2340,6 @@ int main( int argc, char *argv[] )
         ret = mbedtls_x509_crt_parse_file( &cacert, opt.ca_file );
     else
 #endif
-#if defined(MBEDTLS_CERTS_C)
     {
 #if defined(MBEDTLS_PEM_PARSE_C)
         for( i = 0; mbedtls_test_cas[i] != NULL; i++ )
@@ -2362,12 +2361,6 @@ int main( int argc, char *argv[] )
                 break;
         }
     }
-#else
-    {
-        ret = 1;
-        mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
-    }
-#endif /* MBEDTLS_CERTS_C */
     if( ret < 0 )
     {
         mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n", (unsigned int) -ret );
@@ -2443,10 +2436,6 @@ int main( int argc, char *argv[] )
         strcmp( opt.crt_file2, "none" ) != 0 &&
         strcmp( opt.key_file2, "none" ) != 0 )
     {
-#if !defined(MBEDTLS_CERTS_C)
-        mbedtls_printf( "Not certificated or key provided, and \nMBEDTLS_CERTS_C not defined!\n" );
-        goto exit;
-#else
 #if defined(MBEDTLS_RSA_C)
         if( ( ret = mbedtls_x509_crt_parse( &srvcert,
                                     (const unsigned char *) mbedtls_test_srv_crt_rsa,
@@ -2485,7 +2474,6 @@ int main( int argc, char *argv[] )
         }
         key_cert_init2 = 2;
 #endif /* MBEDTLS_ECDSA_C */
-#endif /* MBEDTLS_CERTS_C */
     }
 
     mbedtls_printf( " ok\n" );

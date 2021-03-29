@@ -33,6 +33,7 @@ foreach(exe IN LISTS executables_libs executables_mbedcrypto)
     endif()
     add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>
         ${extra_sources})
+    target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
 
     # This emulates "if ( ... IN_LIST ... )" which becomes available in CMake 3.3
     list(FIND executables_libs ${exe} exe_index)

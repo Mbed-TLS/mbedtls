@@ -134,6 +134,14 @@ typedef struct mbedtls_entropy_context
 }
 mbedtls_entropy_context;
 
+#if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
+/**
+ * \brief           Platform-specific entropy poll callback
+ */
+int mbedtls_platform_entropy_poll( void *data,
+                           unsigned char *output, size_t len, size_t *olen );
+#endif
+
 /**
  * \brief           Initialize the context
  *

@@ -297,8 +297,10 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats );
  * \param[in] seed          Buffer containing the seed value to inject.
  * \param[in] seed_size     Size of the \p seed buffer.
  *                          The size of the seed in bytes must be greater
- *                          or equal to both #MBEDTLS_ENTROPY_MIN_PLATFORM
- *                          and #MBEDTLS_ENTROPY_BLOCK_SIZE.
+ *                          or equal to both #MBEDTLS_ENTROPY_BLOCK_SIZE
+ *                          and the value of \c MBEDTLS_ENTROPY_MIN_PLATFORM
+ *                          in `library/entropy_poll.h` in the Mbed TLS source
+ *                          code.
  *                          It must be less or equal to
  *                          #MBEDTLS_ENTROPY_MAX_SEED_SIZE.
  *

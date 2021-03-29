@@ -73,9 +73,9 @@
 #include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
 #include "mbedtls/md.h"
-#include "mbedtls/md_internal.h"
+#include "md_wrap.h"
 #include "mbedtls/pk.h"
-#include "mbedtls/pk_internal.h"
+#include "pk_wrap.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 #include "mbedtls/ripemd160.h"
@@ -6482,7 +6482,7 @@ int mbedtls_psa_get_random( void *p_rng,
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
-#include "mbedtls/entropy_poll.h"
+#include "entropy_poll.h"
 
 psa_status_t mbedtls_psa_inject_entropy( const uint8_t *seed,
                                          size_t seed_size )

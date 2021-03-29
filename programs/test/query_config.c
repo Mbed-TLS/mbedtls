@@ -37,7 +37,6 @@
  * default value when that configuration is not set in the config.h.
  */
 #include "mbedtls/aes.h"
-#include "mbedtls/aesni.h"
 #include "mbedtls/arc4.h"
 #include "mbedtls/aria.h"
 #include "mbedtls/asn1.h"
@@ -60,7 +59,6 @@
 #include "mbedtls/ecjpake.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/entropy.h"
-#include "mbedtls/entropy_poll.h"
 #include "mbedtls/error.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/hkdf.h"
@@ -73,7 +71,6 @@
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/nist_kw.h"
 #include "mbedtls/oid.h"
-#include "mbedtls/padlock.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/pkcs11.h"
@@ -91,7 +88,6 @@
 #include "mbedtls/ssl_cache.h"
 #include "mbedtls/ssl_ciphersuites.h"
 #include "mbedtls/ssl_cookie.h"
-#include "mbedtls/ssl_internal.h"
 #include "mbedtls/ssl_ticket.h"
 #include "mbedtls/threading.h"
 #include "mbedtls/timing.h"

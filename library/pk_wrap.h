@@ -1,5 +1,5 @@
 /**
- * \file pk_internal.h
+ * \file pk_wrap.h
  *
  * \brief Public Key abstraction layer: wrapper functions
  */

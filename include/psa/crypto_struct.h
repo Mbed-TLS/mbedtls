@@ -65,22 +65,11 @@ extern "C" {
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "mbedtls/cipher.h"
 #include "mbedtls/cmac.h"
 #include "mbedtls/gcm.h"
 
 /* Include the context definition for the compiled-in drivers */
 #include "psa/crypto_driver_contexts.h"
-
-typedef struct {
-    /** Unique ID indicating which driver got assigned to do the
-     * operation. Since driver contexts are driver-specific, swapping
-     * drivers halfway through the operation is not supported.
-     * ID values are auto-generated in psa_driver_wrappers.h */
-    unsigned int id;
-    /** Context structure for the assigned driver, when id is not zero. */
-    void* ctx;
-} psa_operation_driver_context_t;
 
 struct psa_hash_operation_s
 {
@@ -143,22 +132,21 @@ static inline struct psa_mac_operation_s psa_mac_operation_init( void )
 
 struct psa_cipher_operation_s
 {
-    psa_algorithm_t alg;
-    unsigned int key_set : 1;
+    /** Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_crypto_driver_wrappers.h
+     * ID value zero means the context is not valid or not assigned to
+     * any driver (i.e. none of the driver contexts are active). */
+    unsigned int id;
+
     unsigned int iv_required : 1;
     unsigned int iv_set : 1;
-    unsigned int mbedtls_in_use : 1; /* Indicates mbed TLS is handling the operation. */
-    uint8_t iv_size;
-    uint8_t block_size;
-    union
-    {
-        unsigned dummy; /* Enable easier initializing of the union. */
-        mbedtls_cipher_context_t cipher;
-        psa_operation_driver_context_t driver;
-    } ctx;
+
+    psa_driver_cipher_context_t ctx;
 };
 
-#define PSA_CIPHER_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, {0}}
+#define PSA_CIPHER_OPERATION_INIT {0, 0, 0, {0}}
 static inline struct psa_cipher_operation_s psa_cipher_operation_init( void )
 {
     const struct psa_cipher_operation_s v = PSA_CIPHER_OPERATION_INIT;

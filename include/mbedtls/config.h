@@ -2538,18 +2538,6 @@
 #define MBEDTLS_CCM_C
 
 /**
- * \def MBEDTLS_CERTS_C
- *
- * Enable the test certificates.
- *
- * Module:  library/certs.c
- * Caller:
- *
- * This module is used for testing (ssl_client/server).
- */
-#define MBEDTLS_CERTS_C
-
-/**
  * \def MBEDTLS_CHACHA20_C
  *
  * Enable the ChaCha20 stream cipher.

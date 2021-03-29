@@ -642,9 +642,6 @@ static const char * const features[] = {
 #if defined(MBEDTLS_CCM_C)
     "MBEDTLS_CCM_C",
 #endif /* MBEDTLS_CCM_C */
-#if defined(MBEDTLS_CERTS_C)
-    "MBEDTLS_CERTS_C",
-#endif /* MBEDTLS_CERTS_C */
 #if defined(MBEDTLS_CHACHA20_C)
     "MBEDTLS_CHACHA20_C",
 #endif /* MBEDTLS_CHACHA20_C */

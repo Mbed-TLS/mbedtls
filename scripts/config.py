@@ -277,7 +277,6 @@ def include_in_crypto(name):
        name.startswith('MBEDTLS_KEY_EXCHANGE_'):
         return False
     if name in [
-            'MBEDTLS_CERTS_C', # part of libmbedx509
             'MBEDTLS_DEBUG_C', # part of libmbedtls
             'MBEDTLS_NET_C', # part of libmbedtls
             'MBEDTLS_PKCS11_C', # part of libmbedx509

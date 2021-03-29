@@ -1419,19 +1419,11 @@ run_test    "CertificateRequest with empty CA list, TLS 1.0 (GnuTLS server)" \
             0
 
 # Tests for SHA-1 support
-
-requires_config_disabled MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
 run_test    "SHA-1 forbidden by default in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
             "$P_CLI debug_level=2 allow_sha1=0" \
             1 \
             -c "The certificate is signed with an unacceptable hash"
-
-requires_config_enabled MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
-run_test    "SHA-1 allowed by default in server certificate" \
-            "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
-            "$P_CLI debug_level=2 allow_sha1=0" \
-            0
 
 run_test    "SHA-1 explicitly allowed in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
@@ -1443,18 +1435,11 @@ run_test    "SHA-256 allowed by default in server certificate" \
             "$P_CLI allow_sha1=0" \
             0
 
-requires_config_disabled MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
 run_test    "SHA-1 forbidden by default in client certificate" \
             "$P_SRV auth_mode=required allow_sha1=0" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
             1 \
             -s "The certificate is signed with an unacceptable hash"
-
-requires_config_enabled MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
-run_test    "SHA-1 allowed by default in client certificate" \
-            "$P_SRV auth_mode=required allow_sha1=0" \
-            "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
-            0
 
 run_test    "SHA-1 explicitly allowed in client certificate" \
             "$P_SRV auth_mode=required allow_sha1=1" \

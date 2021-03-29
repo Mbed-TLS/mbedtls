@@ -81,10 +81,6 @@ psa_status_t test_transparent_cipher_decrypt_setup(
 psa_status_t test_transparent_cipher_abort(
     mbedtls_transparent_test_driver_cipher_operation_t *operation );
 
-psa_status_t test_transparent_cipher_generate_iv(
-    mbedtls_transparent_test_driver_cipher_operation_t *operation,
-    uint8_t *iv, size_t iv_size, size_t *iv_length);
-
 psa_status_t test_transparent_cipher_set_iv(
     mbedtls_transparent_test_driver_cipher_operation_t *operation,
     const uint8_t *iv, size_t iv_length);
@@ -129,10 +125,6 @@ psa_status_t test_opaque_cipher_decrypt_setup(
 
 psa_status_t test_opaque_cipher_abort(
     mbedtls_opaque_test_driver_cipher_operation_t *operation);
-
-psa_status_t test_opaque_cipher_generate_iv(
-    mbedtls_opaque_test_driver_cipher_operation_t *operation,
-    uint8_t *iv, size_t iv_size, size_t *iv_length);
 
 psa_status_t test_opaque_cipher_set_iv(
     mbedtls_opaque_test_driver_cipher_operation_t *operation,

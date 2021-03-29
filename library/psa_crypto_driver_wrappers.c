@@ -853,46 +853,6 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
     }
 }
 
-psa_status_t psa_driver_wrapper_cipher_generate_iv(
-    psa_cipher_operation_t *operation,
-    uint8_t *iv,
-    size_t iv_size,
-    size_t *iv_length )
-{
-    switch( operation->id )
-    {
-#if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
-        case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_cipher_generate_iv( &operation->ctx.mbedtls_ctx,
-                                                    iv,
-                                                    iv_size,
-                                                    iv_length ) );
-#endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
-
-#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-#if defined(PSA_CRYPTO_DRIVER_TEST)
-        case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
-            return( test_transparent_cipher_generate_iv(
-                        &operation->ctx.transparent_test_driver_ctx,
-                        iv, iv_size, iv_length ) );
-
-        case PSA_CRYPTO_OPAQUE_TEST_DRIVER_ID:
-            return( test_opaque_cipher_generate_iv(
-                        &operation->ctx.opaque_test_driver_ctx,
-                        iv,
-                        iv_size,
-                        iv_length ) );
-#endif /* PSA_CRYPTO_DRIVER_TEST */
-#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-    }
-
-    (void)iv;
-    (void)iv_size;
-    (void)iv_length;
-
-    return( PSA_ERROR_INVALID_ARGUMENT );
-}
-
 psa_status_t psa_driver_wrapper_cipher_set_iv(
     psa_cipher_operation_t *operation,
     const uint8_t *iv,

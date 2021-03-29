@@ -219,19 +219,9 @@ static psa_status_t cipher_setup(
         goto exit;
 #endif /* BUILTIN_ALG_CBC_NO_PADDING || BUILTIN_ALG_CBC_PKCS7 */
 
-    operation->block_size = ( PSA_ALG_IS_STREAM_CIPHER( alg ) ? 1 :
-                              PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
-    if( ( alg & PSA_ALG_CIPHER_FROM_BLOCK_FLAG ) != 0 &&
-        alg != PSA_ALG_ECB_NO_PADDING )
-    {
-        operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type );
-    }
-#if defined(BUILTIN_KEY_TYPE_CHACHA20)
-    else
-    if( ( alg == PSA_ALG_STREAM_CIPHER ) &&
-        ( key_type == PSA_KEY_TYPE_CHACHA20 ) )
-        operation->iv_size = 12;
-#endif
+    operation->block_length = ( PSA_ALG_IS_STREAM_CIPHER( alg ) ? 1 :
+                                PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
+    operation->iv_length = PSA_CIPHER_IV_LENGTH( key_type, alg );
 
 exit:
     return( mbedtls_to_psa_error( ret ) );
@@ -262,30 +252,12 @@ static psa_status_t cipher_decrypt_setup(
 static psa_status_t cipher_set_iv( mbedtls_psa_cipher_operation_t *operation,
                             const uint8_t *iv, size_t iv_length )
 {
-    if( iv_length != operation->iv_size )
+    if( iv_length != operation->iv_length )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     return( mbedtls_to_psa_error(
                 mbedtls_cipher_set_iv( &operation->cipher,
                                        iv, iv_length ) ) );
-}
-
-static psa_status_t cipher_generate_iv(
-    mbedtls_psa_cipher_operation_t *operation,
-    uint8_t *iv, size_t iv_size, size_t *iv_length )
-{
-    int status = PSA_ERROR_CORRUPTION_DETECTED;
-
-    if( iv_size < operation->iv_size )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
-
-    status = psa_generate_random( iv, operation->iv_size );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    *iv_length = operation->iv_size;
-
-    return( cipher_set_iv( operation, iv, *iv_length ) );
 }
 
 /* Process input for which the algorithm is set to ECB mode. This requires
@@ -394,7 +366,7 @@ static psa_status_t cipher_update( mbedtls_psa_cipher_operation_t *operation,
          * output in this call. */
         expected_output_size =
             ( operation->cipher.unprocessed_len + input_length )
-            / operation->block_size * operation->block_size;
+            / operation->block_length * operation->block_length;
     }
     else
     {
@@ -499,13 +471,6 @@ psa_status_t mbedtls_psa_cipher_decrypt_setup(
                 operation, attributes, key_buffer, key_buffer_size, alg ) );
 }
 
-psa_status_t mbedtls_psa_cipher_generate_iv(
-    mbedtls_psa_cipher_operation_t *operation,
-    uint8_t *iv, size_t iv_size, size_t *iv_length )
-{
-    return( cipher_generate_iv( operation, iv, iv_size, iv_length ) );
-}
-
 psa_status_t mbedtls_psa_cipher_set_iv( mbedtls_psa_cipher_operation_t *operation,
                                         const uint8_t *iv,
                                         size_t iv_length )
@@ -561,13 +526,6 @@ psa_status_t mbedtls_transparent_test_driver_cipher_decrypt_setup(
 {
     return( cipher_decrypt_setup(
                 operation, attributes, key_buffer, key_buffer_size, alg ) );
-}
-
-psa_status_t mbedtls_transparent_test_driver_cipher_generate_iv(
-    mbedtls_psa_cipher_operation_t *operation,
-    uint8_t *iv, size_t iv_size, size_t *iv_length )
-{
-    return( cipher_generate_iv( operation, iv, iv_size, iv_length ) );
 }
 
 psa_status_t mbedtls_transparent_test_driver_cipher_set_iv(

@@ -39,8 +39,8 @@
 typedef struct {
     /* Context structure for the Mbed TLS cipher implementation. */
     psa_algorithm_t alg;
-    uint8_t iv_size;
-    uint8_t block_size;
+    uint8_t iv_length;
+    uint8_t block_length;
     mbedtls_cipher_context_t cipher;
 } mbedtls_psa_cipher_operation_t;
 

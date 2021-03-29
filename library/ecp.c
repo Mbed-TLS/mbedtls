@@ -1701,26 +1701,11 @@ static int ecp_randomize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi l, ll;
-    int count = 0;
-    size_t p_size = ( grp->pbits + 7 ) / 8;
 
     mbedtls_mpi_init( &l ); mbedtls_mpi_init( &ll );
 
     /* Generate l such that 1 < l < p */
-    do
-    {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &l, p_size, f_rng, p_rng ) );
-
-        while( mbedtls_mpi_cmp_mpi( &l, &grp->P ) >= 0 )
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &l, 1 ) );
-
-        if( count++ > 10 )
-        {
-            ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
-            goto cleanup;
-        }
-    }
-    while( mbedtls_mpi_cmp_int( &l, 1 ) <= 0 );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_random( &l, 2, &grp->P, f_rng, p_rng ) );
 
     /* Z = l * Z */
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->Z,   &pt->Z,     &l  ) );
@@ -1736,6 +1721,8 @@ static int ecp_randomize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
 cleanup:
     mbedtls_mpi_free( &l ); mbedtls_mpi_free( &ll );
 
+    if( ret == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
+        ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
     return( ret );
 #endif /* !defined(MBEDTLS_ECP_NO_FALLBACK) || !defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT) */
 }
@@ -2485,25 +2472,10 @@ static int ecp_randomize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi l;
-    int count = 0;
-    size_t p_size = ( grp->pbits + 7 ) / 8;
     mbedtls_mpi_init( &l );
 
     /* Generate l such that 1 < l < p */
-    do
-    {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &l, p_size, f_rng, p_rng ) );
-
-        while( mbedtls_mpi_cmp_mpi( &l, &grp->P ) >= 0 )
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &l, 1 ) );
-
-        if( count++ > 10 )
-        {
-            ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
-            goto cleanup;
-        }
-    }
-    while( mbedtls_mpi_cmp_int( &l, 1 ) <= 0 );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_random( &l, 2, &grp->P, f_rng, p_rng ) );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &P->X, &P->X, &l ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &P->Z, &P->Z, &l ) );
@@ -2511,6 +2483,8 @@ static int ecp_randomize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
 cleanup:
     mbedtls_mpi_free( &l );
 
+    if( ret == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
+        ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
     return( ret );
 #endif /* !defined(MBEDTLS_ECP_NO_FALLBACK) || !defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT) */
 }

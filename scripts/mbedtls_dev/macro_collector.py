@@ -301,7 +301,7 @@ class PSAMacroCollector(PSAMacroEnumerator):
             self.read_line(line)
 
 
-class InputsForTest(PSAMacroEnumerator):
+class InputsForTest(PSAMacroCollector):
     # pylint: disable=too-many-instance-attributes
     """Accumulate information about macros to test.
 enumerate
@@ -312,27 +312,6 @@ enumerate
     def __init__(self) -> None:
         super().__init__()
         self.all_declared = set() #type: Set[str]
-        # Sets of names per type
-        self.statuses.add('PSA_SUCCESS')
-        self.algorithms.add('0xffffffff')
-        self.ecc_curves.add('0xff')
-        self.dh_groups.add('0xff')
-        self.key_types.add('0xffff')
-        self.key_usage_flags.add('0x80000000')
-
-        # Hard-coded values for unknown algorithms
-        #
-        # These have to have values that are correct for their respective
-        # PSA_ALG_IS_xxx macros, but are also not currently assigned and are
-        # not likely to be assigned in the near future.
-        self.hash_algorithms.add('0x020000fe') # 0x020000ff is PSA_ALG_ANY_HASH
-        self.mac_algorithms.add('0x03007fff')
-        self.ka_algorithms.add('0x09fc0000')
-        self.kdf_algorithms.add('0x080000ff')
-        # For AEAD algorithms, the only variability is over the tag length,
-        # and this only applies to known algorithms, so don't test an
-        # unknown algorithm.
-
         # Identifier prefixes
         self.table_by_prefix = {
             'ERROR': self.statuses,
@@ -369,6 +348,28 @@ enumerate
         self.arguments_for['min_mac_length'] += ['1', '63']
         self.arguments_for['tag_length'] += ['1', '63']
         self.arguments_for['min_tag_length'] += ['1', '63']
+
+    def add_numerical_values(self) -> None:
+        """Add numerical values that are not supported to the known identifiers."""
+        # Sets of names per type
+        self.algorithms.add('0xffffffff')
+        self.ecc_curves.add('0xff')
+        self.dh_groups.add('0xff')
+        self.key_types.add('0xffff')
+        self.key_usage_flags.add('0x80000000')
+
+        # Hard-coded values for unknown algorithms
+        #
+        # These have to have values that are correct for their respective
+        # PSA_ALG_IS_xxx macros, but are also not currently assigned and are
+        # not likely to be assigned in the near future.
+        self.hash_algorithms.add('0x020000fe') # 0x020000ff is PSA_ALG_ANY_HASH
+        self.mac_algorithms.add('0x03007fff')
+        self.ka_algorithms.add('0x09fc0000')
+        self.kdf_algorithms.add('0x080000ff')
+        # For AEAD algorithms, the only variability is over the tag length,
+        # and this only applies to known algorithms, so don't test an
+        # unknown algorithm.
 
     def get_names(self, type_word: str) -> Set[str]:
         """Return the set of known names of values of the given type."""

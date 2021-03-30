@@ -44,6 +44,7 @@ def gather_inputs(headers: Iterable[str],
         inputs.parse_header(header)
     for test_cases in test_suites:
         inputs.parse_test_cases(test_cases)
+    inputs.add_numerical_values()
     inputs.gather_arguments()
     return inputs
 

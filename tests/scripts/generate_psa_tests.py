@@ -111,13 +111,14 @@ class Information:
 
     def read_psa_interface(self) -> macro_collector.PSAMacroCollector:
         """Return the list of known key types, algorithms, etc."""
-        constructors = macro_collector.PSAMacroCollector()
+        constructors = macro_collector.InputsForTest()
         header_file_names = ['include/psa/crypto_values.h',
                              'include/psa/crypto_extra.h']
         for header_file_name in header_file_names:
             with open(header_file_name, 'rb') as header_file:
                 constructors.read_file(header_file)
         self.remove_unwanted_macros(constructors)
+        constructors.gather_arguments()
         return constructors
 
 

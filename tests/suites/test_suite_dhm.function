@@ -1,5 +1,59 @@
 /* BEGIN_HEADER */
 #include "mbedtls/dhm.h"
+
+static int check_dhm_param_output( const mbedtls_mpi *expected,
+                                   const unsigned char *buffer,
+                                   size_t size,
+                                   size_t *offset )
+{
+    size_t n;
+    mbedtls_mpi actual;
+    int ok = 0;
+    mbedtls_mpi_init( &actual );
+
+    TEST_ASSERT( size >= *offset + 2 );
+    n = ( buffer[*offset] << 8 ) | buffer[*offset + 1];
+    *offset += 2;
+    TEST_EQUAL( n, mbedtls_mpi_size( expected ) );
+    TEST_ASSERT( size >= *offset + n );
+    TEST_EQUAL( 0, mbedtls_mpi_read_binary( &actual, buffer + *offset, n ) );
+    TEST_EQUAL( 0, mbedtls_mpi_cmp_mpi( expected, &actual ) );
+    *offset += n;
+
+    ok = 1;
+exit:
+    mbedtls_mpi_free( &actual );
+    return( ok );
+}
+
+static int check_dhm_params( const mbedtls_dhm_context *ctx,
+                             size_t x_size,
+                             const unsigned char *ske, size_t ske_len )
+{
+    size_t offset = 0;
+
+    /* Check that ctx->X and ctx->GX are within range. */
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &ctx->X, 1 ) > 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctx->X, &ctx->P ) < 0 );
+    TEST_ASSERT( mbedtls_mpi_size( &ctx->X ) <= x_size );
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &ctx->GX, 1 ) > 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctx->GX, &ctx->P ) < 0 );
+
+    /* Check ske: it must contain P, G and G^X, each prefixed with a
+     * 2-byte size. */
+    if( !check_dhm_param_output( &ctx->P, ske, ske_len, &offset ) )
+        goto exit;
+    if( !check_dhm_param_output( &ctx->G, ske, ske_len, &offset ) )
+        goto exit;
+    if( !check_dhm_param_output( &ctx->GX, ske, ske_len, &offset ) )
+        goto exit;
+    TEST_EQUAL( offset, ske_len );
+
+    return( 1 );
+exit:
+    return( 0 );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -151,8 +205,12 @@ void dhm_do_dhm( int radix_P, char *input_P,
     /*
      * First key exchange
      */
-    TEST_ASSERT( mbedtls_dhm_make_params( &ctx_srv, x_size, ske, &ske_len, &rnd_pseudo_rand, &rnd_info ) == result );
+    TEST_ASSERT( mbedtls_dhm_make_params( &ctx_srv, x_size, ske, &ske_len,
+                                          &rnd_pseudo_rand,
+                                          &rnd_info ) == result );
     if ( result != 0 )
+        goto exit;
+    if( !check_dhm_params( &ctx_srv, x_size, ske, ske_len ) )
         goto exit;
 
     ske[ske_len++] = 0;
@@ -185,7 +243,11 @@ void dhm_do_dhm( int radix_P, char *input_P,
      */
     p = ske;
 
-    TEST_ASSERT( mbedtls_dhm_make_params( &ctx_srv, x_size, ske, &ske_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_make_params( &ctx_srv, x_size, ske, &ske_len,
+                                          &rnd_pseudo_rand,
+                                          &rnd_info ) == 0 );
+    if( !check_dhm_params( &ctx_srv, x_size, ske, ske_len ) )
+        goto exit;
     ske[ske_len++] = 0;
     ske[ske_len++] = 0;
     TEST_ASSERT( mbedtls_dhm_read_params( &ctx_cli, &p, ske + ske_len ) == 0 );

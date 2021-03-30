@@ -171,7 +171,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void dhm_do_dhm( int radix_P, char *input_P,
+void dhm_do_dhm( int radix_P, char *input_P, int x_size,
                  int radix_G, char *input_G, int result )
 {
     mbedtls_dhm_context ctx_srv;
@@ -185,7 +185,7 @@ void dhm_do_dhm( int radix_P, char *input_P,
     size_t pub_cli_len = 0;
     size_t sec_srv_len;
     size_t sec_cli_len;
-    int x_size, i;
+    int i;
     mbedtls_test_rnd_pseudo_info rnd_info;
 
     mbedtls_dhm_init( &ctx_srv );
@@ -201,8 +201,7 @@ void dhm_do_dhm( int radix_P, char *input_P,
      */
     TEST_ASSERT( mbedtls_mpi_read_string( &ctx_srv.P, radix_P, input_P ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &ctx_srv.G, radix_G, input_G ) == 0 );
-    x_size = mbedtls_mpi_size( &ctx_srv.P );
-    pub_cli_len = x_size;
+    pub_cli_len = mbedtls_mpi_size( &ctx_srv.P );
 
     /*
      * First key exchange

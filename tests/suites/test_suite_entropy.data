@@ -13,6 +13,9 @@ entropy_seed_file:"data_files/entropy_seed":0
 Entropy write/update seed file
 entropy_seed_file:"no_such_dir/file":MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR
 
+Entropy write/update seed file: base NV seed file
+entropy_write_base_seed_file:0
+
 Entropy too many sources
 entropy_too_many_sources:
 

@@ -81,7 +81,7 @@ int main( int argc, char *argv[] )
         if( ( ret = mbedtls_havege_random( &hs, buf, sizeof( buf ) ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_havege_random returned -0x%04X",
-                            -ret );
+                            ( unsigned int ) -ret );
             goto exit;
         }
 

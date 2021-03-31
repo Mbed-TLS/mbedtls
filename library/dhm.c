@@ -100,22 +100,21 @@ static int dhm_read_bignum( mbedtls_mpi *X,
  */
 static int dhm_check_range( const mbedtls_mpi *param, const mbedtls_mpi *P )
 {
-    mbedtls_mpi L, U;
+    mbedtls_mpi U;
     int ret = 0;
 
-    mbedtls_mpi_init( &L ); mbedtls_mpi_init( &U );
+    mbedtls_mpi_init( &U );
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &L, 2 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &U, P, 2 ) );
 
-    if( mbedtls_mpi_cmp_mpi( param, &L ) < 0 ||
+    if( mbedtls_mpi_cmp_int( param, 2 ) < 0 ||
         mbedtls_mpi_cmp_mpi( param, &U ) > 0 )
     {
         ret = MBEDTLS_ERR_DHM_BAD_INPUT_DATA;
     }
 
 cleanup:
-    mbedtls_mpi_free( &L ); mbedtls_mpi_free( &U );
+    mbedtls_mpi_free( &U );
     return( ret );
 }
 

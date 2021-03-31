@@ -298,7 +298,7 @@ void mbedtls_test_err_add_check( int high, int low,
      * h = high level error code (includes high and module error codes).
      * l = low level error code.
      */
-    if ( high > -0x1000 )               // high < 0001000000000000
+    if ( high > -0x1000 && high != 0 )  // high < 0001000000000000
     {
         mbedtls_test_fail( "'high' is not a high-level error code",
                             line, file );

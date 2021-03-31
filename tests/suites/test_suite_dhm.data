@@ -74,7 +74,7 @@ Diffie-Hellman trivial subgroup #2
 dhm_do_dhm:10:"23":1:10:"-1":MBEDTLS_ERR_DHM_BAD_INPUT_DATA
 
 Diffie-Hellman small modulus
-dhm_do_dhm:10:"3":1:10:"5":MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED
+dhm_do_dhm:10:"3":1:10:"5":MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED+MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Diffie-Hellman zero modulus
 dhm_do_dhm:10:"0":1:10:"5":MBEDTLS_ERR_DHM_BAD_INPUT_DATA

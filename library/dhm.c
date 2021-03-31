@@ -360,7 +360,7 @@ static int dhm_random_below( mbedtls_mpi *R, const mbedtls_mpi *M,
         if( count++ > 10 )
             return( MBEDTLS_ERR_MPI_NOT_ACCEPTABLE );
     }
-    while( mbedtls_mpi_cmp_int( R, 1 ) <= 0 );
+    while( dhm_check_range( R, M ) != 0 );
 
 cleanup:
     return( ret );
@@ -413,7 +413,7 @@ static int dhm_update_blinding( mbedtls_dhm_context *ctx,
      * We need to generate blinding values from scratch
      */
 
-    /* Vi = random( 2, P-1 ) */
+    /* Vi = random( 2, P-2 ) */
     MBEDTLS_MPI_CHK( dhm_random_below( &ctx->Vi, &ctx->P, f_rng, p_rng ) );
 
     /* Vf = Vi^-X mod P

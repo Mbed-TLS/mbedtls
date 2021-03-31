@@ -150,29 +150,55 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
     return( 0 );
 }
 
+/*
+ * Pick a random R in the range [2, M) for blinding or key generation.
+ */
+static int dhm_random_below( mbedtls_mpi *R, const mbedtls_mpi *M,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret, count;
+
+    count = 0;
+    do
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( R, mbedtls_mpi_size( M ), f_rng, p_rng ) );
+
+        while( mbedtls_mpi_cmp_mpi( R, M ) >= 0 )
+            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( R, 1 ) );
+
+        if( count++ > 10 )
+            return( MBEDTLS_ERR_MPI_NOT_ACCEPTABLE );
+    }
+    while( dhm_check_range( R, M ) != 0 );
+
+cleanup:
+    return( ret );
+}
+
 static int dhm_make_common( mbedtls_dhm_context *ctx, int x_size,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng )
 {
-    int ret, count = 0;
+    int ret = 0;
 
     if( mbedtls_mpi_cmp_int( &ctx->P, 0 ) == 0 )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+    if( x_size < 0 )
+        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
 
-    /*
-     * Generate X as large as possible ( < P )
-     */
-    do
+    if( (unsigned) x_size < mbedtls_mpi_size( &ctx->P ) )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &ctx->X, x_size, f_rng, p_rng ) );
-
-        while( mbedtls_mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &ctx->X, 1 ) );
-
-        if( count++ > 10 )
-            return( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED );
     }
-    while( dhm_check_range( &ctx->X, &ctx->P ) != 0 );
+    else
+    {
+        /* Generate X as large as possible ( <= P - 2 ) */
+        ret = dhm_random_below( &ctx->X, &ctx->P, f_rng, p_rng );
+        if( ret == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
+            return( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED );
+        if( ret != 0 )
+            return( ret );
+    }
 
     /*
      * Calculate GX = G^X mod P
@@ -307,31 +333,6 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
 cleanup:
     if( ret != 0 && ret > -128 )
         ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED, ret );
-    return( ret );
-}
-
-/*
- * Pick a random R in the range [2, M) for blinding purposes
- */
-static int dhm_random_below( mbedtls_mpi *R, const mbedtls_mpi *M,
-                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
-{
-    int ret, count;
-
-    count = 0;
-    do
-    {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( R, mbedtls_mpi_size( M ), f_rng, p_rng ) );
-
-        while( mbedtls_mpi_cmp_mpi( R, M ) >= 0 )
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( R, 1 ) );
-
-        if( count++ > 10 )
-            return( MBEDTLS_ERR_MPI_NOT_ACCEPTABLE );
-    }
-    while( dhm_check_range( R, M ) != 0 );
-
-cleanup:
     return( ret );
 }
 

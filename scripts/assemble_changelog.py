@@ -225,9 +225,8 @@ class ChangeLog:
             for line_number, line in enumerate(body_split, 1):
                 if not self._only_url_re.match(line) and \
                    len(line) > MAX_LINE_LENGTH:
-                    long_url_msg = '. URL exceeding length limit must be ' \
-                        'alone in it\'s line.' if self._has_url_re.match(line)  \
-                        else ""
+                    long_url_msg = '. URL exceeding length limit must be alone in its line.' \
+                        if self._has_url_re.match(line) else ""
                     raise InputFormatError(filename,
                                            category.body_line + line_number,
                                            'Line is longer than allowed: '

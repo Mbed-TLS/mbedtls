@@ -1372,12 +1372,14 @@ void copy_fail( int source_usage_arg,
                 int target_type_arg, int target_bits_arg,
                 int target_usage_arg,
                 int target_alg_arg, int target_alg2_arg,
+                int target_id_arg, int target_lifetime_arg,
                 int expected_status_arg )
 {
     psa_key_attributes_t source_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t target_attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t source_key = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t target_key = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make( 1, target_id_arg );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -1391,6 +1393,8 @@ void copy_fail( int source_usage_arg,
                                 &source_key ) );
 
     /* Prepare the target attributes. */
+    psa_set_key_id( &target_attributes, key_id );
+    psa_set_key_lifetime( &target_attributes, target_lifetime_arg );
     psa_set_key_type( &target_attributes, target_type_arg );
     psa_set_key_bits( &target_attributes, target_bits_arg );
     psa_set_key_usage_flags( &target_attributes, target_usage_arg );

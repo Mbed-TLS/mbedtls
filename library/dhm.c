@@ -150,21 +150,11 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
     return( 0 );
 }
 
-/*
- * Setup and write the ServerKeyExchange parameters
- */
-int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
-                     unsigned char *output, size_t *olen,
-                     int (*f_rng)(void *, unsigned char *, size_t),
-                     void *p_rng )
+static int dhm_make_common( mbedtls_dhm_context *ctx, int x_size,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng )
 {
     int ret, count = 0;
-    size_t n1, n2, n3;
-    unsigned char *p;
-    DHM_VALIDATE_RET( ctx != NULL );
-    DHM_VALIDATE_RET( output != NULL );
-    DHM_VALIDATE_RET( olen != NULL );
-    DHM_VALIDATE_RET( f_rng != NULL );
 
     if( mbedtls_mpi_cmp_int( &ctx->P, 0 ) == 0 )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
@@ -193,6 +183,30 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
     if( ( ret = dhm_check_range( &ctx->GX, &ctx->P ) ) != 0 )
         return( ret );
 
+cleanup:
+    return( ret );
+}
+
+/*
+ * Setup and write the ServerKeyExchange parameters
+ */
+int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
+                     unsigned char *output, size_t *olen,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng )
+{
+    int ret;
+    size_t n1, n2, n3;
+    unsigned char *p;
+    DHM_VALIDATE_RET( ctx != NULL );
+    DHM_VALIDATE_RET( output != NULL );
+    DHM_VALIDATE_RET( olen != NULL );
+    DHM_VALIDATE_RET( f_rng != NULL );
+
+    ret = dhm_make_common( ctx, x_size, f_rng, p_rng );
+    if( ret != 0 )
+        goto cleanup;
+
     /*
      * export P, G, GX
      */
@@ -220,11 +234,9 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
     ctx->len = n1;
 
 cleanup:
-
-    if( ret != 0 )
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED, ret ) );
-
-    return( 0 );
+    if( ret != 0 && ret > -128 )
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED, ret );
+    return( ret );
 }
 
 /*
@@ -276,7 +288,7 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
-    int ret, count = 0;
+    int ret;
     DHM_VALIDATE_RET( ctx != NULL );
     DHM_VALIDATE_RET( output != NULL );
     DHM_VALIDATE_RET( f_rng != NULL );
@@ -284,38 +296,18 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
     if( olen < 1 || olen > ctx->len )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
 
-    if( mbedtls_mpi_cmp_int( &ctx->P, 0 ) == 0 )
-        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
-
-    /*
-     * generate X and calculate GX = G^X mod P
-     */
-    do
-    {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &ctx->X, x_size, f_rng, p_rng ) );
-
-        while( mbedtls_mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &ctx->X, 1 ) );
-
-        if( count++ > 10 )
-            return( MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED );
-    }
-    while( dhm_check_range( &ctx->X, &ctx->P ) != 0 );
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &ctx->GX, &ctx->G, &ctx->X,
-                          &ctx->P , &ctx->RP ) );
-
-    if( ( ret = dhm_check_range( &ctx->GX, &ctx->P ) ) != 0 )
-        return( ret );
+    ret = dhm_make_common( ctx, x_size, f_rng, p_rng );
+    if( ret == MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED )
+        return( MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED );
+    if( ret != 0 )
+        goto cleanup;
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &ctx->GX, output, olen ) );
 
 cleanup:
-
-    if( ret != 0 )
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED, ret ) );
-
-    return( 0 );
+    if( ret != 0 && ret > -128 )
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED, ret );
+    return( ret );
 }
 
 /*

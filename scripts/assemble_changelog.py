@@ -201,6 +201,8 @@ class ChangeLog:
     # a version that is not yet released. Something like "3.1a" is accepted.
     _version_number_re = re.compile(br'[0-9]+\.[0-9A-Za-z.]+')
     _incomplete_version_number_re = re.compile(br'.*\.[A-Za-z]')
+    _only_url_re = re.compile(br'^\s*\w+://\S+\s*$')
+    _has_url_re = re.compile(br'.*://.*')
 
     def add_categories_from_text(self, filename, line_offset,
                                  text, allow_unknown_category):
@@ -219,13 +221,12 @@ class ChangeLog:
                                        category.name.decode('utf8'))
 
             body_split = category.body.splitlines()
-            _only_url_re = re.compile(br'^\s*\w+://\S+\s*$')
-            _has_url_re = re.compile(br'.*://.*')
+
             for line_number, line in enumerate(body_split, 1):
-                if not _only_url_re.match(line) and \
+                if not self._only_url_re.match(line) and \
                    len(line) > MAX_LINE_LENGTH:
                     long_url_msg = '. URL exceeding length limit must be ' \
-                        'alone in it\'s line.' if _has_url_re.match(line)  \
+                        'alone in it\'s line.' if self._has_url_re.match(line)  \
                         else ""
                     raise InputFormatError(filename,
                                            category.body_line + line_number,

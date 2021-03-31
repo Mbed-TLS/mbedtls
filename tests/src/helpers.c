@@ -287,27 +287,41 @@ void mbedtls_param_failed( const char *failure_condition,
 void mbedtls_test_err_add_check( int high, int low,
                                  const char *file, int line )
 {
-    if ( high > -0x1000 )
+    /* Error codes are always negative (a value of zero is a success) however
+     * their positive opposites can be easier to understand. The following
+     * examples given in comments have been made positive for ease of
+     * understanding. The structure of an error code is such:
+     *
+     *                                                shhhhhhhllllllll
+     *
+     * s = sign bit.
+     * h = high level error code (includes high and module error codes).
+     * l = low level error code.
+     */
+    if ( high > -0x1000 )               // high < 0001000000000000
     {
         mbedtls_test_fail( "'high' is not a high-level error code",
                             line, file );
     }
-    else if ( high < -0x7F80 )
+    else if ( high < -0x7F80 )          // high > 0111111110000000
     {
-        mbedtls_test_fail( "'high' is greater than 16-bits", line, file );
+        mbedtls_test_fail( "'high' error code is greater than 15 bits",
+                            line, file );
     }
-    else if ( ( high & 0x7F ) != 0 )
+    else if ( ( high & 0x7F ) != 0 )    // high & 0000000011111111
     {
         mbedtls_test_fail( "'high' contains a low-level error code",
                             line, file );
     }
-    else if ( low < -0x007F )
+    else if ( low < -0x007F )           // low >  0000000001111111
     {
-        mbedtls_test_fail( "'low' is greater than 8-bits", line, file );
+        mbedtls_test_fail( "'low' error code is greater than 7 bits",
+                            line, file );
     }
     else if ( low > 0 )
     {
-        mbedtls_test_fail( "'low' is zero or greater", line, file );
+        mbedtls_test_fail( "'low' error code is greater than zero",
+                            line, file );
     }
 }
 #endif /* MBEDTLS_TEST_HOOKS */

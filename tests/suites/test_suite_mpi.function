@@ -1538,6 +1538,29 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_random_grown( int min, data_t *bound_bytes, int nlimbs )
+{
+    mbedtls_mpi upper_bound;
+    mbedtls_mpi result;
+
+    mbedtls_mpi_init( &upper_bound );
+    mbedtls_mpi_init( &result );
+
+    TEST_EQUAL( 0, mbedtls_mpi_grow( &result, nlimbs ) );
+    TEST_EQUAL( 0, mbedtls_mpi_read_binary( &upper_bound,
+                                            bound_bytes->x, bound_bytes->len ) );
+    TEST_EQUAL( 0, mbedtls_mpi_random( &result, min, &upper_bound,
+                                       mbedtls_test_rnd_std_rand, NULL ) );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &result, &upper_bound ) < 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &result, min ) >= 0 );
+
+exit:
+    mbedtls_mpi_free( &upper_bound );
+    mbedtls_mpi_free( &result );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_random_fail( int min, data_t *bound_bytes, int expected_ret )
 {
     mbedtls_mpi upper_bound;

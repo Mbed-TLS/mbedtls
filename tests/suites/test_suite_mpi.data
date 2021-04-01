@@ -1132,6 +1132,33 @@ mpi_random_many:1:"04":1000
 MPI random in range: 3..4
 mpi_random_many:1:"04":1000
 
+MPI random in range: smaller result
+mpi_random_grown:1:"aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb":1
+
+MPI random in range: same size result (32-bit limbs)
+mpi_random_grown:1:"aaaaaaaaaaaaaaaa":2
+
+MPI random in range: same size result (64-bit limbs)
+mpi_random_grown:1:"aaaaaaaaaaaaaaaa":1
+
+MPI random in range: larger result
+mpi_random_grown:1:"aaaaaaaaaaaaaaaa":3
+
+MPI random in range: leading 0 limb in upper bound #0
+mpi_random_grown:1:"00aaaaaaaaaaaaaaaa":0
+
+MPI random in range: leading 0 limb in upper bound #1
+mpi_random_grown:1:"00aaaaaaaaaaaaaaaa":1
+
+MPI random in range: leading 0 limb in upper bound #2
+mpi_random_grown:1:"00aaaaaaaaaaaaaaaa":2
+
+MPI random in range: leading 0 limb in upper bound #3
+mpi_random_grown:1:"00aaaaaaaaaaaaaaaa":3
+
+MPI random in range: leading 0 limb in upper bound #4
+mpi_random_grown:1:"00aaaaaaaaaaaaaaaa":4
+
 MPI random bad arguments: min < 0
 mpi_random_fail:-1:"04":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 

@@ -205,8 +205,8 @@ psa_status_t psa_validate_key_location( psa_key_lifetime_t lifetime,
  * \param[in] lifetime  The key lifetime attribute.
  *
  * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_ARGUMENT The key is persistent but persistent
- *         keys are not supported.
+ * \retval #PSA_ERROR_NOT_SUPPORTED The key is persistent but persistent keys
+ *             are not supported.
  */
 psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime );
 

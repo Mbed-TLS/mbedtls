@@ -3,6 +3,15 @@
  *  interface.
  *
  *  Warning: This file will be auto-generated in the future.
+ *
+ * \note This file may not be included directly. Applications must
+ * include psa/crypto.h.
+ *
+ * \note This header and its content is not part of the Mbed TLS API and
+ * applications must not depend on it. Its main purpose is to define the
+ * multi-part state objects of the PSA drivers included in the cryptographic
+ * library. The definition of these objects are then used by crypto_struct.h
+ * to define the implementation-defined types of PSA multi-part state objects.
  */
 /*  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0

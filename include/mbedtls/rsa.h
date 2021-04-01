@@ -857,12 +857,13 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  * \brief          This function performs a PKCS#1 v2.1 PSS signature
  *                 operation (RSASSA-PSS-SIGN).
  *
- * \note           The \p hash_id in the RSA context is the one used for the
- *                 encoding. \p md_alg in the function call is the type of hash
- *                 that is encoded. According to <em>RFC-3447: Public-Key
+ * \note           The \c hash_id set in \p ctx by calling
+ *                 mbedtls_rsa_set_padding() selects the hash used for the
+ *                 encoding operation and for the mask generation function
+ *                 (MGF1). For more details on the encoding operation and the
+ *                 mask generation function, consult <em>RFC-3447: Public-Key
  *                 Cryptography Standards (PKCS) #1 v2.1: RSA Cryptography
- *                 Specifications</em> it is advised to keep both hashes the
- *                 same.
+ *                 Specifications</em>.
  *
  * \note           This function enforces that the provided salt length complies
  *                 with FIPS 186-4 §5.5 (e) and RFC 8017 (PKCS#1 v2.2) §9.1.1
@@ -910,12 +911,13 @@ int mbedtls_rsa_rsassa_pss_sign_ext( mbedtls_rsa_context *ctx,
  * \brief          This function performs a PKCS#1 v2.1 PSS signature
  *                 operation (RSASSA-PSS-SIGN).
  *
- * \note           The \p hash_id in the RSA context is the one used for the
- *                 encoding. \p md_alg in the function call is the type of hash
- *                 that is encoded. According to <em>RFC-3447: Public-Key
+ * \note           The \c hash_id set in \p ctx by calling
+ *                 mbedtls_rsa_set_padding() selects the hash used for the
+ *                 encoding operation and for the mask generation function
+ *                 (MGF1). For more details on the encoding operation and the
+ *                 mask generation function, consult <em>RFC-3447: Public-Key
  *                 Cryptography Standards (PKCS) #1 v2.1: RSA Cryptography
- *                 Specifications</em> it is advised to keep both hashes the
- *                 same.
+ *                 Specifications</em>.
  *
  * \note           This function always uses the maximum possible salt size,
  *                 up to the length of the payload hash. This choice of salt
@@ -934,7 +936,7 @@ int mbedtls_rsa_rsassa_pss_sign_ext( mbedtls_rsa_context *ctx,
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
  * \param hashlen  The length of the message digest.
- *                 Ths is only used if \p md_alg is #MBEDTLS_MD_NONE.
+ *                 This is only used if \p md_alg is #MBEDTLS_MD_NONE.
  * \param hash     The buffer holding the message digest or raw data.
  *                 If \p md_alg is #MBEDTLS_MD_NONE, this must be a readable
  *                 buffer of length \p hashlen Bytes. If \p md_alg is not
@@ -1021,16 +1023,15 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
  * \brief          This function performs a PKCS#1 v2.1 PSS verification
  *                 operation (RSASSA-PSS-VERIFY).
  *
- *                 The hash function for the MGF mask generating function
- *                 is that specified in the RSA context.
- *
- * \note           The \p hash_id in the RSA context is the one used for the
- *                 verification. \p md_alg in the function call is the type of
- *                 hash that is verified. According to <em>RFC-3447: Public-Key
+ * \note           The \c hash_id set in \p ctx by calling
+ *                 mbedtls_rsa_set_padding() selects the hash used for the
+ *                 encoding operation and for the mask generation function
+ *                 (MGF1). For more details on the encoding operation and the
+ *                 mask generation function, consult <em>RFC-3447: Public-Key
  *                 Cryptography Standards (PKCS) #1 v2.1: RSA Cryptography
- *                 Specifications</em> it is advised to keep both hashes the
- *                 same. If \p hash_id in the RSA context is unset,
- *                 the \p md_alg from the function call is used.
+ *                 Specifications</em>. If the \c hash_id set in \p ctx by
+ *                 mbedtls_rsa_set_padding() is #MBEDTLS_MD_NONE, the \p md_alg
+ *                 parameter is used.
  *
  * \param ctx      The initialized RSA public key context to use.
  * \param md_alg   The message-digest algorithm used to hash the original data.
@@ -1059,13 +1060,11 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
  * \brief          This function performs a PKCS#1 v2.1 PSS verification
  *                 operation (RSASSA-PSS-VERIFY).
  *
- *                 The hash function for the MGF mask generating function
- *                 is that specified in \p mgf1_hash_id.
- *
  * \note           The \p sig buffer must be as large as the size
  *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
- * \note           The \p hash_id in the RSA context is ignored.
+ * \note           The \c hash_id set in \p ctx by mbedtls_rsa_set_padding() is
+ *                 ignored.
  *
  * \param ctx      The initialized RSA public key context to use.
  * \param md_alg   The message-digest algorithm used to hash the original data.
@@ -1077,7 +1076,13 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
  *                 buffer of length \p hashlen Bytes. If \p md_alg is not
  *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
  *                 the size of the hash corresponding to \p md_alg.
- * \param mgf1_hash_id      The message digest used for mask generation.
+ * \param mgf1_hash_id      The message digest algorithm used for the
+ *                          verification operation and the mask generation
+ *                          function (MGF1). For more details on the encoding
+ *                          operation and the mask generation function, consult
+ *                          <em>RFC-3447: Public-Key Cryptography Standards
+ *                          (PKCS) #1 v2.1: RSA Cryptography
+ *                          Specifications</em>.
  * \param expected_salt_len The length of the salt used in padding. Use
  *                          #MBEDTLS_RSA_SALT_LEN_ANY to accept any salt length.
  * \param sig      The buffer holding the signature. This must be a readable

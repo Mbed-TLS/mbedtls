@@ -893,22 +893,6 @@ const char * mbedtls_low_level_strerr( int error_code )
     return( NULL );
 }
 
-#if defined(MBEDTLS_TEST_HOOKS)
-static void (*err_add_hook)( int, int, const char *, int );
-
-void mbedtls_set_err_add_hook( void (*hook)( int, int, const char *, int ) )
-{
-    err_add_hook = hook;
-}
-
-int mbedtls_err_add( int high, int low, const char *file, int line )
-{
-    if( err_add_hook != NULL )
-        (*err_add_hook)( high, low, file, line );
-    return ( high + low );
-}
-#endif /* MBEDTLS_TEST_HOOKS */
-
 void mbedtls_strerror( int ret, char *buf, size_t buflen )
 {
     size_t len;

@@ -284,7 +284,7 @@ $platform_code
 int main( int argc, const char *argv[] )
 {
 #if defined(MBEDTLS_TEST_HOOKS) && defined (MBEDTLS_ERROR_C)
-    mbedtls_set_err_add_hook( &mbedtls_test_err_add_check );
+    mbedtls_test_hook_error_add = &mbedtls_test_err_add_check;
 #endif
 
     int ret = mbedtls_test_platform_setup();

@@ -1400,12 +1400,22 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_fill_random( int wanted_bytes, int rng_bytes, int expected_ret )
+void mpi_fill_random( int wanted_bytes, int rng_bytes,
+                      int before, int expected_ret )
 {
     mbedtls_mpi X;
     int ret;
     size_t bytes_left = rng_bytes;
     mbedtls_mpi_init( &X );
+
+    if( before != 0 )
+    {
+        /* Set X to sign(before) * 2^(|before|-1) */
+        TEST_ASSERT( mbedtls_mpi_lset( &X, before > 0 ? 1 : -1 ) == 0 );
+        if( before < 0 )
+            before = - before;
+        TEST_ASSERT( mbedtls_mpi_shift_l( &X, before - 1 ) == 0 );
+    }
 
     ret = mbedtls_mpi_fill_random( &X, wanted_bytes,
                                    f_rng_bytes_left, &bytes_left );
@@ -1538,13 +1548,22 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_random_grown( int min, data_t *bound_bytes, int nlimbs )
+void mpi_random_sizes( int min, data_t *bound_bytes, int nlimbs, int before )
 {
     mbedtls_mpi upper_bound;
     mbedtls_mpi result;
 
     mbedtls_mpi_init( &upper_bound );
     mbedtls_mpi_init( &result );
+
+    if( before != 0 )
+    {
+        /* Set result to sign(before) * 2^(|before|-1) */
+        TEST_ASSERT( mbedtls_mpi_lset( &result, before > 0 ? 1 : -1 ) == 0 );
+        if( before < 0 )
+            before = - before;
+        TEST_ASSERT( mbedtls_mpi_shift_l( &result, before - 1 ) == 0 );
+    }
 
     TEST_EQUAL( 0, mbedtls_mpi_grow( &result, nlimbs ) );
     TEST_EQUAL( 0, mbedtls_mpi_read_binary( &upper_bound,

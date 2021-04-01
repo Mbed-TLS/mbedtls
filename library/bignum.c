@@ -2395,6 +2395,30 @@ cleanup:
     return( ret );
 }
 
+/* Fill X with n_bytes random bytes.
+ * X must already have room for those bytes.
+ * n_bytes must not be 0.
+ */
+static int mpi_fill_random_internal(
+    mbedtls_mpi *X, size_t n_bytes,
+    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    const size_t limbs = CHARS_TO_LIMBS( n_bytes );
+    const size_t overhead = ( limbs * ciL ) - n_bytes;
+
+    if( X->n < limbs )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, limbs ) );
+
+    MBEDTLS_MPI_CHK( f_rng( p_rng, (unsigned char *) X->p + overhead, n_bytes ) );
+    mpi_bigendian_to_host( X->p, limbs );
+
+cleanup:
+    return( ret );
+}
+
 /*
  * Fill X with size bytes of random.
  *
@@ -2408,8 +2432,6 @@ int mbedtls_mpi_fill_random( mbedtls_mpi *X, size_t size,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t const limbs = CHARS_TO_LIMBS( size );
-    size_t const overhead = ( limbs * ciL ) - size;
-    unsigned char *Xp;
 
     MPI_VALIDATE_RET( X     != NULL );
     MPI_VALIDATE_RET( f_rng != NULL );
@@ -2421,12 +2443,10 @@ int mbedtls_mpi_fill_random( mbedtls_mpi *X, size_t size,
         mbedtls_mpi_init( X );
         MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, limbs ) );
     }
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
+    if( size == 0 )
+        return( 0 );
 
-    Xp = (unsigned char*) X->p;
-    MBEDTLS_MPI_CHK( f_rng( p_rng, Xp + overhead, size ) );
-
-    mpi_bigendian_to_host( X->p, limbs );
+    ret = mpi_fill_random_internal( X, size, f_rng, p_rng );
 
 cleanup:
     return( ret );
@@ -2450,6 +2470,16 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
     if( mbedtls_mpi_cmp_int( N, min ) <= 0 )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
+    /* Ensure that target MPI has exactly the same number of limbs
+     * as the upper bound, even if the upper bound has leading zeros.
+     * This is necessary for the mbedtls_mpi_lt_mpi_ct() check. */
+    if( X->n != N->n )
+    {
+        mbedtls_mpi_free( X );
+        mbedtls_mpi_init( X );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, N->n ) );
+    }
+
     /*
      * Match the procedure given in RFC 6979 §3.3 (deterministic ECDSA)
      * when f_rng is a suitably parametrized instance of HMAC_DRBG:
@@ -2460,7 +2490,7 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
      */
     do
     {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( X, n_bytes, f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( mpi_fill_random_internal( X, n_bytes, f_rng, p_rng ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( X, 8 * n_bytes - n_bits ) );
 
         /*

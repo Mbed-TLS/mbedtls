@@ -30,8 +30,7 @@
  * declared during the autogeneration process. */
 
 /* Include the context structure definitions for the Mbed TLS software drivers */
-#include "psa/crypto_builtin_cipher.h"
-#include "psa/crypto_builtin_hash.h"
+#include "psa/crypto_builtin.h"
 
 /* Define the context to be used for an operation that is executed through the
  * PSA Driver wrapper layer as the union of all possible driver's contexts.

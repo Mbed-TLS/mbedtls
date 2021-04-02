@@ -2149,6 +2149,17 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
+    if( psa_key_lifetime_is_external( actual_attributes.core.lifetime ) )
+    {
+        /*
+         * Copying through an opaque driver is not implemented yet, consider
+         * a lifetime with an external location as an invalid parameter for
+         * now.
+         */
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+
     status = psa_copy_key_material( source_slot, target_slot );
     if( status != PSA_SUCCESS )
         goto exit;

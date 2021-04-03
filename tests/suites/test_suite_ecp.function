@@ -752,6 +752,52 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+void ecp_muladd( int id,
+                 data_t *u1_bin, data_t *P1_bin,
+                 data_t *u2_bin, data_t *P2_bin,
+                 data_t *expected_result )
+{
+    /* Compute R = u1 * P1 + u2 * P2 */
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_point P1, P2, R;
+    mbedtls_mpi u1, u2;
+    uint8_t actual_result[MBEDTLS_ECP_MAX_PT_LEN];
+    size_t len;
+
+    mbedtls_ecp_group_init( &grp );
+    mbedtls_ecp_point_init( &P1 );
+    mbedtls_ecp_point_init( &P2 );
+    mbedtls_ecp_point_init( &R );
+    mbedtls_mpi_init( &u1 );
+    mbedtls_mpi_init( &u2 );
+
+    TEST_EQUAL( 0, mbedtls_ecp_group_load( &grp, id ) );
+    TEST_EQUAL( 0, mbedtls_mpi_read_binary( &u1, u1_bin->x, u1_bin->len ) );
+    TEST_EQUAL( 0, mbedtls_mpi_read_binary( &u2, u2_bin->x, u2_bin->len ) );
+    TEST_EQUAL( 0, mbedtls_ecp_point_read_binary( &grp, &P1,
+                                                  P1_bin->x, P1_bin->len ) );
+    TEST_EQUAL( 0, mbedtls_ecp_point_read_binary( &grp, &P2,
+                                                  P2_bin->x, P2_bin->len ) );
+
+    TEST_EQUAL( 0, mbedtls_ecp_muladd( &grp, &R, &u1, &P1, &u2, &P2 ) );
+    TEST_EQUAL( 0, mbedtls_ecp_point_write_binary(
+                    &grp, &R, MBEDTLS_ECP_PF_UNCOMPRESSED,
+                    &len, actual_result, sizeof( actual_result ) ) );
+
+    ASSERT_COMPARE( expected_result->x, expected_result->len,
+                    actual_result, len );
+
+exit:
+    mbedtls_ecp_group_free( &grp );
+    mbedtls_ecp_point_free( &P1 );
+    mbedtls_ecp_point_free( &P2 );
+    mbedtls_ecp_point_free( &R );
+    mbedtls_mpi_free( &u1 );
+    mbedtls_mpi_free( &u2 );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void ecp_fast_mod( int id, char * N_str )
 {

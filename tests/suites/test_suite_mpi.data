@@ -10,20 +10,38 @@ mpi_null:
 Base test mpi_read_write_string #1
 mpi_read_write_string:10:"128":10:"128":100:0:0
 
+Base test mpi_read_write_string #1 (Leading 0)
+mpi_read_write_string:10:"0128":10:"128":100:0:0
+
 Base test mpi_read_write_string #2
 mpi_read_write_string:10:"128":16:"80":100:0:0
 
-Base test mpi_read_write_string #3 (Read zero)
+Base test mpi_read_write_string #3 (Read zero decimal)
 mpi_read_write_string:10:"0":10:"0":100:0:0
+
+Base test mpi_read_write_string #3 (Read zero hex)
+mpi_read_write_string:16:"0":16:"00":100:0:0
+
+Base test mpi_read_write_string #3 (Read minus zero decimal)
+mpi_read_write_string:10:"-0":10:"0":100:0:0
+
+Base test mpi_read_write_string #3 (Read minus zero hex)
+mpi_read_write_string:16:"-0":16:"00":100:0:0
 
 Base test mpi_read_write_string #3 (Negative decimal)
 mpi_read_write_string:10:"-23":10:"-23":100:0:0
 
-Base test mpi_read_write_string #3 (Negative hex)
+Base test mpi_read_write_string #3 (Negative decimal, leading 0)
+mpi_read_write_string:10:"-023":10:"-23":100:0:0
+
+Base test mpi_read_write_string #3 (Negative decimal -> hex)
 mpi_read_write_string:16:"-20":10:"-32":100:0:0
 
-Base test mpi_read_write_string #3 (Negative decimal)
+Base test mpi_read_write_string #3 (Negative hex)
 mpi_read_write_string:16:"-23":16:"-23":100:0:0
+
+Base test mpi_read_write_string #3 (Negative hex, leading 0)
+mpi_read_write_string:16:"-023":16:"-23":100:0:0
 
 Base test mpi_read_write_string #4 (Buffer just fits)
 mpi_read_write_string:16:"-4":4:"-10":4:0:0
@@ -49,11 +67,17 @@ mpi_read_write_string:10:"29":15:"1e":100:0:0
 Test mpi_read_write_string #7
 mpi_read_write_string:10:"56125680981752282334141896320372489490613963693556392520816017892111350604111697682705498319512049040516698827829292076808006940873974979584527073481012636016353913462376755556720019831187364993587901952757307830896531678727717924":16:"0941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":200:0:0
 
-Test mpi_read_write_string #8 (Empty MPI -> hex)
+Test mpi_read_write_string #8 (Empty MPI hex -> hex)
 mpi_read_write_string:16:"":16:"00":4:0:0
 
-Test mpi_read_write_string #9 (Empty MPI -> dec)
+Test mpi_read_write_string #9 (Empty MPI hex -> dec)
 mpi_read_write_string:16:"":10:"0":4:0:0
+
+Test mpi_read_write_string #8 (Empty MPI dec -> hex)
+mpi_read_write_string:10:"":16:"00":4:0:0
+
+Test mpi_read_write_string #9 (Empty MPI dec -> dec)
+mpi_read_write_string:10:"":10:"0":4:0:0
 
 Test mpi_write_string #10 (Negative hex with odd number of digits)
 mpi_read_write_string:16:"-1":16:"":3:0:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL

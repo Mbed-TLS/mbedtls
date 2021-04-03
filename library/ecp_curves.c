@@ -1034,7 +1034,7 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
 
 /*
  * If the result is negative, we get it in the form
- * c * 2^(bits + 32) + N, with c negative and N positive shorter than 'bits'
+ * c * 2^bits + N, with c negative and N positive shorter than 'bits'
  */
 MBEDTLS_STATIC_TESTABLE
 void mbedtls_ecp_fix_negative( mbedtls_mpi *N, signed char c, size_t bits )
@@ -1049,8 +1049,8 @@ void mbedtls_ecp_fix_negative( mbedtls_mpi *N, signed char c, size_t bits )
     }
     N->s = -1;
 
-    /* Add |c| * 2^(bits + 32) to the absolute value. Since c and N are
-    * negative, this adds c * 2^(bits + 32). */
+    /* Add |c| * 2^bits to the absolute value. Since c and N are
+    * negative, this adds c * 2^bits. */
     mbedtls_mpi_uint msw = (mbedtls_mpi_uint) -c;
 #if defined(MBEDTLS_HAVE_INT64)
     if( bits == 224 )

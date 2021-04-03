@@ -1041,12 +1041,20 @@ void mbedtls_ecp_fix_negative( mbedtls_mpi *N, signed char c, size_t bits )
 {
     size_t i;
 
-    /* Set N := N - 2^bits */
-    --N->p[0];
+    /* Set N := 2^bits - 1 - N. We know that 0 <= N < 2^bits, so
+     * set the absolute value to 0xfff...fff - N. There is no carry
+     * since we're subtracting from all-bits-one.  */
     for( i = 0; i <= bits / 8 / sizeof( mbedtls_mpi_uint ); i++ )
     {
         N->p[i] = ~(mbedtls_mpi_uint)0 - N->p[i];
     }
+    /* Add 1, taking care of the carry. */
+    i = 0;
+    do
+        ++N->p[i];
+    while( N->p[i++] == 0 && i <= bits / 8 / sizeof( mbedtls_mpi_uint ) );
+    /* Invert the sign.
+     * Now N = N0 - 2^bits where N0 is the initial value of N. */
     N->s = -1;
 
     /* Add |c| * 2^bits to the absolute value. Since c and N are

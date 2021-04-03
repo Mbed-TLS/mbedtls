@@ -31,6 +31,20 @@
 
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_C)
 
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||   \
+    defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) ||   \
+    defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+/* Preconditions:
+ *   - bits is a multiple of 64 or is 224
+ *   - c is -1 or -2
+ *   - 0 <= N < 2^bits
+ *   - N has room for bits+64 bits
+ *
+ * Set N to c * 2^bits + N.
+ */
+void mbedtls_ecp_fix_negative( mbedtls_mpi *N, signed char c, size_t bits );
+#endif
+
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_ECP_C */
 
 #endif /* MBEDTLS_ECP_INVASIVE_H */

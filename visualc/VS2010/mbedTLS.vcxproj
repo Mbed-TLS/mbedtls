@@ -251,6 +251,7 @@
     <ClInclude Include="..\..\tests\include\test\drivers\test_driver.h" />
     <ClInclude Include="..\..\library\check_crypto_config.h" />
     <ClInclude Include="..\..\library\common.h" />
+    <ClInclude Include="..\..\library\ecp_invasive.h" />
     <ClInclude Include="..\..\library\mps_common.h" />
     <ClInclude Include="..\..\library\mps_error.h" />
     <ClInclude Include="..\..\library\mps_reader.h" />

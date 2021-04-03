@@ -1048,13 +1048,13 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
 
 /*
  * If the result is negative, we get it in the form
- * c * 2^(bits + 32) + N, with c negative and N positive shorter than 'bits'
+ * c * 2^bits + N, with c negative and N positive shorter than 'bits'
  */
 static inline int fix_negative( mbedtls_mpi *N, signed char c, mbedtls_mpi *C, size_t bits )
 {
     int ret;
 
-    /* C = - c * 2^(bits + 32) */
+    /* C = - c * 2^bits */
 #if !defined(MBEDTLS_HAVE_INT64)
     ((void) bits);
 #else

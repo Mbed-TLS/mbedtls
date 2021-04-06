@@ -113,8 +113,7 @@ const mbedtls_md_info_t mbedtls_sha256_info = {
 };
 #endif
 
-#if defined(MBEDTLS_SHA512_C)
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
 const mbedtls_md_info_t mbedtls_sha384_info = {
     "SHA384",
     MBEDTLS_MD_SHA384,
@@ -123,6 +122,7 @@ const mbedtls_md_info_t mbedtls_sha384_info = {
 };
 #endif
 
+#if defined(MBEDTLS_SHA512_C)
 const mbedtls_md_info_t mbedtls_sha512_info = {
     "SHA512",
     MBEDTLS_MD_SHA512,
@@ -138,9 +138,10 @@ static const int supported_digests[] = {
 
 #if defined(MBEDTLS_SHA512_C)
         MBEDTLS_MD_SHA512,
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
-        MBEDTLS_MD_SHA384,
 #endif
+
+#if defined(MBEDTLS_SHA384_C)
+        MBEDTLS_MD_SHA384,
 #endif
 
 #if defined(MBEDTLS_SHA256_C)
@@ -208,11 +209,11 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string( const char *md_name )
     if( !strcmp( "SHA256", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 );
 #endif
-#if defined(MBEDTLS_SHA512_C)
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
     if( !strcmp( "SHA384", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_SHA384 );
 #endif
+#if defined(MBEDTLS_SHA512_C)
     if( !strcmp( "SHA512", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_SHA512 );
 #endif
@@ -249,11 +250,11 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type( mbedtls_md_type_t md_type )
         case MBEDTLS_MD_SHA256:
             return( &mbedtls_sha256_info );
 #endif
-#if defined(MBEDTLS_SHA512_C)
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_MD_SHA384:
             return( &mbedtls_sha384_info );
 #endif
+#if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_MD_SHA512:
             return( &mbedtls_sha512_info );
 #endif
@@ -307,10 +308,12 @@ void mbedtls_md_free( mbedtls_md_context_t *ctx )
                 mbedtls_sha256_free( ctx->md_ctx );
                 break;
 #endif
-#if defined(MBEDTLS_SHA512_C)
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
             case MBEDTLS_MD_SHA384:
+                mbedtls_sha512_free( ctx->md_ctx );
+                break;
 #endif
+#if defined(MBEDTLS_SHA512_C)
             case MBEDTLS_MD_SHA512:
                 mbedtls_sha512_free( ctx->md_ctx );
                 break;
@@ -375,10 +378,12 @@ int mbedtls_md_clone( mbedtls_md_context_t *dst,
             mbedtls_sha256_clone( dst->md_ctx, src->md_ctx );
             break;
 #endif
-#if defined(MBEDTLS_SHA512_C)
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_MD_SHA384:
+            mbedtls_sha512_clone( dst->md_ctx, src->md_ctx );
+            break;
 #endif
+#if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_MD_SHA512:
             mbedtls_sha512_clone( dst->md_ctx, src->md_ctx );
             break;
@@ -441,10 +446,12 @@ int mbedtls_md_setup( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_inf
             ALLOC( sha256 );
             break;
 #endif
-#if defined(MBEDTLS_SHA512_C)
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_MD_SHA384:
+            ALLOC( sha512 );
+            break;
 #endif
+#if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_MD_SHA512:
             ALLOC( sha512 );
             break;
@@ -500,11 +507,11 @@ int mbedtls_md_starts( mbedtls_md_context_t *ctx )
         case MBEDTLS_MD_SHA256:
             return( mbedtls_sha256_starts_ret( ctx->md_ctx, 0 ) );
 #endif
-#if defined(MBEDTLS_SHA512_C)
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_MD_SHA384:
             return( mbedtls_sha512_starts_ret( ctx->md_ctx, 1 ) );
 #endif
+#if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_MD_SHA512:
             return( mbedtls_sha512_starts_ret( ctx->md_ctx, 0 ) );
 #endif
@@ -545,10 +552,11 @@ int mbedtls_md_update( mbedtls_md_context_t *ctx, const unsigned char *input, si
         case MBEDTLS_MD_SHA256:
             return( mbedtls_sha256_update_ret( ctx->md_ctx, input, ilen ) );
 #endif
-#if defined(MBEDTLS_SHA512_C)
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_MD_SHA384:
+            return( mbedtls_sha512_update_ret( ctx->md_ctx, input, ilen ) );
 #endif
+#if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_MD_SHA512:
             return( mbedtls_sha512_update_ret( ctx->md_ctx, input, ilen ) );
 #endif
@@ -589,10 +597,11 @@ int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output )
         case MBEDTLS_MD_SHA256:
             return( mbedtls_sha256_finish_ret( ctx->md_ctx, output ) );
 #endif
-#if defined(MBEDTLS_SHA512_C)
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_MD_SHA384:
+            return( mbedtls_sha512_finish_ret( ctx->md_ctx, output ) );
 #endif
+#if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_MD_SHA512:
             return( mbedtls_sha512_finish_ret( ctx->md_ctx, output ) );
 #endif
@@ -635,11 +644,11 @@ int mbedtls_md( const mbedtls_md_info_t *md_info, const unsigned char *input, si
         case MBEDTLS_MD_SHA256:
             return( mbedtls_sha256_ret( input, ilen, output, 0 ) );
 #endif
-#if defined(MBEDTLS_SHA512_C)
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_MD_SHA384:
             return( mbedtls_sha512_ret( input, ilen, output, 1 ) );
 #endif
+#if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_MD_SHA512:
             return( mbedtls_sha512_ret( input, ilen, output, 0 ) );
 #endif
@@ -844,10 +853,11 @@ int mbedtls_md_process( mbedtls_md_context_t *ctx, const unsigned char *data )
         case MBEDTLS_MD_SHA256:
             return( mbedtls_internal_sha256_process( ctx->md_ctx, data ) );
 #endif
-#if defined(MBEDTLS_SHA512_C)
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_MD_SHA384:
+            return( mbedtls_internal_sha512_process( ctx->md_ctx, data ) );
 #endif
+#if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_MD_SHA512:
             return( mbedtls_internal_sha512_process( ctx->md_ctx, data ) );
 #endif

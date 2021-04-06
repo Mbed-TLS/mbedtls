@@ -56,7 +56,6 @@ CLASSIC_DEPENDENCIES = frozenset([
     #'MBEDTLS_GENPRIME', #needed for RSA key generation
     'MBEDTLS_PKCS1_V15',
     'MBEDTLS_PKCS1_V21',
-    'MBEDTLS_SHA512_NO_SHA384',
 
     # Mbed TLS modules.
     # Only modules that provide cryptographic mechanisms are listed here.

@@ -11,7 +11,7 @@ depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"data_files/server1.key":"data_files/server1.req.sha256":MBEDTLS_MD_SHA256:0:0:0:0
 
 Certificate Request check Server1 SHA384
-depends_on:MBEDTLS_SHA512_C:!MBEDTLS_SHA512_NO_SHA384:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_SHA384_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"data_files/server1.key":"data_files/server1.req.sha384":MBEDTLS_MD_SHA384:0:0:0:0
 
 Certificate Request check Server1 SHA512

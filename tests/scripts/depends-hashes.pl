@@ -56,14 +56,8 @@ my $sha_sed_cmd = 's/^#define \(MBEDTLS_SHA.*_C\)/\1/p';
 my @hash_modules = split( /\s+/,
                     `sed -n -e '$mdx_sed_cmd' -e '$sha_sed_cmd' $config_h` );
 
-# there are also negative options for truncated variants, disabled by default
-my $sha_trunc_sed_cmd = 's/^\/\/#define \(MBEDTLS_SHA..._NO_.*\)/\1/p';
-my @hash_negatives = split( /\s+/,
-                    `sed -n -e '$sha_trunc_sed_cmd' $config_h` );
-
 # list hash options with corresponding actions
-my @hashes = ((map { "unset $_" } @hash_modules),
-              (map { "set $_" } @hash_negatives));
+my @hashes = ((map { "unset $_" } @hash_modules));
 
 system( "cp $config_h $config_h.bak" ) and die;
 sub abort {

@@ -290,6 +290,8 @@ int send_cb( void *ctx, unsigned char const *buf, size_t len )
 int ssl_sig_hashes_for_test[] = {
 #if defined(MBEDTLS_SHA512_C)
     MBEDTLS_MD_SHA512,
+#endif
+#if defined(MBEDTLS_SHA384_C)
     MBEDTLS_MD_SHA384,
 #endif
 #if defined(MBEDTLS_SHA256_C)

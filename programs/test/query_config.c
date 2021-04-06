@@ -1283,13 +1283,13 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SHA512_SMALLER */
 
-#if defined(MBEDTLS_SHA512_NO_SHA384)
-    if( strcmp( "MBEDTLS_SHA512_NO_SHA384", config ) == 0 )
+#if defined(MBEDTLS_SHA384_C)
+    if( strcmp( "MBEDTLS_SHA384_C", config ) == 0 )
     {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_SHA512_NO_SHA384 );
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SHA384_C );
         return( 0 );
     }
-#endif /* MBEDTLS_SHA512_NO_SHA384 */
+#endif /* MBEDTLS_SHA384_C */
 
 #if defined(MBEDTLS_SSL_ALL_ALERT_MESSAGES)
     if( strcmp( "MBEDTLS_SSL_ALL_ALERT_MESSAGES", config ) == 0 )

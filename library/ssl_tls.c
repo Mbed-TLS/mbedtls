@@ -6462,6 +6462,8 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
 static int ssl_preset_default_hashes[] = {
 #if defined(MBEDTLS_SHA512_C)
     MBEDTLS_MD_SHA512,
+#endif
+#if defined(MBEDTLS_SHA384_C)
     MBEDTLS_MD_SHA384,
 #endif
 #if defined(MBEDTLS_SHA256_C)
@@ -6819,9 +6821,11 @@ mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash )
         case MBEDTLS_SSL_HASH_SHA256:
             return( MBEDTLS_MD_SHA256 );
 #endif
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_SSL_HASH_SHA384:
             return( MBEDTLS_MD_SHA384 );
+#endif
+#if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_SSL_HASH_SHA512:
             return( MBEDTLS_MD_SHA512 );
 #endif
@@ -6851,9 +6855,11 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md )
         case MBEDTLS_MD_SHA256:
             return( MBEDTLS_SSL_HASH_SHA256 );
 #endif
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_MD_SHA384:
             return( MBEDTLS_SSL_HASH_SHA384 );
+#endif
+#if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_MD_SHA512:
             return( MBEDTLS_SSL_HASH_SHA512 );
 #endif

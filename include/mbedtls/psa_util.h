@@ -142,9 +142,11 @@ static inline psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg
     case MBEDTLS_MD_SHA256:
         return( PSA_ALG_SHA_256 );
 #endif
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA384_C)
     case MBEDTLS_MD_SHA384:
         return( PSA_ALG_SHA_384 );
+#endif
+#if defined(MBEDTLS_SHA512_C)
     case MBEDTLS_MD_SHA512:
         return( PSA_ALG_SHA_512 );
 #endif

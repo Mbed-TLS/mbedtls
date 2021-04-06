@@ -1046,3 +1046,201 @@ exit:
     PSA_DONE( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void hash_compute( int alg_arg,
+                   data_t *input, data_t *hash,
+                   int forced_status_arg,
+                   int expected_status_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t forced_status = forced_status_arg;
+    psa_status_t expected_status = expected_status_arg;
+    unsigned char *output = NULL;
+    size_t output_length;
+
+    test_driver_hash_hooks = test_driver_hash_hooks_init();
+    test_driver_hash_hooks.forced_status = forced_status;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    ASSERT_ALLOC( output, PSA_HASH_LENGTH( alg ) );
+
+    TEST_EQUAL( psa_hash_compute( alg, input->x, input->len,
+                                  output, PSA_HASH_LENGTH( alg ),
+                                  &output_length ), expected_status );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 1 );
+    TEST_EQUAL( test_driver_hash_hooks.driver_status, forced_status );
+
+    if( expected_status == PSA_SUCCESS )
+    {
+        ASSERT_COMPARE( output, output_length, hash->x, hash->len );
+    }
+
+exit:
+    mbedtls_free( output );
+    PSA_DONE( );
+    test_driver_hash_hooks = test_driver_hash_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void hash_multipart( int alg_arg,
+                     data_t *input, data_t *hash,
+                     int forced_status_arg,
+                     int expected_status_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t forced_status = forced_status_arg;
+    psa_status_t expected_status = expected_status_arg;
+    unsigned char *output = NULL;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    size_t output_length;
+
+    test_driver_hash_hooks = test_driver_hash_hooks_init();
+    ASSERT_ALLOC( output, PSA_HASH_LENGTH( alg ) );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /*
+     * Case 1: Force the driver return status for setup.
+     */
+    test_driver_hash_hooks.forced_status = forced_status;
+    TEST_EQUAL( psa_hash_setup( &operation, alg ), expected_status );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 1 );
+    TEST_EQUAL( test_driver_hash_hooks.driver_status, forced_status );
+
+    if( expected_status == PSA_SUCCESS )
+    {
+        PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+        TEST_EQUAL( test_driver_hash_hooks.hits,
+                    forced_status == PSA_ERROR_NOT_SUPPORTED ? 1 : 2 );
+        TEST_EQUAL( test_driver_hash_hooks.driver_status, forced_status );
+
+        PSA_ASSERT( psa_hash_finish( &operation,
+                                     output, PSA_HASH_LENGTH( alg ),
+                                     &output_length ) );
+        TEST_EQUAL( test_driver_hash_hooks.hits,
+                    forced_status == PSA_ERROR_NOT_SUPPORTED ? 1 : 4 );
+        TEST_EQUAL( test_driver_hash_hooks.driver_status, forced_status );
+
+        ASSERT_COMPARE( output, output_length, hash->x, hash->len );
+    }
+
+    /*
+     * Case 2: Force the driver return status for update.
+     */
+    test_driver_hash_hooks = test_driver_hash_hooks_init();
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 1 );
+    TEST_EQUAL( test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+    test_driver_hash_hooks.forced_status = forced_status;
+    TEST_EQUAL( psa_hash_update( &operation, input->x, input->len ),
+                                 forced_status );
+    TEST_EQUAL( test_driver_hash_hooks.hits,
+                forced_status != PSA_SUCCESS ? 3 : 2 );
+    TEST_EQUAL( test_driver_hash_hooks.driver_status, forced_status );
+
+    if( forced_status == PSA_SUCCESS )
+    {
+        PSA_ASSERT( psa_hash_finish( &operation,
+                                     output, PSA_HASH_LENGTH( alg ),
+                                     &output_length ) );
+        TEST_EQUAL( test_driver_hash_hooks.hits, 4 );
+        TEST_EQUAL( test_driver_hash_hooks.driver_status, forced_status );
+
+        ASSERT_COMPARE( output, output_length, hash->x, hash->len );
+    }
+
+    /*
+     * Case 3: Force the driver return status for finish.
+     */
+    test_driver_hash_hooks = test_driver_hash_hooks_init();
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 1 );
+    TEST_EQUAL( test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+    PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 2 );
+    TEST_EQUAL( test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+    test_driver_hash_hooks.forced_status = forced_status;
+    TEST_EQUAL( psa_hash_finish( &operation,
+                                 output, PSA_HASH_LENGTH( alg ),
+                                 &output_length ), forced_status );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 4 );
+    TEST_EQUAL( test_driver_hash_hooks.driver_status, forced_status );
+
+    if( forced_status == PSA_SUCCESS )
+    {
+        ASSERT_COMPARE( output, output_length, hash->x, hash->len );
+    }
+
+exit:
+    psa_hash_abort( &operation );
+    mbedtls_free( output );
+    PSA_DONE( );
+    test_driver_hash_hooks = test_driver_hash_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void hash_clone( int alg_arg,
+                 data_t *input, data_t *hash,
+                 int forced_status_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t forced_status = forced_status_arg;
+    unsigned char *output = NULL;
+    psa_hash_operation_t source_operation = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t target_operation = PSA_HASH_OPERATION_INIT;
+    size_t output_length;
+
+    test_driver_hash_hooks = test_driver_hash_hooks_init();
+    ASSERT_ALLOC( output, PSA_HASH_LENGTH( alg ) );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /*
+     * Clone none active operation, the driver shouldn't be called.
+     */
+    TEST_EQUAL( psa_hash_clone( &source_operation, &target_operation ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 0 );
+
+    PSA_ASSERT( psa_hash_setup( &source_operation, alg ) );
+    TEST_EQUAL( test_driver_hash_hooks.hits, 1 );
+    TEST_EQUAL( test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+    test_driver_hash_hooks.forced_status = forced_status;
+    TEST_EQUAL( psa_hash_clone( &source_operation, &target_operation ),
+                forced_status );
+    TEST_EQUAL( test_driver_hash_hooks.hits,
+                forced_status == PSA_SUCCESS ? 2 : 3 );
+    TEST_EQUAL( test_driver_hash_hooks.driver_status, forced_status );
+
+    if( forced_status == PSA_SUCCESS )
+    {
+        test_driver_hash_hooks = test_driver_hash_hooks_init();
+        PSA_ASSERT( psa_hash_update( &target_operation,
+                                     input->x, input->len ) );
+        TEST_EQUAL( test_driver_hash_hooks.hits, 1 );
+        TEST_EQUAL( test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+        PSA_ASSERT( psa_hash_finish( &target_operation,
+                                     output, PSA_HASH_LENGTH( alg ),
+                                     &output_length ) );
+        TEST_EQUAL( test_driver_hash_hooks.hits, 3 );
+        TEST_EQUAL( test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+        ASSERT_COMPARE( output, output_length, hash->x, hash->len );
+    }
+
+exit:
+    psa_hash_abort( &source_operation );
+    psa_hash_abort( &target_operation );
+    mbedtls_free( output );
+    PSA_DONE( );
+    test_driver_hash_hooks = test_driver_hash_hooks_init();
+}
+/* END_CASE */

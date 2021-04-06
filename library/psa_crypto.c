@@ -604,20 +604,8 @@ MBEDTLS_STATIC_TESTABLE psa_status_t psa_mac_key_can_do(
     return( PSA_ERROR_INVALID_ARGUMENT );
 }
 
-/** Try to allocate a buffer to an empty key slot.
- *
- * \param[in,out] slot          Key slot to attach buffer to.
- * \param[in] buffer_length     Requested size of the buffer.
- *
- * \retval #PSA_SUCCESS
- *         The buffer has been successfully allocated.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- *         Not enough memory was available for allocation.
- * \retval #PSA_ERROR_ALREADY_EXISTS
- *         Trying to allocate a buffer to a non-empty key slot.
- */
-static psa_status_t psa_allocate_buffer_to_slot( psa_key_slot_t *slot,
-                                                 size_t buffer_length )
+psa_status_t psa_allocate_buffer_to_slot( psa_key_slot_t *slot,
+                                          size_t buffer_length )
 {
     if( slot->key.data != NULL )
         return( PSA_ERROR_ALREADY_EXISTS );

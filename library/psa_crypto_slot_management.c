@@ -283,7 +283,6 @@ static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_lifetime_t lifetime = PSA_KEY_LIFETIME_VOLATILE;
     psa_drv_slot_number_t slot_number = 0;
-    uint8_t *key_buffer = NULL;
     size_t key_buffer_size = 0;
     size_t key_buffer_length = 0;
 
@@ -303,33 +302,32 @@ static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
     /* Set mapped lifetime on the attributes */
     psa_set_key_lifetime( &attributes, lifetime );
 
-    /* If the key should exist according to the platform, load it through the
-     * driver interface. */
+    /* If the key should exist according to the platform, then ask the driver
+     * what its expected size is. */
     status = psa_driver_wrapper_get_key_buffer_size( &attributes,
                                                      &key_buffer_size );
     if( status != PSA_SUCCESS )
         return( status );
 
-    key_buffer = mbedtls_calloc( 1, key_buffer_size );
-    if( key_buffer == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+    /* Allocate a buffer of the required size and load the builtin key directly
+     * into the slot buffer. */
+    status = psa_allocate_buffer_to_slot( slot, key_buffer_size );
+    if( status != PSA_SUCCESS )
+        return( status );
 
     status = psa_driver_wrapper_get_builtin_key(
                 slot_number, &attributes,
-                key_buffer, key_buffer_size, &key_buffer_length );
+                slot->key.data, slot->key.bytes, &key_buffer_length );
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_copy_key_material_into_slot(
-                slot, key_buffer, key_buffer_length );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    /* Copy core attributes into the slot on success */
+    /* Copy actual key length and core attributes into the slot on success */
+    slot->key.bytes = key_buffer_length;
     slot->attr = attributes.core;
 
 exit:
-    mbedtls_free( key_buffer );
+    if( status != PSA_SUCCESS )
+        psa_wipe_key_slot( slot );
     return( status );
 }
 #endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */

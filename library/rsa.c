@@ -1795,21 +1795,19 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
 }
 
 #if defined(MBEDTLS_PKCS1_V21)
-/*
- * Implementation of the PKCS#1 v2.1 RSASSA-PSS-SIGN function
- */
-int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
+static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng,
                          int mode,
                          mbedtls_md_type_t md_alg,
                          unsigned int hashlen,
                          const unsigned char *hash,
+                         int saltlen,
                          unsigned char *sig )
 {
     size_t olen;
     unsigned char *p = sig;
-    unsigned char salt[MBEDTLS_MD_MAX_SIZE];
+    unsigned char *salt = NULL;
     size_t slen, min_slen, hlen, offset = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t msb;
@@ -1847,31 +1845,44 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
 
     hlen = mbedtls_md_get_size( md_info );
 
-    /* Calculate the largest possible salt length. Normally this is the hash
-     * length, which is the maximum length the salt can have. If there is not
-     * enough room, use the maximum salt length that fits. The constraint is
-     * that the hash length plus the salt length plus 2 bytes must be at most
-     * the key length. This complies with FIPS 186-4 §5.5 (e) and RFC 8017
-     * (PKCS#1 v2.2) §9.1.1 step 3. */
-    min_slen = hlen - 2;
-    if( olen < hlen + min_slen + 2 )
+    if (saltlen == MBEDTLS_RSA_SALT_LEN_ANY)
+    {
+       /* Calculate the largest possible salt length, up to the hash size.
+        * Normally this is the hash length, which is the maximum salt length
+        * according to FIPS 185-4 §5.5 (e) and common practice. If there is not
+        * enough room, use the maximum salt length that fits. The constraint is
+        * that the hash length plus the salt length plus 2 bytes must be at most
+        * the key length. This complies with FIPS 186-4 §5.5 (e) and RFC 8017
+        * (PKCS#1 v2.2) §9.1.1 step 3. */
+        min_slen = hlen - 2;
+        if( olen < hlen + min_slen + 2 )
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+        else if( olen >= hlen + hlen + 2 )
+            slen = hlen;
+        else
+            slen = olen - hlen - 2;
+    }
+    else if ( (saltlen < 0) || (saltlen + hlen + 2 > olen) )
+    {
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-    else if( olen >= hlen + hlen + 2 )
-        slen = hlen;
+    }
     else
-        slen = olen - hlen - 2;
+    {
+        slen = (size_t) saltlen;
+    }
 
     memset( sig, 0, olen );
-
-    /* Generate salt of length slen */
-    if( ( ret = f_rng( p_rng, salt, slen ) ) != 0 )
-        return( MBEDTLS_ERR_RSA_RNG_FAILED + ret );
 
     /* Note: EMSA-PSS encoding is over the length of N - 1 bits */
     msb = mbedtls_mpi_bitlen( &ctx->N ) - 1;
     p += olen - hlen - slen - 2;
     *p++ = 0x01;
-    memcpy( p, salt, slen );
+
+    /* Generate salt of length slen in place in the encoded message */
+    salt = p;
+    if( ( ret = f_rng( p_rng, salt, slen ) ) != 0 )
+        return( MBEDTLS_ERR_RSA_RNG_FAILED + ret );
+
     p += slen;
 
     mbedtls_md_init( &md_ctx );
@@ -1905,8 +1916,6 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     p += hlen;
     *p++ = 0xBC;
 
-    mbedtls_platform_zeroize( salt, sizeof( salt ) );
-
 exit:
     mbedtls_md_free( &md_ctx );
 
@@ -1916,6 +1925,40 @@ exit:
     return( ( mode == MBEDTLS_RSA_PUBLIC )
             ? mbedtls_rsa_public(  ctx, sig, sig )
             : mbedtls_rsa_private( ctx, f_rng, p_rng, sig, sig ) );
+}
+
+/*
+ * Implementation of the PKCS#1 v2.1 RSASSA-PSS-SIGN function with
+ * the option to pass in the salt length.
+ */
+int mbedtls_rsa_rsassa_pss_sign_ext( mbedtls_rsa_context *ctx,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng,
+                         mbedtls_md_type_t md_alg,
+                         unsigned int hashlen,
+                         const unsigned char *hash,
+                         int saltlen,
+                         unsigned char *sig )
+{
+    return rsa_rsassa_pss_sign( ctx, f_rng, p_rng, MBEDTLS_RSA_PRIVATE, md_alg,
+                                hashlen, hash, saltlen, sig );
+}
+
+
+/*
+ * Implementation of the PKCS#1 v2.1 RSASSA-PSS-SIGN function
+ */
+int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng,
+                         int mode,
+                         mbedtls_md_type_t md_alg,
+                         unsigned int hashlen,
+                         const unsigned char *hash,
+                         unsigned char *sig )
+{
+    return rsa_rsassa_pss_sign( ctx, f_rng, p_rng, mode, md_alg,
+                                hashlen, hash, MBEDTLS_RSA_SALT_LEN_ANY, sig );
 }
 #endif /* MBEDTLS_PKCS1_V21 */
 

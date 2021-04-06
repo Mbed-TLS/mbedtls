@@ -983,6 +983,59 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  *                 Specifications</em> it is advised to keep both hashes the
  *                 same.
  *
+ * \note           This function enforces that the provided salt length complies
+ *                 with FIPS 186-4 §5.5 (e) and RFC 8017 (PKCS#1 v2.2) §9.1.1
+ *                 step 3. The constraint is that the hash length plus the salt
+ *                 length plus 2 bytes must be at most the key length. If this
+ *                 constraint is not met, this function returns
+ *                 #MBEDTLS_ERR_RSA_BAD_INPUT_DATA.
+ *
+ * \param ctx      The initialized RSA context to use.
+ * \param f_rng    The RNG function. It must not be \c NULL.
+ * \param p_rng    The RNG context to be passed to \p f_rng. This may be \c NULL
+ *                 if \p f_rng doesn't need a context argument.
+ * \param md_alg   The message-digest algorithm used to hash the original data.
+ *                 Use #MBEDTLS_MD_NONE for signing raw data.
+ * \param hashlen  The length of the message digest.
+ *                 Ths is only used if \p md_alg is #MBEDTLS_MD_NONE.
+ * \param hash     The buffer holding the message digest or raw data.
+ *                 If \p md_alg is #MBEDTLS_MD_NONE, this must be a readable
+ *                 buffer of length \p hashlen Bytes. If \p md_alg is not
+ *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
+ *                 the size of the hash corresponding to \p md_alg.
+ * \param saltlen  The length of the salt that should be used.
+ *                 If passed #MBEDTLS_RSA_SALT_LEN_ANY, the function will use
+ *                 the largest possible salt length up to the hash length,
+ *                 which is the largest permitted by some standards including
+ *                 FIPS 186-4 §5.5.
+ * \param sig      The buffer to hold the signature. This must be a writable
+ *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus. A buffer length of
+ *                 #MBEDTLS_MPI_MAX_SIZE is always safe.
+ *
+ * \return         \c 0 if the signing operation was successful.
+ * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
+ */
+int mbedtls_rsa_rsassa_pss_sign_ext( mbedtls_rsa_context *ctx,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng,
+                         mbedtls_md_type_t md_alg,
+                         unsigned int hashlen,
+                         const unsigned char *hash,
+                         int saltlen,
+                         unsigned char *sig );
+
+/**
+ * \brief          This function performs a PKCS#1 v2.1 PSS signature
+ *                 operation (RSASSA-PSS-SIGN).
+ *
+ * \note           The \p hash_id in the RSA context is the one used for the
+ *                 encoding. \p md_alg in the function call is the type of hash
+ *                 that is encoded. According to <em>RFC-3447: Public-Key
+ *                 Cryptography Standards (PKCS) #1 v2.1: RSA Cryptography
+ *                 Specifications</em> it is advised to keep both hashes the
+ *                 same.
+ *
  * \note           This function always uses the maximum possible salt size,
  *                 up to the length of the payload hash. This choice of salt
  *                 size complies with FIPS 186-4 §5.5 (e) and RFC 8017 (PKCS#1

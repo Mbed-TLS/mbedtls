@@ -229,8 +229,8 @@ psa_status_t psa_driver_wrapper_verify_hash(
     }
 }
 
-/** Get the key buffer size for the key material of a generated key in the
- *  case of an opaque driver without storage.
+/** Get the key buffer size required to store the key material of a key
+ *  associated with an opaque driver without storage.
  *
  * \param[in] attributes  The key attributes.
  * \param[out] key_buffer_size  Minimum buffer size to contain the key material

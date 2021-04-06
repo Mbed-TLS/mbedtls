@@ -287,7 +287,6 @@ static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
     size_t key_buffer_size = 0;
     size_t key_buffer_length = 0;
 
-    /* Load keys in the 'builtin' range through their own interface */
     if( ! psa_key_id_is_builtin(
             MBEDTLS_SVC_KEY_ID_GET_KEY_ID( slot->attr.id ) ) )
     {
@@ -363,6 +362,7 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
 
     status = PSA_ERROR_DOES_NOT_EXIST;
 #if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
+    /* Load keys in the 'builtin' range through their own interface */
     status = psa_load_builtin_key_into_slot( *p_slot );
 #endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 

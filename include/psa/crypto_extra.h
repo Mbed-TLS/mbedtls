@@ -759,7 +759,7 @@ static inline int psa_key_id_is_builtin( psa_key_id_t key_id )
             ( key_id <= MBEDTLS_PSA_KEY_ID_BUILTIN_MAX ) );
 }
 
-/** Platform function to obtain the location and slot of a built-in key.
+/** Platform function to obtain the location and slot number of a built-in key.
  *
  * An application-specific implementation of this function must be provided if
  * #MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS is enabled. This would typically be provided
@@ -781,7 +781,7 @@ static inline int psa_key_id_is_builtin( psa_key_id_t key_id )
  *                              and with what lifecycle the key can be used.
  * \param[out] slot_number      On success, the slot number known to the driver
  *                              registered at the lifetime location reported
- *                              through \p location which corresponds to the
+ *                              through \p lifetime which corresponds to the
  *                              requested built-in key.
  *
  * \retval #PSA_SUCCESS

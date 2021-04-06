@@ -189,20 +189,6 @@ psa_status_t mbedtls_psa_aead_encrypt(
     }
     tag = ciphertext + plaintext_length;
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
-    if( operation.core_alg == PSA_ALG_GCM )
-    {
-        status = mbedtls_to_psa_error(
-            mbedtls_gcm_crypt_and_tag( &operation.ctx.gcm,
-                                       MBEDTLS_GCM_ENCRYPT,
-                                       plaintext_length,
-                                       nonce, nonce_length,
-                                       additional_data, additional_data_length,
-                                       plaintext, ciphertext,
-                                       operation.tag_length, tag ) );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation.core_alg == PSA_ALG_CCM )
     {
@@ -217,6 +203,20 @@ psa_status_t mbedtls_psa_aead_encrypt(
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
+    if( operation.core_alg == PSA_ALG_GCM )
+    {
+        status = mbedtls_to_psa_error(
+            mbedtls_gcm_crypt_and_tag( &operation.ctx.gcm,
+                                       MBEDTLS_GCM_ENCRYPT,
+                                       plaintext_length,
+                                       nonce, nonce_length,
+                                       additional_data, additional_data_length,
+                                       plaintext, ciphertext,
+                                       operation.tag_length, tag ) );
+    }
+    else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation.core_alg == PSA_ALG_CHACHA20_POLY1305 )
     {
@@ -296,20 +296,6 @@ psa_status_t mbedtls_psa_aead_decrypt(
     if( status != PSA_SUCCESS )
         goto exit;
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
-    if( operation.core_alg == PSA_ALG_GCM )
-    {
-        status = mbedtls_to_psa_error(
-            mbedtls_gcm_auth_decrypt( &operation.ctx.gcm,
-                                      ciphertext_length - operation.tag_length,
-                                      nonce, nonce_length,
-                                      additional_data,
-                                      additional_data_length,
-                                      tag, operation.tag_length,
-                                      ciphertext, plaintext ) );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation.core_alg == PSA_ALG_CCM )
     {
@@ -324,6 +310,20 @@ psa_status_t mbedtls_psa_aead_decrypt(
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
+    if( operation.core_alg == PSA_ALG_GCM )
+    {
+        status = mbedtls_to_psa_error(
+            mbedtls_gcm_auth_decrypt( &operation.ctx.gcm,
+                                      ciphertext_length - operation.tag_length,
+                                      nonce, nonce_length,
+                                      additional_data,
+                                      additional_data_length,
+                                      tag, operation.tag_length,
+                                      ciphertext, plaintext ) );
+    }
+    else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation.core_alg == PSA_ALG_CHACHA20_POLY1305 )
     {

@@ -39,7 +39,7 @@
 #include <mbedtls/rsa.h>
 #include <mbedtls/error.h>
 #include <mbedtls/pk.h>
-#include <mbedtls/pk_internal.h>
+#include "pk_wrap.h"
 
 #if ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||  \
       ( defined(PSA_CRYPTO_DRIVER_TEST) &&                   \

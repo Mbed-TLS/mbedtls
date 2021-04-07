@@ -1,7 +1,9 @@
 API changes
    * Remove HAVEGE module.
-     The design of HAVEGE makes it unsuitable for microcontrollers. Platforms with a more complex
-     CPU usually have an operating system interface that provides better randomness.
-     Instead of HAVEGE, declare OS or hardware RNG interfaces with mbedtls_entropy_add_source()
-     and/or use an entropy seed file created securely during device provisioning.
-     See https://tls.mbed.org/kb/how-to/add-entropy-sources-to-entropy-pool for more information.
+     The design of HAVEGE makes it unsuitable for microcontrollers. Platforms
+     with a more complex CPU usually have an operating system interface that
+     provides better randomness. Instead of HAVEGE, declare OS or hardware RNG
+     interfaces with mbedtls_entropy_add_source() and/or use an entropy seed
+     file created securely during device provisioning. See
+     https://tls.mbed.org/kb/how-to/add-entropy-sources-to-entropy-pool for
+     more information.

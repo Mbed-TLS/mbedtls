@@ -375,11 +375,14 @@
  */
 #define PSA_AEAD_NONCE_LENGTH(key_type, alg) \
     (PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) == 16 ? \
-          PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg) == PSA_ALG_CCM ? 13 : \
-          PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg) == PSA_ALG_GCM ? 12 : \
+          PSA_ALG_AEAD_WITH_SHORTENED_TAG(alg, 0) == \
+              PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 0) ? 13 : \
+          PSA_ALG_AEAD_WITH_SHORTENED_TAG(alg, 0) == \
+              PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 0) ? 12 : \
           0 : \
      (key_type) == PSA_KEY_TYPE_CHACHA20 && \
-          PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg) == PSA_ALG_CHACHA20_POLY1305 ? 12 : \
+          PSA_ALG_AEAD_WITH_SHORTENED_TAG(alg, 0) == \
+              PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CHACHA20_POLY1305, 0) ? 12 : \
      0)
 
 /** The maximum default nonce size among all supported pairs of key types and

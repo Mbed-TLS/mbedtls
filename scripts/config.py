@@ -171,6 +171,7 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_DEPRECATED_REMOVED', # conflicts with deprecated options
     'MBEDTLS_DEPRECATED_WARNING', # conflicts with deprecated options
     'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED', # influences the use of ECDH in TLS
+    'MBEDTLS_ECP_NO_FALLBACK', # removes internal ECP implementation
     'MBEDTLS_ECP_NO_INTERNAL_RNG', # removes a feature
     'MBEDTLS_ECP_RESTARTABLE', # incompatible with USE_PSA_CRYPTO
     'MBEDTLS_ENTROPY_FORCE_SHA256', # interacts with CTR_DRBG_128_BIT_KEY

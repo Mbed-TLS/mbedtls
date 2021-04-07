@@ -384,8 +384,7 @@ int execute_tests( int args, const char ** argv )
     while ( 1 )
     {
         ret = 0;
-        test_info.result = TEST_RESULT_SUCCESS;
-        test_info.step = (unsigned long)( -1 );
+        mbedtls_test_info_reset( );
         data_len = 0;
 
         data = receive_data( &data_len );
@@ -443,7 +442,7 @@ int execute_tests( int args, const char ** argv )
         if ( ret )
             send_failure( ret );
         else
-            send_status( test_info.result );
+            send_status( mbedtls_test_info.result );
     }
     return( 0 );
 }

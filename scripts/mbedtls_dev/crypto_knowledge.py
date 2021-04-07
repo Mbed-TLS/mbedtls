@@ -78,6 +78,7 @@ class KeyType:
         'PSA_ECC_FAMILY_SECT_R2': (163,),
         'PSA_ECC_FAMILY_BRAINPOOL_P_R1': (160, 192, 224, 256, 320, 384, 512),
         'PSA_ECC_FAMILY_MONTGOMERY': (255, 448),
+        'PSA_ECC_FAMILY_TWISTED_EDWARDS': (255, 448),
     }
     KEY_TYPE_SIZES = {
         'PSA_KEY_TYPE_AES': (128, 192, 256), # exhaustive

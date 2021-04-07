@@ -324,7 +324,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     test_driver_cipher_hooks.hits = 0;
 
     output_buffer_size = ( (size_t) input->len +
-                           PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
+                           PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
     ASSERT_ALLOC( output, output_buffer_size );
 
     if( mock_output_arg )
@@ -416,7 +416,7 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
     test_driver_cipher_hooks.hits = 0;
 
     output_buffer_size = ( (size_t) input->len +
-                           PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
+                           PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
     ASSERT_ALLOC( output, output_buffer_size );
 
     TEST_ASSERT( first_part_size <= input->len );
@@ -501,7 +501,7 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
     test_driver_cipher_hooks.hits = 0;
 
     output_buffer_size = ( (size_t) input->len +
-                           PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
+                           PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
     ASSERT_ALLOC( output, output_buffer_size );
 
     TEST_ASSERT( first_part_size <= input->len );
@@ -589,7 +589,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     test_driver_cipher_hooks.hits = 0;
 
     output_buffer_size = ( (size_t) input->len +
-                           PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
+                           PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
     ASSERT_ALLOC( output, output_buffer_size );
 
     if( mock_output_arg )

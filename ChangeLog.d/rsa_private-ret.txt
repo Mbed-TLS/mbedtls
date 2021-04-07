@@ -1,2 +1,0 @@
-Bugfix
-   * Fix an incorrect error code if an RSA private operation glitched.

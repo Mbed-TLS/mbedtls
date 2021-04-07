@@ -15,7 +15,7 @@ typedef struct
 
 int generic_write_start_step( generic_write_data_t *data )
 {
-    test_set_step( data->size );
+    mbedtls_test_set_step( data->size );
     ASSERT_ALLOC( data->output, data->size == 0 ? 1 : data->size );
     data->end = data->output + data->size;
     data->p = data->end;

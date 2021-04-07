@@ -80,6 +80,50 @@
 
 #endif /* MBEDTLS_DEBUG_C */
 
+/**
+ * \def MBEDTLS_PRINTF_ATTRIBUTE
+ *
+ * Mark a function as having printf attributes, and thus enable checking
+ * via -wFormat and other flags. This does nothing on builds with compilers
+ * that do not support the format attribute
+ *
+ * Module:  library/debug.c
+ * Caller:
+ *
+ * This module provides debugging functions.
+ */
+#if defined(__has_attribute)
+#if __has_attribute(format)
+#define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)    \
+    __attribute__((format (printf, string_index, first_to_check)))
+#else /* __has_attribute(format) */
+#define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)
+#endif /* __has_attribute(format) */
+#else /* defined(__has_attribute) */
+#define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)
+#endif
+
+/**
+ * \def MBEDTLS_PRINTF_SIZET
+ *
+ * MBEDTLS_PRINTF_xxx: Due to issues with older window compilers
+ * and MinGW we need to define the printf specifier for size_t
+ * and long long per platform.
+ *
+ * Module:  library/debug.c
+ * Caller:
+ *
+ * This module provides debugging functions.
+ */
+#if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER < 1800)
+   #include <inttypes.h>
+   #define MBEDTLS_PRINTF_SIZET     PRIuPTR
+   #define MBEDTLS_PRINTF_LONGLONG  "I64d"
+#else /* defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER < 1800) */
+   #define MBEDTLS_PRINTF_SIZET     "zu"
+   #define MBEDTLS_PRINTF_LONGLONG  "lld"
+#endif /* defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER < 1800) */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -118,7 +162,7 @@ void mbedtls_debug_set_threshold( int threshold );
  */
 void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,
                               const char *file, int line,
-                              const char *format, ... );
+                              const char *format, ... ) MBEDTLS_PRINTF_ATTRIBUTE(5, 6);
 
 /**
  * \brief   Print the return value of a function to the debug output. This

@@ -38,7 +38,7 @@ import re
 import os
 import binascii
 
-from mbed_host_tests import BaseHostTest, event_callback # pylint: disable=import-error
+from mbed_host_tests import BaseHostTest, event_callback # type: ignore # pylint: disable=import-error
 
 
 class TestDataParserError(Exception):

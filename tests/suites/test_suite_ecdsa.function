@@ -391,8 +391,6 @@ void ecdsa_write_read_zero( int id )
     memset( &rnd_info, 0x00, sizeof( mbedtls_test_rnd_pseudo_info ) );
     memset( hash, 0, sizeof( hash ) );
     memset( sig, 0x2a, sizeof( sig ) );
-    
-    TEST_ASSERT(0);
 
     /* generate signing key */
     TEST_ASSERT( mbedtls_ecdsa_genkey( &ctx, id,

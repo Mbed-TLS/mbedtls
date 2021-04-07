@@ -60,10 +60,10 @@
 
 typedef enum
 {
-    mbedtls_mps_trace_comment,
-    mbedtls_mps_trace_call,
-    mbedtls_mps_trace_error,
-    mbedtls_mps_trace_return
+    MBEDTLS_MPS_TRACE_TYPE_COMMENT,
+    MBEDTLS_MPS_TRACE_TYPE_CALL,
+    MBEDTLS_MPS_TRACE_TYPE_ERROR,
+    MBEDTLS_MPS_TRACE_TYPE_RETURN
 } mbedtls_mps_trace_type;
 
 #define MBEDTLS_MPS_TRACE_BIT_LAYER_1 1
@@ -141,7 +141,7 @@ void mbedtls_mps_trace_print_msg( int id, int line, const char *format, ... );
     do {                                                                      \
         if( ! ( MBEDTLS_MPS_TRACE_MASK & ( 1u << mbedtls_mps_trace_id ) ) )   \
             break;                                                            \
-        MBEDTLS_MPS_TRACE( mbedtls_mps_trace_call, __VA_ARGS__ );             \
+        MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_CALL, __VA_ARGS__ );        \
         mbedtls_mps_trace_inc_depth();                                        \
     } while( 0 )
 
@@ -149,7 +149,7 @@ void mbedtls_mps_trace_print_msg( int id, int line, const char *format, ... );
     do {                                                                    \
         if( ! ( MBEDTLS_MPS_TRACE_MASK & ( 1u << mbedtls_mps_trace_id ) ) ) \
             break;                                                          \
-        MBEDTLS_MPS_TRACE( mbedtls_mps_trace_return, "%d (-%#04x)",         \
+        MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_RETURN, "%d (-%#04x)",    \
                (int) (val), -((unsigned)(val)) );                           \
         mbedtls_mps_trace_dec_depth();                                      \
     } while( 0 )

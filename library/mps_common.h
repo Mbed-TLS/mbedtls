@@ -104,7 +104,7 @@
     {                                                                          \
         if( !(cond) )                                                          \
         {                                                                      \
-            MBEDTLS_MPS_TRACE( mbedtls_mps_trace_error, string );              \
+            MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_ERROR, string );         \
             MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );  \
         }                                                                      \
     } while( 0 )
@@ -126,7 +126,7 @@
     {                                                                   \
         if( !(cond) )                                                   \
         {                                                               \
-            MBEDTLS_MPS_TRACE( mbedtls_mps_trace_error, string );       \
+            MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_ERROR, string );  \
             MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR ); \
         }                                                               \
     } while( 0 )

@@ -226,11 +226,11 @@ void ecdsa_prim_random( int id )
         if ( test_runs == 1 )
         {
             TEST_ASSERT( mbedtls_test_rnd_pseudo_rand( &rnd_info,
-                                                       buf, sizeof( buf ) ) 
+                                                       buf, sizeof( buf ) )
                                                      == 0 );
         } else {
             TEST_ASSERT( mbedtls_test_rnd_zero_rand( NULL,
-                                                     buf, sizeof( buf ) ) 
+                                                     buf, sizeof( buf ) )
                                                    == 0 );
         }
 
@@ -242,7 +242,7 @@ void ecdsa_prim_random( int id )
         TEST_ASSERT( mbedtls_ecdsa_sign( &grp, &r, &s, &d, buf, sizeof( buf ),
                                          &mbedtls_test_rnd_pseudo_rand,
                                          &rnd_info ) == 0 );
-        TEST_ASSERT( mbedtls_ecdsa_verify( &grp, buf, sizeof( buf ), &Q, &r, &s ) 
+        TEST_ASSERT( mbedtls_ecdsa_verify( &grp, buf, sizeof( buf ), &Q, &r, &s )
                                          == 0 );
     }
 
@@ -382,11 +382,11 @@ void ecdsa_write_read_random( int id )
         if ( test_runs == 1 )
         {
             TEST_ASSERT( mbedtls_test_rnd_pseudo_rand( &rnd_info,
-                                                       hash, sizeof( hash ) ) 
+                                                       hash, sizeof( hash ) )
                                                      == 0 );
         } else {
             TEST_ASSERT( mbedtls_test_rnd_zero_rand( NULL,
-                                                       hash, sizeof( hash ) ) 
+                                                       hash, sizeof( hash ) )
                                                     == 0 );
         }
 

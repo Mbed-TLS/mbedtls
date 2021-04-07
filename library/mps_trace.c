@@ -102,19 +102,19 @@ void mbedtls_mps_trace_indent( int level, mbedtls_mps_trace_type ty )
 
     switch( ty )
     {
-        case mbedtls_mps_trace_comment:
+        case MBEDTLS_MPS_TRACE_TYPE_COMMENT:
             mbedtls_printf( "@ " );
             break;
 
-        case mbedtls_mps_trace_call:
+        case MBEDTLS_MPS_TRACE_TYPE_CALL:
             mbedtls_printf( "+--> " );
             break;
 
-        case mbedtls_mps_trace_error:
+        case MBEDTLS_MPS_TRACE_TYPE_ERROR:
             mbedtls_printf( "E " );
             break;
 
-        case mbedtls_mps_trace_return:
+        case MBEDTLS_MPS_TRACE_TYPE_RETURN:
             mbedtls_printf( "< " );
             break;
 

@@ -343,9 +343,6 @@ psa_status_t test_opaque_get_builtin_key(
     psa_key_attributes_t *attributes,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
 {
-    if( key_buffer_size < sizeof( psa_drv_slot_number_t ) )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
-
     switch( slot_number )
     {
         case PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT:
@@ -357,6 +354,9 @@ psa_status_t test_opaque_get_builtin_key(
                 PSA_KEY_USAGE_DECRYPT |
                 PSA_KEY_USAGE_EXPORT );
             psa_set_key_algorithm( attributes, PSA_ALG_CTR );
+
+            if( key_buffer_size < sizeof( psa_drv_slot_number_t ) )
+                return( PSA_ERROR_BUFFER_TOO_SMALL );
 
             *( (psa_drv_slot_number_t*) key_buffer ) =
                 PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT;
@@ -374,6 +374,9 @@ psa_status_t test_opaque_get_builtin_key(
                 PSA_KEY_USAGE_EXPORT );
             psa_set_key_algorithm(
                 attributes, PSA_ALG_ECDSA( PSA_ALG_ANY_HASH ) );
+
+            if( key_buffer_size < sizeof( psa_drv_slot_number_t ) )
+                return( PSA_ERROR_BUFFER_TOO_SMALL );
 
             *( (psa_drv_slot_number_t*) key_buffer ) =
                 PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT;

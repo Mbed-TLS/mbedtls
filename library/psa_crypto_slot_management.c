@@ -302,6 +302,19 @@ static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
     /* Set mapped lifetime on the attributes */
     psa_set_key_lifetime( &attributes, lifetime );
 
+    /* Get the full key attributes from the driver in order to be able to
+     * calculate the required buffer size. */
+    status = psa_driver_wrapper_get_builtin_key(
+                slot_number, &attributes,
+                NULL, 0, NULL );
+    if( status != PSA_ERROR_BUFFER_TOO_SMALL )
+    {
+        /* Builtin keys cannot be defined by the attributes alone */
+        if( status == PSA_SUCCESS )
+            status = PSA_ERROR_CORRUPTION_DETECTED;
+        goto exit;
+    }
+
     /* If the key should exist according to the platform, then ask the driver
      * what its expected size is. */
     status = psa_driver_wrapper_get_key_buffer_size( &attributes,
@@ -310,7 +323,7 @@ static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
         return( status );
 
     /* Allocate a buffer of the required size and load the builtin key directly
-     * into the slot buffer. */
+     * into the (now properly sized) slot buffer. */
     status = psa_allocate_buffer_to_slot( slot, key_buffer_size );
     if( status != PSA_SUCCESS )
         return( status );

@@ -195,6 +195,9 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot );
 psa_status_t psa_allocate_buffer_to_slot( psa_key_slot_t *slot,
                                           size_t buffer_length );
 
+/** Wipe key data from a slot. Preserves metadata such as the policy. */
+psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot );
+
 /** Copy key data (in export format) into an empty key slot.
  *
  * This function assumes that the slot does not contain

@@ -327,7 +327,7 @@ static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
 
 exit:
     if( status != PSA_SUCCESS )
-        psa_wipe_key_slot( slot );
+        psa_remove_key_data_from_memory( slot );
     return( status );
 }
 #endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */

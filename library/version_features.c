@@ -225,6 +225,9 @@ static const char * const features[] = {
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     "MBEDTLS_ECP_INTERNAL_ALT",
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
+#if defined(MBEDTLS_ECP_NO_FALLBACK)
+    "MBEDTLS_ECP_NO_FALLBACK",
+#endif /* MBEDTLS_ECP_NO_FALLBACK */
 #if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT)
     "MBEDTLS_ECP_RANDOMIZE_JAC_ALT",
 #endif /* MBEDTLS_ECP_RANDOMIZE_JAC_ALT */
@@ -435,6 +438,9 @@ static const char * const features[] = {
 #if defined(MBEDTLS_PKCS1_V21)
     "MBEDTLS_PKCS1_V21",
 #endif /* MBEDTLS_PKCS1_V21 */
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+    "MBEDTLS_PSA_CRYPTO_CLIENT",
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
     "MBEDTLS_PSA_CRYPTO_DRIVERS",
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */

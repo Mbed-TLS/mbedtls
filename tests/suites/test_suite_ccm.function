@@ -201,12 +201,11 @@ void mbedtls_ccm_star_encrypt_and_tag( int cipher_id,
     unsigned char iv[13];
     unsigned char result[50];
     mbedtls_ccm_context ctx;
-    size_t i, iv_len, tag_len;
+    size_t iv_len, tag_len;
     int ret;
 
     mbedtls_ccm_init( &ctx );
 
-    memset( iv, 0x00, sizeof( iv ) );
     memset( result, 0x00, sizeof( result ) );
 
     if( sec_level % 4 == 0)
@@ -214,12 +213,10 @@ void mbedtls_ccm_star_encrypt_and_tag( int cipher_id,
     else
         tag_len = 1 << ( sec_level % 4 + 1);
 
-    for( i = 0; i < source_address->len; i++ )
-        iv[i] = source_address->x[i];
-
-    for( i = 0; i < frame_counter->len; i++ )
-        iv[source_address->len + i] = frame_counter->x[i];
-
+    TEST_ASSERT( source_address->len == 8 );
+    TEST_ASSERT( frame_counter->len == 4 );
+    memcpy( iv, source_address->x, source_address->len );
+    memcpy( iv + source_address->len, frame_counter->x, frame_counter->len );
     iv[source_address->len + frame_counter->len] = sec_level;
     iv_len = sizeof( iv );
 
@@ -254,7 +251,7 @@ void mbedtls_ccm_star_auth_decrypt( int cipher_id,
     unsigned char iv[13];
     unsigned char result[50];
     mbedtls_ccm_context ctx;
-    size_t i, iv_len, tag_len;
+    size_t iv_len, tag_len;
     int ret;
 
     mbedtls_ccm_init( &ctx );
@@ -267,12 +264,10 @@ void mbedtls_ccm_star_auth_decrypt( int cipher_id,
     else
         tag_len = 1 << ( sec_level % 4 + 1);
 
-    for( i = 0; i < source_address->len; i++ )
-        iv[i] = source_address->x[i];
-
-    for( i = 0; i < frame_counter->len; i++ )
-        iv[source_address->len + i] = frame_counter->x[i];
-
+    TEST_ASSERT( source_address->len == 8 );
+    TEST_ASSERT( frame_counter->len == 4 );
+    memcpy( iv, source_address->x, source_address->len );
+    memcpy( iv + source_address->len, frame_counter->x, frame_counter->len );
     iv[source_address->len + frame_counter->len] = sec_level;
     iv_len = sizeof( iv );
 

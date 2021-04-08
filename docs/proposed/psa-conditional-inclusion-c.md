@@ -5,8 +5,6 @@ This document is a proposed interface for deciding at build time which cryptogra
 
 This is currently a proposal for Mbed TLS. It is not currently on track for standardization in PSA.
 
-Time-stamp: "2020/11/26 09:30:50 GMT"
-
 ## Introduction
 
 ### Purpose of this specification
@@ -86,9 +84,17 @@ For each constant or constructor macro of the form `PSA_KEY_TYPE_xxx`, the symbo
 
 For asymmetric cryptography, `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR` determines whether private-key operations are desired, and `PSA_WANT_KEY_TYPE_xxx_PUBLIC_KEY` determines whether public-key operations are desired. `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR` implicitly enables `PSA_WANT_KEY_TYPE_xxx_PUBLIC_KEY`: there is no way to only include private-key operations (which typically saves little code).
 
-#### Configuration symbols for curves
+#### Configuration symbols for elliptic curves
 
-For elliptic curve key types, only the specified curves are included. To include a curve, include a symbol of the form **`PSA_WANT_ECC_family_size`**. For example: `PSA_WANT_ECC_SECP_R1_256` for secp256r1, `PSA_WANT_ECC_MONTGOMERY_CURVE25519`. It is an error to require an ECC key type but no curve, and Mbed TLS will reject this at compile time.
+For elliptic curve key types, only the specified curves are included. To include a curve, include a symbol of the form **`PSA_WANT_ECC_family_size`**. For example: `PSA_WANT_ECC_SECP_R1_256` for secp256r1, `PSA_WANT_ECC_MONTGOMERY_255` for Curve25519. It is an error to require an ECC key type but no curve, and Mbed TLS will reject this at compile time.
+
+Rationale: this is a deviation of the general principle that `PSA_ECC_FAMILY_xxx` would have a corresponding symbol `PSA_WANT_ECC_FAMILY_xxx`. This deviation is justified by the fact that it is very common to wish to include only certain curves in a family, and that can lead to a significant gain in code size.
+
+#### Configuration symbols for Diffie-Hellman groups
+
+There are no configuration symbols for Diffie-Hellman groups (`PSA_DH_GROUP_xxx`).
+
+Rationale: Finite-field Diffie-Hellman code is usually not specialized for any particular group, so reducing the number of available groups at compile time only saves a little code space. Constrained implementations tend to omit FFDH anyway, so the small code size gain is not important.
 
 #### Configuration symbols for algorithms
 
@@ -195,7 +201,7 @@ The boolean symbol mechanism proposed here can be translated to a list of JSON c
 
 #### Naming of symbols
 
-The names of [elliptic curve symbols](#configuration-symbols-for-curves) are a bit weird: `SECP_R1_256` instead of `SECP256R1`. Should we make them more classical, but less systematic?
+The names of [elliptic curve symbols](#configuration-symbols-for-elliptic-curves) are a bit weird: `SECP_R1_256` instead of `SECP256R1`, `MONTGOMERY_255` instead of `CURVE25519`. Should we make them more classical, but less systematic?
 
 #### Impossible combinations
 

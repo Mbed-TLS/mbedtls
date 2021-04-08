@@ -1132,4 +1132,54 @@
 #define PSA_CIPHER_FINISH_OUTPUT_MAX_SIZE           \
     (PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE)
 
+/** A sufficient output buffer size for psa_pake_get_key_share().
+ *
+ * If the size of the ciphertext buffer is at least this large, it is
+ * guaranteed that psa_pake_get_key_share() will not fail due to an
+ * insufficient ciphertext buffer size. The actual size of the output might be
+ * smaller in any given call.
+ *
+ * See also #PSA_PAKE_OUTPUT_MAX_SIZE
+ *
+ * \param alg           A PAKE algorithm (PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_PAKE(\p alg) is true).
+ * \param cipher_suite  A cipher suite that is compatible with algorithm \p alg.
+ * \return              A sufficient key share buffer size for the specified
+ *                      cipher suite and algorithm. If the cipher suite or PAKE
+ *                      algorithm is not recognized, or the parameters are
+ *                      incompatible, return 0.
+ */
+#define PSA_PAKE_KEY_SHARE_SIZE(alg, cipher_suite)  \
+    (PSA_PAKE_OUTPUT_SIZE(alg, cipher_suite, PSA_PAKE_DATA_KEY_SHARE)
+
+/** A sufficient output buffer size for psa_pake_output().
+ *
+ * If the size of the ciphertext buffer is at least this large, it is
+ * guaranteed that psa_pake_output() will not fail due to an
+ * insufficient ciphertext buffer size. The actual size of the output might be
+ * smaller in any given call.
+ *
+ * See also #PSA_PAKE_OUTPUT_MAX_SIZE
+ *
+ * \param alg           A PAKE algorithm (PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_PAKE(\p alg) is true).
+ * \param cipher_suite  A cipher suite that is compatible with algorithm \p alg.
+ * \param output        An output type used with algorithm \p alg.
+ * \return              A sufficient output buffer size for the specified
+ *                      output, cipher suite and algorithm. If the cipher suite,
+ *                      the output type or PAKE algorithm is not recognized, or
+ *                      the parameters are incompatible, return 0.
+ */
+#define PSA_PAKE_OUTPUT_SIZE(alg, cipher_suite, output)
+
+/** Output buffer size for psa_pake_output() and psa_pake_get_key_share(),
+ * for any of the supported cipher suites and PAKE algorithms.
+ *
+ * This macro must expand to a compile-time constant integer.
+ *
+ * See also #PSA_PAKE_KEY_SHARE_SIZE(\p alg, \p cipher_suite) and
+ * #PSA_PAKE_OUTPUT_SIZE(\p alg, \p cipher_suite, \p output).
+ */
+#define PSA_PAKE_OUTPUT_MAX_SIZE
+
 #endif /* PSA_CRYPTO_SIZES_H */

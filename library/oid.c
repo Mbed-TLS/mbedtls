@@ -276,11 +276,11 @@ static const oid_x509_ext_t oid_x509_ext[] =
         MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES,
     },
     {
-        { ADD_LEN(MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER), "id-ce-subjectKeyIdentifier",           "Subject Key Identifier" },
+        { ADD_LEN(MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER ), "id-ce-subjectKeyIdentifier",           "Subject Key Identifier" },
         MBEDTLS_OID_X509_EXT_SUBJECT_KEY_IDENTIFIER,
     },
     {
-        { ADD_LEN(MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER), "id-ce-authorityKeyIdentifier",       "Authority Key Identifier" },
+        { ADD_LEN(MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER ), "id-ce-authorityKeyIdentifier",       "Authority Key Identifier" },
         MBEDTLS_OID_X509_EXT_AUTHORITY_KEY_IDENTIFIER,
     },
     {

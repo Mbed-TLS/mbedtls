@@ -777,7 +777,7 @@ psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
  *      publicExponent     INTEGER  }  -- e
  *   ```
  * - For elliptic curve keys on a twisted Edwards curve (key types for which
- *   #PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY is true and #PSA_KEY_TYPE_GET_CURVE
+ *   #PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY is true and #PSA_KEY_TYPE_ECC_GET_FAMILY
  *   returns #PSA_ECC_FAMILY_TWISTED_EDWARDS), the public key is as defined
  *   by RFC 8032
  *   (a 32-byte string for Edwards25519, a 57-byte string for Edwards448).

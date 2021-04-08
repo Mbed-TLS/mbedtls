@@ -484,17 +484,29 @@ mbedtls_mpi_add_int:10:"20395687835640197740576586692903457728019399331434826309
 Test mbedtls_mpi_add_int #2
 mbedtls_mpi_add_int:10:"2039568783564019774057658669290345772801939933143482630947726464532830627227012776329":-9871232:10:"2039568783564019774057658669290345772801939933143482630947726464532830627227002905097"
 
-Base test mbedtls_mpi_sub_abs #1 (Test with larger second input)
+Base test mbedtls_mpi_sub_abs #1 (|B| > |A|)
 mbedtls_mpi_sub_abs:10:"5":10:"7":10:"0":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
 
-Base test mbedtls_mpi_sub_abs #2 (Test with larger second input)
+Base test mbedtls_mpi_sub_abs #2 (|B| > |A|)
 mbedtls_mpi_sub_abs:10:"-5":10:"-7":10:"0":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
 
-Base test mbedtls_mpi_sub_abs #3 (Test with larger second input)
+Base test mbedtls_mpi_sub_abs #3 (|B| > |A|)
 mbedtls_mpi_sub_abs:10:"-5":10:"7":10:"0":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
 
-Base test mbedtls_mpi_sub_abs #4 (Test with larger second input)
+Base test mbedtls_mpi_sub_abs #4 (|B| > |A|)
 mbedtls_mpi_sub_abs:10:"5":10:"-7":10:"0":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
+
+Base test mbedtls_mpi_sub_abs #1 (|B| >> |A| with more limbs)
+mbedtls_mpi_sub_abs:10:"5":16:"123456789abcdef01":10:"0":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
+
+Base test mbedtls_mpi_sub_abs #2 (|B| >> |A| with more limbs)
+mbedtls_mpi_sub_abs:10:"-5":16:"-123456789abcdef01":10:"0":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
+
+Base test mbedtls_mpi_sub_abs #3 (|B| >> |A| with more limbs)
+mbedtls_mpi_sub_abs:10:"-5":16:"123456789abcdef01":10:"0":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
+
+Base test mbedtls_mpi_sub_abs #4 (|B| >> |A| with more limbs)
+mbedtls_mpi_sub_abs:10:"5":16:"-123456789abcdef01":10:"0":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
 
 Base test mbedtls_mpi_sub_abs #1
 mbedtls_mpi_sub_abs:10:"7":10:"5":10:"2":0

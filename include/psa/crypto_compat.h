@@ -110,6 +110,18 @@ typedef MBEDTLS_PSA_DEPRECATED psa_algorithm_t mbedtls_deprecated_psa_algorithm_
     MBEDTLS_DEPRECATED_CONSTANT( size_t, PSA_SIGNATURE_MAX_SIZE )
 #define PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE( key_type, key_bits, alg ) \
     MBEDTLS_DEPRECATED_CONSTANT( size_t, PSA_SIGN_OUTPUT_SIZE( key_type, key_bits, alg ) )
+#define PSA_KEY_EXPORT_MAX_SIZE( key_type, key_bits ) \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t, PSA_EXPORT_KEY_OUTPUT_SIZE( key_type, key_bits ) )
+#define PSA_BLOCK_CIPHER_BLOCK_SIZE( type ) \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t, PSA_BLOCK_CIPHER_BLOCK_LENGTH( type ) )
+#define PSA_MAX_BLOCK_CIPHER_BLOCK_SIZE \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t, PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE )
+#define PSA_HASH_SIZE( alg ) \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t, PSA_HASH_LENGTH( alg ) )
+#define PSA_MAC_FINAL_SIZE( key_type, key_bits, alg ) \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t, PSA_MAC_LENGTH( key_type, key_bits, alg ) )
+#define PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t, PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE )
 
 /*
  * Deprecated PSA Crypto function names (PSA Crypto API  <= 1.0 beta3)
@@ -249,6 +261,14 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
 #define PSA_ALG_CHACHA20 \
     MBEDTLS_DEPRECATED_CONSTANT( psa_algorithm_t, PSA_ALG_STREAM_CIPHER )
 
+/*
+ * Renamed AEAD tag length macros (PSA Crypto API  <= 1.0 beta3)
+ */
+#define PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH( aead_alg ) \
+    MBEDTLS_DEPRECATED_CONSTANT( psa_algorithm_t, PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG( aead_alg ) )
+#define PSA_ALG_AEAD_WITH_TAG_LENGTH( aead_alg, tag_length ) \
+    MBEDTLS_DEPRECATED_CONSTANT( psa_algorithm_t, PSA_ALG_AEAD_WITH_SHORTENED_TAG( aead_alg, tag_length ) )
+
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 /** Open a handle to an existing persistent key.
@@ -293,9 +313,9 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
  *         number of open keys, the number of open key handles, or available
  *         memory.
  * \retval #PSA_ERROR_DOES_NOT_EXIST
- *         There is no persistent key with key identifier \p id.
+ *         There is no persistent key with key identifier \p key.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p id is not a valid persistent key identifier.
+ *         \p key is not a valid persistent key identifier.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The specified key exists, but the application does not have the
  *         permission to access it. Note that this specification does not
@@ -304,6 +324,8 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_ERROR_DATA_CORRUPT
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize

@@ -1282,8 +1282,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
 #endif
-    mbedtls_entropy_context entropy;
-    mbedtls_ctr_drbg_context ctr_drbg;
+    rng_context_t rng;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
 #if defined(MBEDTLS_TIMING_C)
@@ -1370,6 +1369,10 @@ int main( int argc, char *argv[] )
 #endif  /* MBEDTLS_MEMORY_DEBUG */
 #endif  /* MBEDTLS_MEMORY_BUFFER_ALLOC_C */
 
+#if defined(MBEDTLS_TEST_HOOKS)
+    test_hooks_init( );
+#endif /* MBEDTLS_TEST_HOOKS */
+
     /*
      * Make sure memory references are valid in case we exit early.
      */
@@ -1377,7 +1380,7 @@ int main( int argc, char *argv[] )
     mbedtls_net_init( &listen_fd );
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
-    mbedtls_ctr_drbg_init( &ctr_drbg );
+    rng_init( &rng );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_init( &cacert );
     mbedtls_x509_crt_init( &srvcert );
@@ -1413,7 +1416,10 @@ int main( int argc, char *argv[] )
         ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
         goto exit;
     }
-#endif
+#endif  /* MBEDTLS_USE_PSA_CRYPTO */
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+    mbedtls_test_enable_insecure_external_rng( );
+#endif  /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 #if !defined(_WIN32)
     /* Abort cleanly on SIGTERM and SIGINT */
@@ -2293,31 +2299,9 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    mbedtls_entropy_init( &entropy );
-    if (opt.reproducible)
-    {
-        srand( 1 );
-        if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, dummy_entropy,
-                                           &entropy, (const unsigned char *) pers,
-                                           strlen( pers ) ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
-                            (unsigned int) -ret );
-            goto exit;
-        }
-    }
-    else
-    {
-        if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
-                                           &entropy, (const unsigned char *) pers,
-                                           strlen( pers ) ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
-                            (unsigned int) -ret );
-            goto exit;
-        }
-    }
-
+    ret = rng_seed( &rng, opt.reproducible, pers );
+    if( ret != 0 )
+        goto exit;
     mbedtls_printf( " ok\n" );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -2692,9 +2676,9 @@ int main( int argc, char *argv[] )
 #else
         fprintf( stderr, "Warning: reproducible option used without constant time\n" );
 #endif
-#endif
+#endif  /* MBEDTLS_HAVE_TIME */
     }
-    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_conf_rng( &conf, rng_get, &rng );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
 #if defined(MBEDTLS_SSL_CACHE_C)
@@ -2713,7 +2697,7 @@ int main( int argc, char *argv[] )
     if( opt.tickets == MBEDTLS_SSL_SESSION_TICKETS_ENABLED )
     {
         if( ( ret = mbedtls_ssl_ticket_setup( &ticket_ctx,
-                        mbedtls_ctr_drbg_random, &ctr_drbg,
+                        rng_get, &rng,
                         MBEDTLS_CIPHER_AES_256_GCM,
                         opt.ticket_timeout ) ) != 0 )
         {
@@ -2735,7 +2719,7 @@ int main( int argc, char *argv[] )
         if( opt.cookies > 0 )
         {
             if( ( ret = mbedtls_ssl_cookie_setup( &cookie_ctx,
-                                          mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
+                                                  rng_get, &rng ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_cookie_setup returned %d\n\n", ret );
                 goto exit;
@@ -2887,8 +2871,8 @@ int main( int argc, char *argv[] )
         ssl_async_keys.inject_error = ( opt.async_private_error < 0 ?
                                         - opt.async_private_error :
                                         opt.async_private_error );
-        ssl_async_keys.f_rng = mbedtls_ctr_drbg_random;
-        ssl_async_keys.p_rng = &ctr_drbg;
+        ssl_async_keys.f_rng = rng_get;
+        ssl_async_keys.p_rng = &rng;
         mbedtls_ssl_conf_async_private_cb( &conf,
                                            sign,
                                            decrypt,
@@ -3986,8 +3970,7 @@ exit:
 
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
+    rng_free( &rng );
 
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_free( &cache );
@@ -4007,12 +3990,32 @@ exit:
     mbedtls_free( context_buf );
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free( );
+#endif
+
+#if defined(MBEDTLS_TEST_HOOKS)
+    /* Let test hooks detect errors such as resource leaks.
+     * Don't do it in query_config mode, because some test code prints
+     * information to stdout and this gets mixed with the regular output. */
+    if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
+    {
+        if( test_hooks_failure_detected( ) )
+        {
+            if( ret == 0 )
+                ret = 1;
+            mbedtls_printf( "Test hooks detected errors.\n" );
+        }
+    }
+    test_hooks_free( );
+#endif /* MBEDTLS_TEST_HOOKS */
+
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #if defined(MBEDTLS_MEMORY_DEBUG)
     mbedtls_memory_buffer_alloc_status();
 #endif
     mbedtls_memory_buffer_alloc_free();
-#endif
+#endif  /* MBEDTLS_MEMORY_BUFFER_ALLOC_C */
 
     if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
     {

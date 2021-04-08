@@ -819,6 +819,15 @@ int mbedtls_gcm_self_test( int verbose )
                                 add_len_test_data[i],
                                 pt_test_data[pt_index_test_data[i]],
                                 buf, 16, tag_buf );
+#if defined(MBEDTLS_GCM_ALT)
+            /* Allow alternative implementations to only support 12-byte nonces. */
+            if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED &&
+                iv_len_test_data[i] != 12 )
+            {
+                mbedtls_printf( "skipped\n" );
+                break;
+            }
+#endif /* defined(MBEDTLS_GCM_ALT) */
             if( ret != 0 )
                 goto exit;
 

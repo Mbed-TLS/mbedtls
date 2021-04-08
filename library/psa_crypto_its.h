@@ -72,12 +72,12 @@ struct psa_storage_info_t
  *
  * \return      A status indicating the success/failure of the operation
  *
- * \retval     #PSA_SUCCESS                      The operation completed successfully
- * \retval     #PSA_ERROR_NOT_PERMITTED          The operation failed because the provided `uid` value was already created with PSA_STORAGE_WRITE_ONCE_FLAG
- * \retval     #PSA_ERROR_NOT_SUPPORTED          The operation failed because one or more of the flags provided in `create_flags` is not supported or is not valid
- * \retval     #PSA_ERROR_INSUFFICIENT_STORAGE   The operation failed because there was insufficient space on the storage medium
- * \retval     #PSA_ERROR_STORAGE_FAILURE        The operation failed because the physical storage has failed (Fatal error)
- * \retval     #PSA_ERROR_INVALID_ARGUMENT       The operation failed because one of the provided pointers(`p_data`)
+ * \retval      #PSA_SUCCESS                     The operation completed successfully
+ * \retval      #PSA_ERROR_NOT_PERMITTED         The operation failed because the provided `uid` value was already created with PSA_STORAGE_WRITE_ONCE_FLAG
+ * \retval      #PSA_ERROR_NOT_SUPPORTED         The operation failed because one or more of the flags provided in `create_flags` is not supported or is not valid
+ * \retval      #PSA_ERROR_INSUFFICIENT_STORAGE  The operation failed because there was insufficient space on the storage medium
+ * \retval      #PSA_ERROR_STORAGE_FAILURE       The operation failed because the physical storage has failed (Fatal error)
+ * \retval      #PSA_ERROR_INVALID_ARGUMENT      The operation failed because one of the provided pointers(`p_data`)
  *                                               is invalid, for example is `NULL` or references memory the caller cannot access
  */
 psa_status_t psa_its_set(psa_storage_uid_t uid,
@@ -97,11 +97,11 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
  *
  * \return      A status indicating the success/failure of the operation
  *
- * \retval     #PSA_SUCCESS                  The operation completed successfully
- * \retval     #PSA_ERROR_DOES_NOT_EXIST     The operation failed because the provided `uid` value was not found in the storage
- * \retval     #PSA_ERROR_INVALID_SIZE       The operation failed because the data associated with provided uid is larger than `data_size`
- * \retval     #PSA_ERROR_STORAGE_FAILURE    The operation failed because the physical storage has failed (Fatal error)
- * \retval     #PSA_ERROR_INVALID_ARGUMENT   The operation failed because one of the provided pointers(`p_data`, `p_data_length`)
+ * \retval      #PSA_SUCCESS                 The operation completed successfully
+ * \retval      #PSA_ERROR_DOES_NOT_EXIST    The operation failed because the provided `uid` value was not found in the storage
+ * \retval      #PSA_ERROR_STORAGE_FAILURE   The operation failed because the physical storage has failed (Fatal error)
+ * \retval      #PSA_ERROR_DATA_CORRUPT      The operation failed because stored data has been corrupted
+ * \retval      #PSA_ERROR_INVALID_ARGUMENT  The operation failed because one of the provided pointers(`p_data`, `p_data_length`)
  *                                           is invalid. For example is `NULL` or references memory the caller cannot access.
  *                                           In addition, this can also happen if an invalid offset was provided.
  */
@@ -119,10 +119,10 @@ psa_status_t psa_its_get(psa_storage_uid_t uid,
  *
  * \return      A status indicating the success/failure of the operation
  *
- * \retval     #PSA_SUCCESS                  The operation completed successfully
- * \retval     #PSA_ERROR_DOES_NOT_EXIST     The operation failed because the provided uid value was not found in the storage
- * \retval     #PSA_ERROR_STORAGE_FAILURE    The operation failed because the physical storage has failed (Fatal error)
- * \retval     #PSA_ERROR_INVALID_ARGUMENT   The operation failed because one of the provided pointers(`p_info`)
+ * \retval      #PSA_SUCCESS                 The operation completed successfully
+ * \retval      #PSA_ERROR_DOES_NOT_EXIST    The operation failed because the provided uid value was not found in the storage
+ * \retval      #PSA_ERROR_DATA_CORRUPT      The operation failed because stored data has been corrupted
+ * \retval      #PSA_ERROR_INVALID_ARGUMENT  The operation failed because one of the provided pointers(`p_info`)
  *                                           is invalid, for example is `NULL` or references memory the caller cannot access
  */
 psa_status_t psa_its_get_info(psa_storage_uid_t uid,
@@ -135,10 +135,10 @@ psa_status_t psa_its_get_info(psa_storage_uid_t uid,
  *
  * \return  A status indicating the success/failure of the operation
  *
- * \retval     #PSA_SUCCESS                  The operation completed successfully
- * \retval     #PSA_ERROR_DOES_NOT_EXIST     The operation failed because the provided key value was not found in the storage
- * \retval     #PSA_ERROR_NOT_PERMITTED      The operation failed because the provided key value was created with PSA_STORAGE_WRITE_ONCE_FLAG
- * \retval     #PSA_ERROR_STORAGE_FAILURE    The operation failed because the physical storage has failed (Fatal error)
+ * \retval      #PSA_SUCCESS                  The operation completed successfully
+ * \retval      #PSA_ERROR_DOES_NOT_EXIST     The operation failed because the provided key value was not found in the storage
+ * \retval      #PSA_ERROR_NOT_PERMITTED      The operation failed because the provided key value was created with PSA_STORAGE_WRITE_ONCE_FLAG
+ * \retval      #PSA_ERROR_STORAGE_FAILURE    The operation failed because the physical storage has failed (Fatal error)
  */
 psa_status_t psa_its_remove(psa_storage_uid_t uid);
 

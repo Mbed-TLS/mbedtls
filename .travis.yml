@@ -17,7 +17,7 @@ jobs:
       language: python # Needed to get pip for Python 3
       python: 3.5 # version from Ubuntu 16.04
       install:
-        - pip install pylint==2.4.4
+        - pip install mypy==0.780 pylint==2.4.4
       script:
         - tests/scripts/all.sh -k 'check_*'
         - tests/scripts/all.sh -k test_default_out_of_box

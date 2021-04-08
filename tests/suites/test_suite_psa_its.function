@@ -17,6 +17,7 @@
 #define PSA_ITS_STORAGE_FILENAME_LENGTH         \
     ( sizeof( PSA_ITS_STORAGE_PREFIX ) - 1 + /*prefix without terminating 0*/ \
       16 + /*UID (64-bit number in hex)*/                               \
+      16 + /*UID (64-bit number in hex)*/                               \
       sizeof( PSA_ITS_STORAGE_SUFFIX ) - 1 + /*suffix without terminating 0*/ \
       1 /*terminating null byte*/ )
 #define PSA_ITS_STORAGE_TEMP \
@@ -227,6 +228,59 @@ void get_at( int uid_arg, data_t *data,
     PSA_ASSERT( psa_its_remove( uid ) );
 
 exit:
+    mbedtls_free( buffer );
+    cleanup( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void get_fail( int uid_arg, data_t *data,
+               int overwrite_magic, int cut_header,
+               int expected_status )
+{
+    psa_storage_uid_t uid = uid_arg;
+    unsigned char *buffer = NULL;
+    psa_status_t status;
+    size_t n;
+    size_t ret_len = 0;
+    char filename[PSA_ITS_STORAGE_FILENAME_LENGTH];
+    FILE *stream = NULL;
+    char bad_char = 'X';
+
+    PSA_ASSERT( psa_its_set_wrap( uid, data->len, data->x, 0 ) );
+
+    psa_its_fill_filename( uid, filename );
+    stream = fopen( filename, "rb+" );
+    TEST_ASSERT( NULL != stream );
+    if( 0 != overwrite_magic )
+    {
+        /* Overwrite the 1st byte of the file, the ITS magic number */
+        TEST_ASSERT( fseek( stream, 0, SEEK_SET ) == 0 );
+        n = fwrite( &bad_char, 1, 1, stream );
+        TEST_ASSERT( 1 == n );
+    }
+    if( 0 != cut_header )
+    {
+        /* Reopen file and truncate it to 0 byte by specifying the 'w' flag */
+        stream = freopen( filename, "wb", stream );
+        TEST_ASSERT( NULL != stream );
+    }
+    fclose( stream );
+    stream = NULL;
+
+    status = psa_its_get( uid, 0, 0, buffer, &ret_len );
+    TEST_ASSERT( status == (psa_status_t) expected_status );
+    TEST_ASSERT( 0 == ret_len );
+    PSA_ASSERT( psa_its_remove( uid ) );
+
+    /* Check if the file is really deleted. */
+    stream = fopen( filename, "rb" );
+    TEST_ASSERT( NULL == stream );
+
+exit:
+    if( stream != NULL )
+        fclose( stream );
+
     mbedtls_free( buffer );
     cleanup( );
 }

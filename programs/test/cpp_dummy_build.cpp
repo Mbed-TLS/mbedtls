@@ -39,6 +39,7 @@
 #include "mbedtls/check_config.h"
 #include "mbedtls/cipher.h"
 #include "mbedtls/cmac.h"
+#include "mbedtls/config_psa.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/des.h"

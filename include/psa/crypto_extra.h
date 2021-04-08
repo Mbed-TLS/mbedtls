@@ -39,6 +39,10 @@ extern "C" {
 /* UID for secure storage seed */
 #define PSA_CRYPTO_ITS_RANDOM_SEED_UID 0xFFFFFF52
 
+/* See config.h for definition */
+#if !defined(MBEDTLS_PSA_KEY_SLOT_COUNT)
+#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
+#endif
 
 /** \addtogroup attributes
  * @{
@@ -175,6 +179,9 @@ static inline void psa_clear_key_slot_number(
  *         The secure element driver for the specified lifetime does not
  *         support registering a key.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The identifier in \p attributes is invalid, namely the identifier is
+ *         not in the user range.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p attributes specifies a lifetime which is not located
  *         in a secure element.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
@@ -183,8 +190,10 @@ static inline void psa_clear_key_slot_number(
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The caller is not authorized to register the specified key slot.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_ERROR_DATA_CORRUPT
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
@@ -403,10 +412,9 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
 
 /* We need to expand the sample definition of this macro from
  * the API definition. */
-#undef PSA_ALG_IS_HASH_AND_SIGN
-#define PSA_ALG_IS_HASH_AND_SIGN(alg)                                   \
-    (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||    \
-     PSA_ALG_IS_DSA(alg) || PSA_ALG_IS_ECDSA(alg))
+#undef PSA_ALG_IS_VENDOR_HASH_AND_SIGN
+#define PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg)    \
+    PSA_ALG_IS_DSA(alg)
 
 /**@}*/
 
@@ -637,16 +645,21 @@ static inline psa_ecc_family_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id gr
  *
  * \param curve         A PSA elliptic curve identifier
  *                      (`PSA_ECC_FAMILY_xxx`).
- * \param byte_length   The byte-length of a private key on \p curve.
+ * \param bits          The bit-length of a private key on \p curve.
+ * \param bits_is_sloppy If true, \p bits may be the bit-length rounded up
+ *                      to the nearest multiple of 8. This allows the caller
+ *                      to infer the exact curve from the length of a key
+ *                      which is supplied as a byte string.
  *
  * \return              The corresponding Mbed TLS elliptic curve identifier
  *                      (`MBEDTLS_ECP_DP_xxx`).
  * \return              #MBEDTLS_ECP_DP_NONE if \c curve is not recognized.
- * \return              #MBEDTLS_ECP_DP_NONE if \p byte_length is not
+ * \return              #MBEDTLS_ECP_DP_NONE if \p bits is not
  *                      correct for \p curve.
  */
 mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
-                                               size_t byte_length );
+                                               size_t bits,
+                                               int bits_is_sloppy );
 #endif /* MBEDTLS_ECP_C */
 
 /**@}*/

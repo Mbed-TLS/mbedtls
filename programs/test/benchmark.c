@@ -251,7 +251,11 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
 #if defined(MBEDTLS_ECP_C)
 void ecp_clear_precomputed( mbedtls_ecp_group *grp )
 {
-    if( grp->T != NULL )
+    if( grp->T != NULL
+#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
+        && grp->T_size != 0
+#endif
+    )
     {
         size_t i;
         for( i = 0; i < grp->T_size; i++ )

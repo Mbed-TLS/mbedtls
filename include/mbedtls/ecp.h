@@ -229,7 +229,7 @@ typedef struct mbedtls_ecp_group
     int (*t_post)(mbedtls_ecp_point *, void *); /*!< Unused. */
     void *t_data;               /*!< Unused. */
     mbedtls_ecp_point *T;       /*!< Pre-computed points for ecp_mul_comb(). */
-    size_t T_size;              /*!< The number of pre-computed points. */
+    size_t T_size;              /*!< The number of dynamic allocated pre-computed points. */
 }
 mbedtls_ecp_group;
 
@@ -276,15 +276,15 @@ mbedtls_ecp_group;
 
 #if !defined(MBEDTLS_ECP_FIXED_POINT_OPTIM)
 /*
- * Trade memory for speed on fixed-point multiplication.
+ * Trade ROM usage for speed on fixed-point multiplication.
  *
  * This speeds up repeated multiplication of the generator (that is, the
  * multiplication in ECDSA signatures, and half of the multiplications in
  * ECDSA verification and ECDHE) by a factor roughly 3 to 4.
  *
- * The cost is increasing EC peak memory usage by a factor roughly 2.
+ * The cost is increasing ROM usage by a factor roughly 2.
  *
- * Change this value to 0 to reduce peak memory usage.
+ * Change this value to 0 to reduce ROM usage.
  */
 #define MBEDTLS_ECP_FIXED_POINT_OPTIM  1   /**< Enable fixed-point speed-up. */
 #endif /* MBEDTLS_ECP_FIXED_POINT_OPTIM */

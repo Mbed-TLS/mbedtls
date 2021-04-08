@@ -1175,6 +1175,20 @@
  * encoded in #PSA_ALG_AEAD_TAG_LENGTH_MASK. */
 #define PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG  ((psa_algorithm_t)0x00008000)
 
+/** Macro to test whether two AEAD algorithms correspond to the same base algorithm.
+ *
+ * \param aead_alg_1 An AEAD algorithm identifier.
+ * \param aead_alg_2 An AEAD algorithm identifier.
+ *
+ * \return           1 if the base both arguments correspond to the same base
+ *                   algorithm, 0 otherwise.
+ *                   Unspecified if \p aead_alg_1 or \p aead_alg_2 are not
+ *                   supported AEAD algorithms.
+ */
+#define PSA_ALG_AEAD_IS_BASE_EQUAL(aead_alg_1, aead_alg_2) \
+    (!(((aead_alg_1) ^ (aead_alg_2)) & \
+       ~(PSA_ALG_AEAD_TAG_LENGTH_MASK | PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)))
+
 /** Macro to build a shortened AEAD algorithm.
  *
  * A shortened AEAD algorithm is similar to the corresponding AEAD

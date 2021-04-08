@@ -4266,8 +4266,10 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  * \param password              Identifier of the key holding the password or a
  *                              value derived from the password (eg. by a
  *                              memory-hard function).  It must remain valid
- *                              until the operation terminates. It must allow
- *                              the usage #PSA_KEY_USAGE_PAKE.
+ *                              until the operation terminates. It must be of
+ *                              type #PSA_KEY_TYPE_PASSWORD or
+ *                              #PSA_KEY_TYPE_DERIVE. It has to allow the usage
+ *                              #PSA_KEY_USAGE_DERIVE.
  * \param alg                   The PAKE protocol to use
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_PAKE(\p alg) is true).

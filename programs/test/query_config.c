@@ -2708,14 +2708,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_DTLS_MAX_BUFFERING */
 
-#if defined(MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME)
-    if( strcmp( "MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME );
-        return( 0 );
-    }
-#endif /* MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME */
-
 #if defined(MBEDTLS_PSK_MAX_LEN)
     if( strcmp( "MBEDTLS_PSK_MAX_LEN", config ) == 0 )
     {

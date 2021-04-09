@@ -77,6 +77,8 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
+#include "ecp_invasive.h"
+
 #include <string.h>
 
 #if !defined(MBEDTLS_ECP_ALT)

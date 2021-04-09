@@ -277,7 +277,7 @@ psa_status_t mbedtls_psa_mac_abort(
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
  */
 
-#if defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 
 psa_status_t mbedtls_transparent_test_driver_mac_compute(
     const psa_key_attributes_t *attributes,
@@ -323,6 +323,6 @@ psa_status_t mbedtls_transparent_test_driver_mac_verify_finish(
 psa_status_t mbedtls_transparent_test_driver_mac_abort(
     mbedtls_psa_mac_operation_t *operation );
 
-#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_DRIVER_TEST && MBEDTLS_PSA_CRYPTO_CONFIG */
 
 #endif /* PSA_CRYPTO_MAC_H */

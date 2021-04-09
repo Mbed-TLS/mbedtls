@@ -308,7 +308,7 @@ psa_status_t mbedtls_psa_cipher_decrypt( const psa_key_attributes_t *attributes,
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
  */
 
-#if defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 psa_status_t mbedtls_transparent_test_driver_cipher_encrypt_setup(
     mbedtls_psa_cipher_operation_t *operation,
     const psa_key_attributes_t *attributes,
@@ -358,6 +358,6 @@ psa_status_t mbedtls_transparent_test_driver_cipher_decrypt(
     uint8_t *output,
     size_t output_size,
     size_t *output_length );
-#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_DRIVER_TEST && MBEDTLS_PSA_CRYPTO_CONFIG */
 
 #endif /* PSA_CRYPTO_CIPHER_H */

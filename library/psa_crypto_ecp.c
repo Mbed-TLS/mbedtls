@@ -42,18 +42,21 @@
 
 #if ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||  \
       ( defined(PSA_CRYPTO_DRIVER_TEST) &&                   \
+        defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&                \
         defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) ) )
 #define BUILTIN_KEY_TYPE_ECC_KEY_PAIR    1
 #endif
 
-#if ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ||  \
-      ( defined(PSA_CRYPTO_DRIVER_TEST) &&                   \
+#if ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
+      ( defined(PSA_CRYPTO_DRIVER_TEST) &&                    \
+        defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&                 \
         defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) ) )
 #define BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY  1
 #endif
 
 #if ( defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||  \
       ( defined(PSA_CRYPTO_DRIVER_TEST) &&       \
+        defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&    \
         defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) &&  \
         defined(MBEDTLS_ECDSA_C) ) )
 #define BUILTIN_ALG_ECDSA 1
@@ -61,6 +64,7 @@
 
 #if ( defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ||  \
       ( defined(PSA_CRYPTO_DRIVER_TEST) &&                     \
+        defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&                  \
         defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA) &&  \
         defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) ) )
 #define BUILTIN_ALG_DETERMINISTIC_ECDSA 1
@@ -567,7 +571,7 @@ psa_status_t mbedtls_psa_ecdsa_verify_hash(
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
  */
 
-#if defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 
 #if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
@@ -663,6 +667,6 @@ psa_status_t mbedtls_transparent_test_driver_ecdsa_verify_hash(
 #endif /* defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) ||
         * defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA) */
 
-#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_DRIVER_TEST && MBEDTLS_PSA_CRYPTO_CONFIG */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

@@ -32,25 +32,29 @@
 #include <string.h>
 
 #if ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES) || \
-      ( defined(PSA_CRYPTO_DRIVER_TEST) && \
+      ( defined(PSA_CRYPTO_DRIVER_TEST) &&         \
+        defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&      \
         defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DES) ) )
 #define BUILTIN_KEY_TYPE_DES  1
 #endif
 
 #if ( defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING) || \
-      ( defined(PSA_CRYPTO_DRIVER_TEST) && \
+      ( defined(PSA_CRYPTO_DRIVER_TEST) &&               \
+        defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&            \
         defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING) ) )
 #define BUILTIN_ALG_CBC_NO_PADDING  1
 #endif
 
 #if ( defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7) || \
-      ( defined(PSA_CRYPTO_DRIVER_TEST) && \
+      ( defined(PSA_CRYPTO_DRIVER_TEST) &&          \
+        defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&       \
         defined(MBEDTLS_PSA_ACCEL_ALG_CBC_PKCS7) ) )
 #define BUILTIN_ALG_CBC_PKCS7  1
 #endif
 
 #if ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_CHACHA20) || \
-      ( defined(PSA_CRYPTO_DRIVER_TEST) && \
+      ( defined(PSA_CRYPTO_DRIVER_TEST) &&              \
+        defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&           \
         defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CHACHA20) ) )
 #define BUILTIN_KEY_TYPE_CHACHA20  1
 #endif
@@ -150,7 +154,8 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
                                              (int) key_bits, mode ) );
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_CIPHER) || defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(MBEDTLS_PSA_BUILTIN_CIPHER) || \
+    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_CRYPTO_CONFIG) )
 
 static psa_status_t cipher_setup(
     mbedtls_psa_cipher_operation_t *operation,
@@ -569,7 +574,8 @@ exit:
         cipher_abort( &operation );
     return( status );
 }
-#endif /* MBEDTLS_PSA_BUILTIN_CIPHER || PSA_CRYPTO_DRIVER_TEST */
+#endif /* MBEDTLS_PSA_BUILTIN_CIPHER ||
+          (PSA_CRYPTO_DRIVER_TEST && MBEDTLS_PSA_CRYPTO_CONFIG) */
 
 #if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
 psa_status_t mbedtls_psa_cipher_encrypt_setup(
@@ -658,7 +664,7 @@ psa_status_t mbedtls_psa_cipher_decrypt( const psa_key_attributes_t *attributes,
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
  */
 
-#if defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 psa_status_t mbedtls_transparent_test_driver_cipher_encrypt_setup(
     mbedtls_psa_cipher_operation_t *operation,
     const psa_key_attributes_t *attributes,
@@ -739,6 +745,6 @@ psa_status_t mbedtls_transparent_test_driver_cipher_decrypt(
                             alg, input, input_length,
                             output, output_size, output_length ) );
 }
-#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_DRIVER_TEST && MBEDTLS_PSA_CRYPTO_CONFIG */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

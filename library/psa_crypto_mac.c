@@ -33,11 +33,15 @@
 /* Use builtin defines specific to this compilation unit, since the test driver
  * relies on the software driver. */
 #if( defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC) || \
-    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_CMAC) ) )
+    ( defined(PSA_CRYPTO_DRIVER_TEST) && \
+      defined(MBEDTLS_PSA_CRYPTO_CONFIG) && \
+      defined(MBEDTLS_PSA_ACCEL_ALG_CMAC) ) )
 #define BUILTIN_ALG_CMAC        1
 #endif
 #if( defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC) || \
-    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_HMAC) ) )
+    ( defined(PSA_CRYPTO_DRIVER_TEST) && \
+      defined(MBEDTLS_PSA_CRYPTO_CONFIG) && \
+      defined(MBEDTLS_PSA_ACCEL_ALG_HMAC) ) )
 #define BUILTIN_ALG_HMAC        1
 #endif
 
@@ -560,7 +564,7 @@ psa_status_t mbedtls_psa_mac_abort(
  /*
   * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
   */
-#if defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 
 static int is_mac_accelerated( psa_algorithm_t alg )
 {
@@ -667,6 +671,6 @@ psa_status_t mbedtls_transparent_test_driver_mac_abort(
     return( mac_abort( operation ) );
 }
 
-#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_DRIVER_TEST && MBEDTLS_PSA_CRYPTO_CONFIG */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

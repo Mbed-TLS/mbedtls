@@ -54,58 +54,56 @@ psa_status_t sign_hash(
     size_t signature_size,
     size_t *signature_length )
 {
-#if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS)
     if( attributes->core.type == PSA_KEY_TYPE_RSA_KEY_PAIR )
     {
-        return( mbedtls_transparent_test_driver_rsa_sign_hash(
-                    attributes,
-                    key_buffer, key_buffer_size,
-                    alg, hash, hash_length,
-                    signature, signature_size, signature_length ) );
-    }
-    else
-#endif /* defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) ||
-        * defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS) */
-
-#if defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA)
-    if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
-    {
-        if(
-#if defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA)
-            PSA_ALG_IS_ECDSA( alg )
-#else
-            PSA_ALG_IS_RANDOMIZED_ECDSA( alg )
-#endif
-            )
+        if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) ||
+            PSA_ALG_IS_RSA_PSS( alg) )
         {
-            return( mbedtls_transparent_test_driver_ecdsa_sign_hash(
+#if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) || \
+    defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS)
+            return( mbedtls_transparent_test_driver_rsa_sign_hash(
                         attributes,
                         key_buffer, key_buffer_size,
                         alg, hash, hash_length,
                         signature, signature_size, signature_length ) );
+#endif /* defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) ||
+        * defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS) */
         }
         else
         {
             return( PSA_ERROR_INVALID_ARGUMENT );
         }
     }
-    else
+    else if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
+    {
+        if( PSA_ALG_IS_ECDSA( alg ) )
+        {
+#if defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA)
+            return( mbedtls_transparent_test_driver_ecdsa_sign_hash(
+                        attributes,
+                        key_buffer, key_buffer_size,
+                        alg, hash, hash_length,
+                        signature, signature_size, signature_length ) );
 #endif /* defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) ||
         * defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA) */
-    {
-        (void)attributes;
-        (void)key_buffer;
-        (void)key_buffer_size;
-        (void)alg;
-        (void)hash;
-        (void)hash_length;
-        (void)signature;
-        (void)signature_size;
-        (void)signature_length;
-        return( PSA_ERROR_NOT_SUPPORTED );
+        }
+        else
+        {
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        }
     }
+
+    (void)attributes;
+    (void)key_buffer;
+    (void)key_buffer_size;
+    (void)alg;
+    (void)hash;
+    (void)hash_length;
+    (void)signature;
+    (void)signature_size;
+    (void)signature_length;
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t verify_hash(
@@ -118,52 +116,56 @@ psa_status_t verify_hash(
     const uint8_t *signature,
     size_t signature_length )
 {
-#if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS)
     if( PSA_KEY_TYPE_IS_RSA( attributes->core.type ) )
     {
-        return( mbedtls_transparent_test_driver_rsa_verify_hash(
-                    attributes,
-                    key_buffer, key_buffer_size,
-                    alg, hash, hash_length,
-                    signature, signature_length ) );
-    }
-    else
-#endif /* defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) ||
-        * defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS) */
-
-#if defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) || \
-    defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA)
-    if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
-    {
-        if( PSA_ALG_IS_ECDSA( alg ) )
+        if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) ||
+            PSA_ALG_IS_RSA_PSS( alg) )
         {
-            return( mbedtls_transparent_test_driver_ecdsa_verify_hash(
+#if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) || \
+    defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS)
+            return( mbedtls_transparent_test_driver_rsa_verify_hash(
                         attributes,
                         key_buffer, key_buffer_size,
                         alg, hash, hash_length,
                         signature, signature_length ) );
+#endif /* defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) ||
+        * defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS) */
         }
         else
         {
             return( PSA_ERROR_INVALID_ARGUMENT );
         }
     }
-    else
+    else if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
+    {
+        if( PSA_ALG_IS_ECDSA( alg ) )
+        {
+#if defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA)
+            return( mbedtls_transparent_test_driver_ecdsa_verify_hash(
+                        attributes,
+                        key_buffer, key_buffer_size,
+                        alg, hash, hash_length,
+                        signature, signature_length ) );
 #endif /* defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) ||
         * defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA) */
-    {
-        (void)attributes;
-        (void)key_buffer;
-        (void)key_buffer_size;
-        (void)alg;
-        (void)hash;
-        (void)hash_length;
-        (void)signature;
-        (void)signature_length;
-
-        return( PSA_ERROR_NOT_SUPPORTED );
+        }
+        else
+        {
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        }
     }
+
+    (void)attributes;
+    (void)key_buffer;
+    (void)key_buffer_size;
+    (void)alg;
+    (void)hash;
+    (void)hash_length;
+    (void)signature;
+    (void)signature_length;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t mbedtls_test_transparent_signature_sign_message(

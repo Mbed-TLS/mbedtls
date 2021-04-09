@@ -2948,8 +2948,7 @@ psa_status_t psa_sign_hash_builtin(
             return( PSA_ERROR_INVALID_ARGUMENT );
         }
     }
-    else
-    if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
+    else if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
     {
         if( PSA_ALG_IS_ECDSA( alg ) )
         {
@@ -3019,8 +3018,7 @@ psa_status_t psa_verify_hash_builtin(
             return( PSA_ERROR_INVALID_ARGUMENT );
         }
     }
-    else
-    if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
+    else if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
     {
         if( PSA_ALG_IS_ECDSA( alg ) )
         {

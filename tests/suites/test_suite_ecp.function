@@ -1216,14 +1216,14 @@ void fix_negative( data_t *N_bin, int c, int bits )
     mbedtls_mpi_init( &M );
     mbedtls_mpi_init( &N );
 
-    /* C = - c * 2^bits */
+    /* C = - c * 2^bits (positive since c is negative) */
     TEST_EQUAL( 0, mbedtls_mpi_lset( &C, -c ) );
     TEST_EQUAL( 0, mbedtls_mpi_shift_l( &C, bits ) );
 
     TEST_EQUAL( 0, mbedtls_mpi_read_binary( &N, N_bin->x, N_bin->len ) );
     TEST_EQUAL( 0, mbedtls_mpi_grow( &N, C.n ) );
 
-    /* M = - ( C - N ) */
+    /* M = N - C = - ( C - N ) (expected result of fix_negative) */
     TEST_EQUAL( 0, mbedtls_mpi_sub_mpi( &M, &N, &C ) );
 
     mbedtls_ecp_fix_negative( &N, c, bits );

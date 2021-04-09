@@ -34,7 +34,7 @@ mpi_read_write_string:10:"-23":10:"-23":100:0:0
 Base test mpi_read_write_string #3 (Negative decimal, leading 0)
 mpi_read_write_string:10:"-023":10:"-23":100:0:0
 
-Base test mpi_read_write_string #3 (Negative decimal -> hex)
+Base test mpi_read_write_string #3 (Negative hex -> decimal)
 mpi_read_write_string:16:"-20":10:"-32":100:0:0
 
 Base test mpi_read_write_string #3 (Negative hex)

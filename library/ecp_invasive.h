@@ -38,9 +38,10 @@
  *   - bits is a multiple of 64 or is 224
  *   - c is -1 or -2
  *   - 0 <= N < 2^bits
- *   - N has room for bits+64 bits
+ *   - N has room for bits plus one limb
  *
- * Set N to c * 2^bits + N.
+ * Behavior:
+ * Set N to c * 2^bits + old_value_of_N.
  */
 void mbedtls_ecp_fix_negative( mbedtls_mpi *N, signed char c, size_t bits );
 #endif

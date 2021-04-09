@@ -216,7 +216,7 @@ psa_status_t mbedtls_psa_rsa_verify_hash(
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
  */
 
-#if defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 
 psa_status_t mbedtls_test_driver_rsa_import_key(
     const psa_key_attributes_t *attributes,
@@ -245,6 +245,6 @@ psa_status_t mbedtls_transparent_test_driver_rsa_verify_hash(
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
     const uint8_t *signature, size_t signature_length );
 
-#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_DRIVER_TEST && MBEDTLS_PSA_CRYPTO_CONFIG */
 
 #endif /* PSA_CRYPTO_RSA_H */

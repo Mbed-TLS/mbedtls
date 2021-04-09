@@ -43,18 +43,21 @@
 
 #if ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||  \
       ( defined(PSA_CRYPTO_DRIVER_TEST) &&                   \
+        defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&                \
         defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) ) )
 #define BUILTIN_KEY_TYPE_RSA_KEY_PAIR    1
 #endif
 
-#if ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) ||  \
-      ( defined(PSA_CRYPTO_DRIVER_TEST) &&                   \
+#if ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) || \
+      ( defined(PSA_CRYPTO_DRIVER_TEST) &&                    \
+        defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&                 \
         defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY) ) )
 #define BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY  1
 #endif
 
 #if ( defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||  \
       ( defined(PSA_CRYPTO_DRIVER_TEST) &&                   \
+        defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&                \
         defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) &&  \
         defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V15) ) )
 #define BUILTIN_ALG_RSA_PKCS1V15_SIGN  1
@@ -62,6 +65,7 @@
 
 #if ( defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) ||  \
       ( defined(PSA_CRYPTO_DRIVER_TEST) &&         \
+        defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&      \
         defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS) &&  \
         defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21) ) )
 #define BUILTIN_ALG_RSA_PSS 1
@@ -630,7 +634,7 @@ psa_status_t mbedtls_psa_rsa_verify_hash(
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
  */
 
-#if defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 
 #if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY)
@@ -725,6 +729,6 @@ psa_status_t mbedtls_transparent_test_driver_rsa_verify_hash(
 #endif /* defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) ||
         * defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS) */
 
-#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_DRIVER_TEST && MBEDTLS_PSA_CRYPTO_CONFIG */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

@@ -32,31 +32,45 @@
 /* Use builtin defines specific to this compilation unit, since the test driver
  * relies on the software driver. */
 #if( defined(MBEDTLS_PSA_BUILTIN_ALG_MD5) || \
-    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_MD5) ) )
+    ( defined(PSA_CRYPTO_DRIVER_TEST) &&     \
+      defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&  \
+      defined(MBEDTLS_PSA_ACCEL_ALG_MD5) ) )
 #define BUILTIN_ALG_MD5         1
 #endif
 #if( defined(MBEDTLS_PSA_BUILTIN_ALG_RIPEMD160) || \
-    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_RIPEMD160) ) )
+    ( defined(PSA_CRYPTO_DRIVER_TEST) &&           \
+      defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&        \
+      defined(MBEDTLS_PSA_ACCEL_ALG_RIPEMD160) ) )
 #define BUILTIN_ALG_RIPEMD160   1
 #endif
 #if( defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_1) || \
-    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_SHA_1) ) )
+    ( defined(PSA_CRYPTO_DRIVER_TEST) &&       \
+      defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&    \
+      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_1) ) )
 #define BUILTIN_ALG_SHA_1       1
 #endif
 #if( defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224) || \
-    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_SHA_224) ) )
+    ( defined(PSA_CRYPTO_DRIVER_TEST) &&         \
+      defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&      \
+      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_224) ) )
 #define BUILTIN_ALG_SHA_224     1
 #endif
 #if( defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256) || \
-    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_SHA_256) ) )
+    ( defined(PSA_CRYPTO_DRIVER_TEST) &&         \
+      defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&      \
+      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_256) ) )
 #define BUILTIN_ALG_SHA_256     1
 #endif
 #if( defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384) || \
-    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_SHA_384) ) )
+    ( defined(PSA_CRYPTO_DRIVER_TEST) &&         \
+      defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&      \
+      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_384) ) )
 #define BUILTIN_ALG_SHA_384     1
 #endif
 #if( defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512) || \
-    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512) ) )
+    ( defined(PSA_CRYPTO_DRIVER_TEST) &&         \
+      defined(MBEDTLS_PSA_CRYPTO_CONFIG) &&      \
+      defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512) ) )
 #define BUILTIN_ALG_SHA_512     1
 #endif
 
@@ -107,7 +121,8 @@ const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
 
 /* Implement the PSA driver hash interface on top of mbed TLS if either the
  * software driver or the test driver requires it. */
-#if defined(MBEDTLS_PSA_BUILTIN_HASH) || defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(MBEDTLS_PSA_BUILTIN_HASH) || \
+    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_CRYPTO_CONFIG) )
 static psa_status_t hash_abort(
     mbedtls_psa_hash_operation_t *operation )
 {
@@ -453,7 +468,8 @@ exit:
         return( status );
 
 }
-#endif /* MBEDTLS_PSA_BUILTIN_HASH || PSA_CRYPTO_DRIVER_TEST */
+#endif /* MBEDTLS_PSA_BUILTIN_HASH ||
+          ( PSA_CRYPTO_DRIVER_TEST && MBEDTLS_PSA_CRYPTO_CONFIG ) */
 
 #if defined(MBEDTLS_PSA_BUILTIN_HASH)
 psa_status_t mbedtls_psa_hash_compute(
@@ -509,7 +525,7 @@ psa_status_t mbedtls_psa_hash_abort(
  /*
   * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
   */
-#if defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 
 static int is_hash_accelerated( psa_algorithm_t alg )
 {

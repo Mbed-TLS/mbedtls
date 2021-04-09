@@ -47,11 +47,30 @@ psa_status_t mbedtls_test_transparent_mac_compute(
     }
     else
     {
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
         mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_transparent_test_driver_mac_compute(
                 attributes, key_buffer, key_buffer_size, alg,
                 input, input_length,
                 mac, mac_size, mac_length );
+#elif defined(MBEDTLS_PSA_BUILTIN_MAC)
+        mbedtls_test_driver_mac_hooks.driver_status =
+            mbedtls_psa_mac_compute(
+                attributes, key_buffer, key_buffer_size, alg,
+                input, input_length,
+                mac, mac_size, mac_length );
+#else
+        (void) attributes;
+        (void) key_buffer;
+        (void) key_buffer_size;
+        (void) alg;
+        (void) input;
+        (void) input_length;
+        (void) mac;
+        (void) mac_size;
+        (void) mac_length;
+        mbedtls_test_driver_mac_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
+#endif
     }
 
     return( mbedtls_test_driver_mac_hooks.driver_status );
@@ -73,9 +92,22 @@ psa_status_t mbedtls_test_transparent_mac_sign_setup(
     }
     else
     {
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
         mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_transparent_test_driver_mac_sign_setup(
                 operation, attributes, key_buffer, key_buffer_size, alg );
+#elif defined(MBEDTLS_PSA_BUILTIN_MAC)
+        mbedtls_test_driver_mac_hooks.driver_status =
+            mbedtls_psa_mac_sign_setup(
+                operation, attributes, key_buffer, key_buffer_size, alg );
+#else
+        (void) operation;
+        (void) attributes;
+        (void) key_buffer;
+        (void) key_buffer_size;
+        (void) alg;
+        mbedtls_test_driver_mac_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
+#endif
     }
 
     return( mbedtls_test_driver_mac_hooks.driver_status );
@@ -97,9 +129,22 @@ psa_status_t mbedtls_test_transparent_mac_verify_setup(
     }
     else
     {
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
         mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_transparent_test_driver_mac_verify_setup(
                 operation, attributes, key_buffer, key_buffer_size, alg );
+#elif defined(MBEDTLS_PSA_BUILTIN_MAC)
+        mbedtls_test_driver_mac_hooks.driver_status =
+            mbedtls_psa_mac_verify_setup(
+                operation, attributes, key_buffer, key_buffer_size, alg );
+#else
+        (void) operation;
+        (void) attributes;
+        (void) key_buffer;
+        (void) key_buffer_size;
+        (void) alg;
+        mbedtls_test_driver_mac_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
+#endif
     }
 
     return( mbedtls_test_driver_mac_hooks.driver_status );
@@ -119,9 +164,20 @@ psa_status_t mbedtls_test_transparent_mac_update(
     }
     else
     {
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
         mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_transparent_test_driver_mac_update(
                 operation, input, input_length );
+#elif defined(MBEDTLS_PSA_BUILTIN_MAC)
+        mbedtls_test_driver_mac_hooks.driver_status =
+            mbedtls_psa_mac_update(
+                operation, input, input_length );
+#else
+        (void) operation;
+        (void) input;
+        (void) input_length;
+        mbedtls_test_driver_mac_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
+#endif
     }
 
     return( mbedtls_test_driver_mac_hooks.driver_status );
@@ -142,9 +198,21 @@ psa_status_t mbedtls_test_transparent_mac_sign_finish(
     }
     else
     {
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
         mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_transparent_test_driver_mac_sign_finish(
                 operation, mac, mac_size, mac_length );
+#elif defined(MBEDTLS_PSA_BUILTIN_MAC)
+        mbedtls_test_driver_mac_hooks.driver_status =
+            mbedtls_psa_mac_sign_finish(
+                operation, mac, mac_size, mac_length );
+#else
+        (void) operation;
+        (void) mac;
+        (void) mac_size;
+        (void) mac_length;
+        mbedtls_test_driver_mac_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
+#endif
     }
 
     return( mbedtls_test_driver_mac_hooks.driver_status );
@@ -164,9 +232,20 @@ psa_status_t mbedtls_test_transparent_mac_verify_finish(
     }
     else
     {
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
         mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_transparent_test_driver_mac_verify_finish(
                 operation, mac, mac_length );
+#elif defined(MBEDTLS_PSA_BUILTIN_MAC)
+        mbedtls_test_driver_mac_hooks.driver_status =
+            mbedtls_psa_mac_verify_finish(
+                operation, mac, mac_length );
+#else
+        (void) operation;
+        (void) mac;
+        (void) mac_length;
+        mbedtls_test_driver_mac_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
+#endif
     }
 
     return( mbedtls_test_driver_mac_hooks.driver_status );
@@ -184,8 +263,16 @@ psa_status_t mbedtls_test_transparent_mac_abort(
     }
     else
     {
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
         mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_transparent_test_driver_mac_abort( operation );
+#elif defined(MBEDTLS_PSA_BUILTIN_MAC)
+        mbedtls_test_driver_mac_hooks.driver_status =
+            mbedtls_psa_mac_abort( operation );
+#else
+        (void) operation;
+        mbedtls_test_driver_mac_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
+#endif
     }
 
     return( mbedtls_test_driver_mac_hooks.driver_status );

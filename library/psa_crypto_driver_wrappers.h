@@ -26,6 +26,12 @@
 #include "psa/crypto_driver_common.h"
 
 /*
+ * Initialization and termination functions
+ */
+psa_status_t psa_driver_wrapper_init( void );
+void psa_driver_wrapper_free( void );
+
+/*
  * Signature functions
  */
 psa_status_t psa_driver_wrapper_sign_message(

@@ -81,7 +81,7 @@ int mbedtls_mps_writer_feed( mbedtls_mps_writer *wr,
         mbedtls_mps_size_t queue_next, queue_remaining;
         queue_remaining = wr->queue_remaining;
         queue_next = wr->queue_next;
-        MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
+        MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                            "Queue data pending to be dispatched: %u",
                            (unsigned) wr->queue_remaining );
 
@@ -101,7 +101,7 @@ int mbedtls_mps_writer_feed( mbedtls_mps_writer *wr,
         if( queue_remaining > 0 )
         {
             /* More data waiting in the queue */
-            MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
+            MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                                "There are %u bytes remaining in the queue.",
                                (unsigned) queue_remaining );
 
@@ -112,7 +112,7 @@ int mbedtls_mps_writer_feed( mbedtls_mps_writer *wr,
         }
 
         /* The queue is empty. */
-        MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment, "Queue is empty" );
+        MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT, "Queue is empty" );
         wr->queue_next = 0;
         wr->queue_remaining = 0;
 
@@ -138,7 +138,7 @@ int mbedtls_mps_writer_reclaim( mbedtls_mps_writer *wr,
 {
     mbedtls_mps_size_t commit, out_len;
     MBEDTLS_MPS_TRACE_INIT( "writer_reclaim" );
-    MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
+    MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                        " * Force reclaim: %u", (unsigned) force );
 
     /* Check that the writer is in consuming mode. */
@@ -237,7 +237,7 @@ int mbedtls_mps_writer_get( mbedtls_mps_writer *wr,
     /* Check if we're already serving from the queue */
     if( end > out_len )
     {
-        MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
+        MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                   "already serving from the queue, attempt to continue" );
 
         queue_len = wr->queue_len;
@@ -254,14 +254,14 @@ int mbedtls_mps_writer_get( mbedtls_mps_writer *wr,
         {
             if( buflen == NULL )
             {
-                MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
+                MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                                    "not enough space remaining in queue" );
                 MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_WRITER_OUT_OF_DATA );
             }
             desired = queue_len - queue_offset;
         }
 
-        MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
+        MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                            "serving %u bytes from queue", (unsigned) desired );
 
         queue = wr->queue;
@@ -278,12 +278,12 @@ int mbedtls_mps_writer_get( mbedtls_mps_writer *wr,
     /* We're still serving from the output buffer.
      * Check if there's enough space left in it. */
     out_remaining = out_len - end;
-    MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
+    MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                        "%u bytes remaining in output buffer",
                        (unsigned) out_remaining );
     if( out_remaining < desired )
     {
-        MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
+        MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                            "need %u, but only %u remains in write buffer",
                            (unsigned) desired, (unsigned) out_remaining );
 
@@ -302,7 +302,7 @@ int mbedtls_mps_writer_get( mbedtls_mps_writer *wr,
             overflow = ( end + desired < end );
             if( overflow || desired > queue_len )
             {
-                MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
+                MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                          "queue present but too small, need %u but only got %u",
                          (unsigned) desired, (unsigned) queue_len );
                 MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_WRITER_OUT_OF_DATA );
@@ -318,7 +318,7 @@ int mbedtls_mps_writer_get( mbedtls_mps_writer *wr,
 
             /* Remember the overlap between queue and output buffer. */
             wr->queue_next = out_remaining;
-            MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
+            MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                                "served from queue, qo %u",
                                (unsigned) wr->queue_next );
 
@@ -329,7 +329,7 @@ int mbedtls_mps_writer_get( mbedtls_mps_writer *wr,
          * in the output buffer, provided the user allows it. */
         if( buflen == NULL )
         {
-            MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment, "no queue present" );
+            MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT, "no queue present" );
             MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_WRITER_OUT_OF_DATA );
         }
 
@@ -360,7 +360,8 @@ int mbedtls_mps_writer_commit_partial( mbedtls_mps_writer *wr,
     mbedtls_mps_size_t out_len, copy_from_queue;
     unsigned char *out, *queue;
     MBEDTLS_MPS_TRACE_INIT( "writer_commit_partial" );
-    MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment, "* Omit %u bytes", (unsigned) omit );
+    MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
+                       "* Omit %u bytes", (unsigned) omit );
 
     MBEDTLS_MPS_STATE_VALIDATE_RAW(
         wr->state == MBEDTLS_MPS_WRITER_CONSUMING,
@@ -377,11 +378,11 @@ int mbedtls_mps_writer_commit_partial( mbedtls_mps_writer *wr,
 
     to_be_committed = end - omit;
 
-    MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
+    MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                        "* Last commit:       %u", (unsigned) commit );
-    MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
+    MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                        "* End of last fetch: %u", (unsigned) end );
-    MBEDTLS_MPS_TRACE( mbedtls_mps_trace_comment,
+    MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                        "* New commit:        %u", (unsigned) to_be_committed );
 
     if( end     > out_len &&

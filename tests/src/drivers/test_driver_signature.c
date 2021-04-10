@@ -33,6 +33,7 @@
 #include "psa_crypto_rsa.h"
 #include "mbedtls/ecp.h"
 
+#include "test/drivers/hash.h"
 #include "test/drivers/signature.h"
 
 #include "mbedtls/md.h"

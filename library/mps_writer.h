@@ -279,17 +279,14 @@ int mbedtls_mps_writer_bytes_written( mbedtls_mps_writer *writer,
 
 /**
  * \brief           Signal that all output buffers previously obtained
- *                  from mbedtls_mps_writer_get() are ready to be dispatched.
+ *                  from mbedtls_mps_writer_get() have been or will have
+ *                  been written when mbedtls_mps_writer_reclaim() is
+ *                  called.
  *
  *                  This function must only be called when the writer
  *                  is in consuming state.
  *
  * \param writer    The writer context to use.
- *
- * \note            After this function has been called, all
- *                  output buffers obtained from prior calls to
- *                  mbedtls_mps_writer_get() are invalid and must not
- *                  be used anymore.
  *
  * \return          \c 0 on success. In this case, the writer
  *                  stays in consuming state.
@@ -305,21 +302,23 @@ int mbedtls_mps_writer_bytes_written( mbedtls_mps_writer *writer,
 int mbedtls_mps_writer_commit( mbedtls_mps_writer *writer );
 
 /**
- * \brief           Signal that parts of the output buffers obtained
- *                  from mbedtls_mps_writer_get() are ready to be dispatched.
+ * \brief           Signal which parts of the output buffers previously
+ *                  obtained from mbedtls_mps_writer_get() have been or
+ *                  will have been written when mbedtls_mps_writer_reclaim()
+ *                  is called.
  *
  *                  This function must only be called when the writer
  *                  is in consuming state.
+ *
+ * \note            This function is necessary when the user requested
+ *                  an overly large write buffer via mbedtls_mps_writer_get()
+ *                  (e.g. because the necessary buffer size wasn't known
+ *                  upfront) and only parts of it were actually written.
  *
  * \param writer    The writer context to use.
  * \param omit      The number of bytes at the end of the last output
  *                  buffer obtained from mbedtls_mps_writer_get() that should
  *                  not be committed.
- *
- * \note            After this function has been called, all
- *                  output buffers obtained from prior calls to
- *                  mbedtls_mps_writer_get() are invalid and must not
- *                  be used anymore.
  *
  * \return          \c 0 on success. In this case, the writer
  *                  stays in consuming state.

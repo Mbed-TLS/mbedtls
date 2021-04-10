@@ -1859,7 +1859,7 @@ void mbedtls_mps_writer_random_usage( int data_amount,
                     memcpy( outgoing + out_pos, cur_chunk, out_committed );
                     out_pos += out_committed;
 
-                    free( cur_chunk );
+                    mbedtls_free( cur_chunk );
                     cur_chunk = NULL;
                 }
                 reclaimed = 1;
@@ -1890,7 +1890,7 @@ void mbedtls_mps_writer_random_usage( int data_amount,
                 }
                 else
                 {
-                    free( tmp );
+                    mbedtls_free( tmp );
                 }
             }
 
@@ -1972,9 +1972,9 @@ void mbedtls_mps_writer_random_usage( int data_amount,
 
     /* Cleanup */
     mbedtls_mps_writer_free( &wr );
-    free( incoming );
-    free( outgoing );
-    free( queue );
-    free( cur_chunk );
+    mbedtls_free( incoming );
+    mbedtls_free( outgoing );
+    mbedtls_free( queue );
+    mbedtls_free( cur_chunk );
 }
 /* END_CASE */

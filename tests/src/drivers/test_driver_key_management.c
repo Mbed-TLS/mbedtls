@@ -56,6 +56,25 @@ const uint8_t mbedtls_test_driver_ecdsa_pubkey[65] =
       0xbc, 0x25, 0x16, 0xc3, 0xd2, 0x70, 0x2d, 0x79,
       0x2f, 0x13, 0x1a, 0x92, 0x20, 0x95, 0xfd, 0x6c };
 
+psa_status_t mbedtls_test_transparent_init( void )
+{
+    return( PSA_SUCCESS );
+}
+
+void mbedtls_test_transparent_free( void )
+{
+    return;
+}
+
+psa_status_t mbedtls_test_opaque_init( void )
+{
+    return( PSA_SUCCESS );
+}
+
+void mbedtls_test_opaque_free( void )
+{
+    return;
+}
 
 /*
  * This macro returns the base size for the key context when SE does not

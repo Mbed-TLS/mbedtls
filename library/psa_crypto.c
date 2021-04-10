@@ -5818,11 +5818,9 @@ void mbedtls_psa_crypto_free( void )
      * In particular, this sets all state indicator to the value
      * indicating "uninitialized". */
     mbedtls_platform_zeroize( &global_data, sizeof( global_data ) );
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    /* Unregister all secure element drivers, so that we restart from
-     * a pristine state. */
-    psa_unregister_all_se_drivers( );
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
+    /* Terminate drivers */
+    psa_driver_wrapper_free( );
 }
 
 #if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
@@ -5871,11 +5869,10 @@ psa_status_t psa_crypto_init( void )
     if( status != PSA_SUCCESS )
         goto exit;
 
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    status = psa_init_all_se_drivers( );
+    /* Init drivers */
+    status = psa_driver_wrapper_init( );
     if( status != PSA_SUCCESS )
         goto exit;
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
     status = psa_crypto_load_transaction( );

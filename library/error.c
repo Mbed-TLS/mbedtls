@@ -893,8 +893,6 @@ const char * mbedtls_low_level_strerr( int error_code )
     return( NULL );
 }
 
-void (*mbedtls_test_hook_error_add)( int, int, const char *, int );
-
 void mbedtls_strerror( int ret, char *buf, size_t buflen )
 {
     size_t len;
@@ -974,5 +972,9 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 }
 
 #endif /* MBEDTLS_ERROR_C */
+
+#if defined(MBEDTLS_TEST_HOOKS)
+void (*mbedtls_test_hook_error_add)( int, int, const char *, int );
+#endif
 
 #endif /* MBEDTLS_ERROR_C || MBEDTLS_ERROR_STRERROR_DUMMY */

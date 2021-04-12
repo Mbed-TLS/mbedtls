@@ -123,11 +123,13 @@ extern "C" {
 #define MBEDTLS_ERROR_ADD( high, low ) \
         mbedtls_error_add_ext( high, low, __FILE__, __LINE__ )
 
+#if defined(MBEDTLS_TEST_HOOKS)
 /**
  * \brief Testing hook called before adding/combining two error codes together.
  *        Only used when invasive testing is enabled via MBEDTLS_TEST_HOOKS.
  */
 extern void (*mbedtls_test_hook_error_add)( int, int, const char *, int );
+#endif
 
 /**
  * \brief Combines a high-level and low-level error code together.

@@ -117,29 +117,69 @@ export_key private to public through driver: error
 depends_on:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY:MBEDTLS_PK_PARSE_C:MBEDTLS_PK_WRITE_C:PSA_WANT_ECC_SECP_R1_256
 export_key:PSA_ERROR_GENERIC_ERROR:"":PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1):"49c9a8c18c4b885638c431cf1df1c994131609b580d4fd43a0cab17db2f13eee":PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_R1):"":PSA_ERROR_GENERIC_ERROR
 
-PSA symmetric encrypt: AES-CTR, 16 bytes, good
+PSA symmetric encrypt sanity check: AES-CTR, 16 bytes, good
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":"8f9408fe80a81d3e813da3c7b0b2bd32":0:PSA_SUCCESS:PSA_SUCCESS
+cipher_encrypt_sanity:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":"":0:PSA_SUCCESS:PSA_SUCCESS
 
-PSA symmetric encrypt: AES-CTR, 15 bytes, good
+PSA symmetric encrypt sanity check: AES-CTR, 15 bytes, good
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":"8f9408fe80a81d3e813da3c7b0b2bd":0:PSA_SUCCESS:PSA_SUCCESS
+cipher_encrypt_sanity:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e11739317":"":0:PSA_SUCCESS:PSA_SUCCESS
 
-PSA symmetric encrypt: AES-CTR, 16 bytes, fallback
+PSA symmetric encrypt sanity check: AES-CTR, 16 bytes, fallback
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES:MBEDTLS_PSA_BUILTIN_CIPHER
-cipher_encrypt:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":"8f9408fe80a81d3e813da3c7b0b2bd32":0:PSA_ERROR_NOT_SUPPORTED:PSA_SUCCESS
+cipher_encrypt_sanity:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":"":0:PSA_ERROR_NOT_SUPPORTED:PSA_SUCCESS
 
-PSA symmetric encrypt: AES-CTR, 15 bytes, fallback
+PSA symmetric encrypt sanity check: AES-CTR, 15 bytes, fallback
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES:MBEDTLS_PSA_BUILTIN_CIPHER
-cipher_encrypt:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":"8f9408fe80a81d3e813da3c7b0b2bd":0:PSA_ERROR_NOT_SUPPORTED:PSA_SUCCESS
+cipher_encrypt_sanity:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e11739317":"":0:PSA_ERROR_NOT_SUPPORTED:PSA_SUCCESS
 
-PSA symmetric encrypt: AES-CTR, 16 bytes, fake
+PSA symmetric encrypt sanity check: AES-CTR, 16 bytes, fake
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":"d07a6a6e2687feb2":1:PSA_SUCCESS:PSA_SUCCESS
+cipher_encrypt_sanity:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":"d07a6a6e2687feb2":1:PSA_SUCCESS:PSA_SUCCESS
 
-PSA symmetric encrypt: AES-CTR, 15 bytes, fake
+PSA symmetric encrypt sanity check: AES-CTR, 15 bytes, fake
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":"d07a6a6e2687feb2":1:PSA_SUCCESS:PSA_SUCCESS
+cipher_encrypt_sanity:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e11739317":"d07a6a6e2687feb2":1:PSA_SUCCESS:PSA_SUCCESS
+
+PSA symmetric encrypt validation: AES-CTR, 16 bytes, good
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_validation:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
+
+PSA symmetric encrypt validation: AES-CTR, 15 bytes, good
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_validation:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e11739317"
+
+PSA symmetric encrypt validation: AES-CTR, 16 bytes, fallback
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES:MBEDTLS_PSA_BUILTIN_CIPHER
+cipher_encrypt_validation:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
+
+PSA symmetric encrypt validation: AES-CTR, 15 bytes, fallback
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES:MBEDTLS_PSA_BUILTIN_CIPHER
+cipher_encrypt_validation:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e11739317"
+
+PSA symmetric encrypt multipart: AES-CTR, 16 bytes, good
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_simple_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":"8f9408fe80a81d3e813da3c7b0b2bd32":0:PSA_SUCCESS:PSA_SUCCESS
+
+PSA symmetric encrypt multipart: AES-CTR, 15 bytes, good
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_simple_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":"8f9408fe80a81d3e813da3c7b0b2bd":0:PSA_SUCCESS:PSA_SUCCESS
+
+PSA symmetric encrypt multipart: AES-CTR, 16 bytes, fallback
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES:MBEDTLS_PSA_BUILTIN_CIPHER
+cipher_encrypt_simple_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":"8f9408fe80a81d3e813da3c7b0b2bd32":0:PSA_ERROR_NOT_SUPPORTED:PSA_SUCCESS
+
+PSA symmetric encrypt multipart: AES-CTR, 15 bytes, fallback
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES:MBEDTLS_PSA_BUILTIN_CIPHER
+cipher_encrypt_simple_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":"8f9408fe80a81d3e813da3c7b0b2bd":0:PSA_ERROR_NOT_SUPPORTED:PSA_SUCCESS
+
+PSA symmetric encrypt multipart: AES-CTR, 16 bytes, fake
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_simple_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":"d07a6a6e2687feb2":1:PSA_SUCCESS:PSA_SUCCESS
+
+PSA symmetric encrypt multipart: AES-CTR, 15 bytes, fake
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_simple_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":"d07a6a6e2687feb2":1:PSA_SUCCESS:PSA_SUCCESS
 
 PSA symmetric decrypt: AES-CTR, 16 bytes, good
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
@@ -152,6 +192,18 @@ cipher_decrypt:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"
 PSA symmetric decrypt: AES-CTR, 16 bytes, fake
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
 cipher_decrypt:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"396ee84fb75fdbb5c2b13c7fe5a654aa":"d07a6a6e2687feb2":1:PSA_SUCCESS:PSA_SUCCESS
+
+PSA symmetric decrypt multipart: AES-CTR, 16 bytes, good
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt_simple_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"396ee84fb75fdbb5c2b13c7fe5a654aa":"dd3b5e5319b7591daab1e1a92687feb2":0:PSA_SUCCESS:PSA_SUCCESS
+
+PSA symmetric decrypt multipart: AES-CTR, 16 bytes, fallback
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES:MBEDTLS_PSA_BUILTIN_CIPHER
+cipher_decrypt_simple_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"396ee84fb75fdbb5c2b13c7fe5a654aa":"dd3b5e5319b7591daab1e1a92687feb2":0:PSA_ERROR_NOT_SUPPORTED:PSA_SUCCESS
+
+PSA symmetric decrypt multipart: AES-CTR, 16 bytes, fake
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt_simple_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"396ee84fb75fdbb5c2b13c7fe5a654aa":"d07a6a6e2687feb2":1:PSA_SUCCESS:PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CTR, 11+5 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES

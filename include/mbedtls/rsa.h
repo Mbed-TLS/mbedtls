@@ -58,9 +58,6 @@
  */
 #define MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION             -0x4500  /**< The implementation does not offer the requested operation, for example, because of security violations or lack of functionality. */
 
-/* MBEDTLS_ERR_RSA_HW_ACCEL_FAILED is deprecated and should not be used. */
-#define MBEDTLS_ERR_RSA_HW_ACCEL_FAILED                   -0x4580  /**< RSA hardware accelerator failed. */
-
 /*
  * RSA constants
  */

@@ -41,9 +41,6 @@
 
 #define MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH              -0x0032  /**< The data input has an invalid length. */
 
-/* MBEDTLS_ERR_DES_HW_ACCEL_FAILED is deprecated and should not be used. */
-#define MBEDTLS_ERR_DES_HW_ACCEL_FAILED                   -0x0033  /**< DES hardware accelerator failed. */
-
 #define MBEDTLS_DES_KEY_SIZE    8
 
 #ifdef __cplusplus

@@ -34,8 +34,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED is deprecated and should not be used. */
-#define MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED                -0x0037  /**< SHA-256 hardware accelerator failed */
 #define MBEDTLS_ERR_SHA256_BAD_INPUT_DATA                 -0x0074  /**< SHA-256 input data was malformed. */
 
 #ifdef __cplusplus

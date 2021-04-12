@@ -1969,7 +1969,7 @@
 /** The Password-authenticated key exchange by juggling (J-PAKE) protocol.
  *
  * J-PAKE can be instantiated over finite fields or elliptic curves. This can
- * be achieved by passing either #PSA_PAKE_PRIMITIVE_TYPE_FIELD or
+ * be achieved by passing either #PSA_PAKE_PRIMITIVE_TYPE_FIELD_DH or
  * #PSA_PAKE_PRIMITIVE_TYPE_CURVE to #PSA_PAKE_PRIMITIVE respectively, when
  * creating the cipher suite.
  *
@@ -2446,7 +2446,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 
 /**@}*/
 
-/** \defgroup pake Password-authenticated key exchange
+/** \defgroup pake Password-authenticated key exchange (PAKE)
  * @{
  */
 

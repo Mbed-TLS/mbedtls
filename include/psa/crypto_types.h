@@ -384,7 +384,11 @@ typedef uint16_t psa_key_derivation_step_t;
  * @{
  */
 
-/** \brief Encoding of the side of PAKE */
+/** \brief Encoding of the side of PAKE
+ *
+ * Encodes which side of the protocol is being executed. For more information
+ * see the documentation of individual PSA_PAKE_SIDE_XXX constants.
+ */
 typedef uint16_t psa_pake_side_t;
 
 /** Encoding of input and output indicators for PAKE.

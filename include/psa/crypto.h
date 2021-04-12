@@ -4267,22 +4267,26 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *                              value derived from the password (eg. by a
  *                              memory-hard function).  It must remain valid
  *                              until the operation terminates. It must be of
- *                              type #PSA_KEY_TYPE_PASSWORD or
+ *                              type PSA_KEY_TYPE_PASSWORD or
  *                              #PSA_KEY_TYPE_DERIVE. It has to allow the usage
  *                              #PSA_KEY_USAGE_DERIVE.
  * \param alg                   The PAKE protocol to use
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_PAKE(\p alg) is true).
  * \param cipher_suite          The cipher suite to use with the PAKE algorithm.
+ * \param side                  A value of type ::psa_pake_side_t signaling the
+ *                              side of the protocol that is being set up. For
+ *                              more information see the documentation of \c
+ *                              PSA_PAKE_SIDE_XXX constants.
  * \param[in] user_id           The user ID to authenticate with.
- * \param user_id_length        Size of the \p user_id buffer in bytes.
+ * \param user_id_len           Size of the \p user_id buffer in bytes.
  * \param[in] peer_id           The peer's ID to authenticate.
- * \param peer_id_length        Size of the \p peer_id buffer in bytes.
+ * \param peer_id_len           Size of the \p peer_id buffer in bytes.
  * \param[in] session_data      Additional session related data if it is allowed
  *                              or required by the protocol. This must be empty
  *                              if additional session data is not used by the
  *                              protocol.
- * \param session_data_length   Size of the \p session_data buffer in bytes.
+ * \param session_data_len      Size of the \p session_data buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.

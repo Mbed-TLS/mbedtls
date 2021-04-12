@@ -133,10 +133,14 @@ extern void (*mbedtls_test_hook_error_add)( int, int, const char *, int );
  * \brief Combines a high-level and low-level error code together.
  *
  *        This function can be called directly however it is usually
- *        called via the mbedtls_error_add macro.
+ *        called via the #MBEDTLS_ERROR_ADD macro.
  *
- * \note  When invasive testing is enabled via MBEDTLS_TEST_HOOKS also try to
- *        call mbedtls_test_hook_error_add.
+ *        While a value of zero is not a negative error code, it is still an
+ *        error code (that denotes success) and can be combined with both a
+ *        negative error code or another value of zero.
+ *
+ * \note  When invasive testing is enabled via #MBEDTLS_TEST_HOOKS, also try to
+ *        call \link mbedtls_test_hook_error_add \endlink.
  *
  * \param high      high-level error code. See error.h for more details.
  * \param low       low-level error code. See error.h for more details.

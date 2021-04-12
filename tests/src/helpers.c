@@ -292,7 +292,7 @@ void mbedtls_test_err_add_check( int high, int low,
      * examples given in comments have been made positive for ease of
      * understanding. The structure of an error code is such:
      *
-     *                                                shhhhhhhllllllll
+     *                                                shhhhhhhhlllllll
      *
      * s = sign bit.
      * h = high level error code (includes high and module error codes).
@@ -308,7 +308,7 @@ void mbedtls_test_err_add_check( int high, int low,
         mbedtls_test_fail( "'high' error code is greater than 15 bits",
                             line, file );
     }
-    else if ( ( high & 0x7F ) != 0 )    // high & 0000000011111111
+    else if ( ( high & 0x7F ) != 0 )    // high & 0000000001111111
     {
         mbedtls_test_fail( "'high' contains a low-level error code",
                             line, file );

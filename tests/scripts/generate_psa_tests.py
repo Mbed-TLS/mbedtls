@@ -371,11 +371,15 @@ class StorageFormat:
 
     def all_test_cases(self) -> Iterator[test_case.TestCase]:
         """Generate all storage format test cases."""
-        for key in self.all_keys_for_usage_flags():
-            yield self.make_test_case(key)
-        for key in self.all_keys_for_types():
-            yield self.make_test_case(key)
-        for key in self.all_keys_for_algorithms():
+        # First build a list of all keys, then construct all the corresponding
+        # test cases. This allows all required information to be obtained in
+        # one go, which is a significant performance gain as the information
+        # includes numerical values obtained by compiling a C program.
+        keys = [] #type: List[StorageKey]
+        keys += self.all_keys_for_usage_flags()
+        keys += self.all_keys_for_types()
+        keys += self.all_keys_for_algorithms()
+        for key in keys:
             yield self.make_test_case(key)
         # To do: vary id, lifetime
 

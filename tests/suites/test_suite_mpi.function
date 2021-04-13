@@ -64,38 +64,48 @@ static int f_rng_bytes_left( void *state, unsigned char *buf, size_t len )
     return( 0 );
 }
 
-/* Test whether bytes represents (in big-endian base 256) a number B that
- * is "significantly" above a power of 2, which is defined as follows.
- * Let n be the integer such that 2^n <= B < 2^{n+1}. B is significantly
- * above a power of 2 if (B - 2^n) / 2^n is not negligible. "Negligible"
- * is defined as having a negligible chance that if you draw an integer
- * in the range [1, B-1] K times, the number will always be less than 2^n,
- * where K is the iteration count passed to genkey_sw_many.
+/* Test whether bytes represents (in big-endian base 256) a number b that
+ * is significantly above a power of 2. That is, b must not have a long run
+ * of unset bits after the most significant bit.
+ *
+ * Let n be the bit-size of b, i.e. the integer such that 2^n <= b < 2^{n+1}.
+ * This function returns 1 if, when drawing a number between 0 and b,
+ * the probability that this number is at least 2^n is not negligible.
+ * This probability is (b - 2^n) / b and this function checks that this
+ * number is above some threshold A. The threshold value is heuristic and
+ * based on the needs of mpi_random_many().
  */
 static int is_significantly_above_a_power_of_2( data_t *bytes )
 {
     const uint8_t *p = bytes->x;
     size_t len = bytes->len;
     unsigned x;
+
+    /* Skip leading null bytes */
     while( len > 0 && p[0] == 0 )
     {
         ++p;
         --len;
     }
+    /* 0 is not significantly above a power of 2 */
     if( len == 0 )
         return( 0 );
-    else if( len == 1 )
+    /* Extract the (up to) 2 most significant bytes */
+    if( len == 1 )
         x = p[0];
     else
         x = ( p[0] << 8 ) | p[1];
 
-    if( x <= 4 )
-        return( 0 );
+    /* Shift the most significant bit of x to position 8 and mask it out */
+    while( ( x & 0xfe00 ) != 0 )
+        x >>= 1;
+    x &= 0x00ff;
 
-    while( ( x & 0x8000 ) == 0 )
-        x <<= 1;
-    x &= 0x7fff;
-    return( x >= 0x1000 );
+    /* At this point, x = floor((b - 2^n) / 2^(n-8)). b is significantly above
+     * a power of 2 iff x is significantly above 0 compared to 2^8.
+     * Testing x >= 2^4 amounts to picking A = 1/16 in the function
+     * description above. */
+    return( x >= 0x10 );
 }
 
 /* END_HEADER */

@@ -328,7 +328,7 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
             case PSA_ERROR_NOT_SUPPORTED:
                 return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
             default:
-                return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+                return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
         }
         /* Indicate that we own the key slot and need to
          * destroy it in mbedtls_cipher_free(). */
@@ -1244,23 +1244,23 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
          * are terminated by unsuccessful calls to psa_cipher_update(),
          * and by any call to psa_cipher_finish(). */
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
 
         status = psa_cipher_set_iv( &cipher_op, iv, iv_len );
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
 
         status = psa_cipher_update( &cipher_op,
                                     input, ilen,
                                     output, ilen, olen );
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
 
         status = psa_cipher_finish( &cipher_op,
                                     output + *olen, ilen - *olen,
                                     &part_len );
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
 
         *olen += part_len;
         return( 0 );
@@ -1323,7 +1323,7 @@ static int mbedtls_cipher_aead_encrypt( mbedtls_cipher_context_t *ctx,
                                    input, ilen,
                                    output, ilen + tag_len, olen );
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
 
         *olen -= tag_len;
         return( 0 );
@@ -1405,7 +1405,7 @@ static int mbedtls_cipher_aead_decrypt( mbedtls_cipher_context_t *ctx,
         if( status == PSA_ERROR_INVALID_SIGNATURE )
             return( MBEDTLS_ERR_CIPHER_AUTH_FAILED );
         else if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
 
         return( 0 );
     }

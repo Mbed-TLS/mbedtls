@@ -67,11 +67,6 @@
 #define MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE -0x3980  /**< Unavailable feature, e.g. RSA disabled for RSA key. */
 #define MBEDTLS_ERR_PK_SIG_LEN_MISMATCH    -0x3900  /**< The buffer contains a valid signature followed by more data. */
 
-// TODO [TR] for #4283 can't remove it because it's still used in the code.
-// see the other TODOs
-/* MBEDTLS_ERR_PK_HW_ACCEL_FAILED is deprecated and should not be used. */
-#define MBEDTLS_ERR_PK_HW_ACCEL_FAILED     -0x3880  /**< PK hardware accelerator failed. */
-
 #ifdef __cplusplus
 extern "C" {
 #endif

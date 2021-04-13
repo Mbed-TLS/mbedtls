@@ -215,7 +215,7 @@ const char * mbedtls_high_level_strerr( int error_code )
             return( "CIPHER - Authentication failed (for AEAD modes)" );
         case -(MBEDTLS_ERR_CIPHER_INVALID_CONTEXT):
             return( "CIPHER - The context is invalid. For example, because it was freed" );
-        case -(MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED):
+        case -(MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED):
             return( "CIPHER - Cipher hardware accelerator failed" );
 #endif /* MBEDTLS_CIPHER_C */
 
@@ -272,7 +272,7 @@ const char * mbedtls_high_level_strerr( int error_code )
             return( "MD - Failed to allocate memory" );
         case -(MBEDTLS_ERR_MD_FILE_IO_ERROR):
             return( "MD - Opening or reading of file failed" );
-        case -(MBEDTLS_ERR_MD_HW_ACCEL_FAILED):
+        case -(MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED):
             return( "MD - MD hardware accelerator failed" );
 #endif /* MBEDTLS_MD_C */
 
@@ -326,7 +326,7 @@ const char * mbedtls_high_level_strerr( int error_code )
             return( "PK - Unavailable feature, e.g. RSA disabled for RSA key" );
         case -(MBEDTLS_ERR_PK_SIG_LEN_MISMATCH):
             return( "PK - The buffer contains a valid signature followed by more data" );
-        case -(MBEDTLS_ERR_PK_HW_ACCEL_FAILED):
+        case -(MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED):
             return( "PK - PK hardware accelerator failed" );
 #endif /* MBEDTLS_PK_C */
 
@@ -371,7 +371,7 @@ const char * mbedtls_high_level_strerr( int error_code )
             return( "RSA - The output buffer for decryption is not large enough" );
         case -(MBEDTLS_ERR_RSA_RNG_FAILED):
             return( "RSA - The random generator failed to generate non-zeros" );
-        case -(MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION):
+        case -(MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED):
             return( "RSA - The implementation does not offer the requested operation, for example, because of security violations or lack of functionality" );
 #endif /* MBEDTLS_RSA_C */
 

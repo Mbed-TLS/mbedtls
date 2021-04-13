@@ -93,11 +93,13 @@ int mbedtls_mps_writer_feed( mbedtls_mps_writer *wr,
         queue += queue_next;
 
         if( copy_from_queue > 0 )
+        {
             memcpy( buf, queue, copy_from_queue );
+            queue_remaining -= copy_from_queue;
+        }
 
         /* Check if, after the last copy, the entire
          * queue has been dispatched. */
-        queue_remaining -= copy_from_queue;
         if( queue_remaining > 0 )
         {
             /* More data waiting in the queue */

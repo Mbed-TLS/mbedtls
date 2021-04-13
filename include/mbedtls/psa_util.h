@@ -32,6 +32,10 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#endif
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 
 #include "psa/crypto.h"
@@ -352,11 +356,11 @@ static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
         case PSA_ERROR_COMMUNICATION_FAILURE:
         case PSA_ERROR_HARDWARE_FAILURE:
         case PSA_ERROR_CORRUPTION_DETECTED:
-            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
         default: /* We return the same as for the 'other failures',
                   * but list them separately nonetheless to indicate
                   * which failure conditions we have considered. */
-            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }
 }
 

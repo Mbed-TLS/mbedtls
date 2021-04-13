@@ -275,20 +275,6 @@ int mbedtls_mps_writer_reclaim( mbedtls_mps_writer *writer,
                                 int force );
 
 /**
- * \brief           Check how many bytes have already been written
- *                  to the current output buffer.
- *
- * \param writer    Writer context
- * \param written   Pointer to receive amount of data already written.
- *
- * \return          \c 0 on success.
- * \return          A negative error code \c MBEDTLS_ERR_WRITER_XXX on failure.
- *
- */
-int mbedtls_mps_writer_bytes_written( mbedtls_mps_writer *writer,
-                                      mbedtls_mps_size_t *written );
-
-/**
  * \brief           Signal that all output buffers previously obtained
  *                  from mbedtls_mps_writer_get() have been or will have
  *                  been written when mbedtls_mps_writer_reclaim() is

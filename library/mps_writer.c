@@ -228,22 +228,6 @@ int mbedtls_mps_writer_reclaim( mbedtls_mps_writer *wr,
     MBEDTLS_MPS_TRACE_RETURN( 0 );
 }
 
-int mbedtls_mps_writer_bytes_written( mbedtls_mps_writer *wr,
-                                      mbedtls_mps_size_t *written )
-{
-    mbedtls_mps_size_t commit;
-    MBEDTLS_MPS_TRACE_INIT( "writer_bytes_written" );
-
-    MBEDTLS_MPS_STATE_VALIDATE_RAW(
-        wr->state == MBEDTLS_MPS_WRITER_PROVIDING,
-        "Attempt to feed output buffer to writer outside providing mode." );
-
-    commit = wr->committed;
-    *written = commit;
-
-    MBEDTLS_MPS_TRACE_RETURN( 0 );
-}
-
 static int mps_writer_queue_in_use( mbedtls_mps_writer *wr )
 {
     mbedtls_mps_size_t const end     = wr->end;

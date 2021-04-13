@@ -28,8 +28,8 @@
 
 #include "test/drivers/size.h"
 
-#ifdef TEST_KEY_CONTEXT_SIZE_FUNCTION
-size_t test_size_function(
+#ifdef MBEDTLS_TEST_KEY_CONTEXT_SIZE_FUNCTION
+size_t mbedtls_test_size_function(
     const psa_key_type_t key_type,
     const size_t key_bits )
 {
@@ -37,6 +37,6 @@ size_t test_size_function(
     (void) key_bits;
     return 0;
 }
-#endif /*TEST_KEY_CONTEXT_SIZE_FUNCTION */
+#endif /*MBEDTLS_TEST_KEY_CONTEXT_SIZE_FUNCTION */
 
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

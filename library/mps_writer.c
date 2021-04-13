@@ -134,7 +134,7 @@ int mbedtls_mps_writer_feed( mbedtls_mps_writer *wr,
     MBEDTLS_MPS_TRACE_RETURN( 0 );
 }
 
-static int mps_writer_fragment_committed( mbedtls_mps_writer *wr )
+static int mps_writer_out_buffer_is_committed( mbedtls_mps_writer *wr )
 {
     mbedtls_mps_size_t const committed = wr->committed;
     mbedtls_mps_size_t const out_len   = wr->out_len;
@@ -142,7 +142,7 @@ static int mps_writer_fragment_committed( mbedtls_mps_writer *wr )
     return( committed >= out_len );
 }
 
-static int mps_writer_committed_data_in_queue( mbedtls_mps_writer *wr )
+static int mps_writer_some_data_in_queue_is_committed( mbedtls_mps_writer *wr )
 {
     mbedtls_mps_size_t const commit  = wr->committed;
     mbedtls_mps_size_t const out_len = wr->out_len;
@@ -158,7 +158,7 @@ static void mps_writer_copy_queue_to_fragment( mbedtls_mps_writer *wr )
     unsigned char * const queue = wr->queue;
     unsigned char * out = wr->out;
 
-    if( !mps_writer_committed_data_in_queue( wr ) )
+    if( !mps_writer_some_data_in_queue_is_committed( wr ) )
         return;
 
     commit = wr->committed;
@@ -203,7 +203,7 @@ int mbedtls_mps_writer_reclaim( mbedtls_mps_writer *wr,
     mps_writer_copy_queue_to_fragment( wr );
 
     /* Check if there's space left unused. */
-    if( !mps_writer_fragment_committed( wr ) )
+    if( !mps_writer_out_buffer_is_committed( wr ) )
     {
         if( queued != NULL )
             *queued = 0;

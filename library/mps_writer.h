@@ -91,7 +91,6 @@
 #include "mps_common.h"
 #include "mps_error.h"
 
-struct mbedtls_mps_writer;
 typedef struct mbedtls_mps_writer mbedtls_mps_writer;
 
 /** \brief The type of states for the writer.

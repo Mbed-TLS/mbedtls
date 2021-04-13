@@ -66,3 +66,4 @@ together with their level of testing:
   as part of `MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL`:
 
   - Reader ([`library/mps_reader.h`](../../library/mps_reader.h))
+  - Writer ([`library/mps_writer.h`](../../library/mps_writer.h))

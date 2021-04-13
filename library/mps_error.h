@@ -100,4 +100,35 @@
 
 /* \} name SECTION: MPS Reader error codes */
 
+/**
+ * \name SECTION:       MPS Writer error codes
+ *
+ * \{
+ */
+
+#ifndef MBEDTLS_MPS_WRITER_ERR_BASE
+#define MBEDTLS_MPS_WRITER_ERR_BASE ( 1 << 12 )
+#endif
+
+#define MBEDTLS_MPS_WRITER_MAKE_ERROR(code) \
+    ( -( MBEDTLS_MPS_WRITER_ERR_BASE | (code) ) )
+
+/** An attempt was made to reclaim a buffer from the writer,
+ *  but the buffer hasn't been fully used up, yet.            */
+#define MBEDTLS_ERR_MPS_WRITER_DATA_LEFT             MBEDTLS_MPS_WRITER_MAKE_ERROR( 0x1 )
+/** The validation of input parameters failed.                */
+#define MBEDTLS_ERR_MPS_WRITER_INVALID_ARG           MBEDTLS_MPS_WRITER_MAKE_ERROR( 0x2 )
+/** The provided outgoing data buffer was not large enough to
+ *  hold all queued data that's currently pending to be
+ *  delivered.                                                */
+#define MBEDTLS_ERR_MPS_WRITER_NEED_MORE             MBEDTLS_MPS_WRITER_MAKE_ERROR( 0x3 )
+/** The remaining amount of space for outgoing data is not
+ *  sufficient to serve the user's request. The current
+ *  outgoing data buffer must be reclaimed, dispatched,
+ *  and a fresh outgoing data buffer must be fed to the
+ *  writer.                                                   */
+#define MBEDTLS_ERR_MPS_WRITER_OUT_OF_DATA           MBEDTLS_MPS_WRITER_MAKE_ERROR( 0x4 )
+
+/* \} name SECTION: MPS Writer error codes */
+
 #endif /* MBEDTLS_MPS_ERROR_H */

@@ -68,7 +68,7 @@ int mbedtls_mps_writer_feed( mbedtls_mps_writer *wr,
     unsigned char *queue;
     mbedtls_mps_size_t copy_from_queue;
     MBEDTLS_MPS_TRACE_INIT( "writer_feed, buflen %u",
-                (unsigned) buf_len );
+                            (unsigned) buf_len );
 
     /* Feeding is only possible in providing state. */
     MBEDTLS_MPS_STATE_VALIDATE_RAW(

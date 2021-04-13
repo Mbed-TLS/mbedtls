@@ -1157,10 +1157,10 @@ MPI random in range: 0..4
 mpi_random_many:0:"04":1000
 
 MPI random in range: 2..4
-mpi_random_many:1:"04":1000
+mpi_random_many:2:"04":1000
 
 MPI random in range: 3..4
-mpi_random_many:1:"04":1000
+mpi_random_many:3:"04":1000
 
 MPI random in range: smaller result
 mpi_random_sizes:1:"aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb":1:0

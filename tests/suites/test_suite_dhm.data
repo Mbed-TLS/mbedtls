@@ -27,6 +27,10 @@ dhm_do_dhm:10:"23":1:10:"5":0
 Diffie-Hellman full exchange: 5-bit #5
 dhm_do_dhm:10:"23":1:10:"5":0
 
+## This is x_size = P_size + 1. Arguably x_size > P_size makes no sense,
+## but it's the current undocumented behavior to treat it the same as when
+## x_size = P_size. If this behavior changes in the future, change the expected
+## return status from 0 to MBEDTLS_ERR_DHM_BAD_INPUT_DATA.
 Diffie-Hellman full exchange: 97-bit, x_size=14
 dhm_do_dhm:10:"93450983094850938450983409623":14:10:"9345098304850938450983409622":0
 
@@ -80,6 +84,9 @@ dhm_do_dhm:10:"3":1:10:"5":MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED
 
 Diffie-Hellman zero modulus
 dhm_do_dhm:10:"0":1:10:"5":MBEDTLS_ERR_DHM_BAD_INPUT_DATA
+
+Diffie-Hellman: x_size < 0
+dhm_do_dhm:10:"93450983094850938450983409623":-1:10:"9345098304850938450983409622":MBEDTLS_ERR_DHM_BAD_INPUT_DATA
 
 Diffie-Hellman MPI_MAX_SIZE modulus
 dhm_make_public:MBEDTLS_MPI_MAX_SIZE:10:"5":0

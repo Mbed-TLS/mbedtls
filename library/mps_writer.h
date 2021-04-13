@@ -97,7 +97,7 @@ typedef struct mbedtls_mps_writer mbedtls_mps_writer;
  *
  *  Possible values are:
  *  - #MBEDTLS_MPS_WRITER_PROVIDING (initial state)
- *    The writer awaits buffers for holding outgoing
+ *    The writer awaits a buffer for holding outgoing
  *    data to be assigned to it via mbedtls_writer_feed().
  *  - #MBEDTLS_MPS_WRITER_CONSUMING
  *    The writer has buffers to serve write requests from.

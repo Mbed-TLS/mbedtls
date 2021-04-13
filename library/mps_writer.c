@@ -92,7 +92,7 @@ int mbedtls_mps_writer_feed( mbedtls_mps_writer *wr,
         copy_from_queue = MIN( queue_remaining, buf_len );
         queue += queue_next;
 
-        if( copy_from_queue != 0 )
+        if( copy_from_queue > 0 )
             memcpy( buf, queue, copy_from_queue );
 
         /* Check if, after the last copy, the entire
@@ -166,7 +166,7 @@ static void mps_writer_copy_queue_to_fragment( mbedtls_mps_writer *wr )
     queue_size = commit - ( out_len - queue_overlap );
     copy_from_queue = MIN( queue_overlap, queue_size );
 
-    if( copy_from_queue != 0 )
+    if( copy_from_queue > 0 )
     {
         out += out_len - queue_overlap;
         memcpy( out, queue, copy_from_queue );

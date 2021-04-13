@@ -100,7 +100,7 @@ typedef struct mbedtls_mps_writer mbedtls_mps_writer;
  *    The writer awaits a buffer for holding outgoing
  *    data to be assigned to it via mbedtls_writer_feed().
  *  - #MBEDTLS_MPS_WRITER_CONSUMING
- *    The writer has buffers to serve write requests from.
+ *    The writer has a buffer to serve write requests from.
  **/
 typedef unsigned char mbedtls_mps_writer_state_t;
 #define MBEDTLS_MPS_WRITER_PROVIDING ( (mbedtls_mps_writer_state_t) 0)
@@ -108,14 +108,14 @@ typedef unsigned char mbedtls_mps_writer_state_t;
 
 struct mbedtls_mps_writer
 {
-    /** The current buffer to hold outgoing data.      */
+    /** The current buffer to hold outgoing data. */
     unsigned char *out;
     /** The queue buffer from which to serve write requests that would
      *  exceed the current outgoing data buffer's bounds. May be \c NULL. */
     unsigned char *queue;
     /** The size in bytes of the outgoing data buffer \c out. */
     mbedtls_mps_stored_size_t out_len;
-    /** The length of the queue buffer \c queue. */
+    /** The size in bytes of the queue buffer \c queue. */
     mbedtls_mps_stored_size_t queue_len;
 
     /** The offset from the beginning of the outgoing data buffer indicating
@@ -131,7 +131,7 @@ struct mbedtls_mps_writer
      */
     mbedtls_mps_stored_size_t committed;
 
-    /** The offset from the beginning of the outgoing data buffer of the
+    /** The offset from the beginning of the outgoing data buffer to the
      *  end of the last fragment handed to the user.
      *
      *  Note: When a queue buffer is in use, this may be larger than the
@@ -191,7 +191,7 @@ void mbedtls_mps_writer_free( mbedtls_mps_writer *writer );
  * \param writer    The writer context to be used.
  * \param buf       The buffer that outgoing data can be written to
  *                  and that the writer should manage.
- * \param buflen    The length of the outgoing data buffer.
+ * \param buflen    The size in Bytes of \p buf.
  *
  * \return          \c 0 on success. In this case, the writer is
  *                  in consuming state afterwards.

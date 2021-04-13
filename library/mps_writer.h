@@ -66,7 +66,7 @@
  * 'queue' buffer to hold the data to the consumer. The contents of this queue
  * buffer will be gradually split among the next outgoing data buffers when
  * the provider subsequently provides them; in the example, the CRT chain would
- * be split amont multiple records when the record layer hands more plaintext
+ * be split among multiple records when the record layer hands more plaintext
  * buffers to the writer. The details of this process are left to the writer
  * and are opaque both to the consumer and to the provider.
  *
@@ -94,7 +94,7 @@
 struct mbedtls_mps_writer;
 typedef struct mbedtls_mps_writer mbedtls_mps_writer;
 
-/** \brief The type of states for the reader.
+/** \brief The type of states for the writer.
  *
  *  Possible values are:
  *  - #MBEDTLS_MPS_WRITER_PROVIDING (initial state)

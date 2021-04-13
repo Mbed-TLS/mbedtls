@@ -1063,6 +1063,12 @@ mpi_fill_random:16:15:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
 Fill random: MAX_SIZE bytes, RNG failure after MAX_SIZE-1 bytes
 mpi_fill_random:MBEDTLS_MPI_MAX_SIZE:MBEDTLS_MPI_MAX_SIZE-1:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
 
+MPI random in range: 1..2
+mpi_random_many:1:"02":1000
+
+MPI random in range: 1..3
+mpi_random_many:1:"03":1000
+
 MPI random in range: 1..4
 mpi_random_many:1:"04":1000
 
@@ -1153,14 +1159,17 @@ mpi_random_many:1:"01000000000000000001":100
 MPI random in range: 1..2^72+2^63
 mpi_random_many:1:"01800000000000000000":100
 
+MPI random in range: 0..1
+mpi_random_many:0:"04":10000
+
 MPI random in range: 0..4
-mpi_random_many:0:"04":1000
+mpi_random_many:0:"04":10000
 
 MPI random in range: 2..4
-mpi_random_many:2:"04":1000
+mpi_random_many:2:"04":10000
 
 MPI random in range: 3..4
-mpi_random_many:3:"04":1000
+mpi_random_many:3:"04":10000
 
 MPI random in range: smaller result
 mpi_random_sizes:1:"aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb":1:0

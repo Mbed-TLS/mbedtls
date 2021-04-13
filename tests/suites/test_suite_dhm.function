@@ -1,6 +1,9 @@
 /* BEGIN_HEADER */
 #include "mbedtls/dhm.h"
 
+/* Sanity checks on a Diffie-Hellman parameter: check the length-value
+ * syntax and check that the value is the expected one (taken from the
+ * DHM context by the caller). */
 static int check_dhm_param_output( const mbedtls_mpi *expected,
                                    const unsigned char *buffer,
                                    size_t size,
@@ -28,6 +31,8 @@ exit:
     return( ok );
 }
 
+/* Sanity checks on Diffie-Hellman parameters: syntax, range, and comparison
+ * against the context. */
 static int check_dhm_params( const mbedtls_dhm_context *ctx,
                              size_t x_size,
                              const unsigned char *ske, size_t ske_len )

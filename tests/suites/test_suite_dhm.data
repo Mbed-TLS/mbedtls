@@ -10,6 +10,8 @@ dhm_do_dhm:10:"23":3:10:"5":0
 Diffie-Hellman full exchange: 5-bit, x_size=2
 dhm_do_dhm:10:"23":2:10:"5":0
 
+## Repeat this test case and a few similar ones several times. The RNG state
+## changes, so we get to exercise the code with a few different values.
 Diffie-Hellman full exchange: 5-bit #1
 dhm_do_dhm:10:"23":1:10:"5":0
 

@@ -2498,9 +2498,11 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
          * a probability 1/2 of being 0, and then the result will be < N),
          * so after 30 tries failure probability is a most 2**(-30).
          *
-         * For most curves, 1 try is enough with overwhelming probability,
-         * since N starts with a lot of 1s in binary, but some curves
-         * such as secp224k1 are actually very close to the worst case.
+         * When N is just below a power of 2, as is the case when generating
+         * a random point on most elliptic curves, 1 try is enough with
+         * overwhelming probability. When N is just above a power of 2,
+         * as when generating a random point on secp224k1, each try has
+         * a probability of failing that is almost 1/2.
          */
         if( ++count > 30 )
         {

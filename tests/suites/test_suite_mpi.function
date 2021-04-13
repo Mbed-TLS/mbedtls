@@ -1518,7 +1518,7 @@ void mpi_random_many( int min, data_t *bound_bytes, int iterations )
 
     if( full_stats )
     {
-        for( b = 1; b < stats_len; b++ )
+        for( b = min; b < stats_len; b++ )
         {
             mbedtls_test_set_step( 1000000 + b );
             /* Assert that each value has been reached at least once.

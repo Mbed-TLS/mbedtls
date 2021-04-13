@@ -80,9 +80,9 @@ int mbedtls_mps_writer_feed( mbedtls_mps_writer *wr,
     copy_from_queue = 0;
     if( queue != NULL )
     {
-        mbedtls_mps_size_t queue_next, queue_remaining;
-        queue_remaining = wr->queue_remaining;
-        queue_next = wr->queue_next;
+        mbedtls_mps_size_t queue_next = wr->queue_next;
+        mbedtls_mps_size_t queue_remaining = wr->queue_remaining;
+
         MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                            "Queue data pending to be dispatched: %u",
                            (unsigned) wr->queue_remaining );

@@ -274,7 +274,7 @@ int mbedtls_mps_reader_free( mbedtls_mps_reader *reader );
  * \param reader    The reader context to use. The reader must be
  *                  in producing mode.
  * \param buf       The buffer to be managed by the reader.
- * \param buflen    The size in Bytes of \p buffer.
+ * \param buflen    The size in Bytes of \p buf.
  *
  * \return          \c 0 on success. In this case, the reader will be
  *                  moved to consuming mode and obtains read access

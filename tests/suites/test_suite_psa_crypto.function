@@ -281,67 +281,6 @@ void static_checks( )
      * encoding. The shifted mask is the maximum truncated value. The
      * untruncated algorithm may be one byte larger. */
     TEST_ASSERT( PSA_MAC_MAX_SIZE <= 1 + max_truncated_mac_size );
-
-#if defined(MBEDTLS_TEST_DEPRECATED)
-    /* Check deprecated constants. */
-    TEST_EQUAL( PSA_ERROR_UNKNOWN_ERROR, PSA_ERROR_GENERIC_ERROR );
-    TEST_EQUAL( PSA_ERROR_OCCUPIED_SLOT, PSA_ERROR_ALREADY_EXISTS );
-    TEST_EQUAL( PSA_ERROR_EMPTY_SLOT, PSA_ERROR_DOES_NOT_EXIST );
-    TEST_EQUAL( PSA_ERROR_INSUFFICIENT_CAPACITY, PSA_ERROR_INSUFFICIENT_DATA );
-    TEST_EQUAL( PSA_ERROR_TAMPERING_DETECTED, PSA_ERROR_CORRUPTION_DETECTED );
-    TEST_EQUAL( PSA_KEY_USAGE_SIGN, PSA_KEY_USAGE_SIGN_HASH );
-    TEST_EQUAL( PSA_KEY_USAGE_VERIFY, PSA_KEY_USAGE_VERIFY_HASH );
-    TEST_EQUAL( PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE, PSA_SIGNATURE_MAX_SIZE );
-
-    TEST_EQUAL( PSA_ECC_CURVE_SECP160K1, PSA_ECC_FAMILY_SECP_K1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECP192K1, PSA_ECC_FAMILY_SECP_K1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECP224K1, PSA_ECC_FAMILY_SECP_K1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECP256K1, PSA_ECC_FAMILY_SECP_K1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECP160R1, PSA_ECC_FAMILY_SECP_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECP192R1, PSA_ECC_FAMILY_SECP_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECP224R1, PSA_ECC_FAMILY_SECP_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECP256R1, PSA_ECC_FAMILY_SECP_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECP384R1, PSA_ECC_FAMILY_SECP_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECP521R1, PSA_ECC_FAMILY_SECP_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECP160R2, PSA_ECC_FAMILY_SECP_R2 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT163K1, PSA_ECC_FAMILY_SECT_K1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT233K1, PSA_ECC_FAMILY_SECT_K1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT239K1, PSA_ECC_FAMILY_SECT_K1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT283K1, PSA_ECC_FAMILY_SECT_K1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT409K1, PSA_ECC_FAMILY_SECT_K1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT571K1, PSA_ECC_FAMILY_SECT_K1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT163R1, PSA_ECC_FAMILY_SECT_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT193R1, PSA_ECC_FAMILY_SECT_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT233R1, PSA_ECC_FAMILY_SECT_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT283R1, PSA_ECC_FAMILY_SECT_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT409R1, PSA_ECC_FAMILY_SECT_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT571R1, PSA_ECC_FAMILY_SECT_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT163R2, PSA_ECC_FAMILY_SECT_R2 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT193R2, PSA_ECC_FAMILY_SECT_R2 );
-    TEST_EQUAL( PSA_ECC_CURVE_BRAINPOOL_P256R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_BRAINPOOL_P384R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_BRAINPOOL_P512R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_CURVE25519, PSA_ECC_FAMILY_MONTGOMERY );
-    TEST_EQUAL( PSA_ECC_CURVE_CURVE448, PSA_ECC_FAMILY_MONTGOMERY );
-
-    TEST_EQUAL( PSA_ECC_CURVE_SECP_K1, PSA_ECC_FAMILY_SECP_K1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECP_R1, PSA_ECC_FAMILY_SECP_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECP_R2, PSA_ECC_FAMILY_SECP_R2 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT_K1, PSA_ECC_FAMILY_SECT_K1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT_R1, PSA_ECC_FAMILY_SECT_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_SECT_R2, PSA_ECC_FAMILY_SECT_R2 );
-    TEST_EQUAL( PSA_ECC_CURVE_BRAINPOOL_P_R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1 );
-    TEST_EQUAL( PSA_ECC_CURVE_MONTGOMERY, PSA_ECC_FAMILY_MONTGOMERY );
-
-    TEST_EQUAL( PSA_DH_GROUP_FFDHE2048, PSA_DH_FAMILY_RFC7919 );
-    TEST_EQUAL( PSA_DH_GROUP_FFDHE3072, PSA_DH_FAMILY_RFC7919 );
-    TEST_EQUAL( PSA_DH_GROUP_FFDHE4096, PSA_DH_FAMILY_RFC7919 );
-    TEST_EQUAL( PSA_DH_GROUP_FFDHE6144, PSA_DH_FAMILY_RFC7919 );
-    TEST_EQUAL( PSA_DH_GROUP_FFDHE8192, PSA_DH_FAMILY_RFC7919 );
-
-    TEST_EQUAL( PSA_DH_GROUP_RFC7919, PSA_DH_FAMILY_RFC7919 );
-    TEST_EQUAL( PSA_DH_GROUP_CUSTOM, PSA_DH_FAMILY_CUSTOM );
-#endif
 }
 /* END_CASE */
 
@@ -3199,10 +3138,6 @@ void signature_size( int type_arg,
     size_t actual_size = PSA_SIGN_OUTPUT_SIZE( type, bits, alg );
 
     TEST_EQUAL( actual_size, (size_t) expected_size_arg );
-#if defined(MBEDTLS_TEST_DEPRECATED)
-    TEST_EQUAL( actual_size,
-                PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE( type, bits, alg ) );
-#endif /* MBEDTLS_TEST_DEPRECATED */
 
 exit:
     ;
@@ -3250,17 +3185,6 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
     /* Verify that the signature is what is expected. */
     ASSERT_COMPARE( output_data->x, output_data->len,
                     signature, signature_length );
-
-#if defined(MBEDTLS_TEST_DEPRECATED)
-    memset( signature, 0, signature_size );
-    signature_length = INVALID_EXPORT_LENGTH;
-    PSA_ASSERT( psa_asymmetric_sign( key, alg,
-                                     input_data->x, input_data->len,
-                                     signature, signature_size,
-                                     &signature_length ) );
-    ASSERT_COMPARE( output_data->x, output_data->len,
-                    signature, signature_length );
-#endif /* MBEDTLS_TEST_DEPRECATED */
 
 exit:
     /*
@@ -3311,16 +3235,6 @@ void sign_fail( int key_type_arg, data_t *key_data,
      * if the caller tries to read *signature_length bytes without
      * checking the error code then they don't overflow a buffer. */
     TEST_ASSERT( signature_length <= signature_size );
-
-#if defined(MBEDTLS_TEST_DEPRECATED)
-    signature_length = INVALID_EXPORT_LENGTH;
-    TEST_EQUAL( psa_asymmetric_sign( key, alg,
-                                     input_data->x, input_data->len,
-                                     signature, signature_size,
-                                     &signature_length ),
-                expected_status );
-    TEST_ASSERT( signature_length <= signature_size );
-#endif /* MBEDTLS_TEST_DEPRECATED */
 
 exit:
     psa_reset_key_attributes( &attributes );
@@ -3426,14 +3340,6 @@ void asymmetric_verify( int key_type_arg, data_t *key_data,
                                  hash_data->x, hash_data->len,
                                  signature_data->x, signature_data->len ) );
 
-#if defined(MBEDTLS_TEST_DEPRECATED)
-    PSA_ASSERT( psa_asymmetric_verify( key, alg,
-                                       hash_data->x, hash_data->len,
-                                       signature_data->x,
-                                       signature_data->len ) );
-
-#endif /* MBEDTLS_TEST_DEPRECATED */
-
 exit:
     psa_reset_key_attributes( &attributes );
     psa_destroy_key( key );
@@ -3467,13 +3373,6 @@ void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
                                      hash_data->x, hash_data->len,
                                      signature_data->x, signature_data->len );
     TEST_EQUAL( actual_status, expected_status );
-
-#if defined(MBEDTLS_TEST_DEPRECATED)
-    TEST_EQUAL( psa_asymmetric_verify( key, alg,
-                                       hash_data->x, hash_data->len,
-                                       signature_data->x, signature_data->len ),
-                expected_status );
-#endif /* MBEDTLS_TEST_DEPRECATED */
 
 exit:
     psa_reset_key_attributes( &attributes );

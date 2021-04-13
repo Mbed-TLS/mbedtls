@@ -22,7 +22,7 @@ if [ -d include/mbedtls ]; then :; else
     exit 1
 fi
 
-HEADERS=$( ls include/mbedtls/*.h include/psa/*.h )
+HEADERS=$( ls include/mbedtls/*.h include/psa/*.h tests/include/test/drivers/*.h )
 HEADERS="$HEADERS library/*.h"
 HEADERS="$HEADERS 3rdparty/everest/include/everest/everest.h 3rdparty/everest/include/everest/x25519.h"
 

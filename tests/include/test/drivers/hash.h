@@ -37,42 +37,43 @@ typedef struct {
     unsigned long hits;
     /* Status returned by the last hash driver entry point call. */
     psa_status_t driver_status;
-} test_driver_hash_hooks_t;
+} mbedtls_test_driver_hash_hooks_t;
 
-#define TEST_DRIVER_HASH_INIT { 0, 0, 0 }
-static inline test_driver_hash_hooks_t test_driver_hash_hooks_init( void )
+#define MBEDTLS_TEST_DRIVER_HASH_INIT { 0, 0, 0 }
+static inline mbedtls_test_driver_hash_hooks_t
+    mbedtls_test_driver_hash_hooks_init( void )
 {
-    const test_driver_hash_hooks_t v = TEST_DRIVER_HASH_INIT;
+    const mbedtls_test_driver_hash_hooks_t v = MBEDTLS_TEST_DRIVER_HASH_INIT;
     return( v );
 }
 
-extern test_driver_hash_hooks_t test_driver_hash_hooks;
+extern mbedtls_test_driver_hash_hooks_t mbedtls_test_driver_hash_hooks;
 
-psa_status_t test_transparent_hash_compute(
+psa_status_t mbedtls_test_transparent_hash_compute(
     psa_algorithm_t alg,
     const uint8_t *input, size_t input_length,
     uint8_t *hash, size_t hash_size, size_t *hash_length );
 
-psa_status_t test_transparent_hash_setup(
+psa_status_t mbedtls_test_transparent_hash_setup(
     mbedtls_transparent_test_driver_hash_operation_t *operation,
     psa_algorithm_t alg );
 
-psa_status_t test_transparent_hash_clone(
+psa_status_t mbedtls_test_transparent_hash_clone(
     const mbedtls_transparent_test_driver_hash_operation_t *source_operation,
     mbedtls_transparent_test_driver_hash_operation_t *target_operation );
 
-psa_status_t test_transparent_hash_update(
+psa_status_t mbedtls_test_transparent_hash_update(
     mbedtls_transparent_test_driver_hash_operation_t *operation,
     const uint8_t *input,
     size_t input_length );
 
-psa_status_t test_transparent_hash_finish(
+psa_status_t mbedtls_test_transparent_hash_finish(
     mbedtls_transparent_test_driver_hash_operation_t *operation,
     uint8_t *hash,
     size_t hash_size,
     size_t *hash_length );
 
-psa_status_t test_transparent_hash_abort(
+psa_status_t mbedtls_test_transparent_hash_abort(
     mbedtls_psa_hash_operation_t *operation );
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */

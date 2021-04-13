@@ -249,17 +249,12 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
  * \brief           This function feeds an input buffer into an ongoing GCM
  *                  encryption or decryption operation.
  *
- *    `             The function expects input to be a multiple of 16
- *                  Bytes. Only the last call before calling
- *                  mbedtls_gcm_finish() can be less than 16 Bytes.
- *
  * \note            For decryption, the output buffer cannot be the same as
  *                  input buffer. If the buffers overlap, the output buffer
  *                  must trail at least 8 Bytes behind the input buffer.
  *
  * \param ctx       The GCM context. This must be initialized.
- * \param length    The length of the input data. This must be a multiple of
- *                  16 except in the last call before mbedtls_gcm_finish().
+ * \param length    The length of the input data.
  * \param input     The buffer holding the input data. If \p length is greater
  *                  than zero, this must be a readable buffer of at least that
  *                  size in Bytes.

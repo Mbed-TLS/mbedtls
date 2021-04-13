@@ -1,0 +1,4 @@
+Features
+   * The multi-part GCM interface (mbedtls_gcm_update() or
+     mbedtls_cipher_update()) no longer requires the size of partial inputs to
+     be a multiple of 16.

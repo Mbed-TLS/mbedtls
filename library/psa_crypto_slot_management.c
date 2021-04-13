@@ -293,13 +293,14 @@ static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
     }
 
     /* Check the platform function to see whether this key actually exists */
-    psa_set_key_id( &attributes, slot->attr.id );
     status = mbedtls_psa_platform_get_builtin_key(
                 slot->attr.id, &lifetime, &slot_number );
     if( status != PSA_SUCCESS )
         return( status );
 
-    /* Set mapped lifetime on the attributes */
+    /* Set required key attributes to ensure get_builtin_key can retrieve the
+     * full attributes. */
+    psa_set_key_id( &attributes, slot->attr.id );
     psa_set_key_lifetime( &attributes, lifetime );
 
     /* Get the full key attributes from the driver in order to be able to
@@ -312,7 +313,7 @@ static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
         /* Builtin keys cannot be defined by the attributes alone */
         if( status == PSA_SUCCESS )
             status = PSA_ERROR_CORRUPTION_DETECTED;
-        goto exit;
+        return( status );
     }
 
     /* If the key should exist according to the platform, then ask the driver

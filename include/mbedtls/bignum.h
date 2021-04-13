@@ -896,6 +896,11 @@ int mbedtls_mpi_fill_random( mbedtls_mpi *X, size_t size,
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
  * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p min or \p N is invalid
  *                 or if they are incompatible.
+ * \return         #MBEDTLS_ERR_MPI_NOT_ACCEPTABLE if the implementation was
+ *                 unable to find a suitable value within a limited number
+ *                 of attempts. This has a negligible probability if \p N
+ *                 is significantly larger than \p min, which is the case
+ *                 for all usual cryptographic applications.
  * \return         Another negative error code on failure.
  */
 int mbedtls_mpi_random( mbedtls_mpi *X,

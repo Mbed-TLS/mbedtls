@@ -111,7 +111,7 @@ void gcm_encrypt_and_tag( int cipher_id, data_t * key_str,
         ASSERT_COMPARE( output, src_str->len, dst->x, dst->len );
         ASSERT_COMPARE( tag_output, tag_len, tag->x, tag->len );
 
-        for( n1 = 16; n1 < src_str->len; n1 += 16 )
+        for( n1 = 0; n1 <= src_str->len; n1 += 1 )
         {
             mbedtls_test_set_step( n1 );
             if( !check_multipart( &ctx, MBEDTLS_GCM_ENCRYPT,
@@ -159,7 +159,7 @@ void gcm_decrypt_and_verify( int cipher_id, data_t * key_str,
             TEST_ASSERT( ret == 0 );
             ASSERT_COMPARE( output, src_str->len, pt_result->x, pt_result->len );
 
-            for( n1 = 16; n1 < src_str->len; n1 += 16 )
+            for( n1 = 0; n1 <= src_str->len; n1 += 1 )
             {
                 mbedtls_test_set_step( n1 );
                 if( !check_multipart( &ctx, MBEDTLS_GCM_DECRYPT,

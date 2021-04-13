@@ -14,6 +14,8 @@ static int check_dhm_param_output( const mbedtls_mpi *expected,
     TEST_ASSERT( size >= *offset + 2 );
     n = ( buffer[*offset] << 8 ) | buffer[*offset + 1];
     *offset += 2;
+    /* The DHM param output from Mbed TLS has leading zeros stripped, as
+     * permitted but not required by RFC 5246 \S4.4. */
     TEST_EQUAL( n, mbedtls_mpi_size( expected ) );
     TEST_ASSERT( size >= *offset + n );
     TEST_EQUAL( 0, mbedtls_mpi_read_binary( &actual, buffer + *offset, n ) );

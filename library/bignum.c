@@ -2460,7 +2460,7 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
 {
     /* SEC1 3.2.1: Generate X such that 1 <= n < N */
     int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
-    int count = 0;
+    int count;
     unsigned cmp = 0;
     size_t n_bits = mbedtls_mpi_bitlen( N );
     size_t n_bytes = ( n_bits + 7 ) / 8;
@@ -2469,6 +2469,28 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
     if( mbedtls_mpi_cmp_int( N, min ) <= 0 )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    /*
+     * When min == 0, each try has at worst a probability 1/2 of failing
+     * (the msb has a probability 1/2 of being 0, and then the result will
+     * be < N), so after 30 tries failure probability is a most 2**(-30).
+     *
+     * When N is just below a power of 2, as is the case when generating
+     * a random point on most elliptic curves, 1 try is enough with
+     * overwhelming probability. When N is just above a power of 2,
+     * as when generating a random point on secp224k1, each try has
+     * a probability of failing that is almost 1/2.
+     *
+     * The probabilities are almost the same if min is nonzero but negligible
+     * compared to N. This is always the case when N is crypto-sized, but
+     * it's convenient to support small N for testing purposes. When N
+     * is small, use a higher repeat count, otherwise the probability of
+     * failure is macroscopic.
+     */
+    if( n_bytes <= 4 )
+        count = 250;
+    else
+        count = 30;
 
     /* Ensure that target MPI has exactly the same number of limbs
      * as the upper bound, even if the upper bound has leading zeros.
@@ -2493,18 +2515,7 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
         MBEDTLS_MPI_CHK( mpi_fill_random_internal( X, n_bytes, f_rng, p_rng ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( X, 8 * n_bytes - n_bits ) );
 
-        /*
-         * Each try has at worst a probability 1/2 of failing (the msb has
-         * a probability 1/2 of being 0, and then the result will be < N),
-         * so after 30 tries failure probability is a most 2**(-30).
-         *
-         * When N is just below a power of 2, as is the case when generating
-         * a random point on most elliptic curves, 1 try is enough with
-         * overwhelming probability. When N is just above a power of 2,
-         * as when generating a random point on secp224k1, each try has
-         * a probability of failing that is almost 1/2.
-         */
-        if( ++count > 30 )
+        if( --count == 0 )
         {
             ret = MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
             goto cleanup;

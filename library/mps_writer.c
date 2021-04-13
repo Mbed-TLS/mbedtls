@@ -176,9 +176,9 @@ static void mps_writer_copy_queue_to_out_buffer( mbedtls_mps_writer *wr )
 }
 
 int mbedtls_mps_writer_reclaim( mbedtls_mps_writer *wr,
-                            mbedtls_mps_size_t *olen,
-                            mbedtls_mps_size_t *queued,
-                            int force )
+                                mbedtls_mps_size_t *written,
+                                mbedtls_mps_size_t *queued,
+                                int force )
 {
     mbedtls_mps_size_t commit, out_len;
     MBEDTLS_MPS_TRACE_INIT( "writer_reclaim" );
@@ -196,8 +196,8 @@ int mbedtls_mps_writer_reclaim( mbedtls_mps_writer *wr,
     /* Ignore uncommitted data */
     wr->end = commit;
 
-    if( olen != NULL )
-        *olen = MIN( commit, out_len );
+    if( written != NULL )
+        *written = MIN( commit, out_len );
 
     /* Copy the overlapping head of the queue to the tail of the fragment.  */
     mps_writer_copy_queue_to_out_buffer( wr );

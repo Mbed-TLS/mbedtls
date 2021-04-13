@@ -232,6 +232,10 @@ int mbedtls_mps_writer_feed( mbedtls_mps_writer *writer,
  *                  from consuming to providing state.
  *
  * \param writer    The writer context to be used.
+ * \param written   The address at which to store the amount of
+ *                  outgoing data that has been written to the output
+ *                  buffer last passed to mbedtls_mps_writer_feed().
+ *                  May be \c NULL if this information is not required.
  * \param queued    The address at which to store the amount of
  *                  outgoing data that has been queued. May be \c NULL
  *                  if this information is not required.
@@ -253,14 +257,21 @@ int mbedtls_mps_writer_feed( mbedtls_mps_writer *writer,
  *                  the state of the writer is unspecified and it must
  *                  not be used anymore.
  *
- *                  On success, \c *queued contains the number of bytes that
+ *                  On success or when #MBEDTLS_ERR_MPS_WRITER_DATA_LEFT
+ *                  is returned, and if \c queue is not \c NULL, then
+ *                  \c *queued contains the number of bytes that
  *                  have been queued internally in the writer and will be
- *                  written to the next buffer(s) that is fed to the writer.
+ *                  written to the next buffer(s) that is fed to the writer,
+ *
+ *                  On success or when #MBEDTLS_ERR_MPS_WRITER_DATA_LEFT
+ *                  is returned, and if \c written is not \c NULL, then
+ *                  \c *written contains the number of bytes written to
+ *                  the output buffer.
  *
  */
 int mbedtls_mps_writer_reclaim( mbedtls_mps_writer *writer,
-                                mbedtls_mps_size_t *queued,
                                 mbedtls_mps_size_t *written,
+                                mbedtls_mps_size_t *queued,
                                 int force );
 
 /**

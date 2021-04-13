@@ -1219,6 +1219,15 @@ mpi_random_fail:0:"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 MPI random bad arguments: min = N = 1
 mpi_random_fail:1:"01":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
+MPI random bad arguments: min > N = 0
+mpi_random_fail:1:"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+MPI random bad arguments: min > N = 1
+mpi_random_fail:2:"01":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+MPI random bad arguments: min > N = 001
+mpi_random_fail:2:"000000000000000001":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
 MPI Selftest
 depends_on:MBEDTLS_SELF_TEST
 mpi_selftest:

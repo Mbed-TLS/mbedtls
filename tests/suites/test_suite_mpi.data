@@ -1183,6 +1183,11 @@ mpi_random_sizes:1:"aaaaaaaaaaaaaaaa":1:0
 MPI random in range: larger result
 mpi_random_sizes:1:"aaaaaaaaaaaaaaaa":3:0
 
+## The "0 limb in upper bound" tests rely on the fact that
+## mbedtls_mpi_read_binary() bases the size of the MPI on the size of
+## the input, without first checking for leading zeros. If this was
+## not the case, the tests would still pass, but would not exercise
+## the advertised behavior.
 MPI random in range: leading 0 limb in upper bound #0
 mpi_random_sizes:1:"00aaaaaaaaaaaaaaaa":0:0
 
@@ -1225,7 +1230,7 @@ mpi_random_fail:1:"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 MPI random bad arguments: min > N = 1
 mpi_random_fail:2:"01":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-MPI random bad arguments: min > N = 001
+MPI random bad arguments: min > N = 1, 0 limb in upper bound
 mpi_random_fail:2:"000000000000000001":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 MPI Selftest

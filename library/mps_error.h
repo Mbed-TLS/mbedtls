@@ -113,10 +113,6 @@
 #define MBEDTLS_MPS_WRITER_MAKE_ERROR(code) \
     ( -( MBEDTLS_MPS_WRITER_ERR_BASE | (code) ) )
 
-/*
- * Error codes returned from the writer.
- */
-
 /** An attempt was made to reclaim a buffer from the writer,
  *  but the buffer hasn't been fully used up, yet.            */
 #define MBEDTLS_ERR_MPS_WRITER_DATA_LEFT             MBEDTLS_MPS_WRITER_MAKE_ERROR( 0x1 )

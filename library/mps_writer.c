@@ -151,7 +151,7 @@ static int mps_writer_some_data_in_queue_is_committed( mbedtls_mps_writer *wr )
     return( commit > out_len - overlap );
 }
 
-static void mps_writer_copy_queue_to_fragment( mbedtls_mps_writer *wr )
+static void mps_writer_copy_queue_to_out_buffer( mbedtls_mps_writer *wr )
 {
     mbedtls_mps_size_t queue_size, copy_from_queue;
     mbedtls_mps_size_t queue_overlap, commit, out_len;
@@ -200,7 +200,7 @@ int mbedtls_mps_writer_reclaim( mbedtls_mps_writer *wr,
         *olen = MIN( commit, out_len );
 
     /* Copy the overlapping head of the queue to the tail of the fragment.  */
-    mps_writer_copy_queue_to_fragment( wr );
+    mps_writer_copy_queue_to_out_buffer( wr );
 
     /* Check if there's space left unused. */
     if( !mps_writer_out_buffer_is_committed( wr ) )

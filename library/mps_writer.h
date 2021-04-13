@@ -145,8 +145,9 @@ struct mbedtls_mps_writer
     mbedtls_mps_stored_size_t end;
 
     /** In consuming state, this denotes the size of the overlap between the
-     *  queue and the current out buffer, once <code>end > out_len</code>.
-     *  If <code>end < out_len</code>, its value is \c 0.
+     *  queue and the current out buffer. If the queue hasn't been used yet,
+     *  it is \c 0.
+     *
      *  In providing state, this denotes the amount of data from the queue that
      *  has already been copied to some outgoing data buffer.
      */

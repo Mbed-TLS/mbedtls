@@ -778,7 +778,12 @@ static inline int psa_key_id_is_builtin( psa_key_id_t key_id )
  * \param[out] lifetime         On success, the lifetime associated with the key
  *                              corresponding to \p key_id. Lifetime is a
  *                              combination of which driver contains the key,
- *                              and with what lifecycle the key can be used.
+ *                              and with what persistence level the key is
+ *                              intended to be used. If the platform
+ *                              implementation does not contain specific
+ *                              information about the intended key persistence
+ *                              level, the persistence level may be reported as
+ *                              #PSA_KEY_PERSISTENCE_DEFAULT.
  * \param[out] slot_number      On success, the slot number known to the driver
  *                              registered at the lifetime location reported
  *                              through \p lifetime which corresponds to the

@@ -810,7 +810,7 @@ psa_status_t acme_get_builtin_key(psa_drv_slot_number_t slot_number,
 
 If this function returns `PSA_SUCCESS` or `PSA_ERROR_BUFFER_TOO_SMALL`, it must fill `attributes` with the attributes of the key (except for the key identifier). On success, this function must also fill `key_buffer` with the key context.
 
-On entry, `psa_get_key_lifetime(attributes)` is the location at which the driver was declared and the persistence level `#PSA_KEY_LIFETIME_PERSISTENT`. The driver entry point may change the lifetime to one with the same location but a different persistence level. The standard attributes other than the key identifier and lifetime have the value conveyed by `PSA_KEY_ATTRIBUTES_INIT`.
+On entry, `psa_get_key_lifetime(attributes)` is the location at which the driver was declared and a persistence level with which the platform is attempting to register the key. The driver entry point may choose to change the lifetime (`psa_set_key_lifetime(attributes, lifetime)`) of the reported key attributes to one with the same location but a different persistence level, in case the driver has more specific knowledge about the actual persistence level of the key which is being retrieved. For example, if a driver knows it cannot delete a key, it may override the persistence level in the lifetime to `PSA_KEY_PERSISTENCE_READ_ONLY`. The standard attributes other than the key identifier and lifetime have the value conveyed by `PSA_KEY_ATTRIBUTES_INIT`.
 
 The output parameter `key_buffer` points to a writable buffer of `key_buffer_size` bytes. If the driver has a [`"builtin_key_size"` property](#key-format-for-opaque-drivers) property, `key_buffer_size` has this value, otherwise `key_buffer_size` has the value determined from the key type and size.
 

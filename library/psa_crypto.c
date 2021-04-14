@@ -1556,6 +1556,8 @@ static psa_status_t psa_validate_key_policy( const psa_key_policy_t *policy )
                              PSA_KEY_USAGE_COPY |
                              PSA_KEY_USAGE_ENCRYPT |
                              PSA_KEY_USAGE_DECRYPT |
+                             PSA_KEY_USAGE_SIGN_MESSAGE |
+                             PSA_KEY_USAGE_VERIFY_MESSAGE |
                              PSA_KEY_USAGE_SIGN_HASH |
                              PSA_KEY_USAGE_VERIFY_HASH |
                              PSA_KEY_USAGE_DERIVE ) ) != 0 )
@@ -2839,6 +2841,140 @@ cleanup:
 /****************************************************************/
 /* Asymmetric cryptography */
 /****************************************************************/
+
+psa_status_t psa_sign_message( mbedtls_svc_key_id_t key,
+                               psa_algorithm_t alg,
+                               const uint8_t * input,
+                               size_t input_length,
+                               uint8_t * signature,
+                               size_t signature_size,
+                               size_t * signature_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+    size_t hash_length;
+    uint8_t hash[PSA_HASH_MAX_SIZE];
+
+    *signature_length = 0;
+
+    if( ! PSA_ALG_IS_SIGN_MESSAGE( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    if ( ! PSA_ALG_IS_HASH( PSA_ALG_SIGN_GET_HASH( alg ) ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    /* Immediately reject a zero-length signature buffer. This guarantees
+     * that signature must be a valid pointer. (On the other hand, the hash
+     * buffer can in principle be empty since it doesn't actually have
+     * to be a hash.) */
+    if( signature_size == 0 )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+    status = psa_get_and_lock_key_slot_with_policy( key, &slot,
+                                                    PSA_KEY_USAGE_SIGN_MESSAGE,
+                                                    alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->attr.type ) )
+    {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+
+    status = psa_driver_wrapper_hash_compute( PSA_ALG_SIGN_GET_HASH( alg ),
+                                              input, input_length,
+                                              hash, sizeof( hash ),
+                                              &hash_length );
+
+    if( status != PSA_SUCCESS )
+    {
+        memset( hash, 0, sizeof( hash ) );
+        goto exit;
+    }
+
+    status = psa_driver_wrapper_sign_hash(
+        &attributes, slot->key.data, slot->key.bytes,
+        alg, hash, hash_length,
+        signature, signature_size, signature_length );
+
+    memset( hash, 0, hash_length );
+
+exit:
+    /* Fill the unused part of the output buffer (the whole buffer on error,
+     * the trailing part on success) with something that isn't a valid signature
+     * (barring an attack on the signature and deliberately-crafted input),
+     * in case the caller doesn't check the return status properly. */
+    if( status == PSA_SUCCESS )
+        memset( signature + *signature_length, '!',
+                signature_size - *signature_length );
+    else
+        memset( signature, '!', signature_size );
+    /* If signature_size is 0 then we have nothing to do. We must not call
+     * memset because signature may be NULL in this case. */
+
+    unlock_status = psa_unlock_key_slot( slot );
+
+    return( ( status == PSA_SUCCESS ) ? unlock_status : status );
+}
+
+psa_status_t psa_verify_message( mbedtls_svc_key_id_t key,
+                                 psa_algorithm_t alg,
+                                 const uint8_t * input,
+                                 size_t input_length,
+                                 const uint8_t * signature,
+                                 size_t signature_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+    size_t hash_length;
+    uint8_t hash[PSA_HASH_MAX_SIZE];
+
+    if( ! PSA_ALG_IS_SIGN_MESSAGE( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    if ( ! PSA_ALG_IS_HASH( PSA_ALG_SIGN_GET_HASH( alg ) ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    status = psa_get_and_lock_key_slot_with_policy( key, &slot,
+                                                    PSA_KEY_USAGE_VERIFY_MESSAGE,
+                                                    alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
+
+    status = psa_driver_wrapper_hash_compute( PSA_ALG_SIGN_GET_HASH( alg ),
+                                              input, input_length,
+                                              hash, sizeof( hash ),
+                                              &hash_length );
+
+    if( status != PSA_SUCCESS )
+    {
+        memset( hash, 0, sizeof( hash ) );
+        goto exit;
+    }
+
+    status = psa_driver_wrapper_verify_hash(
+        &attributes, slot->key.data, slot->key.bytes,
+        alg, hash, hash_length,
+        signature, signature_length );
+
+    memset( hash, 0, hash_length );
+
+exit:
+    unlock_status = psa_unlock_key_slot( slot );
+
+    return( ( status == PSA_SUCCESS ) ? unlock_status : status );
+}
 
 psa_status_t psa_sign_hash_internal(
     const psa_key_attributes_t *attributes,

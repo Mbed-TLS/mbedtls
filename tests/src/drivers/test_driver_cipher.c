@@ -36,11 +36,6 @@
 
 #include <string.h>
 
-/* Test driver implements AES-CTR only. Its default behaviour (when its return
- * status is not overridden through the hooks) is to take care of all AES-CTR
- * operations, and return PSA_ERROR_NOT_SUPPORTED for all others.
- * Set test_driver_cipher_hooks.forced_status to PSA_ERROR_NOT_SUPPORTED to use
- * fallback even for AES-CTR. */
 test_driver_cipher_hooks_t test_driver_cipher_hooks = TEST_DRIVER_CIPHER_INIT;
 
 static psa_status_t test_transparent_cipher_oneshot(

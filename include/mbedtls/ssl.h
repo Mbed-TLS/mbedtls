@@ -237,10 +237,6 @@
  * \{
  */
 
-#if !defined(MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME)
-#define MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
-#endif
-
 /*
  * Maximum fragment length in bytes,
  * determines the size of each of the two internal I/O buffers.

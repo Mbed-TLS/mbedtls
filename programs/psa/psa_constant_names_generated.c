@@ -406,6 +406,13 @@ static int psa_snprint_key_usage(char *buffer, size_t buffer_size,
         append(&buffer, buffer_size, &required_size, "PSA_KEY_USAGE_SIGN_HASH", 23);
         usage ^= PSA_KEY_USAGE_SIGN_HASH;
     }
+    if (usage & PSA_KEY_USAGE_SIGN_MESSAGE) {
+        if (required_size != 0) {
+            append(&buffer, buffer_size, &required_size, " | ", 3);
+        }
+        append(&buffer, buffer_size, &required_size, "PSA_KEY_USAGE_SIGN_MESSAGE", 26);
+        usage ^= PSA_KEY_USAGE_SIGN_MESSAGE;
+    }
     if (usage & PSA_KEY_USAGE_VERIFY_DERIVATION) {
         if (required_size != 0) {
             append(&buffer, buffer_size, &required_size, " | ", 3);
@@ -419,6 +426,13 @@ static int psa_snprint_key_usage(char *buffer, size_t buffer_size,
         }
         append(&buffer, buffer_size, &required_size, "PSA_KEY_USAGE_VERIFY_HASH", 25);
         usage ^= PSA_KEY_USAGE_VERIFY_HASH;
+    }
+    if (usage & PSA_KEY_USAGE_VERIFY_MESSAGE) {
+        if (required_size != 0) {
+            append(&buffer, buffer_size, &required_size, " | ", 3);
+        }
+        append(&buffer, buffer_size, &required_size, "PSA_KEY_USAGE_VERIFY_MESSAGE", 28);
+        usage ^= PSA_KEY_USAGE_VERIFY_MESSAGE;
     }
     if (usage != 0) {
         if (required_size != 0) {

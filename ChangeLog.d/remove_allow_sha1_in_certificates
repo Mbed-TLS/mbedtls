@@ -1,8 +1,7 @@
 Removals
-   * Remove optional SHA-1 in the default TLS configuration for certificate
-     signing. This feature was ment to be available only temporarily.
-     Users are expected to use SHA-2 instead, since SHA-1 is currently
-     considered a security risk.
+   * Remove the MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
+     compile-time option, which was off by default. Users should not trust
+     certificates signed with SHA-1 due to the known attacks against SHA-1.
      If needed, SHA-1 cerificate can still be used by providing custom
      verification profile to mbedtls_x509_crt_verify_with_profile function
      in x509_crt.h, or mbedtls_ssl_conf_cert_profile function in ssl.h.

@@ -268,37 +268,9 @@ psa_status_t psa_driver_wrapper_get_key_buffer_size(
                 return( PSA_SUCCESS );
             }
 #endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
-#ifdef MBEDTLS_TEST_DRIVER_KEY_CONTEXT_SIZE_FUNCTION
             *key_buffer_size = mbedtls_test_size_function( key_type, key_bits );
-            return( PSA_SUCCESS );
-#else /* MBEDTLS_TEST_DRIVER_KEY_CONTEXT_SIZE_FUNCTION */
-            if( PSA_KEY_TYPE_IS_KEY_PAIR( key_type ) )
-            {
-                int public_key_overhead =
-                    ( ( MBEDTLS_TEST_DRIVER_KEY_CONTEXT_STORE_PUBLIC_KEY == 1 )
-                      ? PSA_EXPORT_KEY_OUTPUT_SIZE( key_type, key_bits ) : 0 );
-                *key_buffer_size = MBEDTLS_TEST_DRIVER_KEY_CONTEXT_BASE_SIZE +
-                    MBEDTLS_TEST_DRIVER_KEY_CONTEXT_PUBLIC_KEY_SIZE +
-                    public_key_overhead;
-            }
-            else if( PSA_KEY_TYPE_IS_PUBLIC_KEY( key_type ) )
-            {
-                *key_buffer_size = MBEDTLS_TEST_DRIVER_KEY_CONTEXT_BASE_SIZE +
-                    MBEDTLS_TEST_DRIVER_KEY_CONTEXT_PUBLIC_KEY_SIZE;
-            }
-            else if ( !PSA_KEY_TYPE_IS_KEY_PAIR( key_type ) &&
-                      !PSA_KEY_TYPE_IS_PUBLIC_KEY ( key_type ) )
-            {
-                *key_buffer_size = MBEDTLS_TEST_DRIVER_KEY_CONTEXT_BASE_SIZE +
-                    ( MBEDTLS_TEST_DRIVER_KEY_CONTEXT_SYMMETRIC_FACTOR *
-                      ( ( key_bits + 7 ) / 8 ) );
-            }
-            else
-            {
-                return( PSA_ERROR_NOT_SUPPORTED );
-            }
-            return( PSA_SUCCESS );
-#endif /* MBEDTLS_TEST_DRIVER_KEY_CONTEXT_SIZE_FUNCTION */
+            return( ( *key_buffer_size != 0 ) ?
+                    PSA_SUCCESS : PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 
         default:

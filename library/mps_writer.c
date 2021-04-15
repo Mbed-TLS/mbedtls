@@ -374,7 +374,7 @@ int mbedtls_mps_writer_commit_partial( mbedtls_mps_writer *wr,
 
     MBEDTLS_MPS_STATE_VALIDATE_RAW(
         wr->state == MBEDTLS_MPS_WRITER_CONSUMING,
-        "Attempt to request write-buffer outside consuming mode." );
+        "Attempt to request write-buffer outside consuming state." );
 
     committed     = wr->committed;
     end           = wr->end;

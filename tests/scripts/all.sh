@@ -51,9 +51,9 @@
 #   * arm-gcc and mingw-gcc
 #   * ArmCC 5 and ArmCC 6, unless invoked with --no-armcc
 #   * OpenSSL and GnuTLS command line tools, recent enough for the
-#     interoperability tests. If they don't support SSLv3 then a legacy
-#     version of these tools must be present as well (search for LEGACY
-#     below).
+#     interoperability tests. If they don't support old features which we want
+#     to test, then a legacy version of these tools must be present as well
+#     (search for LEGACY below).
 # See the invocation of check_tools below for details.
 #
 # This script must be invoked from the toplevel directory of a git

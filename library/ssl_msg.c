@@ -4650,7 +4650,7 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
         if( ssl->in_msg[0] == MBEDTLS_SSL_ALERT_LEVEL_WARNING &&
             ssl->in_msg[1] == MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "is a SSLv3 no renegotiation alert" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "is a no renegotiation alert" ) );
             /* Will be handled when trying to parse ServerHello */
             return( 0 );
         }

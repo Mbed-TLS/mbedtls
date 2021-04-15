@@ -23,8 +23,8 @@ static int check_multipart( mbedtls_gcm_context *ctx,
     TEST_EQUAL( input->len, expected_output->len );
 
     TEST_EQUAL( 0, mbedtls_gcm_starts( ctx, mode,
-                                         iv->x, iv->len,
-                                         add->x, add->len ) );
+                                         iv->x, iv->len ) );
+    TEST_EQUAL( 0, mbedtls_gcm_update_ad( ctx, add->x, add->len ) );
 
     /* Allocate a tight buffer for each update call. This way, if the function
      * tries to write beyond the advertised required buffer size, this will
@@ -300,19 +300,17 @@ void gcm_invalid_param( )
     TEST_INVALID_PARAM_RET(
         MBEDTLS_ERR_GCM_BAD_INPUT,
         mbedtls_gcm_starts( NULL, valid_mode,
-                            valid_buffer, valid_len,
                             valid_buffer, valid_len ) );
 
     TEST_INVALID_PARAM_RET(
         MBEDTLS_ERR_GCM_BAD_INPUT,
         mbedtls_gcm_starts( &ctx, valid_mode,
-                            NULL, valid_len,
-                            valid_buffer, valid_len ) );
+                            NULL, valid_len ) );
 
+    /* mbedtls_gcm_update_ad() */
     TEST_INVALID_PARAM_RET(
         MBEDTLS_ERR_GCM_BAD_INPUT,
-        mbedtls_gcm_starts( &ctx, valid_mode,
-                            valid_buffer, valid_len,
+        mbedtls_gcm_update_ad( &ctx,
                             NULL, valid_len ) );
 
     /* mbedtls_gcm_update() */

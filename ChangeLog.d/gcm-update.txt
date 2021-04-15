@@ -6,7 +6,9 @@ API changes
      The software implementation always produces the full output at each
      call to mbedtls_gcm_update(), but alternative implementations activated
      by MBEDTLS_GCM_ALT may delay partial blocks to the next call to
-     mbedtls_gcm_update() or mbedtls_gcm_finish().
+     mbedtls_gcm_update() or mbedtls_gcm_finish(). Furthermore, applications
+     no longer pass the associated data to mbedtls_gcm_starts(), but to the
+     new function mbedtls_gcm_update_ad().
      These changes are backward compatible for users of the cipher API.
 
 Features

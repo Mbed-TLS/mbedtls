@@ -415,6 +415,15 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
     }
 #endif
 
+#if defined(MBEDTLS_GCM_C)
+    if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
+    {
+        return( mbedtls_gcm_starts( (mbedtls_gcm_context *) ctx->cipher_ctx,
+                                    ctx->operation,
+                                    iv, iv_len ) );
+    }
+#endif
+
     if ( actual_iv_size != 0 )
     {
         memcpy( ctx->iv, iv, actual_iv_size );
@@ -466,8 +475,8 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
 #if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
     {
-        return( mbedtls_gcm_starts( (mbedtls_gcm_context *) ctx->cipher_ctx, ctx->operation,
-                                    ctx->iv, ctx->iv_size, ad, ad_len ) );
+        return( mbedtls_gcm_update_ad( (mbedtls_gcm_context *) ctx->cipher_ctx,
+                                       ad, ad_len ) );
     }
 #endif
 

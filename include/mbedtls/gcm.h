@@ -231,6 +231,26 @@ int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
  * \param iv        The initialization vector. This must be a readable buffer of
  *                  at least \p iv_len Bytes.
  * \param iv_len    The length of the IV.
+ *
+ * \return          \c 0 on success.
+ */
+int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
+                        int mode,
+                        const unsigned char *iv,
+                        size_t iv_len );
+
+/**
+ * \brief           This function starts a GCM encryption or decryption
+ *                  operation.
+ *
+ * \note            This function may only be called once per operation:
+ *                  you must pass the whole associated data in a single
+ *                  call. This limitation will be lifted in a future version
+ *                  of Mbed TLS.
+ *
+ * \param ctx       The GCM context. This must have been started with
+ *                  mbedtls_gcm_starts() and must not have yet received
+ *                  any input with mbedtls_gcm_update().
  * \param add       The buffer holding the additional data, or \c NULL
  *                  if \p add_len is \c 0.
  * \param add_len   The length of the additional data. If \c 0,
@@ -238,12 +258,9 @@ int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
  *
  * \return          \c 0 on success.
  */
-int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
-                int mode,
-                const unsigned char *iv,
-                size_t iv_len,
-                const unsigned char *add,
-                size_t add_len );
+int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
+                           const unsigned char *add,
+                           size_t add_len );
 
 /**
  * \brief           This function feeds an input buffer into an ongoing GCM

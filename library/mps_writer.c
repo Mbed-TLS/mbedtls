@@ -210,7 +210,7 @@ int mbedtls_mps_writer_reclaim( mbedtls_mps_writer *wr,
 
         wr->queue_next = 0;
 
-        if( force == 0 )
+        if( force == MBEDTLS_MPS_WRITER_RECLAIM_NO_FORCE )
             MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_WRITER_DATA_LEFT );
     }
     else

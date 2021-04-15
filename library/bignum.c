@@ -2460,7 +2460,6 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng )
 {
-    /* SEC1 3.2.1: Generate X such that 1 <= n < N */
     int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
     int count;
     unsigned cmp = 0;
@@ -2478,9 +2477,9 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
      * be < N), so after 30 tries failure probability is a most 2**(-30).
      *
      * When N is just below a power of 2, as is the case when generating
-     * a random point on most elliptic curves, 1 try is enough with
+     * a random scalar on most elliptic curves, 1 try is enough with
      * overwhelming probability. When N is just above a power of 2,
-     * as when generating a random point on secp224k1, each try has
+     * as when generating a random scalar on secp224k1, each try has
      * a probability of failing that is almost 1/2.
      *
      * The probabilities are almost the same if min is nonzero but negligible

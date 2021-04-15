@@ -285,10 +285,10 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
  *                            the ciphertext, return 0.
  *                            If the AEAD algorithm is not recognized, return 0.
  */
-#define PSA_AEAD_TAG_LENGTH_1_ARG( alg )                                         \
-    MBEDTLS_DEPRECATED_CONSTANT( size_t,                                         \
-        PSA_ALG_IS_AEAD( alg ) ?                                                 \
-        ( (alg) & PSA_ALG_AEAD_TAG_LENGTH_MASK ) >> PSA_AEAD_TAG_LENGTH_OFFSET : \
+#define PSA_AEAD_TAG_LENGTH_1_ARG( alg )     \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t,     \
+        PSA_ALG_IS_AEAD( alg ) ?             \
+        PSA_ALG_AEAD_GET_TAG_LENGTH( alg ) : \
         0 )
 
 /** The maximum size of the output of psa_aead_encrypt(), in bytes.
@@ -313,8 +313,8 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
  */
 #define PSA_AEAD_ENCRYPT_OUTPUT_SIZE_2_ARG( alg, plaintext_length ) \
     MBEDTLS_DEPRECATED_CONSTANT( size_t,                            \
-        PSA_AEAD_TAG_LENGTH_1_ARG( alg ) != 0 ?                     \
-        (plaintext_length) + PSA_AEAD_TAG_LENGTH_1_ARG( alg ) :     \
+        PSA_ALG_IS_AEAD( alg ) ?                                    \
+        (plaintext_length) + PSA_ALG_AEAD_GET_TAG_LENGTH( alg ) :   \
         0 )
 
 /** The maximum size of the output of psa_aead_decrypt(), in bytes.
@@ -339,8 +339,8 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
  */
 #define PSA_AEAD_DECRYPT_OUTPUT_SIZE_2_ARG( alg, ciphertext_length ) \
     MBEDTLS_DEPRECATED_CONSTANT( size_t,                             \
-        PSA_AEAD_TAG_LENGTH_1_ARG( alg ) != 0 ?                      \
-        (ciphertext_length) - PSA_AEAD_TAG_LENGTH_1_ARG( alg ) :     \
+        PSA_ALG_IS_AEAD( alg ) ?                                     \
+        (ciphertext_length) - PSA_ALG_AEAD_GET_TAG_LENGTH( alg ) :   \
         0 )
 
 /** A sufficient output buffer size for psa_aead_update().

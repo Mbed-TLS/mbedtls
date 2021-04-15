@@ -282,13 +282,23 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
  *                  buffer of at least \p tag_len Bytes.
  * \param tag_len   The length of the tag to generate. This must be at least
  *                  four.
+ * \param output    The buffer for the final output.
+ *                  This must be a writable buffer of at least \p output_len
+ *                  bytes.
+ *                  With the built-in implementation, there is no final
+ *                  output and this can be \p NULL.
+ *                  Alternative implementations may return a partial block
+ *                  of output.
+ * \param output_len  The size of the \p output buffer in bytes.
+ *                  With the built-in implementation, this can be \c 0.
+ *                  Alternative implementations may require a 15-byte buffer.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_GCM_BAD_INPUT on failure.
  */
 int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
-                unsigned char *tag,
-                size_t tag_len );
+                        unsigned char *output, size_t output_len,
+                        unsigned char *tag, size_t tag_len );
 
 /**
  * \brief           This function clears a GCM context and the underlying

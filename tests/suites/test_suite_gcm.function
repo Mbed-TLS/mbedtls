@@ -41,7 +41,7 @@ static int check_multipart( mbedtls_gcm_context *ctx,
     output = NULL;
 
     ASSERT_ALLOC( output, tag->len );
-    TEST_EQUAL( 0, mbedtls_gcm_finish( ctx, output, tag->len ) );
+    TEST_EQUAL( 0, mbedtls_gcm_finish( ctx, NULL, 0, output, tag->len ) );
     ASSERT_COMPARE( output, tag->len, tag->x, tag->len );
     mbedtls_free( output );
     output = NULL;
@@ -326,10 +326,10 @@ void gcm_invalid_param( )
     /* mbedtls_gcm_finish() */
     TEST_INVALID_PARAM_RET(
         MBEDTLS_ERR_GCM_BAD_INPUT,
-        mbedtls_gcm_finish( NULL, valid_buffer, valid_len ) );
+        mbedtls_gcm_finish( NULL, NULL, 0, valid_buffer, valid_len ) );
     TEST_INVALID_PARAM_RET(
         MBEDTLS_ERR_GCM_BAD_INPUT,
-        mbedtls_gcm_finish( &ctx, NULL, valid_len ) );
+        mbedtls_gcm_finish( &ctx, NULL, 0, NULL, valid_len ) );
 
 exit:
     mbedtls_gcm_free( &ctx );

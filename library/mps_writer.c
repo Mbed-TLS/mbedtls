@@ -234,7 +234,7 @@ static int mps_writer_queue_is_in_use( mbedtls_mps_writer *wr )
     mbedtls_mps_size_t const out_len = wr->out_len;
     mbedtls_mps_size_t const overlap = wr->queue_next;
 
-    return( end > out_len - overlap );
+    return( end >= out_len - overlap );
 }
 
 int mbedtls_mps_writer_get( mbedtls_mps_writer *wr,
@@ -386,7 +386,7 @@ int mbedtls_mps_writer_commit_partial( mbedtls_mps_writer *wr,
 
     to_be_committed = end - omit;
 
-    if( to_be_committed <= out_len - queue_overlap )
+    if( to_be_committed < out_len - queue_overlap )
         wr->queue_next = 0;
 
     MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,

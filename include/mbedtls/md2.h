@@ -35,6 +35,9 @@
 
 #include <stddef.h>
 
+/* MBEDTLS_ERR_MD2_HW_ACCEL_FAILED is deprecated and should not be used. */
+#define MBEDTLS_ERR_MD2_HW_ACCEL_FAILED                   -0x002B  /**< MD2 hardware accelerator failed */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -164,6 +167,77 @@ int mbedtls_md2_finish_ret( mbedtls_md2_context *ctx,
  */
 int mbedtls_internal_md2_process( mbedtls_md2_context *ctx );
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+/**
+ * \brief          MD2 context setup
+ *
+ * \deprecated     Superseded by mbedtls_md2_starts_ret() in 2.7.0
+ *
+ * \param ctx      context to be initialized
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
+ */
+MBEDTLS_DEPRECATED void mbedtls_md2_starts( mbedtls_md2_context *ctx );
+
+/**
+ * \brief          MD2 process buffer
+ *
+ * \deprecated     Superseded by mbedtls_md2_update_ret() in 2.7.0
+ *
+ * \param ctx      MD2 context
+ * \param input    buffer holding the data
+ * \param ilen     length of the input data
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
+ */
+MBEDTLS_DEPRECATED void mbedtls_md2_update( mbedtls_md2_context *ctx,
+                                            const unsigned char *input,
+                                            size_t ilen );
+
+/**
+ * \brief          MD2 final digest
+ *
+ * \deprecated     Superseded by mbedtls_md2_finish_ret() in 2.7.0
+ *
+ * \param ctx      MD2 context
+ * \param output   MD2 checksum result
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
+ */
+MBEDTLS_DEPRECATED void mbedtls_md2_finish( mbedtls_md2_context *ctx,
+                                            unsigned char output[16] );
+
+/**
+ * \brief          MD2 process data block (internal use only)
+ *
+ * \deprecated     Superseded by mbedtls_internal_md2_process() in 2.7.0
+ *
+ * \param ctx      MD2 context
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
+ */
+MBEDTLS_DEPRECATED void mbedtls_md2_process( mbedtls_md2_context *ctx );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+
 /**
  * \brief          Output = MD2( input buffer )
  *
@@ -179,6 +253,33 @@ int mbedtls_internal_md2_process( mbedtls_md2_context *ctx );
 int mbedtls_md2_ret( const unsigned char *input,
                      size_t ilen,
                      unsigned char output[16] );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+/**
+ * \brief          Output = MD2( input buffer )
+ *
+ * \deprecated     Superseded by mbedtls_md2_ret() in 2.7.0
+ *
+ * \param input    buffer holding the data
+ * \param ilen     length of the input data
+ * \param output   MD2 checksum result
+ *
+ * \warning        MD2 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
+ */
+MBEDTLS_DEPRECATED void mbedtls_md2( const unsigned char *input,
+                                     size_t ilen,
+                                     unsigned char output[16] );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_SELF_TEST)
 

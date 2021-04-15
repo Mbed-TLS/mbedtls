@@ -2784,10 +2784,9 @@ static void ssl_check_id_based_session_resumption( mbedtls_ssl_context *ssl )
         return;
 #endif
 
-    session_tmp.id_len = session->id_len;
-    memcpy( session_tmp.id, session->id, session->id_len );
-
     ret = ssl->conf->f_get_cache( ssl->conf->p_cache,
+                                  session->id,
+                                  session->id_len,
                                   &session_tmp );
     if( ret != 0 )
         goto exit;

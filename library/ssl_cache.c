@@ -50,7 +50,10 @@ void mbedtls_ssl_cache_init( mbedtls_ssl_cache_context *cache )
 #endif
 }
 
-int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session )
+int mbedtls_ssl_cache_get( void *data,
+                           unsigned char const *session_id,
+                           size_t session_id_len,
+                           mbedtls_ssl_session *session )
 {
     int ret = 1;
 #if defined(MBEDTLS_HAVE_TIME)
@@ -78,8 +81,8 @@ int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session )
             continue;
 #endif
 
-        if( session->id_len != entry->session.id_len ||
-            memcmp( session->id, entry->session.id,
+        if( session_id_len != entry->session.id_len ||
+            memcmp( session_id, entry->session.id,
                     entry->session.id_len ) != 0 )
         {
             continue;
@@ -135,7 +138,10 @@ exit:
     return( ret );
 }
 
-int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
+int mbedtls_ssl_cache_set( void *data,
+                           unsigned char const *session_id,
+                           size_t session_id_len,
+                           const mbedtls_ssl_session *session )
 {
     int ret = 1;
 #if defined(MBEDTLS_HAVE_TIME)
@@ -167,8 +173,11 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
         }
 #endif
 
-        if( memcmp( session->id, cur->session.id, cur->session.id_len ) == 0 )
+        if( session_id_len == cur->session.id_len &&
+            memcmp( session_id, cur->session.id, cur->session.id_len ) == 0 )
+        {
             break; /* client reconnected, keep timestamp for session id */
+        }
 
 #if defined(MBEDTLS_HAVE_TIME)
         if( oldest == 0 || cur->timestamp < oldest )

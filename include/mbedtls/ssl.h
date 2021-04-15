@@ -628,9 +628,15 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 #endif
 
 /* TODO: Document */
-typedef int mbedtls_ssl_cache_get_t( void *data, mbedtls_ssl_session *session );
+typedef int mbedtls_ssl_cache_get_t( void *data,
+                                     unsigned char const *session_id,
+                                     size_t session_id_len,
+                                     mbedtls_ssl_session *session );
 /* TODO: Document */
-typedef int mbedtls_ssl_cache_set_t( void *data, const mbedtls_ssl_session *session );
+typedef int mbedtls_ssl_cache_set_t( void *data,
+                                     unsigned char const *session_id,
+                                     size_t session_id_len,
+                                     const mbedtls_ssl_session *session );
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

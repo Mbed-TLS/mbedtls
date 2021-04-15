@@ -99,19 +99,32 @@ void mbedtls_ssl_cache_init( mbedtls_ssl_cache_context *cache );
  * \brief          Cache get callback implementation
  *                 (Thread-safe if MBEDTLS_THREADING_C is enabled)
  *
- * \param data     SSL cache context
- * \param session  session to retrieve entry for
+ * \param data            The SSL cache context to use.
+ * \param session_id      The pointer to the buffer holding the session ID
+ *                        for the session to load.
+ * \param session_id_len  The length of \p session_id in bytes.
+ * \param session         The address at which to store the session
+ *                        associated with \p session_id, if present.
  */
-int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session );
+int mbedtls_ssl_cache_get( void *data,
+                           unsigned char const *session_id,
+                           size_t session_id_len,
+                           mbedtls_ssl_session *session );
 
 /**
  * \brief          Cache set callback implementation
  *                 (Thread-safe if MBEDTLS_THREADING_C is enabled)
  *
- * \param data     SSL cache context
- * \param session  session to store entry for
+ * \param data            The SSL cache context to use.
+ * \param session_id      The pointer to the buffer holding the session ID
+ *                        associated to \p session.
+ * \param session_id_len  The length of \p session_id in bytes.
+ * \param session         The session to store.
  */
-int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session );
+int mbedtls_ssl_cache_set( void *data,
+                           unsigned char const *session_id,
+                           size_t session_id_len,
+                           const mbedtls_ssl_session *session );
 
 #if defined(MBEDTLS_HAVE_TIME)
 /**

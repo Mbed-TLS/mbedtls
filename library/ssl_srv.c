@@ -30,7 +30,7 @@
 #endif
 
 #include "mbedtls/ssl.h"
-#include "mbedtls/ssl_internal.h"
+#include "ssl_misc.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
@@ -298,13 +298,13 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
         {
             mbedtls_ssl_sig_hash_set_add( &ssl->handshake->hash_algs, sig_cur, md_cur );
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext:"
-                                        " match sig %d and hash %d",
-                                        sig_cur, md_cur ) );
+                                        " match sig %u and hash %u",
+                                        (unsigned) sig_cur, (unsigned) md_cur ) );
         }
         else
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: "
-                                        "hash alg %d not supported", md_cur ) );
+                                        "hash alg %u not supported", (unsigned) md_cur ) );
         }
     }
 
@@ -631,7 +631,7 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
     /* Remember the client asked us to send a new ticket */
     ssl->handshake->new_session_ticket = 1;
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket length: %d", len ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket length: %" MBEDTLS_PRINTF_SIZET, len ) );
 
     if( len == 0 )
         return( 0 );
@@ -1046,7 +1046,7 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "trying ciphersuite: %#04x (%s)",
-                                suite_id, suite_info->name ) );
+                                (unsigned int) suite_id, suite_info->name ) );
 
     if( suite_info->min_minor_ver > ssl->minor_ver ||
         suite_info->max_minor_ver < ssl->minor_ver )
@@ -1105,7 +1105,7 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
             mbedtls_ssl_sig_hash_set_find( &ssl->handshake->hash_algs, sig_type ) == MBEDTLS_MD_NONE )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: no suitable hash algorithm "
-                                        "for signature algorithm %d", sig_type ) );
+                                        "for signature algorithm %u", (unsigned) sig_type ) );
             return( 0 );
         }
     }
@@ -1347,7 +1347,7 @@ read_record_header:
             if( cli_msg_seq != ssl->handshake->in_msg_seq )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message_seq: "
-                                    "%d (expected %d)", cli_msg_seq,
+                                    "%u (expected %u)", cli_msg_seq,
                                     ssl->handshake->in_msg_seq ) );
                 return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
             }
@@ -1588,8 +1588,7 @@ read_record_header:
             ext_len = ( buf[ext_offset + 0] << 8 )
                     | ( buf[ext_offset + 1]      );
 
-            if( ( ext_len > 0 && ext_len < 4 ) ||
-                msg_len != ext_offset + 2 + ext_len )
+            if( msg_len != ext_offset + 2 + ext_len )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
                 mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -1774,20 +1773,12 @@ read_record_header:
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
             default:
-                MBEDTLS_SSL_DEBUG_MSG( 3, ( "unknown extension found: %d (ignoring)",
+                MBEDTLS_SSL_DEBUG_MSG( 3, ( "unknown extension found: %u (ignoring)",
                                ext_id ) );
             }
 
             ext_len -= 4 + ext_size;
             ext += 4 + ext_size;
-
-            if( ext_len > 0 && ext_len < 4 )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-                mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                                MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-                return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
-            }
         }
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV)
@@ -1972,7 +1963,7 @@ have_ciphersuite:
         else
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "no hash algorithm for signature algorithm "
-                                        "%d - should not happen", sig_alg ) );
+                                        "%u - should not happen", (unsigned) sig_alg ) );
         }
     }
 #endif
@@ -2522,7 +2513,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     *p++ = (unsigned char)( t >>  8 );
     *p++ = (unsigned char)( t       );
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu", t ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %" MBEDTLS_PRINTF_LONGLONG,
+                                (long long) t ) );
 #else
     if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, p, 4 ) ) != 0 )
         return( ret );
@@ -2610,7 +2602,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     memcpy( p, ssl->session_negotiate->id, ssl->session_negotiate->id_len );
     p += ssl->session_negotiate->id_len;
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %" MBEDTLS_PRINTF_SIZET, n ) );
     MBEDTLS_SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 39, n );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
                    ssl->handshake->resume ? "a" : "no" ) );
@@ -2622,7 +2614,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %s",
            mbedtls_ssl_get_ciphersuite_name( ssl->session_negotiate->ciphersuite ) ) );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: 0x%02X",
-                   ssl->session_negotiate->compression ) );
+                   (unsigned int) ssl->session_negotiate->compression ) );
 
     /*
      *  First write extensions, then the total length
@@ -2685,7 +2677,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, total extension length: %d", ext_len ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, total extension length: %" MBEDTLS_PRINTF_SIZET,
+                                ext_len ) );
 
     if( ext_len > 0 )
     {
@@ -3186,7 +3179,7 @@ curve_matching_done:
             md_alg = MBEDTLS_MD_NONE;
         }
 
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "pick hash algorithm %d for signing", md_alg ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "pick hash algorithm %u for signing", (unsigned) md_alg ) );
 
         /*
          * 2.2: Compute the hash to be signed

@@ -3,7 +3,7 @@
 # To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
 
 CFLAGS	?= -O2
-WARNING_CFLAGS ?= -Wall -Wextra
+WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
 # Include public header files from ../include, test-specific header files
@@ -79,8 +79,11 @@ MBEDTLS_TEST_OBJS=$(patsubst %.c,%.o,$(wildcard src/*.c src/drivers/*.c))
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
-TEST_OBJS_DEPS =
+TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
+# Explicitly depend on this header because on a clean copy of the source tree,
+# it doesn't exist yet and must be generated as part of the build, and
+# therefore the wildcard enumeration above doesn't include it.
 TEST_OBJS_DEPS += include/test/instrument_record_status.h
 endif
 
@@ -124,12 +127,6 @@ C_FILES := $(addsuffix .c,$(APPS))
 $(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $< $(MBEDTLS_TEST_OBJS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-# Some test suites require additional header files.
-$(filter test_suite_psa_crypto%, $(BINARIES)): include/test/psa_crypto_helpers.h
-$(addprefix embedded_,$(filter test_suite_psa_crypto%, $(APPS))): embedded_%: TESTS/mbedtls/%/psa_crypto_helpers.h
-$(filter test_suite_psa_%, $(BINARIES)): include/test/psa_helpers.h
-$(addprefix embedded_,$(filter test_suite_psa_%, $(APPS))): embedded_%: TESTS/mbedtls/%/psa_helpers.h
 
 clean:
 ifndef WINDOWS
@@ -187,6 +184,7 @@ endif
 endef
 $(foreach app, $(APPS), $(foreach file, $(notdir $(wildcard include/test/*.h)), \
 	$(eval $(call copy_header_to_target,$(app),$(file)))))
+$(addprefix embedded_,$(filter test_suite_psa_%, $(APPS))): embedded_%: $(patsubst TESTS/mbedtls/%, include/test/%, $(wildcard include/test/*. include/test/*/*.h))
 
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 include/test/instrument_record_status.h: ../include/psa/crypto.h Makefile

@@ -1,5 +1,5 @@
 /**
- * \file mbedtls_md.c
+ * \file md.c
  *
  * \brief Generic message digest wrapper for mbed TLS
  *
@@ -26,7 +26,7 @@
 #if defined(MBEDTLS_MD_C)
 
 #include "mbedtls/md.h"
-#include "mbedtls/md_internal.h"
+#include "md_wrap.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 

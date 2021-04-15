@@ -1,5 +1,5 @@
 /**
- * \file cipher_internal.h
+ * \file cipher_wrap.h
  *
  * \brief Cipher wrappers.
  *

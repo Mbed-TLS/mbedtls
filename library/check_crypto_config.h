@@ -28,6 +28,19 @@
 #ifndef MBEDTLS_CHECK_CRYPTO_CONFIG_H
 #define MBEDTLS_CHECK_CRYPTO_CONFIG_H
 
+#if defined(PSA_WANT_ALG_CCM) && \
+    !( defined(PSA_WANT_KEY_TYPE_AES) || \
+       defined(PSA_WANT_KEY_TYPE_CAMELLIA) )
+#error "PSA_WANT_ALG_CCM defined, but not all prerequisites"
+#endif
+
+#if defined(PSA_WANT_ALG_CMAC) && \
+    !( defined(PSA_WANT_KEY_TYPE_AES) || \
+       defined(PSA_WANT_KEY_TYPE_CAMELLIA) || \
+       defined(PSA_WANT_KEY_TYPE_DES) )
+#error "PSA_WANT_ALG_CMAC defined, but not all prerequisites"
+#endif
+
 #if defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA) && \
     !( defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) || \
        defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) )
@@ -38,6 +51,12 @@
     !( defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) || \
        defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) )
 #error "PSA_WANT_ALG_ECDSA defined, but not all prerequisites"
+#endif
+
+#if defined(PSA_WANT_ALG_GCM) && \
+    !( defined(PSA_WANT_KEY_TYPE_AES) || \
+       defined(PSA_WANT_KEY_TYPE_CAMELLIA) )
+#error "PSA_WANT_ALG_GCM defined, but not all prerequisites"
 #endif
 
 #if defined(PSA_WANT_ALG_RSA_PKCS1V15_CRYPT) && \

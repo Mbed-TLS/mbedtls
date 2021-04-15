@@ -25,7 +25,7 @@
 
 #if defined(MBEDTLS_CIPHER_C)
 
-#include "mbedtls/cipher_internal.h"
+#include "cipher_wrap.h"
 #include "mbedtls/error.h"
 
 #if defined(MBEDTLS_CHACHAPOLY_C)

@@ -24,9 +24,10 @@ use open qw(:std utf8);
 -d 'include/mbedtls' or die "$0: must be run from root\n";
 
 @ARGV = <include/mbedtls/*.h>;
+push @ARGV, <library/*.h>;
 push @ARGV, "3rdparty/everest/include/everest/everest.h";
 push @ARGV, "3rdparty/everest/include/everest/x25519.h";
-
+push @ARGV, glob("library/*.h");
 
 my @consts;
 my $state = 'out';

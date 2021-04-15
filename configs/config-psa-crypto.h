@@ -48,7 +48,7 @@
  * Used in:
  *      library/aria.c
  *      library/timing.c
- *      include/mbedtls/bn_mul.h
+ *      library/bn_mul.h
  *
  * Required by:
  *      MBEDTLS_AESNI_C
@@ -1837,7 +1837,7 @@
  *          library/ecp.c
  *          library/ecdsa.c
  *          library/rsa.c
- *          library/rsa_internal.c
+ *          library/rsa_alt_helpers.h
  *          library/ssl_tls.c
  *
  * This module is required for RSA, DHM and ECC (ECDH, ECDSA) support.
@@ -1973,18 +1973,6 @@
  * enabled as well.
  */
 #define MBEDTLS_CCM_C
-
-/**
- * \def MBEDTLS_CERTS_C
- *
- * Enable the test certificates.
- *
- * Module:  library/certs.c
- * Caller:
- *
- * This module is used for testing (ssl_client/server).
- */
-#define MBEDTLS_CERTS_C
 
 /**
  * \def MBEDTLS_CHACHA20_C
@@ -2604,7 +2592,7 @@
  * Enable the RSA public-key cryptosystem.
  *
  * Module:  library/rsa.c
- *          library/rsa_internal.c
+ *          library/rsa_alt_helpers.h
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
  *          library/ssl_tls.c
@@ -3119,7 +3107,6 @@
  */
 //#define MBEDTLS_SSL_DTLS_MAX_BUFFERING             32768
 
-//#define MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
 //#define MBEDTLS_PSK_MAX_LEN               32 /**< Max size of TLS pre-shared keys, in bytes (default 256 bits) */
 //#define MBEDTLS_SSL_COOKIE_TIMEOUT        60 /**< Default expiration delay of DTLS cookies, in seconds if HAVE_TIME, or in number of cookies issued */
 

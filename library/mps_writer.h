@@ -226,7 +226,7 @@ int mbedtls_mps_writer_feed( mbedtls_mps_writer *writer,
 #define MBEDTLS_MPS_WRITER_RECLAIM_NO_FORCE 0
 
 /**
- * \brief           Attempt to reclaim output buffer from writer,
+ * \brief           Attempt to reclaim output buffer from writer.
  *
  *                  This function is used to transition the writer
  *                  from consuming to providing state.

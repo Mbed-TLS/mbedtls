@@ -144,28 +144,28 @@ static int mps_writer_out_buffer_is_committed( mbedtls_mps_writer *wr )
 
 static int mps_writer_some_data_in_queue_is_committed( mbedtls_mps_writer *wr )
 {
-    mbedtls_mps_size_t const commit  = wr->committed;
-    mbedtls_mps_size_t const out_len = wr->out_len;
-    mbedtls_mps_size_t const overlap = wr->queue_next;
+    mbedtls_mps_size_t const committed = wr->committed;
+    mbedtls_mps_size_t const out_len   = wr->out_len;
+    mbedtls_mps_size_t const overlap   = wr->queue_next;
 
-    return( commit > out_len - overlap );
+    return( committed > out_len - overlap );
 }
 
 static void mps_writer_copy_queue_to_out_buffer( mbedtls_mps_writer *wr )
 {
     mbedtls_mps_size_t queue_size, copy_from_queue;
-    mbedtls_mps_size_t queue_overlap, commit, out_len;
+    mbedtls_mps_size_t queue_overlap, committed, out_len;
     unsigned char * const queue = wr->queue;
     unsigned char * out = wr->out;
 
     if( !mps_writer_some_data_in_queue_is_committed( wr ) )
         return;
 
-    commit = wr->committed;
+    committed = wr->committed;
     out_len = wr->out_len;
     queue_overlap = wr->queue_next;
 
-    queue_size = commit - ( out_len - queue_overlap );
+    queue_size = committed - ( out_len - queue_overlap );
     copy_from_queue = MIN( queue_overlap, queue_size );
 
     if( copy_from_queue > 0 )
@@ -180,7 +180,7 @@ int mbedtls_mps_writer_reclaim( mbedtls_mps_writer *wr,
                                 mbedtls_mps_size_t *queued,
                                 int force )
 {
-    mbedtls_mps_size_t commit, out_len;
+    mbedtls_mps_size_t committed, out_len;
     MBEDTLS_MPS_TRACE_INIT( "writer_reclaim" );
     MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                        " * Force reclaim: %u", (unsigned) force );
@@ -190,14 +190,14 @@ int mbedtls_mps_writer_reclaim( mbedtls_mps_writer *wr,
         wr->state == MBEDTLS_MPS_WRITER_CONSUMING,
         "Can't reclaim output buffer outside of consuming mode." );
 
-    commit = wr->committed;
+    committed = wr->committed;
     out_len = wr->out_len;
 
     /* Ignore uncommitted data */
-    wr->end = commit;
+    wr->end = committed;
 
     if( written != NULL )
-        *written = MIN( commit, out_len );
+        *written = MIN( committed, out_len );
 
     /* Copy the overlapping head of the queue to the tail of the fragment.  */
     mps_writer_copy_queue_to_out_buffer( wr );
@@ -215,7 +215,7 @@ int mbedtls_mps_writer_reclaim( mbedtls_mps_writer *wr,
     }
     else
     {
-        wr->queue_remaining = commit - out_len;
+        wr->queue_remaining = committed - out_len;
         if( queued != NULL )
             *queued = wr->queue_remaining;
     }
@@ -366,7 +366,7 @@ int mbedtls_mps_writer_get( mbedtls_mps_writer *wr,
 int mbedtls_mps_writer_commit_partial( mbedtls_mps_writer *wr,
                                    mbedtls_mps_size_t omit )
 {
-    mbedtls_mps_size_t to_be_committed, commit, end;
+    mbedtls_mps_size_t to_be_committed, committed, end;
     mbedtls_mps_size_t out_len, queue_overlap;
     MBEDTLS_MPS_TRACE_INIT( "writer_commit_partial" );
     MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
@@ -376,12 +376,12 @@ int mbedtls_mps_writer_commit_partial( mbedtls_mps_writer *wr,
         wr->state == MBEDTLS_MPS_WRITER_CONSUMING,
         "Attempt to request write-buffer outside consuming mode." );
 
-    commit        = wr->committed;
+    committed     = wr->committed;
     end           = wr->end;
     out_len       = wr->out_len;
     queue_overlap = wr->queue_next;
 
-    if( omit > end - commit )
+    if( omit > end - committed )
         MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_WRITER_INVALID_ARG );
 
     to_be_committed = end - omit;
@@ -390,7 +390,7 @@ int mbedtls_mps_writer_commit_partial( mbedtls_mps_writer *wr,
         wr->queue_next = 0;
 
     MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
-                       "* Last commit:       %u", (unsigned) commit );
+                       "* Last commit:       %u", (unsigned) committed );
     MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                        "* End of last fetch: %u", (unsigned) end );
     MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,

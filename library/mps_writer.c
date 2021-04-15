@@ -244,124 +244,102 @@ int mbedtls_mps_writer_get( mbedtls_mps_writer *wr,
 {
     unsigned char *out, *queue;
     mbedtls_mps_size_t end, out_len, out_remaining, queue_len;
-    mbedtls_mps_size_t queue_next, queue_offset;
+    mbedtls_mps_size_t queue_next, queue_offset, queue_remaining;
     MBEDTLS_MPS_TRACE_INIT( "writer_get, desired %u", (unsigned) desired );
 
     MBEDTLS_MPS_STATE_VALIDATE_RAW( wr->state == MBEDTLS_MPS_WRITER_CONSUMING,
                   "Attempt to request write-buffer outside consuming mode." );
 
-    out = wr->out;
     end = wr->end;
     out_len = wr->out_len;
 
-    /* Check if we're already serving from the queue */
-    if( mps_writer_queue_is_in_use( wr ) )
+    queue = wr->queue;
+    queue_len = wr->queue_len;
+
+    if( !mps_writer_queue_is_in_use( wr ) )
     {
+        /* We're still serving from the output buffer.
+         * Check if there's enough space left in it. */
+        out_remaining = out_len - end;
         MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
-                  "already serving from the queue, attempt to continue" );
-
-        queue_len = wr->queue_len;
-        /* If we're serving from the queue, queue_next denotes
-         * the size of the overlap between queue and output buffer. */
-        queue_next = wr->queue_next;
-        queue_offset = queue_next + ( end - out_len );
-
-        if( queue_len - queue_offset < desired )
+                           "%u bytes remaining in output buffer",
+                           (unsigned) out_remaining );
+        if( out_remaining < desired )
         {
+            /* Switch to the queue if it offers more space
+             * than what's remaining in the output buffer. */
+            if( queue != NULL && queue_len > out_remaining )
+            {
+                MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
+                                   "switch to queue",
+                                   (unsigned) desired, (unsigned) out_remaining );
+
+                wr->queue_next = out_remaining;
+                goto use_queue;
+            }
+
+            /* Adjust request size if allowed */
             if( buflen == NULL )
             {
                 MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
-                                   "not enough space remaining in queue" );
+                                "not enough data available, no queue present" );
                 MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_WRITER_OUT_OF_DATA );
             }
-            desired = queue_len - queue_offset;
+
+            desired = out_remaining;
         }
 
-        MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
-                           "serving %u bytes from queue", (unsigned) desired );
+        /* We reach this if the (potentially modified) request can be
+         * served from the output buffer. */
 
-        queue = wr->queue;
+        out = wr->out;
+        out += end;
         end += desired;
         wr->end = end;
 
-        *buffer = queue + queue_offset;
-        if( buflen != NULL )
+        *buffer = out;
+        if( buflen != NULL)
             *buflen = desired;
 
         MBEDTLS_MPS_TRACE_RETURN( 0 );
     }
 
-    /* We're still serving from the output buffer.
-     * Check if there's enough space left in it. */
-    out_remaining = out_len - end;
+use_queue:
+
     MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
-                       "%u bytes remaining in output buffer",
-                       (unsigned) out_remaining );
-    if( out_remaining < desired )
+                       "attempt to serve from queue" );
+
+    /* If we're serving from the queue, queue_next denotes
+     * the size of the overlap between queue and output buffer. */
+    queue_next = wr->queue_next;
+    queue_offset = end - ( out_len - queue_next );
+
+    /* Adjust request size if allowed and queue is too small. */
+    queue_remaining = queue_len - queue_offset;
+    if( queue_remaining < desired )
     {
-        MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
-                           "need %u, but only %u remains in write buffer",
-                           (unsigned) desired, (unsigned) out_remaining );
-
-        queue     = wr->queue;
-        queue_len = wr->queue_len;
-
-        /* Out buffer is too small. Attempt to serve from queue if it is
-         * available and larger than the remaining output buffer. */
-        if( queue != NULL && queue_len > out_remaining )
-        {
-            int overflow;
-
-            if( buflen != NULL && desired > queue_len )
-                desired = queue_len;
-
-            overflow = ( end + desired < end );
-            if( overflow || desired > queue_len )
-            {
-                MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
-                         "queue present but too small, need %u but only got %u",
-                         (unsigned) desired, (unsigned) queue_len );
-                MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_WRITER_OUT_OF_DATA );
-            }
-
-            /* Queue large enough, transition to serving from queue. */
-            end += desired;
-            wr->end = end;
-
-            *buffer = queue;
-            if( buflen != NULL )
-                *buflen = desired;
-
-            /* Remember the overlap between queue and output buffer. */
-            wr->queue_next = out_remaining;
-            MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
-                               "served from queue, qo %u",
-                               (unsigned) wr->queue_next );
-
-            MBEDTLS_MPS_TRACE_RETURN( 0 );
-        }
-
-        /* No queue present, so serve only what's available
-         * in the output buffer, provided the user allows it. */
         if( buflen == NULL )
         {
-            MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT, "no queue present" );
+            MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
+                               "not enough space remaining in queue" );
             MBEDTLS_MPS_TRACE_RETURN( MBEDTLS_ERR_MPS_WRITER_OUT_OF_DATA );
         }
 
-        desired = out_remaining;
+        desired = queue_len - queue_offset;
     }
 
-    /* We reach this if the request can be served from the output buffer. */
-    out += end;
+    MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
+                       "serving %u bytes from queue", (unsigned) desired );
+
     end += desired;
     wr->end = end;
 
-    *buffer = out;
-    if( buflen != NULL)
+    *buffer = queue + queue_offset;
+    if( buflen != NULL )
         *buflen = desired;
 
     MBEDTLS_MPS_TRACE_RETURN( 0 );
+
 }
 int mbedtls_mps_writer_commit_partial( mbedtls_mps_writer *wr,
                                    mbedtls_mps_size_t omit )

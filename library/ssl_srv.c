@@ -2768,7 +2768,7 @@ static int ssl_write_hello_verify_request( mbedtls_ssl_context *ssl )
 static void ssl_check_id_based_session_resumption( mbedtls_ssl_context *ssl )
 {
     int ret;
-    mbedtls_ssl_session session_tmp = { 0 };
+    mbedtls_ssl_session session_tmp;
     mbedtls_ssl_session * const session = ssl->session_negotiate;
 
     /* Resume is 0  by default, see ssl_handshake_init().
@@ -2783,6 +2783,8 @@ static void ssl_check_id_based_session_resumption( mbedtls_ssl_context *ssl )
     if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
         return;
 #endif
+
+    mbedtls_ssl_session_init( &session_tmp );
 
     ret = ssl->conf->f_get_cache( ssl->conf->p_cache,
                                   session->id,

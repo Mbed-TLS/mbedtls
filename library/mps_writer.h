@@ -251,7 +251,8 @@ int mbedtls_mps_writer_feed( mbedtls_mps_writer *writer,
  *                  the writer is unmodified and can still be used.
  *                  In particular, the writer stays in providing state.
  * \return          #MBEDTLS_ERR_MPS_WRITER_DATA_LEFT if there is space
- *                  left to be written in the output buffer.
+ *                  left to be written in the output buffer and \p force
+ *                  is #MBEDTLS_MPS_WRITER_RECLAIM_NO_FORCE.
  *                  In this case, the writer stays in consuming state.
  * \return          Another negative error code otherwise. In this case,
  *                  the state of the writer is unspecified and it must

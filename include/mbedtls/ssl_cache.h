@@ -67,11 +67,13 @@ struct mbedtls_ssl_cache_entry
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t timestamp;           /*!< entry timestamp    */
 #endif
-    mbedtls_ssl_session session;        /*!< entry session      */
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
-    defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    mbedtls_x509_buf peer_cert;         /*!< entry peer_cert    */
-#endif
+
+    unsigned char session_id[32];       /*!< session ID         */
+    size_t session_id_len;
+
+    unsigned char *session;             /*!< serialized session */
+    size_t session_len;
+
     mbedtls_ssl_cache_entry *next;      /*!< chain pointer      */
 };
 

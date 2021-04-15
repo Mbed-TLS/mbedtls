@@ -228,8 +228,11 @@ int mbedtls_mps_writer_feed( mbedtls_mps_writer *writer,
 /**
  * \brief           Attempt to reclaim output buffer from writer.
  *
- *                  This function is used to transition the writer
- *                  from consuming to providing state.
+ *                  This function attempts to transition the writer
+ *                  from consuming to providing state, invalidating
+ *                  all buffers returned from mbedtls_mps_writer_get()
+ *                  so far, and re-setting the write pointer to the
+ *                  point of the last commit.
  *
  * \param writer    The writer context to be used.
  * \param written   The address at which to store the amount of
@@ -268,6 +271,14 @@ int mbedtls_mps_writer_feed( mbedtls_mps_writer *writer,
  *                  is returned, and if \c written is not \c NULL, then
  *                  \c *written contains the number of bytes written to
  *                  the output buffer.
+ *
+ *                  On success or when #MBEDTLS_ERR_MPS_WRITER_DATA_LEFT is
+ *                  returned, this call invalidates all buffers previously
+ *                  returned from mbedtls_mps_writer_get(), and ignores all
+ *                  uncommitted data in those buffers. Writing will resume from
+ *                  the point of the last commit, either immediately (in case
+ *                  #MBEDTLS_ERR_MPS_WRITER_DATA_LEFT is returned) or when the
+ *                  writer re-enters consuming state.
  *
  */
 int mbedtls_mps_writer_reclaim( mbedtls_mps_writer *writer,

@@ -228,7 +228,7 @@ int mbedtls_mps_writer_reclaim( mbedtls_mps_writer *wr,
     MBEDTLS_MPS_TRACE_RETURN( 0 );
 }
 
-static int mps_writer_queue_in_use( mbedtls_mps_writer *wr )
+static int mps_writer_queue_is_in_use( mbedtls_mps_writer *wr )
 {
     mbedtls_mps_size_t const end     = wr->end;
     mbedtls_mps_size_t const out_len = wr->out_len;
@@ -255,7 +255,7 @@ int mbedtls_mps_writer_get( mbedtls_mps_writer *wr,
     out_len = wr->out_len;
 
     /* Check if we're already serving from the queue */
-    if( mps_writer_queue_in_use( wr ) )
+    if( mps_writer_queue_is_in_use( wr ) )
     {
         MBEDTLS_MPS_TRACE( MBEDTLS_MPS_TRACE_TYPE_COMMENT,
                   "already serving from the queue, attempt to continue" );

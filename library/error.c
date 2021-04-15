@@ -126,6 +126,18 @@
 #include "mbedtls/md.h"
 #endif
 
+#if defined(MBEDTLS_MD2_C)
+#include "mbedtls/md2.h"
+#endif
+
+#if defined(MBEDTLS_MD4_C)
+#include "mbedtls/md4.h"
+#endif
+
+#if defined(MBEDTLS_MD5_C)
+#include "mbedtls/md5.h"
+#endif
+
 #if defined(MBEDTLS_NET_C)
 #include "mbedtls/net_sockets.h"
 #endif
@@ -160,6 +172,10 @@
 
 #if defined(MBEDTLS_POLY1305_C)
 #include "mbedtls/poly1305.h"
+#endif
+
+#if defined(MBEDTLS_RIPEMD160_C)
+#include "mbedtls/ripemd160.h"
 #endif
 
 #if defined(MBEDTLS_RSA_C)
@@ -755,6 +771,21 @@ const char * mbedtls_low_level_strerr( int error_code )
             return( "HMAC_DRBG - The entropy source failed" );
 #endif /* MBEDTLS_HMAC_DRBG_C */
 
+#if defined(MBEDTLS_MD2_C)
+        case -(MBEDTLS_ERR_MD2_HW_ACCEL_FAILED):
+            return( "MD2 - MD2 hardware accelerator failed" );
+#endif /* MBEDTLS_MD2_C */
+
+#if defined(MBEDTLS_MD4_C)
+        case -(MBEDTLS_ERR_MD4_HW_ACCEL_FAILED):
+            return( "MD4 - MD4 hardware accelerator failed" );
+#endif /* MBEDTLS_MD4_C */
+
+#if defined(MBEDTLS_MD5_C)
+        case -(MBEDTLS_ERR_MD5_HW_ACCEL_FAILED):
+            return( "MD5 - MD5 hardware accelerator failed" );
+#endif /* MBEDTLS_MD5_C */
+
 #if defined(MBEDTLS_NET_C)
         case -(MBEDTLS_ERR_NET_SOCKET_FAILED):
             return( "NET - Failed to open a socket" );
@@ -812,17 +843,28 @@ const char * mbedtls_low_level_strerr( int error_code )
             return( "POLY1305 - Poly1305 hardware accelerator failed" );
 #endif /* MBEDTLS_POLY1305_C */
 
+#if defined(MBEDTLS_RIPEMD160_C)
+        case -(MBEDTLS_ERR_RIPEMD160_HW_ACCEL_FAILED):
+            return( "RIPEMD160 - RIPEMD160 hardware accelerator failed" );
+#endif /* MBEDTLS_RIPEMD160_C */
+
 #if defined(MBEDTLS_SHA1_C)
+        case -(MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED):
+            return( "SHA1 - SHA-1 hardware accelerator failed" );
         case -(MBEDTLS_ERR_SHA1_BAD_INPUT_DATA):
             return( "SHA1 - SHA-1 input data was malformed" );
 #endif /* MBEDTLS_SHA1_C */
 
 #if defined(MBEDTLS_SHA256_C)
+        case -(MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED):
+            return( "SHA256 - SHA-256 hardware accelerator failed" );
         case -(MBEDTLS_ERR_SHA256_BAD_INPUT_DATA):
             return( "SHA256 - SHA-256 input data was malformed" );
 #endif /* MBEDTLS_SHA256_C */
 
 #if defined(MBEDTLS_SHA512_C)
+        case -(MBEDTLS_ERR_SHA512_HW_ACCEL_FAILED):
+            return( "SHA512 - SHA-512 hardware accelerator failed" );
         case -(MBEDTLS_ERR_SHA512_BAD_INPUT_DATA):
             return( "SHA512 - SHA-512 input data was malformed" );
 #endif /* MBEDTLS_SHA512_C */

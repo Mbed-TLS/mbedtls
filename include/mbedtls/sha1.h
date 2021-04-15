@@ -38,6 +38,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/* MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED is deprecated and should not be used. */
+#define MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED                  -0x0035  /**< SHA-1 hardware accelerator failed */
 #define MBEDTLS_ERR_SHA1_BAD_INPUT_DATA                   -0x0073  /**< SHA-1 input data was malformed. */
 
 #ifdef __cplusplus
@@ -183,6 +185,85 @@ int mbedtls_sha1_finish_ret( mbedtls_sha1_context *ctx,
 int mbedtls_internal_sha1_process( mbedtls_sha1_context *ctx,
                                    const unsigned char data[64] );
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+/**
+ * \brief          This function starts a SHA-1 checksum calculation.
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
+ * \deprecated     Superseded by mbedtls_sha1_starts_ret() in 2.7.0.
+ *
+ * \param ctx      The SHA-1 context to initialize. This must be initialized.
+ *
+ */
+MBEDTLS_DEPRECATED void mbedtls_sha1_starts( mbedtls_sha1_context *ctx );
+
+/**
+ * \brief          This function feeds an input buffer into an ongoing SHA-1
+ *                 checksum calculation.
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
+ * \deprecated     Superseded by mbedtls_sha1_update_ret() in 2.7.0.
+ *
+ * \param ctx      The SHA-1 context. This must be initialized and
+ *                 have a hash operation started.
+ * \param input    The buffer holding the input data.
+ *                 This must be a readable buffer of length \p ilen Bytes.
+ * \param ilen     The length of the input data \p input in Bytes.
+ *
+ */
+MBEDTLS_DEPRECATED void mbedtls_sha1_update( mbedtls_sha1_context *ctx,
+                                             const unsigned char *input,
+                                             size_t ilen );
+
+/**
+ * \brief          This function finishes the SHA-1 operation, and writes
+ *                 the result to the output buffer.
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
+ * \deprecated     Superseded by mbedtls_sha1_finish_ret() in 2.7.0.
+ *
+ * \param ctx      The SHA-1 context. This must be initialized and
+ *                 have a hash operation started.
+ * \param output   The SHA-1 checksum result.
+ *                 This must be a writable buffer of length \c 20 Bytes.
+ */
+MBEDTLS_DEPRECATED void mbedtls_sha1_finish( mbedtls_sha1_context *ctx,
+                                             unsigned char output[20] );
+
+/**
+ * \brief          SHA-1 process data block (internal use only).
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
+ * \deprecated     Superseded by mbedtls_internal_sha1_process() in 2.7.0.
+ *
+ * \param ctx      The SHA-1 context. This must be initialized.
+ * \param data     The data block being processed.
+ *                 This must be a readable buffer of length \c 64 bytes.
+ *
+ */
+MBEDTLS_DEPRECATED void mbedtls_sha1_process( mbedtls_sha1_context *ctx,
+                                              const unsigned char data[64] );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+
 /**
  * \brief          This function calculates the SHA-1 checksum of a buffer.
  *
@@ -209,6 +290,41 @@ int mbedtls_internal_sha1_process( mbedtls_sha1_context *ctx,
 int mbedtls_sha1_ret( const unsigned char *input,
                       size_t ilen,
                       unsigned char output[20] );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+/**
+ * \brief          This function calculates the SHA-1 checksum of a buffer.
+ *
+ *                 The function allocates the context, performs the
+ *                 calculation, and frees the context.
+ *
+ *                 The SHA-1 result is calculated as
+ *                 output = SHA-1(input buffer).
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
+ * \deprecated     Superseded by mbedtls_sha1_ret() in 2.7.0
+ *
+ * \param input    The buffer holding the input data.
+ *                 This must be a readable buffer of length \p ilen Bytes.
+ * \param ilen     The length of the input data \p input in Bytes.
+ * \param output   The SHA-1 checksum result. This must be a writable
+ *                 buffer of size \c 20 Bytes.
+ *
+ */
+MBEDTLS_DEPRECATED void mbedtls_sha1( const unsigned char *input,
+                                      size_t ilen,
+                                      unsigned char output[20] );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_SELF_TEST)
 

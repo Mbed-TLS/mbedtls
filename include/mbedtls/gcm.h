@@ -253,22 +253,42 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
  *                  input buffer. If the buffers overlap, the output buffer
  *                  must trail at least 8 Bytes behind the input buffer.
  *
- * \param ctx       The GCM context. This must be initialized.
- * \param length    The length of the input data.
- * \param input     The buffer holding the input data. If \p length is greater
- *                  than zero, this must be a readable buffer of at least that
- *                  size in Bytes.
- * \param output    The buffer for holding the output data. If \p length is
- *                  greater than zero, this must be a writable buffer of at
- *                  least that size in Bytes.
+ * \param ctx           The GCM context. This must be initialized.
+ * \param input         The buffer holding the input data. If \p input_length
+ *                      is greater than zero, this must be a readable buffer
+ *                      of at least \p input_length bytes.
+ * \param input_length  The length of the input data in bytes.
+ * \param output        The buffer for the output data. If \p output_length
+ *                      is greater than zero, this must be a writable buffer of
+ *                      of at least \p output_size bytes.
+ *                      This function may withhold the end of the output if
+ *                      it is a partial block for the underlying block cipher.
+ *                      That is, if the cumulated input passed to
+ *                      mbedtls_gcm_update() so far (including the current call)
+ *                      is 16 *n* + *p* with *p* < 16, this function may
+ *                      withhold the last *p* bytes, which will be output by
+ *                      a subsequent call to mbedtls_gcm_update() or
+ *                      mbedtls_gcm_finish().
+ * \param output_size   The size of the output buffer in bytes.
+ *                      This must be at least \p input_length plus the length
+ *                      of the input withheld by the previous call to
+ *                      mbedtls_gcm_update(). Therefore:
+ *                      - With arbitrary inputs, \p output_size may need to
+ *                        be as large as `input_length + 15`.
+ *                      - If all input lengths are a multiple of 16, then
+ *                        \p output_size = \p input_length is sufficient.
+ * \param output_length On success, \p *output_length contains the actual
+ *                      length of the output written in \p output.
+ *                      On failure, the content of \p *output_length is
+ *                      unspecified.
  *
  * \return         \c 0 on success.
  * \return         #MBEDTLS_ERR_GCM_BAD_INPUT on failure.
  */
 int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
-                size_t length,
-                const unsigned char *input,
-                unsigned char *output );
+                        const unsigned char *input, size_t input_length,
+                        unsigned char *output, size_t output_size,
+                        size_t *output_length );
 
 /**
  * \brief           This function finishes the GCM operation and generates

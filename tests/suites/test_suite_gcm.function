@@ -16,6 +16,7 @@ static int check_multipart( mbedtls_gcm_context *ctx,
     int ok = 0;
     uint8_t *output = NULL;
     size_t n2 = input->len - n1;
+    size_t olen;
 
     /* Sanity checks on the test data */
     TEST_ASSERT( n1 <= input->len );
@@ -29,14 +30,18 @@ static int check_multipart( mbedtls_gcm_context *ctx,
      * tries to write beyond the advertised required buffer size, this will
      * count as an overflow for memory sanitizers and static checkers. */
     ASSERT_ALLOC( output, n1 );
-    TEST_EQUAL( 0, mbedtls_gcm_update( ctx, n1, input->x, output ) );
-    ASSERT_COMPARE( output, n1, expected_output->x, n1 );
+    olen = 0xdeadbeef;
+    TEST_EQUAL( 0, mbedtls_gcm_update( ctx, input->x, n1, output, n1, &olen ) );
+    TEST_EQUAL( n1, olen );
+    ASSERT_COMPARE( output, olen, expected_output->x, n1 );
     mbedtls_free( output );
     output = NULL;
 
     ASSERT_ALLOC( output, n2 );
-    TEST_EQUAL( 0, mbedtls_gcm_update( ctx, n2, input->x + n1, output ) );
-    ASSERT_COMPARE( output, n2, expected_output->x + n1, n2 );
+    olen = 0xdeadbeef;
+    TEST_EQUAL( 0, mbedtls_gcm_update( ctx, input->x + n1, n2, output, n2, &olen ) );
+    TEST_EQUAL( n2, olen );
+    ASSERT_COMPARE( output, olen, expected_output->x + n1, n2 );
     mbedtls_free( output );
     output = NULL;
 
@@ -185,6 +190,7 @@ void gcm_invalid_param( )
     int valid_mode = MBEDTLS_GCM_ENCRYPT;
     int valid_len = sizeof(valid_buffer);
     int valid_bitlen = 128, invalid_bitlen = 1;
+    size_t olen;
 
     mbedtls_gcm_init( &ctx );
 
@@ -312,16 +318,20 @@ void gcm_invalid_param( )
     /* mbedtls_gcm_update() */
     TEST_INVALID_PARAM_RET(
         MBEDTLS_ERR_GCM_BAD_INPUT,
-        mbedtls_gcm_update( NULL, valid_len,
-                            valid_buffer, valid_buffer ) );
+        mbedtls_gcm_update( NULL, valid_buffer, valid_len,
+                            valid_buffer, valid_len, &olen ) );
     TEST_INVALID_PARAM_RET(
         MBEDTLS_ERR_GCM_BAD_INPUT,
-        mbedtls_gcm_update( &ctx, valid_len,
-                            NULL, valid_buffer ) );
+        mbedtls_gcm_update( &ctx, NULL, valid_len,
+                            valid_buffer, valid_len, &olen ) );
     TEST_INVALID_PARAM_RET(
         MBEDTLS_ERR_GCM_BAD_INPUT,
-        mbedtls_gcm_update( &ctx, valid_len,
-                            valid_buffer, NULL ) );
+        mbedtls_gcm_update( &ctx, valid_buffer, valid_len,
+                            NULL, valid_len, &olen ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_GCM_BAD_INPUT,
+        mbedtls_gcm_update( &ctx, valid_buffer, valid_len,
+                            valid_buffer, valid_len, NULL ) );
 
     /* mbedtls_gcm_finish() */
     TEST_INVALID_PARAM_RET(

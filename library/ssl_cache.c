@@ -138,24 +138,18 @@ exit:
     return( ret );
 }
 
-int mbedtls_ssl_cache_set( void *data,
-                           unsigned char const *session_id,
-                           size_t session_id_len,
-                           const mbedtls_ssl_session *session )
+static int ssl_cache_find_fresh_entry( mbedtls_ssl_cache_context *cache,
+                                       unsigned char const *session_id,
+                                       size_t session_id_len,
+                                       mbedtls_ssl_cache_entry **dst )
 {
     int ret = 1;
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t t = mbedtls_time( NULL ), oldest = 0;
     mbedtls_ssl_cache_entry *old = NULL;
 #endif
-    mbedtls_ssl_cache_context *cache = (mbedtls_ssl_cache_context *) data;
-    mbedtls_ssl_cache_entry *cur, *prv;
     int count = 0;
-
-#if defined(MBEDTLS_THREADING_C)
-    if( ( ret = mbedtls_mutex_lock( &cache->mutex ) ) != 0 )
-        return( ret );
-#endif
+    mbedtls_ssl_cache_entry *cur, *prv;
 
     cur = cache->chain;
     prv = NULL;
@@ -249,17 +243,46 @@ int mbedtls_ssl_cache_set( void *data,
 #endif
     }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
-    defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    /*
-     * If we're reusing an entry, free its certificate first
-     */
-    if( cur->peer_cert.p != NULL )
+    if( cur != NULL )
     {
-        mbedtls_free( cur->peer_cert.p );
-        memset( &cur->peer_cert, 0, sizeof(mbedtls_x509_buf) );
+        *dst = cur;
+
+        /*
+         * If we're reusing an entry, free its certificate first
+         */
+        if( cur->peer_cert.p != NULL )
+        {
+            mbedtls_free( cur->peer_cert.p );
+            memset( &cur->peer_cert, 0, sizeof(mbedtls_x509_buf) );
+        }
+
+        ret = 0;
     }
-#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
+exit:
+
+    return( ret );
+}
+
+int mbedtls_ssl_cache_set( void *data,
+                           unsigned char const *session_id,
+                           size_t session_id_len,
+                           const mbedtls_ssl_session *session )
+{
+    int ret = 1;
+    mbedtls_ssl_cache_context *cache = (mbedtls_ssl_cache_context *) data;
+    mbedtls_ssl_cache_entry *cur;
+
+#if defined(MBEDTLS_THREADING_C)
+    if( ( ret = mbedtls_mutex_lock( &cache->mutex ) ) != 0 )
+        return( ret );
+#endif
+
+    ret = ssl_cache_find_fresh_entry( cache,
+                                      session_id, session_id_len,
+                                      &cur );
+    if( ret != 0 )
+        goto exit;
 
     /* Copy the entire session; this temporarily makes a copy of the
      * X.509 CRT structure even though we only want to store the raw CRT.

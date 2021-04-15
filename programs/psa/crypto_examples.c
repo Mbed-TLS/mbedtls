@@ -159,7 +159,7 @@ static psa_status_t
 cipher_example_encrypt_decrypt_aes_cbc_nopad_1_block( void )
 {
     enum {
-        block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( PSA_KEY_TYPE_AES ),
+        block_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH( PSA_KEY_TYPE_AES ),
         key_bits = 256,
         part_size = block_size,
     };
@@ -207,7 +207,7 @@ exit:
 static psa_status_t cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( void )
 {
     enum {
-        block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( PSA_KEY_TYPE_AES ),
+        block_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH( PSA_KEY_TYPE_AES ),
         key_bits = 256,
         input_size = 100,
         part_size = 10,
@@ -255,7 +255,7 @@ exit:
 static psa_status_t cipher_example_encrypt_decrypt_aes_ctr_multi( void )
 {
     enum {
-        block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( PSA_KEY_TYPE_AES ),
+        block_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH( PSA_KEY_TYPE_AES ),
         key_bits = 256,
         input_size = 100,
         part_size = 10,

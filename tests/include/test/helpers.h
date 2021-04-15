@@ -31,6 +31,11 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_PTHREAD) && \
+    defined(MBEDTLS_TEST_HOOKS)
+#define MBEDTLS_TEST_MUTEX_USAGE
+#endif
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -49,8 +54,77 @@
 #include <stddef.h>
 #include <stdint.h>
 
+typedef enum
+{
+    MBEDTLS_TEST_RESULT_SUCCESS = 0,
+    MBEDTLS_TEST_RESULT_FAILED,
+    MBEDTLS_TEST_RESULT_SKIPPED
+} mbedtls_test_result_t;
+
+typedef struct
+{
+    mbedtls_test_result_t result;
+    const char *test;
+    const char *filename;
+    int line_no;
+    unsigned long step;
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+    const char *mutex_usage_error;
+#endif
+}
+mbedtls_test_info_t;
+extern mbedtls_test_info_t mbedtls_test_info;
+
 int mbedtls_test_platform_setup( void );
 void mbedtls_test_platform_teardown( void );
+
+/**
+ * \brief           Record the current test case as a failure.
+ *
+ *                  This function can be called directly however it is usually
+ *                  called via macros such as TEST_ASSERT, TEST_EQUAL,
+ *                  PSA_ASSERT, etc...
+ *
+ * \note            If the test case was already marked as failed, calling
+ *                  `mbedtls_test_fail( )` again will not overwrite any
+ *                  previous information about the failure.
+ *
+ * \param test      Description of the failure or assertion that failed. This
+ *                  MUST be a string literal.
+ * \param line_no   Line number where the failure originated.
+ * \param filename  Filename where the failure originated.
+ */
+void mbedtls_test_fail( const char *test, int line_no, const char* filename );
+
+/**
+ * \brief           Record the current test case as skipped.
+ *
+ *                  This function can be called directly however it is usually
+ *                  called via the TEST_ASSUME macro.
+ *
+ * \param test      Description of the assumption that caused the test case to
+ *                  be skipped. This MUST be a string literal.
+ * \param line_no   Line number where the test case was skipped.
+ * \param filename  Filename where the test case was skipped.
+ */
+void mbedtls_test_skip( const char *test, int line_no, const char* filename );
+
+/**
+ * \brief       Set the test step number for failure reports.
+ *
+ *              Call this function to display "step NNN" in addition to the
+ *              line number and file name if a test fails. Typically the "step
+ *              number" is the index of a for loop but it can be whatever you
+ *              want.
+ *
+ * \param step  The step number to report.
+ */
+void mbedtls_test_set_step( unsigned long step );
+
+/**
+ * \brief       Reset mbedtls_test_info to a ready/starting state.
+ */
+void mbedtls_test_info_reset( void );
 
 /**
  * \brief          This function decodes the hexadecimal representation of
@@ -189,5 +263,19 @@ void* mbedtls_test_param_failed_get_state_buf( void );
  */
 void mbedtls_test_param_failed_reset_state( void );
 #endif /* MBEDTLS_CHECK_PARAMS */
+
+#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+#include "test/fake_external_rng_for_test.h"
+#endif
+
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+/** Permanently activate the mutex usage verification framework. See
+ * threading_helpers.c for information. */
+void mbedtls_test_mutex_usage_init( void );
+
+/** Call this function after executing a test case to check for mutex usage
+ * errors. */
+void mbedtls_test_mutex_usage_check( void );
+#endif /* MBEDTLS_TEST_MUTEX_USAGE */
 
 #endif /* TEST_HELPERS_H */

@@ -247,6 +247,10 @@
 #error "MBEDTLS_ECP_NORMALIZE_MXZ_ALT defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_ECP_NO_FALLBACK) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
+#error "MBEDTLS_ECP_NO_FALLBACK defined, but no alternative implementation enabled"
+#endif
+
 #if defined(MBEDTLS_HKDF_C) && !defined(MBEDTLS_MD_C)
 #error "MBEDTLS_HKDF_C defined, but not all prerequisites"
 #endif
@@ -796,10 +800,6 @@
     !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_WRITE_C) ||       \
     !defined(MBEDTLS_PK_WRITE_C) )
 #error "MBEDTLS_X509_CREATE_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_CERTS_C) && !defined(MBEDTLS_X509_USE_C)
-#error "MBEDTLS_CERTS_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && ( !defined(MBEDTLS_X509_USE_C) )

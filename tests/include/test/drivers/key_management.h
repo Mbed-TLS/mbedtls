@@ -41,7 +41,7 @@ typedef struct {
     unsigned long hits;
 } test_driver_key_management_hooks_t;
 
-#define TEST_DRIVER_KEY_MANAGEMENT_INIT { NULL, 0, PSA_ERROR_NOT_SUPPORTED, 0 }
+#define TEST_DRIVER_KEY_MANAGEMENT_INIT { NULL, 0, PSA_SUCCESS, 0 }
 static inline test_driver_key_management_hooks_t test_driver_key_management_hooks_init( void )
 {
     const test_driver_key_management_hooks_t v = TEST_DRIVER_KEY_MANAGEMENT_INIT;
@@ -58,11 +58,10 @@ psa_status_t test_opaque_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key, size_t key_size, size_t *key_length );
 
-psa_status_t test_transparent_validate_key(
+psa_status_t test_opaque_export_key(
     const psa_key_attributes_t *attributes,
-    const uint8_t *data,
-    size_t data_length,
-    size_t *bits);
+    const uint8_t *key, size_t key_length,
+    uint8_t *data, size_t data_size, size_t *data_length );
 
 psa_status_t test_transparent_export_public_key(
     const psa_key_attributes_t *attributes,
@@ -73,6 +72,15 @@ psa_status_t test_opaque_export_public_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
     uint8_t *data, size_t data_size, size_t *data_length );
+
+psa_status_t test_transparent_import_key(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *data,
+    size_t data_length,
+    uint8_t *key_buffer,
+    size_t key_buffer_size,
+    size_t *key_buffer_length,
+    size_t *bits);
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_TEST_DRIVERS_KEY_MANAGEMENT_H */

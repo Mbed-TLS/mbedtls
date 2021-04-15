@@ -1,5 +1,5 @@
 /**
- * \file ssl_internal.h
+ * \file ssl_misc.h
  *
  * \brief Internal functions shared by the SSL modules
  */
@@ -19,8 +19,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-#ifndef MBEDTLS_SSL_INTERNAL_H
-#define MBEDTLS_SSL_INTERNAL_H
+#ifndef MBEDTLS_SSL_MISC_H
+#define MBEDTLS_SSL_MISC_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -1262,4 +1262,4 @@ void mbedtls_ssl_buffering_free( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#endif /* ssl_internal.h */
+#endif /* ssl_misc.h */

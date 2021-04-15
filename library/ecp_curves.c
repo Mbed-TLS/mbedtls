@@ -1000,25 +1000,20 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
 #define ADD( j )    add32( &cur, A( j ), &c );
 #define SUB( j )    sub32( &cur, A( j ), &c );
 
+#define ciL    (sizeof(mbedtls_mpi_uint))         /* chars in limb  */
+#define biL    (ciL << 3)                         /* bits  in limb  */
+
 /*
  * Helpers for the main 'loop'
- * (see fix_negative for the motivation of C)
  */
 #define INIT( b )                                                       \
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;                                                            \
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;                    \
     signed char c = 0, cc;                                              \
     uint32_t cur;                                                       \
     size_t i = 0, bits = (b);                                           \
-    mbedtls_mpi C;                                                      \
-    mbedtls_mpi_uint Cp[ (b) / 8 / sizeof( mbedtls_mpi_uint) + 1 ];     \
-                                                                        \
-    C.s = 1;                                                            \
-    C.n = (b) / 8 / sizeof( mbedtls_mpi_uint) + 1;                      \
-    C.p = Cp;                                                           \
-    memset( Cp, 0, C.n * sizeof( mbedtls_mpi_uint ) );                  \
-                                                                        \
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( N, (b) * 2 / 8 /                 \
-                                       sizeof( mbedtls_mpi_uint ) ) );  \
+    /* N is the size of the product of two b-bit numbers, plus one */   \
+    /* limb for fix_negative */                                         \
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( N, ( b ) * 2 / biL + 1 ) );      \
     LOAD32;
 
 #define NEXT                    \
@@ -1033,33 +1028,32 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
     STORE32; i++;                               \
     cur = c > 0 ? c : 0; STORE32;               \
     cur = 0; while( ++i < MAX32 ) { STORE32; }  \
-    if( c < 0 ) MBEDTLS_MPI_CHK( fix_negative( N, c, &C, bits ) );
+    if( c < 0 ) fix_negative( N, c, bits );
 
 /*
  * If the result is negative, we get it in the form
  * c * 2^(bits + 32) + N, with c negative and N positive shorter than 'bits'
  */
-static inline int fix_negative( mbedtls_mpi *N, signed char c, mbedtls_mpi *C, size_t bits )
+static inline void fix_negative( mbedtls_mpi *N, signed char c, size_t bits )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t i;
 
-    /* C = - c * 2^(bits + 32) */
-#if !defined(MBEDTLS_HAVE_INT64)
-    ((void) bits);
-#else
-    if( bits == 224 )
-        C->p[ C->n - 1 ] = ((mbedtls_mpi_uint) -c) << 32;
-    else
-#endif
-        C->p[ C->n - 1 ] = (mbedtls_mpi_uint) -c;
-
-    /* N = - ( C - N ) */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_abs( N, C, N ) );
+    /* Set N := N - 2^bits */
+    --N->p[0];
+    for( i = 0; i <= bits / 8 / sizeof( mbedtls_mpi_uint ); i++ )
+    {
+        N->p[i] = ~(mbedtls_mpi_uint)0 - N->p[i];
+    }
     N->s = -1;
 
-cleanup:
-
-    return( ret );
+    /* Add |c| * 2^(bits + 32) to the absolute value. Since c and N are
+    * negative, this adds c * 2^(bits + 32). */
+    mbedtls_mpi_uint msw = (mbedtls_mpi_uint) -c;
+#if defined(MBEDTLS_HAVE_INT64)
+    if( bits == 224 )
+        msw <<= 32;
+#endif
+    N->p[bits / 8 / sizeof( mbedtls_mpi_uint)] += msw;
 }
 
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)

@@ -1,12 +1,12 @@
 /* BEGIN_HEADER */
 #include <mbedtls/ssl.h>
-#include <mbedtls/ssl_internal.h>
+#include <ssl_misc.h>
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
-#include <mbedtls/certs.h>
 #include <mbedtls/timing.h>
 #include <mbedtls/debug.h>
 #include <ssl_tls13_keys.h>
+#include "test/certs.h"
 
 #include <ssl_invasive.h>
 
@@ -1342,7 +1342,8 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
                     t_in->taglen = 8;
                     break;
                 default:
-                    return( 1 );
+                    ret = 1;
+                    goto cleanup;
             }
             break;
 
@@ -1362,7 +1363,8 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
                     t_in->taglen = 8;
                     break;
                 default:
-                    return( 1 );
+                    ret = 1;
+                    goto cleanup;
             }
             break;
 
@@ -1383,11 +1385,13 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
                     t_in->maclen = 10;
                     break;
                 default:
-                    return( 1 );
+                    ret = 1;
+                    goto cleanup;
             }
             break;
         default:
-            return( 1 );
+            ret = 1;
+            goto cleanup;
             break;
     }
 
@@ -3595,7 +3599,7 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
      */
     for( i = block_size; i < buflen; i++ )
     {
-        test_set_step( i );
+        mbedtls_test_set_step( i );
 
         /* Restore correct pre-encryption record */
         rec = rec_save;
@@ -3632,7 +3636,7 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
      */
     for( i = padlen; i <= pad_max_len; i++ )
     {
-        test_set_step( i );
+        mbedtls_test_set_step( i );
 
         /* Restore correct pre-encryption record */
         rec = rec_save;
@@ -3818,9 +3822,7 @@ void ssl_tls_prf( int type, data_t * secret, data_t * random,
     if( output == NULL )
         goto exit;
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    TEST_ASSERT( psa_crypto_init() == 0 );
-#endif
+    USE_PSA_INIT( );
 
     TEST_ASSERT( mbedtls_ssl_tls_prf( type, secret->x, secret->len,
                                       label, random->x, random->len,
@@ -3834,6 +3836,7 @@ void ssl_tls_prf( int type, data_t * secret, data_t * random,
 exit:
 
     mbedtls_free( output );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -4451,7 +4454,7 @@ void ssl_cf_hmac( int hash )
      */
     for( max_in_len = 0; max_in_len <= 255 + block_size; max_in_len++ )
     {
-        test_set_step( max_in_len * 10000 );
+        mbedtls_test_set_step( max_in_len * 10000 );
 
         /* Use allocated in buffer to catch overreads */
         ASSERT_ALLOC( data, max_in_len );
@@ -4459,7 +4462,7 @@ void ssl_cf_hmac( int hash )
         min_in_len = max_in_len > 255 ? max_in_len - 255 : 0;
         for( in_len = min_in_len; in_len <= max_in_len; in_len++ )
         {
-            test_set_step( max_in_len * 10000 + in_len );
+            mbedtls_test_set_step( max_in_len * 10000 + in_len );
 
             /* Set up dummy data and add_data */
             rec_num++;
@@ -4516,7 +4519,7 @@ void ssl_cf_memcpy_offset( int offset_min, int offset_max, int len )
 
     for( secret = offset_min; secret <= (size_t) offset_max; secret++ )
     {
-        test_set_step( (int) secret );
+        mbedtls_test_set_step( (int) secret );
 
         TEST_CF_SECRET( &secret, sizeof( secret ) );
         mbedtls_ssl_cf_memcpy_offset( dst, src, secret,

@@ -1,6 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/rsa.h"
-#include "mbedtls/rsa_internal.h"
+#include "rsa_alt_helpers.h"
 #include "mbedtls/md2.h"
 #include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
@@ -338,6 +338,28 @@ void rsa_invalid_param( )
                                                          buf ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_sign_ext( NULL, NULL, NULL,
+                                                             0, sizeof( buf ), buf,
+                                                             MBEDTLS_RSA_SALT_LEN_ANY,
+                                                             buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_sign_ext( &ctx, NULL, NULL,
+                                                             0, sizeof( buf ), NULL,
+                                                             MBEDTLS_RSA_SALT_LEN_ANY,
+                                                             buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_sign_ext( &ctx, NULL, NULL,
+                                                             0, sizeof( buf ), buf,
+                                                             MBEDTLS_RSA_SALT_LEN_ANY,
+                                                             NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_sign_ext( &ctx, NULL, NULL,
+                                                             MBEDTLS_MD_SHA1,
+                                                             0, NULL,
+                                                             MBEDTLS_RSA_SALT_LEN_ANY,
+                                                             buf ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_pkcs1_verify( NULL, NULL, NULL,
                                                       valid_mode,
                                                       0, sizeof( buf ), buf,
@@ -463,6 +485,29 @@ void rsa_invalid_param( )
 
 exit:
     return;
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void rsa_init_free( int reinit )
+{
+    mbedtls_rsa_context ctx;
+
+    /* Double free is not explicitly documented to work, but we rely on it
+     * even inside the library so that you can call mbedtls_rsa_free()
+     * unconditionally on an error path without checking whether it has
+     * already been called in the success path. */
+
+    mbedtls_rsa_init( &ctx, 0, 0 );
+    mbedtls_rsa_free( &ctx );
+
+    if( reinit )
+        mbedtls_rsa_init( &ctx, 0, 0 );
+    mbedtls_rsa_free( &ctx );
+
+    /* This test case always succeeds, functionally speaking. A plausible
+     * bug might trigger an invalid pointer dereference or a memory leak. */
+    goto exit;
 }
 /* END_CASE */
 

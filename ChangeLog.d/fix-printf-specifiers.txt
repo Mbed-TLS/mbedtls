@@ -1,0 +1,10 @@
+Bugfix
+   * Add printf function attributes to mbedtls_debug_print_msg to ensure we
+     get printf format specifier warnings.
+Changes
+   * Add extra printf compiler warning flags to builds.
+Requirement changes
+   * The library now uses the %zu format specifier with the printf() family of
+     functions, so requires a toolchain that supports it. This change does not
+     affect the maintained LTS branches, so when contributing changes please
+     bear this in mind and do not add them to backported code.

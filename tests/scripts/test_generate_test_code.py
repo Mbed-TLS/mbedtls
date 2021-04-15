@@ -20,21 +20,10 @@
 Unit tests for generate_test_code.py
 """
 
-# pylint: disable=wrong-import-order
-try:
-    # Python 2
-    from StringIO import StringIO
-except ImportError:
-    # Python 3
-    from io import StringIO
+from io import StringIO
 from unittest import TestCase, main as unittest_main
-try:
-    # Python 2
-    from mock import patch
-except ImportError:
-    # Python 3
-    from unittest.mock import patch
-# pylint: enable=wrong-import-order
+from unittest.mock import patch
+
 from generate_test_code import gen_dependencies, gen_dependencies_one_line
 from generate_test_code import gen_function_wrapper, gen_dispatch
 from generate_test_code import parse_until_pattern, GeneratorInputError
@@ -317,25 +306,16 @@ class StringIOWrapper(StringIO):
         :return: Line read from file.
         """
         parent = super(StringIOWrapper, self)
-        if getattr(parent, 'next', None):
-            # Python 2
-            line = parent.next()
-        else:
-            # Python 3
-            line = parent.__next__()
+        line = parent.__next__()
         return line
 
-    # Python 3
-    __next__ = next
-
-    def readline(self, length=0):
+    def readline(self, _length=0):
         """
         Wrap the base class readline.
 
         :param length:
         :return:
         """
-        # pylint: disable=unused-argument
         line = super(StringIOWrapper, self).readline()
         if line is not None:
             self.line_no += 1
@@ -549,38 +529,6 @@ class ParseFunctionCode(TestCase):
     Test suite for testing parse_function_code()
     """
 
-    def assert_raises_regex(self, exp, regex, func, *args):
-        """
-        Python 2 & 3 portable wrapper of assertRaisesRegex(p)? function.
-
-        :param exp: Exception type expected to be raised by cb.
-        :param regex: Expected exception message
-        :param func: callable object under test
-        :param args: variable positional arguments
-        """
-        parent = super(ParseFunctionCode, self)
-
-        # Pylint does not appreciate that the super method called
-        # conditionally can be available in other Python version
-        # then that of Pylint.
-        # Workaround is to call the method via getattr.
-        # Pylint ignores that the method got via getattr is
-        # conditionally executed. Method has to be a callable.
-        # Hence, using a dummy callable for getattr default.
-        dummy = lambda *x: None
-        # First Python 3 assertRaisesRegex is checked, since Python 2
-        # assertRaisesRegexp is also available in Python 3 but is
-        # marked deprecated.
-        for name in ('assertRaisesRegex', 'assertRaisesRegexp'):
-            method = getattr(parent, name, dummy)
-            if method is not dummy:
-                method(exp, regex, func, *args)
-                break
-        else:
-            raise AttributeError(" 'ParseFunctionCode' object has no attribute"
-                                 " 'assertRaisesRegex' or 'assertRaisesRegexp'"
-                                )
-
     def test_no_function(self):
         """
         Test no test function found.
@@ -593,8 +541,8 @@ function
 '''
         stream = StringIOWrapper('test_suite_ut.function', data)
         err_msg = 'file: test_suite_ut.function - Test functions not found!'
-        self.assert_raises_regex(GeneratorInputError, err_msg,
-                                 parse_function_code, stream, [], [])
+        self.assertRaisesRegex(GeneratorInputError, err_msg,
+                               parse_function_code, stream, [], [])
 
     def test_no_end_case_comment(self):
         """
@@ -609,8 +557,8 @@ void test_func()
         stream = StringIOWrapper('test_suite_ut.function', data)
         err_msg = r'file: test_suite_ut.function - '\
                   'end case pattern .*? not found!'
-        self.assert_raises_regex(GeneratorInputError, err_msg,
-                                 parse_function_code, stream, [], [])
+        self.assertRaisesRegex(GeneratorInputError, err_msg,
+                               parse_function_code, stream, [], [])
 
     @patch("generate_test_code.parse_function_arguments")
     def test_function_called(self,
@@ -727,8 +675,8 @@ exit:
         data = 'int entropy_threshold( char * a, data_t * h, int result )'
         err_msg = 'file: test_suite_ut.function - Test functions not found!'
         stream = StringIOWrapper('test_suite_ut.function', data)
-        self.assert_raises_regex(GeneratorInputError, err_msg,
-                                 parse_function_code, stream, [], [])
+        self.assertRaisesRegex(GeneratorInputError, err_msg,
+                               parse_function_code, stream, [], [])
 
     @patch("generate_test_code.gen_dispatch")
     @patch("generate_test_code.gen_dependencies")

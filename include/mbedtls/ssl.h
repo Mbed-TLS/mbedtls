@@ -225,10 +225,6 @@
  * \{
  */
 
-#if !defined(MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME)
-#define MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
-#endif
-
 /*
  * Maximum fragment length in bytes,
  * determines the size of each of the two internal I/O buffers.
@@ -602,7 +598,7 @@ typedef struct mbedtls_ssl_session mbedtls_ssl_session;
 typedef struct mbedtls_ssl_context mbedtls_ssl_context;
 typedef struct mbedtls_ssl_config  mbedtls_ssl_config;
 
-/* Defined in ssl_internal.h */
+/* Defined in library/ssl_misc.h */
 typedef struct mbedtls_ssl_transform mbedtls_ssl_transform;
 typedef struct mbedtls_ssl_handshake_params mbedtls_ssl_handshake_params;
 typedef struct mbedtls_ssl_sig_hash_set_t mbedtls_ssl_sig_hash_set_t;

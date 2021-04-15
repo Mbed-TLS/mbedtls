@@ -300,7 +300,7 @@ int mbedtls_ssl_cache_set( void *data,
     if( ret != 0 )
         goto exit;
 
-    if( session_id_len > 32 )
+    if( session_id_len > sizeof( cur->session_id ) )
     {
         ret = 1;
         goto exit;

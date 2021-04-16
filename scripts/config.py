@@ -191,15 +191,12 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_PSA_CRYPTO_SPM', # platform dependency (PSA SPM)
     'MBEDTLS_PSA_INJECT_ENTROPY', # build dependency (hook functions)
     'MBEDTLS_REMOVE_3DES_CIPHERSUITES', # removes a feature
-    'MBEDTLS_REMOVE_ARC4_CIPHERSUITES', # removes a feature
     'MBEDTLS_RSA_NO_CRT', # influences the use of RSA in X.509 and TLS
     'MBEDTLS_SHA512_NO_SHA384', # removes a feature
-    'MBEDTLS_SSL_HW_RECORD_ACCEL', # build dependency (hook functions)
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
     'MBEDTLS_TEST_NULL_ENTROPY', # removes a feature
     'MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION', # influences the use of X.509 in TLS
-    'MBEDTLS_ZLIB_SUPPORT', # build dependency (libz)
 ])
 
 def is_seamless_alt(name):
@@ -299,11 +296,6 @@ def crypto_adapter(adapter):
         return adapter(name, active, section)
     return continuation
 
-DEPRECATED = frozenset([
-    'MBEDTLS_SSL_PROTO_SSL3',
-    'MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO',
-])
-
 def no_deprecated_adapter(adapter):
     """Modify an adapter to disable deprecated symbols.
 
@@ -314,8 +306,6 @@ def no_deprecated_adapter(adapter):
     def continuation(name, active, section):
         if name == 'MBEDTLS_DEPRECATED_REMOVED':
             return True
-        if name in DEPRECATED:
-            return False
         if adapter is None:
             return active
         return adapter(name, active, section)

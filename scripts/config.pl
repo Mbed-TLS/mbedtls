@@ -66,8 +66,9 @@
 #
 # The baremetal configuration excludes options that require a library or
 # operating system feature that is typically not present on bare metal
-# systems. Features that are excluded from "full" won't be in "baremetal"
-# either.
+# systems. It also excludes debugging features that increase the code size
+# of other modules.
+# Features that are excluded from "full" won't be in "baremetal" either.
 
 use warnings;
 use strict;
@@ -136,6 +137,7 @@ _ALT\s*$
 
 # Things that should be disabled in "baremetal"
 my @excluded_baremetal = qw(
+MBEDTLS_DEBUG_C
 MBEDTLS_ENTROPY_NV_SEED
 MBEDTLS_FS_IO
 MBEDTLS_HAVEGE_C
@@ -147,6 +149,7 @@ MBEDTLS_NET_C
 MBEDTLS_PLATFORM_FPRINTF_ALT
 MBEDTLS_PLATFORM_NV_SEED_ALT
 MBEDTLS_PLATFORM_TIME_ALT
+MBEDTLS_TEST_HOOKS
 MBEDTLS_THREADING_C
 MBEDTLS_THREADING_PTHREAD
 MBEDTLS_TIMING_C

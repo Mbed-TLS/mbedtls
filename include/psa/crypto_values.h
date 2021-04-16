@@ -1182,8 +1182,8 @@
  *
  * \return           1 if the base both arguments correspond to the same base
  *                   algorithm, 0 otherwise.
- *                   Unspecified if \p aead_alg_1 or \p aead_alg_2 are not
- *                   supported AEAD algorithms.
+ *                   Unspecified if neither \p aead_alg_1 nor \p aead_alg_2 are
+ *                   a supported AEAD algorithm.
  */
 #define PSA_ALG_AEAD_IS_BASE_EQUAL(aead_alg_1, aead_alg_2) \
     (!(((aead_alg_1) ^ (aead_alg_2)) & \

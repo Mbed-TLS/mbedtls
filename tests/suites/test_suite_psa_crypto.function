@@ -3235,9 +3235,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void sign_deterministic( int key_type_arg, data_t *key_data,
-                         int alg_arg, data_t *input_data,
-                         data_t *output_data )
+void sign_hash_deterministic( int key_type_arg, data_t *key_data,
+                              int alg_arg, data_t *input_data,
+                              data_t *output_data )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -3301,9 +3301,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void sign_fail( int key_type_arg, data_t *key_data,
-                int alg_arg, data_t *input_data,
-                int signature_size_arg, int expected_status_arg )
+void sign_hash_fail( int key_type_arg, data_t *key_data,
+                     int alg_arg, data_t *input_data,
+                     int signature_size_arg, int expected_status_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -3356,8 +3356,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void sign_verify( int key_type_arg, data_t *key_data,
-                  int alg_arg, data_t *input_data )
+void sign_verify_hash( int key_type_arg, data_t *key_data,
+                       int alg_arg, data_t *input_data )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -3427,9 +3427,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void asymmetric_verify( int key_type_arg, data_t *key_data,
-                        int alg_arg, data_t *hash_data,
-                        data_t *signature_data )
+void verify_hash( int key_type_arg, data_t *key_data,
+                  int alg_arg, data_t *hash_data,
+                  data_t *signature_data )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -3467,10 +3467,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
-                             int alg_arg, data_t *hash_data,
-                             data_t *signature_data,
-                             int expected_status_arg )
+void verify_hash_fail( int key_type_arg, data_t *key_data,
+                       int alg_arg, data_t *hash_data,
+                       data_t *signature_data,
+                       int expected_status_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;

@@ -2692,14 +2692,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_X509_MAX_FILE_PATH_LEN */
 
-#if defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES)
-    if( strcmp( "MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES );
-        return( 0 );
-    }
-#endif /* MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES */
-
 #if defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE)
     if( strcmp( "MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE", config ) == 0 )
     {

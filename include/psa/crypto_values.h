@@ -1974,7 +1974,7 @@
  * creating the cipher suite.
  *
  * In theory the protocol works with any non-interactive zero-knowledge proof.
- * Implementations of the present specification use Schnorr NIZK and this does
+ * Implementations of the present specification use Schnorr NIZKP and this does
  * not need to be configured in the cipher suites.
  *
  * J-PAKE can be used with any secure cryptographic hash function, the choice
@@ -2014,7 +2014,7 @@
  * For more information consult the documentation of the individual
  * PSA_PAKE_DATA_XXX constants.
  *
- * J-PAKE is standardised for example in RFC 8236 and in THREAD.
+ * J-PAKE is standardised for example in RFC 8236.
  */
 #define PSA_ALG_PAKE_JPAKE                   ((psa_algorithm_t)0x0a000001)
 
@@ -2482,7 +2482,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 
 /** The PAKE uses elliptic curves.
  *
- * The corresponding family type is ::psa_ecc_family_t. in determining a
+ * The corresponding family type is ::psa_ecc_family_t. In determining a
  * specific curve in the family ::psa_pake_bits_t values are interpreted in the
  * exact same way as ::psa_key_bits_t would.
  *
@@ -2523,7 +2523,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *                      on \p type, for more information consult the
  *                      documentation of individual ::psa_pake_primitive_type_t
  *                      constants).
- * \param bits          The bitwise of the primitive
+ * \param bits          The bitsize of the primitive
  *                      (Value of type ::psa_pake_bits_t. The interpretation
  *                      of this parameter depends on \p family, for more
  *                      information consult the documentation of individual
@@ -2568,7 +2568,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 
 /** A Schnorr NIZKP proof.
  *
- * This is a skalar value.
+ * This is a scalar value.
  *
  * For information regarding representation consult the documentation of
  * individual ::psa_pake_primitive_type_t constants.

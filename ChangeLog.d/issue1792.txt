@@ -1,0 +1,3 @@
+Bugfix
+   * Fix a bug in ECDSA that would cause it to fail when the hash is all-bits
+     zero. Fixes #1792

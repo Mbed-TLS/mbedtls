@@ -119,6 +119,7 @@ OBJS_CRYPTO= \
 	     platform_util.o \
 	     poly1305.o \
 	     psa_crypto.o \
+	     psa_crypto_aead.o \
 	     psa_crypto_cipher.o \
 	     psa_crypto_client.o \
 	     psa_crypto_driver_wrappers.o \

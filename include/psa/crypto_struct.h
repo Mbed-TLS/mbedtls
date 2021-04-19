@@ -15,12 +15,20 @@
  *
  * <h3>Design notes about multipart operation structures</h3>
  *
- * Each multipart operation structure contains a `psa_algorithm_t alg`
- * field which indicates which specific algorithm the structure is for.
- * When the structure is not in use, `alg` is 0. Most of the structure
- * consists of a union which is discriminated by `alg`.
+ * For multipart operations without driver delegation support, each multipart
+ * operation structure contains a `psa_algorithm_t alg` field which indicates
+ * which specific algorithm the structure is for. When the structure is not in
+ * use, `alg` is 0. Most of the structure consists of a union which is
+ * discriminated by `alg`.
  *
- * Note that when `alg` is 0, the content of other fields is undefined.
+ * For multipart operations with driver delegation support, each multipart
+ * operation structure contains an `unsigned int id` field indicating which
+ * driver got assigned to do the operation. When the structure is not in use,
+ * 'id' is 0. The structure contains also a driver context which is the union
+ * of the contexts of all drivers able to handle the type of multipart
+ * operation.
+ *
+ * Note that when `alg` or `id` is 0, the content of other fields is undefined.
  * In particular, it is not guaranteed that a freshly-initialized structure
  * is all-zero: we initialize structures to something like `{0, 0}`, which
  * is only guaranteed to initializes the first member of the union;
@@ -76,9 +84,9 @@ struct psa_hash_operation_s
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
-     * ID values are auto-generated in psa_driver_wrappers.h
+     * ID values are auto-generated in psa_driver_wrappers.h.
      * ID value zero means the context is not valid or not assigned to
-     * any driver (i.e. none of the driver contexts are active). */
+     * any driver (i.e. the driver context is not active, in use). */
     unsigned int id;
     psa_driver_hash_context_t ctx;
 };

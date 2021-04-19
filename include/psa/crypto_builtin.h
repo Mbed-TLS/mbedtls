@@ -1,6 +1,15 @@
 /*
- *  Context structure declaration of the software-based driver which performs
- *  hashing through the PSA Crypto driver dispatch layer.
+ *  Context structure declaration of the Mbed TLS software-based PSA drivers
+ *  called through the PSA Crypto driver dispatch layer.
+ *
+ * \note This file may not be included directly. Applications must
+ * include psa/crypto.h.
+ *
+ * \note This header and its content is not part of the Mbed TLS API and
+ * applications must not depend on it. Its main purpose is to define the
+ * multi-part state objects of the Mbed TLS software-based PSA drivers. The
+ * definition of these objects are then used by crypto_struct.h to define the
+ * implementation-defined types of PSA multi-part state objects.
  */
 /*
  *  Copyright The Mbed TLS Contributors
@@ -19,10 +28,15 @@
  *  limitations under the License.
  */
 
-#ifndef PSA_CRYPTO_BUILTIN_HASH_H
-#define PSA_CRYPTO_BUILTIN_HASH_H
+#ifndef PSA_CRYPTO_BUILTIN_H
+#define PSA_CRYPTO_BUILTIN_H
 
 #include <psa/crypto_driver_common.h>
+
+/*
+ * Hash multi-part operation definitions.
+ */
+
 #include "mbedtls/md2.h"
 #include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
@@ -76,6 +90,33 @@ typedef struct
 #define MBEDTLS_PSA_HASH_OPERATION_INIT {0, {0}}
 
 /*
+ * Cipher multi-part operation definitions.
+ */
+
+#include "mbedtls/cipher.h"
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CTR) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CFB) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_OFB) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_XTS) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7)
+#define MBEDTLS_PSA_BUILTIN_CIPHER  1
+#endif
+
+typedef struct {
+    /* Context structure for the Mbed TLS cipher implementation. */
+    psa_algorithm_t alg;
+    uint8_t iv_length;
+    uint8_t block_length;
+    mbedtls_cipher_context_t cipher;
+} mbedtls_psa_cipher_operation_t;
+
+#define MBEDTLS_PSA_CIPHER_OPERATION_INIT {0, 0, 0, {0}}
+
+/*
  * BEYOND THIS POINT, TEST DRIVER DECLARATIONS ONLY.
  */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -84,6 +125,20 @@ typedef mbedtls_psa_hash_operation_t mbedtls_transparent_test_driver_hash_operat
 
 #define MBEDTLS_TRANSPARENT_TEST_DRIVER_HASH_OPERATION_INIT MBEDTLS_PSA_HASH_OPERATION_INIT
 
+typedef mbedtls_psa_cipher_operation_t
+        mbedtls_transparent_test_driver_cipher_operation_t;
+
+typedef struct {
+    unsigned int initialised : 1;
+    mbedtls_transparent_test_driver_cipher_operation_t ctx;
+} mbedtls_opaque_test_driver_cipher_operation_t;
+
+#define MBEDTLS_TRANSPARENT_TEST_DRIVER_CIPHER_OPERATION_INIT \
+     MBEDTLS_PSA_CIPHER_OPERATION_INIT
+
+#define MBEDTLS_OPAQUE_TEST_DRIVER_CIPHER_OPERATION_INIT \
+     { 0, MBEDTLS_TRANSPARENT_TEST_DRIVER_CIPHER_OPERATION_INIT }
+
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 
-#endif /* PSA_CRYPTO_BUILTIN_HASH_H */
+#endif /* PSA_CRYPTO_BUILTIN_H */

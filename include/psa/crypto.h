@@ -4232,10 +4232,10 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *
  * A typical sequence of calls to perform a password-authenticated key
  * exchange:
- * -# Call psa_pake_get_key_share() to get the key share that needs to be sent
- *    to the peer.
- * -# Call psa_pake_set_key_share() to provide the key share that was received
- *    from the peer.
+ * -# Call psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE, ...) to get the
+ *    key share that needs to be sent to the peer.
+ * -# Call psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE, ...) to provide
+ *    the key share that was received from the peer.
  * -# Call psa_pake_get_implicit_key() for accessing the shared secret.
  *
  * The exact sequence of calls to perform a password-authenticated key exchange
@@ -4326,54 +4326,10 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
                             const uint8_t *session_data,
                             size_t session_data_len);
 
-/** Get the key share from a password-authenticated key exchange operation.
- *
- * This function returns a simple key share (eg. group element).
- *
- * The exact sequence of calls to perform a password-authenticated key
- * exchange depends on the algorithm in use.  Refer to the documentation of
- * individual PAKE algorithm types (`PSA_ALG_XXX` values of type
- * ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true) for more
- * information.
- *
- * If this function returns an error status, the operation enters an error
- * state and must be aborted by calling psa_pake_abort().
- *
- * \param[in,out] operation       Active PAKE operation.
- * \param[out] key_share          Buffer where the key share is to be written.
- * \param key_share_size          Size of the \p key_share buffer in bytes.
- * \param[out] key_share_length   On success, the number of bytes of the
- *                                returned key_share.
- *
- * \retval #PSA_SUCCESS
- *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active, but beyond that
- *         validity is specific to the algorithm).
- * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         The size of the \p key_share buffer is too small.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_pake_get_key_share(psa_pake_operation_t *operation,
-                            uint8_t *key_share,
-                            size_t key_share_size,
-                            size_t *key_share_length);
-
 /** Get additional key share from a password-authenticated key exchange.
  *
  * Depending on the algorithm being executed, you might need to call this
  * function several times or you might not need to call this at all.
- *
- * Calling this function with PSA_PAKE_DATA_KEY_SHARE as \p type is equivalent
- * to calling psa_pake_get_key_share().
  *
  * The exact sequence of calls to perform a password-authenticated key
  * exchange depends on the algorithm in use.  Refer to the documentation of
@@ -4414,46 +4370,10 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
                              size_t output_size,
                              size_t *output_length);
 
-/** Provide peer key share to a password-authenticated key exchange operation.
- *
- * This function inputs a simple key share (eg. group element).
- *
- * The exact sequence of calls to perform a password-authenticated key
- * exchange depends on the algorithm in use.  Refer to the documentation of
- * individual PAKE algorithm types (`PSA_ALG_XXX` values of type
- * ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true) for more
- * information.
- *
- * \param[in,out] operation       Active PAKE operation.
- * \param[in] key_share           Buffer containing the peer's key share.
- * \param key_share_length        Size of the \p key_share buffer in bytes.
- *
- * \retval #PSA_SUCCESS
- *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active, but beyond that
- *         validity is specific to the algorithm).
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_pake_set_key_share(psa_pake_operation_t *operation,
-                                    const uint8_t *key_share,
-                                    size_t key_share_length);
-
 /** Provide additional peer key share for a password-authenticated key exchange.
  *
  * Depending on the algorithm being executed, you might need to call this
  * function several times or you might not need to call this at all.
- *
- * Calling this function with PSA_PAKE_DATA_KEY_SHARE as \p type is equivalent
- * to calling psa_pake_set_key_share().
  *
  * The exact sequence of calls to perform a password-authenticated key
  * exchange depends on the algorithm in use.  Refer to the documentation of

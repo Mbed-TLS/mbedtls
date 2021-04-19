@@ -1986,7 +1986,7 @@
  *
  * The key exchange flow for JPAKE is as follows:
  * -# To get the first round data that needs to be sent to the peer, call
- *      psa_pake_get_key_share(operation, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE, ...);
  *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
  *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
  *      psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE_2, ...);
@@ -1994,7 +1994,7 @@
  *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF_2, ...);
  * -# To provide the first round data received from the peer to the operation,
  *    call
- *      psa_pake_set_key_share(operation, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE, ...);
  *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
  *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
  *      psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE_2, ...);

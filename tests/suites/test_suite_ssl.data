@@ -1,3 +1,15 @@
+Attempt to register multiple PSKs
+test_multiple_psks:
+
+Attempt to register multiple PSKS, incl. opaque PSK, #0
+test_multiple_psks_opaque:0
+
+Attempt to register multiple PSKs, incl. opaque PSK, #1
+test_multiple_psks_opaque:1
+
+Attempt to register multiple PSKs, incl. opaque PSK, #2
+test_multiple_psks_opaque:2
+
 Test calback buffer sanity
 test_callback_buffer_sanity:
 

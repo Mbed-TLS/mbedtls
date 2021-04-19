@@ -4005,6 +4005,19 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 
+static int ssl_conf_psk_is_configured( mbedtls_ssl_config const *conf )
+{
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( !mbedtls_svc_key_id_is_null( conf->psk_opaque ) )
+        return( 1 );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    if( conf->psk != NULL )
+        return( 1 );
+
+    return( 0 );
+}
+
 static void ssl_conf_remove_psk( mbedtls_ssl_config *conf )
 {
     /* Remove reference to existing PSK, if any. */
@@ -4070,8 +4083,10 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
                 const unsigned char *psk_identity, size_t psk_identity_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    /* Remove opaque/raw PSK + PSK Identity */
-    ssl_conf_remove_psk( conf );
+
+    /* We currently only support one PSK, raw or opaque. */
+    if( ssl_conf_psk_is_configured( conf ) )
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 
     /* Check and set raw PSK */
     if( psk == NULL )
@@ -4139,8 +4154,10 @@ int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,
                                  size_t psk_identity_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    /* Clear opaque/raw PSK + PSK Identity, if present. */
-    ssl_conf_remove_psk( conf );
+
+    /* We currently only support one PSK, raw or opaque. */
+    if( ssl_conf_psk_is_configured( conf ) )
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 
     /* Check and set opaque PSK */
     if( mbedtls_svc_key_id_is_null( psk ) )

@@ -19,6 +19,7 @@
  *  limitations under the License.
  */
 
+#include "psa_crypto_aead.h"
 #include "psa_crypto_cipher.h"
 #include "psa_crypto_core.h"
 #include "psa_crypto_driver_wrappers.h"
@@ -1177,4 +1178,107 @@ psa_status_t psa_driver_wrapper_hash_abort(
     }
 }
 
+psa_status_t psa_driver_wrapper_aead_encrypt(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *nonce, size_t nonce_length,
+    const uint8_t *additional_data, size_t additional_data_length,
+    const uint8_t *plaintext, size_t plaintext_length,
+    uint8_t *ciphertext, size_t ciphertext_size, size_t *ciphertext_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_location_t location =
+        PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
+
+    switch( location )
+    {
+        case PSA_KEY_LOCATION_LOCAL_STORAGE:
+            /* Key is stored in the slot in export representation, so
+             * cycle through all known transparent accelerators */
+
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+            status = test_transparent_aead_encrypt(
+                         attributes, key_buffer, key_buffer_size,
+                         alg,
+                         nonce, nonce_length,
+                         additional_data, additional_data_length,
+                         plaintext, plaintext_length,
+                         ciphertext, ciphertext_size, ciphertext_length );
+            /* Declared with fallback == true */
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+
+            /* Fell through, meaning no accelerator supports this operation */
+            return( mbedtls_psa_aead_encrypt(
+                        attributes, key_buffer, key_buffer_size,
+                        alg,
+                        nonce, nonce_length,
+                        additional_data, additional_data_length,
+                        plaintext, plaintext_length,
+                        ciphertext, ciphertext_size, ciphertext_length ) );
+
+        /* Add cases for opaque driver here */
+
+        default:
+            /* Key is declared with a lifetime not known to us */
+            (void)status;
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+}
+
+psa_status_t psa_driver_wrapper_aead_decrypt(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *nonce, size_t nonce_length,
+    const uint8_t *additional_data, size_t additional_data_length,
+    const uint8_t *ciphertext, size_t ciphertext_length,
+    uint8_t *plaintext, size_t plaintext_size, size_t *plaintext_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_location_t location =
+        PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
+
+    switch( location )
+    {
+        case PSA_KEY_LOCATION_LOCAL_STORAGE:
+            /* Key is stored in the slot in export representation, so
+             * cycle through all known transparent accelerators */
+
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+            status = test_transparent_aead_decrypt(
+                        attributes, key_buffer, key_buffer_size,
+                        alg,
+                        nonce, nonce_length,
+                        additional_data, additional_data_length,
+                        ciphertext, ciphertext_length,
+                        plaintext, plaintext_size, plaintext_length );
+            /* Declared with fallback == true */
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return( status );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+
+            /* Fell through, meaning no accelerator supports this operation */
+            return( mbedtls_psa_aead_decrypt(
+                        attributes, key_buffer, key_buffer_size,
+                        alg,
+                        nonce, nonce_length,
+                        additional_data, additional_data_length,
+                        ciphertext, ciphertext_length,
+                        plaintext, plaintext_size, plaintext_length ) );
+
+        /* Add cases for opaque driver here */
+
+        default:
+            /* Key is declared with a lifetime not known to us */
+            (void)status;
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+}
 /* End of automatically generated file. */

@@ -209,8 +209,7 @@
     <ClInclude Include="..\..\include\mbedtls\x509_csr.h" />
     <ClInclude Include="..\..\include\mbedtls\xtea.h" />
     <ClInclude Include="..\..\include\psa\crypto.h" />
-    <ClInclude Include="..\..\include\psa\crypto_builtin_cipher.h" />
-    <ClInclude Include="..\..\include\psa\crypto_builtin_hash.h" />
+    <ClInclude Include="..\..\include\psa\crypto_builtin.h" />
     <ClInclude Include="..\..\include\psa\crypto_compat.h" />
     <ClInclude Include="..\..\include\psa\crypto_config.h" />
     <ClInclude Include="..\..\include\psa\crypto_driver_common.h" />
@@ -232,6 +231,7 @@
     <ClInclude Include="..\..\tests\include\test\psa_exercise_key.h" />
     <ClInclude Include="..\..\tests\include\test\psa_helpers.h" />
     <ClInclude Include="..\..\tests\include\test\random.h" />
+    <ClInclude Include="..\..\tests\include\test\drivers\aead.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\cipher.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\key_management.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\signature.h" />
@@ -243,6 +243,7 @@
     <ClInclude Include="..\..\library\cipher_wrap.h" />
     <ClInclude Include="..\..\library\common.h" />
     <ClInclude Include="..\..\library\ecp_alt.h" />
+    <ClInclude Include="..\..\library\ecp_invasive.h" />
     <ClInclude Include="..\..\library\entropy_poll.h" />
     <ClInclude Include="..\..\library\md_wrap.h" />
     <ClInclude Include="..\..\library\mps_common.h" />
@@ -251,6 +252,7 @@
     <ClInclude Include="..\..\library\mps_trace.h" />
     <ClInclude Include="..\..\library\padlock.h" />
     <ClInclude Include="..\..\library\pk_wrap.h" />
+    <ClInclude Include="..\..\library\psa_crypto_aead.h" />
     <ClInclude Include="..\..\library\psa_crypto_cipher.h" />
     <ClInclude Include="..\..\library\psa_crypto_core.h" />
     <ClInclude Include="..\..\library\psa_crypto_driver_wrappers.h" />
@@ -328,6 +330,7 @@
     <ClCompile Include="..\..\library\platform_util.c" />
     <ClCompile Include="..\..\library\poly1305.c" />
     <ClCompile Include="..\..\library\psa_crypto.c" />
+    <ClCompile Include="..\..\library\psa_crypto_aead.c" />
     <ClCompile Include="..\..\library\psa_crypto_cipher.c" />
     <ClCompile Include="..\..\library\psa_crypto_client.c" />
     <ClCompile Include="..\..\library\psa_crypto_driver_wrappers.c" />

@@ -1,0 +1,2 @@
+Removals
+   * Removed deprecated things in psa/crypto_compat.h. Fixes #4284

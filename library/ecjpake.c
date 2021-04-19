@@ -273,7 +273,7 @@ static int ecjpake_zkp_read( const mbedtls_md_info_t *md_info,
 
     r_len = *(*p)++;
 
-    if( end < *p || (size_t)( end - *p ) < r_len )
+    if( end < *p || (size_t)( end - *p ) < r_len || r_len == 0 )
     {
         ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;

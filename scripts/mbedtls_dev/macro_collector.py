@@ -105,6 +105,16 @@ class PSAMacroEnumerator:
             'tag_length': [],
             'min_tag_length': [],
         } #type: Dict[str, List[str]]
+        self.include_intermediate = False
+
+    def is_internal_name(self, name: str) -> bool:
+        """Whether this is an internal macro. Internal macros will be skipped."""
+        if not self.include_intermediate:
+            if name.endswith('_BASE') or name.endswith('_NONE'):
+                return True
+            if '_CATEGORY_' in name:
+                return True
+        return name.endswith('_FLAG') or name.endswith('_MASK')
 
     def gather_arguments(self) -> None:
         """Populate the list of values for macro arguments.
@@ -191,15 +201,6 @@ class PSAMacroCollector(PSAMacroEnumerator):
         self.key_types_from_curve = {} #type: Dict[str, str]
         self.key_types_from_group = {} #type: Dict[str, str]
         self.algorithms_from_hash = {} #type: Dict[str, str]
-
-    def is_internal_name(self, name: str) -> bool:
-        """Whether this is an internal macro. Internal macros will be skipped."""
-        if not self.include_intermediate:
-            if name.endswith('_BASE') or name.endswith('_NONE'):
-                return True
-            if '_CATEGORY_' in name:
-                return True
-        return name.endswith('_FLAG') or name.endswith('_MASK')
 
     def record_algorithm_subtype(self, name: str, expansion: str) -> None:
         """Record the subtype of an algorithm constructor.
@@ -301,7 +302,7 @@ class PSAMacroCollector(PSAMacroEnumerator):
             self.read_line(line)
 
 
-class InputsForTest(PSAMacroCollector):
+class InputsForTest(PSAMacroEnumerator):
     # pylint: disable=too-many-instance-attributes
     """Accumulate information about macros to test.
 enumerate
@@ -408,7 +409,8 @@ enumerate
         name = m.group(1)
         self.all_declared.add(name)
         if re.search(self._excluded_name_re, name) or \
-           name in self._excluded_names:
+           name in self._excluded_names or \
+           self.is_internal_name(name):
             return
         dest = self.table_by_prefix.get(m.group(2))
         if dest is None:

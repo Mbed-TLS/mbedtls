@@ -94,23 +94,25 @@ class Information:
 
     @staticmethod
     def remove_unwanted_macros(
-            constructors: macro_collector.PSAMacroCollector
+            constructors: macro_collector.PSAMacroEnumerator
     ) -> None:
-        # Mbed TLS doesn't support DSA. Don't attempt to generate any related
-        # test case.
+        # Mbed TLS doesn't support finite-field DH yet and will not support
+        # finite-field DSA. Don't attempt to generate any related test case.
+        constructors.key_types.discard('PSA_KEY_TYPE_DH_KEY_PAIR')
+        constructors.key_types.discard('PSA_KEY_TYPE_DH_PUBLIC_KEY')
         constructors.key_types.discard('PSA_KEY_TYPE_DSA_KEY_PAIR')
         constructors.key_types.discard('PSA_KEY_TYPE_DSA_PUBLIC_KEY')
-        constructors.algorithms_from_hash.pop('PSA_ALG_DSA', None)
-        constructors.algorithms_from_hash.pop('PSA_ALG_DETERMINISTIC_DSA', None)
 
-    def read_psa_interface(self) -> macro_collector.PSAMacroCollector:
+    def read_psa_interface(self) -> macro_collector.PSAMacroEnumerator:
         """Return the list of known key types, algorithms, etc."""
         constructors = macro_collector.InputsForTest()
         header_file_names = ['include/psa/crypto_values.h',
                              'include/psa/crypto_extra.h']
+        test_suites = ['tests/suites/test_suite_psa_crypto_metadata.data']
         for header_file_name in header_file_names:
-            with open(header_file_name, 'rb') as header_file:
-                constructors.read_file(header_file)
+            constructors.parse_header(header_file_name)
+        for test_cases in test_suites:
+            constructors.parse_test_cases(test_cases)
         self.remove_unwanted_macros(constructors)
         constructors.gather_arguments()
         return constructors
@@ -194,14 +196,18 @@ class NotSupported:
             )
             # To be added: derive
 
+    ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
+                     'PSA_KEY_TYPE_ECC_PUBLIC_KEY')
+
     def test_cases_for_not_supported(self) -> Iterator[test_case.TestCase]:
         """Generate test cases that exercise the creation of keys of unsupported types."""
         for key_type in sorted(self.constructors.key_types):
+            if key_type in self.ECC_KEY_TYPES:
+                continue
             kt = crypto_knowledge.KeyType(key_type)
             yield from self.test_cases_for_key_type_not_supported(kt)
         for curve_family in sorted(self.constructors.ecc_curves):
-            for constr in ('PSA_KEY_TYPE_ECC_KEY_PAIR',
-                           'PSA_KEY_TYPE_ECC_PUBLIC_KEY'):
+            for constr in self.ECC_KEY_TYPES:
                 kt = crypto_knowledge.KeyType(constr, [curve_family])
                 yield from self.test_cases_for_key_type_not_supported(
                     kt, param_descr='type')
@@ -330,16 +336,9 @@ class StorageFormat:
 
     def all_keys_for_types(self) -> Iterator[StorageKey]:
         """Generate test keys covering key types and their representations."""
-        for key_type in sorted(self.constructors.key_types):
+        key_types = sorted(self.constructors.key_types)
+        for key_type in self.constructors.generate_expressions(key_types):
             yield from self.keys_for_type(key_type)
-        for key_type in sorted(self.constructors.key_types_from_curve):
-            for curve in sorted(self.constructors.ecc_curves):
-                yield from self.keys_for_type(key_type, [curve])
-        ## Diffie-Hellman (FFDH) is not supported yet, either in
-        ## crypto_knowledge.py or in Mbed TLS.
-        # for key_type in sorted(self.constructors.key_types_from_group):
-        #     for group in sorted(self.constructors.dh_groups):
-        #         yield from self.keys_for_type(key_type, [group])
 
     def keys_for_algorithm(self, alg: str) -> Iterator[StorageKey]:
         """Generate test keys for the specified algorithm."""
@@ -365,9 +364,9 @@ class StorageFormat:
 
     def all_keys_for_algorithms(self) -> Iterator[StorageKey]:
         """Generate test keys covering algorithm encodings."""
-        for alg in sorted(self.constructors.algorithms):
+        algorithms = sorted(self.constructors.algorithms)
+        for alg in self.constructors.generate_expressions(algorithms):
             yield from self.keys_for_algorithm(alg)
-        # To do: algorithm constructors with parameters
 
     def all_test_cases(self) -> Iterator[test_case.TestCase]:
         """Generate all storage format test cases."""

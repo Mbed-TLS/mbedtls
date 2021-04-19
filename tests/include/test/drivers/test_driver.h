@@ -22,6 +22,7 @@
 
 #define PSA_CRYPTO_TEST_DRIVER_LIFETIME 0x7fffff
 
+#include "test/drivers/aead.h"
 #include "test/drivers/signature.h"
 #include "test/drivers/key_management.h"
 #include "test/drivers/cipher.h"

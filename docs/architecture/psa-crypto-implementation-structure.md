@@ -63,7 +63,7 @@ Key creation implementation in Mbed TLS PSA core is articulated around three int
     3. Generate or copy the key material into the key slot. This entails the allocation of the buffer to store the key material.
     4. Call psa_finish_key_creation() that mostly saves persistent keys into persistent storage.
 
-In case of any error occuring at step 3 or 4, psa_fail_key_creation() is called. It wipes and cleans the slot especially the key material: reset to zero of the RAM memory that contained the key material, free the allocated buffer.
+In case of any error occurring at step 3 or 4, psa_fail_key_creation() is called. It wipes and cleans the slot especially the key material: reset to zero of the RAM memory that contained the key material, free the allocated buffer.
 
 
 ## Mbed TLS PSA Cryptography API implementation drivers

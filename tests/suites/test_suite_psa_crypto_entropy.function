@@ -75,7 +75,7 @@ void external_rng_failure_sign( int key_type, data_t *key_data, int alg,
 
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_set_key_type( &attributes, key_type );
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
     psa_set_key_algorithm( &attributes, alg );
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     size_t input_size = input_size_arg;

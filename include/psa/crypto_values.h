@@ -1966,14 +1966,14 @@
 #define PSA_ALG_GET_HASH(alg) \
         (((alg) & 0x000000ff) == 0 ? ((psa_algorithm_t)0) : 0x02000000 | ((alg) & 0x000000ff))
 
-/** The Password-authenticated key exchange by juggling (J-PAKE) protocol.
+/** The Password-authenticated key exchange by juggling (J-PAKE) algorithm.
  *
  * J-PAKE can be instantiated over finite fields or elliptic curves. This can
  * be achieved by passing either #PSA_PAKE_PRIMITIVE_TYPE_FIELD_DH or
  * #PSA_PAKE_PRIMITIVE_TYPE_CURVE to #PSA_PAKE_PRIMITIVE respectively, when
  * creating the cipher suite.
  *
- * In theory the protocol works with any non-interactive zero-knowledge proof.
+ * In theory the algorithm works with any non-interactive zero-knowledge proof.
  * Implementations of the present specification use Schnorr NIZKP and this does
  * not need to be configured in the cipher suites.
  *
@@ -2452,8 +2452,8 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 
 /** The first peer in a balanced PAKE.
  *
- * Although balanced PAKE protocols are symmetric, some of them needs an
- * ordering of peers for the transcript calculations. If the protocol does not
+ * Although balanced PAKE algorithms are symmetric, some of them needs an
+ * ordering of peers for the transcript calculations. If the algorithm does not
  * need this, either #PSA_PAKE_SIDE_FIRST or #PSA_PAKE_SIDE_SECOND are
  * accepted.
  */
@@ -2461,8 +2461,8 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 
 /** The second peer in a balanced PAKE.
  *
- * Although balanced PAKE protocols are symmetric, some of them needs an
- * ordering of peers for the transcript calculations. If the protocol does not
+ * Although balanced PAKE algorithms are symmetric, some of them needs an
+ * ordering of peers for the transcript calculations. If the algorithm does not
  * need this, either #PSA_PAKE_SIDE_FIRST or #PSA_PAKE_SIDE_SECOND are
  * accepted.
  */
@@ -2470,13 +2470,13 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 
 /** The client in an augmented PAKE.
  *
- * Augmented PAKE protocols need to differentiate between client and server.
+ * Augmented PAKE algorithms need to differentiate between client and server.
  */
 #define PSA_PAKE_SIDE_CLIENT                ((psa_pake_side_t)0x0101)
 
 /** The server in an augmented PAKE.
  *
- * Augmented PAKE protocols need to differentiate between client and server.
+ * Augmented PAKE algorithms need to differentiate between client and server.
  */
 #define PSA_PAKE_SIDE_SERVER                ((psa_pake_side_t)0x0102)
 
@@ -2544,7 +2544,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * For information regarding representation consult the documentation of
  * individual ::psa_pake_primitive_type_t constants.
  *
- * Some PAKE protocols need to exchange several key shares. If that is the
+ * Some PAKE algorithms need to exchange several key shares. If that is the
  * case, this value marks the first key share sent and the first key share
  * received. For values sent or received afterwards, use
  * #PSA_PAKE_DATA_KEY_SHARE_2 and #PSA_PAKE_DATA_KEY_SHARE_3.
@@ -2559,7 +2559,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * For information regarding representation consult the documentation of
  * individual ::psa_pake_primitive_type_t constants.
  *
- * Some PAKE protocols need to perform several zero-knowledge proofs. If that
+ * Some PAKE algorithms need to perform several zero-knowledge proofs. If that
  * is the case, this value marks the first public key sent and the first public
  * key received. For values sent or received afterwards, use
  * #PSA_PAKE_DATA_ZK_PUBLIC_2 and #PSA_PAKE_DATA_ZK_PUBLIC_3.
@@ -2574,7 +2574,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * For information regarding representation consult the documentation of
  * individual ::psa_pake_primitive_type_t constants.
  *
- * Some PAKE protocols need to perform several zero-knowledge proofs. If that
+ * Some PAKE algorithms need to perform several zero-knowledge proofs. If that
  * is the case, this value marks the first proof sent and the first proof
  * received. For values sent or received afterwards, use
  * #PSA_PAKE_DATA_ZK_PROOF_2 and #PSA_PAKE_DATA_ZK_PROOF_3.

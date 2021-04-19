@@ -4239,9 +4239,9 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  * -# Call psa_pake_get_implicit_key() for accessing the shared secret.
  *
  * The exact sequence of calls to perform a password-authenticated key exchange
- * depends on the protocol in use:
- * -# Some protocols exchange more data than just a single key share. When using
- *    such a protocol, call psa_pake_output() and psa_pake_input() one or more
+ * depends on the algorithm in use:
+ * -# Some algorithms exchange more data than just a single key share. When using
+ *    such a algorithm, call psa_pake_output() and psa_pake_input() one or more
  *    times to exchange any further data that is needed to derive the shared
  *    secret.
  *
@@ -4270,12 +4270,12 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *                              type PSA_KEY_TYPE_PASSWORD or
  *                              #PSA_KEY_TYPE_DERIVE. It has to allow the usage
  *                              #PSA_KEY_USAGE_DERIVE.
- * \param alg                   The PAKE protocol to use
+ * \param alg                   The PAKE algorithm to use
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_PAKE(\p alg) is true).
  * \param cipher_suite          The cipher suite to use with the PAKE algorithm.
  * \param side                  A value of type ::psa_pake_side_t signaling the
- *                              side of the protocol that is being set up. For
+ *                              side of the algorithm that is being set up. For
  *                              more information see the documentation of \c
  *                              PSA_PAKE_SIDE_XXX constants.
  * \param[in] user_id           The user ID to authenticate with.
@@ -4283,9 +4283,9 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  * \param[in] peer_id           The peer's ID to authenticate.
  * \param peer_id_len           Size of the \p peer_id buffer in bytes.
  * \param[in] session_data      Additional session related data if it is allowed
- *                              or required by the protocol. This must be empty
+ *                              or required by the algorithm. This must be empty
  *                              if additional session data is not used by the
- *                              protocol.
+ *                              algorithm.
  * \param session_data_len      Size of the \p session_data buffer in bytes.
  *
  * \retval #PSA_SUCCESS
@@ -4331,7 +4331,7 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  * This function returns a simple key share (eg. group element).
  *
  * The exact sequence of calls to perform a password-authenticated key
- * exchange depends on the protocol in use.  Refer to the documentation of
+ * exchange depends on the algorithm in use.  Refer to the documentation of
  * individual PAKE algorithm types (`PSA_ALG_XXX` values of type
  * ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true) for more
  * information.
@@ -4349,7 +4349,7 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active, but beyond that
- *         validity is specific to the protocol).
+ *         validity is specific to the algorithm).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p key_share buffer is too small.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -4369,14 +4369,14 @@ psa_status_t psa_pake_get_key_share(psa_pake_operation_t *operation,
 
 /** Get additional key share from a password-authenticated key exchange.
  *
- * Depending on the protocol being executed, you might need to call this
+ * Depending on the algorithm being executed, you might need to call this
  * function several times or you might not need to call this at all.
  *
  * Calling this function with PSA_PAKE_DATA_KEY_SHARE as \p type is equivalent
  * to calling psa_pake_get_key_share().
  *
  * The exact sequence of calls to perform a password-authenticated key
- * exchange depends on the protocol in use.  Refer to the documentation of
+ * exchange depends on the algorithm in use.  Refer to the documentation of
  * individual PAKE algorithm types (`PSA_ALG_XXX` values of type
  * ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true) for more
  * information.
@@ -4395,7 +4395,7 @@ psa_status_t psa_pake_get_key_share(psa_pake_operation_t *operation,
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active, but beyond that
- *         validity is specific to the protocol).
+ *         validity is specific to the algorithm).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -4419,7 +4419,7 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  * This function inputs a simple key share (eg. group element).
  *
  * The exact sequence of calls to perform a password-authenticated key
- * exchange depends on the protocol in use.  Refer to the documentation of
+ * exchange depends on the algorithm in use.  Refer to the documentation of
  * individual PAKE algorithm types (`PSA_ALG_XXX` values of type
  * ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true) for more
  * information.
@@ -4432,7 +4432,7 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active, but beyond that
- *         validity is specific to the protocol).
+ *         validity is specific to the algorithm).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -4449,14 +4449,14 @@ psa_status_t psa_pake_set_key_share(psa_pake_operation_t *operation,
 
 /** Provide additional peer key share for a password-authenticated key exchange.
  *
- * Depending on the protocol being executed, you might need to call this
+ * Depending on the algorithm being executed, you might need to call this
  * function several times or you might not need to call this at all.
  *
  * Calling this function with PSA_PAKE_DATA_KEY_SHARE as \p type is equivalent
  * to calling psa_pake_set_key_share().
  *
  * The exact sequence of calls to perform a password-authenticated key
- * exchange depends on the protocol in use.  Refer to the documentation of
+ * exchange depends on the algorithm in use.  Refer to the documentation of
  * individual PAKE algorithm types (`PSA_ALG_XXX` values of type
  * ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true) for more
  * information.
@@ -4473,7 +4473,7 @@ psa_status_t psa_pake_set_key_share(psa_pake_operation_t *operation,
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active, but beyond that
- *         validity is specific to the protocol).
+ *         validity is specific to the algorithm).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -4498,7 +4498,7 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  * material in the key derivation operation.
  *
  * The exact sequence of calls to perform a password-authenticated key
- * exchange depends on the protocol in use.  Refer to the documentation of
+ * exchange depends on the algorithm in use.  Refer to the documentation of
  * individual PAKE algorithm types (`PSA_ALG_XXX` values of type
  * ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true) for more
  * information.
@@ -4515,7 +4515,7 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active, but beyond that
- *         validity is specific to the protocol).
+ *         validity is specific to the algorithm).
  * \retval #PSA_ERROR_BAD_STATE
  *         The state of \p output is not valid for
  *         the #PSA_KEY_DERIVATION_INPUT_SECRET step. This can happen if the

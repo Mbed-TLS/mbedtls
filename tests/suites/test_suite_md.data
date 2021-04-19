@@ -26,7 +26,7 @@ depends_on:MBEDTLS_SHA1_C
 md_info:MBEDTLS_MD_SHA1:"SHA1":20
 
 Information on SHA224
-depends_on:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_SHA224_C
 md_info:MBEDTLS_MD_SHA224:"SHA224":28
 
 Information on SHA256

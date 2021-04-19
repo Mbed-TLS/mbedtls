@@ -149,7 +149,7 @@ extern "C" {
 
 #if defined(PSA_WANT_ALG_SHA_224) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_224)
 #define MBEDTLS_PSA_BUILTIN_ALG_SHA_224 1
-#define MBEDTLS_SHA256_C
+#define MBEDTLS_SHA224_C
 #endif
 
 #if defined(PSA_WANT_ALG_SHA_256) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_256)
@@ -604,10 +604,13 @@ extern "C" {
 #define PSA_WANT_ALG_SHA_1 1
 #endif
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SHA224_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_SHA_224 1
-#define MBEDTLS_PSA_BUILTIN_ALG_SHA_256 1
 #define PSA_WANT_ALG_SHA_224 1
+#endif
+
+#if defined(MBEDTLS_SHA256_C)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA_256 1
 #define PSA_WANT_ALG_SHA_256 1
 #endif
 

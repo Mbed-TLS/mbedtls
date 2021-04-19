@@ -3107,7 +3107,7 @@
 /**
  * \def MBEDTLS_SHA256_C
  *
- * Enable the SHA-224 and SHA-256 cryptographic hash algorithms.
+ * Enable the SHA-256 cryptographic hash algorithms.
  *
  * Module:  library/sha256.c
  * Caller:  library/entropy.c
@@ -3116,10 +3116,29 @@
  *          library/ssl_srv.c
  *          library/ssl_tls.c
  *
- * This module adds support for SHA-224 and SHA-256.
+ * This module adds support for SHA-256.
+ * This module is required for SHA-244.
  * This module is required for the SSL/TLS 1.2 PRF function.
  */
 #define MBEDTLS_SHA256_C
+
+/**
+ * \def MBEDTLS_SHA224_C
+ *
+ * Enable the SHA-224 cryptographic hash algorithms.
+ *
+ * Module:  library/sha256.c
+ * Caller:  library/entropy.c
+ *          library/md.c
+ *          library/ssl_cli.c
+ *          library/ssl_srv.c
+ *          library/ssl_tls.c
+ *
+ * Requires: MBEDTLS_SHA256_C
+ * This module adds support for SHA-224.
+ * This module is required for the SSL/TLS 1.2 PRF function.
+ */
+#define MBEDTLS_SHA224_C
 
 /**
  * \def MBEDTLS_SHA512_C

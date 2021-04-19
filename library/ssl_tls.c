@@ -6468,6 +6468,8 @@ static int ssl_preset_default_hashes[] = {
 #endif
 #if defined(MBEDTLS_SHA256_C)
     MBEDTLS_MD_SHA256,
+#endif
+#if defined(MBEDTLS_SHA224_C)
     MBEDTLS_MD_SHA224,
 #endif
 #if defined(MBEDTLS_SHA1_C) && defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE)
@@ -6815,9 +6817,11 @@ mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash )
         case MBEDTLS_SSL_HASH_SHA1:
             return( MBEDTLS_MD_SHA1 );
 #endif
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SHA224_C)
         case MBEDTLS_SSL_HASH_SHA224:
             return( MBEDTLS_MD_SHA224 );
+#endif
+#if defined(MBEDTLS_SHA256_C)
         case MBEDTLS_SSL_HASH_SHA256:
             return( MBEDTLS_MD_SHA256 );
 #endif
@@ -6849,9 +6853,11 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md )
         case MBEDTLS_MD_SHA1:
             return( MBEDTLS_SSL_HASH_SHA1 );
 #endif
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SHA224_C)
         case MBEDTLS_MD_SHA224:
             return( MBEDTLS_SSL_HASH_SHA224 );
+#endif
+#if defined(MBEDTLS_SHA256_C)
         case MBEDTLS_MD_SHA256:
             return( MBEDTLS_SSL_HASH_SHA256 );
 #endif

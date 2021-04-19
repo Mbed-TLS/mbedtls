@@ -44,7 +44,7 @@
  * available. Try SHA-256 first, 512 wastes resources since we need to stay
  * with max 32 bytes of cookie for DTLS 1.0
  */
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SHA224_C)
 #define COOKIE_MD           MBEDTLS_MD_SHA224
 #define COOKIE_MD_OUTLEN    32
 #define COOKIE_HMAC_LEN     28

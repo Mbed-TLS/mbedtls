@@ -296,6 +296,8 @@ int ssl_sig_hashes_for_test[] = {
 #endif
 #if defined(MBEDTLS_SHA256_C)
     MBEDTLS_MD_SHA256,
+#endif
+#if defined(MBEDTLS_SHA224_C)
     MBEDTLS_MD_SHA224,
 #endif
 #if defined(MBEDTLS_SHA1_C)

@@ -622,6 +622,14 @@
 #error "MBEDTLS_SHA384_C defined without MBEDTLS_SHA512_C"
 #endif
 
+#if defined(MBEDTLS_SHA224_C) && !defined(MBEDTLS_SHA256_C)
+#error "MBEDTLS_SHA224_C defined without MBEDTLS_SHA256_C"
+#endif
+
+#if defined(MBEDTLS_SHA256_C) && !defined(MBEDTLS_SHA224_C)
+#error "MBEDTLS_SHA256_C defined without MBEDTLS_SHA224_C"
+#endif
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1) && ( !defined(MBEDTLS_MD5_C) ||     \
     !defined(MBEDTLS_SHA1_C) )
 #error "MBEDTLS_SSL_PROTO_TLS1 defined, but not all prerequisites"

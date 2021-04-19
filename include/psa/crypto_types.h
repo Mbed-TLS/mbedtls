@@ -389,7 +389,7 @@ typedef uint16_t psa_key_derivation_step_t;
  * Encodes which side of the algorithm is being executed. For more information
  * see the documentation of individual PSA_PAKE_SIDE_XXX constants.
  */
-typedef uint16_t psa_pake_side_t;
+typedef uint8_t psa_pake_side_t;
 
 /** Encoding of input and output indicators for PAKE.
  *

@@ -1986,30 +1986,50 @@
  *
  * The key exchange flow for JPAKE is as follows:
  * -# To get the first round data that needs to be sent to the peer, call
+ *      // Get g1
  *      psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE, ...);
+ *      // Get the ZKP public key for x1
  *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
+ *      // Get the ZKP proof for x1
  *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
+ *      // Get g2
  *      psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE_2, ...);
+ *      // Get the ZKP public key for x2
  *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PUBLIC_2, ...);
+ *      // Get the ZKP proof for x2
  *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF_2, ...);
  * -# To provide the first round data received from the peer to the operation,
  *    call
+ *      // Set g3
  *      psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE, ...);
+ *      // Set the ZKP public key for x3
  *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
+ *      // Set the ZKP proof for x3
  *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
+ *      // Set g4
  *      psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE_2, ...);
+ *      // Set the ZKP public key for x4
  *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PUBLIC_2, ...);
+ *      // Set the ZKP proof for x4
  *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF_2, ...);
  * -# To get the second round data that needs to be sent to the peer, call
+ *      // Get A
  *      psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE_3, ...);
+ *      // Get ZKP public key for x2*s
  *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PUBLIC_3, ...);
+ *      // Get ZKP proof for x2*s
  *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF_3, ...);
  * -# To provide the second round data received from the peer to the operation,
  *    call
+ *      // Set B
  *      psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE_3, ...);
+ *      // Set ZKP public key for x4*s
  *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PUBLIC_3, ...);
+ *      // Set ZKP proof for x4*s
  *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF_3, ...);
- * -# Call psa_pake_get_implicit_key() for accessing the shared secret.
+ * -# To access the shared secret call
+ *      // Get Ka=Kb=K
+ *      psa_pake_get_implicit_key()
  *
  * For more information consult the documentation of the individual
  * PSA_PAKE_DATA_XXX constants.

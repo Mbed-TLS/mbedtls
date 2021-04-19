@@ -38,6 +38,30 @@
 extern "C" {
 #endif
 
+
+
+/****************************************************************/
+/* De facto synonyms */
+/****************************************************************/
+
+#if defined(PSA_WANT_ALG_ECDSA_ANY) && !defined(PSA_WANT_ALG_ECDSA)
+#define PSA_WANT_ALG_ECDSA PSA_WANT_ALG_ECDSA_ANY
+#elif !defined(PSA_WANT_ALG_ECDSA_ANY) && defined(PSA_WANT_ALG_ECDSA)
+#define PSA_WANT_ALG_ECDSA_ANY PSA_WANT_ALG_ECDSA
+#endif
+
+#if defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN_RAW) && !defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN)
+#define PSA_WANT_ALG_RSA_PKCS1V15_SIGN PSA_WANT_ALG_RSA_PKCS1V15_SIGN_RAW
+#elif !defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN_RAW) && defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN)
+#define PSA_WANT_ALG_RSA_PKCS1V15_SIGN_RAW PSA_WANT_ALG_RSA_PKCS1V15_SIGN
+#endif
+
+
+
+/****************************************************************/
+/* Require built-in implementations based on PSA requirements */
+/****************************************************************/
+
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 
 #if defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)
@@ -497,6 +521,12 @@ extern "C" {
 #endif /* !MBEDTLS_PSA_ACCEL_ECC_SECP_K1_256 */
 #endif /* PSA_WANT_ECC_SECP_K1_256 */
 
+
+
+/****************************************************************/
+/* Infer PSA requirements from Mbed TLS capabilities */
+/****************************************************************/
+
 #else /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
 /*
@@ -522,6 +552,7 @@ extern "C" {
 #if defined(MBEDTLS_ECDSA_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_ECDSA 1
 #define PSA_WANT_ALG_ECDSA 1
+#define PSA_WANT_ALG_ECDSA_ANY 1
 
 // Only add in DETERMINISTIC support if ECDSA is also enabled
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
@@ -586,6 +617,7 @@ extern "C" {
 #define PSA_WANT_ALG_RSA_PKCS1V15_CRYPT 1
 #define MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN 1
 #define PSA_WANT_ALG_RSA_PKCS1V15_SIGN 1
+#define PSA_WANT_ALG_RSA_PKCS1V15_SIGN_RAW 1
 #endif /* MBEDTLSS_PKCS1_V15 */
 #if defined(MBEDTLS_PKCS1_V21)
 #define MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP 1

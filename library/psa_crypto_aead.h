@@ -167,9 +167,9 @@ psa_status_t mbedtls_psa_aead_decrypt(
  *    the inputs to the subsequent calls to mbedtls_psa_aead_update_ad() and
  *    mbedtls_psa_aead_update(). See the documentation of mbedtls_psa_aead_set_lengths()
  *    for details.
- * -# Call either mbedtls_psa_aead_generate_nonce() or mbedtls_psa_aead_set_nonce() to
- *    generate or set the nonce. You should use
- *    mbedtls_psa_aead_generate_nonce() unless the protocol you are implementing
+ * -# Call either psa_aead_generate_nonce() or
+ *    mbedtls_psa_aead_set_nonce() to generate or set the nonce. You should use
+ *    psa_aead_generate_nonce() unless the protocol you are implementing
  *    requires a specific nonce value.
  * -# Call mbedtls_psa_aead_update_ad() zero, one or more times, passing a fragment
  *    of the non-encrypted additional authenticated data each time.
@@ -297,52 +297,6 @@ psa_status_t mbedtls_psa_aead_decrypt_setup(psa_aead_operation_t *operation,
                                             const uint8_t *key_buffer, size_t key_buffer_size,
                                             psa_algorithm_t alg);
 
-/** Generate a random nonce for an authenticated encryption operation.
- *
- * \note The signature of this function is that of a PSA driver
- *       aead_generate_nonce entry point. This function behaves as an
- *       aead_generate_nonce entry point as defined in the PSA driver interface
- *       specification for transparent drivers.
- *
- * This function generates a random nonce for the authenticated encryption
- * operation with an appropriate size for the chosen algorithm, key type
- * and key size.
- *
- * The application must call mbedtls_psa_aead_encrypt_setup() before
- * calling this function.
- *
- * If this function returns an error status, the operation enters an error
- * state and must be aborted by calling mbedtls_psa_aead_abort().
- *
- * \param[in,out] operation     Active AEAD operation.
- * \param[out] nonce            Buffer where the generated nonce is to be
- *                              written.
- * \param nonce_size            Size of the \p nonce buffer in bytes.
- * \param[out] nonce_length     On success, the number of bytes of the
- *                              generated nonce.
- *
- * \retval #PSA_SUCCESS
- *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be an active aead encrypt
- *         operation, with no nonce set).
- * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         The size of the \p nonce buffer is too small.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t mbedtls_psa_aead_generate_nonce(psa_aead_operation_t *operation,
-                                            uint8_t *nonce,
-                                            size_t nonce_size,
-                                            size_t *nonce_length);
-
 /** Set the nonce for an authenticated encryption or decryption operation.
  *
  * \note The signature of this function is that of a PSA driver
@@ -402,7 +356,7 @@ psa_status_t mbedtls_psa_aead_set_nonce(psa_aead_operation_t *operation,
  * then the implementation must enforce the lengths.
  *
  * You may call this function before or after setting the nonce with
- * mbedtls_psa_aead_set_nonce() or mbedtls_psa_aead_generate_nonce().
+ * mbedtls_psa_aead_set_nonce() or psa_aead_generate_nonce().
  *
  * - For #PSA_ALG_CCM, calling this function is required.
  * - For the other AEAD algorithms defined in this specification, calling
@@ -454,7 +408,7 @@ psa_status_t mbedtls_psa_aead_set_lengths(psa_aead_operation_t *operation,
  *
  * Before calling this function, you must:
  * 1. Call either mbedtls_psa_aead_encrypt_setup() or mbedtls_psa_aead_decrypt_setup().
- * 2. Set the nonce with mbedtls_psa_aead_generate_nonce() or
+ * 2. Set the nonce with psa_aead_generate_nonce() or
  *    mbedtls_psa_aead_set_nonce().
  *
  * If this function returns an error status, the operation enters an error
@@ -509,8 +463,9 @@ psa_status_t mbedtls_psa_aead_update_ad(psa_aead_operation_t *operation,
  * 1. Call either mbedtls_psa_aead_encrypt_setup() or mbedtls_psa_aead_decrypt_setup().
  *    The choice of setup function determines whether this function
  *    encrypts or decrypts its input.
- * 2. Set the nonce with mbedtls_psa_aead_generate_nonce() or mbedtls_psa_aead_set_nonce().
- * 3. Call mbedtls_psa_aead_update_ad() to pass all the additional data.
+ * 2. Set the nonce with psa_aead_generate_nonce() or
+ * mbedtls_psa_aead_set_nonce(). 3. Call mbedtls_psa_aead_update_ad() to pass
+ * all the additional data.
  *
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling mbedtls_psa_aead_abort().

@@ -1556,15 +1556,13 @@
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
  *
  * \return 1 if alg is a signature algorithm that can be used to sign a
- *         message. 0 if alg is a signature algorithm that can only be used
- *         to sign an already-calculated hash. 0 if alg is not a signature
- *         algorithm. This macro can return either 0 or 1 if alg is not a
+ *         message. 0 if \p alg is a signature algorithm that can only be used
+ *         to sign an already-calculated hash. 0 if \p alg is not a signature
+ *         algorithm. This macro can return either 0 or 1 if \p alg is not a
  *         supported algorithm identifier.
  */
 #define PSA_ALG_IS_SIGN_MESSAGE(alg)                                    \
-    (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||    \
-     PSA_ALG_IS_ECDSA(alg) || PSA_ALG_IS_HASH_EDDSA(alg) ||             \
-     PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg))
+    (PSA_ALG_IS_HASH_AND_SIGN(alg) || (alg) == PSA_ALG_PURE_EDDSA )
 
 /** Get the hash used by a hash-and-sign signature algorithm.
  *

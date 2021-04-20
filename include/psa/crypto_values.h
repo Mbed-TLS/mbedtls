@@ -800,6 +800,24 @@
 #define PSA_ALG_IS_KEY_DERIVATION(alg)                                  \
     (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_DERIVATION)
 
+/** Whether the specified algorithm is a key stretching / password hashing
+ * algorithm.
+ *
+ * A key stretching / password hashing algorithm is a key derivation algorithm
+ * that is suitable for use with low-entropy secret such as passwords.
+ * Equivalently, it's a key derivation algorithm that accepts an input of type
+ * #PSA_KEY_DERIVATION_INPUT_PASSWORD.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \p alg is a key stretching / passowrd hashing algorithm, 0
+ *         otherwise. This macro may return either 0 or 1 if \p alg is not a
+ *         supported algorithm identifier.
+ */
+#define PSA_ALG_IS_KEY_DERIVATION_STRETCHING(alg)                                  \
+    (PSA_ALG_IS_KEY_DERIVATION(alg) &&              \
+     (alg) & PSA_ALG_KEY_DERIVATION_STRETCHING_FLAG)
+
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
 /** MD2 */
 #define PSA_ALG_MD2                             ((psa_algorithm_t)0x02000001)
@@ -1680,6 +1698,13 @@
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_TLS12_PSK_TO_MS_BASE)
 #define PSA_ALG_TLS12_PSK_TO_MS_GET_HASH(hkdf_alg)                         \
     (PSA_ALG_CATEGORY_HASH | ((hkdf_alg) & PSA_ALG_HASH_MASK))
+
+/* This flag indicates whether the key derivation algorithm is suitable for
+ * use on low-entropy secrets such as password - these algorithms are also
+ * known as key stretching or password hashing schemes. These are also the
+ * algorithms that accepts inputs of type #PSA_KEY_DERIVATION_INPUT_PASSWORD.
+ */
+#define PSA_ALG_KEY_DERIVATION_STRETCHING_FLAG  ((psa_algorithm_t)0x00008000)
 
 #define PSA_ALG_PBKDF2_HMAC_BASE                ((psa_algorithm_t)0x08008100)
 /** Macro to build a PBKDF2-HMAC algorithm.

@@ -154,10 +154,32 @@ static inline struct psa_mac_operation_s psa_mac_operation_init( void )
 struct psa_aead_operation_s
 {
     psa_algorithm_t alg;
+    psa_key_type_t key_type;
+
     unsigned int key_set : 1;
     unsigned int nonce_set : 1;
+    unsigned int lengths_set : 1;
+    unsigned int is_encrypt : 1;
+    unsigned int ad_started : 1;
+    unsigned int body_started : 1;
 
     uint8_t tag_length;
+    uint8_t nonce_length;
+
+    size_t ad_remaining;
+    size_t body_remaining;
+
+    /* Buffers for AD/data - only required until CCM gets proper multipart
+       support. */
+    uint8_t* ad_buffer;
+    size_t ad_length;
+
+    uint8_t* data_buffer;
+    size_t data_length;
+
+    /* buffer to store Nonce - only required until CCM and GCM get proper
+       multipart support. */
+    uint8_t nonce[PSA_AEAD_NONCE_MAX_SIZE];
 
     union
     {
@@ -175,7 +197,7 @@ struct psa_aead_operation_s
     } ctx;
 };
 
-#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, {0}}
+#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}, {0}}
 static inline struct psa_aead_operation_s psa_aead_operation_init( void )
 {
     const struct psa_aead_operation_s v = PSA_AEAD_OPERATION_INIT;

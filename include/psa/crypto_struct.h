@@ -75,6 +75,8 @@ extern "C" {
 
 #include "mbedtls/cmac.h"
 #include "mbedtls/gcm.h"
+#include "mbedtls/ccm.h"
+#include "mbedtls/chachapoly.h"
 
 /* Include the context definition for the compiled-in drivers for the primitive
  * algorithms. */
@@ -153,17 +155,27 @@ struct psa_aead_operation_s
 {
     psa_algorithm_t alg;
     unsigned int key_set : 1;
-    unsigned int iv_set : 1;
-    uint8_t iv_size;
-    uint8_t block_size;
+    unsigned int nonce_set : 1;
+
+    uint8_t tag_length;
+
     union
     {
         unsigned dummy; /* Enable easier initializing of the union. */
-        mbedtls_cipher_context_t cipher;
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+        mbedtls_ccm_context ccm;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
+        mbedtls_gcm_context gcm;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
+        mbedtls_chachapoly_context chachapoly;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
+
     } ctx;
 };
 
-#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, {0}}
+#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, {0}}
 static inline struct psa_aead_operation_s psa_aead_operation_init( void )
 {
     const struct psa_aead_operation_s v = PSA_AEAD_OPERATION_INIT;

@@ -60,6 +60,14 @@ def finish_family_dependencies(dependencies: List[str], bits: int) -> List[str]:
     """
     return [finish_family_dependency(dep, bits) for dep in dependencies]
 
+SYMBOLS_WITHOUT_DEPENDENCY = frozenset([
+    'PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG', # modifier, only in policies
+    'PSA_ALG_AEAD_WITH_SHORTENED_TAG', # modifier
+    'PSA_ALG_ANY_HASH', # only in policies
+    'PSA_ALG_AT_LEAST_THIS_LENGTH_MAC', # modifier, only in policies
+    'PSA_ALG_KEY_AGREEMENT', # chaining
+    'PSA_ALG_TRUNCATED_MAC', # modifier
+])
 def automatic_dependencies(*expressions: str) -> List[str]:
     """Infer dependencies of a test case by looking for PSA_xxx symbols.
 
@@ -70,6 +78,7 @@ def automatic_dependencies(*expressions: str) -> List[str]:
     used = set()
     for expr in expressions:
         used.update(re.findall(r'PSA_(?:ALG|ECC_FAMILY|KEY_TYPE)_\w+', expr))
+    used.difference_update(SYMBOLS_WITHOUT_DEPENDENCY)
     return sorted(psa_want_symbol(name) for name in used)
 
 # A temporary hack: at the time of writing, not all dependency symbols

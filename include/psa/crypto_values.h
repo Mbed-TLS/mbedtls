@@ -1681,6 +1681,49 @@
 #define PSA_ALG_TLS12_PSK_TO_MS_GET_HASH(hkdf_alg)                         \
     (PSA_ALG_CATEGORY_HASH | ((hkdf_alg) & PSA_ALG_HASH_MASK))
 
+#define PSA_ALG_PBKDF2_HMAC_BASE                ((psa_algorithm_t)0x08008100)
+/** Macro to build a PBKDF2-HMAC algorithm.
+ *
+ * PBKDF2 is defined by PKCS#5, republished as RFC 8018 (section 5.2).
+ * It can use on of several PRFs internally; this macro is used when that PRF
+ * is based on HMAC with a given hash.
+ *
+ * For example, `PSA_ALG_PBKDF2_HMAC(PSA_ALG_SHA256)` represents PBKDF2
+ * using HMAC-SHA-256 as the internal PRF.
+ *
+ * This key derivation algorithm uses the following inputs:
+ * - #PSA_KEY_DERIVATION_INPUT_PASSWORD is the password to be hashed
+ * - #PSA_KEY_DERIVATION_INPUT_SALT is (part of) the salt (see note below)
+ * - #PSA_KEY_DERIVATION_INPUT_COST is the iteration count
+ *
+ * Note: if multiple salt inputs are passed, they will be concatenated by the
+ * implementation in order to produce the salt that will be passed to the
+ * algorithm. This allows building the salt from multiple inputs, both public
+ * and secret (also known as pepper).
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *
+ * \return              The corresponding PBKDF2-HMAC-XXX algorithm.
+ * \return              Unspecified if \p hash_alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_PBKDF2_HMAC(hash_alg)                                  \
+    (PSA_ALG_PBKDF2_HMAC_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+
+/** Whether the specified algorithm is a PBKDF2-HMAC algorithm.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \c alg is a PBKDF2-HMAC algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \c alg is not a supported
+ *         key derivation algorithm identifier.
+ */
+#define PSA_ALG_IS_PBKDF2_HMAC(alg)                                    \
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_PBKDF2_HMAC_BASE)
+#define PSA_ALG_PBKDF2_HMAC_GET_HASH(hkdf_alg)                         \
+    (PSA_ALG_CATEGORY_HASH | ((hkdf_alg) & PSA_ALG_HASH_MASK))
+
 #define PSA_ALG_KEY_DERIVATION_MASK             ((psa_algorithm_t)0xfe00ffff)
 #define PSA_ALG_KEY_AGREEMENT_MASK              ((psa_algorithm_t)0xffff0000)
 

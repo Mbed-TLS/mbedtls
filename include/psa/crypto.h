@@ -3290,6 +3290,48 @@ psa_status_t psa_key_derivation_input_bytes(
     const uint8_t *data,
     size_t data_length);
 
+/** Provide a numeric input for key derivation or key agreement.
+ *
+ * Which inputs are required and in what order depends on the algorithm.
+ * Refer to the documentation of each key derivation or key agreement
+ * algorithm for information.
+ *
+ * This function is used for inputs which are small non-negative integers.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_key_derivation_abort().
+ *
+ * \param[in,out] operation       The key derivation operation object to use.
+ *                                It must have been set up with
+ *                                psa_key_derivation_setup() and must not
+ *                                have produced any output yet.
+ * \param step                    Which step the input data is for.
+ * \param[in] data                Input data to use.
+ * \param data_length             Size of the \p data buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c step is not compatible with the operation's algorithm.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c step does not allow numeric inputs.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid for this input \p step.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_input_integer(
+    psa_key_derivation_operation_t *operation,
+    psa_key_derivation_step_t step,
+    uint64_t value);
+
 /** Provide an input for key derivation in the form of a key.
  *
  * Which inputs are required and in what order depends on the algorithm.

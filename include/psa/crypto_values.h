@@ -2194,7 +2194,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 
 /** A cost parameter for password hashing / key stretching.
  *
- * This must be a direct input, passed to psa_key_derivation_input_numeric().
+ * This must be a direct input, passed to psa_key_derivation_input_integer().
  */
 #define PSA_KEY_DERIVATION_INPUT_COST       ((psa_key_derivation_step_t)0x0205)
 

@@ -2149,6 +2149,20 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  */
 #define PSA_KEY_DERIVATION_INPUT_SECRET     ((psa_key_derivation_step_t)0x0101)
 
+/** A low-entropy secret input for password hashing / key stretching.
+ *
+ * This should be a key of type #PSA_KEY_TYPE_PASSWORD or #PSA_KEY_TYPE_DERIVE
+ * (passed to psa_key_derivation_input_key())
+ * or the shared secret resulting from a key agreement
+ * (obtained via psa_key_derivation_key_agreement()).
+ *
+ * The secret can also be a direct input (passed to
+ * key_derivation_input_bytes()). In this case, the derivation operation
+ * may not be used to derive keys: the operation will only allow
+ * psa_key_derivation_output_bytes(), not psa_key_derivation_output_key().
+ */
+#define PSA_KEY_DERIVATION_INPUT_PASSWORD   ((psa_key_derivation_step_t)0x0102)
+
 /** A label for key derivation.
  *
  * This should be a direct input.
@@ -2159,7 +2173,8 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 /** A salt for key derivation.
  *
  * This should be a direct input.
- * It can also be a key of type #PSA_KEY_TYPE_RAW_DATA.
+ * It can also be a key of type #PSA_KEY_TYPE_RAW_DATA or
+ * #PSA_KEY_TYPE_PEPPER.
  */
 #define PSA_KEY_DERIVATION_INPUT_SALT       ((psa_key_derivation_step_t)0x0202)
 
@@ -2176,6 +2191,12 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * It can also be a key of type #PSA_KEY_TYPE_RAW_DATA.
  */
 #define PSA_KEY_DERIVATION_INPUT_SEED       ((psa_key_derivation_step_t)0x0204)
+
+/** A cost parameter for password hashing / key stretching.
+ *
+ * This must be a direct input, passed to psa_key_derivation_input_numeric().
+ */
+#define PSA_KEY_DERIVATION_INPUT_COST       ((psa_key_derivation_step_t)0x0205)
 
 /**@}*/
 

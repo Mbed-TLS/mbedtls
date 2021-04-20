@@ -414,6 +414,20 @@
  */
 #define PSA_KEY_TYPE_DERIVE                         ((psa_key_type_t)0x1200)
 
+/** A low-entropy secret for password hashing or key derivation.
+ *
+ * The key policy determines which key derivation algorithm the key
+ * can be used for.
+ */
+#define PSA_KEY_TYPE_PASSWORD                       ((psa_key_type_t)0x1300)
+
+/** A secret value that can be mixed in when doing password hashing.
+ *
+ * The key policy determines which key derivation algorithm the key
+ * can be used for.
+ */
+#define PSA_KEY_TYPE_PEPPER                         ((psa_key_type_t)0x1400)
+
 /** Key for a cipher, AEAD or MAC algorithm based on the AES block cipher.
  *
  * The size of the key can be 16 bytes (AES-128), 24 bytes (AES-192) or

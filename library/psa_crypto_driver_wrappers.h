@@ -195,12 +195,6 @@ psa_status_t psa_driver_wrapper_aead_decrypt_setup(
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg );
 
-psa_status_t psa_driver_wrapper_aead_generate_nonce(
-    psa_aead_operation_t *operation,
-    uint8_t *nonce,
-    size_t nonce_size,
-    size_t *nonce_length );
-
 psa_status_t psa_driver_wrapper_aead_set_nonce(
     psa_aead_operation_t *operation,
     const uint8_t *nonce,

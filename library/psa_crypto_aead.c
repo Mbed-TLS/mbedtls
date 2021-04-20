@@ -394,64 +394,12 @@ psa_status_t mbedtls_psa_aead_decrypt_setup( psa_aead_operation_t *operation,
     return ( status );
 }
 
-/* Generate a random nonce / IV for multipart AEAD operation */
-psa_status_t mbedtls_psa_aead_generate_nonce( psa_aead_operation_t *operation,
-                                              uint8_t *nonce,
-                                              size_t nonce_size,
-                                              size_t *nonce_length )
-{
-    psa_status_t status;
-    size_t required_nonce_size = nonce_size;
-
-    if( !operation->key_set || operation->nonce_set ||
-        operation->ad_started || operation->body_started )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
-
-    required_nonce_size = PSA_AEAD_NONCE_LENGTH(operation->key_type, operation->alg);
-
-    if( nonce_size == 0 || nonce_size < required_nonce_size )
-    {
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
-    }
-
-    status = psa_generate_random( nonce, required_nonce_size );
-
-    if( status != PSA_SUCCESS )
-    {
-        return status;
-    }
-
-    status = mbedtls_psa_aead_set_nonce( operation, nonce, required_nonce_size );
-
-    if( status == PSA_SUCCESS )
-    {
-        *nonce_length = required_nonce_size;
-    }
-
-    return status;
-}
-
 /* Set a nonce for the multipart AEAD operation*/
 psa_status_t mbedtls_psa_aead_set_nonce( psa_aead_operation_t *operation,
                                          const uint8_t *nonce,
                                          size_t nonce_length )
 {
     psa_status_t status;
-
-    if( !operation->key_set || operation->nonce_set ||
-        operation->ad_started || operation->body_started )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
-
-    /* Restricting to a nominal safe length for nonces even though some
-       algorithms can handle longer nonces, but not without collision */
-    if( nonce_length > PSA_AEAD_NONCE_MAX_SIZE )
-    {
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    }
 
     #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
@@ -514,11 +462,6 @@ psa_status_t mbedtls_psa_aead_set_lengths( psa_aead_operation_t *operation,
                                            size_t plaintext_length )
 {
 
-    if( !operation->key_set || operation->lengths_set )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
-
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
     {
@@ -569,11 +512,6 @@ psa_status_t mbedtls_psa_aead_update_ad( psa_aead_operation_t *operation,
                                          size_t input_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-    if( !operation->nonce_set || !operation->key_set )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
 
     if( operation->lengths_set )
     {
@@ -674,11 +612,6 @@ psa_status_t mbedtls_psa_aead_update( psa_aead_operation_t *operation,
 {
     size_t update_output_size;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-    if( !operation->nonce_set || !operation->key_set || !operation->ad_started )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
 
     update_output_size = PSA_AEAD_UPDATE_OUTPUT_SIZE(operation->key_type,
                                                      operation->alg, input_length);
@@ -791,12 +724,6 @@ static psa_status_t mbedtls_psa_aead_finish_checks( psa_aead_operation_t *operat
                                                     size_t *finish_output_size,
                                                     size_t *output_tag_length )
 {
-    if( !operation->key_set || !operation->nonce_set
-        || !operation->ad_started || !operation->body_started)
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
-
     if( operation->lengths_set )
     {
         if( operation->ad_remaining != 0 || operation->body_remaining != 0 )

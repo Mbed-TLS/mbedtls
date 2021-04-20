@@ -1394,39 +1394,6 @@ psa_status_t psa_driver_wrapper_aead_decrypt_setup(
     }
 }
 
-psa_status_t psa_driver_wrapper_aead_generate_nonce(
-   psa_aead_operation_t *operation,
-   uint8_t *nonce,
-   size_t nonce_size,
-   size_t *nonce_length )
-{
-    switch( operation->id )
-    {
-#if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
-        case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_aead_generate_nonce( operation, nonce, nonce_size,
-                                                     nonce_length ) );
-#endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
-
-#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-#if defined(PSA_CRYPTO_DRIVER_TEST)
-        case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
-//          return( test_transparent_aead_generate_nonce(
-//                      operation, nonce, nonce_size, nonce_length ) );
-
-        /* Add cases for opaque driver here */
-
-#endif /* PSA_CRYPTO_DRIVER_TEST */
-#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-    }
-
-    (void)nonce;
-    (void)nonce_size;
-    (void)nonce_length;
-
-    return( PSA_ERROR_INVALID_ARGUMENT );
-}
-
 psa_status_t psa_driver_wrapper_aead_set_nonce(
    psa_aead_operation_t *operation,
    const uint8_t *nonce,

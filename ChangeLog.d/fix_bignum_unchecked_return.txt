@@ -1,2 +1,0 @@
-Bugfix
-   * Fix unchecked return in bignum module.

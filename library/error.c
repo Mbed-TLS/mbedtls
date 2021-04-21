@@ -102,6 +102,10 @@
 #include "mbedtls/error.h"
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#endif
+
 #if defined(MBEDTLS_GCM_C)
 #include "mbedtls/gcm.h"
 #endif
@@ -144,10 +148,6 @@
 
 #if defined(MBEDTLS_PKCS5_C)
 #include "mbedtls/pkcs5.h"
-#endif
-
-#if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
 #endif
 
 #if defined(MBEDTLS_POLY1305_C)
@@ -678,6 +678,13 @@ const char * mbedtls_low_level_strerr( int error_code )
             return( "ERROR - This is a bug in the library" );
 #endif /* MBEDTLS_ERROR_C */
 
+#if defined(MBEDTLS_PLATFORM_C)
+        case -(MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED):
+            return( "PLATFORM - Hardware accelerator failed" );
+        case -(MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED):
+            return( "PLATFORM - The requested feature is not supported by the platform" );
+#endif /* MBEDTLS_PLATFORM_C */
+
 #if defined(MBEDTLS_GCM_C)
         case -(MBEDTLS_ERR_GCM_AUTH_FAILED):
             return( "GCM - Authenticated decryption failed" );
@@ -741,13 +748,6 @@ const char * mbedtls_low_level_strerr( int error_code )
         case -(MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED):
             return( "PADLOCK - Input data should be aligned" );
 #endif /* MBEDTLS_PADLOCK_C */
-
-#if defined(MBEDTLS_PLATFORM_C)
-        case -(MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED):
-            return( "PLATFORM - Hardware accelerator failed" );
-        case -(MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED):
-            return( "PLATFORM - The requested feature is not supported by the platform" );
-#endif /* MBEDTLS_PLATFORM_C */
 
 #if defined(MBEDTLS_POLY1305_C)
         case -(MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA):

@@ -36,16 +36,7 @@ jobs:
 
     - name: Windows
       os: windows
-      before_install:
-        - choco install python --version=3.5.4
-      env:
-        # Add the directory where the Choco package goes
-        - PATH=/c/Python35:/c/Python35/Scripts:$PATH
       script:
-        - type python; python --version
-        - python scripts/generate_psa_constants.py
-        # Logs appear out of sequence on Windows. Give time to catch up.
-        - sleep 5
         - scripts/windows_msbuild.bat v141 # Visual Studio 2017
 
 after_failure:

@@ -119,3 +119,12 @@ import_export_persistent_key:"3082025e02010002818100af057d396ee84fb75fdbb5c2b13c
 import/export-persistent symmetric key with restart: 16 bytes
 depends_on:PSA_WANT_KEY_TYPE_AES:MBEDTLS_PK_C:MBEDTLS_PK_PARSE_C
 import_export_persistent_key:"2b7e151628aed2a6abf7158809cf4f3c":PSA_KEY_TYPE_AES:128:1:0
+
+Destroy invalid id: 0
+destroy_nonexistent:0:PSA_SUCCESS
+
+Destroy non-existent key
+destroy_nonexistent:1:PSA_ERROR_INVALID_HANDLE
+
+Destroy invalid id: 0xffffffff
+destroy_nonexistent:0xffffffff:PSA_ERROR_INVALID_HANDLE

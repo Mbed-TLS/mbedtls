@@ -5123,7 +5123,7 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
  */
 static int ssl_handle_hs_message_post_handshake( mbedtls_ssl_context *ssl )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /*
      * - For client-side, expect SERVER_HELLO_REQUEST.

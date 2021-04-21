@@ -556,16 +556,17 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
             ++stats->empty_slots;
             continue;
         }
-        if( slot->attr.lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        if( PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) )
             ++stats->volatile_slots;
-        else if( slot->attr.lifetime == PSA_KEY_LIFETIME_PERSISTENT )
+        else
         {
             psa_key_id_t id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( slot->attr.id );
             ++stats->persistent_slots;
             if( id > stats->max_open_internal_key_id )
                 stats->max_open_internal_key_id = id;
         }
-        else
+        if( PSA_KEY_LIFETIME_GET_LOCATION( slot->attr.lifetime ) !=
+            PSA_KEY_LOCATION_LOCAL_STORAGE )
         {
             psa_key_id_t id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( slot->attr.id );
             ++stats->external_slots;

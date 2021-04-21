@@ -59,6 +59,7 @@
  * lifetime classification macro PSA_KEY_LIFETIME_IS_xxx. The name of the
  * flag is the name of the classification macro without the PSA_ prefix. */
 #define KEY_LIFETIME_IS_VOLATILE        ( 1u << 0 )
+#define KEY_LIFETIME_IS_READ_ONLY       ( 1u << 1 )
 
 #define TEST_CLASSIFICATION_MACRO( flag, alg, flags ) \
     do                                                \
@@ -662,6 +663,7 @@ void lifetime( int lifetime_arg, int classification_flags,
     unsigned flags = classification_flags;
 
     TEST_CLASSIFICATION_MACRO( KEY_LIFETIME_IS_VOLATILE, lifetime, flags );
+    TEST_CLASSIFICATION_MACRO( KEY_LIFETIME_IS_READ_ONLY, lifetime, flags );
 
     TEST_EQUAL( PSA_KEY_LIFETIME_GET_PERSISTENCE( lifetime ), persistence );
     TEST_EQUAL( PSA_KEY_LIFETIME_GET_LOCATION( lifetime ), location );

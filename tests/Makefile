@@ -53,8 +53,7 @@ else
 DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
-# python2 for POSIX since FreeBSD has only python2 as default.
-PYTHON ?= python2
+PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
 endif
 
 # A test application is built for each suites/test_suite_*.data file.

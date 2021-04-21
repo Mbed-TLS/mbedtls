@@ -60,8 +60,15 @@
  * flag is the name of the classification macro without the PSA_ prefix. */
 #define KEY_LIFETIME_IS_VOLATILE        ( 1u << 0 )
 
-#define TEST_CLASSIFICATION_MACRO( flag, alg, flags )           \
-    TEST_ASSERT( PSA_##flag( alg ) == !! ( ( flags ) & flag ) )
+#define TEST_CLASSIFICATION_MACRO( flag, alg, flags ) \
+    do                                                \
+    {                                                 \
+        if( ( flags ) & ( flag ) )                    \
+            TEST_ASSERT( PSA_##flag( alg ) );         \
+        else                                          \
+            TEST_ASSERT( ! PSA_##flag( alg ) );       \
+    }                                                 \
+    while( 0 )
 
 /* Check the parity of value.
  *

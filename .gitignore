@@ -37,6 +37,10 @@ massif-*
 # Microsoft CMake extension for Visual Studio Code generates a build directory by default
 /build/
 
+# Visual Studio automatically generated files
+/visualc/VS2010/mbedTLS.sln
+/visualc/VS2010/*.vcxproj
+
 # Visual Studio artifacts
 /visualc/VS2010/.localhistory/
 /visualc/VS2010/.vs/

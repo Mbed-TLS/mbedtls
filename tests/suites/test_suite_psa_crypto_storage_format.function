@@ -120,10 +120,8 @@ static int test_read_key( const psa_key_attributes_t *expected_attributes,
     if( flags & TEST_FLAG_READ_ONLY )
     {
         /* Read-only keys cannot be removed through the API.
-         * The key will be removed through ITS in the cleanup code below.
-         * Purge the key from memory so that the test framework doesn't
-         * think the test is leaking it. */
-        PSA_ASSERT( psa_purge_key( key_id ) );
+         * The key will be removed through ITS in the cleanup code below. */
+        TEST_EQUAL( PSA_ERROR_NOT_PERMITTED, psa_destroy_key( key_id ) );
     }
     else
     {

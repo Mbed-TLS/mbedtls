@@ -235,9 +235,11 @@ def full_adapter(name, active, section):
 
 # The baremetal configuration excludes options that require a library or
 # operating system feature that is typically not present on bare metal
-# systems. It also excludes debugging features that would typically be omitted
-# where code size is at a premium and that do not have a module of their own,
-# in order to make `size library/*.o` informative.
+# systems.
+# It also excludes debugging features that increase the code size of other
+# modules since they would typically be disabled in production in environments
+# where code size is at a premium, in order to make `size library/*.o`
+# informative.
 # Features that are excluded from "full" won't be in "baremetal" either
 # (unless explicitly turned on in baremetal_adapter) so they don't need to
 # be repeated here.

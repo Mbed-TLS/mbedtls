@@ -5113,7 +5113,7 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
 /* This function is called from mbedtls_ssl_read() when a handshake message is
- * received  after the initial handshake. In this context, handshake messages
+ * received after the initial handshake. In this context, handshake messages
  * may only be sent for the purpose of initiating renegotiations.
  *
  * This function is introduced as a separate helper since the handling
@@ -5332,7 +5332,27 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                 return( ret );
             }
 
-            /* Post-handshake handshake messages are not passed to the user. */
+            /* At this point, we don't know whether the renegotiation triggered
+             * by the post-handshake message has been completed or not. The cases
+             * to consider are the following:
+             * 1) The renegotiation is complete. In this case, no new record
+             *    has been read yet.
+             * 2) The renegotiation is incomplete because the client received
+             *    an application data record while awaiting the ServerHello.
+             * 3) The renegotiation is incomplete because the client received
+             *    a non-handshake, non-application data message while awaiting
+             *    the ServerHello.
+             *
+             * In each of these cases, looping will be the proper action:
+             * - For 1), the next iteration will read a new record and check
+             *   if it's application data.
+             * - For 2), the loop condition isn't satisfied as application data
+             *   is present, hence continue is the same as break
+             * - For 3), the loop condition is satisfied and read_record
+             *   will re-deliver the message that was held back by the client
+             *   when expecting the ServerHello.
+             */
+
             continue;
         }
 #if defined(MBEDTLS_SSL_RENEGOTIATION)

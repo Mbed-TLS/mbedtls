@@ -1133,6 +1133,18 @@ psa_status_t psa_destroy_key( mbedtls_svc_key_id_t key )
        return( PSA_ERROR_GENERIC_ERROR );
     }
 
+    if( PSA_KEY_LIFETIME_IS_READ_ONLY( slot->attr.lifetime ) )
+    {
+        /* Refuse the destruction of a read-only key (which may or may not work
+         * if we attempt it, depending on whether the key is merely read-only
+         * by policy or actually physically read-only).
+         * Just do the best we can, which is to wipe the copy in memory. */
+        status = psa_wipe_key_slot( slot );
+        if( status != PSA_SUCCESS )
+            return( status );
+        return( PSA_ERROR_NOT_PERMITTED );
+    }
+
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     driver = psa_get_se_driver_entry( slot->attr.lifetime );
     if( driver != NULL )

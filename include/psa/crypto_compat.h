@@ -337,10 +337,11 @@ MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key
  *                            algorithm.
  *                            If the AEAD algorithm is not recognized, return 0.
  */
-#define PSA_AEAD_DECRYPT_OUTPUT_SIZE_2_ARG( alg, ciphertext_length ) \
-    MBEDTLS_DEPRECATED_CONSTANT( size_t,                             \
-        PSA_ALG_IS_AEAD( alg ) ?                                     \
-        (ciphertext_length) - PSA_ALG_AEAD_GET_TAG_LENGTH( alg ) :   \
+#define PSA_AEAD_DECRYPT_OUTPUT_SIZE_2_ARG( alg, ciphertext_length )   \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t,                               \
+        PSA_ALG_IS_AEAD( alg ) &&                                      \
+            (ciphertext_length) > PSA_ALG_AEAD_GET_TAG_LENGTH( alg ) ? \
+            (ciphertext_length) - PSA_ALG_AEAD_GET_TAG_LENGTH( alg ) : \
         0 )
 
 /** A sufficient output buffer size for psa_aead_update().

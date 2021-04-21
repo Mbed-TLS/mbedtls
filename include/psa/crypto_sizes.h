@@ -323,8 +323,9 @@
  *                            return 0.
  */
 #define PSA_AEAD_DECRYPT_OUTPUT_SIZE(key_type, alg, ciphertext_length) \
-    (PSA_AEAD_NONCE_LENGTH(key_type, alg) != 0 ?                       \
-     (ciphertext_length) - PSA_ALG_AEAD_GET_TAG_LENGTH(alg) :          \
+    (PSA_AEAD_NONCE_LENGTH(key_type, alg) != 0 &&                      \
+         (ciphertext_length) > PSA_ALG_AEAD_GET_TAG_LENGTH(alg) ?      \
+         (ciphertext_length) - PSA_ALG_AEAD_GET_TAG_LENGTH(alg) :      \
      0)
 
 /** A sufficient output buffer size for psa_aead_decrypt(), for any of the

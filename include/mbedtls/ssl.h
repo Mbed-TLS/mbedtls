@@ -3645,39 +3645,6 @@ const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl );
  */
 int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
 
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-/**
- * \brief          Return the maximum fragment length (payload, in bytes) for
- *                 the output buffer. For the client, this is the configured
- *                 value. For the server, it is the minimum of two - the
- *                 configured value and the negotiated one.
- *
- * \sa             mbedtls_ssl_conf_max_frag_len()
- * \sa             mbedtls_ssl_get_max_record_payload()
- *
- * \param ssl      SSL context
- *
- * \return         Current maximum fragment length for the output buffer.
- */
-size_t mbedtls_ssl_get_output_max_frag_len( const mbedtls_ssl_context *ssl );
-
-/**
- * \brief          Return the maximum fragment length (payload, in bytes) for
- *                 the input buffer. This is the negotiated maximum fragment
- *                 length, or, if there is none, MBEDTLS_SSL_IN_CONTENT_LEN.
- *                 If it is not defined either, the value is 2^14. This function
- *                 works as its predecessor, \c mbedtls_ssl_get_max_frag_len().
- *
- * \sa             mbedtls_ssl_conf_max_frag_len()
- * \sa             mbedtls_ssl_get_max_record_payload()
- *
- * \param ssl      SSL context
- *
- * \return         Current maximum fragment length for the output buffer.
- */
-size_t mbedtls_ssl_get_input_max_frag_len( const mbedtls_ssl_context *ssl );
-#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
-
 /**
  * \brief          Return the current maximum outgoing record payload in bytes.
  *                 This takes into account the config.h setting \c

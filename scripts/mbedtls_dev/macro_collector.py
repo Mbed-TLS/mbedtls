@@ -365,6 +365,7 @@ enumerate
             'asymmetric_signature_wildcard': [self.algorithms],
             'asymmetric_encryption_algorithm': [],
             'other_algorithm': [],
+            'lifetime': [],
         } #type: Dict[str, List[Set[str]]]
         self.arguments_for['mac_length'] += ['1', '63']
         self.arguments_for['min_mac_length'] += ['1', '63']

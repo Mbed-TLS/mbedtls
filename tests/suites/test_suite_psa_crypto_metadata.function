@@ -55,6 +55,11 @@
 #define KEY_TYPE_IS_ECC                 ( 1u << 6 )
 #define KEY_TYPE_IS_DH                  ( 1u << 7 )
 
+/* Flags for lifetime classification macros. There is a flag for every
+ * lifetime classification macro PSA_KEY_LIFETIME_IS_xxx. The name of the
+ * flag is the name of the classification macro without the PSA_ prefix. */
+#define KEY_LIFETIME_IS_VOLATILE        ( 1u << 0 )
+
 #define TEST_CLASSIFICATION_MACRO( flag, alg, flags )           \
     TEST_ASSERT( PSA_##flag( alg ) == !! ( ( flags ) & flag ) )
 
@@ -637,5 +642,21 @@ void dh_key_family( int group_arg )
 
     TEST_EQUAL( PSA_KEY_TYPE_DH_GET_FAMILY( public_type ), group );
     TEST_EQUAL( PSA_KEY_TYPE_DH_GET_FAMILY( pair_type ), group );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void lifetime( int lifetime_arg, int classification_flags,
+               int persistence_arg, int location_arg )
+{
+    psa_key_lifetime_t lifetime = lifetime_arg;
+    psa_key_persistence_t persistence = persistence_arg;
+    psa_key_location_t location = location_arg;
+    unsigned flags = classification_flags;
+
+    TEST_CLASSIFICATION_MACRO( KEY_LIFETIME_IS_VOLATILE, lifetime, flags );
+
+    TEST_EQUAL( PSA_KEY_LIFETIME_GET_PERSISTENCE( lifetime ), persistence );
+    TEST_EQUAL( PSA_KEY_LIFETIME_GET_LOCATION( lifetime ), location );
 }
 /* END_CASE */

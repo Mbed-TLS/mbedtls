@@ -270,13 +270,17 @@ class StorageFormat:
         if self.forward:
             extra_arguments = []
         else:
+            flags = []
             # Some test keys have the RAW_DATA type and attributes that don't
             # necessarily make sense. We do this to validate numerical
             # encodings of the attributes.
             # Raw data keys have no useful exercise anyway so there is no
             # loss of test coverage.
-            exercise = key.type.string != 'PSA_KEY_TYPE_RAW_DATA'
-            extra_arguments = ['1' if exercise else '0']
+            if key.type.string != 'PSA_KEY_TYPE_RAW_DATA':
+                flags.append('TEST_FLAG_EXERCISE')
+            if 'READ_ONLY' in key.lifetime.string:
+                flags.append('TEST_FLAG_READ_ONLY')
+            extra_arguments = [' | '.join(flags) if flags else '0']
         tc.set_arguments([key.lifetime.string,
                           key.type.string, str(key.bits),
                           key.usage.string, key.alg.string, key.alg2.string,

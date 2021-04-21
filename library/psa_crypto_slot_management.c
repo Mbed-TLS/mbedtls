@@ -466,7 +466,10 @@ psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime )
     {
         /* Persistent keys require storage support */
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-        return( PSA_SUCCESS );
+        if( PSA_KEY_LIFETIME_IS_READ_ONLY( lifetime ) )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        else
+            return( PSA_SUCCESS );
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
         return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* !MBEDTLS_PSA_CRYPTO_STORAGE_C */

@@ -22,6 +22,8 @@ endif
 # To compile on Plan9:
 # CFLAGS += -D_BSD_EXTENSION
 
+PERL ?= perl
+
 # if were running on Windows build for Windows
 ifdef WINDOWS
 WINDOWS_BUILD=1
@@ -271,6 +273,24 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
+.PHONY: generated_files
+GENERATED_FILES = error.c version_features.c
+generated_files: $(GENERATED_FILES)
+
+error.c: ../scripts/generate_errors.pl
+error.c: ../scripts/data_files/error.fmt
+error.c: $(wildcard ../include/mbedtls/*.h)
+error.c:
+	echo "  Gen   $@"
+	$(PERL) ../scripts/generate_errors.pl
+
+version_features.c: ../scripts/generate_features.pl
+version_features.c: ../scripts/data_files/version_features.fmt
+version_features.c: ../include/mbedtls/config.h
+version_features.c:
+	echo "  Gen   $@"
+	$(PERL) ../scripts/generate_features.pl
+
 clean:
 ifndef WINDOWS
 	rm -f *.o libmbed*
@@ -279,4 +299,11 @@ else
 	if exist *.o del /Q /F *.o
 	if exist libmbed* del /Q /F libmbed*
 	del /Q /F del_errors_out_if_the_file_list_is_empty_but_not_if_a_file_does_not_exist $(subst /,\,$(THIRDPARTY_CRYPTO_OBJECTS))
+endif
+
+neat: clean
+ifndef WINDOWS
+	rm -f $(GENERATED_FILES)
+else
+	for %f in ($(subst /,\,$(GENERATED_FILES))) if exist %f del /Q /F %f
 endif

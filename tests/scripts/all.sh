@@ -650,6 +650,10 @@ pre_check_tools () {
     "$@" scripts/output_env.sh
 }
 
+pre_generate_files() {
+    make generated_files
+}
+
 
 
 ################################################################
@@ -670,11 +674,6 @@ pre_check_tools () {
 component_check_recursion () {
     msg "Check: recursion.pl" # < 1s
     record_status tests/scripts/recursion.pl library/*.c
-}
-
-component_check_generated_files () {
-    msg "Check: freshness of generated source files" # < 1s
-    record_status tests/scripts/check-generated-files.sh
 }
 
 component_check_doxy_blocks () {
@@ -2740,6 +2739,7 @@ pre_prepare_outcome_file
 pre_print_configuration
 pre_check_tools
 cleanup
+pre_generate_files
 
 # Run the requested tests.
 for component in $RUN_COMPONENTS; do

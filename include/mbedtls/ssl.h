@@ -3647,10 +3647,10 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
 
 /**
  * \brief          Return the current maximum outgoing record payload in bytes.
- *                 This takes into account the config.h setting \c
- *                 MBEDTLS_SSL_OUT_CONTENT_LEN, the configured and negotiated
- *                 max fragment length extension if used, and for DTLS the
- *                 path MTU as configured and current record expansion.
+ *                 This takes into account various factors, such as the config.h
+ *                 setting \c MBEDTLS_SSL_OUT_CONTENT_LEN, extensions such as the
+ *                 max fragment length or record size limit extension if used, and
+ *                 for DTLS the path MTU as configured and current record expansion.
  *
  * \note           With DTLS, \c mbedtls_ssl_write() will return an error if
  *                 called with a larger length value.

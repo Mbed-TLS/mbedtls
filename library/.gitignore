@@ -2,3 +2,7 @@
 libmbed*
 *.sln
 *.vcxproj
+
+# Automatically generated files
+/error.c
+/version_features.c

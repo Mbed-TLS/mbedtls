@@ -3659,9 +3659,7 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
  *                 to the caller to call \c mbedtls_ssl_write() again in
  *                 order to send the remaining bytes if any.
  *
- * \sa             mbedtls_ssl_set_mtu()
- * \sa             mbedtls_ssl_get_output_max_frag_len()
- * \sa             mbedtls_ssl_get_input_max_frag_len()
+ * \sa             mbedtls_ssl_get_max_out_record_payload()
  * \sa             mbedtls_ssl_get_record_expansion()
  *
  * \param ssl      SSL context
@@ -3686,8 +3684,7 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl );
  *                 order to send the remaining bytes if any.
  *
  * \sa             mbedtls_ssl_set_mtu()
- * \sa             mbedtls_ssl_get_output_max_frag_len()
- * \sa             mbedtls_ssl_get_input_max_frag_len()
+ * \sa             mbedtls_ssl_get_max_in_record_payload()
  * \sa             mbedtls_ssl_get_record_expansion()
  *
  * \param ssl      SSL context
@@ -3995,7 +3992,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
  *                 or negotiated with the peer), then:
  *                 - with TLS, less bytes than requested are written.
  *                 - with DTLS, MBEDTLS_ERR_SSL_BAD_INPUT_DATA is returned.
- *                 \c mbedtls_ssl_get_output_max_frag_len() may be used to
+ *                 \c mbedtls_ssl_get_max_out_record_payload() may be used to
  *                 query the active maximum fragment length.
  *
  * \note           Attempting to write 0 bytes will result in an empty TLS

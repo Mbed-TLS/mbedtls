@@ -44,6 +44,7 @@
 #include "mbedtls/md.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/oid.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 

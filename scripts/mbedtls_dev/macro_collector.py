@@ -131,7 +131,11 @@ class PSAMacroEnumerator:
 
     @staticmethod
     def _format_arguments(name: str, arguments: Iterable[str]) -> str:
-        """Format a macro call with arguments.."""
+        """Format a macro call with arguments.
+
+        The resulting format is consistent with
+        `InputsForTest.normalize_argument`.
+        """
         return name + '(' + ', '.join(arguments) + ')'
 
     _argument_split_re = re.compile(r' *, *')
@@ -440,6 +444,15 @@ enumerate
             raise Exception('Undeclared names in test case', undeclared)
         return True
 
+    @staticmethod
+    def normalize_argument(argument: str) -> str:
+        """Normalize whitespace in the given C expression.
+
+        The result uses the same whitespace as
+        ` PSAMacroEnumerator.distribute_arguments`.
+        """
+        return re.sub(r',', r', ', re.sub(r' +', r'', argument))
+
     def add_test_case_line(self, function: str, argument: str) -> None:
         """Parse a test case data line, looking for algorithm metadata tests."""
         sets = []
@@ -454,7 +467,7 @@ enumerate
         sets += self.table_by_test_function[function]
         if self.accept_test_case_line(function, argument):
             for s in sets:
-                s.add(argument)
+                s.add(self.normalize_argument(argument))
 
     # Regex matching a *.data line containing a test function call and
     # its arguments. The actual definition is partly positional, but this

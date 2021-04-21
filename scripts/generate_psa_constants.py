@@ -29,6 +29,7 @@ file is written:
 import os
 import sys
 
+from mbedtls_dev import build_tree
 from mbedtls_dev import macro_collector
 
 OUTPUT_TEMPLATE = '''\
@@ -335,8 +336,7 @@ def generate_psa_constants(header_file_names, output_file_name):
     os.replace(temp_file_name, output_file_name)
 
 if __name__ == '__main__':
-    if not os.path.isdir('programs') and os.path.isdir('../programs'):
-        os.chdir('..')
+    build_tree.chdir_to_root()
     # Allow to change the directory where psa_constant_names_generated.c is written to.
     OUTPUT_FILE_DIR = sys.argv[1] if len(sys.argv) == 2 else "programs/psa"
     generate_psa_constants(['include/psa/crypto_values.h',

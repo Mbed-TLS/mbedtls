@@ -43,10 +43,12 @@ LOCAL_LDFLAGS += -lws2_32
 ifdef SHARED
 SHARED_SUFFIX=.$(DLEXT)
 endif
+PYTHON ?= python
 else
 DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
+PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
 endif
 
 APPS = \
@@ -131,6 +133,26 @@ $(MBEDLIBS):
 
 ${MBEDTLS_TEST_OBJS}:
 	$(MAKE) -C ../tests mbedtls_test
+
+.PHONY: generated_files
+GENERATED_FILES = psa/psa_constant_names_generated.c test/query_config.c
+generated_files: $(GENERATED_FILES)
+
+psa/psa_constant_names_generated.c: ../scripts/generate_psa_constants.py
+psa/psa_constant_names_generated.c: ../include/psa/crypto_values.h
+psa/psa_constant_names_generated.c: ../include/psa/crypto_extra.h
+psa/psa_constant_names_generated.c: ../tests/suites/test_suite_psa_crypto_metadata.data
+psa/psa_constant_names_generated.c:
+	echo "  Gen   $@"
+	$(PYTHON) ../scripts/generate_psa_constants.py
+
+test/query_config.c: ../scripts/generate_query_config.pl
+test/query_config.c: ../include/mbedtls/config.h
+test/query_config.c: ../scripts/data_files/query_config.fmt
+test/query_config.c:
+	echo "  Gen   $@"
+	$(PERL) ../scripts/generate_query_config.pl
+
 
 aes/aescrypt2$(EXEXT): aes/aescrypt2.c $(DEP)
 	echo "  CC    aes/aescrypt2.c"
@@ -369,6 +391,13 @@ else
 	if exist *.exe del /Q /F *.exe
 endif
 	$(MAKE) -C fuzz clean
+
+neat: clean
+ifndef WINDOWS
+	rm -f $(GENERATED_FILES)
+else
+	for %f in ($(subst /,\,$(GENERATED_FILES))) if exist %f del /Q /F %f
+endif
 
 list:
 	echo $(APPS)

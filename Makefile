@@ -1,5 +1,6 @@
 DESTDIR=/usr/local
 PREFIX=mbedtls_
+PERL ?= perl
 
 .SILENT:
 
@@ -21,6 +22,32 @@ tests: lib mbedtls_test
 
 mbedtls_test:
 	$(MAKE) -C tests mbedtls_test
+
+library/%:
+	$(MAKE) -C library $*
+programs/%:
+	$(MAKE) -C programs $*
+tests/%:
+	$(MAKE) -C tests $*
+
+.PHONY: generated_files
+generated_files: library/generated_files
+generated_files: programs/generated_files
+generated_files: tests/generated_files
+generated_files: visualc_files
+
+.PHONY: visualc_files
+VISUALC_FILES = visualc/VS2010/mbedTLS.sln visualc/VS2010/mbedTLS.vcxproj
+# TODO: $(app).vcxproj for each $(app) in programs/
+visualc_files: $(VISUALC_FILES)
+$(VISUALC_FILES): scripts/generate_visualc_files.pl
+$(VISUALC_FILES): scripts/data_files/vs2010-app-template.vcxproj
+$(VISUALC_FILES): scripts/data_files/vs2010-main-template.vcxproj
+$(VISUALC_FILES): scripts/data_files/vs2010-sln-template.sln
+# TODO: also the list of .c and .h source files, but not their content
+$(VISUALC_FILES):
+	echo "  Gen   $@ ..."
+	$(PERL) scripts/generate_visualc_files.pl
 
 ifndef WINDOWS
 install: no_test
@@ -86,12 +113,25 @@ ifndef WINDOWS
 	    echo '$(NULL_ENTROPY_WARNING)'
 endif
 
-clean:
+clean: clean_more_on_top
 	$(MAKE) -C library clean
 	$(MAKE) -C programs clean
 	$(MAKE) -C tests clean
+
+clean_more_on_top:
 ifndef WINDOWS
 	find . \( -name \*.gcno -o -name \*.gcda -o -name \*.info \) -exec rm {} +
+endif
+
+neat: clean_more_on_top
+	$(MAKE) -C library neat
+	$(MAKE) -C programs neat
+	$(MAKE) -C tests neat
+ifndef WINDOWS
+	rm -f visualc/VS2010/*.vcxproj visualc/VS2010/mbedTLS.sln
+else
+	if exist visualc\VS2010\*.vcxproj del /Q /F visualc\VS2010\*.vcxproj
+	if exist visualc\VS2010\mbedTLS.sln del /Q /F visualc\VS2010\mbedTLS.sln
 endif
 
 check: lib tests

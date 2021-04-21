@@ -5,6 +5,8 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
+default: all
+
 # Include public header files from ../include, test-specific header files
 # from ./include, and private header files (used by some invasive tests)
 # from ../library.
@@ -56,10 +58,28 @@ SHARED_SUFFIX=
 PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
 endif
 
+.PHONY: generated_files
+GENERATED_DATA_FILES := $(patsubst tests/%,%,$(shell $(PYTHON) scripts/generate_psa_tests.py --list))
+GENERATED_FILES := $(GENERATED_DATA_FILES)
+generated_files: $(GENERATED_FILES)
+
+$(GENERATED_DATA_FILES): scripts/generate_psa_tests.py
+$(GENERATED_DATA_FILES): ../include/psa/crypto_config.h
+$(GENERATED_DATA_FILES): ../include/psa/crypto_values.h
+$(GENERATED_DATA_FILES): ../include/psa/crypto_extra.h
+$(GENERATED_DATA_FILES): suites/test_suite_psa_crypto_metadata.data
+$(GENERATED_DATA_FILES):
+	echo "  Gen   $@ ..."
+	$(PYTHON) scripts/generate_psa_tests.py
+
 # A test application is built for each suites/test_suite_*.data file.
 # Application name is same as .data file's base name and can be
 # constructed by stripping path 'suites/' and extension .data.
-APPS = $(basename $(subst suites/,,$(wildcard suites/test_suite_*.data)))
+DATA_FILES := $(wildcard suites/test_suite_*.data)
+# Make sure that generated data files are included even if they don't
+# exist yet when the makefile is parsed.
+DATA_FILES += $(filter-out $(DATA_FILES),$(GENERATED_DATA_FILES))
+APPS = $(basename $(subst suites/,,$(DATA_FILES)))
 
 # Construct executable name by adding OS specific suffix $(EXEXT).
 BINARIES := $(addsuffix $(EXEXT),$(APPS))
@@ -142,6 +162,13 @@ else
 ifneq ($(wildcard TESTS/.*),)
 	rmdir /Q /S TESTS
 endif
+endif
+
+neat: clean
+ifndef WINDOWS
+	rm -f $(GENERATED_FILES)
+else
+	for %f in ($(subst /,\,$(GENERATED_FILES))) if exist %f del /Q /F %f
 endif
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.

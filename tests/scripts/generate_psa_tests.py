@@ -359,7 +359,8 @@ class StorageFormat:
         # For now, we don't have information on the compatibility of key
         # types and algorithms. So we just test the encoding of algorithms,
         # and not that operations can be performed with them.
-        descr = alg
+        descr = re.sub(r'PSA_ALG_', r'', alg)
+        descr = re.sub(r',', r', ', re.sub(r' +', r'', descr))
         usage = 'PSA_KEY_USAGE_EXPORT'
         key1 = StorageKey(version=self.version,
                           id=1, lifetime=0x00000001,

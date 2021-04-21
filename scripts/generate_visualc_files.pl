@@ -24,6 +24,7 @@
 use warnings;
 use strict;
 use Digest::MD5 'md5_hex';
+use File::Path;
 
 my $vsx_dir = "visualc/VS2010";
 my $vsx_ext = "vcxproj";
@@ -112,8 +113,7 @@ sub check_dirs {
     foreach my $d (@thirdparty_header_dirs, @thirdparty_source_dirs) {
         if (not (-d $d)) { return 0; }
     }
-    return -d $vsx_dir
-        && -d $mbedtls_header_dir
+    return -d $mbedtls_header_dir
         && -d $psa_header_dir
         && -d $source_dir
         && -d $test_source_dir
@@ -259,6 +259,7 @@ sub main {
         chdir '..' or die;
         check_dirs or die "Must but run from mbedTLS root or scripts dir\n";
     }
+    File::Path::make_path($vsx_dir);
 
     # Remove old files to ensure that, for example, project files from deleted
     # apps are not kept

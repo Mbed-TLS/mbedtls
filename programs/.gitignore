@@ -5,6 +5,10 @@
 *.sln
 *.vcxproj
 
+# Generated source files
+/psa/psa_constant_names_generated.c
+/test/query_config.c
+
 *.o
 *.exe
 
@@ -67,5 +71,5 @@ x509/cert_write
 x509/crl_app
 x509/req_app
 
-# generated files
+# Generated data files
 pkey/keyfile.key

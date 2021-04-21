@@ -173,6 +173,15 @@ class PSAMacroEnumerator:
         except BaseException as e:
             raise Exception('distribute_arguments({})'.format(name)) from e
 
+    def distribute_arguments_without_duplicates(
+            self, seen: Set[str], name: str
+    ) -> Iterator[str]:
+        """Same as `distribute_arguments`, but don't repeat seen results."""
+        for result in self.distribute_arguments(name):
+            if result not in seen:
+                seen.add(result)
+                yield result
+
     def generate_expressions(self, names: Iterable[str]) -> Iterator[str]:
         """Generate expressions covering values constructed from the given names.
 
@@ -185,7 +194,11 @@ class PSAMacroEnumerator:
         * ``macros.generate_expressions(macros.key_types)`` generates all
           key types.
         """
-        return itertools.chain(*map(self.distribute_arguments, names))
+        seen = set() #type: Set[str]
+        return itertools.chain(*(
+            self.distribute_arguments_without_duplicates(seen, name)
+            for name in names
+        ))
 
 
 class PSAMacroCollector(PSAMacroEnumerator):

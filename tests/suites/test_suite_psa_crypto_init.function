@@ -5,7 +5,7 @@
 #include "psa_crypto_invasive.h"
 
 #include "mbedtls/entropy.h"
-#include "mbedtls/entropy_poll.h"
+#include "entropy_poll.h"
 
 #define ENTROPY_MIN_NV_SEED_SIZE                                        \
     MAX(MBEDTLS_ENTROPY_MIN_PLATFORM, MBEDTLS_ENTROPY_BLOCK_SIZE)
@@ -54,9 +54,8 @@ static int fake_entropy_source( void *state_arg,
 
 #define ENTROPY_SOURCE_PLATFORM                 0x00000001
 #define ENTROPY_SOURCE_TIMING                   0x00000002
-#define ENTROPY_SOURCE_HAVEGE                   0x00000004
-#define ENTROPY_SOURCE_HARDWARE                 0x00000008
-#define ENTROPY_SOURCE_NV_SEED                  0x00000010
+#define ENTROPY_SOURCE_HARDWARE                 0x00000004
+#define ENTROPY_SOURCE_NV_SEED                  0x00000008
 #define ENTROPY_SOURCE_FAKE                     0x40000000
 
 static uint32_t custom_entropy_sources_mask;
@@ -79,9 +78,6 @@ static void custom_entropy_init( mbedtls_entropy_context *ctx )
 #else
     mbedtls_sha256_init( &ctx->accumulator );
 #endif
-#if defined(MBEDTLS_HAVEGE_C)
-    mbedtls_havege_init( &ctx->havege_data );
-#endif
 
 #if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
     if( custom_entropy_sources_mask & ENTROPY_SOURCE_PLATFORM )
@@ -94,12 +90,6 @@ static void custom_entropy_init( mbedtls_entropy_context *ctx )
         mbedtls_entropy_add_source( ctx, mbedtls_hardclock_poll, NULL,
                                     MBEDTLS_ENTROPY_MIN_HARDCLOCK,
                                     MBEDTLS_ENTROPY_SOURCE_WEAK );
-#endif
-#if defined(MBEDTLS_HAVEGE_C)
-    if( custom_entropy_sources_mask & ENTROPY_SOURCE_HAVEGE )
-        mbedtls_entropy_add_source( ctx, mbedtls_havege_poll, &ctx->havege_data,
-                                    MBEDTLS_ENTROPY_MIN_HAVEGE,
-                                    MBEDTLS_ENTROPY_SOURCE_STRONG );
 #endif
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
     if( custom_entropy_sources_mask & ENTROPY_SOURCE_HARDWARE )

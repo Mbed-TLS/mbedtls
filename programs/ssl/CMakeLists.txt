@@ -9,10 +9,6 @@ if(USE_PKCS11_HELPER_LIBRARY)
     set(libs ${libs} pkcs11-helper)
 endif(USE_PKCS11_HELPER_LIBRARY)
 
-if(ENABLE_ZLIB_SUPPORT)
-    set(libs ${libs} ${ZLIB_LIBRARIES})
-endif(ENABLE_ZLIB_SUPPORT)
-
 set(executables
     dtls_client
     dtls_server
@@ -45,6 +41,7 @@ set_property(TARGET ssl_server2 APPEND PROPERTY SOURCES
 
 if(THREADS_FOUND)
     add_executable(ssl_pthread_server ssl_pthread_server.c $<TARGET_OBJECTS:mbedtls_test>)
+    target_include_directories(ssl_pthread_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
     target_link_libraries(ssl_pthread_server ${libs} ${CMAKE_THREAD_LIBS_INIT})
     list(APPEND executables ssl_pthread_server)
 endif(THREADS_FOUND)

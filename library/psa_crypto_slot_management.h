@@ -205,8 +205,8 @@ psa_status_t psa_validate_key_location( psa_key_lifetime_t lifetime,
  * \param[in] lifetime  The key lifetime attribute.
  *
  * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_ARGUMENT The key is persistent but persistent
- *         keys are not supported.
+ * \retval #PSA_ERROR_NOT_SUPPORTED The key is persistent but persistent keys
+ *             are not supported.
  */
 psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime );
 
@@ -217,9 +217,8 @@ psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime );
  *                          vendor range are allowed, volatile key identifiers
  *                          excepted \c 0 otherwise.
  *
- * \retval #PSA_SUCCESS The identifier is valid.
- * \retval #PSA_ERROR_INVALID_ARGUMENT The key identifier is not valid.
+ * \retval <> 0 if the key identifier is valid, 0 otherwise.
  */
-psa_status_t psa_validate_key_id( mbedtls_svc_key_id_t key, int vendor_ok );
+int psa_is_valid_key_id( mbedtls_svc_key_id_t key, int vendor_ok );
 
 #endif /* PSA_CRYPTO_SLOT_MANAGEMENT_H */

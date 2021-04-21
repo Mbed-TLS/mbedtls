@@ -30,16 +30,17 @@
 #define ALG_ECDSA_IS_DETERMINISTIC      ( 1u << 11 )
 #define ALG_IS_DETERMINISTIC_ECDSA      ( 1u << 12 )
 #define ALG_IS_RANDOMIZED_ECDSA         ( 1u << 13 )
-#define ALG_IS_HASH_AND_SIGN            ( 1u << 14 )
-#define ALG_IS_RSA_OAEP                 ( 1u << 15 )
-#define ALG_IS_HKDF                     ( 1u << 16 )
-#define ALG_IS_FFDH                     ( 1u << 17 )
-#define ALG_IS_ECDH                     ( 1u << 18 )
-#define ALG_IS_WILDCARD                 ( 1u << 19 )
-#define ALG_IS_RAW_KEY_AGREEMENT        ( 1u << 20 )
-#define ALG_IS_AEAD_ON_BLOCK_CIPHER     ( 1u << 21 )
-#define ALG_IS_TLS12_PRF                ( 1u << 22 )
-#define ALG_IS_TLS12_PSK_TO_MS          ( 1u << 23 )
+#define ALG_IS_HASH_EDDSA               ( 1u << 14 )
+#define ALG_IS_HASH_AND_SIGN            ( 1u << 15 )
+#define ALG_IS_RSA_OAEP                 ( 1u << 16 )
+#define ALG_IS_HKDF                     ( 1u << 17 )
+#define ALG_IS_FFDH                     ( 1u << 18 )
+#define ALG_IS_ECDH                     ( 1u << 19 )
+#define ALG_IS_WILDCARD                 ( 1u << 20 )
+#define ALG_IS_RAW_KEY_AGREEMENT        ( 1u << 21 )
+#define ALG_IS_AEAD_ON_BLOCK_CIPHER     ( 1u << 22 )
+#define ALG_IS_TLS12_PRF                ( 1u << 23 )
+#define ALG_IS_TLS12_PSK_TO_MS          ( 1u << 24 )
 
 /* Flags for key type classification macros. There is a flag for every
  * key type classification macro PSA_KEY_TYPE_IS_xxx except for some that
@@ -97,6 +98,7 @@ void algorithm_classification( psa_algorithm_t alg, unsigned flags )
         TEST_CLASSIFICATION_MACRO( ALG_ECDSA_IS_DETERMINISTIC, alg, flags );
     TEST_CLASSIFICATION_MACRO( ALG_IS_DETERMINISTIC_ECDSA, alg, flags );
     TEST_CLASSIFICATION_MACRO( ALG_IS_RANDOMIZED_ECDSA, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_HASH_EDDSA, alg, flags );
     TEST_CLASSIFICATION_MACRO( ALG_IS_HASH_AND_SIGN, alg, flags );
     TEST_CLASSIFICATION_MACRO( ALG_IS_RSA_OAEP, alg, flags );
     TEST_CLASSIFICATION_MACRO( ALG_IS_HKDF, alg, flags );
@@ -597,7 +599,7 @@ void stream_cipher_key_type( int type_arg )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
+/* BEGIN_CASE depends_on:PSA_KEY_TYPE_ECC_PUBLIC_KEY:PSA_KEY_TYPE_ECC_KEY_PAIR */
 void ecc_key_family( int curve_arg )
 {
     psa_ecc_family_t curve = curve_arg;

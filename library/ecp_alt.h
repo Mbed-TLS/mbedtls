@@ -1,5 +1,5 @@
 /**
- * \file ecp_internal.h
+ * \file ecp_alt.h
  *
  * \brief Function declarations for alternative implementation of elliptic curve
  * point arithmetic.
@@ -293,5 +293,5 @@ int mbedtls_internal_ecp_normalize_mxz( const mbedtls_ecp_group *grp,
 
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
-#endif /* ecp_internal.h */
+#endif /* ecp_alt.h */
 

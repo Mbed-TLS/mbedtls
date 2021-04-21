@@ -24,7 +24,7 @@
 
 #include "mbedtls/rsa.h"
 #include "mbedtls/bignum.h"
-#include "mbedtls/rsa_internal.h"
+#include "rsa_alt_helpers.h"
 
 /*
  * Compute RSA prime factors from public and private exponents
@@ -237,90 +237,36 @@ cleanup:
     return( ret );
 }
 
-/*
- * Check that RSA CRT parameters are in accordance with core parameters.
- */
-int mbedtls_rsa_validate_crt( const mbedtls_mpi *P,  const mbedtls_mpi *Q,
-                              const mbedtls_mpi *D,  const mbedtls_mpi *DP,
-                              const mbedtls_mpi *DQ, const mbedtls_mpi *QP )
+int mbedtls_rsa_deduce_crt( const mbedtls_mpi *P, const mbedtls_mpi *Q,
+                            const mbedtls_mpi *D, mbedtls_mpi *DP,
+                            mbedtls_mpi *DQ, mbedtls_mpi *QP )
 {
     int ret = 0;
-
-    mbedtls_mpi K, L;
+    mbedtls_mpi K;
     mbedtls_mpi_init( &K );
-    mbedtls_mpi_init( &L );
 
-    /* Check that DP - D == 0 mod P - 1 */
+    /* DP = D mod P-1 */
     if( DP != NULL )
     {
-        if( P == NULL )
-        {
-            ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
-            goto cleanup;
-        }
-
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, P, 1 ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &L, DP, D ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &L, &L, &K ) );
-
-        if( mbedtls_mpi_cmp_int( &L, 0 ) != 0 )
-        {
-            ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
-            goto cleanup;
-        }
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, P, 1  ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( DP, D, &K ) );
     }
 
-    /* Check that DQ - D == 0 mod Q - 1 */
+    /* DQ = D mod Q-1 */
     if( DQ != NULL )
     {
-        if( Q == NULL )
-        {
-            ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
-            goto cleanup;
-        }
-
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, Q, 1 ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &L, DQ, D ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &L, &L, &K ) );
-
-        if( mbedtls_mpi_cmp_int( &L, 0 ) != 0 )
-        {
-            ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
-            goto cleanup;
-        }
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, Q, 1  ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( DQ, D, &K ) );
     }
 
-    /* Check that QP * Q - 1 == 0 mod P */
+    /* QP = Q^{-1} mod P */
     if( QP != NULL )
     {
-        if( P == NULL || Q == NULL )
-        {
-            ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
-            goto cleanup;
-        }
-
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &K, QP, Q ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, &K, 1 ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, &K, P ) );
-        if( mbedtls_mpi_cmp_int( &K, 0 ) != 0 )
-        {
-            ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
-            goto cleanup;
-        }
+        MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( QP, Q, P ) );
     }
 
 cleanup:
-
-    /* Wrap MPI error codes by RSA check failure error code */
-    if( ret != 0 &&
-        ret != MBEDTLS_ERR_RSA_KEY_CHECK_FAILED &&
-        ret != MBEDTLS_ERR_RSA_BAD_INPUT_DATA )
-    {
-        ret += MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
-    }
-
     mbedtls_mpi_free( &K );
-    mbedtls_mpi_free( &L );
 
     return( ret );
 }
@@ -449,36 +395,90 @@ cleanup:
     return( ret );
 }
 
-int mbedtls_rsa_deduce_crt( const mbedtls_mpi *P, const mbedtls_mpi *Q,
-                            const mbedtls_mpi *D, mbedtls_mpi *DP,
-                            mbedtls_mpi *DQ, mbedtls_mpi *QP )
+/*
+ * Check that RSA CRT parameters are in accordance with core parameters.
+ */
+int mbedtls_rsa_validate_crt( const mbedtls_mpi *P,  const mbedtls_mpi *Q,
+                              const mbedtls_mpi *D,  const mbedtls_mpi *DP,
+                              const mbedtls_mpi *DQ, const mbedtls_mpi *QP )
 {
     int ret = 0;
-    mbedtls_mpi K;
-    mbedtls_mpi_init( &K );
 
-    /* DP = D mod P-1 */
+    mbedtls_mpi K, L;
+    mbedtls_mpi_init( &K );
+    mbedtls_mpi_init( &L );
+
+    /* Check that DP - D == 0 mod P - 1 */
     if( DP != NULL )
     {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, P, 1  ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( DP, D, &K ) );
+        if( P == NULL )
+        {
+            ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+            goto cleanup;
+        }
+
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, P, 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &L, DP, D ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &L, &L, &K ) );
+
+        if( mbedtls_mpi_cmp_int( &L, 0 ) != 0 )
+        {
+            ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
+            goto cleanup;
+        }
     }
 
-    /* DQ = D mod Q-1 */
+    /* Check that DQ - D == 0 mod Q - 1 */
     if( DQ != NULL )
     {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, Q, 1  ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( DQ, D, &K ) );
+        if( Q == NULL )
+        {
+            ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+            goto cleanup;
+        }
+
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, Q, 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &L, DQ, D ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &L, &L, &K ) );
+
+        if( mbedtls_mpi_cmp_int( &L, 0 ) != 0 )
+        {
+            ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
+            goto cleanup;
+        }
     }
 
-    /* QP = Q^{-1} mod P */
+    /* Check that QP * Q - 1 == 0 mod P */
     if( QP != NULL )
     {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( QP, Q, P ) );
+        if( P == NULL || Q == NULL )
+        {
+            ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+            goto cleanup;
+        }
+
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &K, QP, Q ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &K, &K, 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &K, &K, P ) );
+        if( mbedtls_mpi_cmp_int( &K, 0 ) != 0 )
+        {
+            ret = MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
+            goto cleanup;
+        }
     }
 
 cleanup:
+
+    /* Wrap MPI error codes by RSA check failure error code */
+    if( ret != 0 &&
+        ret != MBEDTLS_ERR_RSA_KEY_CHECK_FAILED &&
+        ret != MBEDTLS_ERR_RSA_BAD_INPUT_DATA )
+    {
+        ret += MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
+    }
+
     mbedtls_mpi_free( &K );
+    mbedtls_mpi_free( &L );
 
     return( ret );
 }

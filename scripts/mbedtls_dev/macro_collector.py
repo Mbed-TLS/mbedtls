@@ -16,13 +16,121 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
 import re
+from typing import Dict, Iterable, Iterator, List, Set
 
-class PSAMacroCollector:
+
+class PSAMacroEnumerator:
+    """Information about constructors of various PSA Crypto types.
+
+    This includes macro names as well as information about their arguments
+    when applicable.
+
+    This class only provides ways to enumerate expressions that evaluate to
+    values of the covered types. Derived classes are expected to populate
+    the set of known constructors of each kind, as well as populate
+    `self.arguments_for` for arguments that are not of a kind that is
+    enumerated here.
+    """
+
+    def __init__(self) -> None:
+        """Set up an empty set of known constructor macros.
+        """
+        self.statuses = set() #type: Set[str]
+        self.algorithms = set() #type: Set[str]
+        self.ecc_curves = set() #type: Set[str]
+        self.dh_groups = set() #type: Set[str]
+        self.key_types = set() #type: Set[str]
+        self.key_usage_flags = set() #type: Set[str]
+        self.hash_algorithms = set() #type: Set[str]
+        self.mac_algorithms = set() #type: Set[str]
+        self.ka_algorithms = set() #type: Set[str]
+        self.kdf_algorithms = set() #type: Set[str]
+        self.aead_algorithms = set() #type: Set[str]
+        # macro name -> list of argument names
+        self.argspecs = {} #type: Dict[str, List[str]]
+        # argument name -> list of values
+        self.arguments_for = {
+            'mac_length': [],
+            'min_mac_length': [],
+            'tag_length': [],
+            'min_tag_length': [],
+        } #type: Dict[str, List[str]]
+
+    def gather_arguments(self) -> None:
+        """Populate the list of values for macro arguments.
+
+        Call this after parsing all the inputs.
+        """
+        self.arguments_for['hash_alg'] = sorted(self.hash_algorithms)
+        self.arguments_for['mac_alg'] = sorted(self.mac_algorithms)
+        self.arguments_for['ka_alg'] = sorted(self.ka_algorithms)
+        self.arguments_for['kdf_alg'] = sorted(self.kdf_algorithms)
+        self.arguments_for['aead_alg'] = sorted(self.aead_algorithms)
+        self.arguments_for['curve'] = sorted(self.ecc_curves)
+        self.arguments_for['group'] = sorted(self.dh_groups)
+
+    @staticmethod
+    def _format_arguments(name: str, arguments: Iterable[str]) -> str:
+        """Format a macro call with arguments.."""
+        return name + '(' + ', '.join(arguments) + ')'
+
+    _argument_split_re = re.compile(r' *, *')
+    @classmethod
+    def _argument_split(cls, arguments: str) -> List[str]:
+        return re.split(cls._argument_split_re, arguments)
+
+    def distribute_arguments(self, name: str) -> Iterator[str]:
+        """Generate macro calls with each tested argument set.
+
+        If name is a macro without arguments, just yield "name".
+        If name is a macro with arguments, yield a series of
+        "name(arg1,...,argN)" where each argument takes each possible
+        value at least once.
+        """
+        try:
+            if name not in self.argspecs:
+                yield name
+                return
+            argspec = self.argspecs[name]
+            if argspec == []:
+                yield name + '()'
+                return
+            argument_lists = [self.arguments_for[arg] for arg in argspec]
+            arguments = [values[0] for values in argument_lists]
+            yield self._format_arguments(name, arguments)
+            # Dear Pylint, enumerate won't work here since we're modifying
+            # the array.
+            # pylint: disable=consider-using-enumerate
+            for i in range(len(arguments)):
+                for value in argument_lists[i][1:]:
+                    arguments[i] = value
+                    yield self._format_arguments(name, arguments)
+                arguments[i] = argument_lists[0][0]
+        except BaseException as e:
+            raise Exception('distribute_arguments({})'.format(name)) from e
+
+    def generate_expressions(self, names: Iterable[str]) -> Iterator[str]:
+        """Generate expressions covering values constructed from the given names.
+
+        `names` can be any iterable collection of macro names.
+
+        For example:
+        * ``generate_expressions(['PSA_ALG_CMAC', 'PSA_ALG_HMAC'])``
+          generates ``'PSA_ALG_CMAC'`` as well as ``'PSA_ALG_HMAC(h)'`` for
+          every known hash algorithm ``h``.
+        * ``macros.generate_expressions(macros.key_types)`` generates all
+          key types.
+        """
+        return itertools.chain(*map(self.distribute_arguments, names))
+
+
+class PSAMacroCollector(PSAMacroEnumerator):
     """Collect PSA crypto macro definitions from C header files.
     """
 
-    def __init__(self, include_intermediate=False):
+    def __init__(self, include_intermediate: bool = False) -> None:
         """Set up an object to collect PSA macro definitions.
 
         Call the read_file method of the constructed object on each header file.
@@ -30,20 +138,13 @@ class PSAMacroCollector:
         * include_intermediate: if true, include intermediate macros such as
           PSA_XXX_BASE that do not designate semantic values.
         """
+        super().__init__()
         self.include_intermediate = include_intermediate
-        self.statuses = set()
-        self.key_types = set()
-        self.key_types_from_curve = {}
-        self.key_types_from_group = {}
-        self.ecc_curves = set()
-        self.dh_groups = set()
-        self.algorithms = set()
-        self.hash_algorithms = set()
-        self.ka_algorithms = set()
-        self.algorithms_from_hash = {}
-        self.key_usages = set()
+        self.key_types_from_curve = {} #type: Dict[str, str]
+        self.key_types_from_group = {} #type: Dict[str, str]
+        self.algorithms_from_hash = {} #type: Dict[str, str]
 
-    def is_internal_name(self, name):
+    def is_internal_name(self, name: str) -> bool:
         """Whether this is an internal macro. Internal macros will be skipped."""
         if not self.include_intermediate:
             if name.endswith('_BASE') or name.endswith('_NONE'):
@@ -51,6 +152,30 @@ class PSAMacroCollector:
             if '_CATEGORY_' in name:
                 return True
         return name.endswith('_FLAG') or name.endswith('_MASK')
+
+    def record_algorithm_subtype(self, name: str, expansion: str) -> None:
+        """Record the subtype of an algorithm constructor.
+
+        Given a ``PSA_ALG_xxx`` macro name and its expansion, if the algorithm
+        is of a subtype that is tracked in its own set, add it to the relevant
+        set.
+        """
+        # This code is very ad hoc and fragile. It should be replaced by
+        # something more robust.
+        if re.match(r'MAC(?:_|\Z)', name):
+            self.mac_algorithms.add(name)
+        elif re.match(r'KDF(?:_|\Z)', name):
+            self.kdf_algorithms.add(name)
+        elif re.search(r'0x020000[0-9A-Fa-f]{2}', expansion):
+            self.hash_algorithms.add(name)
+        elif re.search(r'0x03[0-9A-Fa-f]{6}', expansion):
+            self.mac_algorithms.add(name)
+        elif re.search(r'0x05[0-9A-Fa-f]{6}', expansion):
+            self.aead_algorithms.add(name)
+        elif re.search(r'0x09[0-9A-Fa-f]{2}0000', expansion):
+            self.ka_algorithms.add(name)
+        elif re.search(r'0x08[0-9A-Fa-f]{6}', expansion):
+            self.kdf_algorithms.add(name)
 
     # "#define" followed by a macro name with either no parameters
     # or a single parameter and a non-empty expansion.
@@ -72,6 +197,8 @@ class PSAMacroCollector:
             return
         name, parameter, expansion = m.groups()
         expansion = re.sub(r'/\*.*?\*/|//.*', r' ', expansion)
+        if parameter:
+            self.argspecs[name] = [parameter]
         if re.match(self._deprecated_definition_re, expansion):
             # Skip deprecated values, which are assumed to be
             # backward compatibility aliases that share
@@ -99,12 +226,7 @@ class PSAMacroCollector:
                 # Ad hoc skipping of duplicate names for some numerical values
                 return
             self.algorithms.add(name)
-            # Ad hoc detection of hash algorithms
-            if re.search(r'0x020000[0-9A-Fa-f]{2}', expansion):
-                self.hash_algorithms.add(name)
-            # Ad hoc detection of key agreement algorithms
-            if re.search(r'0x09[0-9A-Fa-f]{2}0000', expansion):
-                self.ka_algorithms.add(name)
+            self.record_algorithm_subtype(name, expansion)
         elif name.startswith('PSA_ALG_') and parameter == 'hash_alg':
             if name in ['PSA_ALG_DSA', 'PSA_ALG_ECDSA']:
                 # A naming irregularity
@@ -113,7 +235,7 @@ class PSAMacroCollector:
                 tester = name[:8] + 'IS_' + name[8:]
             self.algorithms_from_hash[name] = tester
         elif name.startswith('PSA_KEY_USAGE_') and not parameter:
-            self.key_usages.add(name)
+            self.key_usage_flags.add(name)
         else:
             # Other macro without parameter
             return

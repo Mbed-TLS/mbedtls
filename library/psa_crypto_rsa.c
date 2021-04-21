@@ -26,6 +26,7 @@
 #include "psa_crypto_core.h"
 #include "psa_crypto_random_impl.h"
 #include "psa_crypto_rsa.h"
+#include "psa_crypto_hash.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -38,7 +39,7 @@
 #include <mbedtls/rsa.h>
 #include <mbedtls/error.h>
 #include <mbedtls/pk.h>
-#include <mbedtls/pk_internal.h>
+#include "pk_wrap.h"
 
 #if ( defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||  \
       ( defined(PSA_CRYPTO_DRIVER_TEST) &&                   \

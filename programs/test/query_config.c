@@ -37,7 +37,6 @@
  * default value when that configuration is not set in the config.h.
  */
 #include "mbedtls/aes.h"
-#include "mbedtls/aesni.h"
 #include "mbedtls/arc4.h"
 #include "mbedtls/aria.h"
 #include "mbedtls/asn1.h"
@@ -47,7 +46,6 @@
 #include "mbedtls/blowfish.h"
 #include "mbedtls/camellia.h"
 #include "mbedtls/ccm.h"
-#include "mbedtls/certs.h"
 #include "mbedtls/chacha20.h"
 #include "mbedtls/chachapoly.h"
 #include "mbedtls/cipher.h"
@@ -61,10 +59,8 @@
 #include "mbedtls/ecjpake.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/entropy.h"
-#include "mbedtls/entropy_poll.h"
 #include "mbedtls/error.h"
 #include "mbedtls/gcm.h"
-#include "mbedtls/havege.h"
 #include "mbedtls/hkdf.h"
 #include "mbedtls/hmac_drbg.h"
 #include "mbedtls/md.h"
@@ -75,7 +71,6 @@
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/nist_kw.h"
 #include "mbedtls/oid.h"
-#include "mbedtls/padlock.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/pkcs11.h"
@@ -93,7 +88,6 @@
 #include "mbedtls/ssl_cache.h"
 #include "mbedtls/ssl_ciphersuites.h"
 #include "mbedtls/ssl_cookie.h"
-#include "mbedtls/ssl_internal.h"
 #include "mbedtls/ssl_ticket.h"
 #include "mbedtls/threading.h"
 #include "mbedtls/timing.h"
@@ -866,14 +860,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_ENABLE_WEAK_CIPHERSUITES */
 
-#if defined(MBEDTLS_REMOVE_ARC4_CIPHERSUITES)
-    if( strcmp( "MBEDTLS_REMOVE_ARC4_CIPHERSUITES", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_REMOVE_ARC4_CIPHERSUITES );
-        return( 0 );
-    }
-#endif /* MBEDTLS_REMOVE_ARC4_CIPHERSUITES */
-
 #if defined(MBEDTLS_REMOVE_3DES_CIPHERSUITES)
     if( strcmp( "MBEDTLS_REMOVE_3DES_CIPHERSUITES", config ) == 0 )
     {
@@ -1386,14 +1372,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-    if( strcmp( "MBEDTLS_SSL_HW_RECORD_ACCEL", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_HW_RECORD_ACCEL );
-        return( 0 );
-    }
-#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
-
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     if( strcmp( "MBEDTLS_SSL_CBC_RECORD_SPLITTING", config ) == 0 )
     {
@@ -1410,14 +1388,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-#if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
-    if( strcmp( "MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO );
-        return( 0 );
-    }
-#endif /* MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
-
 #if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
     if( strcmp( "MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE", config ) == 0 )
     {
@@ -1433,14 +1403,6 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
-
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-    if( strcmp( "MBEDTLS_SSL_PROTO_SSL3", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_PROTO_SSL3 );
-        return( 0 );
-    }
-#endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1)
     if( strcmp( "MBEDTLS_SSL_PROTO_TLS1", config ) == 0 )
@@ -1562,14 +1524,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT)
-    if( strcmp( "MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT );
-        return( 0 );
-    }
-#endif /* MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT */
-
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
     if( strcmp( "MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH", config ) == 0 )
     {
@@ -1690,14 +1644,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
 
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    if( strcmp( "MBEDTLS_ZLIB_SUPPORT", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_ZLIB_SUPPORT );
-        return( 0 );
-    }
-#endif /* MBEDTLS_ZLIB_SUPPORT */
-
 #if defined(MBEDTLS_AESNI_C)
     if( strcmp( "MBEDTLS_AESNI_C", config ) == 0 )
     {
@@ -1785,14 +1731,6 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_CCM_C */
-
-#if defined(MBEDTLS_CERTS_C)
-    if( strcmp( "MBEDTLS_CERTS_C", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_CERTS_C );
-        return( 0 );
-    }
-#endif /* MBEDTLS_CERTS_C */
 
 #if defined(MBEDTLS_CHACHA20_C)
     if( strcmp( "MBEDTLS_CHACHA20_C", config ) == 0 )
@@ -1913,14 +1851,6 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_GCM_C */
-
-#if defined(MBEDTLS_HAVEGE_C)
-    if( strcmp( "MBEDTLS_HAVEGE_C", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_HAVEGE_C );
-        return( 0 );
-    }
-#endif /* MBEDTLS_HAVEGE_C */
 
 #if defined(MBEDTLS_HKDF_C)
     if( strcmp( "MBEDTLS_HKDF_C", config ) == 0 )
@@ -2730,14 +2660,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_DTLS_MAX_BUFFERING */
 
-#if defined(MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME)
-    if( strcmp( "MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME );
-        return( 0 );
-    }
-#endif /* MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME */
-
 #if defined(MBEDTLS_PSK_MAX_LEN)
     if( strcmp( "MBEDTLS_PSK_MAX_LEN", config ) == 0 )
     {
@@ -2769,14 +2691,6 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_X509_MAX_FILE_PATH_LEN */
-
-#if defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES)
-    if( strcmp( "MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES );
-        return( 0 );
-    }
-#endif /* MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES */
 
 #if defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE)
     if( strcmp( "MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE", config ) == 0 )

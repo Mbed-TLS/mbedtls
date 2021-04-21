@@ -128,13 +128,17 @@ Open failure: non-existent identifier
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
 open_fail:1:PSA_ERROR_DOES_NOT_EXIST
 
-Create failure: invalid lifetime for a persistent key
+Create failure: read-only key
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
-create_fail:0x7fffffff:1:PSA_ERROR_INVALID_ARGUMENT
+create_fail:PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(PSA_KEY_PERSISTENCE_READ_ONLY, PSA_KEY_LOCATION_LOCAL_STORAGE):1:PSA_ERROR_INVALID_ARGUMENT
 
-Create failure: invalid lifetime for a volatile key
+Create failure: invalid location for a persistent key
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
-create_fail:0x7fffff00:0:PSA_ERROR_INVALID_ARGUMENT
+create_fail:PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(PSA_KEY_PERSISTENCE_DEFAULT, 0xbad10c):1:PSA_ERROR_INVALID_ARGUMENT
+
+Create failure: invalid location for a volatile key
+depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
+create_fail:PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(PSA_KEY_PERSISTENCE_VOLATILE, 0xbad10c):0:PSA_ERROR_INVALID_ARGUMENT
 
 Create failure: invalid key id (0) for a persistent key
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C

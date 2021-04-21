@@ -32,10 +32,6 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
-#endif
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 
 #include "psa/crypto.h"

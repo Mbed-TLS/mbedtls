@@ -6,10 +6,6 @@ if(USE_PKCS11_HELPER_LIBRARY)
     set(libs ${libs} pkcs11-helper)
 endif(USE_PKCS11_HELPER_LIBRARY)
 
-if(ENABLE_ZLIB_SUPPORT)
-    set(libs ${libs} ${ZLIB_LIBRARIES})
-endif(ENABLE_ZLIB_SUPPORT)
-
 set(executables_libs
     selftest
     udp_proxy
@@ -33,6 +29,7 @@ foreach(exe IN LISTS executables_libs executables_mbedcrypto)
     endif()
     add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>
         ${extra_sources})
+    target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
 
     # This emulates "if ( ... IN_LIST ... )" which becomes available in CMake 3.3
     list(FIND executables_libs ${exe} exe_index)

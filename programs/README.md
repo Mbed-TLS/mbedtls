@@ -61,8 +61,6 @@ This subdirectory mostly contains sample programs that illustrate specific featu
 
 * [`random/gen_random_ctr_drbg.c`](random/gen_random_ctr_drbg.c): shows how to use the default entropy sources to seed a pseudorandom generator, and how to use the resulting random generator to generate random data.
 
-* [`random/gen_random_havege.c`](random/gen_random_havege.c): demonstrates the HAVEGE entropy collector.
-
 ## SSL/TLS examples
 
 ### SSL/TLS sample applications

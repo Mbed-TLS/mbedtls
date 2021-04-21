@@ -11,7 +11,7 @@ MBEDTLS_TEST_PATH:=../tests/src
 MBEDTLS_TEST_OBJS:=$(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/*.c ${MBEDTLS_TEST_PATH}/drivers/*.c))
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../tests/include -I../include -D_FILE_OFFSET_BITS=64
-LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I../include -D_FILE_OFFSET_BITS=64
+LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I../include -I../tests/include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
 		-L../library 			\
 		-lmbedtls$(SHARED_SUFFIX)	\
@@ -50,11 +50,6 @@ EXEXT=
 SHARED_SUFFIX=
 endif
 
-# Zlib shared library extensions:
-ifdef ZLIB
-LOCAL_LDFLAGS += -lz
-endif
-
 APPS = \
 	aes/aescrypt2$(EXEXT) \
 	aes/crypt_and_hash$(EXEXT) \
@@ -85,7 +80,6 @@ APPS = \
 	psa/psa_constant_names$(EXEXT) \
 	random/gen_entropy$(EXEXT) \
 	random/gen_random_ctr_drbg$(EXEXT) \
-	random/gen_random_havege$(EXEXT) \
 	ssl/dtls_client$(EXEXT) \
 	ssl/dtls_server$(EXEXT) \
 	ssl/mini_client$(EXEXT) \
@@ -239,17 +233,13 @@ psa/key_ladder_demo$(EXEXT): psa/key_ladder_demo.c $(DEP)
 	echo "  CC    psa/key_ladder_demo.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/key_ladder_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-psa/psa_constant_names$(EXEXT): psa/psa_constant_names.c $(DEP)
+psa/psa_constant_names$(EXEXT): psa/psa_constant_names.c psa/psa_constant_names_generated.c $(DEP)
 	echo "  CC    psa/psa_constant_names.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/psa_constant_names.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 random/gen_entropy$(EXEXT): random/gen_entropy.c $(DEP)
 	echo "  CC    random/gen_entropy.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) random/gen_entropy.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-random/gen_random_havege$(EXEXT): random/gen_random_havege.c $(DEP)
-	echo "  CC    random/gen_random_havege.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) random/gen_random_havege.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 random/gen_random_ctr_drbg$(EXEXT): random/gen_random_ctr_drbg.c $(DEP)
 	echo "  CC    random/gen_random_ctr_drbg.c"

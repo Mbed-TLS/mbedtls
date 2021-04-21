@@ -115,7 +115,7 @@ typedef struct mbedtls_pk_rsassa_pss_options
 /* For RSA, the signature can be as large as the bignum module allows.
  * For RSA_ALT, the signature size is not necessarily tied to what the
  * bignum module can do, but in the absence of any specific setting,
- * we use that (rsa_alt_sign_wrap in pk_wrap will check). */
+ * we use that (rsa_alt_sign_wrap in library/pk_wrap.h will check). */
 #undef MBEDTLS_PK_SIGNATURE_MAX_SIZE
 #define MBEDTLS_PK_SIGNATURE_MAX_SIZE MBEDTLS_MPI_MAX_SIZE
 #endif
@@ -757,7 +757,7 @@ int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path )
  * \return          length of data written if successful, or a specific
  *                  error code
  */
-int mbedtls_pk_write_key_der( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
+int mbedtls_pk_write_key_der( const mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
 
 /**
  * \brief           Write a public key to a SubjectPublicKeyInfo DER structure
@@ -772,7 +772,7 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *ctx, unsigned char *buf, size_
  * \return          length of data written if successful, or a specific
  *                  error code
  */
-int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
+int mbedtls_pk_write_pubkey_der( const mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
 
 #if defined(MBEDTLS_PEM_WRITE_C)
 /**
@@ -785,7 +785,7 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *ctx, unsigned char *buf, si
  *
  * \return          0 if successful, or a specific error code
  */
-int mbedtls_pk_write_pubkey_pem( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
+int mbedtls_pk_write_pubkey_pem( const mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
 
 /**
  * \brief           Write a private key to a PKCS#1 or SEC1 PEM string
@@ -797,7 +797,7 @@ int mbedtls_pk_write_pubkey_pem( mbedtls_pk_context *ctx, unsigned char *buf, si
  *
  * \return          0 if successful, or a specific error code
  */
-int mbedtls_pk_write_key_pem( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
+int mbedtls_pk_write_key_pem( const mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
 #endif /* MBEDTLS_PEM_WRITE_C */
 #endif /* MBEDTLS_PK_WRITE_C */
 

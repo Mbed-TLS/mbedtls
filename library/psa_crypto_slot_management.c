@@ -51,21 +51,20 @@ typedef struct
 
 static psa_global_data_t global_data;
 
-psa_status_t psa_validate_key_id(
-    mbedtls_svc_key_id_t key, int vendor_ok )
+int psa_is_valid_key_id( mbedtls_svc_key_id_t key, int vendor_ok )
 {
     psa_key_id_t key_id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key );
 
     if( ( PSA_KEY_ID_USER_MIN <= key_id ) &&
         ( key_id <= PSA_KEY_ID_USER_MAX ) )
-        return( PSA_SUCCESS );
+        return( 1 );
 
     if( vendor_ok &&
         ( PSA_KEY_ID_VENDOR_MIN <= key_id ) &&
         ( key_id <= PSA_KEY_ID_VENDOR_MAX ) )
-        return( PSA_SUCCESS );
+        return( 1 );
 
-    return( PSA_ERROR_INVALID_HANDLE );
+    return( 0 );
 }
 
 /** Get the description in memory of a key given its identifier and lock it.
@@ -124,9 +123,8 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
     }
     else
     {
-        status = psa_validate_key_id( key, 1 );
-        if( status != PSA_SUCCESS )
-            return( status );
+        if ( !psa_is_valid_key_id( key, 1 ) )
+            return( PSA_ERROR_INVALID_HANDLE );
 
         for( slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++ )
         {
@@ -305,13 +303,15 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
 
     status = psa_load_persistent_key_into_slot( *p_slot );
     if( status != PSA_SUCCESS )
+    {
         psa_wipe_key_slot( *p_slot );
-
+        if( status == PSA_ERROR_DOES_NOT_EXIST )
+            status = PSA_ERROR_INVALID_HANDLE;
+    }
     return( status );
 #else
-    return( PSA_ERROR_DOES_NOT_EXIST );
+    return( PSA_ERROR_INVALID_HANDLE );
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
-
 }
 
 psa_status_t psa_unlock_key_slot( psa_key_slot_t *slot )
@@ -399,6 +399,9 @@ psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
     if( status != PSA_SUCCESS )
     {
         *handle = PSA_KEY_HANDLE_INIT;
+        if( status == PSA_ERROR_INVALID_HANDLE )
+            status = PSA_ERROR_DOES_NOT_EXIST;
+
         return( status );
     }
 
@@ -423,8 +426,12 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
 
     status = psa_get_and_lock_key_slot_in_memory( handle, &slot );
     if( status != PSA_SUCCESS )
-        return( status );
+    {
+        if( status == PSA_ERROR_DOES_NOT_EXIST )
+            status = PSA_ERROR_INVALID_HANDLE;
 
+        return( status );
+    }
     if( slot->lock_count <= 1 )
         return( psa_wipe_key_slot( slot ) );
     else

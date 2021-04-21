@@ -179,6 +179,9 @@ static inline void psa_clear_key_slot_number(
  *         The secure element driver for the specified lifetime does not
  *         support registering a key.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The identifier in \p attributes is invalid, namely the identifier is
+ *         not in the user range.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p attributes specifies a lifetime which is not located
  *         in a secure element.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
@@ -303,8 +306,10 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats );
  * \param[in] seed          Buffer containing the seed value to inject.
  * \param[in] seed_size     Size of the \p seed buffer.
  *                          The size of the seed in bytes must be greater
- *                          or equal to both #MBEDTLS_ENTROPY_MIN_PLATFORM
- *                          and #MBEDTLS_ENTROPY_BLOCK_SIZE.
+ *                          or equal to both #MBEDTLS_ENTROPY_BLOCK_SIZE
+ *                          and the value of \c MBEDTLS_ENTROPY_MIN_PLATFORM
+ *                          in `library/entropy_poll.h` in the Mbed TLS source
+ *                          code.
  *                          It must be less or equal to
  *                          #MBEDTLS_ENTROPY_MAX_SEED_SIZE.
  *
@@ -407,10 +412,9 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
 
 /* We need to expand the sample definition of this macro from
  * the API definition. */
-#undef PSA_ALG_IS_HASH_AND_SIGN
-#define PSA_ALG_IS_HASH_AND_SIGN(alg)                                   \
-    (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||    \
-     PSA_ALG_IS_DSA(alg) || PSA_ALG_IS_ECDSA(alg))
+#undef PSA_ALG_IS_VENDOR_HASH_AND_SIGN
+#define PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg)    \
+    PSA_ALG_IS_DSA(alg)
 
 /**@}*/
 

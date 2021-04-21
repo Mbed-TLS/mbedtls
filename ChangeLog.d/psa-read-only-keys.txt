@@ -1,4 +1,5 @@
-Features
-   * The PSA API no longer allows the creation of keys with a read-only lifetime.
-     The persistence level PSA_KEY_PERSISTENCE_READ_ONLY can now only be used
-     as intended, for keys that cannot be modified through normal use of the API.
+Bugfix
+   * The PSA API no longer allows the creation or destruction of keys with a
+     read-only lifetime. The persistence level PSA_KEY_PERSISTENCE_READ_ONLY
+     can now only be used as intended, for keys that cannot be modified through
+     normal use of the API.

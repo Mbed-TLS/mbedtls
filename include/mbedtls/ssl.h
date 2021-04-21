@@ -3671,6 +3671,32 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
  */
 int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl );
 
+/**
+ * \brief          Return the current maximum incoming record payload in bytes.
+ *                 This takes into account various factors, such as the
+ *                 config.h setting \c MBEDTLS_SSL_IN_CONTENT_LEN, extensions
+ *                 such as the max fragment length extension or record size limit
+ *                 extension if used, and the current record expansion.
+ *
+ * \note           With DTLS, \c mbedtls_ssl_read() will return an error if
+ *                 called with a larger length value.
+ *                 With TLS, \c mbedtls_ssl_write() will fragment the input if
+ *                 necessary and return the number of bytes written; it is up
+ *                 to the caller to call \c mbedtls_ssl_write() again in
+ *                 order to send the remaining bytes if any.
+ *
+ * \sa             mbedtls_ssl_set_mtu()
+ * \sa             mbedtls_ssl_get_output_max_frag_len()
+ * \sa             mbedtls_ssl_get_input_max_frag_len()
+ * \sa             mbedtls_ssl_get_record_expansion()
+ *
+ * \param ssl      SSL context
+ *
+ * \return         Current maximum payload for an outgoing record,
+ *                 or a negative error code.
+ */
+int mbedtls_ssl_get_max_in_record_payload( const mbedtls_ssl_context *ssl );
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
  * \brief          Return the peer certificate from the current connection.

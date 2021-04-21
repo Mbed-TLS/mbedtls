@@ -4767,6 +4767,24 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl )
     return( (int) max_len );
 }
 
+int mbedtls_ssl_get_max_in_record_payload( const mbedtls_ssl_context *ssl )
+{
+    size_t max_len = MBEDTLS_SSL_IN_CONTENT_LEN;
+
+#if !defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    (void) ssl;
+#endif
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    const size_t mfl = mbedtls_ssl_get_input_max_frag_len( ssl );
+
+    if( max_len > mfl )
+        max_len = mfl;
+#endif
+
+    return( (int) max_len );
+}
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ssl )
 {

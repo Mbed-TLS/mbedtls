@@ -1175,20 +1175,6 @@
  * encoded in #PSA_ALG_AEAD_TAG_LENGTH_MASK. */
 #define PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG  ((psa_algorithm_t)0x00008000)
 
-/** Macro to test whether two AEAD algorithms correspond to the same base algorithm.
- *
- * \param aead_alg_1 An AEAD algorithm identifier.
- * \param aead_alg_2 An AEAD algorithm identifier.
- *
- * \return           1 if the base both arguments correspond to the same base
- *                   algorithm, 0 otherwise.
- *                   Unspecified if neither \p aead_alg_1 nor \p aead_alg_2 are
- *                   a supported AEAD algorithm.
- */
-#define PSA_ALG_AEAD_IS_BASE_EQUAL(aead_alg_1, aead_alg_2) \
-    (!(((aead_alg_1) ^ (aead_alg_2)) & \
-       ~(PSA_ALG_AEAD_TAG_LENGTH_MASK | PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)))
-
 /** Macro to build a shortened AEAD algorithm.
  *
  * A shortened AEAD algorithm is similar to the corresponding AEAD
@@ -2148,6 +2134,29 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * It can also be a key of type #PSA_KEY_TYPE_RAW_DATA.
  */
 #define PSA_KEY_DERIVATION_INPUT_SEED       ((psa_key_derivation_step_t)0x0204)
+
+/**@}*/
+
+/** \defgroup helper_macros Helper macros
+ * @{
+ */
+
+/* Helper macros */
+
+/** Check if two AEAD algorithm identifiers refer to the same AEAD algorithm
+ *  regardless of the tag length they encode.
+ *
+ * \param aead_alg_1 An AEAD algorithm identifier.
+ * \param aead_alg_2 An AEAD algorithm identifier.
+ *
+ * \return           1 if both identifiers refer to the same AEAD algorithm,
+ *                   0 otherwise.
+ *                   Unspecified if neither \p aead_alg_1 nor \p aead_alg_2 are
+ *                   a supported AEAD algorithm.
+ */
+#define MBEDTLS_PSA_ALG_AEAD_EQUAL(aead_alg_1, aead_alg_2) \
+    (!(((aead_alg_1) ^ (aead_alg_2)) & \
+       ~(PSA_ALG_AEAD_TAG_LENGTH_MASK | PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)))
 
 /**@}*/
 

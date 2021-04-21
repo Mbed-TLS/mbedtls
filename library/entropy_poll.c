@@ -159,11 +159,24 @@ static int sysctl_arnd_wrapper( unsigned char *buf, size_t buflen )
 #endif /* KERN_ARND */
 #endif /* __FreeBSD__ || __NetBSD__ */
 
+#if defined(__APPLE__)
+// Use randomization services to generate cryptographically secure random numbers
+#include <Security/SecRandom.h>
+#include <stdlib.h>
+#endif
+
 #include <stdio.h>
 
 int mbedtls_platform_entropy_poll( void *data,
                            unsigned char *output, size_t len, size_t *olen )
 {
+#if defined(__APPLE__)
+    int status = SecRandomCopyBytes(kSecRandomDefault, len, (uint8_t*)output);
+    if (status != errSecSuccess) {
+        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+    }
+    return( 0 );
+#endif
     FILE *file;
     size_t read_len;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

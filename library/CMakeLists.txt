@@ -127,6 +127,10 @@ if(WIN32)
     set(libs ${libs} ws2_32)
 endif(WIN32)
 
+if(APPLE)
+    list(APPEND libs "-framework Security")
+endif()
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
     SET(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")

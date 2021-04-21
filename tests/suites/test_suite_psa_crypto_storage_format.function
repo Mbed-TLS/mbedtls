@@ -8,6 +8,7 @@
 #include <psa_crypto_its.h>
 
 #define TEST_FLAG_EXERCISE      0x00000001
+#define TEST_FLAG_READ_ONLY     0x00000002
 
 /** Write a key with the given attributes and key material to storage.
  * Test that it has the expected representation.
@@ -115,10 +116,22 @@ static int test_read_key( const psa_key_attributes_t *expected_attributes,
                          psa_get_key_algorithm( expected_attributes ) ) );
     }
 
-    /* Destroy the key. Confirm through direct access to the storage. */
-    PSA_ASSERT( psa_destroy_key( key_id ) );
-    TEST_EQUAL( PSA_ERROR_DOES_NOT_EXIST,
-                psa_its_get_info( uid, &storage_info ) );
+
+    if( flags & TEST_FLAG_READ_ONLY )
+    {
+        /* Read-only keys cannot be removed through the API.
+         * The key will be removed through ITS in the cleanup code below.
+         * Purge the key from memory so that the test framework doesn't
+         * think the test is leaking it. */
+        PSA_ASSERT( psa_purge_key( key_id ) );
+    }
+    else
+    {
+        /* Destroy the key. Confirm through direct access to the storage. */
+        PSA_ASSERT( psa_destroy_key( key_id ) );
+        TEST_EQUAL( PSA_ERROR_DOES_NOT_EXIST,
+                    psa_its_get_info( uid, &storage_info ) );
+    }
 
     ok = 1;
 
@@ -219,7 +232,6 @@ void key_storage_read( int lifetime_arg, int type_arg, int bits_arg,
 
 exit:
     psa_reset_key_attributes( &attributes );
-    psa_destroy_key( key_id );
     PSA_DONE( );
 }
 /* END_CASE */

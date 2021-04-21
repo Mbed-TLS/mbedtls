@@ -289,6 +289,38 @@ class StorageFormat:
                           *extra_arguments])
         return tc
 
+    def key_for_lifetime(
+            self,
+            lifetime: str,
+    ) -> StorageKey:
+        """Construct a test key for the given lifetime."""
+        short = lifetime
+        short = re.sub(r'PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION',
+                       r'', short)
+        short = re.sub(r'PSA_KEY_[A-Z]+_', r'', short)
+        description = 'lifetime: ' + short
+        key = StorageKey(version=self.version,
+                         id=1, lifetime=lifetime,
+                         type='PSA_KEY_TYPE_RAW_DATA', bits=8,
+                         usage='PSA_KEY_USAGE_EXPORT', alg=0, alg2=0,
+                         material=b'L',
+                         description=description)
+        return key
+
+    def all_keys_for_lifetimes(self) -> Iterator[StorageKey]:
+        """Generate test keys covering lifetimes."""
+        lifetimes = sorted(self.constructors.lifetimes)
+        expressions = self.constructors.generate_expressions(lifetimes)
+        for lifetime in expressions:
+            # Don't attempt to create or load a volatile key in storage
+            if 'VOLATILE' in lifetime:
+                continue
+            # Don't attempt to create a read-only key in storage,
+            # but do attempt to load one.
+            if 'READ_ONLY' in lifetime and self.forward:
+                continue
+            yield self.key_for_lifetime(lifetime)
+
     def key_for_usage_flags(
             self,
             usage_flags: List[str],
@@ -389,12 +421,17 @@ class StorageFormat:
         # one go, which is a significant performance gain as the information
         # includes numerical values obtained by compiling a C program.
         keys = [] #type: List[StorageKey]
+        keys += self.all_keys_for_lifetimes()
         keys += self.all_keys_for_usage_flags()
         keys += self.all_keys_for_types()
         keys += self.all_keys_for_algorithms()
         for key in keys:
+            if key.location_value() != 0:
+                # Skip keys with a non-default location, because they
+                # require a driver and we currently have no mechanism to
+                # determine whether a driver is available.
+                continue
             yield self.make_test_case(key)
-        # To do: vary id, lifetime
 
 
 class TestGenerator:

@@ -738,11 +738,6 @@ const char * mbedtls_low_level_strerr( int error_code )
             return( "OID - output buffer is too small" );
 #endif /* MBEDTLS_OID_C */
 
-#if defined(MBEDTLS_PADLOCK_C)
-        case -(MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED):
-            return( "PADLOCK - Input data should be aligned" );
-#endif /* MBEDTLS_PADLOCK_C */
-
 #if defined(MBEDTLS_POLY1305_C)
         case -(MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA):
             return( "POLY1305 - Invalid input parameter(s)" );

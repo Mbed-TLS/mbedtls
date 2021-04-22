@@ -2898,17 +2898,17 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
  *       psa_sign_hash(). PSA_ALG_GET_HASH(\p alg) can be used to determine the
  *       hash algorithm to use.
  *
- * \param[in] key               Identifier of the key to use for the operation.
+ * \param[in]  key              Identifier of the key to use for the operation.
  *                              It must be an asymmetric key pair. The key must
  *                              allow the usage #PSA_KEY_USAGE_SIGN_MESSAGE.
- * \param[in] alg               An asymmetric signature algorithm (PSA_ALG_XXX
+ * \param[in]  alg              An asymmetric signature algorithm (PSA_ALG_XXX
  *                              value such that #PSA_ALG_IS_SIGN_MESSAGE(\p alg)
  *                              is true), that is compatible with the type of
  *                              \p key.
- * \param[in] input             The input message to sign.
- * \param[in] input_length      Size of the \p input buffer in bytes.
+ * \param[in]  input            The input message to sign.
+ * \param[in]  input_length     Size of the \p input buffer in bytes.
  * \param[out] signature        Buffer where the signature is to be written.
- * \param[in] signature_size    Size of the \p signature buffer in bytes. This
+ * \param[in]  signature_size   Size of the \p signature buffer in bytes. This
  *                              must be appropriate for the selected
  *                              algorithm and key:
  *                              - The required signature size is
@@ -2964,18 +2964,18 @@ psa_status_t psa_sign_message( mbedtls_svc_key_id_t key,
  *       PSA_ALG_GET_HASH(\p alg) can be used to determine the hash algorithm
  *       to use.
  *
- * \param[in] key               Identifier of the key to use for the operation.
+ * \param[in]  key              Identifier of the key to use for the operation.
  *                              It must be a public key or an asymmetric key
  *                              pair. The key must allow the usage
  *                              #PSA_KEY_USAGE_VERIFY_MESSAGE.
- * \param[in] alg               An asymmetric signature algorithm (PSA_ALG_XXX
+ * \param[in]  alg              An asymmetric signature algorithm (PSA_ALG_XXX
  *                              value such that #PSA_ALG_IS_SIGN_MESSAGE(\p alg)
  *                              is true), that is compatible with the type of
  *                              \p key.
- * \param[in] input             The message whose signature is to be verified.
- * \param[in] input_length      Size of the \p input buffer in bytes.
+ * \param[in]  input            The message whose signature is to be verified.
+ * \param[in]  input_length     Size of the \p input buffer in bytes.
  * \param[out] signature        Buffer containing the signature to verify.
- * \param[in] signature_length  Size of the \p signature buffer in bytes.
+ * \param[in]  signature_length Size of the \p signature buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_HANDLE

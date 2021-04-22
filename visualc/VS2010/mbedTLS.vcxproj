@@ -182,7 +182,6 @@
     <ClInclude Include="..\..\include\mbedtls\oid.h" />
     <ClInclude Include="..\..\include\mbedtls\pem.h" />
     <ClInclude Include="..\..\include\mbedtls\pk.h" />
-    <ClInclude Include="..\..\include\mbedtls\pkcs11.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs12.h" />
     <ClInclude Include="..\..\include\mbedtls\pkcs5.h" />
     <ClInclude Include="..\..\include\mbedtls\platform.h" />
@@ -321,7 +320,6 @@
     <ClCompile Include="..\..\library\pem.c" />
     <ClCompile Include="..\..\library\pk.c" />
     <ClCompile Include="..\..\library\pk_wrap.c" />
-    <ClCompile Include="..\..\library\pkcs11.c" />
     <ClCompile Include="..\..\library\pkcs12.c" />
     <ClCompile Include="..\..\library\pkcs5.c" />
     <ClCompile Include="..\..\library\pkparse.c" />

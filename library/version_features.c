@@ -726,9 +726,6 @@ static const char * const features[] = {
 #if defined(MBEDTLS_PKCS5_C)
     "MBEDTLS_PKCS5_C",
 #endif /* MBEDTLS_PKCS5_C */
-#if defined(MBEDTLS_PKCS11_C)
-    "MBEDTLS_PKCS11_C",
-#endif /* MBEDTLS_PKCS11_C */
 #if defined(MBEDTLS_PKCS12_C)
     "MBEDTLS_PKCS12_C",
 #endif /* MBEDTLS_PKCS12_C */

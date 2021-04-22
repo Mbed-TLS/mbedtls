@@ -1,0 +1,6 @@
+Removals
+   * Remove PKCS#11 library wrapper. PKCS#11 has limited functionality,
+     lacks automated tests and has scarce documentation. Also, PSA Crypto
+     provides a more flexible private key management.
+     More details on PCKS#11 wrapper removal can be found in the mailing list
+     https://lists.trustedfirmware.org/pipermail/mbed-tls/2020-April/000024.html

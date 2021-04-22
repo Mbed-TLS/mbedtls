@@ -2949,24 +2949,6 @@
 #define MBEDTLS_PKCS5_C
 
 /**
- * \def MBEDTLS_PKCS11_C
- *
- * Enable wrapper for PKCS#11 smartcard support via the pkcs11-helper library.
- *
- * \deprecated This option is deprecated and will be removed in a future
- *             version of Mbed TLS.
- *
- * Module:  library/pkcs11.c
- * Caller:  library/pk.c
- *
- * Requires: MBEDTLS_PK_C
- *
- * This module enables SSL/TLS PKCS #11 smartcard support.
- * Requires the presence of the PKCS#11 helper library (libpkcs11-helper)
- */
-//#define MBEDTLS_PKCS11_C
-
-/**
  * \def MBEDTLS_PKCS12_C
  *
  * Enable PKCS#12 PBE functions.

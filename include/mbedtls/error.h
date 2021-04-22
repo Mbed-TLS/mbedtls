@@ -122,7 +122,7 @@ extern "C" {
 /**
  * \brief Combines a high-level and low-level error code together.
  *
- *        Wrapper function for mbedtls_err_add_ext(). See that function for
+ *        Wrapper macro for mbedtls_error_add_ext(). See that function for
  *        more details.
  */
 #define MBEDTLS_ERROR_ADD( high, low ) \

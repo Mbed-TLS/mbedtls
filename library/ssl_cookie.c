@@ -220,7 +220,7 @@ int mbedtls_ssl_cookie_check( void *p_ctx,
 
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_SSL_INTERNAL_ERROR ,
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_SSL_INTERNAL_ERROR,
                 MBEDTLS_ERR_THREADING_MUTEX_ERROR ) );
 #endif
 

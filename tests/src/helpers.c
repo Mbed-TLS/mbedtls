@@ -298,22 +298,34 @@ void mbedtls_test_err_add_check( int high, int low,
      * h = high level error code (includes high and module error codes).
      * l = low level error code.
      */
-    if ( high > -0x1000 && high != 0 )  // high < 0001000000000000
+    if ( high > -0x1000 && high != 0 )
+    /* high < 0001000000000000
+     * No high level error bits are set.
+     */
     {
         mbedtls_test_fail( "'high' is not a high-level error code",
                             line, file );
     }
-    else if ( high < -0x7F80 )          // high > 0111111110000000
+    else if ( high < -0x7F80 )
+    /* high > 0111111110000000
+     * Error code is larger than the greatest high + module level error.
+     */
     {
         mbedtls_test_fail( "'high' error code is greater than 15 bits",
                             line, file );
     }
-    else if ( ( high & 0x7F ) != 0 )    // high & 0000000001111111
+    else if ( ( high & 0x7F ) != 0 )
+    /* high & 0000000001111111
+     * Error code contains low level error code bits.
+     */
     {
         mbedtls_test_fail( "'high' contains a low-level error code",
                             line, file );
     }
-    else if ( low < -0x007F )           // low >  0000000001111111
+    else if ( low < -0x007F )
+    /* low >  0000000001111111
+     * Error code contains high or module level error code bits.
+     */
     {
         mbedtls_test_fail( "'low' error code is greater than 7 bits",
                             line, file );

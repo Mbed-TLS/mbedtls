@@ -21,7 +21,7 @@ jobs:
       script:
         - tests/scripts/all.sh -k 'check_*'
         - tests/scripts/all.sh -k test_default_out_of_box
-        - tests/scripts/test-ref-configs.pl
+        - tests/scripts/all.sh -k test_ref_configs
         - tests/scripts/all.sh -k build_arm_none_eabi_gcc_arm5vte build_arm_none_eabi_gcc_m0plus
 
     - name: full configuration
@@ -37,13 +37,15 @@ jobs:
     - name: Windows
       os: windows
       before_install:
+        - choco install strawberryperl
         - choco install python --version=3.5.4
       env:
-        # Add the directory where the Choco package goes
-        - PATH=/c/Python35:/c/Python35/Scripts:$PATH
+        # Add the directory where the Choco packages go
+        - PATH=/c/Python35:/c/Python35/Scripts:/c/Strawberry:$PATH
       script:
+        - type perl; perl --version
         - type python; python --version
-        - python scripts/generate_psa_constants.py
+        - scripts/make_generated_files.bat
         # Logs appear out of sequence on Windows. Give time to catch up.
         - sleep 5
         - scripts/windows_msbuild.bat v141 # Visual Studio 2017

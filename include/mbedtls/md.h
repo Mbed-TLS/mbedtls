@@ -38,11 +38,6 @@
 #define MBEDTLS_ERR_MD_ALLOC_FAILED                       -0x5180  /**< Failed to allocate memory. */
 #define MBEDTLS_ERR_MD_FILE_IO_ERROR                      -0x5200  /**< Opening or reading of file failed. */
 
-// TODO [TR] for #4029: can't remove it because it's still used in the code.
-// see the other TODOs
-/* MBEDTLS_ERR_MD_HW_ACCEL_FAILED is deprecated and should not be used. */
-#define MBEDTLS_ERR_MD_HW_ACCEL_FAILED                    -0x5280  /**< MD hardware accelerator failed. */
-
 #ifdef __cplusplus
 extern "C" {
 #endif

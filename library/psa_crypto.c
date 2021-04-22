@@ -151,11 +151,7 @@ psa_status_t mbedtls_to_psa_error( int ret )
 
         case MBEDTLS_ERR_AES_INVALID_KEY_LENGTH:
         case MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH:
-        case MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE:
             return( PSA_ERROR_NOT_SUPPORTED );
-        case MBEDTLS_ERR_AES_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
-
         case MBEDTLS_ERR_ASN1_OUT_OF_DATA:
         case MBEDTLS_ERR_ASN1_UNEXPECTED_TAG:
         case MBEDTLS_ERR_ASN1_INVALID_LENGTH:
@@ -169,30 +165,20 @@ psa_status_t mbedtls_to_psa_error( int ret )
 
 #if defined(MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA)
         case MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA:
-#elif defined(MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH)
-        case MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH:
 #endif
         case MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH:
             return( PSA_ERROR_NOT_SUPPORTED );
-        case MBEDTLS_ERR_BLOWFISH_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
 
 #if defined(MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA)
         case MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA:
-#elif defined(MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH)
-        case MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH:
 #endif
         case MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH:
             return( PSA_ERROR_NOT_SUPPORTED );
-        case MBEDTLS_ERR_CAMELLIA_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
 
         case MBEDTLS_ERR_CCM_BAD_INPUT:
             return( PSA_ERROR_INVALID_ARGUMENT );
         case MBEDTLS_ERR_CCM_AUTH_FAILED:
             return( PSA_ERROR_INVALID_SIGNATURE );
-        case MBEDTLS_ERR_CCM_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
 
         case MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA:
             return( PSA_ERROR_INVALID_ARGUMENT );
@@ -216,11 +202,6 @@ psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_INVALID_SIGNATURE );
         case MBEDTLS_ERR_CIPHER_INVALID_CONTEXT:
             return( PSA_ERROR_CORRUPTION_DETECTED );
-        case MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
-
-        case MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
 
 #if !( defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) ||      \
        defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE) )
@@ -237,8 +218,6 @@ psa_status_t mbedtls_to_psa_error( int ret )
 
         case MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH:
             return( PSA_ERROR_NOT_SUPPORTED );
-        case MBEDTLS_ERR_DES_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
 
         case MBEDTLS_ERR_ENTROPY_NO_SOURCES_DEFINED:
         case MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE:
@@ -249,8 +228,6 @@ psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_INVALID_SIGNATURE );
         case MBEDTLS_ERR_GCM_BAD_INPUT:
             return( PSA_ERROR_INVALID_ARGUMENT );
-        case MBEDTLS_ERR_GCM_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
 
 #if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&        \
     defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE)
@@ -314,8 +291,6 @@ psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_NOT_SUPPORTED );
         case MBEDTLS_ERR_PK_SIG_LEN_MISMATCH:
             return( PSA_ERROR_INVALID_SIGNATURE );
-        case MBEDTLS_ERR_PK_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
 
         case MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
@@ -339,15 +314,9 @@ psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
         case MBEDTLS_ERR_RSA_RNG_FAILED:
             return( PSA_ERROR_INSUFFICIENT_ENTROPY );
-        case MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION:
-            return( PSA_ERROR_NOT_SUPPORTED );
-        case MBEDTLS_ERR_RSA_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
 
         case MBEDTLS_ERR_XTEA_INVALID_INPUT_LENGTH:
             return( PSA_ERROR_INVALID_ARGUMENT );
-        case MBEDTLS_ERR_XTEA_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
 
         case MBEDTLS_ERR_ECP_BAD_INPUT_DATA:
         case MBEDTLS_ERR_ECP_INVALID_KEY:
@@ -363,8 +332,6 @@ psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
         case MBEDTLS_ERR_ECP_RANDOM_FAILED:
             return( PSA_ERROR_INSUFFICIENT_ENTROPY );
-        case MBEDTLS_ERR_ECP_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
 
         case MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED:
             return( PSA_ERROR_CORRUPTION_DETECTED );

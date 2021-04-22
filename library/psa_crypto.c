@@ -156,9 +156,6 @@ psa_status_t mbedtls_to_psa_error( int ret )
         case MBEDTLS_ERR_AES_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
 
-        case MBEDTLS_ERR_ARC4_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
-
         case MBEDTLS_ERR_ASN1_OUT_OF_DATA:
         case MBEDTLS_ERR_ASN1_UNEXPECTED_TAG:
         case MBEDTLS_ERR_ASN1_INVALID_LENGTH:
@@ -268,11 +265,6 @@ psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_INSUFFICIENT_ENTROPY );
 #endif
 
-        case MBEDTLS_ERR_MD2_HW_ACCEL_FAILED:
-        case MBEDTLS_ERR_MD4_HW_ACCEL_FAILED:
-        case MBEDTLS_ERR_MD5_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
-
         case MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE:
             return( PSA_ERROR_NOT_SUPPORTED );
         case MBEDTLS_ERR_MD_BAD_INPUT_DATA:
@@ -281,8 +273,6 @@ psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
         case MBEDTLS_ERR_MD_FILE_IO_ERROR:
             return( PSA_ERROR_STORAGE_FAILURE );
-        case MBEDTLS_ERR_MD_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
 
         case MBEDTLS_ERR_MPI_FILE_IO_ERROR:
             return( PSA_ERROR_STORAGE_FAILURE );
@@ -332,9 +322,6 @@ psa_status_t mbedtls_to_psa_error( int ret )
         case MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED:
             return( PSA_ERROR_NOT_SUPPORTED );
 
-        case MBEDTLS_ERR_RIPEMD160_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
-
         case MBEDTLS_ERR_RSA_BAD_INPUT_DATA:
             return( PSA_ERROR_INVALID_ARGUMENT );
         case MBEDTLS_ERR_RSA_INVALID_PADDING:
@@ -355,11 +342,6 @@ psa_status_t mbedtls_to_psa_error( int ret )
         case MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION:
             return( PSA_ERROR_NOT_SUPPORTED );
         case MBEDTLS_ERR_RSA_HW_ACCEL_FAILED:
-            return( PSA_ERROR_HARDWARE_FAILURE );
-
-        case MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED:
-        case MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED:
-        case MBEDTLS_ERR_SHA512_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
 
         case MBEDTLS_ERR_XTEA_INVALID_INPUT_LENGTH:

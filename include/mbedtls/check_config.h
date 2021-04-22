@@ -362,18 +362,6 @@
 #error "MBEDTLS_PK_WRITE_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PKCS11_C) && !defined(MBEDTLS_PK_C)
-#error "MBEDTLS_PKCS11_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_PKCS11_C)
-#if defined(MBEDTLS_DEPRECATED_REMOVED)
-#error "MBEDTLS_PKCS11_C is deprecated and will be removed in a future version of Mbed TLS"
-#elif defined(MBEDTLS_DEPRECATED_WARNING)
-#warning "MBEDTLS_PKCS11_C is deprecated and will be removed in a future version of Mbed TLS"
-#endif
-#endif /* MBEDTLS_PKCS11_C */
-
 #if defined(MBEDTLS_PLATFORM_EXIT_ALT) && !defined(MBEDTLS_PLATFORM_C)
 #error "MBEDTLS_PLATFORM_EXIT_ALT defined, but not all prerequisites"
 #endif

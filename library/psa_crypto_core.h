@@ -388,7 +388,6 @@ psa_status_t psa_generate_key_internal( const psa_key_attributes_t *attributes,
  * \param[in]  attributes       The attributes of the key to use for the
  *                              operation.
  * \param[in]  key_buffer       The buffer containing the key context.
- *                              format.
  * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes.
  * \param[in]  alg              A signature algorithm that is compatible with
  *                              the type of the key.
@@ -429,7 +428,6 @@ psa_status_t psa_sign_hash_internal(
  * \param[in]  attributes       The attributes of the key to use for the
  *                              operation.
  * \param[in]  key_buffer       The buffer containing the key context.
- *                              format.
  * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes.
  * \param[in]  alg              A signature algorithm that is compatible with
  *                              the type of the key.

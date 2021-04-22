@@ -271,7 +271,7 @@ int mbedtls_pk_write_pubkey_der( const mbedtls_pk_context *key, unsigned char *b
 
         key_id = *((psa_key_id_t*) key->pk_ctx );
         if( PSA_SUCCESS != psa_get_key_attributes( key_id, &attributes ) )
-            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
         key_type = psa_get_key_type( &attributes );
         bits = psa_get_key_bits( &attributes );
         psa_reset_key_attributes( &attributes );

@@ -7178,7 +7178,7 @@ exit:
             case PSA_ERROR_INSUFFICIENT_MEMORY:
                 return( MBEDTLS_ERR_MD_ALLOC_FAILED );
             default:
-                return( MBEDTLS_ERR_MD_HW_ACCEL_FAILED );
+                return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
         }
     }
     return( 0 );

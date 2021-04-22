@@ -147,7 +147,12 @@ psa/psa_constant_names_generated.c:
 	$(PYTHON) ../scripts/generate_psa_constants.py
 
 test/query_config.c: ../scripts/generate_query_config.pl
-test/query_config.c: ../include/mbedtls/config.h
+## The generated file only depends on the options that are present in config.h,
+## not on which options are set. To avoid regenerating this file all the time
+## when switching between configurations, don't declare config.h as a
+## dependency. Remove this file from your working tree if you've just added or
+## removed an option in config.h.
+#test/query_config.c: ../include/mbedtls/config.h
 test/query_config.c: ../scripts/data_files/query_config.fmt
 test/query_config.c:
 	echo "  Gen   $@"

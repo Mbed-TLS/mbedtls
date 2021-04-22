@@ -162,33 +162,6 @@ void mbedtls_md_init( mbedtls_md_context_t *ctx );
  */
 void mbedtls_md_free( mbedtls_md_context_t *ctx );
 
-#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif
-/**
- * \brief           This function selects the message digest algorithm to use,
- *                  and allocates internal structures.
- *
- *                  It should be called after mbedtls_md_init() or mbedtls_md_free().
- *                  Makes it necessary to call mbedtls_md_free() later.
- *
- * \deprecated      Superseded by mbedtls_md_setup() in 2.0.0
- *
- * \param ctx       The context to set up.
- * \param md_info   The information structure of the message-digest algorithm
- *                  to use.
- *
- * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
- *                  failure.
- * \return          #MBEDTLS_ERR_MD_ALLOC_FAILED on memory-allocation failure.
- */
-int mbedtls_md_init_ctx( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info ) MBEDTLS_DEPRECATED;
-#undef MBEDTLS_DEPRECATED
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 /**
  * \brief           This function selects the message digest algorithm to use,

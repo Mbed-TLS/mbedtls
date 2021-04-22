@@ -2,10 +2,6 @@ set(libs
     ${mbedx509_target}
 )
 
-if(USE_PKCS11_HELPER_LIBRARY)
-    set(libs ${libs} pkcs11-helper)
-endif(USE_PKCS11_HELPER_LIBRARY)
-
 set(executables
     cert_app
     cert_req

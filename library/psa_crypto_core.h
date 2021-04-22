@@ -357,6 +357,79 @@ psa_status_t psa_generate_key_internal( const psa_key_attributes_t *attributes,
                                         uint8_t *key_buffer,
                                         size_t key_buffer_size,
                                         size_t *key_buffer_length );
+/** Sign a message with a private key. For hash-and-sign algorithms,
+ *  this includes the hashing step.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       sign_message entry point. This function behaves as a sign_message
+ *       entry point as defined in the PSA driver interface specification for
+ *       transparent drivers.
+ *
+ * \param[in]  attributes       The attributes of the key to use for the
+ *                              operation.
+ * \param[in]  key_buffer       The buffer containing the key context.
+ * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes.
+ * \param[in]  alg              A signature algorithm that is compatible with
+ *                              the type of the key.
+ * \param[in]  input            The input message to sign.
+ * \param[in]  input_length     Size of the \p input buffer in bytes.
+ * \param[out] signature        Buffer where the signature is to be written.
+ * \param[in]  signature_size   Size of the \p signature buffer in bytes.
+ * \param[out] signature_length On success, the number of bytes
+ *                              that make up the returned signature value.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p signature buffer is too small. You can
+ *         determine a sufficient buffer size by calling
+ *         #PSA_SIGN_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
+ *         where \c key_type and \c key_bits are the type and bit-size
+ *         respectively of the key.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
+ */
+psa_status_t psa_sign_message_internal(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *input, size_t input_length,
+    uint8_t *signature, size_t signature_size, size_t *signature_length );
+
+/** Verify the signature of a message with a public key, using
+ *  a hash-and-sign verification algorithm.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       verify_message entry point. This function behaves as a verify_message
+ *       entry point as defined in the PSA driver interface specification for
+ *       transparent drivers.
+ *
+ * \param[in]  attributes       The attributes of the key to use for the
+ *                              operation.
+ * \param[in]  key_buffer       The buffer containing the key context.
+ * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes.
+ * \param[in]  alg              A signature algorithm that is compatible with
+ *                              the type of the key.
+ * \param[in]  input            The message whose signature is to be verified.
+ * \param[in]  input_length     Size of the \p input buffer in bytes.
+ * \param[in]  signature        Buffer containing the signature to verify.
+ * \param[in]  signature_length Size of the \p signature buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The signature is valid.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The calculation was performed successfully, but the passed
+ *         signature is not a valid signature.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+psa_status_t psa_verify_message_internal(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *input, size_t input_length,
+    const uint8_t *signature, size_t signature_length );
 
 /** Sign an already-calculated hash with a private key.
  *

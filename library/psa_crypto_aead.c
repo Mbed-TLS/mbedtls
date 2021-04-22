@@ -948,7 +948,7 @@ psa_status_t mbedtls_psa_aead_verify( psa_aead_operation_t *operation,
     {
         if( do_tag_check && safer_memcmp(tag, check_tag, tag_length) != 0 )
         {
-            status = MBEDTLS_ERR_GCM_AUTH_FAILED;
+            status = PSA_ERROR_INVALID_SIGNATURE;
         }
     }
 
@@ -960,10 +960,10 @@ psa_status_t mbedtls_psa_aead_verify( psa_aead_operation_t *operation,
 /* Abort an AEAD operation */
 psa_status_t mbedtls_psa_aead_abort( psa_aead_operation_t *operation )
 {
-   switch( operation->alg )
+    switch( operation->alg )
     {
-#if defined(MBEDTLS_CCM_C)
-        case MBEDTLS_PSA_BUILTIN_ALG_CCM:
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+        case PSA_ALG_CCM:
             mbedtls_ccm_free( &operation->ctx.ccm );
             break;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
@@ -973,9 +973,9 @@ psa_status_t mbedtls_psa_aead_abort( psa_aead_operation_t *operation )
             break;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
-       case PSA_ALG_CHACHA20_POLY1305:
-           mbedtls_chachapoly_free( &operation->ctx.chachapoly );
-           break;
+        case PSA_ALG_CHACHA20_POLY1305:
+            mbedtls_chachapoly_free( &operation->ctx.chachapoly );
+            break;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     }
 

@@ -279,14 +279,19 @@ generated_files: $(GENERATED_FILES)
 
 error.c: ../scripts/generate_errors.pl
 error.c: ../scripts/data_files/error.fmt
-error.c: $(wildcard ../include/mbedtls/*.h)
+error.c: $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
 error.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_errors.pl
 
 version_features.c: ../scripts/generate_features.pl
 version_features.c: ../scripts/data_files/version_features.fmt
-version_features.c: ../include/mbedtls/config.h
+## The generated file only depends on the options that are present in config.h,
+## not on which options are set. To avoid regenerating this file all the time
+## when switching between configurations, don't declare config.h as a
+## dependency. Remove this file from your working tree if you've just added or
+## removed an option in config.h.
+#version_features.c: ../include/mbedtls/config.h
 version_features.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_features.pl

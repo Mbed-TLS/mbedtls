@@ -64,7 +64,12 @@ GENERATED_FILES := $(GENERATED_DATA_FILES)
 generated_files: $(GENERATED_FILES)
 
 $(GENERATED_DATA_FILES): scripts/generate_psa_tests.py
-$(GENERATED_DATA_FILES): ../include/psa/crypto_config.h
+## The generated file only depends on the options that are present in
+## crypto_config.h, not on which options are set. To avoid regenerating this
+## file all the time when switching between configurations, don't declare
+## crypto_config.h as a dependency. Remove this file from your working tree
+## if you've just added or removed an option in crypto_config.h.
+#$(GENERATED_DATA_FILES): ../include/psa/crypto_config.h
 $(GENERATED_DATA_FILES): ../include/psa/crypto_values.h
 $(GENERATED_DATA_FILES): ../include/psa/crypto_extra.h
 $(GENERATED_DATA_FILES): suites/test_suite_psa_crypto_metadata.data

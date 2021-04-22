@@ -177,10 +177,10 @@ sub gen_app {
 }
 
 sub get_app_list {
-    my $app_list = `cd $programs_dir && make list`;
-    die "make list failed: $!\n" if $?;
-
-    return split /\s+/, $app_list;
+    my $makefile_contents = slurp_file('programs/Makefile');
+    $makefile_contents =~ /\n\s*APPS\s*=[\\\s]*(.*?)(?<!\\)[\#\n]/s
+      or die "Cannot find APPS = ... in programs/Makefile\n";
+    return split /(?:\s|\\)+/, $1;
 }
 
 sub gen_app_files {

@@ -2535,20 +2535,9 @@ static psa_status_t psa_sign_internal( mbedtls_svc_key_id_t key,
 
     if( operation == PSA_SIGN_MESSAGE )
     {
-        size_t hash_length;
-        uint8_t hash[PSA_HASH_MAX_SIZE];
-
-        status = psa_driver_wrapper_hash_compute( PSA_ALG_SIGN_GET_HASH( alg ),
-                                                  input, input_length,
-                                                  hash, sizeof( hash ),
-                                                  &hash_length );
-
-        if( status != PSA_SUCCESS )
-            goto exit;
-
-        status = psa_driver_wrapper_sign_hash(
+        status = psa_driver_wrapper_sign_message(
             &attributes, slot->key.data, slot->key.bytes,
-            alg, hash, hash_length,
+            alg, input, input_length,
             signature, signature_size, signature_length );
     }
     else if( operation == PSA_SIGN_HASH )
@@ -2624,20 +2613,9 @@ static psa_status_t psa_verify_internal( mbedtls_svc_key_id_t key,
 
     if( operation == PSA_VERIFY_MESSAGE )
     {
-        size_t hash_length;
-        uint8_t hash[PSA_HASH_MAX_SIZE];
-
-        status = psa_driver_wrapper_hash_compute( PSA_ALG_SIGN_GET_HASH( alg ),
-                                                  input, input_length,
-                                                  hash, sizeof( hash ),
-                                                  &hash_length );
-
-        if( status != PSA_SUCCESS )
-            goto exit;
-
-        status = psa_driver_wrapper_verify_hash(
+        status = psa_driver_wrapper_verify_message(
             &attributes, slot->key.data, slot->key.bytes,
-            alg, hash, hash_length,
+            alg, input, input_length,
             signature, signature_length );
     }
     else if( operation == PSA_VERIFY_HASH )
@@ -2648,11 +2626,39 @@ static psa_status_t psa_verify_internal( mbedtls_svc_key_id_t key,
             signature, signature_length );
     }
 
-exit:
     unlock_status = psa_unlock_key_slot( slot );
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 
+}
+
+psa_status_t psa_sign_message_internal(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *signature,
+    size_t signature_size,
+    size_t *signature_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t hash_length;
+    uint8_t hash[PSA_HASH_MAX_SIZE];
+
+    status = psa_driver_wrapper_hash_compute( PSA_ALG_SIGN_GET_HASH( alg ),
+                                              input, input_length,
+                                              hash, sizeof( hash ),
+                                              &hash_length );
+
+    if( status != PSA_SUCCESS )
+        return status;
+
+    return psa_sign_hash_internal(
+                attributes, key_buffer, key_buffer_size,
+                alg, hash, hash_length,
+                signature, signature_size, signature_length );
 }
 
 psa_status_t psa_sign_message( mbedtls_svc_key_id_t key,
@@ -2666,6 +2672,34 @@ psa_status_t psa_sign_message( mbedtls_svc_key_id_t key,
     return psa_sign_internal(
         key, PSA_SIGN_MESSAGE, alg, input, input_length,
         signature, signature_size, signature_length );
+}
+
+psa_status_t psa_verify_message_internal(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    const uint8_t *signature,
+    size_t signature_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t hash_length;
+    uint8_t hash[PSA_HASH_MAX_SIZE];
+
+    status = psa_driver_wrapper_hash_compute( PSA_ALG_SIGN_GET_HASH( alg ),
+                                              input, input_length,
+                                              hash, sizeof( hash ),
+                                              &hash_length );
+
+    if( status != PSA_SUCCESS )
+        return status;
+
+    return psa_verify_hash_internal(
+                attributes, key_buffer, key_buffer_size,
+                alg, hash, hash_length,
+                signature, signature_length );
 }
 
 psa_status_t psa_verify_message( mbedtls_svc_key_id_t key,

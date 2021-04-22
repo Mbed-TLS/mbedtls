@@ -2728,7 +2728,7 @@
  *
  * Requires: MBEDTLS_ECP_C, MBEDTLS_MD_C
  */
-//  #define MBEDTLS_ECJPAKE_C
+#define MBEDTLS_ECJPAKE_C
 
 /**
  * \def MBEDTLS_ECP_C

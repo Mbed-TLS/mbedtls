@@ -295,12 +295,13 @@ void mbedtls_test_err_add_check( int high, int low,
      *                                                shhhhhhhhlllllll
      *
      * s = sign bit.
-     * h = high level error code (includes high and module error codes).
+     * h = high level error code (includes high level module ID (bits 12..14)
+     *     and module-dependent error code (bits 7..11)).
      * l = low level error code.
      */
     if ( high > -0x1000 && high != 0 )
     /* high < 0001000000000000
-     * No high level error bits are set.
+     * No high level module ID bits are set.
      */
     {
         mbedtls_test_fail( "'high' is not a high-level error code",

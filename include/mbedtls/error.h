@@ -122,11 +122,11 @@ extern "C" {
 /**
  * \brief Combines a high-level and low-level error code together.
  *
- *        Wrapper macro for mbedtls_error_add_ext(). See that function for
+ *        Wrapper macro for mbedtls_error_add(). See that function for
  *        more details.
  */
 #define MBEDTLS_ERROR_ADD( high, low ) \
-        mbedtls_error_add_ext( high, low, __FILE__, __LINE__ )
+        mbedtls_error_add( high, low, __FILE__, __LINE__ )
 
 #if defined(MBEDTLS_TEST_HOOKS)
 /**
@@ -154,7 +154,7 @@ extern void (*mbedtls_test_hook_error_add)( int, int, const char *, int );
  * \param file      file where this error code addition occured.
  * \param line      line where this error code addition occured.
  */
-static inline int mbedtls_error_add_ext( int high, int low,
+static inline int mbedtls_error_add( int high, int low,
                                      const char *file, int line )
 {
 #if defined(MBEDTLS_TEST_HOOKS)

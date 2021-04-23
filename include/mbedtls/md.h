@@ -33,6 +33,12 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#ifndef ALLOW_PRIVATE_ACCESS
+#define MBEDTLS_PRIVATE(member) private_##member
+#else
+#define MBEDTLS_PRIVATE(member) member
+#endif
+
 #define MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE                -0x5080  /**< The selected feature is not available. */
 #define MBEDTLS_ERR_MD_BAD_INPUT_DATA                     -0x5100  /**< Bad input parameters to function. */
 #define MBEDTLS_ERR_MD_ALLOC_FAILED                       -0x5180  /**< Failed to allocate memory. */
@@ -99,7 +105,7 @@ typedef struct mbedtls_md_context_t
     const mbedtls_md_info_t *md_info;
 
     /** The digest-specific context. */
-    void *md_ctx;
+    void *MBEDTLS_PRIVATE(md_ctx);
 
     /** The HMAC part of the context. */
     void *hmac_ctx;

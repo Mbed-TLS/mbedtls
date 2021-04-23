@@ -92,6 +92,7 @@ APPS = \
 	ssl/ssl_server2$(EXEXT) \
 	test/benchmark$(EXEXT) \
 	test/query_compile_time_config$(EXEXT) \
+	test/private_access_test$(EXEXT) \
 	test/selftest$(EXEXT) \
 	test/udp_proxy$(EXEXT) \
 	test/zeroize$(EXEXT) \
@@ -319,6 +320,10 @@ test/selftest$(EXEXT): test/selftest.c $(DEP)
 test/udp_proxy$(EXEXT): test/udp_proxy.c $(DEP)
 	echo "  CC    test/udp_proxy.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/udp_proxy.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test/private_access_test$(EXEXT): test/private_access_test.c $(DEP)
+	echo "  CC    test/private_access_test.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/private_access_test.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/zeroize$(EXEXT): test/zeroize.c $(DEP)
 	echo "  CC    test/zeroize.c"

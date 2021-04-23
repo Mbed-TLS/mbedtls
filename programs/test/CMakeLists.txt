@@ -9,6 +9,7 @@ endif(USE_PKCS11_HELPER_LIBRARY)
 set(executables_libs
     selftest
     udp_proxy
+    private_access_test
 )
 
 set(executables_mbedcrypto

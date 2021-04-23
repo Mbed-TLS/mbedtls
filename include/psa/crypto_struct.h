@@ -326,9 +326,17 @@ typedef struct
 
 #define PSA_CORE_KEY_ATTRIBUTES_INIT {PSA_KEY_TYPE_NONE, 0, PSA_KEY_LIFETIME_VOLATILE, MBEDTLS_SVC_KEY_ID_INIT, PSA_KEY_POLICY_INIT, 0}
 
+
+#ifndef ALLOW_PRIVATE_ACCESS
+#define PSA_PRIVATE(member) private_##member
+#else
+#define PSA_PRIVATE(member) member
+#endif
+
+
 struct psa_key_attributes_s
 {
-    psa_core_key_attributes_t core;
+    psa_core_key_attributes_t PSA_PRIVATE(core);
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     psa_key_slot_number_t slot_number;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
@@ -351,13 +359,13 @@ static inline struct psa_key_attributes_s psa_key_attributes_init( void )
 static inline void psa_set_key_id( psa_key_attributes_t *attributes,
                                    mbedtls_svc_key_id_t key )
 {
-    psa_key_lifetime_t lifetime = attributes->core.lifetime;
+    psa_key_lifetime_t lifetime = attributes->PSA_PRIVATE(core).lifetime;
 
-    attributes->core.id = key;
+    attributes->PSA_PRIVATE(core).id = key;
 
     if( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
     {
-        attributes->core.lifetime =
+        attributes->PSA_PRIVATE(core).lifetime =
             PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
                 PSA_KEY_LIFETIME_PERSISTENT,
                 PSA_KEY_LIFETIME_GET_LOCATION( lifetime ) );
@@ -367,27 +375,27 @@ static inline void psa_set_key_id( psa_key_attributes_t *attributes,
 static inline mbedtls_svc_key_id_t psa_get_key_id(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->core.id );
+    return( attributes->PSA_PRIVATE(core).id );
 }
 
 #ifdef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
 static inline void mbedtls_set_key_owner_id( psa_key_attributes_t *attributes,
                                              mbedtls_key_owner_id_t owner )
 {
-    attributes->core.id.owner = owner;
+    attributes->PSA_PRIVATE(core).id.owner = owner;
 }
 #endif
 
 static inline void psa_set_key_lifetime(psa_key_attributes_t *attributes,
                                         psa_key_lifetime_t lifetime)
 {
-    attributes->core.lifetime = lifetime;
+    attributes->PSA_PRIVATE(core).lifetime = lifetime;
     if( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
     {
 #ifdef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
-        attributes->core.id.key_id = 0;
+        attributes->PSA_PRIVATE(core).id.key_id = 0;
 #else
-        attributes->core.id = 0;
+        attributes->PSA_PRIVATE(core).id = 0;
 #endif
     }
 }
@@ -395,31 +403,31 @@ static inline void psa_set_key_lifetime(psa_key_attributes_t *attributes,
 static inline psa_key_lifetime_t psa_get_key_lifetime(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->core.lifetime );
+    return( attributes->PSA_PRIVATE(core).lifetime );
 }
 
 static inline void psa_set_key_usage_flags(psa_key_attributes_t *attributes,
                                            psa_key_usage_t usage_flags)
 {
-    attributes->core.policy.usage = usage_flags;
+    attributes->PSA_PRIVATE(core).policy.usage = usage_flags;
 }
 
 static inline psa_key_usage_t psa_get_key_usage_flags(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->core.policy.usage );
+    return( attributes->PSA_PRIVATE(core).policy.usage );
 }
 
 static inline void psa_set_key_algorithm(psa_key_attributes_t *attributes,
                                          psa_algorithm_t alg)
 {
-    attributes->core.policy.alg = alg;
+    attributes->PSA_PRIVATE(core).policy.alg = alg;
 }
 
 static inline psa_algorithm_t psa_get_key_algorithm(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->core.policy.alg );
+    return( attributes->PSA_PRIVATE(core).policy.alg );
 }
 
 /* This function is declared in crypto_extra.h, which comes after this
@@ -435,7 +443,7 @@ static inline void psa_set_key_type(psa_key_attributes_t *attributes,
     if( attributes->domain_parameters == NULL )
     {
         /* Common case: quick path */
-        attributes->core.type = type;
+        attributes->PSA_PRIVATE(core).type = type;
     }
     else
     {
@@ -450,22 +458,22 @@ static inline void psa_set_key_type(psa_key_attributes_t *attributes,
 static inline psa_key_type_t psa_get_key_type(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->core.type );
+    return( attributes->PSA_PRIVATE(core).type );
 }
 
 static inline void psa_set_key_bits(psa_key_attributes_t *attributes,
                                     size_t bits)
 {
     if( bits > PSA_MAX_KEY_BITS )
-        attributes->core.bits = PSA_KEY_BITS_TOO_LARGE;
+        attributes->PSA_PRIVATE(core).bits = PSA_KEY_BITS_TOO_LARGE;
     else
-        attributes->core.bits = (psa_key_bits_t) bits;
+        attributes->PSA_PRIVATE(core).bits = (psa_key_bits_t) bits;
 }
 
 static inline size_t psa_get_key_bits(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->core.bits );
+    return( attributes->PSA_PRIVATE(core).bits );
 }
 
 #ifdef __cplusplus

@@ -26,7 +26,7 @@ jobs:
         # Logs appear out of sequence on Windows. Give time to catch up.
         - sleep 5
         - ls -l library/error.c library/version_features.c programs/psa/psa_constant_names_generated.c programs/test/query_config.c tests/suites/test_suite_psa_crypto_not_supported.generated.data tests/suites/test_suite_psa_crypto_storage_format.current.data tests/suites/test_suite_psa_crypto_storage_format.v0.data
-        - for x in library/error.c library/version_features.c programs/psa/psa_constant_names_generated.c programs/test/query_config.c tests/suites/test_suite_psa_crypto_not_supported.generated.data tests/suites/test_suite_psa_crypto_storage_format.current.data tests/suites/test_suite_psa_crypto_storage_format.v0.data; do echo "==== $x ===="; head $x | cat -A; echo; done
+        - for x in scripts/data_files/*.fmt library/error.c library/version_features.c programs/psa/psa_constant_names_generated.c programs/test/query_config.c tests/suites/test_suite_psa_crypto_not_supported.generated.data tests/suites/test_suite_psa_crypto_storage_format.current.data tests/suites/test_suite_psa_crypto_storage_format.v0.data; do echo "==== $x ===="; head $x | cat -A; echo; done
         - scripts/windows_msbuild.bat v141 # Visual Studio 2017
 
 after_failure:

@@ -14,7 +14,6 @@ jobs:
     - name: Windows
       os: windows
       before_install:
-        - choco install strawberryperl
         - choco install python --version=3.5.4
       env:
         # Add the directory where the Choco packages go

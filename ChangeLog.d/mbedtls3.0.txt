@@ -1,0 +1,3 @@
+Changes
+   * There is ongoing work for the next release (= Mbed TLS 3.0.0 branch to
+     be released 2021-xx-xx), including various API-breaking changes.

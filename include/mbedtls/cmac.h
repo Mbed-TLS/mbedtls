@@ -198,6 +198,13 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_len,
 /**
  * \brief          The CMAC checkup routine.
  *
+ * \note           In case the CMAC routines are provided by an alternative
+ *                 implementation (i.e. #MBEDTLS_CMAC_ALT is defined), the
+ *                 checkup routine will succeed even if the implementation does
+ *                 not support the less widely used AES-192 or 3DES primitives.
+ *                 The self-test requires at least AES-128 and AES-256 to be
+ *                 supported by the underlying implementation.
+ *
  * \return         \c 0 on success.
  * \return         \c 1 on failure.
  */

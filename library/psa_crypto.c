@@ -3227,7 +3227,7 @@ psa_status_t psa_aead_encrypt_setup( psa_aead_operation_t *operation,
         return( PSA_ERROR_NOT_SUPPORTED );
 
     status = psa_get_and_lock_key_slot_with_policy(
-                 key, &slot, PSA_KEY_USAGE_DECRYPT, alg );
+                 key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
 
     if( status != PSA_SUCCESS )
     {

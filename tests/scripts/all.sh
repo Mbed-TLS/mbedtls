@@ -2702,6 +2702,7 @@ run_component () {
 pre_check_environment
 pre_initialize_variables
 pre_parse_command_line "$@"
+exit 0
 
 pre_check_git
 

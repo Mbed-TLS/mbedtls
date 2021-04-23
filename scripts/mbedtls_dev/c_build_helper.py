@@ -108,6 +108,10 @@ def get_c_expression_values(
     * ``keep_c``: if true, keep the temporary C file (presumably for debugging
       purposes).
 
+    Use the C compiler specified by the ``CC`` environment variable, defaulting
+    to ``cc``. If ``CC`` looks like MSVC, use its command line syntax,
+    otherwise assume the compiler supports Unix traditional ``-I`` and ``-o``.
+
     Return the list of values of the ``expressions``.
     """
     if include_path is None:
@@ -124,9 +128,14 @@ def get_c_expression_values(
         )
         c_file.close()
         cc = os.getenv('CC', 'cc')
-        subprocess.check_call([cc] +
-                              ['-I' + dir for dir in include_path] +
-                              ['-o', exe_name, c_name])
+        cc_is_msvc = ('\\' + cc).lower().endswith('\\cl.exe')
+        cmd = [cc]
+        cmd += ['-I' + dir for dir in include_path]
+        # MSVC doesn't support -o to specify the output file, but we use its
+        # default output file name.
+        if not cc_is_msvc:
+            cmd += ['-o', exe_name]
+        subprocess.check_call(cmd + [c_name])
         if keep_c:
             sys.stderr.write('List of {} tests kept at {}\n'
                              .format(caller, c_name))

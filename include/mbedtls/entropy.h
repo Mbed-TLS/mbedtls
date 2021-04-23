@@ -181,6 +181,9 @@ int mbedtls_entropy_add_source( mbedtls_entropy_context *ctx,
  * \brief           Trigger an extra gather poll for the accumulator
  *                  (Thread-safe if MBEDTLS_THREADING_C is enabled)
  *
+ * \note            Depending on the platform (including kernel version), this
+ *                  function may block until entropy becomes available.
+ *
  * \param ctx       Entropy context
  *
  * \return          0 if successful, or MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
@@ -191,6 +194,9 @@ int mbedtls_entropy_gather( mbedtls_entropy_context *ctx );
  * \brief           Retrieve entropy from the accumulator
  *                  (Maximum length: MBEDTLS_ENTROPY_BLOCK_SIZE)
  *                  (Thread-safe if MBEDTLS_THREADING_C is enabled)
+ *
+ * \note            Depending on the platform (including kernel version), this
+ *                  function may block until entropy becomes available.
  *
  * \param data      Entropy context
  * \param output    Buffer to fill
@@ -218,6 +224,9 @@ int mbedtls_entropy_update_manual( mbedtls_entropy_context *ctx,
  * \brief           Trigger an update of the seed file in NV by using the
  *                  current entropy pool.
  *
+ * \note            Depending on the platform (including kernel version), this
+ *                  function may block until entropy becomes available.
+ *
  * \param ctx       Entropy context
  *
  * \return          0 if successful
@@ -228,6 +237,10 @@ int mbedtls_entropy_update_nv_seed( mbedtls_entropy_context *ctx );
 #if defined(MBEDTLS_FS_IO)
 /**
  * \brief               Write a seed file
+ *
+ * \note                Depending on the platform (including kernel version),
+ *                      this function may block until entropy becomes
+ *                      available.
  *
  * \param ctx           Entropy context
  * \param path          Name of the file

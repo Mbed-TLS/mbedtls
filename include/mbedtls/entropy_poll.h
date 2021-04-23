@@ -55,6 +55,9 @@ extern "C" {
 #if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
 /**
  * \brief           Platform-specific entropy poll callback
+ *
+ * \note Depending on the platform (including kernel version), this function
+ * may block until entropy becomes available.
  */
 int mbedtls_platform_entropy_poll( void *data,
                            unsigned char *output, size_t len, size_t *olen );

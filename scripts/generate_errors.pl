@@ -63,6 +63,7 @@ close(FORMAT_FILE);
 $/ = $line_separator;
 
 my @files = <$include_dir/*.h>;
+print @files;
 my @necessary_include_files;
 my @matches;
 foreach my $file (@files) {

@@ -42,6 +42,11 @@
 #define MBEDTLS_HAVE_X86_64
 #endif
 
+#if defined(_MSC_VER) && defined(_M_X64) &&  \
+    ! defined(MBEDTLS_HAVE_X86_64)
+#define MBEDTLS_HAVE_X86_64
+#endif
+
 #if defined(MBEDTLS_HAVE_X86_64)
 
 #ifdef __cplusplus

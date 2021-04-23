@@ -208,9 +208,9 @@ if ($hl_old_define ne "")
     $hl_code_check .= " */\n";
 }
 
-$error_format =~ s/HEADER_INCLUDED\n/$headers/g;
-$error_format =~ s/LOW_LEVEL_CODE_CHECKS\n/$ll_code_check/g;
-$error_format =~ s/HIGH_LEVEL_CODE_CHECKS\n/$hl_code_check/g;
+$error_format =~ s/HEADER_INCLUDED/$headers/g;
+$error_format =~ s/LOW_LEVEL_CODE_CHECKS/$ll_code_check/g;
+$error_format =~ s/HIGH_LEVEL_CODE_CHECKS/$hl_code_check/g;
 
 open(ERROR_FILE, ">$error_file") or die "Opening destination file '$error_file': $!";
 print ERROR_FILE $error_format;

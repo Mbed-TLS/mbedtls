@@ -535,7 +535,7 @@ psa_status_t mbedtls_psa_aead_update_ad( psa_aead_operation_t *operation,
          * one contigious buffer, so until that is re-done, we have to enforce
          * this, as we cannot allocate a buffer to collate multiple calls into.
            */
-        if( input_length != operation->ad_remaining )
+        if( operation->ad_remaining != 0 )
         {
             return ( PSA_ERROR_INVALID_ARGUMENT );
         }
@@ -556,7 +556,7 @@ psa_status_t mbedtls_psa_aead_update_ad( psa_aead_operation_t *operation,
     {
         /* CCM requires all additional data to be passed in in one go at the
            minute, as we are basically operating in oneshot mode. */
-        if( !operation->lengths_set || operation->ad_started )
+        if( operation->ad_started )
         {
             return( PSA_ERROR_BAD_STATE );
         }
@@ -569,6 +569,7 @@ psa_status_t mbedtls_psa_aead_update_ad( psa_aead_operation_t *operation,
         {
             memcpy( operation->ad_buffer, input, input_length );
             operation->ad_length = input_length;
+            status = PSA_SUCCESS;
         }
         else
         {
@@ -613,10 +614,20 @@ psa_status_t mbedtls_psa_aead_update( psa_aead_operation_t *operation,
     size_t update_output_size;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    update_output_size = PSA_AEAD_UPDATE_OUTPUT_SIZE(operation->key_type,
-                                                     operation->alg, input_length);
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+    if( operation->alg == PSA_ALG_CCM )
+    {
+        /* CCM will currently not output anything until finish. */
+        update_output_size = 0;
+    }
+    else
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_CCM) */
+    {
+        update_output_size = input_length;
+    }
 
-    if(update_output_size > output_size )
+    if( PSA_AEAD_UPDATE_OUTPUT_SIZE( operation->key_type, operation->alg,
+                                        input_length ) > output_size )
     {
         return ( PSA_ERROR_BUFFER_TOO_SMALL );
     }
@@ -651,7 +662,7 @@ psa_status_t mbedtls_psa_aead_update( psa_aead_operation_t *operation,
             return( PSA_ERROR_BAD_STATE );
         }
 
-        if( operation->ad_started )
+        if( !operation->ad_started )
         {
             return( PSA_ERROR_BAD_STATE );
         }
@@ -668,7 +679,7 @@ psa_status_t mbedtls_psa_aead_update( psa_aead_operation_t *operation,
     {
         /* CCM dooes not support multipart yet, so all the input has to be
            passed in in one go. Store the data for the final step.*/
-        if( operation->ad_started )
+        if( operation->body_started )
         {
             return( PSA_ERROR_BAD_STATE );
         }
@@ -681,6 +692,7 @@ psa_status_t mbedtls_psa_aead_update( psa_aead_operation_t *operation,
         {
             memcpy( operation->data_buffer, input, input_length );
             operation->data_length = input_length;
+            status = PSA_SUCCESS;
         }
         else
         {
@@ -739,15 +751,25 @@ static psa_status_t mbedtls_psa_aead_finish_checks( psa_aead_operation_t *operat
         return ( PSA_ERROR_BUFFER_TOO_SMALL );
     }
 
-    if( operation->is_encrypt )
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+    if( operation->alg == PSA_ALG_CCM )
     {
-        *finish_output_size = PSA_AEAD_FINISH_OUTPUT_SIZE(operation->key_type,
-                                                          operation->alg);
+        /* CCM will output all data at this step. */
+        *finish_output_size = operation->data_length;
     }
     else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
     {
-        *finish_output_size = PSA_AEAD_VERIFY_OUTPUT_SIZE(operation->key_type,
-                                                          operation->alg);
+        if( operation->is_encrypt )
+        {
+           *finish_output_size = PSA_AEAD_FINISH_OUTPUT_SIZE( operation->key_type,
+                                                              operation->alg );
+        }
+        else
+        {
+            *finish_output_size = PSA_AEAD_VERIFY_OUTPUT_SIZE( operation->key_type,
+                                                               operation->alg );
+        }
     }
 
     if( output_size < *finish_output_size )
@@ -946,6 +968,8 @@ psa_status_t mbedtls_psa_aead_verify( psa_aead_operation_t *operation,
 
     if( status == PSA_SUCCESS )
     {
+        *plaintext_length = finish_output_size;
+
         if( do_tag_check && safer_memcmp(tag, check_tag, tag_length) != 0 )
         {
             status = PSA_ERROR_INVALID_SIGNATURE;

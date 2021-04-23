@@ -1,0 +1,7 @@
+Please add your migration guide entries here. (This works similarly to
+ChangeLog.d except merging will be done manually.)
+
+Each entry should help a user answer these questions:
+
+- am I affected?
+- what's my migration path?

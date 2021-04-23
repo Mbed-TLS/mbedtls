@@ -45,13 +45,13 @@ my @sections = ( "System support", "mbed TLS modules",
 my $line_separator = $/;
 undef $/;
 
-open(FORMAT_FILE, "$feature_format_file") or die "Opening feature format file '$feature_format_file': $!";
+open(FORMAT_FILE, '<:crlf', "$feature_format_file") or die "Opening feature format file '$feature_format_file': $!";
 my $feature_format = <FORMAT_FILE>;
 close(FORMAT_FILE);
 
 $/ = $line_separator;
 
-open(CONFIG_H, "$include_dir/config.h") || die("Failure when opening config.h: $!");
+open(CONFIG_H, '<:crlf', "$include_dir/config.h") || die("Failure when opening config.h: $!");
 
 my $feature_defines = "";
 my $in_section = 0;

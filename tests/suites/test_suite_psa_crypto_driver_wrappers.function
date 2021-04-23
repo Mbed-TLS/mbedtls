@@ -936,3 +936,107 @@ exit:
     test_driver_aead_hooks = test_driver_aead_hooks_init();
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_CRYPTO_DRIVER_TEST:MBEDTLS_PSA_CRYPTO_DRIVERS:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+void builtin_key_export( int builtin_key_id_arg,
+                         int builtin_key_type_arg,
+                         int builtin_key_bits_arg,
+                         int builtin_key_algorithm_arg,
+                         data_t *expected_output,
+                         int expected_status_arg )
+{
+    psa_key_id_t builtin_key_id = (psa_key_id_t) builtin_key_id_arg;
+    psa_key_type_t builtin_key_type = (psa_key_type_t) builtin_key_type_arg;
+    psa_algorithm_t builtin_key_alg = (psa_algorithm_t) builtin_key_algorithm_arg;
+    size_t builtin_key_bits = (size_t) builtin_key_bits_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    mbedtls_svc_key_id_t key = mbedtls_svc_key_id_make( 0, builtin_key_id );
+    uint8_t* output_buffer = NULL;
+    size_t output_size = 0;
+    psa_status_t actual_status;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    ASSERT_ALLOC( output_buffer, expected_output->len );
+
+    actual_status = psa_export_key( key, output_buffer, expected_output->len, &output_size );
+
+    if( expected_status == PSA_SUCCESS )
+    {
+        PSA_ASSERT( actual_status );
+        TEST_EQUAL( output_size, expected_output->len );
+        ASSERT_COMPARE( output_buffer, output_size,
+                        expected_output->x, expected_output->len );
+
+        PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+        TEST_EQUAL( psa_get_key_bits( &attributes ), builtin_key_bits );
+        TEST_EQUAL( psa_get_key_type( &attributes ), builtin_key_type );
+        TEST_EQUAL( psa_get_key_algorithm( &attributes ), builtin_key_alg );
+    }
+    else
+    {
+        if( actual_status != expected_status )
+            fprintf( stderr, "Expected %d but got %d\n", expected_status, actual_status );
+        TEST_EQUAL( actual_status, expected_status );
+        TEST_EQUAL( output_size, 0 );
+    }
+
+exit:
+    mbedtls_free( output_buffer );
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_CRYPTO_DRIVER_TEST:MBEDTLS_PSA_CRYPTO_DRIVERS:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+void builtin_pubkey_export( int builtin_key_id_arg,
+                            int builtin_key_type_arg,
+                            int builtin_key_bits_arg,
+                            int builtin_key_algorithm_arg,
+                            data_t *expected_output,
+                            int expected_status_arg )
+{
+    psa_key_id_t builtin_key_id = (psa_key_id_t) builtin_key_id_arg;
+    psa_key_type_t builtin_key_type = (psa_key_type_t) builtin_key_type_arg;
+    psa_algorithm_t builtin_key_alg = (psa_algorithm_t) builtin_key_algorithm_arg;
+    size_t builtin_key_bits = (size_t) builtin_key_bits_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    mbedtls_svc_key_id_t key = mbedtls_svc_key_id_make( 0, builtin_key_id );
+    uint8_t* output_buffer = NULL;
+    size_t output_size = 0;
+    psa_status_t actual_status;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    ASSERT_ALLOC( output_buffer, expected_output->len );
+
+    actual_status = psa_export_public_key( key, output_buffer, expected_output->len, &output_size );
+
+    if( expected_status == PSA_SUCCESS )
+    {
+        PSA_ASSERT( actual_status );
+        TEST_EQUAL( output_size, expected_output->len );
+        ASSERT_COMPARE( output_buffer, output_size,
+                        expected_output->x, expected_output->len );
+
+        PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+        TEST_EQUAL( psa_get_key_bits( &attributes ), builtin_key_bits );
+        TEST_EQUAL( psa_get_key_type( &attributes ), builtin_key_type );
+        TEST_EQUAL( psa_get_key_algorithm( &attributes ), builtin_key_alg );
+    }
+    else
+    {
+        TEST_EQUAL( actual_status, expected_status );
+        TEST_EQUAL( output_size, 0 );
+    }
+
+exit:
+    mbedtls_free( output_buffer );
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    PSA_DONE( );
+}
+/* END_CASE */

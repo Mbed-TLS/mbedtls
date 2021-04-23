@@ -379,6 +379,12 @@
     <ClCompile Include="..\..\tests\src\psa_exercise_key.c" />
     <ClCompile Include="..\..\tests\src\random.c" />
     <ClCompile Include="..\..\tests\src\threading_helpers.c" />
+    <ClCompile Include="..\..\tests\src\drivers\platform_builtin_keys.c" />
+    <ClCompile Include="..\..\tests\src\drivers\test_driver_aead.c" />
+    <ClCompile Include="..\..\tests\src\drivers\test_driver_cipher.c" />
+    <ClCompile Include="..\..\tests\src\drivers\test_driver_key_management.c" />
+    <ClCompile Include="..\..\tests\src\drivers\test_driver_signature.c" />
+    <ClCompile Include="..\..\tests\src\drivers\test_driver_size.c" />
     <ClCompile Include="..\..\3rdparty\everest\library\everest.c" />
     <ClCompile Include="..\..\3rdparty\everest\library\Hacl_Curve25519_joined.c" />
     <ClCompile Include="..\..\3rdparty\everest\library\x25519.c" />

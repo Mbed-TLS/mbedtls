@@ -129,7 +129,7 @@ psa_status_t psa_driver_wrapper_sign_hash(
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+        case PSA_CRYPTO_TEST_DRIVER_LOCATION:
             return( test_opaque_signature_sign_hash( attributes,
                                                      key_buffer,
                                                      key_buffer_size,
@@ -211,7 +211,7 @@ psa_status_t psa_driver_wrapper_verify_hash(
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+        case PSA_CRYPTO_TEST_DRIVER_LOCATION:
             return( test_opaque_signature_verify_hash( attributes,
                                                        key_buffer,
                                                        key_buffer_size,
@@ -229,8 +229,8 @@ psa_status_t psa_driver_wrapper_verify_hash(
     }
 }
 
-/** Get the key buffer size for the key material of a generated key in the
- *  case of an opaque driver without storage.
+/** Get the key buffer size required to store the key material of a key
+ *  associated with an opaque driver without storage.
  *
  * \param[in] attributes  The key attributes.
  * \param[out] key_buffer_size  Minimum buffer size to contain the key material
@@ -256,7 +256,17 @@ psa_status_t psa_driver_wrapper_get_key_buffer_size(
     switch( location )
     {
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+        case PSA_CRYPTO_TEST_DRIVER_LOCATION:
+#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
+            /* Emulate property 'builtin_key_size' */
+            if( psa_key_id_is_builtin(
+                    MBEDTLS_SVC_KEY_ID_GET_KEY_ID(
+                        psa_get_key_id( attributes ) ) ) )
+            {
+                *key_buffer_size = sizeof( psa_drv_slot_number_t );
+                return( PSA_SUCCESS );
+            }
+#endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 #ifdef TEST_DRIVER_KEY_CONTEXT_SIZE_FUNCTION
             *key_buffer_size = test_size_function( key_type, key_bits );
             return( PSA_SUCCESS );
@@ -353,7 +363,7 @@ psa_status_t psa_driver_wrapper_generate_key(
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+        case PSA_CRYPTO_TEST_DRIVER_LOCATION:
             status = test_opaque_generate_key(
                 attributes, key_buffer, key_buffer_size, key_buffer_length );
             break;
@@ -485,7 +495,7 @@ psa_status_t psa_driver_wrapper_export_key(
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+        case PSA_CRYPTO_TEST_DRIVER_LOCATION:
             return( test_opaque_export_key( attributes,
                                             key_buffer,
                                             key_buffer_size,
@@ -559,7 +569,7 @@ psa_status_t psa_driver_wrapper_export_public_key(
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+        case PSA_CRYPTO_TEST_DRIVER_LOCATION:
             return( test_opaque_export_public_key( attributes,
                                                    key_buffer,
                                                    key_buffer_size,
@@ -571,6 +581,30 @@ psa_status_t psa_driver_wrapper_export_public_key(
         default:
             /* Key is declared with a lifetime not known to us */
             return( status );
+    }
+}
+
+psa_status_t psa_driver_wrapper_get_builtin_key(
+    psa_drv_slot_number_t slot_number,
+    psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
+{
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
+    switch( location )
+    {
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TEST_DRIVER_LOCATION:
+            return( test_opaque_get_builtin_key(
+                        slot_number,
+                        attributes,
+                        key_buffer, key_buffer_size, key_buffer_length ) );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+        default:
+            (void) slot_number;
+            (void) key_buffer;
+            (void) key_buffer_size;
+            (void) key_buffer_length;
+            return( PSA_ERROR_DOES_NOT_EXIST );
     }
 }
 
@@ -616,7 +650,7 @@ psa_status_t psa_driver_wrapper_cipher_encrypt(
             return( PSA_ERROR_NOT_SUPPORTED );
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+        case PSA_CRYPTO_TEST_DRIVER_LOCATION:
             return( test_opaque_cipher_encrypt( &attributes,
                                                 slot->key.data,
                                                 slot->key.bytes,
@@ -683,7 +717,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt(
             return( PSA_ERROR_NOT_SUPPORTED );
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+        case PSA_CRYPTO_TEST_DRIVER_LOCATION:
             return( test_opaque_cipher_decrypt( &attributes,
                                                 slot->key.data,
                                                 slot->key.bytes,
@@ -760,7 +794,7 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+        case PSA_CRYPTO_TEST_DRIVER_LOCATION:
             status = test_opaque_cipher_encrypt_setup(
                 &operation->ctx.opaque_test_driver_ctx,
                 attributes,
@@ -831,7 +865,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+        case PSA_CRYPTO_TEST_DRIVER_LOCATION:
             status = test_opaque_cipher_decrypt_setup(
                          &operation->ctx.opaque_test_driver_ctx,
                          attributes,

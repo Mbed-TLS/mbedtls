@@ -179,11 +179,13 @@ struct psa_aead_operation_s
 
     /* Buffers for AD/data - only required until CCM gets proper multipart
        support. */
-    uint8_t* ad_buffer;
+    uint8_t *ad_buffer;
     size_t ad_length;
 
-    uint8_t* data_buffer;
-    size_t data_length;
+    uint8_t *body_buffer;
+    uint8_t body_length;
+
+    uint8_t *tag_buffer;
 
     /* buffer to store Nonce - only required until CCM and GCM get proper
        multipart support. */
@@ -205,7 +207,7 @@ struct psa_aead_operation_s
     } ctx;
 };
 
-#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}, {0}}
+#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}, {0}}
 static inline struct psa_aead_operation_s psa_aead_operation_init( void )
 {
     const struct psa_aead_operation_s v = PSA_AEAD_OPERATION_INIT;

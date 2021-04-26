@@ -1,5 +1,105 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+API changes
+   * Remove HAVEGE module.
+     The design of HAVEGE makes it unsuitable for microcontrollers. Platforms
+     with a more complex CPU usually have an operating system interface that
+     provides better randomness. Instead of HAVEGE, declare OS or hardware RNG
+     interfaces with mbedtls_entropy_add_source() and/or use an entropy seed
+     file created securely during device provisioning. See
+     https://tls.mbed.org/kb/how-to/add-entropy-sources-to-entropy-pool for
+     more information.
+   * Add missing const attributes to API functions.
+   * Remove helpers for the transition from Mbed TLS 1.3 to Mbed TLS 2.0: the
+     header compat-1.3.h and the script rename.pl.
+   * Remove certs module from the API.
+     Transfer keys and certificates embedded in the library to the test
+     component. This contributes to minimizing library API and discourages
+     users from using unsafe keys in production.
+   * Move alt helpers and definitions.
+     Various helpers and definitions available for use in alt implementations
+     have been moved out of the include/ directory and into the library/
+     directory. The files concerned are ecp_internal.h and rsa_internal.h
+     which have also been renamed to ecp_alt.h and rsa_alt_helpers.h
+     respectively.
+   * Move internal headers.
+     Header files that were only meant for the library's internal use and
+     were not meant to be used in application code have been moved out of
+     the include/ directory. The headers concerned are bn_mul.h, aesni.h,
+     padlock.h, entropy_poll.h and *_internal.h.
+   * Drop support for parsing SSLv2 ClientHello
+     (MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO).
+   * Drop support for SSLv3 (MBEDTLS_SSL_PROTO_SSL3).
+   * Drop support for compatibility with our own previous buggy
+     implementation of truncated HMAC (MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT).
+   * Drop support for TLS record-level compression (MBEDTLS_ZLIB_SUPPORT).
+   * Drop support for RC4 TLS ciphersuites.
+   * Drop support for single-DES ciphersuites.
+   * Drop support for MBEDTLS_SSL_HW_RECORD_ACCEL.
+
+Requirement changes
+   * The library now uses the %zu format specifier with the printf() family of
+     functions, so requires a toolchain that supports it. This change does not
+     affect the maintained LTS branches, so when contributing changes please
+     bear this in mind and do not add them to backported code.
+
+Removals
+   * Remove the MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
+     compile-time option, which was off by default. Users should not trust
+     certificates signed with SHA-1 due to the known attacks against SHA-1.
+     If needed, SHA-1 cerificate can still be used by providing custom
+     verification profile to mbedtls_x509_crt_verify_with_profile function
+     in x509_crt.h, or mbedtls_ssl_conf_cert_profile function in ssl.h.
+     Example of custom verification profile, supporting SHA-1:
+     const mbedtls_x509_crt_profile mbedtls_x509_crt_custom = {
+         MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA1 ),
+         0xFFFFFFF, /* Any PK alg    */
+         0xFFFFFFF, /* Any curve     */
+         2048
+     };
+   * Removed deprecated things in psa/crypto_compat.h. Fixes #4284
+   * Removed deprecated functions from hashing modules. Fixes #4280.
+   * Remove PKCS#11 library wrapper. PKCS#11 has limited functionality,
+     lacks automated tests and has scarce documentation. Also, PSA Crypto
+     provides a more flexible private key management.
+     More details on PCKS#11 wrapper removal can be found in the mailing list
+     https://lists.trustedfirmware.org/pipermail/mbed-tls/2020-April/000024.html
+   * Remove deprecated error codes. Fix #4283
+
+Features
+   * Add mbedtls_rsa_rsassa_pss_sign_ext() function allowing to generate a
+     signature with a specific salt length. This function allows to validate
+     test cases provided in the NIST's CAVP test suite. Contributed by Cédric
+     Meuter in PR #3183.
+
+Bugfix
+   * Fix premature fopen() call in mbedtls_entropy_write_seed_file which may
+     lead to the seed file corruption in case if the path to the seed file is
+     equal to MBEDTLS_PLATFORM_STD_NV_SEED_FILE. Contributed by Victor
+     Krasnoshchok in #3616.
+   * PSA functions creating a key now return PSA_ERROR_INVALID_ARGUMENT rather
+     than PSA_ERROR_INVALID_HANDLE when the identifier specified for the key
+     to create is not valid, bringing them in line with version 1.0.0 of the
+     specification. Fix #4271.
+   * Add printf function attributes to mbedtls_debug_print_msg to ensure we
+     get printf format specifier warnings.
+   * PSA functions other than psa_open_key now return PSA_ERROR_INVALID_HANDLE
+     rather than PSA_ERROR_DOES_NOT_EXIST for an invalid handle, bringing them
+     in line with version 1.0.0 of the specification. Fix #4162.
+   * Fix a bug in ECDSA that would cause it to fail when the hash is all-bits
+     zero. Fixes #1792
+   * mbedtls_mpi_read_string on "-0" produced an MPI object that was not treated
+     as equal to 0 in all cases. Fix it to produce the same object as "0".
+
+Changes
+   * Fix the setting of the read timeout in the DTLS sample programs.
+   * Add extra printf compiler warning flags to builds.
+   * Fix memsan build false positive in x509_crt.c with clang 11
+   * There is ongoing work for the next release (= Mbed TLS 3.0.0 branch to
+     be released 2021-xx-xx), including various API-breaking changes.
+
 = mbed TLS 2.26.0 branch released 2021-03-08
 
 API changes

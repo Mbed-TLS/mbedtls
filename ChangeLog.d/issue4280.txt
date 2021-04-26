@@ -1,2 +1,0 @@
-Removals
-   * Removed deprecated functions from hashing modules. Fixes #4280.

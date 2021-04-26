@@ -1,5 +1,0 @@
-Bugfix
-   * Fix premature fopen() call in mbedtls_entropy_write_seed_file which may
-     lead to the seed file corruption in case if the path to the seed file is
-     equal to MBEDTLS_PLATFORM_STD_NV_SEED_FILE. Contributed by Victor
-     Krasnoshchok in #3616.

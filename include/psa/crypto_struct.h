@@ -77,7 +77,7 @@ extern "C" {
 #include "mbedtls/gcm.h"
 
 /* Include the context definition for the compiled-in drivers */
-#include "psa/crypto_driver_contexts.h"
+#include "psa/crypto_driver_contexts_primitives.h"
 
 struct psa_hash_operation_s
 {

@@ -1,5 +1,5 @@
 Default behavior changes
    * Enable by default the functionalities which have no reason to be disabled.
-     They are: ARIA block cipher, CMAC mode, elliptic curve J-PAKE library and 
+     They are: ARIA block cipher, CMAC mode, elliptic curve J-PAKE library and
      Key Wrapping mode as defined in NIST SP 800-38F. Fixes #4036.
 

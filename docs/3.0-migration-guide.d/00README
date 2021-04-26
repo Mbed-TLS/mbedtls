@@ -1,7 +1,30 @@
-Please add your migration guide entries here. (This works similarly to
-ChangeLog.d except merging will be done manually.)
+Please add your migration guide entries here. Until 3.0 is released, each PR
+that makes backwards-incompatible changes should add a file here, with the
+extension .md, a descriptive name and the following format:
 
-Each entry should help a user answer these questions:
+---%<------%<------%<------%<------%<------%<------%<------%<---
 
-- am I affected?
-- what's my migration path?
+The Change That Was Made
+------------------------
+
+Who exactly is affected: does this affect users of the default config, of a
+particular feature? Remember to contextualise.
+
+If I'm affected, what's my migration path? How should I change my code if this
+is and API change; if a feature was removed what are my alternatives?
+
+Optional: Another Change That Was Made in the Same Pr
+-----------------------------------------------------
+
+Who is affected?
+
+What's the migration path?
+
+---%<------%<------%<------%<------%<------%<------%<------%<---
+
+For examples, have a look a docs/3.0-migration-guide.md (which includes the
+top-level header and an intro before the list of entries).
+
+As part of release preparation, the entries in this directory will be appended
+to docs/3.0-migration-guide.md and then re-ordered and reviewed one last time.
+The file is then going to be moved to the version-independant docs repo.

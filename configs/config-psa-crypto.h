@@ -612,8 +612,7 @@
  * Warning: Only do so when you know what you are doing. This allows for
  * encryption or channels without any security!
  *
- * Requires MBEDTLS_ENABLE_WEAK_CIPHERSUITES as well to enable
- * the following ciphersuites:
+ * To enable the following ciphersuites:
  *      MBEDTLS_TLS_ECDH_ECDSA_WITH_NULL_SHA
  *      MBEDTLS_TLS_ECDH_RSA_WITH_NULL_SHA
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_NULL_SHA
@@ -653,20 +652,6 @@
 #define MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 #define MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 #define MBEDTLS_CIPHER_PADDING_ZEROS
-
-/**
- * \def MBEDTLS_ENABLE_WEAK_CIPHERSUITES
- *
- * Enable weak ciphersuites in SSL / TLS.
- * Warning: Only do so when you know what you are doing. This allows for
- * channels with virtually no security at all!
- *
- * Uncomment this macro to enable weak ciphersuites
- *
- * \warning   DES is considered a weak cipher and its use constitutes a
- *            security risk. We recommend considering stronger ciphers instead.
- */
-//#define MBEDTLS_ENABLE_WEAK_CIPHERSUITES
 
 /**
  * \def MBEDTLS_ECP_DP_SECP192R1_ENABLED

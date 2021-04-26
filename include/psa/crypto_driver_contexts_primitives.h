@@ -33,7 +33,6 @@
 #ifndef PSA_CRYPTO_DRIVER_CONTEXTS_PRIMITIVES_H
 #define PSA_CRYPTO_DRIVER_CONTEXTS_PRIMITIVES_H
 
-#include "psa/crypto.h"
 #include "psa/crypto_driver_common.h"
 
 /* Include the context structure definitions for those drivers that were

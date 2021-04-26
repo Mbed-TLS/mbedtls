@@ -297,46 +297,77 @@ static int exercise_signature_key( mbedtls_svc_key_id_t key,
                                    psa_key_usage_t usage,
                                    psa_algorithm_t alg )
 {
-    unsigned char payload[PSA_HASH_MAX_SIZE] = {1};
-    size_t payload_length = 16;
-    unsigned char signature[PSA_SIGNATURE_MAX_SIZE] = {0};
-    size_t signature_length = sizeof( signature );
-    psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
-
-    /* If the policy allows signing with any hash, just pick one. */
-    if( PSA_ALG_IS_HASH_AND_SIGN( alg ) && hash_alg == PSA_ALG_ANY_HASH )
+    if( usage & ( PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH ) )
     {
-#if defined(KNOWN_SUPPORTED_HASH_ALG)
-        hash_alg = KNOWN_SUPPORTED_HASH_ALG;
-        alg ^= PSA_ALG_ANY_HASH ^ hash_alg;
-#else
-        TEST_ASSERT( ! "No hash algorithm for hash-and-sign testing" );
-#endif
+        unsigned char payload[PSA_HASH_MAX_SIZE] = {1};
+        size_t payload_length = 16;
+        unsigned char signature[PSA_SIGNATURE_MAX_SIZE] = {0};
+        size_t signature_length = sizeof( signature );
+        psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
+
+        /* If the policy allows signing with any hash, just pick one. */
+        if( PSA_ALG_IS_HASH_AND_SIGN( alg ) && hash_alg == PSA_ALG_ANY_HASH )
+        {
+    #if defined(KNOWN_SUPPORTED_HASH_ALG)
+            hash_alg = KNOWN_SUPPORTED_HASH_ALG;
+            alg ^= PSA_ALG_ANY_HASH ^ hash_alg;
+    #else
+            TEST_ASSERT( ! "No hash algorithm for hash-and-sign testing" );
+    #endif
+        }
+
+        if( usage & PSA_KEY_USAGE_SIGN_HASH )
+        {
+            /* Some algorithms require the payload to have the size of
+             * the hash encoded in the algorithm. Use this input size
+             * even for algorithms that allow other input sizes. */
+            if( hash_alg != 0 )
+                payload_length = PSA_HASH_LENGTH( hash_alg );
+            PSA_ASSERT( psa_sign_hash( key, alg,
+                                       payload, payload_length,
+                                       signature, sizeof( signature ),
+                                       &signature_length ) );
+        }
+
+        if( usage & PSA_KEY_USAGE_VERIFY_HASH )
+        {
+            psa_status_t verify_status =
+                ( usage & PSA_KEY_USAGE_SIGN_HASH ?
+                  PSA_SUCCESS :
+                  PSA_ERROR_INVALID_SIGNATURE );
+            TEST_EQUAL( psa_verify_hash( key, alg,
+                                         payload, payload_length,
+                                         signature, signature_length ),
+                        verify_status );
+        }
     }
 
-    if( usage & PSA_KEY_USAGE_SIGN_HASH )
+    if( usage & ( PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE ) )
     {
-        /* Some algorithms require the payload to have the size of
-         * the hash encoded in the algorithm. Use this input size
-         * even for algorithms that allow other input sizes. */
-        if( hash_alg != 0 )
-            payload_length = PSA_HASH_LENGTH( hash_alg );
-        PSA_ASSERT( psa_sign_hash( key, alg,
-                                   payload, payload_length,
-                                   signature, sizeof( signature ),
-                                   &signature_length ) );
-    }
+        unsigned char message[256] = "Hello, world...";
+        unsigned char signature[PSA_SIGNATURE_MAX_SIZE] = {0};
+        size_t message_length = 16;
+        size_t signature_length = sizeof( signature );
 
-    if( usage & PSA_KEY_USAGE_VERIFY_HASH )
-    {
-        psa_status_t verify_status =
-            ( usage & PSA_KEY_USAGE_SIGN_HASH ?
-              PSA_SUCCESS :
-              PSA_ERROR_INVALID_SIGNATURE );
-        TEST_EQUAL( psa_verify_hash( key, alg,
-                                     payload, payload_length,
-                                     signature, signature_length ),
-                    verify_status );
+        if( usage & PSA_KEY_USAGE_SIGN_MESSAGE )
+        {
+            PSA_ASSERT( psa_sign_message( key, alg,
+                                          message, message_length,
+                                          signature, sizeof( signature ),
+                                          &signature_length ) );
+        }
+
+        if( usage & PSA_KEY_USAGE_VERIFY_MESSAGE )
+        {
+            psa_status_t verify_status =
+                ( usage & PSA_KEY_USAGE_SIGN_MESSAGE ?
+                  PSA_SUCCESS :
+                  PSA_ERROR_INVALID_SIGNATURE );
+            TEST_EQUAL( psa_verify_message( key, alg,
+                                            message, message_length,
+                                            signature, signature_length ),
+                        verify_status );
+        }
     }
 
     return( 1 );
@@ -893,9 +924,16 @@ psa_key_usage_t mbedtls_test_psa_usage_to_exercise( psa_key_type_t type,
 {
     if( PSA_ALG_IS_MAC( alg ) || PSA_ALG_IS_SIGN( alg ) )
     {
-        return( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ?
-                PSA_KEY_USAGE_VERIFY_HASH :
-                PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH );
+        if( PSA_ALG_SIGN_GET_HASH( alg ) )
+            return( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ?
+                    PSA_KEY_USAGE_VERIFY_HASH | PSA_KEY_USAGE_VERIFY_MESSAGE:
+                    PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH |
+                    PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE );
+
+        else
+            return( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ?
+                    PSA_KEY_USAGE_VERIFY_HASH:
+                    PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH );
     }
     else if( PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) ||
              PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) )

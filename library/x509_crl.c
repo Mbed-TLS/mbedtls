@@ -156,10 +156,13 @@ static int x509_get_crl_ext( unsigned char **p,
             return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                     MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
+#if !defined MBEDTLS_X509_ALLOW_UNSUPPORTED_CRL_CRITICAL_EXTENSION
         /* Abort on (unsupported) critical extensions */
         if( is_critical )
             return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
+#endif
+
     }
 
     if( *p != end )

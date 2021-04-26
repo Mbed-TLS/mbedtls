@@ -309,7 +309,7 @@ void mbedtls_test_err_add_check( int high, int low,
     }
     else if ( high < -0x7F80 )
     /* high > 0111111110000000
-     * Error code is larger than the greatest high + module level error.
+     * Error code is greater than the largest allowed high level module ID.
      */
     {
         mbedtls_test_fail( "'high' error code is greater than 15 bits",

@@ -6,8 +6,12 @@ At any point in time, we have a number of maintained branches consisting of:
   this always contains the latest release, including all publicly available
   security fixes.
 - The [`development`](https://github.com/ARMmbed/mbedtls/tree/development) branch:
-  this is where new features land,
-  as well as bug fixes and security fixes.
+  this is where the next major version of Mbed TLS (version 3.0) is being
+  prepared. It has API changes that make it incompatible with Mbed TLS 2.x,
+  as well as all the new features and bug fixes and security fixes.
+- The [`development_2.x`](https://github.com/ARMmbed/mbedtls/tree/development_2.x) branch:
+  this branch retains the API of Mbed TLS 2.x, and has a subset of the
+  features added after Mbed TLS 2.26.0 and bug fixes and security fixes.
 - One or more long-time support (LTS) branches:
   these only get bug fixes and security fixes.
 
@@ -48,6 +52,7 @@ The following branches are currently maintained:
 
 - [master](https://github.com/ARMmbed/mbedtls/tree/master)
 - [`development`](https://github.com/ARMmbed/mbedtls/)
+- [`development_2.x`](https://github.com/ARMmbed/mbedtls/tree/development_2.x)
 - [`mbedtls-2.16`](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.16)
  maintained until at least the end of 2021, see
   <https://tls.mbed.org/tech-updates/blog/announcing-lts-branch-mbedtls-2.16>

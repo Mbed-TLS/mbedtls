@@ -1,3 +1,0 @@
-Bugfix
-   * mbedtls_mpi_read_string on "-0" produced an MPI object that was not treated
-     as equal to 0 in all cases. Fix it to produce the same object as "0".

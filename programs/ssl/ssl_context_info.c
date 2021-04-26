@@ -48,7 +48,6 @@ int main( void )
 #include "mbedtls/error.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/md.h"
-#include "mbedtls/md_internal.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/ssl_ciphersuites.h"
 
@@ -638,7 +637,7 @@ void print_deserialized_ssl_session( const uint8_t *ssl, uint32_t len,
         }
         else
         {
-            printf( "\tMessage-Digest : %s\n", md_info->name );
+            printf( "\tMessage-Digest : %s\n", mbedtls_md_get_name( md_info ) );
         }
     }
 

@@ -23,7 +23,7 @@
 
 #include <psa/crypto.h>
 
-#include <mbedtls/md_internal.h>
+#include "md_wrap.h"
 
 /** Get Mbed TLS MD information of a hash algorithm given its PSA identifier
  *

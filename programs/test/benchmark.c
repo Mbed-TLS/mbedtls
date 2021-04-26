@@ -65,7 +65,6 @@ int main( void )
 #include "mbedtls/cmac.h"
 #include "mbedtls/poly1305.h"
 
-#include "mbedtls/havege.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/hmac_drbg.h"
 
@@ -101,7 +100,7 @@ int main( void )
     "arc4, des3, des, camellia, blowfish, chacha20,\n"                  \
     "aes_cbc, aes_gcm, aes_ccm, aes_xts, chachapoly,\n"                 \
     "aes_cmac, des3_cmac, poly1305\n"                                   \
-    "havege, ctr_drbg, hmac_drbg\n"                                     \
+    "ctr_drbg, hmac_drbg\n"                                     \
     "rsa, dhm, ecdsa, ecdh.\n"
 
 #if defined(MBEDTLS_ERROR_C)
@@ -290,7 +289,7 @@ typedef struct {
          aes_cmac, des3_cmac,
          aria, camellia, blowfish, chacha20,
          poly1305,
-         havege, ctr_drbg, hmac_drbg,
+         ctr_drbg, hmac_drbg,
          rsa, dhm, ecdsa, ecdh;
 } todo_list;
 
@@ -368,8 +367,6 @@ int main( int argc, char *argv[] )
                 todo.chacha20 = 1;
             else if( strcmp( argv[i], "poly1305" ) == 0 )
                 todo.poly1305 = 1;
-            else if( strcmp( argv[i], "havege" ) == 0 )
-                todo.havege = 1;
             else if( strcmp( argv[i], "ctr_drbg" ) == 0 )
                 todo.ctr_drbg = 1;
             else if( strcmp( argv[i], "hmac_drbg" ) == 0 )
@@ -706,16 +703,6 @@ int main( int argc, char *argv[] )
         }
 
         mbedtls_blowfish_free( &blowfish );
-    }
-#endif
-
-#if defined(MBEDTLS_HAVEGE_C)
-    if( todo.havege )
-    {
-        mbedtls_havege_state hs;
-        mbedtls_havege_init( &hs );
-        TIME_AND_TSC( "HAVEGE", mbedtls_havege_random( &hs, buf, BUFSIZE ) );
-        mbedtls_havege_free( &hs );
     }
 #endif
 

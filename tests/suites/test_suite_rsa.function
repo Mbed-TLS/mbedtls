@@ -1,6 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/rsa.h"
-#include "mbedtls/rsa_internal.h"
+#include "rsa_alt_helpers.h"
 #include "mbedtls/md2.h"
 #include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
@@ -652,7 +652,7 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
         TEST_ASSERT( res == 0 );
 #else
         TEST_ASSERT( ( res == 0 ) ||
-                     ( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION ) );
+                     ( res == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) );
 #endif
 
         if( res == 0 )
@@ -713,7 +713,7 @@ void rsa_pkcs1_verify_raw( data_t * hash_result,
         TEST_ASSERT( res == 0 );
 #else
         TEST_ASSERT( ( res == 0 ) ||
-                     ( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION ) );
+                     ( res == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) );
 #endif
 
         if( res == 0 )

@@ -9,14 +9,6 @@ if(NOT DEFINED MBEDTLS_DIR)
     set(MBEDTLS_DIR ${CMAKE_SOURCE_DIR})
 endif()
 
-if(USE_PKCS11_HELPER_LIBRARY)
-    set(libs ${libs} pkcs11-helper)
-endif(USE_PKCS11_HELPER_LIBRARY)
-
-if(ENABLE_ZLIB_SUPPORT)
-    set(libs ${libs} ${ZLIB_LIBRARIES})
-endif(ENABLE_ZLIB_SUPPORT)
-
 if(NOT MBEDTLS_PYTHON_EXECUTABLE)
     message(FATAL_ERROR "Cannot build test suites without Python 3")
 endif()

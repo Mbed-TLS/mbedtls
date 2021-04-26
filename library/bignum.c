@@ -38,7 +38,7 @@
 #if defined(MBEDTLS_BIGNUM_C)
 
 #include "mbedtls/bignum.h"
-#include "mbedtls/bn_mul.h"
+#include "bn_mul.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 

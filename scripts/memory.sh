@@ -129,7 +129,7 @@ do_config   "ccm-psk-tls1_2" \
             "psk=000102030405060708090A0B0C0D0E0F"
 
 do_config   "suite-b" \
-            "MBEDTLS_BASE64_C MBEDTLS_PEM_PARSE_C MBEDTLS_CERTS_C" \
+            "MBEDTLS_BASE64_C MBEDTLS_PEM_PARSE_C" \
             ""
 
 # cleanup

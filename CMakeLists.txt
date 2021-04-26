@@ -10,10 +10,6 @@
 #     directories. That way, a target linking to a library (using the
 #     target_link_librairies command) inherits from the library PUBLIC include
 #     directories and not from the PRIVATE ones.
-#   + Note: there is currently one remaining include_directories command in the
-#     CMake files. It is related to ZLIB support which is planned to be removed.
-#     When the support is removed, the associated include_directories command
-#     will be removed as well as this note.
 # - MBEDTLS_TARGET_PREFIX: CMake targets are designed to be alterable by calling
 #   CMake in order to avoid target name clashes, via the use of
 #   MBEDTLS_TARGET_PREFIX. The value of this variable is prefixed to the
@@ -41,9 +37,6 @@ endif()
 
 # Set the project root directory.
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-
-option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
-option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
 
 option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
 
@@ -255,14 +248,6 @@ if(LIB_INSTALL_DIR)
 else()
     set(LIB_INSTALL_DIR lib)
 endif()
-
-if(ENABLE_ZLIB_SUPPORT)
-    find_package(ZLIB)
-
-    if(ZLIB_FOUND)
-        include_directories(${ZLIB_INCLUDE_DIR})
-    endif(ZLIB_FOUND)
-endif(ENABLE_ZLIB_SUPPORT)
 
 add_subdirectory(include)
 

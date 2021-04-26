@@ -124,17 +124,9 @@ static inline struct psa_cipher_operation_s psa_cipher_operation_init( void )
     return( v );
 }
 
-#if defined(MBEDTLS_MD_C)
-typedef struct
-{
-        /** The HMAC algorithm in use */
-        psa_algorithm_t alg;
-        /** The hash context. */
-        struct psa_hash_operation_s hash_ctx;
-        /** The HMAC part of the context. */
-        uint8_t opad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
-} psa_hmac_internal_data;
-#endif /* MBEDTLS_MD_C */
+/* Include the context definition for the compiled-in drivers for the composite
+ * algorithms. */
+#include "psa/crypto_driver_contexts_composites.h"
 
 struct psa_mac_operation_s
 {

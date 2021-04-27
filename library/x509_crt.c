@@ -624,8 +624,8 @@ static int x509_get_subject_key_id( unsigned char** p,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0u;
 
-    if ( (ret = mbedtls_asn1_get_tag(p, end, &len,
-        MBEDTLS_ASN1_OCTET_STRING)) != 0 )
+    if ( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+        MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
     {
         return( ret );
     }
@@ -636,6 +636,10 @@ static int x509_get_subject_key_id( unsigned char** p,
         subject_key_id->p = *p;
         *p += len;
     }
+	
+	if( *p != end )
+		return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+			MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
     return( 0 );
 }
@@ -655,14 +659,14 @@ static int x509_get_authority_key_id( unsigned char** p,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0u;
 
-    if ( (ret = mbedtls_asn1_get_tag(p, end, &len,
-        MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0 )
+    if ( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+        MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
         return( ret );
     }
 
-    if ( (ret = mbedtls_asn1_get_tag(p, end, &len,
-        MBEDTLS_ASN1_CONTEXT_SPECIFIC)) != 0 )
+    if ( (ret = mbedtls_asn1_get_tag( p, end, &len,
+        MBEDTLS_ASN1_CONTEXT_SPECIFIC ) ) != 0 )
     {
         /* KeyIdentifier is an OPTIONAL field */
     }
@@ -677,15 +681,15 @@ static int x509_get_authority_key_id( unsigned char** p,
 
     if ( *p < end )
     {
-        if ( (ret = mbedtls_asn1_get_tag(p, end, &len,
-            MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_BOOLEAN)) != 0 )
+        if ( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+            MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_BOOLEAN ) ) != 0 )
         {
             /* authorityCertIssuer is an OPTIONAL field */
         }
         else
         {
-            if ( (ret = mbedtls_asn1_get_tag(p, end, &len,
-                MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_OCTET_STRING)) != 0 )
+            if ( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
             {
                 return( ret );
             }
@@ -693,13 +697,13 @@ static int x509_get_authority_key_id( unsigned char** p,
             {
                 authority_key_id->raw.p = *p;
 
-                if ( (ret = mbedtls_asn1_get_tag(p, end, &len,
-                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0 )
+                if ( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
                 {
                     return( ret );
                 }
 
-                if ( (ret = mbedtls_x509_get_name(p, *p + len, &authority_key_id->authorityCertIssuer)) != 0 )
+                if ( ( ret = mbedtls_x509_get_name( p, *p + len, &authority_key_id->authorityCertIssuer ) ) != 0 )
                 {
                     return( ret );
                 }
@@ -711,8 +715,8 @@ static int x509_get_authority_key_id( unsigned char** p,
 
     if ( *p < end )
     {
-        if ( (ret = mbedtls_asn1_get_tag(p, end, &len,
-            MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_INTEGER)) != 0 )
+        if ( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+            MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_INTEGER ) ) != 0 )
         {
             /* authorityCertSerialNumber is an OPTIONAL field, but if there are still data it must be the serial number */
             return( ret );

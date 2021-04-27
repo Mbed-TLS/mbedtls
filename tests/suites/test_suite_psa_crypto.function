@@ -3353,7 +3353,10 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                          part_length, part_data,
                                          part_data_size, &output_part_length ) );
 
-            memcpy( ( output_data + part_offset ), part_data, output_part_length );
+            if( output_data && output_part_length )
+            {
+                memcpy( ( output_data + part_offset ), part_data, output_part_length );
+            }
 
             part_offset += part_length;
             output_length += output_part_length;
@@ -3373,13 +3376,19 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                  tag_buffer, tag_length,
                                  &tag_size ) );
 
-    memcpy( ( output_data + output_length ), final_data, output_part_length );
+    if( output_data && output_part_length )
+    {
+        memcpy( ( output_data + output_length ), final_data, output_part_length );
+    }
 
     TEST_EQUAL(tag_length, tag_size);
 
     output_length += output_part_length;
 
-    memcpy( ( output_data + output_length ), tag_buffer, tag_length );
+    if( output_data && tag_length )
+    {
+        memcpy( ( output_data + output_length ), tag_buffer, tag_length );
+    }
 
     output_length += tag_length;
 
@@ -3577,7 +3586,10 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
                 goto exit;
             }
 
-            memcpy( ( output_data + part_offset ), part_data, output_part_length );
+            if( output_data && output_part_length )
+            {
+                memcpy( ( output_data + part_offset ), part_data, output_part_length );
+            }
 
             part_offset += part_length;
             output_length += output_part_length;
@@ -3608,7 +3620,10 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
         goto exit;
     }
 
-    memcpy( ( output_data + output_length ), final_data, output_part_length );
+    if( output_data &&output_part_length )
+    {
+        memcpy( ( output_data + output_length ), final_data, output_part_length );
+    }
 
     output_length += output_part_length;
 
@@ -3727,7 +3742,10 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
                                              part_length, part_data,
                                              part_data_size, &output_part_length ) );
 
-                memcpy( ( output_data2 + part_offset ), part_data, output_part_length );
+                if( output_data2 && output_part_length )
+                {
+                    memcpy( ( output_data2 + part_offset ), part_data, output_part_length );
+                }
 
                 part_offset += part_length;
                 output_length2 += output_part_length;
@@ -3745,7 +3763,10 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
                                      &output_part_length,
                                      tag_buffer, tag_length ) );
 
-        memcpy( ( output_data2 + output_length2 ), final_data, output_part_length);
+        if( output_data2 && output_part_length )
+        {
+            memcpy( ( output_data2 + output_length2 ), final_data, output_part_length);
+        }
 
         output_length2 += output_part_length;
 
@@ -3933,7 +3954,10 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                 goto exit;
             }
 
-            memcpy( ( output_data + part_offset ), part_data, output_part_length );
+            if( output_data && output_part_length )
+            {
+                memcpy( ( output_data + part_offset ), part_data, output_part_length );
+            }
 
             part_offset += part_length;
             output_length += output_part_length;
@@ -3964,7 +3988,10 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
         goto exit;
     }
 
-    memcpy( ( output_data + output_length ), final_data, output_part_length );
+    if( output_data && output_part_length )
+    {
+        memcpy( ( output_data + output_length ), final_data, output_part_length );
+    }
 
     output_length += output_part_length;
 

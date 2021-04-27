@@ -305,6 +305,20 @@ class KeyGenerate:
                 kt = crypto_knowledge.KeyType(constr, [curve_family])
                 yield from self.test_cases_for_key_type_key_generation(kt)
 
+class OpFail:
+    """Generate test cases for operations that must fail."""
+    #pylint: disable=too-few-public-methods
+
+    def __init__(self, info: Information) -> None:
+        self.constructors = info.constructors
+
+    def all_test_cases(self) -> Iterator[test_case.TestCase]:
+        """Generate all test cases for operations that must fail."""
+        #pylint: disable=no-self-use
+        return # To do
+        yield #pylint: disable=unreachable
+
+
 class StorageKey(psa_storage.Key):
     """Representation of a key for storage format testing."""
 
@@ -722,6 +736,8 @@ class TestGenerator:
         lambda info: KeyGenerate(info).test_cases_for_key_generation(),
         'test_suite_psa_crypto_not_supported.generated':
         lambda info: NotSupported(info).test_cases_for_not_supported(),
+        'test_suite_psa_crypto_op_fail.generated':
+        lambda info: OpFail(info).all_test_cases(),
         'test_suite_psa_crypto_storage_format.current':
         lambda info: StorageFormatForward(info, 0).all_test_cases(),
         'test_suite_psa_crypto_storage_format.v0':

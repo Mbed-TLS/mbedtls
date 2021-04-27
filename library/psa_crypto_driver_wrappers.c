@@ -1311,10 +1311,10 @@ psa_status_t psa_driver_wrapper_aead_encrypt_setup(
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
             status = PSA_ERROR_NOT_SUPPORTED;
-//          status = test_transparent_aead_encrypt_setup(
-//                      operation, attributes,
-//                      key_buffer, key_buffer_size,
-//                      alg );
+            status = test_transparent_aead_encrypt_setup(
+                        operation, attributes,
+                        key_buffer, key_buffer_size,
+                        alg );
             /* Declared with fallback == true */
             if( status == PSA_SUCCESS )
                 operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
@@ -1363,10 +1363,10 @@ psa_status_t psa_driver_wrapper_aead_decrypt_setup(
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
             status = PSA_ERROR_NOT_SUPPORTED;
-//          status = test_transparent_aead_decrypt_setup(
-//                      operation, attributes,
-//                      key_buffer, key_buffer_size,
-//                      alg );
+            status = test_transparent_aead_decrypt_setup(
+                        operation, attributes,
+                        key_buffer, key_buffer_size,
+                        alg );
             /* Declared with fallback == true */
             if( status == PSA_SUCCESS )
                 operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
@@ -1413,8 +1413,8 @@ psa_status_t psa_driver_wrapper_aead_set_nonce(
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
             return( PSA_ERROR_NOT_SUPPORTED );
-//          return( test_transparent_aead_set_nonce(
-//                      operation, nonce, nonce_length ) );
+            return( test_transparent_aead_set_nonce(
+                        operation, nonce, nonce_length ) );
 
         /* Add cases for opaque driver here */
 
@@ -1445,8 +1445,8 @@ psa_status_t psa_driver_wrapper_aead_set_lengths(
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
             return( PSA_ERROR_NOT_SUPPORTED );
-//          return( test_transparent_aead_set_lengths(
-//                      operation, ad_length, plaintext_length ) );
+            return( test_transparent_aead_set_lengths(
+                        operation, ad_length, plaintext_length ) );
 
         /* Add cases for opaque driver here */
 
@@ -1477,8 +1477,8 @@ psa_status_t psa_driver_wrapper_aead_update_ad(
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
             return( PSA_ERROR_NOT_SUPPORTED );
-//          return( test_transparent_aead_update_ad(
-//                      operation, input, input_length ) );
+            return( test_transparent_aead_update_ad(
+                        operation, input, input_length ) );
 
         /* Add cases for opaque driver here */
 
@@ -1513,9 +1513,9 @@ psa_status_t psa_driver_wrapper_aead_update(
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
             return( PSA_ERROR_NOT_SUPPORTED );
-//          return( test_transparent_aead_update(
-//                      operation, input, input_length, ouput, output_size,
-//                      output_length ) );
+            return( test_transparent_aead_update(
+                        operation, input, input_length, output, output_size,
+                        output_length ) );
 
         /* Add cases for opaque driver here */
 
@@ -1554,9 +1554,9 @@ psa_status_t psa_driver_wrapper_aead_finish(
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
             return( PSA_ERROR_NOT_SUPPORTED );
-//          return( test_transparent_aead_finish(
-//                      operation, ciphertext, ciphertext_size,
-//                      ciphertext_length, tag, tag_size, tag_length ) );
+            return( test_transparent_aead_finish(
+                        operation, ciphertext, ciphertext_size,
+                        ciphertext_length, tag, tag_size, tag_length ) );
 
         /* Add cases for opaque driver here */
 
@@ -1595,9 +1595,9 @@ psa_status_t psa_driver_wrapper_aead_verify(
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
             return( PSA_ERROR_NOT_SUPPORTED );
-//          return( test_transparent_aead_verify(
-//                      operation, ciphertext, ciphertext_size,
-//                      ciphertext_length, tag, tag_length ) );
+            return( test_transparent_aead_verify(
+                        operation, plaintext, plaintext_size,
+                        plaintext_length, tag, tag_length ) );
 
         /* Add cases for opaque driver here */
 
@@ -1629,7 +1629,7 @@ psa_status_t psa_driver_wrapper_aead_abort(
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
             return( PSA_ERROR_NOT_SUPPORTED );
-//          return( test_transparent_aead_abort( operation ) );
+            return( test_transparent_aead_abort( operation ) );
 
         /* Add cases for opaque driver here */
 

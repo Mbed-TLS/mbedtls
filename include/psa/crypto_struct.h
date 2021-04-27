@@ -183,7 +183,7 @@ struct psa_aead_operation_s
     size_t ad_length;
 
     uint8_t *body_buffer;
-    uint8_t body_length;
+    size_t body_length;
 
     uint8_t *tag_buffer;
 

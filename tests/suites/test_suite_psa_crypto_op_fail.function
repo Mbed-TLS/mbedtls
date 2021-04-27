@@ -1,0 +1,14 @@
+/* BEGIN_HEADER */
+
+#include "psa/crypto.h"
+#include "test/psa_crypto_helpers.h"
+
+#define INVALID_KEY_ID mbedtls_svc_key_id_make( 0, 0xfedcba98 )
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C
+ * END_DEPENDENCIES
+ */
+

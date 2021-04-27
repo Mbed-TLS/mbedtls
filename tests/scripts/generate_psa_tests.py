@@ -231,11 +231,37 @@ class OpFail:
     def __init__(self, info: Information) -> None:
         self.constructors = info.constructors
 
+    @staticmethod
+    def hash_test_cases(alg: str) -> Iterator[test_case.TestCase]:
+        """Generate hash failure test cases for the specified algorithm."""
+        tc = test_case.TestCase()
+        is_hash = (alg.startswith('PSA_ALG_SHA') or
+                   alg.startswith('PSA_ALG_MD') or
+                   alg in frozenset(['PSA_ALG_RIPEMD160', 'PSA_ALG_ANY_HASH']))
+        if is_hash:
+            descr = 'not supported'
+            status = 'PSA_ERROR_NOT_SUPPORTED'
+            dependencies = ['!PSA_WANT_' + alg[4:]]
+        else:
+            descr = 'invalid'
+            status = 'PSA_ERROR_INVALID_ARGUMENT'
+            dependencies = automatic_dependencies(alg)
+        tc.set_description('PSA hash {}: {}'
+                           .format(descr, re.sub(r'PSA_ALG_', r'', alg)))
+        tc.set_dependencies(dependencies)
+        tc.set_function('hash_fail')
+        tc.set_arguments([alg, status])
+        yield tc
+
+    def test_cases_for_algorithm(self, alg: str) -> Iterator[test_case.TestCase]:
+        """Generate operation failure test cases for the specified algorithm."""
+        yield from self.hash_test_cases(alg)
+
     def all_test_cases(self) -> Iterator[test_case.TestCase]:
         """Generate all test cases for operations that must fail."""
-        #pylint: disable=no-self-use
-        return # To do
-        yield #pylint: disable=unreachable
+        algorithms = sorted(self.constructors.algorithms)
+        for alg in self.constructors.generate_expressions(algorithms):
+            yield from self.test_cases_for_algorithm(alg)
 
 
 class StorageKey(psa_storage.Key):

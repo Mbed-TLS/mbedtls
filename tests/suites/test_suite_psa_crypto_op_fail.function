@@ -3,8 +3,6 @@
 #include "psa/crypto.h"
 #include "test/psa_crypto_helpers.h"
 
-#define INVALID_KEY_ID mbedtls_svc_key_id_make( 0, 0xfedcba98 )
-
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -12,3 +10,29 @@
  * END_DEPENDENCIES
  */
 
+/* BEGIN_CASE */
+void hash_fail( int alg_arg, int expected_status_arg )
+{
+    psa_status_t expected_status = expected_status_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    uint8_t input[1] = {'A'};
+    uint8_t output[PSA_HASH_MAX_SIZE] = {0};
+    size_t length = SIZE_MAX;
+
+    PSA_INIT( );
+
+    TEST_EQUAL( expected_status,
+                psa_hash_setup( &operation, alg ) );
+    TEST_EQUAL( expected_status,
+                psa_hash_compute( alg, input, sizeof( input ),
+                                  output, sizeof( output ), &length ) );
+    TEST_EQUAL( expected_status,
+                psa_hash_compare( alg, input, sizeof( input ),
+                                  output, sizeof( output ) ) );
+
+exit:
+    psa_hash_abort( &operation );
+    PSA_DONE( );
+}
+/* END_CASE */

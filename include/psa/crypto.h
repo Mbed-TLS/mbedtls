@@ -2136,7 +2136,11 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  *         \p alg is not supported or is not an AEAD algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         \p ciphertext_size is too small
+ *         \p ciphertext_size is too small.
+ *         #PSA_AEAD_ENCRYPT_OUTPUT_SIZE(\c key_type, \p alg,
+ *         \p plaintext_length) or
+ *         #PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE(\p plaintext_length) can be used to
+ *         determine the required buffer size.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
@@ -2205,7 +2209,11 @@ psa_status_t psa_aead_encrypt(mbedtls_svc_key_id_t key,
  *         \p alg is not supported or is not an AEAD algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         \p plaintext_size or \p nonce_length is too small
+ *         \p plaintext_size is too small.
+ *         #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\c key_type, \p alg,
+ *         \p ciphertext_length) or
+ *         #PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE(\p ciphertext_length) can be used
+ *         to determine the required buffer size.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED

@@ -130,7 +130,7 @@
  *                            (\c PSA_ALG_XXX value such that
  *                            #PSA_ALG_IS_AEAD(\p alg) is true).
  *
- * \return                    The tag size for the specified algorithm and key.
+ * \return                    The tag length for the specified algorithm and key.
  *                            If the AEAD algorithm does not have an identified
  *                            tag that can be distinguished from the rest of
  *                            the ciphertext, return 0.

@@ -148,7 +148,7 @@ psa_status_t psa_driver_wrapper_sign_message(
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+        case PSA_CRYPTO_TEST_DRIVER_LOCATION:
             return( mbedtls_test_opaque_signature_sign_message(
                         attributes,
                         key_buffer,
@@ -249,7 +249,7 @@ psa_status_t psa_driver_wrapper_verify_message(
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case PSA_CRYPTO_TEST_DRIVER_LIFETIME:
+        case PSA_CRYPTO_TEST_DRIVER_LOCATION:
             return( mbedtls_test_opaque_signature_verify_message(
                         attributes,
                         key_buffer,

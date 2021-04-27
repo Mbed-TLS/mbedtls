@@ -1261,16 +1261,16 @@ void mbedtls_x509_crt_parse_subjectkeyid( char * crt_path, char *subjectKeyId, i
 
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_path ) == retVal );
 
-    if(retVal != 0)
+    if( retVal != 0 )
     {
-        while(i < subjectKeyIdLength)
+        while( i < subjectKeyIdLength )
         {
             result |= crt.subject_key_id.p[i] != subjectKeyId[i*2];
             result |= crt.subject_key_id.p[i+1] != subjectKeyId[i*2+1];
             i++;
         }
 
-        TEST_ASSERT(result == 0);
+        TEST_ASSERT( result == 0 );
     }
 
 exit:
@@ -1291,10 +1291,10 @@ void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyI
 
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_path ) == retVal );
 
-    if (retVal != 0)
+    if ( retVal != 0 )
     {
         /* KeyId test */
-        while(i < keyIdLength)
+        while( i < keyIdLength )
         {
             result |= crt.authority_key_id.keyIdentifier.p[i] != authorityKeyId_keyId[i*2];
             result |= crt.authority_key_id.keyIdentifier.p[i+1] != authorityKeyId_keyId[i*2+1];
@@ -1303,11 +1303,11 @@ void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyI
 
         /* Issuer test */
         mbedtls_x509_name* issuerPtr = &crt.authority_key_id.authorityCertIssuer;
-        while (issuerPtr != NULL)
+        while ( issuerPtr != NULL )
         {
-            for (issuerCounter = 0u; issuerCounter < issuerPtr->val.len; issuerCounter++)
+            for ( issuerCounter = 0u; issuerCounter < issuerPtr->val.len; issuerCounter++ )
             {
-                result |= (authorityKeyId_issuer[bufferCounter++] != issuerPtr->val.p[issuerCounter]);
+                result |= ( authorityKeyId_issuer[bufferCounter++] != issuerPtr->val.p[issuerCounter] );
             }
             bufferCounter++; /* Skipping the slash */
             issuerPtr = issuerPtr->next;
@@ -1315,14 +1315,14 @@ void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyI
 
         /* Serial test */
         i = 0;
-        while(i < serialLength)
+        while( i < serialLength )
         {
             result |= crt.authority_key_id.authorityCertSerialNumber.p[i] != authorityKeyId_serial[i*2];
             result |= crt.authority_key_id.authorityCertSerialNumber.p[i+1] != authorityKeyId_serial[i*2+1];
             i++;
         }
 
-        TEST_ASSERT(result == 0);
+        TEST_ASSERT( result == 0 );
     }
 
 exit:

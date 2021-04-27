@@ -1,2 +1,3 @@
-API changes
-   * x509 certificate parse functionality is extended with the possibility of extracting SignatureKeyId and AuthorityKeyId fields
+Features
+   * When parsing X.509 certificates, support the extensions
+     SignatureKeyIdentifier and AuthorityKeyIdentifier.

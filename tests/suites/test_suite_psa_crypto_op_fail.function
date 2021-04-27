@@ -1,0 +1,18 @@
+/* BEGIN_HEADER */
+
+#include "psa/crypto.h"
+#include "test/psa_crypto_helpers.h"
+
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE depends_on:NEVER_USED */
+void test_suites_must_have_at_least_one_function( )
+{
+}
+/* END_CASE */

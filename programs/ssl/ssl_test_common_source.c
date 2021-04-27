@@ -303,3 +303,41 @@ int ssl_sig_hashes_for_test[] = {
     MBEDTLS_MD_NONE
 };
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
+/** Functionally equivalent to mbedtls_x509_crt_verify_info, see that function
+ *  for more info.
+ */
+int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
+                          uint32_t flags )
+{
+    return( mbedtls_x509_crt_verify_info( buf, size, prefix, flags ) );
+
+#else /* !MBEDTLS_X509_REMOVE_INFO */
+    int ret;
+    char *p = buf;
+    size_t n = size;
+
+#define X509_CRT_ERROR_INFO( err, err_str, info )                      \
+    if( ( flags & err ) != 0 )                                         \
+    {                                                                  \
+        ret = mbedtls_snprintf( p, n, "%s%s\n", prefix, info );        \
+        MBEDTLS_X509_SAFE_SNPRINTF;                                    \
+        flags ^= err;                                                  \
+    }
+
+    MBEDTLS_X509_CRT_ERROR_INFO_LIST
+#undef X509_CRT_ERROR_INFO
+
+    if( flags != 0 )
+    {
+        ret = mbedtls_snprintf( p, n, "%sUnknown reason "
+                                       "(this should not happen)\n", prefix );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+    }
+
+    return( (int) ( size - n ) );
+#endif /* MBEDTLS_X509_REMOVE_INFO */
+}
+#endif /* MBEDTLS_X509_CRT_PARSE_C */

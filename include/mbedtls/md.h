@@ -32,12 +32,7 @@
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
-
-#ifndef ALLOW_PRIVATE_ACCESS
-#define MBEDTLS_PRIVATE(member) private_##member
-#else
-#define MBEDTLS_PRIVATE(member) member
-#endif
+#include "mbedtls/private_access.h"
 
 #define MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE                -0x5080  /**< The selected feature is not available. */
 #define MBEDTLS_ERR_MD_BAD_INPUT_DATA                     -0x5100  /**< Bad input parameters to function. */

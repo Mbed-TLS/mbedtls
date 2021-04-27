@@ -37,8 +37,6 @@ ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 LOCAL_CFLAGS += -Werror -DRECORD_PSA_STATUS_COVERAGE_LOG
 endif
 
-LOCAL_CFLAGS += -DALLOW_PRIVATE_ACCESS
-
 # if we're running on Windows, build for Windows
 ifdef WINDOWS
 WINDOWS_BUILD=1

@@ -59,8 +59,6 @@ function(add_test_suite suite_name)
     endif()
 endfunction(add_test_suite)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DALLOW_PRIVATE_ACCESS")
-
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-function")
 endif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)

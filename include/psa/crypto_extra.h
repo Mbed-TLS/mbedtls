@@ -28,6 +28,7 @@
 #ifndef PSA_CRYPTO_EXTRA_H
 #define PSA_CRYPTO_EXTRA_H
 
+#include "mbedtls/private_access.h"
 #include "mbedtls/platform_util.h"
 
 #include "crypto_compat.h"
@@ -71,7 +72,7 @@ static inline void psa_set_key_enrollment_algorithm(
     psa_key_attributes_t *attributes,
     psa_algorithm_t alg2)
 {
-    attributes->PSA_PRIVATE(core).policy.alg2 = alg2;
+    attributes->MBEDTLS_PRIVATE(core).policy.alg2 = alg2;
 }
 
 /** Retrieve the enrollment algorithm policy from key attributes.
@@ -83,7 +84,7 @@ static inline void psa_set_key_enrollment_algorithm(
 static inline psa_algorithm_t psa_get_key_enrollment_algorithm(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->PSA_PRIVATE(core).policy.alg2 );
+    return( attributes->MBEDTLS_PRIVATE(core).policy.alg2 );
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -141,7 +142,7 @@ static inline void psa_set_key_slot_number(
     psa_key_attributes_t *attributes,
     psa_key_slot_number_t slot_number )
 {
-    attributes->PSA_PRIVATE(core).flags |= MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
+    attributes->MBEDTLS_PRIVATE(core).flags |= MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
     attributes->slot_number = slot_number;
 }
 
@@ -154,7 +155,7 @@ static inline void psa_set_key_slot_number(
 static inline void psa_clear_key_slot_number(
     psa_key_attributes_t *attributes )
 {
-    attributes->PSA_PRIVATE(core).flags &= ~MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
+    attributes->MBEDTLS_PRIVATE(core).flags &= ~MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
 }
 
 /** Register a key that is already present in a secure element.

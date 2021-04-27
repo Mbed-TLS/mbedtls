@@ -31,6 +31,8 @@
 #define _BSD_SOURCE 1
 #endif
 
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
 #include <test/macros.h>
 #include <test/random.h>
 #include <string.h>

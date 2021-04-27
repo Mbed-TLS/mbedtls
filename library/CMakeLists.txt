@@ -113,8 +113,6 @@ set(src_tls
     ssl_tls13_keys.c
 )
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DALLOW_PRIVATE_ACCESS")
-
 if(CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes")
 endif(CMAKE_COMPILER_IS_GNUCC)

@@ -1157,8 +1157,7 @@
  *
  * This macro must expand to a compile-time constant integer.
  *
- * See also #PSA_PAKE_KEY_SHARE_SIZE(\p alg, \p cipher_suite) and
- * #PSA_PAKE_OUTPUT_SIZE(\p alg, \p cipher_suite, \p output).
+ * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p cipher_suite, \p output).
  */
 #define PSA_PAKE_OUTPUT_MAX_SIZE
 

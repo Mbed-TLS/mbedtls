@@ -365,6 +365,8 @@ static psa_status_t wrap_data( const char *input_file_name,
     psa_status_t status;
     FILE *input_file = NULL;
     FILE *output_file = NULL;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_type_t key_type;
     long input_position;
     size_t input_size;
     size_t buffer_size = 0;
@@ -385,7 +387,10 @@ static psa_status_t wrap_data( const char *input_file_name,
     }
 #endif
     input_size = input_position;
-    buffer_size = PSA_AEAD_ENCRYPT_OUTPUT_SIZE( WRAPPING_ALG, input_size );
+    PSA_CHECK( psa_get_key_attributes( wrapping_key, &attributes ) );
+    key_type = psa_get_key_type( &attributes );
+    buffer_size =
+        PSA_AEAD_ENCRYPT_OUTPUT_SIZE( key_type, WRAPPING_ALG, input_size );
     /* Check for integer overflow. */
     if( buffer_size < input_size )
     {
@@ -442,6 +447,8 @@ static psa_status_t unwrap_data( const char *input_file_name,
     psa_status_t status;
     FILE *input_file = NULL;
     FILE *output_file = NULL;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_type_t key_type;
     unsigned char *buffer = NULL;
     size_t ciphertext_size = 0;
     size_t plaintext_size;
@@ -465,8 +472,10 @@ static psa_status_t unwrap_data( const char *input_file_name,
         status = DEMO_ERROR;
         goto exit;
     }
+    PSA_CHECK( psa_get_key_attributes( wrapping_key, &attributes) );
+    key_type = psa_get_key_type( &attributes);
     ciphertext_size =
-        PSA_AEAD_ENCRYPT_OUTPUT_SIZE( WRAPPING_ALG, header.payload_size );
+        PSA_AEAD_ENCRYPT_OUTPUT_SIZE( key_type, WRAPPING_ALG, header.payload_size );
     /* Check for integer overflow. */
     if( ciphertext_size < header.payload_size )
     {

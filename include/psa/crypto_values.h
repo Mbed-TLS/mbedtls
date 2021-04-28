@@ -2137,4 +2137,27 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 
 /**@}*/
 
+/** \defgroup helper_macros Helper macros
+ * @{
+ */
+
+/* Helper macros */
+
+/** Check if two AEAD algorithm identifiers refer to the same AEAD algorithm
+ *  regardless of the tag length they encode.
+ *
+ * \param aead_alg_1 An AEAD algorithm identifier.
+ * \param aead_alg_2 An AEAD algorithm identifier.
+ *
+ * \return           1 if both identifiers refer to the same AEAD algorithm,
+ *                   0 otherwise.
+ *                   Unspecified if neither \p aead_alg_1 nor \p aead_alg_2 are
+ *                   a supported AEAD algorithm.
+ */
+#define MBEDTLS_PSA_ALG_AEAD_EQUAL(aead_alg_1, aead_alg_2) \
+    (!(((aead_alg_1) ^ (aead_alg_2)) & \
+       ~(PSA_ALG_AEAD_TAG_LENGTH_MASK | PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)))
+
+/**@}*/
+
 #endif /* PSA_CRYPTO_VALUES_H */

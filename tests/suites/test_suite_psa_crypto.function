@@ -2924,23 +2924,15 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
     unsigned char *output_data = NULL;
     size_t output_size = 0;
     size_t output_length = 0;
     unsigned char *output_data2 = NULL;
     size_t output_length2 = 0;
-    size_t tag_length = PSA_AEAD_TAG_LENGTH( alg );
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     psa_status_t expected_result = expected_result_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-
-    output_size = input_data->len + tag_length;
-    /* For all currently defined algorithms, PSA_AEAD_ENCRYPT_OUTPUT_SIZE
-     * should be exact. */
-    if( expected_result != PSA_ERROR_INVALID_ARGUMENT )
-        TEST_EQUAL( output_size,
-                    PSA_AEAD_ENCRYPT_OUTPUT_SIZE( alg, input_data->len ) );
-    ASSERT_ALLOC( output_data, output_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -2950,6 +2942,22 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
 
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
+
+    output_size = input_data->len + PSA_AEAD_TAG_LENGTH( key_type, key_bits,
+                                                         alg );
+    /* For all currently defined algorithms, PSA_AEAD_ENCRYPT_OUTPUT_SIZE
+     * should be exact. */
+    if( expected_result != PSA_ERROR_INVALID_ARGUMENT &&
+        expected_result != PSA_ERROR_NOT_SUPPORTED )
+    {
+        TEST_EQUAL( output_size,
+                    PSA_AEAD_ENCRYPT_OUTPUT_SIZE( key_type, alg, input_data->len ) );
+        TEST_ASSERT( output_size <=
+                     PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE( input_data->len ) );
+    }
+    ASSERT_ALLOC( output_data, output_size );
 
     status = psa_aead_encrypt( key, alg,
                                nonce->x, nonce->len,
@@ -2977,7 +2985,7 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
         /* For all currently defined algorithms, PSA_AEAD_DECRYPT_OUTPUT_SIZE
          * should be exact. */
         TEST_EQUAL( input_data->len,
-                    PSA_AEAD_DECRYPT_OUTPUT_SIZE( alg, output_length ) );
+                    PSA_AEAD_DECRYPT_OUTPUT_SIZE( key_type, alg, output_length ) );
 
         TEST_ASSERT( input_data->len <=
                      PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE( output_length ) );
@@ -3014,21 +3022,12 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
     unsigned char *output_data = NULL;
     size_t output_size = 0;
     size_t output_length = 0;
-    size_t tag_length = PSA_AEAD_TAG_LENGTH( alg );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
-
-    output_size = input_data->len + tag_length;
-    /* For all currently defined algorithms, PSA_AEAD_ENCRYPT_OUTPUT_SIZE
-     * should be exact. */
-    TEST_EQUAL( output_size,
-                PSA_AEAD_ENCRYPT_OUTPUT_SIZE( alg, input_data->len ) );
-    TEST_ASSERT( output_size <=
-                 PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE( input_data->len ) );
-    ASSERT_ALLOC( output_data, output_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -3038,6 +3037,18 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
 
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
+
+    output_size = input_data->len + PSA_AEAD_TAG_LENGTH( key_type, key_bits,
+                                                         alg );
+    /* For all currently defined algorithms, PSA_AEAD_ENCRYPT_OUTPUT_SIZE
+     * should be exact. */
+    TEST_EQUAL( output_size,
+                PSA_AEAD_ENCRYPT_OUTPUT_SIZE( key_type, alg, input_data->len ) );
+    TEST_ASSERT( output_size <=
+                 PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE( input_data->len ) );
+    ASSERT_ALLOC( output_data, output_size );
 
     status = psa_aead_encrypt( key, alg,
                                nonce->x, nonce->len,
@@ -3078,25 +3089,13 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
     unsigned char *output_data = NULL;
     size_t output_size = 0;
     size_t output_length = 0;
-    size_t tag_length = PSA_AEAD_TAG_LENGTH( alg );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t expected_result = expected_result_arg;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
-
-    output_size = input_data->len - tag_length;
-    if( expected_result != PSA_ERROR_INVALID_ARGUMENT )
-    {
-        /* For all currently defined algorithms, PSA_AEAD_DECRYPT_OUTPUT_SIZE
-         * should be exact. */
-        TEST_EQUAL( output_size,
-                    PSA_AEAD_DECRYPT_OUTPUT_SIZE( alg, input_data->len ) );
-        TEST_ASSERT( output_size <=
-                     PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE( input_data->len ) );
-    }
-    ASSERT_ALLOC( output_data, output_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -3106,6 +3105,22 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
 
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
+
+    output_size = input_data->len - PSA_AEAD_TAG_LENGTH( key_type, key_bits,
+                                                         alg );
+    if( expected_result != PSA_ERROR_INVALID_ARGUMENT &&
+        expected_result != PSA_ERROR_NOT_SUPPORTED )
+    {
+        /* For all currently defined algorithms, PSA_AEAD_DECRYPT_OUTPUT_SIZE
+         * should be exact. */
+        TEST_EQUAL( output_size,
+                    PSA_AEAD_DECRYPT_OUTPUT_SIZE( key_type, alg, input_data->len ) );
+        TEST_ASSERT( output_size <=
+                     PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE( input_data->len ) );
+    }
+    ASSERT_ALLOC( output_data, output_size );
 
     status = psa_aead_decrypt( key, alg,
                                nonce->x, nonce->len,

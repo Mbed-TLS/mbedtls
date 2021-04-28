@@ -236,6 +236,7 @@ static psa_status_t mac_init(
     else
 #endif /* BUILTIN_ALG_HMAC */
     {
+        (void) operation;
         status = PSA_ERROR_NOT_SUPPORTED;
     }
 

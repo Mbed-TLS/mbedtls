@@ -169,6 +169,7 @@ exit: ;
 }
 
 void aead_algorithm_core( psa_algorithm_t alg, int classification_flags,
+                          psa_key_type_t key_type, size_t key_bits,
                           size_t tag_length )
 {
     /* Algorithm classification */
@@ -183,7 +184,7 @@ void aead_algorithm_core( psa_algorithm_t alg, int classification_flags,
     algorithm_classification( alg, classification_flags );
 
     /* Tag length */
-    TEST_EQUAL( tag_length, PSA_AEAD_TAG_LENGTH( alg ) );
+    TEST_EQUAL( tag_length, PSA_AEAD_TAG_LENGTH( key_type, key_bits, alg ) );
 
 exit: ;
 }
@@ -367,19 +368,24 @@ void cipher_algorithm( int alg_arg, int classification_flags )
 
 /* BEGIN_CASE */
 void aead_algorithm( int alg_arg, int classification_flags,
-                     int tag_length_arg )
+                     int tag_length_arg,
+                     int key_type_arg, int key_bits_arg )
 {
     psa_algorithm_t alg = alg_arg;
     size_t tag_length = tag_length_arg;
     size_t n;
+    psa_key_type_t key_type = key_type_arg;
+    size_t key_bits = key_bits_arg;
 
-    aead_algorithm_core( alg, classification_flags, tag_length );
+    aead_algorithm_core( alg, classification_flags,
+                         key_type, key_bits, tag_length );
 
     /* Truncated versions */
     for( n = 1; n <= tag_length; n++ )
     {
         psa_algorithm_t truncated_alg = PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, n );
-        aead_algorithm_core( truncated_alg, classification_flags, n );
+        aead_algorithm_core( truncated_alg, classification_flags,
+                             key_type, key_bits, n );
         TEST_EQUAL( PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG( truncated_alg ),
                     alg );
         /* Check that calling PSA_ALG_AEAD_WITH_SHORTENED_TAG twice gives
@@ -411,7 +417,8 @@ void aead_algorithm( int alg_arg, int classification_flags,
     for( n = 1; n <= tag_length; n++ )
     {
         psa_algorithm_t policy_alg = PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG( alg, n );
-        aead_algorithm_core( policy_alg, classification_flags | ALG_IS_WILDCARD, n );
+        aead_algorithm_core( policy_alg, classification_flags | ALG_IS_WILDCARD,
+                             key_type, key_bits, n );
         TEST_EQUAL( PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG( policy_alg ),
                     alg );
         /* Check that calling PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG twice

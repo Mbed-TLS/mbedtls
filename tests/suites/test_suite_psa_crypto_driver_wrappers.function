@@ -822,23 +822,14 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
     psa_status_t forced_status = forced_status_arg;
     unsigned char *output_data = NULL;
     size_t output_size = 0;
     size_t output_length = 0;
-    size_t tag_length = PSA_AEAD_TAG_LENGTH( alg );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     test_driver_aead_hooks = test_driver_aead_hooks_init();
-
-    output_size = input_data->len + tag_length;
-    /* For all currently defined algorithms, PSA_AEAD_ENCRYPT_OUTPUT_SIZE
-     * should be exact. */
-    TEST_EQUAL( output_size,
-                PSA_AEAD_ENCRYPT_OUTPUT_SIZE( alg, input_data->len ) );
-    TEST_ASSERT( output_size <=
-                 PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE( input_data->len ) );
-    ASSERT_ALLOC( output_data, output_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -848,6 +839,18 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
 
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
+
+    output_size = input_data->len + PSA_AEAD_TAG_LENGTH( key_type, key_bits,
+                                                         alg );
+    /* For all currently defined algorithms, PSA_AEAD_ENCRYPT_OUTPUT_SIZE
+     * should be exact. */
+    TEST_EQUAL( output_size,
+                PSA_AEAD_ENCRYPT_OUTPUT_SIZE( key_type, alg, input_data->len ) );
+    TEST_ASSERT( output_size <=
+                 PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE( input_data->len ) );
+    ASSERT_ALLOC( output_data, output_size );
 
     test_driver_aead_hooks.forced_status = forced_status;
     status = psa_aead_encrypt( key, alg,
@@ -888,17 +891,14 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
     psa_status_t forced_status = forced_status_arg;
     unsigned char *output_data = NULL;
     size_t output_size = 0;
     size_t output_length = 0;
-    size_t tag_length = PSA_AEAD_TAG_LENGTH( alg );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     test_driver_aead_hooks = test_driver_aead_hooks_init();
-
-    output_size = input_data->len - tag_length;
-    ASSERT_ALLOC( output_data, output_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -908,6 +908,12 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
 
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
+
+    output_size = input_data->len - PSA_AEAD_TAG_LENGTH( key_type, key_bits,
+                                                         alg );
+    ASSERT_ALLOC( output_data, output_size );
 
     test_driver_aead_hooks.forced_status = forced_status;
     status = psa_aead_decrypt( key, alg,

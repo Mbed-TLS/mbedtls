@@ -2063,6 +2063,7 @@ component_test_when_no_ciphersuites_have_mac () {
     scripts/config.py unset MBEDTLS_ARC4_C
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_ECJPAKE_C
+    scripts/config.py unset MBEDTLS_CMAC_C
     make
 
     msg "test: !MBEDTLS_SSL_SOME_MODES_USE_MAC"

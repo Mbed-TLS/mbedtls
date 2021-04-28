@@ -1330,8 +1330,7 @@ psa_status_t psa_driver_wrapper_aead_encrypt_setup(
                         key_buffer, key_buffer_size,
                         alg );
 
-            if( status == PSA_SUCCESS )
-                operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
+            operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
 
             return( status );
 
@@ -1382,8 +1381,7 @@ psa_status_t psa_driver_wrapper_aead_decrypt_setup(
                         key_buffer, key_buffer_size,
                         alg );
 
-            if( status == PSA_SUCCESS )
-                operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
+            operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
 
             return( status );
 

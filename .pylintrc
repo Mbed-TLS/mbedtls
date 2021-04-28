@@ -1,3 +1,6 @@
+[MASTER]
+init-hook='import sys; sys.path.append("scripts")'
+
 [BASIC]
 # We're ok with short funtion argument names.
 # [invalid-name]
@@ -12,9 +15,9 @@ bad-functions=input
 # [missing-docstring]
 docstring-min-length=10
 
-# Allow longer methods than the default.
+# No upper limit on method names. Pylint <2.1.0 has an upper limit of 30.
 # [invalid-name]
-method-rgx=[a-z_][a-z0-9_]{2,35}$
+method-rgx=[a-z_][a-z0-9_]{2,}$
 
 # Allow module names containing a dash (but no underscore or uppercase letter).
 # They are whole programs, not meant to be included by another module.

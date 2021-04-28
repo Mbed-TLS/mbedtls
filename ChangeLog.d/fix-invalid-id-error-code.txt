@@ -1,0 +1,5 @@
+Bugfix
+   * PSA functions creating a key now return PSA_ERROR_INVALID_ARGUMENT rather
+     than PSA_ERROR_INVALID_HANDLE when the identifier specified for the key
+     to create is not valid, bringing them in line with version 1.0.0 of the
+     specification. Fix #4271.

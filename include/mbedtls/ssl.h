@@ -51,19 +51,6 @@
 #include "mbedtls/ecdh.h"
 #endif
 
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#warning "Record compression support via MBEDTLS_ZLIB_SUPPORT is deprecated and will be removed in the next major revision of the library"
-#endif
-
-#if defined(MBEDTLS_DEPRECATED_REMOVED)
-#error "Record compression support via MBEDTLS_ZLIB_SUPPORT is deprecated and cannot be used if MBEDTLS_DEPRECATED_REMOVED is set"
-#endif
-
-#include "zlib.h"
-#endif
-
 #if defined(MBEDTLS_HAVE_TIME)
 #include "mbedtls/platform_time.h"
 #endif
@@ -107,7 +94,6 @@
 #define MBEDTLS_ERR_SSL_ALLOC_FAILED                      -0x7F00  /**< Memory allocation failed */
 #define MBEDTLS_ERR_SSL_HW_ACCEL_FAILED                   -0x7F80  /**< Hardware acceleration function returned with error */
 #define MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH              -0x6F80  /**< Hardware acceleration function skipped / left alone data */
-#define MBEDTLS_ERR_SSL_COMPRESSION_FAILED                -0x6F00  /**< Processing of the compression / decompression failed */
 #define MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION           -0x6E80  /**< Handshake protocol not within min/max boundaries */
 #define MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET         -0x6E00  /**< Processing of the NewSessionTicket handshake message failed. */
 #define MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED            -0x6D80  /**< Session ticket has expired. */
@@ -137,8 +123,14 @@
 /*
  * Various constants
  */
+
+/* These are the high an low bytes of ProtocolVersion as defined by:
+ * - RFC 2246: ProtocolVersion version = { 3, 1 };     // TLS v1.0
+ * - RFC 4346: ProtocolVersion version = { 3, 2 };     // TLS v1.1
+ * - RFC 5246: ProtocolVersion version = { 3, 3 };     // TLS v1.2
+ * - RFC 8446: see section 4.2.1
+ */
 #define MBEDTLS_SSL_MAJOR_VERSION_3             3
-#define MBEDTLS_SSL_MINOR_VERSION_0             0   /*!< SSL v3.0 */
 #define MBEDTLS_SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 */
 #define MBEDTLS_SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
 #define MBEDTLS_SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
@@ -177,7 +169,6 @@
 #define MBEDTLS_SSL_ETM_ENABLED                 1
 
 #define MBEDTLS_SSL_COMPRESS_NULL               0
-#define MBEDTLS_SSL_COMPRESS_DEFLATE            1
 
 #define MBEDTLS_SSL_VERIFY_NONE                 0
 #define MBEDTLS_SSL_VERIFY_OPTIONAL             1
@@ -210,9 +201,6 @@
 #define MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED    0
 #define MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED     1
 
-#define MBEDTLS_SSL_ARC4_ENABLED                0
-#define MBEDTLS_SSL_ARC4_DISABLED               1
-
 #define MBEDTLS_SSL_PRESET_DEFAULT              0
 #define MBEDTLS_SSL_PRESET_SUITEB               2
 
@@ -236,10 +224,6 @@
  * Either change them in config.h or define them on the compiler command line.
  * \{
  */
-
-#if !defined(MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME)
-#define MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
-#endif
 
 /*
  * Maximum fragment length in bytes,
@@ -296,11 +280,7 @@
 /*
  * Length of the verify data for secure renegotiation
  */
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-#define MBEDTLS_SSL_VERIFY_DATA_MAX_LEN 36
-#else
 #define MBEDTLS_SSL_VERIFY_DATA_MAX_LEN 12
-#endif
 
 /*
  * Signaling ciphersuite values (SCSV)
@@ -499,7 +479,6 @@ mbedtls_ssl_states;
 typedef enum
 {
    MBEDTLS_SSL_TLS_PRF_NONE,
-   MBEDTLS_SSL_TLS_PRF_SSL3,
    MBEDTLS_SSL_TLS_PRF_TLS1,
    MBEDTLS_SSL_TLS_PRF_SHA384,
    MBEDTLS_SSL_TLS_PRF_SHA256
@@ -619,7 +598,7 @@ typedef struct mbedtls_ssl_session mbedtls_ssl_session;
 typedef struct mbedtls_ssl_context mbedtls_ssl_context;
 typedef struct mbedtls_ssl_config  mbedtls_ssl_config;
 
-/* Defined in ssl_internal.h */
+/* Defined in library/ssl_misc.h */
 typedef struct mbedtls_ssl_transform mbedtls_ssl_transform;
 typedef struct mbedtls_ssl_handshake_params mbedtls_ssl_handshake_params;
 typedef struct mbedtls_ssl_sig_hash_set_t mbedtls_ssl_sig_hash_set_t;
@@ -961,7 +940,10 @@ struct mbedtls_ssl_config
      * Pointers
      */
 
-    const int *ciphersuite_list[4]; /*!< allowed ciphersuites per version   */
+    /** Allowed ciphersuites per version. To access list's elements, please use
+     *  \c mbedtls_ssl_get_protocol_version_ciphersuites
+     */
+    const int *ciphersuite_list[3];
 
     /** Callback for printing debug output                                  */
     void (*f_dbg)(void *, int, const char *, int, const char *);
@@ -1151,9 +1133,6 @@ struct mbedtls_ssl_config
     unsigned int authmode : 2;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
     /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
     unsigned int allow_legacy_renegotiation : 2 ; /*!< MBEDTLS_LEGACY_XXX   */
-#if defined(MBEDTLS_ARC4_C)
-    unsigned int arc4_disabled : 1; /*!< blacklist RC4 ciphersuites?        */
-#endif
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     unsigned int mfl_code : 3;      /*!< desired fragment length            */
 #endif
@@ -1212,7 +1191,7 @@ struct mbedtls_ssl_context
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
     int major_ver;              /*!< equal to  MBEDTLS_SSL_MAJOR_VERSION_3    */
-    int minor_ver;              /*!< either 0 (SSL3) or 1 (TLS1.0)    */
+    int minor_ver;              /*!< one of MBEDTLS_SSL_MINOR_VERSION_x macros */
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned badmac_seen;       /*!< records with a bad MAC received    */
@@ -1330,9 +1309,6 @@ struct mbedtls_ssl_context
     uint16_t mtu;               /*!< path mtu, used to fragment outgoing messages */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    unsigned char *compress_buf;        /*!<  zlib data buffer        */
-#endif /* MBEDTLS_ZLIB_SUPPORT */
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     signed char split_done;     /*!< current record already splitted? */
 #endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
@@ -1397,44 +1373,6 @@ struct mbedtls_ssl_context
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 };
 
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-
-#define MBEDTLS_SSL_CHANNEL_OUTBOUND   MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( 0 )
-#define MBEDTLS_SSL_CHANNEL_INBOUND    MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( 1 )
-
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif /* MBEDTLS_DEPRECATED_WARNING */
-
-MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_init)(
-                    mbedtls_ssl_context *ssl,
-                    const unsigned char *key_enc, const unsigned char *key_dec,
-                    size_t keylen,
-                    const unsigned char *iv_enc,  const unsigned char *iv_dec,
-                    size_t ivlen,
-                    const unsigned char *mac_enc, const unsigned char *mac_dec,
-                    size_t maclen);
-MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_activate)(
-                                                    mbedtls_ssl_context *ssl,
-                                                    int direction );
-MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_reset)(
-                                                    mbedtls_ssl_context *ssl );
-MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_write)(
-                                                    mbedtls_ssl_context *ssl );
-MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_read)(
-                                                    mbedtls_ssl_context *ssl );
-MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_finish)(
-                                                    mbedtls_ssl_context *ssl );
-
-#undef MBEDTLS_DEPRECATED
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
-
-#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
-
 /**
  * \brief               Return the name of the ciphersuite associated with the
  *                      given ID
@@ -1493,9 +1431,8 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
  *                 pointers and data.
  *
  * \param ssl      SSL context
- * \return         0 if successful, or MBEDTLS_ERR_SSL_ALLOC_FAILED,
-                   MBEDTLS_ERR_SSL_HW_ACCEL_FAILED or
- *                 MBEDTLS_ERR_SSL_COMPRESSION_FAILED
+ * \return         0 if successful, or MBEDTLS_ERR_SSL_ALLOC_FAILED or
+                   MBEDTLS_ERR_SSL_HW_ACCEL_FAILED
  */
 int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl );
 
@@ -1809,9 +1746,6 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
  *
  * \note           Values lower than the current record layer expansion will
  *                 result in an error when trying to send data.
- *
- * \note           Using record compression together with a non-zero MTU value
- *                 will result in an error when trying to send data.
  *
  * \param ssl      SSL context
  * \param mtu      Value of the path MTU in bytes
@@ -2557,6 +2491,17 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                    const int *ciphersuites );
 
+/**
+ * \brief               Get ciphersuite for given protocol's minor version.
+ *
+ * \param conf          The SSL configuration.
+ * \param prot_version  Protocol version. One of MBEDTLS_SSL_MINOR_VERSION_x macros.
+ * \return              Ciphersuites pointer if succesful.
+ * \return              \c NULL if no ciphersuites where found.
+ */
+const int *mbedtls_ssl_get_protocol_version_ciphersuites(
+    const mbedtls_ssl_config *conf, int prot_version );
+
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0
 #define MBEDTLS_SSL_UNEXPECTED_CID_FAIL   1
@@ -2608,8 +2553,8 @@ int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf, size_t len,
  * \param ciphersuites  0-terminated list of allowed ciphersuites
  * \param major         Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3
  *                      supported)
- * \param minor         Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
- *                      MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
+ * \param minor         Minor version number (MBEDTLS_SSL_MINOR_VERSION_1,
+ *                      MBEDTLS_SSL_MINOR_VERSION_2,
  *                      MBEDTLS_SSL_MINOR_VERSION_3 supported)
  *
  * \note                With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0
@@ -3296,8 +3241,7 @@ void mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ss
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
- * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
- *                 MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
+ * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
  *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
 void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor );
@@ -3309,15 +3253,13 @@ void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int mino
  * \note           Input outside of the SSL_MAX_XXXXX_VERSION and
  *                 SSL_MIN_XXXXX_VERSION range is ignored.
  *
- * \note           MBEDTLS_SSL_MINOR_VERSION_0 (SSL v3) should be avoided.
- *
  * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
  *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
- * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
- *                 MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
+ * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_1,
+ *                 MBEDTLS_SSL_MINOR_VERSION_2,
  *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
 void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor );
@@ -3374,25 +3316,6 @@ void mbedtls_ssl_conf_encrypt_then_mac( mbedtls_ssl_config *conf, char etm );
  */
 void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems );
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
-
-#if defined(MBEDTLS_ARC4_C)
-/**
- * \brief          Disable or enable support for RC4
- *                 (Default: MBEDTLS_SSL_ARC4_DISABLED)
- *
- * \warning        Use of RC4 in DTLS/TLS has been prohibited by RFC 7465
- *                 for security reasons. Use at your own risk.
- *
- * \note           This function is deprecated and will be removed in
- *                 a future version of the library.
- *                 RC4 is disabled by default at compile time and needs to be
- *                 actively enabled for use with legacy systems.
- *
- * \param conf     SSL configuration
- * \param arc4     MBEDTLS_SSL_ARC4_ENABLED or MBEDTLS_SSL_ARC4_DISABLED
- */
-void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 );
-#endif /* MBEDTLS_ARC4_C */
 
 #if defined(MBEDTLS_SSL_SRV_C)
 /**
@@ -3463,7 +3386,7 @@ void mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate );
  * \brief          Enable / Disable 1/n-1 record splitting
  *                 (Default: MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED)
  *
- * \note           Only affects SSLv3 and TLS 1.0, not higher versions.
+ * \note           Only affects TLS 1.0, not higher versions.
  *                 Does not affect non-CBC ciphersuites in any version.
  *
  * \param conf     SSL configuration
@@ -3687,11 +3610,11 @@ uint32_t mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl );
 const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl );
 
 /**
- * \brief          Return the current SSL version (SSLv3/TLSv1/etc)
+ * \brief          Return the current TLS version
  *
  * \param ssl      SSL context
  *
- * \return         a string containing the SSL version
+ * \return         a string containing the TLS version
  */
 const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl );
 
@@ -3699,14 +3622,9 @@ const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl );
  * \brief          Return the (maximum) number of bytes added by the record
  *                 layer: header + encryption/MAC overhead (inc. padding)
  *
- * \note           This function is not available (always returns an error)
- *                 when record compression is enabled.
- *
  * \param ssl      SSL context
  *
- * \return         Current maximum record expansion in bytes, or
- *                 MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if compression is
- *                 enabled, which makes expansion much less predictable
+ * \return         Current maximum record expansion in bytes
  */
 int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
 
@@ -3782,9 +3700,6 @@ MBEDTLS_DEPRECATED size_t mbedtls_ssl_get_max_frag_len(
  *                 necessary and return the number of bytes written; it is up
  *                 to the caller to call \c mbedtls_ssl_write() again in
  *                 order to send the remaining bytes if any.
- *
- * \note           This function is not available (always returns an error)
- *                 when record compression is enabled.
  *
  * \sa             mbedtls_ssl_set_mtu()
  * \sa             mbedtls_ssl_get_output_max_frag_len()

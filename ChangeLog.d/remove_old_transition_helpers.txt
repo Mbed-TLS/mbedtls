@@ -1,0 +1,3 @@
+API changes
+   * Remove helpers for the transition from Mbed TLS 1.3 to Mbed TLS 2.0: the
+   header compat-1.3.h and the script rename.pl.

@@ -21,7 +21,7 @@
 
 #if defined(MBEDTLS_PK_C)
 #include "mbedtls/pk.h"
-#include "mbedtls/pk_internal.h"
+#include "pk_wrap.h"
 
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
@@ -626,7 +626,7 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
 
     /* import private key into PSA */
     if( PSA_SUCCESS != psa_import_key( &attributes, d, d_len, key ) )
-        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+        return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
 
     /* make PK context wrap the key slot */
     mbedtls_pk_free( pk );

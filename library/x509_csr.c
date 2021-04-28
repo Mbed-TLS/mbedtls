@@ -73,7 +73,7 @@ static int x509_csr_get_version( unsigned char **p,
             return( 0 );
         }
 
-        return( MBEDTLS_ERR_X509_INVALID_VERSION + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_VERSION, ret ) );
     }
 
     return( 0 );
@@ -131,8 +131,8 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
     if( len != (size_t) ( end - p ) )
     {
         mbedtls_x509_csr_free( csr );
-        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_FORMAT,
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH ) );
     }
 
     /*
@@ -144,7 +144,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
-        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_FORMAT, ret ) );
     }
 
     end = p + len;
@@ -176,7 +176,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
-        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_FORMAT, ret ) );
     }
 
     if( ( ret = mbedtls_x509_get_name( &p, p + len, &csr->subject ) ) != 0 )
@@ -210,7 +210,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
-        return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_FORMAT, ret ) );
     }
 
     p += len;
@@ -244,8 +244,8 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
     if( p != end )
     {
         mbedtls_x509_csr_free( csr );
-        return( MBEDTLS_ERR_X509_INVALID_FORMAT +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_FORMAT,
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH ) );
     }
 
     return( 0 );

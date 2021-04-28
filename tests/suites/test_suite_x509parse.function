@@ -7,6 +7,7 @@
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/base64.h"
+#include "mbedtls/error.h"
 #include "string.h"
 
 #if MBEDTLS_X509_MAX_INTERMEDIATE_CA > 19
@@ -320,18 +321,18 @@ int parse_crt_ext_cb( void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf
         ret = mbedtls_asn1_get_tag( p, end, &len,
                                  MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE );
         if( ret != 0 )
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret ) );
 
         if( *p + len != end )
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                    MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                    MBEDTLS_ERR_ASN1_LENGTH_MISMATCH ) );
 
         /*
          * Cannot be an empty sequence.
          */
         if( len == 0 )
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                    MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                    MBEDTLS_ERR_ASN1_LENGTH_MISMATCH ) );
 
         while( *p < end )
         {
@@ -342,13 +343,13 @@ int parse_crt_ext_cb( void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf
              */
             if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+                return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret ) );
 
             policy_end = *p + len;
 
             if( ( ret = mbedtls_asn1_get_tag( p, policy_end, &len,
                                               MBEDTLS_ASN1_OID ) ) != 0 )
-                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+                return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret ) );
 
             /*
              * Recognize exclusively the policy with OID 1
@@ -366,7 +367,7 @@ int parse_crt_ext_cb( void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf
             {
                 if( ( ret = mbedtls_asn1_get_tag( p, policy_end, &len,
                          MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-                    return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+                    return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret ) );
                 /*
                  * Skip the optional policy qualifiers.
                  */
@@ -374,13 +375,13 @@ int parse_crt_ext_cb( void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf
             }
 
             if( *p != policy_end )
-                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                        MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+                return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                        MBEDTLS_ERR_ASN1_LENGTH_MISMATCH ) );
         }
 
         if( *p != end )
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                    MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                    MBEDTLS_ERR_ASN1_LENGTH_MISMATCH ) );
 
         return( parse_ret );
     }
@@ -388,7 +389,8 @@ int parse_crt_ext_cb( void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf
              memcmp( new_oid->p, oid->p, oid->len ) == 0 )
         return( 0 );
     else
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                   MBEDTLS_ERR_ASN1_UNEXPECTED_TAG ) );
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 /* END_HEADER */

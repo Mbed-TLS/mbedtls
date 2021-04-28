@@ -60,8 +60,8 @@ static int pkcs5_parse_pbkdf2_params( const mbedtls_asn1_buf *params,
     const unsigned char *end = params->p + params->len;
 
     if( params->tag != ( MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) )
-        return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT +
-                MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS5_INVALID_FORMAT,
+                MBEDTLS_ERR_ASN1_UNEXPECTED_TAG ) );
     /*
      *  PBKDF2-params ::= SEQUENCE {
      *    salt              OCTET STRING,
@@ -73,13 +73,13 @@ static int pkcs5_parse_pbkdf2_params( const mbedtls_asn1_buf *params,
      */
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &salt->len,
                                       MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
-        return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS5_INVALID_FORMAT, ret ) );
 
     salt->p = p;
     p += salt->len;
 
     if( ( ret = mbedtls_asn1_get_int( &p, end, iterations ) ) != 0 )
-        return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS5_INVALID_FORMAT, ret ) );
 
     if( p == end )
         return( 0 );
@@ -87,21 +87,21 @@ static int pkcs5_parse_pbkdf2_params( const mbedtls_asn1_buf *params,
     if( ( ret = mbedtls_asn1_get_int( &p, end, keylen ) ) != 0 )
     {
         if( ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
-            return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT + ret );
+            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS5_INVALID_FORMAT, ret ) );
     }
 
     if( p == end )
         return( 0 );
 
     if( ( ret = mbedtls_asn1_get_alg_null( &p, end, &prf_alg_oid ) ) != 0 )
-        return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS5_INVALID_FORMAT, ret ) );
 
     if( mbedtls_oid_get_md_hmac( &prf_alg_oid, md_type ) != 0 )
         return( MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE );
 
     if( p != end )
-        return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS5_INVALID_FORMAT,
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH ) );
 
     return( 0 );
 }
@@ -134,12 +134,12 @@ int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
      *  }
      */
     if( pbe_params->tag != ( MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) )
-        return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT +
-                MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS5_INVALID_FORMAT,
+                MBEDTLS_ERR_ASN1_UNEXPECTED_TAG ) );
 
     if( ( ret = mbedtls_asn1_get_alg( &p, end, &kdf_alg_oid,
                                       &kdf_alg_params ) ) != 0 )
-        return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS5_INVALID_FORMAT, ret ) );
 
     // Only PBKDF2 supported at the moment
     //
@@ -160,7 +160,7 @@ int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
     if( ( ret = mbedtls_asn1_get_alg( &p, end, &enc_scheme_oid,
                               &enc_scheme_params ) ) != 0 )
     {
-        return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS5_INVALID_FORMAT, ret ) );
     }
 
     if( mbedtls_oid_get_cipher_alg( &enc_scheme_oid, &cipher_alg ) != 0 )

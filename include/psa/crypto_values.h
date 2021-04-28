@@ -1969,8 +1969,8 @@
 /** The Password-authenticated key exchange by juggling (J-PAKE) algorithm.
  *
  * J-PAKE can be instantiated over finite fields or elliptic curves. This can
- * be achieved by passing either #PSA_PAKE_PRIMITIVE_TYPE_FIELD_DH or
- * #PSA_PAKE_PRIMITIVE_TYPE_CURVE to #PSA_PAKE_PRIMITIVE respectively, when
+ * be achieved by passing either #PSA_PAKE_PRIMITIVE_TYPE_DH or
+ * #PSA_PAKE_PRIMITIVE_TYPE_ECC to #PSA_PAKE_PRIMITIVE respectively, when
  * creating the cipher suite.
  *
  * In theory the algorithm works with any non-interactive zero-knowledge proof.
@@ -2515,7 +2515,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *  curve would be. For more information, consult the documentation of
  *  psa_export_key().
  */
-#define PSA_PAKE_PRIMITIVE_TYPE_CURVE       ((psa_pake_primitive_type_t)0x01)
+#define PSA_PAKE_PRIMITIVE_TYPE_ECC       ((psa_pake_primitive_type_t)0x01)
 
 /** The PAKE uses finite fields based Diffie-Hellman groups.
  *
@@ -2532,7 +2532,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *  group would be. For more information, consult the documentation of
  *  psa_export_key().
  */
-#define PSA_PAKE_PRIMITIVE_TYPE_FIELD_DH       ((psa_pake_primitive_type_t)0x02)
+#define PSA_PAKE_PRIMITIVE_TYPE_DH       ((psa_pake_primitive_type_t)0x02)
 
 /** Construct a PAKE primitive from type, family and bitsize.
  *

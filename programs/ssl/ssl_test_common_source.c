@@ -305,13 +305,13 @@ int ssl_sig_hashes_for_test[] = {
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
 /** Functionally equivalent to mbedtls_x509_crt_verify_info, see that function
  *  for more info.
  */
 int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
                           uint32_t flags )
 {
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
     return( mbedtls_x509_crt_verify_info( buf, size, prefix, flags ) );
 
 #else /* !MBEDTLS_X509_REMOVE_INFO */

@@ -3404,6 +3404,7 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
 
 exit:
     psa_destroy_key( key );
+    psa_aead_abort( &operation );
     mbedtls_free( output_data );
     mbedtls_free( part_data );
     mbedtls_free( final_data );
@@ -3776,6 +3777,7 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
 
 exit:
     psa_destroy_key( key );
+    psa_aead_abort( &operation );
     mbedtls_free( output_data );
     mbedtls_free( output_data2 );
     mbedtls_free( part_data );
@@ -4011,6 +4013,7 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
 
 exit:
     psa_destroy_key( key );
+    psa_aead_abort( &operation );
     mbedtls_free( output_data );
     mbedtls_free( part_data );
     mbedtls_free( final_data );

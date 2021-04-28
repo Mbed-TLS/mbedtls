@@ -870,8 +870,8 @@ int mbedtls_ecdsa_read_signature_restartable( mbedtls_ecdsa_context *ctx,
 
     if( p + len != end )
     {
-        ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA +
-              MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+              MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
         goto cleanup;
     }
 

@@ -17,8 +17,6 @@
  *
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #if !defined(_POSIX_C_SOURCE)
 #define _POSIX_C_SOURCE 200112L // for fileno() from <stdio.h>
@@ -30,10 +28,6 @@
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "psa/crypto.h"
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /* Test code may use deprecated identifiers only if the preprocessor symbol
  * MBEDTLS_TEST_DEPRECATED is defined. When building tests, set

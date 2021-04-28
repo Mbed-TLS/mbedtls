@@ -1041,14 +1041,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
 
     if( ( ret = pk_get_pk_alg( &p, end, &pk_alg, &params ) ) != 0 )
     {
-        if( ret >= -0x007F )
-        {
-            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret ) );
-        }
-        else
-        {
-            return ret;
-        }
+        return( ret );
     }
 
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )

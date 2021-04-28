@@ -41,14 +41,14 @@
     !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_CLI_C) || \
     !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_RSA_C) ||         \
     !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_FS_IO) ||  \
-    !defined(MBEDTLS_CTR_DRBG_C)
+    !defined(MBEDTLS_CTR_DRBG_C) || defined(MBEDTLS_X509_REMOVE_INFO)
 int main( void )
 {
     mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_ENTROPY_C and/or "
            "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_CLI_C and/or "
            "MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
            "MBEDTLS_X509_CRT_PARSE_C and/or MBEDTLS_FS_IO and/or "
-           "MBEDTLS_CTR_DRBG_C not defined.\n");
+           "MBEDTLS_CTR_DRBG_C not defined and/or MBEDTLS_X509_REMOVE_INFO defined.\n");
     mbedtls_exit( 0 );
 }
 #else

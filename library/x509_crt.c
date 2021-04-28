@@ -1763,6 +1763,57 @@ static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
     return( 0 );
 }
 
+int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
+                                         mbedtls_x509_subject_alternative_name *san )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    switch( san_buf->tag &
+            ( MBEDTLS_ASN1_TAG_CLASS_MASK |
+              MBEDTLS_ASN1_TAG_VALUE_MASK ) )
+    {
+        /*
+         * otherName
+         */
+        case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_OTHER_NAME ):
+        {
+            mbedtls_x509_san_other_name other_name;
+
+            ret = x509_get_other_name( san_buf, &other_name );
+            if( ret != 0 )
+                return( ret );
+
+            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
+            san->type = MBEDTLS_X509_SAN_OTHER_NAME;
+            memcpy( &san->san.other_name,
+                    &other_name, sizeof( other_name ) );
+
+        }
+        break;
+
+        /*
+         * dNSName
+         */
+        case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_DNS_NAME ):
+        {
+            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
+            san->type = MBEDTLS_X509_SAN_DNS_NAME;
+
+            memcpy( &san->san.unstructured_name,
+                    san_buf, sizeof( *san_buf ) );
+
+        }
+        break;
+
+        /*
+         * Type not supported
+         */
+        default:
+            return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
+    }
+    return( 0 );
+}
+
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 static int x509_info_subject_alt_name( char **buf, size_t *size,
                                        const mbedtls_x509_sequence
                                                     *subject_alt_name,
@@ -1873,56 +1924,6 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
     *size = n;
     *buf = p;
 
-    return( 0 );
-}
-
-int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
-                                         mbedtls_x509_subject_alternative_name *san )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    switch( san_buf->tag &
-            ( MBEDTLS_ASN1_TAG_CLASS_MASK |
-              MBEDTLS_ASN1_TAG_VALUE_MASK ) )
-    {
-        /*
-         * otherName
-         */
-        case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_OTHER_NAME ):
-        {
-            mbedtls_x509_san_other_name other_name;
-
-            ret = x509_get_other_name( san_buf, &other_name );
-            if( ret != 0 )
-                return( ret );
-
-            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
-            san->type = MBEDTLS_X509_SAN_OTHER_NAME;
-            memcpy( &san->san.other_name,
-                    &other_name, sizeof( other_name ) );
-
-        }
-        break;
-
-        /*
-         * dNSName
-         */
-        case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_DNS_NAME ):
-        {
-            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
-            san->type = MBEDTLS_X509_SAN_DNS_NAME;
-
-            memcpy( &san->san.unstructured_name,
-                    san_buf, sizeof( *san_buf ) );
-
-        }
-        break;
-
-        /*
-         * Type not supported
-         */
-        default:
-            return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
-    }
     return( 0 );
 }
 
@@ -2199,29 +2200,12 @@ struct x509_crt_verify_string {
     const char *string;
 };
 
+#define X509_CRT_ERROR_INFO( err, err_str, info ) { err, info },
 static const struct x509_crt_verify_string x509_crt_verify_strings[] = {
-    { MBEDTLS_X509_BADCERT_EXPIRED,       "The certificate validity has expired" },
-    { MBEDTLS_X509_BADCERT_REVOKED,       "The certificate has been revoked (is on a CRL)" },
-    { MBEDTLS_X509_BADCERT_CN_MISMATCH,   "The certificate Common Name (CN) does not match with the expected CN" },
-    { MBEDTLS_X509_BADCERT_NOT_TRUSTED,   "The certificate is not correctly signed by the trusted CA" },
-    { MBEDTLS_X509_BADCRL_NOT_TRUSTED,    "The CRL is not correctly signed by the trusted CA" },
-    { MBEDTLS_X509_BADCRL_EXPIRED,        "The CRL is expired" },
-    { MBEDTLS_X509_BADCERT_MISSING,       "Certificate was missing" },
-    { MBEDTLS_X509_BADCERT_SKIP_VERIFY,   "Certificate verification was skipped" },
-    { MBEDTLS_X509_BADCERT_OTHER,         "Other reason (can be used by verify callback)" },
-    { MBEDTLS_X509_BADCERT_FUTURE,        "The certificate validity starts in the future" },
-    { MBEDTLS_X509_BADCRL_FUTURE,         "The CRL is from the future" },
-    { MBEDTLS_X509_BADCERT_KEY_USAGE,     "Usage does not match the keyUsage extension" },
-    { MBEDTLS_X509_BADCERT_EXT_KEY_USAGE, "Usage does not match the extendedKeyUsage extension" },
-    { MBEDTLS_X509_BADCERT_NS_CERT_TYPE,  "Usage does not match the nsCertType extension" },
-    { MBEDTLS_X509_BADCERT_BAD_MD,        "The certificate is signed with an unacceptable hash." },
-    { MBEDTLS_X509_BADCERT_BAD_PK,        "The certificate is signed with an unacceptable PK alg (eg RSA vs ECDSA)." },
-    { MBEDTLS_X509_BADCERT_BAD_KEY,       "The certificate is signed with an unacceptable key (eg bad curve, RSA too short)." },
-    { MBEDTLS_X509_BADCRL_BAD_MD,         "The CRL is signed with an unacceptable hash." },
-    { MBEDTLS_X509_BADCRL_BAD_PK,         "The CRL is signed with an unacceptable PK alg (eg RSA vs ECDSA)." },
-    { MBEDTLS_X509_BADCRL_BAD_KEY,        "The CRL is signed with an unacceptable key (eg bad curve, RSA too short)." },
+    MBEDTLS_X509_CRT_ERROR_INFO_LIST
     { 0, NULL }
 };
+#undef X509_CRT_ERROR_INFO
 
 int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
                           uint32_t flags )
@@ -2250,6 +2234,7 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
 
     return( (int) ( size - n ) );
 }
+#endif /* MBEDTLS_X509_REMOVE_INFO */
 
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
 int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,

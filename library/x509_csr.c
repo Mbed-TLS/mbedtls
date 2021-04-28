@@ -323,6 +323,7 @@ int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path )
 }
 #endif /* MBEDTLS_FS_IO */
 
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 #define BEFORE_COLON    14
 #define BC              "14"
 /*
@@ -367,6 +368,7 @@ int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
 
     return( (int) ( size - n ) );
 }
+#endif /* MBEDTLS_X509_REMOVE_INFO */
 
 /*
  * Initialize a CSR

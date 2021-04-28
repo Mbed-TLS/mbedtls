@@ -1,0 +1,3 @@
+Features
+   * Implemented the multipart AEAD API within the PSA Crypto API, along with
+     tests in the PSA Crypto test suite, and transparent driver wrappers.

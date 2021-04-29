@@ -623,46 +623,68 @@ class StorageFormat:
         yield from self.generate_keys_for_usage_flags()
         yield from self.generate_key_for_all_usage_flags()
 
+    def key_for_type_and_alg(
+            self,
+            kt: crypto_knowledge.KeyType,
+            bits: int,
+            alg: Optional[crypto_knowledge.Algorithm] = None,
+    ) -> StorageTestData:
+        """Construct a test key of the given type.
+
+        If alg is not None, this key allows it.
+        """
+        usage_flags = 'PSA_KEY_USAGE_EXPORT'
+        alg1 = 0 if alg is None else alg.expression #type: psa_storage.Exprable
+        alg2 = 0
+        key_material = kt.key_material(bits)
+        short_expression = re.sub(r'\bPSA_(?:KEY_TYPE|ECC_FAMILY)_',
+                                  r'',
+                                  kt.expression)
+        description = 'type: {} {}-bit'.format(short_expression, bits)
+        if alg is not None:
+            description += ', ' + re.sub(r'PSA_ALG_', r'', alg.expression)
+        key = StorageTestData(version=self.version,
+                              id=1, lifetime=0x00000001,
+                              type=kt.expression, bits=bits,
+                              usage=usage_flags, alg=alg1, alg2=alg2,
+                              material=key_material,
+                              description=description)
+        return key
+
     def keys_for_type(
             self,
             key_type: str,
-            params: Optional[Iterable[str]] = None
+            all_algorithms: List[crypto_knowledge.Algorithm],
     ) -> Iterator[StorageTestData]:
-        """Generate test keys for the given key type.
-
-        For key types that depend on a parameter (e.g. elliptic curve family),
-        `param` is the parameter to pass to the constructor. Only a single
-        parameter is supported.
-        """
-        kt = crypto_knowledge.KeyType(key_type, params)
+        """Generate test keys for the given key type."""
+        kt = crypto_knowledge.KeyType(key_type)
         for bits in kt.sizes_to_test():
-            usage_flags = 'PSA_KEY_USAGE_EXPORT'
-            alg = 0
-            alg2 = 0
-            key_material = kt.key_material(bits)
-            short_expression = re.sub(r'\bPSA_(?:KEY_TYPE|ECC_FAMILY)_',
-                                      r'',
-                                      kt.expression)
-            description = 'type: {} {}-bit'.format(short_expression, bits)
-            key = StorageTestData(version=self.version,
-                                  id=1, lifetime=0x00000001,
-                                  type=kt.expression, bits=bits,
-                                  usage=usage_flags, alg=alg, alg2=alg2,
-                                  material=key_material,
-                                  description=description)
-            yield key
+            # Test a non-exercisable key, as well as exercisable keys for
+            # each compatible algorithm.
+            # To do: test reading a key from storage with an incompatible
+            # or unsupported algorithm.
+            yield self.key_for_type_and_alg(kt, bits)
+            compatible_algorithms = [alg for alg in all_algorithms
+                                     if kt.can_do(alg)]
+            for alg in compatible_algorithms:
+                yield self.key_for_type_and_alg(kt, bits, alg)
 
     def all_keys_for_types(self) -> Iterator[StorageTestData]:
         """Generate test keys covering key types and their representations."""
         key_types = sorted(self.constructors.key_types)
+        all_algorithms = [crypto_knowledge.Algorithm(alg)
+                          for alg in self.constructors.generate_expressions(
+                              sorted(self.constructors.algorithms)
+                          )]
         for key_type in self.constructors.generate_expressions(key_types):
-            yield from self.keys_for_type(key_type)
+            yield from self.keys_for_type(key_type, all_algorithms)
 
     def keys_for_algorithm(self, alg: str) -> Iterator[StorageTestData]:
-        """Generate test keys for the specified algorithm."""
-        # For now, we don't have information on the compatibility of key
-        # types and algorithms. So we just test the encoding of algorithms,
-        # and not that operations can be performed with them.
+        """Generate test keys for the encoding of the specified algorithm."""
+        # These test cases only validate the encoding of algorithms, not
+        # whether the key read from storage is suitable for an operation.
+        # `keys_for_types` generate read tests with an algorithm and a
+        # compatible key.
         descr = re.sub(r'PSA_ALG_', r'', alg)
         descr = re.sub(r',', r', ', re.sub(r' +', r'', descr))
         usage = 'PSA_KEY_USAGE_EXPORT'

@@ -2241,11 +2241,17 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
         ei = (E->p[nblimbs] >> bufsize) & 1;
 
         /*
-         * skip leading 0s
+         * skip leading 0s, check 'state' first as otherwise
+         * a side-channel power leakage occurs on 'ei', see issue #4231
          */
         if( state == 0 && ei == 0 )
             continue;
 
+        /*
+         * Check state first here again to ensure out of window,
+         * otherwise side-channel power leakage occurs on 'ei' check
+         * for every iteration. See issue #4231.
+         */
         if( state == 1 && ei == 0 )
         {
             /*

@@ -352,11 +352,6 @@ class StorageFormat:
         key_types = sorted(self.constructors.key_types)
         for key_type in self.constructors.generate_expressions(key_types):
             yield from self.keys_for_type(key_type)
-        ## Diffie-Hellman (FFDH) is not supported yet, either in
-        ## crypto_knowledge.py or in Mbed TLS.
-        # for key_type in sorted(self.constructors.key_types_from_group):
-        #     for group in sorted(self.constructors.dh_groups):
-        #         yield from self.keys_for_type(key_type, [group])
 
     def keys_for_algorithm(self, alg: str) -> Iterator[StorageKey]:
         """Generate test keys for the specified algorithm."""

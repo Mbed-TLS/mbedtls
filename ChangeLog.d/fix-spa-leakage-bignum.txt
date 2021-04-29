@@ -1,0 +1,3 @@
+Security:
+   * Mitigate a simple power analysis (SPA) leak in mbedtls_mpi_exp_mod that leaked each
+     bit despite a windowed implementation of exp_mod. See #4231 for more information.

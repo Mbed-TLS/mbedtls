@@ -2504,9 +2504,6 @@ static psa_status_t psa_sign_internal( mbedtls_svc_key_id_t key,
                     return( PSA_ERROR_INVALID_ARGUMENT );
             }
         }
-        /* Curently only hash-then-sign algorithms are supported. */
-        else
-            return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
     /* Immediately reject a zero-length signature buffer. This guarantees
@@ -2597,9 +2594,6 @@ static psa_status_t psa_verify_internal( mbedtls_svc_key_id_t key,
                     return( PSA_ERROR_INVALID_ARGUMENT );
             }
         }
-        /* Curently only hash-then-sign algorithms are supported. */
-        else
-            return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
     status = psa_get_and_lock_key_slot_with_policy(
@@ -2651,13 +2645,16 @@ psa_status_t psa_sign_message_internal(
     size_t hash_length;
     uint8_t hash[PSA_HASH_MAX_SIZE];
 
-    status = psa_driver_wrapper_hash_compute( PSA_ALG_SIGN_GET_HASH( alg ),
-                                              input, input_length,
-                                              hash, sizeof( hash ),
-                                              &hash_length );
+    if ( PSA_ALG_IS_HASH_AND_SIGN( alg ) )
+    {
+        status = psa_driver_wrapper_hash_compute(
+                    PSA_ALG_SIGN_GET_HASH( alg ),
+                    input, input_length,
+                    hash, sizeof( hash ), &hash_length );
 
-    if( status != PSA_SUCCESS )
-        return status;
+        if( status != PSA_SUCCESS )
+            return status;
+    }
 
     return psa_sign_hash_internal(
                 attributes, key_buffer, key_buffer_size,
@@ -2692,13 +2689,16 @@ psa_status_t psa_verify_message_internal(
     size_t hash_length;
     uint8_t hash[PSA_HASH_MAX_SIZE];
 
-    status = psa_driver_wrapper_hash_compute( PSA_ALG_SIGN_GET_HASH( alg ),
-                                              input, input_length,
-                                              hash, sizeof( hash ),
-                                              &hash_length );
+    if ( PSA_ALG_IS_HASH_AND_SIGN( alg ) )
+    {
+        status = psa_driver_wrapper_hash_compute(
+                    PSA_ALG_SIGN_GET_HASH( alg ),
+                    input, input_length,
+                    hash, sizeof( hash ), &hash_length );
 
-    if( status != PSA_SUCCESS )
-        return status;
+        if( status != PSA_SUCCESS )
+            return status;
+    }
 
     return psa_verify_hash_internal(
                 attributes, key_buffer, key_buffer_size,

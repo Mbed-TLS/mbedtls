@@ -77,39 +77,6 @@ psa_status_t psa_driver_wrapper_sign_message(
     size_t *signature_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-    /* Try dynamically-registered SE interface first */
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    const psa_drv_se_t *drv;
-    psa_drv_se_context_t *drv_context;
-
-    if( psa_get_se_driver( attributes->core.lifetime, &drv, &drv_context ) )
-    {
-        if( drv->asymmetric == NULL ||
-            drv->asymmetric->p_sign == NULL )
-        {
-            /* Key is defined in SE, but we have no way to exercise it */
-            return( PSA_ERROR_NOT_SUPPORTED );
-        }
-
-        size_t hash_length;
-        uint8_t hash[PSA_HASH_MAX_SIZE];
-
-        status = psa_driver_wrapper_hash_compute( PSA_ALG_SIGN_GET_HASH( alg ),
-                                                  input, input_length,
-                                                  hash, sizeof( hash ),
-                                                  &hash_length );
-
-        if( status != PSA_ERROR_NOT_SUPPORTED )
-            return( status );
-
-        return( drv->asymmetric->p_sign(
-                    drv_context, *( (psa_key_slot_number_t *)key_buffer ),
-                    alg, hash, hash_length,
-                    signature, signature_size, signature_length ) );
-    }
-#endif /* PSA_CRYPTO_SE_C */
-
     psa_key_location_t location =
         PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
 
@@ -180,39 +147,6 @@ psa_status_t psa_driver_wrapper_verify_message(
     size_t signature_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-    /* Try dynamically-registered SE interface first */
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    const psa_drv_se_t *drv;
-    psa_drv_se_context_t *drv_context;
-
-    if( psa_get_se_driver( attributes->core.lifetime, &drv, &drv_context ) )
-    {
-        if( drv->asymmetric == NULL ||
-            drv->asymmetric->p_verify == NULL )
-        {
-            /* Key is defined in SE, but we have no way to exercise it */
-            return( PSA_ERROR_NOT_SUPPORTED );
-        }
-
-        size_t hash_length;
-        uint8_t hash[PSA_HASH_MAX_SIZE];
-
-        status = psa_driver_wrapper_hash_compute( PSA_ALG_SIGN_GET_HASH( alg ),
-                                                  input, input_length,
-                                                  hash, sizeof( hash ),
-                                                  &hash_length );
-
-        if( status != PSA_ERROR_NOT_SUPPORTED )
-            return( status );
-
-        return( drv->asymmetric->p_verify(
-                    drv_context, *( (psa_key_slot_number_t *)key_buffer ),
-                    alg, hash, hash_length,
-                    signature, signature_length ) );
-    }
-#endif /* PSA_CRYPTO_SE_C */
-
     psa_key_location_t location =
         PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
 

@@ -3213,7 +3213,7 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
     if( PSA_ALG_IS_HKDF( kdf_alg ) )
     {
         mbedtls_free( operation->ctx.hkdf.info );
-        status = psa_hmac_abort_internal( &operation->ctx.hkdf.hmac );
+        status = psa_mac_abort( &operation->ctx.hkdf.hmac );
     }
     else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF */
@@ -3280,11 +3280,12 @@ psa_status_t psa_key_derivation_set_capacity( psa_key_derivation_operation_t *op
 /* Read some bytes from an HKDF-based operation. This performs a chunk
  * of the expand phase of the HKDF algorithm. */
 static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkdf,
-                                             psa_algorithm_t hash_alg,
-                                             uint8_t *output,
-                                             size_t output_length )
+                                                  psa_algorithm_t hash_alg,
+                                                  uint8_t *output,
+                                                  size_t output_length )
 {
     uint8_t hash_length = PSA_HASH_LENGTH( hash_alg );
+    size_t hmac_output_length;
     psa_status_t status;
 
     if( hkdf->state < HKDF_STATE_KEYED || ! hkdf->info_set )
@@ -3314,31 +3315,42 @@ static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkd
         /* We need a new block */
         ++hkdf->block_number;
         hkdf->offset_in_block = 0;
-        status = psa_hmac_setup_internal( &hkdf->hmac,
-                                          hkdf->prk, hash_length,
-                                          hash_alg );
+
+        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+        psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
+        psa_set_key_bits( &attributes,
+                          PSA_BYTES_TO_BITS( hash_length ) );
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
+
+        status = psa_driver_wrapper_mac_sign_setup( &hkdf->hmac,
+                                                    &attributes,
+                                                    hkdf->prk, hash_length,
+                                                    PSA_ALG_HMAC( hash_alg ) );
+        psa_reset_key_attributes( &attributes );
         if( status != PSA_SUCCESS )
             return( status );
+
         if( hkdf->block_number != 1 )
         {
-            status = psa_hmac_update_internal( &hkdf->hmac,
-                                               hkdf->output_block,
-                                               hash_length );
+            status = psa_mac_update( &hkdf->hmac,
+                                     hkdf->output_block,
+                                     hash_length );
             if( status != PSA_SUCCESS )
                 return( status );
         }
-        status = psa_hmac_update_internal( &hkdf->hmac,
-                                           hkdf->info,
-                                           hkdf->info_length );
+        status = psa_mac_update( &hkdf->hmac,
+                                 hkdf->info,
+                                 hkdf->info_length );
         if( status != PSA_SUCCESS )
             return( status );
-        status = psa_hmac_update_internal( &hkdf->hmac,
-                                           &hkdf->block_number, 1 );
+        status = psa_mac_update( &hkdf->hmac,
+                                 &hkdf->block_number, 1 );
         if( status != PSA_SUCCESS )
             return( status );
-        status = psa_hmac_finish_internal( &hkdf->hmac,
-                                           hkdf->output_block,
-                                           sizeof( hkdf->output_block ) );
+        status = psa_mac_sign_finish( &hkdf->hmac,
+                                      hkdf->output_block,
+                                      sizeof( hkdf->output_block ),
+                                      &hmac_output_length );
         if( status != PSA_SUCCESS )
             return( status );
     }
@@ -3778,33 +3790,55 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
         case PSA_KEY_DERIVATION_INPUT_SALT:
             if( hkdf->state != HKDF_STATE_INIT )
                 return( PSA_ERROR_BAD_STATE );
-            status = psa_hmac_setup_internal( &hkdf->hmac,
-                                              data, data_length,
-                                              hash_alg );
-            if( status != PSA_SUCCESS )
-                return( status );
-            hkdf->state = HKDF_STATE_STARTED;
-            return( PSA_SUCCESS );
+            else
+            {
+                /* In a scope block due to scope-local attributes variable */
+                psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+                psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
+                psa_set_key_bits( &attributes,
+                                  PSA_BYTES_TO_BITS( data_length ) );
+                psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
+
+                status = psa_driver_wrapper_mac_sign_setup(
+                    &hkdf->hmac,
+                    &attributes,
+                    data, data_length,
+                    PSA_ALG_HMAC( hash_alg ) );
+                psa_reset_key_attributes( &attributes );
+                if( status != PSA_SUCCESS )
+                    return( status );
+                hkdf->state = HKDF_STATE_STARTED;
+                return( PSA_SUCCESS );
+            }
         case PSA_KEY_DERIVATION_INPUT_SECRET:
             /* If no salt was provided, use an empty salt. */
             if( hkdf->state == HKDF_STATE_INIT )
             {
-                status = psa_hmac_setup_internal( &hkdf->hmac,
-                                                  NULL, 0,
-                                                  hash_alg );
+                psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+                psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
+                psa_set_key_bits( &attributes, 0 );
+                psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
+
+                status = psa_driver_wrapper_mac_sign_setup(
+                    &hkdf->hmac,
+                    &attributes,
+                    NULL, 0,
+                    PSA_ALG_HMAC( hash_alg ) );
+                psa_reset_key_attributes( &attributes );
                 if( status != PSA_SUCCESS )
                     return( status );
                 hkdf->state = HKDF_STATE_STARTED;
             }
             if( hkdf->state != HKDF_STATE_STARTED )
                 return( PSA_ERROR_BAD_STATE );
-            status = psa_hmac_update_internal( &hkdf->hmac,
-                                               data, data_length );
+            status = psa_mac_update( &hkdf->hmac,
+                                     data, data_length );
             if( status != PSA_SUCCESS )
                 return( status );
-            status = psa_hmac_finish_internal( &hkdf->hmac,
-                                               hkdf->prk,
-                                               sizeof( hkdf->prk ) );
+            status = psa_mac_sign_finish( &hkdf->hmac,
+                                          hkdf->prk,
+                                          sizeof( hkdf->prk ),
+                                          &data_length );
             if( status != PSA_SUCCESS )
                 return( status );
             hkdf->offset_in_block = PSA_HASH_LENGTH( hash_alg );

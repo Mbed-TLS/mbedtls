@@ -173,7 +173,7 @@ typedef struct
 {
     uint8_t *info;
     size_t info_length;
-    mbedtls_psa_hmac_operation_t hmac;
+    psa_mac_operation_t hmac;
     uint8_t prk[PSA_HASH_MAX_SIZE];
     uint8_t output_block[PSA_HASH_MAX_SIZE];
 #if PSA_HASH_MAX_SIZE > 0xff

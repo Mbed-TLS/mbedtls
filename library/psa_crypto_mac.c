@@ -247,15 +247,12 @@ static psa_status_t mac_init(
 
     operation->alg = PSA_ALG_FULL_LENGTH_MAC( alg );
     operation->key_set = 0;
-    operation->iv_set = 0;
-    operation->iv_required = 0;
     operation->has_input = 0;
     operation->is_sign = 0;
 
 #if defined(BUILTIN_ALG_CMAC)
     if( operation->alg == PSA_ALG_CMAC )
     {
-        operation->iv_required = 0;
         mbedtls_cipher_init( &operation->ctx.cmac );
         status = PSA_SUCCESS;
     }
@@ -312,8 +309,6 @@ static psa_status_t mac_abort( mbedtls_psa_mac_operation_t *operation )
 
     operation->alg = 0;
     operation->key_set = 0;
-    operation->iv_set = 0;
-    operation->iv_required = 0;
     operation->has_input = 0;
     operation->is_sign = 0;
 
@@ -452,8 +447,6 @@ static psa_status_t mac_update(
 {
     if( ! operation->key_set )
         return( PSA_ERROR_BAD_STATE );
-    if( operation->iv_required && ! operation->iv_set )
-        return( PSA_ERROR_BAD_STATE );
     operation->has_input = 1;
 
 #if defined(BUILTIN_ALG_CMAC)
@@ -485,8 +478,6 @@ static psa_status_t mac_finish_internal( mbedtls_psa_mac_operation_t *operation,
                                          size_t mac_size )
 {
     if( ! operation->key_set )
-        return( PSA_ERROR_BAD_STATE );
-    if( operation->iv_required && ! operation->iv_set )
         return( PSA_ERROR_BAD_STATE );
 
     if( mac_size < operation->mac_size )

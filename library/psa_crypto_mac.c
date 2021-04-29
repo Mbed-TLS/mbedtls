@@ -243,7 +243,7 @@ static psa_status_t mac_init(
     mbedtls_psa_mac_operation_t *operation,
     psa_algorithm_t alg )
 {
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     operation->alg = PSA_ALG_FULL_LENGTH_MAC( alg );
     operation->key_set = 0;
@@ -268,8 +268,7 @@ static psa_status_t mac_init(
     else
 #endif /* BUILTIN_ALG_HMAC */
     {
-        if( ! PSA_ALG_IS_MAC( alg ) )
-            status = PSA_ERROR_INVALID_ARGUMENT;
+        status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     if( status != PSA_SUCCESS )

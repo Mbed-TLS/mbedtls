@@ -2267,18 +2267,22 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
-    psa_key_usage_t usage =
-        is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH;
-    size_t mac_size = 0;
+    size_t mac_size;
 
     /* A context must be freshly initialized before it can be set up. */
     if( operation->id != 0 )
         return( PSA_ERROR_BAD_STATE );
 
+    if( ! PSA_ALG_IS_MAC( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
     status = psa_get_and_lock_key_slot_with_policy(
-                 key, &slot, usage, alg );
+                 key,
+                 &slot,
+                 is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH,
+                 alg );
     if( status != PSA_SUCCESS )
-        goto exit;
+        return( status );
 
     psa_key_attributes_t attributes = {
         .core = slot->attr

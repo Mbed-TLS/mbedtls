@@ -4178,6 +4178,16 @@ static psa_status_t psa_key_derivation_setup_kdf(
 }
 #endif /* AT_LEAST_ONE_BUILTIN_KDF */
 
+static psa_status_t psa_key_agreement_try_support( psa_algorithm_t alg )
+{
+#if defined(PSA_WANT_ALG_ECDH)
+    if( alg == PSA_ALG_ECDH )
+        return( PSA_SUCCESS );
+#endif
+    (void) alg;
+    return( PSA_ERROR_NOT_SUPPORTED );
+}
+
 psa_status_t psa_key_derivation_setup( psa_key_derivation_operation_t *operation,
                                        psa_algorithm_t alg )
 {
@@ -4192,6 +4202,10 @@ psa_status_t psa_key_derivation_setup( psa_key_derivation_operation_t *operation
     {
 #if defined(AT_LEAST_ONE_BUILTIN_KDF)
         psa_algorithm_t kdf_alg = PSA_ALG_KEY_AGREEMENT_GET_KDF( alg );
+        psa_algorithm_t ka_alg = PSA_ALG_KEY_AGREEMENT_GET_BASE( alg );
+        status = psa_key_agreement_try_support( ka_alg );
+        if( status != PSA_SUCCESS )
+            return( status );
         status = psa_key_derivation_setup_kdf( operation, kdf_alg );
 #else
         return( PSA_ERROR_NOT_SUPPORTED );

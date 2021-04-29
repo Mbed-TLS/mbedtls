@@ -4132,6 +4132,14 @@ static int is_kdf_alg_supported( psa_algorithm_t kdf_alg )
     return( 0 );
 }
 
+static psa_status_t psa_hash_try_support( psa_algorithm_t alg )
+{
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    psa_status_t status = psa_hash_setup( &operation, alg );
+    psa_hash_abort( &operation );
+    return( status );
+}
+
 static psa_status_t psa_key_derivation_setup_kdf(
     psa_key_derivation_operation_t *operation,
     psa_algorithm_t kdf_alg )
@@ -4144,16 +4152,27 @@ static psa_status_t psa_key_derivation_setup_kdf(
     if( ! is_kdf_alg_supported( kdf_alg ) )
         return( PSA_ERROR_NOT_SUPPORTED );
 
+    /* All currently supported key derivation algorithms are based on a
+     * hash algorithm. */
     psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( kdf_alg );
     size_t hash_size = PSA_HASH_LENGTH( hash_alg );
     if( hash_size == 0 )
         return( PSA_ERROR_NOT_SUPPORTED );
+
+    /* Make sure that hash_alg is a supported hash algorithm. Otherwise
+     * we might fail later, which is somewhat unfriendly and potentially
+     * risk-prone. */
+    psa_status_t status = psa_hash_try_support( hash_alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
     if( ( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
           PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) ) &&
         ! ( hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384 ) )
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
+
     operation->capacity = 255 * hash_size;
     return( PSA_SUCCESS );
 }

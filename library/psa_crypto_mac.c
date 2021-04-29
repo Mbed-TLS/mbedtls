@@ -526,18 +526,6 @@ static psa_status_t mac_sign_finish(
     return( status );
 }
 
-/* constant-time buffer comparison */
-static inline int safer_memcmp( const uint8_t *a, const uint8_t *b, size_t n )
-{
-    size_t i;
-    unsigned char diff = 0;
-
-    for( i = 0; i < n; i++ )
-        diff |= a[i] ^ b[i];
-
-    return( diff );
-}
-
 static psa_status_t mac_verify_finish(
     mbedtls_psa_mac_operation_t *operation,
     const uint8_t *mac,
@@ -562,7 +550,7 @@ static psa_status_t mac_verify_finish(
     if( status != PSA_SUCCESS )
         goto cleanup;
 
-    if( safer_memcmp( mac, actual_mac, mac_length ) != 0 )
+    if( mbedtls_psa_safer_memcmp( mac, actual_mac, mac_length ) != 0 )
         status = PSA_ERROR_INVALID_SIGNATURE;
 
 cleanup:

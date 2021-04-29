@@ -21,6 +21,7 @@ generate only the specified files.
 # limitations under the License.
 
 import argparse
+import enum
 import os
 import re
 import sys
@@ -228,39 +229,123 @@ class OpFail:
     """Generate test cases for operations that must fail."""
     #pylint: disable=too-few-public-methods
 
+    class Reason(enum.Enum):
+        NOT_SUPPORTED = 0
+        INVALID = 1
+        INCOMPATIBLE = 2
+
     def __init__(self, info: Information) -> None:
         self.constructors = info.constructors
+        key_type_expressions = self.constructors.generate_expressions(
+            sorted(self.constructors.key_types)
+        )
+        self.key_types = [crypto_knowledge.KeyType(kt_expr)
+                          for kt_expr in key_type_expressions]
 
-    @staticmethod
-    def hash_test_cases(alg: str) -> Iterator[test_case.TestCase]:
-        """Generate hash failure test cases for the specified algorithm."""
+    def make_test_case(
+            self,
+            alg: crypto_knowledge.Algorithm,
+            category: crypto_knowledge.AlgorithmCategory,
+            reason: 'Reason',
+            kt: Optional[crypto_knowledge.KeyType] = None,
+            not_deps: FrozenSet[str] = frozenset(),
+    ) -> test_case.TestCase:
+        """Construct a failure test case for a one-key operation."""
+        #pylint: disable=too-many-arguments,too-many-locals
         tc = test_case.TestCase()
-        is_hash = (alg.startswith('PSA_ALG_SHA') or
-                   alg.startswith('PSA_ALG_MD') or
-                   alg in frozenset(['PSA_ALG_RIPEMD160', 'PSA_ALG_ANY_HASH']))
-        if is_hash:
-            descr = 'not supported'
-            status = 'PSA_ERROR_NOT_SUPPORTED'
-            dependencies = ['!PSA_WANT_' + alg[4:]]
+        pretty_alg = re.sub(r'PSA_ALG_', r'', alg.expression)
+        pretty_reason = reason.name.lower()
+        if kt:
+            key_type = kt.expression
+            pretty_type = re.sub(r'PSA_KEY_TYPE_', r'', key_type)
         else:
-            descr = 'invalid'
-            status = 'PSA_ERROR_INVALID_ARGUMENT'
-            dependencies = automatic_dependencies(alg)
-        tc.set_description('PSA hash {}: {}'
-                           .format(descr, re.sub(r'PSA_ALG_', r'', alg)))
+            key_type = ''
+            pretty_type = ''
+        tc.set_description('PSA {} {}: {}{}'
+                           .format(category.name.lower(),
+                                   pretty_alg,
+                                   pretty_reason,
+                                   ' with ' + pretty_type if pretty_type else ''))
+        dependencies = automatic_dependencies(alg.base_expression, key_type)
+        for i, dep in enumerate(dependencies):
+            if dep in not_deps:
+                dependencies[i] = '!' + dep
         tc.set_dependencies(dependencies)
-        tc.set_function('hash_fail')
-        tc.set_arguments([alg, status])
-        yield tc
+        tc.set_function(category.name.lower() + '_fail')
+        arguments = []
+        if kt:
+            key_material = kt.key_material(kt.sizes_to_test()[0])
+            arguments += [key_type, test_case.hex_string(key_material)]
+        arguments.append(alg.expression)
+        error = ('NOT_SUPPORTED' if reason == self.Reason.NOT_SUPPORTED else
+                 'INVALID_ARGUMENT')
+        arguments.append('PSA_ERROR_' + error)
+        tc.set_arguments(arguments)
+        return tc
 
-    def test_cases_for_algorithm(self, alg: str) -> Iterator[test_case.TestCase]:
+    def no_key_test_cases(
+            self,
+            alg: crypto_knowledge.Algorithm,
+            category: crypto_knowledge.AlgorithmCategory,
+    ) -> Iterator[test_case.TestCase]:
+        """Generate failure test cases for keyless operations with the specified algorithm."""
+        if category == alg.category:
+            # Compatible operation, unsupported algorithm
+            for dep in automatic_dependencies(alg.base_expression):
+                yield self.make_test_case(alg, category,
+                                          self.Reason.NOT_SUPPORTED,
+                                          not_deps=frozenset([dep]))
+        else:
+            # Incompatible operation, supported algorithm
+            yield self.make_test_case(alg, category, self.Reason.INVALID)
+
+    def one_key_test_cases(
+            self,
+            alg: crypto_knowledge.Algorithm,
+            category: crypto_knowledge.AlgorithmCategory,
+    ) -> Iterator[test_case.TestCase]:
+        """Generate failure test cases for one-key operations with the specified algorithm."""
+        for kt in self.key_types:
+            key_is_compatible = kt.can_do(alg)
+            # To do: public key for a private key operation
+            if key_is_compatible and category == alg.category:
+                # Compatible key and operation, unsupported algorithm
+                for dep in automatic_dependencies(alg.base_expression):
+                    yield self.make_test_case(alg, category,
+                                              self.Reason.NOT_SUPPORTED,
+                                              kt=kt, not_deps=frozenset([dep]))
+            elif key_is_compatible:
+                # Compatible key, incompatible operation, supported algorithm
+                yield self.make_test_case(alg, category,
+                                          self.Reason.INVALID,
+                                          kt=kt)
+            elif category == alg.category:
+                # Incompatible key, compatible operation, supported algorithm
+                yield self.make_test_case(alg, category,
+                                          self.Reason.INCOMPATIBLE,
+                                          kt=kt)
+            else:
+                # Incompatible key and operation. Don't test cases where
+                # multiple things are wrong, to keep the number of test
+                # cases reasonable.
+                pass
+
+    def test_cases_for_algorithm(
+            self,
+            alg: crypto_knowledge.Algorithm,
+    ) -> Iterator[test_case.TestCase]:
         """Generate operation failure test cases for the specified algorithm."""
-        yield from self.hash_test_cases(alg)
+        for category in crypto_knowledge.AlgorithmCategory:
+            if category.requires_key():
+                yield from self.one_key_test_cases(alg, category)
+            else:
+                yield from self.no_key_test_cases(alg, category)
 
     def all_test_cases(self) -> Iterator[test_case.TestCase]:
         """Generate all test cases for operations that must fail."""
         algorithms = sorted(self.constructors.algorithms)
-        for alg in self.constructors.generate_expressions(algorithms):
+        for expr in self.constructors.generate_expressions(algorithms):
+            alg = crypto_knowledge.Algorithm(expr)
             yield from self.test_cases_for_algorithm(alg)
 
 

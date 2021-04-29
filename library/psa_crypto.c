@@ -4115,51 +4115,47 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
 /****************************************************************/
 
 #if defined(AT_LEAST_ONE_BUILTIN_KDF)
+static int is_kdf_alg_supported( psa_algorithm_t kdf_alg )
+{
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+    if( PSA_ALG_IS_HKDF( kdf_alg ) )
+        return( 1 );
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF)
+    if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) )
+        return( 1 );
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+    if( PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
+        return( 1 );
+#endif
+    return( 0 );
+}
+
 static psa_status_t psa_key_derivation_setup_kdf(
     psa_key_derivation_operation_t *operation,
     psa_algorithm_t kdf_alg )
 {
-    int is_kdf_alg_supported;
-
     /* Make sure that operation->ctx is properly zero-initialised. (Macro
      * initialisers for this union leave some bytes unspecified.) */
     memset( &operation->ctx, 0, sizeof( operation->ctx ) );
 
     /* Make sure that kdf_alg is a supported key derivation algorithm. */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
-    if( PSA_ALG_IS_HKDF( kdf_alg ) )
-        is_kdf_alg_supported = 1;
-    else
-#endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF)
-    if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) )
-        is_kdf_alg_supported = 1;
-    else
-#endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
-    if( PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
-        is_kdf_alg_supported = 1;
-    else
-#endif
-    is_kdf_alg_supported = 0;
+    if( ! is_kdf_alg_supported( kdf_alg ) )
+        return( PSA_ERROR_NOT_SUPPORTED );
 
-    if( is_kdf_alg_supported )
+    psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( kdf_alg );
+    size_t hash_size = PSA_HASH_LENGTH( hash_alg );
+    if( hash_size == 0 )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    if( ( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
+          PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) ) &&
+        ! ( hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384 ) )
     {
-        psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( kdf_alg );
-        size_t hash_size = PSA_HASH_LENGTH( hash_alg );
-        if( hash_size == 0 )
-            return( PSA_ERROR_NOT_SUPPORTED );
-        if( ( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
-              PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) ) &&
-            ! ( hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384 ) )
-        {
-            return( PSA_ERROR_NOT_SUPPORTED );
-        }
-        operation->capacity = 255 * hash_size;
-        return( PSA_SUCCESS );
+        return( PSA_ERROR_NOT_SUPPORTED );
     }
-
-    return( PSA_ERROR_NOT_SUPPORTED );
+    operation->capacity = 255 * hash_size;
+    return( PSA_SUCCESS );
 }
 #endif /* AT_LEAST_ONE_BUILTIN_KDF */
 

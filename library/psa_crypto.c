@@ -3038,7 +3038,7 @@ psa_status_t psa_sign_message_internal(
             return status;
     }
 
-    return psa_sign_hash_internal(
+    return psa_driver_wrapper_sign_hash(
                 attributes, key_buffer, key_buffer_size,
                 alg, hash, hash_length,
                 signature, signature_size, signature_length );
@@ -3082,7 +3082,7 @@ psa_status_t psa_verify_message_internal(
             return status;
     }
 
-    return psa_verify_hash_internal(
+    return psa_driver_wrapper_verify_hash(
                 attributes, key_buffer, key_buffer_size,
                 alg, hash, hash_length,
                 signature, signature_length );

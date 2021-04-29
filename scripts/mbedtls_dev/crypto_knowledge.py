@@ -25,12 +25,32 @@ from typing import Iterable, Optional, Tuple
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
 
 
+BLOCK_CIPHERS = frozenset(['AES', 'ARIA', 'CAMELLIA', 'DES'])
 BLOCK_MAC_MODES = frozenset(['CBC_MAC', 'CMAC'])
 BLOCK_CIPHER_MODES = frozenset([
     'CTR', 'CFB', 'OFB', 'XTS',
     'ECB_NO_PADDING', 'CBC_NO_PADDING', 'CBC_PKCS7',
 ])
 BLOCK_AEAD_MODES = frozenset(['CCM', 'GCM'])
+
+class EllipticCurveCategory(enum.Enum):
+    """Categorization of elliptic curve families.
+
+    The category of a curve determines what algorithms are defined over it.
+    """
+
+    SHORT_WEIERSTRASS = 0
+    MONTGOMERY = 1
+    TWISTED_EDWARDS = 2
+
+    @staticmethod
+    def from_family(family: str) -> 'EllipticCurveCategory':
+        if family == 'PSA_ECC_FAMILY_MONTGOMERY':
+            return EllipticCurveCategory.MONTGOMERY
+        if family == 'PSA_ECC_FAMILY_TWISTED_EDWARDS':
+            return EllipticCurveCategory.TWISTED_EDWARDS
+        # Default to SW, which most curves belong to.
+        return EllipticCurveCategory.SHORT_WEIERSTRASS
 
 
 class KeyType:
@@ -71,6 +91,11 @@ class KeyType:
         """A C expression whose value is the key type encoding."""
         if self.params is not None:
             self.expression += '(' + ', '.join(self.params) + ')'
+
+        m = re.match(r'PSA_KEY_TYPE_(\w+)', self.name)
+        assert m
+        self.head = re.sub(r'_(?:PUBLIC_KEY|KEY_PAIR)\Z', r'', m.group(1))
+        """The key type macro name, with common prefixes and suffixes stripped."""
 
         self.private_type = re.sub(r'_PUBLIC_KEY\Z', r'_KEY_PAIR', self.name)
         """The key type macro name for the corresponding key pair type.
@@ -146,6 +171,42 @@ class KeyType:
             return des3[:length]
         return b''.join([self.DATA_BLOCK] * (length // len(self.DATA_BLOCK)) +
                         [self.DATA_BLOCK[:length % len(self.DATA_BLOCK)]])
+
+    def can_do(self, alg: 'Algorithm') -> bool:
+        """Whether this key type can be used for operations with the given algorithm."""
+        #pylint: disable=too-many-return-statements
+        if alg.is_wildcard:
+            return False
+        if self.head == 'HMAC' and alg.head == 'HMAC':
+            return True
+        if self.head in BLOCK_CIPHERS and \
+           alg.head in frozenset.union(BLOCK_MAC_MODES,
+                                       BLOCK_CIPHER_MODES,
+                                       BLOCK_AEAD_MODES):
+            return True
+        if self.head == 'CHACHA20' and alg.head == 'CHACHA20_POLY1305':
+            return True
+        if self.head in {'ARC4', 'CHACHA20'} and \
+           alg.head == 'STREAM_CIPHER':
+            return True
+        if self.head == 'RSA' and alg.head.startswith('RSA_'):
+            return True
+        if self.head == 'ECC':
+            assert self.params is not None
+            eccc = EllipticCurveCategory.from_family(self.params[0])
+            if alg.head == 'ECDH' and \
+               eccc in {EllipticCurveCategory.SHORT_WEIERSTRASS,
+                        EllipticCurveCategory.MONTGOMERY}:
+                return True
+            if alg.head == 'ECDSA' and \
+               eccc == EllipticCurveCategory.SHORT_WEIERSTRASS:
+                return True
+            if alg.head in {'PURE_EDDSA', 'EDDSA_PREHASH'} and \
+               eccc == EllipticCurveCategory.TWISTED_EDWARDS:
+                return True
+        return False
+
+
 class AlgorithmCategory(enum.Enum):
     """PSA algorithm categories."""
     # The numbers are aligned with the category bits in numerical values of

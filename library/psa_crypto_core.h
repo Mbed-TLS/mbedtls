@@ -377,6 +377,7 @@ psa_status_t psa_generate_key_internal( const psa_key_attributes_t *attributes,
                                         uint8_t *key_buffer,
                                         size_t key_buffer_size,
                                         size_t *key_buffer_length );
+
 /** Sign a message with a private key. For hash-and-sign algorithms,
  *  this includes the hashing step.
  *

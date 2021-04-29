@@ -69,16 +69,18 @@ static size_t psa_get_hash_block_size( psa_algorithm_t alg )
     }
 }
 
-psa_status_t psa_hmac_abort_internal( mbedtls_psa_hmac_operation_t *hmac )
+static psa_status_t psa_hmac_abort_internal(
+    mbedtls_psa_hmac_operation_t *hmac )
 {
     mbedtls_platform_zeroize( hmac->opad, sizeof( hmac->opad ) );
     return( psa_hash_abort( &hmac->hash_ctx ) );
 }
 
-psa_status_t psa_hmac_setup_internal( mbedtls_psa_hmac_operation_t *hmac,
-                                      const uint8_t *key,
-                                      size_t key_length,
-                                      psa_algorithm_t hash_alg )
+static psa_status_t psa_hmac_setup_internal(
+    mbedtls_psa_hmac_operation_t *hmac,
+    const uint8_t *key,
+    size_t key_length,
+    psa_algorithm_t hash_alg )
 {
     uint8_t ipad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
     size_t i;
@@ -139,16 +141,18 @@ cleanup:
     return( status );
 }
 
-psa_status_t psa_hmac_update_internal( mbedtls_psa_hmac_operation_t *hmac,
-                                       const uint8_t *data,
-                                       size_t data_length )
+static psa_status_t psa_hmac_update_internal(
+    mbedtls_psa_hmac_operation_t *hmac,
+    const uint8_t *data,
+    size_t data_length )
 {
     return( psa_hash_update( &hmac->hash_ctx, data, data_length ) );
 }
 
-psa_status_t psa_hmac_finish_internal( mbedtls_psa_hmac_operation_t *hmac,
-                                       uint8_t *mac,
-                                       size_t mac_size )
+static psa_status_t psa_hmac_finish_internal(
+    mbedtls_psa_hmac_operation_t *hmac,
+    uint8_t *mac,
+    size_t mac_size )
 {
     uint8_t tmp[MBEDTLS_MD_MAX_SIZE];
     psa_algorithm_t hash_alg = hmac->alg;
@@ -181,23 +185,6 @@ psa_status_t psa_hmac_finish_internal( mbedtls_psa_hmac_operation_t *hmac,
 
 exit:
     mbedtls_platform_zeroize( tmp, hash_size );
-    return( status );
-}
-
-psa_status_t psa_hmac_clone_internal(
-    const mbedtls_psa_hmac_operation_t *source,
-    mbedtls_psa_hmac_operation_t *destination )
-{
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-    destination->alg = source->alg;
-    destination->hash_ctx = psa_hash_operation_init();
-    status = psa_hash_clone( &source->hash_ctx, &destination->hash_ctx );
-    memcpy( destination->opad, source->opad, sizeof( destination->opad ) );
-
-    if( status != PSA_SUCCESS )
-        memset( destination, 0, sizeof( *destination ) );
-
     return( status );
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC || PSA_CRYPTO_DRIVER_TEST */
@@ -457,8 +444,8 @@ static psa_status_t mac_update(
 #if defined(BUILTIN_ALG_HMAC)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
-        return( psa_hash_update( &operation->ctx.hmac.hash_ctx, input,
-                                 input_length ) );
+        return( psa_hmac_update_internal( &operation->ctx.hmac,
+                                          input, input_length ) );
     }
     else
 #endif /* BUILTIN_ALG_HMAC */

@@ -26,7 +26,7 @@ from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
 class KeyType:
     """Knowledge about a PSA key type."""
 
-    def __init__(self, name: str, params: Optional[Iterable[str]] = None):
+    def __init__(self, name: str, params: Optional[Iterable[str]] = None) -> None:
         """Analyze a key type.
 
         The key type must be specified in PSA syntax. In its simplest form,

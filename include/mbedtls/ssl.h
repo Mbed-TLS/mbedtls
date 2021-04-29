@@ -2491,17 +2491,6 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                    const int *ciphersuites );
 
-/**
- * \brief               Get ciphersuite for given protocol's minor version.
- *
- * \param conf          The SSL configuration.
- * \param prot_version  Protocol version. One of MBEDTLS_SSL_MINOR_VERSION_x macros.
- * \return              Ciphersuites pointer if successful.
- * \return              \c NULL if no ciphersuites where found.
- */
-const int *mbedtls_ssl_get_protocol_version_ciphersuites(
-    const mbedtls_ssl_config *conf, int prot_version );
-
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0
 #define MBEDTLS_SSL_UNEXPECTED_CID_FAIL   1
@@ -2540,29 +2529,6 @@ const int *mbedtls_ssl_get_protocol_version_ciphersuites(
 int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf, size_t len,
                           int ignore_other_cids );
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-
-/**
- * \brief               Set the list of allowed ciphersuites and the
- *                      preference order for a specific version of the protocol.
- *                      (Only useful on the server side)
- *
- *                      The ciphersuites array is not copied, and must remain
- *                      valid for the lifetime of the ssl_config.
- *
- * \param conf          SSL configuration
- * \param ciphersuites  0-terminated list of allowed ciphersuites
- * \param major         Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3
- *                      supported)
- * \param minor         Minor version number (MBEDTLS_SSL_MINOR_VERSION_1,
- *                      MBEDTLS_SSL_MINOR_VERSION_2,
- *                      MBEDTLS_SSL_MINOR_VERSION_3 supported)
- *
- * \note                With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0
- *                      and MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
- */
-void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
-                                       const int *ciphersuites,
-                                       int major, int minor );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**

@@ -3837,36 +3837,6 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
         ciphersuites);
 }
 
-const int *mbedtls_ssl_get_protocol_version_ciphersuites(
-    const mbedtls_ssl_config *conf, int prot_version )
-{
-    int ciphersuite_list_index =
-        protocol_version_to_ciphersuites_list_index(prot_version);
-    if ( ciphersuite_list_index >= 0 &&
-         (unsigned int)ciphersuite_list_index <
-         sizeof(conf->ciphersuite_list)/sizeof(conf->ciphersuite_list[0]) )
-    {
-        return conf->ciphersuite_list[ciphersuite_list_index];
-    }
-    else
-    {
-        return NULL;
-    }
-}
-
-void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
-                                       const int *ciphersuites,
-                                       int major, int minor )
-{
-    if( major != MBEDTLS_SSL_MAJOR_VERSION_3 )
-        return;
-
-    if( minor < MBEDTLS_SSL_MINOR_VERSION_1 || minor > MBEDTLS_SSL_MINOR_VERSION_3 )
-        return;
-
-    set_protocol_version_ciphersuites(conf, minor, ciphersuites);
-}
-
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
                                     const mbedtls_x509_crt_profile *profile )

@@ -246,7 +246,6 @@ static psa_status_t mac_init(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     operation->alg = PSA_ALG_FULL_LENGTH_MAC( alg );
-    operation->key_set = 0;
     operation->has_input = 0;
     operation->is_sign = 0;
 
@@ -307,7 +306,6 @@ static psa_status_t mac_abort( mbedtls_psa_mac_operation_t *operation )
     }
 
     operation->alg = 0;
-    operation->key_set = 0;
     operation->has_input = 0;
     operation->is_sign = 0;
 
@@ -385,9 +383,7 @@ static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
     }
 
 exit:
-    if( status == PSA_SUCCESS )
-        operation->key_set = 1;
-    else
+    if( status != PSA_SUCCESS )
         mac_abort( operation );
 
     return( status );
@@ -444,7 +440,7 @@ static psa_status_t mac_update(
     const uint8_t *input,
     size_t input_length )
 {
-    if( ! operation->key_set )
+    if( operation->alg == 0 )
         return( PSA_ERROR_BAD_STATE );
     operation->has_input = 1;
 
@@ -476,9 +472,8 @@ static psa_status_t mac_finish_internal( mbedtls_psa_mac_operation_t *operation,
                                          uint8_t *mac,
                                          size_t mac_size )
 {
-    if( ! operation->key_set )
+    if( operation->alg == 0 )
         return( PSA_ERROR_BAD_STATE );
-
     if( mac_size < operation->mac_size )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 

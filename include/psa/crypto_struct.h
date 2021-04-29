@@ -168,7 +168,7 @@ static inline struct psa_aead_operation_s psa_aead_operation_init( void )
     return( v );
 }
 
-#if defined(MBEDTLS_MD_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
 typedef struct
 {
     uint8_t *info;
@@ -184,9 +184,10 @@ typedef struct
     unsigned int state : 2;
     unsigned int info_set : 1;
 } psa_hkdf_key_derivation_t;
-#endif /* MBEDTLS_MD_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
 
-#if defined(MBEDTLS_MD_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
 typedef enum
 {
     PSA_TLS12_PRF_STATE_INIT,       /* no input provided */
@@ -221,7 +222,8 @@ typedef struct psa_tls12_prf_key_derivation_s
     /* `HMAC_hash( prk, A(i) + seed )` in the notation of RFC 5246, Sect. 5. */
     uint8_t output_block[PSA_HASH_MAX_SIZE];
 } psa_tls12_prf_key_derivation_t;
-#endif /* MBEDTLS_MD_C */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) ||
+        * MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
 struct psa_key_derivation_s
 {
@@ -232,8 +234,11 @@ struct psa_key_derivation_s
     {
         /* Make the union non-empty even with no supported algorithms. */
         uint8_t dummy;
-#if defined(MBEDTLS_MD_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
         psa_hkdf_key_derivation_t hkdf;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
         psa_tls12_prf_key_derivation_t tls12_prf;
 #endif
     } ctx;

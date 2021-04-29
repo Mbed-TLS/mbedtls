@@ -134,7 +134,7 @@ Example 2: the following capability declares that the driver can perform determ
     "entry_points": ["sign_hash"],
     "algorithms": ["PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256)",
                    "PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_384)"],
-    "key_types": ["PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1)"],
+    "key_types": ["PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1)"],
     "key_sizes": [256, 384]
 }
 ```
@@ -164,7 +164,7 @@ The name `_` may be used instead of a curve or group to indicate that the capabi
 Valid examples:
 ```
 PSA_KEY_TYPE_AES
-PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1)
+PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1)
 PSA_KEY_TYPE_ECC_KEY_PAIR(_)
 ```
 
@@ -606,7 +606,8 @@ The `"key_context"` property in the [driver description](#driver-description-top
 * `"public_key_size"` (integer or string, optional): this many bytes are included in every key context for a public key. If omitted, this value defaults to 0.
 * `"symmetric_factor"` (integer or string, optional): every key context for a symmetric key includes this many times the key size. If omitted, this value defaults to 0.
 * `"store_public_key"` (boolean, optional): If specified and true, for a key pair, the key context includes space for the public key. If omitted or false, no additional space is added for the public key.
-* `"size_function"` (string, optional): the name of a function that returns the number of bytes that the driver needs in a key context for a key. This may be a pointer to function. This must be a C identifier; more complex expressions are not permitted. If the core uses this function, it supersedes all the other properties.
+* `"size_function"` (string, optional): the name of a function that returns the number of bytes that the driver needs in a key context for a key. This may be a pointer to function. This must be a C identifier; more complex expressions are not permitted. If the core uses this function, it supersedes all the other properties except for `"builtin_key_size"` (where applicable, if present).
+* `"builtin_key_size"` (integer or string, optional): If specified, this overrides all other methods (including the `"size_function"` entry point) to determine the size of the key context for [built-in keys](#built-in-keys). This allows drivers to efficiently represent application keys as wrapped key material, but built-in keys by an internal identifier that takes up less space.
 
 The integer properties must be C language constants. A typical value for `"base_size"` is `sizeof(acme_key_context_t)` where `acme_key_context_t` is a type defined in a driver header file.
 
@@ -662,6 +663,7 @@ Opaque drivers may provide the following key management entry points:
 * `"generate_key"`: called by `psa_generate_key()`.
 * `"key_derivation_output_key"`: called by `psa_key_derivation_output_key()`.
 * `"copy_key"`: called by `psa_copy_key()` when copying a key within the same [location](#lifetimes-and-locations).
+* `"get_builtin_key"`: called by functions that access a key to retrieve information about a [built-in key](#built-in-keys).
 
 In addition, secure elements that store the key material internally must provide the following two entry points:
 
@@ -792,6 +794,37 @@ The core will not update the persistent state in storage while an entry point is
 
 In a multithreaded environment, the driver may only call these two functions from the thread that is executing the entry point.
 
+#### Built-in keys
+
+Opaque drivers may declare built-in keys. Built-in keys can be accessed, but not created, through the PSA Cryptography API.
+
+A built-in key is identified by its location and its **slot number**. Drivers that support built-in keys must provide a `"get_builtin_key"` entry point to retrieve the key data and metadata. The core calls this entry point when it needs to access the key, typically because the application requested an operation on the key. The core may keep information about the key in cache, and successive calls to access the same slot number should return the same data. This entry point has the following prototype:
+
+```
+psa_status_t acme_get_builtin_key(psa_drv_slot_number_t slot_number,
+                                  psa_key_attributes_t *attributes,
+                                  uint8_t *key_buffer,
+                                  size_t key_buffer_size,
+                                  size_t *key_buffer_length);
+```
+
+If this function returns `PSA_SUCCESS` or `PSA_ERROR_BUFFER_TOO_SMALL`, it must fill `attributes` with the attributes of the key (except for the key identifier). On success, this function must also fill `key_buffer` with the key context.
+
+On entry, `psa_get_key_lifetime(attributes)` is the location at which the driver was declared and the persistence level `#PSA_KEY_LIFETIME_PERSISTENT`. The driver entry point may change the lifetime to one with the same location but a different persistence level. The standard attributes other than the key identifier and lifetime have the value conveyed by `PSA_KEY_ATTRIBUTES_INIT`.
+
+The output parameter `key_buffer` points to a writable buffer of `key_buffer_size` bytes. If the driver has a [`"builtin_key_size"` property](#key-format-for-opaque-drivers) property, `key_buffer_size` has this value, otherwise `key_buffer_size` has the value determined from the key type and size.
+
+Typically, for a built-in key, the key context is a reference to key material that is kept inside the secure element, similar to the format returned by [`"allocate_key"`](#key-management-in-a-secure-element-with-storage). A driver may have built-in keys even if it doesn't have an `"allocate_key"` entry point.
+
+This entry point may return the following status values:
+
+* `PSA_SUCCESS`: the requested key exists, and the output parameters `attributes` and `key_buffer` contain the key metadata and key context respectively, and `*key_buffer_length` contains the length of the data written to `key_buffer`.
+* `PSA_ERROR_BUFFER_TOO_SMALL`: `key_buffer_size` is insufficient. In this case, the driver must pass the key's attributes in `*attributes`. In particular, `get_builtin_key(slot_number, &attributes, NULL, 0)` is a way for the core to obtain the key's attributes.
+* `PSA_ERROR_DOES_NOT_EXIST`: the requested key does not exist.
+* Other error codes such as `PSA_ERROR_COMMUNICATION_FAILURE` or `PSA_ERROR_HARDWARE_FAILURE` indicate a transient or permanent error.
+
+The core will pass authorized requests to destroy a built-in key to the [`"destroy_key"`](#key-management-in-a-secure-element-with-storage) entry point if there is one. If built-in keys must not be destroyed, it is up to the driver to reject such requests.
+
 ## How to use drivers from an application
 
 ### Using transparent drivers
@@ -807,7 +840,7 @@ For example, the following snippet creates an AES-GCM key which is only accessib
 psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
         PSA_KEY_PERSISTENCE_DEFAULT, PSA_KEY_LOCATION_acme));
-psa_set_key_identifer(&attributes, 42);
+psa_set_key_identifier(&attributes, 42);
 psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
 psa_set_key_size(&attributes, 128);
 psa_set_key_algorithm(&attributes, PSA_ALG_GCM);

@@ -62,9 +62,6 @@
 #define MBEDTLS_ERR_CIPHER_AUTH_FAILED          -0x6300  /**< Authentication failed (for AEAD modes). */
 #define MBEDTLS_ERR_CIPHER_INVALID_CONTEXT      -0x6380  /**< The context is invalid. For example, because it was freed. */
 
-/* MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED is deprecated and should not be used. */
-#define MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED      -0x6400  /**< Cipher hardware accelerator failed. */
-
 #define MBEDTLS_CIPHER_VARIABLE_IV_LEN     0x01    /**< Cipher accepts IVs of variable length. */
 #define MBEDTLS_CIPHER_VARIABLE_KEY_LEN    0x02    /**< Cipher accepts keys of variable length. */
 
@@ -229,13 +226,13 @@ enum {
 /** Maximum length of any IV, in Bytes. */
 /* This should ideally be derived automatically from list of ciphers.
  * This should be kept in sync with MBEDTLS_SSL_MAX_IV_LENGTH defined
- * in ssl_internal.h. */
+ * in library/ssl_misc.h. */
 #define MBEDTLS_MAX_IV_LENGTH      16
 
 /** Maximum block size of any cipher, in Bytes. */
 /* This should ideally be derived automatically from list of ciphers.
  * This should be kept in sync with MBEDTLS_SSL_MAX_BLOCK_LENGTH defined
- * in ssl_internal.h. */
+ * in library/ssl_misc.h. */
 #define MBEDTLS_MAX_BLOCK_LENGTH   16
 
 /** Maximum key length, in Bytes. */
@@ -243,7 +240,7 @@ enum {
  * For now, only check whether XTS is enabled which uses 64 Byte keys,
  * and use 32 Bytes as an upper bound for the maximum key length otherwise.
  * This should be kept in sync with MBEDTLS_SSL_MAX_BLOCK_LENGTH defined
- * in ssl_internal.h, which however deliberately ignores the case of XTS
+ * in library/ssl_misc.h, which however deliberately ignores the case of XTS
  * since the latter isn't used in SSL/TLS. */
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
 #define MBEDTLS_MAX_KEY_LENGTH     64

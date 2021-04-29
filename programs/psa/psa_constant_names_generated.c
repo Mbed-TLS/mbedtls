@@ -8,6 +8,8 @@ static const char *psa_strerror(psa_status_t status)
     case PSA_ERROR_BUFFER_TOO_SMALL: return "PSA_ERROR_BUFFER_TOO_SMALL";
     case PSA_ERROR_COMMUNICATION_FAILURE: return "PSA_ERROR_COMMUNICATION_FAILURE";
     case PSA_ERROR_CORRUPTION_DETECTED: return "PSA_ERROR_CORRUPTION_DETECTED";
+    case PSA_ERROR_DATA_CORRUPT: return "PSA_ERROR_DATA_CORRUPT";
+    case PSA_ERROR_DATA_INVALID: return "PSA_ERROR_DATA_INVALID";
     case PSA_ERROR_DOES_NOT_EXIST: return "PSA_ERROR_DOES_NOT_EXIST";
     case PSA_ERROR_GENERIC_ERROR: return "PSA_ERROR_GENERIC_ERROR";
     case PSA_ERROR_HARDWARE_FAILURE: return "PSA_ERROR_HARDWARE_FAILURE";
@@ -38,6 +40,7 @@ static const char *psa_ecc_family_name(psa_ecc_family_t curve)
     case PSA_ECC_FAMILY_SECT_K1: return "PSA_ECC_FAMILY_SECT_K1";
     case PSA_ECC_FAMILY_SECT_R1: return "PSA_ECC_FAMILY_SECT_R1";
     case PSA_ECC_FAMILY_SECT_R2: return "PSA_ECC_FAMILY_SECT_R2";
+    case PSA_ECC_FAMILY_TWISTED_EDWARDS: return "PSA_ECC_FAMILY_TWISTED_EDWARDS";
     default: return NULL;
     }
 }
@@ -64,6 +67,7 @@ static const char *psa_hash_algorithm_name(psa_algorithm_t hash_alg)
     case PSA_ALG_SHA3_256: return "PSA_ALG_SHA3_256";
     case PSA_ALG_SHA3_384: return "PSA_ALG_SHA3_384";
     case PSA_ALG_SHA3_512: return "PSA_ALG_SHA3_512";
+    case PSA_ALG_SHAKE256_512: return "PSA_ALG_SHAKE256_512";
     case PSA_ALG_SHA_1: return "PSA_ALG_SHA_1";
     case PSA_ALG_SHA_224: return "PSA_ALG_SHA_224";
     case PSA_ALG_SHA_256: return "PSA_ALG_SHA_256";
@@ -148,19 +152,27 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
     unsigned long length_modifier = NO_LENGTH_MODIFIER;
     if (PSA_ALG_IS_MAC(alg)) {
         core_alg = PSA_ALG_TRUNCATED_MAC(alg, 0);
-        if (core_alg != alg) {
+        if (alg & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG) {
+            append(&buffer, buffer_size, &required_size,
+                   "PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(", 33);
+            length_modifier = PSA_MAC_TRUNCATED_LENGTH(alg);
+        } else if (core_alg != alg) {
             append(&buffer, buffer_size, &required_size,
                    "PSA_ALG_TRUNCATED_MAC(", 22);
             length_modifier = PSA_MAC_TRUNCATED_LENGTH(alg);
         }
     } else if (PSA_ALG_IS_AEAD(alg)) {
-        core_alg = PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH(alg);
+        core_alg = PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg);
         if (core_alg == 0) {
             /* For unknown AEAD algorithms, there is no "default tag length". */
             core_alg = alg;
+        } else if (alg & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG) {
+            append(&buffer, buffer_size, &required_size,
+                   "PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(", 43);
+            length_modifier = PSA_AEAD_TAG_LENGTH(alg);
         } else if (core_alg != alg) {
             append(&buffer, buffer_size, &required_size,
-                   "PSA_ALG_AEAD_WITH_TAG_LENGTH(", 29);
+                   "PSA_ALG_AEAD_WITH_SHORTENED_TAG(", 32);
             length_modifier = PSA_AEAD_TAG_LENGTH(alg);
         }
     } else if (PSA_ALG_IS_KEY_AGREEMENT(alg) &&
@@ -198,14 +210,18 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
     case PSA_ALG_ECB_NO_PADDING: append(&buffer, buffer_size, &required_size, "PSA_ALG_ECB_NO_PADDING", 22); break;
     case PSA_ALG_ECDH: append(&buffer, buffer_size, &required_size, "PSA_ALG_ECDH", 12); break;
     case PSA_ALG_ECDSA_ANY: append(&buffer, buffer_size, &required_size, "PSA_ALG_ECDSA_ANY", 17); break;
+    case PSA_ALG_ED25519PH: append(&buffer, buffer_size, &required_size, "PSA_ALG_ED25519PH", 17); break;
+    case PSA_ALG_ED448PH: append(&buffer, buffer_size, &required_size, "PSA_ALG_ED448PH", 15); break;
     case PSA_ALG_FFDH: append(&buffer, buffer_size, &required_size, "PSA_ALG_FFDH", 12); break;
     case PSA_ALG_GCM: append(&buffer, buffer_size, &required_size, "PSA_ALG_GCM", 11); break;
+    case PSA_ALG_HASH_EDDSA_BASE: append(&buffer, buffer_size, &required_size, "PSA_ALG_HASH_EDDSA_BASE", 23); break;
     case PSA_ALG_HKDF_BASE: append(&buffer, buffer_size, &required_size, "PSA_ALG_HKDF_BASE", 17); break;
     case PSA_ALG_HMAC_BASE: append(&buffer, buffer_size, &required_size, "PSA_ALG_HMAC_BASE", 17); break;
     case PSA_ALG_MD2: append(&buffer, buffer_size, &required_size, "PSA_ALG_MD2", 11); break;
     case PSA_ALG_MD4: append(&buffer, buffer_size, &required_size, "PSA_ALG_MD4", 11); break;
     case PSA_ALG_MD5: append(&buffer, buffer_size, &required_size, "PSA_ALG_MD5", 11); break;
     case PSA_ALG_OFB: append(&buffer, buffer_size, &required_size, "PSA_ALG_OFB", 11); break;
+    case PSA_ALG_PURE_EDDSA: append(&buffer, buffer_size, &required_size, "PSA_ALG_PURE_EDDSA", 18); break;
     case PSA_ALG_RIPEMD160: append(&buffer, buffer_size, &required_size, "PSA_ALG_RIPEMD160", 17); break;
     case PSA_ALG_RSA_OAEP_BASE: append(&buffer, buffer_size, &required_size, "PSA_ALG_RSA_OAEP_BASE", 21); break;
     case PSA_ALG_RSA_PKCS1V15_CRYPT: append(&buffer, buffer_size, &required_size, "PSA_ALG_RSA_PKCS1V15_CRYPT", 26); break;
@@ -215,6 +231,7 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
     case PSA_ALG_SHA3_256: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA3_256", 16); break;
     case PSA_ALG_SHA3_384: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA3_384", 16); break;
     case PSA_ALG_SHA3_512: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA3_512", 16); break;
+    case PSA_ALG_SHAKE256_512: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHAKE256_512", 20); break;
     case PSA_ALG_SHA_1: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA_1", 13); break;
     case PSA_ALG_SHA_224: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA_224", 15); break;
     case PSA_ALG_SHA_256: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA_256", 15); break;

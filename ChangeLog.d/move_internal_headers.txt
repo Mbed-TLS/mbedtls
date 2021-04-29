@@ -1,0 +1,6 @@
+API changes
+   * Move internal headers.
+     Header files that were only meant for the library's internal use and
+     were not meant to be used in application code have been moved out of
+     the include/ directory. The headers concerned are bn_mul.h, aesni.h,
+     padlock.h, entropy_poll.h and *_internal.h.

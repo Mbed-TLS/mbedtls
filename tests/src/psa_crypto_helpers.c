@@ -28,6 +28,51 @@
 
 #include <psa/crypto.h>
 
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+
+#include <psa_crypto_storage.h>
+
+static mbedtls_svc_key_id_t key_ids_used_in_test[9];
+static size_t num_key_ids_used;
+
+int mbedtls_test_uses_key_id( mbedtls_svc_key_id_t key_id )
+{
+    size_t i;
+    if( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key_id ) >
+        PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
+    {
+        /* Don't touch key id values that designate non-key files. */
+        return( 1 );
+    }
+    for( i = 0; i < num_key_ids_used ; i++ )
+    {
+        if( mbedtls_svc_key_id_equal( key_id, key_ids_used_in_test[i] ) )
+            return( 1 );
+    }
+    if( num_key_ids_used == ARRAY_LENGTH( key_ids_used_in_test ) )
+        return( 0 );
+    key_ids_used_in_test[num_key_ids_used] = key_id;
+    ++num_key_ids_used;
+    return( 1 );
+}
+
+void mbedtls_test_psa_purge_key_storage( void )
+{
+    size_t i;
+    for( i = 0; i < num_key_ids_used; i++ )
+        psa_destroy_persistent_key( key_ids_used_in_test[i] );
+    num_key_ids_used = 0;
+}
+
+void mbedtls_test_psa_purge_key_cache( void )
+{
+    size_t i;
+    for( i = 0; i < num_key_ids_used; i++ )
+        psa_purge_key( key_ids_used_in_test[i] );
+}
+
+#endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
+
 const char *mbedtls_test_helper_is_psa_leaking( void )
 {
     mbedtls_psa_stats_t stats;
@@ -68,37 +113,5 @@ psa_status_t mbedtls_test_record_status( psa_status_t status,
     return( status );
 }
 #endif /* defined(RECORD_PSA_STATUS_COVERAGE_LOG) */
-
-#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
-#include <test/random.h>
-
-static int test_insecure_external_rng_enabled = 0;
-
-void mbedtls_test_enable_insecure_external_rng( void )
-{
-    test_insecure_external_rng_enabled = 1;
-}
-
-void mbedtls_test_disable_insecure_external_rng( void )
-{
-    test_insecure_external_rng_enabled = 0;
-}
-
-psa_status_t mbedtls_psa_external_get_random(
-    mbedtls_psa_external_random_context_t *context,
-    uint8_t *output, size_t output_size, size_t *output_length )
-{
-    (void) context;
-
-    if( !test_insecure_external_rng_enabled )
-        return( PSA_ERROR_INSUFFICIENT_ENTROPY );
-
-    /* This implementation is for test purposes only!
-     * Use the libc non-cryptographic random generator. */
-    mbedtls_test_rnd_std_rand( NULL, output, output_size );
-    *output_length = output_size;
-    return( PSA_SUCCESS );
-}
-#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

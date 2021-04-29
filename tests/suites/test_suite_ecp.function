@@ -1,6 +1,15 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecp.h"
 
+#include "ecp_invasive.h"
+
+#if defined(MBEDTLS_TEST_HOOKS) &&                  \
+    ( defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||  \
+      defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) ||  \
+      defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) )
+#define HAVE_FIX_NEGATIVE
+#endif
+
 #define ECP_PF_UNKNOWN     -1
 
 #define ECP_PT_RESET( x )           \
@@ -752,6 +761,52 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+void ecp_muladd( int id,
+                 data_t *u1_bin, data_t *P1_bin,
+                 data_t *u2_bin, data_t *P2_bin,
+                 data_t *expected_result )
+{
+    /* Compute R = u1 * P1 + u2 * P2 */
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_point P1, P2, R;
+    mbedtls_mpi u1, u2;
+    uint8_t actual_result[MBEDTLS_ECP_MAX_PT_LEN];
+    size_t len;
+
+    mbedtls_ecp_group_init( &grp );
+    mbedtls_ecp_point_init( &P1 );
+    mbedtls_ecp_point_init( &P2 );
+    mbedtls_ecp_point_init( &R );
+    mbedtls_mpi_init( &u1 );
+    mbedtls_mpi_init( &u2 );
+
+    TEST_EQUAL( 0, mbedtls_ecp_group_load( &grp, id ) );
+    TEST_EQUAL( 0, mbedtls_mpi_read_binary( &u1, u1_bin->x, u1_bin->len ) );
+    TEST_EQUAL( 0, mbedtls_mpi_read_binary( &u2, u2_bin->x, u2_bin->len ) );
+    TEST_EQUAL( 0, mbedtls_ecp_point_read_binary( &grp, &P1,
+                                                  P1_bin->x, P1_bin->len ) );
+    TEST_EQUAL( 0, mbedtls_ecp_point_read_binary( &grp, &P2,
+                                                  P2_bin->x, P2_bin->len ) );
+
+    TEST_EQUAL( 0, mbedtls_ecp_muladd( &grp, &R, &u1, &P1, &u2, &P2 ) );
+    TEST_EQUAL( 0, mbedtls_ecp_point_write_binary(
+                    &grp, &R, MBEDTLS_ECP_PF_UNCOMPRESSED,
+                    &len, actual_result, sizeof( actual_result ) ) );
+
+    ASSERT_COMPARE( expected_result->x, expected_result->len,
+                    actual_result, len );
+
+exit:
+    mbedtls_ecp_group_free( &grp );
+    mbedtls_ecp_point_free( &P1 );
+    mbedtls_ecp_point_free( &P2 );
+    mbedtls_ecp_point_free( &R );
+    mbedtls_mpi_free( &u1 );
+    mbedtls_mpi_free( &u2 );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void ecp_fast_mod( int id, char * N_str )
 {
@@ -1149,6 +1204,36 @@ void mbedtls_ecp_read_key( int grp_id, data_t* in_key, int expected, int canonic
 exit:
     mbedtls_ecp_keypair_free( &key );
     mbedtls_ecp_keypair_free( &key2 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:HAVE_FIX_NEGATIVE */
+void fix_negative( data_t *N_bin, int c, int bits )
+{
+    mbedtls_mpi C, M, N;
+
+    mbedtls_mpi_init( &C );
+    mbedtls_mpi_init( &M );
+    mbedtls_mpi_init( &N );
+
+    /* C = - c * 2^bits (positive since c is negative) */
+    TEST_EQUAL( 0, mbedtls_mpi_lset( &C, -c ) );
+    TEST_EQUAL( 0, mbedtls_mpi_shift_l( &C, bits ) );
+
+    TEST_EQUAL( 0, mbedtls_mpi_read_binary( &N, N_bin->x, N_bin->len ) );
+    TEST_EQUAL( 0, mbedtls_mpi_grow( &N, C.n ) );
+
+    /* M = N - C = - ( C - N ) (expected result of fix_negative) */
+    TEST_EQUAL( 0, mbedtls_mpi_sub_mpi( &M, &N, &C ) );
+
+    mbedtls_ecp_fix_negative( &N, c, bits );
+
+    TEST_EQUAL( 0, mbedtls_mpi_cmp_mpi( &N, &M ) );
+
+exit:
+    mbedtls_mpi_free( &C );
+    mbedtls_mpi_free( &M );
+    mbedtls_mpi_free( &N );
 }
 /* END_CASE */
 

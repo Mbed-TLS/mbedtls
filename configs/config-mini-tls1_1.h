@@ -65,7 +65,6 @@
 
 /* For test certificates */
 #define MBEDTLS_BASE64_C
-#define MBEDTLS_CERTS_C
 #define MBEDTLS_PEM_PARSE_C
 
 /* For testing with compat.sh */

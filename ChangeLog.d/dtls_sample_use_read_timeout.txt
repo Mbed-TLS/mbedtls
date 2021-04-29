@@ -1,0 +1,2 @@
+Changes
+   * Fix the setting of the read timeout in the DTLS sample programs.

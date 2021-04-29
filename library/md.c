@@ -1,5 +1,5 @@
 /**
- * \file mbedtls_md.c
+ * \file md.c
  *
  * \brief Generic message digest wrapper for mbed TLS
  *
@@ -26,7 +26,7 @@
 #if defined(MBEDTLS_MD_C)
 
 #include "mbedtls/md.h"
-#include "mbedtls/md_internal.h"
+#include "md_wrap.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
@@ -389,13 +389,6 @@ int mbedtls_md_clone( mbedtls_md_context_t *dst,
 
     return( 0 );
 }
-
-#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
-int mbedtls_md_init_ctx( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info )
-{
-    return mbedtls_md_setup( ctx, md_info, 1 );
-}
-#endif
 
 #define ALLOC( type )                                                   \
     do {                                                                \

@@ -67,9 +67,6 @@
 #define MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE -0x3980  /**< Unavailable feature, e.g. RSA disabled for RSA key. */
 #define MBEDTLS_ERR_PK_SIG_LEN_MISMATCH    -0x3900  /**< The buffer contains a valid signature followed by more data. */
 
-/* MBEDTLS_ERR_PK_HW_ACCEL_FAILED is deprecated and should not be used. */
-#define MBEDTLS_ERR_PK_HW_ACCEL_FAILED     -0x3880  /**< PK hardware accelerator failed. */
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -118,7 +115,7 @@ typedef struct mbedtls_pk_rsassa_pss_options
 /* For RSA, the signature can be as large as the bignum module allows.
  * For RSA_ALT, the signature size is not necessarily tied to what the
  * bignum module can do, but in the absence of any specific setting,
- * we use that (rsa_alt_sign_wrap in pk_wrap will check). */
+ * we use that (rsa_alt_sign_wrap in library/pk_wrap.h will check). */
 #undef MBEDTLS_PK_SIGNATURE_MAX_SIZE
 #define MBEDTLS_PK_SIGNATURE_MAX_SIZE MBEDTLS_MPI_MAX_SIZE
 #endif

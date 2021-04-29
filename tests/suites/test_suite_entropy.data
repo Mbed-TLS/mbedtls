@@ -1,3 +1,9 @@
+Entropy init-free-free
+entropy_init_free:0
+
+Entropy init-free-init-free
+entropy_init_free:1
+
 Create NV seed_file
 nv_seed_file_create:
 
@@ -6,6 +12,9 @@ entropy_seed_file:"data_files/entropy_seed":0
 
 Entropy write/update seed file: nonexistent
 entropy_seed_file:"no_such_dir/file":MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR
+
+Entropy write/update seed file: base NV seed file
+entropy_write_base_seed_file:0
 
 Entropy no sources
 entropy_no_sources:

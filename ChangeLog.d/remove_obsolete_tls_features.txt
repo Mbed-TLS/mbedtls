@@ -1,0 +1,10 @@
+API changes
+   * Drop support for parsing SSLv2 ClientHello
+     (MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO).
+   * Drop support for SSLv3 (MBEDTLS_SSL_PROTO_SSL3).
+   * Drop support for compatibility with our own previous buggy
+     implementation of truncated HMAC (MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT).
+   * Drop support for TLS record-level compression (MBEDTLS_ZLIB_SUPPORT).
+   * Drop support for RC4 TLS ciphersuites.
+   * Drop support for single-DES ciphersuites.
+   * Drop support for MBEDTLS_SSL_HW_RECORD_ACCEL.

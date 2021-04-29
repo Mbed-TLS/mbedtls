@@ -43,14 +43,6 @@
 
 #define MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA         -0x0057 /**< Invalid input parameter(s). */
 
-/* MBEDTLS_ERR_POLY1305_FEATURE_UNAVAILABLE is deprecated and should not be
- * used. */
-#define MBEDTLS_ERR_POLY1305_FEATURE_UNAVAILABLE    -0x0059 /**< Feature not available. For example, s part of the API is not implemented. */
-
-/* MBEDTLS_ERR_POLY1305_HW_ACCEL_FAILED is deprecated and should not be used.
- */
-#define MBEDTLS_ERR_POLY1305_HW_ACCEL_FAILED        -0x005B  /**< Poly1305 hardware accelerator failed. */
-
 #ifdef __cplusplus
 extern "C" {
 #endif

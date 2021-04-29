@@ -249,6 +249,7 @@
     <ClInclude Include="..\..\tests\include\test\drivers\cipher.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\hash.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\key_management.h" />
+    <ClInclude Include="..\..\tests\include\test\drivers\mac.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\signature.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\size.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\test_driver.h" />
@@ -389,6 +390,7 @@
     <ClCompile Include="..\..\tests\src\drivers\test_driver_aead.c" />
     <ClCompile Include="..\..\tests\src\drivers\test_driver_cipher.c" />
     <ClCompile Include="..\..\tests\src\drivers\test_driver_key_management.c" />
+    <ClCompile Include="..\..\tests\src\drivers\test_driver_mac.c" />
     <ClCompile Include="..\..\tests\src\drivers\test_driver_signature.c" />
     <ClCompile Include="..\..\tests\src\drivers\test_driver_size.c" />
     <ClCompile Include="..\..\3rdparty\everest\library\everest.c" />

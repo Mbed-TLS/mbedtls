@@ -225,7 +225,8 @@ exit:
 
 /* BEGIN_CASE */
 void sign_fail( int key_type_arg, data_t *key_data,
-                int alg_arg, int expected_status_arg )
+                int alg_arg, int private_only,
+                int expected_status_arg )
 {
     psa_status_t expected_status = expected_status_arg;
     psa_key_type_t key_type = key_type_arg;
@@ -251,10 +252,13 @@ void sign_fail( int key_type_arg, data_t *key_data,
                  psa_sign_hash( key_id, alg,
                                 input, sizeof( input ),
                                 output, sizeof( output ), &length ) );
-    TEST_STATUS( expected_status,
-                 psa_verify_hash( key_id, alg,
-                                  input, sizeof( input ),
-                                  output, sizeof( output ) ) );
+    if( ! private_only )
+    {
+        TEST_STATUS( expected_status,
+                     psa_verify_hash( key_id, alg,
+                                      input, sizeof( input ),
+                                      output, sizeof( output ) ) );
+    }
 
 exit:
     psa_destroy_key( key_id );
@@ -265,7 +269,8 @@ exit:
 
 /* BEGIN_CASE */
 void asymmetric_encryption_fail( int key_type_arg, data_t *key_data,
-                                 int alg_arg, int expected_status_arg )
+                                 int alg_arg, int private_only,
+                                 int expected_status_arg )
 {
     psa_status_t expected_status = expected_status_arg;
     psa_key_type_t key_type = key_type_arg;
@@ -287,12 +292,15 @@ void asymmetric_encryption_fail( int key_type_arg, data_t *key_data,
                                 key_data->x, key_data->len,
                                 &key_id ) );
 
-    TEST_STATUS( expected_status,
-                 psa_asymmetric_encrypt( key_id, alg,
-                                         plaintext, 1,
-                                         NULL, 0,
-                                         ciphertext, sizeof( ciphertext ),
-                                         &length ) );
+    if( ! private_only )
+    {
+        TEST_STATUS( expected_status,
+                     psa_asymmetric_encrypt( key_id, alg,
+                                             plaintext, 1,
+                                             NULL, 0,
+                                             ciphertext, sizeof( ciphertext ),
+                                             &length ) );
+    }
     TEST_STATUS( expected_status,
                  psa_asymmetric_decrypt( key_id, alg,
                                          ciphertext, sizeof( ciphertext ),
@@ -327,7 +335,8 @@ exit:
 
 /* BEGIN_CASE */
 void key_agreement_fail( int key_type_arg, data_t *key_data,
-                         int alg_arg, int expected_status_arg )
+                         int alg_arg, int private_only,
+                         int expected_status_arg )
 {
     psa_status_t expected_status = expected_status_arg;
     psa_key_type_t key_type = key_type_arg;
@@ -372,6 +381,9 @@ void key_agreement_fail( int key_type_arg, data_t *key_data,
                      key_id,
                      public_key, public_key_length ) );
 #endif
+
+    /* There are no public-key operations. */
+    (void) private_only;
 
 exit:
     psa_key_derivation_abort( &operation );

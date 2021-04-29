@@ -233,6 +233,7 @@ class OpFail:
         NOT_SUPPORTED = 0
         INVALID = 1
         INCOMPATIBLE = 2
+        PUBLIC = 3
 
     def __init__(self, info: Information) -> None:
         self.constructors = info.constructors
@@ -282,6 +283,8 @@ class OpFail:
             key_material = kt.key_material(kt.sizes_to_test()[0])
             arguments += [key_type, test_case.hex_string(key_material)]
         arguments.append(alg.expression)
+        if category.is_asymmetric():
+            arguments.append('1' if reason == self.Reason.PUBLIC else '0')
         error = ('NOT_SUPPORTED' if reason == self.Reason.NOT_SUPPORTED else
                  'INVALID_ARGUMENT')
         arguments.append('PSA_ERROR_' + error)
@@ -312,13 +315,17 @@ class OpFail:
         """Generate failure test cases for one-key operations with the specified algorithm."""
         for kt in self.key_types:
             key_is_compatible = kt.can_do(alg)
-            # To do: public key for a private key operation
             if key_is_compatible and alg.can_do(category):
                 # Compatible key and operation, unsupported algorithm
                 for dep in automatic_dependencies(alg.base_expression):
                     yield self.make_test_case(alg, category,
                                               self.Reason.NOT_SUPPORTED,
                                               kt=kt, not_deps=frozenset([dep]))
+                # Public key for a private-key operation
+                if category.is_asymmetric() and kt.is_public():
+                    yield self.make_test_case(alg, category,
+                                              self.Reason.PUBLIC,
+                                              kt=kt)
             elif key_is_compatible:
                 # Compatible key, incompatible operation, supported algorithm
                 yield self.make_test_case(alg, category,

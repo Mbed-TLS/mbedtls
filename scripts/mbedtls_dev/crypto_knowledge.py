@@ -104,6 +104,10 @@ class KeyType:
         `self.name`.
         """
 
+    def is_public(self) -> bool:
+        """Whether the key type is for public keys."""
+        return self.name.endswith('_PUBLIC_KEY')
+
     ECC_KEY_SIZES = {
         'PSA_ECC_FAMILY_SECP_K1': (192, 224, 256),
         'PSA_ECC_FAMILY_SECP_R1': (225, 256, 384, 521),
@@ -221,7 +225,16 @@ class AlgorithmCategory(enum.Enum):
     KEY_AGREEMENT = 9
 
     def requires_key(self) -> bool:
+        """Whether operations in this category are set up with a key."""
         return self not in {self.HASH, self.KEY_DERIVATION}
+
+    def is_asymmetric(self) -> bool:
+        """Whether operations in this category involve asymmetric keys."""
+        return self in {
+            self.SIGN,
+            self.ASYMMETRIC_ENCRYPTION,
+            self.KEY_AGREEMENT
+        }
 
 
 class AlgorithmNotRecognized(Exception):

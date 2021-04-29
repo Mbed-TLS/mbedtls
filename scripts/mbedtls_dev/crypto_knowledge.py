@@ -18,10 +18,20 @@ This module is entirely based on the PSA API.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import enum
 import re
 from typing import Iterable, Optional, Tuple
 
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
+
+
+BLOCK_MAC_MODES = frozenset(['CBC_MAC', 'CMAC'])
+BLOCK_CIPHER_MODES = frozenset([
+    'CTR', 'CFB', 'OFB', 'XTS',
+    'ECB_NO_PADDING', 'CBC_NO_PADDING', 'CBC_PKCS7',
+])
+BLOCK_AEAD_MODES = frozenset(['CCM', 'GCM'])
+
 
 class KeyType:
     """Knowledge about a PSA key type."""
@@ -136,3 +146,127 @@ class KeyType:
             return des3[:length]
         return b''.join([self.DATA_BLOCK] * (length // len(self.DATA_BLOCK)) +
                         [self.DATA_BLOCK[:length % len(self.DATA_BLOCK)]])
+class AlgorithmCategory(enum.Enum):
+    """PSA algorithm categories."""
+    # The numbers are aligned with the category bits in numerical values of
+    # algorithms.
+    HASH = 2
+    MAC = 3
+    CIPHER = 4
+    AEAD = 5
+    SIGN = 6
+    ASYMMETRIC_ENCRYPTION = 7
+    KEY_DERIVATION = 8
+    KEY_AGREEMENT = 9
+
+    def requires_key(self) -> bool:
+        return self not in {self.HASH, self.KEY_DERIVATION}
+
+
+class AlgorithmNotRecognized(Exception):
+    def __init__(self, expr: str) -> None:
+        super().__init__('Algorithm not recognized: ' + expr)
+        self.expr = expr
+
+
+class Algorithm:
+    """Knowledge about a PSA algorithm."""
+
+    @staticmethod
+    def determine_base(expr: str) -> str:
+        """Return an expression for the "base" of the algorithm.
+
+        This strips off variants of algorithms such as MAC truncation.
+
+        This function does not attempt to detect invalid inputs.
+        """
+        m = re.match(r'PSA_ALG_(?:'
+                     r'(?:TRUNCATED|AT_LEAST_THIS_LENGTH)_MAC|'
+                     r'AEAD_WITH_(?:SHORTENED|AT_LEAST_THIS_LENGTH)_TAG'
+                     r')\((.*),[^,]+\)\Z', expr)
+        if m:
+            expr = m.group(1)
+        return expr
+
+    @staticmethod
+    def determine_head(expr: str) -> str:
+        """Return the head of an algorithm expression.
+
+        The head is the first (outermost) constructor, without its PSA_ALG_
+        prefix, and with some normalization of similar algorithms.
+        """
+        m = re.match(r'PSA_ALG_(?:DETERMINISTIC_)?(\w+)', expr)
+        if not m:
+            raise AlgorithmNotRecognized(expr)
+        head = m.group(1)
+        if head == 'KEY_AGREEMENT':
+            m = re.match(r'PSA_ALG_KEY_AGREEMENT\s*\(\s*PSA_ALG_(\w+)', expr)
+            if not m:
+                raise AlgorithmNotRecognized(expr)
+            head = m.group(1)
+        head = re.sub(r'_ANY\Z', r'', head)
+        if re.match(r'ED[0-9]+PH\Z', head):
+            head = 'EDDSA_PREHASH'
+        return head
+
+    @staticmethod
+    def determine_category(expr: str, head: str) -> AlgorithmCategory:
+        """Return the category of the given algorithm expression.
+
+        This function does not attempt to detect invalid inputs.
+        """
+        #pylint: disable=too-many-return-statements
+        if head.startswith('SHA') or \
+           head.startswith('MD') or \
+           head.startswith('RIPEMD') or \
+           head == 'ANY_HASH':
+            return AlgorithmCategory.HASH
+        if head in 'HMAC':
+            return AlgorithmCategory.MAC
+        if head in BLOCK_MAC_MODES:
+            return AlgorithmCategory.MAC
+        if head in BLOCK_CIPHER_MODES:
+            return AlgorithmCategory.CIPHER
+        if head == 'STREAM_CIPHER':
+            return AlgorithmCategory.CIPHER
+        if head in BLOCK_AEAD_MODES:
+            return AlgorithmCategory.AEAD
+        if head == 'CHACHA20_POLY1305':
+            return AlgorithmCategory.AEAD
+        if head in {'DSA', 'ECDSA', 'PURE_EDDSA', 'EDDSA_PREHASH',
+                    'RSA_PKCS1V15_SIGN', 'RSA_PKCS1V15_SIGN_RAW', 'RSA_PSS'}:
+            return AlgorithmCategory.SIGN
+        if head in {'RSA_PKCS1V15_CRYPT', 'RSA_OAEP'}:
+            return AlgorithmCategory.ASYMMETRIC_ENCRYPTION
+        if head in {'HKDF', 'TLS12_PRF', 'TLS12_PSK_TO_MS'}:
+            return AlgorithmCategory.KEY_DERIVATION
+        if head in {'ECDH', 'FFDH', 'KEY_AGREEMENT'}:
+            return AlgorithmCategory.KEY_AGREEMENT
+        raise AlgorithmNotRecognized(expr)
+
+    @staticmethod
+    def determine_wildcard(expr) -> bool:
+        """Whether the given algorithm expression is a wildcard.
+
+        This function does not attempt to detect invalid inputs.
+        """
+        if re.search(r'\bPSA_ALG_ANY_HASH\b', expr):
+            return True
+        if re.search(r'_AT_LEAST_', expr):
+            return True
+        return False
+
+    def __init__(self, expr: str) -> None:
+        """Analyze an algorithm value.
+
+        The algorithm must be expressed as a C expression containing only
+        calls to PSA algorithm constructor macros and numeric literals.
+
+        This class is only programmed to handle valid expressions. Invalid
+        expressions may result in exceptions or in nonsensical results.
+        """
+        self.expression = re.sub(r'\s+', r'', expr)
+        self.base_expression = self.determine_base(self.expression)
+        self.head = self.determine_head(self.base_expression)
+        self.category = self.determine_category(self.base_expression, self.head)
+        self.is_wildcard = self.determine_wildcard(self.expression)

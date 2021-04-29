@@ -5614,17 +5614,6 @@ run_test    "ECJPAKE: working, DTLS, nolog" \
              force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
             0
 
-# Tests for ciphersuites per version
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_CAMELLIA_C
-requires_config_enabled MBEDTLS_AES_C
-run_test    "Per-version suites: TLS 1.2" \
-            "$P_SRV version_suites=TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
-            "$P_CLI force_version=tls1_2" \
-            0 \
-            -c "Ciphersuite is TLS-RSA-WITH-AES-128-GCM-SHA256"
-
 # Test for ClientHello without extensions
 
 requires_gnutls

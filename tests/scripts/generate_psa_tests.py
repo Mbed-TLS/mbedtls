@@ -254,7 +254,12 @@ class OpFail:
         #pylint: disable=too-many-arguments,too-many-locals
         tc = test_case.TestCase()
         pretty_alg = re.sub(r'PSA_ALG_', r'', alg.expression)
-        pretty_reason = reason.name.lower()
+        if reason == self.Reason.NOT_SUPPORTED:
+            short_deps = [re.sub(r'PSA_WANT_ALG_', r'', dep)
+                          for dep in not_deps]
+            pretty_reason = '!' + '&'.join(sorted(short_deps))
+        else:
+            pretty_reason = reason.name.lower()
         if kt:
             key_type = kt.expression
             pretty_type = re.sub(r'PSA_KEY_TYPE_', r'', key_type)

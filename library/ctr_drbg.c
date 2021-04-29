@@ -309,7 +309,7 @@ exit:
 }
 
 /* CTR_DRBG_Instantiate with derivation function (SP 800-90A &sect;10.2.1.3.2)
- * mbedtls_ctr_drbg_update(ctx, additional, add_len)
+ * mbedtls_ctr_drbg_update_ret(ctx, additional, add_len)
  * implements
  * CTR_DRBG_Instantiate(entropy_input, nonce, personalization_string,
  *                      security_strength) -> initial_working_state
@@ -339,19 +339,6 @@ exit:
     mbedtls_platform_zeroize( add_input, sizeof( add_input ) );
     return( ret );
 }
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-void mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
-                              const unsigned char *additional,
-                              size_t add_len )
-{
-    /* MAX_INPUT would be more logical here, but we have to match
-     * block_cipher_df()'s limits since we can't propagate errors */
-    if( add_len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT )
-        add_len = MBEDTLS_CTR_DRBG_MAX_SEED_INPUT;
-    (void) mbedtls_ctr_drbg_update_ret( ctx, additional, add_len );
-}
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 /* CTR_DRBG_Reseed with derivation function (SP 800-90A &sect;10.2.1.4.2)
  * mbedtls_ctr_drbg_reseed(ctx, additional, len, nonce_len)

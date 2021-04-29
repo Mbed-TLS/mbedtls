@@ -117,7 +117,7 @@ psa_status_t test_transparent_signature_sign_hash(
         goto cleanup;
     }
     MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_det( &ecp.grp, &r, &s, &ecp.d,
-                                  hash, hash_length, md_alg ) );
+                                  hash, hash_length, md_alg, mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &r,
                                                signature,
                                                curve_bytes ) );

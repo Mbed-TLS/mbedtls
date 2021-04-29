@@ -998,12 +998,6 @@
 #define POLARSSL_DECRYPT MBEDTLS_DECRYPT
 #define POLARSSL_DES_H MBEDTLS_DES_H
 #define POLARSSL_DHM_H MBEDTLS_DHM_H
-#define POLARSSL_DHM_RFC3526_MODP_2048_G MBEDTLS_DHM_RFC3526_MODP_2048_G
-#define POLARSSL_DHM_RFC3526_MODP_2048_P MBEDTLS_DHM_RFC3526_MODP_2048_P
-#define POLARSSL_DHM_RFC3526_MODP_3072_G MBEDTLS_DHM_RFC3526_MODP_3072_G
-#define POLARSSL_DHM_RFC3526_MODP_3072_P MBEDTLS_DHM_RFC3526_MODP_3072_P
-#define POLARSSL_DHM_RFC5114_MODP_2048_G MBEDTLS_DHM_RFC5114_MODP_2048_G
-#define POLARSSL_DHM_RFC5114_MODP_2048_P MBEDTLS_DHM_RFC5114_MODP_2048_P
 #define POLARSSL_ECDH_H MBEDTLS_ECDH_H
 #define POLARSSL_ECDH_OURS MBEDTLS_ECDH_OURS
 #define POLARSSL_ECDH_THEIRS MBEDTLS_ECDH_THEIRS
@@ -1786,8 +1780,6 @@
 #define ccm_free mbedtls_ccm_free
 #define ccm_init mbedtls_ccm_init
 #define ccm_self_test mbedtls_ccm_self_test
-#define cipher_auth_decrypt mbedtls_cipher_auth_decrypt
-#define cipher_auth_encrypt mbedtls_cipher_auth_encrypt
 #define cipher_base_t mbedtls_cipher_base_t
 #define cipher_check_tag mbedtls_cipher_check_tag
 #define cipher_context_t mbedtls_cipher_context_t
@@ -1831,7 +1823,6 @@
 #define ctr_drbg_set_entropy_len mbedtls_ctr_drbg_set_entropy_len
 #define ctr_drbg_set_prediction_resistance mbedtls_ctr_drbg_set_prediction_resistance
 #define ctr_drbg_set_reseed_interval mbedtls_ctr_drbg_set_reseed_interval
-#define ctr_drbg_update mbedtls_ctr_drbg_update
 #define ctr_drbg_update_seed_file mbedtls_ctr_drbg_update_seed_file
 #define ctr_drbg_write_seed_file mbedtls_ctr_drbg_write_seed_file
 #define debug_print_buf mbedtls_debug_print_buf
@@ -1892,10 +1883,8 @@
 #define ecdsa_init mbedtls_ecdsa_init
 #define ecdsa_read_signature mbedtls_ecdsa_read_signature
 #define ecdsa_sign mbedtls_ecdsa_sign
-#define ecdsa_sign_det mbedtls_ecdsa_sign_det
 #define ecdsa_verify mbedtls_ecdsa_verify
 #define ecdsa_write_signature mbedtls_ecdsa_write_signature
-#define ecdsa_write_signature_det mbedtls_ecdsa_write_signature_det
 #define eckey_info mbedtls_eckey_info
 #define eckeydh_info mbedtls_eckeydh_info
 #define ecp_check_privkey mbedtls_ecp_check_privkey
@@ -1967,7 +1956,6 @@
 #define hmac_drbg_set_entropy_len mbedtls_hmac_drbg_set_entropy_len
 #define hmac_drbg_set_prediction_resistance mbedtls_hmac_drbg_set_prediction_resistance
 #define hmac_drbg_set_reseed_interval mbedtls_hmac_drbg_set_reseed_interval
-#define hmac_drbg_update mbedtls_hmac_drbg_update
 #define hmac_drbg_update_seed_file mbedtls_hmac_drbg_update_seed_file
 #define hmac_drbg_write_seed_file mbedtls_hmac_drbg_write_seed_file
 #define hr_time mbedtls_timing_hr_time
@@ -2053,7 +2041,6 @@
 #define mpi_grow mbedtls_mpi_grow
 #define mpi_init mbedtls_mpi_init
 #define mpi_inv_mod mbedtls_mpi_inv_mod
-#define mpi_is_prime mbedtls_mpi_is_prime
 #define mpi_lsb mbedtls_mpi_lsb
 #define mpi_lset mbedtls_mpi_lset
 #define mpi_mod_int mbedtls_mpi_mod_int
@@ -2352,7 +2339,6 @@
 #define ssl_set_client_transport_id mbedtls_ssl_set_client_transport_id
 #define ssl_set_curves mbedtls_ssl_conf_curves
 #define ssl_set_dbg mbedtls_ssl_conf_dbg
-#define ssl_set_dh_param mbedtls_ssl_conf_dh_param
 #define ssl_set_dh_param_ctx mbedtls_ssl_conf_dh_param_ctx
 #define ssl_set_dtls_anti_replay mbedtls_ssl_conf_dtls_anti_replay
 #define ssl_set_dtls_badmac_limit mbedtls_ssl_conf_dtls_badmac_limit

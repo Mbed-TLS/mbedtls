@@ -345,30 +345,6 @@ int mbedtls_hmac_drbg_random( void *p_rng, unsigned char *output, size_t out_len
  */
 void mbedtls_hmac_drbg_free( mbedtls_hmac_drbg_context *ctx );
 
-#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif
-/**
- * \brief               This function updates the state of the HMAC_DRBG context.
- *
- * \deprecated          Superseded by mbedtls_hmac_drbg_update_ret()
- *                      in 2.16.0.
- *
- * \param ctx           The HMAC_DRBG context.
- * \param additional    The data to update the state with.
- *                      If this is \c NULL, there is no additional data.
- * \param add_len       Length of \p additional in bytes.
- *                      Unused if \p additional is \c NULL.
- */
-MBEDTLS_DEPRECATED void mbedtls_hmac_drbg_update(
-    mbedtls_hmac_drbg_context *ctx,
-    const unsigned char *additional, size_t add_len );
-#undef MBEDTLS_DEPRECATED
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
-
 #if defined(MBEDTLS_FS_IO)
 /**
  * \brief               This function writes a seed file.

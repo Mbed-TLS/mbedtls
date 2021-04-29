@@ -470,8 +470,8 @@ int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
  * \param cipher_info   The cipher to use.
  * \param taglen        For AEAD ciphers, the length in bytes of the
  *                      authentication tag to use. Subsequent uses of
- *                      mbedtls_cipher_auth_encrypt() or
- *                      mbedtls_cipher_auth_decrypt() must provide
+ *                      mbedtls_cipher_auth_encrypt_ext() or
+ *                      mbedtls_cipher_auth_decrypt_ext() must provide
  *                      the same tag length.
  *                      For non-AEAD ciphers, the value must be \c 0.
  *
@@ -855,129 +855,6 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
                   const unsigned char *iv, size_t iv_len,
                   const unsigned char *input, size_t ilen,
                   unsigned char *output, size_t *olen );
-
-#if defined(MBEDTLS_CIPHER_MODE_AEAD)
-#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif /* MBEDTLS_DEPRECATED_WARNING */
-/**
- * \brief               The generic authenticated encryption (AEAD) function.
- *
- * \deprecated          Superseded by mbedtls_cipher_auth_encrypt_ext().
- *
- * \note                This function only supports AEAD algorithms, not key
- *                      wrapping algorithms such as NIST_KW; for this, see
- *                      mbedtls_cipher_auth_encrypt_ext().
- *
- * \param ctx           The generic cipher context. This must be initialized and
- *                      bound to a key associated with an AEAD algorithm.
- * \param iv            The nonce to use. This must be a readable buffer of
- *                      at least \p iv_len Bytes and must not be \c NULL.
- * \param iv_len        The length of the nonce. This must satisfy the
- *                      constraints imposed by the AEAD cipher used.
- * \param ad            The additional data to authenticate. This must be a
- *                      readable buffer of at least \p ad_len Bytes, and may
- *                      be \c NULL is \p ad_len is \c 0.
- * \param ad_len        The length of \p ad.
- * \param input         The buffer holding the input data. This must be a
- *                      readable buffer of at least \p ilen Bytes, and may be
- *                      \c NULL if \p ilen is \c 0.
- * \param ilen          The length of the input data.
- * \param output        The buffer for the output data. This must be a
- *                      writable buffer of at least \p ilen Bytes, and must
- *                      not be \c NULL.
- * \param olen          This will be filled with the actual number of Bytes
- *                      written to the \p output buffer. This must point to a
- *                      writable object of type \c size_t.
- * \param tag           The buffer for the authentication tag. This must be a
- *                      writable buffer of at least \p tag_len Bytes. See note
- *                      below regarding restrictions with PSA-based contexts.
- * \param tag_len       The desired length of the authentication tag. This
- *                      must match the constraints imposed by the AEAD cipher
- *                      used, and in particular must not be \c 0.
- *
- * \note                If the context is based on PSA (that is, it was set up
- *                      with mbedtls_cipher_setup_psa()), then it is required
- *                      that \c tag == output + ilen. That is, the tag must be
- *                      appended to the ciphertext as recommended by RFC 5116.
- *
- * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
- *                      parameter-verification failure.
- * \return              A cipher-specific error code on failure.
- */
-int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
-                         const unsigned char *iv, size_t iv_len,
-                         const unsigned char *ad, size_t ad_len,
-                         const unsigned char *input, size_t ilen,
-                         unsigned char *output, size_t *olen,
-                         unsigned char *tag, size_t tag_len )
-                         MBEDTLS_DEPRECATED;
-
-/**
- * \brief               The generic authenticated decryption (AEAD) function.
- *
- * \deprecated          Superseded by mbedtls_cipher_auth_decrypt_ext().
- *
- * \note                This function only supports AEAD algorithms, not key
- *                      wrapping algorithms such as NIST_KW; for this, see
- *                      mbedtls_cipher_auth_decrypt_ext().
- *
- * \note                If the data is not authentic, then the output buffer
- *                      is zeroed out to prevent the unauthentic plaintext being
- *                      used, making this interface safer.
- *
- * \param ctx           The generic cipher context. This must be initialized and
- *                      bound to a key associated with an AEAD algorithm.
- * \param iv            The nonce to use. This must be a readable buffer of
- *                      at least \p iv_len Bytes and must not be \c NULL.
- * \param iv_len        The length of the nonce. This must satisfy the
- *                      constraints imposed by the AEAD cipher used.
- * \param ad            The additional data to authenticate. This must be a
- *                      readable buffer of at least \p ad_len Bytes, and may
- *                      be \c NULL is \p ad_len is \c 0.
- * \param ad_len        The length of \p ad.
- * \param input         The buffer holding the input data. This must be a
- *                      readable buffer of at least \p ilen Bytes, and may be
- *                      \c NULL if \p ilen is \c 0.
- * \param ilen          The length of the input data.
- * \param output        The buffer for the output data. This must be a
- *                      writable buffer of at least \p ilen Bytes, and must
- *                      not be \c NULL.
- * \param olen          This will be filled with the actual number of Bytes
- *                      written to the \p output buffer. This must point to a
- *                      writable object of type \c size_t.
- * \param tag           The buffer for the authentication tag. This must be a
- *                      readable buffer of at least \p tag_len Bytes. See note
- *                      below regarding restrictions with PSA-based contexts.
- * \param tag_len       The length of the authentication tag. This must match
- *                      the constraints imposed by the AEAD cipher used, and in
- *                      particular must not be \c 0.
- *
- * \note                If the context is based on PSA (that is, it was set up
- *                      with mbedtls_cipher_setup_psa()), then it is required
- *                      that \c tag == input + len. That is, the tag must be
- *                      appended to the ciphertext as recommended by RFC 5116.
- *
- * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
- *                      parameter-verification failure.
- * \return              #MBEDTLS_ERR_CIPHER_AUTH_FAILED if data is not authentic.
- * \return              A cipher-specific error code on failure.
- */
-int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
-                         const unsigned char *iv, size_t iv_len,
-                         const unsigned char *ad, size_t ad_len,
-                         const unsigned char *input, size_t ilen,
-                         unsigned char *output, size_t *olen,
-                         const unsigned char *tag, size_t tag_len )
-                         MBEDTLS_DEPRECATED;
-#undef MBEDTLS_DEPRECATED
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_CIPHER_MODE_AEAD */
 
 #if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
 /**

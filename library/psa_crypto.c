@@ -3809,7 +3809,7 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
 /* `ecp` cannot be const because `ecp->grp` needs to be non-const
- * for mbedtls_ecdsa_sign() and mbedtls_ecdsa_sign_det()
+ * for mbedtls_ecdsa_sign() and mbedtls_ecdsa_sign_det_ext()
  * (even though these functions don't modify it). */
 static psa_status_t psa_ecdsa_sign( mbedtls_ecp_keypair *ecp,
                                     psa_algorithm_t alg,

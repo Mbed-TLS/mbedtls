@@ -173,7 +173,7 @@ typedef struct
 {
     uint8_t *info;
     size_t info_length;
-    psa_hmac_internal_data_t hmac;
+    mbedtls_psa_hmac_operation_t hmac;
     uint8_t prk[PSA_HASH_MAX_SIZE];
     uint8_t output_block[PSA_HASH_MAX_SIZE];
 #if PSA_HASH_MAX_SIZE > 0xff
@@ -215,7 +215,7 @@ typedef struct psa_tls12_prf_key_derivation_s
     size_t seed_length;
     uint8_t *label;
     size_t label_length;
-    psa_hmac_internal_data_t hmac;
+    mbedtls_psa_hmac_operation_t hmac;
     uint8_t Ai[PSA_HASH_MAX_SIZE];
 
     /* `HMAC_hash( prk, A(i) + seed )` in the notation of RFC 5246, Sect. 5. */

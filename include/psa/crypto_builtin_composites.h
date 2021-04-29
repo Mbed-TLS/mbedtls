@@ -52,7 +52,7 @@ typedef struct
     struct psa_hash_operation_s hash_ctx;
     /** The HMAC part of the context. */
     uint8_t opad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
-} psa_hmac_internal_data_t;
+} mbedtls_psa_hmac_operation_t;
 
 #define MBEDTLS_PSA_HMAC_OPERATION_INIT {0, PSA_HASH_OPERATION_INIT, {0}}
 #endif /* PSA_WANT_ALG_HMAC */
@@ -69,7 +69,7 @@ typedef struct
     {
         unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
 #if defined(PSA_WANT_ALG_HMAC)
-        psa_hmac_internal_data_t hmac;
+        mbedtls_psa_hmac_operation_t hmac;
 #endif
 #if defined(MBEDTLS_CMAC_C)
         mbedtls_cipher_context_t cmac;

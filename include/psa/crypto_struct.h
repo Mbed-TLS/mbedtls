@@ -212,11 +212,13 @@ typedef struct psa_tls12_prf_key_derivation_s
 
     psa_tls12_prf_key_derivation_state_t state;
 
+    uint8_t *secret;
+    size_t secret_length;
     uint8_t *seed;
     size_t seed_length;
     uint8_t *label;
     size_t label_length;
-    mbedtls_psa_hmac_operation_t hmac;
+
     uint8_t Ai[PSA_HASH_MAX_SIZE];
 
     /* `HMAC_hash( prk, A(i) + seed )` in the notation of RFC 5246, Sect. 5. */

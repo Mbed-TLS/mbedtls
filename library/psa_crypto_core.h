@@ -30,6 +30,26 @@
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
 
+/** Constant-time buffer comparison
+ *
+ * \param[in]  a    Left-hand buffer for comparison.
+ * \param[in]  b    Right-hand buffer for comparison.
+ * \param n         Amount of bytes to compare.
+ *
+ * \return 0 if the buffer contents are equal, non-zero otherwise
+ */
+static inline int mbedtls_psa_safer_memcmp(
+    const uint8_t *a, const uint8_t *b, size_t n )
+{
+    size_t i;
+    unsigned char diff = 0;
+
+    for( i = 0; i < n; i++ )
+        diff |= a[i] ^ b[i];
+
+    return( diff );
+}
+
 /** The data structure representing a key slot, containing key material
  * and metadata for one key.
  */

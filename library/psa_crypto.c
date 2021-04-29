@@ -93,20 +93,6 @@
 
 #define ARRAY_LENGTH( array ) ( sizeof( array ) / sizeof( *( array ) ) )
 
-/* constant-time buffer comparison */
-static inline int safer_memcmp( const uint8_t *a, const uint8_t *b, size_t n )
-{
-    size_t i;
-    unsigned char diff = 0;
-
-    for( i = 0; i < n; i++ )
-        diff |= a[i] ^ b[i];
-
-    return( diff );
-}
-
-
-
 /****************************************************************/
 /* Global data, support functions and library management */
 /****************************************************************/
@@ -2235,7 +2221,7 @@ psa_status_t psa_hash_verify( psa_hash_operation_t *operation,
         return( status );
     if( actual_hash_length != hash_length )
         return( PSA_ERROR_INVALID_SIGNATURE );
-    if( safer_memcmp( hash, actual_hash, actual_hash_length ) != 0 )
+    if( mbedtls_psa_safer_memcmp( hash, actual_hash, actual_hash_length ) != 0 )
         return( PSA_ERROR_INVALID_SIGNATURE );
     return( PSA_SUCCESS );
 }
@@ -2271,7 +2257,7 @@ psa_status_t psa_hash_compare( psa_algorithm_t alg,
         return( status );
     if( actual_hash_length != hash_length )
         return( PSA_ERROR_INVALID_SIGNATURE );
-    if( safer_memcmp( hash, actual_hash, actual_hash_length ) != 0 )
+    if( mbedtls_psa_safer_memcmp( hash, actual_hash, actual_hash_length ) != 0 )
         return( PSA_ERROR_INVALID_SIGNATURE );
     return( PSA_SUCCESS );
 }

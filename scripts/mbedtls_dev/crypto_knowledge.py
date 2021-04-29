@@ -331,3 +331,23 @@ class Algorithm:
         self.head = self.determine_head(self.base_expression)
         self.category = self.determine_category(self.base_expression, self.head)
         self.is_wildcard = self.determine_wildcard(self.expression)
+
+    def is_key_agreement_with_derivation(self) -> bool:
+        """Whether this is a combined key agreement and key derivation algorithm."""
+        if self.category != AlgorithmCategory.KEY_AGREEMENT:
+            return False
+        m = re.match(r'PSA_ALG_KEY_AGREEMENT\(\w+,\s*(.*)\)\Z', self.expression)
+        if not m:
+            return False
+        kdf_alg = m.group(1)
+        # Assume kdf_alg is either a valid KDF or 0.
+        return not re.match(r'(?:0[Xx])?0+\s*\Z', kdf_alg)
+
+    def can_do(self, category: AlgorithmCategory) -> bool:
+        """Whether this algorithm fits the specified operation category."""
+        if category == self.category:
+            return True
+        if category == AlgorithmCategory.KEY_DERIVATION and \
+           self.is_key_agreement_with_derivation():
+            return True
+        return False

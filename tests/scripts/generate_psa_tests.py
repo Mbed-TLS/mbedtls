@@ -289,7 +289,7 @@ class OpFail:
             category: crypto_knowledge.AlgorithmCategory,
     ) -> Iterator[test_case.TestCase]:
         """Generate failure test cases for keyless operations with the specified algorithm."""
-        if category == alg.category:
+        if alg.can_do(category):
             # Compatible operation, unsupported algorithm
             for dep in automatic_dependencies(alg.base_expression):
                 yield self.make_test_case(alg, category,
@@ -308,7 +308,7 @@ class OpFail:
         for kt in self.key_types:
             key_is_compatible = kt.can_do(alg)
             # To do: public key for a private key operation
-            if key_is_compatible and category == alg.category:
+            if key_is_compatible and alg.can_do(category):
                 # Compatible key and operation, unsupported algorithm
                 for dep in automatic_dependencies(alg.base_expression):
                     yield self.make_test_case(alg, category,
@@ -319,7 +319,7 @@ class OpFail:
                 yield self.make_test_case(alg, category,
                                           self.Reason.INVALID,
                                           kt=kt)
-            elif category == alg.category:
+            elif alg.can_do(category):
                 # Incompatible key, compatible operation, supported algorithm
                 yield self.make_test_case(alg, category,
                                           self.Reason.INCOMPATIBLE,

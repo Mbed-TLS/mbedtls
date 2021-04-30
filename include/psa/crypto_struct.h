@@ -463,36 +463,82 @@ static inline size_t psa_get_key_bits(
 
 struct psa_pake_cipher_suite_s
 {
-    psa_pake_primitive_t primitive;
+    psa_algorithm_t algorithm;
+    psa_pake_primitive_type_t type;
+    uint8_t family;
+    size_t  bits;
     psa_algorithm_t hash;
-    psa_algorithm_t algorithm1;
-    psa_pake_bits_t bits1;
-    psa_algorithm_t algorithm2;
-    psa_pake_bits_t bits2;
-    psa_pake_cipher_suite_options_t options;
 };
 
-static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite(
-                                    psa_pake_primitive_t primitive,
-                                    psa_algorithm_t hash,
-                                    psa_algorithm_t algorithm1,
-                                    psa_pake_bits_t bits1,
-                                    psa_algorithm_t algorithm2,
-                                    psa_pake_bits_t bits2,
-                                    psa_pake_cipher_suite_options_t options
-                                    )
+static inline void psa_pake_cs_set_algorithm(
+    psa_pake_cipher_suite_t *cipher_suite,
+    psa_algorithm_t algorithm)
 {
-    struct psa_pake_cipher_suite_s cipher_suite;
+    if( !PSA_ALG_IS_PAKE(algorithm) )
+        cipher_suite->algorithm = 0;
+    else
+        cipher_suite->algorithm = algorithm;
+}
 
-    cipher_suite.primitive = primitive;
-    cipher_suite.hash = hash;
-    cipher_suite.algorithm1 = algorithm1;
-    cipher_suite.bits1 = bits1;
-    cipher_suite.algorithm2 = algorithm2;
-    cipher_suite.bits2 = bits2;
-    cipher_suite.options = options;
+static inline psa_algorithm_t psa_pake_cs_get_algorithm(
+    const psa_pake_cipher_suite_t *cipher_suite)
+{
+    return( cipher_suite->algorithm );
+}
 
-    return cipher_suite;
+static inline psa_pake_primitive_type_t psa_pake_cs_get_type(
+    const psa_pake_cipher_suite_t *cipher_suite)
+{
+    return( cipher_suite->type );
+}
+
+static inline void psa_pake_cs_set_type(
+    psa_pake_cipher_suite_t *cipher_suite,
+    psa_pake_primitive_type_t type)
+{
+    cipher_suite->type = type;
+}
+
+static inline uint8_t psa_pake_cs_get_family(
+    const psa_pake_cipher_suite_t *cipher_suite)
+{
+    return( cipher_suite->family );
+}
+
+static inline void psa_pake_cs_set_family(
+    psa_pake_cipher_suite_t *cipher_suite,
+    uint8_t family)
+{
+    cipher_suite->family = family;
+}
+
+static inline size_t psa_pake_cs_get_bits(
+    const psa_pake_cipher_suite_t *cipher_suite)
+{
+    return( cipher_suite->bits );
+}
+
+static inline void psa_pake_cs_set_bits(
+    psa_pake_cipher_suite_t *cipher_suite,
+    size_t bits)
+{
+    cipher_suite->bits = bits;
+}
+
+static inline psa_algorithm_t psa_pake_cs_get_hash(
+    const psa_pake_cipher_suite_t *cipher_suite)
+{
+    return( cipher_suite->hash );
+}
+
+static inline void psa_pake_cs_set_hash(
+    psa_pake_cipher_suite_t *cipher_suite,
+    psa_algorithm_t hash)
+{
+    if( !PSA_ALG_IS_HASH(hash) )
+        cipher_suite->hash = 0;
+    else
+        cipher_suite->hash = hash;
 }
 
 struct psa_pake_operation_s

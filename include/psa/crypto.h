@@ -4140,38 +4140,188 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
  */
 typedef struct psa_pake_cipher_suite_s psa_pake_cipher_suite_t;
 
-/** Construct a cipher suite for a password-authenticated key exchange.
+/** Retrieve the PAKE algorithm from a PAKE cipher suite.
  *
- * \param primitive          The primitive used in the cipher suite.
- * \param hash               The hash involved in the cipher suite.
- *                           (`PSA_ALG_XXX` values of type ::psa_algorithm_t
- *                           such that #PSA_ALG_IS_HASH(\c alg) is true.)
- * \param algorithm1         Additional algorithm if needed in the cipher suite,
- *                           0 otherwise.
- * \param bits1              A bit size qualifier if needed for \p algorithm1,
- *                           0 otherwise.
- * \param algorithm2         Additional algorithm if needed in the cipher suite,
- *                           0 otherwise.
- * \param bits2              A bit size qualifier if needed for \p algorithm2,
- *                           0 otherwise.
- * \param options            Additional options to be included with the cipher
- *                           suite if needed, 0 otherwise.
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate its argument exactly once.
+ *
+ * \param[in] cipher_suite     The cipher suite structure to query.
+ *
+ * \return The PAKE algorithm stored in the cipher suite structure.
+ */
+static psa_algorithm_t psa_pake_cs_get_algorithm(
+                           const psa_pake_cipher_suite_t* cipher_suite
+                           );
+
+/** Declare the PAKE algorithm for the cipher suite.
+ *
+ * This function overwrites any PAKE algorithm
+ * previously set in \p cipher_suite.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate each of its arguments exactly once.
+ *
+ * \param[out] cipher_suite    The cipher suite structure to write to.
+ * \param algorithm            The PAKE algorithm to write.
+ *                             (`PSA_ALG_XXX` values of type ::psa_algorithm_t
+ *                             such that #PSA_ALG_IS_PAKE(\c alg) is true.)
+ *                             If this is 0, the PAKE algorithm in
+ *                             \p cipher_suite becomes unspecified.
+ */
+static void psa_pake_cs_set_algorithm(
+                           psa_pake_cipher_suite_t* cipher_suite,
+                           psa_algorithm_t algorithm
+                           );
+
+/** Retrieve the primitive type from a PAKE cipher suite.
+ *
+ * This function may be declared as `static` (i.e. without external linkage).
+ * This function may be provided as a function-like macro, but in this case it
+ * must evaluate its argument exactly once.
  *
  * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
  * for more information.
  *
- * \retval The constructed cipher suite.
+ * \param[in] cipher_suite     The cipher suite structure to query.
+ *
+ * \return The primitive type stored in the cipher suite structure.
  */
-static psa_pake_cipher_suite_t psa_pake_cipher_suite(
-                                    psa_pake_primitive_t primitive,
-                                    psa_algorithm_t hash,
-                                    psa_algorithm_t algorithm1,
-                                    psa_pake_bits_t bits1,
-                                    psa_algorithm_t algorithm2,
-                                    psa_pake_bits_t bits2,
-                                    psa_pake_cipher_suite_options_t options
-                                    );
+static psa_pake_primitive_type_t psa_pake_cs_get_type(
+                           const psa_pake_cipher_suite_t* cipher_suite
+                           );
+
+/** Declare the primitive type for a PAKE cipher suite.
+ *
+ * This function overwrites any primitive type
+ * previously set in \p cipher_suite.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate each of its arguments exactly once.
+ *
+ * \param[out] cipher_suite    The cipher suite structure to write to.
+ * \param type                 The primitive type to write.
+ *                             If this is 0, the primitive type in
+ *                             \p cipher_suite becomes unspecified.
+ */
+static void psa_pake_cs_set_type(
+                           psa_pake_cipher_suite_t* cipher_suite,
+                           psa_pake_primitive_type_t type
+                           );
+
+/** Retrieve the primitive family from a PAKE cipher suite.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate its argument exactly once.
+ *
+ * \param[in] cipher_suite      The cipher suite structure to query.
+ *
+ * \return The primitive family stored in the cipher suite structure.
+ */
+static uint8_t psa_pake_cs_get_family(
+                           const psa_pake_cipher_suite_t* cipher_suite
+                           );
+
+/** Declare the primitive family for a PAKE cipher suite.
+ *
+ * This function overwrites any primitive family
+ * previously set in \p cipher_suite.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate each of its arguments exactly once.
+ *
+ * \param[out] cipher_suite     The cipher suite structure to write to.
+ * \param family                The primitive family to write.
+ *                              If this is 0, the primitive family in
+ *                              \p cipher_suite becomes unspecified. The
+ *                              interpretation of this parameter depends on
+ *                              the primitive type, for more information consult the
+ *                              documentation of individual
+ *                              ::psa_pake_primitive_type_t constants).
+ */
+static void psa_pake_cs_set_family(
+                           psa_pake_cipher_suite_t* cipher_suite,
+                           uint8_t family
+                           );
+
+/** Retrieve the primitive bits from a PAKE cipher suite.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate its argument exactly once.
+ *
+ * \param[in] cipher_suite      The cipher suite structure to query.
+ *
+ * \return The primitive bits stored in the cipher suite structure.
+ */
+static size_t psa_pake_cs_get_bits(const psa_pake_cipher_suite_t* cipher_suite);
+
+/** Declare the primitive bits for a PAKE cipher suite.
+ *
+ * This function overwrites any primitive bits
+ * previously set in \p cipher_suite.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate each of its arguments exactly once.
+ *
+ * \param[out] cipher_suite     The cipher suite structure to write to.
+ * \param bits                  The primitive bits to write.
+ *                              If this is 0, the primitive bits in
+ *                              \p cipher_suite becomes unspecified. The
+ *                              interpretation of this parameter depends on
+ *                              the family, for more information consult the
+ *                              documentation of individual
+ *                              ::psa_pake_primitive_type_t constants).
+ */
+static void psa_pake_cs_set_bits(
+                           psa_pake_cipher_suite_t* cipher_suite,
+                           size_t bits
+                           );
+
+/** Retrieve the hash algorithm from a PAKE cipher suite.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate its argument exactly once.
+ *
+ * \param[in] cipher_suite      The cipher suite structure to query.
+ *
+ * \return The hash algorithm stored in the cipher suite structure.
+ */
+static psa_algorithm_t psa_pake_cs_get_hash(
+                           const psa_pake_cipher_suite_t* cipher_suite
+                           );
+
+/** Declare the hash algorithm for a PAKE cipher suite.
+ *
+ * This function overwrites any hash algorithm
+ * previously set in \p cipher_suite.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate each of its arguments exactly once.
+ *
+ * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
+ * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
+ * for more information.
+ *
+ * \param[out] cipher_suite     The cipher suite structure to write to.
+ * \param hash                  The hash involved in the cipher suite.
+ *                              (`PSA_ALG_XXX` values of type ::psa_algorithm_t
+ *                              such that #PSA_ALG_IS_HASH(\c alg) is true.)
+ *                              If this is 0, the hash algorithm in
+ *                              \p cipher_suite becomes unspecified.
+ */
+static void psa_pake_cs_set_hash(
+                           psa_pake_cipher_suite_t* cipher_suite,
+                           psa_algorithm_t hash
+                           );
 
 /** The type of the state data structure for PAKE operations.
  *

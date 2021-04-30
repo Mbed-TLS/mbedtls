@@ -1969,20 +1969,21 @@
 /** The Password-authenticated key exchange by juggling (J-PAKE) algorithm.
  *
  * J-PAKE can be instantiated over finite fields or elliptic curves. This can
- * be achieved by passing either #PSA_PAKE_PRIMITIVE_TYPE_DH or
- * #PSA_PAKE_PRIMITIVE_TYPE_ECC to #PSA_PAKE_PRIMITIVE respectively, when
- * creating the cipher suite.
+ * be achieved by setting either #PSA_PAKE_PRIMITIVE_TYPE_DH or
+ * #PSA_PAKE_PRIMITIVE_TYPE_ECC respectively in the cipher suite (see
+ * ::psa_pake_cipher_suite_t) via psa_pake_cs_set_type(). (Before using the
+ * cipher suite the field or curve must be fully specified by calling
+ * psa_pake_cs_set_family() and psa_pake_cs_set_bits() as well. For more
+ * information refer to the documentation of the individual
+ * `PSA_PAKE_PRIMITIVE_TYPE_XXX` constants.)
+ *
+ * J-PAKE can be used with any secure cryptographic hash function. The choice
+ * of hash must be supplied to the cipher suite by calling
+ * psa_pake_cs_set_hash().
  *
  * In theory the algorithm works with any non-interactive zero-knowledge proof.
  * Implementations of the present specification use Schnorr NIZKP and this does
  * not need to be configured in the cipher suites.
- *
- * J-PAKE can be used with any secure cryptographic hash function, the choice
- * of hash must be supplied to the psa_pake_cipher_suite() as the second
- * parameter (\p hash).
- *
- * All the remaining parameters passed to psa_pake_cipher_suite() when creating
- * the cipher suite must be 0.
  *
  * The key exchange flow for JPAKE is as follows:
  * -# To get the first round data that needs to be sent to the peer, call

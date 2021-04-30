@@ -254,10 +254,19 @@ void sign_fail( int key_type_arg, data_t *key_data,
                                 output, sizeof( output ), &length ) );
     if( ! private_only )
     {
+        length = sizeof( output );
+        if( PSA_KEY_TYPE_IS_RSA( key_type ) )
+        {
+            /* Ensure the signature has the right size, to avoid a shortcut
+             * where a wrong-size signature could be rejected summarily
+             * but a right-size signature might trigger bad behavior. */
+            PSA_ASSERT( psa_get_key_attributes( key_id, &attributes ) );
+            length = PSA_BITS_TO_BYTES( psa_get_key_bits( &attributes ) );
+        }
         TEST_STATUS( expected_status,
                      psa_verify_hash( key_id, alg,
                                       input, sizeof( input ),
-                                      output, sizeof( output ) ) );
+                                      output, length ) );
     }
 
 exit:

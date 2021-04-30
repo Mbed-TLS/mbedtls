@@ -234,9 +234,9 @@
     <ClInclude Include="..\..\tests\include\test\drivers\cipher.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\hash.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\key_management.h" />
-    <ClInclude Include="..\..\tests\include\test\drivers\mbedtls_test_driver.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\signature.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\size.h" />
+    <ClInclude Include="..\..\tests\include\test\drivers\test_driver.h" />
     <ClInclude Include="..\..\library\aesni.h" />
     <ClInclude Include="..\..\library\bn_mul.h" />
     <ClInclude Include="..\..\library\check_crypto_config.h" />
@@ -376,7 +376,6 @@
     <ClCompile Include="..\..\tests\src\random.c" />
     <ClCompile Include="..\..\tests\src\threading_helpers.c" />
     <ClCompile Include="..\..\tests\src\drivers\hash.c" />
-    <ClCompile Include="..\..\tests\src\drivers\key_management.c" />
     <ClCompile Include="..\..\tests\src\drivers\platform_builtin_keys.c" />
     <ClCompile Include="..\..\tests\src\drivers\test_driver_aead.c" />
     <ClCompile Include="..\..\tests\src\drivers\test_driver_cipher.c" />

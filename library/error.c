@@ -380,8 +380,6 @@ const char * mbedtls_high_level_strerr( int error_code )
             return( "SSL - No RNG was provided to the SSL module" );
         case -(MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE):
             return( "SSL - No client certification received from the client, but required by the authentication mode" );
-        case -(MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED):
-            return( "SSL - The own certificate is not set, but needed by the server" );
         case -(MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED):
             return( "SSL - The own private key or pre-shared key is not set, but needed" );
         case -(MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED):

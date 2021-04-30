@@ -1737,14 +1737,15 @@
  * For example, `PSA_ALG_PBKDF2_HMAC(PSA_ALG_SHA256)` specifies PBKDF2
  * using the PRF HMAC-SHA-256.
  *
- * This key derivation algorithm uses the following inputs:
- * - #PSA_KEY_DERIVATION_INPUT_PASSWORD is the password to be hashed.
+ * This key derivation algorithm uses the following inputs, which must be
+ * provided in the following order:
+ * - #PSA_KEY_DERIVATION_INPUT_COST is the iteration count.
  *   This input step must be used exactly once.
  * - #PSA_KEY_DERIVATION_INPUT_SALT is the salt.
  *   This input step must be used one or more times; if used several times, the
  *   inputs will be concatenated. This can be used to build the final salt
  *   from multiple sources, both public and secret (also known as pepper).
- * - #PSA_KEY_DERIVATION_INPUT_COST is the iteration count.
+ * - #PSA_KEY_DERIVATION_INPUT_PASSWORD is the password to be hashed.
  *   This input step must be used exactly once.
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that

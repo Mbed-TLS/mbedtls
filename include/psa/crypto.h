@@ -4421,10 +4421,9 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *                              type PSA_KEY_TYPE_PASSWORD or
  *                              #PSA_KEY_TYPE_DERIVE. It has to allow the usage
  *                              #PSA_KEY_USAGE_DERIVE.
- * \param alg                   The PAKE algorithm to use
- *                              (\c PSA_ALG_XXX value such that
- *                              #PSA_ALG_IS_PAKE(\p alg) is true).
- * \param cipher_suite          The cipher suite to use with the PAKE algorithm.
+ * \param cipher_suite          The cipher suite to use. (A cipher suite fully
+ *                              characterizes a PAKE algorithm and determines
+ *                              the algorithm as well.)
  * \param side                  A value of type ::psa_pake_side_t signaling the
  *                              side of the algorithm that is being set up. For
  *                              more information see the documentation of \c
@@ -4446,15 +4445,12 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
+ *         \p key is not compatible with the algorithm in \p cipher_suite.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p session_data is not empty and is not allowed in \p alg.
+ *         \p session_data is not empty and is not allowed in the algorithm in
+ *         \p cipher_suite.
  * \retval #PSA_ERROR_NOT_SUPPORTED
- *         \p cipher_suite is not compatible with \p alg. (Eg.  \p cipher_suite
- *         mandates algorithms or sets options that do not make sense for \p alg
- *         or are not supported with \p alg.)
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         \p alg is not supported or is not a PAKE algorithm.
+ *         The \p cipher_suite is not supported or is not valid.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -4467,7 +4463,6 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  */
 psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
                             mbedtls_svc_key_id_t password,
-                            psa_algorithm_t alg,
                             psa_pake_cipher_suite_t cipher_suite,
                             psa_pake_side_t side,
                             const uint8_t *user_id,

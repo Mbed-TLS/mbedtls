@@ -441,14 +441,14 @@
  * The key policy determines which key derivation algorithm the key can be
  * used for, among the permissible subset defined above.
  */
-#define PSA_KEY_TYPE_PASSWORD                       ((psa_key_type_t)0x1300)
+#define PSA_KEY_TYPE_PASSWORD                       ((psa_key_type_t)0x1203)
 
 /** A secret value that can be used in when computing a password hash.
  *
  * The key policy determines which key derivation algorithm the key
  * can be used for, among the subset of algorithms that can use pepper.
  */
-#define PSA_KEY_TYPE_PEPPER                         ((psa_key_type_t)0x1400)
+#define PSA_KEY_TYPE_PEPPER                         ((psa_key_type_t)0x1205)
 
 /** Key for a cipher, AEAD or MAC algorithm based on the AES block cipher.
  *

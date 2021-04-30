@@ -24,7 +24,7 @@
 #include <psa/crypto_extra.h>
 
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-#include <test/drivers/mbedtls_test_driver.h>
+#include <test/drivers/test_driver.h>
 #endif
 
 typedef struct

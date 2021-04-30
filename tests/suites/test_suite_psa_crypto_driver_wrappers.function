@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include "test/drivers/mbedtls_test_driver.h"
+#include "test/drivers/test_driver.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

@@ -456,8 +456,6 @@ const char * mbedtls_high_level_strerr( int error_code )
             return( "SSL - Record header looks valid but is not expected" );
         case -(MBEDTLS_ERR_SSL_NON_FATAL):
             return( "SSL - The alert message received indicates a non-fatal error" );
-        case -(MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH):
-            return( "SSL - Couldn't set the hash for verifying CertificateVerify" );
         case -(MBEDTLS_ERR_SSL_CONTINUE_PROCESSING):
             return( "SSL - Internal-only message signaling that further message-processing should be done" );
         case -(MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS):

@@ -374,8 +374,6 @@ const char * mbedtls_high_level_strerr( int error_code )
             return( "SSL - An invalid SSL record was received" );
         case -(MBEDTLS_ERR_SSL_CONN_EOF):
             return( "SSL - The connection indicated an EOF" );
-        case -(MBEDTLS_ERR_SSL_UNKNOWN_CIPHER):
-            return( "SSL - An unknown cipher was received" );
         case -(MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN):
             return( "SSL - The server has no ciphersuites in common with the client" );
         case -(MBEDTLS_ERR_SSL_NO_RNG):

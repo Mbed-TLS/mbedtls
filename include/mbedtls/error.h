@@ -107,7 +107,7 @@
  * SSL       5   2 (Started from 0x5F00)
  * CIPHER    6   8 (Started from 0x6080)
  * SSL       6   24 (Started from top, plus 0x6000)
- * SSL       7   32
+ * SSL       7   31 (Started from 0x7080, gap at 0x7300)
  *
  * Module dependent error code (5 bits 0x.00.-0x.F8.)
  */

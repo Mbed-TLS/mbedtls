@@ -1,5 +1,4 @@
 set(executables
-    aescrypt2
     crypt_and_hash
 )
 

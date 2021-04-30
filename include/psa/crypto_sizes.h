@@ -48,6 +48,10 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+/* Translate between classic MBEDTLS_xxx feature symbols and PSA_xxx
+ * feature symbols. */
+#include "mbedtls/config_psa.h"
+
 #define PSA_BITS_TO_BYTES(bits) (((bits) + 7) / 8)
 #define PSA_BYTES_TO_BITS(bytes) ((bytes) * 8)
 
@@ -92,14 +96,38 @@
  * This macro expands to a compile-time constant integer. This value
  * is the maximum size of a hash in bytes.
  */
-/* Note: for HMAC-SHA-3, the block size is 144 bytes for HMAC-SHA3-226,
- * 136 bytes for HMAC-SHA3-256, 104 bytes for SHA3-384, 72 bytes for
- * HMAC-SHA3-512. */
-#if defined(MBEDTLS_SHA512_C)
+#if defined(PSA_WANT_ALG_SHA_512) || defined(PSA_WANT_ALG_SHA3_512) || \
+    defined(PSA_WANT_ALG_SHAKE256_512)
 #define PSA_HASH_MAX_SIZE 64
-#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 128
+#elif defined(PSA_WANT_ALG_SHA_384) || defined(PSA_WANT_ALG_SHA3_384)
+#define PSA_HASH_MAX_SIZE 48
 #else
 #define PSA_HASH_MAX_SIZE 32
+#endif
+
+
+/** \def PSA_HMAC_MAX_HASH_BLOCK_SIZE
+ *
+ * Maximum size of a hash algorithm's block.
+ *
+ * This macro expands to a compile-time constant integer. This value
+ * is the maximum size of a hash input block in bytes.
+ */
+/* Note: for HMAC-SHA-3, the block size is 144 bytes for HMAC-SHA3-224,
+ * 136 bytes for HMAC-SHA3-256, 104 bytes for SHA3-384, 72 bytes for
+ * HMAC-SHA3-512. */
+#if defined(PSA_WANT_ALG_SHA3_224)
+#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 144
+#elif defined(PSA_WANT_ALG_SHA3_256) || defined(PSA_WANT_ALG_SHAKE256_512)
+#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 136
+#elif defined(PSA_WANT_ALG_SHA_512) || defined(PSA_WANT_ALG_SHA_384) \
+    || defined(PSA_WANT_ALG_SHA_512_256) || defined(PSA_WANT_ALG_SHA512_224)
+#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 128
+#elif defined(PSA_WANT_ALG_SHA3_384)
+#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 104
+#elif defined(PSA_WANT_ALG_SHA3_512)
+#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 72
+#else
 #define PSA_HMAC_MAX_HASH_BLOCK_SIZE 64
 #endif
 
@@ -166,31 +194,31 @@
 
 /* The maximum size of an ECC key on this implementation, in bits.
  * This is a vendor-specific macro. */
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#if defined(PSA_WANT_ECC_SECP_R1_521)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 521
-#elif defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+#elif defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 512
-#elif defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#elif defined(PSA_WANT_ECC_MONTGOMERY_448)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 448
-#elif defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#elif defined(PSA_WANT_ECC_SECP_R1_384)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 384
-#elif defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+#elif defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 384
-#elif defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#elif defined(PSA_WANT_ECC_SECP_R1_256)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 256
-#elif defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+#elif defined(PSA_WANT_ECC_SECP_K1_256)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 256
-#elif defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+#elif defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 256
-#elif defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#elif defined(PSA_WANT_ECC_MONTGOMERY_255)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 255
-#elif defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+#elif defined(PSA_WANT_ECC_SECP_R1_224)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 224
-#elif defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+#elif defined(PSA_WANT_ECC_SECP_K1_224)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 224
-#elif defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+#elif defined(PSA_WANT_ECC_SECP_R1_192)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 192
-#elif defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+#elif defined(PSA_WANT_ECC_SECP_K1_192)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 192
 #else
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 0

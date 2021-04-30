@@ -2173,7 +2173,7 @@ psa_status_t psa_hash_verify( psa_hash_operation_t *operation,
                               const uint8_t *hash,
                               size_t hash_length )
 {
-    uint8_t actual_hash[MBEDTLS_MD_MAX_SIZE];
+    uint8_t actual_hash[PSA_HASH_MAX_SIZE];
     size_t actual_hash_length;
     psa_status_t status = psa_hash_finish(
                             operation,
@@ -2205,7 +2205,7 @@ psa_status_t psa_hash_compare( psa_algorithm_t alg,
                                const uint8_t *input, size_t input_length,
                                const uint8_t *hash, size_t hash_length )
 {
-    uint8_t actual_hash[MBEDTLS_MD_MAX_SIZE];
+    uint8_t actual_hash[PSA_HASH_MAX_SIZE];
     size_t actual_hash_length;
 
     if( !PSA_ALG_IS_HASH( alg ) )
@@ -2627,7 +2627,7 @@ static psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
                                               uint8_t *mac,
                                               size_t mac_size )
 {
-    uint8_t tmp[MBEDTLS_MD_MAX_SIZE];
+    uint8_t tmp[PSA_HASH_MAX_SIZE];
     psa_algorithm_t hash_alg = hmac->alg;
     size_t hash_size = 0;
     size_t block_size = psa_get_hash_block_size( hash_alg );

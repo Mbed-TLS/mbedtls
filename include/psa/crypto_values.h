@@ -409,6 +409,12 @@
 
 /** A secret for key derivation.
  *
+ * This key type is for high-entropy secrets only. For low-entropy secrets,
+ * #PSA_KEY_TYPE_PASSWORD should be used instead.
+ *
+ * These keys can be used as the #PSA_KEY_DERIVATION_INPUT_SECRET or
+ * #PSA_KEY_DERIVATION_INPUT_PASSWORD input of key derivation algorithms.
+ *
  * The key policy determines which key derivation algorithm the key
  * can be used for.
  */
@@ -416,15 +422,31 @@
 
 /** A low-entropy secret for password hashing or key derivation.
  *
- * The key policy determines which key derivation algorithm the key
- * can be used for.
+ * This key type is suitable for passwords and passphrases which are typically
+ * intended to be memorizable by humans, and have a low entropy relative to
+ * their size. It can be used for randomly generated or derived keys with
+ * maximum or near-maximum entropy, but PSA_KEY_TYPE_DERIVE is more suitable
+ * for such keys. It is not suitable for passwords with extremely low entropy,
+ * such as numerical PINs.
+ *
+ * These keys can be used as the #PSA_KEY_DERIVATION_INPUT_PASSWORD input of
+ * key derivation algorithms. Algorithms that accept such an input were
+ * designed to accept low-entropy secret and are known as password hashing or
+ * key stretching algorithms.
+ *
+ * These keys cannot be used as the #PSA_KEY_DERIVATION_INPUT_SECRET input of
+ * key derivation algorithms, as the algorithms that take such an input expect
+ * it to be high-entropy.
+ *
+ * The key policy determines which key derivation algorithm the key can be
+ * used for, among the permissible subset defined above.
  */
 #define PSA_KEY_TYPE_PASSWORD                       ((psa_key_type_t)0x1300)
 
-/** A secret value that can be mixed in when doing password hashing.
+/** A secret value that can be used in when computing a password hash.
  *
  * The key policy determines which key derivation algorithm the key
- * can be used for.
+ * can be used for, among the subset of algorithms that can use pepper.
  */
 #define PSA_KEY_TYPE_PEPPER                         ((psa_key_type_t)0x1400)
 
@@ -804,9 +826,9 @@
  * algorithm.
  *
  * A key stretching / password hashing algorithm is a key derivation algorithm
- * that is suitable for use with low-entropy secret such as passwords.
- * Equivalently, it's a key derivation algorithm that accepts an input of type
- * #PSA_KEY_DERIVATION_INPUT_PASSWORD.
+ * that is suitable for use with a low-entropy secret such as a password.
+ * Equivalently, it's a key derivation algorithm that uses a
+ * #PSA_KEY_DERIVATION_INPUT_PASSWORD input step.
  *
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
  *
@@ -1707,24 +1729,23 @@
 #define PSA_ALG_KEY_DERIVATION_STRETCHING_FLAG  ((psa_algorithm_t)0x00008000)
 
 #define PSA_ALG_PBKDF2_HMAC_BASE                ((psa_algorithm_t)0x08008100)
-/** Macro to build a PBKDF2-HMAC algorithm.
+/** Macro to build a PBKDF2-HMAC password hashing / key stretching algorithm.
  *
  * PBKDF2 is defined by PKCS#5, republished as RFC 8018 (section 5.2).
- * It can use on of several PRFs internally; this macro is used when that PRF
- * is based on HMAC with a given hash.
- *
- * For example, `PSA_ALG_PBKDF2_HMAC(PSA_ALG_SHA256)` represents PBKDF2
- * using HMAC-SHA-256 as the internal PRF.
+ * This macro specifies the PBKDF2 algorithm constructed using a PRF based on
+ * HMAC with the specified hash.
+ * For example, `PSA_ALG_PBKDF2_HMAC(PSA_ALG_SHA256)` specifies PBKDF2
+ * using the PRF HMAC-SHA-256.
  *
  * This key derivation algorithm uses the following inputs:
- * - #PSA_KEY_DERIVATION_INPUT_PASSWORD is the password to be hashed
- * - #PSA_KEY_DERIVATION_INPUT_SALT is (part of) the salt (see note below)
- * - #PSA_KEY_DERIVATION_INPUT_COST is the iteration count
- *
- * Note: if multiple salt inputs are passed, they will be concatenated by the
- * implementation in order to produce the salt that will be passed to the
- * algorithm. This allows building the salt from multiple inputs, both public
- * and secret (also known as pepper).
+ * - #PSA_KEY_DERIVATION_INPUT_PASSWORD is the password to be hashed.
+ *   This input step must be used exactly once.
+ * - #PSA_KEY_DERIVATION_INPUT_SALT is the salt.
+ *   This input step must be used one or more times; if used several times, the
+ *   inputs will be concatenated. This can be used to build the final salt
+ *   from multiple sources, both public and secret (also known as pepper).
+ * - #PSA_KEY_DERIVATION_INPUT_COST is the iteration count.
+ *   This input step must be used exactly once.
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
@@ -2213,19 +2234,21 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * The secret can also be a direct input (passed to
  * key_derivation_input_bytes()). In this case, the derivation operation
  * may not be used to derive keys: the operation will only allow
- * psa_key_derivation_output_bytes(), not psa_key_derivation_output_key().
+ * psa_key_derivation_output_bytes() or
+ * psa_key_derivation_verify_output_xxx() but not
+ * psa_key_derivation_output_key().
  */
 #define PSA_KEY_DERIVATION_INPUT_SECRET     ((psa_key_derivation_step_t)0x0101)
 
 /** A low-entropy secret input for password hashing / key stretching.
  *
- * This should be a key of type #PSA_KEY_TYPE_PASSWORD or #PSA_KEY_TYPE_DERIVE
- * (passed to psa_key_derivation_input_key())
- * or the shared secret resulting from a key agreement
- * (obtained via psa_key_derivation_key_agreement()).
+ * This is usually a key of type #PSA_KEY_TYPE_PASSWORD (passed to
+ * psa_key_derivation_input_key()) or a direct input (passed to
+ * psa_key_derivation_input_bytes()) that is a password or passphrase. It can
+ * also be high-entropy secret such as a key of type #PSA_KEY_TYPE_DERIVE or
+ * the shared secret resulting from a key agreement.
  *
- * The secret can also be a direct input (passed to
- * key_derivation_input_bytes()). In this case, the derivation operation
+ * If the secret is a direct input, the derivation operation
  * may not be used to derive keys: the operation will only allow
  * psa_key_derivation_output_bytes(), not psa_key_derivation_output_key().
  */

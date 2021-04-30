@@ -3293,10 +3293,13 @@ psa_status_t psa_key_derivation_input_bytes(
 /** Provide a numeric input for key derivation or key agreement.
  *
  * Which inputs are required and in what order depends on the algorithm.
+ * However, when an algorithm requires a particular order, numeric inputs
+ * usually come first as they tend to be configuration parameters.
  * Refer to the documentation of each key derivation or key agreement
  * algorithm for information.
  *
- * This function is used for inputs which are small non-negative integers.
+ * This function is used for inputs which are fixed-size non-negative
+ * integers.
  *
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling psa_key_derivation_abort().
@@ -3306,8 +3309,7 @@ psa_status_t psa_key_derivation_input_bytes(
  *                                psa_key_derivation_setup() and must not
  *                                have produced any output yet.
  * \param step                    Which step the input data is for.
- * \param[in] data                Input data to use.
- * \param data_length             Size of the \p data buffer in bytes.
+ * \param[in] value               The value of the numeric input.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -3646,15 +3648,25 @@ psa_status_t psa_key_derivation_output_key(
 /** Compare output data from a key derivation operation to an expected value.
  *
  * This function calculates output bytes from a key derivation algorithm and
- * compares those bytes to an expected value.
+ * compares those bytes to an expected value in constant time.
  * If you view the key derivation's output as a stream of bytes, this
  * function destructively reads the requested number of bytes from the
  * stream before comparing them.
  * The operation's capacity decreases by the number of bytes read.
  *
+ * This is functionally equivalent to the following code:
+ * \code
+ * psa_key_derivation_output_bytes(operation, tmp, output_length);
+ * if (memcmp(output, tmp, output_length) != 0)
+ *     return PSA_ERROR_INVALID_SIGNATURE;
+ * \endcode
+ * except (1) it works even if the key's policy does not allow outputting the
+ * bytes, and (2) the comparison will be done in constant time.
+ *
  * If this function returns an error status other than
- * #PSA_ERROR_INSUFFICIENT_DATA, the operation enters an error
- * state and must be aborted by calling psa_key_derivation_abort().
+ * #PSA_ERROR_INSUFFICIENT_DATA or #PSA_ERROR_INVALID_SIGNATURE,
+ * the operation enters an error state and must be aborted by calling
+ * psa_key_derivation_abort().
  *
  * \param[in,out] operation The key derivation operation object to read from.
  * \param[in] expected_output Buffer where the output will be written.
@@ -3686,32 +3698,44 @@ psa_status_t psa_key_derivation_output_key(
  */
 psa_status_t psa_key_derivation_verify_output_bytes(
     psa_key_derivation_operation_t *operation,
-    const uint8_t *output,
+    const uint8_t *expected_output,
     size_t output_length);
 
-/** Compare output data from a key derivation operation to an expected value.
+/** Compare output data from a key derivation operation to an expected value
+ * stored in a key object.
  *
  * This function calculates output bytes from a key derivation algorithm and
  * compares those bytes to an expected value, provided as key of type
- * #PSA_KEY_TYPE_RAW_DATA.
+ * #PSA_KEY_TYPE_RAW_DATA, in constant time.
  * If you view the key derivation's output as a stream of bytes, this
  * function destructively reads the number of bytes corresponding the the
  * length of the expected value from the stream before comparing them.
  * The operation's capacity decreases by the number of bytes read.
  *
+ * This is functionally equivalent to exporting the key and calling
+ * psa_key_derivation_verify_output_bytes() on the result, except that it
+ * works even if the key cannot be exported.
+ *
  * If this function returns an error status other than
- * #PSA_ERROR_INSUFFICIENT_DATA, the operation enters an error
- * state and must be aborted by calling psa_key_derivation_abort().
+ * #PSA_ERROR_INSUFFICIENT_DATA or #PSA_ERROR_INVALID_SIGNATURE,
+ * the operation enters an error state and must be aborted by calling
+ * psa_key_derivation_abort().
  *
  * \param[in,out] operation The key derivation operation object to read from.
  * \param[in] expected      A key of type #PSA_KEY_TYPE_RAW_DATA containing
  *                          the expected output. Its policy must include the
  *                          #PSA_KEY_USAGE_PASSWORD_HASH_VERIFIER flag.
+ *                          The value of this key was likely computed by a
+ *                          previous call to psa_key_derivation_output_key().
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_SIGNATURE
  *         The output was read successfully, but if differs from the expected
  *         output.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ *         The key passed as the expected value does not exist.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key passed as the expected value has an invalid type.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The key passed as the expected value does not allow this usage.
  * \retval #PSA_ERROR_INSUFFICIENT_DATA

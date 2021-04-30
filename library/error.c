@@ -392,8 +392,6 @@ const char * mbedtls_high_level_strerr( int error_code )
             return( "SSL - An unexpected message was received from our peer" );
         case -(MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE):
             return( "SSL - A fatal alert message was received from our peer" );
-        case -(MBEDTLS_ERR_SSL_PEER_VERIFY_FAILED):
-            return( "SSL - Verification of our peer failed" );
         case -(MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY):
             return( "SSL - The peer notified us that the connection is going to be closed" );
         case -(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO):

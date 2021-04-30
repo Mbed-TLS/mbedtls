@@ -421,7 +421,7 @@ int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
 /*
  * Deterministic signature wrapper
  *
- * \note    The f_rng_blind parameter must not be \c NULL.
+ * note:    The f_rng_blind parameter must not be NULL.
  *
  */
 static int ecdsa_sign_det_restartable( mbedtls_ecp_group *grp,
@@ -478,9 +478,9 @@ sign:
     ret = mbedtls_ecdsa_sign( grp, r, s, d, buf, blen,
                               mbedtls_hmac_drbg_random, p_rng );
 #else
-	ret = ecdsa_sign_restartable( grp, r, s, d, buf, blen,
-								  mbedtls_hmac_drbg_random, p_rng,
-								  f_rng_blind, p_rng_blind, rs_ctx );
+    ret = ecdsa_sign_restartable( grp, r, s, d, buf, blen,
+                                  mbedtls_hmac_drbg_random, p_rng,
+                                  f_rng_blind, p_rng_blind, rs_ctx );
 #endif /* MBEDTLS_ECDSA_SIGN_ALT */
 
 cleanup:

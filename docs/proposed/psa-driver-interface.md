@@ -309,7 +309,7 @@ This family requires the following type and entry points:
 * `"key_derivation_input_key"` (opaque drivers only)
 * `"key_derivation_output_bytes"`: called by `psa_key_derivation_output_bytes()`; also by `psa_key_derivation_output_key()` for transparent drivers.
 * `"key_derivation_output_key"`: called by `psa_key_derivation_output_key()` for transparent drivers when deriving an asymmetric key pair, and also for opaque drivers.
-* `"key_derivation_verify_output_bytes"`: called by `psa_key_derivation_verify_output_bytes()`; also by `psa_key_derivation_verify_output_key()` for transparent drivers.
+* `"key_derivation_verify_output_bytes"` (opaque drivers only).
 * `"key_derivation_verify_output_key"` (opaque drivers only).
 * `"key_derivation_abort"`: called by all key derivation functions of the PSA Cryptography API.
 

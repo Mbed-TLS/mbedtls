@@ -3733,7 +3733,7 @@ psa_status_t psa_key_derivation_verify_output_bytes(
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_key_derivation_verify_output_bytes(
+psa_status_t psa_key_derivation_verify_output_key(
     psa_key_derivation_operation_t *operation,
     psa_key_id_t expected);
 

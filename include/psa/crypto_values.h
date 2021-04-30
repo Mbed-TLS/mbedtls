@@ -2037,7 +2037,7 @@
  *
  * J-PAKE is standardised for example in RFC 8236.
  */
-#define PSA_ALG_PAKE_JPAKE                   ((psa_algorithm_t)0x0a000001)
+#define PSA_ALG_PAKE_JPAKE                   ((psa_algorithm_t)0x0a000100)
 
 /**@}*/
 

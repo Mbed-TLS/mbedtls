@@ -2504,8 +2504,9 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 /** The PAKE uses elliptic curves.
  *
  * The corresponding family type is ::psa_ecc_family_t. In determining a
- * specific curve in the family ::psa_pake_bits_t values are interpreted in the
- * exact same way as ::psa_key_bits_t would.
+ * specific curve in the family the cipher suite (see
+ * ::psa_pake_cipher_suite_t) bits are interpreted in the exact same way
+ * as key bits are.
  *
  * Input and output during the operation can involve group elements and scalar
  * values:
@@ -2521,8 +2522,9 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 /** The PAKE uses finite fields based Diffie-Hellman groups.
  *
  * The corresponding family type is ::psa_dh_family_t. In determining a
- * specific group in the family ::psa_pake_bits_t values are interpreted in the
- * exact same way as ::psa_key_bits_t would.
+ * specific group in the family the cipher suite (see
+ * ::psa_pake_cipher_suite_t) bits are interpreted in the exact same way
+ * as key bits are.
  *
  * Input and output during the operation can involve group elements and scalar
  * values:
@@ -2534,28 +2536,6 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *  psa_export_key().
  */
 #define PSA_PAKE_PRIMITIVE_TYPE_DH       ((psa_pake_primitive_type_t)0x02)
-
-/** Construct a PAKE primitive from type, family and bitsize.
- *
- * \param pake_type     The type of the primitive
- *                      (value of type ::psa_pake_primitive_type_t).
- * \param pake_family   The family of the primitive
- *                      (the type and interpretation of this parameter depends
- *                      on \p type, for more information consult the
- *                      documentation of individual ::psa_pake_primitive_type_t
- *                      constants).
- * \param pake_bits     The bitsize of the primitive
- *                      (Value of type ::psa_pake_bits_t. The interpretation
- *                      of this parameter depends on \p family, for more
- *                      information consult the documentation of individual
- *                      ::psa_pake_primitive_type_t constants).
- *
- * \return The constructed primitive value.
- */
-#define PSA_PAKE_PRIMITIVE(pake_type, pake_family, pake_bits) \
-    ((psa_pake_primitive_t) (((pake_type) << 24 |             \
-            (pake_family) << 16) | (pake_bits)))
-
 
 /** The key share being sent to or received from the peer.
  *
@@ -2572,7 +2552,6 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  */
 #define PSA_PAKE_DATA_KEY_SHARE                 ((psa_pake_data_t)0x01)
 
-
 /** A Schnorr NIZKP public key.
  *
  * This is a group element.
@@ -2586,7 +2565,6 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * #PSA_PAKE_DATA_ZK_PUBLIC_2 and #PSA_PAKE_DATA_ZK_PUBLIC_3.
  */
 #define PSA_PAKE_DATA_ZK_PUBLIC                 ((psa_pake_data_t)0x02)
-
 
 /** A Schnorr NIZKP proof.
  *

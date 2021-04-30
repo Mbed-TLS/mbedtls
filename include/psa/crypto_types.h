@@ -406,28 +406,5 @@ typedef uint8_t psa_pake_data_t;
  */
 typedef uint8_t psa_pake_primitive_type_t;
 
-/** Encoding of the bitsize for the PAKE's primitive.
- *
- * The type and family is not enough to identify the primitive to use in the
- * PAKE, the implementation needs to know the bitsize too.
- */
-typedef uint16_t psa_pake_bits_t;
-
-/** Encoding of the PAKE's primitive.
- *
- * In most of the PAKEs the primitives are prime order groups, but some of
- * them might need the ring structure or just are using completely different
- * algebraic structures (eg. SRP or PQC schemes).
- */
-typedef uint32_t psa_pake_primitive_t;
-
-/** Encoding of additional options for PAKE.
- *
- * This type is for encoding additional options into PAKE cipher suites.
- * (Options like for example EnvelopeMode in OPAQUE or "Per-User M and N" in
- * SPAKE2.)
- */
-typedef uint32_t psa_pake_cipher_suite_options_t;
-
 /**@}*/
 #endif /* PSA_CRYPTO_TYPES_H */

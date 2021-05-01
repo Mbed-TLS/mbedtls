@@ -1208,6 +1208,58 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void hash_multipart_finish( int alg_arg,
+                            data_t *input, data_t *hash,
+                            int forced_status_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t forced_status = forced_status_arg;
+    unsigned char *output = NULL;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    size_t output_length;
+
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+    ASSERT_ALLOC( output, PSA_HASH_LENGTH( alg ) );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /*
+     * Finish none active operation, the driver shouldn't be called.
+     */
+    TEST_EQUAL( psa_hash_finish( &operation, output, PSA_HASH_LENGTH( alg ),
+                                 &output_length ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 0 );
+
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+    PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 2 );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+    mbedtls_test_driver_hash_hooks.forced_status = forced_status;
+    TEST_EQUAL( psa_hash_finish( &operation,
+                                 output, PSA_HASH_LENGTH( alg ),
+                                 &output_length ),
+                forced_status );
+    /* Two more calls to the driver interface: finish + abort */
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 4 );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, forced_status );
+
+    if( forced_status == PSA_SUCCESS )
+        ASSERT_COMPARE( output, output_length, hash->x, hash->len );
+
+exit:
+    psa_hash_abort( &operation );
+    mbedtls_free( output );
+    PSA_DONE( );
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void hash_clone( int alg_arg,
                  data_t *input, data_t *hash,
                  int forced_status_arg )

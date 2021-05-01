@@ -306,6 +306,14 @@ Hash multi-part update: SHA-256, update failure
 depends_on:MBEDTLS_PSA_ACCEL_ALG_SHA_256
 hash_multipart_update:PSA_ALG_SHA_256:"b0bd69":"4096804221093ddccfbf46831490ea63e9e99414858f8d75ff7f642c7ca61803":PSA_ERROR_NOT_SUPPORTED
 
+Hash multi-part finish: SHA-256, finish successful
+depends_on:MBEDTLS_PSA_ACCEL_ALG_SHA_256
+hash_multipart_update:PSA_ALG_SHA_256:"b0bd69":"4096804221093ddccfbf46831490ea63e9e99414858f8d75ff7f642c7ca61803":PSA_SUCCESS
+
+Hash multi-part finish: SHA-256, finish failure
+depends_on:MBEDTLS_PSA_ACCEL_ALG_SHA_256
+hash_multipart_update:PSA_ALG_SHA_256:"b0bd69":"4096804221093ddccfbf46831490ea63e9e99414858f8d75ff7f642c7ca61803":PSA_ERROR_NOT_SUPPORTED
+
 Hash clone: SHA-256, clone successful
 depends_on:MBEDTLS_PSA_ACCEL_ALG_SHA_256
 hash_clone:PSA_ALG_SHA_256:"b0bd69":"4096804221093ddccfbf46831490ea63e9e99414858f8d75ff7f642c7ca61803":PSA_SUCCESS

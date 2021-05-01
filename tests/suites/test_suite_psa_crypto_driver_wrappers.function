@@ -1104,10 +1104,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void hash_multipart( int alg_arg,
-                     data_t *input, data_t *hash,
-                     int forced_status_arg,
-                     int expected_status_arg )
+void hash_multipart_setup( int alg_arg,
+                           data_t *input, data_t *hash,
+                           int forced_status_arg,
+                           int expected_status_arg )
 {
     psa_algorithm_t alg = alg_arg;
     psa_status_t forced_status = forced_status_arg;
@@ -1121,9 +1121,6 @@ void hash_multipart( int alg_arg,
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    /*
-     * Case 1: Force the driver return status for setup.
-     */
     mbedtls_test_driver_hash_hooks.forced_status = forced_status;
     TEST_EQUAL( psa_hash_setup( &operation, alg ), expected_status );
     TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 1 );
@@ -1143,56 +1140,6 @@ void hash_multipart( int alg_arg,
                     forced_status == PSA_ERROR_NOT_SUPPORTED ? 1 : 4 );
         TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, forced_status );
 
-        ASSERT_COMPARE( output, output_length, hash->x, hash->len );
-    }
-
-    /*
-     * Case 2: Force the driver return status for update.
-     */
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
-    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 1 );
-    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS );
-
-    mbedtls_test_driver_hash_hooks.forced_status = forced_status;
-    TEST_EQUAL( psa_hash_update( &operation, input->x, input->len ),
-                                 forced_status );
-    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits,
-                forced_status != PSA_SUCCESS ? 3 : 2 );
-    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, forced_status );
-
-    if( forced_status == PSA_SUCCESS )
-    {
-        PSA_ASSERT( psa_hash_finish( &operation,
-                                     output, PSA_HASH_LENGTH( alg ),
-                                     &output_length ) );
-        TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 4 );
-        TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, forced_status );
-
-        ASSERT_COMPARE( output, output_length, hash->x, hash->len );
-    }
-
-    /*
-     * Case 3: Force the driver return status for finish.
-     */
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
-    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 1 );
-    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS );
-
-    PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
-    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 2 );
-    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS );
-
-    mbedtls_test_driver_hash_hooks.forced_status = forced_status;
-    TEST_EQUAL( psa_hash_finish( &operation,
-                                 output, PSA_HASH_LENGTH( alg ),
-                                 &output_length ), forced_status );
-    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 4 );
-    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, forced_status );
-
-    if( forced_status == PSA_SUCCESS )
-    {
         ASSERT_COMPARE( output, output_length, hash->x, hash->len );
     }
 

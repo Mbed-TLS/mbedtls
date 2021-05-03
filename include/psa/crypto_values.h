@@ -1779,6 +1779,17 @@
 #define PSA_ALG_PBKDF2_HMAC_GET_HASH(hkdf_alg)                         \
     (PSA_ALG_CATEGORY_HASH | ((hkdf_alg) & PSA_ALG_HASH_MASK))
 
+/** The PBKDF2-AES-CMAC-PRF-128 password hashing / key stretching algorithm.
+ *
+ * PBKDF2 is defined by PKCS#5, republished as RFC 8018 (section 5.2).
+ * This macro specifies the PBKDF2 algorithm constructed using the
+ * AES-CMAC-PRF-128 PRF specified by RFC 4615.
+ *
+ * This key derivation algorithm uses the same inputs as
+ * #PBKDF_ALG_PBKDF2_HMAC() with the same constraints.
+ */
+#define PSA_ALG_PBKDF2_AES_CMAC_PRF_128         ((psa_algorithm_t)0x08008200)
+
 #define PSA_ALG_KEY_DERIVATION_MASK             ((psa_algorithm_t)0xfe00ffff)
 #define PSA_ALG_KEY_AGREEMENT_MASK              ((psa_algorithm_t)0xffff0000)
 

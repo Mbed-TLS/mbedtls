@@ -3724,7 +3724,8 @@ psa_status_t psa_key_derivation_verify_bytes(
  * \param[in,out] operation The key derivation operation object to read from.
  * \param[in] expected      A key of type #PSA_KEY_TYPE_RAW_DATA containing
  *                          the expected output. Its policy must include the
- *                          #PSA_KEY_USAGE_VERIFY_DERIVATION flag.
+ *                          #PSA_KEY_USAGE_VERIFY_DERIVATION flag and the
+ *                          permitted algorithm must match the operation.
  *                          The value of this key was likely computed by a
  *                          previous call to psa_key_derivation_output_key().
  *
@@ -3737,7 +3738,8 @@ psa_status_t psa_key_derivation_verify_bytes(
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The key passed as the expected value has an invalid type.
  * \retval #PSA_ERROR_NOT_PERMITTED
- *         The key passed as the expected value does not allow this usage.
+ *         The key passed as the expected value does not allow this usage or
+ *         this algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_DATA
  *                          The operation's capacity was less than
  *                          the length of the expected value. In this case,

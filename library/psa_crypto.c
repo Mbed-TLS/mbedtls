@@ -2642,11 +2642,12 @@ psa_status_t psa_sign_message_internal(
     size_t *signature_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t hash_length;
-    uint8_t hash[PSA_HASH_MAX_SIZE];
 
     if ( PSA_ALG_IS_HASH_AND_SIGN( alg ) )
     {
+        size_t hash_length;
+        uint8_t hash[PSA_HASH_MAX_SIZE];
+
         status = psa_driver_wrapper_hash_compute(
                     PSA_ALG_SIGN_GET_HASH( alg ),
                     input, input_length,
@@ -2654,11 +2655,16 @@ psa_status_t psa_sign_message_internal(
 
         if( status != PSA_SUCCESS )
             return status;
+
+        return psa_driver_wrapper_sign_hash(
+                    attributes, key_buffer, key_buffer_size,
+                    alg, hash, hash_length,
+                    signature, signature_size, signature_length );
     }
 
     return psa_driver_wrapper_sign_hash(
                 attributes, key_buffer, key_buffer_size,
-                alg, hash, hash_length,
+                alg, input, input_length,
                 signature, signature_size, signature_length );
 }
 
@@ -2686,11 +2692,12 @@ psa_status_t psa_verify_message_internal(
     size_t signature_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t hash_length;
-    uint8_t hash[PSA_HASH_MAX_SIZE];
 
     if ( PSA_ALG_IS_HASH_AND_SIGN( alg ) )
     {
+        size_t hash_length;
+        uint8_t hash[PSA_HASH_MAX_SIZE];
+
         status = psa_driver_wrapper_hash_compute(
                     PSA_ALG_SIGN_GET_HASH( alg ),
                     input, input_length,
@@ -2698,11 +2705,16 @@ psa_status_t psa_verify_message_internal(
 
         if( status != PSA_SUCCESS )
             return status;
+
+        return psa_driver_wrapper_verify_hash(
+                    attributes, key_buffer, key_buffer_size,
+                    alg, hash, hash_length,
+                    signature, signature_length );
     }
 
     return psa_driver_wrapper_verify_hash(
                 attributes, key_buffer, key_buffer_size,
-                alg, hash, hash_length,
+                alg, input, input_length,
                 signature, signature_length );
 }
 

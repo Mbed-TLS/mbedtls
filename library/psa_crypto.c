@@ -2489,21 +2489,26 @@ static psa_status_t psa_sign_internal( mbedtls_svc_key_id_t key,
 
     *signature_length = 0;
 
-    if( operation == PSA_SIGN_INVALID )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    else
+    switch( operation )
     {
-        if( ! PSA_ALG_IS_SIGN_MESSAGE( alg ) )
-            return( PSA_ERROR_INVALID_ARGUMENT );
+        case PSA_SIGN_HASH:
+            if( ! PSA_ALG_IS_HASH_AND_SIGN( alg ) )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            break;
 
-        if( operation == PSA_SIGN_MESSAGE )
-        {
+        case PSA_SIGN_MESSAGE:
+            if( ! PSA_ALG_IS_SIGN_MESSAGE( alg ) )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+
             if ( PSA_ALG_IS_HASH_AND_SIGN( alg ) )
             {
                 if( ! PSA_ALG_IS_HASH( PSA_ALG_SIGN_GET_HASH( alg ) ) )
                     return( PSA_ERROR_INVALID_ARGUMENT );
             }
-        }
+            break;
+
+        default:
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
     /* Immediately reject a zero-length signature buffer. This guarantees
@@ -2579,21 +2584,26 @@ static psa_status_t psa_verify_internal( mbedtls_svc_key_id_t key,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
-    if( operation == PSA_VERIFY_INVALID )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    else
+    switch( operation )
     {
-        if( ! PSA_ALG_IS_SIGN_MESSAGE( alg ) )
-            return( PSA_ERROR_INVALID_ARGUMENT );
+        case PSA_VERIFY_HASH:
+            if( ! PSA_ALG_IS_HASH_AND_SIGN( alg ) )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            break;
 
-        if( operation == PSA_VERIFY_MESSAGE )
-        {
+        case PSA_VERIFY_MESSAGE:
+            if( ! PSA_ALG_IS_SIGN_MESSAGE( alg ) )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+
             if ( PSA_ALG_IS_HASH_AND_SIGN( alg ) )
             {
                 if( ! PSA_ALG_IS_HASH( PSA_ALG_SIGN_GET_HASH( alg ) ) )
                     return( PSA_ERROR_INVALID_ARGUMENT );
             }
-        }
+            break;
+
+        default:
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
     status = psa_get_and_lock_key_slot_with_policy(

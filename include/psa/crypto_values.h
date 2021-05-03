@@ -1776,8 +1776,6 @@
  */
 #define PSA_ALG_IS_PBKDF2_HMAC(alg)                                    \
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_PBKDF2_HMAC_BASE)
-#define PSA_ALG_PBKDF2_HMAC_GET_HASH(hkdf_alg)                         \
-    (PSA_ALG_CATEGORY_HASH | ((hkdf_alg) & PSA_ALG_HASH_MASK))
 
 /** The PBKDF2-AES-CMAC-PRF-128 password hashing / key stretching algorithm.
  *
@@ -1926,6 +1924,18 @@
      PSA_ALG_IS_AEAD(alg) ?                                 \
      (alg & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG) != 0 :  \
      (alg) == PSA_ALG_ANY_HASH)
+
+/** Get the hash used by a composite algorithm.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return The underlying hash algorithm if alg is a composite algorithm that
+ * uses a hash algorithm.
+ *
+ * \return #PSA_ALG_NONE if alg is not a composite algorithm that uses a hash.
+ */
+#define PSA_ALG_GET_HASH(alg) \
+        (((alg) & 0x000000ff) == 0 ? PSA_ALG_NONE : 0x02000000 | ((alg) & 0x000000ff))
 
 /**@}*/
 

@@ -3724,7 +3724,7 @@ psa_status_t psa_key_derivation_verify_bytes(
  * \param[in,out] operation The key derivation operation object to read from.
  * \param[in] expected      A key of type #PSA_KEY_TYPE_RAW_DATA containing
  *                          the expected output. Its policy must include the
- *                          #PSA_KEY_USAGE_PASSWORD_HASH_VERIFIER flag.
+ *                          #PSA_KEY_USAGE_VERIFY_DERIVATION flag.
  *                          The value of this key was likely computed by a
  *                          previous call to psa_key_derivation_output_key().
  *

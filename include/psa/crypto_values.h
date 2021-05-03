@@ -2199,25 +2199,21 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  */
 #define PSA_KEY_USAGE_DERIVE                    ((psa_key_usage_t)0x00004000)
 
-/** Whether the key may be used to produce a password hash and verify it
- * against an expected value.
+/** Whether the key may be used to verify the result of a key derivation,
+ * including password hashing.
  *
- * This flag allows the key to be used as the input of
- * psa_key_derivation_input_key() at the step
- * #PSA_KEY_DERIVATION_INPUT_SECRET of #PSA_KEY_DERIVATION_INPUT_PASSWORD
- * depending on the algorithm, and allows the use of
- * psa_key_derivation_verify_bytes() or
- * psa_key_derivation_verify_key() at the end of the operation.
- */
-#define PSA_KEY_USAGE_PASSWORD_HASH_AND_VERIFY  ((psa_key_usage_t)0x00008000)
-
-/** Whether the key may be used to as the expected value to which a password
- * hash will be compared.
+ * This flag allows the key to be used:
  *
- * This flag allows key to be used as the \c key argument of
- * psa_key_derivation_verify_key().
+ * - for a key of type #PSA_KEY_TYPE_RAW_DATA, as the \c key argument of
+ *   psa_key_derivation_verify_key();
+ * - for a key of type #PSA_KEY_TYPE_PASSWORD (or #PSA_KEY_TYPE_DERIVE), as
+ *   the input to psa_key_derivation_input_key() at the step
+ *   #PSA_KEY_DERIVATION_INPUT_PASSWORD (or #PSA_KEY_DERIVATION_INPUT_SECRET);
+ *   then at the end of the operation use of psa_key_derivation_verify_bytes()
+ *   or psa_key_derivation_verify_key() will be permitted (but not
+ *   psa_key_derivation_output_xxx() unless #PSA_KEY_USAGE_DERIVE is set).
  */
-#define PSA_KEY_USAGE_PASSWORD_HASH_VERIFIER    ((psa_key_usage_t)0x00010000)
+#define PSA_KEY_USAGE_VERIFY_DERIVATION         ((psa_key_usage_t)0x00008000)
 
 /**@}*/
 

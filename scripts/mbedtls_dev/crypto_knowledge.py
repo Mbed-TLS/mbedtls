@@ -89,6 +89,9 @@ class KeyType:
         'PSA_KEY_TYPE_DERIVE': (120, 128), # sample
         'PSA_KEY_TYPE_DES': (64, 128, 192), # exhaustive
         'PSA_KEY_TYPE_HMAC': (128, 160, 224, 256, 384, 512), # standard size for each supported hash
+        'PSA_KEY_TYPE_PASSWORD': (48, 168, 336), # sample
+        'PSA_KEY_TYPE_PASSWORD_HASH': (128, 256), # sample
+        'PSA_KEY_TYPE_PEPPER': (128, 256), # sample
         'PSA_KEY_TYPE_RAW_DATA': (8, 40, 128), # sample
         'PSA_KEY_TYPE_RSA_KEY_PAIR': (1024, 1536), # small sample
     }

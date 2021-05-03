@@ -443,12 +443,20 @@
  */
 #define PSA_KEY_TYPE_PASSWORD                       ((psa_key_type_t)0x1203)
 
+/** A secret value that can be used to verify a password hash.
+ *
+ * The key policy determines which key derivation algorithm the key
+ * can be used for, among the same permissible subset as for
+ * #PSA_KEY_TYPE_PASSWORD.
+ */
+#define PSA_KEY_TYPE_PASSWORD_HASH                  ((psa_key_type_t)0x1205)
+
 /** A secret value that can be used in when computing a password hash.
  *
  * The key policy determines which key derivation algorithm the key
  * can be used for, among the subset of algorithms that can use pepper.
  */
-#define PSA_KEY_TYPE_PEPPER                         ((psa_key_type_t)0x1205)
+#define PSA_KEY_TYPE_PEPPER                         ((psa_key_type_t)0x1206)
 
 /** Key for a cipher, AEAD or MAC algorithm based on the AES block cipher.
  *
@@ -2204,7 +2212,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *
  * This flag allows the key to be used:
  *
- * - for a key of type #PSA_KEY_TYPE_RAW_DATA, as the \c key argument of
+ * - for a key of type #PSA_KEY_TYPE_PASSWORD_HASH, as the \c key argument of
  *   psa_key_derivation_verify_key();
  * - for a key of type #PSA_KEY_TYPE_PASSWORD (or #PSA_KEY_TYPE_DERIVE), as
  *   the input to psa_key_derivation_input_key() at the step

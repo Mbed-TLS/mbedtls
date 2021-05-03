@@ -3536,7 +3536,8 @@ psa_status_t psa_key_derivation_output_bytes(
  *     - #PSA_KEY_TYPE_ARC4;
  *     - #PSA_KEY_TYPE_CAMELLIA;
  *     - #PSA_KEY_TYPE_DERIVE;
- *     - #PSA_KEY_TYPE_HMAC.
+ *     - #PSA_KEY_TYPE_HMAC;
+ *     - #PSA_KEY_TYPE_PASSWORD_HASH.
  *
  * - For ECC keys on a Montgomery elliptic curve
  *   (#PSA_KEY_TYPE_ECC_KEY_PAIR(\c curve) where \c curve designates a
@@ -3722,12 +3723,13 @@ psa_status_t psa_key_derivation_verify_bytes(
  * psa_key_derivation_abort().
  *
  * \param[in,out] operation The key derivation operation object to read from.
- * \param[in] expected      A key of type #PSA_KEY_TYPE_RAW_DATA containing
- *                          the expected output. Its policy must include the
- *                          #PSA_KEY_USAGE_VERIFY_DERIVATION flag and the
- *                          permitted algorithm must match the operation.
- *                          The value of this key was likely computed by a
- *                          previous call to psa_key_derivation_output_key().
+ * \param[in] expected      A key of type #PSA_KEY_TYPE_PASSWORD_HASH
+ *                          containing the expected output. Its policy must
+ *                          include the #PSA_KEY_USAGE_VERIFY_DERIVATION flag
+ *                          and the permitted algorithm must match the
+ *                          operation. The value of this key was likely
+ *                          computed by a previous call to
+ *                          psa_key_derivation_output_key().
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_SIGNATURE

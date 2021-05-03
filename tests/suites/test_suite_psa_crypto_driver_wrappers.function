@@ -168,7 +168,9 @@ void ecdsa_sign_message( int force_status_arg,
         ASSERT_COMPARE( signature, signature_length,
                         expected_output->x, expected_output->len );
     }
-    TEST_EQUAL( mbedtls_test_driver_signature_sign_hooks.hits, 1 );
+    /* In the builtin algorithm the driver is called twice. */
+    TEST_EQUAL( mbedtls_test_driver_signature_sign_hooks.hits,
+                force_status == PSA_ERROR_NOT_SUPPORTED ? 2 : 1 );
 
 exit:
     psa_reset_key_attributes( &attributes );
@@ -224,7 +226,9 @@ void ecdsa_verify_message( int force_status_arg,
                                         data_input->x, data_input->len,
                                         signature_input->x, signature_input->len );
     TEST_EQUAL( actual_status, expected_status );
-    TEST_EQUAL( mbedtls_test_driver_signature_verify_hooks.hits, 1 );
+    /* In the builtin algorithm the driver is called twice. */
+    TEST_EQUAL( mbedtls_test_driver_signature_verify_hooks.hits,
+                force_status == PSA_ERROR_NOT_SUPPORTED ? 2 : 1 );
 
 exit:
     psa_reset_key_attributes( &attributes );

@@ -2206,8 +2206,8 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * psa_key_derivation_input_key() at the step
  * #PSA_KEY_DERIVATION_INPUT_SECRET of #PSA_KEY_DERIVATION_INPUT_PASSWORD
  * depending on the algorithm, and allows the use of
- * psa_key_derivation_verify_output_bytes() or
- * psa_key_derivation_verify_output_key() at the end of the operation.
+ * psa_key_derivation_verify_bytes() or
+ * psa_key_derivation_verify_key() at the end of the operation.
  */
 #define PSA_KEY_USAGE_PASSWORD_HASH_AND_VERIFY  ((psa_key_usage_t)0x00008000)
 
@@ -2215,7 +2215,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * hash will be compared.
  *
  * This flag allows key to be used as the \c key argument of
- * psa_key_derivation_verify_output_key().
+ * psa_key_derivation_verify_key().
  */
 #define PSA_KEY_USAGE_PASSWORD_HASH_VERIFIER    ((psa_key_usage_t)0x00010000)
 
@@ -2236,7 +2236,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * key_derivation_input_bytes()). In this case, the derivation operation
  * may not be used to derive keys: the operation will only allow
  * psa_key_derivation_output_bytes() or
- * psa_key_derivation_verify_output_xxx() but not
+ * psa_key_derivation_verify_xxx() but not
  * psa_key_derivation_output_key().
  */
 #define PSA_KEY_DERIVATION_INPUT_SECRET     ((psa_key_derivation_step_t)0x0101)

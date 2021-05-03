@@ -3696,7 +3696,7 @@ psa_status_t psa_key_derivation_output_key(
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_key_derivation_verify_output_bytes(
+psa_status_t psa_key_derivation_verify_bytes(
     psa_key_derivation_operation_t *operation,
     const uint8_t *expected_output,
     size_t output_length);
@@ -3713,7 +3713,7 @@ psa_status_t psa_key_derivation_verify_output_bytes(
  * The operation's capacity decreases by the number of bytes read.
  *
  * This is functionally equivalent to exporting the key and calling
- * psa_key_derivation_verify_output_bytes() on the result, except that it
+ * psa_key_derivation_verify_bytes() on the result, except that it
  * works even if the key cannot be exported.
  *
  * If this function returns an error status other than
@@ -3757,7 +3757,7 @@ psa_status_t psa_key_derivation_verify_output_bytes(
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_key_derivation_verify_output_key(
+psa_status_t psa_key_derivation_verify_key(
     psa_key_derivation_operation_t *operation,
     psa_key_id_t expected);
 

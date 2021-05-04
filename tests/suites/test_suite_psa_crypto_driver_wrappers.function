@@ -1168,7 +1168,7 @@ void hash_multipart_update( int alg_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     /*
-     * Update none active operation, the driver shouldn't be called.
+     * Update inactive operation, the driver shouldn't be called.
      */
     TEST_EQUAL( psa_hash_update( &operation, input->x, input->len ),
                 PSA_ERROR_BAD_STATE );
@@ -1224,7 +1224,7 @@ void hash_multipart_finish( int alg_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     /*
-     * Finish none active operation, the driver shouldn't be called.
+     * Finish inactive operation, the driver shouldn't be called.
      */
     TEST_EQUAL( psa_hash_finish( &operation, output, PSA_HASH_LENGTH( alg ),
                                  &output_length ),
@@ -1277,7 +1277,7 @@ void hash_clone( int alg_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     /*
-     * Clone none active operation, the driver shouldn't be called.
+     * Clone inactive operation, the driver shouldn't be called.
      */
     TEST_EQUAL( psa_hash_clone( &source_operation, &target_operation ),
                 PSA_ERROR_BAD_STATE );

@@ -2595,14 +2595,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_CACHE_DEFAULT_MAX_ENTRIES */
 
-#if defined(MBEDTLS_SSL_MAX_CONTENT_LEN)
-    if( strcmp( "MBEDTLS_SSL_MAX_CONTENT_LEN", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_MAX_CONTENT_LEN );
-        return( 0 );
-    }
-#endif /* MBEDTLS_SSL_MAX_CONTENT_LEN */
-
 #if defined(MBEDTLS_SSL_IN_CONTENT_LEN)
     if( strcmp( "MBEDTLS_SSL_IN_CONTENT_LEN", config ) == 0 )
     {

@@ -1251,26 +1251,17 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C */
-void mbedtls_x509_crt_parse_subjectkeyid( char * crt_path, char *subjectKeyId, int subjectKeyIdLength, int retVal )
+void mbedtls_x509_crt_parse_subjectkeyid( data_t * buf, char *subjectKeyId, int subjectKeyIdLength, int retVal )
 {
     mbedtls_x509_crt crt;
-    int i = 0;
-    int result = 0;
 
     mbedtls_x509_crt_init( &crt );
 
-    TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_path ) == retVal );
+    TEST_ASSERT( mbedtls_x509_crt_parse_der( &crt, buf->x, buf->len ) == retVal );
 
     if( retVal != 0 )
     {
-        while( i < subjectKeyIdLength )
-        {
-            result |= crt.subject_key_id.p[i] != subjectKeyId[i*2];
-            result |= crt.subject_key_id.p[i+1] != subjectKeyId[i*2+1];
-            i++;
-        }
-
-        TEST_ASSERT( result == 0 );
+        ASSERT_COMPARE( crt.subject_key_id.p, ( int )crt.subject_key_id.len, subjectKeyId, subjectKeyIdLength );
     }
 
 exit:
@@ -1279,27 +1270,21 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C */
-void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyId_keyId, int keyIdLength, char *authorityKeyId_issuer, char *authorityKeyId_serial, int serialLength , int retVal)
+void mbedtls_x509_crt_parse_authoritykeyid( data_t * buf, char *authorityKeyId_keyId, int keyIdLength, char *authorityKeyId_issuer, char *authorityKeyId_serial, int serialLength , int retVal)
 {
     mbedtls_x509_crt crt;
-    int i = 0;
     int result = 0;
     int bufferCounter = 0;
     size_t issuerCounter = 0;
 
     mbedtls_x509_crt_init( &crt );
 
-    TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_path ) == retVal );
+    TEST_ASSERT( mbedtls_x509_crt_parse_der( &crt, buf->x, buf->len ) == retVal );
 
     if ( retVal != 0 )
     {
         /* KeyId test */
-        while( i < keyIdLength )
-        {
-            result |= crt.authority_key_id.keyIdentifier.p[i] != authorityKeyId_keyId[i*2];
-            result |= crt.authority_key_id.keyIdentifier.p[i+1] != authorityKeyId_keyId[i*2+1];
-            i++;
-        }
+        ASSERT_COMPARE( crt.authority_key_id.keyIdentifier.p, ( int )crt.authority_key_id.keyIdentifier.len, authorityKeyId_keyId, keyIdLength );
 
         /* Issuer test */
         mbedtls_x509_name* issuerPtr = &crt.authority_key_id.authorityCertIssuer;
@@ -1314,13 +1299,7 @@ void mbedtls_x509_crt_parse_authoritykeyid( char * crt_path, char *authorityKeyI
         }
 
         /* Serial test */
-        i = 0;
-        while( i < serialLength )
-        {
-            result |= crt.authority_key_id.authorityCertSerialNumber.p[i] != authorityKeyId_serial[i*2];
-            result |= crt.authority_key_id.authorityCertSerialNumber.p[i+1] != authorityKeyId_serial[i*2+1];
-            i++;
-        }
+        ASSERT_COMPARE( crt.authority_key_id.authorityCertSerialNumber.p, ( int )crt.authority_key_id.authorityCertSerialNumber.len, authorityKeyId_serial, serialLength );
 
         TEST_ASSERT( result == 0 );
     }

@@ -851,14 +851,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_CTR_DRBG_USE_128_BIT_KEY */
 
-#if defined(MBEDTLS_ENABLE_WEAK_CIPHERSUITES)
-    if( strcmp( "MBEDTLS_ENABLE_WEAK_CIPHERSUITES", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_ENABLE_WEAK_CIPHERSUITES );
-        return( 0 );
-    }
-#endif /* MBEDTLS_ENABLE_WEAK_CIPHERSUITES */
-
 #if defined(MBEDTLS_REMOVE_3DES_CIPHERSUITES)
     if( strcmp( "MBEDTLS_REMOVE_3DES_CIPHERSUITES", config ) == 0 )
     {

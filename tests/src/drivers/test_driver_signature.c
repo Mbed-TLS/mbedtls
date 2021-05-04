@@ -41,28 +41,32 @@
 
 #include <string.h>
 
-test_driver_signature_hooks_t test_driver_signature_sign_hooks = TEST_DRIVER_SIGNATURE_INIT;
-test_driver_signature_hooks_t test_driver_signature_verify_hooks = TEST_DRIVER_SIGNATURE_INIT;
+mbedtls_test_driver_signature_hooks_t
+    mbedtls_test_driver_signature_sign_hooks = MBEDTLS_TEST_DRIVER_SIGNATURE_INIT;
+mbedtls_test_driver_signature_hooks_t
+    mbedtls_test_driver_signature_verify_hooks = MBEDTLS_TEST_DRIVER_SIGNATURE_INIT;
 
-psa_status_t test_transparent_signature_sign_hash(
+psa_status_t mbedtls_test_transparent_signature_sign_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg,
     const uint8_t *hash, size_t hash_length,
     uint8_t *signature, size_t signature_size, size_t *signature_length )
 {
-    ++test_driver_signature_sign_hooks.hits;
+    ++mbedtls_test_driver_signature_sign_hooks.hits;
 
-    if( test_driver_signature_sign_hooks.forced_status != PSA_SUCCESS )
-        return( test_driver_signature_sign_hooks.forced_status );
+    if( mbedtls_test_driver_signature_sign_hooks.forced_status != PSA_SUCCESS )
+        return( mbedtls_test_driver_signature_sign_hooks.forced_status );
 
-    if( test_driver_signature_sign_hooks.forced_output != NULL )
+    if( mbedtls_test_driver_signature_sign_hooks.forced_output != NULL )
     {
-        if( test_driver_signature_sign_hooks.forced_output_length > signature_size )
+        if( mbedtls_test_driver_signature_sign_hooks.forced_output_length >
+            signature_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
-        memcpy( signature, test_driver_signature_sign_hooks.forced_output,
-                test_driver_signature_sign_hooks.forced_output_length );
-        *signature_length = test_driver_signature_sign_hooks.forced_output_length;
+        memcpy( signature,
+                mbedtls_test_driver_signature_sign_hooks.forced_output,
+                mbedtls_test_driver_signature_sign_hooks.forced_output_length );
+        *signature_length = mbedtls_test_driver_signature_sign_hooks.forced_output_length;
         return( PSA_SUCCESS );
     }
 
@@ -120,7 +124,7 @@ psa_status_t test_transparent_signature_sign_hash(
     }
 }
 
-psa_status_t test_opaque_signature_sign_hash(
+psa_status_t mbedtls_test_opaque_signature_sign_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
     psa_algorithm_t alg,
@@ -140,17 +144,17 @@ psa_status_t test_opaque_signature_sign_hash(
     return( PSA_ERROR_NOT_SUPPORTED );
 }
 
-psa_status_t test_transparent_signature_verify_hash(
+psa_status_t mbedtls_test_transparent_signature_verify_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg,
     const uint8_t *hash, size_t hash_length,
     const uint8_t *signature, size_t signature_length )
 {
-    ++test_driver_signature_verify_hooks.hits;
+    ++mbedtls_test_driver_signature_verify_hooks.hits;
 
-    if( test_driver_signature_verify_hooks.forced_status != PSA_SUCCESS )
-        return( test_driver_signature_verify_hooks.forced_status );
+    if( mbedtls_test_driver_signature_verify_hooks.forced_status != PSA_SUCCESS )
+        return( mbedtls_test_driver_signature_verify_hooks.forced_status );
 
 #if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS)
@@ -200,7 +204,7 @@ psa_status_t test_transparent_signature_verify_hash(
     }
 }
 
-psa_status_t test_opaque_signature_verify_hash(
+psa_status_t mbedtls_test_opaque_signature_verify_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
     psa_algorithm_t alg,

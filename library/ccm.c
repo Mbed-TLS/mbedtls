@@ -386,7 +386,9 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
 
     if( diff != 0 )
     {
+#ifndef MBEDTLS_INTERNAL_CCM_NO_ZEROIZE_ON_TAG_FAIL
         mbedtls_platform_zeroize( output, length );
+#endif
         return( MBEDTLS_ERR_CCM_AUTH_FAILED );
     }
 

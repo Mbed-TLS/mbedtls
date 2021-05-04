@@ -4871,7 +4871,6 @@ void mbedtls_ssl_update_out_pointers( mbedtls_ssl_context *ssl,
     else
 #endif
     {
-        ssl->out_ctr = ssl->out_hdr - 8;
         ssl->out_len = ssl->out_hdr + 3;
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         ssl->out_cid = ssl->out_len;
@@ -4952,6 +4951,7 @@ void mbedtls_ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl )
     else
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
     {
+        ssl->out_ctr = ssl->out_buf;
         ssl->out_hdr = ssl->out_buf + 8;
         ssl->in_hdr  = ssl->in_buf  + 8;
     }

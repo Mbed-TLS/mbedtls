@@ -619,10 +619,10 @@ static int x509_get_subject_key_id( unsigned char** p,
         subject_key_id->p = *p;
         *p += len;
     }
-	
-	if( *p != end )
-		return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-			MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+            MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
     return( 0 );
 }

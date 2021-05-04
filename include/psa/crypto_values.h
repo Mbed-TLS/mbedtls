@@ -1733,10 +1733,12 @@
  * use on low-entropy secrets such as password - these algorithms are also
  * known as key stretching or password hashing schemes. These are also the
  * algorithms that accepts inputs of type #PSA_KEY_DERIVATION_INPUT_PASSWORD.
+ *
+ * Those algorithms cannot be combined with a key agreement algorithm.
  */
-#define PSA_ALG_KEY_DERIVATION_STRETCHING_FLAG  ((psa_algorithm_t)0x00008000)
+#define PSA_ALG_KEY_DERIVATION_STRETCHING_FLAG  ((psa_algorithm_t)0x00800000)
 
-#define PSA_ALG_PBKDF2_HMAC_BASE                ((psa_algorithm_t)0x08008100)
+#define PSA_ALG_PBKDF2_HMAC_BASE                ((psa_algorithm_t)0x08800100)
 /** Macro to build a PBKDF2-HMAC password hashing / key stretching algorithm.
  *
  * PBKDF2 is defined by PKCS#5, republished as RFC 8018 (section 5.2).
@@ -1786,7 +1788,7 @@
  * This key derivation algorithm uses the same inputs as
  * #PBKDF_ALG_PBKDF2_HMAC() with the same constraints.
  */
-#define PSA_ALG_PBKDF2_AES_CMAC_PRF_128         ((psa_algorithm_t)0x08008200)
+#define PSA_ALG_PBKDF2_AES_CMAC_PRF_128         ((psa_algorithm_t)0x08800200)
 
 #define PSA_ALG_KEY_DERIVATION_MASK             ((psa_algorithm_t)0xfe00ffff)
 #define PSA_ALG_KEY_AGREEMENT_MASK              ((psa_algorithm_t)0xffff0000)

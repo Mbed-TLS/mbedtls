@@ -713,6 +713,12 @@
      1u << PSA_GET_KEY_TYPE_BLOCK_SIZE_EXPONENT(type) :                         \
      0u)
 
+/** An invalid algorithm identifier value.
+ *
+ * Zero is not the encoding of any algorithm.
+ */
+#define PSA_ALG_NONE                            ((psa_algorithm_t)0)
+
 /** Vendor-defined algorithm flag.
  *
  * Algorithms defined by this standard will never have the #PSA_ALG_VENDOR_FLAG

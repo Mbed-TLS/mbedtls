@@ -1251,17 +1251,23 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C */
-void mbedtls_x509_crt_parse_subjectkeyid( data_t * buf, char *subjectKeyId, int subjectKeyIdLength, int retVal )
+void mbedtls_x509_crt_parse_subjectkeyid( data_t * buf, unsigned int subjectKeyIdLength, int ref_ret )
 {
     mbedtls_x509_crt crt;
 
     mbedtls_x509_crt_init( &crt );
 
-    TEST_ASSERT( mbedtls_x509_crt_parse_der( &crt, buf->x, buf->len ) == retVal );
+    TEST_ASSERT( mbedtls_x509_crt_parse_der( &crt, buf->x, buf->len ) == ref_ret );
 
-    if( retVal != 0 )
+    if( ref_ret == 0 )
     {
-        ASSERT_COMPARE( crt.subject_key_id.p, ( int )crt.subject_key_id.len, subjectKeyId, subjectKeyIdLength );
+        TEST_ASSERT( crt.subject_key_id.tag == MBEDTLS_ASN1_OCTET_STRING );
+        TEST_ASSERT( crt.subject_key_id.len == subjectKeyIdLength );
+    }
+    else
+    {
+        TEST_ASSERT( crt.subject_key_id.tag == 0 );
+        TEST_ASSERT( crt.subject_key_id.len == 0 );
     }
 
 exit:
@@ -1270,21 +1276,22 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C */
-void mbedtls_x509_crt_parse_authoritykeyid( data_t * buf, char *authorityKeyId_keyId, int keyIdLength, char *authorityKeyId_issuer, char *authorityKeyId_serial, int serialLength , int retVal)
+void mbedtls_x509_crt_parse_authoritykeyid( data_t * buf, unsigned int keyIdLength, char *authorityKeyId_issuer, unsigned int serialLength , int ref_ret)
 {
     mbedtls_x509_crt crt;
-    int result = 0;
     int bufferCounter = 0;
     size_t issuerCounter = 0;
+    unsigned int result = 0;
 
     mbedtls_x509_crt_init( &crt );
 
-    TEST_ASSERT( mbedtls_x509_crt_parse_der( &crt, buf->x, buf->len ) == retVal );
+    TEST_ASSERT( mbedtls_x509_crt_parse_der( &crt, buf->x, buf->len ) == ref_ret );
 
-    if ( retVal != 0 )
+    if( ref_ret == 0 )
     {
         /* KeyId test */
-        ASSERT_COMPARE( crt.authority_key_id.keyIdentifier.p, ( int )crt.authority_key_id.keyIdentifier.len, authorityKeyId_keyId, keyIdLength );
+        TEST_ASSERT( crt.authority_key_id.keyIdentifier.tag == MBEDTLS_ASN1_OCTET_STRING );
+        TEST_ASSERT( crt.authority_key_id.keyIdentifier.len == keyIdLength );
 
         /* Issuer test */
         mbedtls_x509_name* issuerPtr = &crt.authority_key_id.authorityCertIssuer;
@@ -1297,11 +1304,19 @@ void mbedtls_x509_crt_parse_authoritykeyid( data_t * buf, char *authorityKeyId_k
             bufferCounter++; /* Skipping the slash */
             issuerPtr = issuerPtr->next;
         }
-
-        /* Serial test */
-        ASSERT_COMPARE( crt.authority_key_id.authorityCertSerialNumber.p, ( int )crt.authority_key_id.authorityCertSerialNumber.len, authorityKeyId_serial, serialLength );
-
         TEST_ASSERT( result == 0 );
+        
+        /* Serial test */
+        TEST_ASSERT( crt.authority_key_id.authorityCertSerialNumber.tag == MBEDTLS_ASN1_OCTET_STRING );
+        TEST_ASSERT( crt.authority_key_id.authorityCertSerialNumber.len == serialLength );
+    }
+    else
+    {
+        TEST_ASSERT( crt.authority_key_id.keyIdentifier.tag == 0 );
+        TEST_ASSERT( crt.authority_key_id.keyIdentifier.len == 0 );
+        
+        TEST_ASSERT( crt.authority_key_id.authorityCertSerialNumber.tag == 0 );
+        TEST_ASSERT( crt.authority_key_id.authorityCertSerialNumber.len == 0 );
     }
 
 exit:

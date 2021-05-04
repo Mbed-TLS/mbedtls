@@ -1792,7 +1792,7 @@
  * AES-CMAC-PRF-128 PRF specified by RFC 4615.
  *
  * This key derivation algorithm uses the same inputs as
- * #PBKDF_ALG_PBKDF2_HMAC() with the same constraints.
+ * #PSA_ALG_PBKDF2_HMAC() with the same constraints.
  */
 #define PSA_ALG_PBKDF2_AES_CMAC_PRF_128         ((psa_algorithm_t)0x08800200)
 

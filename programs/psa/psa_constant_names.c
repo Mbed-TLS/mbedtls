@@ -52,12 +52,6 @@ int snprintf( char *s, size_t n, const char *fmt, ... )
 }
 #endif
 
-/* There are different GET_HASH macros for different kinds of algorithms
- * built from hashes, but the values are all constructed on the
- * same model. */
-#define PSA_ALG_GET_HASH(alg)                                   \
-    (((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH)
-
 static void append(char **buffer, size_t buffer_size,
                    size_t *required_size,
                    const char *string, size_t length)

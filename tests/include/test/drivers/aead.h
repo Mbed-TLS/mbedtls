@@ -37,18 +37,19 @@ typedef struct {
     unsigned long hits;
     /* Status returned by the last AEAD driver function call. */
     psa_status_t driver_status;
-} test_driver_aead_hooks_t;
+} mbedtls_test_driver_aead_hooks_t;
 
-#define TEST_DRIVER_AEAD_INIT { 0, 0, 0 }
-static inline test_driver_aead_hooks_t test_driver_aead_hooks_init( void )
+#define MBEDTLS_TEST_DRIVER_AEAD_INIT { 0, 0, 0 }
+static inline mbedtls_test_driver_aead_hooks_t
+    mbedtls_test_driver_aead_hooks_init( void )
 {
-    const test_driver_aead_hooks_t v = TEST_DRIVER_AEAD_INIT;
+    const mbedtls_test_driver_aead_hooks_t v = MBEDTLS_TEST_DRIVER_AEAD_INIT;
     return( v );
 }
 
-extern test_driver_aead_hooks_t test_driver_aead_hooks;
+extern mbedtls_test_driver_aead_hooks_t mbedtls_test_driver_aead_hooks;
 
-psa_status_t test_transparent_aead_encrypt(
+psa_status_t mbedtls_test_transparent_aead_encrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg,
@@ -57,7 +58,7 @@ psa_status_t test_transparent_aead_encrypt(
     const uint8_t *plaintext, size_t plaintext_length,
     uint8_t *ciphertext, size_t ciphertext_size, size_t *ciphertext_length );
 
-psa_status_t test_transparent_aead_decrypt(
+psa_status_t mbedtls_test_transparent_aead_decrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg,

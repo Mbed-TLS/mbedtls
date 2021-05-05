@@ -38,40 +38,44 @@ typedef struct {
     psa_status_t forced_status;
     /* Count the amount of times one of the signature driver functions is called. */
     unsigned long hits;
-} test_driver_signature_hooks_t;
+} mbedtls_test_driver_signature_hooks_t;
 
-#define TEST_DRIVER_SIGNATURE_INIT { NULL, 0, PSA_SUCCESS, 0 }
-static inline test_driver_signature_hooks_t test_driver_signature_hooks_init( void )
+#define MBEDTLS_TEST_DRIVER_SIGNATURE_INIT { NULL, 0, PSA_SUCCESS, 0 }
+static inline mbedtls_test_driver_signature_hooks_t
+    mbedtls_test_driver_signature_hooks_init( void )
 {
-    const test_driver_signature_hooks_t v = TEST_DRIVER_SIGNATURE_INIT;
+    const mbedtls_test_driver_signature_hooks_t
+        v = MBEDTLS_TEST_DRIVER_SIGNATURE_INIT;
     return( v );
 }
 
-extern test_driver_signature_hooks_t test_driver_signature_sign_hooks;
-extern test_driver_signature_hooks_t test_driver_signature_verify_hooks;
+extern mbedtls_test_driver_signature_hooks_t
+    mbedtls_test_driver_signature_sign_hooks;
+extern mbedtls_test_driver_signature_hooks_t
+    mbedtls_test_driver_signature_verify_hooks;
 
-psa_status_t test_transparent_signature_sign_hash(
+psa_status_t mbedtls_test_transparent_signature_sign_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
     psa_algorithm_t alg,
     const uint8_t *hash, size_t hash_length,
     uint8_t *signature, size_t signature_size, size_t *signature_length );
 
-psa_status_t test_opaque_signature_sign_hash(
+psa_status_t mbedtls_test_opaque_signature_sign_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
     psa_algorithm_t alg,
     const uint8_t *hash, size_t hash_length,
     uint8_t *signature, size_t signature_size, size_t *signature_length );
 
-psa_status_t test_transparent_signature_verify_hash(
+psa_status_t mbedtls_test_transparent_signature_verify_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
     psa_algorithm_t alg,
     const uint8_t *hash, size_t hash_length,
     const uint8_t *signature, size_t signature_length );
 
-psa_status_t test_opaque_signature_verify_hash(
+psa_status_t mbedtls_test_opaque_signature_verify_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
     psa_algorithm_t alg,

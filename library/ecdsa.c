@@ -685,7 +685,9 @@ int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
     ECDSA_VALIDATE_RET( hash  != NULL );
     ECDSA_VALIDATE_RET( sig   != NULL );
     ECDSA_VALIDATE_RET( slen  != NULL );
-    ECDSA_VALIDATE_RET( f_rng != NULL );
+
+    if( f_rng == NULL )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     mbedtls_mpi_init( &r );
     mbedtls_mpi_init( &s );

@@ -1008,11 +1008,6 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
      * of AEAD decryption and AEAD encryption. Check that
      * this results in the expected plaintext, and that
      * decryption and encryption are inverse to one another.
-     *
-     * Do that twice:
-     * - once with legacy functions auth_decrypt/auth_encrypt
-     * - once with new functions auth_decrypt_ext/auth_encrypt_ext
-     * This allows testing both without duplicating test cases.
      */
 
     int ret;

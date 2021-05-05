@@ -1,2 +1,13 @@
 Removals
-   * Remove deprecated functions and constants. Fix #4282
+   * Remove the following deprecated functions and constants of hex-encoded
+     primes based on RFC 5114 and RFC 3526 from library code and tests:
+     mbedtls_aes_encrypt(), mbedtls_aes_decrypt(), mbedtls_mpi_is_prime(),
+     mbedtls_cipher_auth_encrypt(), mbedtls_cipher_auth_decrypt(),
+     mbedtls_ctr_drbg_update(), mbedtls_hmac_drbg_update(),
+     mbedtls_ecdsa_write_signature_det(), mbedtls_ecdsa_sign_det(),
+     mbedtls_ssl_conf_dh_param(), mbedtls_ssl_get_max_frag_len(),
+     MBEDTLS_DHM_RFC5114_MODP_2048_P, MBEDTLS_DHM_RFC5114_MODP_2048_G,
+     MBEDTLS_DHM_RFC3526_MODP_2048_P, MBEDTLS_DHM_RFC3526_MODP_2048_G,
+     MBEDTLS_DHM_RFC3526_MODP_3072_P, MBEDTLS_DHM_RFC3526_MODP_3072_G,
+     MBEDTLS_DHM_RFC3526_MODP_4096_P, MBEDTLS_DHM_RFC3526_MODP_4096_G.
+     Remove the deprecated file: include/mbedtls/net.h. Fixes #4282.

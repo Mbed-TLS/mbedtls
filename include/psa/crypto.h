@@ -2912,8 +2912,8 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
  *                              must be appropriate for the selected
  *                              algorithm and key:
  *                              - The required signature size is
- *                                #PSA_SIGN_OUTPUT_SIZE(key_type, key_bits, \p alg)
- *                                where key_type and key_bits are the type and
+ *                                #PSA_SIGN_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
+ *                                where \c key_type and \c key_bits are the type and
  *                                bit-size respectively of key.
  *                              - #PSA_SIGNATURE_MAX_SIZE evaluates to the
  *                                maximum signature size of any supported

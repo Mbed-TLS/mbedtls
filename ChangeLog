@@ -49,7 +49,7 @@ Removals
    * Remove the MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
      compile-time option, which was off by default. Users should not trust
      certificates signed with SHA-1 due to the known attacks against SHA-1.
-     If needed, SHA-1 cerificates can still be verified by using a custom
+     If needed, SHA-1 certificates can still be verified by using a custom
      verification profile.
 
    * Removed deprecated things in psa/crypto_compat.h. Fixes #4284

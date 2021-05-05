@@ -2267,10 +2267,11 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *
  * The secret can also be a direct input (passed to
  * key_derivation_input_bytes()). In this case, the derivation operation
- * may not be used to derive keys: the operation will only allow
+ * may not be used to derive or verify keys: the operation will only allow
  * psa_key_derivation_output_bytes() or
- * psa_key_derivation_verify_xxx() but not
- * psa_key_derivation_output_key().
+ * psa_key_derivation_verify_bytes() but not
+ * psa_key_derivation_output_key() or
+ * psa_key_derivation_verify_key().
  */
 #define PSA_KEY_DERIVATION_INPUT_SECRET     ((psa_key_derivation_step_t)0x0101)
 
@@ -2282,9 +2283,13 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * also be high-entropy secret such as a key of type #PSA_KEY_TYPE_DERIVE or
  * the shared secret resulting from a key agreement.
  *
- * If the secret is a direct input, the derivation operation
- * may not be used to derive keys: the operation will only allow
- * psa_key_derivation_output_bytes(), not psa_key_derivation_output_key().
+ * The secret can also be a direct input (passed to
+ * key_derivation_input_bytes()). In this case, the derivation operation
+ * may not be used to derive or verify keys: the operation will only allow
+ * psa_key_derivation_output_bytes() or
+ * psa_key_derivation_verify_bytes(), not
+ * psa_key_derivation_output_key() or
+ * psa_key_derivation_verify_key().
  */
 #define PSA_KEY_DERIVATION_INPUT_PASSWORD   ((psa_key_derivation_step_t)0x0102)
 

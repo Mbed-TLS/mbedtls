@@ -392,7 +392,7 @@ psa_status_t psa_generate_key_internal( const psa_key_attributes_t *attributes,
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
  */
-psa_status_t psa_sign_message_internal(
+psa_status_t psa_sign_message_builtin(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg, const uint8_t *input, size_t input_length,
@@ -426,7 +426,7 @@ psa_status_t psa_sign_message_internal(
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  */
-psa_status_t psa_verify_message_internal(
+psa_status_t psa_verify_message_builtin(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg, const uint8_t *input, size_t input_length,
@@ -465,7 +465,7 @@ psa_status_t psa_verify_message_internal(
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
  */
-psa_status_t psa_sign_hash_internal(
+psa_status_t psa_sign_hash_builtin(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
@@ -500,7 +500,7 @@ psa_status_t psa_sign_hash_internal(
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  */
-psa_status_t psa_verify_hash_internal(
+psa_status_t psa_verify_hash_builtin(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,

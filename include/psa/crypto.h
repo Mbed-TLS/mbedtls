@@ -3358,7 +3358,8 @@ psa_status_t psa_key_derivation_input_integer(
  * \param step                    Which step the input data is for.
  * \param key                     Identifier of the key. It must have an
  *                                appropriate type for step and must allow the
- *                                usage #PSA_KEY_USAGE_DERIVE.
+ *                                usage #PSA_KEY_USAGE_DERIVE or
+ *                                #PSA_KEY_USAGE_VERIFY_DERIVATION.
  *
  * \retval #PSA_SUCCESS
  *         Success.

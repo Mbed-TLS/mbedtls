@@ -3359,12 +3359,30 @@ psa_status_t psa_key_derivation_input_integer(
  * \param key                     Identifier of the key. It must have an
  *                                appropriate type for step and must allow the
  *                                usage #PSA_KEY_USAGE_DERIVE or
- *                                #PSA_KEY_USAGE_VERIFY_DERIVATION.
+ *                                #PSA_KEY_USAGE_VERIFY_DERIVATION (see note)
+ *                                and the algorithm used by the operation.
+ *
+ * \note Once all inputs steps are completed, the operations will allow:
+ * - psa_key_derivation_output_bytes() if each input was either a direct input
+ *   or  a key with #PSA_KEY_USAGE_DERIVE set;
+ * - psa_key_derivation_output_key() if each input was either a direct input
+ *   or  a key with #PSA_KEY_USAGE_DERIVE set and input for step
+ *   #PSA_KEY_DERIVATION_INPUT_SECRET or #PSA_KEY_DERIVATION_INPUT_PASSWORD
+ *   was from a key slot;
+ * - psa_key_derivation_verify_bytes() if each input was either a direct input
+ *   or  a key with #PSA_KEY_USAGE_VERIFY_DERIVATION set;
+ * - psa_key_derivation_verify_key() if each input was either a direct input
+ *   or  a key with #PSA_KEY_USAGE_VERIFY_DERIVATION set and input for step
+ *   #PSA_KEY_DERIVATION_INPUT_SECRET or #PSA_KEY_DERIVATION_INPUT_PASSWORD
+ *   was from a key slot.
  *
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The key allows neither #PSA_KEY_USAGE_DERIVE nor
+ *         #PSA_KEY_USAGE_VERIFY_DERIVATION, or it doesn't allow this
+ *         algorithm.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \c step is not compatible with the operation's algorithm.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
@@ -3477,6 +3495,9 @@ psa_status_t psa_key_derivation_key_agreement(
  * \param output_length     Number of bytes to output.
  *
  * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         One of the inputs was a key whose policy didn't allow
+ *         #PSA_KEY_USAGE_DERIVE.
  * \retval #PSA_ERROR_INSUFFICIENT_DATA
  *                          The operation's capacity was less than
  *                          \p output_length bytes. Note that in this case,
@@ -3624,8 +3645,10 @@ psa_status_t psa_key_derivation_output_bytes(
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The provided key attributes are not valid for the operation.
  * \retval #PSA_ERROR_NOT_PERMITTED
- *         The #PSA_KEY_DERIVATION_INPUT_SECRET input was not provided through
- *         a key.
+ *         The #PSA_KEY_DERIVATION_INPUT_SECRET or
+ *         #PSA_KEY_DERIVATION_INPUT_PASSWORD input was not provided through a
+ *         key; or one of the inputs was a key whose policy didn't allow
+ *         #PSA_KEY_USAGE_DERIVE.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active and completed
  *         all required input steps).
@@ -3679,6 +3702,9 @@ psa_status_t psa_key_derivation_output_key(
  * \retval #PSA_ERROR_INVALID_SIGNATURE
  *         The output was read successfully, but if differs from the expected
  *         output.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         One of the inputs was a key whose policy didn't allow
+ *         #PSA_KEY_USAGE_VERIFY_DERIVATION.
  * \retval #PSA_ERROR_INSUFFICIENT_DATA
  *                          The operation's capacity was less than
  *                          \p output_length bytes. Note that in this case,
@@ -3742,7 +3768,10 @@ psa_status_t psa_key_derivation_verify_bytes(
  *         The key passed as the expected value has an invalid type.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The key passed as the expected value does not allow this usage or
- *         this algorithm.
+ *         this algorithm; or the #PSA_KEY_DERIVATION_INPUT_SECRET or
+ *         #PSA_KEY_DERIVATION_INPUT_PASSWORD input was not provided through a
+ *         key; or one of the inputs was a key whose policy didn't allow
+ *         #PSA_KEY_USAGE_DERIVE.
  * \retval #PSA_ERROR_INSUFFICIENT_DATA
  *                          The operation's capacity was less than
  *                          the length of the expected value. In this case,

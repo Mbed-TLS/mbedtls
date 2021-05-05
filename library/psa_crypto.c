@@ -2613,7 +2613,7 @@ static psa_status_t psa_verify_internal( mbedtls_svc_key_id_t key,
 
 }
 
-psa_status_t psa_sign_message_internal(
+psa_status_t psa_sign_message_builtin(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -2661,7 +2661,7 @@ psa_status_t psa_sign_message( mbedtls_svc_key_id_t key,
         signature, signature_size, signature_length );
 }
 
-psa_status_t psa_verify_message_internal(
+psa_status_t psa_verify_message_builtin(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -2707,7 +2707,7 @@ psa_status_t psa_verify_message( mbedtls_svc_key_id_t key,
         signature, signature_length );
 }
 
-psa_status_t psa_sign_hash_internal(
+psa_status_t psa_sign_hash_builtin(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
@@ -2778,7 +2778,7 @@ psa_status_t psa_sign_hash( mbedtls_svc_key_id_t key,
         signature, signature_size, signature_length );
 }
 
-psa_status_t psa_verify_hash_internal(
+psa_status_t psa_verify_hash_builtin(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,

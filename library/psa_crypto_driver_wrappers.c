@@ -103,15 +103,15 @@ psa_status_t psa_driver_wrapper_sign_message(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
             /* Fell through, meaning no accelerator supports this operation */
-            return( psa_sign_message_internal( attributes,
-                                               key_buffer,
-                                               key_buffer_size,
-                                               alg,
-                                               input,
-                                               input_length,
-                                               signature,
-                                               signature_size,
-                                               signature_length ) );
+            return( psa_sign_message_builtin( attributes,
+                                              key_buffer,
+                                              key_buffer_size,
+                                              alg,
+                                              input,
+                                              input_length,
+                                              signature,
+                                              signature_size,
+                                              signature_length ) );
 
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
@@ -172,14 +172,14 @@ psa_status_t psa_driver_wrapper_verify_message(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
-            return( psa_verify_message_internal( attributes,
-                                                 key_buffer,
-                                                 key_buffer_size,
-                                                 alg,
-                                                 input,
-                                                 input_length,
-                                                 signature,
-                                                 signature_length ) );
+            return( psa_verify_message_builtin( attributes,
+                                                key_buffer,
+                                                key_buffer_size,
+                                                alg,
+                                                input,
+                                                input_length,
+                                                signature,
+                                                signature_length ) );
 
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
@@ -255,15 +255,15 @@ psa_status_t psa_driver_wrapper_sign_hash(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
             /* Fell through, meaning no accelerator supports this operation */
-            return( psa_sign_hash_internal( attributes,
-                                            key_buffer,
-                                            key_buffer_size,
-                                            alg,
-                                            hash,
-                                            hash_length,
-                                            signature,
-                                            signature_size,
-                                            signature_length ) );
+            return( psa_sign_hash_builtin( attributes,
+                                           key_buffer,
+                                           key_buffer_size,
+                                           alg,
+                                           hash,
+                                           hash_length,
+                                           signature,
+                                           signature_size,
+                                           signature_length ) );
 
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
@@ -339,14 +339,14 @@ psa_status_t psa_driver_wrapper_verify_hash(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
-            return( psa_verify_hash_internal( attributes,
-                                              key_buffer,
-                                              key_buffer_size,
-                                              alg,
-                                              hash,
-                                              hash_length,
-                                              signature,
-                                              signature_length ) );
+            return( psa_verify_hash_builtin( attributes,
+                                             key_buffer,
+                                             key_buffer_size,
+                                             alg,
+                                             hash,
+                                             hash_length,
+                                             signature,
+                                             signature_length ) );
 
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)

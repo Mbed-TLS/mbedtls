@@ -2692,10 +2692,7 @@ psa_status_t psa_verify_message_internal(
                     signature, signature_length );
     }
 
-    return psa_driver_wrapper_verify_hash(
-                attributes, key_buffer, key_buffer_size,
-                alg, input, input_length,
-                signature, signature_length );
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t psa_verify_message( mbedtls_svc_key_id_t key,

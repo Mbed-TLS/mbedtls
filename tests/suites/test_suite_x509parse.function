@@ -1251,7 +1251,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C */
-void mbedtls_x509_crt_parse_subjectkeyid( data_t * buf, unsigned int subjectKeyIdLength, int ref_ret )
+void x509_crt_parse_subjectkeyid( data_t * buf, unsigned int subjectKeyIdLength, int ref_ret )
 {
     mbedtls_x509_crt crt;
 
@@ -1276,7 +1276,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C */
-void mbedtls_x509_crt_parse_authoritykeyid( data_t * buf, unsigned int keyIdLength, char *authorityKeyId_issuer, unsigned int serialLength , int ref_ret)
+void x509_crt_parse_authoritykeyid( data_t * buf, unsigned int keyIdLength, char *authorityKeyId_issuer, unsigned int serialLength , int ref_ret)
 {
     mbedtls_x509_crt crt;
     int bufferCounter = 0;

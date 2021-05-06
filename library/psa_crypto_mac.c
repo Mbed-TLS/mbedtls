@@ -452,8 +452,6 @@ static psa_status_t mac_finish_internal( mbedtls_psa_mac_operation_t *operation,
                                          uint8_t *mac,
                                          size_t mac_size )
 {
-    if( operation->alg == 0 )
-        return( PSA_ERROR_BAD_STATE );
     if( mac_size < operation->mac_size )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 

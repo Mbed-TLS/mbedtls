@@ -230,7 +230,6 @@ static psa_status_t mac_init(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     operation->alg = PSA_ALG_FULL_LENGTH_MAC( alg );
-    operation->has_input = 0;
     operation->is_sign = 0;
 
 #if defined(BUILTIN_ALG_CMAC)
@@ -290,7 +289,6 @@ static psa_status_t mac_abort( mbedtls_psa_mac_operation_t *operation )
     }
 
     operation->alg = 0;
-    operation->has_input = 0;
     operation->is_sign = 0;
 
     return( PSA_SUCCESS );
@@ -425,7 +423,6 @@ static psa_status_t mac_update(
 {
     if( operation->alg == 0 )
         return( PSA_ERROR_BAD_STATE );
-    operation->has_input = 1;
 
 #if defined(BUILTIN_ALG_CMAC)
     if( operation->alg == PSA_ALG_CMAC )

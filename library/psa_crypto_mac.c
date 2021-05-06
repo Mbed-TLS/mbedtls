@@ -200,20 +200,20 @@ static psa_status_t cmac_setup( mbedtls_psa_mac_operation_t *operation,
                                 size_t key_buffer_size )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const mbedtls_cipher_info_t * cipher_info_tmp =
+    const mbedtls_cipher_info_t * cipher_info =
         mbedtls_cipher_info_from_psa(
             PSA_ALG_CMAC,
             psa_get_key_type( attributes ),
             psa_get_key_bits( attributes ),
             NULL );
 
-    if( cipher_info_tmp == NULL )
+    if( cipher_info == NULL )
         return( PSA_ERROR_NOT_SUPPORTED );
 
     if( key_buffer_size < PSA_BITS_TO_BYTES( psa_get_key_bits( attributes ) ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    ret = mbedtls_cipher_setup( &operation->ctx.cmac, cipher_info_tmp );
+    ret = mbedtls_cipher_setup( &operation->ctx.cmac, cipher_info );
     if( ret != 0 )
         goto exit;
 
@@ -319,15 +319,12 @@ static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
 
     /* A context must be freshly initialized before it can be set up. */
     if( operation->alg != 0 )
-    {
         return( PSA_ERROR_BAD_STATE );
-    }
 
     status = mac_init( operation, alg );
     if( status != PSA_SUCCESS )
         return( status );
-    if( is_sign )
-        operation->is_sign = 1;
+    operation->is_sign = is_sign;
 
     /* Get the output length for the algorithm and key combination. None of the
      * currently supported algorithms have an output length dependent on actual
@@ -498,7 +495,7 @@ static psa_status_t mac_sign_finish(
     size_t mac_size,
     size_t *mac_length )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     if( operation->alg == 0 )
         return( PSA_ERROR_BAD_STATE );
@@ -520,7 +517,7 @@ static psa_status_t mac_verify_finish(
     size_t mac_length )
 {
     uint8_t actual_mac[PSA_MAC_MAX_SIZE];
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     if( operation->alg == 0 )
         return( PSA_ERROR_BAD_STATE );

@@ -48,8 +48,6 @@
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The key is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
@@ -89,8 +87,6 @@ psa_status_t mbedtls_psa_mac_compute(
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The key is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -126,8 +122,6 @@ psa_status_t mbedtls_psa_mac_sign_setup(
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The key is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -149,11 +143,11 @@ psa_status_t mbedtls_psa_mac_verify_setup(
  *       defined in the PSA driver interface specification for transparent
  *       drivers.
  *
- * The core must call mbedtls_psa_mac_sign_setup() or
+ * The PSA core calls mbedtls_psa_mac_sign_setup() or
  * mbedtls_psa_mac_verify_setup() before calling this function.
  *
- * If this function returns an error status, the operation enters an error
- * state and must be aborted by calling psa_mac_abort().
+ * If this function returns an error status, the PSA core aborts the
+ * operation by calling mbedtls_psa_mac_abort().
  *
  * \param[in,out] operation Active MAC operation.
  * \param[in] input         Buffer containing the message fragment to add to
@@ -179,13 +173,12 @@ psa_status_t mbedtls_psa_mac_update(
  *       defined in the PSA driver interface specification for transparent
  *       drivers.
  *
- * The core must call mbedtls_psa_mac_sign_setup() before calling this function.
+ * The PSA core calls mbedtls_psa_mac_sign_setup() before calling this function.
  * This function calculates the MAC of the message formed by concatenating
  * the inputs passed to preceding calls to mbedtls_psa_mac_update().
  *
- * When this function returns successfully, the operation becomes inactive.
- * If this function returns an error status, the operation enters an error
- * state and must be aborted by calling mbedtls_psa_mac_abort().
+ * Whether this function returns successfully or not, the PSA core subsequently
+ * aborts the operation by calling mbedtls_psa_mac_abort().
  *
  * \param[in,out] operation Active MAC operation.
  * \param[out] mac          Buffer where the MAC value is to be written.
@@ -222,15 +215,14 @@ psa_status_t mbedtls_psa_mac_sign_finish(
  *       mac_verify_finish entry point as defined in the PSA driver interface
  *       specification for transparent drivers.
  *
- * The core must call mbedtls_psa_mac_verify_setup() before calling this
+ * The PSA core calls mbedtls_psa_mac_verify_setup() before calling this
  * function. This function calculates the MAC of the message formed by
  * concatenating the inputs passed to preceding calls to
  * mbedtls_psa_mac_update(). It then compares the calculated MAC with the
  * expected MAC passed as a parameter to this function.
  *
- * When this function returns successfully, the operation becomes inactive.
- * If this function returns an error status, the operation enters an error
- * state and must be aborted by calling mbedtls_psa_mac_abort().
+ * Whether this function returns successfully or not, the PSA core subsequently
+ * aborts the operation by calling mbedtls_psa_mac_abort().
  *
  * \param[in,out] operation Active MAC operation.
  * \param[in] mac           Buffer containing the expected MAC value.
@@ -259,7 +251,7 @@ psa_status_t mbedtls_psa_mac_verify_finish(
  * can be reused for another operation by calling
  * mbedtls_psa_mac_sign_setup() or mbedtls_psa_mac_verify_setup() again.
  *
- * The core may call this function any time after the operation object has
+ * The PSA core may call this function any time after the operation object has
  * been initialized by one of the methods described in
  * #mbedtls_psa_mac_operation_t.
  *

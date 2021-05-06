@@ -1,0 +1,3 @@
+Changes
+   * When building the test suites with GNU make, invoke python3 or python, not
+     python2, which is no longer supported upstream.

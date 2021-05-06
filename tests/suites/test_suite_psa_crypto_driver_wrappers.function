@@ -7,7 +7,7 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_DETERMINISTIC_ECDSA:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
 void ecdsa_sign_hash( int force_status_arg,
                       data_t *key_input,
                       data_t *data_input,
@@ -121,7 +121,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_DETERMINISTIC_ECDSA:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
 void ecdsa_sign_message( int force_status_arg,
                          data_t *key_input,
                          data_t *data_input,
@@ -239,7 +239,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256 */
 void generate_key( int force_status_arg,
                    data_t *fake_output,
                    int expected_status_arg )
@@ -312,7 +312,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256 */
 void validate_key( int force_status_arg,
                    int key_type_arg,
                    data_t *key_input,
@@ -348,7 +348,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256 */
 void export_key( int force_status_arg,
                  data_t *fake_output,
                  int key_in_type_arg,

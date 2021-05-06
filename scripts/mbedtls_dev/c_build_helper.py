@@ -95,7 +95,7 @@ def get_c_expression_values(
         caller=__name__, file_label='',
         header='', include_path=None,
         keep_c=False,
-): # pylint: disable=too-many-arguments
+): # pylint: disable=too-many-arguments, too-many-locals
     """Generate and run a program to print out numerical values for expressions.
 
     * ``cast_to``: a C type.
@@ -131,10 +131,9 @@ def get_c_expression_values(
         cc_is_msvc = ('\\' + cc).lower().endswith('\\cl.exe')
         cmd = [cc]
         cmd += ['-I' + dir for dir in include_path]
-        # MSVC doesn't support -o to specify the output file, but we use its
-        # default output file name.
-        if not cc_is_msvc:
-            cmd += ['-o', exe_name]
+        # MSVC has deprecated using -o to specify the output file.
+        output_opt = '-Fe' if cc_is_msvc else '-o'
+        cmd += [output_opt + exe_name]
         subprocess.check_call(cmd + [c_name])
         if keep_c:
             sys.stderr.write('List of {} tests kept at {}\n'

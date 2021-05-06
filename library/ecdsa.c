@@ -726,7 +726,7 @@ static int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
                                     unsigned char *sig, size_t *slen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char buf[MBEDTLS_ECDSA_MAX_LEN];
+    unsigned char buf[MBEDTLS_ECDSA_MAX_LEN] = {0};
     unsigned char *p = buf + sizeof( buf );
     size_t len = 0;
 

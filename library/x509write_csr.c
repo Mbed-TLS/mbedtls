@@ -91,7 +91,7 @@ int mbedtls_x509write_csr_set_extension( mbedtls_x509write_csr *ctx,
 
 int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned char key_usage )
 {
-    unsigned char buf[4];
+    unsigned char buf[4] = {0};
     unsigned char *c;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -113,7 +113,7 @@ int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned ch
 int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
                                     unsigned char ns_cert_type )
 {
-    unsigned char buf[4];
+    unsigned char buf[4] = {0};
     unsigned char *c;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 

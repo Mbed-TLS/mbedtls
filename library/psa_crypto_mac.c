@@ -196,8 +196,7 @@ exit:
 #if defined(BUILTIN_ALG_CMAC)
 static psa_status_t cmac_setup( mbedtls_psa_mac_operation_t *operation,
                                 const psa_key_attributes_t *attributes,
-                                const uint8_t *key_buffer,
-                                size_t key_buffer_size )
+                                const uint8_t *key_buffer )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_cipher_info_t * cipher_info =
@@ -209,9 +208,6 @@ static psa_status_t cmac_setup( mbedtls_psa_mac_operation_t *operation,
 
     if( cipher_info == NULL )
         return( PSA_ERROR_NOT_SUPPORTED );
-
-    if( key_buffer_size < PSA_BITS_TO_BYTES( psa_get_key_bits( attributes ) ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
 
     ret = mbedtls_cipher_setup( &operation->ctx.cmac, cipher_info );
     if( ret != 0 )
@@ -335,8 +331,10 @@ static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
 #if defined(BUILTIN_ALG_CMAC)
     if( PSA_ALG_FULL_LENGTH_MAC( alg ) == PSA_ALG_CMAC )
     {
-        status = cmac_setup( operation, attributes,
-                             key_buffer, key_buffer_size );
+        /* Key buffer size for CMAC is dictated by the key bits set on the
+         * attributes, and previously validated by the core on key import. */
+        (void) key_buffer_size;
+        status = cmac_setup( operation, attributes, key_buffer );
     }
     else
 #endif /* BUILTIN_ALG_CMAC */

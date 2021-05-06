@@ -223,31 +223,21 @@ void rsa_invalid_param( )
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_oaep_decrypt( NULL, NULL, NULL,
-                                                            valid_mode,
                                                             buf, sizeof( buf ),
                                                             &olen,
                                                             buf, buf, 42 ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_oaep_decrypt( &ctx, NULL, NULL,
-                                                            invalid_mode,
-                                                            buf, sizeof( buf ),
-                                                            &olen,
-                                                            buf, buf, 42 ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_rsaes_oaep_decrypt( &ctx, NULL, NULL,
-                                                            valid_mode,
                                                             NULL, sizeof( buf ),
                                                             NULL,
                                                             buf, buf, 42 ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_oaep_decrypt( &ctx, NULL, NULL,
-                                                            valid_mode,
                                                             buf, sizeof( buf ),
                                                             &olen,
                                                             NULL, buf, 42 ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_oaep_decrypt( &ctx, NULL, NULL,
-                                                            valid_mode,
                                                             buf, sizeof( buf ),
                                                             &olen,
                                                             buf, NULL, 42 ) );

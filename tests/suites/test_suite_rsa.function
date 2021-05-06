@@ -697,36 +697,6 @@ void rsa_pkcs1_verify_raw( data_t * hash_result,
 
     TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_NONE, hash_result->len, hash_result->x, result_str->x ) == correct );
 
-#if defined(MBEDTLS_PKCS1_V15)
-    /* For PKCS#1 v1.5, there is an alternative way to verify signatures */
-    if( padding_mode == MBEDTLS_RSA_PKCS_V15 )
-    {
-        int res;
-        int ok;
-        size_t olen;
-
-        res = mbedtls_rsa_rsaes_pkcs1_v15_decrypt( &ctx,
-                    NULL, NULL, MBEDTLS_RSA_PUBLIC,
-                    &olen, result_str->x, output, sizeof( output ) );
-
-#if !defined(MBEDTLS_RSA_ALT)
-        TEST_ASSERT( res == 0 );
-#else
-        TEST_ASSERT( ( res == 0 ) ||
-                     ( res == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) );
-#endif
-
-        if( res == 0 )
-        {
-            ok = olen == hash_result->len && memcmp( output, hash_result->x, olen ) == 0;
-            if( correct == 0 )
-                TEST_ASSERT( ok == 1 );
-            else
-                TEST_ASSERT( ok == 0 );
-        }
-    }
-#endif /* MBEDTLS_PKCS1_V15 */
-
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &E );
     mbedtls_rsa_free( &ctx );

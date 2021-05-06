@@ -229,7 +229,7 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
 /**
  * \brief           Types for RSA-alt abstraction
  */
-typedef int (*mbedtls_pk_rsa_alt_decrypt_func)( void *ctx, int mode, size_t *olen,
+typedef int (*mbedtls_pk_rsa_alt_decrypt_func)( void *ctx, size_t *olen,
                     const unsigned char *input, unsigned char *output,
                     size_t output_max_len );
 typedef int (*mbedtls_pk_rsa_alt_sign_func)( void *ctx,

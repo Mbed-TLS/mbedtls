@@ -60,12 +60,13 @@ static int pk_genkey( mbedtls_pk_context *pk, int parameter )
 }
 
 #if defined(MBEDTLS_RSA_C)
-int mbedtls_rsa_decrypt_func( void *ctx, int mode, size_t *olen,
+int mbedtls_rsa_decrypt_func( void *ctx, size_t *olen,
                        const unsigned char *input, unsigned char *output,
                        size_t output_max_len )
 {
     return( mbedtls_rsa_pkcs1_decrypt( (mbedtls_rsa_context *) ctx,
-                                       mbedtls_test_rnd_std_rand, NULL, mode,
+                                       mbedtls_test_rnd_std_rand, NULL,
+                                       MBEDTLS_RSA_PRIVATE,
                                        olen, input, output, output_max_len ) );
 }
 int mbedtls_rsa_sign_func( void *ctx,

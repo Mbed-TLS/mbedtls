@@ -20,8 +20,6 @@ endif
 DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
-# python2 for POSIX since FreeBSD has only python2 as default.
-PYTHON ?= python2
 
 # Zlib shared library extensions:
 ifdef ZLIB

@@ -2427,7 +2427,7 @@
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_ARIA_128_CBC_SHA256
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_ARIA_256_CBC_SHA384
  */
-//#define MBEDTLS_ARIA_C
+#define MBEDTLS_ARIA_C
 
 /**
  * \def MBEDTLS_CCM_C
@@ -2491,7 +2491,7 @@
  * Requires: MBEDTLS_AES_C or MBEDTLS_DES_C
  *
  */
-//#define MBEDTLS_CMAC_C
+#define MBEDTLS_CMAC_C
 
 /**
  * \def MBEDTLS_CTR_DRBG_C
@@ -2615,9 +2615,9 @@
  *
  * Enable the elliptic curve J-PAKE library.
  *
- * \warning This is currently experimental. EC J-PAKE support is based on the
- * Thread v1.0.0 specification; incompatible changes to the specification
- * might still happen. For this reason, this is disabled by default.
+ * \note EC J-PAKE support is based on the Thread v1.0.0 specification.
+ *       It has not been reviewed for compliance with newer standards such as
+ *       Thread v1.1 or RFC 8236.
  *
  * Module:  library/ecjpake.c
  * Caller:
@@ -2627,7 +2627,7 @@
  *
  * Requires: MBEDTLS_ECP_C, MBEDTLS_MD_C
  */
-//#define MBEDTLS_ECJPAKE_C
+#define MBEDTLS_ECJPAKE_C
 
 /**
  * \def MBEDTLS_ECP_C
@@ -2723,7 +2723,7 @@
  *
  * Requires: MBEDTLS_AES_C and MBEDTLS_CIPHER_C
  */
-//#define MBEDTLS_NIST_KW_C
+#define MBEDTLS_NIST_KW_C
 
 /**
  * \def MBEDTLS_MD_C

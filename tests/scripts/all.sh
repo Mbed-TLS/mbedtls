@@ -1099,6 +1099,7 @@ component_test_everest_curve25519_only () {
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+    scripts/config.py unset MBEDTLS_ECJPAKE_C
     # Disable all curves
     for c in $(sed -n 's/#define \(MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED\).*/\1/p' <"$CONFIG_H"); do
         scripts/config.py unset "$c"
@@ -2061,6 +2062,7 @@ component_test_when_no_ciphersuites_have_mac () {
     scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
     scripts/config.py unset MBEDTLS_ARC4_C
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CMAC_C
     make
 
     msg "test: !MBEDTLS_SSL_SOME_MODES_USE_MAC"

@@ -22,6 +22,7 @@ generate only the specified files.
 
 import argparse
 import os
+import posixpath
 import re
 import sys
 from typing import Callable, Dict, FrozenSet, Iterable, Iterator, List, Optional, TypeVar
@@ -399,7 +400,7 @@ class TestGenerator:
 
     def filename_for(self, basename: str) -> str:
         """The location of the data file with the specified base name."""
-        return os.path.join(self.test_suite_directory, basename + '.data')
+        return posixpath.join(self.test_suite_directory, basename + '.data')
 
     def write_test_data_file(self, basename: str,
                              test_cases: Iterable[test_case.TestCase]) -> None:

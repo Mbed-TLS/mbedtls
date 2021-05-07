@@ -3371,10 +3371,8 @@ psa_status_t psa_key_derivation_input_integer(
  *   either a direct input or a key with #PSA_KEY_USAGE_DERIVE set;
  * - psa_key_derivation_verify_bytes() if each input was either a direct input
  *   or  a key with #PSA_KEY_USAGE_VERIFY_DERIVATION set;
- * - psa_key_derivation_verify_key() if each input was either a direct input
- *   or  a key with #PSA_KEY_USAGE_VERIFY_DERIVATION set and input for step
- *   #PSA_KEY_DERIVATION_INPUT_SECRET or #PSA_KEY_DERIVATION_INPUT_PASSWORD
- *   was from a key slot.
+ * - psa_key_derivation_verify_key() under the same conditions as
+ *   psa_key_derivation_verify_bytes().
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -3768,10 +3766,8 @@ psa_status_t psa_key_derivation_verify_bytes(
  *         The key passed as the expected value has an invalid type.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The key passed as the expected value does not allow this usage or
- *         this algorithm; or the #PSA_KEY_DERIVATION_INPUT_SECRET or
- *         #PSA_KEY_DERIVATION_INPUT_PASSWORD input was not provided through a
- *         key; or one of the inputs was a key whose policy didn't allow
- *         #PSA_KEY_USAGE_DERIVE.
+ *         this algorithm; or one of the inputs was a key whose policy didn't
+ *         allow #PSA_KEY_USAGE_VERIFY_DERIVATION.
  * \retval #PSA_ERROR_INSUFFICIENT_DATA
  *                          The operation's capacity was less than
  *                          the length of the expected value. In this case,

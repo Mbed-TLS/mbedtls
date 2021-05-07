@@ -355,8 +355,10 @@ exit:
 /* Set the key and algorithm for a multipart authenticated encryption
  * operation. */
 psa_status_t mbedtls_psa_aead_encrypt_setup( psa_aead_operation_t *operation,
-                                             const psa_key_attributes_t *attributes,
-                                             const uint8_t *key_buffer, size_t key_buffer_size,
+                                             const psa_key_attributes_t
+                                                                    *attributes,
+                                             const uint8_t *key_buffer,
+                                             size_t key_buffer_size,
                                              psa_algorithm_t alg )
 {
     psa_status_t status;
@@ -376,8 +378,10 @@ psa_status_t mbedtls_psa_aead_encrypt_setup( psa_aead_operation_t *operation,
 /* Set the key and algorithm for a multipart authenticated decryption
  * operation. */
 psa_status_t mbedtls_psa_aead_decrypt_setup( psa_aead_operation_t *operation,
-                                             const psa_key_attributes_t *attributes,
-                                             const uint8_t *key_buffer, size_t key_buffer_size,
+                                             const psa_key_attributes_t
+                                                                    *attributes,
+                                             const uint8_t *key_buffer,
+                                             size_t key_buffer_size,
                                              psa_algorithm_t alg )
 {
     psa_status_t status;
@@ -434,11 +438,12 @@ psa_status_t mbedtls_psa_aead_set_nonce( psa_aead_operation_t *operation,
             return( PSA_ERROR_INVALID_ARGUMENT );
         }
 
-        status = mbedtls_to_psa_error(mbedtls_chachapoly_starts( &operation->ctx.chachapoly,
-                                                                 nonce,
-                                                                 operation->is_encrypt ?
-                                                                 MBEDTLS_CHACHAPOLY_ENCRYPT :
-                                                                 MBEDTLS_CHACHAPOLY_DECRYPT ) );
+        status = mbedtls_to_psa_error(
+           mbedtls_chachapoly_starts( &operation->ctx.chachapoly,
+                                      nonce,
+                                      operation->is_encrypt ?
+                                      MBEDTLS_CHACHAPOLY_ENCRYPT :
+                                      MBEDTLS_CHACHAPOLY_DECRYPT ) );
         }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
@@ -540,13 +545,14 @@ psa_status_t mbedtls_psa_aead_update_ad( psa_aead_operation_t *operation,
             return ( PSA_ERROR_INVALID_ARGUMENT );
         }
 
-        status = mbedtls_to_psa_error( mbedtls_gcm_starts( &operation->ctx.gcm,
-                                                          operation->is_encrypt ?
-                                                           MBEDTLS_GCM_ENCRYPT : MBEDTLS_GCM_DECRYPT,
-                                                          operation->nonce,
-                                                          operation->nonce_length,
-                                                          input,
-                                                          input_length ) );
+        status = mbedtls_to_psa_error(
+           mbedtls_gcm_starts( &operation->ctx.gcm,
+                               operation->is_encrypt ?
+                               MBEDTLS_GCM_ENCRYPT : MBEDTLS_GCM_DECRYPT,
+                               operation->nonce,
+                               operation->nonce_length,
+                               input,
+                               input_length ) );
 
     }
     else
@@ -581,9 +587,10 @@ psa_status_t mbedtls_psa_aead_update_ad( psa_aead_operation_t *operation,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
     {
-        status = mbedtls_to_psa_error( mbedtls_chachapoly_update_aad( &operation->ctx.chachapoly,
-                                                                      input,
-                                                                      input_length ) );
+        status = mbedtls_to_psa_error(
+           mbedtls_chachapoly_update_aad( &operation->ctx.chachapoly,
+                                          input,
+                                          input_length ) );
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
@@ -676,7 +683,8 @@ psa_status_t mbedtls_psa_aead_update( psa_aead_operation_t *operation,
         }
 
         /* Need to store tag for Finish() / Verify() */
-        operation->tag_buffer = ( uint8_t * ) mbedtls_calloc(1, operation->tag_length );
+        operation->tag_buffer =
+            ( uint8_t * ) mbedtls_calloc(1, operation->tag_length );
 
         if( operation->tag_buffer )
         {
@@ -685,16 +693,17 @@ psa_status_t mbedtls_psa_aead_update( psa_aead_operation_t *operation,
             {
                 /* Perform oneshot CCM encryption with additional data already
                    stored, as CCM does not support multipart yet.*/
-                status = mbedtls_to_psa_error( mbedtls_ccm_encrypt_and_tag( &operation->ctx.ccm,
-                                                                            input_length,
-                                                                            operation->nonce,
-                                                                            operation->nonce_length,
-                                                                            operation->ad_buffer,
-                                                                            operation->ad_length,
-                                                                            input,
-                                                                            output,
-                                                                            operation->tag_buffer,
-                                                                            operation->tag_length ) );
+                status = mbedtls_to_psa_error(
+                   mbedtls_ccm_encrypt_and_tag( &operation->ctx.ccm,
+                                                input_length,
+                                                operation->nonce,
+                                                operation->nonce_length,
+                                                operation->ad_buffer,
+                                                operation->ad_length,
+                                                input,
+                                                output,
+                                                operation->tag_buffer,
+                                                operation->tag_length ) );
 
                 /* Even if the above operation fails, we no longer need the
                    additional data.*/
@@ -706,18 +715,22 @@ psa_status_t mbedtls_psa_aead_update( psa_aead_operation_t *operation,
             {
                 /* Need to back up the body data so we can do this again
                    later.*/
-                operation->body_buffer = ( uint8_t * ) mbedtls_calloc(1, input_length );
+                operation->body_buffer =
+                    ( uint8_t * ) mbedtls_calloc(1, input_length );
 
                 if( operation->body_buffer )
                 {
                     memcpy( operation->body_buffer, input, input_length );
                     operation->body_length = input_length;
 
-                    /* this will fail, as the tag is clearly false, but will write the
-                       decrypted data to the output buffer. */
-                    ret = mbedtls_ccm_auth_decrypt( &operation->ctx.ccm, input_length,
-                                                    operation->nonce, operation->nonce_length,
-                                                    operation->ad_buffer, operation->ad_length,
+                    /* this will fail, as the tag is clearly false, but will
+                       write the decrypted data to the output buffer.*/
+                    ret = mbedtls_ccm_auth_decrypt( &operation->ctx.ccm,
+                                                    input_length,
+                                                    operation->nonce,
+                                                    operation->nonce_length,
+                                                    operation->ad_buffer,
+                                                    operation->ad_length,
                                                     input, output,
                                                     operation->tag_buffer,
                                                     operation->tag_length );
@@ -747,10 +760,11 @@ psa_status_t mbedtls_psa_aead_update( psa_aead_operation_t *operation,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
     {
-        status = mbedtls_to_psa_error( mbedtls_chachapoly_update( &operation->ctx.chachapoly,
-                                                                  input_length,
-                                                                  input,
-                                                                  output ) );
+        status = mbedtls_to_psa_error(
+           mbedtls_chachapoly_update( &operation->ctx.chachapoly,
+                                      input_length,
+                                      input,
+                                      output ) );
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
@@ -772,7 +786,8 @@ psa_status_t mbedtls_psa_aead_update( psa_aead_operation_t *operation,
 
 /* Common checks for both mbedtls_psa_aead_finish() and
    mbedtls_psa_aead_verify() */
-static psa_status_t mbedtls_psa_aead_finish_checks( psa_aead_operation_t *operation,
+static psa_status_t mbedtls_psa_aead_finish_checks( psa_aead_operation_t
+                                                                    *operation,
                                                     size_t output_size,
                                                     size_t tag_size )
 {
@@ -793,13 +808,15 @@ static psa_status_t mbedtls_psa_aead_finish_checks( psa_aead_operation_t *operat
 
     if( operation->is_encrypt )
     {
-            finish_output_size = PSA_AEAD_FINISH_OUTPUT_SIZE( operation->key_type,
-                                                              operation->alg );
+            finish_output_size =
+                PSA_AEAD_FINISH_OUTPUT_SIZE( operation->key_type,
+                                             operation->alg );
     }
     else
     {
-            finish_output_size = PSA_AEAD_VERIFY_OUTPUT_SIZE( operation->key_type,
-                                                               operation->alg );
+            finish_output_size =
+                PSA_AEAD_VERIFY_OUTPUT_SIZE( operation->key_type,
+                                             operation->alg );
     }
 
     if( output_size < finish_output_size )
@@ -822,7 +839,8 @@ psa_status_t mbedtls_psa_aead_finish( psa_aead_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t finish_output_size = 0;
 
-    status = mbedtls_psa_aead_finish_checks( operation, ciphertext_size, tag_size );
+    status = mbedtls_psa_aead_finish_checks( operation, ciphertext_size,
+                                             tag_size );
 
     if( status != PSA_SUCCESS )
     {
@@ -855,8 +873,9 @@ psa_status_t mbedtls_psa_aead_finish( psa_aead_operation_t *operation,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
     {
-        status = mbedtls_to_psa_error( mbedtls_chachapoly_finish( &operation->ctx.chachapoly,
-                                                                  tag ) );
+        status = mbedtls_to_psa_error(
+           mbedtls_chachapoly_finish( &operation->ctx.chachapoly,
+                                      tag ) );
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
@@ -902,7 +921,8 @@ psa_status_t mbedtls_psa_aead_verify( psa_aead_operation_t *operation,
     int do_tag_check = 1;
     uint8_t check_tag[16];
 
-    status = mbedtls_psa_aead_finish_checks( operation, plaintext_size, tag_length );
+    status = mbedtls_psa_aead_finish_checks( operation, plaintext_size,
+                                             tag_length );
 
     if( status != PSA_SUCCESS )
     {
@@ -913,9 +933,10 @@ psa_status_t mbedtls_psa_aead_verify( psa_aead_operation_t *operation,
     if( operation->alg == PSA_ALG_GCM )
     {
         /* Call finish to get the tag for comparison */
-        status =  mbedtls_to_psa_error( mbedtls_gcm_finish( &operation->ctx.gcm,
-                                                            check_tag,
-                                                            operation->tag_length ) );
+        status =  mbedtls_to_psa_error(
+           mbedtls_gcm_finish( &operation->ctx.gcm,
+                               check_tag,
+                               operation->tag_length ) );
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
@@ -931,17 +952,22 @@ psa_status_t mbedtls_psa_aead_verify( psa_aead_operation_t *operation,
          * only way to get the tag, but this time throw away the
            results, as verify cannot write that much data. */
         temp_buffer_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( operation->key_type,
-                                                        operation->alg, operation->body_length );
+                                                        operation->alg,
+                                                        operation->body_length
+                                                        );
 
         temp_buffer = ( uint8_t * ) mbedtls_calloc(1, temp_buffer_size );
 
         if( temp_buffer )
         {
-            ret = mbedtls_ccm_auth_decrypt( &operation->ctx.ccm, operation->body_length,
-                                           operation->nonce, operation->nonce_length,
-                                           operation->ad_buffer, operation->ad_length,
-                                           operation->body_buffer, temp_buffer,
-                                           tag, tag_length );
+            ret = mbedtls_ccm_auth_decrypt( &operation->ctx.ccm,
+                                            operation->body_length,
+                                            operation->nonce,
+                                            operation->nonce_length,
+                                            operation->ad_buffer,
+                                            operation->ad_length,
+                                            operation->body_buffer,
+                                            temp_buffer, tag, tag_length );
 
             if( ret == MBEDTLS_ERR_CCM_AUTH_FAILED )
             {
@@ -974,8 +1000,9 @@ psa_status_t mbedtls_psa_aead_verify( psa_aead_operation_t *operation,
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
     {
         // call finish to get the tag for comparison.
-        status = mbedtls_to_psa_error( mbedtls_chachapoly_finish( &operation->ctx.chachapoly,
-                                                                  check_tag ) );
+        status = mbedtls_to_psa_error(
+           mbedtls_chachapoly_finish( &operation->ctx.chachapoly,
+                                      check_tag ) );
 
     }
     else

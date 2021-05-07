@@ -2606,6 +2606,10 @@
  *
  * Enable the elliptic curve J-PAKE library.
  *
+ * \note EC J-PAKE support is based on the Thread v1.0.0 specification. 
+ *       It has not been reviewed for compliance with newer standards such as 
+ *       Thread v1.1 or RFC 8236.
+ *
  * Module:  library/ecjpake.c
  * Caller:
  *

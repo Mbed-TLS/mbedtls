@@ -3365,10 +3365,10 @@ psa_status_t psa_key_derivation_input_integer(
  * \note Once all inputs steps are completed, the operations will allow:
  * - psa_key_derivation_output_bytes() if each input was either a direct input
  *   or  a key with #PSA_KEY_USAGE_DERIVE set;
- * - psa_key_derivation_output_key() if each input was either a direct input
- *   or  a key with #PSA_KEY_USAGE_DERIVE set and input for step
+ * - psa_key_derivation_output_key() if the input for step
  *   #PSA_KEY_DERIVATION_INPUT_SECRET or #PSA_KEY_DERIVATION_INPUT_PASSWORD
- *   was from a key slot;
+ *   was from a key slot with #PSA_KEY_USAGE_DERIVE and each other input was
+ *   either a direct input or a key with #PSA_KEY_USAGE_DERIVE set;
  * - psa_key_derivation_verify_bytes() if each input was either a direct input
  *   or  a key with #PSA_KEY_USAGE_VERIFY_DERIVATION set;
  * - psa_key_derivation_verify_key() if each input was either a direct input

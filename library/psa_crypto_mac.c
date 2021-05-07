@@ -41,7 +41,7 @@
 #define BUILTIN_ALG_HMAC        1
 #endif
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC) || defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(BUILTIN_ALG_HMAC)
 static size_t psa_get_hash_block_size( psa_algorithm_t alg )
 {
     switch( alg )
@@ -187,11 +187,7 @@ exit:
     mbedtls_platform_zeroize( tmp, hash_size );
     return( status );
 }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC || PSA_CRYPTO_DRIVER_TEST */
-
-/* Implement the PSA driver MAC interface on top of mbed TLS if either the
- * software driver or the test driver requires it. */
-#if defined(MBEDTLS_PSA_BUILTIN_MAC) || defined(PSA_CRYPTO_DRIVER_TEST)
+#endif /* BUILTIN_ALG_HMAC */
 
 #if defined(BUILTIN_ALG_CMAC)
 static psa_status_t cmac_setup( mbedtls_psa_mac_operation_t *operation,
@@ -220,6 +216,10 @@ exit:
     return( mbedtls_to_psa_error( ret ) );
 }
 #endif /* BUILTIN_ALG_CMAC */
+
+/* Implement the PSA driver MAC interface on top of mbed TLS if either the
+ * software driver or the test driver requires it. */
+#if defined(BUILTIN_ALG_HMAC) || defined(BUILTIN_ALG_CMAC)
 
 /* Initialize this driver's MAC operation structure. Once this function has been
  * called, mbedtls_psa_mac_abort can run and will do the right thing. */
@@ -504,7 +504,7 @@ cleanup:
 
     return( status );
 }
-#endif /* MBEDTLS_PSA_BUILTIN_MAC || PSA_CRYPTO_DRIVER_TEST */
+#endif /* BUILTIN_ALG_HMAC || BUILTIN_ALG_CMAC */
 
 #if defined(MBEDTLS_PSA_BUILTIN_MAC)
 psa_status_t mbedtls_psa_mac_compute(

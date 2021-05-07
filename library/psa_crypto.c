@@ -3309,7 +3309,8 @@ psa_status_t psa_aead_generate_nonce( psa_aead_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    required_nonce_size = PSA_AEAD_NONCE_LENGTH(operation->key_type, operation->alg);
+    required_nonce_size = PSA_AEAD_NONCE_LENGTH(operation->key_type,
+                                                operation->alg);
 
     if( nonce_size == 0 || nonce_size < required_nonce_size )
     {
@@ -3323,7 +3324,8 @@ psa_status_t psa_aead_generate_nonce( psa_aead_operation_t *operation,
         return status;
     }
 
-    status = psa_driver_wrapper_aead_set_nonce( operation, nonce, required_nonce_size );
+    status = psa_driver_wrapper_aead_set_nonce( operation, nonce,
+                                                required_nonce_size );
 
     if( status == PSA_SUCCESS )
     {
@@ -3345,7 +3347,8 @@ psa_status_t psa_aead_set_nonce( psa_aead_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    return( psa_driver_wrapper_aead_set_nonce( operation, nonce, nonce_length ) );
+    return( psa_driver_wrapper_aead_set_nonce( operation, nonce,
+                                               nonce_length ) );
 }
 
 /* Declare the lengths of the message and additional data for multipart AEAD. */
@@ -3358,7 +3361,8 @@ psa_status_t psa_aead_set_lengths( psa_aead_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    return( psa_driver_wrapper_aead_set_lengths( operation, ad_length, plaintext_length ) );
+    return( psa_driver_wrapper_aead_set_lengths( operation, ad_length,
+                                                 plaintext_length ) );
 }
  /* Pass additional data to an active multipart AEAD operation. */
 psa_status_t psa_aead_update_ad( psa_aead_operation_t *operation,
@@ -3370,7 +3374,8 @@ psa_status_t psa_aead_update_ad( psa_aead_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    return( psa_driver_wrapper_aead_update_ad( operation, input, input_length ) );
+    return( psa_driver_wrapper_aead_update_ad( operation, input,
+                                               input_length ) );
 }
 
 /* Encrypt or decrypt a message fragment in an active multipart AEAD
@@ -3390,7 +3395,8 @@ psa_status_t psa_aead_update( psa_aead_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    return( psa_driver_wrapper_aead_update( operation, input, input_length, output, output_size,
+    return( psa_driver_wrapper_aead_update( operation, input, input_length,
+                                            output, output_size,
                                             output_length ) );
 }
 
@@ -3412,8 +3418,10 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    return( psa_driver_wrapper_aead_finish( operation, ciphertext, ciphertext_size,
-                                            ciphertext_length, tag, tag_size, tag_length ) );
+    return( psa_driver_wrapper_aead_finish( operation, ciphertext,
+                                            ciphertext_size,
+                                            ciphertext_length,
+                                            tag, tag_size, tag_length ) );
 }
 
 /* Finish authenticating and decrypting a message in a multipart AEAD
@@ -3433,8 +3441,10 @@ psa_status_t psa_aead_verify( psa_aead_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    return( psa_driver_wrapper_aead_verify( operation, plaintext, plaintext_size, plaintext_length,
-                                             tag, tag_length ) );
+    return( psa_driver_wrapper_aead_verify( operation, plaintext,
+                                            plaintext_size,
+                                            plaintext_length,
+                                            tag, tag_length ) );
 }
 
 /* Abort an AEAD operation. */

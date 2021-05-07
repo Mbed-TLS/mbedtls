@@ -3201,7 +3201,8 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
     TEST_ASSERT( tag_length <= 16 );
 
     output_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg,
-                                               ( input_data->len + tag_length ) );
+                                               ( input_data->len +
+                                                 tag_length ) );
 
     ASSERT_ALLOC( output_data, output_size );
 
@@ -3224,8 +3225,9 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
 
     if( nonce->len == 0 )
     {
-        PSA_ASSERT( psa_aead_generate_nonce( &operation, nonce_buffer, sizeof( nonce_buffer ),
-                                            &nonce_length ) );
+        PSA_ASSERT( psa_aead_generate_nonce( &operation, nonce_buffer,
+                                             sizeof( nonce_buffer ),
+                                             &nonce_length ) );
     }
     else
     {
@@ -3236,7 +3238,8 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation.alg == PSA_ALG_GCM )
     {
-        PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len, input_data->len ) );
+        PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
+                                          input_data->len ) );
     }
 #endif
 
@@ -3256,7 +3259,8 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                 part_length = ad_part_len;
             }
 
-            PSA_ASSERT( psa_aead_update_ad(&operation, additional_data->x + part_offset,
+            PSA_ASSERT( psa_aead_update_ad( &operation,
+                                            additional_data->x + part_offset,
                                             part_length ) );
 
             part_offset += part_length;
@@ -3265,13 +3269,15 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
     else
     {
         /* Pass additional data in one go. */
-        PSA_ASSERT( psa_aead_update_ad(&operation, additional_data->x, additional_data->len) );
+        PSA_ASSERT( psa_aead_update_ad(&operation, additional_data->x,
+                                       additional_data->len) );
     }
 
     if( data_part_len != -1 )
     {
         /* Pass data in parts */
-        part_data_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg, ( size_t ) data_part_len );
+        part_data_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg,
+                                                     ( size_t ) data_part_len );
 
         ASSERT_ALLOC( part_data, part_data_size );
 
@@ -3288,13 +3294,16 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                 part_length = data_part_len;
             }
 
-            PSA_ASSERT( psa_aead_update( &operation, ( input_data->x + part_offset ),
+            PSA_ASSERT( psa_aead_update( &operation,
+                                         ( input_data->x + part_offset ),
                                          part_length, part_data,
-                                         part_data_size, &output_part_length ) );
+                                         part_data_size,
+                                         &output_part_length ) );
 
             if( output_data && output_part_length )
             {
-                memcpy( ( output_data + part_offset ), part_data, output_part_length );
+                memcpy( ( output_data + part_offset ), part_data,
+                        output_part_length );
             }
 
             part_offset += part_length;
@@ -3317,7 +3326,8 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
 
     if( output_data && output_part_length )
     {
-        memcpy( ( output_data + output_length ), final_data, output_part_length );
+        memcpy( ( output_data + output_length ), final_data,
+                output_part_length );
     }
 
     TEST_EQUAL(tag_length, tag_size);
@@ -3334,7 +3344,8 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
     /* For all currently defined algorithms, PSA_AEAD_ENCRYPT_OUTPUT_SIZE
      * should be exact. */
     TEST_EQUAL( output_length,
-                PSA_AEAD_ENCRYPT_OUTPUT_SIZE( key_type, alg, input_data->len ) );
+                PSA_AEAD_ENCRYPT_OUTPUT_SIZE( key_type, alg,
+                                              input_data->len ) );
     TEST_ASSERT( output_length <=
                  PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE( input_data->len ) );
 
@@ -3389,7 +3400,8 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
+    psa_set_key_usage_flags( &attributes,
+                             PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
 
@@ -3429,7 +3441,8 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
 
     if( nonce->len == 0 )
     {
-        status = psa_aead_generate_nonce( &operation, nonce_buffer, sizeof( nonce_buffer ),
+        status = psa_aead_generate_nonce( &operation, nonce_buffer,
+                                          sizeof( nonce_buffer ),
                                           &nonce_length );
     }
     else
@@ -3447,7 +3460,8 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation.alg == PSA_ALG_GCM )
     {
-        status = psa_aead_set_lengths( &operation, additional_data->len, input_data->len );
+        status = psa_aead_set_lengths( &operation, additional_data->len,
+                                       input_data->len );
 
         if( status != PSA_SUCCESS )
         {
@@ -3472,7 +3486,8 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
                 part_length = ad_part_len;
             }
 
-            status = psa_aead_update_ad( &operation, additional_data->x + part_offset,
+            status = psa_aead_update_ad( &operation,
+                                         additional_data->x + part_offset,
                                          part_length );
 
             if( status != PSA_SUCCESS )
@@ -3486,7 +3501,8 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
     }
     else
     {
-        status = psa_aead_update_ad(&operation, additional_data->x, additional_data->len);
+        status = psa_aead_update_ad(&operation, additional_data->x,
+                                    additional_data->len);
 
         if( status != PSA_SUCCESS )
         {
@@ -3499,7 +3515,7 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
     {
         /* Pass data in parts */
         part_data_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg,
-                                                      ( size_t ) data_part_len );
+                                                     ( size_t ) data_part_len );
 
         ASSERT_ALLOC( part_data, part_data_size );
 
@@ -3516,7 +3532,8 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
                 part_length = data_part_len;
             }
 
-            status = psa_aead_update( &operation, ( input_data->x + part_offset ),
+            status = psa_aead_update( &operation,
+                                      ( input_data->x + part_offset ),
                                       part_length, part_data,
                                       part_data_size, &output_part_length );
 
@@ -3528,7 +3545,8 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
 
             if( output_data && output_part_length )
             {
-                memcpy( ( output_data + part_offset ), part_data, output_part_length );
+                memcpy( ( output_data + part_offset ), part_data,
+                        output_part_length );
             }
 
             part_offset += part_length;
@@ -3562,7 +3580,8 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
 
     if( output_data &&output_part_length )
     {
-        memcpy( ( output_data + output_length ), final_data, output_part_length );
+        memcpy( ( output_data + output_length ), final_data,
+                output_part_length );
     }
 
     output_length += output_part_length;
@@ -3571,23 +3590,27 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
      * should be exact. */
     if( expected_result != PSA_ERROR_INVALID_ARGUMENT )
         TEST_EQUAL( ( output_length + tag_length ),
-                    PSA_AEAD_ENCRYPT_OUTPUT_SIZE( key_type, alg, input_data->len ) );
+                    PSA_AEAD_ENCRYPT_OUTPUT_SIZE( key_type, alg,
+                                                  input_data->len ) );
 
     TEST_EQUAL(tag_length, tag_size);
 
     if( PSA_SUCCESS == expected_result )
     {
-        output_size2 = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg, output_length );
+        output_size2 = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg,
+                                                    output_length );
         ASSERT_ALLOC( output_data2, output_size2 );
 
         /* For all currently defined algorithms, PSA_AEAD_DECRYPT_OUTPUT_SIZE
          * should be exact. */
         TEST_EQUAL( input_data->len,
                     PSA_AEAD_DECRYPT_OUTPUT_SIZE( key_type, alg,
-                                                  ( output_length  + tag_length ) ) );
+                                                  ( output_length +
+                                                    tag_length ) ) );
 
         TEST_ASSERT( input_data->len <=
-                     PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE( output_length + tag_length ) );
+                     PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE( output_length +
+                                                       tag_length ) );
 
         operation = psa_aead_operation_init();
 
@@ -3599,7 +3622,8 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
         if( status == PSA_ERROR_NOT_SUPPORTED )
         {
             MBEDTLS_TEST_PSA_SKIP_IF_ALT_AES_192( key_type, key_data->len * 8 );
-            MBEDTLS_TEST_PSA_SKIP_IF_ALT_GCM_NOT_12BYTES_NONCE( alg, nonce->len );
+            MBEDTLS_TEST_PSA_SKIP_IF_ALT_GCM_NOT_12BYTES_NONCE( alg,
+                                                                nonce->len );
         }
 
         TEST_EQUAL( status, expected_result );
@@ -3607,7 +3631,8 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
         if( nonce->len == 0 )
         {
             /* Use previously generated nonce. */
-            status = psa_aead_set_nonce( &operation, nonce_buffer, nonce_length );
+            status = psa_aead_set_nonce( &operation, nonce_buffer,
+                                         nonce_length );
         }
         else
         {
@@ -3623,7 +3648,8 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
         if( operation.alg == PSA_ALG_GCM )
         {
-            status = psa_aead_set_lengths( &operation, additional_data->len, output_length );
+            status = psa_aead_set_lengths( &operation, additional_data->len,
+                                           output_length );
 
             if( status != PSA_SUCCESS )
             {
@@ -3638,7 +3664,8 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
 
             while( part_offset <= additional_data->len)
             {
-                if( additional_data->len - part_offset < ( uint32_t ) ad_part_len )
+                if( additional_data->len - part_offset <
+                    ( uint32_t ) ad_part_len )
                 {
                     part_length = additional_data->len - part_offset;
                 }
@@ -3647,7 +3674,9 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
                     part_length = ad_part_len;
                 }
 
-                PSA_ASSERT( psa_aead_update_ad(&operation, additional_data->x + part_offset,
+                PSA_ASSERT( psa_aead_update_ad( &operation,
+                                                additional_data->x +
+                                                part_offset,
                                                 part_length ) );
 
                 part_offset += part_length;
@@ -3655,13 +3684,15 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
         }
         else
         {
-            PSA_ASSERT( psa_aead_update_ad(&operation, additional_data->x, additional_data->len) );
+            PSA_ASSERT( psa_aead_update_ad(&operation, additional_data->x,
+                                           additional_data->len) );
         }
 
         if( data_part_len != -1 )
         {
             /* Pass data in parts */
-            part_data_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg, ( size_t ) data_part_len );
+            part_data_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg,
+                                                     ( size_t ) data_part_len );
 
             ASSERT_ALLOC( part_data, part_data_size );
 
@@ -3669,22 +3700,27 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
 
             while( part_offset <= ( input_data->len - tag_length ) )
             {
-                if( ( input_data->len - tag_length - part_offset ) < ( uint32_t ) data_part_len )
+                if( ( input_data->len - tag_length - part_offset ) <
+                    ( uint32_t ) data_part_len )
                 {
-                    part_length = ( input_data->len - tag_length - part_offset );
+                    part_length =
+                        ( input_data->len - tag_length - part_offset );
                 }
                 else
                 {
                     part_length = data_part_len;
                 }
 
-                PSA_ASSERT( psa_aead_update( &operation, ( input_data->x + part_offset ),
+                PSA_ASSERT( psa_aead_update( &operation,
+                                             ( input_data->x + part_offset ),
                                              part_length, part_data,
-                                             part_data_size, &output_part_length ) );
+                                             part_data_size,
+                                             &output_part_length ) );
 
                 if( output_data2 && output_part_length )
                 {
-                    memcpy( ( output_data2 + part_offset ), part_data, output_part_length );
+                    memcpy( ( output_data2 + part_offset ),
+                            part_data, output_part_length );
                 }
 
                 part_offset += part_length;
@@ -3705,7 +3741,8 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
 
         if( output_data2 && output_part_length )
         {
-            memcpy( ( output_data2 + output_length2 ), final_data, output_part_length);
+            memcpy( ( output_data2 + output_length2 ), final_data,
+                    output_part_length);
         }
 
         output_length2 += output_part_length;
@@ -3772,7 +3809,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
     tag_length = PSA_AEAD_TAG_LENGTH( key_type, key_bits, alg );
 
     output_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg,
-                                               ( input_data->len - tag_length ) );
+                                               ( input_data->len -
+                                                 tag_length ) );
 
     ASSERT_ALLOC( output_data, output_size );
     ASSERT_ALLOC( final_data, PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE );
@@ -3798,7 +3836,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
 
     if( nonce->len == 0 )
     {
-        status = psa_aead_generate_nonce( &operation, nonce_buffer, sizeof( nonce_buffer ),
+        status = psa_aead_generate_nonce( &operation, nonce_buffer,
+                                          sizeof( nonce_buffer ),
                                           &nonce_length );
     }
     else
@@ -3842,7 +3881,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                 part_length = ad_part_len;
             }
 
-            status = psa_aead_update_ad( &operation, additional_data->x + part_offset,
+            status = psa_aead_update_ad( &operation,
+                                         additional_data->x + part_offset,
                                          part_length );
 
             if( status != PSA_SUCCESS )
@@ -3856,7 +3896,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
     }
     else
     {
-        status = psa_aead_update_ad( &operation, additional_data->x, additional_data->len );
+        status = psa_aead_update_ad( &operation, additional_data->x,
+                                     additional_data->len );
 
         if( status != PSA_SUCCESS )
         {
@@ -3868,7 +3909,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
     if( data_part_len != -1 )
     {
         /* Pass data in parts */
-        part_data_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg, ( size_t ) data_part_len );
+        part_data_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg,
+                                                     ( size_t ) data_part_len );
 
         ASSERT_ALLOC( part_data, part_data_size );
 
@@ -3876,7 +3918,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
 
         while( part_offset <= input_data->len)
         {
-            if( (input_data->len - tag_length - part_offset ) < ( uint32_t ) data_part_len )
+            if( (input_data->len - tag_length - part_offset ) <
+                ( uint32_t ) data_part_len )
             {
                 part_length = ( input_data->len - tag_length - part_offset );
             }
@@ -3885,9 +3928,10 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                 part_length = data_part_len;
             }
 
-            status = psa_aead_update( &operation, ( input_data->x + part_offset ),
-                                         part_length, part_data,
-                                         part_data_size, &output_part_length );
+            status = psa_aead_update( &operation,
+                                      ( input_data->x + part_offset ),
+                                      part_length, part_data,
+                                      part_data_size, &output_part_length );
 
             if( status != PSA_SUCCESS )
             {
@@ -3897,7 +3941,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
 
             if( output_data && output_part_length )
             {
-                memcpy( ( output_data + part_offset ), part_data, output_part_length );
+                memcpy( ( output_data + part_offset ), part_data,
+                        output_part_length );
             }
 
             part_offset += part_length;
@@ -3920,7 +3965,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
     status = psa_aead_verify( &operation, final_data,
                                  PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE,
                                  &output_part_length,
-                                 ( input_data->x + input_data->len - tag_length ),
+                                 ( input_data->x + input_data->len -
+                                   tag_length ),
                                  tag_length );
 
     if( status != PSA_SUCCESS )
@@ -3931,7 +3977,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
 
     if( output_data && output_part_length )
     {
-        memcpy( ( output_data + output_length ), final_data, output_part_length );
+        memcpy( ( output_data + output_length ), final_data,
+                output_part_length );
     }
 
     output_length += output_part_length;
@@ -3941,7 +3988,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
         /* For all currently defined algorithms, PSA_AEAD_DECRYPT_OUTPUT_SIZE
          * should be exact. */
         TEST_EQUAL( output_length,
-                    PSA_AEAD_DECRYPT_OUTPUT_SIZE( key_type, alg, input_data->len ) );
+                    PSA_AEAD_DECRYPT_OUTPUT_SIZE( key_type, alg,
+                                                  input_data->len ) );
         TEST_ASSERT( output_length <=
                      PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE( input_data->len ) );
     }

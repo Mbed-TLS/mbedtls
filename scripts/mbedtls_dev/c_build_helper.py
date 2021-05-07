@@ -128,7 +128,7 @@ def get_c_expression_values(
         )
         c_file.close()
         cc = os.getenv('CC', 'cc')
-        cc_is_msvc = ('\\' + cc).lower().endswith('\\cl.exe')
+        cc_is_msvc = os.path.split(cc)[1].lower() in ('cl', 'cl.exe')
         cmd = [cc]
         cmd += ['-I' + dir for dir in include_path]
         # MSVC has deprecated using -o to specify the output file.

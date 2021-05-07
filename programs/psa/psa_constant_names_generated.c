@@ -223,7 +223,6 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
     case PSA_ALG_MD2: append(&buffer, buffer_size, &required_size, "PSA_ALG_MD2", 11); break;
     case PSA_ALG_MD4: append(&buffer, buffer_size, &required_size, "PSA_ALG_MD4", 11); break;
     case PSA_ALG_MD5: append(&buffer, buffer_size, &required_size, "PSA_ALG_MD5", 11); break;
-    case PSA_ALG_NONE: append(&buffer, buffer_size, &required_size, "PSA_ALG_NONE", 12); break;
     case PSA_ALG_OFB: append(&buffer, buffer_size, &required_size, "PSA_ALG_OFB", 11); break;
     case PSA_ALG_PBKDF2_AES_CMAC_PRF_128: append(&buffer, buffer_size, &required_size, "PSA_ALG_PBKDF2_AES_CMAC_PRF_128", 31); break;
     case PSA_ALG_PBKDF2_HMAC_BASE: append(&buffer, buffer_size, &required_size, "PSA_ALG_PBKDF2_HMAC_BASE", 24); break;

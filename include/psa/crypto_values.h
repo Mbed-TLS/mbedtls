@@ -713,12 +713,6 @@
      1u << PSA_GET_KEY_TYPE_BLOCK_SIZE_EXPONENT(type) :                         \
      0u)
 
-/** An invalid algorithm identifier value.
- *
- * Zero is not the encoding of any algorithm.
- */
-#define PSA_ALG_NONE                            ((psa_algorithm_t)0)
-
 /** Vendor-defined algorithm flag.
  *
  * Algorithms defined by this standard will never have the #PSA_ALG_VENDOR_FLAG
@@ -1940,10 +1934,10 @@
  * \return The underlying hash algorithm if alg is a composite algorithm that
  * uses a hash algorithm.
  *
- * \return #PSA_ALG_NONE if alg is not a composite algorithm that uses a hash.
+ * \return \c 0 if alg is not a composite algorithm that uses a hash.
  */
 #define PSA_ALG_GET_HASH(alg) \
-        (((alg) & 0x000000ff) == 0 ? PSA_ALG_NONE : 0x02000000 | ((alg) & 0x000000ff))
+        (((alg) & 0x000000ff) == 0 ? ((psa_algorithm_t)0) : 0x02000000 | ((alg) & 0x000000ff))
 
 /**@}*/
 

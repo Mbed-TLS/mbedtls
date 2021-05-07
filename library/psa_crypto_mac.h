@@ -182,13 +182,15 @@ psa_status_t mbedtls_psa_mac_update(
  *
  * \param[in,out] operation Active MAC operation.
  * \param[out] mac          Buffer where the MAC value is to be written.
- * \param mac_size          Size of the \p mac buffer in bytes.
- * \param[out] mac_length   On success, the number of bytes
- *                          that make up the MAC value. This is always
- *                          #PSA_MAC_LENGTH(\c key_type, \c key_bits, \c alg)
- *                          where \c key_type and \c key_bits are the type and
- *                          bit-size respectively of the key and \c alg is the
- *                          MAC algorithm that is calculated.
+ * \param mac_size          Output size requested for the MAC algorithm. The PSA
+ *                          core guarantees this is a valid MAC length for the
+ *                          algorithm and key combination passed to
+ *                          mbedtls_psa_mac_sign_setup(). It also guarantees the
+ *                          \p mac buffer is large enough to contain the
+ *                          requested output size.
+ * \param[out] mac_length   On success, the number of bytes output to buffer
+ *                          \p mac, which will be equal to the requested length
+ *                          \p mac_size.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -226,7 +228,10 @@ psa_status_t mbedtls_psa_mac_sign_finish(
  *
  * \param[in,out] operation Active MAC operation.
  * \param[in] mac           Buffer containing the expected MAC value.
- * \param mac_length        Size of the \p mac buffer in bytes.
+ * \param mac_length        Length in bytes of the expected MAC value. The PSA
+ *                          core guarantees that this length is a valid MAC
+ *                          length for the algorithm and key combination passed
+ *                          to mbedtls_psa_mac_verify_setup().
  *
  * \retval #PSA_SUCCESS
  *         The expected MAC is identical to the actual MAC of the message.

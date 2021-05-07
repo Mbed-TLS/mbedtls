@@ -229,11 +229,10 @@ static psa_status_t mac_init(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    operation->alg = PSA_ALG_FULL_LENGTH_MAC( alg );
-    operation->is_sign = 0;
+    operation->alg = alg;
 
 #if defined(BUILTIN_ALG_CMAC)
-    if( operation->alg == PSA_ALG_CMAC )
+    if( PSA_ALG_FULL_LENGTH_MAC( operation->alg ) == PSA_ALG_CMAC )
     {
         mbedtls_cipher_init( &operation->ctx.cmac );
         status = PSA_SUCCESS;
@@ -269,7 +268,7 @@ static psa_status_t mac_abort( mbedtls_psa_mac_operation_t *operation )
     }
     else
 #if defined(BUILTIN_ALG_CMAC)
-    if( operation->alg == PSA_ALG_CMAC )
+    if( PSA_ALG_FULL_LENGTH_MAC( operation->alg ) == PSA_ALG_CMAC )
     {
         mbedtls_cipher_free( &operation->ctx.cmac );
     }
@@ -289,7 +288,6 @@ static psa_status_t mac_abort( mbedtls_psa_mac_operation_t *operation )
     }
 
     operation->alg = 0;
-    operation->is_sign = 0;
 
     return( PSA_SUCCESS );
 
@@ -306,8 +304,7 @@ static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
                                const psa_key_attributes_t *attributes,
                                const uint8_t *key_buffer,
                                size_t key_buffer_size,
-                               psa_algorithm_t alg,
-                               int is_sign )
+                               psa_algorithm_t alg )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -318,13 +315,6 @@ static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
     status = mac_init( operation, alg );
     if( status != PSA_SUCCESS )
         return( status );
-    operation->is_sign = is_sign;
-
-    /* Get the output length for the algorithm and key combination. None of the
-     * currently supported algorithms have an output length dependent on actual
-     * key size, so setting it to a bogus value is currently OK. */
-    operation->mac_size =
-        PSA_MAC_LENGTH( psa_get_key_type( attributes ), 0, alg );
 
 #if defined(BUILTIN_ALG_CMAC)
     if( PSA_ALG_FULL_LENGTH_MAC( alg ) == PSA_ALG_CMAC )
@@ -340,7 +330,8 @@ static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
     if( PSA_ALG_IS_HMAC( alg ) )
     {
         /* Sanity check. This shouldn't fail on a valid configuration. */
-        if( operation->mac_size > sizeof( operation->ctx.hmac.opad ) )
+        if( PSA_MAC_LENGTH( psa_get_key_type( attributes ), 0, alg ) >
+            sizeof( operation->ctx.hmac.opad ) )
         {
             status = PSA_ERROR_NOT_SUPPORTED;
             goto exit;
@@ -363,7 +354,6 @@ static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
         status = PSA_ERROR_NOT_SUPPORTED;
     }
 
-exit:
     if( status != PSA_SUCCESS )
         mac_abort( operation );
 
@@ -401,8 +391,8 @@ static psa_status_t mac_sign_setup(
     size_t key_buffer_size,
     psa_algorithm_t alg )
 {
-    return( mac_setup( operation, attributes, key_buffer, key_buffer_size, alg,
-                       1 ) );
+    return( mac_setup( operation,
+                       attributes, key_buffer, key_buffer_size, alg ) );
 }
 
 static psa_status_t mac_verify_setup(
@@ -412,8 +402,8 @@ static psa_status_t mac_verify_setup(
     size_t key_buffer_size,
     psa_algorithm_t alg )
 {
-    return( mac_setup( operation, attributes, key_buffer, key_buffer_size, alg,
-                        0 ) );
+    return( mac_setup( operation,
+                       attributes, key_buffer, key_buffer_size, alg ) );
 }
 
 static psa_status_t mac_update(
@@ -425,7 +415,7 @@ static psa_status_t mac_update(
         return( PSA_ERROR_BAD_STATE );
 
 #if defined(BUILTIN_ALG_CMAC)
-    if( operation->alg == PSA_ALG_CMAC )
+    if( PSA_ALG_FULL_LENGTH_MAC( operation->alg ) == PSA_ALG_CMAC )
     {
         return( mbedtls_to_psa_error(
                     mbedtls_cipher_cmac_update( &operation->ctx.cmac,
@@ -452,16 +442,13 @@ static psa_status_t mac_finish_internal( mbedtls_psa_mac_operation_t *operation,
                                          uint8_t *mac,
                                          size_t mac_size )
 {
-    if( mac_size < operation->mac_size )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
-
 #if defined(BUILTIN_ALG_CMAC)
-    if( operation->alg == PSA_ALG_CMAC )
+    if( PSA_ALG_FULL_LENGTH_MAC( operation->alg ) == PSA_ALG_CMAC )
     {
         uint8_t tmp[PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE];
         int ret = mbedtls_cipher_cmac_finish( &operation->ctx.cmac, tmp );
         if( ret == 0 )
-            memcpy( mac, tmp, operation->mac_size );
+            memcpy( mac, tmp, mac_size );
         mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
         return( mbedtls_to_psa_error( ret ) );
     }
@@ -471,13 +458,16 @@ static psa_status_t mac_finish_internal( mbedtls_psa_mac_operation_t *operation,
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
         return( psa_hmac_finish_internal( &operation->ctx.hmac,
-                                          mac, operation->mac_size ) );
+                                          mac, mac_size ) );
     }
     else
 #endif /* BUILTIN_ALG_HMAC */
     {
         /* This shouldn't happen if `operation` was initialized by
          * a setup function. */
+        (void) operation;
+        (void) mac;
+        (void) mac_size;
         return( PSA_ERROR_BAD_STATE );
     }
 }
@@ -493,13 +483,10 @@ static psa_status_t mac_sign_finish(
     if( operation->alg == 0 )
         return( PSA_ERROR_BAD_STATE );
 
-    if( ! operation->is_sign )
-        return( PSA_ERROR_BAD_STATE );
-
     status = mac_finish_internal( operation, mac, mac_size );
 
     if( status == PSA_SUCCESS )
-        *mac_length = operation->mac_size;
+        *mac_length = mac_size;
 
     return( status );
 }
@@ -515,16 +502,11 @@ static psa_status_t mac_verify_finish(
     if( operation->alg == 0 )
         return( PSA_ERROR_BAD_STATE );
 
-    if( operation->is_sign )
-        return( PSA_ERROR_BAD_STATE );
+    /* Consistency check: requested MAC length fits our local buffer */
+    if( mac_length > sizeof( actual_mac ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
-    if( operation->mac_size != mac_length )
-    {
-        status = PSA_ERROR_INVALID_SIGNATURE;
-        goto cleanup;
-    }
-
-    status = mac_finish_internal( operation, actual_mac, sizeof( actual_mac ) );
+    status = mac_finish_internal( operation, actual_mac, mac_length );
     if( status != PSA_SUCCESS )
         goto cleanup;
 

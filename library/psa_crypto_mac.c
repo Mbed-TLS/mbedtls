@@ -329,20 +329,6 @@ static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
 #if defined(BUILTIN_ALG_HMAC)
     if( PSA_ALG_IS_HMAC( alg ) )
     {
-        /* Sanity check. This shouldn't fail on a valid configuration. */
-        if( PSA_MAC_LENGTH( psa_get_key_type( attributes ), 0, alg ) >
-            sizeof( operation->ctx.hmac.opad ) )
-        {
-            status = PSA_ERROR_NOT_SUPPORTED;
-            goto exit;
-        }
-
-        if( psa_get_key_type( attributes ) != PSA_KEY_TYPE_HMAC )
-        {
-            status = PSA_ERROR_INVALID_ARGUMENT;
-            goto exit;
-        }
-
         status = psa_hmac_setup_internal( &operation->ctx.hmac,
                                           key_buffer,
                                           key_buffer_size,

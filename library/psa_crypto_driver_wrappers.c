@@ -101,22 +101,13 @@ psa_status_t psa_driver_wrapper_sign_message(
                 return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-            /* Fell through, meaning no accelerator supports this operation */
-            return( psa_sign_message_builtin( attributes,
-                                              key_buffer,
-                                              key_buffer_size,
-                                              alg,
-                                              input,
-                                              input_length,
-                                              signature,
-                                              signature_size,
-                                              signature_length ) );
+            break;
 
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LOCATION:
-            return( mbedtls_test_opaque_signature_sign_message(
+            status = mbedtls_test_opaque_signature_sign_message(
                         attributes,
                         key_buffer,
                         key_buffer_size,
@@ -125,7 +116,10 @@ psa_status_t psa_driver_wrapper_sign_message(
                         input_length,
                         signature,
                         signature_size,
-                        signature_length ) );
+                        signature_length );
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return( status );
+            break;
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
@@ -133,6 +127,16 @@ psa_status_t psa_driver_wrapper_sign_message(
             (void)status;
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
+
+    return( psa_sign_message_builtin( attributes,
+                                      key_buffer,
+                                      key_buffer_size,
+                                      alg,
+                                      input,
+                                      input_length,
+                                      signature,
+                                      signature_size,
+                                      signature_length ) );
 }
 
 psa_status_t psa_driver_wrapper_verify_message(
@@ -170,15 +174,7 @@ psa_status_t psa_driver_wrapper_verify_message(
                 return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-
-            return( psa_verify_message_builtin( attributes,
-                                                key_buffer,
-                                                key_buffer_size,
-                                                alg,
-                                                input,
-                                                input_length,
-                                                signature,
-                                                signature_length ) );
+            break;
 
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
@@ -193,6 +189,9 @@ psa_status_t psa_driver_wrapper_verify_message(
                         input_length,
                         signature,
                         signature_length ) );
+            if( status != PSA_ERROR_NOT_SUPPORTED )
+                return( status );
+            break;
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
@@ -200,6 +199,15 @@ psa_status_t psa_driver_wrapper_verify_message(
             (void)status;
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
+
+    return( psa_verify_message_builtin( attributes,
+                                        key_buffer,
+                                        key_buffer_size,
+                                        alg,
+                                        input,
+                                        input_length,
+                                        signature,
+                                        signature_length ) );
 }
 
 psa_status_t psa_driver_wrapper_sign_hash(

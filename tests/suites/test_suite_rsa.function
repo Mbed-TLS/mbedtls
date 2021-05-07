@@ -180,23 +180,19 @@ void rsa_invalid_param( )
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_pkcs1_decrypt( NULL, NULL, NULL,
-                                                       valid_mode, &olen,
+                                                       &olen,
                                                        buf, buf, 42 ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_pkcs1_decrypt( &ctx, NULL, NULL,
-                                                       invalid_mode, &olen,
+                                                       NULL,
                                                        buf, buf, 42 ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_pkcs1_decrypt( &ctx, NULL, NULL,
-                                                       valid_mode, NULL,
-                                                       buf, buf, 42 ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_pkcs1_decrypt( &ctx, NULL, NULL,
-                                                       valid_mode, &olen,
+                                                       &olen,
                                                        NULL, buf, 42 ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_pkcs1_decrypt( &ctx, NULL, NULL,
-                                                       valid_mode, &olen,
+                                                       &olen,
                                                        buf, NULL, 42 ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
@@ -823,7 +819,7 @@ void mbedtls_rsa_pkcs1_decrypt( data_t * message_str, int padding_mode,
     output_len = 0;
 
     TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, mbedtls_test_rnd_pseudo_rand,
-                                            &rnd_info, MBEDTLS_RSA_PRIVATE,
+                                            &rnd_info,
                                             &output_len, message_str->x, output,
                                             max_output ) == result );
     if( result == 0 )

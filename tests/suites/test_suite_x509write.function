@@ -12,8 +12,7 @@ int mbedtls_rsa_decrypt_func( void *ctx, size_t *olen,
                        size_t output_max_len )
 {
     return( mbedtls_rsa_pkcs1_decrypt( (mbedtls_rsa_context *) ctx, NULL, NULL,
-                               MBEDTLS_RSA_PRIVATE, olen,
-                               input, output, output_max_len ) );
+                                        olen, input, output, output_max_len ) );
 }
 int mbedtls_rsa_sign_func( void *ctx,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,

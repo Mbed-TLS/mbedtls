@@ -89,7 +89,6 @@ void pkcs1_rsaes_v15_decrypt( int mod, int radix_P, char * input_P,
         TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx,
                                                 &mbedtls_test_rnd_pseudo_rand,
                                                 &rnd_info,
-                                                MBEDTLS_RSA_PRIVATE,
                                                 &output_len, message_str->x,
                                                 NULL, 0 ) == result );
     }
@@ -97,7 +96,7 @@ void pkcs1_rsaes_v15_decrypt( int mod, int radix_P, char * input_P,
     {
         TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx,
                                                 &mbedtls_test_rnd_pseudo_rand,
-                                                &rnd_info, MBEDTLS_RSA_PRIVATE,
+                                                &rnd_info,
                                                 &output_len, message_str->x,
                                                 output, 1000 ) == result );
         if( result == 0 )
@@ -211,7 +210,7 @@ void pkcs1_v15_decode( data_t *input,
     memcpy( final, default_content, sizeof( final ) );
     TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx,
                                             &mbedtls_test_rnd_pseudo_rand,
-                                            &rnd_info, MBEDTLS_RSA_PRIVATE, &output_length,
+                                            &rnd_info, &output_length,
                                             intermediate, final,
                                             output_size ) == expected_result );
     if( expected_result == 0 )

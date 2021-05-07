@@ -2240,6 +2240,8 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
         return( PSA_SUCCESS );
 
     psa_status_t status = psa_driver_wrapper_mac_abort( operation );
+    operation->mac_size = 0;
+    operation->is_sign = 0;
     operation->id = 0;
 
     return( status );
@@ -2253,7 +2255,6 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
-    size_t mac_size;
 
     /* A context must be freshly initialized before it can be set up. */
     if( operation->id != 0 )
@@ -2279,12 +2280,15 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     if( status != PSA_SUCCESS )
         goto exit;
 
+    operation->is_sign = is_sign;
+
     /* Get the output length for the algorithm and key combination. None of the
      * currently supported algorithms have an output length dependent on actual
      * key size, so setting it to a bogus value is currently OK. */
-    mac_size = PSA_MAC_LENGTH( psa_get_key_type( &attributes ), 0, alg );
+    operation->mac_size = PSA_MAC_LENGTH(
+                            psa_get_key_type( &attributes ), 0, alg );
 
-    if( mac_size < 4 )
+    if( operation->mac_size < 4 )
     {
         /* A very short MAC is too short for security since it can be
          * brute-forced. Ancient protocols with 32-bit MACs do exist,
@@ -2294,8 +2298,9 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         goto exit;
     }
 
-    if( mac_size > PSA_MAC_LENGTH( psa_get_key_type( &attributes ), 0,
-                                   PSA_ALG_FULL_LENGTH_MAC( alg ) ) )
+    if( operation->mac_size > PSA_MAC_LENGTH( psa_get_key_type( &attributes ),
+                                              0,
+                                              PSA_ALG_FULL_LENGTH_MAC( alg ) ) )
     {
         /* It's impossible to "truncate" to a larger length than the full length
          * of the algorithm. */
@@ -2372,25 +2377,44 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
 
+    /* Set the output length and content to a safe default, such that in
+     * case the caller misses an error check, the output would be an
+     * unachievable MAC. */
+    *mac_length = mac_size;
+
     if( operation->id == 0 )
         return( PSA_ERROR_BAD_STATE );
 
-    /* Fill the output buffer with something that isn't a valid mac
-     * (barring an attack on the mac and deliberately-crafted input),
-     * in case the caller doesn't check the return status properly. */
-    *mac_length = mac_size;
-    /* If mac_size is 0 then mac may be NULL and then the
-     * call to memset would have undefined behavior. */
-    if( mac_size != 0 )
-        memset( mac, '!', mac_size );
+    if( ! operation->is_sign )
+        return( PSA_ERROR_BAD_STATE );
+
+    /* Sanity checks on output buffer length. */
+    if( mac_size == 0 || mac_size < operation->mac_size )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
 
     status = psa_driver_wrapper_mac_sign_finish( operation,
-                                                 mac, mac_size, mac_length );
+                                                 mac, operation->mac_size,
+                                                 mac_length );
+
+    if( status == PSA_SUCCESS )
+    {
+        /* Set the excess room in the output buffer to an invalid value, to
+         * avoid potentially leaking a longer MAC. */
+        if( mac_size > operation->mac_size )
+            memset( &mac[operation->mac_size],
+                    '!',
+                    mac_size - operation->mac_size );
+    }
+    else
+    {
+        /* Set the output length and content to a safe default, such that in
+         * case the caller misses an error check, the output would be an
+         * unachievable MAC. */
+        *mac_length = mac_size;
+        memset( mac, '!', mac_size );
+    }
 
     abort_status = psa_mac_abort( operation );
-
-    if( status != PSA_SUCCESS && mac_size > 0 )
-        memset( mac, '!', mac_size );
 
     return( status == PSA_SUCCESS ? abort_status : status );
 }
@@ -2405,8 +2429,19 @@ psa_status_t psa_mac_verify_finish( psa_mac_operation_t *operation,
     if( operation->id == 0 )
         return( PSA_ERROR_BAD_STATE );
 
+    if( operation->is_sign )
+        return( PSA_ERROR_BAD_STATE );
+
+    if( operation->mac_size != mac_length )
+    {
+        status = PSA_ERROR_INVALID_SIGNATURE;
+        goto cleanup;
+    }
+
     status = psa_driver_wrapper_mac_verify_finish( operation,
                                                    mac, mac_length );
+
+cleanup:
     abort_status = psa_mac_abort( operation );
 
     return( status == PSA_SUCCESS ? abort_status : status );
@@ -3198,6 +3233,9 @@ static psa_status_t psa_key_derivation_start_hmac(
     psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
     psa_set_key_bits( &attributes, PSA_BYTES_TO_BITS( hmac_key_length ) );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
+
+    operation->is_sign = 1;
+    operation->mac_size = PSA_HASH_LENGTH( hash_alg );
 
     status = psa_driver_wrapper_mac_sign_setup( operation,
                                                 &attributes,

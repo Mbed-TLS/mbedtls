@@ -137,10 +137,12 @@ struct psa_mac_operation_s
      * ID value zero means the context is not valid or not assigned to
      * any driver (i.e. none of the driver contexts are active). */
     unsigned int id;
+    uint8_t mac_size;
+    unsigned int is_sign : 1;
     psa_driver_mac_context_t ctx;
 };
 
-#define PSA_MAC_OPERATION_INIT {0, {0}}
+#define PSA_MAC_OPERATION_INIT {0, 0, 0, {0}}
 static inline struct psa_mac_operation_s psa_mac_operation_init( void )
 {
     const struct psa_mac_operation_s v = PSA_MAC_OPERATION_INIT;

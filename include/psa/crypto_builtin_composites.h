@@ -62,8 +62,6 @@ typedef struct
 typedef struct
 {
     psa_algorithm_t alg;
-    unsigned int is_sign : 1;
-    uint8_t mac_size;
     union
     {
         unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
@@ -76,7 +74,7 @@ typedef struct
     } ctx;
 } mbedtls_psa_mac_operation_t;
 
-#define MBEDTLS_PSA_MAC_OPERATION_INIT {0, 0, 0, 0, {0}}
+#define MBEDTLS_PSA_MAC_OPERATION_INIT {0, {0}}
 
 /*
  * BEYOND THIS POINT, TEST DRIVER DECLARATIONS ONLY.

@@ -425,7 +425,7 @@
  * This key type is suitable for passwords and passphrases which are typically
  * intended to be memorizable by humans, and have a low entropy relative to
  * their size. It can be used for randomly generated or derived keys with
- * maximum or near-maximum entropy, but PSA_KEY_TYPE_DERIVE is more suitable
+ * maximum or near-maximum entropy, but #PSA_KEY_TYPE_DERIVE is more suitable
  * for such keys. It is not suitable for passwords with extremely low entropy,
  * such as numerical PINs.
  *

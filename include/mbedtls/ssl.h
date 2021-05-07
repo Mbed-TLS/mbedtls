@@ -2859,34 +2859,6 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif
-
-/**
- * \brief          Set the Diffie-Hellman public P and G values,
- *                 read as hexadecimal strings (server-side only)
- *                 (Default values: MBEDTLS_DHM_RFC3526_MODP_2048_[PG])
- *
- * \param conf     SSL configuration
- * \param dhm_P    Diffie-Hellman-Merkle modulus
- * \param dhm_G    Diffie-Hellman-Merkle generator
- *
- * \deprecated     Superseded by \c mbedtls_ssl_conf_dh_param_bin.
- *
- * \return         0 if successful
- */
-MBEDTLS_DEPRECATED int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf,
-                                                  const char *dhm_P,
-                                                  const char *dhm_G );
-
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-
 /**
  * \brief          Set the Diffie-Hellman public P and G values
  *                 from big-endian binary presentations.
@@ -3659,32 +3631,6 @@ size_t mbedtls_ssl_get_output_max_frag_len( const mbedtls_ssl_context *ssl );
  * \return         Current maximum fragment length for the output buffer.
  */
 size_t mbedtls_ssl_get_input_max_frag_len( const mbedtls_ssl_context *ssl );
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif
-
-/**
- * \brief          This function is a deprecated approach to getting the max
- *                 fragment length. Its an alias for
- *                 \c mbedtls_ssl_get_output_max_frag_len(), as the behaviour
- *                 is the same. See \c mbedtls_ssl_get_output_max_frag_len() for
- *                 more detail.
- *
- * \sa             mbedtls_ssl_get_input_max_frag_len()
- * \sa             mbedtls_ssl_get_output_max_frag_len()
- *
- * \param ssl      SSL context
- *
- * \return         Current maximum fragment length for the output buffer.
- */
-MBEDTLS_DEPRECATED size_t mbedtls_ssl_get_max_frag_len(
-                                        const mbedtls_ssl_context *ssl );
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 /**

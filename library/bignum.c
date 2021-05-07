@@ -2717,26 +2717,6 @@ int mbedtls_mpi_is_prime_ext( const mbedtls_mpi *X, int rounds,
     return( mpi_miller_rabin( &XX, rounds, f_rng, p_rng ) );
 }
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-/*
- * Pseudo-primality test, error probability 2^-80
- */
-int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
-                  int (*f_rng)(void *, unsigned char *, size_t),
-                  void *p_rng )
-{
-    MPI_VALIDATE_RET( X     != NULL );
-    MPI_VALIDATE_RET( f_rng != NULL );
-
-    /*
-     * In the past our key generation aimed for an error rate of at most
-     * 2^-80. Since this function is deprecated, aim for the same certainty
-     * here as well.
-     */
-    return( mbedtls_mpi_is_prime_ext( X, 40, f_rng, p_rng ) );
-}
-#endif
-
 /*
  * Prime number generation
  *

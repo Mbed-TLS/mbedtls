@@ -421,12 +421,6 @@
  * of mbedtls_sha1_context, so your implementation of mbedtls_sha1_process must be compatible
  * with this definition.
  *
- * \note Because of a signature change, the core AES encryption and decryption routines are
- *       currently named mbedtls_aes_internal_encrypt and mbedtls_aes_internal_decrypt,
- *       respectively. When setting up alternative implementations, these functions should
- *       be overridden, but the wrapper functions mbedtls_aes_decrypt and mbedtls_aes_encrypt
- *       must stay untouched.
- *
  * \note If you use the AES_xxx_ALT macros, then is is recommended to also set
  *       MBEDTLS_AES_ROM_TABLES in order to help the linker garbage-collect the AES
  *       tables.
@@ -445,9 +439,7 @@
  *            alternative implementations should use the RNG only for generating
  *            the ephemeral key and nothing else. If this is not possible, then
  *            MBEDTLS_ECDSA_DETERMINISTIC should be disabled and an alternative
- *            implementation should be provided for mbedtls_ecdsa_sign_det_ext()
- *            (and for mbedtls_ecdsa_sign_det() too if backward compatibility is
- *            desirable).
+ *            implementation should be provided for mbedtls_ecdsa_sign_det_ext().
  *
  */
 //#define MBEDTLS_MD2_PROCESS_ALT

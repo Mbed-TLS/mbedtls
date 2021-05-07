@@ -1311,7 +1311,7 @@ psa_status_t psa_driver_wrapper_aead_encrypt_setup(
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
             status = PSA_ERROR_NOT_SUPPORTED;
-            status = test_transparent_aead_encrypt_setup(
+            status = mbedtls_test_transparent_aead_encrypt_setup(
                         operation, attributes,
                         key_buffer, key_buffer_size,
                         alg );
@@ -1361,7 +1361,7 @@ psa_status_t psa_driver_wrapper_aead_decrypt_setup(
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
             status = PSA_ERROR_NOT_SUPPORTED;
-            status = test_transparent_aead_decrypt_setup(
+            status = mbedtls_test_transparent_aead_decrypt_setup(
                         operation, attributes,
                         key_buffer, key_buffer_size,
                         alg );
@@ -1401,14 +1401,15 @@ psa_status_t psa_driver_wrapper_aead_set_nonce(
     {
 #if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_aead_set_nonce( operation, nonce, nonce_length ) );
+            return( mbedtls_psa_aead_set_nonce( operation, nonce,
+                                                nonce_length ) );
 
 #endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
-            return( test_transparent_aead_set_nonce(
+            return( mbedtls_test_transparent_aead_set_nonce(
                         operation, nonce, nonce_length ) );
 
         /* Add cases for opaque driver here */
@@ -1432,14 +1433,15 @@ psa_status_t psa_driver_wrapper_aead_set_lengths(
     {
 #if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_aead_set_lengths( operation, ad_length, plaintext_length ) );
+            return( mbedtls_psa_aead_set_lengths( operation, ad_length,
+                                                  plaintext_length ) );
 
 #endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
-            return( test_transparent_aead_set_lengths(
+            return( mbedtls_test_transparent_aead_set_lengths(
                         operation, ad_length, plaintext_length ) );
 
         /* Add cases for opaque driver here */
@@ -1463,14 +1465,15 @@ psa_status_t psa_driver_wrapper_aead_update_ad(
     {
 #if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_aead_update_ad( operation, input, input_length ) );
+            return( mbedtls_psa_aead_update_ad( operation, input,
+                                                input_length ) );
 
 #endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
-            return( test_transparent_aead_update_ad(
+            return( mbedtls_test_transparent_aead_update_ad(
                         operation, input, input_length ) );
 
         /* Add cases for opaque driver here */
@@ -1497,15 +1500,16 @@ psa_status_t psa_driver_wrapper_aead_update(
     {
 #if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_aead_update( operation, input, input_length, output,
-                                             output_size, output_length ) );
+            return( mbedtls_psa_aead_update( operation, input, input_length,
+                                             output, output_size,
+                                             output_length ) );
 
 #endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
-            return( test_transparent_aead_update(
+            return( mbedtls_test_transparent_aead_update(
                         operation, input, input_length, output, output_size,
                         output_length ) );
 
@@ -1537,15 +1541,17 @@ psa_status_t psa_driver_wrapper_aead_finish(
     {
 #if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_aead_finish( operation, ciphertext, ciphertext_size,
-                                             ciphertext_length, tag, tag_size, tag_length ) );
+            return( mbedtls_psa_aead_finish( operation, ciphertext,
+                                             ciphertext_size,
+                                             ciphertext_length, tag,
+                                             tag_size, tag_length ) );
 
 #endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
-            return( test_transparent_aead_finish(
+            return( mbedtls_test_transparent_aead_finish(
                         operation, ciphertext, ciphertext_size,
                         ciphertext_length, tag, tag_size, tag_length ) );
 
@@ -1577,15 +1583,16 @@ psa_status_t psa_driver_wrapper_aead_verify(
     {
 #if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_aead_verify( operation, plaintext, plaintext_size,
-                                             plaintext_length, tag, tag_length ) );
+            return( mbedtls_psa_aead_verify( operation, plaintext,
+                                             plaintext_size, plaintext_length,
+                                             tag, tag_length ) );
 
 #endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
-            return( test_transparent_aead_verify(
+            return( mbedtls_test_transparent_aead_verify(
                         operation, plaintext, plaintext_size,
                         plaintext_length, tag, tag_length ) );
 
@@ -1618,7 +1625,7 @@ psa_status_t psa_driver_wrapper_aead_abort(
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID:
-            return( test_transparent_aead_abort( operation ) );
+            return( mbedtls_test_transparent_aead_abort( operation ) );
 
         /* Add cases for opaque driver here */
 

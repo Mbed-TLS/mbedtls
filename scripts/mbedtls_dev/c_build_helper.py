@@ -89,6 +89,7 @@ int main(void)
 }
 ''')
 
+_cc_is_msvc = None #pylint: disable=invalid-name
 def get_c_expression_values(
         cast_to, printf_format,
         expressions,
@@ -128,11 +129,20 @@ def get_c_expression_values(
         )
         c_file.close()
         cc = os.getenv('CC', 'cc')
-        cc_is_msvc = os.path.split(cc)[1].lower() in ('cl', 'cl.exe')
         cmd = [cc]
+
+        global _cc_is_msvc #pylint: disable=global-statement,invalid-name
+        if _cc_is_msvc is None:
+            proc = subprocess.Popen(cmd,
+                                    stdout=subprocess.DEVNULL,
+                                    stderr=subprocess.PIPE,
+                                    universal_newlines=True)
+            _cc_is_msvc = 'Microsoft (R) C/C++ Optimizing Compiler' in \
+                         proc.communicate()[1]
+
         cmd += ['-I' + dir for dir in include_path]
         # MSVC has deprecated using -o to specify the output file.
-        output_opt = '-Fe' if cc_is_msvc else '-o'
+        output_opt = '-Fe' if _cc_is_msvc else '-o'
         cmd += [output_opt + exe_name]
         subprocess.check_call(cmd + [c_name])
         if keep_c:

@@ -447,6 +447,9 @@ psa_status_t mbedtls_psa_aead_set_lengths( mbedtls_psa_aead_operation_t
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
     {
+        /* Lengths can only be too large for GCM if size_t is bigger than 32
+         * bits. Without the guard this code will generate warnings on 32bit
+           builds */
 #if SIZE_MAX > UINT32_MAX
         if( ( (uint64_t) ad_length ) >> 61 != 0 ||
             ( (uint64_t) plaintext_length ) > 0xFFFFFFFE0ull )

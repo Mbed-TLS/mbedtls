@@ -3619,6 +3619,10 @@ psa_status_t psa_key_derivation_output_bytes(
  * on the derived key based on the attributes and strength of the secret key.
  *
  * \param[in] attributes    The attributes for the new key.
+ *                          If the key type to be created is
+ *                          #PSA_KEY_TYPE_PASSWORD_HASH then the algorithm in
+ *                          the policy must be the same as in the current
+ *                          operation.
  * \param[in,out] operation The key derivation operation object to read from.
  * \param[out] key          On success, an identifier for the newly created
  *                          key. For persistent keys, this is the key

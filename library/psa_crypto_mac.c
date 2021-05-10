@@ -347,6 +347,9 @@ static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
     else
 #endif /* BUILTIN_ALG_HMAC */
     {
+        (void) attributes;
+        (void) key_buffer;
+        (void) key_buffer_size;
         status = PSA_ERROR_NOT_SUPPORTED;
     }
 
@@ -430,6 +433,8 @@ static psa_status_t mac_update(
     {
         /* This shouldn't happen if `operation` was initialized by
          * a setup function. */
+        (void) input;
+        (void) input_length;
         return( PSA_ERROR_BAD_STATE );
     }
 }

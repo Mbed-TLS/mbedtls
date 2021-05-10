@@ -38,21 +38,6 @@
 #include "mbedtls/gcm.h"
 #include "mbedtls/error.h"
 
-/* Constant-time buffer comparison. This is duplication of code from
- * psa_crypto.c, but has nowhere private I can put it for the minute. Really
-   belongs in the constant time module, when that gets implemented */
-static inline int safer_memcmp( const uint8_t *a, const uint8_t *b, size_t n )
-{
-    size_t i;
-    unsigned char diff = 0;
-
-    for( i = 0; i < n; i++ )
-        diff |= a[i] ^ b[i];
-
-    return( diff );
-}
-
-
 static psa_status_t psa_aead_setup(
     mbedtls_psa_aead_operation_t *operation,
     const psa_key_attributes_t *attributes,
@@ -1014,7 +999,8 @@ psa_status_t mbedtls_psa_aead_verify( mbedtls_psa_aead_operation_t *operation,
     {
         *plaintext_length = finish_output_size;
 
-        if( do_tag_check && safer_memcmp(tag, check_tag, tag_length) != 0 )
+        if( do_tag_check &&
+            mbedtls_psa_safer_memcmp(tag, check_tag, tag_length) != 0 )
         {
             status = PSA_ERROR_INVALID_SIGNATURE;
         }

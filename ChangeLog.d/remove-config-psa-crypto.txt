@@ -1,0 +1,6 @@
+Changes
+   * Remove configs/config-psa-crypto.h, which was identical to the default
+     configuration except for having some extra cryptographic mechanisms
+     enabled and for unintended differences. This configuration was primarily
+     intended to demonstrate the PSA API, and lost most of its usefulness when
+     MBEDTLS_PSA_CRYPTO_C became enabled by default.

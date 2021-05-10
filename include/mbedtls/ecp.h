@@ -1176,7 +1176,7 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
  *
  * \param grp_id    The ECP group identifier.
  * \param key       The destination key.
- * \param buf       The the buffer containing the binary representation of the
+ * \param buf       The buffer containing the binary representation of the
  *                  key. (Big endian integer for Weierstrass curves, byte
  *                  string for Montgomery curves.)
  * \param buflen    The length of the buffer in bytes.

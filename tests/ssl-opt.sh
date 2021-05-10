@@ -1331,11 +1331,9 @@ run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-256-CCM
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-256-CCM-8
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256
-requires_config_enabled MBEDTLS_SHA384_C
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256
-requires_config_enabled MBEDTLS_SHA384_C
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384
 
 requires_config_enabled MBEDTLS_ECP_DP_SECP521R1_ENABLED
@@ -4304,7 +4302,6 @@ run_test    "Authentication, CA callback: server ECDH p256v1, client optional, p
             -c "! Certificate verification flags"\
             -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
 
-requires_config_enabled MBEDTLS_SHA384_C
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: client SHA256, server required" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \

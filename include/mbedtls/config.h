@@ -1449,17 +1449,6 @@
 //#define MBEDTLS_SHA512_SMALLER
 
 /**
- * \def MBEDTLS_SHA384_C
- *
- * Enable the SHA-384 option of the SHA-512 module.
- *
- * Requires: MBEDTLS_SHA512_C
- *
- * Comment to disable SHA-384
- */
-#define MBEDTLS_SHA384_C
-
-/**
  * \def MBEDTLS_SSL_ALL_ALERT_MESSAGES
  *
  * Enable sending of alert messages in case of encountered errors as per RFC.
@@ -3105,9 +3094,29 @@
 #define MBEDTLS_SHA1_C
 
 /**
+ * \def MBEDTLS_SHA224_C
+ *
+ * Enable the SHA-224 cryptographic hash algorithm.
+ *
+ * Requires: MBEDTLS_SHA256_C. Library does not support enabling
+ *           SHA-224 without SHA-256. Future version will have
+ *           this option disabled by default.
+ *
+ * Module:  library/sha256.c
+ * Caller:  library/md.c
+ *          library/ssl_cookie.c
+ *
+ * This module adds support for SHA-224.
+ */
+#define MBEDTLS_SHA224_C
+
+/**
  * \def MBEDTLS_SHA256_C
  *
- * Enable the SHA-256 cryptographic hash algorithms.
+ * Enable the SHA-256 cryptographic hash algorithm.
+ *
+ * Requires: MBEDTLS_SHA224_C. Library does not support enabling
+ *           SHA-256 without SHA-224.
  *
  * Module:  library/sha256.c
  * Caller:  library/entropy.c
@@ -3117,28 +3126,25 @@
  *          library/ssl_tls.c
  *
  * This module adds support for SHA-256.
- * This module is required for SHA-244.
  * This module is required for the SSL/TLS 1.2 PRF function.
  */
 #define MBEDTLS_SHA256_C
 
 /**
- * \def MBEDTLS_SHA224_C
+ * \def MBEDTLS_SHA384_C
  *
- * Enable the SHA-224 cryptographic hash algorithms.
+ * Enable the SHA-384 cryptographic hash algorithm.
  *
- * Module:  library/sha256.c
- * Caller:  library/entropy.c
- *          library/md.c
+ * Requires: MBEDTLS_SHA512_C
+ *
+ * Module:  library/sha512.c
+ * Caller:  library/md.c
  *          library/ssl_cli.c
  *          library/ssl_srv.c
- *          library/ssl_tls.c
  *
- * Requires: MBEDTLS_SHA256_C
- * This module adds support for SHA-224.
- * This module is required for the SSL/TLS 1.2 PRF function.
+ * Comment to disable SHA-384
  */
-#define MBEDTLS_SHA224_C
+#define MBEDTLS_SHA384_C
 
 /**
  * \def MBEDTLS_SHA512_C
@@ -3148,11 +3154,10 @@
  * Module:  library/sha512.c
  * Caller:  library/entropy.c
  *          library/md.c
- *          library/ssl_cli.c
- *          library/ssl_srv.c
+ *          library/ssl_tls.c
+ *          library/ssl_cookie.c
  *
  * This module adds support for SHA-512.
- * This module is required for SHA-384.
  */
 #define MBEDTLS_SHA512_C
 

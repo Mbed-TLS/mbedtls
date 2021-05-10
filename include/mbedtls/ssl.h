@@ -827,7 +827,7 @@ typedef void mbedtls_ssl_async_cancel_t( mbedtls_ssl_context *ssl );
 #if defined(MBEDTLS_SHA256_C)
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA256
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  32
-#elif defined(MBEDTLS_SHA512_C)
+#elif defined(MBEDTLS_SHA384_C)
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA384
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  48
 #elif defined(MBEDTLS_SHA1_C)

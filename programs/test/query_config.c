@@ -2067,6 +2067,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SHA1_C */
 
+#if defined(MBEDTLS_SHA224_C)
+    if( strcmp( "MBEDTLS_SHA224_C", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SHA224_C );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SHA224_C */
+
 #if defined(MBEDTLS_SHA256_C)
     if( strcmp( "MBEDTLS_SHA256_C", config ) == 0 )
     {
@@ -2075,13 +2083,13 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SHA256_C */
 
-#if defined(MBEDTLS_SHA224_C)
-    if( strcmp( "MBEDTLS_SHA224_C", config ) == 0 )
+#if defined(MBEDTLS_SHA384_C)
+    if( strcmp( "MBEDTLS_SHA384_C", config ) == 0 )
     {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_SHA224_C );
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SHA384_C );
         return( 0 );
     }
-#endif /* MBEDTLS_SHA224_C */
+#endif /* MBEDTLS_SHA384_C */
 
 #if defined(MBEDTLS_SHA512_C)
     if( strcmp( "MBEDTLS_SHA512_C", config ) == 0 )

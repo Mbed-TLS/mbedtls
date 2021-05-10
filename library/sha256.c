@@ -103,7 +103,6 @@ void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
 int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 )
 {
     SHA256_VALIDATE_RET( ctx != NULL );
-    SHA256_VALIDATE_RET( is224 == 0 || is224 == 1 );
 
 #if defined(MBEDTLS_SHA224_C)
     SHA256_VALIDATE_RET( is224 == 0 || is224 == 1 );

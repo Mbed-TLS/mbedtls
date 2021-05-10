@@ -357,11 +357,13 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_SHA256,   MBEDTLS_PK_RSA,
     },
 #endif /* MBEDTLS_SHA256_C */
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA384_C)
     {
         { ADD_LEN( MBEDTLS_OID_PKCS1_SHA384 ),     "sha384WithRSAEncryption",  "RSA with SHA-384" },
         MBEDTLS_MD_SHA384,   MBEDTLS_PK_RSA,
     },
+#endif /* MBEDTLS_SHA384_C */
+#if defined(MBEDTLS_SHA512_C)
     {
         { ADD_LEN( MBEDTLS_OID_PKCS1_SHA512 ),     "sha512WithRSAEncryption",  "RSA with SHA-512" },
         MBEDTLS_MD_SHA512,   MBEDTLS_PK_RSA,
@@ -672,11 +674,13 @@ static const oid_md_hmac_t oid_md_hmac[] =
         MBEDTLS_MD_SHA256,
     },
 #endif /* MBEDTLS_SHA256_C */
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA384_C)
     {
         { ADD_LEN( MBEDTLS_OID_HMAC_SHA384 ),    "hmacSHA384",    "HMAC-SHA-384" },
         MBEDTLS_MD_SHA384,
     },
+#endif /* MBEDTLS_SHA384_C */
+#if defined(MBEDTLS_SHA512_C)
     {
         { ADD_LEN( MBEDTLS_OID_HMAC_SHA512 ),    "hmacSHA512",    "HMAC-SHA-512" },
         MBEDTLS_MD_SHA512,

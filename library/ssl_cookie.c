@@ -48,7 +48,7 @@
 #define COOKIE_MD           MBEDTLS_MD_SHA224
 #define COOKIE_MD_OUTLEN    32
 #define COOKIE_HMAC_LEN     28
-#elif defined(MBEDTLS_SHA512_C)
+#elif defined(MBEDTLS_SHA384_C)
 #define COOKIE_MD           MBEDTLS_MD_SHA384
 #define COOKIE_MD_OUTLEN    48
 #define COOKIE_HMAC_LEN     28

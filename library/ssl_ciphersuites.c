@@ -1675,8 +1675,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
 
-#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_RSA_WITH_ARIA_256_GCM_SHA384,
              "TLS-RSA-WITH-ARIA-256-GCM-SHA384",
       MBEDTLS_CIPHER_ARIA_256_GCM, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_RSA,
@@ -1684,8 +1683,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3,
       0 },
 #endif
-#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_RSA_WITH_ARIA_256_CBC_SHA384,
              "TLS-RSA-WITH-ARIA-256-CBC-SHA384",
       MBEDTLS_CIPHER_ARIA_256_CBC, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_RSA,
@@ -1714,8 +1712,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
 
-#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_RSA_PSK_WITH_ARIA_256_GCM_SHA384,
              "TLS-RSA-PSK-WITH-ARIA-256-GCM-SHA384",
       MBEDTLS_CIPHER_ARIA_256_GCM, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_RSA_PSK,
@@ -1723,8 +1720,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3,
       0 },
 #endif
-#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_RSA_PSK_WITH_ARIA_256_CBC_SHA384,
              "TLS-RSA-PSK-WITH-ARIA-256-CBC-SHA384",
       MBEDTLS_CIPHER_ARIA_256_CBC, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_RSA_PSK,
@@ -1753,8 +1749,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
 
-#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_PSK_WITH_ARIA_256_GCM_SHA384,
              "TLS-PSK-WITH-ARIA-256-GCM-SHA384",
       MBEDTLS_CIPHER_ARIA_256_GCM, MBEDTLS_MD_SHA384,MBEDTLS_KEY_EXCHANGE_PSK,
@@ -1762,8 +1757,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3,
       0 },
 #endif
-#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_PSK_WITH_ARIA_256_CBC_SHA384,
              "TLS-PSK-WITH-ARIA-256-CBC-SHA384",
       MBEDTLS_CIPHER_ARIA_256_CBC, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_PSK,
@@ -1792,8 +1786,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)
 
-#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_ECDH_RSA_WITH_ARIA_256_GCM_SHA384,
              "TLS-ECDH-RSA-WITH-ARIA-256-GCM-SHA384",
       MBEDTLS_CIPHER_ARIA_256_GCM, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_ECDH_RSA,
@@ -1801,8 +1794,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3,
       0 },
 #endif
-#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_ECDH_RSA_WITH_ARIA_256_CBC_SHA384,
              "TLS-ECDH-RSA-WITH-ARIA-256-CBC-SHA384",
       MBEDTLS_CIPHER_ARIA_256_CBC, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_ECDH_RSA,
@@ -1831,8 +1823,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)
 
-#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_ECDHE_RSA_WITH_ARIA_256_GCM_SHA384,
              "TLS-ECDHE-RSA-WITH-ARIA-256-GCM-SHA384",
       MBEDTLS_CIPHER_ARIA_256_GCM, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_ECDHE_RSA,
@@ -1840,8 +1831,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3,
       0 },
 #endif
-#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_ECDHE_RSA_WITH_ARIA_256_CBC_SHA384,
              "TLS-ECDHE-RSA-WITH-ARIA-256-CBC-SHA384",
       MBEDTLS_CIPHER_ARIA_256_CBC, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_ECDHE_RSA,
@@ -1870,8 +1860,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 
-#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_ECDHE_PSK_WITH_ARIA_256_CBC_SHA384,
              "TLS-ECDHE-PSK-WITH-ARIA-256-CBC-SHA384",
       MBEDTLS_CIPHER_ARIA_256_CBC, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_ECDHE_PSK,
@@ -1892,8 +1881,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 
-#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_ECDHE_ECDSA_WITH_ARIA_256_GCM_SHA384,
              "TLS-ECDHE-ECDSA-WITH-ARIA-256-GCM-SHA384",
       MBEDTLS_CIPHER_ARIA_256_GCM, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA,
@@ -1901,8 +1889,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3,
       0 },
 #endif
-#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_ECDHE_ECDSA_WITH_ARIA_256_CBC_SHA384,
              "TLS-ECDHE-ECDSA-WITH-ARIA-256-CBC-SHA384",
       MBEDTLS_CIPHER_ARIA_256_CBC, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA,
@@ -1931,8 +1918,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
 
-#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_ECDH_ECDSA_WITH_ARIA_256_GCM_SHA384,
              "TLS-ECDH-ECDSA-WITH-ARIA-256-GCM-SHA384",
       MBEDTLS_CIPHER_ARIA_256_GCM, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA,
@@ -1940,8 +1926,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3,
       0 },
 #endif
-#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_ECDH_ECDSA_WITH_ARIA_256_CBC_SHA384,
              "TLS-ECDH-ECDSA-WITH-ARIA-256-CBC-SHA384",
       MBEDTLS_CIPHER_ARIA_256_CBC, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA,
@@ -1970,8 +1955,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
 
-#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_DHE_RSA_WITH_ARIA_256_GCM_SHA384,
              "TLS-DHE-RSA-WITH-ARIA-256-GCM-SHA384",
       MBEDTLS_CIPHER_ARIA_256_GCM, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_DHE_RSA,
@@ -1979,8 +1963,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3,
       0 },
 #endif
-#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_DHE_RSA_WITH_ARIA_256_CBC_SHA384,
              "TLS-DHE-RSA-WITH-ARIA-256-CBC-SHA384",
       MBEDTLS_CIPHER_ARIA_256_CBC, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_DHE_RSA,
@@ -2009,8 +1992,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
 
-#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_DHE_PSK_WITH_ARIA_256_GCM_SHA384,
              "TLS-DHE-PSK-WITH-ARIA-256-GCM-SHA384",
       MBEDTLS_CIPHER_ARIA_256_GCM, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_DHE_PSK,
@@ -2018,8 +2000,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3,
       0 },
 #endif
-#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA512_C) && \
-     defined(MBEDTLS_SHA384_C))
+#if (defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_SHA384_C))
     { MBEDTLS_TLS_DHE_PSK_WITH_ARIA_256_CBC_SHA384,
              "TLS-DHE-PSK-WITH-ARIA-256-CBC-SHA384",
       MBEDTLS_CIPHER_ARIA_256_CBC, MBEDTLS_MD_SHA384, MBEDTLS_KEY_EXCHANGE_DHE_PSK,

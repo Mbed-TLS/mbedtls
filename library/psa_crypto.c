@@ -2282,11 +2282,11 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
 
     operation->is_sign = is_sign;
 
-    /* Get the output length for the algorithm and key combination. None of the
-     * currently supported algorithms have an output length dependent on actual
-     * key size, so setting it to a bogus value is currently OK. */
+    /* Get the output length for the algorithm and key combination */
     operation->mac_size = PSA_MAC_LENGTH(
-                            psa_get_key_type( &attributes ), 0, alg );
+                            psa_get_key_type( &attributes ),
+                            psa_get_key_bits( &attributes ),
+                            alg );
 
     if( operation->mac_size < 4 )
     {
@@ -2299,7 +2299,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     }
 
     if( operation->mac_size > PSA_MAC_LENGTH( psa_get_key_type( &attributes ),
-                                              0,
+                                              psa_get_key_bits( &attributes ),
                                               PSA_ALG_FULL_LENGTH_MAC( alg ) ) )
     {
         /* It's impossible to "truncate" to a larger length than the full length

@@ -982,7 +982,7 @@ void mac_sign( int key_type_arg,
     size_t mac_length = 0;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t forced_status = forced_status_arg;
-    test_driver_mac_hooks = test_driver_mac_hooks_init();
+    mbedtls_test_driver_mac_hooks = mbedtls_test_driver_mac_hooks_init();
 
     TEST_ASSERT( mac_buffer_size <= PSA_MAC_MAX_SIZE );
     /* We expect PSA_MAC_LENGTH to be exact. */
@@ -998,11 +998,11 @@ void mac_sign( int key_type_arg,
                                 &key ) );
 
     ASSERT_ALLOC( actual_mac, mac_buffer_size );
-    test_driver_mac_hooks.forced_status = forced_status;
+    mbedtls_test_driver_mac_hooks.forced_status = forced_status;
 
     /* Calculate the MAC. */
     status = psa_mac_sign_setup( &operation, key, alg );
-    TEST_EQUAL( test_driver_mac_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
 
     if( forced_status == PSA_SUCCESS ||
         forced_status == PSA_ERROR_NOT_SUPPORTED )
@@ -1015,9 +1015,9 @@ void mac_sign( int key_type_arg,
     status = psa_mac_update( &operation,
                              input->x, input->len );
     if( forced_status == PSA_SUCCESS )
-        TEST_EQUAL( test_driver_mac_hooks.hits, 2 );
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 2 );
     else
-        TEST_EQUAL( test_driver_mac_hooks.hits, 1 );
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
     if( forced_status == PSA_SUCCESS ||
         forced_status == PSA_ERROR_NOT_SUPPORTED )
     {
@@ -1030,9 +1030,9 @@ void mac_sign( int key_type_arg,
                                   actual_mac, mac_buffer_size,
                                   &mac_length );
     if( forced_status == PSA_SUCCESS )
-        TEST_EQUAL( test_driver_mac_hooks.hits, 4 );
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 4 );
     else
-        TEST_EQUAL( test_driver_mac_hooks.hits, 1 );
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
 
     if( forced_status == PSA_SUCCESS ||
         forced_status == PSA_ERROR_NOT_SUPPORTED )
@@ -1044,9 +1044,9 @@ void mac_sign( int key_type_arg,
 
     PSA_ASSERT( psa_mac_abort( &operation ) );
     if( forced_status == PSA_SUCCESS )
-        TEST_EQUAL( test_driver_mac_hooks.hits, 4 );
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 4 );
     else
-        TEST_EQUAL( test_driver_mac_hooks.hits, 1 );
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
 
     if( forced_status == PSA_SUCCESS )
     {
@@ -1062,7 +1062,7 @@ exit:
     psa_destroy_key( key );
     PSA_DONE( );
     mbedtls_free( actual_mac );
-    test_driver_mac_hooks = test_driver_mac_hooks_init();
+    mbedtls_test_driver_mac_hooks = mbedtls_test_driver_mac_hooks_init();
 }
 /* END_CASE */
 
@@ -1081,7 +1081,7 @@ void mac_verify( int key_type_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     psa_status_t forced_status = forced_status_arg;
-    test_driver_mac_hooks = test_driver_mac_hooks_init();
+    mbedtls_test_driver_mac_hooks = mbedtls_test_driver_mac_hooks_init();
 
     TEST_ASSERT( expected_mac->len <= PSA_MAC_MAX_SIZE );
 
@@ -1094,11 +1094,11 @@ void mac_verify( int key_type_arg,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
 
-    test_driver_mac_hooks.forced_status = forced_status;
+    mbedtls_test_driver_mac_hooks.forced_status = forced_status;
 
     /* Test the correct MAC. */
     status = psa_mac_verify_setup( &operation, key, alg );
-    TEST_EQUAL( test_driver_mac_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
 
     if( forced_status == PSA_SUCCESS ||
         forced_status == PSA_ERROR_NOT_SUPPORTED )
@@ -1111,9 +1111,9 @@ void mac_verify( int key_type_arg,
     status = psa_mac_update( &operation,
                              input->x, input->len );
     if( forced_status == PSA_SUCCESS )
-        TEST_EQUAL( test_driver_mac_hooks.hits, 2 );
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 2 );
     else
-        TEST_EQUAL( test_driver_mac_hooks.hits, 1 );
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
 
     if( forced_status == PSA_SUCCESS ||
         forced_status == PSA_ERROR_NOT_SUPPORTED )
@@ -1127,9 +1127,9 @@ void mac_verify( int key_type_arg,
                                     expected_mac->x,
                                     expected_mac->len );
     if( forced_status == PSA_SUCCESS )
-        TEST_EQUAL( test_driver_mac_hooks.hits, 4 );
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 4 );
     else
-        TEST_EQUAL( test_driver_mac_hooks.hits, 1 );
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
 
     if( forced_status == PSA_SUCCESS ||
         forced_status == PSA_ERROR_NOT_SUPPORTED )
@@ -1142,15 +1142,15 @@ void mac_verify( int key_type_arg,
 
     PSA_ASSERT( psa_mac_abort( &operation ) );
     if( forced_status == PSA_SUCCESS )
-        TEST_EQUAL( test_driver_mac_hooks.hits, 4 );
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 4 );
     else
-        TEST_EQUAL( test_driver_mac_hooks.hits, 1 );
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
 
 exit:
     psa_mac_abort( &operation );
     psa_destroy_key( key );
     PSA_DONE( );
-    test_driver_mac_hooks = test_driver_mac_hooks_init();
+    mbedtls_test_driver_mac_hooks = mbedtls_test_driver_mac_hooks_init();
 }
 /* END_CASE */
 

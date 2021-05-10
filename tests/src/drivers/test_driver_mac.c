@@ -28,7 +28,8 @@
 
 #include "test/drivers/mac.h"
 
-test_driver_mac_hooks_t test_driver_mac_hooks = MBEDTLS_TEST_DRIVER_MAC_INIT;
+mbedtls_test_driver_mac_hooks_t mbedtls_test_driver_mac_hooks =
+    MBEDTLS_TEST_DRIVER_MAC_INIT;
 
 psa_status_t mbedtls_test_transparent_mac_compute(
     const psa_key_attributes_t *attributes,
@@ -41,23 +42,23 @@ psa_status_t mbedtls_test_transparent_mac_compute(
     size_t mac_size,
     size_t *mac_length )
 {
-    test_driver_mac_hooks.hits++;
+    mbedtls_test_driver_mac_hooks.hits++;
 
-    if( test_driver_mac_hooks.forced_status != PSA_SUCCESS )
+    if( mbedtls_test_driver_mac_hooks.forced_status != PSA_SUCCESS )
     {
-         test_driver_mac_hooks.driver_status =
-             test_driver_mac_hooks.forced_status;
+         mbedtls_test_driver_mac_hooks.driver_status =
+             mbedtls_test_driver_mac_hooks.forced_status;
     }
     else
     {
-        test_driver_mac_hooks.driver_status =
+        mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_transparent_test_driver_mac_compute(
                 attributes, key_buffer, key_buffer_size, alg,
                 input, input_length,
                 mac, mac_size, mac_length );
     }
 
-    return( test_driver_mac_hooks.driver_status );
+    return( mbedtls_test_driver_mac_hooks.driver_status );
 }
 
 psa_status_t mbedtls_test_transparent_mac_sign_setup(
@@ -67,21 +68,21 @@ psa_status_t mbedtls_test_transparent_mac_sign_setup(
     size_t key_buffer_size,
     psa_algorithm_t alg )
 {
-    test_driver_mac_hooks.hits++;
+    mbedtls_test_driver_mac_hooks.hits++;
 
-    if( test_driver_mac_hooks.forced_status != PSA_SUCCESS )
+    if( mbedtls_test_driver_mac_hooks.forced_status != PSA_SUCCESS )
     {
-         test_driver_mac_hooks.driver_status =
-             test_driver_mac_hooks.forced_status;
+         mbedtls_test_driver_mac_hooks.driver_status =
+             mbedtls_test_driver_mac_hooks.forced_status;
     }
     else
     {
-        test_driver_mac_hooks.driver_status =
+        mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_transparent_test_driver_mac_sign_setup(
                 operation, attributes, key_buffer, key_buffer_size, alg );
     }
 
-    return( test_driver_mac_hooks.driver_status );
+    return( mbedtls_test_driver_mac_hooks.driver_status );
 }
 
 psa_status_t mbedtls_test_transparent_mac_verify_setup(
@@ -91,21 +92,21 @@ psa_status_t mbedtls_test_transparent_mac_verify_setup(
     size_t key_buffer_size,
     psa_algorithm_t alg )
 {
-    test_driver_mac_hooks.hits++;
+    mbedtls_test_driver_mac_hooks.hits++;
 
-    if( test_driver_mac_hooks.forced_status != PSA_SUCCESS )
+    if( mbedtls_test_driver_mac_hooks.forced_status != PSA_SUCCESS )
     {
-         test_driver_mac_hooks.driver_status =
-             test_driver_mac_hooks.forced_status;
+         mbedtls_test_driver_mac_hooks.driver_status =
+             mbedtls_test_driver_mac_hooks.forced_status;
     }
     else
     {
-        test_driver_mac_hooks.driver_status =
+        mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_transparent_test_driver_mac_verify_setup(
                 operation, attributes, key_buffer, key_buffer_size, alg );
     }
 
-    return( test_driver_mac_hooks.driver_status );
+    return( mbedtls_test_driver_mac_hooks.driver_status );
 }
 
 psa_status_t mbedtls_test_transparent_mac_update(
@@ -113,21 +114,21 @@ psa_status_t mbedtls_test_transparent_mac_update(
     const uint8_t *input,
     size_t input_length )
 {
-    test_driver_mac_hooks.hits++;
+    mbedtls_test_driver_mac_hooks.hits++;
 
-    if( test_driver_mac_hooks.forced_status != PSA_SUCCESS )
+    if( mbedtls_test_driver_mac_hooks.forced_status != PSA_SUCCESS )
     {
-         test_driver_mac_hooks.driver_status =
-             test_driver_mac_hooks.forced_status;
+         mbedtls_test_driver_mac_hooks.driver_status =
+             mbedtls_test_driver_mac_hooks.forced_status;
     }
     else
     {
-        test_driver_mac_hooks.driver_status =
+        mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_transparent_test_driver_mac_update(
                 operation, input, input_length );
     }
 
-    return( test_driver_mac_hooks.driver_status );
+    return( mbedtls_test_driver_mac_hooks.driver_status );
 }
 
 psa_status_t mbedtls_test_transparent_mac_sign_finish(
@@ -136,21 +137,21 @@ psa_status_t mbedtls_test_transparent_mac_sign_finish(
     size_t mac_size,
     size_t *mac_length )
 {
-    test_driver_mac_hooks.hits++;
+    mbedtls_test_driver_mac_hooks.hits++;
 
-    if( test_driver_mac_hooks.forced_status != PSA_SUCCESS )
+    if( mbedtls_test_driver_mac_hooks.forced_status != PSA_SUCCESS )
     {
-         test_driver_mac_hooks.driver_status =
-             test_driver_mac_hooks.forced_status;
+         mbedtls_test_driver_mac_hooks.driver_status =
+             mbedtls_test_driver_mac_hooks.forced_status;
     }
     else
     {
-        test_driver_mac_hooks.driver_status =
+        mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_transparent_test_driver_mac_sign_finish(
                 operation, mac, mac_size, mac_length );
     }
 
-    return( test_driver_mac_hooks.driver_status );
+    return( mbedtls_test_driver_mac_hooks.driver_status );
 }
 
 psa_status_t mbedtls_test_transparent_mac_verify_finish(
@@ -158,40 +159,40 @@ psa_status_t mbedtls_test_transparent_mac_verify_finish(
     const uint8_t *mac,
     size_t mac_length )
 {
-    test_driver_mac_hooks.hits++;
+    mbedtls_test_driver_mac_hooks.hits++;
 
-    if( test_driver_mac_hooks.forced_status != PSA_SUCCESS )
+    if( mbedtls_test_driver_mac_hooks.forced_status != PSA_SUCCESS )
     {
-         test_driver_mac_hooks.driver_status =
-             test_driver_mac_hooks.forced_status;
+         mbedtls_test_driver_mac_hooks.driver_status =
+             mbedtls_test_driver_mac_hooks.forced_status;
     }
     else
     {
-        test_driver_mac_hooks.driver_status =
+        mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_transparent_test_driver_mac_verify_finish(
                 operation, mac, mac_length );
     }
 
-    return( test_driver_mac_hooks.driver_status );
+    return( mbedtls_test_driver_mac_hooks.driver_status );
 }
 
 psa_status_t mbedtls_test_transparent_mac_abort(
     mbedtls_transparent_test_driver_mac_operation_t *operation )
 {
-    test_driver_mac_hooks.hits++;
+    mbedtls_test_driver_mac_hooks.hits++;
 
-    if( test_driver_mac_hooks.forced_status != PSA_SUCCESS )
+    if( mbedtls_test_driver_mac_hooks.forced_status != PSA_SUCCESS )
     {
-         test_driver_mac_hooks.driver_status =
-             test_driver_mac_hooks.forced_status;
+         mbedtls_test_driver_mac_hooks.driver_status =
+             mbedtls_test_driver_mac_hooks.forced_status;
     }
     else
     {
-        test_driver_mac_hooks.driver_status =
+        mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_transparent_test_driver_mac_abort( operation );
     }
 
-    return( test_driver_mac_hooks.driver_status );
+    return( mbedtls_test_driver_mac_hooks.driver_status );
 }
 
 psa_status_t mbedtls_test_opaque_mac_compute(
@@ -205,23 +206,23 @@ psa_status_t mbedtls_test_opaque_mac_compute(
     size_t mac_size,
     size_t *mac_length )
 {
-    test_driver_mac_hooks.hits++;
+    mbedtls_test_driver_mac_hooks.hits++;
 
-    if( test_driver_mac_hooks.forced_status != PSA_SUCCESS )
+    if( mbedtls_test_driver_mac_hooks.forced_status != PSA_SUCCESS )
     {
-         test_driver_mac_hooks.driver_status =
-             test_driver_mac_hooks.forced_status;
+         mbedtls_test_driver_mac_hooks.driver_status =
+             mbedtls_test_driver_mac_hooks.forced_status;
     }
     else
     {
-        test_driver_mac_hooks.driver_status =
+        mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_opaque_test_driver_mac_compute(
                 attributes, key_buffer, key_buffer_size, alg,
                 input, input_length,
                 mac, mac_size, mac_length );
     }
 
-    return( test_driver_mac_hooks.driver_status );
+    return( mbedtls_test_driver_mac_hooks.driver_status );
 }
 
 psa_status_t mbedtls_test_opaque_mac_sign_setup(
@@ -231,21 +232,21 @@ psa_status_t mbedtls_test_opaque_mac_sign_setup(
     size_t key_buffer_size,
     psa_algorithm_t alg )
 {
-    test_driver_mac_hooks.hits++;
+    mbedtls_test_driver_mac_hooks.hits++;
 
-    if( test_driver_mac_hooks.forced_status != PSA_SUCCESS )
+    if( mbedtls_test_driver_mac_hooks.forced_status != PSA_SUCCESS )
     {
-         test_driver_mac_hooks.driver_status =
-             test_driver_mac_hooks.forced_status;
+         mbedtls_test_driver_mac_hooks.driver_status =
+             mbedtls_test_driver_mac_hooks.forced_status;
     }
     else
     {
-        test_driver_mac_hooks.driver_status =
+        mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_opaque_test_driver_mac_sign_setup(
                 operation, attributes, key_buffer, key_buffer_size, alg );
     }
 
-    return( test_driver_mac_hooks.driver_status );
+    return( mbedtls_test_driver_mac_hooks.driver_status );
 }
 
 psa_status_t mbedtls_test_opaque_mac_verify_setup(
@@ -255,21 +256,21 @@ psa_status_t mbedtls_test_opaque_mac_verify_setup(
     size_t key_buffer_size,
     psa_algorithm_t alg )
 {
-    test_driver_mac_hooks.hits++;
+    mbedtls_test_driver_mac_hooks.hits++;
 
-    if( test_driver_mac_hooks.forced_status != PSA_SUCCESS )
+    if( mbedtls_test_driver_mac_hooks.forced_status != PSA_SUCCESS )
     {
-         test_driver_mac_hooks.driver_status =
-             test_driver_mac_hooks.forced_status;
+         mbedtls_test_driver_mac_hooks.driver_status =
+             mbedtls_test_driver_mac_hooks.forced_status;
     }
     else
     {
-        test_driver_mac_hooks.driver_status =
+        mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_opaque_test_driver_mac_verify_setup(
                 operation, attributes, key_buffer, key_buffer_size, alg );
     }
 
-    return( test_driver_mac_hooks.driver_status );
+    return( mbedtls_test_driver_mac_hooks.driver_status );
 }
 
 psa_status_t mbedtls_test_opaque_mac_update(
@@ -277,21 +278,21 @@ psa_status_t mbedtls_test_opaque_mac_update(
     const uint8_t *input,
     size_t input_length )
 {
-    test_driver_mac_hooks.hits++;
+    mbedtls_test_driver_mac_hooks.hits++;
 
-    if( test_driver_mac_hooks.forced_status != PSA_SUCCESS )
+    if( mbedtls_test_driver_mac_hooks.forced_status != PSA_SUCCESS )
     {
-         test_driver_mac_hooks.driver_status =
-             test_driver_mac_hooks.forced_status;
+         mbedtls_test_driver_mac_hooks.driver_status =
+             mbedtls_test_driver_mac_hooks.forced_status;
     }
     else
     {
-        test_driver_mac_hooks.driver_status =
+        mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_opaque_test_driver_mac_update(
                 operation, input, input_length );
     }
 
-    return( test_driver_mac_hooks.driver_status );
+    return( mbedtls_test_driver_mac_hooks.driver_status );
 }
 
 psa_status_t mbedtls_test_opaque_mac_sign_finish(
@@ -300,21 +301,21 @@ psa_status_t mbedtls_test_opaque_mac_sign_finish(
     size_t mac_size,
     size_t *mac_length )
 {
-    test_driver_mac_hooks.hits++;
+    mbedtls_test_driver_mac_hooks.hits++;
 
-    if( test_driver_mac_hooks.forced_status != PSA_SUCCESS )
+    if( mbedtls_test_driver_mac_hooks.forced_status != PSA_SUCCESS )
     {
-         test_driver_mac_hooks.driver_status =
-             test_driver_mac_hooks.forced_status;
+         mbedtls_test_driver_mac_hooks.driver_status =
+             mbedtls_test_driver_mac_hooks.forced_status;
     }
     else
     {
-        test_driver_mac_hooks.driver_status =
+        mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_opaque_test_driver_mac_sign_finish(
                 operation, mac, mac_size, mac_length );
     }
 
-    return( test_driver_mac_hooks.driver_status );
+    return( mbedtls_test_driver_mac_hooks.driver_status );
 }
 
 psa_status_t mbedtls_test_opaque_mac_verify_finish(
@@ -322,40 +323,40 @@ psa_status_t mbedtls_test_opaque_mac_verify_finish(
     const uint8_t *mac,
     size_t mac_length )
 {
-    test_driver_mac_hooks.hits++;
+    mbedtls_test_driver_mac_hooks.hits++;
 
-    if( test_driver_mac_hooks.forced_status != PSA_SUCCESS )
+    if( mbedtls_test_driver_mac_hooks.forced_status != PSA_SUCCESS )
     {
-         test_driver_mac_hooks.driver_status =
-             test_driver_mac_hooks.forced_status;
+         mbedtls_test_driver_mac_hooks.driver_status =
+             mbedtls_test_driver_mac_hooks.forced_status;
     }
     else
     {
-        test_driver_mac_hooks.driver_status =
+        mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_opaque_test_driver_mac_verify_finish(
                 operation, mac, mac_length );
     }
 
-    return( test_driver_mac_hooks.driver_status );
+    return( mbedtls_test_driver_mac_hooks.driver_status );
 }
 
 psa_status_t mbedtls_test_opaque_mac_abort(
     mbedtls_opaque_test_driver_mac_operation_t *operation )
 {
-    test_driver_mac_hooks.hits++;
+    mbedtls_test_driver_mac_hooks.hits++;
 
-    if( test_driver_mac_hooks.forced_status != PSA_SUCCESS )
+    if( mbedtls_test_driver_mac_hooks.forced_status != PSA_SUCCESS )
     {
-         test_driver_mac_hooks.driver_status =
-             test_driver_mac_hooks.forced_status;
+         mbedtls_test_driver_mac_hooks.driver_status =
+             mbedtls_test_driver_mac_hooks.forced_status;
     }
     else
     {
-        test_driver_mac_hooks.driver_status =
+        mbedtls_test_driver_mac_hooks.driver_status =
             mbedtls_opaque_test_driver_mac_abort( operation );
     }
 
-    return( test_driver_mac_hooks.driver_status );
+    return( mbedtls_test_driver_mac_hooks.driver_status );
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

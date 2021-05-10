@@ -227,7 +227,8 @@ extern "C" {
     (defined(PSA_WANT_ALG_CFB) && !defined(MBEDTLS_PSA_ACCEL_ALG_CFB)) || \
     (defined(PSA_WANT_ALG_OFB) && !defined(MBEDTLS_PSA_ACCEL_ALG_OFB)) || \
     (defined(PSA_WANT_ALG_XTS) && !defined(MBEDTLS_PSA_ACCEL_ALG_XTS)) || \
-    defined(PSA_WANT_ALG_ECB_NO_PADDING) || \
+    (defined(PSA_WANT_ALG_ECB_NO_PADDING) && \
+     !defined(MBEDTLS_PSA_ACCEL_ALG_ECB_NO_PADDING)) || \
     (defined(PSA_WANT_ALG_CBC_NO_PADDING) && \
      !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING)) || \
     (defined(PSA_WANT_ALG_CBC_PKCS7) && \
@@ -239,6 +240,11 @@ extern "C" {
 #if (defined(PSA_WANT_ALG_GCM) && !defined(MBEDTLS_PSA_ACCEL_ALG_GCM)) || \
     (defined(PSA_WANT_ALG_CCM) && !defined(MBEDTLS_PSA_ACCEL_ALG_CCM))
 #define PSA_HAVE_SOFT_BLOCK_AEAD 1
+#endif
+
+#if defined(PSA_WANT_ALG_STREAM_CIPHER) && \
+    !defined(MBEDTLS_PSA_ACCEL_ALG_STREAM_CIPHER)
+#define PSA_HAVE_SOFT_STREAM_CIPHER 1
 #endif
 
 #if defined(PSA_WANT_KEY_TYPE_AES)
@@ -285,8 +291,7 @@ extern "C" {
 
 #if defined(PSA_WANT_KEY_TYPE_CHACHA20)
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CHACHA20)
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_CHACHA20 1
-#define MBEDTLS_CHACHA20_C
+#define PSA_HAVE_SOFT_KEY_TYPE_CHACHA20 1
 #endif /*!MBEDTLS_PSA_ACCEL_KEY_TYPE_CHACHA20 */
 #endif /* PSA_WANT_KEY_TYPE_CHACHA20 */
 
@@ -298,10 +303,6 @@ extern "C" {
     defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
 #define PSA_HAVE_SOFT_BLOCK_CIPHER 1
 #endif
-
-#if defined(PSA_WANT_ALG_STREAM_CIPHER)
-#define MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER 1
-#endif /* PSA_WANT_ALG_STREAM_CIPHER */
 
 #if defined(PSA_WANT_ALG_CBC_MAC)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_MAC)
@@ -351,8 +352,11 @@ extern "C" {
 #endif /* PSA_WANT_ALG_XTS */
 
 #if defined(PSA_WANT_ALG_ECB_NO_PADDING)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_ECB_NO_PADDING) || \
+    defined(PSA_HAVE_SOFT_BLOCK_CIPHER)
 #define MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING 1
 #endif
+#endif /* PSA_WANT_ALG_ECB_NO_PADDING */
 
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING) || \
@@ -390,11 +394,30 @@ extern "C" {
 #endif /* PSA_WANT_ALG_GCM */
 
 #if defined(PSA_WANT_ALG_CHACHA20_POLY1305)
-#if defined(PSA_WANT_KEY_TYPE_CHACHA20)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_CHACHA20_POLY1305)
 #define MBEDTLS_CHACHAPOLY_C
 #define MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 1
-#endif /* PSA_WANT_KEY_TYPE_CHACHA20 */
+/* The builtin implementation of ChaCha20-Poly1305 has a dependency on the
+ * builtin implementation of the ChaCha20 stream cipher. */
+#if !defined(PSA_HAVE_SOFT_KEY_TYPE_CHACHA20)
+#define PSA_HAVE_SOFT_KEY_TYPE_CHACHA20 1
+#endif /* !PSA_HAVE_SOFT_KEY_TYPE_CHACHA20 */
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_CHACHA20_POLY1305 */
 #endif /* PSA_WANT_ALG_CHACHA20_POLY1305 */
+
+#if defined(PSA_HAVE_SOFT_KEY_TYPE_CHACHA20)
+/* If one of the components for supporting ChaCha20 is not provided by an
+ * accelerator, then we need the builtin implementation */
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_CHACHA20 1
+#define MBEDTLS_CHACHA20_C
+
+#if defined(PSA_HAVE_SOFT_STREAM_CIPHER)
+/* ChaCha20 is the only supported stream cipher for now. If that changes, more
+ * logic is needed to declare builtin stream cipher when any of the stream
+ * ciphers is builtin. */
+#define MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER 1
+#endif /* PSA_HAVE_SOFT_STREAM_CIPHER */
+#endif /* PSA_HAVE_SOFT_KEY_TYPE_CHACHA20 */
 
 #if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
 #if !defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_256)

@@ -94,7 +94,7 @@ psa_status_t mbedtls_test_transparent_aead_decrypt(
 }
 
 psa_status_t mbedtls_test_transparent_aead_encrypt_setup(
-    psa_aead_operation_t *operation,
+    mbedtls_transparent_test_driver_aead_operation_t *operation,
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg )
@@ -117,7 +117,7 @@ psa_status_t mbedtls_test_transparent_aead_encrypt_setup(
 }
 
 psa_status_t mbedtls_test_transparent_aead_decrypt_setup(
-    psa_aead_operation_t *operation,
+    mbedtls_transparent_test_driver_aead_operation_t *operation,
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg )
@@ -140,7 +140,7 @@ psa_status_t mbedtls_test_transparent_aead_decrypt_setup(
 }
 
 psa_status_t mbedtls_test_transparent_aead_set_nonce(
-    psa_aead_operation_t *operation,
+    mbedtls_transparent_test_driver_aead_operation_t *operation,
     const uint8_t *nonce,
     size_t nonce_length )
 {
@@ -161,7 +161,7 @@ psa_status_t mbedtls_test_transparent_aead_set_nonce(
 }
 
 psa_status_t mbedtls_test_transparent_aead_set_lengths(
-    psa_aead_operation_t *operation,
+    mbedtls_transparent_test_driver_aead_operation_t *operation,
     size_t ad_length,
     size_t plaintext_length )
 {
@@ -183,7 +183,7 @@ psa_status_t mbedtls_test_transparent_aead_set_lengths(
 }
 
 psa_status_t mbedtls_test_transparent_aead_update_ad(
-    psa_aead_operation_t *operation,
+    mbedtls_transparent_test_driver_aead_operation_t *operation,
     const uint8_t *input,
     size_t input_length )
 {
@@ -204,7 +204,7 @@ psa_status_t mbedtls_test_transparent_aead_update_ad(
 }
 
 psa_status_t mbedtls_test_transparent_aead_update(
-   psa_aead_operation_t *operation,
+   mbedtls_transparent_test_driver_aead_operation_t *operation,
    const uint8_t *input,
    size_t input_length,
    uint8_t *output,
@@ -229,7 +229,7 @@ psa_status_t mbedtls_test_transparent_aead_update(
 }
 
 psa_status_t mbedtls_test_transparent_aead_finish(
-   psa_aead_operation_t *operation,
+   mbedtls_transparent_test_driver_aead_operation_t *operation,
    uint8_t *ciphertext,
    size_t ciphertext_size,
    size_t *ciphertext_length,
@@ -256,7 +256,7 @@ psa_status_t mbedtls_test_transparent_aead_finish(
 }
 
 psa_status_t mbedtls_test_transparent_aead_verify(
-   psa_aead_operation_t *operation,
+   mbedtls_transparent_test_driver_aead_operation_t *operation,
    uint8_t *plaintext,
    size_t plaintext_size,
    size_t *plaintext_length,
@@ -281,7 +281,7 @@ psa_status_t mbedtls_test_transparent_aead_verify(
 }
 
 psa_status_t mbedtls_test_transparent_aead_abort(
-   psa_aead_operation_t *operation )
+   mbedtls_transparent_test_driver_aead_operation_t *operation )
 {
    mbedtls_test_driver_aead_hooks.hits++;
 

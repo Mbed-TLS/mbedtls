@@ -45,9 +45,11 @@ def create_c_file(file_label):
                                     suffix='.c')
     exe_suffix = '.exe' if platform.system() == 'Windows' else ''
     exe_name = c_name[:-2] + exe_suffix
+    obj_name = c_name[:-2] + '.obj'
     remove_file_if_exists(exe_name)
+    remove_file_if_exists(obj_name)
     c_file = os.fdopen(c_fd, 'w', encoding='ascii')
-    return c_file, c_name, exe_name
+    return c_file, c_name, exe_name, obj_name
 
 def generate_c_printf_expressions(c_file, cast_to, printf_format, expressions):
     """Generate C instructions to print the value of ``expressions``.
@@ -120,7 +122,7 @@ def get_c_expression_values(
     c_name = None
     exe_name = None
     try:
-        c_file, c_name, exe_name = create_c_file(file_label)
+        c_file, c_name, exe_name, obj_name = create_c_file(file_label)
         generate_c_file(
             c_file, caller, header,
             lambda c_file: generate_c_printf_expressions(c_file,
@@ -141,15 +143,20 @@ def get_c_expression_values(
                          proc.communicate()[1]
 
         cmd += ['-I' + dir for dir in include_path]
-        # MSVC has deprecated using -o to specify the output file.
-        output_opt = '-Fe' if _cc_is_msvc else '-o'
-        cmd += [output_opt + exe_name]
+        if _cc_is_msvc:
+            # MSVC has deprecated using -o to specify the output file,
+            # and produces an object file in the working directory by default.
+            cmd += ['-Fe' + exe_name, '-Fo' + obj_name]
+        else:
+            cmd += ['-o' + exe_name]
         subprocess.check_call(cmd + [c_name])
         if keep_c:
             sys.stderr.write('List of {} tests kept at {}\n'
                              .format(caller, c_name))
         else:
             os.remove(c_name)
+        if _cc_is_msvc:
+            os.remove(obj_name)
         output = subprocess.check_output([exe_name])
         return output.decode('ascii').strip().split('\n')
     finally:

@@ -37,16 +37,17 @@ typedef struct {
     unsigned long hits;
     /* Status returned by the last MAC driver function call. */
     psa_status_t driver_status;
-} test_driver_mac_hooks_t;
+} mbedtls_test_driver_mac_hooks_t;
 
 #define MBEDTLS_TEST_DRIVER_MAC_INIT { 0, 0, 0 }
-static inline test_driver_mac_hooks_t test_driver_mac_hooks_init( void )
+static inline mbedtls_test_driver_mac_hooks_t
+    mbedtls_test_driver_mac_hooks_init( void )
 {
-    const test_driver_mac_hooks_t v = MBEDTLS_TEST_DRIVER_MAC_INIT;
+    const mbedtls_test_driver_mac_hooks_t v = MBEDTLS_TEST_DRIVER_MAC_INIT;
     return( v );
 }
 
-extern test_driver_mac_hooks_t test_driver_mac_hooks;
+extern mbedtls_test_driver_mac_hooks_t mbedtls_test_driver_mac_hooks;
 
 psa_status_t mbedtls_test_transparent_mac_compute(
     const psa_key_attributes_t *attributes,

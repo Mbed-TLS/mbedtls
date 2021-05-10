@@ -36,8 +36,6 @@ my %configs = (
     },
     'config-no-entropy.h' => {
     },
-    'config-psa-crypto.h' => {
-    },
     'config-suite-b.h' => {
         'compat' => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM' -p mbedTLS",
     },

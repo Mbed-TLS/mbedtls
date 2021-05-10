@@ -458,7 +458,7 @@ void x509_parse_san(char *crt_file, char *result_str, int parse_result)
     if (crt.ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME) {
         cur = &crt.subject_alt_names;
         while (cur != NULL) {
-            ret = mbedtls_x509_parse_subject_alt_name(&cur->buf, &san);
+            ret = mbedtls_x509_parse_general_name(&cur->buf, &san);
             TEST_ASSERT(ret == 0 || ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE);
             /*
              * If san type not supported, ignore.
@@ -1517,11 +1517,12 @@ void x509_crt_parse_authoritykeyid(data_t *buf,
         TEST_ASSERT(crt.authority_key_id.keyIdentifier.len == keyIdLength);
 
         /* Issuer test */
-        mbedtls_x509_name *issuerPtr = &crt.authority_key_id.authorityCertIssuer;
+        mbedtls_x509_sequence *issuerPtr = &crt.authority_key_id.authorityCertIssuer;
         while (issuerPtr != NULL) {
-            for (issuerCounter = 0u; issuerCounter < issuerPtr->val.len; issuerCounter++) {
+            /* First 9 bytes are always ASN1 coding related information that does not matter right now. Only the values are asserted */
+            for (issuerCounter = 9u; issuerCounter < issuerPtr->buf.len; issuerCounter++) {
                 result |=
-                    (authorityKeyId_issuer[bufferCounter++] != issuerPtr->val.p[issuerCounter]);
+                    (authorityKeyId_issuer[bufferCounter++] != issuerPtr->buf.p[issuerCounter]);
             }
             bufferCounter++; /* Skipping the slash */
             issuerPtr = issuerPtr->next;

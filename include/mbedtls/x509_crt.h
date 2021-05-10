@@ -492,7 +492,7 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
  * \param san      The target structure to populate with the parsed presentation
  *                 of the subject alternative name encoded in \p san_raw.
  *
- * \note           Only "dnsName" and "otherName" of type hardware_module_name
+ * \note           Only "dnsName" and "otherName" and "rfc822Name" of type hardware_module_name
  *                 as defined in RFC 4180 is supported.
  *
  * \note           This function should be called on a single raw data of
@@ -510,7 +510,7 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
  *                 SAN type.
  * \return         Another negative value for any other failure.
  */
-int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
+int mbedtls_x509_parse_general_name( const mbedtls_x509_buf *san_buf,
                                          mbedtls_x509_subject_alternative_name *san );
 /**
  * \brief          Returns an informational string about the

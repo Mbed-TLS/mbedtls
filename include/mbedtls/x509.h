@@ -232,7 +232,7 @@ typedef mbedtls_asn1_sequence mbedtls_x509_sequence;
 typedef struct mbedtls_x509_authority
 {
     mbedtls_x509_buf keyIdentifier;
-    mbedtls_x509_name authorityCertIssuer;
+    mbedtls_x509_sequence authorityCertIssuer;
     mbedtls_x509_buf authorityCertSerialNumber;
     mbedtls_x509_buf raw;
 }

@@ -3140,7 +3140,7 @@ handshake:
             char vrfy_buf[512];
             flags = mbedtls_ssl_get_verify_result( &ssl );
 
-            mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
+            x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
 
             mbedtls_printf( "%s\n", vrfy_buf );
         }
@@ -3192,13 +3192,13 @@ handshake:
 
         mbedtls_printf( " failed\n" );
 
-        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
-
+        x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
         mbedtls_printf( "%s\n", vrfy_buf );
     }
     else
         mbedtls_printf( " ok\n" );
 
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
     if( mbedtls_ssl_get_peer_cert( &ssl ) != NULL )
     {
         char crt_buf[512];
@@ -3208,6 +3208,7 @@ handshake:
                        mbedtls_ssl_get_peer_cert( &ssl ) );
         mbedtls_printf( "%s\n", crt_buf );
     }
+#endif /* MBEDTLS_X509_REMOVE_INFO */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)

@@ -1,7 +1,0 @@
-API changes
-   * Move alt helpers and definitions.
-     Various helpers and definitions available for use in alt implementations
-     have been moved out of the include/ directory and into the library/
-     directory. The files concerned are ecp_internal.h and rsa_internal.h
-     which have also been renamed to ecp_alt.h and rsa_alt_helpers.h
-     respectively.

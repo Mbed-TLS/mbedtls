@@ -102,7 +102,7 @@ int mbedtls_rsa_import( mbedtls_rsa_context *ctx,
         ( D != NULL && ( ret = mbedtls_mpi_copy( &ctx->D, D ) ) != 0 ) ||
         ( E != NULL && ( ret = mbedtls_mpi_copy( &ctx->E, E ) ) != 0 ) )
     {
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_BAD_INPUT_DATA, ret ) );
     }
 
     if( N != NULL )
@@ -142,7 +142,7 @@ int mbedtls_rsa_import_raw( mbedtls_rsa_context *ctx,
 cleanup:
 
     if( ret != 0 )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_BAD_INPUT_DATA, ret ) );
 
     return( 0 );
 }
@@ -293,7 +293,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
         if( ( ret = mbedtls_mpi_mul_mpi( &ctx->N, &ctx->P,
                                          &ctx->Q ) ) != 0 )
         {
-            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_BAD_INPUT_DATA, ret ) );
         }
 
         ctx->len = mbedtls_mpi_size( &ctx->N );
@@ -308,7 +308,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
         ret = mbedtls_rsa_deduce_primes( &ctx->N, &ctx->E, &ctx->D,
                                          &ctx->P, &ctx->Q );
         if( ret != 0 )
-            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_BAD_INPUT_DATA, ret ) );
 
     }
     else if( d_missing )
@@ -318,7 +318,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
                                                          &ctx->E,
                                                          &ctx->D ) ) != 0 )
         {
-            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_BAD_INPUT_DATA, ret ) );
         }
     }
 
@@ -333,7 +333,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
         ret = mbedtls_rsa_deduce_crt( &ctx->P,  &ctx->Q,  &ctx->D,
                                       &ctx->DP, &ctx->DQ, &ctx->QP );
         if( ret != 0 )
-            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_BAD_INPUT_DATA, ret ) );
     }
 #endif /* MBEDTLS_RSA_NO_CRT */
 
@@ -461,13 +461,13 @@ int mbedtls_rsa_export_crt( const mbedtls_rsa_context *ctx,
         ( DQ != NULL && ( ret = mbedtls_mpi_copy( DQ, &ctx->DQ ) ) != 0 ) ||
         ( QP != NULL && ( ret = mbedtls_mpi_copy( QP, &ctx->QP ) ) != 0 ) )
     {
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_BAD_INPUT_DATA, ret ) );
     }
 #else
     if( ( ret = mbedtls_rsa_deduce_crt( &ctx->P, &ctx->Q, &ctx->D,
                                         DP, DQ, QP ) ) != 0 )
     {
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_BAD_INPUT_DATA, ret ) );
     }
 #endif
 
@@ -635,8 +635,9 @@ cleanup:
     if( ret != 0 )
     {
         mbedtls_rsa_free( ctx );
+
         if( ( -ret & ~0x7f ) == 0 )
-            ret = MBEDTLS_ERR_RSA_KEY_GEN_FAILED + ret;
+            ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_KEY_GEN_FAILED, ret );
         return( ret );
     }
 
@@ -769,7 +770,7 @@ cleanup:
     mbedtls_mpi_free( &T );
 
     if( ret != 0 )
-        return( MBEDTLS_ERR_RSA_PUBLIC_FAILED + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_PUBLIC_FAILED, ret ) );
 
     return( 0 );
 }
@@ -1085,7 +1086,7 @@ cleanup:
     mbedtls_mpi_free( &I );
 
     if( ret != 0 && ret >= -0x007f )
-        return( MBEDTLS_ERR_RSA_PRIVATE_FAILED + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_PRIVATE_FAILED, ret ) );
 
     return( ret );
 }
@@ -1198,7 +1199,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
 
     /* Generate a random octet string seed */
     if( ( ret = f_rng( p_rng, p, hlen ) ) != 0 )
-        return( MBEDTLS_ERR_RSA_RNG_FAILED + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_RNG_FAILED, ret ) );
 
     p += hlen;
 
@@ -1287,7 +1288,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
 
             /* Check if RNG failed to generate data */
             if( rng_dl == 0 || ret != 0 )
-                return( MBEDTLS_ERR_RSA_RNG_FAILED + ret );
+                return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_RNG_FAILED, ret ) );
 
             p++;
         }
@@ -1881,7 +1882,7 @@ static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     /* Generate salt of length slen in place in the encoded message */
     salt = p;
     if( ( ret = f_rng( p_rng, salt, slen ) ) != 0 )
-        return( MBEDTLS_ERR_RSA_RNG_FAILED + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_RNG_FAILED, ret ) );
 
     p += slen;
 

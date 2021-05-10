@@ -1099,6 +1099,7 @@ component_test_everest_curve25519_only () {
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+    scripts/config.py unset MBEDTLS_ECJPAKE_C
     # Disable all curves
     for c in $(sed -n 's/#define \(MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED\).*/\1/p' <"$CONFIG_H"); do
         scripts/config.py unset "$c"
@@ -2061,6 +2062,7 @@ component_test_when_no_ciphersuites_have_mac () {
     scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
     scripts/config.py unset MBEDTLS_ARC4_C
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CMAC_C
     make
 
     msg "test: !MBEDTLS_SSL_SOME_MODES_USE_MAC"
@@ -2207,6 +2209,7 @@ component_test_psa_crypto_drivers () {
     msg "build: MBEDTLS_PSA_CRYPTO_DRIVERS w/ driver hooks"
     scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST"
     loc_cflags="${loc_cflags} -DMBEDTLS_PSA_ACCEL_KEY_TYPE_AES"
@@ -2421,6 +2424,20 @@ component_test_no_strings () {
 
     msg "test: no strings" # ~ 10s
     make test
+}
+
+component_test_no_x509_info () {
+    msg "build: full + MBEDTLS_X509_REMOVE_INFO" # ~ 10s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.pl set MBEDTLS_X509_REMOVE_INFO
+    make CFLAGS='-Werror -O1'
+
+    msg "test: full + MBEDTLS_X509_REMOVE_INFO" # ~ 10s
+    make test
+
+    msg "test: ssl-opt.sh, full + MBEDTLS_X509_REMOVE_INFO" # ~ 1 min
+    if_build_succeeded tests/ssl-opt.sh
 }
 
 component_build_arm_none_eabi_gcc () {

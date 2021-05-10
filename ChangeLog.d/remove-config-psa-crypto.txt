@@ -1,0 +1,3 @@
+Changes
+   * Remove configs/config-psa-crypto.h, which no longer had any intended
+     differences from the default configuration, but had accidentally diverged.

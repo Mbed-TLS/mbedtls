@@ -50,7 +50,6 @@ SHARED_SUFFIX=
 endif
 
 APPS = \
-	aes/aescrypt2$(EXEXT) \
 	aes/crypt_and_hash$(EXEXT) \
 	hash/generic_sum$(EXEXT) \
 	hash/hello$(EXEXT) \
@@ -131,10 +130,6 @@ $(MBEDLIBS):
 
 ${MBEDTLS_TEST_OBJS}:
 	$(MAKE) -C ../tests mbedtls_test
-
-aes/aescrypt2$(EXEXT): aes/aescrypt2.c $(DEP)
-	echo "  CC    aes/aescrypt2.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) aes/aescrypt2.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP)
 	echo "  CC    aes/crypt_and_hash.c"

@@ -611,44 +611,6 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
                                   const unsigned char input[16],
                                   unsigned char output[16] );
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif
-/**
- * \brief           Deprecated internal AES block encryption function
- *                  without return value.
- *
- * \deprecated      Superseded by mbedtls_internal_aes_encrypt()
- *
- * \param ctx       The AES context to use for encryption.
- * \param input     Plaintext block.
- * \param output    Output (ciphertext) block.
- */
-MBEDTLS_DEPRECATED void mbedtls_aes_encrypt( mbedtls_aes_context *ctx,
-                                             const unsigned char input[16],
-                                             unsigned char output[16] );
-
-/**
- * \brief           Deprecated internal AES block decryption function
- *                  without return value.
- *
- * \deprecated      Superseded by mbedtls_internal_aes_decrypt()
- *
- * \param ctx       The AES context to use for decryption.
- * \param input     Ciphertext block.
- * \param output    Output (plaintext) block.
- */
-MBEDTLS_DEPRECATED void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
-                                             const unsigned char input[16],
-                                             unsigned char output[16] );
-
-#undef MBEDTLS_DEPRECATED
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
-
-
 #if defined(MBEDTLS_SELF_TEST)
 /**
  * \brief          Checkup routine.

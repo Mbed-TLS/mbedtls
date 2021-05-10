@@ -79,7 +79,7 @@ static int dhm_read_bignum( mbedtls_mpi *X,
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_mpi_read_binary( X, *p, n ) ) != 0 )
-        return( MBEDTLS_ERR_DHM_READ_PARAMS_FAILED + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_READ_PARAMS_FAILED, ret ) );
 
     (*p) += n;
 
@@ -222,7 +222,7 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
 cleanup:
 
     if( ret != 0 )
-        return( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED, ret ) );
 
     return( 0 );
 }
@@ -242,7 +242,7 @@ int mbedtls_dhm_set_group( mbedtls_dhm_context *ctx,
     if( ( ret = mbedtls_mpi_copy( &ctx->P, P ) ) != 0 ||
         ( ret = mbedtls_mpi_copy( &ctx->G, G ) ) != 0 )
     {
-        return( MBEDTLS_ERR_DHM_SET_GROUP_FAILED + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_SET_GROUP_FAILED, ret ) );
     }
 
     ctx->len = mbedtls_mpi_size( &ctx->P );
@@ -263,7 +263,7 @@ int mbedtls_dhm_read_public( mbedtls_dhm_context *ctx,
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_mpi_read_binary( &ctx->GY, input, ilen ) ) != 0 )
-        return( MBEDTLS_ERR_DHM_READ_PUBLIC_FAILED + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_READ_PUBLIC_FAILED, ret ) );
 
     return( 0 );
 }
@@ -313,7 +313,7 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
 cleanup:
 
     if( ret != 0 )
-        return( MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED, ret ) );
 
     return( 0 );
 }
@@ -462,7 +462,7 @@ cleanup:
     mbedtls_mpi_free( &GYb );
 
     if( ret != 0 )
-        return( MBEDTLS_ERR_DHM_CALC_SECRET_FAILED + ret );
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_CALC_SECRET_FAILED, ret ) );
 
     return( 0 );
 }
@@ -544,7 +544,7 @@ int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
-        ret = MBEDTLS_ERR_DHM_INVALID_FORMAT + ret;
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_INVALID_FORMAT, ret );
         goto exit;
     }
 
@@ -553,7 +553,7 @@ int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,
     if( ( ret = mbedtls_asn1_get_mpi( &p, end, &dhm->P  ) ) != 0 ||
         ( ret = mbedtls_asn1_get_mpi( &p, end, &dhm->G ) ) != 0 )
     {
-        ret = MBEDTLS_ERR_DHM_INVALID_FORMAT + ret;
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_INVALID_FORMAT, ret );
         goto exit;
     }
 
@@ -567,13 +567,13 @@ int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,
         mbedtls_mpi_free( &rec );
         if ( ret != 0 )
         {
-            ret = MBEDTLS_ERR_DHM_INVALID_FORMAT + ret;
+            ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_INVALID_FORMAT, ret );
             goto exit;
         }
         if ( p != end )
         {
-            ret = MBEDTLS_ERR_DHM_INVALID_FORMAT +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+            ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_INVALID_FORMAT,
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
             goto exit;
         }
     }

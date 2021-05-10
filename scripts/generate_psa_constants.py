@@ -117,11 +117,11 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
         } else if (alg & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG) {
             append(&buffer, buffer_size, &required_size,
                    "PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(", 43);
-            length_modifier = PSA_AEAD_TAG_LENGTH(alg);
+            length_modifier = PSA_ALG_AEAD_GET_TAG_LENGTH(alg);
         } else if (core_alg != alg) {
             append(&buffer, buffer_size, &required_size,
                    "PSA_ALG_AEAD_WITH_SHORTENED_TAG(", 32);
-            length_modifier = PSA_AEAD_TAG_LENGTH(alg);
+            length_modifier = PSA_ALG_AEAD_GET_TAG_LENGTH(alg);
         }
     } else if (PSA_ALG_IS_KEY_AGREEMENT(alg) &&
                !PSA_ALG_IS_RAW_KEY_AGREEMENT(alg)) {

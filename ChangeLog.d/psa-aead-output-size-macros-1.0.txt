@@ -1,0 +1,5 @@
+API changes
+   * Update AEAD output size macros to bring them in line with the PSA Crypto
+     API version 1.0 spec. This version of the spec parameterizes them on the
+     key type used, as well as the key bit-size in the case of
+     PSA_AEAD_TAG_LENGTH.

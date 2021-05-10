@@ -4451,6 +4451,7 @@ run_test    "Authentication, CA callback: client max_int chain, server required"
 
 # Tests for certificate selection based on SHA verson
 
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \
             "$P_SRV crt_file=data_files/server5.crt \
                     key_file=data_files/server5.key \
@@ -4461,6 +4462,7 @@ run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \
             -c "signed using.*ECDSA with SHA256" \
             -C "signed using.*ECDSA with SHA1"
 
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Certificate hash: client TLS 1.1 -> SHA-1" \
             "$P_SRV crt_file=data_files/server5.crt \
                     key_file=data_files/server5.key \
@@ -4471,6 +4473,7 @@ run_test    "Certificate hash: client TLS 1.1 -> SHA-1" \
             -C "signed using.*ECDSA with SHA256" \
             -c "signed using.*ECDSA with SHA1"
 
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Certificate hash: client TLS 1.0 -> SHA-1" \
             "$P_SRV crt_file=data_files/server5.crt \
                     key_file=data_files/server5.key \
@@ -4481,6 +4484,7 @@ run_test    "Certificate hash: client TLS 1.0 -> SHA-1" \
             -C "signed using.*ECDSA with SHA256" \
             -c "signed using.*ECDSA with SHA1"
 
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 1)" \
             "$P_SRV crt_file=data_files/server5.crt \
                     key_file=data_files/server5.key \
@@ -4492,6 +4496,7 @@ run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 1)" \
             -c "signed using.*ECDSA with SHA256" \
             -C "signed using.*ECDSA with SHA1"
 
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 2)" \
             "$P_SRV crt_file=data_files/server6.crt \
                     key_file=data_files/server6.key \
@@ -4505,6 +4510,7 @@ run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 2)" \
 
 # tests for SNI
 
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "SNI: no SNI callback" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key" \
@@ -4514,6 +4520,7 @@ run_test    "SNI: no SNI callback" \
             -c "issuer name *: C=NL, O=PolarSSL, CN=Polarssl Test EC CA" \
             -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "SNI: matching cert 1" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -4524,6 +4531,7 @@ run_test    "SNI: matching cert 1" \
             -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
             -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "SNI: matching cert 2" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -4534,6 +4542,7 @@ run_test    "SNI: matching cert 2" \
             -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
             -c "subject name *: C=NL, O=PolarSSL, CN=polarssl.example"
 
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "SNI: no matching cert" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -4641,6 +4650,7 @@ run_test    "SNI: CA override with CRL" \
 
 # Tests for SNI and DTLS
 
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "SNI: DTLS, no SNI callback" \
             "$P_SRV debug_level=3 dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key" \
@@ -4650,6 +4660,7 @@ run_test    "SNI: DTLS, no SNI callback" \
             -c "issuer name *: C=NL, O=PolarSSL, CN=Polarssl Test EC CA" \
             -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "SNI: DTLS, matching cert 1" \
             "$P_SRV debug_level=3 dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -4660,6 +4671,7 @@ run_test    "SNI: DTLS, matching cert 1" \
             -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
             -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "SNI: DTLS, matching cert 2" \
             "$P_SRV debug_level=3 dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -5426,10 +5438,45 @@ run_test    "DHM size: server 1024, client default, OK" \
             0 \
             -C "DHM prime too short:"
 
+run_test    "DHM size: server 999, client 999, OK" \
+            "$P_SRV dhm_file=data_files/dh.999.pem" \
+            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
+                    debug_level=1 dhmlen=999" \
+            0 \
+            -C "DHM prime too short:"
+
+run_test    "DHM size: server 1000, client 1000, OK" \
+            "$P_SRV dhm_file=data_files/dh.1000.pem" \
+            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
+                    debug_level=1 dhmlen=1000" \
+            0 \
+            -C "DHM prime too short:"
+
 run_test    "DHM size: server 1000, client default, rejected" \
             "$P_SRV dhm_file=data_files/dh.1000.pem" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
                     debug_level=1" \
+            1 \
+            -c "DHM prime too short:"
+
+run_test    "DHM size: server 1000, client 1001, rejected" \
+            "$P_SRV dhm_file=data_files/dh.1000.pem" \
+            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
+                    debug_level=1 dhmlen=1001" \
+            1 \
+            -c "DHM prime too short:"
+
+run_test    "DHM size: server 999, client 1000, rejected" \
+            "$P_SRV dhm_file=data_files/dh.999.pem" \
+            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
+                    debug_level=1 dhmlen=1000" \
+            1 \
+            -c "DHM prime too short:"
+
+run_test    "DHM size: server 998, client 999, rejected" \
+            "$P_SRV dhm_file=data_files/dh.998.pem" \
+            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
+                    debug_level=1 dhmlen=999" \
             1 \
             -c "DHM prime too short:"
 
@@ -6674,6 +6721,7 @@ run_test    "SSL async private: sign, RSA, TLS 1.1" \
             -s "Async resume (slot [0-9]): sign done, status=0"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "SSL async private: sign, SNI" \
             "$P_SRV debug_level=3 \
              async_operations=s async_private_delay1=0 async_private_delay2=0 \

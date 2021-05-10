@@ -1,2 +1,0 @@
-Removals
-   * Remove deprecated error codes. Fix #4283

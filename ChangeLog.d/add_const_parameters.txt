@@ -1,2 +1,0 @@
-API changes
-   * Add missing const attributes to API functions.

@@ -131,7 +131,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
 void mbedtls_debug_print_crt( char * crt_file, char * file, int line,
                               char * prefix, char * result_str )
 {

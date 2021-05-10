@@ -2477,7 +2477,7 @@ static int ecp_randomize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
 {
 #if defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT)
     if( mbedtls_internal_ecp_grp_capable( grp ) )
-        return( mbedtls_internal_ecp_randomize_mxz( grp, P, f_rng, p_rng );
+        return( mbedtls_internal_ecp_randomize_mxz( grp, P, f_rng, p_rng ) );
 #endif /* MBEDTLS_ECP_RANDOMIZE_MXZ_ALT */
 
 #if defined(MBEDTLS_ECP_NO_FALLBACK) && defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT)

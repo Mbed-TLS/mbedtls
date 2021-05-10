@@ -180,6 +180,24 @@ static inline psa_key_slot_number_t psa_key_slot_get_slot_number(
  */
 psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot );
 
+/** Try to allocate a buffer to an empty key slot.
+ *
+ * \param[in,out] slot          Key slot to attach buffer to.
+ * \param[in] buffer_length     Requested size of the buffer.
+ *
+ * \retval #PSA_SUCCESS
+ *         The buffer has been successfully allocated.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ *         Not enough memory was available for allocation.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         Trying to allocate a buffer to a non-empty key slot.
+ */
+psa_status_t psa_allocate_buffer_to_slot( psa_key_slot_t *slot,
+                                          size_t buffer_length );
+
+/** Wipe key data from a slot. Preserves metadata such as the policy. */
+psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot );
+
 /** Copy key data (in export format) into an empty key slot.
  *
  * This function assumes that the slot does not contain

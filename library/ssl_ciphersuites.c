@@ -1536,7 +1536,6 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* MBEDTLS_AES_C */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
-#if defined(MBEDTLS_ENABLE_WEAK_CIPHERSUITES)
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
 #if defined(MBEDTLS_MD5_C)
@@ -1668,8 +1667,6 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #endif /* MBEDTLS_SHA384_C */
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 #endif /* MBEDTLS_CIPHER_NULL_CIPHER */
-
-#endif /* MBEDTLS_ENABLE_WEAK_CIPHERSUITES */
 
 #if defined(MBEDTLS_ARIA_C)
 

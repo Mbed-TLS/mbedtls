@@ -1,0 +1,6 @@
+API changes
+   * Add configuration option MBEDTLS_X509_REMOVE_INFO which
+     removes the mbedtls_x509_*_info(), mbedtls_debug_print_crt()
+     as well as other functions and constants only used by
+     those functions. This reduces the code footprint by
+     several kB.

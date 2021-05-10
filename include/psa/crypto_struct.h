@@ -153,8 +153,6 @@ static inline struct psa_mac_operation_s psa_mac_operation_init( void )
 
 struct psa_aead_operation_s
 {
-    psa_algorithm_t alg;
-    psa_key_type_t key_type;
 
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
@@ -164,50 +162,19 @@ struct psa_aead_operation_s
      * any driver (i.e. none of the driver contexts are active). */
     unsigned int id;
 
+    psa_algorithm_t alg;
+    psa_key_type_t key_type;
+
     unsigned int key_set : 1;
     unsigned int nonce_set : 1;
     unsigned int lengths_set : 1;
-    unsigned int is_encrypt : 1;
     unsigned int ad_started : 1;
     unsigned int body_started : 1;
 
-    uint8_t tag_length;
-    uint8_t nonce_length;
-
-    size_t ad_remaining;
-    size_t body_remaining;
-
-    /* Buffers for AD/data - only required until CCM gets proper multipart
-       support. */
-    uint8_t *ad_buffer;
-    size_t ad_length;
-
-    uint8_t *body_buffer;
-    size_t body_length;
-
-    uint8_t *tag_buffer;
-
-    /* buffer to store Nonce - only required until CCM and GCM get proper
-       multipart support. */
-    uint8_t nonce[PSA_AEAD_NONCE_MAX_SIZE];
-
-    union
-    {
-        unsigned dummy; /* Enable easier initializing of the union. */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
-        mbedtls_ccm_context ccm;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
-        mbedtls_gcm_context gcm;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
-        mbedtls_chachapoly_context chachapoly;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
-
-    } ctx;
+    psa_driver_aead_context_t ctx;
 };
 
-#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}, {0}}
+#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, {0}}
 static inline struct psa_aead_operation_s psa_aead_operation_init( void )
 {
     const struct psa_aead_operation_s v = PSA_AEAD_OPERATION_INIT;

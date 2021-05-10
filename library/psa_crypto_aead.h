@@ -160,37 +160,39 @@ psa_status_t mbedtls_psa_aead_decrypt(
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
  * -# Initialize the operation object with one of the methods described in the
- *    documentation for #psa_aead_operation_t, e.g.
- *    #PSA_AEAD_OPERATION_INIT.
+ *    documentation for #mbedtls_psa_aead_operation_t, e.g.
+ *    #MBEDTLS_PSA_AEAD_OPERATION_INIT.
  * -# Call mbedtls_psa_aead_encrypt_setup() to specify the algorithm and key.
  * -# If needed, call mbedtls_psa_aead_set_lengths() to specify the length of
  *    the inputs to the subsequent calls to mbedtls_psa_aead_update_ad() and
- *    mbedtls_psa_aead_update(). See the documentation of mbedtls_psa_aead_set_lengths()
- *    for details.
+ *    mbedtls_psa_aead_update(). See the documentation of
+ *    mbedtls_psa_aead_set_lengths() for details.
  * -# Call either psa_aead_generate_nonce() or
  *    mbedtls_psa_aead_set_nonce() to generate or set the nonce. You should use
  *    psa_aead_generate_nonce() unless the protocol you are implementing
  *    requires a specific nonce value.
- * -# Call mbedtls_psa_aead_update_ad() zero, one or more times, passing a fragment
- *    of the non-encrypted additional authenticated data each time.
+ * -# Call mbedtls_psa_aead_update_ad() zero, one or more times, passing
+ *    a fragment of the non-encrypted additional authenticated data each time.
  * -# Call mbedtls_psa_aead_update() zero, one or more times, passing a fragment
  *    of the message to encrypt each time.
  * -# Call mbedtls_psa_aead_finish().
  *
- * If an error occurs at any step after a call to mbedtls_psa_aead_encrypt_setup(),
- * the operation will need to be reset by a call to mbedtls_psa_aead_abort(). The
- * application may call mbedtls_psa_aead_abort() at any time after the operation
- * has been initialized.
+ * If an error occurs at any step after a call to
+ * mbedtls_psa_aead_encrypt_setup(), the operation will need to be reset by a
+ * call to mbedtls_psa_aead_abort(). The application may call
+ * mbedtls_psa_aead_abort() at any time after the operation has been
+ * initialized.
  *
- * After a successful call to mbedtls_psa_aead_encrypt_setup(), the application must
- * eventually terminate the operation. The following events terminate an
+ * After a successful call to mbedtls_psa_aead_encrypt_setup(), the application
+ * must eventually terminate the operation. The following events terminate an
  * operation:
  * - A successful call to mbedtls_psa_aead_finish().
  * - A call to mbedtls_psa_aead_abort().
  *
  * \param[in,out] operation     The operation object to set up. It must have
  *                              been initialized as per the documentation for
- *                              #mbedtls_psa_aead_operation_t and not yet in use.
+ *                              #mbedtls_psa_aead_operation_t and not yet in
+ *                              use.
  * \param[in]  attributes       The attributes of the key to use for the
  *                              operation.
  * \param[in]  key_buffer       The buffer containing the key context.
@@ -219,9 +221,12 @@ psa_status_t mbedtls_psa_aead_decrypt(
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_aead_encrypt_setup(psa_aead_operation_t *operation,
-                                            const psa_key_attributes_t *attributes,
-                                            const uint8_t *key_buffer, size_t key_buffer_size,
+psa_status_t mbedtls_psa_aead_encrypt_setup(mbedtls_psa_aead_operation_t
+                                                                     *operation,
+                                            const psa_key_attributes_t
+                                                                    *attributes,
+                                            const uint8_t *key_buffer,
+                                            size_t key_buffer_size,
                                             psa_algorithm_t alg);
 
 /** Set the key for a multipart authenticated decryption operation.
@@ -236,34 +241,36 @@ psa_status_t mbedtls_psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
  * -# Initialize the operation object with one of the methods described in the
- *    documentation for #psa_aead_operation_t, e.g.
+ *    documentation for #mbedtls_psa_aead_operation_t, e.g.
  *    #PSA_AEAD_OPERATION_INIT.
  * -# Call mbedtls_psa_aead_decrypt_setup() to specify the algorithm and key.
- * -# If needed, call mbedtls_psa_aead_set_lengths() to specify the length of the
- *    inputs to the subsequent calls to mbedtls_psa_aead_update_ad() and
- *    mbedtls_psa_aead_update(). See the documentation of mbedtls_psa_aead_set_lengths()
- *    for details.
+ * -# If needed, call mbedtls_psa_aead_set_lengths() to specify the length of
+ *    the inputs to the subsequent calls to mbedtls_psa_aead_update_ad() and
+ *    mbedtls_psa_aead_update(). See the documentation of
+ *    mbedtls_psa_aead_set_lengths() for details.
  * -# Call mbedtls_psa_aead_set_nonce() with the nonce for the decryption.
- * -# Call mbedtls_psa_aead_update_ad() zero, one or more times, passing a fragment
- *    of the non-encrypted additional authenticated data each time.
+ * -# Call mbedtls_psa_aead_update_ad() zero, one or more times, passing a
+ *    fragment of the non-encrypted additional authenticated data each time.
  * -# Call mbedtls_psa_aead_update() zero, one or more times, passing a fragment
  *    of the ciphertext to decrypt each time.
  * -# Call mbedtls_psa_aead_verify().
  *
- * If an error occurs at any step after a call to mbedtls_psa_aead_decrypt_setup(),
- * the operation will need to be reset by a call to mbedtls_psa_aead_abort(). The
- * application may call mbedtls_psa_aead_abort() at any time after the operation
- * has been initialized.
+ * If an error occurs at any step after a call to
+ * mbedtls_psa_aead_decrypt_setup(), the operation will need to be reset by a
+ * call to mbedtls_psa_aead_abort(). The application may call
+ * mbedtls_psa_aead_abort() at any time after the operation has been
+ * initialized.
  *
- * After a successful call to mbedtls_psa_aead_decrypt_setup(), the application must
- * eventually terminate the operation. The following events terminate an
+ * After a successful call to mbedtls_psa_aead_decrypt_setup(), the application
+ * must eventually terminate the operation. The following events terminate an
  * operation:
  * - A successful call to mbedtls_psa_aead_verify().
  * - A call to mbedtls_psa_aead_abort().
  *
  * \param[in,out] operation     The operation object to set up. It must have
  *                              been initialized as per the documentation for
- *                              #psa_aead_operation_t and not yet in use.
+ *                              #mbedtls_psa_aead_operation_t and not yet in
+ *                              use.
  * \param[in]  attributes       The attributes of the key to use for the
  *                              operation.
  * \param[in]  key_buffer       The buffer containing the key context.
@@ -292,9 +299,12 @@ psa_status_t mbedtls_psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_aead_decrypt_setup(psa_aead_operation_t *operation,
-                                            const psa_key_attributes_t *attributes,
-                                            const uint8_t *key_buffer, size_t key_buffer_size,
+psa_status_t mbedtls_psa_aead_decrypt_setup(mbedtls_psa_aead_operation_t
+                                                                     *operation,
+                                            const psa_key_attributes_t
+                                                                    *attributes,
+                                            const uint8_t *key_buffer,
+                                            size_t key_buffer_size,
                                             psa_algorithm_t alg);
 
 /** Set the nonce for an authenticated encryption or decryption operation.
@@ -313,9 +323,9 @@ psa_status_t mbedtls_psa_aead_decrypt_setup(psa_aead_operation_t *operation,
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling mbedtls_psa_aead_abort().
  *
- * \note When encrypting, applications should use mbedtls_psa_aead_generate_nonce()
- * instead of this function, unless implementing a protocol that requires
- * a non-random IV.
+ * \note When encrypting, applications should use
+ * mbedtls_psa_aead_generate_nonce() instead of this function, unless
+ * implementing a protocol that requires a non-random IV.
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[in] nonce             Buffer containing the nonce to use.
@@ -338,7 +348,7 @@ psa_status_t mbedtls_psa_aead_decrypt_setup(psa_aead_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_aead_set_nonce(psa_aead_operation_t *operation,
+psa_status_t mbedtls_psa_aead_set_nonce(mbedtls_psa_aead_operation_t *operation,
                                         const uint8_t *nonce,
                                         size_t nonce_length);
 
@@ -350,10 +360,10 @@ psa_status_t mbedtls_psa_aead_set_nonce(psa_aead_operation_t *operation,
  *       specification for transparent drivers.
  *
  * The application must call this function before calling
- * mbedtls_psa_aead_update_ad() or mbedtls_psa_aead_update() if the algorithm for
- * the operation requires it. If the algorithm does not require it,
- * calling this function is optional, but if this function is called
- * then the implementation must enforce the lengths.
+ * mbedtls_psa_aead_update_ad() or mbedtls_psa_aead_update() if the algorithm
+ * for the operation requires it. If the algorithm does not require it, calling
+ * this function is optional, but if this function is called then the
+ * implementation must enforce the lengths.
  *
  * You may call this function before or after setting the nonce with
  * mbedtls_psa_aead_set_nonce() or psa_aead_generate_nonce().
@@ -375,8 +385,8 @@ psa_status_t mbedtls_psa_aead_set_nonce(psa_aead_operation_t *operation,
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active, and
- *         mbedtls_psa_aead_update_ad() and mbedtls_psa_aead_update() must not have been
- *         called yet).
+ *         mbedtls_psa_aead_update_ad() and mbedtls_psa_aead_update() must not
+ *         have been called yet).
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         At least one of the lengths is not acceptable for the chosen
  *         algorithm.
@@ -389,7 +399,8 @@ psa_status_t mbedtls_psa_aead_set_nonce(psa_aead_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_aead_set_lengths(psa_aead_operation_t *operation,
+psa_status_t mbedtls_psa_aead_set_lengths(mbedtls_psa_aead_operation_t
+                                                                     *operation,
                                           size_t ad_length,
                                           size_t plaintext_length);
 
@@ -407,18 +418,19 @@ psa_status_t mbedtls_psa_aead_set_lengths(psa_aead_operation_t *operation,
  * data to encrypt or decrypt with mbedtls_psa_aead_update().
  *
  * Before calling this function, you must:
- * 1. Call either mbedtls_psa_aead_encrypt_setup() or mbedtls_psa_aead_decrypt_setup().
- * 2. Set the nonce with psa_aead_generate_nonce() or
- *    mbedtls_psa_aead_set_nonce().
+ * 1. Call either mbedtls_psa_aead_encrypt_setup() or
+ *    mbedtls_psa_aead_decrypt_setup(). 2. Set the nonce with
+ *    psa_aead_generate_nonce() or mbedtls_psa_aead_set_nonce().
  *
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling mbedtls_psa_aead_abort().
  *
- * \warning When decrypting, until mbedtls_psa_aead_verify() has returned #PSA_SUCCESS,
- *          there is no guarantee that the input is valid. Therefore, until
- *          you have called mbedtls_psa_aead_verify() and it has returned #PSA_SUCCESS,
- *          treat the input as untrusted and prepare to undo any action that
- *          depends on the input if mbedtls_psa_aead_verify() returns an error status.
+ * \warning When decrypting, until mbedtls_psa_aead_verify() has returned
+ *          #PSA_SUCCESS, there is no guarantee that the input is valid.
+ *          Therefore, until you have called mbedtls_psa_aead_verify() and it
+ *          has returned #PSA_SUCCESS, treat the input as untrusted and prepare
+ *          to undo any action that depends on the input if
+ *          mbedtls_psa_aead_verify() returns an error status.
  *
  * \note    For the time being #PSA_ALG_CCM and #PSA_ALG_GCM require the entire
  *          additional data to be passed in in one go, i.e. only call
@@ -448,7 +460,7 @@ psa_status_t mbedtls_psa_aead_set_lengths(psa_aead_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_aead_update_ad(psa_aead_operation_t *operation,
+psa_status_t mbedtls_psa_aead_update_ad(mbedtls_psa_aead_operation_t *operation,
                                         const uint8_t *input,
                                         size_t input_length);
 
@@ -460,9 +472,9 @@ psa_status_t mbedtls_psa_aead_update_ad(psa_aead_operation_t *operation,
  *       transparent drivers.
  *
  * Before calling this function, you must:
- * 1. Call either mbedtls_psa_aead_encrypt_setup() or mbedtls_psa_aead_decrypt_setup().
- *    The choice of setup function determines whether this function
- *    encrypts or decrypts its input.
+ * 1. Call either mbedtls_psa_aead_encrypt_setup() or
+ *    mbedtls_psa_aead_decrypt_setup(). The choice of setup function determines
+ *    whether this function encrypts or decrypts its input.
  * 2. Set the nonce with psa_aead_generate_nonce() or
  * mbedtls_psa_aead_set_nonce(). 3. Call mbedtls_psa_aead_update_ad() to pass
  * all the additional data.
@@ -537,7 +549,7 @@ psa_status_t mbedtls_psa_aead_update_ad(psa_aead_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_aead_update(psa_aead_operation_t *operation,
+psa_status_t mbedtls_psa_aead_update(mbedtls_psa_aead_operation_t *operation,
                                      const uint8_t *input,
                                      size_t input_length,
                                      uint8_t *output,
@@ -618,7 +630,7 @@ psa_status_t mbedtls_psa_aead_update(psa_aead_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_aead_finish(psa_aead_operation_t *operation,
+psa_status_t mbedtls_psa_aead_finish(mbedtls_psa_aead_operation_t *operation,
                                      uint8_t *ciphertext,
                                      size_t ciphertext_size,
                                      size_t *ciphertext_length,
@@ -703,7 +715,7 @@ psa_status_t mbedtls_psa_aead_finish(psa_aead_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_aead_verify(psa_aead_operation_t *operation,
+psa_status_t mbedtls_psa_aead_verify(mbedtls_psa_aead_operation_t *operation,
                                      uint8_t *plaintext,
                                      size_t plaintext_size,
                                      size_t *plaintext_length,
@@ -723,11 +735,11 @@ psa_status_t mbedtls_psa_aead_verify(psa_aead_operation_t *operation,
  * mbedtls_psa_aead_encrypt_setup() or mbedtls_psa_aead_decrypt_setup() again.
  *
  * You may call this function any time after the operation object has
- * been initialized as described in #psa_aead_operation_t.
+ * been initialized as described in #mbedtls_psa_aead_operation_t.
  *
  * In particular, calling mbedtls_psa_aead_abort() after the operation has been
- * terminated by a call to mbedtls_psa_aead_abort(), mbedtls_psa_aead_finish() or
- * mbedtls_psa_aead_verify() is safe and has no effect.
+ * terminated by a call to mbedtls_psa_aead_abort(), mbedtls_psa_aead_finish()
+ * or mbedtls_psa_aead_verify() is safe and has no effect.
  *
  * \param[in,out] operation     Initialized AEAD operation.
  *
@@ -740,7 +752,7 @@ psa_status_t mbedtls_psa_aead_verify(psa_aead_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_aead_abort(psa_aead_operation_t *operation);
+psa_status_t mbedtls_psa_aead_abort(mbedtls_psa_aead_operation_t *operation);
 
 
 #endif /* PSA_CRYPTO_AEAD */

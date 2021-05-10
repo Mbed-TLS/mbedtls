@@ -118,6 +118,62 @@ typedef struct {
 
 #define MBEDTLS_PSA_CIPHER_OPERATION_INIT {0, 0, 0, {0}}
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CCM) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
+#define MBEDTLS_PSA_BUILTIN_AEAD  1
+#endif
+
+/* Context structure for the Mbed TLS cipher implementation. */
+typedef struct
+{
+    psa_algorithm_t alg;
+    psa_key_type_t key_type;
+
+    unsigned int lengths_set : 1;
+    unsigned int is_encrypt : 1;
+    unsigned int ad_started : 1;
+    unsigned int body_started : 1;
+
+    uint8_t tag_length;
+    uint8_t nonce_length;
+
+    size_t ad_remaining;
+    size_t body_remaining;
+
+    /* Buffers for AD/data - only required until CCM gets proper multipart
+       support. */
+    uint8_t *ad_buffer;
+    size_t ad_length;
+
+    uint8_t *body_buffer;
+    size_t body_length;
+
+    uint8_t *tag_buffer;
+
+    /* buffer to store Nonce - only required until CCM and GCM get proper
+       multipart support. */
+    uint8_t nonce[PSA_AEAD_NONCE_MAX_SIZE];
+
+    union
+    {
+        unsigned dummy; /* Enable easier initializing of the union. */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+        mbedtls_ccm_context ccm;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
+        mbedtls_gcm_context gcm;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
+        mbedtls_chachapoly_context chachapoly;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
+
+    } ctx;
+
+} mbedtls_psa_aead_operation_t;
+
+#define MBEDTLS_PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}, {0}}
+
 /*
  * BEYOND THIS POINT, TEST DRIVER DECLARATIONS ONLY.
  */
@@ -129,6 +185,9 @@ typedef mbedtls_psa_hash_operation_t mbedtls_transparent_test_driver_hash_operat
 
 typedef mbedtls_psa_cipher_operation_t
         mbedtls_transparent_test_driver_cipher_operation_t;
+
+typedef mbedtls_psa_aead_operation_t
+        mbedtls_transparent_test_driver_aead_operation_t;
 
 typedef struct {
     unsigned int initialised : 1;

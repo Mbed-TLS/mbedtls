@@ -403,8 +403,17 @@ typedef uint8_t psa_pake_data_t;
  *
  * Values defined by this standard will never be in the range 0x80-0xff.
  * Vendors who define additional types must use an encoding in this range.
+ *
+ * For more information see the documentation of individual
+ * PSA_PAKE_PRIMITIVE_TYPE_XXX constants.
  */
 typedef uint8_t psa_pake_primitive_type_t;
 
+/** \brief Encoding of the family of the primitive associated with the PAKE.
+ *
+ * For more information see the documentation of individual
+ * PSA_PAKE_PRIMITIVE_TYPE_XXX constants.
+ */
+typedef uint8_t psa_pake_family_t;
 /**@}*/
 #endif /* PSA_CRYPTO_TYPES_H */

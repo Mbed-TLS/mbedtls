@@ -465,7 +465,7 @@ struct psa_pake_cipher_suite_s
 {
     psa_algorithm_t algorithm;
     psa_pake_primitive_type_t type;
-    uint8_t family;
+    psa_pake_family_t family;
     size_t  bits;
     psa_algorithm_t hash;
 };
@@ -499,7 +499,7 @@ static inline void psa_pake_cs_set_type(
     cipher_suite->type = type;
 }
 
-static inline uint8_t psa_pake_cs_get_family(
+static inline psa_pake_family_t psa_pake_cs_get_family(
     const psa_pake_cipher_suite_t *cipher_suite)
 {
     return( cipher_suite->family );
@@ -507,7 +507,7 @@ static inline uint8_t psa_pake_cs_get_family(
 
 static inline void psa_pake_cs_set_family(
     psa_pake_cipher_suite_t *cipher_suite,
-    uint8_t family)
+    psa_pake_family_t family)
 {
     cipher_suite->family = family;
 }

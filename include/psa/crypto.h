@@ -4222,7 +4222,7 @@ static void psa_pake_cs_set_type(
  *
  * \return The primitive family stored in the cipher suite structure.
  */
-static uint8_t psa_pake_cs_get_family(
+static psa_pake_family_t psa_pake_cs_get_family(
                            const psa_pake_cipher_suite_t* cipher_suite
                            );
 
@@ -4246,7 +4246,7 @@ static uint8_t psa_pake_cs_get_family(
  */
 static void psa_pake_cs_set_family(
                            psa_pake_cipher_suite_t* cipher_suite,
-                           uint8_t family
+                           psa_pake_family_t family
                            );
 
 /** Retrieve the size associated with the primitive from a PAKE cipher suite.

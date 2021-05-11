@@ -3607,8 +3607,8 @@ psa_status_t psa_aead_generate_nonce( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    required_nonce_size = PSA_AEAD_NONCE_LENGTH(operation->key_type,
-                                                operation->alg);
+    required_nonce_size = PSA_AEAD_NONCE_LENGTH( operation->key_type,
+                                                operation->alg );
 
     if( nonce_size < required_nonce_size )
     {
@@ -3812,7 +3812,7 @@ exit:
 }
 
 /* Abort an AEAD operation. */
-psa_status_t psa_aead_abort(psa_aead_operation_t *operation)
+psa_status_t psa_aead_abort( psa_aead_operation_t *operation )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 

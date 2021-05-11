@@ -35,6 +35,7 @@
 #include "psa_crypto_driver_wrappers.h"
 #include "psa_crypto_ecp.h"
 #include "psa_crypto_hash.h"
+#include "psa_crypto_mac.h"
 #include "psa_crypto_rsa.h"
 #include "psa_crypto_ecp.h"
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -91,20 +92,6 @@
 #include "mbedtls/xtea.h"
 
 #define ARRAY_LENGTH( array ) ( sizeof( array ) / sizeof( *( array ) ) )
-
-/* constant-time buffer comparison */
-static inline int safer_memcmp( const uint8_t *a, const uint8_t *b, size_t n )
-{
-    size_t i;
-    unsigned char diff = 0;
-
-    for( i = 0; i < n; i++ )
-        diff |= a[i] ^ b[i];
-
-    return( diff );
-}
-
-
 
 /****************************************************************/
 /* Global data, support functions and library management */
@@ -2183,7 +2170,7 @@ psa_status_t psa_hash_verify( psa_hash_operation_t *operation,
         return( status );
     if( actual_hash_length != hash_length )
         return( PSA_ERROR_INVALID_SIGNATURE );
-    if( safer_memcmp( hash, actual_hash, actual_hash_length ) != 0 )
+    if( mbedtls_psa_safer_memcmp( hash, actual_hash, actual_hash_length ) != 0 )
         return( PSA_ERROR_INVALID_SIGNATURE );
     return( PSA_SUCCESS );
 }
@@ -2219,7 +2206,7 @@ psa_status_t psa_hash_compare( psa_algorithm_t alg,
         return( status );
     if( actual_hash_length != hash_length )
         return( PSA_ERROR_INVALID_SIGNATURE );
-    if( safer_memcmp( hash, actual_hash, actual_hash_length ) != 0 )
+    if( mbedtls_psa_safer_memcmp( hash, actual_hash, actual_hash_length ) != 0 )
         return( PSA_ERROR_INVALID_SIGNATURE );
     return( PSA_SUCCESS );
 }
@@ -2246,222 +2233,19 @@ psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,
 /* MAC */
 /****************************************************************/
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-static size_t psa_get_hash_block_size( psa_algorithm_t alg )
-{
-    switch( alg )
-    {
-        case PSA_ALG_MD2:
-            return( 16 );
-        case PSA_ALG_MD4:
-            return( 64 );
-        case PSA_ALG_MD5:
-            return( 64 );
-        case PSA_ALG_RIPEMD160:
-            return( 64 );
-        case PSA_ALG_SHA_1:
-            return( 64 );
-        case PSA_ALG_SHA_224:
-            return( 64 );
-        case PSA_ALG_SHA_256:
-            return( 64 );
-        case PSA_ALG_SHA_384:
-            return( 128 );
-        case PSA_ALG_SHA_512:
-            return( 128 );
-        default:
-            return( 0 );
-    }
-}
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC) */
-
-/* Initialize the MAC operation structure. Once this function has been
- * called, psa_mac_abort can run and will do the right thing. */
-static psa_status_t psa_mac_init( psa_mac_operation_t *operation,
-                                  psa_algorithm_t alg )
-{
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-
-    operation->alg = PSA_ALG_FULL_LENGTH_MAC( alg );
-    operation->key_set = 0;
-    operation->iv_set = 0;
-    operation->iv_required = 0;
-    operation->has_input = 0;
-    operation->is_sign = 0;
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
-    if( operation->alg == PSA_ALG_CMAC )
-    {
-        operation->iv_required = 0;
-        mbedtls_cipher_init( &operation->ctx.cmac );
-        status = PSA_SUCCESS;
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-    if( PSA_ALG_IS_HMAC( operation->alg ) )
-    {
-        /* We'll set up the hash operation later in psa_hmac_setup_internal. */
-        operation->ctx.hmac.alg = 0;
-        status = PSA_SUCCESS;
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
-    {
-        if( ! PSA_ALG_IS_MAC( alg ) )
-            status = PSA_ERROR_INVALID_ARGUMENT;
-    }
-
-    if( status != PSA_SUCCESS )
-        memset( operation, 0, sizeof( *operation ) );
-    return( status );
-}
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-static psa_status_t psa_hmac_abort_internal( psa_hmac_internal_data *hmac )
-{
-    mbedtls_platform_zeroize( hmac->opad, sizeof( hmac->opad ) );
-    return( psa_hash_abort( &hmac->hash_ctx ) );
-}
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
-
 psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
 {
-    if( operation->alg == 0 )
-    {
-        /* The object has (apparently) been initialized but it is not
-         * in use. It's ok to call abort on such an object, and there's
-         * nothing to do. */
+    /* Aborting a non-active operation is allowed */
+    if( operation->id == 0 )
         return( PSA_SUCCESS );
-    }
-    else
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
-    if( operation->alg == PSA_ALG_CMAC )
-    {
-        mbedtls_cipher_free( &operation->ctx.cmac );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-    if( PSA_ALG_IS_HMAC( operation->alg ) )
-    {
-        psa_hmac_abort_internal( &operation->ctx.hmac );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
-    {
-        /* Sanity check (shouldn't happen: operation->alg should
-         * always have been initialized to a valid value). */
-        goto bad_state;
-    }
 
-    operation->alg = 0;
-    operation->key_set = 0;
-    operation->iv_set = 0;
-    operation->iv_required = 0;
-    operation->has_input = 0;
+    psa_status_t status = psa_driver_wrapper_mac_abort( operation );
+    operation->mac_size = 0;
     operation->is_sign = 0;
-
-    return( PSA_SUCCESS );
-
-bad_state:
-    /* If abort is called on an uninitialized object, we can't trust
-     * anything. Wipe the object in case it contains confidential data.
-     * This may result in a memory leak if a pointer gets overwritten,
-     * but it's too late to do anything about this. */
-    memset( operation, 0, sizeof( *operation ) );
-    return( PSA_ERROR_BAD_STATE );
-}
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
-static psa_status_t psa_cmac_setup( psa_mac_operation_t *operation,
-                                    psa_key_slot_t *slot )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const mbedtls_cipher_info_t *cipher_info =
-            mbedtls_cipher_info_from_psa( PSA_ALG_CMAC,
-                                          slot->attr.type, slot->attr.bits,
-                                          NULL );
-    if( cipher_info == NULL )
-        return( PSA_ERROR_NOT_SUPPORTED );
-
-    ret = mbedtls_cipher_setup( &operation->ctx.cmac, cipher_info );
-    if( ret != 0 )
-        goto exit;
-
-    ret = mbedtls_cipher_cmac_starts( &operation->ctx.cmac,
-                                      slot->key.data,
-                                      slot->attr.bits );
-exit:
-    return( mbedtls_to_psa_error( ret ) );
-}
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-static psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
-                                             const uint8_t *key,
-                                             size_t key_length,
-                                             psa_algorithm_t hash_alg )
-{
-    uint8_t ipad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
-    size_t i;
-    size_t hash_size = PSA_HASH_LENGTH( hash_alg );
-    size_t block_size = psa_get_hash_block_size( hash_alg );
-    psa_status_t status;
-
-    hmac->alg = hash_alg;
-
-    /* Sanity checks on block_size, to guarantee that there won't be a buffer
-     * overflow below. This should never trigger if the hash algorithm
-     * is implemented correctly. */
-    /* The size checks against the ipad and opad buffers cannot be written
-     * `block_size > sizeof( ipad ) || block_size > sizeof( hmac->opad )`
-     * because that triggers -Wlogical-op on GCC 7.3. */
-    if( block_size > sizeof( ipad ) )
-        return( PSA_ERROR_NOT_SUPPORTED );
-    if( block_size > sizeof( hmac->opad ) )
-        return( PSA_ERROR_NOT_SUPPORTED );
-    if( block_size < hash_size )
-        return( PSA_ERROR_NOT_SUPPORTED );
-
-    if( key_length > block_size )
-    {
-        status = psa_hash_compute( hash_alg, key, key_length,
-                                   ipad, sizeof( ipad ), &key_length );
-        if( status != PSA_SUCCESS )
-            goto cleanup;
-    }
-    /* A 0-length key is not commonly used in HMAC when used as a MAC,
-     * but it is permitted. It is common when HMAC is used in HKDF, for
-     * example. Don't call `memcpy` in the 0-length because `key` could be
-     * an invalid pointer which would make the behavior undefined. */
-    else if( key_length != 0 )
-        memcpy( ipad, key, key_length );
-
-    /* ipad contains the key followed by garbage. Xor and fill with 0x36
-     * to create the ipad value. */
-    for( i = 0; i < key_length; i++ )
-        ipad[i] ^= 0x36;
-    memset( ipad + key_length, 0x36, block_size - key_length );
-
-    /* Copy the key material from ipad to opad, flipping the requisite bits,
-     * and filling the rest of opad with the requisite constant. */
-    for( i = 0; i < key_length; i++ )
-        hmac->opad[i] = ipad[i] ^ 0x36 ^ 0x5C;
-    memset( hmac->opad + key_length, 0x5C, block_size - key_length );
-
-    status = psa_hash_setup( &hmac->hash_ctx, hash_alg );
-    if( status != PSA_SUCCESS )
-        goto cleanup;
-
-    status = psa_hash_update( &hmac->hash_ctx, ipad, block_size );
-
-cleanup:
-    mbedtls_platform_zeroize( ipad, sizeof( ipad ) );
+    operation->id = 0;
 
     return( status );
 }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
 
 static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
                                    mbedtls_svc_key_id_t key,
@@ -2471,35 +2255,38 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
-    psa_key_usage_t usage =
-        is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH;
 
     /* A context must be freshly initialized before it can be set up. */
-    if( operation->alg != 0 )
-    {
+    if( operation->id != 0 )
         return( PSA_ERROR_BAD_STATE );
-    }
 
-    status = psa_mac_init( operation, alg );
+    if( ! PSA_ALG_IS_MAC( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    status = psa_get_and_lock_key_slot_with_policy(
+                 key,
+                 &slot,
+                 is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH,
+                 alg );
     if( status != PSA_SUCCESS )
         return( status );
-    if( is_sign )
-        operation->is_sign = 1;
 
-    status = psa_get_and_lock_transparent_key_slot_with_policy(
-                 key, &slot, usage, alg );
-    if( status != PSA_SUCCESS )
-        goto exit;
+    psa_key_attributes_t attributes = {
+        .core = slot->attr
+    };
 
     /* Validate the combination of key type and algorithm */
-    status = psa_mac_key_can_do( alg, slot->attr.type );
+    status = psa_mac_key_can_do( alg, psa_get_key_type( &attributes ) );
     if( status != PSA_SUCCESS )
         goto exit;
 
-    /* Get the output length for the algorithm and key combination. None of the
-     * currently supported algorithms have an output length dependent on actual
-     * key size, so setting it to a bogus value is currently OK. */
-    operation->mac_size = PSA_MAC_LENGTH( slot->attr.type, 0, alg );
+    operation->is_sign = is_sign;
+
+    /* Get the output length for the algorithm and key combination */
+    operation->mac_size = PSA_MAC_LENGTH(
+                            psa_get_key_type( &attributes ),
+                            psa_get_key_bits( &attributes ),
+                            alg );
 
     if( operation->mac_size < 4 )
     {
@@ -2511,8 +2298,9 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         goto exit;
     }
 
-    if( operation->mac_size >
-        PSA_MAC_LENGTH( slot->attr.type, 0, PSA_ALG_FULL_LENGTH_MAC( alg ) ) )
+    if( operation->mac_size > PSA_MAC_LENGTH( psa_get_key_type( &attributes ),
+                                              psa_get_key_bits( &attributes ),
+                                              PSA_ALG_FULL_LENGTH_MAC( alg ) ) )
     {
         /* It's impossible to "truncate" to a larger length than the full length
          * of the algorithm. */
@@ -2520,49 +2308,27 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         goto exit;
     }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
-    if( PSA_ALG_FULL_LENGTH_MAC( alg ) == PSA_ALG_CMAC )
+    /* Dispatch the MAC setup call with validated input */
+    if( is_sign )
     {
-        status = psa_cmac_setup( operation, slot );
+        status = psa_driver_wrapper_mac_sign_setup( operation,
+                                                    &attributes,
+                                                    slot->key.data,
+                                                    slot->key.bytes,
+                                                    alg );
     }
     else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-    if( PSA_ALG_IS_HMAC( alg ) )
     {
-        /* Sanity check. This shouldn't fail on a valid configuration. */
-        if( operation->mac_size > sizeof( operation->ctx.hmac.opad ) )
-        {
-            status = PSA_ERROR_NOT_SUPPORTED;
-            goto exit;
-        }
-
-        if( slot->attr.type != PSA_KEY_TYPE_HMAC )
-        {
-            status = PSA_ERROR_INVALID_ARGUMENT;
-            goto exit;
-        }
-
-        status = psa_hmac_setup_internal( &operation->ctx.hmac,
-                                          slot->key.data,
-                                          slot->key.bytes,
-                                          PSA_ALG_HMAC_GET_HASH( alg ) );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
-    {
-        status = PSA_ERROR_NOT_SUPPORTED;
+        status = psa_driver_wrapper_mac_verify_setup( operation,
+                                                      &attributes,
+                                                      slot->key.data,
+                                                      slot->key.bytes,
+                                                      alg );
     }
 
 exit:
     if( status != PSA_SUCCESS )
-    {
         psa_mac_abort( operation );
-    }
-    else
-    {
-        operation->key_set = 1;
-    }
 
     unlock_status = psa_unlock_key_slot( slot );
 
@@ -2587,118 +2353,20 @@ psa_status_t psa_mac_update( psa_mac_operation_t *operation,
                              const uint8_t *input,
                              size_t input_length )
 {
-    psa_status_t status = PSA_ERROR_BAD_STATE;
-    if( ! operation->key_set )
+    if( operation->id == 0 )
         return( PSA_ERROR_BAD_STATE );
-    if( operation->iv_required && ! operation->iv_set )
-        return( PSA_ERROR_BAD_STATE );
-    operation->has_input = 1;
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
-    if( operation->alg == PSA_ALG_CMAC )
-    {
-        int ret = mbedtls_cipher_cmac_update( &operation->ctx.cmac,
-                                              input, input_length );
-        status = mbedtls_to_psa_error( ret );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-    if( PSA_ALG_IS_HMAC( operation->alg ) )
-    {
-        status = psa_hash_update( &operation->ctx.hmac.hash_ctx, input,
-                                  input_length );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
-    {
-        /* This shouldn't happen if `operation` was initialized by
-         * a setup function. */
-        return( PSA_ERROR_BAD_STATE );
-    }
+    /* Don't require hash implementations to behave correctly on a
+     * zero-length input, which may have an invalid pointer. */
+    if( input_length == 0 )
+        return( PSA_SUCCESS );
 
+    psa_status_t status = psa_driver_wrapper_mac_update( operation,
+                                                         input, input_length );
     if( status != PSA_SUCCESS )
         psa_mac_abort( operation );
+
     return( status );
-}
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-static psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
-                                              uint8_t *mac,
-                                              size_t mac_size )
-{
-    uint8_t tmp[MBEDTLS_MD_MAX_SIZE];
-    psa_algorithm_t hash_alg = hmac->alg;
-    size_t hash_size = 0;
-    size_t block_size = psa_get_hash_block_size( hash_alg );
-    psa_status_t status;
-
-    status = psa_hash_finish( &hmac->hash_ctx, tmp, sizeof( tmp ), &hash_size );
-    if( status != PSA_SUCCESS )
-        return( status );
-    /* From here on, tmp needs to be wiped. */
-
-    status = psa_hash_setup( &hmac->hash_ctx, hash_alg );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    status = psa_hash_update( &hmac->hash_ctx, hmac->opad, block_size );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    status = psa_hash_update( &hmac->hash_ctx, tmp, hash_size );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    status = psa_hash_finish( &hmac->hash_ctx, tmp, sizeof( tmp ), &hash_size );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    memcpy( mac, tmp, mac_size );
-
-exit:
-    mbedtls_platform_zeroize( tmp, hash_size );
-    return( status );
-}
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
-
-static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
-                                             uint8_t *mac,
-                                             size_t mac_size )
-{
-    if( ! operation->key_set )
-        return( PSA_ERROR_BAD_STATE );
-    if( operation->iv_required && ! operation->iv_set )
-        return( PSA_ERROR_BAD_STATE );
-
-    if( mac_size < operation->mac_size )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
-    if( operation->alg == PSA_ALG_CMAC )
-    {
-        uint8_t tmp[PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE];
-        int ret = mbedtls_cipher_cmac_finish( &operation->ctx.cmac, tmp );
-        if( ret == 0 )
-            memcpy( mac, tmp, operation->mac_size );
-        mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
-        return( mbedtls_to_psa_error( ret ) );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
-    if( PSA_ALG_IS_HMAC( operation->alg ) )
-    {
-        return( psa_hmac_finish_internal( &operation->ctx.hmac,
-                                          mac, operation->mac_size ) );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
-    {
-        /* This shouldn't happen if `operation` was initialized by
-         * a setup function. */
-        return( PSA_ERROR_BAD_STATE );
-    }
 }
 
 psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
@@ -2706,81 +2374,81 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
                                   size_t mac_size,
                                   size_t *mac_length )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( operation->alg == 0 )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
-
-    /* Fill the output buffer with something that isn't a valid mac
-     * (barring an attack on the mac and deliberately-crafted input),
-     * in case the caller doesn't check the return status properly. */
+    /* Set the output length and content to a safe default, such that in
+     * case the caller misses an error check, the output would be an
+     * unachievable MAC. */
     *mac_length = mac_size;
-    /* If mac_size is 0 then mac may be NULL and then the
-     * call to memset would have undefined behavior. */
-    if( mac_size != 0 )
-        memset( mac, '!', mac_size );
+
+    if( operation->id == 0 )
+        return( PSA_ERROR_BAD_STATE );
 
     if( ! operation->is_sign )
-    {
         return( PSA_ERROR_BAD_STATE );
-    }
 
-    status = psa_mac_finish_internal( operation, mac, mac_size );
+    /* Sanity check. This will guarantee that mac_size != 0 (and so mac != NULL)
+     * once all the error checks are done. */
+    if( operation->mac_size == 0 )
+        return( PSA_ERROR_BAD_STATE );
+
+    if( mac_size < operation->mac_size )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+    status = psa_driver_wrapper_mac_sign_finish( operation,
+                                                 mac, operation->mac_size,
+                                                 mac_length );
 
     if( status == PSA_SUCCESS )
     {
-        status = psa_mac_abort( operation );
-        if( status == PSA_SUCCESS )
-            *mac_length = operation->mac_size;
-        else
-            memset( mac, '!', mac_size );
+        /* Set the excess room in the output buffer to an invalid value, to
+         * avoid potentially leaking a longer MAC. */
+        if( mac_size > operation->mac_size )
+            memset( &mac[operation->mac_size],
+                    '!',
+                    mac_size - operation->mac_size );
     }
     else
-        psa_mac_abort( operation );
-    return( status );
+    {
+        /* Set the output length and content to a safe default, such that in
+         * case the caller misses an error check, the output would be an
+         * unachievable MAC. */
+        *mac_length = mac_size;
+        memset( mac, '!', mac_size );
+    }
+
+    abort_status = psa_mac_abort( operation );
+
+    return( status == PSA_SUCCESS ? abort_status : status );
 }
 
 psa_status_t psa_mac_verify_finish( psa_mac_operation_t *operation,
                                     const uint8_t *mac,
                                     size_t mac_length )
 {
-    uint8_t actual_mac[PSA_MAC_MAX_SIZE];
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( operation->alg == 0 )
-    {
+    if( operation->id == 0 )
         return( PSA_ERROR_BAD_STATE );
-    }
 
     if( operation->is_sign )
-    {
         return( PSA_ERROR_BAD_STATE );
-    }
+
     if( operation->mac_size != mac_length )
     {
         status = PSA_ERROR_INVALID_SIGNATURE;
         goto cleanup;
     }
 
-    status = psa_mac_finish_internal( operation,
-                                      actual_mac, sizeof( actual_mac ) );
-    if( status != PSA_SUCCESS )
-        goto cleanup;
-
-    if( safer_memcmp( mac, actual_mac, mac_length ) != 0 )
-        status = PSA_ERROR_INVALID_SIGNATURE;
+    status = psa_driver_wrapper_mac_verify_finish( operation,
+                                                   mac, mac_length );
 
 cleanup:
-    if( status == PSA_SUCCESS )
-        status = psa_mac_abort( operation );
-    else
-        psa_mac_abort( operation );
+    abort_status = psa_mac_abort( operation );
 
-    mbedtls_platform_zeroize( actual_mac, sizeof( actual_mac ) );
-
-    return( status );
+    return( status == PSA_SUCCESS ? abort_status : status );
 }
 
 
@@ -3553,7 +3221,35 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
 #define AT_LEAST_ONE_BUILTIN_KDF
-#endif
+#endif /* At least one builtin KDF */
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+static psa_status_t psa_key_derivation_start_hmac(
+    psa_mac_operation_t *operation,
+    psa_algorithm_t hash_alg,
+    const uint8_t *hmac_key,
+    size_t hmac_key_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
+    psa_set_key_bits( &attributes, PSA_BYTES_TO_BITS( hmac_key_length ) );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
+
+    operation->is_sign = 1;
+    operation->mac_size = PSA_HASH_LENGTH( hash_alg );
+
+    status = psa_driver_wrapper_mac_sign_setup( operation,
+                                                &attributes,
+                                                hmac_key, hmac_key_length,
+                                                PSA_ALG_HMAC( hash_alg ) );
+
+    psa_reset_key_attributes( &attributes );
+    return( status );
+}
+#endif /* KDF algorithms reliant on HMAC */
 
 #define HKDF_STATE_INIT 0 /* no input yet */
 #define HKDF_STATE_STARTED 1 /* got salt */
@@ -3584,7 +3280,7 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
     if( PSA_ALG_IS_HKDF( kdf_alg ) )
     {
         mbedtls_free( operation->ctx.hkdf.info );
-        status = psa_hmac_abort_internal( &operation->ctx.hkdf.hmac );
+        status = psa_mac_abort( &operation->ctx.hkdf.hmac );
     }
     else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF */
@@ -3594,6 +3290,13 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
              /* TLS-1.2 PSK-to-MS KDF uses the same core as TLS-1.2 PRF */
              PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
     {
+        if( operation->ctx.tls12_prf.secret != NULL )
+        {
+            mbedtls_platform_zeroize( operation->ctx.tls12_prf.secret,
+                                      operation->ctx.tls12_prf.secret_length );
+            mbedtls_free( operation->ctx.tls12_prf.secret );
+        }
+
         if( operation->ctx.tls12_prf.seed != NULL )
         {
             mbedtls_platform_zeroize( operation->ctx.tls12_prf.seed,
@@ -3608,7 +3311,7 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
             mbedtls_free( operation->ctx.tls12_prf.label );
         }
 
-        status = psa_hmac_abort_internal( &operation->ctx.tls12_prf.hmac );
+        status = PSA_SUCCESS;
 
         /* We leave the fields Ai and output_block to be erased safely by the
          * mbedtls_platform_zeroize() in the end of this function. */
@@ -3651,11 +3354,12 @@ psa_status_t psa_key_derivation_set_capacity( psa_key_derivation_operation_t *op
 /* Read some bytes from an HKDF-based operation. This performs a chunk
  * of the expand phase of the HKDF algorithm. */
 static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkdf,
-                                             psa_algorithm_t hash_alg,
-                                             uint8_t *output,
-                                             size_t output_length )
+                                                  psa_algorithm_t hash_alg,
+                                                  uint8_t *output,
+                                                  size_t output_length )
 {
     uint8_t hash_length = PSA_HASH_LENGTH( hash_alg );
+    size_t hmac_output_length;
     psa_status_t status;
 
     if( hkdf->state < HKDF_STATE_KEYED || ! hkdf->info_set )
@@ -3685,31 +3389,35 @@ static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkd
         /* We need a new block */
         ++hkdf->block_number;
         hkdf->offset_in_block = 0;
-        status = psa_hmac_setup_internal( &hkdf->hmac,
-                                          hkdf->prk, hash_length,
-                                          hash_alg );
+
+        status = psa_key_derivation_start_hmac( &hkdf->hmac,
+                                                hash_alg,
+                                                hkdf->prk,
+                                                hash_length );
         if( status != PSA_SUCCESS )
             return( status );
+
         if( hkdf->block_number != 1 )
         {
-            status = psa_hash_update( &hkdf->hmac.hash_ctx,
-                                      hkdf->output_block,
-                                      hash_length );
+            status = psa_mac_update( &hkdf->hmac,
+                                     hkdf->output_block,
+                                     hash_length );
             if( status != PSA_SUCCESS )
                 return( status );
         }
-        status = psa_hash_update( &hkdf->hmac.hash_ctx,
-                                  hkdf->info,
-                                  hkdf->info_length );
+        status = psa_mac_update( &hkdf->hmac,
+                                 hkdf->info,
+                                 hkdf->info_length );
         if( status != PSA_SUCCESS )
             return( status );
-        status = psa_hash_update( &hkdf->hmac.hash_ctx,
-                                  &hkdf->block_number, 1 );
+        status = psa_mac_update( &hkdf->hmac,
+                                 &hkdf->block_number, 1 );
         if( status != PSA_SUCCESS )
             return( status );
-        status = psa_hmac_finish_internal( &hkdf->hmac,
-                                           hkdf->output_block,
-                                           sizeof( hkdf->output_block ) );
+        status = psa_mac_sign_finish( &hkdf->hmac,
+                                      hkdf->output_block,
+                                      sizeof( hkdf->output_block ),
+                                      &hmac_output_length );
         if( status != PSA_SUCCESS )
             return( status );
     }
@@ -3726,7 +3434,8 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
 {
     psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( alg );
     uint8_t hash_length = PSA_HASH_LENGTH( hash_alg );
-    psa_hash_operation_t backup = PSA_HASH_OPERATION_INIT;
+    psa_mac_operation_t hmac = PSA_MAC_OPERATION_INIT;
+    size_t hmac_output_length;
     psa_status_t status, cleanup_status;
 
     /* We can't be wanting more output after block 0xff, otherwise
@@ -3758,10 +3467,10 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
      * `block_number`.
      */
 
-    /* Save the hash context before using it, to preserve the hash state with
-     * only the inner padding in it. We need this, because inner padding depends
-     * on the key (secret in the RFC's terminology). */
-    status = psa_hash_clone( &tls12_prf->hmac.hash_ctx, &backup );
+    status = psa_key_derivation_start_hmac( &hmac,
+                                            hash_alg,
+                                            tls12_prf->secret,
+                                            tls12_prf->secret_length );
     if( status != PSA_SUCCESS )
         goto cleanup;
 
@@ -3771,57 +3480,58 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
         /* A(1) = HMAC_hash(secret, A(0)), where A(0) = seed. (The RFC overloads
          * the variable seed and in this instance means it in the context of the
          * P_hash function, where seed = label + seed.) */
-        status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
-                                  tls12_prf->label, tls12_prf->label_length );
+        status = psa_mac_update( &hmac,
+                                 tls12_prf->label,
+                                 tls12_prf->label_length );
         if( status != PSA_SUCCESS )
             goto cleanup;
-        status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
-                                  tls12_prf->seed, tls12_prf->seed_length );
+        status = psa_mac_update( &hmac,
+                                 tls12_prf->seed,
+                                 tls12_prf->seed_length );
         if( status != PSA_SUCCESS )
             goto cleanup;
     }
     else
     {
         /* A(i) = HMAC_hash(secret, A(i-1)) */
-        status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
-                                  tls12_prf->Ai, hash_length );
+        status = psa_mac_update( &hmac, tls12_prf->Ai, hash_length );
         if( status != PSA_SUCCESS )
             goto cleanup;
     }
 
-    status = psa_hmac_finish_internal( &tls12_prf->hmac,
-                                       tls12_prf->Ai, hash_length );
-    if( status != PSA_SUCCESS )
-        goto cleanup;
-    status = psa_hash_clone( &backup, &tls12_prf->hmac.hash_ctx );
+    status = psa_mac_sign_finish( &hmac,
+                                  tls12_prf->Ai, hash_length,
+                                  &hmac_output_length );
+    if( hmac_output_length != hash_length )
+        status = PSA_ERROR_CORRUPTION_DETECTED;
     if( status != PSA_SUCCESS )
         goto cleanup;
 
     /* Calculate HMAC_hash(secret, A(i) + label + seed). */
-    status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
-                              tls12_prf->Ai, hash_length );
+    status = psa_key_derivation_start_hmac( &hmac,
+                                            hash_alg,
+                                            tls12_prf->secret,
+                                            tls12_prf->secret_length );
     if( status != PSA_SUCCESS )
         goto cleanup;
-    status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
-                              tls12_prf->label, tls12_prf->label_length );
+    status = psa_mac_update( &hmac, tls12_prf->Ai, hash_length );
     if( status != PSA_SUCCESS )
         goto cleanup;
-    status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
-                              tls12_prf->seed, tls12_prf->seed_length );
+    status = psa_mac_update( &hmac, tls12_prf->label, tls12_prf->label_length );
     if( status != PSA_SUCCESS )
         goto cleanup;
-    status = psa_hmac_finish_internal( &tls12_prf->hmac,
-                                       tls12_prf->output_block, hash_length );
+    status = psa_mac_update( &hmac, tls12_prf->seed, tls12_prf->seed_length );
     if( status != PSA_SUCCESS )
         goto cleanup;
-    status = psa_hash_clone( &backup, &tls12_prf->hmac.hash_ctx );
+    status = psa_mac_sign_finish( &hmac,
+                                  tls12_prf->output_block, hash_length,
+                                  &hmac_output_length );
     if( status != PSA_SUCCESS )
         goto cleanup;
 
 
 cleanup:
-
-    cleanup_status = psa_hash_abort( &backup );
+    cleanup_status = psa_mac_abort( &hmac );
     if( status == PSA_SUCCESS && cleanup_status != PSA_SUCCESS )
         status = cleanup_status;
 
@@ -3918,8 +3628,8 @@ psa_status_t psa_key_derivation_output_bytes(
         PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
     {
         status = psa_key_derivation_tls12_prf_read( &operation->ctx.tls12_prf,
-                                               kdf_alg, output,
-                                               output_length );
+                                                    kdf_alg, output,
+                                                    output_length );
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF ||
@@ -4147,33 +3857,37 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
         case PSA_KEY_DERIVATION_INPUT_SALT:
             if( hkdf->state != HKDF_STATE_INIT )
                 return( PSA_ERROR_BAD_STATE );
-            status = psa_hmac_setup_internal( &hkdf->hmac,
-                                              data, data_length,
-                                              hash_alg );
-            if( status != PSA_SUCCESS )
-                return( status );
-            hkdf->state = HKDF_STATE_STARTED;
-            return( PSA_SUCCESS );
+            else
+            {
+                status = psa_key_derivation_start_hmac( &hkdf->hmac,
+                                                        hash_alg,
+                                                        data, data_length );
+                if( status != PSA_SUCCESS )
+                    return( status );
+                hkdf->state = HKDF_STATE_STARTED;
+                return( PSA_SUCCESS );
+            }
         case PSA_KEY_DERIVATION_INPUT_SECRET:
             /* If no salt was provided, use an empty salt. */
             if( hkdf->state == HKDF_STATE_INIT )
             {
-                status = psa_hmac_setup_internal( &hkdf->hmac,
-                                                  NULL, 0,
-                                                  hash_alg );
+                status = psa_key_derivation_start_hmac( &hkdf->hmac,
+                                                        hash_alg,
+                                                        NULL, 0 );
                 if( status != PSA_SUCCESS )
                     return( status );
                 hkdf->state = HKDF_STATE_STARTED;
             }
             if( hkdf->state != HKDF_STATE_STARTED )
                 return( PSA_ERROR_BAD_STATE );
-            status = psa_hash_update( &hkdf->hmac.hash_ctx,
-                                      data, data_length );
+            status = psa_mac_update( &hkdf->hmac,
+                                     data, data_length );
             if( status != PSA_SUCCESS )
                 return( status );
-            status = psa_hmac_finish_internal( &hkdf->hmac,
-                                               hkdf->prk,
-                                               sizeof( hkdf->prk ) );
+            status = psa_mac_sign_finish( &hkdf->hmac,
+                                          hkdf->prk,
+                                          sizeof( hkdf->prk ),
+                                          &data_length );
             if( status != PSA_SUCCESS )
                 return( status );
             hkdf->offset_in_block = PSA_HASH_LENGTH( hash_alg );
@@ -4226,17 +3940,21 @@ static psa_status_t psa_tls12_prf_set_seed( psa_tls12_prf_key_derivation_t *prf,
 }
 
 static psa_status_t psa_tls12_prf_set_key( psa_tls12_prf_key_derivation_t *prf,
-                                           psa_algorithm_t hash_alg,
                                            const uint8_t *data,
                                            size_t data_length )
 {
-    psa_status_t status;
     if( prf->state != PSA_TLS12_PRF_STATE_SEED_SET )
         return( PSA_ERROR_BAD_STATE );
 
-    status = psa_hmac_setup_internal( &prf->hmac, data, data_length, hash_alg );
-    if( status != PSA_SUCCESS )
-        return( status );
+    if( data_length != 0 )
+    {
+        prf->secret = mbedtls_calloc( 1, data_length );
+        if( prf->secret == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+        memcpy( prf->secret, data, data_length );
+        prf->secret_length = data_length;
+    }
 
     prf->state = PSA_TLS12_PRF_STATE_KEY_SET;
 
@@ -4266,7 +3984,6 @@ static psa_status_t psa_tls12_prf_set_label( psa_tls12_prf_key_derivation_t *prf
 }
 
 static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_t *prf,
-                                         psa_algorithm_t hash_alg,
                                          psa_key_derivation_step_t step,
                                          const uint8_t *data,
                                          size_t data_length )
@@ -4276,7 +3993,7 @@ static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_t *prf,
         case PSA_KEY_DERIVATION_INPUT_SEED:
             return( psa_tls12_prf_set_seed( prf, data, data_length ) );
         case PSA_KEY_DERIVATION_INPUT_SECRET:
-            return( psa_tls12_prf_set_key( prf, hash_alg, data, data_length ) );
+            return( psa_tls12_prf_set_key( prf, data, data_length ) );
         case PSA_KEY_DERIVATION_INPUT_LABEL:
             return( psa_tls12_prf_set_label( prf, data, data_length ) );
         default:
@@ -4289,7 +4006,6 @@ static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_t *prf,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
 static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
     psa_tls12_prf_key_derivation_t *prf,
-    psa_algorithm_t hash_alg,
     const uint8_t *data,
     size_t data_length )
 {
@@ -4316,7 +4032,7 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
     memcpy( cur, data, data_length );
     cur += data_length;
 
-    status = psa_tls12_prf_set_key( prf, hash_alg, pms, cur - pms );
+    status = psa_tls12_prf_set_key( prf, pms, cur - pms );
 
     mbedtls_platform_zeroize( pms, sizeof( pms ) );
     return( status );
@@ -4324,18 +4040,17 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
 
 static psa_status_t psa_tls12_prf_psk_to_ms_input(
     psa_tls12_prf_key_derivation_t *prf,
-    psa_algorithm_t hash_alg,
     psa_key_derivation_step_t step,
     const uint8_t *data,
     size_t data_length )
 {
     if( step == PSA_KEY_DERIVATION_INPUT_SECRET )
     {
-        return( psa_tls12_prf_psk_to_ms_set_key( prf, hash_alg,
+        return( psa_tls12_prf_psk_to_ms_set_key( prf,
                                                  data, data_length ) );
     }
 
-    return( psa_tls12_prf_input( prf, hash_alg, step, data, data_length ) );
+    return( psa_tls12_prf_input( prf, step, data, data_length ) );
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
@@ -4400,7 +4115,6 @@ static psa_status_t psa_key_derivation_input_internal(
     if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) )
     {
         status = psa_tls12_prf_input( &operation->ctx.tls12_prf,
-                                      PSA_ALG_HKDF_GET_HASH( kdf_alg ),
                                       step, data, data_length );
     }
     else
@@ -4409,7 +4123,6 @@ static psa_status_t psa_key_derivation_input_internal(
     if( PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
     {
         status = psa_tls12_prf_psk_to_ms_input( &operation->ctx.tls12_prf,
-                                                PSA_ALG_HKDF_GET_HASH( kdf_alg ),
                                                 step, data, data_length );
     }
     else

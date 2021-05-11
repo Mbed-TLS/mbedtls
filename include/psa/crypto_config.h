@@ -57,6 +57,7 @@
 #define PSA_WANT_ALG_CBC_NO_PADDING             1
 #define PSA_WANT_ALG_CBC_PKCS7                  1
 #define PSA_WANT_ALG_CCM                        1
+#define PSA_WANT_ALG_CMAC                       1
 #define PSA_WANT_ALG_CFB                        1
 #define PSA_WANT_ALG_CHACHA20_POLY1305          1
 #define PSA_WANT_ALG_CMAC                       1

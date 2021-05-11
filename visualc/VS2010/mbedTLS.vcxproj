@@ -207,11 +207,13 @@
     <ClInclude Include="..\..\include\mbedtls\x509_csr.h" />
     <ClInclude Include="..\..\include\mbedtls\xtea.h" />
     <ClInclude Include="..\..\include\psa\crypto.h" />
-    <ClInclude Include="..\..\include\psa\crypto_builtin.h" />
+    <ClInclude Include="..\..\include\psa\crypto_builtin_composites.h" />
+    <ClInclude Include="..\..\include\psa\crypto_builtin_primitives.h" />
     <ClInclude Include="..\..\include\psa\crypto_compat.h" />
     <ClInclude Include="..\..\include\psa\crypto_config.h" />
     <ClInclude Include="..\..\include\psa\crypto_driver_common.h" />
-    <ClInclude Include="..\..\include\psa\crypto_driver_contexts.h" />
+    <ClInclude Include="..\..\include\psa\crypto_driver_contexts_composites.h" />
+    <ClInclude Include="..\..\include\psa\crypto_driver_contexts_primitives.h" />
     <ClInclude Include="..\..\include\psa\crypto_extra.h" />
     <ClInclude Include="..\..\include\psa\crypto_platform.h" />
     <ClInclude Include="..\..\include\psa\crypto_se_driver.h" />
@@ -233,6 +235,7 @@
     <ClInclude Include="..\..\tests\include\test\drivers\cipher.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\hash.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\key_management.h" />
+    <ClInclude Include="..\..\tests\include\test\drivers\mac.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\signature.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\size.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\test_driver.h" />
@@ -259,6 +262,7 @@
     <ClInclude Include="..\..\library\psa_crypto_hash.h" />
     <ClInclude Include="..\..\library\psa_crypto_invasive.h" />
     <ClInclude Include="..\..\library\psa_crypto_its.h" />
+    <ClInclude Include="..\..\library\psa_crypto_mac.h" />
     <ClInclude Include="..\..\library\psa_crypto_random_impl.h" />
     <ClInclude Include="..\..\library\psa_crypto_rsa.h" />
     <ClInclude Include="..\..\library\psa_crypto_se.h" />
@@ -334,6 +338,7 @@
     <ClCompile Include="..\..\library\psa_crypto_driver_wrappers.c" />
     <ClCompile Include="..\..\library\psa_crypto_ecp.c" />
     <ClCompile Include="..\..\library\psa_crypto_hash.c" />
+    <ClCompile Include="..\..\library\psa_crypto_mac.c" />
     <ClCompile Include="..\..\library\psa_crypto_rsa.c" />
     <ClCompile Include="..\..\library\psa_crypto_se.c" />
     <ClCompile Include="..\..\library\psa_crypto_slot_management.c" />
@@ -379,6 +384,7 @@
     <ClCompile Include="..\..\tests\src\drivers\test_driver_aead.c" />
     <ClCompile Include="..\..\tests\src\drivers\test_driver_cipher.c" />
     <ClCompile Include="..\..\tests\src\drivers\test_driver_key_management.c" />
+    <ClCompile Include="..\..\tests\src\drivers\test_driver_mac.c" />
     <ClCompile Include="..\..\tests\src\drivers\test_driver_signature.c" />
     <ClCompile Include="..\..\tests\src\drivers\test_driver_size.c" />
     <ClCompile Include="..\..\3rdparty\everest\library\everest.c" />

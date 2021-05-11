@@ -1,6 +1,7 @@
 /*
  *  Declaration of context structures for use with the PSA driver wrapper
- *  interface.
+ *  interface. This file contains the context structures for 'primitive'
+ *  operations, i.e. those operations which do not rely on other contexts.
  *
  *  Warning: This file will be auto-generated in the future.
  *
@@ -29,17 +30,16 @@
  *  limitations under the License.
  */
 
-#ifndef PSA_CRYPTO_DRIVER_CONTEXTS_H
-#define PSA_CRYPTO_DRIVER_CONTEXTS_H
+#ifndef PSA_CRYPTO_DRIVER_CONTEXTS_PRIMITIVES_H
+#define PSA_CRYPTO_DRIVER_CONTEXTS_PRIMITIVES_H
 
-#include "psa/crypto.h"
 #include "psa/crypto_driver_common.h"
 
 /* Include the context structure definitions for those drivers that were
  * declared during the autogeneration process. */
 
 /* Include the context structure definitions for the Mbed TLS software drivers */
-#include "psa/crypto_builtin.h"
+#include "psa/crypto_builtin_primitives.h"
 
 /* Define the context to be used for an operation that is executed through the
  * PSA Driver wrapper layer as the union of all possible driver's contexts.
@@ -65,5 +65,5 @@ typedef union {
 #endif
 } psa_driver_cipher_context_t;
 
-#endif /* PSA_CRYPTO_DRIVER_CONTEXTS_H */
+#endif /* PSA_CRYPTO_DRIVER_CONTEXTS_PRIMITIVES_H */
 /* End of automatically generated file. */

@@ -75,6 +75,8 @@ In particular, the tests must validate that each `PSA_xxx` constant that is stor
 * Algorithms in policies: `PSA_ALG_xxx`.
 * Key types: `PSA_KEY_TYPE_xxx`, `PSA_ECC_FAMILY_xxx`, `PSA_DH_FAMILY_xxx`.
 
+In addition, the coverage of key material must ensure that any variation in key representation is detected. See [“Considerations on key material representations”](#Considerations-on-key-material-representations) for considerations regarding key types.
+
 Method: Each test case creates a key with `psa_import_key`, purges it from memory, then reads it back and exercises it. Generate test cases automatically based on an enumeration of available constants and some knowledge of what attributes (sizes, algorithms, …) and content to use for keys of a certain type. Note that the generated test cases will be checked into the repository (generating test cases at runtime would not allow us to test the stability of the format, only that a given version is internally consistent).
 
 ### Testing with alternative lifetime values
@@ -85,6 +87,19 @@ Method:
 
 * For alternative locations: have tests conditional on the presence of a driver for that location.
 * For alternative persistence levels: TODO
+
+### Considerations on key material representations
+
+The risks of incompatibilities in key representations depends on the key type and on the presence of drivers. Compatibility of and with drivers is currently out of scope of this document.
+
+Some types only have one plausible representation. Others admit alternative plausible representations (different encodings, or non-canonical representations).
+Here are some areas to watch for, with an identified risk of incompatibilities.
+
+* HMAC keys longer than the block size: pre-hashed or not?
+* DES keys: was parity enforced?
+* RSA keys: can invalid DER encodings (e.g. leading zeros, ignored sign bit) have been stored?
+* RSA private keys: can invalid CRT parameters have been stored?
+* Montgomery private keys: were they stored in masked form?
 
 ## Random generator state
 

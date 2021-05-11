@@ -818,8 +818,7 @@ static int x509_get_certificate_policies( unsigned char **p,
         {
             /*
              * Set the parsing return code but continue parsing, in case this
-             * extension is critical and MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
-             * is configured.
+             * extension is critical.
              */
             parse_ret = MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;
         }
@@ -961,14 +960,12 @@ static int x509_get_crt_ext( unsigned char **p,
             /* No parser found, skip extension */
             *p = end_ext_octet;
 
-#if !defined(MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION)
             if( is_critical )
             {
                 /* Data is marked as critical: fail */
                 return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
                         MBEDTLS_ERR_ASN1_UNEXPECTED_TAG ) );
             }
-#endif
             continue;
         }
 
@@ -1027,11 +1024,9 @@ static int x509_get_crt_ext( unsigned char **p,
                         start_ext_octet, end_ext_octet ) == 0 )
                     break;
 
-#if !defined(MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION)
                 if( is_critical )
                     return( ret );
                 else
-#endif
                 /*
                  * If MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE is returned, then we
                  * cannot interpret or enforce the policy. However, it is up to
@@ -1049,11 +1044,9 @@ static int x509_get_crt_ext( unsigned char **p,
              * supports, but there isn't an x509 parser for it,
              * skip the extension.
              */
-#if !defined(MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION)
             if( is_critical )
                 return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
             else
-#endif
                 *p = end_ext_octet;
         }
     }

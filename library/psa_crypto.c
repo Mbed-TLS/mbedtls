@@ -3479,7 +3479,7 @@ psa_status_t psa_aead_encrypt_setup( psa_aead_operation_t *operation,
 
     if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
     {
-        status = PSA_ERROR_NOT_SUPPORTED;
+        status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
 
@@ -3544,7 +3544,7 @@ psa_status_t psa_aead_decrypt_setup( psa_aead_operation_t *operation,
 
     if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
     {
-        status = PSA_ERROR_NOT_SUPPORTED;
+        status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
 

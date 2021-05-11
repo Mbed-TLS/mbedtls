@@ -2439,8 +2439,12 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
     if( ! operation->is_sign )
         return( PSA_ERROR_BAD_STATE );
 
-    /* Sanity checks on output buffer length. */
-    if( mac_size == 0 || mac_size < operation->mac_size )
+    /* Sanity check. This will guarantee that mac_size != 0 (and so mac != NULL)
+     * once all the error checks are done. */
+    if( operation->mac_size == 0 )
+        return( PSA_ERROR_BAD_STATE );
+
+    if( mac_size < operation->mac_size )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
     status = psa_driver_wrapper_mac_sign_finish( operation,

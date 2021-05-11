@@ -924,16 +924,22 @@ psa_key_usage_t mbedtls_test_psa_usage_to_exercise( psa_key_type_t type,
 {
     if( PSA_ALG_IS_MAC( alg ) || PSA_ALG_IS_SIGN( alg ) )
     {
-        if( PSA_ALG_SIGN_GET_HASH( alg ) )
+        if( PSA_ALG_IS_HASH_AND_SIGN( alg ) )
+        {
+            if( PSA_ALG_SIGN_GET_HASH( alg ) )
+                return( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ?
+                        PSA_KEY_USAGE_VERIFY_HASH | PSA_KEY_USAGE_VERIFY_MESSAGE:
+                        PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH |
+                        PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE );
+        }
+        else if( PSA_ALG_IS_SIGN_MESSAGE( alg) )
             return( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ?
-                    PSA_KEY_USAGE_VERIFY_HASH | PSA_KEY_USAGE_VERIFY_MESSAGE:
-                    PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH |
+                    PSA_KEY_USAGE_VERIFY_MESSAGE :
                     PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE );
 
-        else
-            return( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ?
-                    PSA_KEY_USAGE_VERIFY_HASH:
-                    PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH );
+        return( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ?
+                PSA_KEY_USAGE_VERIFY_HASH :
+                PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH );
     }
     else if( PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) ||
              PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) )

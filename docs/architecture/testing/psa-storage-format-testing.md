@@ -34,6 +34,8 @@ Use a similar approach for files other than keys where possible and relevant.
 
 Test cases should normally not be removed from the code base: if something has worked before, it should keep working in future versions, so we should keep testing it.
 
+This cannot be enforced solely by looking at a single version of Mbed TLS, since there would be no indication that more test cases used to exist. It can only be enforced through review of library changes. The review may be assisted by a tool that compares the old and the new version, in the same way that `abi-check.py` compares the library's API and ABI.
+
 If the way certain keys are stored changes, and we don't deliberately decide to stop supporting old keys (which should only be done by retiring a version of the storage format), then we should keep the corresponding test cases in load-only mode: create a file with the expected content, load it and check the data that it contains.
 
 ## Storage architecture overview
@@ -78,7 +80,9 @@ In particular, the tests must validate that each `PSA_xxx` constant that is stor
 
 In addition, the coverage of key material must ensure that any variation in key representation is detected. See [“Considerations on key material representations”](#Considerations-on-key-material-representations) for considerations regarding key types.
 
-Method: Each test case creates a key with `psa_import_key`, purges it from memory, then reads it back and exercises it. Generate test cases automatically based on an enumeration of available constants and some knowledge of what attributes (sizes, algorithms, …) and content to use for keys of a certain type. Note that the generated test cases will be checked into the repository (generating test cases at runtime would not allow us to test the stability of the format, only that a given version is internally consistent).
+Method: Each test case creates a key with `psa_import_key`, purges it from memory, then reads it back and exercises it.
+
+Generate test cases automatically based on an enumeration of available constants and some knowledge of what attributes (sizes, algorithms, …) and content to use for keys of a certain type.
 
 ### Testing with alternative lifetime values
 

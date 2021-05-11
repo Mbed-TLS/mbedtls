@@ -56,6 +56,8 @@
 #define MBEDTLS_PK_PARSE_C
 #define MBEDTLS_RSA_C
 #define MBEDTLS_SHA1_C
+/* Library does not support enabling SHA-224 without SHA-256. Future version will
+ * have this option disabled by default. */
 #define MBEDTLS_SHA224_C
 #define MBEDTLS_SHA256_C
 #define MBEDTLS_SSL_CLI_C

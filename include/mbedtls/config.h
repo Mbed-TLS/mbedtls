@@ -3106,10 +3106,10 @@
  * \def MBEDTLS_SHA224_C
  *
  * Enable the SHA-224 cryptographic hash algorithm.
+ * Future version will have this option disabled by default.
  *
  * Requires: MBEDTLS_SHA256_C. Library does not support enabling
- *           SHA-224 without SHA-256. Future version will have
- *           this option disabled by default.
+ *           SHA-224 without SHA-256.
  *
  * Module:  library/sha256.c
  * Caller:  library/md.c

@@ -1132,7 +1132,7 @@ static int x509_get_crt_ext( unsigned char **p,
             }
             break;
         case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
-            /* Parse subject alt name 
+            /* Parse subject alt name
              * SubjectAltName ::= GeneralNames
              */
             if( ( ret = x509_get_general_names( p, end_ext_octet,
@@ -2063,7 +2063,7 @@ int mbedtls_x509_parse_general_name( const mbedtls_x509_buf *san_buf,
             unsigned char* bufferPointer = san_buf->p;
             unsigned char** p = &bufferPointer;
             const unsigned char* end = san_buf->p + san_buf->len;
-            
+
             /* The leading ASN1 tag and length has been processed. Stepping back with 2 bytes, because mbedtls_x509_get_name expects the beginning of the SET tag */
             *p = *p - 2;
 

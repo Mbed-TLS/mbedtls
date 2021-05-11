@@ -1333,7 +1333,7 @@ void x509_crt_parse_authoritykeyid( data_t * buf, unsigned int keyIdLength, char
     {
         TEST_ASSERT( crt.authority_key_id.keyIdentifier.tag == 0 );
         TEST_ASSERT( crt.authority_key_id.keyIdentifier.len == 0 );
-        
+
         TEST_ASSERT( crt.authority_key_id.authorityCertSerialNumber.tag == 0 );
         TEST_ASSERT( crt.authority_key_id.authorityCertSerialNumber.len == 0 );
     }

@@ -383,28 +383,6 @@ static psa_status_t mac_compute(
     return( PSA_ERROR_NOT_SUPPORTED );
 }
 
-static psa_status_t mac_sign_setup(
-    mbedtls_psa_mac_operation_t *operation,
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer,
-    size_t key_buffer_size,
-    psa_algorithm_t alg )
-{
-    return( mac_setup( operation,
-                       attributes, key_buffer, key_buffer_size, alg ) );
-}
-
-static psa_status_t mac_verify_setup(
-    mbedtls_psa_mac_operation_t *operation,
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer,
-    size_t key_buffer_size,
-    psa_algorithm_t alg )
-{
-    return( mac_setup( operation,
-                       attributes, key_buffer, key_buffer_size, alg ) );
-}
-
 static psa_status_t mac_update(
     mbedtls_psa_mac_operation_t *operation,
     const uint8_t *input,
@@ -545,8 +523,8 @@ psa_status_t mbedtls_psa_mac_sign_setup(
     size_t key_buffer_size,
     psa_algorithm_t alg )
 {
-    return( mac_sign_setup( operation, attributes,
-                            key_buffer, key_buffer_size, alg ) );
+    return( mac_setup( operation, attributes,
+                       key_buffer, key_buffer_size, alg ) );
 }
 
 psa_status_t mbedtls_psa_mac_verify_setup(
@@ -556,8 +534,8 @@ psa_status_t mbedtls_psa_mac_verify_setup(
     size_t key_buffer_size,
     psa_algorithm_t alg )
 {
-    return( mac_verify_setup( operation, attributes,
-                              key_buffer, key_buffer_size, alg ) );
+    return( mac_setup( operation, attributes,
+                       key_buffer, key_buffer_size, alg ) );
 }
 
 psa_status_t mbedtls_psa_mac_update(
@@ -642,8 +620,8 @@ psa_status_t mbedtls_transparent_test_driver_mac_sign_setup(
     psa_algorithm_t alg )
 {
     if( is_mac_accelerated( alg ) )
-        return( mac_sign_setup( operation, attributes,
-                                key_buffer, key_buffer_size, alg ) );
+        return( mac_setup( operation, attributes,
+                           key_buffer, key_buffer_size, alg ) );
     else
         return( PSA_ERROR_NOT_SUPPORTED );
 }
@@ -656,8 +634,8 @@ psa_status_t mbedtls_transparent_test_driver_mac_verify_setup(
     psa_algorithm_t alg )
 {
     if( is_mac_accelerated( alg ) )
-        return( mac_verify_setup( operation, attributes,
-                                  key_buffer, key_buffer_size, alg ) );
+        return( mac_setup( operation, attributes,
+                           key_buffer, key_buffer_size, alg ) );
     else
         return( PSA_ERROR_NOT_SUPPORTED );
 }

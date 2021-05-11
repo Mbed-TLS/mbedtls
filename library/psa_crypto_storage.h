@@ -49,7 +49,7 @@ extern "C" {
  * - Using the ITS backend, all key ids are ok except 0xFFFFFF52
  *   (#PSA_CRYPTO_ITS_RANDOM_SEED_UID) for which the file contains the
  *   device's random seed (if this feature is enabled).
- * - Only key ids from 1 to #PSA_KEY_SLOT_COUNT are actually used.
+ * - Only key ids from 1 to #MBEDTLS_PSA_KEY_SLOT_COUNT are actually used.
  *
  * Since we need to preserve the random seed, avoid using that key slot.
  * Reserve a whole range of key slots just in case something else comes up.

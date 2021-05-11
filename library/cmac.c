@@ -867,11 +867,12 @@ static int cmac_test_wth_cipher( int verbose,
         {
             /* When CMAC is implemented by an alternative implementation, or
              * the underlying primitive itself is implemented alternatively,
-             * AES-192 may be unavailable. This should not cause the selftest
-             * function to fail. */
+             * AES-192 and/or 3DES may be unavailable. This should not cause
+             * the selftest function to fail. */
             if( ( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ||
                   ret == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE ) &&
-                  cipher_type == MBEDTLS_CIPHER_AES_192_ECB ) {
+                ( cipher_type == MBEDTLS_CIPHER_AES_192_ECB ||
+                  cipher_type == MBEDTLS_CIPHER_DES_EDE3_ECB ) ) {
                 if( verbose != 0 )
                     mbedtls_printf( "skipped\n" );
                 continue;

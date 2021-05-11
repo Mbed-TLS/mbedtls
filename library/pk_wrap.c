@@ -20,7 +20,7 @@
 #include "common.h"
 
 #if defined(MBEDTLS_PK_C)
-#include "mbedtls/pk_internal.h"
+#include "pk_wrap.h"
 #include "mbedtls/error.h"
 
 /* Even if RSA not activated, for the sake of RSA-alt */
@@ -941,7 +941,7 @@ static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
 
     /* this is only reached if the signature was invalid */
     if( len == 0 )
-        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+        return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
 
     /* if the msb is 1, ASN.1 requires that we prepend a 0.
      * Neither r nor s can be 0, so we can assume len > 0 at all times. */

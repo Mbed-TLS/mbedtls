@@ -24,7 +24,6 @@ or 1 (with a Python backtrace) if there was an operational error.
 
 import argparse
 from collections import namedtuple
-import itertools
 import os
 import re
 import subprocess
@@ -32,6 +31,7 @@ import sys
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import c_build_helper
+from mbedtls_dev import macro_collector
 
 class ReadFileLineException(Exception):
     def __init__(self, filename, line_number):
@@ -78,7 +78,7 @@ class read_file_lines:
             raise ReadFileLineException(self.filename, self.line_number) \
                 from exc_value
 
-class Inputs:
+class InputsForTest(macro_collector.PSAMacroEnumerator):
     # pylint: disable=too-many-instance-attributes
     """Accumulate information about macros to test.
 
@@ -87,27 +87,29 @@ class Inputs:
     """
 
     def __init__(self):
+        super().__init__()
         self.all_declared = set()
         # Sets of names per type
-        self.statuses = set(['PSA_SUCCESS'])
-        self.algorithms = set(['0xffffffff'])
-        self.ecc_curves = set(['0xff'])
-        self.dh_groups = set(['0xff'])
-        self.key_types = set(['0xffff'])
-        self.key_usage_flags = set(['0x80000000'])
+        self.statuses.add('PSA_SUCCESS')
+        self.algorithms.add('0xffffffff')
+        self.ecc_curves.add('0xff')
+        self.dh_groups.add('0xff')
+        self.key_types.add('0xffff')
+        self.key_usage_flags.add('0x80000000')
+
         # Hard-coded values for unknown algorithms
         #
         # These have to have values that are correct for their respective
         # PSA_ALG_IS_xxx macros, but are also not currently assigned and are
         # not likely to be assigned in the near future.
-        self.hash_algorithms = set(['0x020000fe']) # 0x020000ff is PSA_ALG_ANY_HASH
-        self.mac_algorithms = set(['0x0300ffff'])
-        self.ka_algorithms = set(['0x09fc0000'])
-        self.kdf_algorithms = set(['0x080000ff'])
+        self.hash_algorithms.add('0x020000fe') # 0x020000ff is PSA_ALG_ANY_HASH
+        self.mac_algorithms.add('0x03007fff')
+        self.ka_algorithms.add('0x09fc0000')
+        self.kdf_algorithms.add('0x080000ff')
         # For AEAD algorithms, the only variability is over the tag length,
         # and this only applies to known algorithms, so don't test an
         # unknown algorithm.
-        self.aead_algorithms = set()
+
         # Identifier prefixes
         self.table_by_prefix = {
             'ERROR': self.statuses,
@@ -140,13 +142,10 @@ class Inputs:
             'asymmetric_encryption_algorithm': [],
             'other_algorithm': [],
         }
-        # macro name -> list of argument names
-        self.argspecs = {}
-        # argument name -> list of values
-        self.arguments_for = {
-            'mac_length': ['1', '63'],
-            'tag_length': ['1', '63'],
-        }
+        self.arguments_for['mac_length'] += ['1', '63']
+        self.arguments_for['min_mac_length'] += ['1', '63']
+        self.arguments_for['tag_length'] += ['1', '63']
+        self.arguments_for['min_tag_length'] += ['1', '63']
 
     def get_names(self, type_word):
         """Return the set of known names of values of the given type."""
@@ -158,62 +157,6 @@ class Inputs:
             'key_type': self.key_types,
             'key_usage': self.key_usage_flags,
         }[type_word]
-
-    def gather_arguments(self):
-        """Populate the list of values for macro arguments.
-
-        Call this after parsing all the inputs.
-        """
-        self.arguments_for['hash_alg'] = sorted(self.hash_algorithms)
-        self.arguments_for['mac_alg'] = sorted(self.mac_algorithms)
-        self.arguments_for['ka_alg'] = sorted(self.ka_algorithms)
-        self.arguments_for['kdf_alg'] = sorted(self.kdf_algorithms)
-        self.arguments_for['aead_alg'] = sorted(self.aead_algorithms)
-        self.arguments_for['curve'] = sorted(self.ecc_curves)
-        self.arguments_for['group'] = sorted(self.dh_groups)
-
-    @staticmethod
-    def _format_arguments(name, arguments):
-        """Format a macro call with arguments.."""
-        return name + '(' + ', '.join(arguments) + ')'
-
-    def distribute_arguments(self, name):
-        """Generate macro calls with each tested argument set.
-
-        If name is a macro without arguments, just yield "name".
-        If name is a macro with arguments, yield a series of
-        "name(arg1,...,argN)" where each argument takes each possible
-        value at least once.
-        """
-        try:
-            if name not in self.argspecs:
-                yield name
-                return
-            argspec = self.argspecs[name]
-            if argspec == []:
-                yield name + '()'
-                return
-            argument_lists = [self.arguments_for[arg] for arg in argspec]
-            arguments = [values[0] for values in argument_lists]
-            yield self._format_arguments(name, arguments)
-            # Dear Pylint, enumerate won't work here since we're modifying
-            # the array.
-            # pylint: disable=consider-using-enumerate
-            for i in range(len(arguments)):
-                for value in argument_lists[i][1:]:
-                    arguments[i] = value
-                    yield self._format_arguments(name, arguments)
-                arguments[i] = argument_lists[0][0]
-        except BaseException as e:
-            raise Exception('distribute_arguments({})'.format(name)) from e
-
-    def generate_expressions(self, names):
-        return itertools.chain(*map(self.distribute_arguments, names))
-
-    _argument_split_re = re.compile(r' *, *')
-    @classmethod
-    def _argument_split(cls, arguments):
-        return re.split(cls._argument_split_re, arguments)
 
     # Regex for interesting header lines.
     # Groups: 1=macro name, 2=type, 3=argument list (optional).
@@ -227,11 +170,11 @@ class Inputs:
     _excluded_names = set([
         # Macros that provide an alternative way to build the same
         # algorithm as another macro.
-        'PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH',
+        'PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG',
         'PSA_ALG_FULL_LENGTH_MAC',
         # Auxiliary macro whose name doesn't fit the usual patterns for
         # auxiliary macros.
-        'PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH_CASE',
+        'PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG_CASE',
     ])
     def parse_header_line(self, line):
         """Parse a C header line, looking for "#define PSA_xxx"."""
@@ -299,7 +242,7 @@ class Inputs:
                 if m:
                     self.add_test_case_line(m.group(1), m.group(2))
 
-def gather_inputs(headers, test_suites, inputs_class=Inputs):
+def gather_inputs(headers, test_suites, inputs_class=InputsForTest):
     """Read the list of inputs to test psa_constant_names with."""
     inputs = inputs_class()
     for header in headers:

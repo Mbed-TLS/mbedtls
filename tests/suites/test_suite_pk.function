@@ -15,18 +15,6 @@
  * unconditionally (https://github.com/ARMmbed/mbedtls/issues/2023). */
 #include "psa/crypto.h"
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "mbedtls/psa_util.h"
-#define PSA_INIT( ) PSA_ASSERT( psa_crypto_init( ) )
-#else
-/* Define empty macros so that we can use them in the preamble and teardown
- * of every test function that uses PSA conditionally based on
- * MBEDTLS_USE_PSA_CRYPTO. */
-#define PSA_INIT( ) ( (void) 0 )
-#undef PSA_DONE
-#define PSA_DONE( ) ( (void) 0 )
-#endif
-
 #define RSA_KEY_SIZE 512
 #define RSA_KEY_LEN   64
 
@@ -208,7 +196,7 @@ exit:
 
     mbedtls_pk_free( &pk ); /* redundant except upon error */
     mbedtls_pk_free( &pk2 );
-    PSA_DONE( );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -770,7 +758,7 @@ void pk_ec_test_vec( int type, int id, data_t * key, data_t * hash,
     mbedtls_ecp_keypair *eckey;
 
     mbedtls_pk_init( &pk );
-    PSA_INIT( );
+    USE_PSA_INIT( );
 
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( type ) ) == 0 );
 
@@ -787,7 +775,7 @@ void pk_ec_test_vec( int type, int id, data_t * key, data_t * hash,
 
 exit:
     mbedtls_pk_free( &pk );
-    PSA_DONE( );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -833,7 +821,8 @@ void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
     cnt_restart = 0;
     do {
         ret = mbedtls_pk_sign_restartable( &prv, md_alg, hash, hlen,
-                                            sig, &slen, NULL, NULL, &rs_ctx );
+                                            sig, &slen, mbedtls_test_rnd_std_rand,
+                                            NULL, &rs_ctx );
     } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restart );
 
     TEST_ASSERT( ret == 0 );
@@ -880,7 +869,8 @@ void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
 
         slen = sizeof( sig );
         ret = mbedtls_pk_sign_restartable( &prv, md_alg, hash, hlen,
-                                            sig, &slen, NULL, NULL, &rs_ctx );
+                                            sig, &slen, mbedtls_test_rnd_std_rand,
+                                            NULL, &rs_ctx );
         TEST_ASSERT( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
     }
 
@@ -911,7 +901,7 @@ void pk_sign_verify( int type, int parameter, int sign_ret, int verify_ret )
 #endif
 
     mbedtls_pk_init( &pk );
-    PSA_INIT( );
+    USE_PSA_INIT( );
 
     memset( hash, 0x2a, sizeof hash );
     memset( sig, 0, sizeof sig );
@@ -973,7 +963,7 @@ exit:
     mbedtls_pk_restart_free( rs_ctx );
 #endif
     mbedtls_pk_free( &pk );
-    PSA_DONE( );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -1302,6 +1292,6 @@ exit:
     psa_reset_key_attributes( &attributes );
 
     mbedtls_pk_free( &pk );
-    PSA_DONE( );
+    USE_PSA_DONE( );
 }
 /* END_CASE */

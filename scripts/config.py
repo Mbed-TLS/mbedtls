@@ -183,7 +183,6 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES', # removes a feature
     'MBEDTLS_NO_PLATFORM_ENTROPY', # removes a feature
     'MBEDTLS_NO_UDBL_DIVISION', # influences anything that uses bignum
-    'MBEDTLS_PKCS11_C', # build dependency (libpkcs11-helper)
     'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS', # removes a feature
     'MBEDTLS_PSA_CRYPTO_CONFIG', # toggles old/new style PSA config
     'MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG', # behavior change + build dependency
@@ -191,15 +190,13 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_PSA_CRYPTO_SPM', # platform dependency (PSA SPM)
     'MBEDTLS_PSA_INJECT_ENTROPY', # build dependency (hook functions)
     'MBEDTLS_REMOVE_3DES_CIPHERSUITES', # removes a feature
-    'MBEDTLS_REMOVE_ARC4_CIPHERSUITES', # removes a feature
     'MBEDTLS_RSA_NO_CRT', # influences the use of RSA in X.509 and TLS
     'MBEDTLS_SHA512_NO_SHA384', # removes a feature
-    'MBEDTLS_SSL_HW_RECORD_ACCEL', # build dependency (hook functions)
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
     'MBEDTLS_TEST_NULL_ENTROPY', # removes a feature
     'MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION', # influences the use of X.509 in TLS
-    'MBEDTLS_ZLIB_SUPPORT', # build dependency (libz)
+    'MBEDTLS_X509_REMOVE_INFO', # removes a feature
 ])
 
 def is_seamless_alt(name):
@@ -242,7 +239,6 @@ EXCLUDE_FROM_BAREMETAL = frozenset([
     #pylint: disable=line-too-long
     'MBEDTLS_ENTROPY_NV_SEED', # requires a filesystem and FS_IO or alternate NV seed hooks
     'MBEDTLS_FS_IO', # requires a filesystem
-    'MBEDTLS_HAVEGE_C', # requires a clock
     'MBEDTLS_HAVE_TIME', # requires a clock
     'MBEDTLS_HAVE_TIME_DATE', # requires a clock
     'MBEDTLS_NET_C', # requires POSIX-like networking
@@ -279,10 +275,8 @@ def include_in_crypto(name):
        name.startswith('MBEDTLS_KEY_EXCHANGE_'):
         return False
     if name in [
-            'MBEDTLS_CERTS_C', # part of libmbedx509
             'MBEDTLS_DEBUG_C', # part of libmbedtls
             'MBEDTLS_NET_C', # part of libmbedtls
-            'MBEDTLS_PKCS11_C', # part of libmbedx509
     ]:
         return False
     return True
@@ -301,11 +295,6 @@ def crypto_adapter(adapter):
         return adapter(name, active, section)
     return continuation
 
-DEPRECATED = frozenset([
-    'MBEDTLS_SSL_PROTO_SSL3',
-    'MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO',
-])
-
 def no_deprecated_adapter(adapter):
     """Modify an adapter to disable deprecated symbols.
 
@@ -316,8 +305,6 @@ def no_deprecated_adapter(adapter):
     def continuation(name, active, section):
         if name == 'MBEDTLS_DEPRECATED_REMOVED':
             return True
-        if name in DEPRECATED:
-            return False
         if adapter is None:
             return active
         return adapter(name, active, section)

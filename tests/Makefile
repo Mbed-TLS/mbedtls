@@ -1,9 +1,8 @@
 
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
-# To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
 
 CFLAGS	?= -O2
-WARNING_CFLAGS ?= -Wall -Wextra
+WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
 # Include public header files from ../include, test-specific header files
@@ -56,11 +55,6 @@ EXEXT=
 SHARED_SUFFIX=
 # python2 for POSIX since FreeBSD has only python2 as default.
 PYTHON ?= python2
-endif
-
-# Zlib shared library extensions:
-ifdef ZLIB
-LOCAL_LDFLAGS += -lz
 endif
 
 # A test application is built for each suites/test_suite_*.data file.

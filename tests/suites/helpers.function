@@ -5,9 +5,7 @@
 #include <test/macros.h>
 #include <test/helpers.h>
 #include <test/random.h>
-#if defined(MBEDTLS_PSA_CRYPTO_C)
 #include <test/psa_crypto_helpers.h>
-#endif
 
 #include <stdlib.h>
 
@@ -92,7 +90,6 @@ jmp_buf jmp_tmp;
 #if defined(MBEDTLS_TEST_NULL_ENTROPY) ||             \
     ( !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES) && \
       ( !defined(MBEDTLS_NO_PLATFORM_ENTROPY)  ||     \
-         defined(MBEDTLS_HAVEGE_C)             ||     \
          defined(MBEDTLS_ENTROPY_HARDWARE_ALT) ||     \
          defined(ENTROPY_NV_SEED) ) )
 #define ENTROPY_HAVE_STRONG

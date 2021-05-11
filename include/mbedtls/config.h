@@ -48,7 +48,7 @@
  * Used in:
  *      library/aria.c
  *      library/timing.c
- *      include/mbedtls/bn_mul.h
+ *      library/bn_mul.h
  *
  * Required by:
  *      MBEDTLS_AESNI_C
@@ -421,12 +421,6 @@
  * of mbedtls_sha1_context, so your implementation of mbedtls_sha1_process must be compatible
  * with this definition.
  *
- * \note Because of a signature change, the core AES encryption and decryption routines are
- *       currently named mbedtls_aes_internal_encrypt and mbedtls_aes_internal_decrypt,
- *       respectively. When setting up alternative implementations, these functions should
- *       be overridden, but the wrapper functions mbedtls_aes_decrypt and mbedtls_aes_encrypt
- *       must stay untouched.
- *
  * \note If you use the AES_xxx_ALT macros, then is is recommended to also set
  *       MBEDTLS_AES_ROM_TABLES in order to help the linker garbage-collect the AES
  *       tables.
@@ -445,9 +439,7 @@
  *            alternative implementations should use the RNG only for generating
  *            the ephemeral key and nothing else. If this is not possible, then
  *            MBEDTLS_ECDSA_DETERMINISTIC should be disabled and an alternative
- *            implementation should be provided for mbedtls_ecdsa_sign_det_ext()
- *            (and for mbedtls_ecdsa_sign_det() too if backward compatibility is
- *            desirable).
+ *            implementation should be provided for mbedtls_ecdsa_sign_det_ext().
  *
  */
 //#define MBEDTLS_MD2_PROCESS_ALT
@@ -559,7 +551,8 @@
  * hardware entropy collector.
  *
  * Your function must be called \c mbedtls_hardware_poll(), have the same
- * prototype as declared in entropy_poll.h, and accept NULL as first argument.
+ * prototype as declared in library/entropy_poll.h, and accept NULL as first
+ * argument.
  *
  * Uncomment to use your own hardware entropy collector.
  */
@@ -658,8 +651,7 @@
  * Warning: Only do so when you know what you are doing. This allows for
  * encryption or channels without any security!
  *
- * Requires MBEDTLS_ENABLE_WEAK_CIPHERSUITES as well to enable
- * the following ciphersuites:
+ * To enable the following ciphersuites:
  *      MBEDTLS_TLS_ECDH_ECDSA_WITH_NULL_SHA
  *      MBEDTLS_TLS_ECDH_RSA_WITH_NULL_SHA
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_NULL_SHA
@@ -706,37 +698,6 @@
  * By default, CTR_DRBG uses a 256-bit key.
  */
 //#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
-
-/**
- * \def MBEDTLS_ENABLE_WEAK_CIPHERSUITES
- *
- * Enable weak ciphersuites in SSL / TLS.
- * Warning: Only do so when you know what you are doing. This allows for
- * channels with virtually no security at all!
- *
- * This enables the following ciphersuites:
- *      MBEDTLS_TLS_RSA_WITH_DES_CBC_SHA
- *      MBEDTLS_TLS_DHE_RSA_WITH_DES_CBC_SHA
- *
- * Uncomment this macro to enable weak ciphersuites
- *
- * \warning   DES is considered a weak cipher and its use constitutes a
- *            security risk. We recommend considering stronger ciphers instead.
- */
-//#define MBEDTLS_ENABLE_WEAK_CIPHERSUITES
-
-/**
- * \def MBEDTLS_REMOVE_ARC4_CIPHERSUITES
- *
- * Remove RC4 ciphersuites by default in SSL / TLS.
- * This flag removes the ciphersuites based on RC4 from the default list as
- * returned by mbedtls_ssl_list_ciphersuites(). However, it is still possible to
- * enable (some of) them with mbedtls_ssl_conf_ciphersuites() by including them
- * explicitly.
- *
- * Uncomment this macro to remove RC4 ciphersuites by default.
- */
-#define MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 
 /**
  * \def MBEDTLS_REMOVE_3DES_CIPHERSUITES
@@ -900,7 +861,6 @@
  *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_PSK_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_PSK_WITH_RC4_128_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
 
@@ -924,7 +884,6 @@
  *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_DHE_PSK_WITH_RC4_128_SHA
  *
  * \warning    Using DHE constitutes a security risk as it
  *             is not possible to validate custom DH parameters.
@@ -951,7 +910,6 @@
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_ECDHE_PSK_WITH_RC4_128_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 
@@ -976,7 +934,6 @@
  *      MBEDTLS_TLS_RSA_PSK_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_RSA_PSK_WITH_RC4_128_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
 
@@ -1003,8 +960,6 @@
  *      MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_CBC_SHA
  *      MBEDTLS_TLS_RSA_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_RSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_RSA_WITH_RC4_128_MD5
  */
 #define MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
 
@@ -1062,7 +1017,6 @@
  *      MBEDTLS_TLS_ECDHE_RSA_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_ECDHE_RSA_WITH_RC4_128_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 
@@ -1086,7 +1040,6 @@
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 
@@ -1099,7 +1052,6 @@
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_RC4_128_SHA
  *      MBEDTLS_TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA
  *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA
@@ -1123,7 +1075,6 @@
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
- *      MBEDTLS_TLS_ECDH_RSA_WITH_RC4_128_SHA
  *      MBEDTLS_TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA
  *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_256_CBC_SHA
@@ -1205,8 +1156,8 @@
 /**
  * \def MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
  *
- * Do not add default entropy sources. These are the platform specific,
- * mbedtls_timing_hardclock and HAVEGE based poll functions.
+ * Do not add default entropy sources. These are the platform specific
+ * or mbedtls_timing_hardclock poll function.
  *
  * This is useful to have more control over the added entropy sources in an
  * application.
@@ -1337,6 +1288,38 @@
  * This enables support for RSAES-OAEP and RSASSA-PSS operations.
  */
 #define MBEDTLS_PKCS1_V21
+
+/** \def MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
+ *
+ * Enable support for platform built-in keys. If you enable this feature,
+ * you must implement the function mbedtls_psa_platform_get_builtin_key().
+ * See the documentation of that function for more information.
+ *
+ * Built-in keys are typically derived from a hardware unique key or
+ * stored in a secure element.
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C.
+ *
+ * \warning This interface is experimental and may change or be removed
+ * without notice.
+ */
+//#define MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
+
+/** \def MBEDTLS_PSA_CRYPTO_CLIENT
+ *
+ * Enable support for PSA crypto client.
+ *
+ * \note This option allows to include the code necessary for a PSA
+ *       crypto client when the PSA crypto implementation is not included in
+ *       the library (MBEDTLS_PSA_CRYPTO_C disabled). The code included is the
+ *       code to set and get PSA key attributes.
+ *       The development of PSA drivers partially relying on the library to
+ *       fulfill the hardware gaps is another possible usage of this option.
+ *
+ * \warning This interface is experimental and may change or be removed
+ * without notice.
+ */
+//#define MBEDTLS_PSA_CRYPTO_CLIENT
 
 /** \def MBEDTLS_PSA_CRYPTO_DRIVERS
  *
@@ -1657,22 +1640,9 @@
 #define MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 
 /**
- * \def MBEDTLS_SSL_HW_RECORD_ACCEL
- *
- * Enable hooking functions in SSL module for hardware acceleration of
- * individual records.
- *
- * \deprecated This option is deprecated and will be removed in a future
- *             version of Mbed TLS.
- *
- * Uncomment this macro to enable hooking functions.
- */
-//#define MBEDTLS_SSL_HW_RECORD_ACCEL
-
-/**
  * \def MBEDTLS_SSL_CBC_RECORD_SPLITTING
  *
- * Enable 1/n-1 record splitting for CBC mode in SSLv3 and TLS 1.0.
+ * Enable 1/n-1 record splitting for CBC mode in TLS 1.0.
  *
  * This is a countermeasure to the BEAST attack, which also minimizes the risk
  * of interoperability issues compared to sending 0-length records.
@@ -1704,19 +1674,6 @@
 #define MBEDTLS_SSL_RENEGOTIATION
 
 /**
- * \def MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
- *
- * Enable support for receiving and parsing SSLv2 Client Hello messages for the
- * SSL Server module (MBEDTLS_SSL_SRV_C).
- *
- * \deprecated This option is deprecated and will be removed in a future
- *             version of Mbed TLS.
- *
- * Uncomment this macro to enable support for SSLv2 Client Hello messages.
- */
-//#define MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
-
-/**
  * \def MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE
  *
  * Pick the ciphersuite according to the client's preferences rather than ours
@@ -1734,21 +1691,6 @@
  * Comment this macro to disable support for the max_fragment_length extension
  */
 #define MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-
-/**
- * \def MBEDTLS_SSL_PROTO_SSL3
- *
- * Enable support for SSL 3.0.
- *
- * Requires: MBEDTLS_MD5_C
- *           MBEDTLS_SHA1_C
- *
- * \deprecated This option is deprecated and will be removed in a future
- *             version of Mbed TLS.
- *
- * Comment this macro to disable support for SSL 3.0
- */
-//#define MBEDTLS_SSL_PROTO_SSL3
 
 /**
  * \def MBEDTLS_SSL_PROTO_TLS1
@@ -1965,30 +1907,6 @@
 #define MBEDTLS_SSL_TRUNCATED_HMAC
 
 /**
- * \def MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT
- *
- * Fallback to old (pre-2.7), non-conforming implementation of the truncated
- * HMAC extension which also truncates the HMAC key. Note that this option is
- * only meant for a transitory upgrade period and will be removed in a future
- * version of the library.
- *
- * \warning The old implementation is non-compliant and has a security weakness
- *          (2^80 brute force attack on the HMAC key used for a single,
- *          uninterrupted connection). This should only be enabled temporarily
- *          when (1) the use of truncated HMAC is essential in order to save
- *          bandwidth, and (2) the peer is an Mbed TLS stack that doesn't use
- *          the fixed implementation yet (pre-2.7).
- *
- * \deprecated This option is deprecated and will be removed in a
- *             future version of Mbed TLS.
- *
- * Uncomment to fallback to old, non-compliant truncated HMAC implementation.
- *
- * Requires: MBEDTLS_SSL_TRUNCATED_HMAC
- */
-//#define MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT
-
-/**
  * \def MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
  *
  * When this option is enabled, the SSL buffer will be resized automatically
@@ -2203,6 +2121,17 @@
 #define MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE
 
 /**
+ * \def MBEDTLS_X509_REMOVE_INFO
+ *
+ * Disable mbedtls_x509_*_info() and related APIs.
+ *
+ * Uncomment to omit mbedtls_x509_*_info(), as well as mbedtls_debug_print_crt()
+ * and other functions/constants only used by these functions, thus reducing
+ * the code footprint by several KB.
+ */
+//#define MBEDTLS_X509_REMOVE_INFO
+
+/**
  * \def MBEDTLS_X509_RSASSA_PSS_SUPPORT
  *
  * Enable parsing and verification of X.509 certificates, CRLs and CSRS
@@ -2211,31 +2140,6 @@
  * Comment this macro to disallow using RSASSA-PSS in certificates.
  */
 #define MBEDTLS_X509_RSASSA_PSS_SUPPORT
-
-/**
- * \def MBEDTLS_ZLIB_SUPPORT
- *
- * If set, the SSL/TLS module uses ZLIB to support compression and
- * decompression of packet data.
- *
- * \warning TLS-level compression MAY REDUCE SECURITY! See for example the
- * CRIME attack. Before enabling this option, you should examine with care if
- * CRIME or similar exploits may be applicable to your use case.
- *
- * \note Currently compression can't be used with DTLS.
- *
- * \deprecated This feature is deprecated and will be removed
- *             in the next major revision of the library.
- *
- * Used in: library/ssl_tls.c
- *          library/ssl_cli.c
- *          library/ssl_srv.c
- *
- * This feature requires zlib library and headers to be present.
- *
- * Uncomment to enable use of ZLIB
- */
-//#define MBEDTLS_ZLIB_SUPPORT
 /* \} name SECTION: mbed TLS feature support */
 
 /**
@@ -2344,16 +2248,6 @@
  *
  * This module enables the following ciphersuites (if other requisites are
  * enabled as well):
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_ECDH_RSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_ECDHE_RSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_ECDHE_PSK_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_DHE_PSK_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_RSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_RSA_WITH_RC4_128_MD5
- *      MBEDTLS_TLS_RSA_PSK_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_PSK_WITH_RC4_128_SHA
  *
  * \warning   ARC4 is considered a weak cipher and its use constitutes a
  *            security risk. If possible, we recommend avoidng dependencies on
@@ -2412,7 +2306,7 @@
  *          library/ecp.c
  *          library/ecdsa.c
  *          library/rsa.c
- *          library/rsa_internal.c
+ *          library/rsa_alt_helpers.c
  *          library/ssl_tls.c
  *
  * This module is required for RSA, DHM and ECC (ECDH, ECDSA) support.
@@ -2533,7 +2427,7 @@
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_ARIA_128_CBC_SHA256
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_ARIA_256_CBC_SHA384
  */
-//#define MBEDTLS_ARIA_C
+#define MBEDTLS_ARIA_C
 
 /**
  * \def MBEDTLS_CCM_C
@@ -2548,18 +2442,6 @@
  * enabled as well.
  */
 #define MBEDTLS_CCM_C
-
-/**
- * \def MBEDTLS_CERTS_C
- *
- * Enable the test certificates.
- *
- * Module:  library/certs.c
- * Caller:
- *
- * This module is used for testing (ssl_client/server).
- */
-#define MBEDTLS_CERTS_C
 
 /**
  * \def MBEDTLS_CHACHA20_C
@@ -2599,12 +2481,17 @@
  * Enable the CMAC (Cipher-based Message Authentication Code) mode for block
  * ciphers.
  *
+ * \note When #MBEDTLS_CMAC_ALT is active, meaning that the underlying
+ *       implementation of the CMAC algorithm is provided by an alternate
+ *       implementation, that alternate implementation may opt to not support
+ *       AES-192 or 3DES as underlying block ciphers for the CMAC operation.
+ *
  * Module:  library/cmac.c
  *
  * Requires: MBEDTLS_AES_C or MBEDTLS_DES_C
  *
  */
-//#define MBEDTLS_CMAC_C
+#define MBEDTLS_CMAC_C
 
 /**
  * \def MBEDTLS_CTR_DRBG_C
@@ -2728,9 +2615,9 @@
  *
  * Enable the elliptic curve J-PAKE library.
  *
- * \warning This is currently experimental. EC J-PAKE support is based on the
- * Thread v1.0.0 specification; incompatible changes to the specification
- * might still happen. For this reason, this is disabled by default.
+ * \note EC J-PAKE support is based on the Thread v1.0.0 specification.
+ *       It has not been reviewed for compliance with newer standards such as
+ *       Thread v1.1 or RFC 8236.
  *
  * Module:  library/ecjpake.c
  * Caller:
@@ -2740,7 +2627,7 @@
  *
  * Requires: MBEDTLS_ECP_C, MBEDTLS_MD_C
  */
-//#define MBEDTLS_ECJPAKE_C
+#define MBEDTLS_ECJPAKE_C
 
 /**
  * \def MBEDTLS_ECP_C
@@ -2797,29 +2684,6 @@
 #define MBEDTLS_GCM_C
 
 /**
- * \def MBEDTLS_HAVEGE_C
- *
- * Enable the HAVEGE random generator.
- *
- * Warning: the HAVEGE random generator is not suitable for virtualized
- *          environments
- *
- * Warning: the HAVEGE random generator is dependent on timing and specific
- *          processor traits. It is therefore not advised to use HAVEGE as
- *          your applications primary random generator or primary entropy pool
- *          input. As a secondary input to your entropy pool, it IS able add
- *          the (limited) extra entropy it provides.
- *
- * Module:  library/havege.c
- * Caller:
- *
- * Requires: MBEDTLS_TIMING_C
- *
- * Uncomment to enable the HAVEGE random generator.
- */
-//#define MBEDTLS_HAVEGE_C
-
-/**
  * \def MBEDTLS_HKDF_C
  *
  * Enable the HKDF algorithm (RFC 5869).
@@ -2859,7 +2723,7 @@
  *
  * Requires: MBEDTLS_AES_C and MBEDTLS_CIPHER_C
  */
-//#define MBEDTLS_NIST_KW_C
+#define MBEDTLS_NIST_KW_C
 
 /**
  * \def MBEDTLS_MD_C
@@ -3094,24 +2958,6 @@
 #define MBEDTLS_PKCS5_C
 
 /**
- * \def MBEDTLS_PKCS11_C
- *
- * Enable wrapper for PKCS#11 smartcard support via the pkcs11-helper library.
- *
- * \deprecated This option is deprecated and will be removed in a future
- *             version of Mbed TLS.
- *
- * Module:  library/pkcs11.c
- * Caller:  library/pk.c
- *
- * Requires: MBEDTLS_PK_C
- *
- * This module enables SSL/TLS PKCS #11 smartcard support.
- * Requires the presence of the PKCS#11 helper library (libpkcs11-helper)
- */
-//#define MBEDTLS_PKCS11_C
-
-/**
  * \def MBEDTLS_PKCS12_C
  *
  * Enable PKCS#12 PBE functions.
@@ -3233,7 +3079,7 @@
  * Enable the RSA public-key cryptosystem.
  *
  * Module:  library/rsa.c
- *          library/rsa_internal.c
+ *          library/rsa_alt_helpers.c
  * Caller:  library/ssl_cli.c
  *          library/ssl_srv.c
  *          library/ssl_tls.c
@@ -3417,9 +3263,6 @@
  * https://tls.mbed.org/kb/how-to/how-do-i-port-mbed-tls-to-a-new-environment-OS
  *
  * Module:  library/timing.c
- * Caller:  library/havege.c
- *
- * This module is used by the HAVEGE random number generator.
  */
 #define MBEDTLS_TIMING_C
 
@@ -3671,6 +3514,17 @@
  */
 //#define MBEDTLS_PSA_HMAC_DRBG_MD_TYPE MBEDTLS_MD_SHA256
 
+/** \def MBEDTLS_PSA_KEY_SLOT_COUNT
+ * Restrict the PSA library to supporting a maximum amount of simultaneously
+ * loaded keys. A loaded key is a key stored by the PSA Crypto core as a
+ * volatile key, or a persistent key which is loaded temporarily by the
+ * library as part of a crypto operation in flight.
+ *
+ * If this option is unset, the library will fall back to a default value of
+ * 32 keys.
+ */
+//#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
+
 /* SSL Cache options */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_MAX_ENTRIES      50 /**< Maximum entries in cache */
@@ -3816,7 +3670,6 @@
  */
 //#define MBEDTLS_SSL_DTLS_MAX_BUFFERING             32768
 
-//#define MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
 //#define MBEDTLS_PSK_MAX_LEN               32 /**< Max size of TLS pre-shared keys, in bytes (default 256 bits) */
 //#define MBEDTLS_SSL_COOKIE_TIMEOUT        60 /**< Default expiration delay of DTLS cookies, in seconds if HAVE_TIME, or in number of cookies issued */
 
@@ -3837,20 +3690,6 @@
 /* X509 options */
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */
 //#define MBEDTLS_X509_MAX_FILE_PATH_LEN     512 /**< Maximum length of a path/filename string in bytes including the null terminator character ('\0'). */
-
-/**
- * Allow SHA-1 in the default TLS configuration for certificate signing.
- * Without this build-time option, SHA-1 support must be activated explicitly
- * through mbedtls_ssl_conf_cert_profile. Turning on this option is not
- * recommended because of it is possible to generate SHA-1 collisions, however
- * this may be safe for legacy infrastructure where additional controls apply.
- *
- * \warning   SHA-1 is considered a weak message digest and its use constitutes
- *            a security risk. If possible, we recommend avoiding dependencies
- *            on it, and considering stronger message digests instead.
- *
- */
-//#define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
 
 /**
  * Allow SHA-1 in the default TLS configuration for TLS 1.2 handshake

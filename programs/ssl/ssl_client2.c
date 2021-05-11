@@ -69,7 +69,6 @@ int main( void )
 #define DFL_EXCHANGES           1
 #define DFL_MIN_VERSION         -1
 #define DFL_MAX_VERSION         -1
-#define DFL_ARC4                -1
 #define DFL_SHA1                -1
 #define DFL_AUTH_MODE           -1
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
@@ -419,12 +418,11 @@ int main( void )
     USAGE_DHMLEN                                            \
     "\n"
 #define USAGE4 \
-    "    arc4=%%d             default: (library default: 0)\n" \
     "    allow_sha1=%%d       default: 0\n"                             \
     "    min_version=%%s      default: (library default: tls1)\n"       \
     "    max_version=%%s      default: (library default: tls1_2)\n"     \
     "    force_version=%%s    default: \"\" (none)\n"       \
-    "                        options: ssl3, tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
+    "                        options: tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     "    query_config=<name>         return 0 if the specified\n"       \
@@ -477,7 +475,6 @@ struct options
     int exchanges;              /* number of data exchanges                 */
     int min_version;            /* minimum protocol version accepted        */
     int max_version;            /* maximum protocol version accepted        */
-    int arc4;                   /* flag for arc4 suites support             */
     int allow_sha1;             /* flag for SHA-1 support                   */
     int auth_mode;              /* verify mode for connection               */
     unsigned char mfl_code;     /* code for maximum fragment length         */
@@ -535,6 +532,9 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
     char buf[1024];
     ((void) data);
 
+    mbedtls_printf( "\nVerify requested for (Depth %d):\n", depth );
+
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
     mbedtls_x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
     if( depth == 0 )
         memcpy( peer_crt_info, buf, sizeof( buf ) );
@@ -542,14 +542,17 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
     if( opt.debug_level == 0 )
         return( 0 );
 
-    mbedtls_printf( "\nVerify requested for (Depth %d):\n", depth );
     mbedtls_printf( "%s", buf );
+#else
+    ((void) crt);
+    ((void) depth);
+#endif
 
     if ( ( *flags ) == 0 )
         mbedtls_printf( "  This certificate has no flags\n" );
     else
     {
-        mbedtls_x509_crt_verify_info( buf, sizeof( buf ), "  ! ", *flags );
+        x509_crt_verify_info( buf, sizeof( buf ), "  ! ", *flags );
         mbedtls_printf( "%s\n", buf );
     }
 
@@ -703,7 +706,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_id_t key_slot = 0; /* invalid key slot */
 #endif
-#endif
+#endif  /* MBEDTLS_X509_CRT_PARSE_C */
     char *p, *q;
     const int *list;
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
@@ -734,6 +737,10 @@ int main( int argc, char *argv[] )
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
 #endif
 
+#if defined(MBEDTLS_TEST_HOOKS)
+    test_hooks_init( );
+#endif /* MBEDTLS_TEST_HOOKS */
+
     /*
      * Make sure memory references are valid.
      */
@@ -760,10 +767,10 @@ int main( int argc, char *argv[] )
         ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
         goto exit;
     }
+#endif  /* MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
     mbedtls_test_enable_insecure_external_rng( );
 #endif  /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
-#endif  /* MBEDTLS_USE_PSA_CRYPTO */
 
     if( argc == 0 )
     {
@@ -828,7 +835,6 @@ int main( int argc, char *argv[] )
     opt.exchanges           = DFL_EXCHANGES;
     opt.min_version         = DFL_MIN_VERSION;
     opt.max_version         = DFL_MAX_VERSION;
-    opt.arc4                = DFL_ARC4;
     opt.allow_sha1          = DFL_SHA1;
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.mfl_code            = DFL_MFL_CODE;
@@ -1092,9 +1098,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "min_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_0;
-            else if( strcmp( q, "tls1" ) == 0 )
+            if( strcmp( q, "tls1" ) == 0 )
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
             else if( strcmp( q, "tls1_1" ) == 0 ||
                      strcmp( q, "dtls1" ) == 0 )
@@ -1107,9 +1111,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "max_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_0;
-            else if( strcmp( q, "tls1" ) == 0 )
+            if( strcmp( q, "tls1" ) == 0 )
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
             else if( strcmp( q, "tls1_1" ) == 0 ||
                      strcmp( q, "dtls1" ) == 0 )
@@ -1119,15 +1121,6 @@ int main( int argc, char *argv[] )
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
             else
                 goto usage;
-        }
-        else if( strcmp( p, "arc4" ) == 0 )
-        {
-            switch( atoi( q ) )
-            {
-                case 0:     opt.arc4 = MBEDTLS_SSL_ARC4_DISABLED;   break;
-                case 1:     opt.arc4 = MBEDTLS_SSL_ARC4_ENABLED;    break;
-                default:    goto usage;
-            }
         }
         else if( strcmp( p, "allow_sha1" ) == 0 )
         {
@@ -1140,12 +1133,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "force_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_0;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_0;
-            }
-            else if( strcmp( q, "tls1" ) == 0 )
+            if( strcmp( q, "tls1" ) == 0 )
             {
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
@@ -1393,19 +1381,6 @@ int main( int argc, char *argv[] )
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
         }
 
-        /* Enable RC4 if needed and not explicitly disabled */
-        if( ciphersuite_info->cipher == MBEDTLS_CIPHER_ARC4_128 )
-        {
-            if( opt.arc4 == MBEDTLS_SSL_ARC4_DISABLED )
-            {
-                mbedtls_printf( "forced RC4 ciphersuite with RC4 disabled\n" );
-                ret = 2;
-                goto usage;
-            }
-
-            opt.arc4 = MBEDTLS_SSL_ARC4_ENABLED;
-        }
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         if( opt.psk_opaque != 0 )
         {
@@ -1536,7 +1511,8 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    if( rng_seed( &rng, opt.reproducible, pers ) != 0 )
+    ret = rng_seed( &rng, opt.reproducible, pers );
+    if( ret != 0 )
         goto exit;
     mbedtls_printf( " ok\n" );
 
@@ -1560,7 +1536,6 @@ int main( int argc, char *argv[] )
         ret = mbedtls_x509_crt_parse_file( &cacert, opt.ca_file );
     else
 #endif
-#if defined(MBEDTLS_CERTS_C)
     {
 #if defined(MBEDTLS_PEM_PARSE_C)
         for( i = 0; mbedtls_test_cas[i] != NULL; i++ )
@@ -1582,12 +1557,6 @@ int main( int argc, char *argv[] )
                 break;
         }
     }
-#else
-    {
-        ret = 1;
-        mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
-    }
-#endif /* MBEDTLS_CERTS_C */
     if( ret < 0 )
     {
         mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n",
@@ -1613,16 +1582,9 @@ int main( int argc, char *argv[] )
         ret = mbedtls_x509_crt_parse_file( &clicert, opt.crt_file );
     else
 #endif
-#if defined(MBEDTLS_CERTS_C)
         ret = mbedtls_x509_crt_parse( &clicert,
                 (const unsigned char *) mbedtls_test_cli_crt,
                 mbedtls_test_cli_crt_len );
-#else
-    {
-        ret = 1;
-        mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
-    }
-#endif
     if( ret != 0 )
     {
         mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n",
@@ -1638,16 +1600,9 @@ int main( int argc, char *argv[] )
         ret = mbedtls_pk_parse_keyfile( &pkey, opt.key_file, opt.key_pwd );
     else
 #endif
-#if defined(MBEDTLS_CERTS_C)
         ret = mbedtls_pk_parse_key( &pkey,
                 (const unsigned char *) mbedtls_test_cli_key,
                 mbedtls_test_cli_key_len, NULL, 0 );
-#else
-    {
-        ret = 1;
-        mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
-    }
-#endif
     if( ret != 0 )
     {
         mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned -0x%x\n\n",
@@ -1662,7 +1617,7 @@ int main( int argc, char *argv[] )
                                                PSA_ALG_SHA_256 ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  "
-                            "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", -ret );
+                            "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
             goto exit;
         }
     }
@@ -1881,7 +1836,7 @@ int main( int argc, char *argv[] )
 #else
         fprintf( stderr, "Warning: reproducible option used without constant time\n" );
 #endif
-#endif
+#endif  /* MBEDTLS_HAVE_TIME */
     }
     mbedtls_ssl_conf_rng( &conf, rng_get, &rng );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
@@ -1894,11 +1849,6 @@ int main( int argc, char *argv[] )
 
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         mbedtls_ssl_conf_ciphersuites( &conf, opt.force_ciphersuite );
-
-#if defined(MBEDTLS_ARC4_C)
-    if( opt.arc4 != DFL_ARC4 )
-        mbedtls_ssl_conf_arc4_support( &conf, opt.arc4 );
-#endif
 
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )
         mbedtls_ssl_conf_legacy_renegotiation( &conf, opt.allow_legacy );
@@ -1927,7 +1877,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-#endif
+#endif  /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_ECP_C)
     if( opt.curves != NULL &&
@@ -2131,7 +2081,7 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_ssl_get_record_expansion( &ssl ) ) >= 0 )
         mbedtls_printf( "    [ Record expansion is %d ]\n", ret );
     else
-        mbedtls_printf( "    [ Record expansion is unknown (compression) ]\n" );
+        mbedtls_printf( "    [ Record expansion is unknown ]\n" );
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     mbedtls_printf( "    [ Maximum input fragment length is %u ]\n",
@@ -2332,10 +2282,9 @@ int main( int argc, char *argv[] )
     if( ( flags = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
     {
         char vrfy_buf[512];
-
         mbedtls_printf( " failed\n" );
 
-        mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ),
+        x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ),
                                       "  ! ", flags );
 
         mbedtls_printf( "%s\n", vrfy_buf );
@@ -2343,8 +2292,10 @@ int main( int argc, char *argv[] )
     else
         mbedtls_printf( " ok\n" );
 
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
     mbedtls_printf( "  . Peer certificate information    ...\n" );
     mbedtls_printf( "%s\n", peer_crt_info );
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -2999,19 +2950,7 @@ exit:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_destroy_key( key_slot );
 #endif
-#endif
-    mbedtls_ssl_session_free( &saved_session );
-    mbedtls_ssl_free( &ssl );
-    mbedtls_ssl_config_free( &conf );
-    rng_free( &rng );
-    if( session_data != NULL )
-        mbedtls_platform_zeroize( session_data, session_data_len );
-    mbedtls_free( session_data );
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-    if( context_buf != NULL )
-        mbedtls_platform_zeroize( context_buf, context_buf_len );
-    mbedtls_free( context_buf );
-#endif
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -3034,12 +2973,39 @@ exit:
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED &&
           MBEDTLS_USE_PSA_CRYPTO */
 
+    mbedtls_ssl_session_free( &saved_session );
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
+    rng_free( &rng );
+    if( session_data != NULL )
+        mbedtls_platform_zeroize( session_data, session_data_len );
+    mbedtls_free( session_data );
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( context_buf != NULL )
+        mbedtls_platform_zeroize( context_buf, context_buf_len );
+    mbedtls_free( context_buf );
+#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free( );
+#endif
+
+#if defined(MBEDTLS_TEST_HOOKS)
+    if( test_hooks_failure_detected( ) )
+    {
+        if( ret == 0 )
+            ret = 1;
+        mbedtls_printf( "Test hooks detected errors.\n" );
+    }
+    test_hooks_free( );
+#endif /* MBEDTLS_TEST_HOOKS */
+
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #if defined(MBEDTLS_MEMORY_DEBUG)
     mbedtls_memory_buffer_alloc_status();
 #endif
     mbedtls_memory_buffer_alloc_free();
-#endif
+#endif  /* MBEDTLS_MEMORY_BUFFER_ALLOC_C */
 
 #if defined(_WIN32)
     if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )

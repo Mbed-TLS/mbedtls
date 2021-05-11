@@ -40,6 +40,7 @@ my $source_dir = 'library';
 my $test_source_dir = 'tests/src';
 my $test_header_dir = 'tests/include/test';
 my $test_drivers_header_dir = 'tests/include/test/drivers';
+my $test_drivers_source_dir = 'tests/src/drivers';
 
 my @thirdparty_header_dirs = qw(
     3rdparty/everest/include/everest
@@ -116,6 +117,7 @@ sub check_dirs {
         && -d $psa_header_dir
         && -d $source_dir
         && -d $test_source_dir
+        && -d $test_drivers_source_dir
         && -d $test_header_dir
         && -d $test_drivers_header_dir
         && -d $programs_dir;
@@ -275,6 +277,7 @@ sub main {
     my @source_dirs = (
                        $source_dir,
                        $test_source_dir,
+                       $test_drivers_source_dir,
                        @thirdparty_source_dirs,
                       );
     my @sources = (map { <$_/*.c> } @source_dirs);

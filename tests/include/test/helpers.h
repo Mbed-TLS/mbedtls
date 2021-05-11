@@ -31,6 +31,11 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_PTHREAD) && \
+    defined(MBEDTLS_TEST_HOOKS)
+#define MBEDTLS_TEST_MUTEX_USAGE
+#endif
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -63,6 +68,9 @@ typedef struct
     const char *filename;
     int line_no;
     unsigned long step;
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+    const char *mutex_usage_error;
+#endif
 }
 mbedtls_test_info_t;
 extern mbedtls_test_info_t mbedtls_test_info;
@@ -256,8 +264,34 @@ void* mbedtls_test_param_failed_get_state_buf( void );
 void mbedtls_test_param_failed_reset_state( void );
 #endif /* MBEDTLS_CHECK_PARAMS */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 #include "test/fake_external_rng_for_test.h"
+#endif
+
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+/** Permanently activate the mutex usage verification framework. See
+ * threading_helpers.c for information. */
+void mbedtls_test_mutex_usage_init( void );
+
+/** Call this function after executing a test case to check for mutex usage
+ * errors. */
+void mbedtls_test_mutex_usage_check( void );
+#endif /* MBEDTLS_TEST_MUTEX_USAGE */
+
+#if defined(MBEDTLS_TEST_HOOKS)
+/**
+ * \brief   Check that only a pure high-level error code is being combined with
+ *          a pure low-level error code as otherwise the resultant error code
+ *          would be corrupted.
+ *
+ * \note    Both high-level and low-level error codes cannot be greater than
+ *          zero however can be zero. If one error code is zero then the
+ *          other error code is returned even if both codes are zero.
+ *
+ * \note    If the check fails, fail the test currently being run.
+ */
+void mbedtls_test_err_add_check( int high, int low,
+                                 const char *file, int line);
 #endif
 
 #endif /* TEST_HELPERS_H */

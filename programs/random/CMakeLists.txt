@@ -1,7 +1,6 @@
 set(executables
     gen_entropy
     gen_random_ctr_drbg
-    gen_random_havege
 )
 
 foreach(exe IN LISTS executables)

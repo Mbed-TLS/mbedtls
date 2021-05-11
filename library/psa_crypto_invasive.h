@@ -35,6 +35,7 @@
 #endif
 
 #include "psa/crypto.h"
+#include "common.h"
 
 #include "mbedtls/entropy.h"
 
@@ -75,5 +76,11 @@ psa_status_t mbedtls_psa_crypto_configure_entropy_sources(
     void (* entropy_init )( mbedtls_entropy_context *ctx ),
     void (* entropy_free )( mbedtls_entropy_context *ctx ) );
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) */
+
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_PSA_CRYPTO_C)
+psa_status_t psa_mac_key_can_do(
+    psa_algorithm_t algorithm,
+    psa_key_type_t key_type );
+#endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_PSA_CRYPTO_C */
 
 #endif /* PSA_CRYPTO_INVASIVE_H */

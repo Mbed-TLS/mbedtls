@@ -138,11 +138,11 @@ C_SOURCE_FILES = $(wildcard \
 	tests/suites/*.function \
 )
 # Exuberant-ctags invocation. Other ctags implementations may require different options.
-CTAGS = ctags --langmap=c:+.h.function -o
+CTAGS = ctags --langmap=c:+.h.function --line-directives=no -o
 tags: $(C_SOURCE_FILES)
 	$(CTAGS) $@ $(C_SOURCE_FILES)
 TAGS: $(C_SOURCE_FILES)
-	etags -o $@ $(C_SOURCE_FILES)
+	etags --no-line-directive -o $@ $(C_SOURCE_FILES)
 global: GPATH GRTAGS GSYMS GTAGS
 GPATH GRTAGS GSYMS GTAGS: $(C_SOURCE_FILES)
 	ls $(C_SOURCE_FILES) | gtags -f - --gtagsconf .globalrc

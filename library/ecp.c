@@ -77,6 +77,8 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
+#include "ecp_invasive.h"
+
 #include <string.h>
 
 #if !defined(MBEDTLS_ECP_ALT)
@@ -97,7 +99,7 @@
 #define mbedtls_free       free
 #endif
 
-#include "mbedtls/ecp_internal.h"
+#include "ecp_alt.h"
 
 #if !defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
 #if defined(MBEDTLS_HMAC_DRBG_C)
@@ -1243,6 +1245,13 @@ cleanup:
     while( (N).s < 0 && mbedtls_mpi_cmp_int( &(N), 0 ) != 0 )           \
         MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &(N), &(N), &grp->P ) )
 
+#if ( defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
+      !( defined(MBEDTLS_ECP_NO_FALLBACK) && \
+         defined(MBEDTLS_ECP_DOUBLE_JAC_ALT) && \
+         defined(MBEDTLS_ECP_ADD_MIXED_ALT) ) ) || \
+    ( defined(MBEDTLS_ECP_MONTGOMERY_ENABLED) && \
+      !( defined(MBEDTLS_ECP_NO_FALLBACK) && \
+         defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT) ) )
 static inline int mbedtls_mpi_sub_mod( const mbedtls_ecp_group *grp,
                                        mbedtls_mpi *X,
                                        const mbedtls_mpi *A,
@@ -1254,6 +1263,7 @@ static inline int mbedtls_mpi_sub_mod( const mbedtls_ecp_group *grp,
 cleanup:
     return( ret );
 }
+#endif /* All functions referencing mbedtls_mpi_sub_mod() are alt-implemented without fallback */
 
 /*
  * Reduce a mbedtls_mpi mod p in-place, to use after mbedtls_mpi_add_mpi and mbedtls_mpi_mul_int.
@@ -1276,6 +1286,10 @@ cleanup:
     return( ret );
 }
 
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
+    !( defined(MBEDTLS_ECP_NO_FALLBACK) && \
+       defined(MBEDTLS_ECP_DOUBLE_JAC_ALT) && \
+       defined(MBEDTLS_ECP_ADD_MIXED_ALT) )
 static inline int mbedtls_mpi_shift_l_mod( const mbedtls_ecp_group *grp,
                                            mbedtls_mpi *X,
                                            size_t count )
@@ -1286,6 +1300,7 @@ static inline int mbedtls_mpi_shift_l_mod( const mbedtls_ecp_group *grp,
 cleanup:
     return( ret );
 }
+#endif /* All functions referencing mbedtls_mpi_shift_l_mod() are alt-implemented without fallback */
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /*
@@ -2462,7 +2477,7 @@ static int ecp_randomize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
 {
 #if defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT)
     if( mbedtls_internal_ecp_grp_capable( grp ) )
-        return( mbedtls_internal_ecp_randomize_mxz( grp, P, f_rng, p_rng );
+        return( mbedtls_internal_ecp_randomize_mxz( grp, P, f_rng, p_rng ) );
 #endif /* MBEDTLS_ECP_RANDOMIZE_MXZ_ALT */
 
 #if defined(MBEDTLS_ECP_NO_FALLBACK) && defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT)
@@ -2795,7 +2810,7 @@ cleanup:
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /*
- * R = m * P with shortcuts for m == 1 and m == -1
+ * R = m * P with shortcuts for m == 0, m == 1 and m == -1
  * NOT constant-time - ONLY for short Weierstrass!
  */
 static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
@@ -2806,7 +2821,11 @@ static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if( mbedtls_mpi_cmp_int( m, 1 ) == 0 )
+    if( mbedtls_mpi_cmp_int( m, 0 ) == 0 )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_set_zero( R ) );
+    }
+    else if( mbedtls_mpi_cmp_int( m, 1 ) == 0 )
     {
         MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, P ) );
     }

@@ -23,22 +23,25 @@ void ecdsa_sign( int force_status_arg,
     uint8_t signature[64];
     size_t signature_length = 0xdeadbeef;
     psa_status_t actual_status;
-    test_driver_signature_sign_hooks = test_driver_signature_hooks_init();
+    mbedtls_test_driver_signature_sign_hooks =
+        mbedtls_test_driver_signature_hooks_init();
 
     PSA_ASSERT( psa_crypto_init( ) );
     psa_set_key_type( &attributes,
-                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
     psa_set_key_algorithm( &attributes, alg );
     psa_import_key( &attributes,
                     key_input->x, key_input->len,
                     &key );
 
-    test_driver_signature_sign_hooks.forced_status = force_status;
+    mbedtls_test_driver_signature_sign_hooks.forced_status = force_status;
     if( fake_output == 1 )
     {
-        test_driver_signature_sign_hooks.forced_output = expected_output->x;
-        test_driver_signature_sign_hooks.forced_output_length = expected_output->len;
+        mbedtls_test_driver_signature_sign_hooks.forced_output =
+            expected_output->x;
+        mbedtls_test_driver_signature_sign_hooks.forced_output_length =
+            expected_output->len;
     }
 
     actual_status = psa_sign_hash( key, alg,
@@ -51,13 +54,14 @@ void ecdsa_sign( int force_status_arg,
         ASSERT_COMPARE( signature, signature_length,
                         expected_output->x, expected_output->len );
     }
-    TEST_EQUAL( test_driver_signature_sign_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_signature_sign_hooks.hits, 1 );
 
 exit:
     psa_reset_key_attributes( &attributes );
     psa_destroy_key( key );
     PSA_DONE( );
-    test_driver_signature_sign_hooks = test_driver_signature_hooks_init();
+    mbedtls_test_driver_signature_sign_hooks =
+        mbedtls_test_driver_signature_hooks_init();
 }
 /* END_CASE */
 
@@ -75,13 +79,14 @@ void ecdsa_verify( int force_status_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg = PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 );
     psa_status_t actual_status;
-    test_driver_signature_verify_hooks = test_driver_signature_hooks_init();
+    mbedtls_test_driver_signature_verify_hooks =
+        mbedtls_test_driver_signature_hooks_init();
 
     PSA_ASSERT( psa_crypto_init( ) );
     if( register_public_key )
     {
         psa_set_key_type( &attributes,
-                      PSA_KEY_TYPE_ECC_PUBLIC_KEY( PSA_ECC_CURVE_SECP_R1 ) );
+                      PSA_KEY_TYPE_ECC_PUBLIC_KEY( PSA_ECC_FAMILY_SECP_R1 ) );
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
         psa_set_key_algorithm( &attributes, alg );
         psa_import_key( &attributes,
@@ -91,7 +96,7 @@ void ecdsa_verify( int force_status_arg,
     else
     {
         psa_set_key_type( &attributes,
-                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) );
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
         psa_set_key_algorithm( &attributes, alg );
         psa_import_key( &attributes,
@@ -99,19 +104,20 @@ void ecdsa_verify( int force_status_arg,
                         &key );
     }
 
-    test_driver_signature_verify_hooks.forced_status = force_status;
+    mbedtls_test_driver_signature_verify_hooks.forced_status = force_status;
 
     actual_status = psa_verify_hash( key, alg,
                                      data_input->x, data_input->len,
                                      signature_input->x, signature_input->len );
     TEST_EQUAL( actual_status, expected_status );
-    TEST_EQUAL( test_driver_signature_verify_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_signature_verify_hooks.hits, 1 );
 
 exit:
     psa_reset_key_attributes( &attributes );
     psa_destroy_key( key );
     PSA_DONE( );
-    test_driver_signature_verify_hooks = test_driver_signature_hooks_init();
+    mbedtls_test_driver_signature_verify_hooks =
+        mbedtls_test_driver_signature_hooks_init();
 }
 /* END_CASE */
 
@@ -130,28 +136,33 @@ void generate_key( int force_status_arg,
     psa_status_t actual_status;
     uint8_t actual_output[PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(256)] = {0};
     size_t actual_output_length;
-    test_driver_key_management_hooks = test_driver_key_management_hooks_init();
+    mbedtls_test_driver_key_management_hooks =
+        mbedtls_test_driver_key_management_hooks_init();
 
     psa_set_key_type( &attributes,
-                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) );
     psa_set_key_bits( &attributes, 256 );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_EXPORT );
     psa_set_key_algorithm( &attributes, alg );
 
     if( fake_output->len > 0 )
     {
-        expected_output = test_driver_key_management_hooks.forced_output = fake_output->x;
-        expected_output_length = test_driver_key_management_hooks.forced_output_length =
+        expected_output =
+            mbedtls_test_driver_key_management_hooks.forced_output =
+            fake_output->x;
+
+        expected_output_length =
+            mbedtls_test_driver_key_management_hooks.forced_output_length =
             fake_output->len;
     }
 
-    test_driver_key_management_hooks.hits = 0;
-    test_driver_key_management_hooks.forced_status = force_status;
+    mbedtls_test_driver_key_management_hooks.hits = 0;
+    mbedtls_test_driver_key_management_hooks.forced_status = force_status;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
     actual_status = psa_generate_key( &attributes, &key );
-    TEST_EQUAL( test_driver_key_management_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_key_management_hooks.hits, 1 );
     TEST_EQUAL( actual_status, expected_status );
 
     if( actual_status == PSA_SUCCESS )
@@ -178,7 +189,8 @@ exit:
     psa_reset_key_attributes( &attributes );
     psa_destroy_key( key );
     PSA_DONE( );
-    test_driver_key_management_hooks = test_driver_key_management_hooks_init();
+    mbedtls_test_driver_key_management_hooks =
+        mbedtls_test_driver_key_management_hooks_init();
 }
 /* END_CASE */
 
@@ -194,25 +206,27 @@ void validate_key( int force_status_arg,
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t actual_status;
-    test_driver_key_management_hooks = test_driver_key_management_hooks_init();
+    mbedtls_test_driver_key_management_hooks =
+        mbedtls_test_driver_key_management_hooks_init();
 
     psa_set_key_type( &attributes,
                       key_type );
     psa_set_key_bits( &attributes, 0 );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
 
-    test_driver_key_management_hooks.forced_status = force_status;
+    mbedtls_test_driver_key_management_hooks.forced_status = force_status;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
     actual_status = psa_import_key( &attributes, key_input->x, key_input->len, &key );
-    TEST_EQUAL( test_driver_key_management_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_key_management_hooks.hits, 1 );
     TEST_EQUAL( actual_status, expected_status );
 exit:
     psa_reset_key_attributes( &attributes );
     psa_destroy_key( key );
     PSA_DONE( );
-    test_driver_key_management_hooks = test_driver_key_management_hooks_init();
+    mbedtls_test_driver_key_management_hooks =
+        mbedtls_test_driver_key_management_hooks_init();
 }
 /* END_CASE */
 
@@ -236,7 +250,8 @@ void export_key( int force_status_arg,
     psa_status_t actual_status;
     uint8_t actual_output[PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(256)] = {0};
     size_t actual_output_length;
-    test_driver_key_management_hooks = test_driver_key_management_hooks_init();
+    mbedtls_test_driver_key_management_hooks =
+        mbedtls_test_driver_key_management_hooks_init();
 
     psa_set_key_type( &attributes, input_key_type );
     psa_set_key_bits( &attributes, 256 );
@@ -247,8 +262,12 @@ void export_key( int force_status_arg,
 
     if( fake_output->len > 0 )
     {
-        expected_output_ptr = test_driver_key_management_hooks.forced_output = fake_output->x;
-        expected_output_length = test_driver_key_management_hooks.forced_output_length =
+        expected_output_ptr =
+            mbedtls_test_driver_key_management_hooks.forced_output =
+            fake_output->x;
+
+        expected_output_length =
+            mbedtls_test_driver_key_management_hooks.forced_output_length =
             fake_output->len;
     }
     else
@@ -257,8 +276,8 @@ void export_key( int force_status_arg,
         expected_output_length = expected_output->len;
     }
 
-    test_driver_key_management_hooks.hits = 0;
-    test_driver_key_management_hooks.forced_status = force_status;
+    mbedtls_test_driver_key_management_hooks.hits = 0;
+    mbedtls_test_driver_key_management_hooks.forced_status = force_status;
 
     if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( output_key_type ) )
         actual_status = psa_export_public_key( handle, actual_output, sizeof(actual_output), &actual_output_length );
@@ -268,7 +287,7 @@ void export_key( int force_status_arg,
 
     if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( output_key_type ) &&
         !PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( input_key_type ) )
-        TEST_EQUAL( test_driver_key_management_hooks.hits, 1 );
+        TEST_EQUAL( mbedtls_test_driver_key_management_hooks.hits, 1 );
 
     if( actual_status == PSA_SUCCESS )
     {
@@ -279,7 +298,8 @@ exit:
     psa_reset_key_attributes( &attributes );
     psa_destroy_key( handle );
     PSA_DONE( );
-    test_driver_key_management_hooks = test_driver_key_management_hooks_init();
+    mbedtls_test_driver_key_management_hooks =
+        mbedtls_test_driver_key_management_hooks_init();
 }
 /* END_CASE */
 
@@ -303,8 +323,8 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     size_t total_output_length = 0;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
-    test_driver_cipher_hooks.forced_status = force_status;
+    mbedtls_test_driver_cipher_hooks = mbedtls_test_driver_cipher_hooks_init();
+    mbedtls_test_driver_cipher_hooks.forced_status = force_status;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -316,12 +336,12 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
                                 &key ) );
 
     PSA_ASSERT( psa_cipher_encrypt_setup( &operation, key, alg ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 1 : 0 ) );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 1 : 0 ) );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     output_buffer_size = ( (size_t) input->len +
                            PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
@@ -329,21 +349,21 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
 
     if( mock_output_arg )
     {
-        test_driver_cipher_hooks.forced_output = expected_output->x;
-        test_driver_cipher_hooks.forced_output_length = expected_output->len;
+        mbedtls_test_driver_cipher_hooks.forced_output = expected_output->x;
+        mbedtls_test_driver_cipher_hooks.forced_output_length = expected_output->len;
     }
 
     PSA_ASSERT( psa_cipher_update( &operation,
                                    input->x, input->len,
                                    output, output_buffer_size,
                                    &function_output_length ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 1 : 0 ) );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 1 : 0 ) );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     if( mock_output_arg )
     {
-        test_driver_cipher_hooks.forced_output = NULL;
-        test_driver_cipher_hooks.forced_output_length = 0;
+        mbedtls_test_driver_cipher_hooks.forced_output = NULL;
+        mbedtls_test_driver_cipher_hooks.forced_output_length = 0;
     }
 
     total_output_length += function_output_length;
@@ -352,8 +372,8 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
                                 output_buffer_size - total_output_length,
                                 &function_output_length );
     /* Finish will have called abort as well, so expecting two hits here */
-    TEST_EQUAL( test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 2 : 0 ) );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 2 : 0 ) );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     total_output_length += function_output_length;
 
@@ -362,7 +382,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     {
         PSA_ASSERT( psa_cipher_abort( &operation ) );
         // driver function should've been called as part of the finish() core routine
-        TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
+        TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 0 );
         ASSERT_COMPARE( expected_output->x, expected_output->len,
                         output, total_output_length );
     }
@@ -372,7 +392,7 @@ exit:
     mbedtls_free( output );
     psa_destroy_key( key );
     PSA_DONE( );
-    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
+    mbedtls_test_driver_cipher_hooks = mbedtls_test_driver_cipher_hooks_init();
 }
 /* END_CASE */
 
@@ -396,7 +416,7 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
     size_t total_output_length = 0;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
+    mbedtls_test_driver_cipher_hooks = mbedtls_test_driver_cipher_hooks_init();
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -408,12 +428,12 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
                                 &key ) );
 
     PSA_ASSERT( psa_cipher_encrypt_setup( &operation, key, alg ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     output_buffer_size = ( (size_t) input->len +
                            PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
@@ -423,8 +443,8 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
     PSA_ASSERT( psa_cipher_update( &operation, input->x, first_part_size,
                                    output, output_buffer_size,
                                    &function_output_length ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     TEST_ASSERT( function_output_length == output1_length );
     total_output_length += function_output_length;
@@ -434,8 +454,8 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
                                    output + total_output_length,
                                    output_buffer_size - total_output_length,
                                    &function_output_length ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
     TEST_ASSERT( function_output_length == output2_length );
     total_output_length += function_output_length;
     PSA_ASSERT( psa_cipher_finish( &operation,
@@ -443,11 +463,11 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
                                    output_buffer_size - total_output_length,
                                    &function_output_length ) );
     /* Finish will have called abort as well, so expecting two hits here */
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
-    test_driver_cipher_hooks.hits = 0 ;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 2 );
+    mbedtls_test_driver_cipher_hooks.hits = 0 ;
     total_output_length += function_output_length;
     PSA_ASSERT( psa_cipher_abort( &operation ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 0 );
 
     ASSERT_COMPARE( expected_output->x, expected_output->len,
                     output, total_output_length );
@@ -457,7 +477,7 @@ exit:
     mbedtls_free( output );
     psa_destroy_key( key );
     PSA_DONE( );
-    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
+    mbedtls_test_driver_cipher_hooks = mbedtls_test_driver_cipher_hooks_init();
 }
 /* END_CASE */
 
@@ -481,7 +501,7 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
     size_t total_output_length = 0;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
+    mbedtls_test_driver_cipher_hooks = mbedtls_test_driver_cipher_hooks_init();
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -493,12 +513,12 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
                                 &key ) );
 
     PSA_ASSERT( psa_cipher_decrypt_setup( &operation, key, alg ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     output_buffer_size = ( (size_t) input->len +
                            PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
@@ -509,8 +529,8 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
                                    input->x, first_part_size,
                                    output, output_buffer_size,
                                    &function_output_length ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     TEST_ASSERT( function_output_length == output1_length );
     total_output_length += function_output_length;
@@ -520,8 +540,8 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
                                    output + total_output_length,
                                    output_buffer_size - total_output_length,
                                    &function_output_length ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     TEST_ASSERT( function_output_length == output2_length );
     total_output_length += function_output_length;
@@ -530,11 +550,11 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
                                    output_buffer_size - total_output_length,
                                    &function_output_length ) );
     /* Finish will have called abort as well, so expecting two hits here */
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 2 );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
     total_output_length += function_output_length;
     PSA_ASSERT( psa_cipher_abort( &operation ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 0 );
 
     ASSERT_COMPARE( expected_output->x, expected_output->len,
                     output, total_output_length );
@@ -544,7 +564,7 @@ exit:
     mbedtls_free( output );
     psa_destroy_key( key );
     PSA_DONE( );
-    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
+    mbedtls_test_driver_cipher_hooks = mbedtls_test_driver_cipher_hooks_init();
 }
 /* END_CASE */
 
@@ -568,8 +588,8 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     size_t total_output_length = 0;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
-    test_driver_cipher_hooks.forced_status = force_status;
+    mbedtls_test_driver_cipher_hooks = mbedtls_test_driver_cipher_hooks_init();
+    mbedtls_test_driver_cipher_hooks.forced_status = force_status;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -581,12 +601,12 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
                                 &key ) );
 
     PSA_ASSERT( psa_cipher_decrypt_setup( &operation, key, alg ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 1 : 0 ) );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 1 : 0 ) );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     output_buffer_size = ( (size_t) input->len +
                            PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type ) );
@@ -594,21 +614,21 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
 
     if( mock_output_arg )
     {
-        test_driver_cipher_hooks.forced_output = expected_output->x;
-        test_driver_cipher_hooks.forced_output_length = expected_output->len;
+        mbedtls_test_driver_cipher_hooks.forced_output = expected_output->x;
+        mbedtls_test_driver_cipher_hooks.forced_output_length = expected_output->len;
     }
 
     PSA_ASSERT( psa_cipher_update( &operation,
                                    input->x, input->len,
                                    output, output_buffer_size,
                                    &function_output_length ) );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 1 : 0 ) );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 1 : 0 ) );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     if( mock_output_arg )
     {
-        test_driver_cipher_hooks.forced_output = NULL;
-        test_driver_cipher_hooks.forced_output_length = 0;
+        mbedtls_test_driver_cipher_hooks.forced_output = NULL;
+        mbedtls_test_driver_cipher_hooks.forced_output_length = 0;
     }
 
     total_output_length += function_output_length;
@@ -617,8 +637,8 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
                                 output_buffer_size - total_output_length,
                                 &function_output_length );
     /* Finish will have called abort as well, so expecting two hits here */
-    TEST_EQUAL( test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 2 : 0 ) );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, ( force_status == PSA_SUCCESS ? 2 : 0 ) );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     total_output_length += function_output_length;
     TEST_EQUAL( status, expected_status );
@@ -626,7 +646,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     if( expected_status == PSA_SUCCESS )
     {
         PSA_ASSERT( psa_cipher_abort( &operation ) );
-        TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
+        TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 0 );
         ASSERT_COMPARE( expected_output->x, expected_output->len,
                         output, total_output_length );
     }
@@ -636,7 +656,7 @@ exit:
     mbedtls_free( output );
     psa_destroy_key( key );
     PSA_DONE( );
-    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
+    mbedtls_test_driver_cipher_hooks = mbedtls_test_driver_cipher_hooks_init();
 }
 /* END_CASE */
 
@@ -654,7 +674,7 @@ void cipher_entry_points( int alg_arg, int key_type_arg,
     size_t function_output_length = 0;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
+    mbedtls_test_driver_cipher_hooks = mbedtls_test_driver_cipher_hooks_init();
 
     ASSERT_ALLOC( output, input->len + 16 );
     output_buffer_size = input->len + 16;
@@ -669,136 +689,136 @@ void cipher_entry_points( int alg_arg, int key_type_arg,
                                 &key ) );
 
     /* Test setup call, encrypt */
-    test_driver_cipher_hooks.forced_status = PSA_ERROR_GENERIC_ERROR;
+    mbedtls_test_driver_cipher_hooks.forced_status = PSA_ERROR_GENERIC_ERROR;
     status = psa_cipher_encrypt_setup( &operation, key, alg );
     /* When setup fails, it shouldn't call any further entry points */
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    TEST_EQUAL( status, mbedtls_test_driver_cipher_hooks.forced_status );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
     status = psa_cipher_set_iv( &operation, iv->x, iv->len );
     TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 0 );
 
     /* Test setup call failure, decrypt */
     status = psa_cipher_decrypt_setup( &operation, key, alg );
     /* When setup fails, it shouldn't call any further entry points */
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    TEST_EQUAL( status, mbedtls_test_driver_cipher_hooks.forced_status );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
     status = psa_cipher_set_iv( &operation, iv->x, iv->len );
     TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 0 );
 
     /* Test IV setting failure */
-    test_driver_cipher_hooks.forced_status = PSA_SUCCESS;
+    mbedtls_test_driver_cipher_hooks.forced_status = PSA_SUCCESS;
     status = psa_cipher_encrypt_setup( &operation, key, alg );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    TEST_EQUAL( status, mbedtls_test_driver_cipher_hooks.forced_status );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
-    test_driver_cipher_hooks.forced_status = PSA_ERROR_GENERIC_ERROR;
+    mbedtls_test_driver_cipher_hooks.forced_status = PSA_ERROR_GENERIC_ERROR;
     status = psa_cipher_set_iv( &operation, iv->x, iv->len );
     /* When setting the IV fails, it should call abort too */
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
-    TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 2 );
+    TEST_EQUAL( status, mbedtls_test_driver_cipher_hooks.forced_status );
     /* Failure should prevent further operations from executing on the driver */
-    test_driver_cipher_hooks.hits = 0;
+    mbedtls_test_driver_cipher_hooks.hits = 0;
     status = psa_cipher_update( &operation,
                                 input->x, input->len,
                                 output, output_buffer_size,
                                 &function_output_length );
     TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 0 );
     psa_cipher_abort( &operation );
 
     /* Test IV generation failure */
-    test_driver_cipher_hooks.forced_status = PSA_SUCCESS;
+    mbedtls_test_driver_cipher_hooks.forced_status = PSA_SUCCESS;
     status = psa_cipher_encrypt_setup( &operation, key, alg );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    TEST_EQUAL( status, mbedtls_test_driver_cipher_hooks.forced_status );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
-    test_driver_cipher_hooks.forced_status = PSA_ERROR_GENERIC_ERROR;
+    mbedtls_test_driver_cipher_hooks.forced_status = PSA_ERROR_GENERIC_ERROR;
     status = psa_cipher_generate_iv( &operation, output, 16, &function_output_length );
     /* When generating the IV fails, it should call abort too */
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
-    TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 2 );
+    TEST_EQUAL( status, mbedtls_test_driver_cipher_hooks.forced_status );
     /* Failure should prevent further operations from executing on the driver */
-    test_driver_cipher_hooks.hits = 0;
+    mbedtls_test_driver_cipher_hooks.hits = 0;
     status = psa_cipher_update( &operation,
                                 input->x, input->len,
                                 output, output_buffer_size,
                                 &function_output_length );
     TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 0 );
     psa_cipher_abort( &operation );
 
     /* Test update failure */
-    test_driver_cipher_hooks.forced_status = PSA_SUCCESS;
+    mbedtls_test_driver_cipher_hooks.forced_status = PSA_SUCCESS;
     status = psa_cipher_encrypt_setup( &operation, key, alg );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    TEST_EQUAL( status, mbedtls_test_driver_cipher_hooks.forced_status );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     status = psa_cipher_set_iv( &operation, iv->x, iv->len );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    TEST_EQUAL( status, mbedtls_test_driver_cipher_hooks.forced_status );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
-    test_driver_cipher_hooks.forced_status = PSA_ERROR_GENERIC_ERROR;
+    mbedtls_test_driver_cipher_hooks.forced_status = PSA_ERROR_GENERIC_ERROR;
     status = psa_cipher_update( &operation,
                                 input->x, input->len,
                                 output, output_buffer_size,
                                 &function_output_length );
     /* When the update call fails, it should call abort too */
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
-    TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 2 );
+    TEST_EQUAL( status, mbedtls_test_driver_cipher_hooks.forced_status );
     /* Failure should prevent further operations from executing on the driver */
-    test_driver_cipher_hooks.hits = 0;
+    mbedtls_test_driver_cipher_hooks.hits = 0;
     status = psa_cipher_update( &operation,
                                 input->x, input->len,
                                 output, output_buffer_size,
                                 &function_output_length );
     TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 0 );
     psa_cipher_abort( &operation );
 
     /* Test finish failure */
-    test_driver_cipher_hooks.forced_status = PSA_SUCCESS;
+    mbedtls_test_driver_cipher_hooks.forced_status = PSA_SUCCESS;
     status = psa_cipher_encrypt_setup( &operation, key, alg );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    TEST_EQUAL( status, mbedtls_test_driver_cipher_hooks.forced_status );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     status = psa_cipher_set_iv( &operation, iv->x, iv->len );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    TEST_EQUAL( status, mbedtls_test_driver_cipher_hooks.forced_status );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
     status = psa_cipher_update( &operation,
                                 input->x, input->len,
                                 output, output_buffer_size,
                                 &function_output_length );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 1 );
-    TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
-    test_driver_cipher_hooks.hits = 0;
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 1 );
+    TEST_EQUAL( status, mbedtls_test_driver_cipher_hooks.forced_status );
+    mbedtls_test_driver_cipher_hooks.hits = 0;
 
-    test_driver_cipher_hooks.forced_status = PSA_ERROR_GENERIC_ERROR;
+    mbedtls_test_driver_cipher_hooks.forced_status = PSA_ERROR_GENERIC_ERROR;
     status = psa_cipher_finish( &operation,
                                 output + function_output_length,
                                 output_buffer_size - function_output_length,
                                 &function_output_length );
     /* When the finish call fails, it should call abort too */
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 2 );
-    TEST_EQUAL( status, test_driver_cipher_hooks.forced_status );
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 2 );
+    TEST_EQUAL( status, mbedtls_test_driver_cipher_hooks.forced_status );
     /* Failure should prevent further operations from executing on the driver */
-    test_driver_cipher_hooks.hits = 0;
+    mbedtls_test_driver_cipher_hooks.hits = 0;
     status = psa_cipher_update( &operation,
                                 input->x, input->len,
                                 output, output_buffer_size,
                                 &function_output_length );
     TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
-    TEST_EQUAL( test_driver_cipher_hooks.hits, 0 );
+    TEST_EQUAL( mbedtls_test_driver_cipher_hooks.hits, 0 );
     psa_cipher_abort( &operation );
 
 exit:
@@ -806,6 +826,496 @@ exit:
     mbedtls_free( output );
     psa_destroy_key( key );
     PSA_DONE( );
-    test_driver_cipher_hooks = test_driver_cipher_hooks_init();
+    mbedtls_test_driver_cipher_hooks = mbedtls_test_driver_cipher_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void aead_encrypt( int key_type_arg, data_t *key_data,
+                   int alg_arg,
+                   data_t *nonce,
+                   data_t *additional_data,
+                   data_t *input_data,
+                   data_t *expected_result,
+                   int forced_status_arg )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
+    psa_status_t forced_status = forced_status_arg;
+    unsigned char *output_data = NULL;
+    size_t output_size = 0;
+    size_t output_length = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    mbedtls_test_driver_aead_hooks = mbedtls_test_driver_aead_hooks_init();
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT  );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
+
+    output_size = input_data->len + PSA_AEAD_TAG_LENGTH( key_type, key_bits,
+                                                         alg );
+    /* For all currently defined algorithms, PSA_AEAD_ENCRYPT_OUTPUT_SIZE
+     * should be exact. */
+    TEST_EQUAL( output_size,
+                PSA_AEAD_ENCRYPT_OUTPUT_SIZE( key_type, alg, input_data->len ) );
+    TEST_ASSERT( output_size <=
+                 PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE( input_data->len ) );
+    ASSERT_ALLOC( output_data, output_size );
+
+    mbedtls_test_driver_aead_hooks.forced_status = forced_status;
+    status = psa_aead_encrypt( key, alg,
+                               nonce->x, nonce->len,
+                               additional_data->x, additional_data->len,
+                               input_data->x, input_data->len,
+                               output_data, output_size,
+                               &output_length );
+    TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_aead_hooks.driver_status, forced_status );
+
+    TEST_EQUAL( status, ( forced_status == PSA_ERROR_NOT_SUPPORTED ) ?
+                        PSA_SUCCESS : forced_status );
+
+    if( status == PSA_SUCCESS )
+    {
+        ASSERT_COMPARE( expected_result->x, expected_result->len,
+                        output_data, output_length );
+    }
+
+exit:
+    psa_destroy_key( key );
+    mbedtls_free( output_data );
+    PSA_DONE( );
+    mbedtls_test_driver_aead_hooks = mbedtls_test_driver_aead_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void aead_decrypt( int key_type_arg, data_t *key_data,
+                   int alg_arg,
+                   data_t *nonce,
+                   data_t *additional_data,
+                   data_t *input_data,
+                   data_t *expected_data,
+                   int forced_status_arg )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
+    psa_status_t forced_status = forced_status_arg;
+    unsigned char *output_data = NULL;
+    size_t output_size = 0;
+    size_t output_length = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    mbedtls_test_driver_aead_hooks = mbedtls_test_driver_aead_hooks_init();
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT  );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
+
+    output_size = input_data->len - PSA_AEAD_TAG_LENGTH( key_type, key_bits,
+                                                         alg );
+    ASSERT_ALLOC( output_data, output_size );
+
+    mbedtls_test_driver_aead_hooks.forced_status = forced_status;
+    status = psa_aead_decrypt( key, alg,
+                               nonce->x, nonce->len,
+                               additional_data->x,
+                               additional_data->len,
+                               input_data->x, input_data->len,
+                               output_data, output_size,
+                               &output_length );
+    TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_aead_hooks.driver_status, forced_status );
+
+    TEST_EQUAL( status, ( forced_status == PSA_ERROR_NOT_SUPPORTED ) ?
+                        PSA_SUCCESS : forced_status );
+
+    if( status == PSA_SUCCESS )
+    {
+        ASSERT_COMPARE( expected_data->x, expected_data->len,
+                        output_data, output_length );
+    }
+
+exit:
+    psa_destroy_key( key );
+    mbedtls_free( output_data );
+    PSA_DONE( );
+    mbedtls_test_driver_aead_hooks = mbedtls_test_driver_aead_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_CRYPTO_DRIVER_TEST:MBEDTLS_PSA_CRYPTO_DRIVERS:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+void builtin_key_export( int builtin_key_id_arg,
+                         int builtin_key_type_arg,
+                         int builtin_key_bits_arg,
+                         int builtin_key_algorithm_arg,
+                         data_t *expected_output,
+                         int expected_status_arg )
+{
+    psa_key_id_t builtin_key_id = (psa_key_id_t) builtin_key_id_arg;
+    psa_key_type_t builtin_key_type = (psa_key_type_t) builtin_key_type_arg;
+    psa_algorithm_t builtin_key_alg = (psa_algorithm_t) builtin_key_algorithm_arg;
+    size_t builtin_key_bits = (size_t) builtin_key_bits_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    mbedtls_svc_key_id_t key = mbedtls_svc_key_id_make( 0, builtin_key_id );
+    uint8_t* output_buffer = NULL;
+    size_t output_size = 0;
+    psa_status_t actual_status;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    ASSERT_ALLOC( output_buffer, expected_output->len );
+
+    actual_status = psa_export_key( key, output_buffer, expected_output->len, &output_size );
+
+    if( expected_status == PSA_SUCCESS )
+    {
+        PSA_ASSERT( actual_status );
+        TEST_EQUAL( output_size, expected_output->len );
+        ASSERT_COMPARE( output_buffer, output_size,
+                        expected_output->x, expected_output->len );
+
+        PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+        TEST_EQUAL( psa_get_key_bits( &attributes ), builtin_key_bits );
+        TEST_EQUAL( psa_get_key_type( &attributes ), builtin_key_type );
+        TEST_EQUAL( psa_get_key_algorithm( &attributes ), builtin_key_alg );
+    }
+    else
+    {
+        if( actual_status != expected_status )
+            fprintf( stderr, "Expected %d but got %d\n", expected_status, actual_status );
+        TEST_EQUAL( actual_status, expected_status );
+        TEST_EQUAL( output_size, 0 );
+    }
+
+exit:
+    mbedtls_free( output_buffer );
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_CRYPTO_DRIVER_TEST:MBEDTLS_PSA_CRYPTO_DRIVERS:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+void builtin_pubkey_export( int builtin_key_id_arg,
+                            int builtin_key_type_arg,
+                            int builtin_key_bits_arg,
+                            int builtin_key_algorithm_arg,
+                            data_t *expected_output,
+                            int expected_status_arg )
+{
+    psa_key_id_t builtin_key_id = (psa_key_id_t) builtin_key_id_arg;
+    psa_key_type_t builtin_key_type = (psa_key_type_t) builtin_key_type_arg;
+    psa_algorithm_t builtin_key_alg = (psa_algorithm_t) builtin_key_algorithm_arg;
+    size_t builtin_key_bits = (size_t) builtin_key_bits_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    mbedtls_svc_key_id_t key = mbedtls_svc_key_id_make( 0, builtin_key_id );
+    uint8_t* output_buffer = NULL;
+    size_t output_size = 0;
+    psa_status_t actual_status;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    ASSERT_ALLOC( output_buffer, expected_output->len );
+
+    actual_status = psa_export_public_key( key, output_buffer, expected_output->len, &output_size );
+
+    if( expected_status == PSA_SUCCESS )
+    {
+        PSA_ASSERT( actual_status );
+        TEST_EQUAL( output_size, expected_output->len );
+        ASSERT_COMPARE( output_buffer, output_size,
+                        expected_output->x, expected_output->len );
+
+        PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+        TEST_EQUAL( psa_get_key_bits( &attributes ), builtin_key_bits );
+        TEST_EQUAL( psa_get_key_type( &attributes ), builtin_key_type );
+        TEST_EQUAL( psa_get_key_algorithm( &attributes ), builtin_key_alg );
+    }
+    else
+    {
+        TEST_EQUAL( actual_status, expected_status );
+        TEST_EQUAL( output_size, 0 );
+    }
+
+exit:
+    mbedtls_free( output_buffer );
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void hash_compute( int alg_arg,
+                   data_t *input, data_t *hash,
+                   int forced_status_arg,
+                   int expected_status_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t forced_status = forced_status_arg;
+    psa_status_t expected_status = expected_status_arg;
+    unsigned char *output = NULL;
+    size_t output_length;
+
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+    mbedtls_test_driver_hash_hooks.forced_status = forced_status;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    ASSERT_ALLOC( output, PSA_HASH_LENGTH( alg ) );
+
+    TEST_EQUAL( psa_hash_compute( alg, input->x, input->len,
+                                  output, PSA_HASH_LENGTH( alg ),
+                                  &output_length ), expected_status );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, forced_status );
+
+    if( expected_status == PSA_SUCCESS )
+    {
+        ASSERT_COMPARE( output, output_length, hash->x, hash->len );
+    }
+
+exit:
+    mbedtls_free( output );
+    PSA_DONE( );
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void hash_multipart_setup( int alg_arg,
+                           data_t *input, data_t *hash,
+                           int forced_status_arg,
+                           int expected_status_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t forced_status = forced_status_arg;
+    psa_status_t expected_status = expected_status_arg;
+    unsigned char *output = NULL;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    size_t output_length;
+
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+    ASSERT_ALLOC( output, PSA_HASH_LENGTH( alg ) );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    mbedtls_test_driver_hash_hooks.forced_status = forced_status;
+    TEST_EQUAL( psa_hash_setup( &operation, alg ), expected_status );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, forced_status );
+
+    if( expected_status == PSA_SUCCESS )
+    {
+        PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+        TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits,
+                    forced_status == PSA_ERROR_NOT_SUPPORTED ? 1 : 2 );
+        TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, forced_status );
+
+        PSA_ASSERT( psa_hash_finish( &operation,
+                                     output, PSA_HASH_LENGTH( alg ),
+                                     &output_length ) );
+        TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits,
+                    forced_status == PSA_ERROR_NOT_SUPPORTED ? 1 : 4 );
+        TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, forced_status );
+
+        ASSERT_COMPARE( output, output_length, hash->x, hash->len );
+    }
+
+exit:
+    psa_hash_abort( &operation );
+    mbedtls_free( output );
+    PSA_DONE( );
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void hash_multipart_update( int alg_arg,
+                            data_t *input, data_t *hash,
+                            int forced_status_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t forced_status = forced_status_arg;
+    unsigned char *output = NULL;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    size_t output_length;
+
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+    ASSERT_ALLOC( output, PSA_HASH_LENGTH( alg ) );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /*
+     * Update inactive operation, the driver shouldn't be called.
+     */
+    TEST_EQUAL( psa_hash_update( &operation, input->x, input->len ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 0 );
+
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+    mbedtls_test_driver_hash_hooks.forced_status = forced_status;
+    TEST_EQUAL( psa_hash_update( &operation, input->x, input->len ),
+                forced_status );
+    /* One or two more calls to the driver interface: update or update + abort */
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits,
+                forced_status == PSA_SUCCESS ? 2 : 3 );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, forced_status );
+
+    if( forced_status == PSA_SUCCESS )
+    {
+        mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+        PSA_ASSERT( psa_hash_finish( &operation,
+                                     output, PSA_HASH_LENGTH( alg ),
+                                     &output_length ) );
+        /* Two calls to the driver interface: update + abort */
+        TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 2 );
+        TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+        ASSERT_COMPARE( output, output_length, hash->x, hash->len );
+    }
+
+exit:
+    psa_hash_abort( &operation );
+    mbedtls_free( output );
+    PSA_DONE( );
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void hash_multipart_finish( int alg_arg,
+                            data_t *input, data_t *hash,
+                            int forced_status_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t forced_status = forced_status_arg;
+    unsigned char *output = NULL;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    size_t output_length;
+
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+    ASSERT_ALLOC( output, PSA_HASH_LENGTH( alg ) );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /*
+     * Finish inactive operation, the driver shouldn't be called.
+     */
+    TEST_EQUAL( psa_hash_finish( &operation, output, PSA_HASH_LENGTH( alg ),
+                                 &output_length ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 0 );
+
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+    PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 2 );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+    mbedtls_test_driver_hash_hooks.forced_status = forced_status;
+    TEST_EQUAL( psa_hash_finish( &operation,
+                                 output, PSA_HASH_LENGTH( alg ),
+                                 &output_length ),
+                forced_status );
+    /* Two more calls to the driver interface: finish + abort */
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 4 );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, forced_status );
+
+    if( forced_status == PSA_SUCCESS )
+        ASSERT_COMPARE( output, output_length, hash->x, hash->len );
+
+exit:
+    psa_hash_abort( &operation );
+    mbedtls_free( output );
+    PSA_DONE( );
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void hash_clone( int alg_arg,
+                 data_t *input, data_t *hash,
+                 int forced_status_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t forced_status = forced_status_arg;
+    unsigned char *output = NULL;
+    psa_hash_operation_t source_operation = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t target_operation = PSA_HASH_OPERATION_INIT;
+    size_t output_length;
+
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+    ASSERT_ALLOC( output, PSA_HASH_LENGTH( alg ) );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /*
+     * Clone inactive operation, the driver shouldn't be called.
+     */
+    TEST_EQUAL( psa_hash_clone( &source_operation, &target_operation ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 0 );
+
+    PSA_ASSERT( psa_hash_setup( &source_operation, alg ) );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+    mbedtls_test_driver_hash_hooks.forced_status = forced_status;
+    TEST_EQUAL( psa_hash_clone( &source_operation, &target_operation ),
+                forced_status );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits,
+                forced_status == PSA_SUCCESS ? 2 : 3 );
+    TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, forced_status );
+
+    if( forced_status == PSA_SUCCESS )
+    {
+        mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+        PSA_ASSERT( psa_hash_update( &target_operation,
+                                     input->x, input->len ) );
+        TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 1 );
+        TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+        PSA_ASSERT( psa_hash_finish( &target_operation,
+                                     output, PSA_HASH_LENGTH( alg ),
+                                     &output_length ) );
+        TEST_EQUAL( mbedtls_test_driver_hash_hooks.hits, 3 );
+        TEST_EQUAL( mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS );
+
+        ASSERT_COMPARE( output, output_length, hash->x, hash->len );
+    }
+
+exit:
+    psa_hash_abort( &source_operation );
+    psa_hash_abort( &target_operation );
+    mbedtls_free( output );
+    PSA_DONE( );
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
 }
 /* END_CASE */

@@ -1,0 +1,5 @@
+Removals
+   * Remove the MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
+     compile-time option. This option has been inactive for a long time.
+     Please use the `lifetime` parameter of `mbedtls_ssl_ticket_setup()`
+     instead.

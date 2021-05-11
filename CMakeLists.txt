@@ -10,10 +10,6 @@
 #     directories. That way, a target linking to a library (using the
 #     target_link_librairies command) inherits from the library PUBLIC include
 #     directories and not from the PRIVATE ones.
-#   + Note: there is currently one remaining include_directories command in the
-#     CMake files. It is related to ZLIB support which is planned to be removed.
-#     When the support is removed, the associated include_directories command
-#     will be removed as well as this note.
 # - MBEDTLS_TARGET_PREFIX: CMake targets are designed to be alterable by calling
 #   CMake in order to avoid target name clashes, via the use of
 #   MBEDTLS_TARGET_PREFIX. The value of this variable is prefixed to the
@@ -41,9 +37,6 @@ endif()
 
 # Set the project root directory.
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-
-option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
-option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
 
 option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
 
@@ -179,6 +172,9 @@ if(CMAKE_COMPILER_IS_GNU)
     execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
                     OUTPUT_VARIABLE GCC_VERSION)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings")
+    if (GCC_VERSION VERSION_GREATER 3.0 OR GCC_VERSION VERSION_EQUAL 3.0)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat=2 -Wno-format-nonliteral")
+    endif()
     if (GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wvla")
     endif()
@@ -194,6 +190,9 @@ if(CMAKE_COMPILER_IS_GNU)
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat-signedness")
         endif()
     endif()
+    if (GCC_VERSION VERSION_GREATER 7.0 OR GCC_VERSION VERSION_EQUAL 7.0)
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat-overflow=2 -Wformat-truncation")
+    endif()
     set(CMAKE_C_FLAGS_RELEASE     "-O2")
     set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
     set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")
@@ -204,7 +203,7 @@ if(CMAKE_COMPILER_IS_GNU)
 endif(CMAKE_COMPILER_IS_GNU)
 
 if(CMAKE_COMPILER_IS_CLANG)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral")
     set(CMAKE_C_FLAGS_RELEASE     "-O2")
     set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
     set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")
@@ -249,14 +248,6 @@ if(LIB_INSTALL_DIR)
 else()
     set(LIB_INSTALL_DIR lib)
 endif()
-
-if(ENABLE_ZLIB_SUPPORT)
-    find_package(ZLIB)
-
-    if(ZLIB_FOUND)
-        include_directories(${ZLIB_INCLUDE_DIR})
-    endif(ZLIB_FOUND)
-endif(ENABLE_ZLIB_SUPPORT)
 
 add_subdirectory(include)
 

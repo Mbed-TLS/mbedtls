@@ -282,3 +282,59 @@ void mbedtls_param_failed( const char *failure_condition,
     }
 }
 #endif /* MBEDTLS_CHECK_PARAMS */
+
+#if defined(MBEDTLS_TEST_HOOKS)
+void mbedtls_test_err_add_check( int high, int low,
+                                 const char *file, int line )
+{
+    /* Error codes are always negative (a value of zero is a success) however
+     * their positive opposites can be easier to understand. The following
+     * examples given in comments have been made positive for ease of
+     * understanding. The structure of an error code is such:
+     *
+     *                                                shhhhhhhhlllllll
+     *
+     * s = sign bit.
+     * h = high level error code (includes high level module ID (bits 12..14)
+     *     and module-dependent error code (bits 7..11)).
+     * l = low level error code.
+     */
+    if ( high > -0x1000 && high != 0 )
+    /* high < 0001000000000000
+     * No high level module ID bits are set.
+     */
+    {
+        mbedtls_test_fail( "'high' is not a high-level error code",
+                            line, file );
+    }
+    else if ( high < -0x7F80 )
+    /* high > 0111111110000000
+     * Error code is greater than the largest allowed high level module ID.
+     */
+    {
+        mbedtls_test_fail( "'high' error code is greater than 15 bits",
+                            line, file );
+    }
+    else if ( ( high & 0x7F ) != 0 )
+    /* high & 0000000001111111
+     * Error code contains low level error code bits.
+     */
+    {
+        mbedtls_test_fail( "'high' contains a low-level error code",
+                            line, file );
+    }
+    else if ( low < -0x007F )
+    /* low >  0000000001111111
+     * Error code contains high or module level error code bits.
+     */
+    {
+        mbedtls_test_fail( "'low' error code is greater than 7 bits",
+                            line, file );
+    }
+    else if ( low > 0 )
+    {
+        mbedtls_test_fail( "'low' error code is greater than zero",
+                            line, file );
+    }
+}
+#endif /* MBEDTLS_TEST_HOOKS */

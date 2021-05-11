@@ -1,0 +1,3 @@
+Changes
+   * Alternative implementations of CMAC may now opt to not support 3DES as a
+     CMAC block cipher, and still pass the CMAC self test.

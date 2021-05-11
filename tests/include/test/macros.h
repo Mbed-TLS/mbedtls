@@ -321,39 +321,44 @@
     mbedtls_exit( 1 );                                              \
 }
 
+/** \def ARRAY_LENGTH
+ * Return the number of elements of a static or stack array.
+ *
+ * \param array         A value of array (not pointer) type.
+ *
+ * \return The number of elements of the array.
+ */
+/* A correct implementation of ARRAY_LENGTH, but which silently gives
+ * a nonsensical result if called with a pointer rather than an array. */
+#define ARRAY_LENGTH_UNSAFE( array )            \
+    ( sizeof( array ) / sizeof( *( array ) ) )
+
 #if defined(__GNUC__)
 /* Test if arg and &(arg)[0] have the same type. This is true if arg is
  * an array but not if it's a pointer. */
 #define IS_ARRAY_NOT_POINTER( arg )                                     \
     ( ! __builtin_types_compatible_p( __typeof__( arg ),                \
                                       __typeof__( &( arg )[0] ) ) )
-#else
-/* On platforms where we don't know how to implement this check,
- * omit it. Oh well, a non-portable check is better than nothing. */
-#define IS_ARRAY_NOT_POINTER( arg ) 1
-#endif
-
 /* A compile-time constant with the value 0. If `const_expr` is not a
  * compile-time constant with a nonzero value, cause a compile-time error. */
 #define STATIC_ASSERT_EXPR( const_expr )                                \
     ( 0 && sizeof( struct { unsigned int STATIC_ASSERT : 1 - 2 * ! ( const_expr ); } ) )
+
 /* Return the scalar value `value` (possibly promoted). This is a compile-time
  * constant if `value` is. `condition` must be a compile-time constant.
  * If `condition` is false, arrange to cause a compile-time error. */
 #define STATIC_ASSERT_THEN_RETURN( condition, value )   \
     ( STATIC_ASSERT_EXPR( condition ) ? 0 : ( value ) )
 
-#define ARRAY_LENGTH_UNSAFE( array )            \
-    ( sizeof( array ) / sizeof( *( array ) ) )
-/** Return the number of elements of a static or stack array.
- *
- * \param array         A value of array (not pointer) type.
- *
- * \return The number of elements of the array.
- */
 #define ARRAY_LENGTH( array )                                           \
     ( STATIC_ASSERT_THEN_RETURN( IS_ARRAY_NOT_POINTER( array ),         \
                                  ARRAY_LENGTH_UNSAFE( array ) ) )
+
+#else
+/* If we aren't sure the compiler supports our non-standard tricks,
+ * fall back to the unsafe implementation. */
+#define ARRAY_LENGTH( array ) ARRAY_LENGTH_UNSAFE( array )
+#endif
 
 /** Return the smaller of two values.
  *

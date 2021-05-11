@@ -84,6 +84,7 @@ for my $curve (@curves) {
 }
 # Depends on a specific curve. Also, ignore error if it wasn't enabled.
 system( "scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED" );
+system( "scripts/config.pl unset MBEDTLS_ECJPAKE_C" );
 
 # Test with only $curve enabled, for each $curve.
 for my $curve (@curves) {

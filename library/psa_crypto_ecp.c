@@ -26,6 +26,7 @@
 #include "psa_crypto_core.h"
 #include "psa_crypto_ecp.h"
 #include "psa_crypto_random_impl.h"
+#include "psa_crypto_hash.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -35,6 +36,7 @@
 #define mbedtls_free   free
 #endif
 
+#include <mbedtls/ecdsa.h>
 #include <mbedtls/ecp.h>
 #include <mbedtls/error.h>
 
@@ -50,11 +52,25 @@
 #define BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY  1
 #endif
 
+#if ( defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||  \
+      ( defined(PSA_CRYPTO_DRIVER_TEST) &&       \
+        defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) &&  \
+        defined(MBEDTLS_ECDSA_C) ) )
+#define BUILTIN_ALG_ECDSA 1
+#endif
+
+#if ( defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ||  \
+      ( defined(PSA_CRYPTO_DRIVER_TEST) &&                     \
+        defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA) &&  \
+        defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECDSA_DETERMINISTIC) ) )
+#define BUILTIN_ALG_DETERMINISTIC_ECDSA 1
+#endif
+
 #if defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+    defined(BUILTIN_ALG_ECDSA) || \
+    defined(BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
 psa_status_t mbedtls_psa_ecp_load_representation(
     psa_key_type_t type, size_t curve_bits,
     const uint8_t *data, size_t data_length,
@@ -167,9 +183,9 @@ exit:
 }
 #endif /* defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
+        * defined(BUILTIN_ALG_ECDSA) ||
+        * defined(BUILTIN_ALG_DETERMINISTIC_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) */
 
 #if defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
@@ -292,6 +308,193 @@ static psa_status_t ecp_export_public_key(
 #endif /* defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
 
+#if defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR)
+static psa_status_t ecp_generate_key(
+    const psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(
+                                 attributes->core.type );
+    mbedtls_ecp_group_id grp_id =
+         mbedtls_ecc_group_of_psa( curve, attributes->core.bits, 0 );
+
+    const mbedtls_ecp_curve_info *curve_info =
+        mbedtls_ecp_curve_info_from_grp_id( grp_id );
+    mbedtls_ecp_keypair ecp;
+
+    if( attributes->domain_parameters_size != 0 )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    mbedtls_ecp_keypair_init( &ecp );
+    ret = mbedtls_ecp_gen_key( grp_id, &ecp,
+                               mbedtls_psa_get_random,
+                               MBEDTLS_PSA_RANDOM_STATE );
+    if( ret != 0 )
+    {
+        mbedtls_ecp_keypair_free( &ecp );
+        return( mbedtls_to_psa_error( ret ) );
+    }
+
+    status = mbedtls_to_psa_error(
+        mbedtls_ecp_write_key( &ecp, key_buffer, key_buffer_size ) );
+
+    mbedtls_ecp_keypair_free( &ecp );
+
+    if( status == PSA_SUCCESS )
+        *key_buffer_length = key_buffer_size;
+
+    return( status );
+}
+#endif /* defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) */
+
+/****************************************************************/
+/* ECDSA sign/verify */
+/****************************************************************/
+
+#if defined(BUILTIN_ALG_ECDSA) || \
+    defined(BUILTIN_ALG_DETERMINISTIC_ECDSA)
+static psa_status_t ecdsa_sign_hash(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    uint8_t *signature, size_t signature_size, size_t *signature_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ecp_keypair *ecp = NULL;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t curve_bytes;
+    mbedtls_mpi r, s;
+
+    status = mbedtls_psa_ecp_load_representation( attributes->core.type,
+                                                  attributes->core.bits,
+                                                  key_buffer,
+                                                  key_buffer_size,
+                                                  &ecp );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    curve_bytes = PSA_BITS_TO_BYTES( ecp->grp.pbits );
+    mbedtls_mpi_init( &r );
+    mbedtls_mpi_init( &s );
+
+    if( signature_size < 2 * curve_bytes )
+    {
+        ret = MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+        goto cleanup;
+    }
+
+    if( PSA_ALG_ECDSA_IS_DETERMINISTIC( alg ) )
+    {
+#if defined(BUILTIN_ALG_DETERMINISTIC_ECDSA)
+        psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
+        const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
+        mbedtls_md_type_t md_alg = mbedtls_md_get_type( md_info );
+        MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_det_ext(
+                             &ecp->grp, &r, &s,
+                             &ecp->d, hash,
+                             hash_length, md_alg,
+                             mbedtls_psa_get_random,
+                             MBEDTLS_PSA_RANDOM_STATE ) );
+#else
+       ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+       goto cleanup;
+#endif /* defined(BUILTIN_ALG_DETERMINISTIC_ECDSA) */
+    }
+    else
+    {
+        (void) alg;
+        MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign( &ecp->grp, &r, &s, &ecp->d,
+                                             hash, hash_length,
+                                             mbedtls_psa_get_random,
+                                             MBEDTLS_PSA_RANDOM_STATE ) );
+    }
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &r,
+                                               signature,
+                                               curve_bytes ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &s,
+                                               signature + curve_bytes,
+                                               curve_bytes ) );
+cleanup:
+    mbedtls_mpi_free( &r );
+    mbedtls_mpi_free( &s );
+    if( ret == 0 )
+        *signature_length = 2 * curve_bytes;
+
+    mbedtls_ecp_keypair_free( ecp );
+    mbedtls_free( ecp );
+
+    return( mbedtls_to_psa_error( ret ) );
+}
+
+static psa_status_t ecdsa_verify_hash(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ecp_keypair *ecp = NULL;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t curve_bytes;
+    mbedtls_mpi r, s;
+
+    (void)alg;
+
+    status = mbedtls_psa_ecp_load_representation( attributes->core.type,
+                                                  attributes->core.bits,
+                                                  key_buffer,
+                                                  key_buffer_size,
+                                                  &ecp );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    curve_bytes = PSA_BITS_TO_BYTES( ecp->grp.pbits );
+    mbedtls_mpi_init( &r );
+    mbedtls_mpi_init( &s );
+
+    if( signature_length != 2 * curve_bytes )
+    {
+        ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
+        goto cleanup;
+    }
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &r,
+                                              signature,
+                                              curve_bytes ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &s,
+                                              signature + curve_bytes,
+                                              curve_bytes ) );
+
+    /* Check whether the public part is loaded. If not, load it. */
+    if( mbedtls_ecp_is_zero( &ecp->Q ) )
+    {
+        MBEDTLS_MPI_CHK(
+            mbedtls_ecp_mul( &ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G,
+                             mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE ) );
+    }
+
+    ret = mbedtls_ecdsa_verify( &ecp->grp, hash, hash_length,
+                                &ecp->Q, &r, &s );
+
+cleanup:
+    mbedtls_mpi_free( &r );
+    mbedtls_mpi_free( &s );
+    mbedtls_ecp_keypair_free( ecp );
+    mbedtls_free( ecp );
+
+    return( mbedtls_to_psa_error( ret ) );
+}
+
+#endif /* defined(BUILTIN_ALG_ECDSA) || \
+        * defined(BUILTIN_ALG_DETERMINISTIC_ECDSA) */
+
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
 
@@ -317,6 +520,48 @@ psa_status_t mbedtls_psa_ecp_export_public_key(
 
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
+
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR)
+psa_status_t mbedtls_psa_ecp_generate_key(
+    const psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
+{
+    return( ecp_generate_key( attributes, key_buffer, key_buffer_size,
+                              key_buffer_length ) );
+}
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) */
+
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+
+psa_status_t mbedtls_psa_ecdsa_sign_hash(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    uint8_t *signature, size_t signature_size, size_t *signature_length )
+{
+
+    return( ecdsa_sign_hash( attributes,
+                             key_buffer, key_buffer_size,
+                             alg, hash, hash_length,
+                             signature, signature_size, signature_length ) );
+}
+
+psa_status_t mbedtls_psa_ecdsa_verify_hash(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length )
+{
+    return( ecdsa_verify_hash( attributes,
+                               key_buffer, key_buffer_size,
+                               alg, hash, hash_length,
+                               signature, signature_length ) );
+}
+
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
 
 /*
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
@@ -349,6 +594,74 @@ psa_status_t mbedtls_transparent_test_driver_ecp_export_public_key(
 
 #endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) ||
           defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) */
+
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) && \
+    defined(MBEDTLS_GENPRIME)
+psa_status_t mbedtls_transparent_test_driver_ecp_generate_key(
+    const psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
+{
+    return( ecp_generate_key( attributes, key_buffer, key_buffer_size,
+                              key_buffer_length ) );
+}
+#endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) &&
+          defined(MBEDTLS_GENPRIME) */
+
+#if defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA)
+
+psa_status_t mbedtls_transparent_test_driver_ecdsa_sign_hash(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    uint8_t *signature, size_t signature_size, size_t *signature_length )
+{
+
+#if defined(MBEDTLS_ECDSA_C)
+    return( ecdsa_sign_hash( attributes,
+                             key_buffer, key_buffer_size,
+                             alg, hash, hash_length,
+                             signature, signature_size, signature_length ) );
+#else
+    (void)attributes;
+    (void)key_buffer;
+    (void)key_buffer_size;
+    (void)alg;
+    (void)hash;
+    (void)hash_length;
+    (void)signature;
+    (void)signature_size;
+    (void)signature_length;
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif
+}
+
+psa_status_t mbedtls_transparent_test_driver_ecdsa_verify_hash(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length )
+{
+#if defined(MBEDTLS_ECDSA_C)
+    return( ecdsa_verify_hash( attributes,
+                               key_buffer, key_buffer_size,
+                               alg, hash, hash_length,
+                               signature, signature_length ) );
+#else
+    (void)attributes;
+    (void)key_buffer;
+    (void)key_buffer_size;
+    (void)alg;
+    (void)hash;
+    (void)hash_length;
+    (void)signature;
+    (void)signature_length;
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif
+}
+
+#endif /* defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA) */
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 

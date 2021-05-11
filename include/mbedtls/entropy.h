@@ -44,9 +44,6 @@
 #include "mbedtls/threading.h"
 #endif
 
-#if defined(MBEDTLS_HAVEGE_C)
-#include "mbedtls/havege.h"
-#endif
 
 #define MBEDTLS_ERR_ENTROPY_SOURCE_FAILED                 -0x003C  /**< Critical entropy source failure. */
 #define MBEDTLS_ERR_ENTROPY_MAX_SOURCES                   -0x003E  /**< No more sources can be added. */
@@ -120,17 +117,16 @@ mbedtls_entropy_source_state;
  */
 typedef struct mbedtls_entropy_context
 {
-    int accumulator_started;
+    int accumulator_started; /* 0 after init.
+                              * 1 after the first update.
+                              * -1 after free. */
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
     mbedtls_sha512_context  accumulator;
 #else
     mbedtls_sha256_context  accumulator;
 #endif
-    int             source_count;
+    int             source_count; /* Number of entries used in source. */
     mbedtls_entropy_source_state    source[MBEDTLS_ENTROPY_MAX_SOURCES];
-#if defined(MBEDTLS_HAVEGE_C)
-    mbedtls_havege_state    havege_data;
-#endif
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_threading_mutex_t mutex;    /*!< mutex                  */
 #endif
@@ -139,6 +135,14 @@ typedef struct mbedtls_entropy_context
 #endif
 }
 mbedtls_entropy_context;
+
+#if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
+/**
+ * \brief           Platform-specific entropy poll callback
+ */
+int mbedtls_platform_entropy_poll( void *data,
+                           unsigned char *output, size_t len, size_t *olen );
+#endif
 
 /**
  * \brief           Initialize the context

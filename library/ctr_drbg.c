@@ -56,10 +56,6 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx )
     ctx->reseed_counter = -1;
 
     ctx->reseed_interval = MBEDTLS_CTR_DRBG_RESEED_INTERVAL;
-
-#if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_init( &ctx->mutex );
-#endif
 }
 
 /*
@@ -72,15 +68,14 @@ void mbedtls_ctr_drbg_free( mbedtls_ctr_drbg_context *ctx )
         return;
 
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_free( &ctx->mutex );
+    /* The mutex is initialized iff f_entropy is set. */
+    if( ctx->f_entropy != NULL )
+        mbedtls_mutex_free( &ctx->mutex );
 #endif
     mbedtls_aes_free( &ctx->aes_ctx );
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_ctr_drbg_context ) );
     ctx->reseed_interval = MBEDTLS_CTR_DRBG_RESEED_INTERVAL;
     ctx->reseed_counter = -1;
-#if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_init( &ctx->mutex );
-#endif
 }
 
 void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx,
@@ -309,7 +304,7 @@ exit:
 }
 
 /* CTR_DRBG_Instantiate with derivation function (SP 800-90A &sect;10.2.1.3.2)
- * mbedtls_ctr_drbg_update(ctx, additional, add_len)
+ * mbedtls_ctr_drbg_update_ret(ctx, additional, add_len)
  * implements
  * CTR_DRBG_Instantiate(entropy_input, nonce, personalization_string,
  *                      security_strength) -> initial_working_state
@@ -339,19 +334,6 @@ exit:
     mbedtls_platform_zeroize( add_input, sizeof( add_input ) );
     return( ret );
 }
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-void mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
-                              const unsigned char *additional,
-                              size_t add_len )
-{
-    /* MAX_INPUT would be more logical here, but we have to match
-     * block_cipher_df()'s limits since we can't propagate errors */
-    if( add_len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT )
-        add_len = MBEDTLS_CTR_DRBG_MAX_SEED_INPUT;
-    (void) mbedtls_ctr_drbg_update_ret( ctx, additional, add_len );
-}
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 /* CTR_DRBG_Reseed with derivation function (SP 800-90A &sect;10.2.1.4.2)
  * mbedtls_ctr_drbg_reseed(ctx, additional, len, nonce_len)
@@ -463,6 +445,11 @@ int mbedtls_ctr_drbg_seed( mbedtls_ctr_drbg_context *ctx,
     size_t nonce_len;
 
     memset( key, 0, MBEDTLS_CTR_DRBG_KEYSIZE );
+
+    /* The mutex is initialized iff f_entropy is set. */
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_init( &ctx->mutex );
+#endif
 
     mbedtls_aes_init( &ctx->aes_ctx );
 

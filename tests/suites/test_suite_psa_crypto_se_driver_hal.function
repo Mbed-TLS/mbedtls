@@ -767,41 +767,12 @@ exit:
     return( ok );
 }
 
-static mbedtls_svc_key_id_t key_ids_used_in_test[10];
-static size_t num_key_ids_used;
-
-/* Record a key id as potentially used in a test case. */
-static int test_uses_key_id( mbedtls_svc_key_id_t key_id )
-{
-    size_t i;
-
-    for( i = 0; i < num_key_ids_used ; i++ )
-    {
-        if( mbedtls_svc_key_id_equal( key_id, key_ids_used_in_test[i] ) )
-            return( 1 );
-    }
-
-    if( num_key_ids_used >= ARRAY_LENGTH( key_ids_used_in_test ) )
-        return( 0 );
-
-    key_ids_used_in_test[num_key_ids_used] = key_id;
-    ++num_key_ids_used;
-
-    return( 1 );
-}
-
-#define TEST_USES_KEY_ID( key_id )                       \
-    TEST_ASSERT( test_uses_key_id( key_id ) )
-
 static void psa_purge_storage( void )
 {
-    size_t i;
+    /* The generic code in mbedtls_test_psa_purge_key_storage()
+     * (which is called by PSA_DONE()) doesn't take care of things that are
+     * specific to dynamic secure elements. */
     psa_key_location_t location;
-
-    for( i = 0; i < num_key_ids_used; i++ )
-        psa_destroy_persistent_key( key_ids_used_in_test[i] );
-    num_key_ids_used = 0;
-
     /* Purge the transaction file. */
     psa_crypto_stop_transaction( );
     /* Purge driver persistent data. */
@@ -1496,6 +1467,7 @@ void register_key_smoke_test( int lifetime_arg,
             ( validate > 0 ? PSA_SUCCESS : PSA_ERROR_NOT_PERMITTED );
     }
 
+    mbedtls_test_set_step( 1 );
     PSA_ASSERT( psa_register_se_driver( MIN_DRIVER_LOCATION, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -1525,7 +1497,8 @@ void register_key_smoke_test( int lifetime_arg,
     PSA_ASSERT( psa_purge_key( id ) );
 
     /* Restart and try again. */
-    PSA_DONE( );
+    mbedtls_test_set_step( 2 );
+    PSA_SESSION_DONE( );
     PSA_ASSERT( psa_register_se_driver( location, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
     if( ! check_key_attributes( id, &attributes ) )

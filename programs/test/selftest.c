@@ -24,7 +24,6 @@
 #endif
 
 #include "mbedtls/entropy.h"
-#include "mbedtls/entropy_poll.h"
 #include "mbedtls/hmac_drbg.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/dhm.h"
@@ -314,9 +313,6 @@ const selftest_t selftests[] =
 #endif
 #if defined(MBEDTLS_RSA_C)
     {"rsa", mbedtls_rsa_self_test},
-#endif
-#if defined(MBEDTLS_X509_USE_C)
-    {"x509", mbedtls_x509_self_test},
 #endif
 #if defined(MBEDTLS_XTEA_C)
     {"xtea", mbedtls_xtea_self_test},

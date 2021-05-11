@@ -81,10 +81,6 @@
 #error "MBEDTLS_DHM_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT) && !defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-#error "MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_CMAC_C) && \
     !defined(MBEDTLS_AES_C) && !defined(MBEDTLS_DES_C)
 #error "MBEDTLS_CMAC_C defined, but not all prerequisites"
@@ -210,8 +206,7 @@
 #error "MBEDTLS_TEST_NULL_ENTROPY defined, but not all prerequisites"
 #endif
 #if defined(MBEDTLS_TEST_NULL_ENTROPY) && \
-     ( defined(MBEDTLS_ENTROPY_NV_SEED) || defined(MBEDTLS_ENTROPY_HARDWARE_ALT) || \
-    defined(MBEDTLS_HAVEGE_C) )
+     ( defined(MBEDTLS_ENTROPY_NV_SEED) || defined(MBEDTLS_ENTROPY_HARDWARE_ALT) )
 #error "MBEDTLS_TEST_NULL_ENTROPY defined, but entropy sources too"
 #endif
 
@@ -254,10 +249,6 @@
 
 #if defined(MBEDTLS_ECP_NO_FALLBACK) && !defined(MBEDTLS_ECP_INTERNAL_ALT)
 #error "MBEDTLS_ECP_NO_FALLBACK defined, but no alternative implementation enabled"
-#endif
-
-#if defined(MBEDTLS_HAVEGE_C) && !defined(MBEDTLS_TIMING_C)
-#error "MBEDTLS_HAVEGE_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_HKDF_C) && !defined(MBEDTLS_MD_C)
@@ -370,18 +361,6 @@
 #if defined(MBEDTLS_PK_WRITE_C) && !defined(MBEDTLS_PK_C)
 #error "MBEDTLS_PK_WRITE_C defined, but not all prerequisites"
 #endif
-
-#if defined(MBEDTLS_PKCS11_C) && !defined(MBEDTLS_PK_C)
-#error "MBEDTLS_PKCS11_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_PKCS11_C)
-#if defined(MBEDTLS_DEPRECATED_REMOVED)
-#error "MBEDTLS_PKCS11_C is deprecated and will be removed in a future version of Mbed TLS"
-#elif defined(MBEDTLS_DEPRECATED_WARNING)
-#warning "MBEDTLS_PKCS11_C is deprecated and will be removed in a future version of Mbed TLS"
-#endif
-#endif /* MBEDTLS_PKCS11_C */
 
 #if defined(MBEDTLS_PLATFORM_EXIT_ALT) && !defined(MBEDTLS_PLATFORM_C)
 #error "MBEDTLS_PLATFORM_EXIT_ALT defined, but not all prerequisites"
@@ -643,11 +622,6 @@
 #error "MBEDTLS_SHA512_NO_SHA384 defined without MBEDTLS_SHA512_C"
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3) && ( !defined(MBEDTLS_MD5_C) ||     \
-    !defined(MBEDTLS_SHA1_C) )
-#error "MBEDTLS_SSL_PROTO_SSL3 defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_SSL_PROTO_TLS1) && ( !defined(MBEDTLS_MD5_C) ||     \
     !defined(MBEDTLS_SHA1_C) )
 #error "MBEDTLS_SSL_PROTO_TLS1 defined, but not all prerequisites"
@@ -668,8 +642,8 @@
 #error "MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL defined, but not all prerequisites"
 #endif
 
-#if (defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) ||  \
-     defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_SSL_PROTO_TLS1_2)) && \
+#if (defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) ||\
+     defined(MBEDTLS_SSL_PROTO_TLS1_2)) &&                                  \
     !(defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||                          \
       defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                      \
       defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                    \
@@ -704,25 +678,13 @@
 #error "MBEDTLS_SSL_SRV_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_TLS_C) && (!defined(MBEDTLS_SSL_PROTO_SSL3) && \
-    !defined(MBEDTLS_SSL_PROTO_TLS1) && !defined(MBEDTLS_SSL_PROTO_TLS1_1) && \
-    !defined(MBEDTLS_SSL_PROTO_TLS1_2))
+#if defined(MBEDTLS_SSL_TLS_C) && (!defined(MBEDTLS_SSL_PROTO_TLS1) && \
+    !defined(MBEDTLS_SSL_PROTO_TLS1_1) && !defined(MBEDTLS_SSL_PROTO_TLS1_2))
 #error "MBEDTLS_SSL_TLS_C defined, but no protocols are active"
-#endif
-
-#if defined(MBEDTLS_SSL_TLS_C) && (defined(MBEDTLS_SSL_PROTO_SSL3) && \
-    defined(MBEDTLS_SSL_PROTO_TLS1_1) && !defined(MBEDTLS_SSL_PROTO_TLS1))
-#error "Illegal protocol selection"
 #endif
 
 #if defined(MBEDTLS_SSL_TLS_C) && (defined(MBEDTLS_SSL_PROTO_TLS1) && \
     defined(MBEDTLS_SSL_PROTO_TLS1_2) && !defined(MBEDTLS_SSL_PROTO_TLS1_1))
-#error "Illegal protocol selection"
-#endif
-
-#if defined(MBEDTLS_SSL_TLS_C) && (defined(MBEDTLS_SSL_PROTO_SSL3) && \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2) && (!defined(MBEDTLS_SSL_PROTO_TLS1) || \
-    !defined(MBEDTLS_SSL_PROTO_TLS1_1)))
 #error "Illegal protocol selection"
 #endif
 
@@ -780,8 +742,7 @@
 #error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING) && \
-    !defined(MBEDTLS_SSL_PROTO_SSL3) && !defined(MBEDTLS_SSL_PROTO_TLS1)
+#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING) && !defined(MBEDTLS_SSL_PROTO_TLS1)
 #error "MBEDTLS_SSL_CBC_RECORD_SPLITTING defined, but not all prerequisites"
 #endif
 
@@ -829,10 +790,6 @@
 #error "MBEDTLS_X509_CREATE_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_CERTS_C) && !defined(MBEDTLS_X509_USE_C)
-#error "MBEDTLS_CERTS_C defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && ( !defined(MBEDTLS_X509_USE_C) )
 #error "MBEDTLS_X509_CRT_PARSE_C defined, but not all prerequisites"
 #endif
@@ -862,30 +819,6 @@
 #error "MBEDTLS_HAVE_INT32/MBEDTLS_HAVE_INT64 and MBEDTLS_HAVE_ASM cannot be defined simultaneously"
 #endif /* (MBEDTLS_HAVE_INT32 || MBEDTLS_HAVE_INT64) && MBEDTLS_HAVE_ASM */
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-#if defined(MBEDTLS_DEPRECATED_REMOVED)
-#error "MBEDTLS_SSL_PROTO_SSL3 is deprecated and will be removed in a future version of Mbed TLS"
-#elif defined(MBEDTLS_DEPRECATED_WARNING)
-#warning "MBEDTLS_SSL_PROTO_SSL3 is deprecated and will be removed in a future version of Mbed TLS"
-#endif
-#endif /* MBEDTLS_SSL_PROTO_SSL3 */
-
-#if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
-#if defined(MBEDTLS_DEPRECATED_REMOVED)
-#error "MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO is deprecated and will be removed in a future version of Mbed TLS"
-#elif defined(MBEDTLS_DEPRECATED_WARNING)
-#warning "MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO is deprecated and will be removed in a future version of Mbed TLS"
-#endif
-#endif /* MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
-
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
-#if defined(MBEDTLS_DEPRECATED_REMOVED)
-#error "MBEDTLS_SSL_HW_RECORD_ACCEL is deprecated and will be removed in a future version of Mbed TLS"
-#elif defined(MBEDTLS_DEPRECATED_WARNING)
-#warning "MBEDTLS_SSL_HW_RECORD_ACCEL is deprecated and will be removed in a future version of Mbed TLS"
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
-
 #if defined(MBEDTLS_SSL_DTLS_SRTP) && ( !defined(MBEDTLS_SSL_PROTO_DTLS) )
 #error "MBEDTLS_SSL_DTLS_SRTP defined, but not all prerequisites"
 #endif
@@ -893,6 +826,40 @@
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH) && ( !defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH) )
 #error "MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH defined, but not all prerequisites"
 #endif
+
+
+
+/* Reject attempts to enable options that have been removed and that could
+ * cause a build to succeed but with features removed. */
+
+#if defined(MBEDTLS_HAVEGE_C) //no-check-names
+#error "MBEDTLS_HAVEGE_C was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/2599"
+#endif
+
+#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL) //no-check-names
+#error "MBEDTLS_SSL_HW_RECORD_ACCEL was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_SSL3) //no-check-names
+#error "MBEDTLS_SSL_PROTO_SSL3 (SSL v3.0 support) was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
+#endif
+
+#if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO) //no-check-names
+#error "MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO (SSL v2 ClientHello support) was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
+#endif
+
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT) //no-check-names
+#error "MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT (compatibility with the buggy implementation of truncated HMAC in Mbed TLS up to 2.7) was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
+#endif
+
+#if defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES) //no-check-names
+#error "MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES was removed in Mbed TLS 3.0. See the ChangeLog entry if you really need SHA-1-signed certificates."
+#endif
+
+#if defined(MBEDTLS_ZLIB_SUPPORT) //no-check-names
+#error "MBEDTLS_ZLIB_SUPPORT was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
+#endif
+
 
 /*
  * Avoid warning from -pedantic. This is a convenient place for this

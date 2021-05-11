@@ -264,6 +264,14 @@ static psa_key_usage_t psa_get_key_usage_flags(
  * - An algorithm value permits this particular algorithm.
  * - An algorithm wildcard built from #PSA_ALG_ANY_HASH allows the specified
  *   signature scheme with any hash algorithm.
+ * - An algorithm built from #PSA_ALG_AT_LEAST_THIS_LENGTH_MAC allows
+ *   any MAC algorithm from the same base class (e.g. CMAC) which
+ *   generates/verifies a MAC length greater than or equal to the length
+ *   encoded in the wildcard algorithm.
+ * - An algorithm built from #PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG
+ *   allows any AEAD algorithm from the same base class (e.g. CCM) which
+ *   generates/verifies a tag length greater than or equal to the length
+ *   encoded in the wildcard algorithm.
  *
  * This function overwrites any algorithm policy
  * previously set in \p attributes.
@@ -701,6 +709,8 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
  *   For Weierstrass curves, this is the content of the `privateKey` field of
  *   the `ECPrivateKey` format defined by RFC 5915.  For Montgomery curves,
  *   the format is defined by RFC 7748, and output is masked according to §5.
+ *   For twisted Edwards curves, the private key is as defined by RFC 8032
+ *   (a 32-byte string for Edwards25519, a 57-byte string for Edwards448).
  * - For Diffie-Hellman key exchange key pairs (key types for which
  *   #PSA_KEY_TYPE_IS_DH_KEY_PAIR is true), the
  *   format is the representation of the private key `x` as a big-endian byte
@@ -766,7 +776,12 @@ psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
  *      modulus            INTEGER,    -- n
  *      publicExponent     INTEGER  }  -- e
  *   ```
- * - For elliptic curve public keys (key types for which
+ * - For elliptic curve keys on a twisted Edwards curve (key types for which
+ *   #PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY is true and #PSA_KEY_TYPE_ECC_GET_FAMILY
+ *   returns #PSA_ECC_FAMILY_TWISTED_EDWARDS), the public key is as defined
+ *   by RFC 8032
+ *   (a 32-byte string for Edwards25519, a 57-byte string for Edwards448).
+ * - For other elliptic curve public keys (key types for which
  *   #PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY is true), the format is the uncompressed
  *   representation defined by SEC1 &sect;2.3.3 as the content of an ECPoint.
  *   Let `m` be the bit size associated with the curve, i.e. the bit size of
@@ -2098,9 +2113,16 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  *                                authentication tag is appended to the
  *                                encrypted data.
  * \param ciphertext_size         Size of the \p ciphertext buffer in bytes.
- *                                This must be at least
- *                                #PSA_AEAD_ENCRYPT_OUTPUT_SIZE(\p alg,
- *                                \p plaintext_length).
+ *                                This must be appropriate for the selected
+ *                                algorithm and key:
+ *                                - A sufficient output size is
+ *                                  #PSA_AEAD_ENCRYPT_OUTPUT_SIZE(\c key_type,
+ *                                  \p alg, \p plaintext_length) where
+ *                                  \c key_type is the type of \p key.
+ *                                - #PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE(\p
+ *                                  plaintext_length) evaluates to the maximum
+ *                                  ciphertext size of any supported AEAD
+ *                                  encryption.
  * \param[out] ciphertext_length  On success, the size of the output
  *                                in the \p ciphertext buffer.
  *
@@ -2114,7 +2136,11 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  *         \p alg is not supported or is not an AEAD algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         \p ciphertext_size is too small
+ *         \p ciphertext_size is too small.
+ *         #PSA_AEAD_ENCRYPT_OUTPUT_SIZE(\c key_type, \p alg,
+ *         \p plaintext_length) or
+ *         #PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE(\p plaintext_length) can be used to
+ *         determine the required buffer size.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
@@ -2158,9 +2184,16 @@ psa_status_t psa_aead_encrypt(mbedtls_svc_key_id_t key,
  * \param ciphertext_length       Size of \p ciphertext in bytes.
  * \param[out] plaintext          Output buffer for the decrypted data.
  * \param plaintext_size          Size of the \p plaintext buffer in bytes.
- *                                This must be at least
- *                                #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\p alg,
- *                                \p ciphertext_length).
+ *                                This must be appropriate for the selected
+ *                                algorithm and key:
+ *                                - A sufficient output size is
+ *                                  #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\c key_type,
+ *                                  \p alg, \p ciphertext_length) where
+ *                                  \c key_type is the type of \p key.
+ *                                - #PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE(\p
+ *                                  ciphertext_length) evaluates to the maximum
+ *                                  plaintext size of any supported AEAD
+ *                                  decryption.
  * \param[out] plaintext_length   On success, the size of the output
  *                                in the \p plaintext buffer.
  *
@@ -2176,7 +2209,11 @@ psa_status_t psa_aead_encrypt(mbedtls_svc_key_id_t key,
  *         \p alg is not supported or is not an AEAD algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         \p plaintext_size or \p nonce_length is too small
+ *         \p plaintext_size is too small.
+ *         #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\c key_type, \p alg,
+ *         \p ciphertext_length) or
+ *         #PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE(\p ciphertext_length) can be used
+ *         to determine the required buffer size.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
@@ -2597,10 +2634,18 @@ psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
  * \param input_length          Size of the \p input buffer in bytes.
  * \param[out] output           Buffer where the output is to be written.
  * \param output_size           Size of the \p output buffer in bytes.
- *                              This must be at least
- *                              #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c alg,
- *                              \p input_length) where \c alg is the
- *                              algorithm that is being calculated.
+ *                              This must be appropriate for the selected
+ *                                algorithm and key:
+ *                                - A sufficient output size is
+ *                                  #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c key_type,
+ *                                  \c alg, \p input_length) where
+ *                                  \c key_type is the type of key and \c alg is
+ *                                  the algorithm that were used to set up the
+ *                                  operation.
+ *                                - #PSA_AEAD_UPDATE_OUTPUT_MAX_SIZE(\p
+ *                                  input_length) evaluates to the maximum
+ *                                  output size of any supported AEAD
+ *                                  algorithm.
  * \param[out] output_length    On success, the number of bytes
  *                              that make up the returned output.
  *
@@ -2611,9 +2656,9 @@ psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
  *         set, and have lengths set if required by the algorithm).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
- *         You can determine a sufficient buffer size by calling
- *         #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c alg, \p input_length)
- *         where \c alg is the algorithm that is being calculated.
+ *         #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c key_type, \c alg, \p input_length) or
+ *         #PSA_AEAD_UPDATE_OUTPUT_MAX_SIZE(\p input_length) can be used to
+ *         determine the required buffer size.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to psa_aead_update_ad() so far is
  *         less than the additional data length that was previously
@@ -2650,9 +2695,7 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
  * This function has two output buffers:
  * - \p ciphertext contains trailing ciphertext that was buffered from
  *   preceding calls to psa_aead_update().
- * - \p tag contains the authentication tag. Its length is always
- *   #PSA_AEAD_TAG_LENGTH(\c alg) where \c alg is the AEAD algorithm
- *   that the operation performs.
+ * - \p tag contains the authentication tag.
  *
  * When this function returns successfuly, the operation becomes inactive.
  * If this function returns an error status, the operation enters an error
@@ -2662,18 +2705,32 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
  * \param[out] ciphertext       Buffer where the last part of the ciphertext
  *                              is to be written.
  * \param ciphertext_size       Size of the \p ciphertext buffer in bytes.
- *                              This must be at least
- *                              #PSA_AEAD_FINISH_OUTPUT_SIZE(\c alg) where
- *                              \c alg is the algorithm that is being
- *                              calculated.
+ *                              This must be appropriate for the selected
+ *                              algorithm and key:
+ *                              - A sufficient output size is
+ *                                #PSA_AEAD_FINISH_OUTPUT_SIZE(\c key_type,
+ *                                \c alg) where \c key_type is the type of key
+ *                                and \c alg is the algorithm that were used to
+ *                                set up the operation.
+ *                              - #PSA_AEAD_FINISH_OUTPUT_MAX_SIZE evaluates to
+ *                                the maximum output size of any supported AEAD
+ *                                algorithm.
  * \param[out] ciphertext_length On success, the number of bytes of
  *                              returned ciphertext.
  * \param[out] tag              Buffer where the authentication tag is
  *                              to be written.
  * \param tag_size              Size of the \p tag buffer in bytes.
- *                              This must be at least
- *                              #PSA_AEAD_TAG_LENGTH(\c alg) where \c alg is
- *                              the algorithm that is being calculated.
+ *                              This must be appropriate for the selected
+ *                              algorithm and key:
+ *                              - The exact tag size is #PSA_AEAD_TAG_LENGTH(\c
+ *                                key_type, \c key_bits, \c alg) where
+ *                                \c key_type and \c key_bits are the type and
+ *                                bit-size of the key, and \c alg is the
+ *                                algorithm that were used in the call to
+ *                                psa_aead_encrypt_setup().
+ *                              - #PSA_AEAD_TAG_MAX_SIZE evaluates to the
+ *                                maximum tag size of any supported AEAD
+ *                                algorithm.
  * \param[out] tag_length       On success, the number of bytes
  *                              that make up the returned tag.
  *
@@ -2684,11 +2741,11 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
  *         operation with a nonce set).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p ciphertext or \p tag buffer is too small.
- *         You can determine a sufficient buffer size for \p ciphertext by
- *         calling #PSA_AEAD_FINISH_OUTPUT_SIZE(\c alg)
- *         where \c alg is the algorithm that is being calculated.
- *         You can determine a sufficient buffer size for \p tag by
- *         calling #PSA_AEAD_TAG_LENGTH(\c alg).
+ *         #PSA_AEAD_FINISH_OUTPUT_SIZE(\c key_type, \c alg) or
+ *         #PSA_AEAD_FINISH_OUTPUT_MAX_SIZE can be used to determine the
+ *         required \p ciphertext buffer size. #PSA_AEAD_TAG_LENGTH(\c key_type,
+ *         \c key_bits, \c alg) or #PSA_AEAD_TAG_MAX_SIZE can be used to
+ *         determine the required \p tag buffer size.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to psa_aead_update_ad() so far is
  *         less than the additional data length that was previously
@@ -2747,10 +2804,15 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  *                              that could not be processed until the end
  *                              of the input.
  * \param plaintext_size        Size of the \p plaintext buffer in bytes.
- *                              This must be at least
- *                              #PSA_AEAD_VERIFY_OUTPUT_SIZE(\c alg) where
- *                              \c alg is the algorithm that is being
- *                              calculated.
+ *                              This must be appropriate for the selected algorithm and key:
+ *                              - A sufficient output size is
+ *                                #PSA_AEAD_VERIFY_OUTPUT_SIZE(\c key_type,
+ *                                \c alg) where \c key_type is the type of key
+ *                                and \c alg is the algorithm that were used to
+ *                                set up the operation.
+ *                              - #PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE evaluates to
+ *                                the maximum output size of any supported AEAD
+ *                                algorithm.
  * \param[out] plaintext_length On success, the number of bytes of
  *                              returned plaintext.
  * \param[in] tag               Buffer containing the authentication tag.
@@ -2766,9 +2828,9 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  *         operation with a nonce set).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p plaintext buffer is too small.
- *         You can determine a sufficient buffer size for \p plaintext by
- *         calling #PSA_AEAD_VERIFY_OUTPUT_SIZE(\c alg)
- *         where \c alg is the algorithm that is being calculated.
+ *         #PSA_AEAD_VERIFY_OUTPUT_SIZE(\c key_type, \c alg) or
+ *         #PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE can be used to determine the
+ *         required buffer size.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to psa_aead_update_ad() so far is
  *         less than the additional data length that was previously
@@ -2832,7 +2894,8 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
  *
  * Note that to perform a hash-and-sign signature algorithm, you must
  * first calculate the hash by calling psa_hash_setup(), psa_hash_update()
- * and psa_hash_finish(). Then pass the resulting hash as the \p hash
+ * and psa_hash_finish(), or alternatively by calling psa_hash_compute().
+ * Then pass the resulting hash as the \p hash
  * parameter to this function. You can use #PSA_ALG_SIGN_GET_HASH(\p alg)
  * to determine the hash algorithm to use.
  *
@@ -2883,7 +2946,8 @@ psa_status_t psa_sign_hash(mbedtls_svc_key_id_t key,
  *
  * Note that to perform a hash-and-sign signature algorithm, you must
  * first calculate the hash by calling psa_hash_setup(), psa_hash_update()
- * and psa_hash_finish(). Then pass the resulting hash as the \p hash
+ * and psa_hash_finish(), or alternatively by calling psa_hash_compute().
+ * Then pass the resulting hash as the \p hash
  * parameter to this function. You can use #PSA_ALG_SIGN_GET_HASH(\p alg)
  * to determine the hash algorithm to use.
  *
@@ -3457,7 +3521,8 @@ psa_status_t psa_key_derivation_output_bytes(
  * state and must be aborted by calling psa_key_derivation_abort().
  *
  * How much output is produced and consumed from the operation, and how
- * the key is derived, depends on the key type:
+ * the key is derived, depends on the key type and on the key size
+ * (denoted \c bits below):
  *
  * - For key types for which the key is an arbitrary sequence of bytes
  *   of a given size, this function is functionally equivalent to
@@ -3467,7 +3532,7 @@ psa_status_t psa_key_derivation_output_bytes(
  *   if the implementation provides an isolation boundary then
  *   the key material is not exposed outside the isolation boundary.
  *   As a consequence, for these key types, this function always consumes
- *   exactly (\p bits / 8) bytes from the operation.
+ *   exactly (\c bits / 8) bytes from the operation.
  *   The following key types defined in this specification follow this scheme:
  *
  *     - #PSA_KEY_TYPE_AES;
@@ -3488,8 +3553,8 @@ psa_status_t psa_key_derivation_output_bytes(
  *       string and process it as specified in RFC 7748 &sect;5.
  *
  * - For key types for which the key is represented by a single sequence of
- *   \p bits bits with constraints as to which bit sequences are acceptable,
- *   this function draws a byte string of length (\p bits / 8) bytes rounded
+ *   \c bits bits with constraints as to which bit sequences are acceptable,
+ *   this function draws a byte string of length (\c bits / 8) bytes rounded
  *   up to the nearest whole number of bytes. If the resulting byte string
  *   is acceptable, it becomes the key, otherwise the drawn bytes are discarded.
  *   This process is repeated until an acceptable byte string is drawn.

@@ -1749,17 +1749,6 @@
 #define MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
 
 /**
- * \def MBEDTLS_SSL_DTLS_BADMAC_LIMIT
- *
- * Enable support for a limit of records with bad MAC.
- *
- * See mbedtls_ssl_conf_dtls_badmac_limit().
- *
- * Requires: MBEDTLS_SSL_PROTO_DTLS
- */
-#define MBEDTLS_SSL_DTLS_BADMAC_LIMIT
-
-/**
  * \def MBEDTLS_SSL_SESSION_TICKETS
  *
  * Enable support for RFC 5077 session tickets in SSL.

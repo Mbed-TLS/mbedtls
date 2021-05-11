@@ -71,6 +71,7 @@ Objective: ensure that the coverage is sufficient to have assurance that all key
 
 In particular, the tests must validate that each `PSA_xxx` constant that is stored in a key is covered by at least one test case:
 
+* Lifetimes: `PSA_KEY_LIFETIME_xxx`, `PSA_KEY_PERSISTENCE_xxx`, `PSA_KEY_LOCATION_xxx`.
 * Usage flags: `PSA_KEY_USAGE_xxx`.
 * Algorithms in policies: `PSA_ALG_xxx`.
 * Key types: `PSA_KEY_TYPE_xxx`, `PSA_ECC_FAMILY_xxx`, `PSA_DH_FAMILY_xxx`.
@@ -86,7 +87,7 @@ Objective: have test coverage for lifetimes other than the default persistent li
 Method:
 
 * For alternative locations: have tests conditional on the presence of a driver for that location.
-* For alternative persistence levels: TODO
+* For alternative persistence levels: have load-and-check tests for supported persistence levels. We may also want to have negative tests ensuring that keys with a not-supported persistence level are not accidentally created.
 
 ### Considerations on key material representations
 

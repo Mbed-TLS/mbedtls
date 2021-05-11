@@ -2501,12 +2501,14 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  */
 #define PSA_PAKE_SIDE_SERVER                ((psa_pake_side_t)0x12)
 
-/** The PAKE uses elliptic curves.
+/** The PAKE primitive type indicating the use of elliptic curves.
  *
- * The corresponding family type is ::psa_ecc_family_t. In determining a
- * specific curve in the family the cipher suite (see
- * ::psa_pake_cipher_suite_t) bits are interpreted in the exact same way
- * as key bits are.
+ * The values of the \c family and \c bits fields of the cipher suite identify a
+ * specific elliptic curve, using the same mapping that is used for ECC
+ * (::psa_ecc_family_t) keys.
+ *
+ * (Here \c familiy means the value returned by psa_pake_cs_get_family() and
+ * \c bits means the value returned by psa_pake_cs_get_bits().)
  *
  * Input and output during the operation can involve group elements and scalar
  * values:
@@ -2519,12 +2521,14 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  */
 #define PSA_PAKE_PRIMITIVE_TYPE_ECC       ((psa_pake_primitive_type_t)0x01)
 
-/** The PAKE uses finite fields based Diffie-Hellman groups.
+/** The PAKE primitive type indicating the use of Diffie-Hellman groups.
  *
- * The corresponding family type is ::psa_dh_family_t. In determining a
- * specific group in the family the cipher suite (see
- * ::psa_pake_cipher_suite_t) bits are interpreted in the exact same way
- * as key bits are.
+ * The values of the \c family and \c bits fields of the cipher suite identify
+ * a specific Diffie-Hellman group, using the same mapping that is used for
+ * Diffie-Hellman (::psa_dh_family_t) keys.
+ *
+ * (Here \c familiy means the value returned by psa_pake_cs_get_family() and
+ * \c bits means the value returned by psa_pake_cs_get_bits().)
  *
  * Input and output during the operation can involve group elements and scalar
  * values:

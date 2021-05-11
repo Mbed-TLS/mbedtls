@@ -4240,8 +4240,8 @@ static uint8_t psa_pake_cs_get_family(
  *                              If this is 0, the primitive family in
  *                              \p cipher_suite becomes unspecified. The
  *                              interpretation of this parameter depends on
- *                              the primitive type, for more information consult the
- *                              documentation of individual
+ *                              the primitive type. For more information
+ *                              consult the documentation of individual
  *                              ::psa_pake_primitive_type_t constants).
  */
 static void psa_pake_cs_set_family(
@@ -4249,7 +4249,7 @@ static void psa_pake_cs_set_family(
                            uint8_t family
                            );
 
-/** Retrieve the primitive bits from a PAKE cipher suite.
+/** Retrieve the size associated with the primitive from a PAKE cipher suite.
  *
  * This function may be declared as `static` (i.e. without external
  * linkage). This function may be provided as a function-like macro,
@@ -4292,7 +4292,9 @@ static void psa_pake_cs_set_bits(
  *
  * \param[in] cipher_suite      The cipher suite structure to query.
  *
- * \return The hash algorithm stored in the cipher suite structure.
+ * \return The hash algorithm stored in the cipher suite structure. The return
+ *         value is 0 if the PAKE is not parametrised by a hash algorithm or if
+ *         the hash algorithm is not set.
  */
 static psa_algorithm_t psa_pake_cs_get_hash(
                            const psa_pake_cipher_suite_t* cipher_suite
@@ -4378,8 +4380,8 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  * -# Initialize the operation object with one of the methods described in the
  *    documentation for #psa_pake_operation_t, e.g.
  *    #PSA_PAKE_OPERATION_INIT.
- * -# Call psa_pake_setup() to specify the algorithm, the key, cipher suite,
- *    identities and additional session information.
+ * -# Call psa_pake_setup() to specify the algorithm, the password, cipher
+ *    suite, identities and additional session information.
  *
  * A typical sequence of calls to perform a password-authenticated key
  * exchange:
@@ -4388,13 +4390,17 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  * -# Call psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE, ...) to provide
  *    the key share that was received from the peer.
  * -# Call psa_pake_get_implicit_key() for accessing the shared secret.
+ * -# Make a sequence of function calls to execute the password-authenticated
+ *    key exchange as described below.
+ * -# Terminate the operation by a call to psa_pake_get_implicit_key() or
+ *    psa_pake_abort().
  *
  * The exact sequence of calls to perform a password-authenticated key exchange
  * depends on the algorithm in use:
- * -# Some algorithms exchange more data than just a single key share. When using
- *    such a algorithm, call psa_pake_output() and psa_pake_input() one or more
- *    times to exchange any further data that is needed to derive the shared
- *    secret.
+ * - Some algorithms exchange more data than just a single key share. When using
+ *   such a algorithm, call psa_pake_output() and psa_pake_input() one or more
+ *   times to exchange any further data that is needed to derive the shared
+ *   secret.
  *
  * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
@@ -4489,7 +4495,10 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  * \param[in,out] operation    Active PAKE operation.
  * \param type                 The type of the data that is requested.
  * \param[out] output          Buffer where the output is to be written.
- * \param output_size          Size of the \p output buffer in bytes.
+ * \param output_size          Size of the \p output buffer in bytes. This must
+ *                             be at least #PSA_PAKE_OUTPUT_SIZE(\p alg, \c
+ *                             cipher_suite, \p type).
+ *
  * \param[out] output_length   On success, the number of bytes of the returned
  *                             output.
  *
@@ -4574,8 +4583,9 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  * state and must be aborted by calling psa_pake_abort().
  *
  * \param[in,out] operation    Active PAKE operation.
- * \param[out] output          A key derivation operation that has been
- *                             initialized and set up.
+ * \param[out] output          A key derivation operation that is ready
+ *                             for an input step of type
+ *                             #PSA_KEY_DERIVATION_INPUT_SECRET.
  *
  * \retval #PSA_SUCCESS
  *         Success.

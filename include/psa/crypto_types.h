@@ -397,7 +397,7 @@ typedef uint8_t psa_pake_side_t;
  * This type is for encoding additional input and output data for such
  * algorithms.
  */
-typedef uint8_t psa_pake_data_t;
+typedef uint8_t psa_pake_step_t;
 
 /** Encoding of the type of the PAKE's primitive.
  *

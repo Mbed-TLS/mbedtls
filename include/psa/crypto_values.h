@@ -2554,7 +2554,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * received. For values sent or received afterwards, use
  * #PSA_PAKE_DATA_KEY_SHARE_2 and #PSA_PAKE_DATA_KEY_SHARE_3.
  */
-#define PSA_PAKE_DATA_KEY_SHARE                 ((psa_pake_data_t)0x01)
+#define PSA_PAKE_DATA_KEY_SHARE                 ((psa_pake_step_t)0x01)
 
 /** A Schnorr NIZKP public key.
  *
@@ -2568,7 +2568,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * key received. For values sent or received afterwards, use
  * #PSA_PAKE_DATA_ZK_PUBLIC_2 and #PSA_PAKE_DATA_ZK_PUBLIC_3.
  */
-#define PSA_PAKE_DATA_ZK_PUBLIC                 ((psa_pake_data_t)0x02)
+#define PSA_PAKE_DATA_ZK_PUBLIC                 ((psa_pake_step_t)0x02)
 
 /** A Schnorr NIZKP proof.
  *
@@ -2582,43 +2582,43 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * received. For values sent or received afterwards, use
  * #PSA_PAKE_DATA_ZK_PROOF_2 and #PSA_PAKE_DATA_ZK_PROOF_3.
  */
-#define PSA_PAKE_DATA_ZK_PROOF                  ((psa_pake_data_t)0x03)
+#define PSA_PAKE_DATA_ZK_PROOF                  ((psa_pake_step_t)0x03)
 
 /** Marks the second key share sent and received.
  *
  * See #PSA_PAKE_DATA_KEY_SHARE.
  */
-#define PSA_PAKE_DATA_KEY_SHARE_2               ((psa_pake_data_t)0x04)
+#define PSA_PAKE_DATA_KEY_SHARE_2               ((psa_pake_step_t)0x04)
 
 /** Marks the second Schnorr NIZKP public key sent and received.
  *
  * See #PSA_PAKE_DATA_ZK_PUBLIC.
  */
-#define PSA_PAKE_DATA_ZK_PUBLIC_2               ((psa_pake_data_t)0x05)
+#define PSA_PAKE_DATA_ZK_PUBLIC_2               ((psa_pake_step_t)0x05)
 
 /** Marks the second Schnorr NIZKP proof sent and received.
  *
  * See #PSA_PAKE_DATA_ZK_PROOF.
  */
-#define PSA_PAKE_DATA_ZK_PROOF_2                ((psa_pake_data_t)0x06)
+#define PSA_PAKE_DATA_ZK_PROOF_2                ((psa_pake_step_t)0x06)
 
 /** Marks the third key share sent and received.
  *
  * See #PSA_PAKE_DATA_KEY_SHARE.
  */
-#define PSA_PAKE_DATA_KEY_SHARE_3               ((psa_pake_data_t)0x07)
+#define PSA_PAKE_DATA_KEY_SHARE_3               ((psa_pake_step_t)0x07)
 
 /** Marks the third Schnorr NIZKP public key sent and received.
  *
  * See #PSA_PAKE_DATA_ZK_PUBLIC.
  */
-#define PSA_PAKE_DATA_ZK_PUBLIC_3               ((psa_pake_data_t)0x08)
+#define PSA_PAKE_DATA_ZK_PUBLIC_3               ((psa_pake_step_t)0x08)
 
 /** Marks the third Schnorr NIZKP proof sent and received.
  *
  * See #PSA_PAKE_DATA_ZK_PROOF.
  */
-#define PSA_PAKE_DATA_ZK_PROOF_3                ((psa_pake_data_t)0x09)
+#define PSA_PAKE_DATA_ZK_PROOF_3                ((psa_pake_step_t)0x09)
 
 /**@}*/
 #endif /* PSA_CRYPTO_VALUES_H */

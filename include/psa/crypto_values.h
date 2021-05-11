@@ -1549,7 +1549,6 @@
      PSA_ALG_IS_ECDSA(alg) || PSA_ALG_IS_HASH_EDDSA(alg) ||             \
      PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg))
 
-
 /** Whether the specified algorithm is a signature algorithm that can be used
  * with psa_sign_message() and psa_verify_message().
  *

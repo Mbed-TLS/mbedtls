@@ -1,0 +1,27 @@
+Please add your migration guide entries here. Until 3.0 is released, each PR
+that makes backwards-incompatible changes should add a file here, with the
+extension .md, a descriptive name and the following format:
+
+---%<------%<------%<------%<------%<------%<------%<------%<---
+
+The change that was made
+------------------------
+
+Who exactly is affected: does this affect users of the default config, of a
+particular feature? Remember to contextualise.
+
+If I'm affected, what's my migration path? How should I change my code if this
+is an API change; if a feature was removed what are my alternatives?
+
+---%<------%<------%<------%<------%<------%<------%<------%<---
+
+PRs that make multiple independent changes should include one entry for each
+changes or logical groups of changes. You can either add multiple files or put
+multiple entries in the same file.
+
+For examples, have a look a docs/3.0-migration-guide.md (which includes the
+top-level header and an intro before the list of entries).
+
+As part of release preparation, the entries in this directory will be appended
+to docs/3.0-migration-guide.md and then re-ordered and reviewed one last time.
+The file is then going to be moved to the version-independent docs repo.

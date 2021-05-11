@@ -5,6 +5,11 @@ Mbed TLS is a C library that implements cryptographic primitives, X.509 certific
 
 Mbed TLS includes a reference implementation of the [PSA Cryptography API](#psa-cryptography-api). This is currently a preview for evaluation purposes only.
 
+Stability
+---------
+
+**Warning: the [`development`](https://github.com/ARMmbed/mbedtls/tree/development) branch of Mbed TLS currently has an unstable API.** It is where work is happening on the next major release of Mbed TLS. Until Mbed TLS 3.0 is released, if you need a stable API, please use the branch [`development_2.x`](https://github.com/ARMmbed/mbedtls/tree/development_2.x) instead.
+
 Configuration
 -------------
 
@@ -24,6 +29,8 @@ To generate a local copy of the library documentation in HTML format, tailored t
 1. Make sure that [Doxygen](http://www.doxygen.nl/) is installed. We use version 1.8.11 but slightly older or more recent versions should work.
 1. Run `make apidoc`.
 1. Browse `apidoc/index.html` or `apidoc/modules.html`.
+
+For other sources of documentation, see the [SUPPORT](SUPPORT.md) document.
 
 Compiling
 ---------

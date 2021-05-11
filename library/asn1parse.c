@@ -461,7 +461,7 @@ void mbedtls_asn1_free_named_data_list( mbedtls_asn1_named_data **head )
     }
 }
 
-mbedtls_asn1_named_data *mbedtls_asn1_find_named_data( mbedtls_asn1_named_data *list,
+const mbedtls_asn1_named_data *mbedtls_asn1_find_named_data( const mbedtls_asn1_named_data *list,
                                        const char *oid, size_t len )
 {
     while( list != NULL )

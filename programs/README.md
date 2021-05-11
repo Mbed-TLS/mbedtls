@@ -5,9 +5,6 @@ This subdirectory mostly contains sample programs that illustrate specific featu
 
 ## Symmetric cryptography (AES) examples
 
-* [`aes/aescrypt2.c`](aes/aescrypt2.c): file encryption and authentication with a key derived from a low-entropy secret, demonstrating the low-level AES interface, the digest interface and HMAC.  
-  Warning: this program illustrates how to use low-level functions in the library. It should not be taken as an example of how to build a secure encryption mechanism. To derive a key from a low-entropy secret such as a password, use a standard key stretching mechanism such as PBKDF2 (provided by the `pkcs5` module). To encrypt and authenticate data, use a standard mode such as GCM or CCM (both available as library module).
-
 * [`aes/crypt_and_hash.c`](aes/crypt_and_hash.c): file encryption and authentication, demonstrating the generic cipher interface and the generic hash interface.
 
 ## Hash (digest) examples
@@ -60,8 +57,6 @@ This subdirectory mostly contains sample programs that illustrate specific featu
   Note: most applications should only use the entropy generator to seed a cryptographic pseudorandom generator, as illustrated by `random/gen_random_ctr_drbg.c`.
 
 * [`random/gen_random_ctr_drbg.c`](random/gen_random_ctr_drbg.c): shows how to use the default entropy sources to seed a pseudorandom generator, and how to use the resulting random generator to generate random data.
-
-* [`random/gen_random_havege.c`](random/gen_random_havege.c): demonstrates the HAVEGE entropy collector.
 
 ## SSL/TLS examples
 

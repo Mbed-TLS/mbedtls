@@ -40,6 +40,7 @@
 #include "mbedtls/md.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/oid.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -92,8 +93,8 @@ static inline psa_algorithm_t mbedtls_psa_translate_cipher_mode(
         case MBEDTLS_MODE_CBC:
             if( taglen == 0 )
                 return( PSA_ALG_CBC_NO_PADDING );
-            /* Intentional fallthrough for taglen != 0 */
-            /* fallthrough */
+            else
+                return( 0 );
         default:
             return( 0 );
     }
@@ -151,7 +152,8 @@ static inline psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg
     case MBEDTLS_MD_RIPEMD160:
         return( PSA_ALG_RIPEMD160 );
 #endif
-    case MBEDTLS_MD_NONE:  /* Intentional fallthrough */
+    case MBEDTLS_MD_NONE:
+        return( 0 );
     default:
         return( 0 );
     }
@@ -352,11 +354,11 @@ static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
         case PSA_ERROR_COMMUNICATION_FAILURE:
         case PSA_ERROR_HARDWARE_FAILURE:
         case PSA_ERROR_CORRUPTION_DETECTED:
-            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
         default: /* We return the same as for the 'other failures',
                   * but list them separately nonetheless to indicate
                   * which failure conditions we have considered. */
-            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }
 }
 

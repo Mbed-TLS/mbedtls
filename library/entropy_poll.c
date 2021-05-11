@@ -29,14 +29,11 @@
 #if defined(MBEDTLS_ENTROPY_C)
 
 #include "mbedtls/entropy.h"
-#include "mbedtls/entropy_poll.h"
+#include "entropy_poll.h"
 #include "mbedtls/error.h"
 
 #if defined(MBEDTLS_TIMING_C)
 #include "mbedtls/timing.h"
-#endif
-#if defined(MBEDTLS_HAVEGE_C)
-#include "mbedtls/havege.h"
 #endif
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 #include "mbedtls/platform.h"
@@ -248,22 +245,6 @@ int mbedtls_hardclock_poll( void *data,
     return( 0 );
 }
 #endif /* MBEDTLS_TIMING_C */
-
-#if defined(MBEDTLS_HAVEGE_C)
-int mbedtls_havege_poll( void *data,
-                 unsigned char *output, size_t len, size_t *olen )
-{
-    mbedtls_havege_state *hs = (mbedtls_havege_state *) data;
-    *olen = 0;
-
-    if( mbedtls_havege_random( hs, output, len ) != 0 )
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
-
-    *olen = len;
-
-    return( 0 );
-}
-#endif /* MBEDTLS_HAVEGE_C */
 
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 int mbedtls_nv_seed_poll( void *data,

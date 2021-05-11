@@ -19,14 +19,14 @@ This module is entirely based on the PSA API.
 # limitations under the License.
 
 import re
-from typing import List, Optional, Tuple
+from typing import Iterable, Optional, Tuple
 
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
 
 class KeyType:
     """Knowledge about a PSA key type."""
 
-    def __init__(self, name: str, params: Optional[List[str]] = None):
+    def __init__(self, name: str, params: Optional[Iterable[str]] = None):
         """Analyze a key type.
 
         The key type must be specified in PSA syntax. In its simplest form,
@@ -78,6 +78,7 @@ class KeyType:
         'PSA_ECC_FAMILY_SECT_R2': (163,),
         'PSA_ECC_FAMILY_BRAINPOOL_P_R1': (160, 192, 224, 256, 320, 384, 512),
         'PSA_ECC_FAMILY_MONTGOMERY': (255, 448),
+        'PSA_ECC_FAMILY_TWISTED_EDWARDS': (255, 448),
     }
     KEY_TYPE_SIZES = {
         'PSA_KEY_TYPE_AES': (128, 192, 256), # exhaustive

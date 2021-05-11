@@ -38,9 +38,6 @@
 #define MBEDTLS_ERR_MD_ALLOC_FAILED                       -0x5180  /**< Failed to allocate memory. */
 #define MBEDTLS_ERR_MD_FILE_IO_ERROR                      -0x5200  /**< Opening or reading of file failed. */
 
-/* MBEDTLS_ERR_MD_HW_ACCEL_FAILED is deprecated and should not be used. */
-#define MBEDTLS_ERR_MD_HW_ACCEL_FAILED                    -0x5280  /**< MD hardware accelerator failed. */
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -79,8 +76,15 @@ typedef enum {
 #endif
 
 /**
- * Opaque struct defined in md_internal.h.
+ * Opaque struct.
+ *
+ * Constructed using either #mbedtls_md_info_from_string or
+ * #mbedtls_md_info_from_type.
+ *
+ * Fields can be accessed with #mbedtls_md_get_size,
+ * #mbedtls_md_get_type and #mbedtls_md_get_name.
  */
+/* Defined internally in library/md_wrap.h. */
 typedef struct mbedtls_md_info_t mbedtls_md_info_t;
 
 /**
@@ -158,33 +162,6 @@ void mbedtls_md_init( mbedtls_md_context_t *ctx );
  */
 void mbedtls_md_free( mbedtls_md_context_t *ctx );
 
-#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
-#else
-#define MBEDTLS_DEPRECATED
-#endif
-/**
- * \brief           This function selects the message digest algorithm to use,
- *                  and allocates internal structures.
- *
- *                  It should be called after mbedtls_md_init() or mbedtls_md_free().
- *                  Makes it necessary to call mbedtls_md_free() later.
- *
- * \deprecated      Superseded by mbedtls_md_setup() in 2.0.0
- *
- * \param ctx       The context to set up.
- * \param md_info   The information structure of the message-digest algorithm
- *                  to use.
- *
- * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
- *                  failure.
- * \return          #MBEDTLS_ERR_MD_ALLOC_FAILED on memory-allocation failure.
- */
-int mbedtls_md_init_ctx( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info ) MBEDTLS_DEPRECATED;
-#undef MBEDTLS_DEPRECATED
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 /**
  * \brief           This function selects the message digest algorithm to use,

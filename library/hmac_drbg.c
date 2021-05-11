@@ -104,15 +104,6 @@ exit:
     return( ret );
 }
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-void mbedtls_hmac_drbg_update( mbedtls_hmac_drbg_context *ctx,
-                               const unsigned char *additional,
-                               size_t add_len )
-{
-    (void) mbedtls_hmac_drbg_update_ret( ctx, additional, add_len );
-}
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-
 /*
  * Simplified HMAC_DRBG initialisation (for use with deterministic ECDSA)
  */

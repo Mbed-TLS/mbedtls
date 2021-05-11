@@ -9,9 +9,14 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 
     mbedtls_x509_crl_init( &crl );
     ret = mbedtls_x509_crl_parse( &crl, Data, Size );
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
     if (ret == 0) {
         ret = mbedtls_x509_crl_info( (char *) buf, sizeof( buf ) - 1, " ", &crl );
     }
+#else
+    ((void) ret);
+    ((void) buf);
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
     mbedtls_x509_crl_free( &crl );
 #else
     (void) Data;

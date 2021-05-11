@@ -823,40 +823,40 @@ static int x509_get_authority_key_id(unsigned char **p,
                                         1)) != 0) {
             /* authorityCertIssuer is an OPTIONAL field */
         } else {
-            /* Getting directoryName using the required specific class tag [4] *
-               if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+            /* Getting directoryName using the required specific class tag [4] */
+            if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                             MBEDTLS_ASN1_CONTEXT_SPECIFIC |
                                             MBEDTLS_ASN1_CONSTRUCTED | 4)) != 0) {
                 return ret;
-               } else {
+            } else {
                 /* "end" also includes the CertSerialNumber field so "len" shall be used */
-            ret = x509_get_general_names(p,
-                                         (*p+len),
-                                         &authority_key_id->authorityCertIssuer);
+                ret = x509_get_general_names(p,
+                                             (*p+len),
+                                             &authority_key_id->authorityCertIssuer);
+            }
         }
     }
-}
 
-if (*p < end) {
-    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
-                                    MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_INTEGER)) !=
-        0) {
-        /* authorityCertSerialNumber is an OPTIONAL field, but if there are still data it must be the serial number */
-        return ret;
-    } else {
-        authority_key_id->authorityCertSerialNumber.len = len;
-        authority_key_id->authorityCertSerialNumber.p = *p;
-        authority_key_id->authorityCertSerialNumber.tag = MBEDTLS_ASN1_OCTET_STRING;
-        *p += len;
+    if (*p < end) {
+        if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_INTEGER)) !=
+            0) {
+            /* authorityCertSerialNumber is an OPTIONAL field, but if there are still data it must be the serial number */
+            return ret;
+        } else {
+            authority_key_id->authorityCertSerialNumber.len = len;
+            authority_key_id->authorityCertSerialNumber.p = *p;
+            authority_key_id->authorityCertSerialNumber.tag = MBEDTLS_ASN1_OCTET_STRING;
+            *p += len;
+        }
     }
-}
 
-if (*p != end) {
-    return MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-           MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
-}
+    if (*p != end) {
+        return MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+               MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+    }
 
-return 0;
+    return 0;
 }
 
 /*

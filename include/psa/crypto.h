@@ -112,12 +112,6 @@ psa_status_t psa_crypto_init(void);
  * This macro returns a suitable initializer for a key attribute structure
  * of type #psa_key_attributes_t.
  */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_KEY_ATTRIBUTES_INIT {0}
-#endif
 
 /** Return an initial value for a key attributes structure.
  */
@@ -947,12 +941,6 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * This macro returns a suitable initializer for a hash operation object
  * of type #psa_hash_operation_t.
  */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_HASH_OPERATION_INIT {0}
-#endif
 
 /** Return an initial value for a hash operation object.
  */
@@ -1318,12 +1306,6 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * This macro returns a suitable initializer for a MAC operation object of type
  * #psa_mac_operation_t.
  */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_MAC_OPERATION_INIT {0}
-#endif
 
 /** Return an initial value for a MAC operation object.
  */
@@ -1742,12 +1724,6 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * This macro returns a suitable initializer for a cipher operation object of
  * type #psa_cipher_operation_t.
  */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_CIPHER_OPERATION_INIT {0}
-#endif
 
 /** Return an initial value for a cipher operation object.
  */
@@ -2271,12 +2247,6 @@ typedef struct psa_aead_operation_s psa_aead_operation_t;
  * This macro returns a suitable initializer for an AEAD operation object of
  * type #psa_aead_operation_t.
  */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_AEAD_OPERATION_INIT {0}
-#endif
 
 /** Return an initial value for an AEAD operation object.
  */
@@ -3271,12 +3241,6 @@ typedef struct psa_key_derivation_s psa_key_derivation_operation_t;
  * This macro returns a suitable initializer for a key derivation operation
  * object of type #psa_key_derivation_operation_t.
  */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_KEY_DERIVATION_OPERATION_INIT {0}
-#endif
 
 /** Return an initial value for a key derivation operation object.
  */
@@ -4360,12 +4324,6 @@ typedef struct psa_pake_operation_s psa_pake_operation_t;
  * This macro returns a suitable initializer for an PAKE operation object of
  * type #psa_pake_operation_t.
  */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_PAKE_OPERATION_INIT {0}
-#endif
 
 /** Return an initial value for an PAKE operation object.
  */

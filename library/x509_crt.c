@@ -790,7 +790,7 @@ static int x509_get_authority_key_id( unsigned char** p,
         }
         else
         {
-            /* Getting directoryName using the required specific class tag [4] *
+            /* Getting directoryName using the required specific class tag [4] */
             if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                 MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | 4 ) ) != 0)
             {

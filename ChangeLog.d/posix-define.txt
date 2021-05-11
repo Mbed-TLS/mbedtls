@@ -1,0 +1,6 @@
+Bugfix
+   * In library/net_sockets.c, _POSIX_C_SOURCE and _XOPEN_SOURCE are
+     defined to specific values.  If the code is used in a context
+     where these are already defined, this can result in a compilation
+     error.  Instead, assume that if they are defined, the values will
+     be adequate to build Mbed TLS.

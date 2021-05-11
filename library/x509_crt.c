@@ -772,6 +772,9 @@ static int x509_get_authority_key_id( unsigned char** p,
     {
         authority_key_id->keyIdentifier.len = len;
         authority_key_id->keyIdentifier.p = *p;
+        /* Setting tag of the keyIdentfier intentionally to 0x04.
+         * Although the .keyIdentfier field is CONTEXT_SPECIFIC ([0] OPTIONAL),
+         * its tag with the content is the payload of on OCTET STRING primitive   */
         authority_key_id->keyIdentifier.tag = MBEDTLS_ASN1_OCTET_STRING;
 
         *p += len;
@@ -779,6 +782,7 @@ static int x509_get_authority_key_id( unsigned char** p,
 
     if ( *p < end )
     {
+        /* Getting authorityCertIssuer using the required specific class tag [1] */
         if ((ret = mbedtls_asn1_get_tag(p, end, &len,
             MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | 1 ) ) != 0)
         {
@@ -786,6 +790,7 @@ static int x509_get_authority_key_id( unsigned char** p,
         }
         else
         {
+            /* Getting directoryName using the required specific class tag [4] *
             if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                 MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | 4 ) ) != 0)
             {

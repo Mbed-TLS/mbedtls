@@ -65,7 +65,7 @@ Method: Create a key with certain metadata with `psa_import_key`. Read the file 
 
 Objective: ensure that the coverage is sufficient to have assurance that all keys are stored correctly. This requires a sufficient selection of key types, sizes, policies, etc.
 
-In particular, the tests must validate that each `PSA_xxx` constant that is stored in a key is covered by at least once test case:
+In particular, the tests must validate that each `PSA_xxx` constant that is stored in a key is covered by at least one test case:
 
 * Usage flags: `PSA_KEY_USAGE_xxx`.
 * Algorithms in policies: `PSA_ALG_xxx`.

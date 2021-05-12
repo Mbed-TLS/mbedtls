@@ -1,4 +1,4 @@
 Changes
    * Replace MBEDTLS_SSL_CID_PADDING_GRANULARITY and
-     MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY with a single unified option
+     MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY with a new single unified option
      MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY. Fixes #4335.

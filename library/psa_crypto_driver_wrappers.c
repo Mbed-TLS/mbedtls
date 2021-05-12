@@ -125,7 +125,7 @@ psa_status_t psa_driver_wrapper_sign_message(
         default:
             /* Key is declared with a lifetime not known to us */
             (void)status;
-            return( PSA_ERROR_INVALID_ARGUMENT );
+            break;
     }
 
     return( psa_sign_message_builtin( attributes,
@@ -197,7 +197,7 @@ psa_status_t psa_driver_wrapper_verify_message(
         default:
             /* Key is declared with a lifetime not known to us */
             (void)status;
-            return( PSA_ERROR_INVALID_ARGUMENT );
+            break;
     }
 
     return( psa_verify_message_builtin( attributes,

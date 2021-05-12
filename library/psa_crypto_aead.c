@@ -42,6 +42,7 @@ static psa_status_t psa_aead_setup(
     mbedtls_psa_aead_operation_t *operation,
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
+    size_t key_buffer_size,
     psa_algorithm_t alg )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -49,6 +50,8 @@ static psa_status_t psa_aead_setup(
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_id_t cipher_id;
     size_t full_tag_length = 0;
+
+    ( void ) key_buffer_size;
 
     key_bits = attributes->core.bits;
 
@@ -145,9 +148,10 @@ psa_status_t mbedtls_psa_aead_encrypt(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_psa_aead_operation_t operation = MBEDTLS_PSA_AEAD_OPERATION_INIT;
     uint8_t *tag;
-    (void) key_buffer_size;
 
-    status = psa_aead_setup( &operation, attributes, key_buffer, alg );
+    status = psa_aead_setup( &operation, attributes, key_buffer,
+                             key_buffer_size, alg );
+
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -255,9 +259,10 @@ psa_status_t mbedtls_psa_aead_decrypt(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_psa_aead_operation_t operation = MBEDTLS_PSA_AEAD_OPERATION_INIT;
     const uint8_t *tag = NULL;
-    (void) key_buffer_size;
 
-    status = psa_aead_setup( &operation, attributes, key_buffer, alg );
+    status = psa_aead_setup( &operation, attributes, key_buffer,
+                             key_buffer_size, alg );
+
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -342,9 +347,8 @@ psa_status_t mbedtls_psa_aead_encrypt_setup( mbedtls_psa_aead_operation_t
 {
     psa_status_t status;
 
-    (void) key_buffer_size;
-
-    status = psa_aead_setup( operation, attributes, key_buffer, alg );
+    status = psa_aead_setup( operation, attributes, key_buffer,
+                             key_buffer_size, alg );
 
     if( status == PSA_SUCCESS )
     {
@@ -368,7 +372,8 @@ psa_status_t mbedtls_psa_aead_decrypt_setup( mbedtls_psa_aead_operation_t
 
     (void) key_buffer_size;
 
-    status = psa_aead_setup( operation, attributes, key_buffer, alg );
+    status = psa_aead_setup( operation, attributes, key_buffer,
+                             key_buffer_size, alg );
 
     if( status == PSA_SUCCESS )
     {
@@ -448,8 +453,8 @@ psa_status_t mbedtls_psa_aead_set_lengths( mbedtls_psa_aead_operation_t
     if( operation->alg == PSA_ALG_GCM )
     {
         /* Lengths can only be too large for GCM if size_t is bigger than 32
-         * bits. Without the guard this code will generate warnings on 32bit
-           builds */
+         * bits. Without th
+           e guard this code will generate warnings on 32bit builds*/
 #if SIZE_MAX > UINT32_MAX
         if( ( (uint64_t) ad_length ) >> 61 != 0 ||
             ( (uint64_t) plaintext_length ) > 0xFFFFFFFE0ull )

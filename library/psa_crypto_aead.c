@@ -351,9 +351,7 @@ psa_status_t mbedtls_psa_aead_encrypt_setup( mbedtls_psa_aead_operation_t
                              key_buffer_size, alg );
 
     if( status == PSA_SUCCESS )
-    {
         operation->is_encrypt = 1;
-    }
 
     return ( status );
 }
@@ -376,9 +374,7 @@ psa_status_t mbedtls_psa_aead_decrypt_setup( mbedtls_psa_aead_operation_t
                              key_buffer_size, alg );
 
     if( status == PSA_SUCCESS )
-    {
         operation->is_encrypt = 0;
-    }
 
     return ( status );
 }
@@ -408,7 +404,7 @@ psa_status_t mbedtls_psa_aead_set_nonce( mbedtls_psa_aead_operation_t
     {
         /* Multipart CCM not supported as yet, so CCM is basically operating
            in oneshot mode. Store the nonce as we need this later */
-        memcpy(operation->nonce, nonce, nonce_length);
+        memcpy( operation->nonce, nonce, nonce_length );
 
         /* We know that nonce size cannot exceed the uint8_t size */
         operation->nonce_length = ( uint8_t ) nonce_length;
@@ -469,9 +465,7 @@ psa_status_t mbedtls_psa_aead_set_lengths( mbedtls_psa_aead_operation_t
     if( operation->alg == PSA_ALG_CCM )
     {
         if( ad_length > 0xFF00 )
-        {
             return ( PSA_ERROR_INVALID_ARGUMENT );
-        }
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
@@ -507,9 +501,7 @@ psa_status_t mbedtls_psa_aead_update_ad( mbedtls_psa_aead_operation_t
     if( operation->lengths_set )
     {
         if ( operation->ad_remaining < input_length )
-        {
             return( PSA_ERROR_INVALID_ARGUMENT );
-        }
 
         operation->ad_remaining -= input_length;
     }
@@ -518,18 +510,14 @@ psa_status_t mbedtls_psa_aead_update_ad( mbedtls_psa_aead_operation_t
     if( operation->alg == PSA_ALG_GCM )
     {
         if( !operation->lengths_set || operation->ad_started )
-        {
             return( PSA_ERROR_BAD_STATE );
-        }
 
         /* GCM currently requires all the additional data to be passed in in
-         * one contigious buffer, so until that is re-done, we have to enforce
+         * one contiguous buffer, so until that is re-done, we have to enforce
          * this, as we cannot allocate a buffer to collate multiple calls into.
            */
         if( operation->ad_remaining != 0 )
-        {
             return ( PSA_ERROR_INVALID_ARGUMENT );
-        }
 
         status = mbedtls_to_psa_error(
            mbedtls_gcm_starts( &operation->ctx.gcm,
@@ -549,9 +537,7 @@ psa_status_t mbedtls_psa_aead_update_ad( mbedtls_psa_aead_operation_t
         /* CCM requires all additional data to be passed in in one go at the
            minute, as we are basically operating in oneshot mode. */
         if( operation->ad_started )
-        {
             return( PSA_ERROR_BAD_STATE );
-        }
 
         /* Save the additional data for later, this will be passed in
            when we have the body. */
@@ -564,9 +550,7 @@ psa_status_t mbedtls_psa_aead_update_ad( mbedtls_psa_aead_operation_t
             status = PSA_SUCCESS;
         }
         else
-        {
             return ( PSA_ERROR_INSUFFICIENT_MEMORY );
-        }
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
@@ -588,9 +572,7 @@ psa_status_t mbedtls_psa_aead_update_ad( mbedtls_psa_aead_operation_t
     }
 
     if( status == PSA_SUCCESS )
-    {
         operation->ad_started = 1;
-    }
 
     return ( status );
 }
@@ -612,24 +594,18 @@ psa_status_t mbedtls_psa_aead_update( mbedtls_psa_aead_operation_t *operation,
 
     if( PSA_AEAD_UPDATE_OUTPUT_SIZE( operation->key_type, operation->alg,
                                         input_length ) > output_size )
-    {
         return ( PSA_ERROR_BUFFER_TOO_SMALL );
-    }
 
     if( operation->lengths_set)
     {
         /* Additional data length was supplied, but not all the additional
            data was supplied.*/
         if( operation->ad_remaining != 0 )
-        {
             return ( PSA_ERROR_INVALID_ARGUMENT );
-        }
 
         /* Too much data provided. */
         if( operation->body_remaining < input_length )
-        {
             return ( PSA_ERROR_INVALID_ARGUMENT );
-        }
 
         operation->body_remaining -= input_length;
     }
@@ -642,14 +618,10 @@ psa_status_t mbedtls_psa_aead_update( mbedtls_psa_aead_operation_t *operation,
          * of non block size aligned updates. This will be fixed in 3.0 when
            we can change the signature of the GCM multipart functions */
         if( !operation->lengths_set || operation->body_remaining != 0 )
-        {
             return( PSA_ERROR_BAD_STATE );
-        }
 
         if( !operation->ad_started )
-        {
             return( PSA_ERROR_BAD_STATE );
-        }
 
         status =  mbedtls_to_psa_error( mbedtls_gcm_update( &operation->ctx.gcm,
                                                         input_length,
@@ -661,20 +633,17 @@ psa_status_t mbedtls_psa_aead_update( mbedtls_psa_aead_operation_t *operation,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation->alg == PSA_ALG_CCM )
     {
-        /* CCM dooes not support multipart yet, so all the input has to be
+        /* CCM does not support multipart yet, so all the input has to be
            passed in in one go. */
         if( operation->body_started )
-        {
             return( PSA_ERROR_BAD_STATE );
-        }
 
         /* Need to store tag for Finish() / Verify() */
         operation->tag_buffer =
-            ( uint8_t * ) mbedtls_calloc(1, operation->tag_length );
+            ( uint8_t * ) mbedtls_calloc( 1, operation->tag_length );
 
         if( operation->tag_buffer )
         {
-
             if( operation->is_encrypt )
             {
                 /* Perform oneshot CCM encryption with additional data already
@@ -693,7 +662,7 @@ psa_status_t mbedtls_psa_aead_update( mbedtls_psa_aead_operation_t *operation,
 
                 /* Even if the above operation fails, we no longer need the
                    additional data.*/
-                mbedtls_free(operation->ad_buffer);
+                mbedtls_free( operation->ad_buffer );
                 operation->ad_buffer = NULL;
                 operation->ad_length = 0;
             }
@@ -722,24 +691,16 @@ psa_status_t mbedtls_psa_aead_update( mbedtls_psa_aead_operation_t *operation,
                                                     operation->tag_length );
 
                     if( ret == MBEDTLS_ERR_CCM_AUTH_FAILED )
-                    {
                         status = PSA_SUCCESS;
-                    }
                     else
-                    {
                         status = mbedtls_to_psa_error( ret );
-                    }
                 }
                 else
-                {
                     status = PSA_ERROR_INSUFFICIENT_MEMORY;
-                }
             }
         }
         else
-        {
             status = PSA_ERROR_INSUFFICIENT_MEMORY;
-        }
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
@@ -780,35 +741,18 @@ static psa_status_t mbedtls_psa_aead_finish_checks( mbedtls_psa_aead_operation_t
     size_t finish_output_size;
 
     if( operation->lengths_set )
-    {
         if( operation->ad_remaining != 0 || operation->body_remaining != 0 )
-        {
             return( PSA_ERROR_BAD_STATE );
-        }
-    }
 
     if( tag_size < operation->tag_length )
-    {
         return ( PSA_ERROR_BUFFER_TOO_SMALL );
-    }
 
-    if( operation->is_encrypt )
-    {
-            finish_output_size =
-                PSA_AEAD_FINISH_OUTPUT_SIZE( operation->key_type,
-                                             operation->alg );
-    }
-    else
-    {
-            finish_output_size =
-                PSA_AEAD_VERIFY_OUTPUT_SIZE( operation->key_type,
-                                             operation->alg );
-    }
+    finish_output_size = operation->is_encrypt ?
+        PSA_AEAD_FINISH_OUTPUT_SIZE( operation->key_type, operation->alg ) :
+        PSA_AEAD_VERIFY_OUTPUT_SIZE( operation->key_type, operation->alg );
 
     if( output_size < finish_output_size )
-    {
         return ( PSA_ERROR_BUFFER_TOO_SMALL );
-    }
 
     return ( PSA_SUCCESS );
 }
@@ -829,18 +773,14 @@ psa_status_t mbedtls_psa_aead_finish( mbedtls_psa_aead_operation_t *operation,
                                              tag_size );
 
     if( status != PSA_SUCCESS )
-    {
         return status;
-    }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
-    {
         /* We will need to do final GCM pass in here when multipart is done. */
         status =  mbedtls_to_psa_error( mbedtls_gcm_finish( &operation->ctx.gcm,
                                                             tag,
                                                             tag_size ) );
-    }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
@@ -858,11 +798,9 @@ psa_status_t mbedtls_psa_aead_finish( mbedtls_psa_aead_operation_t *operation,
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
-    {
         status = mbedtls_to_psa_error(
            mbedtls_chachapoly_finish( &operation->ctx.chachapoly,
                                       tag ) );
-    }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
@@ -911,28 +849,22 @@ psa_status_t mbedtls_psa_aead_verify( mbedtls_psa_aead_operation_t *operation,
                                              tag_length );
 
     if( status != PSA_SUCCESS )
-    {
         return status;
-    }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
-    {
         /* Call finish to get the tag for comparison */
         status =  mbedtls_to_psa_error(
            mbedtls_gcm_finish( &operation->ctx.gcm,
                                check_tag,
                                operation->tag_length ) );
-    }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation->alg == PSA_ALG_CCM )
     {
         if( !operation->ad_buffer || !operation->body_buffer )
-        {
             return( PSA_ERROR_BAD_STATE );
-        }
 
         /* Perform oneshot CCM decryption *again*, as its the
          * only way to get the tag, but this time throw away the
@@ -956,9 +888,7 @@ psa_status_t mbedtls_psa_aead_verify( mbedtls_psa_aead_operation_t *operation,
                                             temp_buffer, tag, tag_length );
 
             if( ret == MBEDTLS_ERR_CCM_AUTH_FAILED )
-            {
                 status = PSA_ERROR_INVALID_SIGNATURE;
-            }
             else
             {
                 status = mbedtls_to_psa_error( ret );
@@ -966,9 +896,7 @@ psa_status_t mbedtls_psa_aead_verify( mbedtls_psa_aead_operation_t *operation,
             }
         }
         else
-        {
             status = PSA_ERROR_INSUFFICIENT_MEMORY;
-        }
 
         /* Even if the above operation fails, we no longer need the data */
         mbedtls_free(temp_buffer);
@@ -984,13 +912,11 @@ psa_status_t mbedtls_psa_aead_verify( mbedtls_psa_aead_operation_t *operation,
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
-    {
         // call finish to get the tag for comparison.
         status = mbedtls_to_psa_error(
            mbedtls_chachapoly_finish( &operation->ctx.chachapoly,
                                       check_tag ) );
 
-    }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
@@ -1009,9 +935,7 @@ psa_status_t mbedtls_psa_aead_verify( mbedtls_psa_aead_operation_t *operation,
 
         if( do_tag_check &&
             mbedtls_psa_safer_memcmp(tag, check_tag, tag_length) != 0 )
-        {
             status = PSA_ERROR_INVALID_SIGNATURE;
-        }
     }
 
     mbedtls_psa_aead_abort(operation);
@@ -1046,15 +970,15 @@ psa_status_t mbedtls_psa_aead_abort( mbedtls_psa_aead_operation_t *operation )
     operation->ad_started = 0;
     operation->body_started = 0;
 
-    mbedtls_free(operation->ad_buffer);
+    mbedtls_free( operation->ad_buffer );
     operation->ad_buffer = NULL;
     operation->ad_length = 0;
 
-    mbedtls_free(operation->body_buffer);
+    mbedtls_free( operation->body_buffer );
     operation->body_buffer = NULL;
     operation->body_length = 0;
 
-    mbedtls_free(operation->tag_buffer);
+    mbedtls_free( operation->tag_buffer );
     operation->tag_buffer = NULL;
 
     return( PSA_SUCCESS );

@@ -1,0 +1,4 @@
+Changes
+   * fix build failure on MinGW toolchain when __USE_MING_ANSI_STDIO is on.
+     When that flag is on, standard GNU C printf format specifiers should be used.
+

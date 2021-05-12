@@ -115,6 +115,9 @@ def get_c_expression_values(
     to ``cc``. If ``CC`` looks like MSVC, use its command line syntax,
     otherwise assume the compiler supports Unix traditional ``-I`` and ``-o``.
 
+    NOTE: This function only checks the identity of the compiler referred to by
+          ``CC`` on its first invocation, and caches the result.
+
     Return the list of values of the ``expressions``.
     """
     if include_path is None:

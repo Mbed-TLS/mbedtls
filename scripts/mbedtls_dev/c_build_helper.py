@@ -158,9 +158,8 @@ def get_c_expression_values(
                              .format(caller, c_name))
         else:
             os.remove(c_name)
-        if _cc_is_msvc:
-            os.remove(obj_name)
         output = subprocess.check_output([exe_name])
         return output.decode('ascii').strip().split('\n')
     finally:
         remove_file_if_exists(exe_name)
+        remove_file_if_exists(obj_name)

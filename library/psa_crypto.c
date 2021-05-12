@@ -2842,10 +2842,10 @@ cleanup:
 /* Asymmetric cryptography */
 /****************************************************************/
 
-static psa_status_t psa_sign_verify_check_alg( uint8_t do_hash,
+static psa_status_t psa_sign_verify_check_alg( int input_is_message,
                                                psa_algorithm_t alg )
 {
-    if( do_hash )
+    if( input_is_message )
     {
         if( ! PSA_ALG_IS_SIGN_MESSAGE( alg ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
@@ -2866,7 +2866,7 @@ static psa_status_t psa_sign_verify_check_alg( uint8_t do_hash,
 }
 
 static psa_status_t psa_sign_internal( mbedtls_svc_key_id_t key,
-                                       uint8_t do_hash,
+                                       int input_is_message,
                                        psa_algorithm_t alg,
                                        const uint8_t * input,
                                        size_t input_length,
@@ -2880,7 +2880,7 @@ static psa_status_t psa_sign_internal( mbedtls_svc_key_id_t key,
 
     *signature_length = 0;
 
-    status = psa_sign_verify_check_alg( do_hash, alg );
+    status = psa_sign_verify_check_alg( input_is_message, alg );
     if( status != PSA_SUCCESS )
         return status;
 
@@ -2893,8 +2893,8 @@ static psa_status_t psa_sign_internal( mbedtls_svc_key_id_t key,
 
     status = psa_get_and_lock_key_slot_with_policy(
                 key, &slot,
-                do_hash ? PSA_KEY_USAGE_SIGN_MESSAGE :
-                          PSA_KEY_USAGE_SIGN_HASH,
+                input_is_message ? PSA_KEY_USAGE_SIGN_MESSAGE :
+                                   PSA_KEY_USAGE_SIGN_HASH,
                 alg );
 
     if( status != PSA_SUCCESS )
@@ -2910,7 +2910,7 @@ static psa_status_t psa_sign_internal( mbedtls_svc_key_id_t key,
       .core = slot->attr
     };
 
-    if( do_hash )
+    if( input_is_message )
     {
         status = psa_driver_wrapper_sign_message(
             &attributes, slot->key.data, slot->key.bytes,
@@ -2946,7 +2946,7 @@ exit:
 }
 
 static psa_status_t psa_verify_internal( mbedtls_svc_key_id_t key,
-                                         uint8_t do_hash,
+                                         int input_is_message,
                                          psa_algorithm_t alg,
                                          const uint8_t * input,
                                          size_t input_length,
@@ -2957,14 +2957,14 @@ static psa_status_t psa_verify_internal( mbedtls_svc_key_id_t key,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
-    status = psa_sign_verify_check_alg( do_hash, alg );
+    status = psa_sign_verify_check_alg( input_is_message, alg );
     if( status != PSA_SUCCESS )
         return status;
 
     status = psa_get_and_lock_key_slot_with_policy(
                 key, &slot,
-                do_hash ? PSA_KEY_USAGE_VERIFY_MESSAGE :
-                          PSA_KEY_USAGE_VERIFY_HASH,
+                input_is_message ? PSA_KEY_USAGE_VERIFY_MESSAGE :
+                                   PSA_KEY_USAGE_VERIFY_HASH,
                 alg );
 
     if( status != PSA_SUCCESS )
@@ -2974,7 +2974,7 @@ static psa_status_t psa_verify_internal( mbedtls_svc_key_id_t key,
       .core = slot->attr
     };
 
-    if( do_hash )
+    if( input_is_message )
     {
         status = psa_driver_wrapper_verify_message(
             &attributes, slot->key.data, slot->key.bytes,

@@ -154,8 +154,8 @@ extern void (*mbedtls_test_hook_error_add)( int, int, const char *, int );
  *
  * \param high      high-level error code. See error.h for more details.
  * \param low       low-level error code. See error.h for more details.
- * \param file      file where this error code addition occured.
- * \param line      line where this error code addition occured.
+ * \param file      file where this error code addition occurred.
+ * \param line      line where this error code addition occurred.
  */
 static inline int mbedtls_error_add( int high, int low,
                                      const char *file, int line )

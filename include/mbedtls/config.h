@@ -421,7 +421,7 @@
  * of mbedtls_sha1_context, so your implementation of mbedtls_sha1_process must be compatible
  * with this definition.
  *
- * \note If you use the AES_xxx_ALT macros, then is is recommended to also set
+ * \note If you use the AES_xxx_ALT macros, then it is recommended to also set
  *       MBEDTLS_AES_ROM_TABLES in order to help the linker garbage-collect the AES
  *       tables.
  *
@@ -1807,7 +1807,7 @@
 /**
  * \def MBEDTLS_SSL_DTLS_SRTP
  *
- * Enable support for negotation of DTLS-SRTP (RFC 5764)
+ * Enable support for negotiation of DTLS-SRTP (RFC 5764)
  * through the use_srtp extension.
  *
  * \note This feature provides the minimum functionality required

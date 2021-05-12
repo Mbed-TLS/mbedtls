@@ -1159,7 +1159,7 @@ typedef struct {
  * can be problemmatic to manage on embedded platforms, the inputs are passed
  * to the driver via a function, `psa_drv_se_key_derivation_collateral`, that
  * is called multiple times with different `collateral_id`s. Thus, for a key
- * derivation algorithm that required 3 paramter inputs, the flow would look
+ * derivation algorithm that required 3 parameter inputs, the flow would look
  * something like:
  * ~~~~~~~~~~~~~{.c}
  * psa_drv_se_key_derivation_setup(kdf_algorithm, source_key, dest_key_size_bytes);
@@ -1207,7 +1207,7 @@ typedef psa_status_t (*psa_drv_se_key_derivation_setup_t)(psa_drv_se_context_t *
  * element key derivation or key agreement operation
  *
  * Since many key derivation algorithms require multiple parameters, it is
- * expeced that this function may be called multiple times for the same
+ * expected that this function may be called multiple times for the same
  * operation, each with a different algorithm-specific `collateral_id`
  *
  * \param[in,out] op_context    A hardware-specific structure containing any

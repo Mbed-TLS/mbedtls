@@ -89,7 +89,6 @@ int main(void)
 }
 ''')
 
-_cc_is_msvc = None #pylint: disable=invalid-name
 def get_c_expression_values(
         cast_to, printf_format,
         expressions,
@@ -113,9 +112,6 @@ def get_c_expression_values(
     to ``cc``. If ``CC`` looks like MSVC, use its command line syntax,
     otherwise assume the compiler supports Unix traditional ``-I`` and ``-o``.
 
-    NOTE: This function only checks the identity of the compiler referred to by
-          ``CC`` on its first invocation, and caches the result.
-
     Return the list of values of the ``expressions``.
     """
     if include_path is None:
@@ -135,17 +131,15 @@ def get_c_expression_values(
         cc = os.getenv('CC', 'cc')
         cmd = [cc]
 
-        global _cc_is_msvc #pylint: disable=global-statement,invalid-name
-        if _cc_is_msvc is None:
-            proc = subprocess.Popen(cmd,
-                                    stdout=subprocess.DEVNULL,
-                                    stderr=subprocess.PIPE,
-                                    universal_newlines=True)
-            _cc_is_msvc = 'Microsoft (R) C/C++ Optimizing Compiler' in \
-                         proc.communicate()[1]
+        proc = subprocess.Popen(cmd,
+                                stdout=subprocess.DEVNULL,
+                                stderr=subprocess.PIPE,
+                                universal_newlines=True)
+        cc_is_msvc = 'Microsoft (R) C/C++ Optimizing Compiler' in \
+                      proc.communicate()[1]
 
         cmd += ['-I' + dir for dir in include_path]
-        if _cc_is_msvc:
+        if cc_is_msvc:
             # MSVC has deprecated using -o to specify the output file,
             # and produces an object file in the working directory by default.
             obj_name = exe_name[:-4] + '.obj'

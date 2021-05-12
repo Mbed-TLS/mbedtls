@@ -165,7 +165,6 @@ struct psa_aead_operation_s
     psa_algorithm_t alg;
     psa_key_type_t key_type;
 
-    unsigned int key_set : 1;
     unsigned int nonce_set : 1;
     unsigned int lengths_set : 1;
     unsigned int ad_started : 1;
@@ -174,7 +173,7 @@ struct psa_aead_operation_s
     psa_driver_aead_context_t ctx;
 };
 
-#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, {0}}
+#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, {0}}
 static inline struct psa_aead_operation_s psa_aead_operation_init( void )
 {
     const struct psa_aead_operation_s v = PSA_AEAD_OPERATION_INIT;

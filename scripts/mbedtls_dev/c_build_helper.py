@@ -45,11 +45,9 @@ def create_c_file(file_label):
                                     suffix='.c')
     exe_suffix = '.exe' if platform.system() == 'Windows' else ''
     exe_name = c_name[:-2] + exe_suffix
-    obj_name = c_name[:-2] + '.obj'
     remove_file_if_exists(exe_name)
-    remove_file_if_exists(obj_name)
     c_file = os.fdopen(c_fd, 'w', encoding='ascii')
-    return c_file, c_name, exe_name, obj_name
+    return c_file, c_name, exe_name
 
 def generate_c_printf_expressions(c_file, cast_to, printf_format, expressions):
     """Generate C instructions to print the value of ``expressions``.
@@ -124,8 +122,9 @@ def get_c_expression_values(
         include_path = []
     c_name = None
     exe_name = None
+    obj_name = None
     try:
-        c_file, c_name, exe_name, obj_name = create_c_file(file_label)
+        c_file, c_name, exe_name = create_c_file(file_label)
         generate_c_file(
             c_file, caller, header,
             lambda c_file: generate_c_printf_expressions(c_file,
@@ -149,6 +148,7 @@ def get_c_expression_values(
         if _cc_is_msvc:
             # MSVC has deprecated using -o to specify the output file,
             # and produces an object file in the working directory by default.
+            obj_name = exe_name[:-4] + '.obj'
             cmd += ['-Fe' + exe_name, '-Fo' + obj_name]
         else:
             cmd += ['-o' + exe_name]

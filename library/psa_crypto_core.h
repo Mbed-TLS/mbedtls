@@ -366,6 +366,9 @@ psa_status_t psa_generate_key_internal( const psa_key_attributes_t *attributes,
  *       entry point as defined in the PSA driver interface specification for
  *       transparent drivers.
  *
+ * \note This function will call the driver for psa_sign_hash
+ *       and go through driver dispatch again.
+ *
  * \param[in]  attributes       The attributes of the key to use for the
  *                              operation.
  * \param[in]  key_buffer       The buffer containing the key context.
@@ -405,6 +408,9 @@ psa_status_t psa_sign_message_builtin(
  *       verify_message entry point. This function behaves as a verify_message
  *       entry point as defined in the PSA driver interface specification for
  *       transparent drivers.
+ *
+ * \note This function will call the driver for psa_verify_hash
+ *       and go through driver dispatch again.
  *
  * \param[in]  attributes       The attributes of the key to use for the
  *                              operation.

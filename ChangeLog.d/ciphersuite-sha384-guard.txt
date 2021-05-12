@@ -1,0 +1,2 @@
+Bugfix
+   * Do not offer SHA384 cipher suites when SHA-384 is disabled. Fixes #4499.

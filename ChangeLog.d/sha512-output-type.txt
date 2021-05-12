@@ -1,5 +1,6 @@
 API changes
-   * The output parameter of mbedtls_sha512_finish_ret and mbedtls_sha512_ret
-     now has a pointer type rather than array type. This removes spurious
-     warnings in some compilers when outputting a SHA-384 hash into a
-     48-byte buffer.
+   * The output parameter of mbedtls_sha512_finish_ret, mbedtls_sha512_ret,
+     mbedtls_sha256_finish_ret and mbedtls_sha256_ret now has a pointer type
+     rather than array type. This removes spurious warnings in some compilers
+     when outputting a SHA-384 or SHA-224 hash into a buffer of exactly
+     the hash size.

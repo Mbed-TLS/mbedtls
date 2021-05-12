@@ -1450,7 +1450,8 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
                                    int minor_ver,
                                    mbedtls_md_type_t hash )
 {
-#if !defined(MBEDTLS_SSL_PROTO_TLS1_2) || !defined(MBEDTLS_SHA512_C)
+#if !defined(MBEDTLS_SSL_PROTO_TLS1_2) ||       \
+    !( defined(MBEDTLS_SHA512_C) && !defined(MBEDTLS_SHA512_NO_SHA384) )
     (void) hash;
 #endif
 

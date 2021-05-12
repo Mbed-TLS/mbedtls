@@ -422,7 +422,7 @@ int main( void )
     "    min_version=%%s      default: (library default: tls1)\n"       \
     "    max_version=%%s      default: (library default: tls1_2)\n"     \
     "    force_version=%%s    default: \"\" (none)\n"       \
-    "                        options: tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
+    "                        options: tls1_2, dtls1_2\n" \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     "    query_config=<name>         return 0 if the specified\n"       \
@@ -1098,12 +1098,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "min_version" ) == 0 )
         {
-            if( strcmp( q, "tls1" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 ||
-                     strcmp( q, "dtls1" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 ||
+            if( strcmp( q, "tls1_2" ) == 0 ||
                      strcmp( q, "dtls1_2" ) == 0 )
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
             else
@@ -1111,12 +1106,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "max_version" ) == 0 )
         {
-            if( strcmp( q, "tls1" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 ||
-                     strcmp( q, "dtls1" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 ||
+            if( strcmp( q, "tls1_2" ) == 0 ||
                      strcmp( q, "dtls1_2" ) == 0 )
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
             else
@@ -1133,26 +1123,10 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "force_version" ) == 0 )
         {
-            if( strcmp( q, "tls1" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
-            }
-            else if( strcmp( q, "tls1_1" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_2;
-            }
-            else if( strcmp( q, "tls1_2" ) == 0 )
+            if( strcmp( q, "tls1_2" ) == 0 )
             {
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
-            }
-            else if( strcmp( q, "dtls1" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_2;
-                opt.transport = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
             }
             else if( strcmp( q, "dtls1_2" ) == 0 )
             {
@@ -1375,10 +1349,10 @@ int main( int argc, char *argv[] )
         if( opt.min_version < ciphersuite_info->min_minor_ver )
         {
             opt.min_version = ciphersuite_info->min_minor_ver;
-            /* DTLS starts with TLS 1.1 */
+            /* for DTLS 1.2 */
             if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-                opt.min_version < MBEDTLS_SSL_MINOR_VERSION_2 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
+                opt.min_version < MBEDTLS_SSL_MINOR_VERSION_3 )
+                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

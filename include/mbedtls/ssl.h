@@ -131,8 +131,8 @@
  * - RFC 8446: see section 4.2.1
  */
 #define MBEDTLS_SSL_MAJOR_VERSION_3             3
-#define MBEDTLS_SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 */
-#define MBEDTLS_SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
+#define MBEDTLS_SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 deprecated */
+#define MBEDTLS_SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 deprecated */
 #define MBEDTLS_SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
 #define MBEDTLS_SSL_MINOR_VERSION_4             4   /*!< TLS v1.3 (experimental) */
 
@@ -2602,8 +2602,7 @@ int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf, size_t len,
  *                      MBEDTLS_SSL_MINOR_VERSION_2,
  *                      MBEDTLS_SSL_MINOR_VERSION_3 supported)
  *
- * \note                With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0
- *                      and MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
+ * \note                With DTLS, use MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  */
 void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
                                        const int *ciphersuites,
@@ -3253,8 +3252,7 @@ void mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ss
  *
  * \note           This ignores ciphersuites from higher versions.
  *
- * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
- *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
+ * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
@@ -3265,13 +3263,12 @@ void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int mino
 
 /**
  * \brief          Set the minimum accepted SSL/TLS protocol version
- *                 (Default: TLS 1.0)
+ *                 (Default: TLS 1.2)
  *
  * \note           Input outside of the SSL_MAX_XXXXX_VERSION and
  *                 SSL_MIN_XXXXX_VERSION range is ignored.
  *
- * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
- *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
+ * \note           With DTLS, MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
@@ -3397,21 +3394,6 @@ int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_c
  */
 void mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate );
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
-
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-/**
- * \brief          Enable / Disable 1/n-1 record splitting
- *                 (Default: MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED)
- *
- * \note           Only affects TLS 1.0, not higher versions.
- *                 Does not affect non-CBC ciphersuites in any version.
- *
- * \param conf     SSL configuration
- * \param split    MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED or
- *                 MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED
- */
-void mbedtls_ssl_conf_cbc_record_splitting( mbedtls_ssl_config *conf, char split );
-#endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
 /**

@@ -1402,22 +1402,6 @@ run_test    "Context-specific CRT verification callback" \
             -C "Use configuration-specific verification callback" \
             -C "error"
 
-# Test empty CA list in CertificateRequest in TLS 1.1 and earlier
-
-requires_gnutls
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-run_test    "CertificateRequest with empty CA list, TLS 1.1 (GnuTLS server)" \
-            "$G_SRV"\
-            "$P_CLI force_version=tls1_1" \
-            0
-
-requires_gnutls
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1
-run_test    "CertificateRequest with empty CA list, TLS 1.0 (GnuTLS server)" \
-            "$G_SRV"\
-            "$P_CLI force_version=tls1" \
-            0
-
 # Tests for SHA-1 support
 run_test    "SHA-1 forbidden by default in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
@@ -2460,33 +2444,6 @@ run_test    "Extended Master Secret: client disabled, server enabled" \
 
 # Tests for FALLBACK_SCSV
 
-run_test    "Fallback SCSV: default" \
-            "$P_SRV debug_level=2" \
-            "$P_CLI debug_level=3 force_version=tls1_1" \
-            0 \
-            -C "adding FALLBACK_SCSV" \
-            -S "received FALLBACK_SCSV" \
-            -S "inapropriate fallback" \
-            -C "is a fatal alert message (msg 86)"
-
-run_test    "Fallback SCSV: explicitly disabled" \
-            "$P_SRV debug_level=2" \
-            "$P_CLI debug_level=3 force_version=tls1_1 fallback=0" \
-            0 \
-            -C "adding FALLBACK_SCSV" \
-            -S "received FALLBACK_SCSV" \
-            -S "inapropriate fallback" \
-            -C "is a fatal alert message (msg 86)"
-
-run_test    "Fallback SCSV: enabled" \
-            "$P_SRV debug_level=2" \
-            "$P_CLI debug_level=3 force_version=tls1_1 fallback=1" \
-            1 \
-            -c "adding FALLBACK_SCSV" \
-            -s "received FALLBACK_SCSV" \
-            -s "inapropriate fallback" \
-            -c "is a fatal alert message (msg 86)"
-
 run_test    "Fallback SCSV: enabled, max version" \
             "$P_SRV debug_level=2" \
             "$P_CLI debug_level=3 fallback=1" \
@@ -2495,38 +2452,6 @@ run_test    "Fallback SCSV: enabled, max version" \
             -s "received FALLBACK_SCSV" \
             -S "inapropriate fallback" \
             -C "is a fatal alert message (msg 86)"
-
-requires_openssl_with_fallback_scsv
-run_test    "Fallback SCSV: default, openssl server" \
-            "$O_SRV" \
-            "$P_CLI debug_level=3 force_version=tls1_1 fallback=0" \
-            0 \
-            -C "adding FALLBACK_SCSV" \
-            -C "is a fatal alert message (msg 86)"
-
-requires_openssl_with_fallback_scsv
-run_test    "Fallback SCSV: enabled, openssl server" \
-            "$O_SRV" \
-            "$P_CLI debug_level=3 force_version=tls1_1 fallback=1" \
-            1 \
-            -c "adding FALLBACK_SCSV" \
-            -c "is a fatal alert message (msg 86)"
-
-requires_openssl_with_fallback_scsv
-run_test    "Fallback SCSV: disabled, openssl client" \
-            "$P_SRV debug_level=2" \
-            "$O_CLI -tls1_1" \
-            0 \
-            -S "received FALLBACK_SCSV" \
-            -S "inapropriate fallback"
-
-requires_openssl_with_fallback_scsv
-run_test    "Fallback SCSV: enabled, openssl client" \
-            "$P_SRV debug_level=2" \
-            "$O_CLI -tls1_1 -fallback_scsv" \
-            1 \
-            -s "received FALLBACK_SCSV" \
-            -s "inapropriate fallback"
 
 requires_openssl_with_fallback_scsv
 run_test    "Fallback SCSV: enabled, max version, openssl client" \
@@ -2568,37 +2493,6 @@ run_test    "Encrypt then MAC, DTLS: disabled, empty application data record" \
             -s "dumping 'input payload after decrypt' (0 bytes)" \
             -c "0 bytes written in 1 fragments"
 
-## ClientHello generated with
-## "openssl s_client -CAfile tests/data_files/test-ca.crt -tls1_1 -connect localhost:4433 -cipher ..."
-## then manually twiddling the ciphersuite list.
-## The ClientHello content is spelled out below as a hex string as
-## "prefix ciphersuite1 ciphersuite2 ciphersuite3 ciphersuite4 suffix".
-## The expected response is an inappropriate_fallback alert.
-requires_openssl_with_fallback_scsv
-run_test    "Fallback SCSV: beginning of list" \
-            "$P_SRV debug_level=2" \
-            "$TCP_CLIENT localhost $SRV_PORT '160301003e0100003a03022aafb94308dc22ca1086c65acc00e414384d76b61ecab37df1633b1ae1034dbe000008 5600 0031 0032 0033 0100000900230000000f000101' '15030200020256'" \
-            0 \
-            -s "received FALLBACK_SCSV" \
-            -s "inapropriate fallback"
-
-requires_openssl_with_fallback_scsv
-run_test    "Fallback SCSV: end of list" \
-            "$P_SRV debug_level=2" \
-            "$TCP_CLIENT localhost $SRV_PORT '160301003e0100003a03022aafb94308dc22ca1086c65acc00e414384d76b61ecab37df1633b1ae1034dbe000008 0031 0032 0033 5600 0100000900230000000f000101' '15030200020256'" \
-            0 \
-            -s "received FALLBACK_SCSV" \
-            -s "inapropriate fallback"
-
-## Here the expected response is a valid ServerHello prefix, up to the random.
-requires_openssl_with_fallback_scsv
-run_test    "Fallback SCSV: not in list" \
-            "$P_SRV debug_level=2" \
-            "$TCP_CLIENT localhost $SRV_PORT '160301003e0100003a03022aafb94308dc22ca1086c65acc00e414384d76b61ecab37df1633b1ae1034dbe000008 0056 0031 0032 0033 0100000900230000000f000101' '16030200300200002c0302'" \
-            0 \
-            -S "received FALLBACK_SCSV" \
-            -S "inapropriate fallback"
-
 # Tests for CBC 1/n-1 record splitting
 
 run_test    "CBC Record splitting: TLS 1.2, no splitting" \
@@ -2609,42 +2503,6 @@ run_test    "CBC Record splitting: TLS 1.2, no splitting" \
             -s "Read from client: 123 bytes read" \
             -S "Read from client: 1 bytes read" \
             -S "122 bytes read"
-
-run_test    "CBC Record splitting: TLS 1.1, no splitting" \
-            "$P_SRV" \
-            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
-             request_size=123 force_version=tls1_1" \
-            0 \
-            -s "Read from client: 123 bytes read" \
-            -S "Read from client: 1 bytes read" \
-            -S "122 bytes read"
-
-run_test    "CBC Record splitting: TLS 1.0, splitting" \
-            "$P_SRV" \
-            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
-             request_size=123 force_version=tls1" \
-            0 \
-            -S "Read from client: 123 bytes read" \
-            -s "Read from client: 1 bytes read" \
-            -s "122 bytes read"
-
-run_test    "CBC Record splitting: TLS 1.0, splitting disabled" \
-            "$P_SRV" \
-            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
-             request_size=123 force_version=tls1 recsplit=0" \
-            0 \
-            -s "Read from client: 123 bytes read" \
-            -S "Read from client: 1 bytes read" \
-            -S "122 bytes read"
-
-run_test    "CBC Record splitting: TLS 1.0, splitting, nbio" \
-            "$P_SRV nbio=2" \
-            "$P_CLI nbio=2 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
-             request_size=123 force_version=tls1" \
-            0 \
-            -S "Read from client: 123 bytes read" \
-            -s "Read from client: 1 bytes read" \
-            -s "122 bytes read"
 
 # Tests for Session Tickets
 
@@ -4464,52 +4322,6 @@ run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \
             -c "signed using.*ECDSA with SHA256" \
             -C "signed using.*ECDSA with SHA1"
 
-requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-run_test    "Certificate hash: client TLS 1.1 -> SHA-1" \
-            "$P_SRV crt_file=data_files/server5.crt \
-                    key_file=data_files/server5.key \
-                    crt_file2=data_files/server5-sha1.crt \
-                    key_file2=data_files/server5.key" \
-            "$P_CLI force_version=tls1_1" \
-            0 \
-            -C "signed using.*ECDSA with SHA256" \
-            -c "signed using.*ECDSA with SHA1"
-
-requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-run_test    "Certificate hash: client TLS 1.0 -> SHA-1" \
-            "$P_SRV crt_file=data_files/server5.crt \
-                    key_file=data_files/server5.key \
-                    crt_file2=data_files/server5-sha1.crt \
-                    key_file2=data_files/server5.key" \
-            "$P_CLI force_version=tls1" \
-            0 \
-            -C "signed using.*ECDSA with SHA256" \
-            -c "signed using.*ECDSA with SHA1"
-
-requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 1)" \
-            "$P_SRV crt_file=data_files/server5.crt \
-                    key_file=data_files/server5.key \
-                    crt_file2=data_files/server6.crt \
-                    key_file2=data_files/server6.key" \
-            "$P_CLI force_version=tls1_1" \
-            0 \
-            -c "serial number.*09" \
-            -c "signed using.*ECDSA with SHA256" \
-            -C "signed using.*ECDSA with SHA1"
-
-requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 2)" \
-            "$P_SRV crt_file=data_files/server6.crt \
-                    key_file=data_files/server6.key \
-                    crt_file2=data_files/server5.crt \
-                    key_file2=data_files/server5.key" \
-            "$P_CLI force_version=tls1_1" \
-            0 \
-            -c "serial number.*0A" \
-            -c "signed using.*ECDSA with SHA256" \
-            -C "signed using.*ECDSA with SHA1"
-
 # tests for SNI
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
@@ -4969,67 +4781,6 @@ run_test    "Version check: all -> 1.2" \
             -C "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.2" \
             -c "Protocol is TLSv1.2"
-
-run_test    "Version check: cli max 1.1 -> 1.1" \
-            "$P_SRV" \
-            "$P_CLI max_version=tls1_1" \
-            0 \
-            -S "mbedtls_ssl_handshake returned" \
-            -C "mbedtls_ssl_handshake returned" \
-            -s "Protocol is TLSv1.1" \
-            -c "Protocol is TLSv1.1"
-
-run_test    "Version check: srv max 1.1 -> 1.1" \
-            "$P_SRV max_version=tls1_1" \
-            "$P_CLI" \
-            0 \
-            -S "mbedtls_ssl_handshake returned" \
-            -C "mbedtls_ssl_handshake returned" \
-            -s "Protocol is TLSv1.1" \
-            -c "Protocol is TLSv1.1"
-
-run_test    "Version check: cli+srv max 1.1 -> 1.1" \
-            "$P_SRV max_version=tls1_1" \
-            "$P_CLI max_version=tls1_1" \
-            0 \
-            -S "mbedtls_ssl_handshake returned" \
-            -C "mbedtls_ssl_handshake returned" \
-            -s "Protocol is TLSv1.1" \
-            -c "Protocol is TLSv1.1"
-
-run_test    "Version check: cli max 1.1, srv min 1.1 -> 1.1" \
-            "$P_SRV min_version=tls1_1" \
-            "$P_CLI max_version=tls1_1" \
-            0 \
-            -S "mbedtls_ssl_handshake returned" \
-            -C "mbedtls_ssl_handshake returned" \
-            -s "Protocol is TLSv1.1" \
-            -c "Protocol is TLSv1.1"
-
-run_test    "Version check: cli min 1.1, srv max 1.1 -> 1.1" \
-            "$P_SRV max_version=tls1_1" \
-            "$P_CLI min_version=tls1_1" \
-            0 \
-            -S "mbedtls_ssl_handshake returned" \
-            -C "mbedtls_ssl_handshake returned" \
-            -s "Protocol is TLSv1.1" \
-            -c "Protocol is TLSv1.1"
-
-run_test    "Version check: cli min 1.2, srv max 1.1 -> fail" \
-            "$P_SRV max_version=tls1_1" \
-            "$P_CLI min_version=tls1_2" \
-            1 \
-            -s "mbedtls_ssl_handshake returned" \
-            -c "mbedtls_ssl_handshake returned" \
-            -c "SSL - Handshake protocol not within min/max boundaries"
-
-run_test    "Version check: srv min 1.2, cli max 1.1 -> fail" \
-            "$P_SRV min_version=tls1_2" \
-            "$P_CLI max_version=tls1_1" \
-            1 \
-            -s "mbedtls_ssl_handshake returned" \
-            -c "mbedtls_ssl_handshake returned" \
-            -s "SSL - Handshake protocol not within min/max boundaries"
 
 # Tests for ALPN extension
 
@@ -5884,24 +5635,6 @@ run_test    "ECJPAKE: working, DTLS, nolog" \
 
 # Tests for ciphersuites per version
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1
-requires_config_enabled MBEDTLS_CAMELLIA_C
-requires_config_enabled MBEDTLS_AES_C
-run_test    "Per-version suites: TLS 1.0" \
-            "$P_SRV version_suites=TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
-            "$P_CLI force_version=tls1" \
-            0 \
-            -c "Ciphersuite is TLS-RSA-WITH-AES-256-CBC-SHA"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-requires_config_enabled MBEDTLS_CAMELLIA_C
-requires_config_enabled MBEDTLS_AES_C
-run_test    "Per-version suites: TLS 1.1" \
-            "$P_SRV version_suites=TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
-            "$P_CLI force_version=tls1_1" \
-            0 \
-            -c "Ciphersuite is TLS-RSA-WITH-AES-128-CBC-SHA"
-
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_CAMELLIA_C
 requires_config_enabled MBEDTLS_AES_C
@@ -5935,66 +5668,6 @@ run_test    "mbedtls_ssl_get_bytes_avail: extra data" \
             -s "Read from client: 500 bytes read (.*+.*)"
 
 # Tests for small client packets
-
-run_test    "Small client packet TLS 1.0 BlockCipher" \
-            "$P_SRV" \
-            "$P_CLI request_size=1 force_version=tls1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -s "Read from client: 1 bytes read"
-
-run_test    "Small client packet TLS 1.0 BlockCipher, without EtM" \
-            "$P_SRV" \
-            "$P_CLI request_size=1 force_version=tls1 etm=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -s "Read from client: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Small client packet TLS 1.0 BlockCipher, truncated MAC" \
-            "$P_SRV trunc_hmac=1" \
-            "$P_CLI request_size=1 force_version=tls1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
-            0 \
-            -s "Read from client: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Small client packet TLS 1.0 BlockCipher, without EtM, truncated MAC" \
-            "$P_SRV trunc_hmac=1" \
-            "$P_CLI request_size=1 force_version=tls1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
-            0 \
-            -s "Read from client: 1 bytes read"
-
-run_test    "Small client packet TLS 1.1 BlockCipher" \
-            "$P_SRV" \
-            "$P_CLI request_size=1 force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -s "Read from client: 1 bytes read"
-
-run_test    "Small client packet TLS 1.1 BlockCipher, without EtM" \
-            "$P_SRV" \
-            "$P_CLI request_size=1 force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA etm=0" \
-            0 \
-            -s "Read from client: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Small client packet TLS 1.1 BlockCipher, truncated MAC" \
-            "$P_SRV trunc_hmac=1" \
-            "$P_CLI request_size=1 force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
-            0 \
-            -s "Read from client: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Small client packet TLS 1.1 BlockCipher, without EtM, truncated MAC" \
-            "$P_SRV trunc_hmac=1" \
-            "$P_CLI request_size=1 force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
-            0 \
-            -s "Read from client: 1 bytes read"
 
 run_test    "Small client packet TLS 1.2 BlockCipher" \
             "$P_SRV" \
@@ -6050,40 +5723,6 @@ run_test    "Small client packet TLS 1.2 AEAD shorter tag" \
 # Tests for small client packets in DTLS
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-run_test    "Small client packet DTLS 1.0" \
-            "$P_SRV dtls=1 force_version=dtls1" \
-            "$P_CLI dtls=1 request_size=1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -s "Read from client: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-run_test    "Small client packet DTLS 1.0, without EtM" \
-            "$P_SRV dtls=1 force_version=dtls1 etm=0" \
-            "$P_CLI dtls=1 request_size=1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -s "Read from client: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Small client packet DTLS 1.0, truncated hmac" \
-            "$P_SRV dtls=1 force_version=dtls1 trunc_hmac=1" \
-            "$P_CLI dtls=1 request_size=1 trunc_hmac=1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -s "Read from client: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Small client packet DTLS 1.0, without EtM, truncated MAC" \
-            "$P_SRV dtls=1 force_version=dtls1 trunc_hmac=1 etm=0" \
-            "$P_CLI dtls=1 request_size=1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1"\
-            0 \
-            -s "Read from client: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 run_test    "Small client packet DTLS 1.2" \
             "$P_SRV dtls=1 force_version=dtls1_2" \
             "$P_CLI dtls=1 request_size=1 \
@@ -6118,66 +5757,6 @@ run_test    "Small client packet DTLS 1.2, without EtM, truncated MAC" \
             -s "Read from client: 1 bytes read"
 
 # Tests for small server packets
-
-run_test    "Small server packet TLS 1.0 BlockCipher" \
-            "$P_SRV response_size=1" \
-            "$P_CLI force_version=tls1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -c "Read from server: 1 bytes read"
-
-run_test    "Small server packet TLS 1.0 BlockCipher, without EtM" \
-            "$P_SRV response_size=1" \
-            "$P_CLI force_version=tls1 etm=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -c "Read from server: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Small server packet TLS 1.0 BlockCipher, truncated MAC" \
-            "$P_SRV response_size=1 trunc_hmac=1" \
-            "$P_CLI force_version=tls1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
-            0 \
-            -c "Read from server: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Small server packet TLS 1.0 BlockCipher, without EtM, truncated MAC" \
-            "$P_SRV response_size=1 trunc_hmac=1" \
-            "$P_CLI force_version=tls1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
-            0 \
-            -c "Read from server: 1 bytes read"
-
-run_test    "Small server packet TLS 1.1 BlockCipher" \
-            "$P_SRV response_size=1" \
-            "$P_CLI force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -c "Read from server: 1 bytes read"
-
-run_test    "Small server packet TLS 1.1 BlockCipher, without EtM" \
-            "$P_SRV response_size=1" \
-            "$P_CLI force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA etm=0" \
-            0 \
-            -c "Read from server: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Small server packet TLS 1.1 BlockCipher, truncated MAC" \
-            "$P_SRV response_size=1 trunc_hmac=1" \
-            "$P_CLI force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
-            0 \
-            -c "Read from server: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Small server packet TLS 1.1 BlockCipher, without EtM, truncated MAC" \
-            "$P_SRV response_size=1 trunc_hmac=1" \
-            "$P_CLI force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
-            0 \
-            -c "Read from server: 1 bytes read"
 
 run_test    "Small server packet TLS 1.2 BlockCipher" \
             "$P_SRV response_size=1" \
@@ -6233,40 +5812,6 @@ run_test    "Small server packet TLS 1.2 AEAD shorter tag" \
 # Tests for small server packets in DTLS
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-run_test    "Small server packet DTLS 1.0" \
-            "$P_SRV dtls=1 response_size=1 force_version=dtls1" \
-            "$P_CLI dtls=1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -c "Read from server: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-run_test    "Small server packet DTLS 1.0, without EtM" \
-            "$P_SRV dtls=1 response_size=1 force_version=dtls1 etm=0" \
-            "$P_CLI dtls=1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -c "Read from server: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Small server packet DTLS 1.0, truncated hmac" \
-            "$P_SRV dtls=1 response_size=1 force_version=dtls1 trunc_hmac=1" \
-            "$P_CLI dtls=1 trunc_hmac=1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -c "Read from server: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Small server packet DTLS 1.0, without EtM, truncated MAC" \
-            "$P_SRV dtls=1 response_size=1 force_version=dtls1 trunc_hmac=1 etm=0" \
-            "$P_CLI dtls=1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1"\
-            0 \
-            -c "Read from server: 1 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 run_test    "Small server packet DTLS 1.2" \
             "$P_SRV dtls=1 response_size=1 force_version=dtls1_2" \
             "$P_CLI dtls=1 \
@@ -6306,69 +5851,6 @@ run_test    "Small server packet DTLS 1.2, without EtM, truncated MAC" \
 fragments_for_write() {
     echo "$(( ( $1 + $MAX_OUT_LEN - 1 ) / $MAX_OUT_LEN ))"
 }
-
-run_test    "Large client packet TLS 1.0 BlockCipher" \
-            "$P_SRV" \
-            "$P_CLI request_size=16384 force_version=tls1 recsplit=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
-            -s "Read from client: $MAX_CONTENT_LEN bytes read"
-
-run_test    "Large client packet TLS 1.0 BlockCipher, without EtM" \
-            "$P_SRV" \
-            "$P_CLI request_size=16384 force_version=tls1 etm=0 recsplit=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -s "Read from client: $MAX_CONTENT_LEN bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large client packet TLS 1.0 BlockCipher, truncated MAC" \
-            "$P_SRV trunc_hmac=1" \
-            "$P_CLI request_size=16384 force_version=tls1 recsplit=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
-            0 \
-            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
-            -s "Read from client: $MAX_CONTENT_LEN bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large client packet TLS 1.0 BlockCipher, without EtM, truncated MAC" \
-            "$P_SRV trunc_hmac=1" \
-            "$P_CLI request_size=16384 force_version=tls1 etm=0 recsplit=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
-            0 \
-            -s "Read from client: $MAX_CONTENT_LEN bytes read"
-
-run_test    "Large client packet TLS 1.1 BlockCipher" \
-            "$P_SRV" \
-            "$P_CLI request_size=16384 force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
-            -s "Read from client: $MAX_CONTENT_LEN bytes read"
-
-run_test    "Large client packet TLS 1.1 BlockCipher, without EtM" \
-            "$P_SRV" \
-            "$P_CLI request_size=16384 force_version=tls1_1 etm=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -s "Read from client: $MAX_CONTENT_LEN bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large client packet TLS 1.1 BlockCipher, truncated MAC" \
-            "$P_SRV trunc_hmac=1" \
-            "$P_CLI request_size=16384 force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
-            0 \
-            -s "Read from client: $MAX_CONTENT_LEN bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large client packet TLS 1.1 BlockCipher, without EtM, truncated MAC" \
-            "$P_SRV trunc_hmac=1" \
-            "$P_CLI request_size=16384 force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
-            0 \
-            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large client packet TLS 1.2 BlockCipher" \
             "$P_SRV" \
@@ -6425,69 +5907,6 @@ run_test    "Large client packet TLS 1.2 AEAD shorter tag" \
             0 \
             -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
             -s "Read from client: $MAX_CONTENT_LEN bytes read"
-
-# Checking next 3 tests logs for 1n-1 split against BEAST too
-run_test    "Large server packet TLS 1.0 BlockCipher" \
-            "$P_SRV response_size=16384" \
-            "$P_CLI force_version=tls1 recsplit=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -c "Read from server: 1 bytes read"\
-            -c "16383 bytes read"\
-            -C "Read from server: 16384 bytes read"
-
-run_test    "Large server packet TLS 1.0 BlockCipher, without EtM" \
-            "$P_SRV response_size=16384" \
-            "$P_CLI force_version=tls1 etm=0 recsplit=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -c "Read from server: 1 bytes read"\
-            -c "16383 bytes read"\
-            -C "Read from server: 16384 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large server packet TLS 1.0 BlockCipher truncated MAC" \
-            "$P_SRV response_size=16384" \
-            "$P_CLI force_version=tls1 recsplit=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
-             trunc_hmac=1" \
-            0 \
-            -c "Read from server: 1 bytes read"\
-            -c "16383 bytes read"\
-            -C "Read from server: 16384 bytes read"
-
-run_test    "Large server packet TLS 1.1 BlockCipher" \
-            "$P_SRV response_size=16384" \
-            "$P_CLI force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -c "Read from server: 16384 bytes read"
-
-run_test    "Large server packet TLS 1.1 BlockCipher, without EtM" \
-            "$P_SRV response_size=16384" \
-            "$P_CLI force_version=tls1_1 etm=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -s "16384 bytes written in 1 fragments" \
-            -c "Read from server: 16384 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large server packet TLS 1.1 BlockCipher truncated MAC" \
-            "$P_SRV response_size=16384" \
-            "$P_CLI force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
-             trunc_hmac=1" \
-            0 \
-            -c "Read from server: 16384 bytes read"
-
-requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
-run_test    "Large server packet TLS 1.1 BlockCipher, without EtM, truncated MAC" \
-            "$P_SRV response_size=16384 trunc_hmac=1" \
-            "$P_CLI force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
-            0 \
-            -s "16384 bytes written in 1 fragments" \
-            -c "Read from server: 16384 bytes read"
 
 run_test    "Large server packet TLS 1.2 BlockCipher" \
             "$P_SRV response_size=16384" \
@@ -6708,18 +6127,6 @@ run_test    "SSL async private: sign, delay=2" \
             -U "Async sign callback: using key slot " \
             -s "Async resume (slot [0-9]): call 1 more times." \
             -s "Async resume (slot [0-9]): call 0 more times." \
-            -s "Async resume (slot [0-9]): sign done, status=0"
-
-# Test that the async callback correctly signs the 36-byte hash of TLS 1.0/1.1
-# with RSA PKCS#1v1.5 as used in TLS 1.0/1.1.
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-run_test    "SSL async private: sign, RSA, TLS 1.1" \
-            "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt \
-             async_operations=s async_private_delay1=0 async_private_delay2=0" \
-            "$P_CLI force_version=tls1_1" \
-            0 \
-            -s "Async sign callback: using key slot " \
             -s "Async resume (slot [0-9]): sign done, status=0"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
@@ -7999,21 +7406,6 @@ run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
             -c "fragmenting handshake message" \
             -C "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-requires_gnutls
-run_test    "DTLS fragmenting: gnutls server, DTLS 1.0" \
-            "$G_SRV -u" \
-            "$P_CLI dtls=1 debug_level=2 \
-             crt_file=data_files/server8_int-ca2.crt \
-             key_file=data_files/server8.key \
-             mtu=512 force_version=dtls1" \
-            0 \
-            -c "fragmenting handshake message" \
-            -C "error"
-
 # We use --insecure for the GnuTLS client because it expects
 # the hostname / IP it connects to to be the name used in the
 # certificate obtained from the server. Here, however, it
@@ -8036,22 +7428,6 @@ run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
             0 \
             -s "fragmenting handshake message"
 
-# See previous test for the reason to use --insecure
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-requires_gnutls
-requires_not_i686
-run_test    "DTLS fragmenting: gnutls client, DTLS 1.0" \
-            "$P_SRV dtls=1 debug_level=2 \
-             crt_file=data_files/server7_int-ca.crt \
-             key_file=data_files/server7.key \
-             mtu=512 force_version=dtls1" \
-            "$G_CLI -u --insecure 127.0.0.1" \
-            0 \
-            -s "fragmenting handshake message"
-
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -8069,20 +7445,6 @@ run_test    "DTLS fragmenting: openssl server, DTLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-run_test    "DTLS fragmenting: openssl server, DTLS 1.0" \
-            "$O_SRV -dtls1 -verify 10" \
-            "$P_CLI dtls=1 debug_level=2 \
-             crt_file=data_files/server8_int-ca2.crt \
-             key_file=data_files/server8.key \
-             mtu=512 force_version=dtls1" \
-            0 \
-            -c "fragmenting handshake message" \
-            -C "error"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: openssl client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
@@ -8090,19 +7452,6 @@ run_test    "DTLS fragmenting: openssl client, DTLS 1.2" \
              key_file=data_files/server7.key \
              mtu=512 force_version=dtls1_2" \
             "$O_CLI -dtls1_2" \
-            0 \
-            -s "fragmenting handshake message"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-run_test    "DTLS fragmenting: openssl client, DTLS 1.0" \
-            "$P_SRV dtls=1 debug_level=2 \
-             crt_file=data_files/server7_int-ca.crt \
-             key_file=data_files/server7.key \
-             mtu=512 force_version=dtls1" \
-            "$O_CLI -dtls1" \
             0 \
             -s "fragmenting handshake message"
 
@@ -8131,23 +7480,6 @@ requires_gnutls_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-client_needs_more_time 4
-run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
-            -p "$P_PXY drop=8 delay=8 duplicate=8" \
-            "$G_NEXT_SRV -u" \
-            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
-             crt_file=data_files/server8_int-ca2.crt \
-             key_file=data_files/server8.key \
-             hs_timeout=250-60000 mtu=512 force_version=dtls1" \
-            0 \
-            -c "fragmenting handshake message" \
-            -C "error"
-
-requires_gnutls_next
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 client_needs_more_time 4
 run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
@@ -8156,22 +7488,6 @@ run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
-           "$G_NEXT_CLI -u --insecure 127.0.0.1" \
-            0 \
-            -s "fragmenting handshake message"
-
-requires_gnutls_next
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-client_needs_more_time 4
-run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.0" \
-            -p "$P_PXY drop=8 delay=8 duplicate=8" \
-            "$P_SRV dtls=1 debug_level=2 \
-             crt_file=data_files/server7_int-ca.crt \
-             key_file=data_files/server7.key \
-             hs_timeout=250-60000 mtu=512 force_version=dtls1" \
            "$G_NEXT_CLI -u --insecure 127.0.0.1" \
             0 \
             -s "fragmenting handshake message"
@@ -8202,23 +7518,6 @@ skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-client_needs_more_time 4
-run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.0" \
-            -p "$P_PXY drop=8 delay=8 duplicate=8" \
-            "$O_SRV -dtls1 -verify 10" \
-            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
-             crt_file=data_files/server8_int-ca2.crt \
-             key_file=data_files/server8.key \
-             hs_timeout=250-60000 mtu=512 force_version=dtls1" \
-            0 \
-            -c "fragmenting handshake message" \
-            -C "error"
-
-skip_next_test
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 client_needs_more_time 4
 run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
@@ -8228,24 +7527,6 @@ run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
              key_file=data_files/server7.key \
              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
             "$O_CLI -dtls1_2" \
-            0 \
-            -s "fragmenting handshake message"
-
-# -nbio is added to prevent s_client from blocking in case of duplicated
-# messages at the end of the handshake
-skip_next_test
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-client_needs_more_time 4
-run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.0" \
-            -p "$P_PXY drop=8 delay=8 duplicate=8" \
-            "$P_SRV dgram_packing=0 dtls=1 debug_level=2 \
-             crt_file=data_files/server7_int-ca.crt \
-             key_file=data_files/server7.key \
-             hs_timeout=250-60000 mtu=512 force_version=dtls1" \
-            "$O_CLI -nbio -dtls1" \
             0 \
             -s "fragmenting handshake message"
 

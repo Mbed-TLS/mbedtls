@@ -3199,14 +3199,6 @@ curve_matching_done:
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
-        {
-            /* B: Default hash SHA1 */
-            md_alg = MBEDTLS_MD_SHA1;
-        }
-        else
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
         {
             /* C: MD5 + SHA1 */
             md_alg = MBEDTLS_MD_NONE;
@@ -3217,20 +3209,7 @@ curve_matching_done:
         /*
          * 2.2: Compute the hash to be signed
          */
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-        if( md_alg == MBEDTLS_MD_NONE )
-        {
-            hashlen = 36;
-            ret = mbedtls_ssl_get_key_exchange_md_ssl_tls( ssl, hash,
-                                                           dig_signed,
-                                                           dig_signed_len );
-            if( ret != 0 )
-                return( ret );
-        }
-        else
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( md_alg != MBEDTLS_MD_NONE )
         {
             ret = mbedtls_ssl_get_key_exchange_md_tls1_2( ssl, hash, &hashlen,
@@ -3241,8 +3220,7 @@ curve_matching_done:
                 return( ret );
         }
         else
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
-          MBEDTLS_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -3556,8 +3534,7 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
     /*
      * Prepare to decrypt the premaster using own private RSA key
      */
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if ( p + 2 > end ) {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
@@ -4177,22 +4154,6 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
      *     opaque signature<0..2^16-1>;
      *  } DigitallySigned;
      */
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
-    {
-        md_alg = MBEDTLS_MD_NONE;
-        hashlen = 36;
-
-        /* For ECDSA, use SHA-1, not MD-5 + SHA-1 */
-        if( mbedtls_pk_can_do( peer_pk, MBEDTLS_PK_ECDSA ) )
-        {
-            hash_start += 16;
-            hashlen -= 16;
-            md_alg = MBEDTLS_MD_SHA1;
-        }
-    }
-    else
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {

@@ -68,17 +68,9 @@
 /* Determine minimum supported version */
 #define MBEDTLS_SSL_MIN_MAJOR_VERSION           MBEDTLS_SSL_MAJOR_VERSION_3
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1)
-#define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_1
-#else
-#if defined(MBEDTLS_SSL_PROTO_TLS1_1)
-#define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_2
-#else
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_3
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_1 */
-#endif /* MBEDTLS_SSL_PROTO_TLS1   */
 
 #define MBEDTLS_SSL_MIN_VALID_MINOR_VERSION MBEDTLS_SSL_MINOR_VERSION_1
 #define MBEDTLS_SSL_MIN_VALID_MAJOR_VERSION MBEDTLS_SSL_MAJOR_VERSION_3
@@ -88,15 +80,6 @@
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_3
-#else
-#if defined(MBEDTLS_SSL_PROTO_TLS1_1)
-#define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_2
-#else
-#if defined(MBEDTLS_SSL_PROTO_TLS1)
-#define MBEDTLS_SSL_MAX_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_1
-#else
-#endif /* MBEDTLS_SSL_PROTO_TLS1   */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_1 */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 /* Shorthand for restartable ECC */
@@ -153,11 +136,9 @@
 #define MBEDTLS_SSL_SOME_SUITES_USE_STREAM
 #endif
 
-/* This macro determines whether the CBC construct used in TLS 1.0-1.2 is supported. */
+/* This macro determines whether the CBC construct used in TLS 1.2 is supported. */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) && \
-    ( defined(MBEDTLS_SSL_PROTO_TLS1) ||        \
-      defined(MBEDTLS_SSL_PROTO_TLS1_1) ||      \
-      defined(MBEDTLS_SSL_PROTO_TLS1_2) )
+      defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #define MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC
 #endif
 
@@ -550,10 +531,6 @@ struct mbedtls_ssl_handshake_params
     /*
      * Checksum contexts
      */
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-       mbedtls_md5_context fin_md5;
-      mbedtls_sha1_context fin_sha1;
-#endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1202,21 +1179,13 @@ static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t
     return( diff );
 }
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-int mbedtls_ssl_get_key_exchange_md_ssl_tls( mbedtls_ssl_context *ssl,
-                                        unsigned char *output,
-                                        unsigned char *data, size_t data_len );
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 /* The hash buffer must have at least MBEDTLS_MD_MAX_SIZE bytes of length. */
 int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
                                             unsigned char *hash, size_t *hashlen,
                                             unsigned char *data, size_t data_len,
                                             mbedtls_md_type_t md_alg );
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
-          MBEDTLS_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #ifdef __cplusplus
 }

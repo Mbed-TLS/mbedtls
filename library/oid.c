@@ -238,6 +238,10 @@ static const oid_x520_attr_t oid_x520_attr_type[] =
         "pseudonym",
     },
     {
+        OID_DESCRIPTOR( MBEDTLS_OID_UID,            "id-uid",                         "User Id" ),
+        "uid",
+    },
+    {
         OID_DESCRIPTOR( MBEDTLS_OID_DOMAIN_COMPONENT, "id-domainComponent",           "Domain component" ),
         "DC",
     },

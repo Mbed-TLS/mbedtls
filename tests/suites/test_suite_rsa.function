@@ -117,25 +117,19 @@ void rsa_invalid_param( )
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_pkcs1_v15_encrypt( NULL, NULL,
                                                            NULL,
-                                                           valid_mode,
+                                                           MBEDTLS_RSA_PUBLIC,
                                                            sizeof( buf ), buf,
                                                            buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx, NULL,
                                                            NULL,
-                                                           invalid_mode,
-                                                           sizeof( buf ), buf,
-                                                           buf ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx, NULL,
-                                                           NULL,
-                                                           valid_mode,
+                                                           MBEDTLS_RSA_PUBLIC,
                                                            sizeof( buf ), NULL,
                                                            buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx, NULL,
                                                            NULL,
-                                                           valid_mode,
+                                                           MBEDTLS_RSA_PUBLIC,
                                                            sizeof( buf ), buf,
                                                            NULL ) );
 
@@ -604,34 +598,6 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
 
     TEST_ASSERT( mbedtls_test_hexcmp( output, result_str->x,
                                       ctx.len, result_str->len ) == 0 );
-
-#if defined(MBEDTLS_PKCS1_V15)
-    /* For PKCS#1 v1.5, there is an alternative way to generate signatures */
-    if( padding_mode == MBEDTLS_RSA_PKCS_V15 )
-    {
-        int res;
-        memset( output, 0x00, sizeof( output) );
-
-        res = mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx,
-                  &mbedtls_test_rnd_pseudo_rand, &rnd_info,
-                  MBEDTLS_RSA_PRIVATE, hash_result->len,
-                  hash_result->x, output );
-
-#if !defined(MBEDTLS_RSA_ALT)
-        TEST_ASSERT( res == 0 );
-#else
-        TEST_ASSERT( ( res == 0 ) ||
-                     ( res == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) );
-#endif
-
-        if( res == 0 )
-        {
-            TEST_ASSERT( mbedtls_test_hexcmp( output, result_str->x,
-                                              ctx.len,
-                                              result_str->len ) == 0 );
-        }
-    }
-#endif /* MBEDTLS_PKCS1_V15 */
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P );

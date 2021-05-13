@@ -2566,7 +2566,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *         ::psa_pake_primitive_t.
  */
 #define PSA_PAKE_PRIMITIVE(pake_type, pake_family, pake_bits) \
-    (pake_bits > 0xFFFF) ? 0 :                                \
+    ((pake_bits & 0xFFFF) != pake_bits) ? 0 :                 \
     ((psa_pake_primitive_t) (((pake_type) << 24 |             \
             (pake_family) << 16) | (pake_bits)))
 

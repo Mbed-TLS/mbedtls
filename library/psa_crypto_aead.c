@@ -509,15 +509,12 @@ psa_status_t mbedtls_psa_aead_update_ad( mbedtls_psa_aead_operation_t
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
     {
-        if( !operation->lengths_set || operation->ad_started )
-            return( PSA_ERROR_BAD_STATE );
-
-        /* GCM currently requires all the additional data to be passed in in
+         /* GCM currently requires all the additional data to be passed in in
          * one contiguous buffer, so until that is re-done, we have to enforce
          * this, as we cannot allocate a buffer to collate multiple calls into.
            */
-        if( operation->ad_remaining != 0 )
-            return ( PSA_ERROR_INVALID_ARGUMENT );
+        if( operation->ad_started )
+            return( PSA_ERROR_NOT_SUPPORTED );
 
         status = mbedtls_to_psa_error(
            mbedtls_gcm_starts( &operation->ctx.gcm,
@@ -537,7 +534,7 @@ psa_status_t mbedtls_psa_aead_update_ad( mbedtls_psa_aead_operation_t
         /* CCM requires all additional data to be passed in in one go at the
            minute, as we are basically operating in oneshot mode. */
         if( operation->ad_started )
-            return( PSA_ERROR_BAD_STATE );
+            return( PSA_ERROR_NOT_SUPPORTED );
 
         /* Save the additional data for later, this will be passed in
            when we have the body. */
@@ -617,11 +614,9 @@ psa_status_t mbedtls_psa_aead_update( mbedtls_psa_aead_operation_t *operation,
          * must be passed in in one update, rather than deal with the complexity
          * of non block size aligned updates. This will be fixed in 3.0 when
            we can change the signature of the GCM multipart functions */
-        if( !operation->lengths_set || operation->body_remaining != 0 )
-            return( PSA_ERROR_BAD_STATE );
+        if( operation->body_started )
+            return( PSA_ERROR_NOT_SUPPORTED );
 
-        if( !operation->ad_started )
-            return( PSA_ERROR_BAD_STATE );
 
         status =  mbedtls_to_psa_error( mbedtls_gcm_update( &operation->ctx.gcm,
                                                         input_length,
@@ -636,7 +631,7 @@ psa_status_t mbedtls_psa_aead_update( mbedtls_psa_aead_operation_t *operation,
         /* CCM does not support multipart yet, so all the input has to be
            passed in in one go. */
         if( operation->body_started )
-            return( PSA_ERROR_BAD_STATE );
+            return( PSA_ERROR_NOT_SUPPORTED );
 
         /* Need to store tag for Finish() / Verify() */
         operation->tag_buffer =

@@ -287,13 +287,6 @@ int main( void )
 #define USAGE_DTLS ""
 #endif
 
-#if defined(MBEDTLS_SSL_FALLBACK_SCSV)
-#define USAGE_FALLBACK \
-    "    fallback=0/1        default: (library default: off)\n"
-#else
-#define USAGE_FALLBACK ""
-#endif
-
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
 #define USAGE_EMS \
     "    extended_ms=0/1     default: (library default: on)\n"
@@ -402,7 +395,6 @@ int main( void )
     USAGE_TRUNC_HMAC                                        \
     USAGE_CONTEXT_CRT_CB                                    \
     USAGE_ALPN                                              \
-    USAGE_FALLBACK                                          \
     USAGE_EMS                                               \
     USAGE_ETM                                               \
     USAGE_REPRODUCIBLE                                      \
@@ -1054,15 +1046,6 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "alpn" ) == 0 )
         {
             opt.alpn_string = q;
-        }
-        else if( strcmp( p, "fallback" ) == 0 )
-        {
-            switch( atoi( q ) )
-            {
-                case 0: opt.fallback = MBEDTLS_SSL_IS_NOT_FALLBACK; break;
-                case 1: opt.fallback = MBEDTLS_SSL_IS_FALLBACK; break;
-                default: goto usage;
-            }
         }
         else if( strcmp( p, "extended_ms" ) == 0 )
         {
@@ -1893,11 +1876,6 @@ int main( int argc, char *argv[] )
     if( opt.max_version != DFL_MAX_VERSION )
         mbedtls_ssl_conf_max_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3,
                                       opt.max_version );
-
-#if defined(MBEDTLS_SSL_FALLBACK_SCSV)
-    if( opt.fallback != DFL_FALLBACK )
-        mbedtls_ssl_conf_fallback( &conf, opt.fallback );
-#endif
 
     if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
     {

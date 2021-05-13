@@ -156,9 +156,6 @@
 #define MBEDTLS_SSL_IS_CLIENT                   0
 #define MBEDTLS_SSL_IS_SERVER                   1
 
-#define MBEDTLS_SSL_IS_NOT_FALLBACK             0
-#define MBEDTLS_SSL_IS_FALLBACK                 1
-
 #define MBEDTLS_SSL_EXTENDED_MS_DISABLED        0
 #define MBEDTLS_SSL_EXTENDED_MS_ENABLED         1
 
@@ -279,7 +276,6 @@
  * Signaling ciphersuite values (SCSV)
  */
 #define MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */
-#define MBEDTLS_SSL_FALLBACK_SCSV_VALUE         0x5600 /**< RFC 7507 section 2 */
 
 /*
  * Supported Signature and Hash algorithms (For TLS 1.2)
@@ -1198,9 +1194,6 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     unsigned int session_tickets : 1;   /*!< use session tickets?           */
 #endif
-#if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
-    unsigned int fallback : 1;      /*!< is this a fallback?                */
-#endif
 #if defined(MBEDTLS_SSL_SRV_C)
     unsigned int cert_req_ca_list : 1;  /*!< enable sending CA list in
                                           Certificate Request messages?     */
@@ -1831,54 +1824,6 @@ void mbedtls_ssl_set_verify( mbedtls_ssl_context *ssl,
  *                 altogether and handle timeouts at the application layer.
  */
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout );
-
-/**
- * \brief          Check whether a buffer contains a valid and authentic record
- *                 that has not been seen before. (DTLS only).
- *
- *                 This function does not change the user-visible state
- *                 of the SSL context. Its sole purpose is to provide
- *                 an indication of the legitimacy of an incoming record.
- *
- *                 This can be useful e.g. in distributed server environments
- *                 using the DTLS Connection ID feature, in which connections
- *                 might need to be passed between service instances on a change
- *                 of peer address, but where such disruptive operations should
- *                 only happen after the validity of incoming records has been
- *                 confirmed.
- *
- * \param ssl      The SSL context to use.
- * \param buf      The address of the buffer holding the record to be checked.
- *                 This must be a read/write buffer of length \p buflen Bytes.
- * \param buflen   The length of \p buf in Bytes.
- *
- * \note           This routine only checks whether the provided buffer begins
- *                 with a valid and authentic record that has not been seen
- *                 before, but does not check potential data following the
- *                 initial record. In particular, it is possible to pass DTLS
- *                 datagrams containing multiple records, in which case only
- *                 the first record is checked.
- *
- * \note           This function modifies the input buffer \p buf. If you need
- *                 to preserve the original record, you have to maintain a copy.
- *
- * \return         \c 0 if the record is valid and authentic and has not been
- *                 seen before.
- * \return         MBEDTLS_ERR_SSL_INVALID_MAC if the check completed
- *                 successfully but the record was found to be not authentic.
- * \return         MBEDTLS_ERR_SSL_INVALID_RECORD if the check completed
- *                 successfully but the record was found to be invalid for
- *                 a reason different from authenticity checking.
- * \return         MBEDTLS_ERR_SSL_UNEXPECTED_RECORD if the check completed
- *                 successfully but the record was found to be unexpected
- *                 in the state of the SSL context, including replayed records.
- * \return         Another negative error code on different kinds of failure.
- *                 In this case, the SSL context becomes unusable and needs
- *                 to be freed or reset before reuse.
- */
-int mbedtls_ssl_check_record( mbedtls_ssl_context const *ssl,
-                              unsigned char *buf,
-                              size_t buflen );
 
 /**
  * \brief          Set the timer callbacks (Mandatory for DTLS.)
@@ -3267,29 +3212,6 @@ void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int mino
  *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
 void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor );
-
-#if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
-/**
- * \brief          Set the fallback flag (client-side only).
- *                 (Default: MBEDTLS_SSL_IS_NOT_FALLBACK).
- *
- * \note           Set to MBEDTLS_SSL_IS_FALLBACK when preparing a fallback
- *                 connection, that is a connection with max_version set to a
- *                 lower value than the value you're willing to use. Such
- *                 fallback connections are not recommended but are sometimes
- *                 necessary to interoperate with buggy (version-intolerant)
- *                 servers.
- *
- * \warning        You should NOT set this to MBEDTLS_SSL_IS_FALLBACK for
- *                 non-fallback connections! This would appear to work for a
- *                 while, then cause failures when the server is upgraded to
- *                 support a newer TLS version.
- *
- * \param conf     SSL configuration
- * \param fallback MBEDTLS_SSL_IS_NOT_FALLBACK or MBEDTLS_SSL_IS_FALLBACK
- */
-void mbedtls_ssl_conf_fallback( mbedtls_ssl_config *conf, char fallback );
-#endif /* MBEDTLS_SSL_FALLBACK_SCSV && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
 /**

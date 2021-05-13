@@ -1781,29 +1781,6 @@ read_record_header:
             ext += 4 + ext_size;
         }
 
-#if defined(MBEDTLS_SSL_FALLBACK_SCSV)
-    for( i = 0, p = buf + ciph_offset + 2; i < ciph_len; i += 2, p += 2 )
-    {
-        if( p[0] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE >> 8 ) & 0xff ) &&
-            p[1] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE      ) & 0xff ) )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "received FALLBACK_SCSV" ) );
-
-            if( ssl->minor_ver < ssl->conf->max_minor_ver )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
-
-                mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_INAPROPRIATE_FALLBACK );
-
-                return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
-            }
-
-            break;
-        }
-    }
-#endif /* MBEDTLS_SSL_FALLBACK_SCSV */
-
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 

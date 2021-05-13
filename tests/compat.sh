@@ -155,7 +155,7 @@ log() {
 # is_dtls <mode>
 is_dtls()
 {
-    test "$1" = "dtls1" -o "$1" = "dtls1_2"
+    test "$1" = "dtls1_2"
 }
 
 # minor_ver <mode>

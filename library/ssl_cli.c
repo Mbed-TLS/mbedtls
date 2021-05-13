@@ -1206,19 +1206,6 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         n++;
     }
 
-    /* Some versions of OpenSSL don't handle it correctly if not at end */
-#if defined(MBEDTLS_SSL_FALLBACK_SCSV)
-    if( ssl->conf->fallback == MBEDTLS_SSL_IS_FALLBACK )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "adding FALLBACK_SCSV" ) );
-
-        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-        *p++ = (unsigned char)( MBEDTLS_SSL_FALLBACK_SCSV_VALUE >> 8 );
-        *p++ = (unsigned char)( MBEDTLS_SSL_FALLBACK_SCSV_VALUE      );
-        n++;
-    }
-#endif
-
     *q++ = (unsigned char)( n >> 7 );
     *q++ = (unsigned char)( n << 1 );
 

@@ -103,17 +103,14 @@ void rsa_invalid_param( )
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_pkcs1_encrypt( NULL, NULL, NULL,
-                                                       MBEDTLS_RSA_PUBLIC,
                                                        sizeof( buf ), buf,
                                                        buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_pkcs1_encrypt( &ctx, NULL, NULL,
-                                                       MBEDTLS_RSA_PUBLIC,
                                                        sizeof( buf ), NULL,
                                                        buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_pkcs1_encrypt( &ctx, NULL, NULL,
-                                                       MBEDTLS_RSA_PUBLIC,
                                                        sizeof( buf ), buf,
                                                        NULL ) );
 
@@ -703,8 +700,8 @@ void mbedtls_rsa_pkcs1_encrypt( data_t * message_str, int padding_mode,
 
     TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx,
                                             &mbedtls_test_rnd_pseudo_rand,
-                                            &rnd_info, MBEDTLS_RSA_PUBLIC,
-                                            message_str->len, message_str->x,
+                                            &rnd_info, message_str->len,
+                                            message_str->x,
                                             output ) == result );
     if( result == 0 )
     {
@@ -743,8 +740,8 @@ void rsa_pkcs1_encrypt_bad_rng( data_t * message_str, int padding_mode,
 
 
     TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx, &mbedtls_test_rnd_zero_rand,
-                                            NULL, MBEDTLS_RSA_PUBLIC,
-                                            message_str->len, message_str->x,
+                                            NULL, message_str->len,
+                                            message_str->x,
                                             output ) == result );
     if( result == 0 )
     {

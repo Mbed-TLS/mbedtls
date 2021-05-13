@@ -3064,7 +3064,6 @@ psa_status_t psa_asymmetric_encrypt( mbedtls_svc_key_id_t key,
                     mbedtls_rsa_pkcs1_encrypt( rsa,
                                                mbedtls_psa_get_random,
                                                MBEDTLS_PSA_RANDOM_STATE,
-                                               MBEDTLS_RSA_PUBLIC,
                                                input_length,
                                                input,
                                                output ) );

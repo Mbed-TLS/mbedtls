@@ -1317,13 +1317,11 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
 int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng,
-                       int mode, size_t ilen,
+                       size_t ilen,
                        const unsigned char *input,
                        unsigned char *output )
 {
     RSA_VALIDATE_RET( ctx != NULL );
-    RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
-                      mode == MBEDTLS_RSA_PUBLIC );
     RSA_VALIDATE_RET( output != NULL );
     RSA_VALIDATE_RET( ilen == 0 || input != NULL );
 
@@ -1331,14 +1329,16 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
     {
 #if defined(MBEDTLS_PKCS1_V15)
         case MBEDTLS_RSA_PKCS_V15:
-            return mbedtls_rsa_rsaes_pkcs1_v15_encrypt( ctx, f_rng, p_rng, mode, ilen,
-                                                input, output );
+            return mbedtls_rsa_rsaes_pkcs1_v15_encrypt( ctx, f_rng, p_rng,
+                                                        MBEDTLS_RSA_PUBLIC, ilen,
+                                                        input, output );
 #endif
 
 #if defined(MBEDTLS_PKCS1_V21)
         case MBEDTLS_RSA_PKCS_V21:
-            return mbedtls_rsa_rsaes_oaep_encrypt( ctx, f_rng, p_rng, mode, NULL, 0,
-                                           ilen, input, output );
+            return mbedtls_rsa_rsaes_oaep_encrypt( ctx, f_rng, p_rng,
+                                                   MBEDTLS_RSA_PUBLIC, NULL, 0,
+                                                   ilen, input, output );
 #endif
 
         default:
@@ -2691,7 +2691,7 @@ int mbedtls_rsa_self_test( int verbose )
 
     memcpy( rsa_plaintext, RSA_PT, PT_LEN );
 
-    if( mbedtls_rsa_pkcs1_encrypt( &rsa, myrand, NULL, MBEDTLS_RSA_PUBLIC,
+    if( mbedtls_rsa_pkcs1_encrypt( &rsa, myrand, NULL,
                                    PT_LEN, rsa_plaintext,
                                    rsa_ciphertext ) != 0 )
     {

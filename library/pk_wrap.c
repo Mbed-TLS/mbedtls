@@ -149,7 +149,7 @@ static int rsa_encrypt_wrap( void *ctx,
     if( *olen > osize )
         return( MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE );
 
-    return( mbedtls_rsa_pkcs1_encrypt( rsa, f_rng, p_rng, MBEDTLS_RSA_PUBLIC,
+    return( mbedtls_rsa_pkcs1_encrypt( rsa, f_rng, p_rng,
                                        ilen, input, output ) );
 }
 

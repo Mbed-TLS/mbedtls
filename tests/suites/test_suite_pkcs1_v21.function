@@ -35,8 +35,8 @@ void pkcs1_rsaes_oaep_encrypt( int mod, data_t * input_N, data_t * input_E,
         message_str->x = NULL;
     TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx,
                                             &mbedtls_test_rnd_buffer_rand,
-                                            &info, MBEDTLS_RSA_PUBLIC,
-                                            message_str->len, message_str->x,
+                                            &info, message_str->len,
+                                            message_str->x,
                                             output ) == result );
     if( result == 0 )
     {

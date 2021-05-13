@@ -571,12 +571,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  *                 operation.
  *
  *                 It is the generic wrapper for performing a PKCS#1 encryption
- *                 operation using the \p mode from the context.
- *
- * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
- *                 are likely to remove the \p mode argument and have it
- *                 implicitly set to #MBEDTLS_RSA_PUBLIC.
+ *                 operation.
  *
  * \note           Alternative implementations of RSA need not support
  *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
@@ -584,16 +579,10 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  *
  * \param ctx      The initialized RSA context to use.
  * \param f_rng    The RNG to use. It is mandatory for PKCS#1 v2.1 padding
- *                 encoding, and for PKCS#1 v1.5 padding encoding when used
- *                 with \p mode set to #MBEDTLS_RSA_PUBLIC. For PKCS#1 v1.5
- *                 padding encoding and \p mode set to #MBEDTLS_RSA_PRIVATE,
- *                 it is used for blinding and should be provided in this
- *                 case; see mbedtls_rsa_private() for more.
+ *                 encoding, and for PKCS#1 v1.5 padding encoding.
  * \param p_rng    The RNG context to be passed to \p f_rng. May be
  *                 \c NULL if \p f_rng is \c NULL or if \p f_rng doesn't
  *                 need a context argument.
- * \param mode     The mode of operation. This must be either
- *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE (deprecated).
  * \param ilen     The length of the plaintext in Bytes.
  * \param input    The input data to encrypt. This must be a readable
  *                 buffer of size \p ilen Bytes. It may be \c NULL if
@@ -608,7 +597,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng,
-                       int mode, size_t ilen,
+                       size_t ilen,
                        const unsigned char *input,
                        unsigned char *output );
 

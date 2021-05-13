@@ -627,12 +627,46 @@ typedef struct mbedtls_ssl_key_cert mbedtls_ssl_key_cert;
 typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 #endif
 
-/* TODO: Document */
+/**
+ * \brief          Callback type: server-side session cache getter
+ *
+ *                 The session cache is logically a key value store, with
+ *                 keys being session IDs and values being instances of
+ *                 mbedtls_ssl_session.
+ *
+ *                 This callback retrieves an entry in this key-value store.
+ *
+ * \param data            The address of the session cache structure to query.
+ * \param session_id      The buffer holding the session ID to query.
+ * \param session_id_len  The length of \p session_id in Bytes.
+ * \param session         The address at which to store the session found
+ *                        in the cache.
+ *
+ * \return                \c 0 on success
+ * \return                A non-zero return value on failure.
+ */
 typedef int mbedtls_ssl_cache_get_t( void *data,
                                      unsigned char const *session_id,
                                      size_t session_id_len,
                                      mbedtls_ssl_session *session );
-/* TODO: Document */
+/**
+ * \brief          Callback type: server-side session cache setter
+ *
+ *                 The session cache is logically a key value store, with
+ *                 keys being session IDs and values being instances of
+ *                 mbedtls_ssl_session.
+ *
+ *                 This callback sets an entry in this key-value store.
+ *
+ * \param data            The address of the session cache structure to modify.
+ * \param session_id      The buffer holding the session ID to query.
+ * \param session_id_len  The length of \p session_id in Bytes.
+ * \param session         The address of the session to be stored in the
+ *                        session cache.
+ *
+ * \return                \c 0 on success
+ * \return                A non-zero return value on failure.
+ */
 typedef int mbedtls_ssl_cache_set_t( void *data,
                                      unsigned char const *session_id,
                                      size_t session_id_len,

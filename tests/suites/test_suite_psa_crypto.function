@@ -322,7 +322,8 @@ void import_with_policy( int type_arg,
 
     PSA_ASSERT( psa_get_key_attributes( key, &got_attributes ) );
     TEST_EQUAL( psa_get_key_type( &got_attributes ), type );
-    TEST_EQUAL( psa_get_key_usage_flags( &got_attributes ), usage );
+    TEST_EQUAL( psa_get_key_usage_flags( &got_attributes ),
+                                         update_key_usage_flags( usage ) );
     TEST_EQUAL( psa_get_key_algorithm( &got_attributes ), alg );
     ASSERT_NO_SLOT_NUMBER( &got_attributes );
 
@@ -1162,6 +1163,8 @@ void key_policy_alg2( int key_type_arg, data_t *key_data,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
 
+    /* Update the usage flags to obtain extended usage flags */
+    usage = update_key_usage_flags( usage );
     PSA_ASSERT( psa_get_key_attributes( key, &got_attributes ) );
     TEST_EQUAL( psa_get_key_usage_flags( &got_attributes ), usage );
     TEST_EQUAL( psa_get_key_algorithm( &got_attributes ), alg );
@@ -5186,7 +5189,8 @@ void persistent_key_load_key_from_storage( data_t *data,
                 PSA_KEY_LIFETIME_PERSISTENT );
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
     TEST_EQUAL( psa_get_key_bits( &attributes ), bits );
-    TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage_flags );
+    TEST_EQUAL( psa_get_key_usage_flags( &attributes ),
+                                         update_key_usage_flags( usage_flags ) );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
 
     /* Export the key again if permitted by the key policy. */

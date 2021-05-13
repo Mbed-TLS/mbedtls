@@ -345,7 +345,7 @@ psa_status_t mbedtls_psa_aead_encrypt_setup( mbedtls_psa_aead_operation_t
                                              size_t key_buffer_size,
                                              psa_algorithm_t alg )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     status = psa_aead_setup( operation, attributes, key_buffer,
                              key_buffer_size, alg );
@@ -366,7 +366,7 @@ psa_status_t mbedtls_psa_aead_decrypt_setup( mbedtls_psa_aead_operation_t
                                              size_t key_buffer_size,
                                              psa_algorithm_t alg )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     (void) key_buffer_size;
 
@@ -385,7 +385,7 @@ psa_status_t mbedtls_psa_aead_set_nonce( mbedtls_psa_aead_operation_t
                                          const uint8_t *nonce,
                                          size_t nonce_length )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )

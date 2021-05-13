@@ -103,22 +103,17 @@ void rsa_invalid_param( )
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_pkcs1_encrypt( NULL, NULL, NULL,
-                                                       valid_mode,
+                                                       MBEDTLS_RSA_PUBLIC,
                                                        sizeof( buf ), buf,
                                                        buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_pkcs1_encrypt( &ctx, NULL, NULL,
-                                                       invalid_mode,
-                                                       sizeof( buf ), buf,
-                                                       buf ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_pkcs1_encrypt( &ctx, NULL, NULL,
-                                                       valid_mode,
+                                                       MBEDTLS_RSA_PUBLIC,
                                                        sizeof( buf ), NULL,
                                                        buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_pkcs1_encrypt( &ctx, NULL, NULL,
-                                                       valid_mode,
+                                                       MBEDTLS_RSA_PUBLIC,
                                                        sizeof( buf ), buf,
                                                        NULL ) );
 

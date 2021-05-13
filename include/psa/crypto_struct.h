@@ -466,9 +466,15 @@ struct psa_pake_cipher_suite_s
     psa_algorithm_t algorithm;
     psa_pake_primitive_type_t type;
     psa_pake_family_t family;
-    size_t  bits;
+    uint16_t  bits;
     psa_algorithm_t hash;
 };
+
+static inline psa_algorithm_t psa_pake_cs_get_algorithm(
+    const psa_pake_cipher_suite_t *cipher_suite)
+{
+    return( cipher_suite->algorithm );
+}
 
 static inline void psa_pake_cs_set_algorithm(
     psa_pake_cipher_suite_t *cipher_suite,
@@ -480,49 +486,20 @@ static inline void psa_pake_cs_set_algorithm(
         cipher_suite->algorithm = algorithm;
 }
 
-static inline psa_algorithm_t psa_pake_cs_get_algorithm(
+static inline psa_pake_primitive_t psa_pake_cs_get_primitive(
     const psa_pake_cipher_suite_t *cipher_suite)
 {
-    return( cipher_suite->algorithm );
+    return( PSA_PAKE_PRIMITIVE( cipher_suite->type, cipher_suite->family,
+                cipher_suite->bits) );
 }
 
-static inline psa_pake_primitive_type_t psa_pake_cs_get_type(
-    const psa_pake_cipher_suite_t *cipher_suite)
-{
-    return( cipher_suite->type );
-}
-
-static inline void psa_pake_cs_set_type(
+static inline void psa_pake_cs_set_primitive(
     psa_pake_cipher_suite_t *cipher_suite,
-    psa_pake_primitive_type_t type)
+    psa_pake_primitive_t primitive)
 {
-    cipher_suite->type = type;
-}
-
-static inline psa_pake_family_t psa_pake_cs_get_family(
-    const psa_pake_cipher_suite_t *cipher_suite)
-{
-    return( cipher_suite->family );
-}
-
-static inline void psa_pake_cs_set_family(
-    psa_pake_cipher_suite_t *cipher_suite,
-    psa_pake_family_t family)
-{
-    cipher_suite->family = family;
-}
-
-static inline size_t psa_pake_cs_get_bits(
-    const psa_pake_cipher_suite_t *cipher_suite)
-{
-    return( cipher_suite->bits );
-}
-
-static inline void psa_pake_cs_set_bits(
-    psa_pake_cipher_suite_t *cipher_suite,
-    size_t bits)
-{
-    cipher_suite->bits = bits;
+    cipher_suite->type = (psa_pake_primitive_type_t) primitive >> 24;
+    cipher_suite->family = (psa_pake_family_t) ( 0xFF & (primitive >> 16) );
+    cipher_suite->bits = (uint16_t) ( 0xFFFF & primitive );
 }
 
 static inline psa_algorithm_t psa_pake_cs_get_hash(

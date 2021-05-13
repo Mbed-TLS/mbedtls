@@ -2546,6 +2546,30 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  */
 #define PSA_PAKE_PRIMITIVE_TYPE_DH       ((psa_pake_primitive_type_t)0x02)
 
+/** Construct a PAKE primitive from type, family and bitsize.
+ *
+ * \param pake_type     The type of the primitive
+ *                      (value of type ::psa_pake_primitive_type_t).
+ * \param pake_family   The family of the primitive
+ *                      (the type and interpretation of this parameter depends
+ *                      on \p type, for more information consult the
+ *                      documentation of individual ::psa_pake_primitive_type_t
+ *                      constants).
+ * \param pake_bits     The bitsize of the primitive
+ *                      (Value of type \c size_t. The interpretation
+ *                      of this parameter depends on \p family, for more
+ *                      information consult the documentation of individual
+ *                      ::psa_pake_primitive_type_t constants).
+ *
+ * \return The constructed primitive value of type ::psa_pake_primitive_t.
+ *         Return 0 if the requested primitive can't be encoded as
+ *         ::psa_pake_primitive_t.
+ */
+#define PSA_PAKE_PRIMITIVE(pake_type, pake_family, pake_bits) \
+    (pake_bits > 0xFFFF) ? 0 :                                \
+    ((psa_pake_primitive_t) (((pake_type) << 24 |             \
+            (pake_family) << 16) | (pake_bits)))
+
 /** The key share being sent to or received from the peer.
  *
  * Unless the documentation of the PAKE algorithm says otherwise this is a

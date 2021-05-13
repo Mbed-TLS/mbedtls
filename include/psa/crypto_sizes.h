@@ -1143,7 +1143,7 @@
  *
  * \param alg           A PAKE algorithm (PSA_ALG_XXX value such that
  *                      #PSA_ALG_IS_PAKE(\p alg) is true).
- * \param cipher_suite  A cipher suite that is compatible with algorithm \p alg.
+ * \param primitive     A primitive that is compatible with algorithm \p alg.
  * \param output_step   A value of type ::psa_pake_step_t that is valid for the
  *                      algorithm \p alg.
  * \return              A sufficient output buffer size for the specified
@@ -1151,7 +1151,7 @@
  *                      the output type or PAKE algorithm is not recognized, or
  *                      the parameters are incompatible, return 0.
  */
-#define PSA_PAKE_OUTPUT_SIZE(alg, cipher_suite, output_step)
+#define PSA_PAKE_OUTPUT_SIZE(alg, primitive, output_step)
 
 /** Output buffer size for psa_pake_output() for any of the supported cipher
  * suites and PAKE algorithms.

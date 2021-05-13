@@ -415,5 +415,11 @@ typedef uint8_t psa_pake_primitive_type_t;
  * PSA_PAKE_PRIMITIVE_TYPE_XXX constants.
  */
 typedef uint8_t psa_pake_family_t;
+
+/** \brief Encoding of the primitive associated with the PAKE.
+ *
+ * For more information see the documentation of the #PSA_PAKE_PRIMITIVE macro.
+ */
+typedef uint32_t psa_pake_primitive_t;
 /**@}*/
 #endif /* PSA_CRYPTO_TYPES_H */

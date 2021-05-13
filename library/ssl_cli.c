@@ -1951,6 +1951,10 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
     mbedtls_ssl_read_version( &major_ver, &minor_ver, ssl->conf->transport, p );
     p += 2;
 
+    /*
+     * Since the RFC is not clear on this point, accept DTLS 1.0 (TLS 1.1)
+     * even is lower than our min version.
+     */
     if( major_ver < MBEDTLS_SSL_MAJOR_VERSION_3 ||
         minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 ||
         major_ver > ssl->conf->max_major_ver  ||

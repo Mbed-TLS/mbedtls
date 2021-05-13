@@ -836,7 +836,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         /*
-         * Prepend per-record IV for block cipher in TLS v1.2
+         * Prepend per-record IV for block cipher in TLS v1.2 as per
          * Method 1 (6.2.3.2. in RFC4346 and RFC5246)
          */
         if( transform->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_3 )

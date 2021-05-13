@@ -1999,11 +1999,11 @@
  *      // Get the ZKP proof for x1
  *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
  *      // Get g2
- *      psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE_2, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE, ...);
  *      // Get the ZKP public key for x2
- *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PUBLIC_2, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
  *      // Get the ZKP proof for x2
- *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF_2, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
  * -# To provide the first round data received from the peer to the operation,
  *    call
  *      // Set g3
@@ -2013,26 +2013,26 @@
  *      // Set the ZKP proof for x3
  *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
  *      // Set g4
- *      psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE_2, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE, ...);
  *      // Set the ZKP public key for x4
- *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PUBLIC_2, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
  *      // Set the ZKP proof for x4
- *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF_2, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
  * -# To get the second round data that needs to be sent to the peer, call
  *      // Get A
- *      psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE_3, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE, ...);
  *      // Get ZKP public key for x2*s
- *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PUBLIC_3, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
  *      // Get ZKP proof for x2*s
- *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF_3, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
  * -# To provide the second round data received from the peer to the operation,
  *    call
  *      // Set B
- *      psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE_3, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE, ...);
  *      // Set ZKP public key for x4*s
- *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PUBLIC_3, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
  *      // Set ZKP proof for x4*s
- *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF_3, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
  * -# To access the shared secret call
  *      // Get Ka=Kb=K
  *      psa_pake_get_implicit_key()
@@ -2577,11 +2577,6 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *
  * For information regarding representation consult the documentation of
  * individual ::psa_pake_primitive_type_t constants.
- *
- * Some PAKE algorithms need to exchange several key shares. If that is the
- * case, this value marks the first key share sent and the first key share
- * received. For values sent or received afterwards, use
- * #PSA_PAKE_DATA_KEY_SHARE_2 and #PSA_PAKE_DATA_KEY_SHARE_3.
  */
 #define PSA_PAKE_DATA_KEY_SHARE                 ((psa_pake_step_t)0x01)
 
@@ -2591,11 +2586,6 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *
  * For information regarding representation consult the documentation of
  * individual ::psa_pake_primitive_type_t constants.
- *
- * Some PAKE algorithms need to perform several zero-knowledge proofs. If that
- * is the case, this value marks the first public key sent and the first public
- * key received. For values sent or received afterwards, use
- * #PSA_PAKE_DATA_ZK_PUBLIC_2 and #PSA_PAKE_DATA_ZK_PUBLIC_3.
  */
 #define PSA_PAKE_DATA_ZK_PUBLIC                 ((psa_pake_step_t)0x02)
 
@@ -2605,49 +2595,8 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *
  * For information regarding representation consult the documentation of
  * individual ::psa_pake_primitive_type_t constants.
- *
- * Some PAKE algorithms need to perform several zero-knowledge proofs. If that
- * is the case, this value marks the first proof sent and the first proof
- * received. For values sent or received afterwards, use
- * #PSA_PAKE_DATA_ZK_PROOF_2 and #PSA_PAKE_DATA_ZK_PROOF_3.
  */
 #define PSA_PAKE_DATA_ZK_PROOF                  ((psa_pake_step_t)0x03)
-
-/** Marks the second key share sent and received.
- *
- * See #PSA_PAKE_DATA_KEY_SHARE.
- */
-#define PSA_PAKE_DATA_KEY_SHARE_2               ((psa_pake_step_t)0x04)
-
-/** Marks the second Schnorr NIZKP public key sent and received.
- *
- * See #PSA_PAKE_DATA_ZK_PUBLIC.
- */
-#define PSA_PAKE_DATA_ZK_PUBLIC_2               ((psa_pake_step_t)0x05)
-
-/** Marks the second Schnorr NIZKP proof sent and received.
- *
- * See #PSA_PAKE_DATA_ZK_PROOF.
- */
-#define PSA_PAKE_DATA_ZK_PROOF_2                ((psa_pake_step_t)0x06)
-
-/** Marks the third key share sent and received.
- *
- * See #PSA_PAKE_DATA_KEY_SHARE.
- */
-#define PSA_PAKE_DATA_KEY_SHARE_3               ((psa_pake_step_t)0x07)
-
-/** Marks the third Schnorr NIZKP public key sent and received.
- *
- * See #PSA_PAKE_DATA_ZK_PUBLIC.
- */
-#define PSA_PAKE_DATA_ZK_PUBLIC_3               ((psa_pake_step_t)0x08)
-
-/** Marks the third Schnorr NIZKP proof sent and received.
- *
- * See #PSA_PAKE_DATA_ZK_PROOF.
- */
-#define PSA_PAKE_DATA_ZK_PROOF_3                ((psa_pake_step_t)0x09)
 
 /**@}*/
 #endif /* PSA_CRYPTO_VALUES_H */

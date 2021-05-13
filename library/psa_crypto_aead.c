@@ -843,7 +843,7 @@ psa_status_t mbedtls_psa_aead_verify( mbedtls_psa_aead_operation_t *operation,
     size_t finish_output_size = 0;
 
     int do_tag_check = 1;
-    uint8_t check_tag[16];
+    uint8_t check_tag[PSA_AEAD_TAG_MAX_SIZE];
 
     status = mbedtls_psa_aead_finish_checks( operation, plaintext_size,
                                              tag_length );

@@ -2765,7 +2765,7 @@ static int ssl_write_hello_verify_request( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 
-static void ssl_check_id_based_session_resumption( mbedtls_ssl_context *ssl )
+static void ssl_handle_id_based_session_resumption( mbedtls_ssl_context *ssl )
 {
     int ret;
     mbedtls_ssl_session session_tmp;
@@ -2883,7 +2883,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes", buf + 6, 32 );
 
-    ssl_check_id_based_session_resumption( ssl );
+    ssl_handle_id_based_session_resumption( ssl );
 
     if( ssl->handshake->resume == 0 )
     {

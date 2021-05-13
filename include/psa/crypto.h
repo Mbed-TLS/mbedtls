@@ -4324,6 +4324,9 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
 
 /** Set the password for a password-authenticated key exchange from key ID.
  *
+ * \param[in,out] operation     The operation object to set the password for. It
+ *                              must have been set up by psa_pake_setup() and
+ *                              not yet in use.
  * \param password              Identifier of the key holding the password or a
  *                              value derived from the password (eg. by a
  *                              memory-hard function).  It must remain valid
@@ -4358,6 +4361,9 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  * accessed through the key derivation interface and the result can be supplied
  * to the PAKE operation in the form of a key derivation object.
  *
+ * \param[in,out] operation     The operation object to set the password for. It
+ *                              must have been set up by psa_pake_setup() and
+ *                              not yet in use.
  * \param key_derivation        An ongoing key derivation operation set up from
  *                              the password and in a state suitable for
  *                              calling psa_key_derivation_output_bytes().
@@ -4391,6 +4397,9 @@ psa_status_t psa_pake_set_password_mhf(psa_pake_operation_t *operation,
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
  * for more information.
  *
+ * \param[in,out] operation     The operation object to set the user ID for. It
+ *                              must have been set up by psa_pake_setup() and
+ *                              not yet in use.
  * \param[in] user_id           The user ID to authenticate with.
  * \param user_id_len           Size of the \p user_id buffer in bytes.
  *
@@ -4423,6 +4432,9 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
  * for more information.
  *
+ * \param[in,out] operation     The operation object to set the peer ID for. It
+ *                              must have been set up by psa_pake_setup() and
+ *                              not yet in use.
  * \param[in] peer_id           The peer's ID to authenticate.
  * \param peer_id_len           Size of the \p peer_id buffer in bytes.
  *
@@ -4457,6 +4469,9 @@ psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
  * for more information.
  *
+ * \param[in,out] operation     The operation object to set the side for. It
+ *                              must have been set up by psa_pake_setup() and
+ *                              not yet in use.
  * \param side                  A value of type ::psa_pake_side_t signaling the
  *                              side of the algorithm that is being set up. For
  *                              more information see the documentation of \c

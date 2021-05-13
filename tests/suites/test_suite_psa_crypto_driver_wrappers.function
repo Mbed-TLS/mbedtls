@@ -142,7 +142,7 @@ void ecdsa_sign_message( int force_status_arg,
 
     PSA_ASSERT( psa_crypto_init( ) );
     psa_set_key_type( &attributes,
-                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
     psa_set_key_algorithm( &attributes, alg );
     psa_import_key( &attributes,
@@ -202,7 +202,7 @@ void ecdsa_verify_message( int force_status_arg,
     if( register_public_key )
     {
         psa_set_key_type( &attributes,
-                      PSA_KEY_TYPE_ECC_PUBLIC_KEY( PSA_ECC_CURVE_SECP_R1 ) );
+                      PSA_KEY_TYPE_ECC_PUBLIC_KEY( PSA_ECC_FAMILY_SECP_R1 ) );
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_MESSAGE );
         psa_set_key_algorithm( &attributes, alg );
         psa_import_key( &attributes,
@@ -212,7 +212,7 @@ void ecdsa_verify_message( int force_status_arg,
     else
     {
         psa_set_key_type( &attributes,
-                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) );
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_MESSAGE );
         psa_set_key_algorithm( &attributes, alg );
         psa_import_key( &attributes,

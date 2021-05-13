@@ -124,10 +124,10 @@ exit:
     return( ret );
 }
 
-static int ssl_cache_find_fresh_entry( mbedtls_ssl_cache_context *cache,
-                                       unsigned char const *session_id,
-                                       size_t session_id_len,
-                                       mbedtls_ssl_cache_entry **dst )
+static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
+                                        unsigned char const *session_id,
+                                        size_t session_id_len,
+                                        mbedtls_ssl_cache_entry **dst )
 {
     int ret = 1;
 #if defined(MBEDTLS_HAVE_TIME)
@@ -270,9 +270,9 @@ int mbedtls_ssl_cache_set( void *data,
         return( ret );
 #endif
 
-    ret = ssl_cache_find_fresh_entry( cache,
-                                      session_id, session_id_len,
-                                      &cur );
+    ret = ssl_cache_pick_writing_slot( cache,
+                                       session_id, session_id_len,
+                                       &cur );
     if( ret != 0 )
         goto exit;
 

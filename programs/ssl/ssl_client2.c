@@ -411,7 +411,7 @@ int main( void )
     "\n"
 #define USAGE4 \
     "    allow_sha1=%%d       default: 0\n"                             \
-    "    min_version=%%s      default: (library default: tls1)\n"       \
+    "    min_version=%%s      default: (library default: tls1_2)\n"       \
     "    max_version=%%s      default: (library default: tls1_2)\n"     \
     "    force_version=%%s    default: \"\" (none)\n"       \
     "                        options: tls1_2, dtls1_2\n" \

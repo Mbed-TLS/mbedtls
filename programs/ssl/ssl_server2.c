@@ -500,10 +500,10 @@ int main( void )
     USAGE_SSL_ASYNC                                         \
     USAGE_SNI                                               \
     "    allow_sha1=%%d       default: 0\n"                             \
-    "    min_version=%%s      default: (library default: tls1)\n"       \
+    "    min_version=%%s      default: (library default: tls1_2)\n"       \
     "    max_version=%%s      default: (library default: tls1_2)\n"     \
     "    force_version=%%s    default: \"\" (none)\n"       \
-    "                        options: tls1, dtls1_2\n" \
+    "                        options: tls1_2, dtls1_2\n" \
     "\n"                                                                \
     "    version_suites=a,b,c        per-version ciphersuites\n"        \
     "                                in order from tls1 to tls1_2\n"    \

@@ -2442,25 +2442,6 @@ run_test    "Extended Master Secret: client disabled, server enabled" \
             -C "session hash for extended master secret" \
             -S "session hash for extended master secret"
 
-# Tests for FALLBACK_SCSV
-
-run_test    "Fallback SCSV: enabled, max version" \
-            "$P_SRV debug_level=2" \
-            "$P_CLI debug_level=3 fallback=1" \
-            0 \
-            -c "adding FALLBACK_SCSV" \
-            -s "received FALLBACK_SCSV" \
-            -S "inapropriate fallback" \
-            -C "is a fatal alert message (msg 86)"
-
-requires_openssl_with_fallback_scsv
-run_test    "Fallback SCSV: enabled, max version, openssl client" \
-            "$P_SRV debug_level=2" \
-            "$O_CLI -fallback_scsv" \
-            0 \
-            -s "received FALLBACK_SCSV" \
-            -S "inapropriate fallback"
-
 # Test sending and receiving empty application data records
 
 run_test    "Encrypt then MAC: empty application data record" \

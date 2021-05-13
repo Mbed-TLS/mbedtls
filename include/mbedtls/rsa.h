@@ -639,22 +639,11 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
  * \note             The output buffer must be as large as the size
  *                   of ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
- * \deprecated       It is deprecated and discouraged to call this function
- *                   in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
- *                   are likely to remove the \p mode argument and have it
- *                   implicitly set to #MBEDTLS_RSA_PUBLIC.
- *
- * \note             Alternative implementations of RSA need not support
- *                   mode being set to #MBEDTLS_RSA_PRIVATE and might instead
- *                   return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
- *
  * \param ctx        The initnialized RSA context to use.
  * \param f_rng      The RNG function to use. This is needed for padding
  *                   generation and must be provided.
  * \param p_rng      The RNG context to be passed to \p f_rng. This may
  *                   be \c NULL if \p f_rng doesn't need a context argument.
- * \param mode       The mode of operation. This must be either
- *                   #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE (deprecated).
  * \param label      The buffer holding the custom label to use.
  *                   This must be a readable buffer of length \p label_len
  *                   Bytes. It may be \c NULL if \p label_len is \c 0.
@@ -673,7 +662,6 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
 int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng,
-                            int mode,
                             const unsigned char *label, size_t label_len,
                             size_t ilen,
                             const unsigned char *input,

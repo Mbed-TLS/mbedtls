@@ -4322,7 +4322,7 @@ static psa_pake_operation_t psa_pake_operation_init(void);
 psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
                             psa_pake_cipher_suite_t cipher_suite);
 
-/** Set the password for a password-authenticated key exchange.
+/** Set the password for a password-authenticated key exchange from key ID.
  *
  * \param password              Identifier of the key holding the password or a
  *                              value derived from the password (eg. by a
@@ -4349,6 +4349,37 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  */
 psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
                                        mbedtls_svc_key_id_t password);
+
+/** Set the password for a password-authenticated key exchange with memory hard
+ * function.
+ *
+ * Some protocols require using values derived from passwords via memory hard
+ * functions to mitigate dictionary attacks. Memory hard functions can be
+ * accessed through the key derivation interface and the result can be supplied
+ * to the PAKE operation in the form of a key derivation object.
+ *
+ * \param key_derivation        An ongoing key derivation operation set up from
+ *                              the password and in a state suitable for
+ *                              calling psa_key_derivation_output_bytes().
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key_derivation is not ready for a call to
+ *         psa_key_derivation_output_bytes().
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_pake_set_password_mhf(psa_pake_operation_t *operation,
+                                       psa_pake_operation_t *key_derivation);
 
 /** Set the user ID for a password-authenticated key exchange.
  *

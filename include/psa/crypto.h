@@ -4328,7 +4328,7 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  *                              value derived from the password (eg. by a
  *                              memory-hard function).  It must remain valid
  *                              until the operation terminates. It must be of
- *                              type PSA_KEY_TYPE_PASSWORD or
+ *                              type #PSA_KEY_TYPE_PASSWORD or
  *                              #PSA_KEY_TYPE_DERIVE. It has to allow the usage
  *                              #PSA_KEY_USAGE_DERIVE.
  *

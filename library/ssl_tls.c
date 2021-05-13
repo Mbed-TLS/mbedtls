@@ -3579,7 +3579,7 @@ void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
     if( major != MBEDTLS_SSL_MAJOR_VERSION_3 )
         return;
 
-    if( minor < MBEDTLS_SSL_MINOR_VERSION_1 || minor > MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( minor != MBEDTLS_SSL_MINOR_VERSION_3 )
         return;
 
     set_protocol_version_ciphersuites(conf, minor, ciphersuites);
@@ -6315,7 +6315,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
             if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-                conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
+                conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
 #endif
             const int* default_ciphersuites = mbedtls_ssl_list_ciphersuites();
             set_protocol_version_ciphersuites(conf, MBEDTLS_SSL_MINOR_VERSION_1,

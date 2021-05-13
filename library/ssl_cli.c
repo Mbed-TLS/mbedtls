@@ -1952,7 +1952,7 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
     p += 2;
 
     if( major_ver < MBEDTLS_SSL_MAJOR_VERSION_3 ||
-        minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 ||
+        minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 ||
         major_ver > ssl->conf->max_major_ver  ||
         minor_ver > ssl->conf->max_minor_ver  )
     {

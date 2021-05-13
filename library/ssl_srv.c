@@ -2810,7 +2810,7 @@ static void ssl_handle_id_based_session_resumption( mbedtls_ssl_context *ssl )
 
 exit:
 
-    mbedtls_platform_zeroize( &session_tmp, sizeof( session_tmp ) );
+    mbedtls_ssl_session_free( &session_tmp );
 }
 
 static int ssl_write_server_hello( mbedtls_ssl_context *ssl )

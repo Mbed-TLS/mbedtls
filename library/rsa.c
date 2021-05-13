@@ -1244,8 +1244,7 @@ exit:
  */
 int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
                                  int (*f_rng)(void *, unsigned char *, size_t),
-                                 void *p_rng,
-                                 int mode, size_t ilen,
+                                 void *p_rng, size_t ilen,
                                  const unsigned char *input,
                                  unsigned char *output )
 {
@@ -1254,13 +1253,8 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
     unsigned char *p = output;
 
     RSA_VALIDATE_RET( ctx != NULL );
-    RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
-                      mode == MBEDTLS_RSA_PUBLIC );
     RSA_VALIDATE_RET( output != NULL );
     RSA_VALIDATE_RET( ilen == 0 || input != NULL );
-
-    if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     olen = ctx->len;
 
@@ -1271,43 +1265,32 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
     nb_pad = olen - 3 - ilen;
 
     *p++ = 0;
-    if( mode == MBEDTLS_RSA_PUBLIC )
+
+    if( f_rng == NULL )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    *p++ = MBEDTLS_RSA_CRYPT;
+
+    while( nb_pad-- > 0 )
     {
-        if( f_rng == NULL )
-            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+        int rng_dl = 100;
 
-        *p++ = MBEDTLS_RSA_CRYPT;
+        do {
+            ret = f_rng( p_rng, p, 1 );
+        } while( *p == 0 && --rng_dl && ret == 0 );
 
-        while( nb_pad-- > 0 )
-        {
-            int rng_dl = 100;
+        /* Check if RNG failed to generate data */
+        if( rng_dl == 0 || ret != 0 )
+            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_RNG_FAILED, ret ) );
 
-            do {
-                ret = f_rng( p_rng, p, 1 );
-            } while( *p == 0 && --rng_dl && ret == 0 );
-
-            /* Check if RNG failed to generate data */
-            if( rng_dl == 0 || ret != 0 )
-                return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_RNG_FAILED, ret ) );
-
-            p++;
-        }
-    }
-    else
-    {
-        *p++ = MBEDTLS_RSA_SIGN;
-
-        while( nb_pad-- > 0 )
-            *p++ = 0xFF;
+        p++;
     }
 
     *p++ = 0;
     if( ilen != 0 )
         memcpy( p, input, ilen );
 
-    return( ( mode == MBEDTLS_RSA_PUBLIC )
-            ? mbedtls_rsa_public(  ctx, output, output )
-            : mbedtls_rsa_private( ctx, f_rng, p_rng, output, output ) );
+    return( mbedtls_rsa_public(  ctx, output, output ) );
 }
 #endif /* MBEDTLS_PKCS1_V15 */
 
@@ -1330,8 +1313,7 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
 #if defined(MBEDTLS_PKCS1_V15)
         case MBEDTLS_RSA_PKCS_V15:
             return mbedtls_rsa_rsaes_pkcs1_v15_encrypt( ctx, f_rng, p_rng,
-                                                        MBEDTLS_RSA_PUBLIC, ilen,
-                                                        input, output );
+                                                        ilen, input, output );
 #endif
 
 #if defined(MBEDTLS_PKCS1_V21)

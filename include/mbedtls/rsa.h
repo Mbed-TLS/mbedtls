@@ -605,25 +605,15 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
  * \brief          This function performs a PKCS#1 v1.5 encryption operation
  *                 (RSAES-PKCS1-v1_5-ENCRYPT).
  *
- * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
- *                 are likely to remove the \p mode argument and have it
- *                 implicitly set to #MBEDTLS_RSA_PUBLIC.
- *
  * \note           Alternative implementations of RSA need not support
  *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
  *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function to use. It is needed for padding generation
- *                 if \p mode is #MBEDTLS_RSA_PUBLIC. If \p mode is
- *                 #MBEDTLS_RSA_PRIVATE (discouraged), it is used for
- *                 blinding and should be provided; see mbedtls_rsa_private().
+ * \param f_rng    The RNG function to use. It is needed for padding generation.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may
  *                 be \c NULL if \p f_rng is \c NULL or if \p f_rng
  *                 doesn't need a context argument.
- * \param mode     The mode of operation. This must be either
- *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE (deprecated).
  * \param ilen     The length of the plaintext in Bytes.
  * \param input    The input data to encrypt. This must be a readable
  *                 buffer of size \p ilen Bytes. It may be \c NULL if
@@ -638,7 +628,7 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
 int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
                                  int (*f_rng)(void *, unsigned char *, size_t),
                                  void *p_rng,
-                                 int mode, size_t ilen,
+                                 size_t ilen,
                                  const unsigned char *input,
                                  unsigned char *output );
 

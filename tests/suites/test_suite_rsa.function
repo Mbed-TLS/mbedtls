@@ -116,22 +116,16 @@ void rsa_invalid_param( )
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_pkcs1_v15_encrypt( NULL, NULL,
-                                                           NULL,
-                                                           MBEDTLS_RSA_PUBLIC,
-                                                           sizeof( buf ), buf,
-                                                           buf ) );
+                                                           NULL, sizeof( buf ),
+                                                           buf, buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx, NULL,
-                                                           NULL,
-                                                           MBEDTLS_RSA_PUBLIC,
-                                                           sizeof( buf ), NULL,
-                                                           buf ) );
+                                                           NULL, sizeof( buf ),
+                                                           NULL, buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx, NULL,
-                                                           NULL,
-                                                           MBEDTLS_RSA_PUBLIC,
-                                                           sizeof( buf ), buf,
-                                                           NULL ) );
+                                                           NULL, sizeof( buf ),
+                                                           buf, NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_oaep_encrypt( NULL, NULL, NULL,

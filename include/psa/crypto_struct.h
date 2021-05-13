@@ -497,7 +497,7 @@ static inline void psa_pake_cs_set_primitive(
     psa_pake_cipher_suite_t *cipher_suite,
     psa_pake_primitive_t primitive)
 {
-    cipher_suite->type = (psa_pake_primitive_type_t) primitive >> 24;
+    cipher_suite->type = (psa_pake_primitive_type_t) (primitive >> 24);
     cipher_suite->family = (psa_pake_family_t) ( 0xFF & (primitive >> 16) );
     cipher_suite->bits = (uint16_t) ( 0xFFFF & primitive );
 }

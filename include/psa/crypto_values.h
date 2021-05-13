@@ -1985,6 +1985,11 @@
  * Implementations of the present specification use Schnorr NIZKP and this does
  * not need to be configured in the cipher suites.
  *
+ * J-PAKE doesn't differentiate between sides and has a distinct identifier
+ * associated with each entity. This means that both psa_pake_set_user() and
+ * psa_pake_set_peer() needs to be called before commencing the operation.
+ * Another conseque is that psa_pake_set_side() is optional and is ignored.
+ *
  * The key exchange flow for JPAKE is as follows:
  * -# To get the first round data that needs to be sent to the peer, call
  *      // Get g1

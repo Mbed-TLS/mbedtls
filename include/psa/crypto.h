@@ -4319,12 +4319,6 @@ static void psa_pake_cs_set_hash(
  * Implementation details can change in future versions without notice. */
 typedef struct psa_pake_operation_s psa_pake_operation_t;
 
-/** \def PSA_PAKE_OPERATION_INIT
- *
- * This macro returns a suitable initializer for an PAKE operation object of
- * type #psa_pake_operation_t.
- */
-
 /** Return an initial value for an PAKE operation object.
  */
 static psa_pake_operation_t psa_pake_operation_init(void);
@@ -4338,8 +4332,21 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  * -# Initialize the operation object with one of the methods described in the
  *    documentation for #psa_pake_operation_t, e.g.
  *    #PSA_PAKE_OPERATION_INIT.
- * -# Call psa_pake_setup() to specify the algorithm, the password, cipher
- *    suite, identities and additional session information.
+ * -# Call psa_pake_setup() to specify cipher suite.
+ * -# Call \c psa_pake_set_xxx() functions on the operation to complete the
+ *    setup. The exact sequence of \c psa_pake_set_xxx() functions that needs
+ *    to be called depends on the algorithm in use.
+ *
+ * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
+ * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
+ * for more information.
+ *
+ * Like in the case of completing setup, the exact sequence of calls to perform
+ * a password-authenticated key exchange depends on the algorithm in use:
+ * - Some algorithms exchange more data than just a single key share. When using
+ *   such a algorithm, call psa_pake_output() and psa_pake_input() one or more
+ *   times to exchange any further data that is needed to derive the shared
+ *   secret.
  *
  * A typical sequence of calls to perform a password-authenticated key
  * exchange:
@@ -4352,13 +4359,6 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *    key exchange as described below.
  * -# Terminate the operation by a call to psa_pake_get_implicit_key() or
  *    psa_pake_abort().
- *
- * The exact sequence of calls to perform a password-authenticated key exchange
- * depends on the algorithm in use:
- * - Some algorithms exchange more data than just a single key share. When using
- *   such a algorithm, call psa_pake_output() and psa_pake_input() one or more
- *   times to exchange any further data that is needed to derive the shared
- *   secret.
  *
  * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
@@ -4378,6 +4378,29 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  * \param[in,out] operation     The operation object to set up. It must have
  *                              been initialized as per the documentation for
  *                              #psa_pake_operation_t and not yet in use.
+ * \param cipher_suite          The cipher suite to use. (A cipher suite fully
+ *                              characterizes a PAKE algorithm and determines
+ *                              the algorithm as well.)
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be inactive).
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The \p cipher_suite is not supported or is not valid.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
+                            psa_pake_cipher_suite_t cipher_suite);
+
+/** Set the password for a password-authenticated key exchange.
+ *
  * \param password              Identifier of the key holding the password or a
  *                              value derived from the password (eg. by a
  *                              memory-hard function).  It must remain valid
@@ -4385,56 +4408,122 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *                              type PSA_KEY_TYPE_PASSWORD or
  *                              #PSA_KEY_TYPE_DERIVE. It has to allow the usage
  *                              #PSA_KEY_USAGE_DERIVE.
- * \param cipher_suite          The cipher suite to use. (A cipher suite fully
- *                              characterizes a PAKE algorithm and determines
- *                              the algorithm as well.)
- * \param side                  A value of type ::psa_pake_side_t signaling the
- *                              side of the algorithm that is being set up. For
- *                              more information see the documentation of \c
- *                              PSA_PAKE_SIDE_XXX constants.
- * \param[in] user_id           The user ID to authenticate with.
- * \param user_id_len           Size of the \p user_id buffer in bytes.
- * \param[in] peer_id           The peer's ID to authenticate.
- * \param peer_id_len           Size of the \p peer_id buffer in bytes.
- * \param[in] session_data      Additional session related data if it is allowed
- *                              or required by the algorithm. This must be empty
- *                              if additional session data is not used by the
- *                              algorithm.
- * \param session_data_len      Size of the \p session_data buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be inactive).
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p key is not compatible with the algorithm in \p cipher_suite.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p session_data is not empty and is not allowed in the algorithm in
- *         \p cipher_suite.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         The \p cipher_suite is not supported or is not valid.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
-                            mbedtls_svc_key_id_t password,
-                            psa_pake_cipher_suite_t cipher_suite,
-                            psa_pake_side_t side,
-                            const uint8_t *user_id,
-                            size_t user_id_len,
-                            const uint8_t *peer_id,
-                            size_t peer_id_len,
-                            const uint8_t *session_data,
-                            size_t session_data_len);
+psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
+                                       mbedtls_svc_key_id_t password);
+
+/** Set the user ID for a password-authenticated key exchange.
+ *
+ * Some PAKE algorithms assiciate only a single user identifier with the
+ * session.  Such algorithms must call this function (psa_pake_set_user()) to
+ * set the identifier for the PAKE context.
+ *
+ * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
+ * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
+ * for more information.
+ *
+ * \param[in] user_id           The user ID to authenticate with.
+ * \param user_id_len           Size of the \p user_id buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p user_id is NULL.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
+                               const uint8_t *user_id,
+                               size_t user_id_len);
+
+/** Set the peer ID for a password-authenticated key exchange.
+ *
+ * Some PAKE algorithms assiciate only a single user identifier with the
+ * session.  Such algorithms must call psa_pake_set_user() to set the
+ * identifier for the PAKE context.
+ *
+ * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
+ * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
+ * for more information.
+ *
+ * \param[in] peer_id           The peer's ID to authenticate.
+ * \param peer_id_len           Size of the \p peer_id buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The algorithm doesn't associate a second identity with the session.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p user_id is NULL.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
+                               const uint8_t *peer_id,
+                               size_t peer_id_len);
+
+/** Set the side for a password-authenticated key exchange.
+ *
+ * Not all PAKE algorithms need to differentiate the communicating entities.
+ * It is optional to call this function for PAKEs that don't require a side
+ * parameter. For such PAKEs the side parameter is ignored.
+ *
+ * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
+ * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
+ * for more information.
+ *
+ * \param side                  A value of type ::psa_pake_side_t signaling the
+ *                              side of the algorithm that is being set up. For
+ *                              more information see the documentation of \c
+ *                              PSA_PAKE_SIDE_XXX constants.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must have been set up).
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The \p side for this algorithm is not supported or is not valid.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_pake_set_side(psa_pake_operation_t *operation,
+                               psa_pake_side_t side);
 
 /** Get additional key share from a password-authenticated key exchange.
  *

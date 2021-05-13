@@ -2775,7 +2775,7 @@ static void ssl_handle_id_based_session_resumption( mbedtls_ssl_context *ssl )
      * It may be already set to 1 by ssl_parse_session_ticket_ext(). */
     if( ssl->handshake->resume == 1 )
         return;
-    if( ssl->session_negotiate->id_len == 0 )
+    if( session->id_len == 0 )
         return;
     if( ssl->conf->f_get_cache == NULL )
         return;

@@ -583,11 +583,11 @@ psa_status_t mbedtls_psa_aead_update( mbedtls_psa_aead_operation_t *operation,
                                       size_t output_size,
                                       size_t *output_length )
 {
-    size_t update_output_size;
+    size_t update_output_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    update_output_size = input_length;
+    update_output_length = input_length;
 
     if( PSA_AEAD_UPDATE_OUTPUT_SIZE( operation->key_type, operation->alg,
                                         input_length ) > output_size )
@@ -719,7 +719,7 @@ psa_status_t mbedtls_psa_aead_update( mbedtls_psa_aead_operation_t *operation,
 
     if( status == PSA_SUCCESS )
     {
-        *output_length = update_output_size;
+        *output_length = update_output_length;
         operation->body_started = 1;
     }
 

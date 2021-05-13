@@ -248,13 +248,6 @@ int main( void )
 #define USAGE_MAX_FRAG_LEN ""
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-#define USAGE_RECSPLIT \
-    "    recsplit=0/1        default: (library default: on)\n"
-#else
-#define USAGE_RECSPLIT
-#endif
-
 #if defined(MBEDTLS_DHM_C)
 #define USAGE_DHMLEN \
     "    dhmlen=%%d           default: (library default: 1024 bits)\n"
@@ -414,7 +407,6 @@ int main( void )
     USAGE_ETM                                               \
     USAGE_REPRODUCIBLE                                      \
     USAGE_CURVES                                            \
-    USAGE_RECSPLIT                                          \
     USAGE_DHMLEN                                            \
     "\n"
 #define USAGE4 \
@@ -1779,13 +1771,6 @@ int main( int argc, char *argv[] )
     }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
-
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-    if( opt.recsplit != DFL_RECSPLIT )
-        mbedtls_ssl_conf_cbc_record_splitting( &conf, opt.recsplit
-                                  ? MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED
-                                  : MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED );
-#endif
 
 #if defined(MBEDTLS_DHM_C)
     if( opt.dhmlen != DFL_DHMLEN )

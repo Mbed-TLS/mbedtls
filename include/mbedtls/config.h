@@ -1593,18 +1593,6 @@
 #define MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 
 /**
- * \def MBEDTLS_SSL_CBC_RECORD_SPLITTING
- *
- * Enable 1/n-1 record splitting for CBC mode in TLS.
- *
- * This is a countermeasure to the BEAST attack, which also minimizes the risk
- * of interoperability issues compared to sending 0-length records.
- *
- * Comment this macro to disable 1/n-1 record splitting.
- */
-#define MBEDTLS_SSL_CBC_RECORD_SPLITTING
-
-/**
  * \def MBEDTLS_SSL_RENEGOTIATION
  *
  * Enable support for TLS renegotiation.

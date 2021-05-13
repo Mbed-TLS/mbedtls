@@ -1,0 +1,9 @@
+Removals
+   * Remove the following deprecated library constants
+     MBEDTLS_SSL_PROTO_TLS1, MBEDTLS_SSL_PROTO_TLS1_1,
+     MBEDTLS_SSL_CBC_RECORD_SPLITTING,
+     MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED,
+     MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED and functions
+     ssl_write_split(), mbedtls_ssl_conf_cbc_record_splitting() as well as test
+     function component_test_variable_ssl_in_out_buffer_len_record_splitting().
+     Fixes #4286.

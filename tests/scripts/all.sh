@@ -2043,24 +2043,6 @@ component_test_variable_ssl_in_out_buffer_len_CID () {
     if_build_succeeded tests/compat.sh
 }
 
-component_test_variable_ssl_in_out_buffer_len_record_splitting () {
-    msg "build: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING enabled (ASan build)"
-    scripts/config.py set MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
-    scripts/config.py set MBEDTLS_SSL_CBC_RECORD_SPLITTING
-
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING"
-    make test
-
-    msg "test: ssl-opt.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING enabled"
-    if_build_succeeded tests/ssl-opt.sh
-
-    msg "test: compat.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING enabled"
-    if_build_succeeded tests/compat.sh
-}
-
 component_test_ssl_alloc_buffer_and_mfl () {
     msg "build: default config with memory buffer allocator and MFL extension"
     scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C

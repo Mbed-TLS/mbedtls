@@ -198,9 +198,6 @@
 #define MBEDTLS_SSL_SESSION_TICKETS_DISABLED     0
 #define MBEDTLS_SSL_SESSION_TICKETS_ENABLED      1
 
-#define MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED    0
-#define MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED     1
-
 #define MBEDTLS_SSL_PRESET_DEFAULT              0
 #define MBEDTLS_SSL_PRESET_SUITEB               2
 
@@ -1192,9 +1189,6 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
     unsigned int anti_replay : 1;   /*!< detect and prevent replay?         */
 #endif
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-    unsigned int cbc_record_splitting : 1;  /*!< do cbc record splitting    */
-#endif
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     unsigned int disable_renegotiation : 1; /*!< disable renegotiation?     */
 #endif
@@ -1355,10 +1349,6 @@ struct mbedtls_ssl_context
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     uint16_t mtu;               /*!< path mtu, used to fragment outgoing messages */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
-
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-    signed char split_done;     /*!< current record already splitted? */
-#endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
 
     /*
      * PKI layer

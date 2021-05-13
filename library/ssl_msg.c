@@ -5476,44 +5476,6 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
 }
 
 /*
- * Write application data, doing 1/n-1 splitting if necessary.
- *
- * With non-blocking I/O, ssl_write_real() may return WANT_WRITE,
- * then the caller will call us again with the same arguments, so
- * remember whether we already did the split or not.
- */
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-static int ssl_write_split( mbedtls_ssl_context *ssl,
-                            const unsigned char *buf, size_t len )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    if( ssl->conf->cbc_record_splitting ==
-            MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED ||
-        len <= 1 ||
-        ssl->minor_ver > MBEDTLS_SSL_MINOR_VERSION_1 ||
-        mbedtls_cipher_get_cipher_mode( &ssl->transform_out->cipher_ctx_enc )
-                                != MBEDTLS_MODE_CBC )
-    {
-        return( ssl_write_real( ssl, buf, len ) );
-    }
-
-    if( ssl->split_done == 0 )
-    {
-        if( ( ret = ssl_write_real( ssl, buf, 1 ) ) <= 0 )
-            return( ret );
-        ssl->split_done = 1;
-    }
-
-    if( ( ret = ssl_write_real( ssl, buf + 1, len - 1 ) ) <= 0 )
-        return( ret );
-    ssl->split_done = 0;
-
-    return( ret + 1 );
-}
-#endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
-
-/*
  * Write application data (public-facing wrapper)
  */
 int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len )
@@ -5542,11 +5504,7 @@ int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_
         }
     }
 
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-    ret = ssl_write_split( ssl, buf, len );
-#else
     ret = ssl_write_real( ssl, buf, len );
-#endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write" ) );
 

@@ -3307,10 +3307,6 @@ int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     ssl->out_msgtype = 0;
     ssl->out_msglen = 0;
     ssl->out_left = 0;
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-    if( ssl->split_done != MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED )
-        ssl->split_done = 0;
-#endif
 
     memset( ssl->cur_out_ctr, 0, sizeof( ssl->cur_out_ctr ) );
 
@@ -4201,13 +4197,6 @@ void mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate )
     conf->trunc_hmac = truncate;
 }
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
-
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-void mbedtls_ssl_conf_cbc_record_splitting( mbedtls_ssl_config *conf, char split )
-{
-    conf->cbc_record_splitting = split;
-}
-#endif
 
 void mbedtls_ssl_conf_legacy_renegotiation( mbedtls_ssl_config *conf, int allow_legacy )
 {
@@ -6232,10 +6221,6 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     conf->extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
-#endif
-
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-    conf->cbc_record_splitting = MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED;
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)

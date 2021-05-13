@@ -129,31 +129,25 @@ void rsa_invalid_param( )
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_oaep_encrypt( NULL, NULL, NULL,
-                                                            valid_mode,
+                                                            MBEDTLS_RSA_PUBLIC,
                                                             buf, sizeof( buf ),
                                                             sizeof( buf ), buf,
                                                             buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_oaep_encrypt( &ctx, NULL, NULL,
-                                                            invalid_mode,
-                                                            buf, sizeof( buf ),
-                                                            sizeof( buf ), buf,
-                                                            buf ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_rsaes_oaep_encrypt( &ctx, NULL, NULL,
-                                                            valid_mode,
+                                                            MBEDTLS_RSA_PUBLIC,
                                                             NULL, sizeof( buf ),
                                                             sizeof( buf ), buf,
                                                             buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_oaep_encrypt( &ctx, NULL, NULL,
-                                                            valid_mode,
+                                                            MBEDTLS_RSA_PUBLIC,
                                                             buf, sizeof( buf ),
                                                             sizeof( buf ), NULL,
                                                             buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_rsaes_oaep_encrypt( &ctx, NULL, NULL,
-                                                            valid_mode,
+                                                            MBEDTLS_RSA_PUBLIC,
                                                             buf, sizeof( buf ),
                                                             sizeof( buf ), buf,
                                                             NULL ) );

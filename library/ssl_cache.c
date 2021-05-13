@@ -129,7 +129,6 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
                                         size_t session_id_len,
                                         mbedtls_ssl_cache_entry **dst )
 {
-    int ret = 1;
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t t = mbedtls_time( NULL ), oldest = 0;
     mbedtls_ssl_cache_entry *old = NULL;
@@ -140,117 +139,116 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
     cur = cache->chain;
     prv = NULL;
 
+    /* Check 1: Is there already an entry with the given session ID?
+     *
+     * If yes, overwrite it.
+     *
+     * If not, `count` will hold the size of the session cache
+     * at the end of this loop, and `prv` will point to the last
+     * entry, both of which will be used later. */
+
     while( cur != NULL )
     {
         count++;
 
-#if defined(MBEDTLS_HAVE_TIME)
-        if( cache->timeout != 0 &&
-            (int) ( t - cur->timestamp ) > cache->timeout )
-        {
-            cur->timestamp = t;
-            break; /* expired, reuse this slot, update timestamp */
-        }
-#endif
-
         if( session_id_len == cur->session_id_len &&
             memcmp( session_id, cur->session_id, cur->session_id_len ) == 0 )
         {
-            break; /* client reconnected, keep timestamp for session id */
+            goto found;
         }
-
-#if defined(MBEDTLS_HAVE_TIME)
-        if( oldest == 0 || cur->timestamp < oldest )
-        {
-            oldest = cur->timestamp;
-            old = cur;
-        }
-#endif
 
         prv = cur;
         cur = cur->next;
     }
 
-    if( cur == NULL )
-    {
+    /* Check 2: Is there an outdated entry in the cache?
+     *
+     * If so, overwrite it.
+     *
+     * If not, remember the oldest entry in `old` for later.
+     */
+
 #if defined(MBEDTLS_HAVE_TIME)
-        /*
-         * Reuse oldest entry if max_entries reached
-         */
-        if( count >= cache->max_entries )
+    while( cur != NULL )
+    {
+        if( cache->timeout != 0 &&
+            (int) ( t - cur->timestamp ) > cache->timeout )
         {
-            if( old == NULL )
-            {
-                ret = 1;
-                goto exit;
-            }
-
-            cur = old;
+            goto found;
         }
-#else /* MBEDTLS_HAVE_TIME */
-        /*
-         * Reuse first entry in chain if max_entries reached,
-         * but move to last place
-         */
-        if( count >= cache->max_entries )
+
+        if( oldest == 0 || cur->timestamp < oldest )
         {
-            if( cache->chain == NULL )
-            {
-                ret = 1;
-                goto exit;
-            }
-
-            cur = cache->chain;
-            cache->chain = cur->next;
-            cur->next = NULL;
-            prv->next = cur;
+            oldest = cur->timestamp;
+            old = cur;
         }
+
+        prv = cur;
+        cur = cur->next;
+    }
 #endif /* MBEDTLS_HAVE_TIME */
-        else
-        {
-            /*
-             * max_entries not reached, create new entry
-             */
-            cur = mbedtls_calloc( 1, sizeof(mbedtls_ssl_cache_entry) );
-            if( cur == NULL )
-            {
-                ret = 1;
-                goto exit;
-            }
 
-            if( prv == NULL )
-                cache->chain = cur;
-            else
-                prv->next = cur;
-        }
+    /* Check 3: Is there free space in the cache? */
+
+    if( count < cache->max_entries )
+    {
+        /* Create new entry */
+        cur = mbedtls_calloc( 1, sizeof(mbedtls_ssl_cache_entry) );
+        if( cur == NULL )
+            return( 1 );
+
+        /* Append to the end of the linked list. */
+        if( prv == NULL )
+            cache->chain = cur;
+        else
+            prv->next = cur;
+
+        goto found;
+    }
+
+    /* Last resort: The cache is full and doesn't contain any outdated
+     * elements. In this case, we evict the oldest one, judged by timestamp
+     * (if present) or cache-order. */
 
 #if defined(MBEDTLS_HAVE_TIME)
-        cur->timestamp = t;
-#endif
-    }
-
-    if( cur != NULL )
+    if( old == NULL )
     {
-        *dst = cur;
+        /* This should only happen on an ill-configured cache
+         * with max_entries == 0. */
+        return( 1 );
+    }
+#else /* MBEDTLS_HAVE_TIME */
+    /* Reuse first entry in chain, but move to last place. */
+    if( cache->chain == NULL )
+        return( 1 );
 
-        /*
-         * If we're reusing an entry, free it first.
-         */
-        if( cur->session != NULL )
-        {
-            mbedtls_free( cur->session );
-            cur->session = NULL;
-            cur->session_len = 0;
-            memset( cur->session_id, 0, sizeof( cur->session_id ) );
-            cur->session_id_len = 0;
-        }
+    old = cache->chain;
+    cache->chain = old->next;
+    cur->next = NULL;
+    prv->next = old;
+#endif /* MBEDTLS_HAVE_TIME */
 
-        ret = 0;
+    /* Now `old` points to the oldest entry to be overwritten. */
+    cur = old;
+
+found:
+
+#if defined(MBEDTLS_HAVE_TIME)
+    cur->timestamp = t;
+#endif
+
+    /* If we're reusing an entry, free it first. */
+    if( cur->session != NULL )
+    {
+        mbedtls_free( cur->session );
+        cur->session = NULL;
+        cur->session_len = 0;
+        memset( cur->session_id, 0, sizeof( cur->session_id ) );
+        cur->session_id_len = 0;
     }
 
-exit:
-
-    return( ret );
+    *dst = cur;
+    return( 0 );
 }
 
 int mbedtls_ssl_cache_set( void *data,

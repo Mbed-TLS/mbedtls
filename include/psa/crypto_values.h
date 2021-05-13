@@ -1993,52 +1993,52 @@
  * The key exchange flow for JPAKE is as follows:
  * -# To get the first round data that needs to be sent to the peer, call
  *      // Get g1
- *      psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_STEP_KEY_SHARE, ...);
  *      // Get the ZKP public key for x1
- *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_STEP_ZK_PUBLIC, ...);
  *      // Get the ZKP proof for x1
- *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_STEP_ZK_PROOF, ...);
  *      // Get g2
- *      psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_STEP_KEY_SHARE, ...);
  *      // Get the ZKP public key for x2
- *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_STEP_ZK_PUBLIC, ...);
  *      // Get the ZKP proof for x2
- *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_STEP_ZK_PROOF, ...);
  * -# To provide the first round data received from the peer to the operation,
  *    call
  *      // Set g3
- *      psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_STEP_KEY_SHARE, ...);
  *      // Set the ZKP public key for x3
- *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_STEP_ZK_PUBLIC, ...);
  *      // Set the ZKP proof for x3
- *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_STEP_ZK_PROOF, ...);
  *      // Set g4
- *      psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_STEP_KEY_SHARE, ...);
  *      // Set the ZKP public key for x4
- *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_STEP_ZK_PUBLIC, ...);
  *      // Set the ZKP proof for x4
- *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_STEP_ZK_PROOF, ...);
  * -# To get the second round data that needs to be sent to the peer, call
  *      // Get A
- *      psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_STEP_KEY_SHARE, ...);
  *      // Get ZKP public key for x2*s
- *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_STEP_ZK_PUBLIC, ...);
  *      // Get ZKP proof for x2*s
- *      psa_pake_output(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
+ *      psa_pake_output(operation, #PSA_PAKE_STEP_ZK_PROOF, ...);
  * -# To provide the second round data received from the peer to the operation,
  *    call
  *      // Set B
- *      psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_STEP_KEY_SHARE, ...);
  *      // Set ZKP public key for x4*s
- *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PUBLIC, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_STEP_ZK_PUBLIC, ...);
  *      // Set ZKP proof for x4*s
- *      psa_pake_input(operation, #PSA_PAKE_DATA_ZK_PROOF, ...);
+ *      psa_pake_input(operation, #PSA_PAKE_STEP_ZK_PROOF, ...);
  * -# To access the shared secret call
  *      // Get Ka=Kb=K
  *      psa_pake_get_implicit_key()
  *
  * For more information consult the documentation of the individual
- * PSA_PAKE_DATA_XXX constants.
+ * PSA_PAKE_STEP_XXX constants.
  *
  * J-PAKE is standardised for example in RFC 8236.
  */
@@ -2578,7 +2578,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * For information regarding representation consult the documentation of
  * individual ::psa_pake_primitive_type_t constants.
  */
-#define PSA_PAKE_DATA_KEY_SHARE                 ((psa_pake_step_t)0x01)
+#define PSA_PAKE_STEP_KEY_SHARE                 ((psa_pake_step_t)0x01)
 
 /** A Schnorr NIZKP public key.
  *
@@ -2587,7 +2587,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * For information regarding representation consult the documentation of
  * individual ::psa_pake_primitive_type_t constants.
  */
-#define PSA_PAKE_DATA_ZK_PUBLIC                 ((psa_pake_step_t)0x02)
+#define PSA_PAKE_STEP_ZK_PUBLIC                 ((psa_pake_step_t)0x02)
 
 /** A Schnorr NIZKP proof.
  *
@@ -2596,7 +2596,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * For information regarding representation consult the documentation of
  * individual ::psa_pake_primitive_type_t constants.
  */
-#define PSA_PAKE_DATA_ZK_PROOF                  ((psa_pake_step_t)0x03)
+#define PSA_PAKE_STEP_ZK_PROOF                  ((psa_pake_step_t)0x03)
 
 /**@}*/
 #endif /* PSA_CRYPTO_VALUES_H */

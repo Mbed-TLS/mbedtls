@@ -4273,9 +4273,9 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *
  * A typical sequence of calls to perform a password-authenticated key
  * exchange:
- * -# Call psa_pake_output(operation, #PSA_PAKE_DATA_KEY_SHARE, ...) to get the
+ * -# Call psa_pake_output(operation, #PSA_PAKE_STEP_KEY_SHARE, ...) to get the
  *    key share that needs to be sent to the peer.
- * -# Call psa_pake_input(operation, #PSA_PAKE_DATA_KEY_SHARE, ...) to provide
+ * -# Call psa_pake_input(operation, #PSA_PAKE_STEP_KEY_SHARE, ...) to provide
  *    the key share that was received from the peer.
  * -# Call psa_pake_get_implicit_key() for accessing the shared secret.
  * -# Make a sequence of function calls to execute the password-authenticated

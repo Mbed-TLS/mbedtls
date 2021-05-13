@@ -658,11 +658,6 @@ psa_status_t mbedtls_psa_aead_update( mbedtls_psa_aead_operation_t *operation,
                                             operation->tag_buffer,
                                             operation->tag_length ) );
 
-            /* Even if the above operation fails, we no longer need the
-               additional data.*/
-            mbedtls_free( operation->ad_buffer );
-            operation->ad_buffer = NULL;
-            operation->ad_length = 0;
         }
         else
         {
@@ -784,9 +779,6 @@ psa_status_t mbedtls_psa_aead_finish( mbedtls_psa_aead_operation_t *operation,
         /* Copy the previously generated tag into place */
         memcpy( tag, operation->tag_buffer, operation->tag_length );
 
-        mbedtls_free(operation->tag_buffer);
-        operation->tag_buffer = NULL;
-
         status = PSA_SUCCESS;
     }
     else
@@ -814,8 +806,6 @@ psa_status_t mbedtls_psa_aead_finish( mbedtls_psa_aead_operation_t *operation,
         *ciphertext_length = finish_output_size;
         *tag_length = operation->tag_length;
     }
-
-    mbedtls_psa_aead_abort(operation);
 
     return ( status );
 }
@@ -858,9 +848,6 @@ psa_status_t mbedtls_psa_aead_verify( mbedtls_psa_aead_operation_t *operation,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation->alg == PSA_ALG_CCM )
     {
-        if( !operation->ad_buffer || !operation->body_buffer )
-            return( PSA_ERROR_BAD_STATE );
-
         /* Perform oneshot CCM decryption *again*, as its the
          * only way to get the tag, but this time throw away the
            results, as verify cannot write that much data. */
@@ -895,13 +882,6 @@ psa_status_t mbedtls_psa_aead_verify( mbedtls_psa_aead_operation_t *operation,
 
         /* Even if the above operation fails, we no longer need the data */
         mbedtls_free(temp_buffer);
-
-        mbedtls_free(operation->body_buffer);
-        operation->body_buffer = NULL;
-        operation->body_length = 0;
-
-        mbedtls_free(operation->tag_buffer);
-        operation->tag_buffer = NULL;
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
@@ -932,8 +912,6 @@ psa_status_t mbedtls_psa_aead_verify( mbedtls_psa_aead_operation_t *operation,
             mbedtls_psa_safer_memcmp(tag, check_tag, tag_length) != 0 )
             status = PSA_ERROR_INVALID_SIGNATURE;
     }
-
-    mbedtls_psa_aead_abort(operation);
 
     return ( status );
 }

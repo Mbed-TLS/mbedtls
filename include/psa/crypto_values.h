@@ -2512,7 +2512,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * specific elliptic curve, using the same mapping that is used for ECC
  * (::psa_ecc_family_t) keys.
  *
- * (Here \c familiy means the value returned by psa_pake_cs_get_family() and
+ * (Here \c family means the value returned by psa_pake_cs_get_family() and
  * \c bits means the value returned by psa_pake_cs_get_bits().)
  *
  * Input and output during the operation can involve group elements and scalar
@@ -2532,7 +2532,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * a specific Diffie-Hellman group, using the same mapping that is used for
  * Diffie-Hellman (::psa_dh_family_t) keys.
  *
- * (Here \c familiy means the value returned by psa_pake_cs_get_family() and
+ * (Here \c family means the value returned by psa_pake_cs_get_family() and
  * \c bits means the value returned by psa_pake_cs_get_bits().)
  *
  * Input and output during the operation can involve group elements and scalar

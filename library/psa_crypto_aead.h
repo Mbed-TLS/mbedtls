@@ -155,39 +155,14 @@ psa_status_t mbedtls_psa_aead_decrypt(
  *       aead_encrypt_setup entry point as defined in the PSA driver interface
  *       specification for transparent drivers.
  *
- * The sequence of operations to encrypt a message with authentication
- * is as follows:
- * -# Allocate an operation object which will be passed to all the functions
- *    listed here.
- * -# Initialize the operation object with one of the methods described in the
- *    documentation for #mbedtls_psa_aead_operation_t, e.g.
- *    #MBEDTLS_PSA_AEAD_OPERATION_INIT.
- * -# Call mbedtls_psa_aead_encrypt_setup() to specify the algorithm and key.
- * -# If needed, call mbedtls_psa_aead_set_lengths() to specify the length of
- *    the inputs to the subsequent calls to mbedtls_psa_aead_update_ad() and
- *    mbedtls_psa_aead_update(). See the documentation of
- *    mbedtls_psa_aead_set_lengths() for details.
- * -# Call either psa_aead_generate_nonce() or
- *    mbedtls_psa_aead_set_nonce() to generate or set the nonce. You should use
- *    psa_aead_generate_nonce() unless the protocol you are implementing
- *    requires a specific nonce value.
- * -# Call mbedtls_psa_aead_update_ad() zero, one or more times, passing
- *    a fragment of the non-encrypted additional authenticated data each time.
- * -# Call mbedtls_psa_aead_update() zero, one or more times, passing a fragment
- *    of the message to encrypt each time.
- * -# Call mbedtls_psa_aead_finish().
- *
  * If an error occurs at any step after a call to
- * mbedtls_psa_aead_encrypt_setup(), the operation will need to be reset by a
- * call to mbedtls_psa_aead_abort(). The application may call
+ * mbedtls_psa_aead_encrypt_setup(), the operation is reset by the PSA core by a
+ * call to mbedtls_psa_aead_abort(). The PSA core may call
  * mbedtls_psa_aead_abort() at any time after the operation has been
  * initialized.
  *
- * After a successful call to mbedtls_psa_aead_encrypt_setup(), the application
- * must eventually terminate the operation. The following events terminate an
- * operation:
- * - A successful call to mbedtls_psa_aead_finish().
- * - A call to mbedtls_psa_aead_abort().
+ * After a successful call to mbedtls_psa_aead_encrypt_setup(), the PSA core
+ * eventually terminates the operation by calling mbedtls_psa_aead_abort().
  *
  * \param[in,out] operation     The operation object to set up. It must have
  *                              been initialized as per the documentation for
@@ -236,36 +211,14 @@ psa_status_t mbedtls_psa_aead_encrypt_setup(mbedtls_psa_aead_operation_t
  *       aead_decrypt_setup entry point as defined in the PSA driver interface
  *       specification for transparent drivers.
  *
- * The sequence of operations to decrypt a message with authentication
- * is as follows:
- * -# Allocate an operation object which will be passed to all the functions
- *    listed here.
- * -# Initialize the operation object with one of the methods described in the
- *    documentation for #mbedtls_psa_aead_operation_t, e.g.
- *    #PSA_AEAD_OPERATION_INIT.
- * -# Call mbedtls_psa_aead_decrypt_setup() to specify the algorithm and key.
- * -# If needed, call mbedtls_psa_aead_set_lengths() to specify the length of
- *    the inputs to the subsequent calls to mbedtls_psa_aead_update_ad() and
- *    mbedtls_psa_aead_update(). See the documentation of
- *    mbedtls_psa_aead_set_lengths() for details.
- * -# Call mbedtls_psa_aead_set_nonce() with the nonce for the decryption.
- * -# Call mbedtls_psa_aead_update_ad() zero, one or more times, passing a
- *    fragment of the non-encrypted additional authenticated data each time.
- * -# Call mbedtls_psa_aead_update() zero, one or more times, passing a fragment
- *    of the ciphertext to decrypt each time.
- * -# Call mbedtls_psa_aead_verify().
- *
  * If an error occurs at any step after a call to
- * mbedtls_psa_aead_decrypt_setup(), the operation will need to be reset by a
- * call to mbedtls_psa_aead_abort(). The application may call
+ * mbedtls_psa_aead_decrypt_setup(), the PSA core resets the operation by a
+ * call to mbedtls_psa_aead_abort(). The PSA core may call
  * mbedtls_psa_aead_abort() at any time after the operation has been
  * initialized.
  *
- * After a successful call to mbedtls_psa_aead_decrypt_setup(), the application
- * must eventually terminate the operation. The following events terminate an
- * operation:
- * - A successful call to mbedtls_psa_aead_verify().
- * - A call to mbedtls_psa_aead_abort().
+ * After a successful call to mbedtls_psa_aead_decrypt_setup(), the PSA core
+ * eventually terminates the operation by a call to mbedtls_psa_aead_abort().
  *
  * \param[in,out] operation     The operation object to set up. It must have
  *                              been initialized as per the documentation for
@@ -309,23 +262,19 @@ psa_status_t mbedtls_psa_aead_decrypt_setup(mbedtls_psa_aead_operation_t
 
 /** Set the nonce for an authenticated encryption or decryption operation.
  *
- * \note The signature of this function is that of a PSA driver
- *       psa_aead_set_nonce entry point. This function behaves as an
- *       psa_aead_set_nonce entry point as defined in the PSA driver interface
- *       specification for transparent drivers.
+ * \note The signature of this function is that of a PSA driver aead_set_nonce
+ *       entry point. This function behaves as an aead_set_nonce entry point as
+ *       defined in the PSA driver interface specification for transparent
+ *       drivers.
  *
  * This function sets the nonce for the authenticated
  * encryption or decryption operation.
  *
- * The application must call mbedtls_psa_aead_encrypt_setup() or
+ * The PSA core calls mbedtls_psa_aead_encrypt_setup() or
  * mbedtls_psa_aead_decrypt_setup() before calling this function.
  *
- * If this function returns an error status, the operation enters an error
- * state and must be aborted by calling mbedtls_psa_aead_abort().
- *
- * \note When encrypting, applications should use
- * mbedtls_psa_aead_generate_nonce() instead of this function, unless
- * implementing a protocol that requires a non-random IV.
+ * If this function returns an error status, the PSA core calls
+ * mbedtls_psa_aead_abort().
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[in] nonce             Buffer containing the nonce to use.
@@ -354,19 +303,18 @@ psa_status_t mbedtls_psa_aead_set_nonce(mbedtls_psa_aead_operation_t *operation,
 
 /** Declare the lengths of the message and additional data for AEAD.
  *
- * \note The signature of this function is that of a PSA driver
- *       psa_aead_set_lengths entry point. This function behaves as an
- *       psa_aead_set_lengths entry point as defined in the PSA driver interface
- *       specification for transparent drivers.
+ * \note The signature of this function is that of a PSA driver aead_set_lengths
+ *       entry point. This function behaves as an aead_set_lengths entry point
+ *       as defined in the PSA driver interface specification for transparent
+ *       drivers.
  *
- * The application must call this function before calling
- * mbedtls_psa_aead_update_ad() or mbedtls_psa_aead_update() if the algorithm
- * for the operation requires it. If the algorithm does not require it, calling
- * this function is optional, but if this function is called then the
- * implementation must enforce the lengths.
+ * The PSA core calls this function before calling mbedtls_psa_aead_update_ad()
+ * or mbedtls_psa_aead_update() if the algorithm for the operation requires it.
+ * If the algorithm does not require it, calling this function is optional, but
+ * if this function is called then the implementation must enforce the lengths.
  *
- * You may call this function before or after setting the nonce with
- * mbedtls_psa_aead_set_nonce() or psa_aead_generate_nonce().
+ * The PSA core may call this function before or after setting the nonce with
+ * mbedtls_psa_aead_set_nonce().
  *
  * - For #PSA_ALG_CCM, calling this function is required.
  * - For the other AEAD algorithms defined in this specification, calling
@@ -413,17 +361,17 @@ psa_status_t mbedtls_psa_aead_set_lengths(mbedtls_psa_aead_operation_t
  *
  * Additional data is authenticated, but not encrypted.
  *
- * You may call this function multiple times to pass successive fragments
- * of the additional data. You may not call this function after passing
- * data to encrypt or decrypt with mbedtls_psa_aead_update().
+ * The PSA core can call this function multiple times to pass successive
+ * fragments of the additional data. It will not call this function after
+ * passing data to encrypt or decrypt with mbedtls_psa_aead_update().
  *
- * Before calling this function, you must:
- * 1. Call either mbedtls_psa_aead_encrypt_setup() or
- *    mbedtls_psa_aead_decrypt_setup(). 2. Set the nonce with
- *    psa_aead_generate_nonce() or mbedtls_psa_aead_set_nonce().
+ * Before calling this function, The PSA core will:
+ *    1. Call either mbedtls_psa_aead_encrypt_setup() or
+ *       mbedtls_psa_aead_decrypt_setup().
+ *    2. Set the nonce with mbedtls_psa_aead_set_nonce().
  *
- * If this function returns an error status, the operation enters an error
- * state and must be aborted by calling mbedtls_psa_aead_abort().
+ * If this function returns an error status, the PSA core will call
+ * mbedtls_psa_aead_abort().
  *
  * \warning When decrypting, until mbedtls_psa_aead_verify() has returned
  *          #PSA_SUCCESS, there is no guarantee that the input is valid.
@@ -433,8 +381,8 @@ psa_status_t mbedtls_psa_aead_set_lengths(mbedtls_psa_aead_operation_t
  *          mbedtls_psa_aead_verify() returns an error status.
  *
  * \note    For the time being #PSA_ALG_CCM and #PSA_ALG_GCM require the entire
- *          additional data to be passed in in one go, i.e. only call
- *          mbedtls_mbedtls_psa_aead_update_ad() once.
+ *          additional data to be passed in in one go, i.e.
+ *          mbedtls_mbedtls_psa_aead_update_ad() can only be called once.
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[in] input             Buffer containing the fragment of
@@ -471,31 +419,15 @@ psa_status_t mbedtls_psa_aead_update_ad(mbedtls_psa_aead_operation_t *operation,
  *       point as defined in the PSA driver interface specification for
  *       transparent drivers.
  *
- * Before calling this function, you must:
- * 1. Call either mbedtls_psa_aead_encrypt_setup() or
- *    mbedtls_psa_aead_decrypt_setup(). The choice of setup function determines
- *    whether this function encrypts or decrypts its input.
- * 2. Set the nonce with psa_aead_generate_nonce() or
- * mbedtls_psa_aead_set_nonce(). 3. Call mbedtls_psa_aead_update_ad() to pass
- * all the additional data.
+ * Before calling this function, the PSA core will:
+ *    1. Call either mbedtls_psa_aead_encrypt_setup() or
+ *       mbedtls_psa_aead_decrypt_setup(). The choice of setup function
+ *       determines whether this function encrypts or decrypts its input.
+ *    2. Set the nonce with mbedtls_psa_aead_set_nonce().
+ *    3. Call mbedtls_psa_aead_update_ad() to pass all the additional data.
  *
- * If this function returns an error status, the operation enters an error
- * state and must be aborted by calling mbedtls_psa_aead_abort().
- *
- * \warning When decrypting, until mbedtls_psa_aead_verify() has returned
- *          #PSA_SUCCESS, there is no guarantee that the input is valid.
- *          Therefore, until you have called mbedtls_psa_aead_verify() and it
- *          has returned #PSA_SUCCESS:
- *          - Do not use the output in any way other than storing it in a
- *            confidential location. If you take any action that depends
- *            on the tentative decrypted data, this action will need to be
- *            undone if the input turns out not to be valid. Furthermore,
- *            if an adversary can observe that this action took place
- *            (for example through timing), they may be able to use this
- *            fact as an oracle to decrypt any message encrypted with the
- *            same key.
- *          - In particular, do not copy the output anywhere but to a
- *            memory or storage space that you have exclusive access to.
+ * If this function returns an error status, the PSA core will call
+ * mbedtls_psa_aead_abort().
  *
  * This function does not require the input to be aligned to any
  * particular block boundary. If the implementation can only process
@@ -506,8 +438,8 @@ psa_status_t mbedtls_psa_aead_update_ad(mbedtls_psa_aead_operation_t *operation,
  * can be delayed in this way is bounded by #PSA_AEAD_UPDATE_OUTPUT_SIZE.
  *
  * \note For the time being #PSA_ALG_CCM and #PSA_ALG_GCM require the entire
- *       data to be passed in in one go, i.e. only call
- *       mbedtls_mbedtls_psa_aead_update() once.
+ *       data to be passed in in one go, i.e. mbedtls_mbedtls_psa_aead_update()
+ *       can only be called once.
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[in] input             Buffer containing the message fragment to
@@ -563,7 +495,8 @@ psa_status_t mbedtls_psa_aead_update(mbedtls_psa_aead_operation_t *operation,
  *       point as defined in the PSA driver interface specification for
  *       transparent drivers.
  *
- * The operation must have been set up with mbedtls_psa_aead_encrypt_setup().
+ * The operation must have been set up by the PSA core with
+ * mbedtls_psa_aead_encrypt_setup().
  *
  * This function finishes the authentication of the additional data
  * formed by concatenating the inputs passed to preceding calls to
@@ -572,14 +505,11 @@ psa_status_t mbedtls_psa_aead_update(mbedtls_psa_aead_operation_t *operation,
  *
  * This function has two output buffers:
  * - \p ciphertext contains trailing ciphertext that was buffered from
- *   preceding calls to mbedtls_psa_aead_update().
- * - \p tag contains the authentication tag. Its length is always
- *   #PSA_AEAD_TAG_LENGTH(\c alg) where \c alg is the AEAD algorithm
- *   that the operation performs.
+ *   preceding calls to psa_aead_update().
+ * - \p tag contains the authentication tag.
  *
- * When this function returns successfuly, the operation becomes inactive.
- * If this function returns an error status, the operation enters an error
- * state and must be aborted by calling mbedtls_psa_aead_abort().
+ * Whether or not this function returns successfuly, the PSA core subsequently
+ * calls mbedtls_psa_aead_abort() to deactivate the operation.
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[out] ciphertext       Buffer where the last part of the ciphertext
@@ -594,9 +524,17 @@ psa_status_t mbedtls_psa_aead_update(mbedtls_psa_aead_operation_t *operation,
  * \param[out] tag              Buffer where the authentication tag is
  *                              to be written.
  * \param tag_size              Size of the \p tag buffer in bytes.
- *                              This must be at least
- *                              #PSA_AEAD_TAG_LENGTH(\c alg) where \c alg is
- *                              the algorithm that is being calculated.
+ *                              This must be appropriate for the selected
+ *                              algorithm and key:
+ *                              - The exact tag size is #PSA_AEAD_TAG_LENGTH(\c
+ *                                key_type, \c key_bits, \c alg) where
+ *                                \c key_type and \c key_bits are the type and
+ *                                bit-size of the key, and \c alg is the
+ *                                algorithm that were used in the call to
+ *                                psa_aead_encrypt_setup().
+ *                              - #PSA_AEAD_TAG_MAX_SIZE evaluates to the
+ *                                maximum tag size of any supported AEAD
+ *                                algorithm.
  * \param[out] tag_length       On success, the number of bytes
  *                              that make up the returned tag.
  *
@@ -610,8 +548,9 @@ psa_status_t mbedtls_psa_aead_update(mbedtls_psa_aead_operation_t *operation,
  *         You can determine a sufficient buffer size for \p ciphertext by
  *         calling #PSA_AEAD_FINISH_OUTPUT_SIZE(\c alg)
  *         where \c alg is the algorithm that is being calculated.
- *         You can determine a sufficient buffer size for \p tag by
- *         calling #PSA_AEAD_TAG_LENGTH(\c alg).
+ *         #PSA_AEAD_TAG_LENGTH(\c key_type, \c key_bits, \c alg) or
+ *         #PSA_AEAD_TAG_MAX_SIZE can be used to determine the required \p tag
+ *         buffer size.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to psa_aead_update_ad() so far is
  *         less than the additional data length that was previously
@@ -645,7 +584,8 @@ psa_status_t mbedtls_psa_aead_finish(mbedtls_psa_aead_operation_t *operation,
  *       point as defined in the PSA driver interface specification for
  *       transparent drivers.
  *
- * The operation must have been set up with mbedtls_psa_aead_decrypt_setup().
+ * The operation must have been set up by the PSA core with
+ * mbedtls_psa_aead_decrypt_setup().
  *
  * This function finishes the authenticated decryption of the message
  * components:
@@ -660,9 +600,8 @@ psa_status_t mbedtls_psa_aead_finish(mbedtls_psa_aead_operation_t *operation,
  * plaintext and reports success. If the authentication tag is not correct,
  * this function returns #PSA_ERROR_INVALID_SIGNATURE.
  *
- * When this function returns successfuly, the operation becomes inactive.
- * If this function returns an error status, the operation enters an error
- * state and must be aborted by calling mbedtls_psa_aead_abort().
+ * Whether or not this function returns successfully, the PSA core subsequently
+ * calls mbedtls_psa_aead_abort() to deactivate the operation.
  *
  * \note Implementations shall make the best effort to ensure that the
  * comparison between the actual tag and the expected tag is performed
@@ -731,10 +670,10 @@ psa_status_t mbedtls_psa_aead_verify(mbedtls_psa_aead_operation_t *operation,
  *
  * Aborting an operation frees all associated resources except for the
  * \p operation structure itself. Once aborted, the operation object
- * can be reused for another operation by calling
+ * can be reused for another operation by the PSA core by it calling
  * mbedtls_psa_aead_encrypt_setup() or mbedtls_psa_aead_decrypt_setup() again.
  *
- * You may call this function any time after the operation object has
+ * The PSA core may call this function any time after the operation object has
  * been initialized as described in #mbedtls_psa_aead_operation_t.
  *
  * In particular, calling mbedtls_psa_aead_abort() after the operation has been

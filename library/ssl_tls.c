@@ -4801,14 +4801,6 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_CLI_C */
 
-const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_context *ssl )
-{
-    if( ssl == NULL )
-        return( NULL );
-
-    return( ssl->session );
-}
-
 /*
  * Define ticket header determining Mbed TLS version
  * and structure of the ticket.

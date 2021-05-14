@@ -2224,6 +2224,8 @@ int main( int argc, char *argv[] )
 
         if( opt.reco_mode == 1 )
         {
+            mbedtls_ssl_session exported_session;
+
             /* free any previously saved data */
             if( session_data != NULL )
             {
@@ -2232,27 +2234,40 @@ int main( int argc, char *argv[] )
                 session_data = NULL;
             }
 
+            mbedtls_ssl_session_init( &exported_session );
+            ret = mbedtls_ssl_get_session( &ssl, &exported_session );
+            if( ret != 0 )
+            {
+                mbedtls_printf(
+                    "failed\n  ! mbedtls_ssl_get_session() returned -%#02x\n",
+                    (unsigned) -ret );
+                goto exit;
+            }
+
             /* get size of the buffer needed */
-            mbedtls_ssl_session_save( mbedtls_ssl_get_session_pointer( &ssl ),
-                                      NULL, 0, &session_data_len );
+            mbedtls_ssl_session_save( &exported_session, NULL, 0, &session_data_len );
             session_data = mbedtls_calloc( 1, session_data_len );
             if( session_data == NULL )
             {
                 mbedtls_printf( " failed\n  ! alloc %u bytes for session data\n",
                                 (unsigned) session_data_len );
+                mbedtls_ssl_session_free( &exported_session );
                 ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
                 goto exit;
             }
 
             /* actually save session data */
-            if( ( ret = mbedtls_ssl_session_save( mbedtls_ssl_get_session_pointer( &ssl ),
+            if( ( ret = mbedtls_ssl_session_save( &exported_session,
                                                   session_data, session_data_len,
                                                   &session_data_len ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_session_saved returned -0x%04x\n\n",
                                 (unsigned int) -ret );
+                mbedtls_ssl_session_free( &exported_session );
                 goto exit;
             }
+
+            mbedtls_ssl_session_free( &exported_session );
         }
         else
         {

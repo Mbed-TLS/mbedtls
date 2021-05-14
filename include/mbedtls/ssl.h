@@ -2433,7 +2433,6 @@ int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
  *                 of session cache or session tickets.
  *
  * \see            mbedtls_ssl_session_load()
- * \see            mbedtls_ssl_get_session_pointer()
  *
  * \param session  The session structure to be saved.
  * \param buf      The buffer to write the serialized data to. It must be a
@@ -2455,23 +2454,6 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
                               unsigned char *buf,
                               size_t buf_len,
                               size_t *olen );
-
-/**
- * \brief          Get a pointer to the current session structure, for example
- *                 to serialize it.
- *
- * \warning        Ownership of the session remains with the SSL context, and
- *                 the returned pointer is only guaranteed to be valid until
- *                 the next API call operating on the same \p ssl context.
- *
- * \see            mbedtls_ssl_session_save()
- *
- * \param ssl      The SSL context.
- *
- * \return         A pointer to the current session if successful.
- * \return         \c NULL if no session is active.
- */
-const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_context *ssl );
 
 /**
  * \brief               Set the list of allowed ciphersuites and the preference

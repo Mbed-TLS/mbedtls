@@ -135,17 +135,17 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
 
     mbedtls_ssl_cache_entry *old = NULL;
     int count = 0;
-    mbedtls_ssl_cache_entry *cur, *prv;
+    mbedtls_ssl_cache_entry *cur, *last;
 
     cur = cache->chain;
-    prv = NULL;
+    last = NULL;
 
     /* Check 1: Is there already an entry with the given session ID?
      *
      * If yes, overwrite it.
      *
      * If not, `count` will hold the size of the session cache
-     * at the end of this loop, and `prv` will point to the last
+     * at the end of this loop, and `last` will point to the last
      * entry, both of which will be used later. */
 
     while( cur != NULL )
@@ -158,7 +158,7 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
             goto found;
         }
 
-        prv = cur;
+        last = cur;
         cur = cur->next;
     }
 
@@ -184,7 +184,7 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
             old = cur;
         }
 
-        prv = cur;
+        last = cur;
         cur = cur->next;
     }
 #endif /* MBEDTLS_HAVE_TIME */
@@ -199,10 +199,10 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
             return( 1 );
 
         /* Append to the end of the linked list. */
-        if( prv == NULL )
+        if( last == NULL )
             cache->chain = cur;
         else
-            prv->next = cur;
+            last->next = cur;
 
         goto found;
     }
@@ -226,7 +226,7 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
     old = cache->chain;
     cache->chain = old->next;
     old->next = NULL;
-    prv->next = old;
+    last->next = old;
 #endif /* MBEDTLS_HAVE_TIME */
 
     /* Now `old` points to the oldest entry to be overwritten. */

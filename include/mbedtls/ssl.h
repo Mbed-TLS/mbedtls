@@ -639,11 +639,16 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  * \param data            The address of the session cache structure to query.
  * \param session_id      The buffer holding the session ID to query.
  * \param session_id_len  The length of \p session_id in Bytes.
- * \param session         The address at which to store the session found
- *                        in the cache.
+ * \param session         The address of the session structure to populate.
+ *                        It is initialized with mbdtls_ssl_session_init(),
+ *                        and the callback must always leave it in a state
+ *                        where it can savely be freed via
+ *                        mbedtls_ssl_session_free() independent of the
+ *                        return code of this function.
  *
  * \return                \c 0 on success
  * \return                A non-zero return value on failure.
+ *
  */
 typedef int mbedtls_ssl_cache_get_t( void *data,
                                      unsigned char const *session_id,

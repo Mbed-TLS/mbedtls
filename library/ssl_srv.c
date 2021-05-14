@@ -2803,7 +2803,7 @@ static void ssl_handle_id_based_session_resumption( mbedtls_ssl_context *ssl )
     /* Move semantics */
     mbedtls_ssl_session_free( session );
     *session = session_tmp;
-    memset( &session_tmp, 0, sizeof( mbedtls_ssl_session ) );
+    memset( &session_tmp, 0, sizeof( session_tmp ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "session successfully restored from cache" ) );
     ssl->handshake->resume = 1;

@@ -642,7 +642,7 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  * \param session         The address of the session structure to populate.
  *                        It is initialized with mbdtls_ssl_session_init(),
  *                        and the callback must always leave it in a state
- *                        where it can savely be freed via
+ *                        where it can safely be freed via
  *                        mbedtls_ssl_session_free() independent of the
  *                        return code of this function.
  *

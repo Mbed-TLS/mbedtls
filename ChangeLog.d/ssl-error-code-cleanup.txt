@@ -4,4 +4,3 @@ API changes
      returned from the public SSL API.
    * Remove `MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE` and return
      `MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL` instead.
-     `

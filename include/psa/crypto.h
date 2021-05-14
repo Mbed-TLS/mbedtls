@@ -4367,6 +4367,8 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  * \param key_derivation        An ongoing key derivation operation set up from
  *                              the password and in a state suitable for
  *                              calling psa_key_derivation_output_bytes().
+ * \param input_length          Number of bytes to input from the
+ *                              \p key_derivation operation.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -4385,7 +4387,8 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  *         results in this error code.
  */
 psa_status_t psa_pake_set_password_mhf(psa_pake_operation_t *operation,
-                                       psa_pake_operation_t *key_derivation);
+                                       psa_key_derivation_operation_t *key_derivation,
+                                       size_t input_length);
 
 /** Set the user ID for a password-authenticated key exchange.
  *

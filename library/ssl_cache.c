@@ -137,9 +137,6 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
     int count = 0;
     mbedtls_ssl_cache_entry *cur, *last;
 
-    cur = cache->chain;
-    last = NULL;
-
     /* Check 1: Is there already an entry with the given session ID?
      *
      * If yes, overwrite it.
@@ -148,7 +145,8 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
      * at the end of this loop, and `last` will point to the last
      * entry, both of which will be used later. */
 
-    while( cur != NULL )
+    last = NULL;
+    for( cur = cache->chain; cur != NULL; cur = cur->next )
     {
         count++;
         if( session_id_len == cur->session_id_len &&
@@ -156,7 +154,7 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
         {
             goto found;
         }
-        cur = cur->next;
+        last = cur;
     }
 
     /* Check 2: Is there an outdated entry in the cache?
@@ -167,7 +165,7 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
      */
 
 #if defined(MBEDTLS_HAVE_TIME)
-    while( cur != NULL )
+    for( cur = cache->chain; cur != NULL; cur = cur->next )
     {
         if( cache->timeout != 0 &&
             (int) ( t - cur->timestamp ) > cache->timeout )
@@ -180,9 +178,6 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
             oldest = cur->timestamp;
             old = cur;
         }
-
-        last = cur;
-        cur = cur->next;
     }
 #endif /* MBEDTLS_HAVE_TIME */
 

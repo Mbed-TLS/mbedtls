@@ -225,7 +225,7 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
 
     old = cache->chain;
     cache->chain = old->next;
-    cur->next = NULL;
+    old->next = NULL;
     prv->next = old;
 #endif /* MBEDTLS_HAVE_TIME */
 

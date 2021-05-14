@@ -131,8 +131,9 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
 {
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t t = mbedtls_time( NULL ), oldest = 0;
+#endif /* MBEDTLS_HAVE_TIME */
+
     mbedtls_ssl_cache_entry *old = NULL;
-#endif
     int count = 0;
     mbedtls_ssl_cache_entry *cur, *prv;
 

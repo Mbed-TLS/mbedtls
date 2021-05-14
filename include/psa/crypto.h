@@ -4139,7 +4139,7 @@ static void psa_pake_cs_set_algorithm(
                            psa_algorithm_t algorithm
                            );
 
-/** Retrieve the primitive type from a PAKE cipher suite.
+/** Retrieve the primitive from a PAKE cipher suite.
  *
  * This function may be declared as `static` (i.e. without external linkage).
  * This function may be provided as a function-like macro, but in this case it
@@ -4153,7 +4153,7 @@ static psa_pake_primitive_t psa_pake_cs_get_primitive(
                            const psa_pake_cipher_suite_t* cipher_suite
                            );
 
-/** Declare the primitive type for a PAKE cipher suite.
+/** Declare the primitive for a PAKE cipher suite.
  *
  * This function overwrites any primitive previously set in \p cipher_suite.
  *
@@ -4353,7 +4353,7 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
 psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
                                        mbedtls_svc_key_id_t password);
 
-/** Set the password for a password-authenticated key exchange with memory hard
+/** Set the password for a password-authenticated key exchange via a memory hard
  * function.
  *
  * Some protocols require using values derived from passwords via memory hard

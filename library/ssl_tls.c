@@ -6999,14 +6999,14 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
 {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
-        return( 1 );
+        return( -1 );
 
     switch( md )
     {
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_SSL_HASH_MD5:
-            return( 1 );
+            return( -1 );
 #endif
 #if defined(MBEDTLS_SHA1_C)
         case MBEDTLS_SSL_HASH_SHA1:
@@ -7025,7 +7025,7 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
             break;
 #endif
         default:
-            return( 1 );
+            return( -1 );
     }
 
     return 0;
@@ -7033,7 +7033,7 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
     (void) ssl;
     (void) md;
 
-    return( 1 );
+    return( -1 );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 }
 

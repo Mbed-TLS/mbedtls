@@ -3788,6 +3788,9 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
+    if( ssl->handshake->resume == 1 )
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+
     if( ( ret = mbedtls_ssl_session_copy( ssl->session_negotiate,
                                           session ) ) != 0 )
         return( ret );
@@ -4789,6 +4792,8 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ss
 int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl,
                              mbedtls_ssl_session *dst )
 {
+    int ret;
+
     if( ssl == NULL ||
         dst == NULL ||
         ssl->session == NULL ||
@@ -4797,7 +4802,27 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    return( mbedtls_ssl_session_copy( dst, ssl->session ) );
+    /* Since Mbed TLS 3.0, mbedtls_ssl_get_session() is no longer
+     * idempotent: Each session can only be exported once.
+     *
+     * (This is in preparation for TLS 1.3 support where we will
+     * need the ability to export multiple sessions (aka tickets),
+     * which will be achieved by calling mbedtls_ssl_get_session()
+     * multiple times until it fails.)
+     *
+     * Check whether we have already exported the current session,
+     * and fail if so.
+     */
+    if( ssl->session->exported == 1 )
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+
+    ret = mbedtls_ssl_session_copy( dst, ssl->session );
+    if( ret != 0 )
+        return( ret );
+
+    /* Remember that we've exported the session. */
+    ssl->session->exported = 1;
+    return( 0 );
 }
 #endif /* MBEDTLS_SSL_CLI_C */
 

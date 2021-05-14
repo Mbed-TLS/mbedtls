@@ -897,6 +897,8 @@ struct mbedtls_ssl_session
     unsigned char id[32];       /*!< session identifier */
     unsigned char master[48];   /*!< the master secret  */
 
+    unsigned char exported;
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     mbedtls_x509_crt *peer_cert;       /*!< peer X.509 cert chain */
@@ -2373,18 +2375,49 @@ void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_CLI_C)
 /**
- * \brief          Request resumption of session (client-side only)
- *                 Session data is copied from presented session structure.
+ * \brief          Load a session for session resumption.
  *
- * \param ssl      SSL context
- * \param session  session context
+ *                 Sessions loaded through this call will be considered
+ *                 for session resumption in the next handshake.
  *
- * \return         0 if successful,
- *                 MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed,
- *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used server-side or
- *                 arguments are otherwise invalid
+ * \note           Even if this call succeeds, it is not guaranteed that
+ *                 the next handshake will indeed be shortened through the
+ *                 use of session resumption: The server is always free
+ *                 to reject any attempt for resumption and fall back to
+ *                 a full handshake.
+ *
+ * \note           The mechanism of session resumption is opaque to this
+ *                 call: For TLS 1.2, both session ID-based resumption and
+ *                 ticket-based resumption will be considered. For TLS 1.3,
+ *                 once implemented, sessions equate to tickets, and loading
+ *                 one or more sessions via this call will lead to their
+ *                 corresponding tickets being advertised as resumption PSKs
+ *                 by the client.
+ *
+ * \note           Calling this function multiple times will only be useful
+ *                 once TLS 1.3 is supported. For TLS 1.2 connections, this
+ *                 function should be called at most once.
+ *
+ * \param ssl      The SSL context representing the connection which should
+ *                 be attempted to be setup using session resumption. This
+ *                 must be initialized via mbedtls_ssl_init() and bound to
+ *                 an SSL configuration via mbedtls_ssl_setup(), but
+ *                 the handshake must not yet have been started.
+ * \param session  The session to be considered for session resumption.
+ *                 This must be a session previously exported via
+ *                 mbedtls_ssl_get_session(), and potentially serialized and
+ *                 deserialized through mbedtls_ssl_session_save() and
+ *                 mbedtls_ssl_session_load() in the meantime.
+ *
+ * \return         \c 0 if successful.
+ * \return         \c MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if the session
+ *                 could not be loaded because of an implementation limitation.
+ *                 This error is non-fatal, and has no observable effect on
+ *                 the SSL context or the session that was attempted to be loaded.
+ * \return         Another negative error code on other kinds of failure.
  *
  * \sa             mbedtls_ssl_get_session()
+ * \sa             mbedtls_ssl_session_load()
  */
 int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session *session );
 #endif /* MBEDTLS_SSL_CLI_C */
@@ -3677,32 +3710,41 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ss
 
 #if defined(MBEDTLS_SSL_CLI_C)
 /**
- * \brief          Save session in order to resume it later (client-side only)
- *                 Session data is copied to presented session structure.
+ * \brief          Export a session in order to resume it later.
  *
+ * \param ssl      The SSL context representing the connection for which to
+ *                 to export a session structure for later resumption.
+ * \param session  The target structure in which to store the exported session.
+ *                 This must have been initialized with mbedtls_ssl_init_session()
+ *                 but otherwise be unused.
  *
- * \param ssl      SSL context
- * \param session  session context
+ * \note           The mechanism of session resumption is opaque to this
+ *                 call: For TLS 1.2, both session ID-based resumption and
+ *                 ticket-based resumption will be considered. For TLS 1.3,
+ *                 once implemented, sessions equate to tickets, and calling
+ *                 this function multiple times will export the available
+ *                 tickets one a time until no further tickets are available,
+ *                 in which case MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE will
+ *                 be returned.
  *
- * \return         0 if successful,
- *                 MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed,
- *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used server-side or
- *                 arguments are otherwise invalid.
+ * \note           Calling this function multiple times will only be useful
+ *                 once TLS 1.3 is supported. For TLS 1.2 connections, this
+ *                 function should be called at most once.
  *
- * \note           Only the server certificate is copied, and not the full chain,
- *                 so you should not attempt to validate the certificate again
- *                 by calling \c mbedtls_x509_crt_verify() on it.
- *                 Instead, you should use the results from the verification
- *                 in the original handshake by calling \c mbedtls_ssl_get_verify_result()
- *                 after loading the session again into a new SSL context
- *                 using \c mbedtls_ssl_set_session().
- *
- * \note           Once the session object is not needed anymore, you should
- *                 free it by calling \c mbedtls_ssl_session_free().
+ * \return         \c 0 if successful. In this case, \p session can be used for
+ *                 session resumption by passing it to mbedtls_ssl_set_session(),
+ *                 and serialized for storage via mbedtls_ssl_session_save().
+ * \return         #MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if no further session
+ *                 is available for export.
+ *                 This error is a non-fatal, and has no observable effect on
+ *                 the SSL context or the destination session.
+ * \return         Another negative error code on other kinds of failure.
  *
  * \sa             mbedtls_ssl_set_session()
+ * \sa             mbedtls_ssl_session_save()
  */
-int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session *session );
+int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl,
+                             mbedtls_ssl_session *session );
 #endif /* MBEDTLS_SSL_CLI_C */
 
 /**

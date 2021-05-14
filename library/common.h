@@ -50,4 +50,11 @@
 #define MBEDTLS_STATIC_TESTABLE static
 #endif
 
+/** Allow library to access it's structs' private members.
+ *
+ * Although structs defined in header files are publicly available,
+ * their members are private and should not be accessed by the user.
+ */
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

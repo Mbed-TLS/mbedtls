@@ -2,6 +2,8 @@
 /*----------------------------------------------------------------------------*/
 /* Headers */
 
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
 #include <test/macros.h>
 #include <test/helpers.h>
 #include <test/random.h>

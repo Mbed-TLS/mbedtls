@@ -151,14 +151,11 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
     while( cur != NULL )
     {
         count++;
-
         if( session_id_len == cur->session_id_len &&
             memcmp( session_id, cur->session_id, cur->session_id_len ) == 0 )
         {
             goto found;
         }
-
-        last = cur;
         cur = cur->next;
     }
 

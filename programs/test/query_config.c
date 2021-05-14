@@ -267,22 +267,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-    if( strcmp( "MBEDTLS_CHECK_PARAMS", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_CHECK_PARAMS );
-        return( 0 );
-    }
-#endif /* MBEDTLS_CHECK_PARAMS */
-
-#if defined(MBEDTLS_CHECK_PARAMS_ASSERT)
-    if( strcmp( "MBEDTLS_CHECK_PARAMS_ASSERT", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_CHECK_PARAMS_ASSERT );
-        return( 0 );
-    }
-#endif /* MBEDTLS_CHECK_PARAMS_ASSERT */
-
 #if defined(MBEDTLS_TIMING_ALT)
     if( strcmp( "MBEDTLS_TIMING_ALT", config ) == 0 )
     {

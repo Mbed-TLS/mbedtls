@@ -28,11 +28,6 @@
 #include "mbedtls/memory_buffer_alloc.h"
 #endif
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-#include <setjmp.h>
-#endif
-
 #ifdef _MSC_VER
 #include <basetsd.h>
 typedef UINT8 uint8_t;
@@ -77,10 +72,6 @@ typedef struct data_tag
 
 /*----------------------------------------------------------------------------*/
 /* Global variables */
-
-#if defined(MBEDTLS_CHECK_PARAMS)
-jmp_buf jmp_tmp;
-#endif
 
 /*----------------------------------------------------------------------------*/
 /* Helper flags for complex dependencies */

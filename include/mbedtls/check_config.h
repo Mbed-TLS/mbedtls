@@ -860,6 +860,9 @@
 #error "MBEDTLS_ZLIB_SUPPORT was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
 #endif
 
+#if defined(MBEDTLS_CHECK_PARAMS) //no-check-names
+#error "MBEDTLS_CHECK_PARAMS was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4313"
+#endif
 
 /*
  * Avoid warning from -pedantic. This is a convenient place for this

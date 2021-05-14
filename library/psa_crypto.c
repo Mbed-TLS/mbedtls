@@ -1028,9 +1028,6 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
      */
     if( slot->lock_count != 1 )
     {
-#ifdef MBEDTLS_CHECK_PARAMS
-        MBEDTLS_PARAM_FAILED( slot->lock_count == 1 );
-#endif
         status = PSA_ERROR_CORRUPTION_DETECTED;
     }
 

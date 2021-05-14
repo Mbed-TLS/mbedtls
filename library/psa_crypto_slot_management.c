@@ -409,17 +409,6 @@ psa_status_t psa_unlock_key_slot( psa_key_slot_t *slot )
         return( PSA_SUCCESS );
     }
 
-    /*
-     * As the return error code may not be handled in case of multiple errors,
-     * do our best to report if the lock counter is equal to zero: if
-     * available call MBEDTLS_PARAM_FAILED that may terminate execution (if
-     * called as part of the execution of a unit test suite this will stop the
-     * test suite execution).
-     */
-#ifdef MBEDTLS_CHECK_PARAMS
-    MBEDTLS_PARAM_FAILED( slot->lock_count > 0 );
-#endif
-
     return( PSA_ERROR_CORRUPTION_DETECTED );
 }
 

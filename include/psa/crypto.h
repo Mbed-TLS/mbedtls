@@ -4361,14 +4361,14 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  * accessed through the key derivation interface and the result can be supplied
  * to the PAKE operation in the form of a key derivation object.
  *
- * \param[in,out] operation     The operation object to set the password for. It
- *                              must have been set up by psa_pake_setup() and
- *                              not yet in use.
- * \param key_derivation        An ongoing key derivation operation set up from
- *                              the password and in a state suitable for
- *                              calling psa_key_derivation_output_bytes().
- * \param input_length          Number of bytes to input from the
- *                              \p key_derivation operation.
+ * \param[in,out] operation       The operation object to set the password for.
+ *                                It must have been set up by psa_pake_setup()
+ *                                and not yet in use.
+ * \param[in,out] key_derivation  An ongoing key derivation operation set up
+ *                                from the password and in a state suitable for
+ *                                calling psa_key_derivation_output_bytes().
+ * \param input_length            Number of bytes to input from the
+ *                                \p key_derivation operation.
  *
  * \retval #PSA_SUCCESS
  *         Success.

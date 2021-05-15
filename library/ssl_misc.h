@@ -130,8 +130,7 @@
  * counter (8) + header (5) + IV(16) + MAC (16-48) + padding (0-256).
  */
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3)   ||      \
-    defined(MBEDTLS_SSL_PROTO_TLS1)   ||      \
+#if defined(MBEDTLS_SSL_PROTO_TLS1)   ||      \
     defined(MBEDTLS_SSL_PROTO_TLS1_1) ||      \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #define MBEDTLS_SSL_PROTO_TLS1_2_OR_EARLIER

@@ -1,0 +1,2 @@
+Features
+   * Implement psa_sign_message() and psa_verify_message().

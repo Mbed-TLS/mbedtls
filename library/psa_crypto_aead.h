@@ -447,10 +447,18 @@ psa_status_t mbedtls_psa_aead_update_ad(mbedtls_psa_aead_operation_t *operation,
  * \param input_length          Size of the \p input buffer in bytes.
  * \param[out] output           Buffer where the output is to be written.
  * \param output_size           Size of the \p output buffer in bytes.
- *                              This must be at least
- *                              #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c alg,
- *                              \p input_length) where \c alg is the
- *                              algorithm that is being calculated.
+ *                              This must be appropriate for the selected
+ *                                algorithm and key:
+ *                                - A sufficient output size is
+ *                                  #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c key_type,
+ *                                  \c alg, \p input_length) where
+ *                                  \c key_type is the type of key and \c alg is
+ *                                  the algorithm that were used to set up the
+ *                                  operation.
+ *                                - #PSA_AEAD_UPDATE_OUTPUT_MAX_SIZE(\p
+ *                                  input_length) evaluates to the maximum
+ *                                  output size of any supported AEAD
+ *                                  algorithm.
  * \param[out] output_length    On success, the number of bytes
  *                              that make up the returned output.
  *
@@ -461,9 +469,10 @@ psa_status_t mbedtls_psa_aead_update_ad(mbedtls_psa_aead_operation_t *operation,
  *         set, and have lengths set if required by the algorithm).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
- *         You can determine a sufficient buffer size by calling
- *         #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c alg, \p input_length)
- *         where \c alg is the algorithm that is being calculated.
+  *         The size of the \p output buffer is too small.
+ *         #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c key_type, \c alg, \p input_length) or
+ *         #PSA_AEAD_UPDATE_OUTPUT_MAX_SIZE(\p input_length) can be used to
+ *         determine the required buffer size.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to mbedtls_psa_aead_update_ad() so far is
  *         less than the additional data length that was previously
@@ -515,10 +524,16 @@ psa_status_t mbedtls_psa_aead_update(mbedtls_psa_aead_operation_t *operation,
  * \param[out] ciphertext       Buffer where the last part of the ciphertext
  *                              is to be written.
  * \param ciphertext_size       Size of the \p ciphertext buffer in bytes.
- *                              This must be at least
- *                              #PSA_AEAD_FINISH_OUTPUT_SIZE(\c alg) where
- *                              \c alg is the algorithm that is being
- *                              calculated.
+ *                              This must be appropriate for the selected
+ *                              algorithm and key:
+ *                              - A sufficient output size is
+ *                                #PSA_AEAD_FINISH_OUTPUT_SIZE(\c key_type,
+ *                                \c alg) where \c key_type is the type of key
+ *                                and \c alg is the algorithm that were used to
+ *                                set up the operation.
+ *                              - #PSA_AEAD_FINISH_OUTPUT_MAX_SIZE evaluates to
+ *                                the maximum output size of any supported AEAD
+ *                                algorithm.
  * \param[out] ciphertext_length On success, the number of bytes of
  *                              returned ciphertext.
  * \param[out] tag              Buffer where the authentication tag is
@@ -545,12 +560,11 @@ psa_status_t mbedtls_psa_aead_update(mbedtls_psa_aead_operation_t *operation,
  *         operation with a nonce set).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p ciphertext or \p tag buffer is too small.
- *         You can determine a sufficient buffer size for \p ciphertext by
- *         calling #PSA_AEAD_FINISH_OUTPUT_SIZE(\c alg)
- *         where \c alg is the algorithm that is being calculated.
- *         #PSA_AEAD_TAG_LENGTH(\c key_type, \c key_bits, \c alg) or
- *         #PSA_AEAD_TAG_MAX_SIZE can be used to determine the required \p tag
- *         buffer size.
+ *         #PSA_AEAD_FINISH_OUTPUT_SIZE(\c key_type, \c alg) or
+ *         #PSA_AEAD_FINISH_OUTPUT_MAX_SIZE can be used to determine the
+ *         required \p ciphertext buffer size. #PSA_AEAD_TAG_LENGTH(\c key_type,
+ *         \c key_bits, \c alg) or #PSA_AEAD_TAG_MAX_SIZE can be used to
+ *         determine the required \p tag buffer size.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to psa_aead_update_ad() so far is
  *         less than the additional data length that was previously
@@ -614,10 +628,16 @@ psa_status_t mbedtls_psa_aead_finish(mbedtls_psa_aead_operation_t *operation,
  *                              that could not be processed until the end
  *                              of the input.
  * \param plaintext_size        Size of the \p plaintext buffer in bytes.
- *                              This must be at least
- *                              #PSA_AEAD_VERIFY_OUTPUT_SIZE(\c alg) where
- *                              \c alg is the algorithm that is being
- *                              calculated.
+ *                              This must be appropriate for the selected
+ *                              algorithm and key:
+ *                              - A sufficient output size is
+ *                                #PSA_AEAD_VERIFY_OUTPUT_SIZE(\c key_type,
+ *                                \c alg) where \c key_type is the type of key
+ *                                and \c alg is the algorithm that were used to
+ *                                set up the operation.
+ *                              - #PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE evaluates to
+ *                                the maximum output size of any supported AEAD
+ *                                algorithm.
  * \param[out] plaintext_length On success, the number of bytes of
  *                              returned plaintext.
  * \param[in] tag               Buffer containing the authentication tag.
@@ -633,9 +653,9 @@ psa_status_t mbedtls_psa_aead_finish(mbedtls_psa_aead_operation_t *operation,
  *         operation with a nonce set).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p plaintext buffer is too small.
- *         You can determine a sufficient buffer size for \p plaintext by
- *         calling #PSA_AEAD_VERIFY_OUTPUT_SIZE(\c alg)
- *         where \c alg is the algorithm that is being calculated.
+ *         #PSA_AEAD_VERIFY_OUTPUT_SIZE(\c key_type, \c alg) or
+ *         #PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE can be used to determine the
+ *         required buffer size.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to mbedtls_psa_aead_update_ad() so far is
  *         less than the additional data length that was previously

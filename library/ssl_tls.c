@@ -806,14 +806,14 @@ typedef int ssl_tls_prf_t(const unsigned char *, size_t, const char *,
 static int ssl_populate_transform( mbedtls_ssl_transform *transform,
                                    int ciphersuite,
                                    const unsigned char master[48],
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
                                    int encrypt_then_mac,
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
                                    int trunc_hmac,
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
-#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
                                    ssl_tls_prf_t tls_prf,
                                    const unsigned char randbytes[64],
                                    int minor_ver,
@@ -846,7 +846,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
      * Some data just needs copying into the structure
      */
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) && \
-    defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+    defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     transform->encrypt_then_mac = encrypt_then_mac;
 #endif
     transform->minor_ver = minor_ver;
@@ -967,7 +967,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     }
     else
 #endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C */
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     if( cipher_info->mode == MBEDTLS_MODE_STREAM ||
         cipher_info->mode == MBEDTLS_MODE_CBC )
     {
@@ -1044,7 +1044,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
         }
     }
     else
-#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -1105,7 +1105,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
         goto end;
     }
 
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
@@ -1125,7 +1125,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
         ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         goto end;
     }
-#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
     ((void) mac_dec);
     ((void) mac_enc);
@@ -1518,14 +1518,14 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     ret = ssl_populate_transform( ssl->transform_negotiate,
                                   ssl->session_negotiate->ciphersuite,
                                   ssl->session_negotiate->master,
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
                                   ssl->session_negotiate->encrypt_then_mac,
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
                                   ssl->session_negotiate->trunc_hmac,
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
-#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
                                   ssl->handshake->tls_prf,
                                   ssl->handshake->randbytes,
                                   ssl->minor_ver,
@@ -3323,7 +3323,7 @@ void mbedtls_ssl_transform_init( mbedtls_ssl_transform *transform )
     mbedtls_cipher_init( &transform->cipher_ctx_enc );
     mbedtls_cipher_init( &transform->cipher_ctx_dec );
 
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     mbedtls_md_init( &transform->md_ctx_enc );
     mbedtls_md_init( &transform->md_ctx_dec );
 #endif
@@ -6162,14 +6162,14 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     ret = ssl_populate_transform( ssl->transform,
                   ssl->session->ciphersuite,
                   ssl->session->master,
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
                   ssl->session->encrypt_then_mac,
 #endif
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
                   ssl->session->trunc_hmac,
 #endif
-#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
                   ssl_tls12prf_from_cs( ssl->session->ciphersuite ),
                   p, /* currently pointing to randbytes */
                   MBEDTLS_SSL_MINOR_VERSION_3, /* (D)TLS 1.2 is forced */

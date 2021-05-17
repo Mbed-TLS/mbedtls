@@ -1,0 +1,5 @@
+Bugfix
+   * Fix a regression introduced in 2.24.0 which broke (D)TLS CBC ciphersuites
+     (when the encrypt-then-MAC extension is not in use) with some ALT
+     implementations of the underlying hash (SHA-1, SHA-256, SHA-384), causing
+     the affected side to wrongly reject valid messages. Fixes #4118.

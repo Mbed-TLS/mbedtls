@@ -1487,6 +1487,20 @@
      PSA_ALG_IS_ECDSA(alg) || PSA_ALG_IS_HASH_EDDSA(alg) ||             \
      PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg))
 
+/** Whether the specified algorithm is a signature algorithm that can be used
+ * with psa_sign_message() and psa_verify_message().
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if alg is a signature algorithm that can be used to sign a
+ *         message. 0 if \p alg is a signature algorithm that can only be used
+ *         to sign an already-calculated hash. 0 if \p alg is not a signature
+ *         algorithm. This macro can return either 0 or 1 if \p alg is not a
+ *         supported algorithm identifier.
+ */
+#define PSA_ALG_IS_SIGN_MESSAGE(alg)                                    \
+    (PSA_ALG_IS_HASH_AND_SIGN(alg) || (alg) == PSA_ALG_PURE_EDDSA )
+
 /** Get the hash used by a hash-and-sign signature algorithm.
  *
  * A hash-and-sign algorithm is a signature algorithm which is
@@ -2062,6 +2076,26 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * For a key pair, this concerns the private key.
  */
 #define PSA_KEY_USAGE_DECRYPT                   ((psa_key_usage_t)0x00000200)
+
+/** Whether the key may be used to sign a message.
+ *
+ * This flag allows the key to be used for a MAC calculation operation or for
+ * an asymmetric message signature operation, if otherwise permitted by the
+ * key’s type and policy.
+ *
+ * For a key pair, this concerns the private key.
+ */
+#define PSA_KEY_USAGE_SIGN_MESSAGE              ((psa_key_usage_t)0x00000400)
+
+/** Whether the key may be used to verify a message.
+ *
+ * This flag allows the key to be used for a MAC verification operation or for
+ * an asymmetric message signature verification operation, if otherwise
+ * permitted by the key’s type and policy.
+ *
+ * For a key pair, this concerns the public key.
+ */
+#define PSA_KEY_USAGE_VERIFY_MESSAGE            ((psa_key_usage_t)0x00000800)
 
 /** Whether the key may be used to sign a message.
  *

@@ -7,13 +7,13 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
-void ecdsa_sign( int force_status_arg,
-                 data_t *key_input,
-                 data_t *data_input,
-                 data_t *expected_output,
-                 int fake_output,
-                 int expected_status_arg )
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_DETERMINISTIC_ECDSA:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
+void ecdsa_sign_hash( int force_status_arg,
+                      data_t *key_input,
+                      data_t *data_input,
+                      data_t *expected_output,
+                      int fake_output,
+                      int expected_status_arg )
 {
     psa_status_t force_status = force_status_arg;
     psa_status_t expected_status = expected_status_arg;
@@ -28,7 +28,7 @@ void ecdsa_sign( int force_status_arg,
 
     PSA_ASSERT( psa_crypto_init( ) );
     psa_set_key_type( &attributes,
-                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
     psa_set_key_algorithm( &attributes, alg );
     psa_import_key( &attributes,
@@ -65,19 +65,19 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
-void ecdsa_verify( int force_status_arg,
-                   int register_public_key,
-                   data_t *key_input,
-                   data_t *data_input,
-                   data_t *signature_input,
-                   int expected_status_arg )
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
+void ecdsa_verify_hash( int force_status_arg,
+                        int register_public_key,
+                        data_t *key_input,
+                        data_t *data_input,
+                        data_t *signature_input,
+                        int expected_status_arg )
 {
     psa_status_t force_status = force_status_arg;
     psa_status_t expected_status = expected_status_arg;
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_algorithm_t alg = PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 );
+    psa_algorithm_t alg = PSA_ALG_ECDSA( PSA_ALG_SHA_256 );
     psa_status_t actual_status;
     mbedtls_test_driver_signature_verify_hooks =
         mbedtls_test_driver_signature_hooks_init();
@@ -86,7 +86,7 @@ void ecdsa_verify( int force_status_arg,
     if( register_public_key )
     {
         psa_set_key_type( &attributes,
-                      PSA_KEY_TYPE_ECC_PUBLIC_KEY( PSA_ECC_CURVE_SECP_R1 ) );
+                      PSA_KEY_TYPE_ECC_PUBLIC_KEY( PSA_ECC_FAMILY_SECP_R1 ) );
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
         psa_set_key_algorithm( &attributes, alg );
         psa_import_key( &attributes,
@@ -96,7 +96,7 @@ void ecdsa_verify( int force_status_arg,
     else
     {
         psa_set_key_type( &attributes,
-                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) );
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
         psa_set_key_algorithm( &attributes, alg );
         psa_import_key( &attributes,
@@ -121,7 +121,125 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_DETERMINISTIC_ECDSA:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
+void ecdsa_sign_message( int force_status_arg,
+                         data_t *key_input,
+                         data_t *data_input,
+                         data_t *expected_output,
+                         int fake_output,
+                         int expected_status_arg )
+{
+    psa_status_t force_status = force_status_arg;
+    psa_status_t expected_status = expected_status_arg;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_algorithm_t alg = PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 );
+    uint8_t signature[64];
+    size_t signature_length = 0xdeadbeef;
+    psa_status_t actual_status;
+    mbedtls_test_driver_signature_sign_hooks =
+        mbedtls_test_driver_signature_hooks_init();
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    psa_set_key_type( &attributes,
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_import_key( &attributes,
+                    key_input->x, key_input->len,
+                    &key );
+
+    mbedtls_test_driver_signature_sign_hooks.forced_status = force_status;
+    if( fake_output == 1 )
+    {
+        mbedtls_test_driver_signature_sign_hooks.forced_output =
+            expected_output->x;
+        mbedtls_test_driver_signature_sign_hooks.forced_output_length =
+            expected_output->len;
+    }
+
+    actual_status = psa_sign_message( key, alg,
+                                      data_input->x, data_input->len,
+                                      signature, sizeof( signature ),
+                                      &signature_length );
+    TEST_EQUAL( actual_status, expected_status );
+    if( expected_status == PSA_SUCCESS )
+    {
+        ASSERT_COMPARE( signature, signature_length,
+                        expected_output->x, expected_output->len );
+    }
+    /* In the builtin algorithm the driver is called twice. */
+    TEST_EQUAL( mbedtls_test_driver_signature_sign_hooks.hits,
+                force_status == PSA_ERROR_NOT_SUPPORTED ? 2 : 1 );
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    PSA_DONE( );
+    mbedtls_test_driver_signature_sign_hooks =
+        mbedtls_test_driver_signature_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
+void ecdsa_verify_message( int force_status_arg,
+                           int register_public_key,
+                           data_t *key_input,
+                           data_t *data_input,
+                           data_t *signature_input,
+                           int expected_status_arg )
+{
+    psa_status_t force_status = force_status_arg;
+    psa_status_t expected_status = expected_status_arg;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_algorithm_t alg = PSA_ALG_ECDSA( PSA_ALG_SHA_256 );
+    psa_status_t actual_status;
+    mbedtls_test_driver_signature_verify_hooks =
+        mbedtls_test_driver_signature_hooks_init();
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    if( register_public_key )
+    {
+        psa_set_key_type( &attributes,
+                      PSA_KEY_TYPE_ECC_PUBLIC_KEY( PSA_ECC_FAMILY_SECP_R1 ) );
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_MESSAGE );
+        psa_set_key_algorithm( &attributes, alg );
+        psa_import_key( &attributes,
+                        key_input->x, key_input->len,
+                        &key );
+    }
+    else
+    {
+        psa_set_key_type( &attributes,
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) );
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_MESSAGE );
+        psa_set_key_algorithm( &attributes, alg );
+        psa_import_key( &attributes,
+                        key_input->x, key_input->len,
+                        &key );
+    }
+
+    mbedtls_test_driver_signature_verify_hooks.forced_status = force_status;
+
+    actual_status = psa_verify_message( key, alg,
+                                        data_input->x, data_input->len,
+                                        signature_input->x, signature_input->len );
+    TEST_EQUAL( actual_status, expected_status );
+    /* In the builtin algorithm the driver is called twice. */
+    TEST_EQUAL( mbedtls_test_driver_signature_verify_hooks.hits,
+                force_status == PSA_ERROR_NOT_SUPPORTED ? 2 : 1 );
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    PSA_DONE( );
+    mbedtls_test_driver_signature_verify_hooks =
+        mbedtls_test_driver_signature_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256 */
 void generate_key( int force_status_arg,
                    data_t *fake_output,
                    int expected_status_arg )
@@ -140,7 +258,7 @@ void generate_key( int force_status_arg,
         mbedtls_test_driver_key_management_hooks_init();
 
     psa_set_key_type( &attributes,
-                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP_R1 ) );
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) );
     psa_set_key_bits( &attributes, 256 );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_EXPORT );
     psa_set_key_algorithm( &attributes, alg );
@@ -194,7 +312,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256 */
 void validate_key( int force_status_arg,
                    int key_type_arg,
                    data_t *key_input,
@@ -230,7 +348,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256 */
 void export_key( int force_status_arg,
                  data_t *fake_output,
                  int key_in_type_arg,

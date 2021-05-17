@@ -1936,8 +1936,9 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
     {
         if( mbedtls_ssl_own_cert( ssl ) == NULL )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no certificate to send" ) );
-            return( MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED );
+            /* Should never happen because we shouldn't have picked the
+             * ciphersuite if we don't have a certificate. */
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
     }
 #endif
@@ -1964,7 +1965,7 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate too large, %" MBEDTLS_PRINTF_SIZET
                                         " > %" MBEDTLS_PRINTF_SIZET,
                            i + 3 + n, (size_t) MBEDTLS_SSL_OUT_CONTENT_LEN ) );
-            return( MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE );
+            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
 
         ssl->out_msg[i    ] = (unsigned char)( n >> 16 );
@@ -6973,14 +6974,14 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
 {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
-        return MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH;
+        return( -1 );
 
     switch( md )
     {
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_SSL_HASH_MD5:
-            return MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH;
+            return( -1 );
 #endif
 #if defined(MBEDTLS_SHA1_C)
         case MBEDTLS_SSL_HASH_SHA1:
@@ -6999,7 +7000,7 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
             break;
 #endif
         default:
-            return MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH;
+            return( -1 );
     }
 
     return 0;
@@ -7007,7 +7008,7 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
     (void) ssl;
     (void) md;
 
-    return MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH;
+    return( -1 );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 }
 

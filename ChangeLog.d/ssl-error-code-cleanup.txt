@@ -1,0 +1,6 @@
+API changes
+   * Remove SSL error codes `MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED`
+     and `MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH` which are never
+     returned from the public SSL API.
+   * Remove `MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE` and return
+     `MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL` instead.

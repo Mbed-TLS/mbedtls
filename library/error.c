@@ -374,18 +374,12 @@ const char * mbedtls_high_level_strerr( int error_code )
             return( "SSL - An invalid SSL record was received" );
         case -(MBEDTLS_ERR_SSL_CONN_EOF):
             return( "SSL - The connection indicated an EOF" );
-        case -(MBEDTLS_ERR_SSL_UNKNOWN_CIPHER):
-            return( "SSL - An unknown cipher was received" );
         case -(MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN):
             return( "SSL - The server has no ciphersuites in common with the client" );
         case -(MBEDTLS_ERR_SSL_NO_RNG):
             return( "SSL - No RNG was provided to the SSL module" );
         case -(MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE):
             return( "SSL - No client certification received from the client, but required by the authentication mode" );
-        case -(MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE):
-            return( "SSL - Our own certificate(s) is/are too large to send in an SSL message" );
-        case -(MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED):
-            return( "SSL - The own certificate is not set, but needed by the server" );
         case -(MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED):
             return( "SSL - The own private key or pre-shared key is not set, but needed" );
         case -(MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED):
@@ -394,8 +388,6 @@ const char * mbedtls_high_level_strerr( int error_code )
             return( "SSL - An unexpected message was received from our peer" );
         case -(MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE):
             return( "SSL - A fatal alert message was received from our peer" );
-        case -(MBEDTLS_ERR_SSL_PEER_VERIFY_FAILED):
-            return( "SSL - Verification of our peer failed" );
         case -(MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY):
             return( "SSL - The peer notified us that the connection is going to be closed" );
         case -(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO):
@@ -462,8 +454,6 @@ const char * mbedtls_high_level_strerr( int error_code )
             return( "SSL - Record header looks valid but is not expected" );
         case -(MBEDTLS_ERR_SSL_NON_FATAL):
             return( "SSL - The alert message received indicates a non-fatal error" );
-        case -(MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH):
-            return( "SSL - Couldn't set the hash for verifying CertificateVerify" );
         case -(MBEDTLS_ERR_SSL_CONTINUE_PROCESSING):
             return( "SSL - Internal-only message signaling that further message-processing should be done" );
         case -(MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS):

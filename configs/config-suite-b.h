@@ -107,7 +107,8 @@
  * The minimum size here depends on the certificate chain used as well as the
  * typical size of records.
  */
-#define MBEDTLS_SSL_MAX_CONTENT_LEN             1024
+#define MBEDTLS_SSL_IN_CONTENT_LEN             1024
+#define MBEDTLS_SSL_OUT_CONTENT_LEN             1024
 
 #include "mbedtls/check_config.h"
 

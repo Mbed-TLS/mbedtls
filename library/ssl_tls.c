@@ -4647,7 +4647,7 @@ const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 size_t mbedtls_ssl_get_input_max_frag_len( const mbedtls_ssl_context *ssl )
 {
-    size_t max_len = MBEDTLS_SSL_MAX_CONTENT_LEN;
+    size_t max_len = MBEDTLS_SSL_IN_CONTENT_LEN;
     size_t read_mfl;
 
     /* Use the configured MFL for the client if we're past SERVER_HELLO_DONE */

@@ -374,7 +374,7 @@ requires_not_i686() {
 }
 
 # Calculate the input & output maximum content lengths set in the config
-MAX_CONTENT_LEN=$( ../scripts/config.py get MBEDTLS_SSL_MAX_CONTENT_LEN || echo "16384")
+MAX_CONTENT_LEN=16384
 MAX_IN_LEN=$( ../scripts/config.py get MBEDTLS_SSL_IN_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
 MAX_OUT_LEN=$( ../scripts/config.py get MBEDTLS_SSL_OUT_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
 
@@ -3014,8 +3014,13 @@ run_test    "Session resume using cache, DTLS: openssl server" \
 
 # Tests for Max Fragment Length extension
 
-if [ "$MAX_CONTENT_LEN" -lt "4096" ]; then
-    printf '%s defines MBEDTLS_SSL_MAX_CONTENT_LEN to be less than 4096. Fragment length tests will fail.\n' "${CONFIG_H}"
+if [ "$MAX_IN_LEN" -lt "4096" ]; then
+    printf '%s defines MBEDTLS_SSL_IN_CONTENT_LEN to be less than 4096. Fragment length tests will fail.\n' "${CONFIG_H}"
+    exit 1
+fi
+
+if [ "$MAX_OUT_LEN" -lt "4096" ]; then
+    printf '%s defines MBEDTLS_SSL_OUT_CONTENT_LEN to be less than 4096. Fragment length tests will fail.\n' "${CONFIG_H}"
     exit 1
 fi
 

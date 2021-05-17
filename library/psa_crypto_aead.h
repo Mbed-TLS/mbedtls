@@ -273,7 +273,7 @@ psa_status_t mbedtls_psa_aead_decrypt_setup(mbedtls_psa_aead_operation_t
  * The PSA core calls mbedtls_psa_aead_encrypt_setup() or
  * mbedtls_psa_aead_decrypt_setup() before calling this function.
  *
- * If this function returns an error status, the PSA core calls
+ * If this function returns an error status, the PSA core will call
  * mbedtls_psa_aead_abort().
  *
  * \param[in,out] operation     Active AEAD operation.
@@ -321,8 +321,8 @@ psa_status_t mbedtls_psa_aead_set_nonce(mbedtls_psa_aead_operation_t *operation,
  *   this function is not required.
  * - For vendor-defined algorithm, refer to the vendor documentation.
  *
- * If this function returns an error status, the operation enters an error
- * state and must be aborted by calling mbedtls_psa_aead_abort().
+ * If this function returns an error status, the PSA core calls
+ * mbedtls_psa_aead_abort().
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param ad_length             Size of the non-encrypted additional
@@ -365,7 +365,7 @@ psa_status_t mbedtls_psa_aead_set_lengths(mbedtls_psa_aead_operation_t
  * fragments of the additional data. It will not call this function after
  * passing data to encrypt or decrypt with mbedtls_psa_aead_update().
  *
- * Before calling this function, The PSA core will:
+ * Before calling this function, the PSA core will:
  *    1. Call either mbedtls_psa_aead_encrypt_setup() or
  *       mbedtls_psa_aead_decrypt_setup().
  *    2. Set the nonce with mbedtls_psa_aead_set_nonce().
@@ -382,7 +382,7 @@ psa_status_t mbedtls_psa_aead_set_lengths(mbedtls_psa_aead_operation_t
  *
  * \note    For the time being #PSA_ALG_CCM and #PSA_ALG_GCM require the entire
  *          additional data to be passed in in one go, i.e.
- *          mbedtls_mbedtls_psa_aead_update_ad() can only be called once.
+ *          mbedtls_psa_aead_update_ad() can only be called once.
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[in] input             Buffer containing the fragment of
@@ -438,8 +438,8 @@ psa_status_t mbedtls_psa_aead_update_ad(mbedtls_psa_aead_operation_t *operation,
  * can be delayed in this way is bounded by #PSA_AEAD_UPDATE_OUTPUT_SIZE.
  *
  * \note For the time being #PSA_ALG_CCM and #PSA_ALG_GCM require the entire
- *       data to be passed in in one go, i.e. mbedtls_mbedtls_psa_aead_update()
- *       can only be called once.
+ *       data to be passed in in one go, i.e. mbedtls_psa_aead_update() can only
+ *       be called once.
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[in] input             Buffer containing the message fragment to
@@ -514,7 +514,7 @@ psa_status_t mbedtls_psa_aead_update(mbedtls_psa_aead_operation_t *operation,
  *
  * This function has two output buffers:
  * - \p ciphertext contains trailing ciphertext that was buffered from
- *   preceding calls to psa_aead_update().
+ *   preceding calls to mbedtls_psa_aead_update().
  * - \p tag contains the authentication tag.
  *
  * Whether or not this function returns successfuly, the PSA core subsequently
@@ -544,9 +544,9 @@ psa_status_t mbedtls_psa_aead_update(mbedtls_psa_aead_operation_t *operation,
  *                              - The exact tag size is #PSA_AEAD_TAG_LENGTH(\c
  *                                key_type, \c key_bits, \c alg) where
  *                                \c key_type and \c key_bits are the type and
- *                                bit-size of the key, and \c alg is the
+ *                                bit-size of the key, and \c alg are the
  *                                algorithm that were used in the call to
- *                                psa_aead_encrypt_setup().
+ *                                mbedtls_psa_aead_encrypt_setup().
  *                              - #PSA_AEAD_TAG_MAX_SIZE evaluates to the
  *                                maximum tag size of any supported AEAD
  *                                algorithm.
@@ -566,9 +566,9 @@ psa_status_t mbedtls_psa_aead_update(mbedtls_psa_aead_operation_t *operation,
  *         \c key_bits, \c alg) or #PSA_AEAD_TAG_MAX_SIZE can be used to
  *         determine the required \p tag buffer size.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The total length of input to psa_aead_update_ad() so far is
+ *         The total length of input to mbedtls_psa_aead_update_ad() so far is
  *         less than the additional data length that was previously
- *         specified with psa_aead_set_lengths().
+ *         specified with mbedtls_psa_aead_set_lengths().
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to mbedtls_psa_aead_update() so far is
  *         less than the plaintext length that was previously
@@ -663,7 +663,7 @@ psa_status_t mbedtls_psa_aead_finish(mbedtls_psa_aead_operation_t *operation,
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to mbedtls_psa_aead_update() so far is
  *         less than the plaintext length that was previously
- *         specified with psa_aead_set_lengths().
+ *         specified with mbedtls_psa_aead_set_lengths().
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE

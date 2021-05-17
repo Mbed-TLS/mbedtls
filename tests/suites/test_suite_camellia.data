@@ -1,9 +1,6 @@
 Camellia - Valid parameters
 camellia_valid_param:
 
-Camellia - Invalid parameters
-camellia_invalid_param:
-
 Camellia-128-ECB Encrypt RFC3713 #1
 camellia_encrypt_ecb:"0123456789abcdeffedcba9876543210":"0123456789abcdeffedcba9876543210":"67673138549669730857065648eabe43":0
 

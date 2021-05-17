@@ -1,9 +1,6 @@
 BLOWFISH - Valid parameters
 blowfish_valid_param:
 
-BLOWFISH - Invalid parameters
-blowfish_invalid_param:
-
 BLOWFISH-ECB Encrypt SSLeay reference #1
 blowfish_encrypt_ecb:"0000000000000000":"0000000000000000":"4ef997456198dd78":0
 

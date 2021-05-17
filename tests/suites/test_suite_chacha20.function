@@ -66,52 +66,6 @@ void chacha20_crypt( data_t *key_str,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
-void chacha20_bad_params()
-{
-    unsigned char key[32];
-    unsigned char nonce[12];
-    unsigned char src[1];
-    unsigned char dst[1];
-    uint32_t counter = 0;
-    size_t len = sizeof( src );
-    mbedtls_chacha20_context ctx;
-
-    TEST_INVALID_PARAM( mbedtls_chacha20_init( NULL ) );
-    TEST_VALID_PARAM( mbedtls_chacha20_free( NULL ) );
-
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
-                            mbedtls_chacha20_setkey( NULL, key ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
-                            mbedtls_chacha20_setkey( &ctx, NULL ) );
-
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
-                            mbedtls_chacha20_starts( NULL, nonce, counter ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
-                            mbedtls_chacha20_starts( &ctx, NULL, counter ) );
-
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
-                            mbedtls_chacha20_update( NULL, 0, src, dst ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
-                            mbedtls_chacha20_update( &ctx, len, NULL, dst ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
-                            mbedtls_chacha20_update( &ctx, len, src, NULL ) );
-
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
-                            mbedtls_chacha20_crypt( NULL, nonce, counter, 0, src, dst ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
-                            mbedtls_chacha20_crypt( key, NULL, counter, 0, src, dst ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
-                            mbedtls_chacha20_crypt( key, nonce, counter, len, NULL, dst ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
-                            mbedtls_chacha20_crypt( key, nonce, counter, len, src, NULL ) );
-
-exit:
-    return;
-
-}
-/* END_CASE */
-
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void chacha20_self_test()
 {

@@ -1,6 +1,3 @@
-Diffie-Hellman parameter validation
-dhm_invalid_params:
-
 Diffie-Hellman full exchange #1
 dhm_do_dhm:10:"23":10:"5":0
 

@@ -1,9 +1,6 @@
 ECP valid params
 ecp_valid_param:
 
-ECP invalid params
-ecp_invalid_param:
-
 ECP curve info #1
 depends_on:MBEDTLS_ECP_DP_BP512R1_ENABLED
 mbedtls_ecp_curve_info:MBEDTLS_ECP_DP_BP512R1:28:512:"brainpoolP512r1"

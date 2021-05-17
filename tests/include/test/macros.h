@@ -181,14 +181,10 @@
  * \brief   This macro tests the statement passed to it as a test step or
  *          individual test in a test case. The macro assumes the test will not fail.
  *
- *          It assumes the library function under test cannot return a value and
- *          assumes errors can only be indicated by calls to
- *          MBEDTLS_PARAM_FAILED().
+ *          It assumes the library function under test cannot return a value.
  *
  *          This macro is intended to test that functions returning void
- *          accept all of the parameter values they're supposed to accept - eg
- *          that they don't call MBEDTLS_PARAM_FAILED() when a parameter
- *          that's allowed to be NULL happens to be NULL.
+ *          accept all of the parameter values they're supposed to accept.
  *
  *          Note: for functions that return something other that void,
  *          checking that they accept all the parameters they're supposed to

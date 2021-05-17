@@ -85,7 +85,6 @@ void pkcs1_rsaes_oaep_decrypt( int mod, data_t * input_P, data_t * input_Q,
         TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx,
                                                 &mbedtls_test_rnd_pseudo_rand,
                                                 &rnd_info,
-                                                MBEDTLS_RSA_PRIVATE,
                                                 &output_len, message_str->x,
                                                 NULL, 0 ) == result );
     }
@@ -94,7 +93,6 @@ void pkcs1_rsaes_oaep_decrypt( int mod, data_t * input_P, data_t * input_Q,
         TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx,
                                                 &mbedtls_test_rnd_pseudo_rand,
                                                 &rnd_info,
-                                                MBEDTLS_RSA_PRIVATE,
                                                 &output_len, message_str->x,
                                                 output,
                                                 sizeof( output ) ) == result );

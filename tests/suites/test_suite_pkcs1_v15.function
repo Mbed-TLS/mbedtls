@@ -89,7 +89,6 @@ void pkcs1_rsaes_v15_decrypt( int mod, int radix_P, char * input_P,
         TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx,
                                                 &mbedtls_test_rnd_pseudo_rand,
                                                 &rnd_info,
-                                                MBEDTLS_RSA_PRIVATE,
                                                 &output_len, message_str->x,
                                                 NULL, 0 ) == result );
     }
@@ -97,7 +96,7 @@ void pkcs1_rsaes_v15_decrypt( int mod, int radix_P, char * input_P,
     {
         TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx,
                                                 &mbedtls_test_rnd_pseudo_rand,
-                                                &rnd_info, MBEDTLS_RSA_PRIVATE,
+                                                &rnd_info,
                                                 &output_len, message_str->x,
                                                 output, 1000 ) == result );
         if( result == 0 )
@@ -116,8 +115,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void pkcs1_v15_decode( int mode,
-                       data_t *input,
+void pkcs1_v15_decode( data_t *input,
                        int expected_plaintext_length_arg,
                        int output_size_arg,
                        int expected_result )
@@ -207,17 +205,12 @@ void pkcs1_v15_decode( int mode,
     TEST_ASSERT( input->len <= sizeof( N ) );
     memcpy( original, input->x, input->len );
     memset( original + input->len, 'd', sizeof( original ) - input->len );
-    if( mode == MBEDTLS_RSA_PRIVATE )
-        TEST_ASSERT( mbedtls_rsa_public( &ctx, original, intermediate ) == 0 );
-    else
-        TEST_ASSERT( mbedtls_rsa_private( &ctx, &mbedtls_test_rnd_pseudo_rand,
-                                          &rnd_info, original,
-                                          intermediate ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_public( &ctx, original, intermediate ) == 0 );
 
     memcpy( final, default_content, sizeof( final ) );
     TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx,
                                             &mbedtls_test_rnd_pseudo_rand,
-                                            &rnd_info, mode, &output_length,
+                                            &rnd_info, &output_length,
                                             intermediate, final,
                                             output_size ) == expected_result );
     if( expected_result == 0 )

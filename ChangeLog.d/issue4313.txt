@@ -1,10 +1,11 @@
 Removals
    * Remove the following macros: MBEDTLS_CHECK_PARAMS,
-     MBEDTLS_CHECK_PARAMS_ASSERT, MBEDTLS_PARAM_FAILED, MBEDTLS_PARAM_FAILED_ALT,
-     TEST_INVALID_PARAM, TEST_INVALID_PARAM_RET, the following macros have been
-     inactivated MBEDTLS_INTERNAL_VALIDATE_RET and MBEDTLS_INTERNAL_VALIDATE,
-     structures: param_failed_ctx_t, mbedtls_test_param_failed_location_record_t,
-     functions: mbedtls_test_param_failed_get_location_record(),
+     MBEDTLS_CHECK_PARAMS_ASSERT, MBEDTLS_PARAM_FAILED,
+     MBEDTLS_PARAM_FAILED_ALT, TEST_INVALID_PARAM, TEST_INVALID_PARAM_RET,
+     the following macros have been inactivated MBEDTLS_INTERNAL_VALIDATE_RET
+     and MBEDTLS_INTERNAL_VALIDATE, structures: param_failed_ctx_t,
+     mbedtls_test_param_failed_location_record_t, functions:
+     mbedtls_test_param_failed_get_location_record(),
      mbedtls_test_param_failed_expect_call(),
      mbedtls_test_param_failed_check_expected_call(),
      mbedtls_test_param_failed_get_state_buf(),

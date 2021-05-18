@@ -120,8 +120,9 @@ static int rsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
     *sig_len = mbedtls_rsa_get_len( rsa );
 
-    return( mbedtls_rsa_pkcs1_sign( rsa, f_rng, p_rng, MBEDTLS_RSA_PRIVATE,
-                md_alg, (unsigned int) hash_len, hash, sig ) );
+    return( mbedtls_rsa_pkcs1_sign( rsa, f_rng, p_rng,
+                                    md_alg, (unsigned int) hash_len,
+                                    hash, sig ) );
 }
 
 static int rsa_decrypt_wrap( void *ctx,

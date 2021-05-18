@@ -293,8 +293,8 @@ void pkcs1_rsassa_v15_sign( int mod, int radix_P, char * input_P, int radix_Q,
         TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
 
     TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &mbedtls_test_rnd_buffer_rand,
-                                         &info, MBEDTLS_RSA_PRIVATE, digest,
-                                         0, hash_result, output ) == result );
+                                         &info, digest, 0, hash_result,
+                                         output ) == result );
     if( result == 0 )
     {
 

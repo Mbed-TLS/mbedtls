@@ -419,7 +419,6 @@ static psa_status_t rsa_sign_hash(
         ret = mbedtls_rsa_pkcs1_sign( rsa,
                                       mbedtls_psa_get_random,
                                       MBEDTLS_PSA_RANDOM_STATE,
-                                      MBEDTLS_RSA_PRIVATE,
                                       md_alg,
                                       (unsigned int) hash_length,
                                       hash,

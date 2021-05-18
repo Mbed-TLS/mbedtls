@@ -1,4 +1,4 @@
-API Changes
+API changes
     * The getter and setter API of the SSL session cache (used for
       session-ID based session resumption) has changed to that of
       a key-value store with keys being session IDs and values

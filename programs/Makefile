@@ -55,7 +55,7 @@ endif
 ## will be built on Windows. Extra Linux/Unix/POSIX-only applications can
 ## be declared by appending with `APPS += ...` afterwards.
 ## See the get_app_list function in scripts/generate_visualc_files.pl and
-## make sure to check that it still works you tweak the format here.
+## make sure to check that it still works if you tweak the format here.
 APPS = \
 	aes/crypt_and_hash \
 	hash/generic_sum \

@@ -280,22 +280,22 @@ void rsa_invalid_param( )
                                                              buf ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_pkcs1_verify( NULL, NULL,
+                            mbedtls_rsa_pkcs1_verify( NULL,
                                                       MBEDTLS_RSA_PUBLIC,
                                                       0, sizeof( buf ), buf,
                                                       buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_pkcs1_verify( &ctx, NULL,
+                            mbedtls_rsa_pkcs1_verify( &ctx,
                                                       MBEDTLS_RSA_PUBLIC,
                                                       0, sizeof( buf ), NULL,
                                                       buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_pkcs1_verify( &ctx, NULL,
+                            mbedtls_rsa_pkcs1_verify( &ctx,
                                                       MBEDTLS_RSA_PUBLIC,
                                                       0, sizeof( buf ), buf,
                                                       NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_pkcs1_verify( &ctx, NULL,
+                            mbedtls_rsa_pkcs1_verify( &ctx,
                                                       MBEDTLS_RSA_PUBLIC,
                                                       MBEDTLS_MD_SHA1, 0, NULL,
                                                       buf ) );
@@ -485,7 +485,7 @@ void mbedtls_rsa_pkcs1_verify( data_t * message_str, int padding_mode,
     if( mbedtls_md_info_from_type( digest ) != NULL )
         TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, MBEDTLS_RSA_PUBLIC, digest, 0, hash_result, result_str->x ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, MBEDTLS_RSA_PUBLIC, digest, 0, hash_result, result_str->x ) == result );
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &E );
@@ -564,7 +564,7 @@ void rsa_pkcs1_verify_raw( data_t * hash_result,
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_NONE, hash_result->len, hash_result->x, result_str->x ) == correct );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_NONE, hash_result->len, hash_result->x, result_str->x ) == correct );
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &E );

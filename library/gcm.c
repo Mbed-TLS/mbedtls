@@ -488,7 +488,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
 }
 
 int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
-                        unsigned char *output, size_t output_len,
+                        unsigned char *output, size_t output_size,
                         unsigned char *tag, size_t tag_len )
 {
     unsigned char work_buf[16];
@@ -502,7 +502,7 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
     /* We never pass any output in finish(). The output parameter exists only
      * for the sake of alternative implementations. */
     (void) output;
-    (void) output_len;
+    (void) output_size;
 
     orig_len = ctx->len * 8;
     orig_add_len = ctx->add_len * 8;

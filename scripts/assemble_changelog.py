@@ -63,15 +63,15 @@ class LostContent(Exception):
 # The category names we use in the changelog.
 # If you edit this, update ChangeLog.d/README.md.
 STANDARD_CATEGORIES = (
-    b'API changes',
-    b'Default behavior changes',
-    b'Requirement changes',
-    b'New deprecations',
-    b'Removals',
-    b'Features',
-    b'Security',
-    b'Bugfix',
-    b'Changes',
+    'API changes',
+    'Default behavior changes',
+    'Requirement changes',
+    'New deprecations',
+    'Removals',
+    'Features',
+    'Security',
+    'Bugfix',
+    'Changes',
 )
 
 # The maximum line length for an entry
@@ -122,13 +122,13 @@ class ChangelogFormat:
 class TextChangelogFormat(ChangelogFormat):
     """The traditional Mbed TLS changelog format."""
 
-    _unreleased_version_text = b'= mbed TLS x.x.x branch released xxxx-xx-xx'
+    _unreleased_version_text = '= mbed TLS x.x.x branch released xxxx-xx-xx'
     @classmethod
     def is_released_version(cls, title):
         # Look for an incomplete release date
-        return not re.search(br'[0-9x]{4}-[0-9x]{2}-[0-9x]?x', title)
+        return not re.search(r'[0-9x]{4}-[0-9x]{2}-[0-9x]?x', title)
 
-    _top_version_re = re.compile(br'(?:\A|\n)(=[^\n]*\n+)(.*?\n)(?:=|$)',
+    _top_version_re = re.compile(r'(?:\A|\n)(=[^\n]*\n+)(.*?\n)(?:=|$)',
                                  re.DOTALL)
     @classmethod
     def extract_top_version(cls, changelog_file_content):
@@ -140,17 +140,17 @@ class TextChangelogFormat(ChangelogFormat):
         top_version_body = m.group(2)
         if cls.is_released_version(top_version_title):
             top_version_end = top_version_start
-            top_version_title = cls._unreleased_version_text + b'\n\n'
-            top_version_body = b''
+            top_version_title = cls._unreleased_version_text + '\n\n'
+            top_version_body = ''
         return (changelog_file_content[:top_version_start],
                 top_version_title, top_version_body,
                 changelog_file_content[top_version_end:])
 
     @classmethod
     def version_title_text(cls, version_title):
-        return re.sub(br'\n.*', version_title, re.DOTALL)
+        return re.sub(r'\n.*', version_title, re.DOTALL)
 
-    _category_title_re = re.compile(br'(^\w.*)\n+', re.MULTILINE)
+    _category_title_re = re.compile(r'(^\w.*)\n+', re.MULTILINE)
     @classmethod
     def split_categories(cls, version_body):
         """A category title is a line with the title in column 0."""
@@ -163,10 +163,10 @@ class TextChangelogFormat(ChangelogFormat):
         title_starts = [m.start(1) for m in title_matches]
         body_starts = [m.end(0) for m in title_matches]
         body_ends = title_starts[1:] + [len(version_body)]
-        bodies = [version_body[body_start:body_end].rstrip(b'\n') + b'\n'
+        bodies = [version_body[body_start:body_end].rstrip('\n') + '\n'
                   for (body_start, body_end) in zip(body_starts, body_ends)]
-        title_lines = [version_body[:pos].count(b'\n') for pos in title_starts]
-        body_lines = [version_body[:pos].count(b'\n') for pos in body_starts]
+        title_lines = [version_body[:pos].count('\n') for pos in title_starts]
+        body_lines = [version_body[:pos].count('\n') for pos in body_starts]
         return [CategoryContent(title_match.group(1), title_line,
                                 body, body_line)
                 for title_match, title_line, body, body_line
@@ -176,9 +176,9 @@ class TextChangelogFormat(ChangelogFormat):
     def format_category(cls, title, body):
         # `split_categories` ensures that each body ends with a newline.
         # Make sure that there is additionally a blank line between categories.
-        if not body.endswith(b'\n\n'):
-            body += b'\n'
-        return title + b'\n' + body
+        if not body.endswith('\n\n'):
+            body += '\n'
+        return title + '\n' + body
 
 class ChangeLog:
     """An Mbed TLS changelog.
@@ -199,10 +199,10 @@ class ChangeLog:
     # Only accept dotted version numbers (e.g. "3.1", not "3").
     # Refuse ".x" in a version number where x is a letter: this indicates
     # a version that is not yet released. Something like "3.1a" is accepted.
-    _version_number_re = re.compile(br'[0-9]+\.[0-9A-Za-z.]+')
-    _incomplete_version_number_re = re.compile(br'.*\.[A-Za-z]')
-    _only_url_re = re.compile(br'^\s*\w+://\S+\s*$')
-    _has_url_re = re.compile(br'.*://.*')
+    _version_number_re = re.compile(r'[0-9]+\.[0-9A-Za-z.]+')
+    _incomplete_version_number_re = re.compile(r'.*\.[A-Za-z]')
+    _only_url_re = re.compile(r'^\s*\w+://\S+\s*$')
+    _has_url_re = re.compile(r'.*://.*')
 
     def add_categories_from_text(self, filename, line_offset,
                                  text, allow_unknown_category):
@@ -218,7 +218,7 @@ class ChangeLog:
                 raise InputFormatError(filename,
                                        line_offset + category.title_line,
                                        'Unknown category: "{}"',
-                                       category.name.decode('utf8'))
+                                       category.name)
 
             body_split = category.body.splitlines()
 
@@ -250,8 +250,8 @@ class ChangeLog:
         # Split the top version section into categories.
         self.categories = OrderedDict()
         for category in STANDARD_CATEGORIES:
-            self.categories[category] = b''
-        offset = (self.header + self.top_version_title).count(b'\n') + 1
+            self.categories[category] = ''
+        offset = (self.header + self.top_version_title).count('\n') + 1
         self.add_categories_from_text(input_stream.name, offset,
                                       top_version_body, True)
 
@@ -264,7 +264,7 @@ class ChangeLog:
     def write(self, filename):
         """Write the changelog to the specified file.
         """
-        with open(filename, 'wb') as out:
+        with open(filename, 'w') as out:
             out.write(self.header)
             out.write(self.top_version_title)
             for title, body in self.categories.items():
@@ -303,7 +303,7 @@ class EntryFileSortKey:
         hashes = subprocess.check_output(['git', 'log', '--format=%H',
                                           '--follow',
                                           '--', filename])
-        m = re.search(b'(.+)$', hashes)
+        m = re.search('(.+)$', hashes.decode('ascii'))
         if not m:
             # The git output is empty. This means that the file was
             # never checked in.
@@ -320,8 +320,8 @@ class EntryFileSortKey:
         """
         text = subprocess.check_output(['git', 'rev-list',
                                         '--merges', *options,
-                                        b'..'.join([some_hash, target])])
-        return text.rstrip(b'\n').split(b'\n')
+                                        '..'.join([some_hash, target])])
+        return text.decode('ascii').rstrip('\n').split('\n')
 
     @classmethod
     def merge_hash(cls, some_hash):
@@ -329,7 +329,7 @@ class EntryFileSortKey:
 
         Return None if the given commit was never merged.
         """
-        target = b'HEAD'
+        target = 'HEAD'
         # List the merges from some_hash to the target in two ways.
         # The ancestry list is the ones that are both descendants of
         # some_hash and ancestors of the target.
@@ -407,12 +407,12 @@ def check_output(generated_output_file, main_input_file, merged_files):
     is also present in an output file. This is not perfect but good enough
     for now.
     """
-    generated_output = set(open(generated_output_file, 'rb'))
-    for line in open(main_input_file, 'rb'):
+    generated_output = set(open(generated_output_file, 'r'))
+    for line in open(main_input_file, 'r'):
         if line not in generated_output:
             raise LostContent('original file', line)
     for merged_file in merged_files:
-        for line in open(merged_file, 'rb'):
+        for line in open(merged_file, 'r'):
             if line not in generated_output:
                 raise LostContent(merged_file, line)
 
@@ -455,14 +455,14 @@ def merge_entries(options):
     Write the new changelog to options.output.
     Remove the merged entries if options.keep_entries is false.
     """
-    with open(options.input, 'rb') as input_file:
+    with open(options.input, 'r') as input_file:
         changelog = ChangeLog(input_file, TextChangelogFormat)
     files_to_merge = list_files_to_merge(options)
     if not files_to_merge:
         sys.stderr.write('There are no pending changelog entries.\n')
         return
     for filename in files_to_merge:
-        with open(filename, 'rb') as input_file:
+        with open(filename, 'r') as input_file:
             changelog.add_file(input_file)
     finish_output(changelog, options.output, options.input, files_to_merge)
     if not options.keep_entries:

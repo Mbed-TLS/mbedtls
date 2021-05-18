@@ -2414,15 +2414,12 @@ cleanup:
  * Do an RSA operation and check the message digest
  */
 int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
-                      int mode,
                       mbedtls_md_type_t md_alg,
                       unsigned int hashlen,
                       const unsigned char *hash,
                       const unsigned char *sig )
 {
     RSA_VALIDATE_RET( ctx != NULL );
-    RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
-                      mode == MBEDTLS_RSA_PUBLIC );
     RSA_VALIDATE_RET( sig != NULL );
     RSA_VALIDATE_RET( ( md_alg  == MBEDTLS_MD_NONE &&
                         hashlen == 0 ) ||
@@ -2432,13 +2429,13 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
     {
 #if defined(MBEDTLS_PKCS1_V15)
         case MBEDTLS_RSA_PKCS_V15:
-            return mbedtls_rsa_rsassa_pkcs1_v15_verify( ctx, NULL, NULL, mode, md_alg,
+            return mbedtls_rsa_rsassa_pkcs1_v15_verify( ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, md_alg,
                                                 hashlen, hash, sig );
 #endif
 
 #if defined(MBEDTLS_PKCS1_V21)
         case MBEDTLS_RSA_PKCS_V21:
-            return mbedtls_rsa_rsassa_pss_verify( ctx, NULL, NULL, mode, md_alg,
+            return mbedtls_rsa_rsassa_pss_verify( ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, md_alg,
                                           hashlen, hash, sig );
 #endif
 
@@ -2705,8 +2702,7 @@ int mbedtls_rsa_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "passed\n  PKCS#1 sig. verify: " );
 
-    if( mbedtls_rsa_pkcs1_verify( &rsa,
-                                  MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA1, 0,
+    if( mbedtls_rsa_pkcs1_verify( &rsa, MBEDTLS_MD_SHA1, 0,
                                   sha1sum, rsa_ciphertext ) != 0 )
     {
         if( verbose != 0 )

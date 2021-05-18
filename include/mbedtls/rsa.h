@@ -973,24 +973,13 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  *                 the message digest.
  *
  *                 This is the generic wrapper for performing a PKCS#1
- *                 verification using the mode from the context.
+ *                 verification.
  *
  * \note           For PKCS#1 v2.1 encoding, see comments on
  *                 mbedtls_rsa_rsassa_pss_verify() about \p md_alg and
  *                 \p hash_id.
  *
- * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
- *                 are likely to remove the \p mode argument and have it
- *                 set to #MBEDTLS_RSA_PUBLIC.
- *
- * \note           Alternative implementations of RSA need not support
- *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
- *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
- *
  * \param ctx      The initialized RSA public key context to use.
- * \param mode     The mode of operation. This must be either
- *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE (deprecated).
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
  * \param hashlen  The length of the message digest.
@@ -1008,7 +997,6 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
  */
 int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
-                      int mode,
                       mbedtls_md_type_t md_alg,
                       unsigned int hashlen,
                       const unsigned char *hash,

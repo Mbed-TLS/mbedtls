@@ -490,7 +490,6 @@ static psa_status_t rsa_verify_hash(
         mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V15,
                                  MBEDTLS_MD_NONE );
         ret = mbedtls_rsa_pkcs1_verify( rsa,
-                                        MBEDTLS_RSA_PUBLIC,
                                         md_alg,
                                         (unsigned int) hash_length,
                                         hash,

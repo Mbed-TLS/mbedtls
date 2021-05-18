@@ -835,24 +835,11 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  * \brief          This function performs a PKCS#1 v1.5 signature
  *                 operation (RSASSA-PKCS1-v1_5-SIGN).
  *
- * \deprecated     It is deprecated and discouraged to call this function
- *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
- *                 are likely to remove the \p mode argument and have it
- *                 implicitly set to #MBEDTLS_RSA_PRIVATE.
- *
- * \note           Alternative implementations of RSA need not support
- *                 mode being set to #MBEDTLS_RSA_PUBLIC and might instead
- *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
- *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function. If \p mode is #MBEDTLS_RSA_PRIVATE,
- *                 this is used for blinding and should be provided; see
- *                 mbedtls_rsa_private() for more. If \p mode is
- *                 #MBEDTLS_RSA_PUBLIC, it is ignored.
+ * \param f_rng    The RNG function. This is used for blinding and should be
+ *                 provided; see mbedtls_rsa_private() for more.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be \c NULL
  *                 if \p f_rng is \c NULL or doesn't need a context argument.
- * \param mode     The mode of operation. This must be either
- *                 #MBEDTLS_RSA_PRIVATE or #MBEDTLS_RSA_PUBLIC (deprecated).
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
  * \param hashlen  The length of the message digest.
@@ -873,7 +860,6 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
 int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
                                int (*f_rng)(void *, unsigned char *, size_t),
                                void *p_rng,
-                               int mode,
                                mbedtls_md_type_t md_alg,
                                unsigned int hashlen,
                                const unsigned char *hash,

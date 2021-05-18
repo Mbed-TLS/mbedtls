@@ -2049,7 +2049,6 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
 int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
                                int (*f_rng)(void *, unsigned char *, size_t),
                                void *p_rng,
-                               int mode,
                                mbedtls_md_type_t md_alg,
                                unsigned int hashlen,
                                const unsigned char *hash,
@@ -2059,15 +2058,10 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     unsigned char *sig_try = NULL, *verif = NULL;
 
     RSA_VALIDATE_RET( ctx != NULL );
-    RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
-                      mode == MBEDTLS_RSA_PUBLIC );
     RSA_VALIDATE_RET( ( md_alg  == MBEDTLS_MD_NONE &&
                         hashlen == 0 ) ||
                       hash != NULL );
     RSA_VALIDATE_RET( sig != NULL );
-
-    if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     /*
      * Prepare PKCS1-v1.5 encoding (padding and hash identifier)
@@ -2076,16 +2070,6 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     if( ( ret = rsa_rsassa_pkcs1_v15_encode( md_alg, hashlen, hash,
                                              ctx->len, sig ) ) != 0 )
         return( ret );
-
-    /*
-     * Call respective RSA primitive
-     */
-
-    if( mode == MBEDTLS_RSA_PUBLIC )
-    {
-        /* Skip verification on a public key operation */
-        return( mbedtls_rsa_public( ctx, sig, sig ) );
-    }
 
     /* Private key operation
      *
@@ -2144,7 +2128,7 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
     {
 #if defined(MBEDTLS_PKCS1_V15)
         case MBEDTLS_RSA_PKCS_V15:
-            return mbedtls_rsa_rsassa_pkcs1_v15_sign( ctx, f_rng, p_rng, MBEDTLS_RSA_PRIVATE,
+            return mbedtls_rsa_rsassa_pkcs1_v15_sign( ctx, f_rng, p_rng,
                                                       md_alg, hashlen, hash, sig );
 #endif
 

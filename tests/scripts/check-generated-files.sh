@@ -52,6 +52,7 @@ check()
     FILES=""
 
     if [ -d $TO_CHECK ]; then
+        rm -f "$TO_CHECK"/*.bak
         for FILE in $TO_CHECK/*; do
             FILES="$FILE $FILES"
         done

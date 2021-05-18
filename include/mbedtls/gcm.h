@@ -244,6 +244,11 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
  *                  (authenticated but not encrypted data) in a GCM
  *                  encryption or decryption operation.
  *
+ *                  Call this function after mbedtls_gcm_starts() to pass
+ *                  the associated data. If the associated data is empty,
+ *                  you do not need to call this function. You may not
+ *                  call this function after calling mbedtls_cipher_update().
+ *
  * \note            This function may only be called once per operation:
  *                  you must pass the whole associated data in a single
  *                  call. This limitation will be lifted in a future version
@@ -266,6 +271,12 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
 /**
  * \brief           This function feeds an input buffer into an ongoing GCM
  *                  encryption or decryption operation.
+ *
+ *                  You may call this function zero, one or more times
+ *                  to pass successive parts of the input: the plaintext to
+ *                  encrypt, or the ciphertext (not including the tag) to
+ *                  decrypt. After the last part of the input, call
+ *                  mbedtls_gcm_finish().
  *
  * \note            For decryption, the output buffer cannot be the same as
  *                  input buffer. If the buffers overlap, the output buffer

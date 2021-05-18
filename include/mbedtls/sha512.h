@@ -135,7 +135,7 @@ int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx,
  *                 and have a hash operation started.
  * \param output   The SHA-384 or SHA-512 checksum result.
  *                 This must be a writable buffer of length \c 64 bytes
- *                 for SHA-512, 48 bytes for SHA-384.
+ *                 for SHA-512, \c 48 bytes for SHA-384.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -173,7 +173,7 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
  * \param ilen     The length of the input data in Bytes.
  * \param output   The SHA-384 or SHA-512 checksum result.
  *                 This must be a writable buffer of length \c 64 bytes
- *                 for SHA-512, 48 bytes for SHA-384.
+ *                 for SHA-512, \c 48 bytes for SHA-384.
  * \param is384    Determines which function to use. This must be either
  *                 \c 0 for SHA-512, or \c 1 for SHA-384.
  *

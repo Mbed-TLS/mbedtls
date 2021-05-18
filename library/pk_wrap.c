@@ -770,7 +770,7 @@ static int rsa_alt_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     if( *sig_len > MBEDTLS_PK_SIGNATURE_MAX_SIZE )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    return( rsa_alt->sign_func( rsa_alt->key, f_rng, p_rng, MBEDTLS_RSA_PRIVATE,
+    return( rsa_alt->sign_func( rsa_alt->key, f_rng, p_rng,
                 md_alg, (unsigned int) hash_len, hash, sig ) );
 }
 

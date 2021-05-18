@@ -691,6 +691,18 @@ component_check_doxygen_warnings () {
     record_status tests/scripts/doxygen.sh
 }
 
+component_check_python2 () {
+    # Check that what used to work with Python 2 still works with Python 2.
+    msg "check: python2 compatibility"
+    mkdir -p tests/with_python2 tests/with_python3
+    make -C tests PYTHON=python2 c_files
+    mv tests/test_suite_*.c tests/with_python2/
+    make -C tests PYTHON=python3 c_files
+    mv tests/test_suite_*.c tests/with_python3/
+    diff -r tests/with_python2 tests/with_python3
+    rm -rf tests/with_python2 tests/with_python3
+}
+
 
 
 ################################################################

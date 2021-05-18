@@ -44,8 +44,7 @@ else
 DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
-# python2 for POSIX since FreeBSD has only python2 as default.
-PYTHON ?= python2
+PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
 endif
 
 # Zlib shared library extensions:
@@ -63,7 +62,7 @@ BINARIES := $(addsuffix $(EXEXT),$(APPS))
 
 .SILENT:
 
-.PHONY: all check test clean
+.PHONY: all c_files check test clean
 
 all: $(BINARIES)
 
@@ -71,6 +70,7 @@ $(DEP):
 	$(MAKE) -C ../library
 
 C_FILES := $(addsuffix .c,$(APPS))
+c_files: $(C_FILES)
 
 # Wildcard target for test code generation:
 # A .c file is generated for each .data file in the suites/ directory. Each .c

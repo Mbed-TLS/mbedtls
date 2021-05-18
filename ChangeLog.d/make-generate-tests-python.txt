@@ -1,0 +1,4 @@
+Changes
+   * When building the test suites with GNU make, invoke python3 or python, not
+     python2. The build still works with either Python 2.7 or 3.5+, but we
+     recommend using a version of Python that is supported upstream.

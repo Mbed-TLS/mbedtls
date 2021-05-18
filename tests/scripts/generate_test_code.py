@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# This script should still be compatible with Python 2 in Mbed TLS 2.16.x.
+
 # Test suites code generator.
 #
 # Copyright The Mbed TLS Contributors

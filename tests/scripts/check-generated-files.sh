@@ -60,7 +60,11 @@ check()
     fi
 
     for FILE in $FILES; do
-        cp $FILE $FILE.bak
+        if [ -e "$FILE" ]; then
+            cp "$FILE" "$FILE.bak"
+        else
+            rm -f "$FILE.bak"
+        fi
     done
 
     $SCRIPT
@@ -76,7 +80,7 @@ check()
         if [ -z "$UPDATE" ]; then
             mv $FILE.bak $FILE
         else
-            rm $FILE.bak
+            rm -f "$FILE.bak"
         fi
 
         if [ -d $TO_CHECK ]; then

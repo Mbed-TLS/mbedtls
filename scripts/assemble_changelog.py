@@ -264,7 +264,7 @@ class ChangeLog:
     def write(self, filename):
         """Write the changelog to the specified file.
         """
-        with open(filename, 'w') as out:
+        with open(filename, 'w', encoding='utf-8') as out:
             out.write(self.header)
             out.write(self.top_version_title)
             for title, body in self.categories.items():
@@ -407,12 +407,12 @@ def check_output(generated_output_file, main_input_file, merged_files):
     is also present in an output file. This is not perfect but good enough
     for now.
     """
-    generated_output = set(open(generated_output_file, 'r'))
-    for line in open(main_input_file, 'r'):
+    generated_output = set(open(generated_output_file, 'r', encoding='utf-8'))
+    for line in open(main_input_file, 'r', encoding='utf-8'):
         if line not in generated_output:
             raise LostContent('original file', line)
     for merged_file in merged_files:
-        for line in open(merged_file, 'r'):
+        for line in open(merged_file, 'r', encoding='utf-8'):
             if line not in generated_output:
                 raise LostContent(merged_file, line)
 
@@ -455,14 +455,14 @@ def merge_entries(options):
     Write the new changelog to options.output.
     Remove the merged entries if options.keep_entries is false.
     """
-    with open(options.input, 'r') as input_file:
+    with open(options.input, 'r', encoding='utf-8') as input_file:
         changelog = ChangeLog(input_file, TextChangelogFormat)
     files_to_merge = list_files_to_merge(options)
     if not files_to_merge:
         sys.stderr.write('There are no pending changelog entries.\n')
         return
     for filename in files_to_merge:
-        with open(filename, 'r') as input_file:
+        with open(filename, 'r', encoding='utf-8') as input_file:
             changelog.add_file(input_file)
     finish_output(changelog, options.output, options.input, files_to_merge)
     if not options.keep_entries:

@@ -90,7 +90,7 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     if( sig_len < rsa_len )
         return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 
-    if( ( ret = mbedtls_rsa_pkcs1_verify( rsa, NULL, NULL,
+    if( ( ret = mbedtls_rsa_pkcs1_verify( rsa, NULL,
                                   MBEDTLS_RSA_PUBLIC, md_alg,
                                   (unsigned int) hash_len, hash, sig ) ) != 0 )
         return( ret );

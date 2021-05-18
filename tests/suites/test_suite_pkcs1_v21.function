@@ -199,7 +199,7 @@ void pkcs1_rsassa_pss_verify( int mod, data_t * input_N, data_t * input_E,
     if( mbedtls_md_info_from_type( digest ) != NULL )
         TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, digest, 0, hash_result, result_str->x ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, MBEDTLS_RSA_PUBLIC, digest, 0, hash_result, result_str->x ) == result );
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &E );
@@ -244,7 +244,7 @@ void pkcs1_rsassa_pss_verify_ext( int mod, data_t * input_N, data_t * input_E,
         hash_len = message_str->len;
     }
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC,
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, MBEDTLS_RSA_PUBLIC,
                                    msg_digest_id, hash_len, hash_result,
                                    result_str->x ) == result_simple );
 

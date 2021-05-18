@@ -989,9 +989,6 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA public key context to use.
- * \param f_rng    The RNG function to use. If \p mode is #MBEDTLS_RSA_PRIVATE,
- *                 this is used for blinding and should be provided; see
- *                 mbedtls_rsa_private() for more. Otherwise, it is ignored.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode     The mode of operation. This must be either
@@ -1013,7 +1010,6 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
  */
 int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
-                      int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng,
                       int mode,
                       mbedtls_md_type_t md_alg,

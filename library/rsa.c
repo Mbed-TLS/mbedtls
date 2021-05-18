@@ -2414,7 +2414,6 @@ cleanup:
  * Do an RSA operation and check the message digest
  */
 int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
-                      int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng,
                       int mode,
                       mbedtls_md_type_t md_alg,
@@ -2434,13 +2433,13 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
     {
 #if defined(MBEDTLS_PKCS1_V15)
         case MBEDTLS_RSA_PKCS_V15:
-            return mbedtls_rsa_rsassa_pkcs1_v15_verify( ctx, f_rng, p_rng, mode, md_alg,
+            return mbedtls_rsa_rsassa_pkcs1_v15_verify( ctx, NULL, p_rng, mode, md_alg,
                                                 hashlen, hash, sig );
 #endif
 
 #if defined(MBEDTLS_PKCS1_V21)
         case MBEDTLS_RSA_PKCS_V21:
-            return mbedtls_rsa_rsassa_pss_verify( ctx, f_rng, p_rng, mode, md_alg,
+            return mbedtls_rsa_rsassa_pss_verify( ctx, NULL, p_rng, mode, md_alg,
                                           hashlen, hash, sig );
 #endif
 
@@ -2707,7 +2706,7 @@ int mbedtls_rsa_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "passed\n  PKCS#1 sig. verify: " );
 
-    if( mbedtls_rsa_pkcs1_verify( &rsa, NULL, NULL,
+    if( mbedtls_rsa_pkcs1_verify( &rsa, NULL,
                                   MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA1, 0,
                                   sha1sum, rsa_ciphertext ) != 0 )
     {

@@ -240,8 +240,9 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
                         size_t iv_len );
 
 /**
- * \brief           This function starts a GCM encryption or decryption
- *                  operation.
+ * \brief           This function feeds an input buffer as associated data
+ *                  (authenticated but not encrypted data) in a GCM
+ *                  encryption or decryption operation.
  *
  * \note            This function may only be called once per operation:
  *                  you must pass the whole associated data in a single

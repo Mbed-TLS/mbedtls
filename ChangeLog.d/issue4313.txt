@@ -1,0 +1,25 @@
+Removals
+   * Remove the following macros: MBEDTLS_CHECK_PARAMS,
+     MBEDTLS_CHECK_PARAMS_ASSERT, MBEDTLS_PARAM_FAILED,
+     MBEDTLS_PARAM_FAILED_ALT, TEST_INVALID_PARAM, TEST_INVALID_PARAM_RET,
+     the following macros have been inactivated MBEDTLS_INTERNAL_VALIDATE_RET
+     and MBEDTLS_INTERNAL_VALIDATE, structures: param_failed_ctx_t,
+     mbedtls_test_param_failed_location_record_t, functions:
+     mbedtls_test_param_failed_get_location_record(),
+     mbedtls_test_param_failed_expect_call(),
+     mbedtls_test_param_failed_check_expected_call(),
+     mbedtls_test_param_failed_get_state_buf(),
+     mbedtls_test_param_failed_reset_state(),
+     mbedtls_param_failed(). Remove the following functions from all.sh:
+     component_test_check_params_functionality(),
+     component_test_check_params_without_platform(),
+     component_test_check_params_silent().
+     Remove the following test functions from test_suite_*.function files:
+     aes_check_params(), aria_invalid_param(), blowfish_invalid_param(),
+     camellia_invalid_param(), ccm_invalid_param(), chacha20_bad_params(),
+     chachapoly_bad_params(), cipher_invalid_param_conditional(),
+     dhm_invalid_params(), ecdh_invalid_param(), ecdsa_invalid_param(),
+     ecjpake_invalid_param(), ecp_invalid_param(), gcm_invalid_param(),
+     mpi_invalid_param(), invalid_parameters() (pk), poly1305_bad_params(),
+     rsa_invalid_param(), sha1_invalid_param(), sha256_invalid_param(),
+     sha512_invalid_param(). Fixes #4313.

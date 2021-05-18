@@ -676,6 +676,26 @@ component_check_recursion () {
     record_status tests/scripts/recursion.pl library/*.c
 }
 
+component_check_generated_files () {
+    msg "Check: check-generated-files, files generated with make" # 2s
+    make generated_files
+    record_status tests/scripts/check-generated-files.sh
+
+    msg "Check: check-generated-files -u, files present" # 2s
+    record_status tests/scripts/check-generated-files.sh -u
+    # Check that the generated files are considered up to date.
+    record_status tests/scripts/check-generated-files.sh
+
+    msg "Check: check-generated-files -u, files absent" # 2s
+    command make neat
+    record_status tests/scripts/check-generated-files.sh -u
+    # Check that the generated files are considered up to date.
+    record_status tests/scripts/check-generated-files.sh
+
+    # This component ends with the generated files present in the source tree.
+    # This is necessary for subsequent components!
+}
+
 component_check_doxy_blocks () {
     msg "Check: doxygen markup outside doxygen blocks" # < 1s
     record_status tests/scripts/check-doxy-blocks.pl

@@ -84,8 +84,9 @@
 #define MBEDTLS_PSA_ITS_FILE_C
 #define MBEDTLS_RIPEMD160_C
 #define MBEDTLS_SHA1_C
-/* Library does not support enabling SHA-224 without SHA-256. Future version will
- * have this option disabled by default. */
+/* The library does not currently support enabling SHA-224 without SHA-256.
+ * A future version of the library will have this option disabled
+ * by default. */
 #define MBEDTLS_SHA224_C
 #define MBEDTLS_SHA256_C
 #define MBEDTLS_SHA384_C

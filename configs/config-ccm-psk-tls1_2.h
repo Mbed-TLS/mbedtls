@@ -48,8 +48,9 @@
 #define MBEDTLS_ENTROPY_C
 #define MBEDTLS_MD_C
 #define MBEDTLS_NET_C
-/* Library does not support enabling SHA-224 without SHA-256. Future version will
- * have this option disabled by default. */
+/* The library does not currently support enabling SHA-224 without SHA-256.
+ * A future version of the library will have this option disabled
+ * by default. */
 #define MBEDTLS_SHA224_C
 #define MBEDTLS_SHA256_C
 #define MBEDTLS_SSL_CLI_C

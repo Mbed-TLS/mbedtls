@@ -1897,13 +1897,12 @@ int mbedtls_rsa_rsassa_pss_sign_ext( mbedtls_rsa_context *ctx,
 int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng,
-                         int mode,
                          mbedtls_md_type_t md_alg,
                          unsigned int hashlen,
                          const unsigned char *hash,
                          unsigned char *sig )
 {
-    return rsa_rsassa_pss_sign( ctx, f_rng, p_rng, mode, md_alg,
+    return rsa_rsassa_pss_sign( ctx, f_rng, p_rng, MBEDTLS_RSA_PRIVATE, md_alg,
                                 hashlen, hash, MBEDTLS_RSA_SALT_LEN_ANY, sig );
 }
 #endif /* MBEDTLS_PKCS1_V21 */
@@ -2134,8 +2133,8 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
 
 #if defined(MBEDTLS_PKCS1_V21)
         case MBEDTLS_RSA_PKCS_V21:
-            return mbedtls_rsa_rsassa_pss_sign( ctx, f_rng, p_rng, MBEDTLS_RSA_PRIVATE,
-                                                md_alg, hashlen, hash, sig );
+            return mbedtls_rsa_rsassa_pss_sign( ctx, f_rng, p_rng, md_alg,
+                                                hashlen, hash, sig );
 #endif
 
         default:

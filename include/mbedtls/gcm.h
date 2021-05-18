@@ -312,7 +312,10 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
  *                      unspecified.
  *
  * \return         \c 0 on success.
- * \return         #MBEDTLS_ERR_GCM_BAD_INPUT on failure.
+ * \return         #MBEDTLS_ERR_GCM_BAD_INPUT on failure:
+ *                 total input length too long,
+ *                 unsupported input/output buffer overlap detected,
+ *                 or \p output_size too small.
  */
 int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
                         const unsigned char *input, size_t input_length,
@@ -343,7 +346,9 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
  *                  Alternative implementations may require a 15-byte buffer.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_GCM_BAD_INPUT on failure.
+ * \return          #MBEDTLS_ERR_GCM_BAD_INPUT on failure:
+ *                  invalid value of \p tag_len,
+ *                  or \p output_len too small.
  */
 int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
                         unsigned char *output, size_t output_len,

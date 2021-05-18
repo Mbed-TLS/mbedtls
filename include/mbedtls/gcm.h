@@ -276,7 +276,7 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
  *                      is greater than zero, this must be a readable buffer
  *                      of at least \p input_length bytes.
  * \param input_length  The length of the input data in bytes.
- * \param output        The buffer for the output data. If \p output_length
+ * \param output        The buffer for the output data. If \p output_size
  *                      is greater than zero, this must be a writable buffer of
  *                      of at least \p output_size bytes.
  *                      This function may withhold the end of the output if

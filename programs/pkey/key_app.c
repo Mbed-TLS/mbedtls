@@ -222,10 +222,10 @@ int main( int argc, char *argv[] )
         if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY )
         {
             mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( pk );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "D   : ", &ecp->d  , 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(X): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Y): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Z): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Z), 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "D   : ", &ecp->MBEDTLS_PRIVATE(d)  , 16, NULL ) );
         }
         else
 #endif
@@ -273,9 +273,9 @@ int main( int argc, char *argv[] )
         if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY )
         {
             mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( pk );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(X): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Y): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Z): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Z), 16, NULL ) );
         }
         else
 #endif

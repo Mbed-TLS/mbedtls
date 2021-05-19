@@ -90,7 +90,7 @@ int dev_random_entropy_poll( void *data, unsigned char *output,
 #endif
 
 #if defined(MBEDTLS_ECP_C)
-#define DFL_EC_CURVE            mbedtls_ecp_curve_list()->grp_id
+#define DFL_EC_CURVE            mbedtls_ecp_curve_list()->MBEDTLS_PRIVATE(grp_id)
 #else
 #define DFL_EC_CURVE            0
 #endif
@@ -223,9 +223,9 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_ECP_C)
         mbedtls_printf( " available ec_curve values:\n" );
         curve_info = mbedtls_ecp_curve_list();
-        mbedtls_printf( "    %s (default)\n", curve_info->name );
-        while( ( ++curve_info )->name != NULL )
-            mbedtls_printf( "    %s\n", curve_info->name );
+        mbedtls_printf( "    %s (default)\n", curve_info->MBEDTLS_PRIVATE(name) );
+        while( ( ++curve_info )->MBEDTLS_PRIVATE(name) != NULL )
+            mbedtls_printf( "    %s\n", curve_info->MBEDTLS_PRIVATE(name) );
 #endif /* MBEDTLS_ECP_C */
         goto exit;
     }
@@ -274,7 +274,7 @@ int main( int argc, char *argv[] )
         {
             if( ( curve_info = mbedtls_ecp_curve_info_from_name( q ) ) == NULL )
                 goto usage;
-            opt.ec_curve = curve_info->grp_id;
+            opt.ec_curve = curve_info->MBEDTLS_PRIVATE(grp_id);
         }
 #endif
         else if( strcmp( p, "filename" ) == 0 )
@@ -395,10 +395,10 @@ int main( int argc, char *argv[] )
     {
         mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( key );
         mbedtls_printf( "curve: %s\n",
-                mbedtls_ecp_curve_info_from_grp_id( ecp->grp.id )->name );
-        mbedtls_mpi_write_file( "X_Q:   ", &ecp->Q.X, 16, NULL );
-        mbedtls_mpi_write_file( "Y_Q:   ", &ecp->Q.Y, 16, NULL );
-        mbedtls_mpi_write_file( "D:     ", &ecp->d  , 16, NULL );
+                mbedtls_ecp_curve_info_from_grp_id( ecp->MBEDTLS_PRIVATE(grp).MBEDTLS_PRIVATE(id) )->MBEDTLS_PRIVATE(name) );
+        mbedtls_mpi_write_file( "X_Q:   ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), 16, NULL );
+        mbedtls_mpi_write_file( "Y_Q:   ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), 16, NULL );
+        mbedtls_mpi_write_file( "D:     ", &ecp->MBEDTLS_PRIVATE(d)  , 16, NULL );
     }
     else
 #endif

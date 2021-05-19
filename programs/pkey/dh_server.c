@@ -173,8 +173,8 @@ int main( void )
         goto exit;
     }
 
-    if( mbedtls_mpi_read_file( &dhm.P, 16, f ) != 0 ||
-        mbedtls_mpi_read_file( &dhm.G, 16, f ) != 0 )
+    if( mbedtls_mpi_read_file( &dhm.MBEDTLS_PRIVATE(P), 16, f ) != 0 ||
+        mbedtls_mpi_read_file( &dhm.MBEDTLS_PRIVATE(G), 16, f ) != 0 )
     {
         mbedtls_printf( " failed\n  ! Invalid DH parameter file\n\n" );
         fclose( f );
@@ -210,7 +210,7 @@ int main( void )
 
     memset( buf, 0, sizeof( buf ) );
 
-    if( ( ret = mbedtls_dhm_make_params( &dhm, (int) mbedtls_mpi_size( &dhm.P ), buf, &n,
+    if( ( ret = mbedtls_dhm_make_params( &dhm, (int) mbedtls_mpi_size( &dhm.MBEDTLS_PRIVATE(P) ), buf, &n,
                                  mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_dhm_make_params returned %d\n\n", ret );
@@ -226,8 +226,8 @@ int main( void )
         goto exit;
     }
 
-    buf[n    ] = (unsigned char)( rsa.len >> 8 );
-    buf[n + 1] = (unsigned char)( rsa.len      );
+    buf[n    ] = (unsigned char)( rsa.MBEDTLS_PRIVATE(len) >> 8 );
+    buf[n + 1] = (unsigned char)( rsa.MBEDTLS_PRIVATE(len)      );
 
     if( ( ret = mbedtls_rsa_pkcs1_sign( &rsa, NULL, NULL, MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_SHA256,
                                 0, hash, buf + n + 2 ) ) != 0 )
@@ -236,7 +236,7 @@ int main( void )
         goto exit;
     }
 
-    buflen = n + 2 + rsa.len;
+    buflen = n + 2 + rsa.MBEDTLS_PRIVATE(len);
     buf2[0] = (unsigned char)( buflen >> 8 );
     buf2[1] = (unsigned char)( buflen      );
 
@@ -255,14 +255,14 @@ int main( void )
 
     memset( buf, 0, sizeof( buf ) );
 
-    n = dhm.len;
+    n = dhm.MBEDTLS_PRIVATE(len);
     if( ( ret = mbedtls_net_recv( &client_fd, buf, n ) ) != (int) n )
     {
         mbedtls_printf( " failed\n  ! mbedtls_net_recv returned %d\n\n", ret );
         goto exit;
     }
 
-    if( ( ret = mbedtls_dhm_read_public( &dhm, buf, dhm.len ) ) != 0 )
+    if( ( ret = mbedtls_dhm_read_public( &dhm, buf, dhm.MBEDTLS_PRIVATE(len) ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_dhm_read_public returned %d\n\n", ret );
         goto exit;

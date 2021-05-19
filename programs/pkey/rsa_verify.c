@@ -89,15 +89,15 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = mbedtls_mpi_read_file( &rsa.N, 16, f ) ) != 0 ||
-        ( ret = mbedtls_mpi_read_file( &rsa.E, 16, f ) ) != 0 )
+    if( ( ret = mbedtls_mpi_read_file( &rsa.MBEDTLS_PRIVATE(N), 16, f ) ) != 0 ||
+        ( ret = mbedtls_mpi_read_file( &rsa.MBEDTLS_PRIVATE(E), 16, f ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned %d\n\n", ret );
         fclose( f );
         goto exit;
     }
 
-    rsa.len = ( mbedtls_mpi_bitlen( &rsa.N ) + 7 ) >> 3;
+    rsa.MBEDTLS_PRIVATE(len) = ( mbedtls_mpi_bitlen( &rsa.MBEDTLS_PRIVATE(N) ) + 7 ) >> 3;
 
     fclose( f );
 
@@ -119,7 +119,7 @@ int main( int argc, char *argv[] )
 
     fclose( f );
 
-    if( i != rsa.len )
+    if( i != rsa.MBEDTLS_PRIVATE(len) )
     {
         mbedtls_printf( "\n  ! Invalid RSA signature format\n\n" );
         goto exit;

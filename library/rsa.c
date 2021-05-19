@@ -1744,7 +1744,6 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
 static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng,
-                         int mode,
                          mbedtls_md_type_t md_alg,
                          unsigned int hashlen,
                          const unsigned char *hash,
@@ -1760,15 +1759,10 @@ static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t md_ctx;
     RSA_VALIDATE_RET( ctx != NULL );
-    RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
-                      mode == MBEDTLS_RSA_PUBLIC );
     RSA_VALIDATE_RET( ( md_alg  == MBEDTLS_MD_NONE &&
                         hashlen == 0 ) ||
                       hash != NULL );
     RSA_VALIDATE_RET( sig != NULL );
-
-    if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V21 )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     if( f_rng == NULL )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1868,9 +1862,7 @@ exit:
     if( ret != 0 )
         return( ret );
 
-    return( ( mode == MBEDTLS_RSA_PUBLIC )
-            ? mbedtls_rsa_public(  ctx, sig, sig )
-            : mbedtls_rsa_private( ctx, f_rng, p_rng, sig, sig ) );
+    return mbedtls_rsa_private( ctx, f_rng, p_rng, sig, sig );
 }
 
 /*
@@ -1886,7 +1878,7 @@ int mbedtls_rsa_rsassa_pss_sign_ext( mbedtls_rsa_context *ctx,
                          int saltlen,
                          unsigned char *sig )
 {
-    return rsa_rsassa_pss_sign( ctx, f_rng, p_rng, MBEDTLS_RSA_PRIVATE, md_alg,
+    return rsa_rsassa_pss_sign( ctx, f_rng, p_rng, md_alg,
                                 hashlen, hash, saltlen, sig );
 }
 
@@ -1902,7 +1894,7 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
                          const unsigned char *hash,
                          unsigned char *sig )
 {
-    return rsa_rsassa_pss_sign( ctx, f_rng, p_rng, MBEDTLS_RSA_PRIVATE, md_alg,
+    return rsa_rsassa_pss_sign( ctx, f_rng, p_rng, md_alg,
                                 hashlen, hash, MBEDTLS_RSA_SALT_LEN_ANY, sig );
 }
 #endif /* MBEDTLS_PKCS1_V21 */

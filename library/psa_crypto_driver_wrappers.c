@@ -1399,7 +1399,7 @@ psa_status_t psa_driver_wrapper_aead_set_nonce(
 {
     switch( operation->id )
     {
-#if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
+#if defined(MBEDTLS_PSA_BUILTIN_AEAD)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
             return( mbedtls_psa_aead_set_nonce( &operation->ctx.mbedtls_ctx,
                                                 nonce,

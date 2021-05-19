@@ -134,7 +134,7 @@ Example 2: the following capability declares that the driver can perform determ
     "entry_points": ["sign_hash"],
     "algorithms": ["PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256)",
                    "PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_384)"],
-    "key_types": ["PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1)"],
+    "key_types": ["PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1)"],
     "key_sizes": [256, 384]
 }
 ```
@@ -164,7 +164,7 @@ The name `_` may be used instead of a curve or group to indicate that the capabi
 Valid examples:
 ```
 PSA_KEY_TYPE_AES
-PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1)
+PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1)
 PSA_KEY_TYPE_ECC_KEY_PAIR(_)
 ```
 

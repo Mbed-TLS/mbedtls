@@ -2297,7 +2297,6 @@ exit:
  * Simplified PKCS#1 v2.1 RSASSA-PSS-VERIFY function
  */
 int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
-                           int mode,
                            mbedtls_md_type_t md_alg,
                            unsigned int hashlen,
                            const unsigned char *hash,
@@ -2305,8 +2304,6 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
 {
     mbedtls_md_type_t mgf1_hash_id;
     RSA_VALIDATE_RET( ctx != NULL );
-    RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
-                      mode == MBEDTLS_RSA_PUBLIC );
     RSA_VALIDATE_RET( sig != NULL );
     RSA_VALIDATE_RET( ( md_alg  == MBEDTLS_MD_NONE &&
                         hashlen == 0 ) ||
@@ -2316,10 +2313,12 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
                              ? (mbedtls_md_type_t) ctx->hash_id
                              : md_alg;
 
-    return( mbedtls_rsa_rsassa_pss_verify_ext( ctx, NULL, NULL, mode,
-                                       md_alg, hashlen, hash,
-                                       mgf1_hash_id, MBEDTLS_RSA_SALT_LEN_ANY,
-                                       sig ) );
+    return( mbedtls_rsa_rsassa_pss_verify_ext( ctx, NULL, NULL,
+                                               MBEDTLS_RSA_PUBLIC,
+                                               md_alg, hashlen, hash,
+                                               mgf1_hash_id,
+                                               MBEDTLS_RSA_SALT_LEN_ANY,
+                                               sig ) );
 
 }
 #endif /* MBEDTLS_PKCS1_V21 */
@@ -2423,8 +2422,8 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
 
 #if defined(MBEDTLS_PKCS1_V21)
         case MBEDTLS_RSA_PKCS_V21:
-            return mbedtls_rsa_rsassa_pss_verify( ctx, MBEDTLS_RSA_PUBLIC, md_alg,
-                                          hashlen, hash, sig );
+            return mbedtls_rsa_rsassa_pss_verify( ctx, md_alg,
+                                                  hashlen, hash, sig );
 #endif
 
         default:

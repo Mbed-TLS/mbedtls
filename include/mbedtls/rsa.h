@@ -573,10 +573,6 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  *                 It is the generic wrapper for performing a PKCS#1 encryption
  *                 operation.
  *
- * \note           Alternative implementations of RSA need not support
- *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
- *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
- *
  * \param ctx      The initialized RSA context to use.
  * \param f_rng    The RNG to use. It is mandatory for PKCS#1 v2.1 padding
  *                 encoding, and for PKCS#1 v1.5 padding encoding.
@@ -604,10 +600,6 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
 /**
  * \brief          This function performs a PKCS#1 v1.5 encryption operation
  *                 (RSAES-PKCS1-v1_5-ENCRYPT).
- *
- * \note           Alternative implementations of RSA need not support
- *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
- *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA context to use.
  * \param f_rng    The RNG function to use. It is needed for padding generation.

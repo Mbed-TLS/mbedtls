@@ -2332,7 +2332,6 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
  */
 int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
                                  int (*f_rng)(void *, unsigned char *, size_t),
-                                 void *p_rng,
                                  int mode,
                                  mbedtls_md_type_t md_alg,
                                  unsigned int hashlen,
@@ -2377,7 +2376,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
 
     ret = ( mode == MBEDTLS_RSA_PUBLIC )
           ? mbedtls_rsa_public(  ctx, sig, encoded )
-          : mbedtls_rsa_private( ctx, f_rng, p_rng, sig, encoded );
+          : mbedtls_rsa_private( ctx, f_rng, NULL, sig, encoded );
     if( ret != 0 )
         goto cleanup;
 
@@ -2429,7 +2428,7 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
     {
 #if defined(MBEDTLS_PKCS1_V15)
         case MBEDTLS_RSA_PKCS_V15:
-            return mbedtls_rsa_rsassa_pkcs1_v15_verify( ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, md_alg,
+            return mbedtls_rsa_rsassa_pkcs1_v15_verify( ctx, NULL, MBEDTLS_RSA_PUBLIC, md_alg,
                                                 hashlen, hash, sig );
 #endif
 

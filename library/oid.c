@@ -410,11 +410,13 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_SHA256,   MBEDTLS_PK_ECDSA,
     },
 #endif /* MBEDTLS_SHA256_C */
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA384_C)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_ECDSA_SHA384,     "ecdsa-with-SHA384",    "ECDSA with SHA384" ),
         MBEDTLS_MD_SHA384,   MBEDTLS_PK_ECDSA,
     },
+#endif /* MBEDTLS_SHA384_C */
+#if defined(MBEDTLS_SHA512_C)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_ECDSA_SHA512,     "ecdsa-with-SHA512",    "ECDSA with SHA512" ),
         MBEDTLS_MD_SHA512,   MBEDTLS_PK_ECDSA,
@@ -639,11 +641,13 @@ static const oid_md_alg_t oid_md_alg[] =
         MBEDTLS_MD_SHA256,
     },
 #endif /* MBEDTLS_SHA256_C */
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA384_C)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_SHA384,    "id-sha384",    "SHA-384" ),
         MBEDTLS_MD_SHA384,
     },
+#endif /* MBEDTLS_SHA384_C */
+#if defined(MBEDTLS_SHA512_C)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_SHA512,    "id-sha512",    "SHA-512" ),
         MBEDTLS_MD_SHA512,

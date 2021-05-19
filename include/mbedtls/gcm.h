@@ -289,10 +289,10 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
  *
  *                  In particular:
  *                  - It is always correct to call this function with
- *                    \p output_size >= \p input_size + 15.
- *                  - If \p input_size is a multiple of 16 for all the calls
+ *                    \p output_size >= \p input_length + 15.
+ *                  - If \p input_length is a multiple of 16 for all the calls
  *                    to this function during an operation, then it is
- *                    correct to use \p output_size = \p input_size.
+ *                    correct to use \p output_size = \p input_length.
  *
  * \note            For decryption, the output buffer cannot be the same as
  *                  input buffer. If the buffers overlap, the output buffer
@@ -351,7 +351,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_GCM_BAD_INPUT on failure:
  *                  invalid value of \p tag_len,
- *                  or \p output_len too small.
+ *                  or \p output_size too small.
  */
 int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
                         unsigned char *output, size_t output_size,

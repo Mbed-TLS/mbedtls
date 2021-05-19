@@ -289,10 +289,10 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
  *
  *                  In particular:
  *                  - It is always correct to call this function with
- *                    \c output_size >= \c input_size + 15.
- *                  - If \c input_size is a multiple of 16 for all the calls
+ *                    \p output_size >= \p input_size + 15.
+ *                  - If \p input_size is a multiple of 16 for all the calls
  *                    to this function during an operation, then it is
- *                    correct to use \c output_size = \c input_size.
+ *                    correct to use \p output_size = \p input_size.
  *
  * \note            For decryption, the output buffer cannot be the same as
  *                  input buffer. If the buffers overlap, the output buffer

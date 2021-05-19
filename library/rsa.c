@@ -2345,7 +2345,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
      * Apply RSA primitive to get what should be PKCS1 encoded hash.
      */
 
-    ret = mbedtls_rsa_public(  ctx, sig, encoded );
+    ret = mbedtls_rsa_public( ctx, sig, encoded );
     if( ret != 0 )
         goto cleanup;
 

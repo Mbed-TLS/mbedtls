@@ -57,8 +57,6 @@
 /*
  * RSA constants
  */
-#define MBEDTLS_RSA_PUBLIC      0 /**< Request private key operation. */
-#define MBEDTLS_RSA_PRIVATE     1 /**< Request public key operation. */
 
 #define MBEDTLS_RSA_PKCS_V15    0 /**< Use PKCS#1 v1.5 encoding. */
 #define MBEDTLS_RSA_PKCS_V21    1 /**< Use PKCS#1 v2.1 encoding. */

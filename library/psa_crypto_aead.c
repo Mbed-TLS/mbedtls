@@ -337,13 +337,12 @@ exit:
 
 /* Set the key and algorithm for a multipart authenticated encryption
  * operation. */
-psa_status_t mbedtls_psa_aead_encrypt_setup( mbedtls_psa_aead_operation_t
-                                                                    *operation,
-                                             const psa_key_attributes_t
-                                                                    *attributes,
-                                             const uint8_t *key_buffer,
-                                             size_t key_buffer_size,
-                                             psa_algorithm_t alg )
+psa_status_t mbedtls_psa_aead_encrypt_setup(
+    mbedtls_psa_aead_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -358,13 +357,12 @@ psa_status_t mbedtls_psa_aead_encrypt_setup( mbedtls_psa_aead_operation_t
 
 /* Set the key and algorithm for a multipart authenticated decryption
  * operation. */
-psa_status_t mbedtls_psa_aead_decrypt_setup( mbedtls_psa_aead_operation_t
-                                                                    *operation,
-                                             const psa_key_attributes_t
-                                                                    *attributes,
-                                             const uint8_t *key_buffer,
-                                             size_t key_buffer_size,
-                                             psa_algorithm_t alg )
+psa_status_t mbedtls_psa_aead_decrypt_setup(
+    mbedtls_psa_aead_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -380,10 +378,10 @@ psa_status_t mbedtls_psa_aead_decrypt_setup( mbedtls_psa_aead_operation_t
 }
 
 /* Set a nonce for the multipart AEAD operation*/
-psa_status_t mbedtls_psa_aead_set_nonce( mbedtls_psa_aead_operation_t
-                                                                    *operation,
-                                         const uint8_t *nonce,
-                                         size_t nonce_length )
+psa_status_t mbedtls_psa_aead_set_nonce(
+    mbedtls_psa_aead_operation_t *operation,
+    const uint8_t *nonce,
+    size_t nonce_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -439,10 +437,10 @@ psa_status_t mbedtls_psa_aead_set_nonce( mbedtls_psa_aead_operation_t
     return( status );
 }
  /* Declare the lengths of the message and additional data for AEAD. */
-psa_status_t mbedtls_psa_aead_set_lengths( mbedtls_psa_aead_operation_t
-                                                                    *operation,
-                                           size_t ad_length,
-                                           size_t plaintext_length )
+psa_status_t mbedtls_psa_aead_set_lengths(
+    mbedtls_psa_aead_operation_t *operation,
+    size_t ad_length,
+    size_t plaintext_length )
 {
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
@@ -491,10 +489,10 @@ psa_status_t mbedtls_psa_aead_set_lengths( mbedtls_psa_aead_operation_t
 }
 
 /* Pass additional data to an active multipart AEAD operation. */
-psa_status_t mbedtls_psa_aead_update_ad( mbedtls_psa_aead_operation_t
-                                                                    *operation,
-                                         const uint8_t *input,
-                                         size_t input_length )
+psa_status_t mbedtls_psa_aead_update_ad(
+    mbedtls_psa_aead_operation_t *operation,
+    const uint8_t *input,
+    size_t input_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -574,12 +572,13 @@ psa_status_t mbedtls_psa_aead_update_ad( mbedtls_psa_aead_operation_t
 
 /* Encrypt or decrypt a message fragment in an active multipart AEAD
  * operation.*/
-psa_status_t mbedtls_psa_aead_update( mbedtls_psa_aead_operation_t *operation,
-                                      const uint8_t *input,
-                                      size_t input_length,
-                                      uint8_t *output,
-                                      size_t output_size,
-                                      size_t *output_length )
+psa_status_t mbedtls_psa_aead_update(
+    mbedtls_psa_aead_operation_t *operation,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length )
 {
     size_t update_output_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -719,10 +718,10 @@ psa_status_t mbedtls_psa_aead_update( mbedtls_psa_aead_operation_t *operation,
 
 /* Common checks for both mbedtls_psa_aead_finish() and
    mbedtls_psa_aead_verify() */
-static psa_status_t mbedtls_psa_aead_finish_checks( mbedtls_psa_aead_operation_t
-                                                                    *operation,
-                                                    size_t output_size,
-                                                    size_t tag_size )
+static psa_status_t mbedtls_psa_aead_finish_checks(
+    mbedtls_psa_aead_operation_t *operation,
+    size_t output_size,
+    size_t tag_size )
 {
     size_t finish_output_size;
 
@@ -744,13 +743,14 @@ static psa_status_t mbedtls_psa_aead_finish_checks( mbedtls_psa_aead_operation_t
 }
 
 /* Finish encrypting a message in a multipart AEAD operation. */
-psa_status_t mbedtls_psa_aead_finish( mbedtls_psa_aead_operation_t *operation,
-                                      uint8_t *ciphertext,
-                                      size_t ciphertext_size,
-                                      size_t *ciphertext_length,
-                                      uint8_t *tag,
-                                      size_t tag_size,
-                                      size_t *tag_length )
+psa_status_t mbedtls_psa_aead_finish(
+    mbedtls_psa_aead_operation_t *operation,
+    uint8_t *ciphertext,
+    size_t ciphertext_size,
+    size_t *ciphertext_length,
+    uint8_t *tag,
+    size_t tag_size,
+    size_t *tag_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t finish_output_size = 0;
@@ -808,12 +808,13 @@ psa_status_t mbedtls_psa_aead_finish( mbedtls_psa_aead_operation_t *operation,
 
 /* Finish authenticating and decrypting a message in a multipart AEAD
  * operation.*/
-psa_status_t mbedtls_psa_aead_verify( mbedtls_psa_aead_operation_t *operation,
-                                      uint8_t *plaintext,
-                                      size_t plaintext_size,
-                                      size_t *plaintext_length,
-                                      const uint8_t *tag,
-                                      size_t tag_length )
+psa_status_t mbedtls_psa_aead_verify(
+    mbedtls_psa_aead_operation_t *operation,
+    uint8_t *plaintext,
+    size_t plaintext_size,
+    size_t *plaintext_length,
+    const uint8_t *tag,
+    size_t tag_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -911,7 +912,8 @@ psa_status_t mbedtls_psa_aead_verify( mbedtls_psa_aead_operation_t *operation,
 }
 
 /* Abort an AEAD operation */
-psa_status_t mbedtls_psa_aead_abort( mbedtls_psa_aead_operation_t *operation )
+psa_status_t mbedtls_psa_aead_abort(
+   mbedtls_psa_aead_operation_t *operation )
 {
     switch( operation->alg )
     {

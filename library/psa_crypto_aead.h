@@ -178,23 +178,12 @@ psa_status_t mbedtls_psa_aead_decrypt(
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be inactive).
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p key is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not an AEAD algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ *         Failed to allocate memory for key material
  */
 psa_status_t mbedtls_psa_aead_encrypt_setup(mbedtls_psa_aead_operation_t
                                                                      *operation,
@@ -234,23 +223,12 @@ psa_status_t mbedtls_psa_aead_encrypt_setup(mbedtls_psa_aead_operation_t
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be inactive).
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_NOT_PERMITTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p key is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not an AEAD algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ *         Failed to allocate memory for key material
  */
 psa_status_t mbedtls_psa_aead_decrypt_setup(mbedtls_psa_aead_operation_t
                                                                      *operation,
@@ -282,20 +260,11 @@ psa_status_t mbedtls_psa_aead_decrypt_setup(mbedtls_psa_aead_operation_t
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active, with no nonce
- *         set).
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The size of \p nonce is not acceptable for the chosen algorithm.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         Algorithm previously set is not supported in this configuration of
+ *         the library.
  */
 psa_status_t mbedtls_psa_aead_set_nonce(mbedtls_psa_aead_operation_t *operation,
                                         const uint8_t *nonce,
@@ -331,21 +300,12 @@ psa_status_t mbedtls_psa_aead_set_nonce(mbedtls_psa_aead_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active, and
- *         mbedtls_psa_aead_update_ad() and mbedtls_psa_aead_update() must not
- *         have been called yet).
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         At least one of the lengths is not acceptable for the chosen
  *         algorithm.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         Algorithm previously set is not supported in this configuration of
+ *         the library.
  */
 psa_status_t mbedtls_psa_aead_set_lengths(mbedtls_psa_aead_operation_t
                                                                      *operation,
@@ -391,22 +351,15 @@ psa_status_t mbedtls_psa_aead_set_lengths(mbedtls_psa_aead_operation_t
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active, have a nonce
- *         set, have lengths set if required by the algorithm, and
- *         mbedtls_psa_aead_update() must not have been called yet).
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total input length overflows the additional data length that
  *         was previously specified with mbedtls_psa_aead_set_lengths().
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         (For GCM / CCM) PSA core attempted to call mbedtls_psa_update_ad()
+ *         more than once.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         Algorithm previously set is not supported in this configuration of
+ *         the library.
  */
 psa_status_t mbedtls_psa_aead_update_ad(mbedtls_psa_aead_operation_t *operation,
                                         const uint8_t *input,
@@ -464,12 +417,9 @@ psa_status_t mbedtls_psa_aead_update_ad(mbedtls_psa_aead_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active, have a nonce
- *         set, and have lengths set if required by the algorithm).
+
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
-  *         The size of the \p output buffer is too small.
  *         #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c key_type, \c alg, \p input_length) or
  *         #PSA_AEAD_UPDATE_OUTPUT_MAX_SIZE(\p input_length) can be used to
  *         determine the required buffer size.
@@ -480,15 +430,12 @@ psa_status_t mbedtls_psa_aead_update_ad(mbedtls_psa_aead_operation_t *operation,
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total input length overflows the plaintext length that
  *         was previously specified with mbedtls_psa_aead_set_lengths().
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         (GCM / CCM only) PSA core attempted to call mbedtls_psa_update() more
+ *         than once.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ *         (CCM only) Unable to allocate memory for the tag or the body
+
  */
 psa_status_t mbedtls_psa_aead_update(mbedtls_psa_aead_operation_t *operation,
                                      const uint8_t *input,
@@ -573,15 +520,6 @@ psa_status_t mbedtls_psa_aead_update(mbedtls_psa_aead_operation_t *operation,
  *         The total length of input to mbedtls_psa_aead_update() so far is
  *         less than the plaintext length that was previously
  *         specified with mbedtls_psa_aead_set_lengths().
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t mbedtls_psa_aead_finish(mbedtls_psa_aead_operation_t *operation,
                                      uint8_t *ciphertext,
@@ -665,14 +603,7 @@ psa_status_t mbedtls_psa_aead_finish(mbedtls_psa_aead_operation_t *operation,
  *         less than the plaintext length that was previously
  *         specified with mbedtls_psa_aead_set_lengths().
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ *         (CCM only) Failed to allocate temporary buffer
  */
 psa_status_t mbedtls_psa_aead_verify(mbedtls_psa_aead_operation_t *operation,
                                      uint8_t *plaintext,
@@ -703,13 +634,7 @@ psa_status_t mbedtls_psa_aead_verify(mbedtls_psa_aead_operation_t *operation,
  * \param[in,out] operation     Initialized AEAD operation.
  *
  * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ *         Success.
  */
 psa_status_t mbedtls_psa_aead_abort(mbedtls_psa_aead_operation_t *operation);
 

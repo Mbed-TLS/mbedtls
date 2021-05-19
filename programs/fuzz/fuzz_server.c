@@ -1,3 +1,5 @@
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"

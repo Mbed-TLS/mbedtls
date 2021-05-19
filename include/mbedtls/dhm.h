@@ -62,6 +62,7 @@
 
 #ifndef MBEDTLS_DHM_H
 #define MBEDTLS_DHM_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -95,17 +96,17 @@ extern "C" {
  */
 typedef struct mbedtls_dhm_context
 {
-    size_t len;         /*!<  The size of \p P in Bytes. */
-    mbedtls_mpi P;      /*!<  The prime modulus. */
-    mbedtls_mpi G;      /*!<  The generator. */
-    mbedtls_mpi X;      /*!<  Our secret value. */
-    mbedtls_mpi GX;     /*!<  Our public key = \c G^X mod \c P. */
-    mbedtls_mpi GY;     /*!<  The public key of the peer = \c G^Y mod \c P. */
-    mbedtls_mpi K;      /*!<  The shared secret = \c G^(XY) mod \c P. */
-    mbedtls_mpi RP;     /*!<  The cached value = \c R^2 mod \c P. */
-    mbedtls_mpi Vi;     /*!<  The blinding value. */
-    mbedtls_mpi Vf;     /*!<  The unblinding value. */
-    mbedtls_mpi pX;     /*!<  The previous \c X. */
+    size_t MBEDTLS_PRIVATE(len);         /*!<  The size of \p P in Bytes. */
+    mbedtls_mpi MBEDTLS_PRIVATE(P);      /*!<  The prime modulus. */
+    mbedtls_mpi MBEDTLS_PRIVATE(G);      /*!<  The generator. */
+    mbedtls_mpi MBEDTLS_PRIVATE(X);      /*!<  Our secret value. */
+    mbedtls_mpi MBEDTLS_PRIVATE(GX);     /*!<  Our public key = \c G^X mod \c P. */
+    mbedtls_mpi MBEDTLS_PRIVATE(GY);     /*!<  The public key of the peer = \c G^Y mod \c P. */
+    mbedtls_mpi MBEDTLS_PRIVATE(K);      /*!<  The shared secret = \c G^(XY) mod \c P. */
+    mbedtls_mpi MBEDTLS_PRIVATE(RP);     /*!<  The cached value = \c R^2 mod \c P. */
+    mbedtls_mpi MBEDTLS_PRIVATE(Vi);     /*!<  The blinding value. */
+    mbedtls_mpi MBEDTLS_PRIVATE(Vf);     /*!<  The unblinding value. */
+    mbedtls_mpi MBEDTLS_PRIVATE(pX);     /*!<  The previous \c X. */
 }
 mbedtls_dhm_context;
 

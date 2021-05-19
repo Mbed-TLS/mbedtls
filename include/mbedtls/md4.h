@@ -26,6 +26,7 @@
  */
 #ifndef MBEDTLS_MD4_H
 #define MBEDTLS_MD4_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -54,9 +55,9 @@ extern "C" {
  */
 typedef struct mbedtls_md4_context
 {
-    uint32_t total[2];          /*!< number of bytes processed  */
-    uint32_t state[4];          /*!< intermediate digest state  */
-    unsigned char buffer[64];   /*!< data block being processed */
+    uint32_t MBEDTLS_PRIVATE(total)[2];          /*!< number of bytes processed  */
+    uint32_t MBEDTLS_PRIVATE(state)[4];          /*!< intermediate digest state  */
+    unsigned char MBEDTLS_PRIVATE(buffer)[64];   /*!< data block being processed */
 }
 mbedtls_md4_context;
 

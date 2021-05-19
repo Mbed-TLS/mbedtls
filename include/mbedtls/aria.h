@@ -28,6 +28,7 @@
 
 #ifndef MBEDTLS_ARIA_H
 #define MBEDTLS_ARIA_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -64,9 +65,9 @@ extern "C" {
  */
 typedef struct mbedtls_aria_context
 {
-    unsigned char nr;           /*!< The number of rounds (12, 14 or 16) */
+    unsigned char MBEDTLS_PRIVATE(nr);           /*!< The number of rounds (12, 14 or 16) */
     /*! The ARIA round keys. */
-    uint32_t rk[MBEDTLS_ARIA_MAX_ROUNDS + 1][MBEDTLS_ARIA_BLOCKSIZE / 4];
+    uint32_t MBEDTLS_PRIVATE(rk)[MBEDTLS_ARIA_MAX_ROUNDS + 1][MBEDTLS_ARIA_BLOCKSIZE / 4];
 }
 mbedtls_aria_context;
 

@@ -22,6 +22,7 @@
 
 #ifndef MBEDTLS_PK_H
 #define MBEDTLS_PK_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -91,8 +92,8 @@ typedef enum {
  */
 typedef struct mbedtls_pk_rsassa_pss_options
 {
-    mbedtls_md_type_t mgf1_hash_id;
-    int expected_salt_len;
+    mbedtls_md_type_t MBEDTLS_PRIVATE(mgf1_hash_id);
+    int MBEDTLS_PRIVATE(expected_salt_len);
 
 } mbedtls_pk_rsassa_pss_options;
 
@@ -163,9 +164,9 @@ typedef enum
  */
 typedef struct mbedtls_pk_debug_item
 {
-    mbedtls_pk_debug_type type;
-    const char *name;
-    void *value;
+    mbedtls_pk_debug_type MBEDTLS_PRIVATE(type);
+    const char *MBEDTLS_PRIVATE(name);
+    void *MBEDTLS_PRIVATE(value);
 } mbedtls_pk_debug_item;
 
 /** Maximum number of item send for debugging, plus 1 */
@@ -181,8 +182,8 @@ typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
  */
 typedef struct mbedtls_pk_context
 {
-    const mbedtls_pk_info_t *   pk_info; /**< Public key information         */
-    void *                      pk_ctx;  /**< Underlying public key context  */
+    const mbedtls_pk_info_t *   MBEDTLS_PRIVATE(pk_info); /**< Public key information         */
+    void *                      MBEDTLS_PRIVATE(pk_ctx);  /**< Underlying public key context  */
 } mbedtls_pk_context;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)

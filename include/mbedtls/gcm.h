@@ -30,6 +30,7 @@
 
 #ifndef MBEDTLS_GCM_H
 #define MBEDTLS_GCM_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -58,15 +59,15 @@ extern "C" {
  */
 typedef struct mbedtls_gcm_context
 {
-    mbedtls_cipher_context_t cipher_ctx;  /*!< The cipher context used. */
-    uint64_t HL[16];                      /*!< Precalculated HTable low. */
-    uint64_t HH[16];                      /*!< Precalculated HTable high. */
-    uint64_t len;                         /*!< The total length of the encrypted data. */
-    uint64_t add_len;                     /*!< The total length of the additional data. */
-    unsigned char base_ectr[16];          /*!< The first ECTR for tag. */
-    unsigned char y[16];                  /*!< The Y working value. */
-    unsigned char buf[16];                /*!< The buf working value. */
-    int mode;                             /*!< The operation to perform:
+    mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher_ctx);  /*!< The cipher context used. */
+    uint64_t MBEDTLS_PRIVATE(HL)[16];                      /*!< Precalculated HTable low. */
+    uint64_t MBEDTLS_PRIVATE(HH)[16];                      /*!< Precalculated HTable high. */
+    uint64_t MBEDTLS_PRIVATE(len);                         /*!< The total length of the encrypted data. */
+    uint64_t MBEDTLS_PRIVATE(add_len);                     /*!< The total length of the additional data. */
+    unsigned char MBEDTLS_PRIVATE(base_ectr)[16];          /*!< The first ECTR for tag. */
+    unsigned char MBEDTLS_PRIVATE(y)[16];                  /*!< The Y working value. */
+    unsigned char MBEDTLS_PRIVATE(buf)[16];                /*!< The buf working value. */
+    int MBEDTLS_PRIVATE(mode);                             /*!< The operation to perform:
                                                #MBEDTLS_GCM_ENCRYPT or
                                                #MBEDTLS_GCM_DECRYPT. */
 }

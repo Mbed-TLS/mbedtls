@@ -21,6 +21,7 @@
  */
 #ifndef MBEDTLS_BLOWFISH_H
 #define MBEDTLS_BLOWFISH_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -57,8 +58,8 @@ extern "C" {
  */
 typedef struct mbedtls_blowfish_context
 {
-    uint32_t P[MBEDTLS_BLOWFISH_ROUNDS + 2];    /*!<  Blowfish round keys    */
-    uint32_t S[4][256];                 /*!<  key dependent S-boxes  */
+    uint32_t MBEDTLS_PRIVATE(P)[MBEDTLS_BLOWFISH_ROUNDS + 2];    /*!<  Blowfish round keys    */
+    uint32_t MBEDTLS_PRIVATE(S)[4][256];                 /*!<  key dependent S-boxes  */
 }
 mbedtls_blowfish_context;
 

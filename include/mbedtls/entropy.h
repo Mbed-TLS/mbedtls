@@ -21,6 +21,7 @@
  */
 #ifndef MBEDTLS_ENTROPY_H
 #define MBEDTLS_ENTROPY_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -104,11 +105,11 @@ typedef int (*mbedtls_entropy_f_source_ptr)(void *data, unsigned char *output, s
  */
 typedef struct mbedtls_entropy_source_state
 {
-    mbedtls_entropy_f_source_ptr    f_source;   /**< The entropy source callback */
-    void *          p_source;   /**< The callback data pointer */
-    size_t          size;       /**< Amount received in bytes */
-    size_t          threshold;  /**< Minimum bytes required before release */
-    int             strong;     /**< Is the source strong? */
+    mbedtls_entropy_f_source_ptr    MBEDTLS_PRIVATE(f_source);   /**< The entropy source callback */
+    void *          MBEDTLS_PRIVATE(p_source);   /**< The callback data pointer */
+    size_t          MBEDTLS_PRIVATE(size);       /**< Amount received in bytes */
+    size_t          MBEDTLS_PRIVATE(threshold);  /**< Minimum bytes required before release */
+    int             MBEDTLS_PRIVATE(strong);     /**< Is the source strong? */
 }
 mbedtls_entropy_source_state;
 
@@ -117,21 +118,21 @@ mbedtls_entropy_source_state;
  */
 typedef struct mbedtls_entropy_context
 {
-    int accumulator_started; /* 0 after init.
+    int MBEDTLS_PRIVATE(accumulator_started); /* 0 after init.
                               * 1 after the first update.
                               * -1 after free. */
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
-    mbedtls_sha512_context  accumulator;
+    mbedtls_sha512_context  MBEDTLS_PRIVATE(accumulator);
 #else
     mbedtls_sha256_context  accumulator;
 #endif
-    int             source_count; /* Number of entries used in source. */
-    mbedtls_entropy_source_state    source[MBEDTLS_ENTROPY_MAX_SOURCES];
+    int             MBEDTLS_PRIVATE(source_count); /* Number of entries used in source. */
+    mbedtls_entropy_source_state    MBEDTLS_PRIVATE(source)[MBEDTLS_ENTROPY_MAX_SOURCES];
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_threading_mutex_t mutex;    /*!< mutex                  */
+    mbedtls_threading_mutex_t MBEDTLS_PRIVATE(mutex);    /*!< mutex                  */
 #endif
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
-    int initial_entropy_run;
+    int MBEDTLS_PRIVATE(initial_entropy_run);
 #endif
 }
 mbedtls_entropy_context;

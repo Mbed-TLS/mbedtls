@@ -31,6 +31,7 @@
 
 #ifndef MBEDTLS_ECDH_H
 #define MBEDTLS_ECDH_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -104,15 +105,15 @@ typedef struct mbedtls_ecdh_context_mbed
 typedef struct mbedtls_ecdh_context
 {
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    mbedtls_ecp_group grp;   /*!< The elliptic curve used. */
-    mbedtls_mpi d;           /*!< The private key. */
-    mbedtls_ecp_point Q;     /*!< The public key. */
-    mbedtls_ecp_point Qp;    /*!< The value of the public key of the peer. */
-    mbedtls_mpi z;           /*!< The shared secret. */
-    int point_format;        /*!< The format of point export in TLS messages. */
-    mbedtls_ecp_point Vi;    /*!< The blinding value. */
-    mbedtls_ecp_point Vf;    /*!< The unblinding value. */
-    mbedtls_mpi _d;          /*!< The previous \p d. */
+    mbedtls_ecp_group MBEDTLS_PRIVATE(grp);   /*!< The elliptic curve used. */
+    mbedtls_mpi MBEDTLS_PRIVATE(d);           /*!< The private key. */
+    mbedtls_ecp_point MBEDTLS_PRIVATE(Q);     /*!< The public key. */
+    mbedtls_ecp_point MBEDTLS_PRIVATE(Qp);    /*!< The value of the public key of the peer. */
+    mbedtls_mpi MBEDTLS_PRIVATE(z);           /*!< The shared secret. */
+    int MBEDTLS_PRIVATE(point_format);        /*!< The format of point export in TLS messages. */
+    mbedtls_ecp_point MBEDTLS_PRIVATE(Vi);    /*!< The blinding value. */
+    mbedtls_ecp_point MBEDTLS_PRIVATE(Vf);    /*!< The unblinding value. */
+    mbedtls_mpi MBEDTLS_PRIVATE(_d);          /*!< The previous \p d. */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     int restart_enabled;        /*!< The flag for restartable mode. */
     mbedtls_ecp_restart_ctx rs; /*!< The restart context for EC computations. */

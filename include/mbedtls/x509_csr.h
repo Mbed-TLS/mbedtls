@@ -21,6 +21,7 @@
  */
 #ifndef MBEDTLS_X509_CSR_H
 #define MBEDTLS_X509_CSR_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -48,21 +49,21 @@ extern "C" {
  */
 typedef struct mbedtls_x509_csr
 {
-    mbedtls_x509_buf raw;           /**< The raw CSR data (DER). */
-    mbedtls_x509_buf cri;           /**< The raw CertificateRequestInfo body (DER). */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(raw);           /**< The raw CSR data (DER). */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(cri);           /**< The raw CertificateRequestInfo body (DER). */
 
-    int version;            /**< CSR version (1=v1). */
+    int MBEDTLS_PRIVATE(version);            /**< CSR version (1=v1). */
 
-    mbedtls_x509_buf  subject_raw;  /**< The raw subject data (DER). */
-    mbedtls_x509_name subject;      /**< The parsed subject data (named information object). */
+    mbedtls_x509_buf  MBEDTLS_PRIVATE(subject_raw);  /**< The raw subject data (DER). */
+    mbedtls_x509_name MBEDTLS_PRIVATE(subject);      /**< The parsed subject data (named information object). */
 
-    mbedtls_pk_context pk;          /**< Container for the public key context. */
+    mbedtls_pk_context MBEDTLS_PRIVATE(pk);          /**< Container for the public key context. */
 
-    mbedtls_x509_buf sig_oid;
-    mbedtls_x509_buf sig;
-    mbedtls_md_type_t sig_md;       /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
-    mbedtls_pk_type_t sig_pk;       /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
-    void *sig_opts;         /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(sig_oid);
+    mbedtls_x509_buf MBEDTLS_PRIVATE(sig);
+    mbedtls_md_type_t MBEDTLS_PRIVATE(sig_md);       /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
+    mbedtls_pk_type_t MBEDTLS_PRIVATE(sig_pk);       /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
+    void *MBEDTLS_PRIVATE(sig_opts);         /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
 }
 mbedtls_x509_csr;
 
@@ -71,10 +72,10 @@ mbedtls_x509_csr;
  */
 typedef struct mbedtls_x509write_csr
 {
-    mbedtls_pk_context *key;
-    mbedtls_asn1_named_data *subject;
-    mbedtls_md_type_t md_alg;
-    mbedtls_asn1_named_data *extensions;
+    mbedtls_pk_context *MBEDTLS_PRIVATE(key);
+    mbedtls_asn1_named_data *MBEDTLS_PRIVATE(subject);
+    mbedtls_md_type_t MBEDTLS_PRIVATE(md_alg);
+    mbedtls_asn1_named_data *MBEDTLS_PRIVATE(extensions);
 }
 mbedtls_x509write_csr;
 

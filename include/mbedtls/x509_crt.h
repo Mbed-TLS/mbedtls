@@ -21,6 +21,7 @@
  */
 #ifndef MBEDTLS_X509_CRT_H
 #define MBEDTLS_X509_CRT_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -51,50 +52,50 @@ extern "C" {
  */
 typedef struct mbedtls_x509_crt
 {
-    int own_buffer;                     /**< Indicates if \c raw is owned
+    int MBEDTLS_PRIVATE(own_buffer);                     /**< Indicates if \c raw is owned
                                          *   by the structure or not.        */
-    mbedtls_x509_buf raw;               /**< The raw certificate data (DER). */
-    mbedtls_x509_buf tbs;               /**< The raw certificate body (DER). The part that is To Be Signed. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(raw);               /**< The raw certificate data (DER). */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(tbs);               /**< The raw certificate body (DER). The part that is To Be Signed. */
 
-    int version;                /**< The X.509 version. (1=v1, 2=v2, 3=v3) */
-    mbedtls_x509_buf serial;            /**< Unique id for certificate issued by a specific CA. */
-    mbedtls_x509_buf sig_oid;           /**< Signature algorithm, e.g. sha1RSA */
+    int MBEDTLS_PRIVATE(version);                /**< The X.509 version. (1=v1, 2=v2, 3=v3) */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(serial);            /**< Unique id for certificate issued by a specific CA. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(sig_oid);           /**< Signature algorithm, e.g. sha1RSA */
 
-    mbedtls_x509_buf issuer_raw;        /**< The raw issuer data (DER). Used for quick comparison. */
-    mbedtls_x509_buf subject_raw;       /**< The raw subject data (DER). Used for quick comparison. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(issuer_raw);        /**< The raw issuer data (DER). Used for quick comparison. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(subject_raw);       /**< The raw subject data (DER). Used for quick comparison. */
 
-    mbedtls_x509_name issuer;           /**< The parsed issuer data (named information object). */
-    mbedtls_x509_name subject;          /**< The parsed subject data (named information object). */
+    mbedtls_x509_name MBEDTLS_PRIVATE(issuer);           /**< The parsed issuer data (named information object). */
+    mbedtls_x509_name MBEDTLS_PRIVATE(subject);          /**< The parsed subject data (named information object). */
 
-    mbedtls_x509_time valid_from;       /**< Start time of certificate validity. */
-    mbedtls_x509_time valid_to;         /**< End time of certificate validity. */
+    mbedtls_x509_time MBEDTLS_PRIVATE(valid_from);       /**< Start time of certificate validity. */
+    mbedtls_x509_time MBEDTLS_PRIVATE(valid_to);         /**< End time of certificate validity. */
 
-    mbedtls_x509_buf pk_raw;
-    mbedtls_pk_context pk;              /**< Container for the public key context. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(pk_raw);
+    mbedtls_pk_context MBEDTLS_PRIVATE(pk);              /**< Container for the public key context. */
 
-    mbedtls_x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */
-    mbedtls_x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
-    mbedtls_x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
-    mbedtls_x509_sequence subject_alt_names;    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName and OtherName are listed). */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(issuer_id);         /**< Optional X.509 v2/v3 issuer unique identifier. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(subject_id);        /**< Optional X.509 v2/v3 subject unique identifier. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(v3_ext);            /**< Optional X.509 v3 extensions.  */
+    mbedtls_x509_sequence MBEDTLS_PRIVATE(subject_alt_names);    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName and OtherName are listed). */
 
-    mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate policies (Only anyPolicy is printed and enforced, however the rest of the policies are still listed). */
+    mbedtls_x509_sequence MBEDTLS_PRIVATE(certificate_policies); /**< Optional list of certificate policies (Only anyPolicy is printed and enforced, however the rest of the policies are still listed). */
 
-    int ext_types;              /**< Bit string containing detected and parsed extensions */
-    int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
-    int max_pathlen;            /**< Optional Basic Constraint extension value: The maximum path length to the root certificate. Path length is 1 higher than RFC 5280 'meaning', so 1+ */
+    int MBEDTLS_PRIVATE(ext_types);              /**< Bit string containing detected and parsed extensions */
+    int MBEDTLS_PRIVATE(ca_istrue);              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
+    int MBEDTLS_PRIVATE(max_pathlen);            /**< Optional Basic Constraint extension value: The maximum path length to the root certificate. Path length is 1 higher than RFC 5280 'meaning', so 1+ */
 
-    unsigned int key_usage;     /**< Optional key usage extension value: See the values in x509.h */
+    unsigned int MBEDTLS_PRIVATE(key_usage);     /**< Optional key usage extension value: See the values in x509.h */
 
-    mbedtls_x509_sequence ext_key_usage; /**< Optional list of extended key usage OIDs. */
+    mbedtls_x509_sequence MBEDTLS_PRIVATE(ext_key_usage); /**< Optional list of extended key usage OIDs. */
 
-    unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values in x509.h */
+    unsigned char MBEDTLS_PRIVATE(ns_cert_type); /**< Optional Netscape certificate type extension value: See the values in x509.h */
 
-    mbedtls_x509_buf sig;               /**< Signature: hash of the tbs part signed with the private key. */
-    mbedtls_md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
-    mbedtls_pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
-    void *sig_opts;             /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(sig);               /**< Signature: hash of the tbs part signed with the private key. */
+    mbedtls_md_type_t MBEDTLS_PRIVATE(sig_md);           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
+    mbedtls_pk_type_t MBEDTLS_PRIVATE(sig_pk);           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
+    void *MBEDTLS_PRIVATE(sig_opts);             /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
 
-    struct mbedtls_x509_crt *next;     /**< Next certificate in the CA-chain. */
+    struct mbedtls_x509_crt *MBEDTLS_PRIVATE(next);     /**< Next certificate in the CA-chain. */
 }
 mbedtls_x509_crt;
 
@@ -111,7 +112,7 @@ typedef struct mbedtls_x509_san_other_name
      * To check the value of the type id, you should use
      * \p MBEDTLS_OID_CMP with a known OID mbedtls_x509_buf.
      */
-    mbedtls_x509_buf type_id;                   /**< The type id. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(type_id);                   /**< The type id. */
     union
     {
         /**
@@ -122,12 +123,12 @@ typedef struct mbedtls_x509_san_other_name
          */
         struct
         {
-            mbedtls_x509_buf oid;               /**< The object identifier. */
-            mbedtls_x509_buf val;               /**< The named value. */
+            mbedtls_x509_buf MBEDTLS_PRIVATE(oid);               /**< The object identifier. */
+            mbedtls_x509_buf MBEDTLS_PRIVATE(val);               /**< The named value. */
         }
-        hardware_module_name;
+        MBEDTLS_PRIVATE(hardware_module_name);
     }
-    value;
+    MBEDTLS_PRIVATE(value);
 }
 mbedtls_x509_san_other_name;
 
@@ -136,12 +137,12 @@ mbedtls_x509_san_other_name;
  */
 typedef struct mbedtls_x509_subject_alternative_name
 {
-    int type;                              /**< The SAN type, value of MBEDTLS_X509_SAN_XXX. */
+    int MBEDTLS_PRIVATE(type);                              /**< The SAN type, value of MBEDTLS_X509_SAN_XXX. */
     union {
-        mbedtls_x509_san_other_name other_name; /**< The otherName supported type. */
-        mbedtls_x509_buf   unstructured_name; /**< The buffer for the un constructed types. Only dnsName currently supported */
+        mbedtls_x509_san_other_name MBEDTLS_PRIVATE(other_name); /**< The otherName supported type. */
+        mbedtls_x509_buf   MBEDTLS_PRIVATE(unstructured_name); /**< The buffer for the un constructed types. Only dnsName currently supported */
     }
-    san; /**< A union of the supported SAN types */
+    MBEDTLS_PRIVATE(san); /**< A union of the supported SAN types */
 }
 mbedtls_x509_subject_alternative_name;
 
@@ -158,10 +159,10 @@ mbedtls_x509_subject_alternative_name;
  */
 typedef struct mbedtls_x509_crt_profile
 {
-    uint32_t allowed_mds;       /**< MDs for signatures         */
-    uint32_t allowed_pks;       /**< PK algs for signatures     */
-    uint32_t allowed_curves;    /**< Elliptic curves for ECDSA  */
-    uint32_t rsa_min_bitlen;    /**< Minimum size for RSA keys  */
+    uint32_t MBEDTLS_PRIVATE(allowed_mds);       /**< MDs for signatures         */
+    uint32_t MBEDTLS_PRIVATE(allowed_pks);       /**< PK algs for signatures     */
+    uint32_t MBEDTLS_PRIVATE(allowed_curves);    /**< Elliptic curves for ECDSA  */
+    uint32_t MBEDTLS_PRIVATE(rsa_min_bitlen);    /**< Minimum size for RSA keys  */
 }
 mbedtls_x509_crt_profile;
 
@@ -249,16 +250,16 @@ mbedtls_x509_crt_profile;
  */
 typedef struct mbedtls_x509write_cert
 {
-    int version;
-    mbedtls_mpi serial;
-    mbedtls_pk_context *subject_key;
-    mbedtls_pk_context *issuer_key;
-    mbedtls_asn1_named_data *subject;
-    mbedtls_asn1_named_data *issuer;
-    mbedtls_md_type_t md_alg;
-    char not_before[MBEDTLS_X509_RFC5280_UTC_TIME_LEN + 1];
-    char not_after[MBEDTLS_X509_RFC5280_UTC_TIME_LEN + 1];
-    mbedtls_asn1_named_data *extensions;
+    int MBEDTLS_PRIVATE(version);
+    mbedtls_mpi MBEDTLS_PRIVATE(serial);
+    mbedtls_pk_context *MBEDTLS_PRIVATE(subject_key);
+    mbedtls_pk_context *MBEDTLS_PRIVATE(issuer_key);
+    mbedtls_asn1_named_data *MBEDTLS_PRIVATE(subject);
+    mbedtls_asn1_named_data *MBEDTLS_PRIVATE(issuer);
+    mbedtls_md_type_t MBEDTLS_PRIVATE(md_alg);
+    char MBEDTLS_PRIVATE(not_before)[MBEDTLS_X509_RFC5280_UTC_TIME_LEN + 1];
+    char MBEDTLS_PRIVATE(not_after)[MBEDTLS_X509_RFC5280_UTC_TIME_LEN + 1];
+    mbedtls_asn1_named_data *MBEDTLS_PRIVATE(extensions);
 }
 mbedtls_x509write_cert;
 
@@ -266,8 +267,8 @@ mbedtls_x509write_cert;
  * Item in a verification chain: cert and flags for it
  */
 typedef struct {
-    mbedtls_x509_crt *crt;
-    uint32_t flags;
+    mbedtls_x509_crt *MBEDTLS_PRIVATE(crt);
+    uint32_t MBEDTLS_PRIVATE(flags);
 } mbedtls_x509_crt_verify_chain_item;
 
 /**
@@ -280,15 +281,15 @@ typedef struct {
  */
 typedef struct
 {
-    mbedtls_x509_crt_verify_chain_item items[MBEDTLS_X509_MAX_VERIFY_CHAIN_SIZE];
-    unsigned len;
+    mbedtls_x509_crt_verify_chain_item MBEDTLS_PRIVATE(items)[MBEDTLS_X509_MAX_VERIFY_CHAIN_SIZE];
+    unsigned MBEDTLS_PRIVATE(len);
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
     /* This stores the list of potential trusted signers obtained from
      * the CA callback used for the CRT verification, if configured.
      * We must track it somewhere because the callback passes its
      * ownership to the caller. */
-    mbedtls_x509_crt *trust_ca_cb_result;
+    mbedtls_x509_crt *MBEDTLS_PRIVATE(trust_ca_cb_result);
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 } mbedtls_x509_crt_verify_chain;
 

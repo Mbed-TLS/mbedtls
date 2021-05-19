@@ -21,6 +21,7 @@
  */
 #ifndef MBEDTLS_TIMING_H
 #define MBEDTLS_TIMING_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -43,7 +44,7 @@ extern "C" {
  */
 struct mbedtls_timing_hr_time
 {
-    unsigned char opaque[32];
+    unsigned char MBEDTLS_PRIVATE(opaque)[32];
 };
 
 /**
@@ -52,8 +53,8 @@ struct mbedtls_timing_hr_time
 typedef struct mbedtls_timing_delay_context
 {
     struct mbedtls_timing_hr_time   timer;
-    uint32_t                        int_ms;
-    uint32_t                        fin_ms;
+    uint32_t                        MBEDTLS_PRIVATE(int_ms);
+    uint32_t                        MBEDTLS_PRIVATE(fin_ms);
 } mbedtls_timing_delay_context;
 
 #else  /* MBEDTLS_TIMING_ALT */

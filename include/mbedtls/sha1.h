@@ -28,6 +28,7 @@
  */
 #ifndef MBEDTLS_SHA1_H
 #define MBEDTLS_SHA1_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -58,9 +59,9 @@ extern "C" {
  */
 typedef struct mbedtls_sha1_context
 {
-    uint32_t total[2];          /*!< The number of Bytes processed.  */
-    uint32_t state[5];          /*!< The intermediate digest state.  */
-    unsigned char buffer[64];   /*!< The data block being processed. */
+    uint32_t MBEDTLS_PRIVATE(total)[2];          /*!< The number of Bytes processed.  */
+    uint32_t MBEDTLS_PRIVATE(state)[5];          /*!< The intermediate digest state.  */
+    unsigned char MBEDTLS_PRIVATE(buffer)[64];   /*!< The data block being processed. */
 }
 mbedtls_sha1_context;
 

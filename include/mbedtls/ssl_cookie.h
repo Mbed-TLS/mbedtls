@@ -21,6 +21,7 @@
  */
 #ifndef MBEDTLS_SSL_COOKIE_H
 #define MBEDTLS_SSL_COOKIE_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -56,15 +57,15 @@ extern "C" {
  */
 typedef struct mbedtls_ssl_cookie_ctx
 {
-    mbedtls_md_context_t    hmac_ctx;   /*!< context for the HMAC portion   */
+    mbedtls_md_context_t    MBEDTLS_PRIVATE(hmac_ctx);   /*!< context for the HMAC portion   */
 #if !defined(MBEDTLS_HAVE_TIME)
     unsigned long   serial;     /*!< serial number for expiration   */
 #endif
-    unsigned long   timeout;    /*!< timeout delay, in seconds if HAVE_TIME,
+    unsigned long   MBEDTLS_PRIVATE(timeout);    /*!< timeout delay, in seconds if HAVE_TIME,
                                      or in number of tickets issued */
 
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_threading_mutex_t mutex;
+    mbedtls_threading_mutex_t MBEDTLS_PRIVATE(mutex);
 #endif
 } mbedtls_ssl_cookie_ctx;
 

@@ -33,6 +33,7 @@
 
 #ifndef MBEDTLS_ECP_H
 #define MBEDTLS_ECP_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -142,10 +143,10 @@ typedef enum
  */
 typedef struct mbedtls_ecp_curve_info
 {
-    mbedtls_ecp_group_id grp_id;    /*!< An internal identifier. */
-    uint16_t tls_id;                /*!< The TLS NamedCurve identifier. */
-    uint16_t bit_size;              /*!< The curve size in bits. */
-    const char *name;               /*!< A human-friendly name. */
+    mbedtls_ecp_group_id MBEDTLS_PRIVATE(grp_id);    /*!< An internal identifier. */
+    uint16_t MBEDTLS_PRIVATE(tls_id);                /*!< The TLS NamedCurve identifier. */
+    uint16_t MBEDTLS_PRIVATE(bit_size);              /*!< The curve size in bits. */
+    const char *MBEDTLS_PRIVATE(name);               /*!< A human-friendly name. */
 } mbedtls_ecp_curve_info;
 
 /**
@@ -161,9 +162,9 @@ typedef struct mbedtls_ecp_curve_info
  */
 typedef struct mbedtls_ecp_point
 {
-    mbedtls_mpi X;          /*!< The X coordinate of the ECP point. */
-    mbedtls_mpi Y;          /*!< The Y coordinate of the ECP point. */
-    mbedtls_mpi Z;          /*!< The Z coordinate of the ECP point. */
+    mbedtls_mpi MBEDTLS_PRIVATE(X);          /*!< The X coordinate of the ECP point. */
+    mbedtls_mpi MBEDTLS_PRIVATE(Y);          /*!< The Y coordinate of the ECP point. */
+    mbedtls_mpi MBEDTLS_PRIVATE(Z);          /*!< The Z coordinate of the ECP point. */
 }
 mbedtls_ecp_point;
 
@@ -210,26 +211,26 @@ mbedtls_ecp_point;
  */
 typedef struct mbedtls_ecp_group
 {
-    mbedtls_ecp_group_id id;    /*!< An internal group identifier. */
-    mbedtls_mpi P;              /*!< The prime modulus of the base field. */
-    mbedtls_mpi A;              /*!< For Short Weierstrass: \p A in the equation. For
+    mbedtls_ecp_group_id MBEDTLS_PRIVATE(id);    /*!< An internal group identifier. */
+    mbedtls_mpi MBEDTLS_PRIVATE(P);              /*!< The prime modulus of the base field. */
+    mbedtls_mpi MBEDTLS_PRIVATE(A);              /*!< For Short Weierstrass: \p A in the equation. For
                                      Montgomery curves: <code>(A + 2) / 4</code>. */
-    mbedtls_mpi B;              /*!< For Short Weierstrass: \p B in the equation.
+    mbedtls_mpi MBEDTLS_PRIVATE(B);              /*!< For Short Weierstrass: \p B in the equation.
                                      For Montgomery curves: unused. */
-    mbedtls_ecp_point G;        /*!< The generator of the subgroup used. */
-    mbedtls_mpi N;              /*!< The order of \p G. */
-    size_t pbits;               /*!< The number of bits in \p P.*/
-    size_t nbits;               /*!< For Short Weierstrass: The number of bits in \p P.
+    mbedtls_ecp_point MBEDTLS_PRIVATE(G);        /*!< The generator of the subgroup used. */
+    mbedtls_mpi MBEDTLS_PRIVATE(N);              /*!< The order of \p G. */
+    size_t MBEDTLS_PRIVATE(pbits);               /*!< The number of bits in \p P.*/
+    size_t MBEDTLS_PRIVATE(nbits);               /*!< For Short Weierstrass: The number of bits in \p P.
                                      For Montgomery curves: the number of bits in the
                                      private keys. */
-    unsigned int h;             /*!< \internal 1 if the constants are static. */
-    int (*modp)(mbedtls_mpi *); /*!< The function for fast pseudo-reduction
+    unsigned int MBEDTLS_PRIVATE(h);             /*!< \internal 1 if the constants are static. */
+    int (*MBEDTLS_PRIVATE(modp))(mbedtls_mpi *); /*!< The function for fast pseudo-reduction
                                      mod \p P (see above).*/
-    int (*t_pre)(mbedtls_ecp_point *, void *);  /*!< Unused. */
-    int (*t_post)(mbedtls_ecp_point *, void *); /*!< Unused. */
-    void *t_data;               /*!< Unused. */
-    mbedtls_ecp_point *T;       /*!< Pre-computed points for ecp_mul_comb(). */
-    size_t T_size;              /*!< The number of pre-computed points. */
+    int (*MBEDTLS_PRIVATE(t_pre))(mbedtls_ecp_point *, void *);  /*!< Unused. */
+    int (*MBEDTLS_PRIVATE(t_post))(mbedtls_ecp_point *, void *); /*!< Unused. */
+    void *MBEDTLS_PRIVATE(t_data);               /*!< Unused. */
+    mbedtls_ecp_point *MBEDTLS_PRIVATE(T);       /*!< Pre-computed points for ecp_mul_comb(). */
+    size_t MBEDTLS_PRIVATE(T_size);              /*!< The number of pre-computed points. */
 }
 mbedtls_ecp_group;
 
@@ -369,9 +370,9 @@ typedef void mbedtls_ecp_restart_ctx;
  */
 typedef struct mbedtls_ecp_keypair
 {
-    mbedtls_ecp_group grp;      /*!<  Elliptic curve and base point     */
-    mbedtls_mpi d;              /*!<  our secret value                  */
-    mbedtls_ecp_point Q;        /*!<  our public value                  */
+    mbedtls_ecp_group MBEDTLS_PRIVATE(grp);      /*!<  Elliptic curve and base point     */
+    mbedtls_mpi MBEDTLS_PRIVATE(d);              /*!<  our secret value                  */
+    mbedtls_ecp_point MBEDTLS_PRIVATE(Q);        /*!<  our public value                  */
 }
 mbedtls_ecp_keypair;
 

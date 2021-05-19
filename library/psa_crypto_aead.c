@@ -391,7 +391,7 @@ psa_status_t mbedtls_psa_aead_set_nonce( mbedtls_psa_aead_operation_t
     if( operation->alg == PSA_ALG_GCM )
     {
         /* GCM sets nonce once additional data has been supplied */
-        memcpy(operation->nonce, nonce, nonce_length);
+        memcpy( operation->nonce, nonce, nonce_length );
 
         /* We know that nonce size cannot exceed the uint8_t size */
         operation->nonce_length = ( uint8_t ) nonce_length;
@@ -449,8 +449,8 @@ psa_status_t mbedtls_psa_aead_set_lengths( mbedtls_psa_aead_operation_t
     if( operation->alg == PSA_ALG_GCM )
     {
         /* Lengths can only be too large for GCM if size_t is bigger than 32
-         * bits. Without th
-           e guard this code will generate warnings on 32bit builds*/
+         * bits. Without the guard this code will generate warnings on 32bit
+           builds */
 #if SIZE_MAX > UINT32_MAX
         if( ( (uint64_t) ad_length ) >> 61 != 0 ||
             ( (uint64_t) plaintext_length ) > 0xFFFFFFFE0ull )
@@ -509,10 +509,10 @@ psa_status_t mbedtls_psa_aead_update_ad( mbedtls_psa_aead_operation_t
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
     {
-         /* GCM currently requires all the additional data to be passed in in
-         * one contiguous buffer, so until that is re-done, we have to enforce
-         * this, as we cannot allocate a buffer to collate multiple calls into.
-           */
+         /* GCM currently requires all the additional data to be passed in
+          * in one contiguous buffer, so until that is re-done, we have to
+          * enforce this, as we cannot allocate a buffer to collate multiple
+          * calls into. */
         if( operation->ad_started )
             return( PSA_ERROR_NOT_SUPPORTED );
 
@@ -541,9 +541,7 @@ psa_status_t mbedtls_psa_aead_update_ad( mbedtls_psa_aead_operation_t
         operation->ad_buffer = ( uint8_t * ) mbedtls_calloc( 1, input_length );
 
         if( operation->ad_buffer == NULL )
-        {
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
-        }
 
         memcpy( operation->ad_buffer, input, input_length );
         operation->ad_length = input_length;
@@ -667,9 +665,7 @@ psa_status_t mbedtls_psa_aead_update( mbedtls_psa_aead_operation_t *operation,
                 ( uint8_t * ) mbedtls_calloc(1, input_length );
 
             if( operation->body_buffer == NULL)
-            {
                 return( PSA_ERROR_INSUFFICIENT_MEMORY );
-            }
 
             memcpy( operation->body_buffer, input, input_length );
             operation->body_length = input_length;
@@ -859,9 +855,7 @@ psa_status_t mbedtls_psa_aead_verify( mbedtls_psa_aead_operation_t *operation,
         temp_buffer = ( uint8_t * ) mbedtls_calloc(1, temp_buffer_size );
 
         if( temp_buffer == NULL)
-        {
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
-        }
 
         ret = mbedtls_ccm_auth_decrypt( &operation->ctx.ccm,
                                         operation->body_length,
@@ -881,7 +875,7 @@ psa_status_t mbedtls_psa_aead_verify( mbedtls_psa_aead_operation_t *operation,
         }
 
         /* Even if the above operation fails, we no longer need the data */
-        mbedtls_free(temp_buffer);
+        mbedtls_free( temp_buffer );
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */

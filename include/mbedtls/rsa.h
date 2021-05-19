@@ -1054,9 +1054,6 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
  *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA public key context to use.
- * \param f_rng    The RNG function to use. If \p mode is #MBEDTLS_RSA_PRIVATE,
- *                 this is used for blinding and should be provided; see
- *                 mbedtls_rsa_private() for more. Otherwise, it is ignored.
  * \param mode     The mode of operation. This must be either
  *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE (deprecated).
  * \param md_alg   The message-digest algorithm used to hash the original data.
@@ -1076,7 +1073,6 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
  */
 int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
-                           int (*f_rng)(void *, unsigned char *, size_t),
                            int mode,
                            mbedtls_md_type_t md_alg,
                            unsigned int hashlen,

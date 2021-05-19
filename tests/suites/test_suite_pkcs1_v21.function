@@ -248,7 +248,7 @@ void pkcs1_rsassa_pss_verify_ext( int mod, data_t * input_N, data_t * input_E,
                                            hash_len, hash_result,
                                            result_str->x ) == result_simple );
 
-    TEST_ASSERT( mbedtls_rsa_rsassa_pss_verify_ext( &ctx, NULL, MBEDTLS_RSA_PUBLIC,
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_verify_ext( &ctx, MBEDTLS_RSA_PUBLIC,
                                         msg_digest_id, hash_len, hash_result,
                                         mgf_hash, salt_len,
                                         result_str->x ) == result_full );

@@ -2147,7 +2147,6 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  * Implementation of the PKCS#1 v2.1 RSASSA-PSS-VERIFY function
  */
 int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
-                               int (*f_rng)(void *, unsigned char *, size_t),
                                int mode,
                                mbedtls_md_type_t md_alg,
                                unsigned int hashlen,
@@ -2186,7 +2185,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
 
     ret = ( mode == MBEDTLS_RSA_PUBLIC )
           ? mbedtls_rsa_public(  ctx, sig, buf )
-          : mbedtls_rsa_private( ctx, f_rng, NULL, sig, buf );
+          : mbedtls_rsa_private( ctx, NULL, NULL, sig, buf );
 
     if( ret != 0 )
         return( ret );
@@ -2312,7 +2311,7 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
                              ? (mbedtls_md_type_t) ctx->hash_id
                              : md_alg;
 
-    return( mbedtls_rsa_rsassa_pss_verify_ext( ctx, NULL,
+    return( mbedtls_rsa_rsassa_pss_verify_ext( ctx,
                                                MBEDTLS_RSA_PUBLIC,
                                                md_alg, hashlen, hash,
                                                mgf1_hash_id,

@@ -42,10 +42,9 @@ VISUALC_FILES = visualc/VS2010/mbedTLS.sln visualc/VS2010/mbedTLS.vcxproj
 visualc_files: $(VISUALC_FILES)
 
 # Ensure that the .c files that generate_visualc_files.pl enumerates are
-# present before it runs. List the files explicitly, not via the
-# library/generated_files indirection, because otherwise running
-# make visualc_files would always consider the visualc files out of date.
-$(VISUALC_FILES): library/error.c library/version_features.c
+# present before it runs. It doesn't matter if the files aren't up-to-date,
+# they just need to be present.
+$(VISUALC_FILES): | library/generated_files
 $(VISUALC_FILES): scripts/generate_visualc_files.pl
 $(VISUALC_FILES): scripts/data_files/vs2010-app-template.vcxproj
 $(VISUALC_FILES): scripts/data_files/vs2010-main-template.vcxproj

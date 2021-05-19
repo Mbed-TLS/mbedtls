@@ -301,23 +301,23 @@ typedef struct
 typedef struct
 {
     /* for check_signature() */
-    mbedtls_pk_restart_ctx pk;
+    mbedtls_pk_restart_ctx MBEDTLS_PRIVATE(pk);
 
     /* for find_parent_in() */
-    mbedtls_x509_crt *parent; /* non-null iff parent_in in progress */
-    mbedtls_x509_crt *fallback_parent;
-    int fallback_signature_is_good;
+    mbedtls_x509_crt *MBEDTLS_PRIVATE(parent); /* non-null iff parent_in in progress */
+    mbedtls_x509_crt *MBEDTLS_PRIVATE(fallback_parent);
+    int MBEDTLS_PRIVATE(fallback_signature_is_good);
 
     /* for find_parent() */
-    int parent_is_trusted; /* -1 if find_parent is not in progress */
+    int MBEDTLS_PRIVATE(parent_is_trusted); /* -1 if find_parent is not in progress */
 
     /* for verify_chain() */
     enum {
         x509_crt_rs_none,
         x509_crt_rs_find_parent,
-    } in_progress;  /* none if no operation is in progress */
-    int self_cnt;
-    mbedtls_x509_crt_verify_chain ver_chain;
+    } MBEDTLS_PRIVATE(in_progress);  /* none if no operation is in progress */
+    int MBEDTLS_PRIVATE(self_cnt);
+    mbedtls_x509_crt_verify_chain MBEDTLS_PRIVATE(ver_chain);
 
 } mbedtls_x509_crt_restart_ctx;
 

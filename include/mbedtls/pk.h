@@ -192,8 +192,8 @@ typedef struct mbedtls_pk_context
  */
 typedef struct
 {
-    const mbedtls_pk_info_t *   pk_info; /**< Public key information         */
-    void *                      rs_ctx;  /**< Underlying restart context     */
+    const mbedtls_pk_info_t *   MBEDTLS_PRIVATE(pk_info); /**< Public key information         */
+    void *                      MBEDTLS_PRIVATE(rs_ctx);  /**< Underlying restart context     */
 } mbedtls_pk_restart_ctx;
 #else /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 /* Now we can declare functions that take a pointer to that */
@@ -209,7 +209,7 @@ typedef void mbedtls_pk_restart_ctx;
  */
 static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
 {
-    return( (mbedtls_rsa_context *) (pk).pk_ctx );
+    return( (mbedtls_rsa_context *) (pk).MBEDTLS_PRIVATE(pk_ctx) );
 }
 #endif /* MBEDTLS_RSA_C */
 
@@ -222,7 +222,7 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
  */
 static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
 {
-    return( (mbedtls_ecp_keypair *) (pk).pk_ctx );
+    return( (mbedtls_ecp_keypair *) (pk).MBEDTLS_PRIVATE(pk_ctx) );
 }
 #endif /* MBEDTLS_ECP_C */
 

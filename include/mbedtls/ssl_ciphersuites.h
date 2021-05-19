@@ -375,19 +375,19 @@ typedef struct mbedtls_ssl_ciphersuite_t mbedtls_ssl_ciphersuite_t;
  */
 struct mbedtls_ssl_ciphersuite_t
 {
-    int id;
-    const char * name;
+    int MBEDTLS_PRIVATE(id);
+    const char * MBEDTLS_PRIVATE(name);
 
-    mbedtls_cipher_type_t cipher;
-    mbedtls_md_type_t mac;
-    mbedtls_key_exchange_type_t key_exchange;
+    mbedtls_cipher_type_t MBEDTLS_PRIVATE(cipher);
+    mbedtls_md_type_t MBEDTLS_PRIVATE(mac);
+    mbedtls_key_exchange_type_t MBEDTLS_PRIVATE(key_exchange);
 
-    int min_major_ver;
-    int min_minor_ver;
-    int max_major_ver;
-    int max_minor_ver;
+    int MBEDTLS_PRIVATE(min_major_ver);
+    int MBEDTLS_PRIVATE(min_minor_ver);
+    int MBEDTLS_PRIVATE(max_major_ver);
+    int MBEDTLS_PRIVATE(max_minor_ver);
 
-    unsigned char flags;
+    unsigned char MBEDTLS_PRIVATE(flags);
 };
 
 const int *mbedtls_ssl_list_ciphersuites( void );

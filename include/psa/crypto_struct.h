@@ -345,7 +345,7 @@ static inline struct psa_key_attributes_s psa_key_attributes_init( void )
 static inline void psa_set_key_id( psa_key_attributes_t *attributes,
                                    mbedtls_svc_key_id_t key )
 {
-    psa_key_lifetime_t MBEDTLS_PRIVATE(lifetime) = attributes->MBEDTLS_PRIVATE(core).lifetime;
+    psa_key_lifetime_t lifetime = attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(lifetime);
 
     attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id) = key;
 
@@ -368,7 +368,7 @@ static inline mbedtls_svc_key_id_t psa_get_key_id(
 static inline void mbedtls_set_key_owner_id( psa_key_attributes_t *attributes,
                                              mbedtls_key_owner_id_t owner )
 {
-    attributes->core.id.owner = owner;
+    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id).MBEDTLS_PRIVATE(owner) = owner;
 }
 #endif
 
@@ -379,7 +379,7 @@ static inline void psa_set_key_lifetime(psa_key_attributes_t *attributes,
     if( PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
     {
 #ifdef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
-        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id).key_id = 0;
+        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id).MBEDTLS_PRIVATE(key_id) = 0;
 #else
         attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(id) = 0;
 #endif

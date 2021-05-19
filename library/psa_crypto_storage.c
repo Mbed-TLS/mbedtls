@@ -18,6 +18,8 @@
  *  limitations under the License.
  */
 
+#include "common.h"
+
 #if defined(MBEDTLS_CONFIG_FILE)
 #include MBEDTLS_CONFIG_FILE
 #else

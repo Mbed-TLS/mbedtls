@@ -77,6 +77,7 @@
         PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_256 ? 32 :       \
         PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_384 ? 48 :       \
         PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_512 ? 64 :       \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SM3 ? 32 :            \
         0)
 
 /** The input block size of a hash algorithm, in bytes.

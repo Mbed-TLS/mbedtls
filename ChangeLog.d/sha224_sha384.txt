@@ -1,0 +1,7 @@
+API changes
+   * Replace MBEDTLS_SHA512_NO_SHA384 config option with MBEDTLS_SHA384_C.
+     This separates config option enabling the SHA384 algorithm from option
+     enabling the SHA512 algorithm. Fixes #4034.
+   * Introduce MBEDTLS_SHA224_C.
+     This separates config option enabling the SHA224 algorithm from option
+     enabling SHA256.

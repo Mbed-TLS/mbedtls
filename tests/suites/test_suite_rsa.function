@@ -315,22 +315,22 @@ void rsa_invalid_param( )
                                                           buf ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_rsassa_pss_verify( NULL, NULL, NULL,
+                            mbedtls_rsa_rsassa_pss_verify( NULL, NULL,
                                                            MBEDTLS_RSA_PUBLIC,
                                                            0, sizeof( buf ),
                                                            buf, buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_rsassa_pss_verify( &ctx, NULL, NULL,
+                            mbedtls_rsa_rsassa_pss_verify( &ctx, NULL,
                                                            MBEDTLS_RSA_PUBLIC,
                                                            0, sizeof( buf ),
                                                            NULL, buf ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_rsassa_pss_verify( &ctx, NULL, NULL,
+                            mbedtls_rsa_rsassa_pss_verify( &ctx, NULL,
                                                            MBEDTLS_RSA_PUBLIC,
                                                            0, sizeof( buf ),
                                                            buf, NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_rsassa_pss_verify( &ctx, NULL, NULL,
+                            mbedtls_rsa_rsassa_pss_verify( &ctx, NULL,
                                                            MBEDTLS_RSA_PUBLIC,
                                                            MBEDTLS_MD_SHA1,
                                                            0, NULL,

@@ -1083,8 +1083,6 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
  * \param f_rng    The RNG function to use. If \p mode is #MBEDTLS_RSA_PRIVATE,
  *                 this is used for blinding and should be provided; see
  *                 mbedtls_rsa_private() for more. Otherwise, it is ignored.
- * \param p_rng    The RNG context to be passed to \p f_rng. This may be
- *                 \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode     The mode of operation. This must be either
  *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE.
  * \param md_alg   The message-digest algorithm used to hash the original data.
@@ -1108,7 +1106,6 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
  */
 int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
                                int (*f_rng)(void *, unsigned char *, size_t),
-                               void *p_rng,
                                int mode,
                                mbedtls_md_type_t md_alg,
                                unsigned int hashlen,

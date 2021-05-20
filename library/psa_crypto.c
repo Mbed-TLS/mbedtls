@@ -3515,14 +3515,12 @@ psa_status_t psa_aead_encrypt_setup( psa_aead_operation_t *operation,
 
     operation->key_type = psa_get_key_type( &attributes );
 
+exit:
+
     unlock_status = psa_unlock_key_slot( slot );
 
     if( unlock_status != PSA_SUCCESS )
-    {
         status = unlock_status;
-    }
-
-exit:
 
     if( status == PSA_SUCCESS )
         operation->alg = psa_aead_get_base_algorithm( alg );
@@ -3574,14 +3572,17 @@ psa_status_t psa_aead_decrypt_setup( psa_aead_operation_t *operation,
                                                     &attributes, slot->key.data,
                                                     slot->key.bytes, alg );
 
+    if( status != PSA_SUCCESS )
+        goto exit;
+
     operation->key_type = psa_get_key_type( &attributes );
+
+exit:
 
     unlock_status = psa_unlock_key_slot( slot );
 
     if( unlock_status != PSA_SUCCESS )
         status = unlock_status;
-
-exit:
 
     if( status == PSA_SUCCESS )
         operation->alg = psa_aead_get_base_algorithm( alg );

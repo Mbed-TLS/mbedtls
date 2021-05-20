@@ -3248,8 +3248,14 @@ psa_status_t psa_aead_encrypt_setup( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( operation->id || operation->nonce_set ||
-        operation->ad_started || operation->body_started )
+    if( operation->id != 0 )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if( operation->nonce_set || operation->ad_started ||
+        operation->body_started )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3259,9 +3265,7 @@ psa_status_t psa_aead_encrypt_setup( psa_aead_operation_t *operation,
                  key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
 
     if( status != PSA_SUCCESS )
-    {
         goto exit;
-    }
 
     psa_key_attributes_t attributes = {
       .core = slot->attr
@@ -3272,9 +3276,7 @@ psa_status_t psa_aead_encrypt_setup( psa_aead_operation_t *operation,
                                                     slot->key.bytes, alg );
 
     if( status != PSA_SUCCESS )
-    {
         goto exit;
-    }
 
     operation->key_type = psa_get_key_type( &attributes );
 
@@ -3310,8 +3312,14 @@ psa_status_t psa_aead_decrypt_setup( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( operation->id || operation->nonce_set ||
-        operation->ad_started || operation->body_started )
+    if( operation->id != 0 )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if( operation->nonce_set || operation->ad_started ||
+        operation->body_started )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3359,8 +3367,14 @@ psa_status_t psa_aead_generate_nonce( psa_aead_operation_t *operation,
 
      *nonce_length = 0;
 
-    if( !operation->id || operation->nonce_set ||
-        operation->ad_started || operation->body_started )
+    if( operation->id == 0 )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if( operation->nonce_set || operation->ad_started ||
+        operation->body_started )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3401,8 +3415,14 @@ psa_status_t psa_aead_set_nonce( psa_aead_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( !operation->id || operation->nonce_set ||
-        operation->ad_started || operation->body_started )
+    if( operation->id == 0 )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if( operation->nonce_set || operation->ad_started ||
+        operation->body_started )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3428,7 +3448,13 @@ psa_status_t psa_aead_set_lengths( psa_aead_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( !operation->id || operation->lengths_set )
+    if( operation->id == 0 )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if( operation->lengths_set )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3453,7 +3479,13 @@ psa_status_t psa_aead_update_ad( psa_aead_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( !operation->id || !operation->nonce_set )
+    if( operation->id == 0 )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if( !operation->nonce_set )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3485,7 +3517,13 @@ psa_status_t psa_aead_update( psa_aead_operation_t *operation,
 
     *output_length = 0;
 
-    if( !operation->id || !operation->nonce_set || !operation->ad_started )
+    if( operation->id == 0 )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if( !operation->nonce_set || !operation->ad_started )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3519,8 +3557,14 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
     *ciphertext_length = 0;
     *tag_length = 0;
 
-    if( !operation->id || !operation->nonce_set ||
-        !operation->ad_started || !operation->body_started )
+    if( operation->id == 0 )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if( !operation->nonce_set || !operation->ad_started ||
+        !operation->body_started )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3551,8 +3595,14 @@ psa_status_t psa_aead_verify( psa_aead_operation_t *operation,
 
     *plaintext_length = 0;
 
-    if( !operation->id || !operation->nonce_set ||
-        !operation->ad_started || !operation->body_started )
+    if( operation->id == 0 )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if( !operation->nonce_set || !operation->ad_started ||
+        !operation->body_started )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;

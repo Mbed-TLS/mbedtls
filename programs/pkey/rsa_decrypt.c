@@ -177,7 +177,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     ret = mbedtls_rsa_pkcs1_decrypt( &rsa, mbedtls_ctr_drbg_random,
-                                            &ctr_drbg, MBEDTLS_RSA_PRIVATE, &i,
+                                            &ctr_drbg, &i,
                                             buf, result, 1024 );
     if( ret != 0 )
     {

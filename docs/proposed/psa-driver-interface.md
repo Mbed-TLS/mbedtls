@@ -305,9 +305,12 @@ This family requires the following type and entry points:
 * `"key_derivation_setup"`: called by `psa_key_derivation_setup()`.
 * `"key_derivation_set_capacity"`: called by `psa_key_derivation_set_capacity()`. The core will always enforce the capacity, therefore this function does not need to do anything for algorithms where the output stream only depends on the effective generated length and not on the capacity.
 * `"key_derivation_input_bytes"`: called by `psa_key_derivation_input_bytes()` and `psa_key_derivation_input_key()`. For transparent drivers, when processing a call to `psa_key_derivation_input_key()`, the core always calls the applicable driver's `"key_derivation_input_bytes"` entry point.
+* `"key_derivation_input_integer"`: called by `psa_key_derivation_input_integer()`.
 * `"key_derivation_input_key"` (opaque drivers only)
 * `"key_derivation_output_bytes"`: called by `psa_key_derivation_output_bytes()`; also by `psa_key_derivation_output_key()` for transparent drivers.
 * `"key_derivation_output_key"`: called by `psa_key_derivation_output_key()` for transparent drivers when deriving an asymmetric key pair, and also for opaque drivers.
+* `"key_derivation_verify_bytes"` (opaque drivers only).
+* `"key_derivation_verify_key"` (opaque drivers only).
 * `"key_derivation_abort"`: called by all key derivation functions of the PSA Cryptography API.
 
 TODO: key input and output for opaque drivers; deterministic key generation for transparent drivers

@@ -1254,7 +1254,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
                                 keylen << 3, MBEDTLS_DECRYPT ) == 0 );
 
     /* Setup MAC contexts */
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     if( cipher_info->mode == MBEDTLS_MODE_CBC ||
         cipher_info->mode == MBEDTLS_MODE_STREAM )
     {
@@ -1287,7 +1287,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     }
 #else
     ((void) hash_id);
-#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
 
     /* Pick IV's (regardless of whether they
@@ -1301,7 +1301,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
      */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) && \
-    defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+    defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     t_out->encrypt_then_mac = etm;
     t_in->encrypt_then_mac = etm;
 #else

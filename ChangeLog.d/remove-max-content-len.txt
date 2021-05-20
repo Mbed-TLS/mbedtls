@@ -1,0 +1,4 @@
+Removals
+   * Remove MBEDTLS_SSL_MAX_CONTENT_LEN configuration option, since
+     MBEDTLS_SSL_IN_CONTENT_LEN and MBEDTLS_SSL_OUT_CONTENT_LEN replace
+     it. Fixes #4362.

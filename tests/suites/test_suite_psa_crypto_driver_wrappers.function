@@ -7,13 +7,13 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
-void ecdsa_sign( int force_status_arg,
-                 data_t *key_input,
-                 data_t *data_input,
-                 data_t *expected_output,
-                 int fake_output,
-                 int expected_status_arg )
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_DETERMINISTIC_ECDSA:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
+void ecdsa_sign_hash( int force_status_arg,
+                      data_t *key_input,
+                      data_t *data_input,
+                      data_t *expected_output,
+                      int fake_output,
+                      int expected_status_arg )
 {
     psa_status_t force_status = force_status_arg;
     psa_status_t expected_status = expected_status_arg;
@@ -65,19 +65,19 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
-void ecdsa_verify( int force_status_arg,
-                   int register_public_key,
-                   data_t *key_input,
-                   data_t *data_input,
-                   data_t *signature_input,
-                   int expected_status_arg )
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
+void ecdsa_verify_hash( int force_status_arg,
+                        int register_public_key,
+                        data_t *key_input,
+                        data_t *data_input,
+                        data_t *signature_input,
+                        int expected_status_arg )
 {
     psa_status_t force_status = force_status_arg;
     psa_status_t expected_status = expected_status_arg;
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_algorithm_t alg = PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 );
+    psa_algorithm_t alg = PSA_ALG_ECDSA( PSA_ALG_SHA_256 );
     psa_status_t actual_status;
     mbedtls_test_driver_signature_verify_hooks =
         mbedtls_test_driver_signature_hooks_init();
@@ -121,7 +121,125 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_DETERMINISTIC_ECDSA:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
+void ecdsa_sign_message( int force_status_arg,
+                         data_t *key_input,
+                         data_t *data_input,
+                         data_t *expected_output,
+                         int fake_output,
+                         int expected_status_arg )
+{
+    psa_status_t force_status = force_status_arg;
+    psa_status_t expected_status = expected_status_arg;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_algorithm_t alg = PSA_ALG_DETERMINISTIC_ECDSA( PSA_ALG_SHA_256 );
+    uint8_t signature[64];
+    size_t signature_length = 0xdeadbeef;
+    psa_status_t actual_status;
+    mbedtls_test_driver_signature_sign_hooks =
+        mbedtls_test_driver_signature_hooks_init();
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    psa_set_key_type( &attributes,
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_import_key( &attributes,
+                    key_input->x, key_input->len,
+                    &key );
+
+    mbedtls_test_driver_signature_sign_hooks.forced_status = force_status;
+    if( fake_output == 1 )
+    {
+        mbedtls_test_driver_signature_sign_hooks.forced_output =
+            expected_output->x;
+        mbedtls_test_driver_signature_sign_hooks.forced_output_length =
+            expected_output->len;
+    }
+
+    actual_status = psa_sign_message( key, alg,
+                                      data_input->x, data_input->len,
+                                      signature, sizeof( signature ),
+                                      &signature_length );
+    TEST_EQUAL( actual_status, expected_status );
+    if( expected_status == PSA_SUCCESS )
+    {
+        ASSERT_COMPARE( signature, signature_length,
+                        expected_output->x, expected_output->len );
+    }
+    /* In the builtin algorithm the driver is called twice. */
+    TEST_EQUAL( mbedtls_test_driver_signature_sign_hooks.hits,
+                force_status == PSA_ERROR_NOT_SUPPORTED ? 2 : 1 );
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    PSA_DONE( );
+    mbedtls_test_driver_signature_sign_hooks =
+        mbedtls_test_driver_signature_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
+void ecdsa_verify_message( int force_status_arg,
+                           int register_public_key,
+                           data_t *key_input,
+                           data_t *data_input,
+                           data_t *signature_input,
+                           int expected_status_arg )
+{
+    psa_status_t force_status = force_status_arg;
+    psa_status_t expected_status = expected_status_arg;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_algorithm_t alg = PSA_ALG_ECDSA( PSA_ALG_SHA_256 );
+    psa_status_t actual_status;
+    mbedtls_test_driver_signature_verify_hooks =
+        mbedtls_test_driver_signature_hooks_init();
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    if( register_public_key )
+    {
+        psa_set_key_type( &attributes,
+                      PSA_KEY_TYPE_ECC_PUBLIC_KEY( PSA_ECC_FAMILY_SECP_R1 ) );
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_MESSAGE );
+        psa_set_key_algorithm( &attributes, alg );
+        psa_import_key( &attributes,
+                        key_input->x, key_input->len,
+                        &key );
+    }
+    else
+    {
+        psa_set_key_type( &attributes,
+                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) );
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_MESSAGE );
+        psa_set_key_algorithm( &attributes, alg );
+        psa_import_key( &attributes,
+                        key_input->x, key_input->len,
+                        &key );
+    }
+
+    mbedtls_test_driver_signature_verify_hooks.forced_status = force_status;
+
+    actual_status = psa_verify_message( key, alg,
+                                        data_input->x, data_input->len,
+                                        signature_input->x, signature_input->len );
+    TEST_EQUAL( actual_status, expected_status );
+    /* In the builtin algorithm the driver is called twice. */
+    TEST_EQUAL( mbedtls_test_driver_signature_verify_hooks.hits,
+                force_status == PSA_ERROR_NOT_SUPPORTED ? 2 : 1 );
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    PSA_DONE( );
+    mbedtls_test_driver_signature_verify_hooks =
+        mbedtls_test_driver_signature_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256 */
 void generate_key( int force_status_arg,
                    data_t *fake_output,
                    int expected_status_arg )
@@ -194,7 +312,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256 */
 void validate_key( int force_status_arg,
                    int key_type_arg,
                    data_t *key_input,
@@ -230,7 +348,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256 */
 void export_key( int force_status_arg,
                  data_t *fake_output,
                  int key_in_type_arg,
@@ -960,6 +1078,197 @@ exit:
     mbedtls_free( output_data );
     PSA_DONE( );
     mbedtls_test_driver_aead_hooks = mbedtls_test_driver_aead_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mac_sign( int key_type_arg,
+               data_t *key_data,
+               int alg_arg,
+               data_t *input,
+               data_t *expected_mac,
+               int forced_status_arg )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t *actual_mac = NULL;
+    size_t mac_buffer_size =
+        PSA_MAC_LENGTH( key_type, PSA_BYTES_TO_BITS( key_data->len ), alg );
+    size_t mac_length = 0;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t forced_status = forced_status_arg;
+    mbedtls_test_driver_mac_hooks = mbedtls_test_driver_mac_hooks_init();
+
+    TEST_ASSERT( mac_buffer_size <= PSA_MAC_MAX_SIZE );
+    /* We expect PSA_MAC_LENGTH to be exact. */
+    TEST_ASSERT( expected_mac->len == mac_buffer_size );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+
+    ASSERT_ALLOC( actual_mac, mac_buffer_size );
+    mbedtls_test_driver_mac_hooks.forced_status = forced_status;
+
+    /* Calculate the MAC. */
+    status = psa_mac_sign_setup( &operation, key, alg );
+    TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
+
+    if( forced_status == PSA_SUCCESS ||
+        forced_status == PSA_ERROR_NOT_SUPPORTED )
+    {
+        PSA_ASSERT( status );
+    }
+    else
+        TEST_EQUAL( forced_status, status );
+
+    status = psa_mac_update( &operation,
+                             input->x, input->len );
+    if( forced_status == PSA_SUCCESS )
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 2 );
+    else
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
+    if( forced_status == PSA_SUCCESS ||
+        forced_status == PSA_ERROR_NOT_SUPPORTED )
+    {
+        PSA_ASSERT( status );
+    }
+    else
+        TEST_EQUAL( PSA_ERROR_BAD_STATE, status );
+
+    status = psa_mac_sign_finish( &operation,
+                                  actual_mac, mac_buffer_size,
+                                  &mac_length );
+    if( forced_status == PSA_SUCCESS )
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 4 );
+    else
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
+
+    if( forced_status == PSA_SUCCESS ||
+        forced_status == PSA_ERROR_NOT_SUPPORTED )
+    {
+        PSA_ASSERT( status );
+    }
+    else
+        TEST_EQUAL( PSA_ERROR_BAD_STATE, status );
+
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+    if( forced_status == PSA_SUCCESS )
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 4 );
+    else
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
+
+    if( forced_status == PSA_SUCCESS )
+    {
+        ASSERT_COMPARE( expected_mac->x, expected_mac->len,
+                        actual_mac, mac_length );
+    }
+
+    mbedtls_free( actual_mac );
+    actual_mac = NULL;
+
+exit:
+    psa_mac_abort( &operation );
+    psa_destroy_key( key );
+    PSA_DONE( );
+    mbedtls_free( actual_mac );
+    mbedtls_test_driver_mac_hooks = mbedtls_test_driver_mac_hooks_init();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mac_verify( int key_type_arg,
+                 data_t *key_data,
+                 int alg_arg,
+                 data_t *input,
+                 data_t *expected_mac,
+                 int forced_status_arg )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    psa_status_t forced_status = forced_status_arg;
+    mbedtls_test_driver_mac_hooks = mbedtls_test_driver_mac_hooks_init();
+
+    TEST_ASSERT( expected_mac->len <= PSA_MAC_MAX_SIZE );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+
+    mbedtls_test_driver_mac_hooks.forced_status = forced_status;
+
+    /* Test the correct MAC. */
+    status = psa_mac_verify_setup( &operation, key, alg );
+    TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
+
+    if( forced_status == PSA_SUCCESS ||
+        forced_status == PSA_ERROR_NOT_SUPPORTED )
+    {
+        PSA_ASSERT( status );
+    }
+    else
+        TEST_EQUAL( forced_status, status );
+
+    status = psa_mac_update( &operation,
+                             input->x, input->len );
+    if( forced_status == PSA_SUCCESS )
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 2 );
+    else
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
+
+    if( forced_status == PSA_SUCCESS ||
+        forced_status == PSA_ERROR_NOT_SUPPORTED )
+    {
+        PSA_ASSERT( status );
+    }
+    else
+        TEST_EQUAL( PSA_ERROR_BAD_STATE, status );
+
+    status = psa_mac_verify_finish( &operation,
+                                    expected_mac->x,
+                                    expected_mac->len );
+    if( forced_status == PSA_SUCCESS )
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 4 );
+    else
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
+
+    if( forced_status == PSA_SUCCESS ||
+        forced_status == PSA_ERROR_NOT_SUPPORTED )
+    {
+        PSA_ASSERT( status );
+    }
+    else
+        TEST_EQUAL( PSA_ERROR_BAD_STATE, status );
+
+
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+    if( forced_status == PSA_SUCCESS )
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 4 );
+    else
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
+
+exit:
+    psa_mac_abort( &operation );
+    psa_destroy_key( key );
+    PSA_DONE( );
+    mbedtls_test_driver_mac_hooks = mbedtls_test_driver_mac_hooks_init();
 }
 /* END_CASE */
 

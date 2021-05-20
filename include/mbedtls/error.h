@@ -106,8 +106,10 @@
  * HKDF      5   1 (Started from top)
  * SSL       5   2 (Started from 0x5F00)
  * CIPHER    6   8 (Started from 0x6080)
- * SSL       6   24 (Started from top, plus 0x6000)
- * SSL       7   32
+ * SSL       6   23 (Started from top, plus 0x6000, gaps at
+ *                   0x6600)
+ * SSL       7   28 (Started from 0x7080, gaps at
+ *                   0x7300, 0x7500, 0x7580, 0x7800)
  *
  * Module dependent error code (5 bits 0x.00.-0x.F8.)
  */
@@ -154,8 +156,8 @@ extern void (*mbedtls_test_hook_error_add)( int, int, const char *, int );
  *
  * \param high      high-level error code. See error.h for more details.
  * \param low       low-level error code. See error.h for more details.
- * \param file      file where this error code addition occured.
- * \param line      line where this error code addition occured.
+ * \param file      file where this error code addition occurred.
+ * \param line      line where this error code addition occurred.
  */
 static inline int mbedtls_error_add( int high, int low,
                                      const char *file, int line )

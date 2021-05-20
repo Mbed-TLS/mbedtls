@@ -159,7 +159,6 @@ int dtls_srtp_key_derivation( void *p_expkey,
 
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
-#if defined(MBEDTLS_SSL_RECORD_CHECKING)
 int ssl_check_record( mbedtls_ssl_context const *ssl,
                       unsigned char const *buf, size_t len )
 {
@@ -220,7 +219,6 @@ int ssl_check_record( mbedtls_ssl_context const *ssl,
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_RECORD_CHECKING */
 
 int recv_cb( void *ctx, unsigned char *buf, size_t len )
 {
@@ -241,10 +239,8 @@ int recv_cb( void *ctx, unsigned char *buf, size_t len )
         /* Here's the place to do any datagram/record checking
          * in between receiving the packet from the underlying
          * transport and passing it on to the TLS stack. */
-#if defined(MBEDTLS_SSL_RECORD_CHECKING)
         if( ssl_check_record( io_ctx->ssl, buf, recv_len ) != 0 )
             return( -1 );
-#endif /* MBEDTLS_SSL_RECORD_CHECKING */
     }
 
     return( (int) recv_len );
@@ -267,10 +263,8 @@ int recv_timeout_cb( void *ctx, unsigned char *buf, size_t len,
         /* Here's the place to do any datagram/record checking
          * in between receiving the packet from the underlying
          * transport and passing it on to the TLS stack. */
-#if defined(MBEDTLS_SSL_RECORD_CHECKING)
         if( ssl_check_record( io_ctx->ssl, buf, recv_len ) != 0 )
             return( -1 );
-#endif /* MBEDTLS_SSL_RECORD_CHECKING */
     }
 
     return( (int) recv_len );

@@ -55,6 +55,11 @@
 
 #include "mbedtls/cipher.h"
 
+#define MBEDTLS_CCM_DECRYPT       0
+#define MBEDTLS_CCM_ENCRYPT       1
+#define MBEDTLS_CCM_STAR_DECRYPT  2
+#define MBEDTLS_CCM_STAR_ENCRYPT  3
+
 #define MBEDTLS_ERR_CCM_BAD_INPUT       -0x000D /**< Bad input parameters to the function. */
 #define MBEDTLS_ERR_CCM_AUTH_FAILED     -0x000F /**< Authenticated decryption failed. */
 
@@ -287,6 +292,141 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
                       const unsigned char *add, size_t add_len,
                       const unsigned char *input, unsigned char *output,
                       const unsigned char *tag, size_t tag_len );
+
+/**
+ * \brief           This function starts a CCM encryption or decryption
+ *                  operation.
+ *
+ * \param ctx       The CCM context. This must be initialized.
+ * \param mode      The operation to perform: #MBEDTLS_CCM_ENCRYPT or
+ *                  #MBEDTLS_CCM_DECRYPT or #MBEDTLS_CCM_STAR_ENCRYPT or
+ *                  #MBEDTLS_CCM_STAR_DECRYPT.
+ * \param iv        The initialization vector. This must be a readable buffer of
+ *                  at least \p iv_len Bytes.
+ * \param iv_len    The length of the IV.
+ * \param ad_len    The length of the additional data in bytes.
+ * \param body_len  The length of the data to encrypt or decrypt in bytes.
+ *
+ * \return          \c 0 on success.
+ */
+int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
+                        int mode,
+                        const unsigned char *iv,
+                        size_t iv_len,
+                        size_t ad_len,
+                        size_t body_len );
+
+/**
+ * \brief           This function feeds an input buffer as associated data
+ *                  (authenticated but not encrypted data) in a CCM
+ *                  encryption or decryption operation.
+ *
+ *                  Call this function after mbedtls_ccm_starts() to pass
+ *                  the associated data. If the associated data is empty,
+ *                  you do not need to call this function. You may not
+ *                  call this function after calling mbedtls_ccm_update().
+ *
+ * \note            This function may be called several times per operation,
+ *                  passing the associated data in chunks.
+ *
+ * \param ctx       The CCM context. This must have been started with
+ *                  mbedtls_ccm_starts() and must not have yet received
+ *                  any input with mbedtls_ccm_update().
+ * \param add       The buffer holding the additional data, or \c NULL
+ *                  if \p add_len is \c 0.
+ * \param add_len   The length of the additional data. If \c 0,
+ *                  \p add may be \c NULL.
+ *
+ * \return          \c 0 on success.
+ * \return          \#MBEDTLS_ERR_CCM_BAD_INPUT on failure:
+ *                  total input length too long.
+ */
+int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
+                           const unsigned char *add,
+                           size_t add_len );
+
+/**
+ * \brief           This function feeds an input buffer into an ongoing CCM
+ *                  encryption or decryption operation.
+ *
+ *                  You may call this function zero, one or more times
+ *                  to pass successive parts of the input: the plaintext to
+ *                  encrypt, or the ciphertext (not including the tag) to
+ *                  decrypt. After the last part of the input, call
+ *                  mbedtls_ccm_finish().
+ *
+ *                  This function may produce output in one of the following
+ *                  ways:
+ *                  - Immediate output: the output length is always equal
+ *                    to the input length.
+ *                  - Buffered output: but for the last chunck of input data,
+ *                    the output consists of a whole number of 16-byte blocks.
+ *                    If the total input length so far (not including
+ *                    associated data) is 16 \* *B* + *A* with *A* < 16 then
+ *                    the total output length is 16 \* *B*.
+ *                    For the last chunck of input data, the output length is
+ *                    equal to the input length. The function uses the length
+ *                    in bytes of the body data passed in mbedtls_ccm_starts()
+ *                    to detect the last chunck of data to encrypt or decrypt.
+ *
+ *                  In particular:
+ *                  - It is always correct to call this function with
+ *                    \p output_size >= \p input_length + 15.
+ *                  - If \p input_length is a multiple of 16 for all the calls
+ *                    to this function during an operation (not necessary for
+ *                    the last one) then it is correct to use \p output_size
+ *                    =\p input_length.
+ *
+ * \note            For decryption, the output buffer cannot be the same as
+ *                  the input buffer. If the buffers overlap, the output buffer
+ *                  must trail at least 8 Bytes behind the input buffer.
+ *
+ * \param ctx           The CCM context. This must be initialized.
+ * \param input         The buffer holding the input data. If \p input_length
+ *                      is greater than zero, this must be a readable buffer
+ *                      of at least \p input_length bytes.
+ * \param input_length  The length of the input data in bytes.
+ * \param output        The buffer for the output data. If \p output_size
+ *                      is greater than zero, this must be a writable buffer of
+ *                      at least \p output_size bytes.
+ * \param output_size   The size of the output buffer in bytes.
+ *                      See the function description regarding the output size.
+ * \param output_length On success, \p *output_length contains the actual
+ *                      length of the output written in \p output.
+ *                      On failure, the content of \p *output_length is
+ *                      unspecified.
+ *
+ * \return         \c 0 on success.
+ * \return         #MBEDTLS_ERR_CCM_BAD_INPUT on failure:
+ *                 total input length too long,
+ *                 unsupported input/output buffer overlap detected,
+ *                 or \p output_size too small.
+ */
+int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
+                        const unsigned char *input, size_t input_length,
+                        unsigned char *output, size_t output_size,
+                        size_t *output_length );
+
+/**
+ * \brief           This function finishes the CCM operation and generates
+ *                  the authentication tag.
+ *
+ *                  It wraps up the CCM stream, and generates the
+ *                  tag. The tag can have a maximum length of 16 Bytes.
+ *
+ * \param ctx       The CCM context. This must be initialized.
+ * \param tag       The buffer for holding the tag. If \p tag_len is greater
+ *                  than zero, this must be a writable buffer of at least \p
+ *                  tag_len Bytes.
+ * \param tag_len   The length of the tag to generate. This must be at least
+ *                  four for CCM but can be equal to \c 0 for CCM*.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_CCM_BAD_INPUT on failure:
+ *                  invalid value of \p tag_len.
+ */
+int mbedtls_ccm_finish( mbedtls_ccm_context *ctx,
+                        unsigned char *tag, size_t tag_len );
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
 /**

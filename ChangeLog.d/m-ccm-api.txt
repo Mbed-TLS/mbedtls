@@ -1,0 +1,5 @@
+Features
+   * The CCM API now supports multi-part operations. Alternative
+     implementations can add multipart support according to the new multi-part
+     interface functions. The implementation of these functions in Mbed TLS
+     will be added in a future release.

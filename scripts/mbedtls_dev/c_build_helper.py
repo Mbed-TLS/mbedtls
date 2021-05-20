@@ -95,7 +95,7 @@ def get_c_expression_values(
         caller=__name__, file_label='',
         header='', include_path=None,
         keep_c=False,
-): # pylint: disable=too-many-arguments
+): # pylint: disable=too-many-arguments, too-many-locals
     """Generate and run a program to print out numerical values for expressions.
 
     * ``cast_to``: a C type.
@@ -108,12 +108,17 @@ def get_c_expression_values(
     * ``keep_c``: if true, keep the temporary C file (presumably for debugging
       purposes).
 
+    Use the C compiler specified by the ``CC`` environment variable, defaulting
+    to ``cc``. If ``CC`` looks like MSVC, use its command line syntax,
+    otherwise assume the compiler supports Unix traditional ``-I`` and ``-o``.
+
     Return the list of values of the ``expressions``.
     """
     if include_path is None:
         include_path = []
     c_name = None
     exe_name = None
+    obj_name = None
     try:
         c_file, c_name, exe_name = create_c_file(file_label)
         generate_c_file(
@@ -124,9 +129,24 @@ def get_c_expression_values(
         )
         c_file.close()
         cc = os.getenv('CC', 'cc')
-        subprocess.check_call([cc] +
-                              ['-I' + dir for dir in include_path] +
-                              ['-o', exe_name, c_name])
+        cmd = [cc]
+
+        proc = subprocess.Popen(cmd,
+                                stdout=subprocess.DEVNULL,
+                                stderr=subprocess.PIPE,
+                                universal_newlines=True)
+        cc_is_msvc = 'Microsoft (R) C/C++ Optimizing Compiler' in \
+                      proc.communicate()[1]
+
+        cmd += ['-I' + dir for dir in include_path]
+        if cc_is_msvc:
+            # MSVC has deprecated using -o to specify the output file,
+            # and produces an object file in the working directory by default.
+            obj_name = exe_name[:-4] + '.obj'
+            cmd += ['-Fe' + exe_name, '-Fo' + obj_name]
+        else:
+            cmd += ['-o' + exe_name]
+        subprocess.check_call(cmd + [c_name])
         if keep_c:
             sys.stderr.write('List of {} tests kept at {}\n'
                              .format(caller, c_name))
@@ -136,3 +156,4 @@ def get_c_expression_values(
         return output.decode('ascii').strip().split('\n')
     finally:
         remove_file_if_exists(exe_name)
+        remove_file_if_exists(obj_name)

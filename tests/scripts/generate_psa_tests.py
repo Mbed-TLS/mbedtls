@@ -22,11 +22,13 @@ generate only the specified files.
 
 import argparse
 import os
+import posixpath
 import re
 import sys
 from typing import Callable, Dict, FrozenSet, Iterable, Iterator, List, Optional, TypeVar
 
 import scripts_path # pylint: disable=unused-import
+from mbedtls_dev import build_tree
 from mbedtls_dev import crypto_knowledge
 from mbedtls_dev import macro_collector
 from mbedtls_dev import psa_storage
@@ -79,9 +81,13 @@ def read_implemented_dependencies(filename: str) -> FrozenSet[str]:
     return frozenset(symbol
                      for line in open(filename)
                      for symbol in re.findall(r'\bPSA_WANT_\w+\b', line))
-IMPLEMENTED_DEPENDENCIES = read_implemented_dependencies('include/psa/crypto_config.h')
+_implemented_dependencies = None #type: Optional[FrozenSet[str]] #pylint: disable=invalid-name
 def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
-    if not all(dep.lstrip('!') in IMPLEMENTED_DEPENDENCIES
+    global _implemented_dependencies #pylint: disable=global-statement,invalid-name
+    if _implemented_dependencies is None:
+        _implemented_dependencies = \
+            read_implemented_dependencies('include/psa/crypto_config.h')
+    if not all(dep.lstrip('!') in _implemented_dependencies
                for dep in dependencies):
         dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
 
@@ -394,7 +400,7 @@ class TestGenerator:
 
     def filename_for(self, basename: str) -> str:
         """The location of the data file with the specified base name."""
-        return os.path.join(self.test_suite_directory, basename + '.data')
+        return posixpath.join(self.test_suite_directory, basename + '.data')
 
     def write_test_data_file(self, basename: str,
                              test_cases: Iterable[test_case.TestCase]) -> None:
@@ -426,6 +432,7 @@ def main(args):
     parser.add_argument('targets', nargs='*', metavar='TARGET',
                         help='Target file to generate (default: all; "-": none)')
     options = parser.parse_args(args)
+    build_tree.chdir_to_root()
     generator = TestGenerator(options)
     if options.list:
         for name in sorted(generator.TARGETS):

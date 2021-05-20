@@ -1791,7 +1791,6 @@ void mbedtls_ssl_set_verify( mbedtls_ssl_context *ssl,
  */
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout );
 
-#if defined(MBEDTLS_SSL_RECORD_CHECKING)
 /**
  * \brief          Check whether a buffer contains a valid and authentic record
  *                 that has not been seen before. (DTLS only).
@@ -1839,7 +1838,6 @@ void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
 int mbedtls_ssl_check_record( mbedtls_ssl_context const *ssl,
                               unsigned char *buf,
                               size_t buflen );
-#endif /* MBEDTLS_SSL_RECORD_CHECKING */
 
 /**
  * \brief          Set the timer callbacks (Mandatory for DTLS.)

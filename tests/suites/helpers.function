@@ -87,11 +87,10 @@ jmp_buf jmp_tmp;
 
 /* Indicates whether we expect mbedtls_entropy_init
  * to initialize some strong entropy source. */
-#if defined(MBEDTLS_TEST_NULL_ENTROPY) ||             \
-    ( !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES) && \
-      ( !defined(MBEDTLS_NO_PLATFORM_ENTROPY)  ||     \
-         defined(MBEDTLS_ENTROPY_HARDWARE_ALT) ||     \
-         defined(ENTROPY_NV_SEED) ) )
+#if !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES) && \
+    ( !defined(MBEDTLS_NO_PLATFORM_ENTROPY) ||      \
+        defined(MBEDTLS_ENTROPY_HARDWARE_ALT) ||    \
+        defined(ENTROPY_NV_SEED) )
 #define ENTROPY_HAVE_STRONG
 #endif
 

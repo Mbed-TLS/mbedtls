@@ -1,0 +1,2 @@
+API changes
+   * Remove the MBEDTLS_TEST_NULL_ENTROPY config option. Fixes #4388.

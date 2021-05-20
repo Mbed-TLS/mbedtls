@@ -43,14 +43,6 @@ extern "C" {
 #define MBEDTLS_ENTROPY_MIN_HARDWARE     32     /**< Minimum for the hardware source */
 #endif
 
-/**
- * \brief           Entropy poll callback that provides 0 entropy.
- */
-#if defined(MBEDTLS_TEST_NULL_ENTROPY)
-    int mbedtls_null_entropy_poll( void *data,
-                                unsigned char *output, size_t len, size_t *olen );
-#endif
-
 #if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
 /**
  * \brief           Platform-specific entropy poll callback

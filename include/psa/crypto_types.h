@@ -387,7 +387,7 @@ typedef uint16_t psa_key_derivation_step_t;
 /** \brief Encoding of the side of PAKE
  *
  * Encodes which side of the algorithm is being executed. For more information
- * see the documentation of individual PSA_PAKE_SIDE_XXX constants.
+ * see the documentation of individual \c PSA_PAKE_SIDE_XXX constants.
  */
 typedef uint8_t psa_pake_side_t;
 
@@ -405,14 +405,14 @@ typedef uint8_t psa_pake_step_t;
  * Vendors who define additional types must use an encoding in this range.
  *
  * For more information see the documentation of individual
- * PSA_PAKE_PRIMITIVE_TYPE_XXX constants.
+ * \c PSA_PAKE_PRIMITIVE_TYPE_XXX constants.
  */
 typedef uint8_t psa_pake_primitive_type_t;
 
 /** \brief Encoding of the family of the primitive associated with the PAKE.
  *
  * For more information see the documentation of individual
- * PSA_PAKE_PRIMITIVE_TYPE_XXX constants.
+ * \c PSA_PAKE_PRIMITIVE_TYPE_XXX constants.
  */
 typedef uint8_t psa_pake_family_t;
 

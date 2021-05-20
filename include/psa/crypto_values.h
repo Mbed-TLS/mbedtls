@@ -1975,7 +1975,7 @@
  * cipher suite the field or curve must be fully specified by calling
  * psa_pake_cs_set_family() and psa_pake_cs_set_bits() as well. For more
  * information refer to the documentation of the individual
- * `PSA_PAKE_PRIMITIVE_TYPE_XXX` constants.)
+ * \c PSA_PAKE_PRIMITIVE_TYPE_XXX constants.)
  *
  * J-PAKE can be used with any secure cryptographic hash function. The choice
  * of hash must be supplied to the cipher suite by calling
@@ -1987,7 +1987,7 @@
  *
  * J-PAKE doesn't differentiate between sides and has a distinct identifier
  * associated with each entity. This means that both psa_pake_set_user() and
- * psa_pake_set_peer() needs to be called before commencing the operation.
+ * psa_pake_set_peer() need to be called before commencing the operation.
  * Another consequence is that psa_pake_set_side() is optional and is ignored.
  *
  * The key exchange flow for JPAKE is as follows:
@@ -2038,7 +2038,7 @@
  *      psa_pake_get_implicit_key()
  *
  * For more information consult the documentation of the individual
- * PSA_PAKE_STEP_XXX constants.
+ * \c PSA_PAKE_STEP_XXX constants.
  *
  * J-PAKE is standardised for example in RFC 8236.
  */
@@ -2480,7 +2480,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *
  * Although balanced PAKE algorithms are symmetric, some of them needs an
  * ordering of peers for the transcript calculations. If the algorithm does not
- * need this, either #PSA_PAKE_SIDE_FIRST or #PSA_PAKE_SIDE_SECOND are
+ * need this, both #PSA_PAKE_SIDE_FIRST and #PSA_PAKE_SIDE_SECOND are
  * accepted.
  */
 #define PSA_PAKE_SIDE_FIRST                ((psa_pake_side_t)0x01)
@@ -2546,7 +2546,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  */
 #define PSA_PAKE_PRIMITIVE_TYPE_DH       ((psa_pake_primitive_type_t)0x02)
 
-/** Construct a PAKE primitive from type, family and bitsize.
+/** Construct a PAKE primitive from type, family and bit-size.
  *
  * \param pake_type     The type of the primitive
  *                      (value of type ::psa_pake_primitive_type_t).
@@ -2555,7 +2555,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *                      on \p type, for more information consult the
  *                      documentation of individual ::psa_pake_primitive_type_t
  *                      constants).
- * \param pake_bits     The bitsize of the primitive
+ * \param pake_bits     The bit-size of the primitive
  *                      (Value of type \c size_t. The interpretation
  *                      of this parameter depends on \p family, for more
  *                      information consult the documentation of individual

@@ -4092,7 +4092,7 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
 /**@}*/
 
 
-/** \defgroup Password-authenticated key agreement
+/** \defgroup pake Password-authenticated key exchange (PAKE)
  * @{
  */
 
@@ -4255,7 +4255,7 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  * -# Initialize the operation object with one of the methods described in the
  *    documentation for #psa_pake_operation_t, e.g.
  *    #PSA_PAKE_OPERATION_INIT.
- * -# Call psa_pake_setup() to specify cipher suite.
+ * -# Call psa_pake_setup() to specify the cipher suite.
  * -# Call \c psa_pake_set_xxx() functions on the operation to complete the
  *    setup. The exact sequence of \c psa_pake_set_xxx() functions that needs
  *    to be called depends on the algorithm in use.
@@ -4324,6 +4324,11 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
 
 /** Set the password for a password-authenticated key exchange from key ID.
  *
+ * Call this function when the password, or a value derived from the password,
+ * is already present in the key store. To calculate the password-derived value
+ * from a password input, use the key derivation interface and
+ * psa_pake_set_password_stretch() instead.
+ *
  * \param[in,out] operation     The operation object to set the password for. It
  *                              must have been set up by psa_pake_setup() and
  *                              not yet in use.
@@ -4332,8 +4337,8 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  *                              memory-hard function).  It must remain valid
  *                              until the operation terminates. It must be of
  *                              type #PSA_KEY_TYPE_PASSWORD or
- *                              #PSA_KEY_TYPE_DERIVE. It has to allow the usage
- *                              #PSA_KEY_USAGE_DERIVE.
+ *                              #PSA_KEY_TYPE_PASSWORD_HASH. It has to allow
+ *                              the usage #PSA_KEY_USAGE_DERIVE.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -4409,7 +4414,7 @@ psa_status_t psa_pake_set_password_mhf(psa_pake_operation_t *operation,
 
 /** Set the user ID for a password-authenticated key exchange.
  *
- * Some PAKE algorithms assiciate only a single user identifier with the
+ * Some PAKE algorithms associate only a single user identifier with the
  * session.  Such algorithms must call this function (psa_pake_set_user()) to
  * set the identifier for the PAKE context.
  *
@@ -4444,7 +4449,7 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
 
 /** Set the peer ID for a password-authenticated key exchange.
  *
- * Some PAKE algorithms assiciate only a single user identifier with the
+ * Some PAKE algorithms associate only a single user identifier with the
  * session.  Such algorithms must call psa_pake_set_user() to set the
  * identifier for the PAKE context.
  *
@@ -4514,7 +4519,7 @@ psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
 psa_status_t psa_pake_set_side(psa_pake_operation_t *operation,
                                psa_pake_side_t side);
 
-/** Get additional key share from a password-authenticated key exchange.
+/** Get output for a step of a password-authenticated key exchange.
  *
  * Depending on the algorithm being executed, you might need to call this
  * function several times or you might not need to call this at all.
@@ -4529,7 +4534,8 @@ psa_status_t psa_pake_set_side(psa_pake_operation_t *operation,
  * state and must be aborted by calling psa_pake_abort().
  *
  * \param[in,out] operation    Active PAKE operation.
- * \param type                 The type of the data that is requested.
+ * \param step                 The step of the algorithm for which the output is
+ *                             requested.
  * \param[out] output          Buffer where the output is to be written.
  * \param output_size          Size of the \p output buffer in bytes. This must
  *                             be at least #PSA_PAKE_OUTPUT_SIZE(\p alg, \c
@@ -4556,12 +4562,12 @@ psa_status_t psa_pake_set_side(psa_pake_operation_t *operation,
  *         results in this error code.
  */
 psa_status_t psa_pake_output(psa_pake_operation_t *operation,
-                             psa_pake_step_t type,
+                             psa_pake_step_t step,
                              uint8_t *output,
                              size_t output_size,
                              size_t *output_length);
 
-/** Provide additional peer key share for a password-authenticated key exchange.
+/** Provide input for a step of a password-authenticated key exchange.
  *
  * Depending on the algorithm being executed, you might need to call this
  * function several times or you might not need to call this at all.
@@ -4576,7 +4582,7 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  * state and must be aborted by calling psa_pake_abort().
  *
  * \param[in,out] operation    Active PAKE operation.
- * \param type                 The type of the data provided.
+ * \param step                 The step for which the input is provided.
  * \param[out] input           Buffer containing the input.
  * \param[out] input_length    Size of the \p input buffer in bytes.
  *
@@ -4596,7 +4602,7 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  *         results in this error code.
  */
 psa_status_t psa_pake_input(psa_pake_operation_t *operation,
-                             psa_pake_step_t type,
+                             psa_pake_step_t step,
                              uint8_t *input,
                              size_t input_length);
 

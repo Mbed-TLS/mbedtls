@@ -263,6 +263,8 @@ psa_status_t mbedtls_psa_aead_decrypt_setup(
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         Algorithm previously set is not supported in this configuration of
  *         the library.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ *         (GCM and CCM only) Unable to allocate buffer for nonce.
  */
 psa_status_t mbedtls_psa_aead_set_nonce(
     mbedtls_psa_aead_operation_t *operation,

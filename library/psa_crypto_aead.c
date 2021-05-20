@@ -388,11 +388,16 @@ psa_status_t mbedtls_psa_aead_set_nonce(
     #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
     {
+        operation->nonce = mbedtls_calloc( 1, nonce_length );
+
+        if( operation->nonce == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
         /* GCM sets nonce once additional data has been supplied */
         memcpy( operation->nonce, nonce, nonce_length );
 
         /* We know that nonce size cannot exceed the uint8_t size */
-        operation->nonce_length = ( uint8_t ) nonce_length;
+        operation->nonce_length = nonce_length;
         status = PSA_SUCCESS;
     }
     else
@@ -400,12 +405,17 @@ psa_status_t mbedtls_psa_aead_set_nonce(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation->alg == PSA_ALG_CCM )
     {
+        operation->nonce = mbedtls_calloc( 1, nonce_length );
+
+        if( operation->nonce == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
         /* Multipart CCM not supported as yet, so CCM is basically operating
            in oneshot mode. Store the nonce as we need this later */
         memcpy( operation->nonce, nonce, nonce_length );
 
         /* We know that nonce size cannot exceed the uint8_t size */
-        operation->nonce_length = ( uint8_t ) nonce_length;
+        operation->nonce_length = nonce_length;
         status = PSA_SUCCESS;
     }
     else
@@ -918,6 +928,10 @@ psa_status_t mbedtls_psa_aead_abort(
 
     mbedtls_free( operation->tag_buffer );
     operation->tag_buffer = NULL;
+
+    mbedtls_free( operation->nonce );
+    operation->nonce = NULL;
+    operation->nonce_length = 0;
 
     return( PSA_SUCCESS );
 }

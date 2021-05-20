@@ -23,8 +23,6 @@ void rsa_invalid_param( )
     mbedtls_rsa_context ctx;
     const int valid_padding = MBEDTLS_RSA_PKCS_V21;
     const int invalid_padding = 42;
-    const int valid_mode = MBEDTLS_RSA_PRIVATE;
-    const int invalid_mode = 42;
     unsigned char buf[42] = { 0 };
     size_t olen;
 

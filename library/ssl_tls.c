@@ -961,7 +961,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
         goto end;
     }
 
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
     {

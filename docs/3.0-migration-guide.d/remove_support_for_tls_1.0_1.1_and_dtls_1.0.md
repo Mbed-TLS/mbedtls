@@ -1,7 +1,7 @@
-Remove suport for TLS 1.0, 1.1 and DLTS 1.0
+Remove suport for TLS 1.0, 1.1 and DTLS 1.0
 -------------------------------------------
 
-This change affects users of the TLS 1.0, 1.1 and DTLS 1.0.
+This change affects users of the TLS 1.0, 1.1 and DTLS 1.0 protocols.
 
 The versions of (D)TLS that are being removed are not as secure as the latest
 versions. Keeping them in the library creates opportunities for misconfiguration

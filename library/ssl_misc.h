@@ -72,7 +72,7 @@
 #define MBEDTLS_SSL_MIN_MINOR_VERSION           MBEDTLS_SSL_MINOR_VERSION_3
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-#define MBEDTLS_SSL_MIN_VALID_MINOR_VERSION MBEDTLS_SSL_MINOR_VERSION_1
+#define MBEDTLS_SSL_MIN_VALID_MINOR_VERSION MBEDTLS_SSL_MINOR_VERSION_3
 #define MBEDTLS_SSL_MIN_VALID_MAJOR_VERSION MBEDTLS_SSL_MAJOR_VERSION_3
 
 /* Determine maximum supported version */
@@ -113,13 +113,7 @@
  * counter (8) + header (5) + IV(16) + MAC (16-48) + padding (0-256).
  */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1)   ||      \
-    defined(MBEDTLS_SSL_PROTO_TLS1_1) ||      \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#define MBEDTLS_SSL_PROTO_TLS1_2_OR_EARLIER
-#endif
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2_OR_EARLIER)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
 /* This macro determines whether CBC is supported. */
 #if defined(MBEDTLS_CIPHER_MODE_CBC) &&                               \
@@ -147,7 +141,7 @@
 #define MBEDTLS_SSL_SOME_SUITES_USE_MAC
 #endif
 
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2_OR_EARLIER */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 /* Ciphersuites using HMAC */

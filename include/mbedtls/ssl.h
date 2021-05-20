@@ -2533,9 +2533,8 @@ int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf, size_t len,
  * \param ciphersuites  0-terminated list of allowed ciphersuites
  * \param major         Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3
  *                      supported)
- * \param minor         Minor version number (MBEDTLS_SSL_MINOR_VERSION_1,
- *                      MBEDTLS_SSL_MINOR_VERSION_2,
- *                      MBEDTLS_SSL_MINOR_VERSION_3 supported)
+ * \param minor         Minor version number (only MBEDTLS_SSL_MINOR_VERSION_3
+ *                      supported)
  *
  * \note                With DTLS, use MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  */
@@ -3203,7 +3202,7 @@ void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int mino
  * \note           Input outside of the SSL_MAX_XXXXX_VERSION and
  *                 SSL_MIN_XXXXX_VERSION range is ignored.
  *
- * \note           With DTLS, MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
+ * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)

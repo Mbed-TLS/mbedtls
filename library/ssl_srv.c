@@ -3148,11 +3148,8 @@ curve_matching_done:
 
         /*
          * 2.1: Choose hash algorithm:
-         * A: For TLS 1.2, obey signature-hash-algorithm extension
-         *    to choose appropriate hash.
-         * B: For TLS1.0, TLS1.1 and ECDHE_ECDSA, use SHA1
-         *    (RFC 4492, Sec. 5.4)
-         * C: Otherwise, use MD5 + SHA1 (RFC 4346, Sec. 7.4.3)
+         *      For TLS 1.2, obey signature-hash-algorithm extension
+         *      to choose appropriate hash.
          */
 
         mbedtls_md_type_t md_alg;
@@ -3162,7 +3159,7 @@ curve_matching_done:
             mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
         if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
         {
-            /* A: For TLS 1.2, obey signature-hash-algorithm extension
+            /*    For TLS 1.2, obey signature-hash-algorithm extension
              *    (RFC 5246, Sec. 7.4.1.4.1). */
             if( sig_alg == MBEDTLS_PK_NONE ||
                 ( md_alg = mbedtls_ssl_sig_hash_set_find( &ssl->handshake->hash_algs,
@@ -3175,11 +3172,11 @@ curve_matching_done:
             }
         }
         else
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
         {
-            /* C: MD5 + SHA1 */
-            md_alg = MBEDTLS_MD_NONE;
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "pick hash algorithm %u for signing", (unsigned) md_alg ) );
 

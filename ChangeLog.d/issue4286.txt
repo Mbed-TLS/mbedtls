@@ -6,9 +6,6 @@ Removals
      MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED, MBEDTLS_SSL_RECORD_CHECKING,
      MBEDTLS_SSL_FALLBACK_SCSV, MBEDTLS_SSL_FALLBACK_SCSV_VALUE,
      MBEDTLS_SSL_IS_FALLBACK, MBEDTLS_SSL_IS_NOT_FALLBACK, and functions:
-     ssl_write_split(), mbedtls_ssl_conf_cbc_record_splitting(), tls1_prf(),
-     ssl_update_checksum_md5sha1(), mbedtls_ssl_get_key_exchange_md_ssl_tls(),
-     mbedtls_ssl_check_record(), ssl_check_record(), ssl_calc_verify_tls(),
-     ssl_calc_finished_tls(), mbedtls_ssl_conf_fallback() as well as test
-     function component_test_variable_ssl_in_out_buffer_len_record_splitting().
-     Fixes #4286.
+     mbedtls_ssl_conf_cbc_record_splitting(),
+     mbedtls_ssl_get_key_exchange_md_ssl_tls(),
+     mbedtls_ssl_check_record(), mbedtls_ssl_conf_fallback(). Fixes #4286.

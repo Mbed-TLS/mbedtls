@@ -724,11 +724,6 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
  *                      Exception: For MBEDTLS_MODE_ECB, expects a single block
  *                      in size. For example, 16 Bytes for AES.
  *
- * \note                If the underlying cipher is used in GCM mode, all calls
- *                      to this function, except for the last one before
- *                      mbedtls_cipher_finish(), must have \p ilen as a
- *                      multiple of the block size of the cipher.
- *
  * \param ctx           The generic cipher context. This must be initialized and
  *                      bound to a key.
  * \param input         The buffer holding the input data. This must be a

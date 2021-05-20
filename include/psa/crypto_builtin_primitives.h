@@ -130,16 +130,12 @@ typedef struct
     psa_algorithm_t alg;
     psa_key_type_t key_type;
 
-    unsigned int lengths_set : 1;
     unsigned int is_encrypt : 1;
     unsigned int ad_started : 1;
     unsigned int body_started : 1;
 
     uint8_t tag_length;
     uint8_t nonce_length;
-
-    size_t ad_remaining;
-    size_t body_remaining;
 
     /* Buffers for AD/data - only required until CCM gets proper multipart
        support. */
@@ -172,7 +168,7 @@ typedef struct
 
 } mbedtls_psa_aead_operation_t;
 
-#define MBEDTLS_PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}, {0}}
+#define MBEDTLS_PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}, {0}}
 
 /*
  * BEYOND THIS POINT, TEST DRIVER DECLARATIONS ONLY.

@@ -481,10 +481,6 @@ psa_status_t mbedtls_psa_aead_set_lengths(
         return ( PSA_ERROR_NOT_SUPPORTED );
     }
 
-    operation->ad_remaining = ad_length;
-    operation->body_remaining = plaintext_length;
-    operation->lengths_set = 1;
-
     return ( PSA_SUCCESS );
 }
 
@@ -495,14 +491,6 @@ psa_status_t mbedtls_psa_aead_update_ad(
     size_t input_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-    if( operation->lengths_set )
-    {
-        if ( operation->ad_remaining < input_length )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-
-        operation->ad_remaining -= input_length;
-    }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
@@ -589,20 +577,6 @@ psa_status_t mbedtls_psa_aead_update(
     if( PSA_AEAD_UPDATE_OUTPUT_SIZE( operation->key_type, operation->alg,
                                         input_length ) > output_size )
         return ( PSA_ERROR_BUFFER_TOO_SMALL );
-
-    if( operation->lengths_set)
-    {
-        /* Additional data length was supplied, but not all the additional
-           data was supplied.*/
-        if( operation->ad_remaining != 0 )
-            return ( PSA_ERROR_INVALID_ARGUMENT );
-
-        /* Too much data provided. */
-        if( operation->body_remaining < input_length )
-            return ( PSA_ERROR_INVALID_ARGUMENT );
-
-        operation->body_remaining -= input_length;
-    }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
@@ -724,10 +698,6 @@ static psa_status_t mbedtls_psa_aead_finish_checks(
     size_t tag_size )
 {
     size_t finish_output_size;
-
-    if( operation->lengths_set )
-        if( operation->ad_remaining != 0 || operation->body_remaining != 0 )
-            return( PSA_ERROR_BAD_STATE );
 
     if( tag_size < operation->tag_length )
         return ( PSA_ERROR_BUFFER_TOO_SMALL );
@@ -934,7 +904,6 @@ psa_status_t mbedtls_psa_aead_abort(
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     }
 
-    operation->lengths_set = 0;
     operation->is_encrypt = 0;
     operation->ad_started = 0;
     operation->body_started = 0;

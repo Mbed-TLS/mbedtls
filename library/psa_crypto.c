@@ -3467,7 +3467,11 @@ psa_status_t psa_aead_set_lengths( psa_aead_operation_t *operation,
 exit:
 
     if( status == PSA_SUCCESS )
+    {
+        operation->ad_remaining = ad_length;
+        operation->body_remaining = plaintext_length;
         operation->lengths_set = 1;
+    }
     else
         psa_aead_abort( operation );
 
@@ -3490,6 +3494,17 @@ psa_status_t psa_aead_update_ad( psa_aead_operation_t *operation,
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
+    }
+
+    if( operation->lengths_set )
+    {
+        if ( operation->ad_remaining < input_length )
+        {
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            goto exit;
+        }
+
+        operation->ad_remaining -= input_length;
     }
 
     status = psa_driver_wrapper_aead_update_ad( operation, input,
@@ -3528,6 +3543,26 @@ psa_status_t psa_aead_update( psa_aead_operation_t *operation,
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
+    }
+
+    if( operation->lengths_set )
+    {
+        /* Additional data length was supplied, but not all the additional
+           data was supplied.*/
+        if( operation->ad_remaining != 0 )
+        {
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            goto exit;
+        }
+
+        /* Too much data provided. */
+        if( operation->body_remaining < input_length )
+        {
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            goto exit;
+        }
+
+        operation->body_remaining -= input_length;
     }
 
     status = psa_driver_wrapper_aead_update( operation, input, input_length,
@@ -3571,6 +3606,13 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
         goto exit;
     }
 
+    if( operation->lengths_set && (operation->ad_remaining != 0 ||
+                                   operation->body_remaining != 0 ) )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
     status = psa_driver_wrapper_aead_finish( operation, ciphertext,
                                              ciphertext_size,
                                              ciphertext_length,
@@ -3604,6 +3646,13 @@ psa_status_t psa_aead_verify( psa_aead_operation_t *operation,
 
     if( !operation->nonce_set || !operation->ad_started ||
         !operation->body_started )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if( operation->lengths_set && (operation->ad_remaining != 0 ||
+                                   operation->body_remaining != 0 ) )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;

@@ -991,8 +991,8 @@ exit:
 
     for( delay_idx = 0; delay_idx < MAX_DELAYED_HS; delay_idx++ )
     {
-        mbedtls_free( opt.delay_cli + delay_idx );
-        mbedtls_free( opt.delay_srv + delay_idx );
+        mbedtls_free( opt.delay_cli[delay_idx] );
+        mbedtls_free( opt.delay_srv[delay_idx] );
     }
 
     mbedtls_net_free( &client_fd );

@@ -83,9 +83,4 @@ Check NV seed manually #3
 entropy_nv_seed:"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 
 Entropy self test
-depends_on:!MBEDTLS_TEST_NULL_ENTROPY
 entropy_selftest:0
-
-Entropy self test (MBEDTLS_TEST_NULL_ENTROPY)
-depends_on:MBEDTLS_TEST_NULL_ENTROPY
-entropy_selftest:1

@@ -528,23 +528,6 @@
 //#define MBEDTLS_ECP_NORMALIZE_MXZ_ALT
 
 /**
- * \def MBEDTLS_TEST_NULL_ENTROPY
- *
- * Enables testing and use of mbed TLS without any configured entropy sources.
- * This permits use of the library on platforms before an entropy source has
- * been integrated (see for example the MBEDTLS_ENTROPY_HARDWARE_ALT or the
- * MBEDTLS_ENTROPY_NV_SEED switches).
- *
- * WARNING! This switch MUST be disabled in production builds, and is suitable
- * only for development.
- * Enabling the switch negates any security provided by the library.
- *
- * Requires MBEDTLS_ENTROPY_C, MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
- *
- */
-//#define MBEDTLS_TEST_NULL_ENTROPY
-
-/**
  * \def MBEDTLS_ENTROPY_HARDWARE_ALT
  *
  * Uncomment this macro to let mbed TLS use your own implementation of a

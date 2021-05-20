@@ -3106,7 +3106,6 @@
  * \def MBEDTLS_SHA224_C
  *
  * Enable the SHA-224 cryptographic hash algorithm.
- * A future version of the library will have this option disabled by default.
  *
  * Requires: MBEDTLS_SHA256_C. The library does not currently support enabling
  *           SHA-224 without SHA-256.

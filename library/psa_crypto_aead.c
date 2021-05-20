@@ -346,6 +346,13 @@ psa_status_t mbedtls_psa_aead_encrypt_setup(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+    if( operation->alg == PSA_ALG_CCM )
+    {
+        return ( PSA_ERROR_NOT_SUPPORTED );
+    }
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
+
     status = psa_aead_setup( operation, attributes, key_buffer,
                              key_buffer_size, alg );
 
@@ -366,7 +373,12 @@ psa_status_t mbedtls_psa_aead_decrypt_setup(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    (void) key_buffer_size;
+    #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+    if( operation->alg == PSA_ALG_CCM )
+    {
+        return ( PSA_ERROR_NOT_SUPPORTED );
+    }
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 
     status = psa_aead_setup( operation, attributes, key_buffer,
                              key_buffer_size, alg );
@@ -405,18 +417,10 @@ psa_status_t mbedtls_psa_aead_set_nonce(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation->alg == PSA_ALG_CCM )
     {
-        operation->nonce = mbedtls_calloc( 1, nonce_length );
+        ( void ) nonce;
+        ( void ) nonce_length;
 
-        if( operation->nonce == NULL )
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
-
-        /* Multipart CCM not supported as yet, so CCM is basically operating
-           in oneshot mode. Store the nonce as we need this later */
-        memcpy( operation->nonce, nonce, nonce_length );
-
-        /* We know that nonce size cannot exceed the uint8_t size */
-        operation->nonce_length = nonce_length;
-        status = PSA_SUCCESS;
+        return ( PSA_ERROR_NOT_SUPPORTED );
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
@@ -527,21 +531,10 @@ psa_status_t mbedtls_psa_aead_update_ad(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation->alg == PSA_ALG_CCM )
     {
-        /* CCM requires all additional data to be passed in in one go at the
-           minute, as we are basically operating in oneshot mode. */
-        if( operation->ad_started )
-            return( PSA_ERROR_NOT_SUPPORTED );
+        (void) input;
+        (void) input_length;
 
-        /* Save the additional data for later, this will be passed in
-           when we have the body. */
-        operation->ad_buffer = ( uint8_t * ) mbedtls_calloc( 1, input_length );
-
-        if( operation->ad_buffer == NULL )
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
-
-        memcpy( operation->ad_buffer, input, input_length );
-        operation->ad_length = input_length;
-        status = PSA_SUCCESS;
+        return ( PSA_ERROR_NOT_SUPPORTED );
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
@@ -580,7 +573,6 @@ psa_status_t mbedtls_psa_aead_update(
 {
     size_t update_output_length;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     update_output_length = input_length;
 
@@ -609,67 +601,10 @@ psa_status_t mbedtls_psa_aead_update(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation->alg == PSA_ALG_CCM )
     {
-        /* CCM does not support multipart yet, so all the input has to be
-           passed in in one go. */
-        if( operation->body_started )
-            return( PSA_ERROR_NOT_SUPPORTED );
+        (void) input;
+        (void) input_length;
 
-        /* Need to store tag for Finish() / Verify() */
-        operation->tag_buffer =
-            ( uint8_t * ) mbedtls_calloc( 1, operation->tag_length );
-
-        if( operation->tag_buffer == NULL)
-        {
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
-        }
-
-        if( operation->is_encrypt )
-        {
-            /* Perform oneshot CCM encryption with additional data already
-               stored, as CCM does not support multipart yet.*/
-            status = mbedtls_to_psa_error(
-               mbedtls_ccm_encrypt_and_tag( &operation->ctx.ccm,
-                                            input_length,
-                                            operation->nonce,
-                                            operation->nonce_length,
-                                            operation->ad_buffer,
-                                            operation->ad_length,
-                                            input,
-                                            output,
-                                            operation->tag_buffer,
-                                            operation->tag_length ) );
-
-        }
-        else
-        {
-            /* Need to back up the body data so we can do this again
-               later.*/
-            operation->body_buffer =
-                ( uint8_t * ) mbedtls_calloc(1, input_length );
-
-            if( operation->body_buffer == NULL)
-                return( PSA_ERROR_INSUFFICIENT_MEMORY );
-
-            memcpy( operation->body_buffer, input, input_length );
-            operation->body_length = input_length;
-
-            /* this will fail, as the tag is clearly false, but will
-               write the decrypted data to the output buffer.*/
-            ret = mbedtls_ccm_auth_decrypt( &operation->ctx.ccm,
-                                            input_length,
-                                            operation->nonce,
-                                            operation->nonce_length,
-                                            operation->ad_buffer,
-                                            operation->ad_length,
-                                            input, output,
-                                            operation->tag_buffer,
-                                            operation->tag_length );
-
-            if( ret == MBEDTLS_ERR_CCM_AUTH_FAILED )
-                status = PSA_SUCCESS;
-            else
-                status = mbedtls_to_psa_error( ret );
-        }
+        return ( PSA_ERROR_NOT_SUPPORTED );
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
@@ -752,10 +687,14 @@ psa_status_t mbedtls_psa_aead_finish(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation->alg == PSA_ALG_CCM )
     {
-        /* Copy the previously generated tag into place */
-        memcpy( tag, operation->tag_buffer, operation->tag_length );
+        ( void ) ciphertext;
+        ( void ) ciphertext_size;
+        ( void ) ciphertext_length;
+        ( void ) tag;
+        ( void ) tag_size;
+        ( void ) tag_length;
 
-        status = PSA_SUCCESS;
+        return ( PSA_ERROR_NOT_SUPPORTED );
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
@@ -797,10 +736,6 @@ psa_status_t mbedtls_psa_aead_verify(
     size_t tag_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    uint8_t * temp_buffer;
-    size_t temp_buffer_size;
 
     size_t finish_output_size = 0;
 
@@ -825,38 +760,13 @@ psa_status_t mbedtls_psa_aead_verify(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation->alg == PSA_ALG_CCM )
     {
-        /* Perform oneshot CCM decryption *again*, as its the
-         * only way to get the tag, but this time throw away the
-           results, as verify cannot write that much data. */
-        temp_buffer_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( operation->key_type,
-                                                        operation->alg,
-                                                        operation->body_length
-                                                        );
+        ( void ) plaintext;
+        ( void ) plaintext_size;
+        ( void ) plaintext_length;
+        ( void ) tag;
+        ( void ) tag_length;
 
-        temp_buffer = ( uint8_t * ) mbedtls_calloc(1, temp_buffer_size );
-
-        if( temp_buffer == NULL)
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
-
-        ret = mbedtls_ccm_auth_decrypt( &operation->ctx.ccm,
-                                        operation->body_length,
-                                        operation->nonce,
-                                        operation->nonce_length,
-                                        operation->ad_buffer,
-                                        operation->ad_length,
-                                        operation->body_buffer,
-                                        temp_buffer, tag, tag_length );
-
-        if( ret == MBEDTLS_ERR_CCM_AUTH_FAILED )
-            status = PSA_ERROR_INVALID_SIGNATURE;
-        else
-        {
-            status = mbedtls_to_psa_error( ret );
-            do_tag_check = 0;
-        }
-
-        /* Even if the above operation fails, we no longer need the data */
-        mbedtls_free( temp_buffer );
+        return ( PSA_ERROR_NOT_SUPPORTED );
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */

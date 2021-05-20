@@ -3756,14 +3756,6 @@
  */
 //#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
 
-/**
- * Internal define that removes the zeroization of the output when decrypting
- * CCM and the tag check fails. This is for internal use only, and was added so
- * that PSA multipart CCM could be implmented. This option will be removed at
- * some point in the future when proper CCM multipart support is implemented.
- * Use at own risk.
- */
-//#define MBEDTLS_INTERNAL_CCM_NO_ZEROIZE_ON_TAG_FAIL
 /* \} name SECTION: Customisation configuration options */
 
 /* Target and application specific configurations

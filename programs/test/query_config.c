@@ -2818,14 +2818,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED */
 
-#if defined(MBEDTLS_INTERNAL_CCM_NO_ZEROIZE_ON_TAG_FAIL)
-    if( strcmp( "MBEDTLS_INTERNAL_CCM_NO_ZEROIZE_ON_TAG_FAIL", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_INTERNAL_CCM_NO_ZEROIZE_ON_TAG_FAIL );
-        return( 0 );
-    }
-#endif /* MBEDTLS_INTERNAL_CCM_NO_ZEROIZE_ON_TAG_FAIL */
-
     /* If the symbol is not found, return an error */
     return( 1 );
 }

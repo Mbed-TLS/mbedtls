@@ -3475,7 +3475,7 @@ psa_status_t psa_aead_encrypt_setup( psa_aead_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
+    psa_key_slot_t *slot = NULL;
 
     if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
     {
@@ -3517,10 +3517,13 @@ psa_status_t psa_aead_encrypt_setup( psa_aead_operation_t *operation,
 
 exit:
 
-    unlock_status = psa_unlock_key_slot( slot );
+    if( slot )
+    {
+        unlock_status = psa_unlock_key_slot( slot );
 
-    if( unlock_status != PSA_SUCCESS )
-        status = unlock_status;
+        if( unlock_status != PSA_SUCCESS )
+            status = unlock_status;
+    }
 
     if( status == PSA_SUCCESS )
         operation->alg = psa_aead_get_base_algorithm( alg );
@@ -3537,7 +3540,7 @@ psa_status_t psa_aead_decrypt_setup( psa_aead_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
+    psa_key_slot_t *slot = NULL;
 
     if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
     {
@@ -3579,10 +3582,13 @@ psa_status_t psa_aead_decrypt_setup( psa_aead_operation_t *operation,
 
 exit:
 
-    unlock_status = psa_unlock_key_slot( slot );
+    if( slot )
+    {
+        unlock_status = psa_unlock_key_slot( slot );
 
-    if( unlock_status != PSA_SUCCESS )
-        status = unlock_status;
+        if( unlock_status != PSA_SUCCESS )
+            status = unlock_status;
+    }
 
     if( status == PSA_SUCCESS )
         operation->alg = psa_aead_get_base_algorithm( alg );

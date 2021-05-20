@@ -105,6 +105,10 @@ class PSAMacroEnumerator:
             'tag_length': [],
             'min_tag_length': [],
         } #type: Dict[str, List[str]]
+        # Whether to include intermediate macros in enumerations. Intermediate
+        # macros serve as category headers and are not valid values of their
+        # type. See `is_internal_name`.
+        # Always false in this class, may be set to true in derived classes.
         self.include_intermediate = False
 
     def is_internal_name(self, name: str) -> bool:

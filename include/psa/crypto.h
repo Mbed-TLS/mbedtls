@@ -4300,7 +4300,9 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *
  * \param[in,out] operation     The operation object to set up. It must have
  *                              been initialized as per the documentation for
- *                              #psa_pake_operation_t and not yet in use.
+ *                              #psa_pake_operation_t and not yet in use (no
+ *                              other function has been called on it since the
+ *                              last initialization).
  * \param cipher_suite          The cipher suite to use. (A cipher suite fully
  *                              characterizes a PAKE algorithm and determines
  *                              the algorithm as well.)
@@ -4308,7 +4310,7 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be inactive).
+ *         The operation state is not valid.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The \p cipher_suite is not supported or is not valid.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
@@ -4331,7 +4333,13 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  *
  * \param[in,out] operation     The operation object to set the password for. It
  *                              must have been set up by psa_pake_setup() and
- *                              not yet in use.
+ *                              not yet in use (neither psa_pake_output() nor
+ *                              psa_pake_input() has been called yet). It must
+ *                              be on operation for which the password hasn't
+ *                              been set yet (neither
+ *                              psa_pake_set_password_mhf() nor
+ *                              psa_pake_set_password_key() has been called
+ *                              yet).
  * \param password              Identifier of the key holding the password or a
  *                              value derived from the password (eg. by a
  *                              memory-hard function).  It must remain valid
@@ -4374,13 +4382,19 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  * destructively reads the requested number of bytes from the stream.
  * The key derivation operation's capacity decreases by the number of bytes read.
  *
- * If this function returns #PSA_ERROR_INVALID_ARGUMENT, \p key_derivation
- * enters an error state and must be aborted by calling
- * psa_key_derivation_abort().
+ * If this function returns anything other than #PSA_SUCCESS, both \p operation
+ * and \p key_derivation operations enter an error state and must be aborted by
+ * calling psa_pake_abort() and psa_key_derivation_abort() respectively.
  *
  * \param[in,out] operation       The operation object to set the password for.
  *                                It must have been set up by psa_pake_setup()
- *                                and not yet in use.
+ *                                and not yet in use (neither psa_pake_output()
+ *                                nor psa_pake_input() has been called yet). It
+ *                                must be on operation for which the password
+ *                                hasn't been set yet (neither
+ *                                psa_pake_set_password_mhf() nor
+ *                                psa_pake_set_password_key() has been called
+ *                                yet).
  * \param[in,out] key_derivation  An ongoing key derivation operation set up
  *                                from the password and in a state suitable for
  *                                calling psa_key_derivation_output_bytes().
@@ -4390,7 +4404,7 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must have been set up.)
+ *         The state of \p operation or \p key_derivation is not valid.
  * \retval #PSA_ERROR_INSUFFICIENT_DATA
  *         The \p key_derivation operation's capacity was less than
  *         \p input_length bytes.
@@ -4400,9 +4414,8 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_NOT_PERMITTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The call to psa_key_derivation_output_bytes() returned something
- *         other than #PSA_ERROR_INSUFFICIENT_DATA.
+ *         One of the inputs to \p key_derivation was a key whose policy didn't
+ *         allow #PSA_KEY_USAGE_DERIVE.
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
@@ -4424,14 +4437,18 @@ psa_status_t psa_pake_set_password_mhf(psa_pake_operation_t *operation,
  *
  * \param[in,out] operation     The operation object to set the user ID for. It
  *                              must have been set up by psa_pake_setup() and
- *                              not yet in use.
+ *                              not yet in use (neither psa_pake_output() nor
+ *                              psa_pake_input() has been called yet). It must
+ *                              be on operation for which the user ID hasn't
+ *                              been set (psa_pake_set_user() hasn't been
+ *                              called yet).
  * \param[in] user_id           The user ID to authenticate with.
  * \param user_id_len           Size of the \p user_id buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must have been set up.)
+ *         The operation state is not valid.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -4459,14 +4476,18 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  *
  * \param[in,out] operation     The operation object to set the peer ID for. It
  *                              must have been set up by psa_pake_setup() and
- *                              not yet in use.
+ *                              not yet in use (neither psa_pake_output() nor
+ *                              psa_pake_input() has been called yet). It must
+ *                              be on operation for which the peer ID hasn't
+ *                              been set (psa_pake_set_peer() hasn't been
+ *                              called yet).
  * \param[in] peer_id           The peer's ID to authenticate.
  * \param peer_id_len           Size of the \p peer_id buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must have been set up.)
+ *         The operation state is not valid.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The algorithm doesn't associate a second identity with the session.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -4496,7 +4517,11 @@ psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
  *
  * \param[in,out] operation     The operation object to set the side for. It
  *                              must have been set up by psa_pake_setup() and
- *                              not yet in use.
+ *                              not yet in use (neither psa_pake_output() nor
+ *                              psa_pake_input() has been called yet). It must
+ *                              be on operation for which the side hasn't been
+ *                              set (psa_pake_set_side() hasn't been called
+ *                              yet).
  * \param side                  A value of type ::psa_pake_side_t signaling the
  *                              side of the algorithm that is being set up. For
  *                              more information see the documentation of \c
@@ -4505,7 +4530,7 @@ psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must have been set up).
+ *         The operation state is not valid.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The \p side for this algorithm is not supported or is not valid.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
@@ -4602,9 +4627,9 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  *         results in this error code.
  */
 psa_status_t psa_pake_input(psa_pake_operation_t *operation,
-                             psa_pake_step_t step,
-                             uint8_t *input,
-                             size_t input_length);
+                            psa_pake_step_t step,
+                            uint8_t *input,
+                            size_t input_length);
 
 /** Get implicitly confirmed shared secret from a PAKE.
  *
@@ -4620,9 +4645,10 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  * ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true) for more
  * information.
  *
- * When this function returns successfully, the operation becomes inactive.
- * If this function returns an error status, the operation enters an error
- * state and must be aborted by calling psa_pake_abort().
+ * When this function returns successfully, \p operation becomes inactive.
+ * If this function returns an error status, both \p operation
+ * and \p key_derivation operations enter an error state and must be aborted by
+ * calling psa_pake_abort() and psa_key_derivation_abort() respectively.
  *
  * \param[in,out] operation    Active PAKE operation.
  * \param[out] output          A key derivation operation that is ready

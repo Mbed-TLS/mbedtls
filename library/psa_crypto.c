@@ -3861,6 +3861,11 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
 
 exit:
 
+    /* In case the operation fails and the user fails to check for failure or
+     * the zero tag size, make sure the tag is set to something impossible. */
+    if( status != PSA_SUCCESS )
+        memset(tag, '!', tag_size);
+
     psa_aead_abort( operation );
 
     return( status );

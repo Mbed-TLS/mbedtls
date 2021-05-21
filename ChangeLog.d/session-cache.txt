@@ -1,0 +1,5 @@
+Changes
+    * When using session cache based session resumption on the server,
+      double-check that custom session cache implementations return
+      sessions which are consistent with the negotiated ciphersuite
+      and compression method.

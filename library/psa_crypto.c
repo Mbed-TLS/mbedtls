@@ -3517,13 +3517,10 @@ psa_status_t psa_aead_encrypt_setup( psa_aead_operation_t *operation,
 
 exit:
 
-    if( slot )
-    {
-        unlock_status = psa_unlock_key_slot( slot );
+    unlock_status = psa_unlock_key_slot( slot );
 
-        if( unlock_status != PSA_SUCCESS )
-            status = unlock_status;
-    }
+    if( status == PSA_SUCCESS )
+        status = unlock_status;
 
     if( status == PSA_SUCCESS )
         operation->alg = psa_aead_get_base_algorithm( alg );
@@ -3555,6 +3552,7 @@ psa_status_t psa_aead_decrypt_setup( psa_aead_operation_t *operation,
     }
 
     if( operation->nonce_set || operation->ad_started ||
+
         operation->body_started )
     {
         status = PSA_ERROR_BAD_STATE;
@@ -3582,13 +3580,10 @@ psa_status_t psa_aead_decrypt_setup( psa_aead_operation_t *operation,
 
 exit:
 
-    if( slot )
-    {
-        unlock_status = psa_unlock_key_slot( slot );
+    unlock_status = psa_unlock_key_slot( slot );
 
-        if( unlock_status != PSA_SUCCESS )
-            status = unlock_status;
-    }
+    if( status == PSA_SUCCESS )
+        status = unlock_status;
 
     if( status == PSA_SUCCESS )
         operation->alg = psa_aead_get_base_algorithm( alg );

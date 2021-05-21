@@ -1764,6 +1764,9 @@ static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
                       hash != NULL );
     RSA_VALIDATE_RET( sig != NULL );
 
+    if( ctx->padding != MBEDTLS_RSA_PKCS_V21 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
     if( f_rng == NULL )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
@@ -2053,6 +2056,9 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
                         hashlen == 0 ) ||
                       hash != NULL );
     RSA_VALIDATE_RET( sig != NULL );
+
+    if( ctx->padding != MBEDTLS_RSA_PKCS_V15 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     /*
      * Prepare PKCS1-v1.5 encoding (padding and hash identifier)

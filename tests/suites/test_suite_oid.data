@@ -67,7 +67,7 @@ depends_on:MBEDTLS_SHA1_C
 oid_get_md_alg_id:"2b0e03021a":MBEDTLS_MD_SHA1
 
 OID hash id - id-sha224
-depends_on:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_SHA224_C
 oid_get_md_alg_id:"608648016503040204":MBEDTLS_MD_SHA224
 
 OID hash id - id-sha256
@@ -75,7 +75,7 @@ depends_on:MBEDTLS_SHA256_C
 oid_get_md_alg_id:"608648016503040201":MBEDTLS_MD_SHA256
 
 OID hash id - id-sha384
-depends_on:MBEDTLS_SHA512_C
+depends_on:MBEDTLS_SHA384_C
 oid_get_md_alg_id:"608648016503040202":MBEDTLS_MD_SHA384
 
 OID hash id - id-sha512

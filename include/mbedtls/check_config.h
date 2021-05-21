@@ -609,8 +609,16 @@
 #error "MBEDTLS_X509_RSASSA_PSS_SUPPORT defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SHA512_NO_SHA384) && !defined(MBEDTLS_SHA512_C)
-#error "MBEDTLS_SHA512_NO_SHA384 defined without MBEDTLS_SHA512_C"
+#if defined(MBEDTLS_SHA384_C) && !defined(MBEDTLS_SHA512_C)
+#error "MBEDTLS_SHA384_C defined without MBEDTLS_SHA512_C"
+#endif
+
+#if defined(MBEDTLS_SHA224_C) && !defined(MBEDTLS_SHA256_C)
+#error "MBEDTLS_SHA224_C defined without MBEDTLS_SHA256_C"
+#endif
+
+#if defined(MBEDTLS_SHA256_C) && !defined(MBEDTLS_SHA224_C)
+#error "MBEDTLS_SHA256_C defined without MBEDTLS_SHA224_C"
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) && ( !defined(MBEDTLS_MD5_C) ||     \

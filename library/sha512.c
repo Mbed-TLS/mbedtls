@@ -126,7 +126,7 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
 int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 )
 {
     SHA512_VALIDATE_RET( ctx != NULL );
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
     SHA512_VALIDATE_RET( is384 == 0 || is384 == 1 );
 #else
     SHA512_VALIDATE_RET( is384 == 0 );
@@ -149,7 +149,7 @@ int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 )
     }
     else
     {
-#if defined(MBEDTLS_SHA512_NO_SHA384)
+#if !defined(MBEDTLS_SHA384_C)
         return( MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
 #else
         /* SHA-384 */
@@ -161,10 +161,10 @@ int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 )
         ctx->state[5] = UL64(0x8EB44A8768581511);
         ctx->state[6] = UL64(0xDB0C2E0D64F98FA7);
         ctx->state[7] = UL64(0x47B5481DBEFA4FA4);
-#endif /* MBEDTLS_SHA512_NO_SHA384 */
+#endif /* MBEDTLS_SHA384_C */
     }
 
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
     ctx->is384 = is384;
 #endif
 
@@ -435,7 +435,7 @@ int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
     sha512_put_uint64_be( ctx->state[4], output, 32 );
     sha512_put_uint64_be( ctx->state[5], output, 40 );
 
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
     if( ctx->is384 == 0 )
 #endif
     {
@@ -459,7 +459,7 @@ int mbedtls_sha512_ret( const unsigned char *input,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_sha512_context ctx;
 
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
     SHA512_VALIDATE_RET( is384 == 0 || is384 == 1 );
 #else
     SHA512_VALIDATE_RET( is384 == 0 );
@@ -503,7 +503,7 @@ static const size_t sha512_test_buflen[3] =
 
 static const unsigned char sha512_test_sum[][64] =
 {
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
     /*
      * SHA-384 test vectors
      */
@@ -525,7 +525,7 @@ static const unsigned char sha512_test_sum[][64] =
       0x79, 0x72, 0xCE, 0xC5, 0x70, 0x4C, 0x2A, 0x5B,
       0x07, 0xB8, 0xB3, 0xDC, 0x38, 0xEC, 0xC4, 0xEB,
       0xAE, 0x97, 0xDD, 0xD8, 0x7F, 0x3D, 0x89, 0x85 },
-#endif /* !MBEDTLS_SHA512_NO_SHA384 */
+#endif /* MBEDTLS_SHA384_C */
 
     /*
      * SHA-512 test vectors
@@ -582,7 +582,7 @@ int mbedtls_sha512_self_test( int verbose )
     for( i = 0; i < (int) ARRAY_LENGTH(sha512_test_sum); i++ )
     {
         j = i % 3;
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
         k = i < 3;
 #else
         k = 0;

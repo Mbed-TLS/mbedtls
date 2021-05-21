@@ -170,7 +170,7 @@
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 /* Ciphersuites using HMAC */
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA384_C)
 #define MBEDTLS_SSL_MAC_ADD                 48  /* SHA-384 used for HMAC */
 #elif defined(MBEDTLS_SHA256_C)
 #define MBEDTLS_SSL_MAC_ADD                 32  /* SHA-256 used for HMAC */
@@ -562,7 +562,7 @@ struct mbedtls_ssl_handshake_params
     mbedtls_sha256_context fin_sha256;
 #endif
 #endif
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA384_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_operation_t fin_sha384_psa;
 #else

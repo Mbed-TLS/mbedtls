@@ -733,8 +733,8 @@ psa_status_t mbedtls_psa_aead_verify(
     {
         *plaintext_length = finish_output_size;
 
-        if( do_tag_check &&
-            mbedtls_psa_safer_memcmp(tag, check_tag, tag_length) != 0 )
+        if( do_tag_check && ( tag_length != operation->tag_length ||
+            mbedtls_psa_safer_memcmp(tag, check_tag, tag_length) != 0 ) )
             status = PSA_ERROR_INVALID_SIGNATURE;
     }
 

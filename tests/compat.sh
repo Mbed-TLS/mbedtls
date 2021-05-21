@@ -871,9 +871,22 @@ setup_arguments()
     fi
 
     M_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE"
-    O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$MODE -dhparam data_files/dhparams.pem"
+    O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$MODE"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
     G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+SHA256:+SHA384:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
+
+    # The default prime for `openssl s_server` depends on the version:
+    # * OpenSSL <= 1.0.2a: 512-bit
+    # * OpenSSL 1.0.2b to 1.1.1b: 1024-bit
+    # * OpenSSL >= 1.1.1c: 2048-bit
+    # Mbed TLS wants >=1024, so force that for older versions. Don't force
+    # it for newer versions, which reject a 1024-bit prime. Indifferently
+    # force it or not for intermediate versions.
+    case $($OPENSSL_CMD version) in
+        "OpenSSL 1.0"*)
+            O_SERVER_ARGS="$O_SERVER_ARGS -dhparam data_files/dhparams.pem"
+            ;;
+    esac
 
     # with OpenSSL 1.0.1h, -www, -WWW and -HTTP break DTLS handshakes
     if is_dtls "$MODE"; then

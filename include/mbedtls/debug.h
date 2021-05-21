@@ -94,8 +94,13 @@
  */
 #if defined(__has_attribute)
 #if __has_attribute(format)
+#if defined(__MINGW32__) && __USE_MINGW_ANSI_STDIO == 1
 #define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)    \
-    __attribute__((format (printf, string_index, first_to_check)))
+    __attribute__((__format__ (gnu_printf, string_index, first_to_check)))
+#else /* defined(__MINGW32__) && __USE_MINGW_ANSI_STDIO == 1 */
+#define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)    \
+    __attribute__((format(printf, string_index, first_to_check)))
+#endif
 #else /* __has_attribute(format) */
 #define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)
 #endif /* __has_attribute(format) */
@@ -115,14 +120,14 @@
  *
  * This module provides debugging functions.
  */
-#if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER < 1800)
+#if (defined(__MINGW32__) && __USE_MINGW_ANSI_STDIO == 0) || (defined(_MSC_VER) && _MSC_VER < 1800)
    #include <inttypes.h>
    #define MBEDTLS_PRINTF_SIZET     PRIuPTR
    #define MBEDTLS_PRINTF_LONGLONG  "I64d"
-#else /* defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER < 1800) */
+#else /* (defined(__MINGW32__)  && __USE_MINGW_ANSI_STDIO == 0) || (defined(_MSC_VER) && _MSC_VER < 1800) */
    #define MBEDTLS_PRINTF_SIZET     "zu"
    #define MBEDTLS_PRINTF_LONGLONG  "lld"
-#endif /* defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER < 1800) */
+#endif /* (defined(__MINGW32__)  && __USE_MINGW_ANSI_STDIO == 0) || (defined(_MSC_VER) && _MSC_VER < 1800) */
 
 #ifdef __cplusplus
 extern "C" {

@@ -570,7 +570,7 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  *                 operation.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG to use. It used for padding generation
+ * \param f_rng    The RNG to use. It is used for padding generation
  *                 and it is mandatory.
  * \param p_rng    The RNG context to be passed to \p f_rng. May be
  *                 \c NULL if \p f_rng doesn't need a context argument.

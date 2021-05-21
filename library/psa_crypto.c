@@ -3489,8 +3489,8 @@ psa_status_t psa_aead_encrypt_setup( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( operation->nonce_set || operation->ad_started ||
-        operation->body_started )
+    if( operation->nonce_set || operation->lengths_set ||
+        operation->ad_started || operation->body_started )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3551,9 +3551,8 @@ psa_status_t psa_aead_decrypt_setup( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( operation->nonce_set || operation->ad_started ||
-
-        operation->body_started )
+   if( operation->nonce_set || operation->lengths_set ||
+        operation->ad_started || operation->body_started )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3610,8 +3609,8 @@ psa_status_t psa_aead_generate_nonce( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( operation->nonce_set || operation->ad_started ||
-        operation->body_started )
+    if( operation->nonce_set || operation->lengths_set ||
+        operation->ad_started || operation->body_started )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3665,11 +3664,11 @@ psa_status_t psa_aead_set_nonce( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    /* Not checking nonce size here as GCM spec allows almost abitrarily large
-     * nonces. Please note that we do not generally recommend the usage of
-     * nonces of greater length than PSA_AEAD_NONCE_MAX_SIZE, as large nonces
-     * are hashed to a shorter size, which can then lead to collisions if you
-       encrypt a very large number of messages. */
+    /* Not checking nonce size here as GCM spec allows almost arbitrarily
+     * large nonces. Please note that we do not generally recommend the usage
+     * of nonces of greater length than PSA_AEAD_NONCE_MAX_SIZE, as large
+     * nonces are hashed to a shorter size, which can then lead to collisions
+     * if you encrypt a very large number of messages.*/
 
     status = psa_driver_wrapper_aead_set_nonce( operation, nonce,
                                                 nonce_length );
@@ -3697,7 +3696,8 @@ psa_status_t psa_aead_set_lengths( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( operation->lengths_set )
+    if( operation->lengths_set || operation->ad_started ||
+        operation->body_started)
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3732,7 +3732,7 @@ psa_status_t psa_aead_update_ad( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( !operation->nonce_set )
+    if( !operation->nonce_set || operation->body_started )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3740,7 +3740,7 @@ psa_status_t psa_aead_update_ad( psa_aead_operation_t *operation,
 
     if( operation->lengths_set )
     {
-        if ( operation->ad_remaining < input_length )
+        if( operation->ad_remaining < input_length )
         {
             status = PSA_ERROR_INVALID_ARGUMENT;
             goto exit;
@@ -3781,7 +3781,7 @@ psa_status_t psa_aead_update( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( !operation->nonce_set || !operation->ad_started )
+    if( !operation->nonce_set )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3841,8 +3841,7 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( !operation->nonce_set || !operation->ad_started ||
-        !operation->body_started )
+    if( !operation->nonce_set )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3851,7 +3850,7 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
     if( operation->lengths_set && (operation->ad_remaining != 0 ||
                                    operation->body_remaining != 0 ) )
     {
-        status = PSA_ERROR_BAD_STATE;
+        status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
 
@@ -3886,8 +3885,7 @@ psa_status_t psa_aead_verify( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( !operation->nonce_set || !operation->ad_started ||
-        !operation->body_started )
+    if( !operation->nonce_set )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;

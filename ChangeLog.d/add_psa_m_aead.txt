@@ -1,3 +1,4 @@
 Features
-   * Implemented the multipart AEAD API within the PSA Crypto API, along with
-     tests in the PSA Crypto test suite, and transparent driver wrappers.
+   * Added multipart AEAD API to the PSA Crypto API
+   * Added MbedTLS internal implementations of the PSA Crypto multipart AEAD API
+     supporting PolyChaCha and GCM. CCM is not as yet supported.

@@ -33,7 +33,7 @@ int verify_string( char **str )
  *
  * \return      0 if success else 1
  */
-int verify_int( char *str, int *value )
+int verify_int( char *str, int32_t *value )
 {
     size_t i;
     int minus = 0;
@@ -238,7 +238,7 @@ static int parse_arguments( char *buf, size_t len, char **params,
  *
  * \return      0 for success else 1
  */
-static int convert_params( size_t cnt , char ** params , int * int_params_store )
+static int convert_params( size_t cnt , char ** params , int32_t * int_params_store )
 {
     char ** cur = params;
     char ** out = params;
@@ -400,7 +400,7 @@ int execute_tests( int argc , const char ** argv )
     char buf[5000];
     char *params[50];
     /* Store for proccessed integer params. */
-    int int_params[50];
+    int32_t int_params[50];
     void *pointer;
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
     int stdout_fd = -1;

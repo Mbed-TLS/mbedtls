@@ -480,6 +480,7 @@ typedef enum
    MBEDTLS_SSL_TLS_PRF_SHA256
 }
 mbedtls_tls_prf_types;
+
 /**
  * \brief          Callback type: send data on the network.
  *
@@ -604,6 +605,56 @@ typedef struct mbedtls_ssl_key_cert mbedtls_ssl_key_cert;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 #endif
+
+/**
+ * \brief          Callback type: server-side session cache getter
+ *
+ *                 The session cache is logically a key value store, with
+ *                 keys being session IDs and values being instances of
+ *                 mbedtls_ssl_session.
+ *
+ *                 This callback retrieves an entry in this key-value store.
+ *
+ * \param data            The address of the session cache structure to query.
+ * \param session_id      The buffer holding the session ID to query.
+ * \param session_id_len  The length of \p session_id in Bytes.
+ * \param session         The address of the session structure to populate.
+ *                        It is initialized with mbdtls_ssl_session_init(),
+ *                        and the callback must always leave it in a state
+ *                        where it can safely be freed via
+ *                        mbedtls_ssl_session_free() independent of the
+ *                        return code of this function.
+ *
+ * \return                \c 0 on success
+ * \return                A non-zero return value on failure.
+ *
+ */
+typedef int mbedtls_ssl_cache_get_t( void *data,
+                                     unsigned char const *session_id,
+                                     size_t session_id_len,
+                                     mbedtls_ssl_session *session );
+/**
+ * \brief          Callback type: server-side session cache setter
+ *
+ *                 The session cache is logically a key value store, with
+ *                 keys being session IDs and values being instances of
+ *                 mbedtls_ssl_session.
+ *
+ *                 This callback sets an entry in this key-value store.
+ *
+ * \param data            The address of the session cache structure to modify.
+ * \param session_id      The buffer holding the session ID to query.
+ * \param session_id_len  The length of \p session_id in Bytes.
+ * \param session         The address of the session to be stored in the
+ *                        session cache.
+ *
+ * \return                \c 0 on success
+ * \return                A non-zero return value on failure.
+ */
+typedef int mbedtls_ssl_cache_set_t( void *data,
+                                     unsigned char const *session_id,
+                                     size_t session_id_len,
+                                     const mbedtls_ssl_session *session );
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -950,9 +1001,9 @@ struct mbedtls_ssl_config
     void *p_rng;                    /*!< context for the RNG function       */
 
     /** Callback to retrieve a session from the cache                       */
-    int (*f_get_cache)(void *, mbedtls_ssl_session *);
+    mbedtls_ssl_cache_get_t *f_get_cache;
     /** Callback to store a session into the cache                          */
-    int (*f_set_cache)(void *, const mbedtls_ssl_session *);
+    mbedtls_ssl_cache_set_t *f_set_cache;
     void *p_cache;                  /*!< context for cache callbacks        */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
@@ -2360,9 +2411,9 @@ void mbedtls_ssl_conf_handshake_timeout( mbedtls_ssl_config *conf, uint32_t min,
  * \param f_set_cache    session set callback
  */
 void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
-        void *p_cache,
-        int (*f_get_cache)(void *, mbedtls_ssl_session *),
-        int (*f_set_cache)(void *, const mbedtls_ssl_session *) );
+                                     void *p_cache,
+                                     mbedtls_ssl_cache_get_t *f_get_cache,
+                                     mbedtls_ssl_cache_set_t *f_set_cache );
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)

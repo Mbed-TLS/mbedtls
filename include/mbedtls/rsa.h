@@ -421,7 +421,7 @@ size_t mbedtls_rsa_get_len( const mbedtls_rsa_context *ctx );
  *
  * \param ctx      The initialized RSA context used to hold the key.
  * \param f_rng    The RNG function to be used for key generation.
- *                 This must not be \c NULL.
+ *                 This is mandatory and must not be \c NULL.
  * \param p_rng    The RNG context to be passed to \p f_rng.
  *                 This may be \c NULL if \p f_rng doesn't need a context.
  * \param nbits    The size of the public key in bits.
@@ -542,7 +542,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
  *                 of a PRNG.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function, used for blinding.
+ * \param f_rng    The RNG function, used for blinding. It is mandatory.
  * \param p_rng    The RNG context to pass to \p f_rng. This may be \c NULL
  *                 if \p f_rng doesn't need a context.
  * \param input    The input buffer. This must be a readable buffer
@@ -570,7 +570,8 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  *                 operation.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG to use. It is needed for padding generation.
+ * \param f_rng    The RNG to use. It used for padding generation
+ *                 and it is mandatory.
  * \param p_rng    The RNG context to be passed to \p f_rng. May be
  *                 \c NULL if \p f_rng doesn't need a context argument.
  * \param ilen     The length of the plaintext in Bytes.
@@ -596,7 +597,8 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
  *                 (RSAES-PKCS1-v1_5-ENCRYPT).
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function to use. It is needed for padding generation.
+ * \param f_rng    The RNG function to use. It is mandatory and used for
+ *                 padding generation.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may
  *                 be \c NULL if \p f_rng doesn't need a context argument.
  * \param ilen     The length of the plaintext in Bytes.
@@ -626,7 +628,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
  *
  * \param ctx        The initnialized RSA context to use.
  * \param f_rng      The RNG function to use. This is needed for padding
- *                   generation and must be provided.
+ *                   generation and is mandatory.
  * \param p_rng      The RNG context to be passed to \p f_rng. This may
  *                   be \c NULL if \p f_rng doesn't need a context argument.
  * \param label      The buffer holding the custom label to use.
@@ -667,8 +669,8 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
  *                 the function returns \c MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function. This is used for blinding and should
- *                 be provided; see mbedtls_rsa_private() for more.
+ * \param f_rng    The RNG function. This is used for blinding and is
+ *                 mandatory; see mbedtls_rsa_private() for more.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng doesn't need a context.
  * \param olen     The address at which to store the length of
@@ -703,8 +705,8 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
  *                 the function returns #MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function. This is used for blinding and should
- *                 be provided; see mbedtls_rsa_private() for more.
+ * \param f_rng    The RNG function. This is used for blinding and is
+ *                 mandatory; see mbedtls_rsa_private() for more.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng doesn't need a context.
  * \param olen     The address at which to store the length of
@@ -741,7 +743,8 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
  *                   #MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE.
  *
  * \param ctx        The initialized RSA context to use.
- * \param f_rng      The RNG function. This is used for blinding.
+ * \param f_rng      The RNG function. This is used for blinding and is
+ *                   mandatory.
  * \param p_rng      The RNG context to be passed to \p f_rng. This may be
  *                   \c NULL if \p f_rng doesn't need a context.
  * \param label      The buffer holding the custom label to use.
@@ -784,7 +787,8 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  *                 \p md_alg and \p hash_id.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function to use. This must not be \c NULL.
+ * \param f_rng    The RNG function to use. This is mandatory and
+ *                 must not be \c NULL.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be \c NULL
  *                 if \p f_rng doesn't need a context argument.
  * \param md_alg   The message-digest algorithm used to hash the original data.
@@ -817,10 +821,10 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  *                 operation (RSASSA-PKCS1-v1_5-SIGN).
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function. This is used for blinding and should be
- *                 provided; see mbedtls_rsa_private() for more.
+ * \param f_rng    The RNG function. This is used for blinding and is
+ *                 mandatory; see mbedtls_rsa_private() for more.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be \c NULL
- *                 if \p f_rng is \c NULL or doesn't need a context argument.
+ *                 if \p f_rng doesn't need a context argument.
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
  * \param hashlen  The length of the message digest.
@@ -865,7 +869,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  *                 #MBEDTLS_ERR_RSA_BAD_INPUT_DATA.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function. It must not be \c NULL.
+ * \param f_rng    The RNG function. It is mandatory and must not be \c NULL.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be \c NULL
  *                 if \p f_rng doesn't need a context argument.
  * \param md_alg   The message-digest algorithm used to hash the original data.
@@ -921,7 +925,7 @@ int mbedtls_rsa_rsassa_pss_sign_ext( mbedtls_rsa_context *ctx,
  *                 #MBEDTLS_ERR_RSA_BAD_INPUT_DATA.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function. It must not be \c NULL.
+ * \param f_rng    The RNG function. It is mandatory and must not be \c NULL.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be \c NULL
  *                 if \p f_rng doesn't need a context argument.
  * \param md_alg   The message-digest algorithm used to hash the original data.

@@ -1,9 +1,6 @@
 CCM self test
 mbedtls_ccm_self_test:
 
-CCM - Invalid parameters
-ccm_invalid_param:
-
 CCM - Valid parameters
 ccm_valid_param:
 

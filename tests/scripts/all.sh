@@ -1853,38 +1853,6 @@ component_build_psa_accel_key_type_rsa_public_key() {
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }
 
-component_test_check_params_functionality () {
-    msg "build+test: MBEDTLS_CHECK_PARAMS functionality"
-    scripts/config.py full # includes CHECK_PARAMS
-    # Make MBEDTLS_PARAM_FAILED call mbedtls_param_failed().
-    scripts/config.py unset MBEDTLS_CHECK_PARAMS_ASSERT
-    make CC=gcc CFLAGS='-Werror -O1' all test
-}
-
-component_test_check_params_without_platform () {
-    msg "build+test: MBEDTLS_CHECK_PARAMS without MBEDTLS_PLATFORM_C"
-    scripts/config.py full # includes CHECK_PARAMS
-    # Keep MBEDTLS_PARAM_FAILED as assert.
-    scripts/config.py unset MBEDTLS_PLATFORM_EXIT_ALT
-    scripts/config.py unset MBEDTLS_PLATFORM_TIME_ALT
-    scripts/config.py unset MBEDTLS_PLATFORM_FPRINTF_ALT
-    scripts/config.py unset MBEDTLS_PLATFORM_MEMORY
-    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
-    scripts/config.py unset MBEDTLS_PLATFORM_PRINTF_ALT
-    scripts/config.py unset MBEDTLS_PLATFORM_SNPRINTF_ALT
-    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.py unset MBEDTLS_PLATFORM_C
-    make CC=gcc CFLAGS='-Werror -O1' all test
-}
-
-component_test_check_params_silent () {
-    msg "build+test: MBEDTLS_CHECK_PARAMS with alternative MBEDTLS_PARAM_FAILED()"
-    scripts/config.py full # includes CHECK_PARAMS
-    # Set MBEDTLS_PARAM_FAILED to nothing.
-    sed -i 's/.*\(#define MBEDTLS_PARAM_FAILED( cond )\).*/\1/' "$CONFIG_H"
-    make CC=gcc CFLAGS='-Werror -O1' all test
-}
-
 component_test_no_platform () {
     # Full configuration build, without platform support, file IO and net sockets.
     # This should catch missing mbedtls_printf definitions, and by disabling file

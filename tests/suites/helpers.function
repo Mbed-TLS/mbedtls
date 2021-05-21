@@ -11,6 +11,9 @@
 
 #include <stdlib.h>
 
+#if defined (MBEDTLS_ERROR_C)
+#include "mbedtls/error.h"
+#endif
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else

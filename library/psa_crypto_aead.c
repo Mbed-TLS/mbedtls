@@ -349,7 +349,7 @@ psa_status_t mbedtls_psa_aead_encrypt_setup(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation->alg == PSA_ALG_CCM )
     {
-        return ( PSA_ERROR_NOT_SUPPORTED );
+        return( PSA_ERROR_NOT_SUPPORTED );
     }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 
@@ -373,10 +373,10 @@ psa_status_t mbedtls_psa_aead_decrypt_setup(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation->alg == PSA_ALG_CCM )
     {
-        return ( PSA_ERROR_NOT_SUPPORTED );
+        return( PSA_ERROR_NOT_SUPPORTED );
     }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 
@@ -408,22 +408,11 @@ psa_status_t mbedtls_psa_aead_set_nonce(
         /* GCM sets nonce once additional data has been supplied */
         memcpy( operation->nonce, nonce, nonce_length );
 
-        /* We know that nonce size cannot exceed the uint8_t size */
         operation->nonce_length = nonce_length;
         status = PSA_SUCCESS;
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
-    if( operation->alg == PSA_ALG_CCM )
-    {
-        ( void ) nonce;
-        ( void ) nonce_length;
-
-        return ( PSA_ERROR_NOT_SUPPORTED );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
     {
@@ -462,7 +451,7 @@ psa_status_t mbedtls_psa_aead_set_lengths(
     {
         /* Lengths can only be too large for GCM if size_t is bigger than 32
          * bits. Without the guard this code will generate warnings on 32bit
-           builds */
+         * builds */
 #if SIZE_MAX > UINT32_MAX
         if( ( (uint64_t) ad_length ) >> 61 != 0 ||
             ( (uint64_t) plaintext_length ) > 0xFFFFFFFE0ull )
@@ -528,16 +517,6 @@ psa_status_t mbedtls_psa_aead_update_ad(
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
-    if( operation->alg == PSA_ALG_CCM )
-    {
-        (void) input;
-        (void) input_length;
-
-        return ( PSA_ERROR_NOT_SUPPORTED );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
     {
@@ -598,16 +577,6 @@ psa_status_t mbedtls_psa_aead_update(
     }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
-    if( operation->alg == PSA_ALG_CCM )
-    {
-        (void) input;
-        (void) input_length;
-
-        return ( PSA_ERROR_NOT_SUPPORTED );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
     {
@@ -684,20 +653,6 @@ psa_status_t mbedtls_psa_aead_finish(
                                                             tag_size ) );
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
-    if( operation->alg == PSA_ALG_CCM )
-    {
-        ( void ) ciphertext;
-        ( void ) ciphertext_size;
-        ( void ) ciphertext_length;
-        ( void ) tag;
-        ( void ) tag_size;
-        ( void ) tag_length;
-
-        return ( PSA_ERROR_NOT_SUPPORTED );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
         status = mbedtls_to_psa_error(
@@ -736,9 +691,7 @@ psa_status_t mbedtls_psa_aead_verify(
     size_t tag_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
     size_t finish_output_size = 0;
-
     int do_tag_check = 1;
     uint8_t check_tag[PSA_AEAD_TAG_MAX_SIZE];
 
@@ -757,19 +710,6 @@ psa_status_t mbedtls_psa_aead_verify(
                                operation->tag_length ) );
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
-    if( operation->alg == PSA_ALG_CCM )
-    {
-        ( void ) plaintext;
-        ( void ) plaintext_size;
-        ( void ) plaintext_length;
-        ( void ) tag;
-        ( void ) tag_length;
-
-        return ( PSA_ERROR_NOT_SUPPORTED );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
         // call finish to get the tag for comparison.
@@ -827,14 +767,6 @@ psa_status_t mbedtls_psa_aead_abort(
     operation->is_encrypt = 0;
     operation->ad_started = 0;
     operation->body_started = 0;
-
-    mbedtls_free( operation->ad_buffer );
-    operation->ad_buffer = NULL;
-    operation->ad_length = 0;
-
-    mbedtls_free( operation->body_buffer );
-    operation->body_buffer = NULL;
-    operation->body_length = 0;
 
     mbedtls_free( operation->tag_buffer );
     operation->tag_buffer = NULL;

@@ -93,19 +93,10 @@ typedef struct
     unsigned int body_started : 1;
 
     uint8_t tag_length;
-
-    /* Buffers for AD/data - only required until CCM gets proper multipart
-       support. */
-    uint8_t *ad_buffer;
-    size_t ad_length;
-
-    uint8_t *body_buffer;
-    size_t body_length;
-
     uint8_t *tag_buffer;
 
-    /* buffer to store Nonce - only required until CCM and GCM get proper
-       multipart support. */
+    /* Buffer to store Nonce - only required until CCM and GCM get proper
+     * multipart support.*/
     uint8_t *nonce;
     size_t nonce_length;
 
@@ -126,7 +117,7 @@ typedef struct
 
 } mbedtls_psa_aead_operation_t;
 
-#define MBEDTLS_PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}}
+#define MBEDTLS_PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, {0}}
 
 /*
  * BEYOND THIS POINT, TEST DRIVER DECLARATIONS ONLY.

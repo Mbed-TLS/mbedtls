@@ -768,9 +768,6 @@ psa_status_t mbedtls_psa_aead_abort(
     operation->ad_started = 0;
     operation->body_started = 0;
 
-    mbedtls_free( operation->tag_buffer );
-    operation->tag_buffer = NULL;
-
     mbedtls_free( operation->nonce );
     operation->nonce = NULL;
     operation->nonce_length = 0;

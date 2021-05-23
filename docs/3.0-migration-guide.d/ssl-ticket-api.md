@@ -2,7 +2,7 @@ Modified semantics of mbedtls_ssl_{get,set}_session()
 -----------------------------------------------------------------
 
 This affects users who call `mbedtls_ssl_get_session()` or
-`mbedtls_ssl_session_set()` multiple times on the same SSL context
+`mbedtls_ssl_set_session()` multiple times on the same SSL context
 representing an established TLS 1.2 connection.
 Those users will now observe the second call to fail with
 `MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE`.

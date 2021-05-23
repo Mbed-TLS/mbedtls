@@ -3681,13 +3681,6 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl );
  *                 such as the max fragment length extension or record size limit
  *                 extension if used, and the current record expansion.
  *
- * \note           With DTLS, \c mbedtls_ssl_read() will return an error if
- *                 called with a larger length value.
- *                 With TLS, \c mbedtls_ssl_write() will fragment the input if
- *                 necessary and return the number of bytes written; it is up
- *                 to the caller to call \c mbedtls_ssl_write() again in
- *                 order to send the remaining bytes if any.
- *
  * \sa             mbedtls_ssl_set_mtu()
  * \sa             mbedtls_ssl_get_max_in_record_payload()
  * \sa             mbedtls_ssl_get_record_expansion()

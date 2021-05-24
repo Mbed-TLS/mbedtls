@@ -1035,7 +1035,7 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
     /** Callback to export key block, master secret,
      *  tls_prf and random bytes. Should replace f_export_keys    */
-    int (*MBEDTLS_PRIVATE(f_export_keys_ext))( void *, const unsigned char *,
+    int (*MBEDTLS_PRIVATE(f_export_keys))( void *, const unsigned char *,
                 const unsigned char *, size_t, size_t, size_t,
                 const unsigned char[32], const unsigned char[32],
                 mbedtls_tls_prf_types );
@@ -1941,7 +1941,7 @@ typedef int mbedtls_ssl_ticket_write_t( void *p_ticket,
  * \return          0 if successful, or
  *                  a specific MBEDTLS_ERR_XXX code.
  */
-typedef int mbedtls_ssl_export_keys_ext_t( void *p_expkey,
+typedef int mbedtls_ssl_export_keys_t( void *p_expkey,
                                            const unsigned char *ms,
                                            const unsigned char *kb,
                                            size_t maclen,
@@ -2020,16 +2020,16 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
  * \brief           Configure extended key export callback.
  *                  (Default: none.)
  *
- * \note            See \c mbedtls_ssl_export_keys_ext_t.
+ * \note            See \c mbedtls_ssl_export_keys_t.
  * \warning         Exported key material must not be used for any purpose
  *                  before the (D)TLS handshake is completed
  *
  * \param conf      SSL configuration context
- * \param f_export_keys_ext Callback for exporting keys
+ * \param f_export_keys Callback for exporting keys
  * \param p_export_keys     Context for the callback
  */
-void mbedtls_ssl_conf_export_keys_ext_cb( mbedtls_ssl_config *conf,
-        mbedtls_ssl_export_keys_ext_t *f_export_keys_ext,
+void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
+        mbedtls_ssl_export_keys_t *f_export_keys,
         void *p_export_keys );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 

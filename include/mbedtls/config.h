@@ -1556,7 +1556,7 @@
  * (see Section 5 of RFC 5764), are not handled by this feature.
  * Instead, after successful completion of a handshake negotiating
  * the use of DTLS-SRTP, the extended key exporter API
- * mbedtls_ssl_conf_export_keys_ext_cb() should be used to implement
+ * mbedtls_ssl_conf_export_keys_cb() should be used to implement
  * the key exporter described in Section 4.2 of RFC 5764 and RFC 5705
  * (this is implemented in the SSL example programs).
  * The resulting key should then be passed to an SRTP stack.

@@ -3,4 +3,4 @@ API changes
      decryption, sign and verify functions are affected. Also
      removes the RNG parameters from the RSA verify functions.
      Existing user code which utilises these RSA functions must
-     remove the mode parameter.
+     remove the mode parameter. Fixes #4278.

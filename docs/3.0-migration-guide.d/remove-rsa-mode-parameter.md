@@ -5,12 +5,12 @@ This affects all users who use the RSA encryption, decryption, sign and
 verify APIs.
 
 You must delete the mode parameter from your RSA function calls.
-Using the correct modes are now the default and only behaviour, and this
-cannot be changed. If you were using the mode parameter to specify the
-wrong mode then this behaviour is no longer supported. For reference the
-correct, supported modes are: Public keys for encryption and verification
-functions and private keys for decryption and signing functions, but the
-user does not have to specify this.
+Using the correct mode is now the default behaviour. Encryption
+and verification functions are now equivalent to their 2.x
+counterparts with mode=MBEDTLS_RSA_PUBLIC. Decryption and signing
+functions are now equivalent to their 2.x counterparts with
+mode=MBEDTLS_RSA_PRIVATE. Note that the constants
+MBEDTLS_RSA_PUBLIC and MBEDTLS_RSA_PRIVATE have been removed in 3.0.
 
 Remove the RNG parameter from RSA functions
 --------------------------------------------

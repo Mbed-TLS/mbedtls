@@ -465,4 +465,37 @@ int mbedtls_ssl_tls1_3_evolve_secret(
                    const unsigned char *input, size_t input_len,
                    unsigned char *secret_new );
 
+#define MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL   0
+#define MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION 1
+
+/**
+ * \brief             Calculate a TLS 1.3 PSK binder.
+ *
+ * \param ssl         The SSL context. This is used for debugging only and may
+ *                    be \c NULL if MBEDTLS_DEBUG_C is disabled.
+ * \param md_type     The hash algorithm associated to the PSK \p psk.
+ * \param psk         The buffer holding the PSK for which to create a binder.
+ * \param psk_len     The size of \p psk in bytes.
+ * \param is_external This indicates whether the PSK \p psk is externally
+ *                    provisioned (#MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL) or a
+ *                    resumption PSK (#MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION).
+ * \param transcript  The handshake transcript up to the point where the
+ *                    PSK binder calculation happens. This must be readable,
+ *                    and its size must be equal to the digest size of
+ *                    the hash algorithm represented by \p md_type.
+ * \param result      The address at which to store the PSK binder on success.
+ *                    This must be writable, and its size must be equal to the
+ *                    digest size of  the hash algorithm represented by
+ *                    \p md_type.
+ *
+ * \returns           \c 0 on success.
+ * \returns           A negative error code on failure.
+ */
+int mbedtls_ssl_tls1_3_create_psk_binder( mbedtls_ssl_context *ssl,
+                               const mbedtls_md_type_t md_type,
+                               unsigned char const *psk, size_t psk_len,
+                               int psk_type,
+                               unsigned char const *transcript,
+                               unsigned char *result );
+
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

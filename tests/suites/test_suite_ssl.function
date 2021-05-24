@@ -3914,6 +3914,36 @@ void ssl_tls1_3_derive_resumption_secrets( int hash_alg,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+void ssl_tls1_3_create_psk_binder( int hash_alg,
+                                   data_t *psk,
+                                   int psk_type,
+                                   data_t *transcript,
+                                   data_t *binder_expected )
+{
+    unsigned char binder[ MBEDTLS_MD_MAX_SIZE ];
+
+    /* Double-check that we've passed sane parameters. */
+    mbedtls_md_type_t md_type = (mbedtls_md_type_t) hash_alg;
+    mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
+    size_t const md_size = mbedtls_md_get_size( md_info );
+    TEST_ASSERT( md_info != 0                    &&
+                 transcript->len == md_size      &&
+                 binder_expected->len == md_size );
+
+    TEST_ASSERT( mbedtls_ssl_tls1_3_create_psk_binder(
+                     NULL, /* SSL context for debugging only */
+                     md_type,
+                     psk->x, psk->len,
+                     psk_type,
+                     transcript->x,
+                     binder ) == 0 );
+
+    ASSERT_COMPARE( binder, md_size,
+                    binder_expected->x, binder_expected->len );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 void ssl_tls1_3_key_evolution( int hash_alg,
                                data_t *secret,
                                data_t *input,

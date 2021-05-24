@@ -9257,6 +9257,12 @@ SSL TLS 1.3 Key schedule: Resumption secrets derivation helper
 # Vector from RFC 8448
 ssl_tls1_3_derive_resumption_secrets:MBEDTLS_MD_SHA256:"e2d32d4ed66dd37897a0e80c84107503ce58bf8aad4cb55a5002d77ecb890ece":"c3c122e0bd907a4a3ff6112d8fd53dbf89c773d9552e8b6b9d56d361b3a97bf6":"5e95bdf1f89005ea2e9aa0ba85e728e3c19c5fe0c699e3f5bee59faebd0b5406"
 
+SSL TLS 1.3 Key schedule: PSK binder
+# Vector from RFC 8448
+# For the resumption PSK, see Section 3, 'generate resumption secret "tls13 resumption"'
+# For all other data, see Section 4, 'construct a ClientHello handshake message:'
+ssl_tls1_3_create_psk_binder:MBEDTLS_MD_SHA256:"4ecd0eb6ec3b4d87f5d6028f922ca4c5851a277fd41311c9e62d2c9492e1c4f3":MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION:"63224b2e4573f2d3454ca84b9d009a04f6be9e05711a8396473aefa01e924a14":"3add4fb2d8fdf822a0ca3cf7678ef5e88dae990141c5924d57bb6fa31b9e5f9d"
+
 SSL TLS_PRF MBEDTLS_SSL_TLS_PRF_NONE
 ssl_tls_prf:MBEDTLS_SSL_TLS_PRF_NONE:"":"":"test tls_prf label":"":MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE
 

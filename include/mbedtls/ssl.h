@@ -458,18 +458,6 @@ typedef enum
 }
 mbedtls_ssl_states;
 
-/*
- * The tls_prf function types.
- */
-typedef enum
-{
-   MBEDTLS_SSL_TLS_PRF_NONE,
-   MBEDTLS_SSL_TLS_PRF_TLS1,
-   MBEDTLS_SSL_TLS_PRF_SHA384,
-   MBEDTLS_SSL_TLS_PRF_SHA256
-}
-mbedtls_tls_prf_types;
-
 /**
  * \brief          Callback type: send data on the network.
  *
@@ -967,6 +955,58 @@ struct mbedtls_ssl_session
 #endif
 };
 
+/*
+ * Identifiers for PRFs used in various versions of TLS.
+ */
+typedef enum
+{
+   MBEDTLS_SSL_TLS_PRF_NONE,
+   MBEDTLS_SSL_TLS_PRF_TLS1,
+   MBEDTLS_SSL_TLS_PRF_SHA384,
+   MBEDTLS_SSL_TLS_PRF_SHA256,
+   MBEDTLS_SSL_HKDF_EXPAND_SHA384,
+   MBEDTLS_SSL_HKDF_EXPAND_SHA256
+}
+mbedtls_tls_prf_types;
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+typedef enum
+{
+    MBEDTLS_SSL_KEY_EXPORT_TLS12_MASTER_SECRET = 0,
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    MBEDTLS_SSL_KEY_EXPORT_TLS13_CLIENT_EARLY_SECRET,
+    MBEDTLS_SSL_KEY_EXPORT_TLS13_EARLY_EXPORTER_SECRET,
+    MBEDTLS_SSL_KEY_EXPORT_TLS13_CLIENT_HANDSHAKE_TRAFFIC_SECRET,
+    MBEDTLS_SSL_KEY_EXPORT_TLS13_SERVER_HANDSHAKE_TRAFFIC_SECRET,
+    MBEDTLS_SSL_KEY_EXPORT_TLS13_CLIENT_APPLICATION_TRAFFIC_SECRET,
+    MBEDTLS_SSL_KEY_EXPORT_TLS13_SERVER_APPLICATION_TRAFFIC_SECRET,
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+} mbedtls_ssl_key_export_type;
+
+/**
+ * \brief           Callback type: Export key alongside random values for
+ *                                 session identification, and PRF for
+ *                                 implementation of TLS key exporters.
+ *
+ * \param p_expkey  Context for the callback.
+ * \param type      The type of the key that is being exported.
+ * \param client_random The client random bytes.
+ * \param server_random The server random bytes.
+ * \param tls_prf_type The identifier for the PRF used in the handshake
+ *                     to which the key belongs.
+ *
+ * \return          \c 0 if successful.
+ * \return          A negative error code on failure.
+ */
+typedef int mbedtls_ssl_export_keys_t( void *p_expkey,
+                                       mbedtls_ssl_key_export_type type,
+                                       const unsigned char *secret,
+                                       size_t secret_len,
+                                       const unsigned char client_random[32],
+                                       const unsigned char server_random[32],
+                                       mbedtls_tls_prf_types tls_prf_type );
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
+
 /**
  * SSL/TLS configuration to be shared between mbedtls_ssl_context structures.
  */
@@ -1033,12 +1073,8 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
-    /** Callback to export key block, master secret,
-     *  tls_prf and random bytes. Should replace f_export_keys    */
-    int (*MBEDTLS_PRIVATE(f_export_keys))( void *, const unsigned char *,
-                const unsigned char *, size_t, size_t, size_t,
-                const unsigned char[32], const unsigned char[32],
-                mbedtls_tls_prf_types );
+    /** Callback to export key block and master secret                      */
+    mbedtls_ssl_export_keys_t *MBEDTLS_PRIVATE(f_export_keys);
     void *MBEDTLS_PRIVATE(p_export_keys);            /*!< context for key export callback    */
 #endif
 
@@ -1915,43 +1951,6 @@ typedef int mbedtls_ssl_ticket_write_t( void *p_ticket,
                                         size_t *tlen,
                                         uint32_t *lifetime );
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
-/**
- * \brief           Callback type: Export key block, master secret,
- *                                 handshake randbytes and the tls_prf function
- *                                 used to derive keys.
- *
- * \note            This is required for certain uses of TLS, e.g. EAP-TLS
- *                  (RFC 5216) and Thread. The key pointers are ephemeral and
- *                  therefore must not be stored. The master secret and keys
- *                  should not be used directly except as an input to a key
- *                  derivation function.
- *
- * \param p_expkey  Context for the callback.
- * \param ms        Pointer to master secret (fixed length: 48 bytes).
- * \param kb            Pointer to key block, see RFC 5246 section 6.3.
- *                      (variable length: 2 * maclen + 2 * keylen + 2 * ivlen).
- * \param maclen        MAC length.
- * \param keylen        Key length.
- * \param ivlen         IV length.
- * \param client_random The client random bytes.
- * \param server_random The server random bytes.
- * \param tls_prf_type The tls_prf enum type.
- *
- * \return          0 if successful, or
- *                  a specific MBEDTLS_ERR_XXX code.
- */
-typedef int mbedtls_ssl_export_keys_t( void *p_expkey,
-                                           const unsigned char *ms,
-                                           const unsigned char *kb,
-                                           size_t maclen,
-                                           size_t keylen,
-                                           size_t ivlen,
-                                           const unsigned char client_random[32],
-                                           const unsigned char server_random[32],
-                                           mbedtls_tls_prf_types tls_prf_type );
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
-
 /**
  * \brief           Callback type: parse and load session ticket
  *
@@ -2003,34 +2002,28 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
 /**
- * \brief           Configure key export callback.
- *                  (Default: none.)
+ * \brief   Configure a key export callback.
+ *          (Default: none.)
  *
- * \note            See \c mbedtls_ssl_export_keys_t.
+ *          This API can be used for two purposes:
+ *          - Debugging: Use this API to e.g. generate an NSSKeylog
+ *            file and use it to inspect encrypted traffic in tools
+ *            such as Wireshark.
+ *          - Application-specific export: Use this API to implement
+ *            key exporters, e.g. for EAP-TLS or DTLS-SRTP.
  *
- * \param conf      SSL configuration context
- * \param f_export_keys     Callback for exporting keys
- * \param p_export_keys     Context for the callback
+ *
+ * \param conf           The SSL configuration to which the export
+ *                       callback should be attached. All connections
+ *                       subsequently bound to this configuration will
+ *                       have their keys exported.
+ * \param f_export_keys  The callback for the key export.
+ * \param p_export_keys  The opaque context pointer to be passed to the
+ *                       callback \p f_export_keys.
  */
 void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
-        mbedtls_ssl_export_keys_t *f_export_keys,
-        void *p_export_keys );
-
-/**
- * \brief           Configure extended key export callback.
- *                  (Default: none.)
- *
- * \note            See \c mbedtls_ssl_export_keys_t.
- * \warning         Exported key material must not be used for any purpose
- *                  before the (D)TLS handshake is completed
- *
- * \param conf      SSL configuration context
- * \param f_export_keys Callback for exporting keys
- * \param p_export_keys     Context for the callback
- */
-void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
-        mbedtls_ssl_export_keys_t *f_export_keys,
-        void *p_export_keys );
+                                      mbedtls_ssl_export_keys_t *f_export_keys,
+                                      void *p_export_keys );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)

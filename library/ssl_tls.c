@@ -989,12 +989,11 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     if( ssl->conf->f_export_keys != NULL )
     {
         ssl->conf->f_export_keys( ssl->conf->p_export_keys,
-                                      master, keyblk,
-                                      mac_key_len, keylen,
-                                      iv_copy_len,
-                                      randbytes + 32,
-                                      randbytes,
-                                      tls_prf_get_type( tls_prf ) );
+                                  MBEDTLS_SSL_KEY_EXPORT_TLS12_MASTER_SECRET,
+                                  master, 48,
+                                  randbytes + 32,
+                                  randbytes,
+                                  tls_prf_get_type( tls_prf ) );
     }
 #endif
 
@@ -4186,8 +4185,8 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
 void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
-        mbedtls_ssl_export_keys_t *f_export_keys,
-        void *p_export_keys )
+                                      mbedtls_ssl_export_keys_t *f_export_keys,
+                                      void *p_export_keys )
 {
     conf->f_export_keys = f_export_keys;
     conf->p_export_keys = p_export_keys;

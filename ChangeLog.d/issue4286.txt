@@ -7,5 +7,5 @@ Removals
      MBEDTLS_SSL_FALLBACK_SCSV, MBEDTLS_SSL_FALLBACK_SCSV_VALUE,
      MBEDTLS_SSL_IS_FALLBACK, MBEDTLS_SSL_IS_NOT_FALLBACK, and functions:
      mbedtls_ssl_conf_cbc_record_splitting(),
-     mbedtls_ssl_get_key_exchange_md_ssl_tls(),
-     mbedtls_ssl_check_record(), mbedtls_ssl_conf_fallback(). Fixes #4286.
+     mbedtls_ssl_get_key_exchange_md_ssl_tls(), mbedtls_ssl_conf_fallback().
+     Fixes #4286.

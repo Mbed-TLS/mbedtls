@@ -4328,7 +4328,7 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  *                              psa_pake_input() has been called yet). It must
  *                              be on operation for which the password hasn't
  *                              been set yet (neither
- *                              psa_pake_set_password_mhf() nor
+ *                              psa_pake_set_password_stretch() nor
  *                              psa_pake_set_password_key() has been called
  *                              yet).
  * \param password              Identifier of the key holding the password or a
@@ -4359,11 +4359,11 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
 psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
                                        mbedtls_svc_key_id_t password);
 
-/** Set the password for a password-authenticated key exchange via a memory hard
- * function.
+/** Set the password for a password-authenticated key exchange via a key
+ * stretching function.
  *
- * Some protocols require using values derived from passwords via memory hard
- * functions to mitigate dictionary attacks. Memory hard functions can be
+ * Some protocols use values derived from passwords via key stretching
+ * functions to mitigate dictionary attacks. Key stretching functions can be
  * accessed through the key derivation interface and the result can be supplied
  * to the PAKE operation in the form of a key derivation object.
  *
@@ -4383,7 +4383,7 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  *                                nor psa_pake_input() has been called yet). It
  *                                must be on operation for which the password
  *                                hasn't been set yet (neither
- *                                psa_pake_set_password_mhf() nor
+ *                                psa_pake_set_password_stretch() nor
  *                                psa_pake_set_password_key() has been called
  *                                yet).
  * \param[in,out] key_derivation  An ongoing key derivation operation set up
@@ -4412,9 +4412,11 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_set_password_mhf(psa_pake_operation_t *operation,
-                                       psa_key_derivation_operation_t *key_derivation,
-                                       size_t input_length);
+psa_status_t psa_pake_set_password_stretch(
+        psa_pake_operation_t *operation,
+        psa_key_derivation_operation_t *key_derivation,
+        size_t input_length
+        );
 
 /** Set the user ID for a password-authenticated key exchange.
  *

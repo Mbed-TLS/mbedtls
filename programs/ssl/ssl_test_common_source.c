@@ -26,54 +26,48 @@
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
 int eap_tls_key_derivation( void *p_expkey,
-                            const unsigned char *ms,
-                            const unsigned char *kb,
-                            size_t maclen,
-                            size_t keylen,
-                            size_t ivlen,
+                            mbedtls_ssl_key_export_type secret_type,
+                            const unsigned char *secret,
+                            size_t secret_len,
                             const unsigned char client_random[32],
                             const unsigned char server_random[32],
                             mbedtls_tls_prf_types tls_prf_type )
 {
     eap_tls_keys *keys = (eap_tls_keys *)p_expkey;
 
-    ( ( void ) kb );
-    memcpy( keys->master_secret, ms, sizeof( keys->master_secret ) );
+    /* We're only interested in the TLS 1.2 master secret */
+    if( secret_type != MBEDTLS_SSL_KEY_EXPORT_TLS12_MASTER_SECRET )
+        return( 0 );
+    if( secret_len != sizeof( keys->master_secret ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    memcpy( keys->master_secret, secret, sizeof( keys->master_secret ) );
     memcpy( keys->randbytes, client_random, 32 );
     memcpy( keys->randbytes + 32, server_random, 32 );
     keys->tls_prf_type = tls_prf_type;
 
-    if( opt.debug_level > 2 )
-    {
-        mbedtls_printf("exported maclen is %u\n", (unsigned)maclen);
-        mbedtls_printf("exported keylen is %u\n", (unsigned)keylen);
-        mbedtls_printf("exported ivlen is %u\n", (unsigned)ivlen);
-    }
     return( 0 );
 }
 
 int nss_keylog_export( void *p_expkey,
-                       const unsigned char *ms,
-                       const unsigned char *kb,
-                       size_t maclen,
-                       size_t keylen,
-                       size_t ivlen,
+                       mbedtls_ssl_key_export_type secret_type,
+                       const unsigned char *secret,
+                       size_t secret_len,
                        const unsigned char client_random[32],
                        const unsigned char server_random[32],
                        mbedtls_tls_prf_types tls_prf_type )
 {
     char nss_keylog_line[ 200 ];
     size_t const client_random_len = 32;
-    size_t const master_secret_len = 48;
     size_t len = 0;
     size_t j;
     int ret = 0;
 
+    /* We're only interested in the TLS 1.2 master secret */
+    if( secret_type != MBEDTLS_SSL_KEY_EXPORT_TLS12_MASTER_SECRET )
+        return( 0 );
+
     ((void) p_expkey);
-    ((void) kb);
-    ((void) maclen);
-    ((void) keylen);
-    ((void) ivlen);
     ((void) server_random);
     ((void) tls_prf_type);
 
@@ -88,10 +82,10 @@ int nss_keylog_export( void *p_expkey,
 
     len += sprintf( nss_keylog_line + len, " " );
 
-    for( j = 0; j < master_secret_len; j++ )
+    for( j = 0; j < secret_len; j++ )
     {
         len += sprintf( nss_keylog_line + len,
-                        "%02x", ms[j] );
+                        "%02x", secret[j] );
     }
 
     len += sprintf( nss_keylog_line + len, "\n" );
@@ -130,29 +124,26 @@ exit:
 
 #if defined( MBEDTLS_SSL_DTLS_SRTP )
 int dtls_srtp_key_derivation( void *p_expkey,
-                              const unsigned char *ms,
-                              const unsigned char *kb,
-                              size_t maclen,
-                              size_t keylen,
-                              size_t ivlen,
+                              mbedtls_ssl_key_export_type secret_type,
+                              const unsigned char *secret,
+                              size_t secret_len,
                               const unsigned char client_random[32],
                               const unsigned char server_random[32],
                               mbedtls_tls_prf_types tls_prf_type )
 {
     dtls_srtp_keys *keys = (dtls_srtp_keys *)p_expkey;
 
-    ( ( void ) kb );
-    memcpy( keys->master_secret, ms, sizeof( keys->master_secret ) );
+    /* We're only interested in the TLS 1.2 master secret */
+    if( secret_type != MBEDTLS_SSL_KEY_EXPORT_TLS12_MASTER_SECRET )
+        return( 0 );
+    if( secret_len != sizeof( keys->master_secret ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    memcpy( keys->master_secret, secret, sizeof( keys->master_secret ) );
     memcpy( keys->randbytes, client_random, 32 );
     memcpy( keys->randbytes + 32, server_random, 32 );
     keys->tls_prf_type = tls_prf_type;
 
-    if( opt.debug_level > 2 )
-    {
-        mbedtls_printf( "exported maclen is %u\n", (unsigned) maclen );
-        mbedtls_printf( "exported keylen is %u\n", (unsigned) keylen );
-        mbedtls_printf( "exported ivlen is %u\n", (unsigned) ivlen );
-    }
     return( 0 );
 }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */

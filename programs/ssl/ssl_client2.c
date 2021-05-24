@@ -1740,19 +1740,19 @@ int main( int argc, char *argv[] )
     if( opt.eap_tls != 0 )
     {
         mbedtls_ssl_conf_export_keys_cb( &conf, eap_tls_key_derivation,
-                                             &eap_tls_keying );
+                                         &eap_tls_keying );
     }
     else if( opt.nss_keylog != 0 )
     {
         mbedtls_ssl_conf_export_keys_cb( &conf,
-                                             nss_keylog_export,
-                                             NULL );
+                                         nss_keylog_export,
+                                         NULL );
     }
 #if defined( MBEDTLS_SSL_DTLS_SRTP )
     else if( opt.use_srtp != 0 )
     {
         mbedtls_ssl_conf_export_keys_cb( &conf, dtls_srtp_key_derivation,
-                                             &dtls_srtp_keying );
+                                         &dtls_srtp_keying );
     }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */

@@ -4264,24 +4264,15 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
  * for more information.
  *
- * Like in the case of completing setup, the exact sequence of calls to perform
- * a password-authenticated key exchange depends on the algorithm in use:
- * - Some algorithms exchange more data than just a single key share. When using
- *   such a algorithm, call psa_pake_output() and psa_pake_input() one or more
- *   times to exchange any further data that is needed to derive the shared
- *   secret.
- *
  * A typical sequence of calls to perform a password-authenticated key
  * exchange:
  * -# Call psa_pake_output(operation, #PSA_PAKE_STEP_KEY_SHARE, ...) to get the
  *    key share that needs to be sent to the peer.
  * -# Call psa_pake_input(operation, #PSA_PAKE_STEP_KEY_SHARE, ...) to provide
  *    the key share that was received from the peer.
+ * -# Depending on the algorithm additional calls to psa_pake_output() and
+ *    psa_pake_input() might be necessary.
  * -# Call psa_pake_get_implicit_key() for accessing the shared secret.
- * -# Make a sequence of function calls to execute the password-authenticated
- *    key exchange as described below.
- * -# Terminate the operation by a call to psa_pake_get_implicit_key() or
- *    psa_pake_abort().
  *
  * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)

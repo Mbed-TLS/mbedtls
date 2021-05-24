@@ -1033,9 +1033,6 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
-    /** Callback to export key block and master secret                      */
-    int (*MBEDTLS_PRIVATE(f_export_keys))( void *, const unsigned char *,
-            const unsigned char *, size_t, size_t, size_t );
     /** Callback to export key block, master secret,
      *  tls_prf and random bytes. Should replace f_export_keys    */
     int (*MBEDTLS_PRIVATE(f_export_keys_ext))( void *, const unsigned char *,
@@ -1919,33 +1916,6 @@ typedef int mbedtls_ssl_ticket_write_t( void *p_ticket,
                                         uint32_t *lifetime );
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
-/**
- * \brief           Callback type: Export key block and master secret
- *
- * \note            This is required for certain uses of TLS, e.g. EAP-TLS
- *                  (RFC 5216) and Thread. The key pointers are ephemeral and
- *                  therefore must not be stored. The master secret and keys
- *                  should not be used directly except as an input to a key
- *                  derivation function.
- *
- * \param p_expkey  Context for the callback
- * \param ms        Pointer to master secret (fixed length: 48 bytes)
- * \param kb        Pointer to key block, see RFC 5246 section 6.3
- *                  (variable length: 2 * maclen + 2 * keylen + 2 * ivlen).
- * \param maclen    MAC length
- * \param keylen    Key length
- * \param ivlen     IV length
- *
- * \return          0 if successful, or
- *                  a specific MBEDTLS_ERR_XXX code.
- */
-typedef int mbedtls_ssl_export_keys_t( void *p_expkey,
-                                const unsigned char *ms,
-                                const unsigned char *kb,
-                                size_t maclen,
-                                size_t keylen,
-                                size_t ivlen );
-
 /**
  * \brief           Callback type: Export key block, master secret,
  *                                 handshake randbytes and the tls_prf function

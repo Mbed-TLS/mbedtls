@@ -1,0 +1,8 @@
+API changes
+   * mbedtls_ssl_conf_export_keys_ext_cb() has been removed.
+   * The signature of key export callbacks configured via
+     mbedtls_ssl_conf_export_keys_cb() has changed, and raw
+     keys and IVs are no longer exported. Further, callbacks
+     now receive an additional parameter indicating the type
+     of secret that's being exported, paving the way for the
+     larger number of secrets in TLS 1.3.

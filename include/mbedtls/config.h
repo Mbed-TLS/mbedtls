@@ -1530,9 +1530,7 @@
  *
  * This only affects CBC ciphersuites, and is useless if none is defined.
  *
- * Requires: MBEDTLS_SSL_PROTO_TLS1    or
- *           MBEDTLS_SSL_PROTO_TLS1_1  or
- *           MBEDTLS_SSL_PROTO_TLS1_2
+ * Requires: MBEDTLS_SSL_PROTO_TLS1_2
  *
  * Comment this macro to disable support for Encrypt-then-MAC
  */
@@ -1548,31 +1546,11 @@
  * renegotiation), since it actually fixes a more fundamental issue in the
  * original SSL/TLS design, and has implications beyond Triple Handshake.
  *
- * Requires: MBEDTLS_SSL_PROTO_TLS1    or
- *           MBEDTLS_SSL_PROTO_TLS1_1  or
- *           MBEDTLS_SSL_PROTO_TLS1_2
+ * Requires: MBEDTLS_SSL_PROTO_TLS1_2
  *
  * Comment this macro to disable support for Extended Master Secret.
  */
 #define MBEDTLS_SSL_EXTENDED_MASTER_SECRET
-
-/**
- * \def MBEDTLS_SSL_FALLBACK_SCSV
- *
- * Enable support for RFC 7507: Fallback Signaling Cipher Suite Value (SCSV)
- * for Preventing Protocol Downgrade Attacks.
- *
- * For servers, it is recommended to always enable this, unless you support
- * only one version of TLS, or know for sure that none of your clients
- * implements a fallback strategy.
- *
- * For clients, you only need this if you're using a fallback strategy, which
- * is not recommended in the first place, unless you absolutely need it to
- * interoperate with buggy (version-intolerant) servers.
- *
- * Comment this macro to disable support for FALLBACK_SCSV
- */
-#define MBEDTLS_SSL_FALLBACK_SCSV
 
 /**
  * \def MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
@@ -1595,18 +1573,6 @@
  * after the handshake.
  */
 #define MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
-
-/**
- * \def MBEDTLS_SSL_CBC_RECORD_SPLITTING
- *
- * Enable 1/n-1 record splitting for CBC mode in TLS 1.0.
- *
- * This is a countermeasure to the BEAST attack, which also minimizes the risk
- * of interoperability issues compared to sending 0-length records.
- *
- * Comment this macro to disable 1/n-1 record splitting.
- */
-#define MBEDTLS_SSL_CBC_RECORD_SPLITTING
 
 /**
  * \def MBEDTLS_SSL_RENEGOTIATION
@@ -1650,30 +1616,6 @@
 #define MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 
 /**
- * \def MBEDTLS_SSL_PROTO_TLS1
- *
- * Enable support for TLS 1.0.
- *
- * Requires: MBEDTLS_MD5_C
- *           MBEDTLS_SHA1_C
- *
- * Comment this macro to disable support for TLS 1.0
- */
-#define MBEDTLS_SSL_PROTO_TLS1
-
-/**
- * \def MBEDTLS_SSL_PROTO_TLS1_1
- *
- * Enable support for TLS 1.1 (and DTLS 1.0 if DTLS is enabled).
- *
- * Requires: MBEDTLS_MD5_C
- *           MBEDTLS_SHA1_C
- *
- * Comment this macro to disable support for TLS 1.1 / DTLS 1.0
- */
-#define MBEDTLS_SSL_PROTO_TLS1_1
-
-/**
  * \def MBEDTLS_SSL_PROTO_TLS1_2
  *
  * Enable support for TLS 1.2 (and DTLS 1.2 if DTLS is enabled).
@@ -1709,11 +1651,9 @@
  *
  * Enable support for DTLS (all available versions).
  *
- * Enable this and MBEDTLS_SSL_PROTO_TLS1_1 to enable DTLS 1.0,
- * and/or this and MBEDTLS_SSL_PROTO_TLS1_2 to enable DTLS 1.2.
+ * Enable this and MBEDTLS_SSL_PROTO_TLS1_2 to enable DTLS 1.2.
  *
- * Requires: MBEDTLS_SSL_PROTO_TLS1_1
- *        or MBEDTLS_SSL_PROTO_TLS1_2
+ * Requires: MBEDTLS_SSL_PROTO_TLS1_2
  *
  * Comment this macro to disable support for DTLS
  */
@@ -2738,10 +2678,9 @@
  *          library/pem.c
  *          library/ssl_tls.c
  *
- * This module is required for SSL/TLS up to version 1.1, and for TLS 1.2
- * depending on the handshake parameters. Further, it is used for checking
- * MD5-signed certificates, and for PBKDF1 when decrypting PEM-encoded
- * encrypted keys.
+ * This module is required for TLS 1.2 depending on the handshake parameters.
+ * Further, it is used for checking MD5-signed certificates, and for PBKDF1
+ * when decrypting PEM-encoded encrypted keys.
  *
  * \warning   MD5 is considered a weak message digest and its use constitutes a
  *            security risk. If possible, we recommend avoiding dependencies on
@@ -3061,8 +3000,8 @@
  *          library/ssl_tls.c
  *          library/x509write_crt.c
  *
- * This module is required for SSL/TLS up to version 1.1, for TLS 1.2
- * depending on the handshake parameters, and for SHA1-signed certificates.
+ * This module is required for TLS 1.2 depending on the handshake parameters,
+ * and for SHA1-signed certificates.
  *
  * \warning   SHA-1 is considered a weak message digest and its use constitutes
  *            a security risk. If possible, we recommend avoiding dependencies

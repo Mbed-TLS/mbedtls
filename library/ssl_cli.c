@@ -1206,19 +1206,6 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         n++;
     }
 
-    /* Some versions of OpenSSL don't handle it correctly if not at end */
-#if defined(MBEDTLS_SSL_FALLBACK_SCSV)
-    if( ssl->conf->fallback == MBEDTLS_SSL_IS_FALLBACK )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "adding FALLBACK_SCSV" ) );
-
-        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-        *p++ = (unsigned char)( MBEDTLS_SSL_FALLBACK_SCSV_VALUE >> 8 );
-        *p++ = (unsigned char)( MBEDTLS_SSL_FALLBACK_SCSV_VALUE      );
-        n++;
-    }
-#endif
-
     *q++ = (unsigned char)( n >> 7 );
     *q++ = (unsigned char)( n << 1 );
 
@@ -2843,8 +2830,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
         return( ret );
     }
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( len_bytes == 2 )
     {
         ssl->out_msg[offset+0] = (unsigned char)( *olen >> 8 );
@@ -3238,17 +3224,6 @@ start_processing:
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-        if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
-        {
-            pk_alg = mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
-
-            /* Default hash for ECDSA is SHA-1 */
-            if( pk_alg == MBEDTLS_PK_ECDSA && md_alg == MBEDTLS_MD_NONE )
-                md_alg = MBEDTLS_MD_SHA1;
-        }
-        else
-#endif
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -3285,19 +3260,7 @@ start_processing:
         /*
          * Compute the hash that has been signed
          */
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-        if( md_alg == MBEDTLS_MD_NONE )
-        {
-            hashlen = 36;
-            ret = mbedtls_ssl_get_key_exchange_md_ssl_tls( ssl, hash, params,
-                                                           params_len );
-            if( ret != 0 )
-                return( ret );
-        }
-        else
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( md_alg != MBEDTLS_MD_NONE )
         {
             ret = mbedtls_ssl_get_key_exchange_md_tls1_2( ssl, hash, &hashlen,
@@ -3307,8 +3270,7 @@ start_processing:
                 return( ret );
         }
         else
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
-          MBEDTLS_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -4113,35 +4075,6 @@ sign:
 
     ssl->handshake->calc_verify( ssl, hash, &hashlen );
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
-    {
-        /*
-         * digitally-signed struct {
-         *     opaque md5_hash[16];
-         *     opaque sha_hash[20];
-         * };
-         *
-         * md5_hash
-         *     MD5(handshake_messages);
-         *
-         * sha_hash
-         *     SHA(handshake_messages);
-         */
-        md_alg = MBEDTLS_MD_NONE;
-
-        /*
-         * For ECDSA, default hash is SHA-1 only
-         */
-        if( mbedtls_pk_can_do( mbedtls_ssl_own_key( ssl ), MBEDTLS_PK_ECDSA ) )
-        {
-            hash_start += 16;
-            hashlen -= 16;
-            md_alg = MBEDTLS_MD_SHA1;
-        }
-    }
-    else
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {

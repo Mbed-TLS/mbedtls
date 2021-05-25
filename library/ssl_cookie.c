@@ -41,8 +41,7 @@
 
 /*
  * If DTLS is in use, then at least one of SHA-1, SHA-256, SHA-512 is
- * available. Try SHA-256 first, 512 wastes resources since we need to stay
- * with max 32 bytes of cookie for DTLS 1.0
+ * available. Try SHA-256 first, 512 wastes resources
  */
 #if defined(MBEDTLS_SHA224_C)
 #define COOKIE_MD           MBEDTLS_MD_SHA224

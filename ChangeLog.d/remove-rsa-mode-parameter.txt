@@ -1,15 +1,9 @@
 Removals
    * The RSA module no longer supports private-key operations with the public
-     key and vice versa. This change only affects applications which use the
-     wrong mode. In this case the wrong mode is to use mode=MBEDTLS_RSA_PUBLIC
-     with decryption and signing functions and mode=MBEDTLS_RSA_PRIVATE with
-     encryption and verification functions. Addresses issue #4278.
+     key and vice versa.
 API changes
-   * Remove mode parameter from RSA functions. All encryption,
-     decryption, sign and verify functions are affected. Also
-     removes the RNG parameters from the RSA verify functions.
-     Existing user code which utilises these RSA functions must
-     remove the mode parameter.
-   * RNG is now mandatory for all private-key RSA operations. Existing user code
-     which does not use an RNG with private-key RSA functions must now be
-     updated to do so.
+   * Remove the mode parameter from RSA operation functions. Signature and
+     decryption functions now always use the private key and verification and
+     encryption use the public key. Verification functions also no longer have
+     RNG parameters.
+   * The RNG is now mandatory for all private-key RSA operations.

@@ -419,7 +419,6 @@ static psa_status_t rsa_sign_hash(
         ret = mbedtls_rsa_pkcs1_sign( rsa,
                                       mbedtls_psa_get_random,
                                       MBEDTLS_PSA_RANDOM_STATE,
-                                      MBEDTLS_RSA_PRIVATE,
                                       md_alg,
                                       (unsigned int) hash_length,
                                       hash,
@@ -434,7 +433,6 @@ static psa_status_t rsa_sign_hash(
         ret = mbedtls_rsa_rsassa_pss_sign( rsa,
                                            mbedtls_psa_get_random,
                                            MBEDTLS_PSA_RANDOM_STATE,
-                                           MBEDTLS_RSA_PRIVATE,
                                            MBEDTLS_MD_NONE,
                                            (unsigned int) hash_length,
                                            hash,
@@ -492,9 +490,6 @@ static psa_status_t rsa_verify_hash(
         mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V15,
                                  MBEDTLS_MD_NONE );
         ret = mbedtls_rsa_pkcs1_verify( rsa,
-                                        mbedtls_psa_get_random,
-                                        MBEDTLS_PSA_RANDOM_STATE,
-                                        MBEDTLS_RSA_PUBLIC,
                                         md_alg,
                                         (unsigned int) hash_length,
                                         hash,
@@ -507,9 +502,6 @@ static psa_status_t rsa_verify_hash(
     {
         mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
         ret = mbedtls_rsa_rsassa_pss_verify( rsa,
-                                             mbedtls_psa_get_random,
-                                             MBEDTLS_PSA_RANDOM_STATE,
-                                             MBEDTLS_RSA_PUBLIC,
                                              MBEDTLS_MD_NONE,
                                              (unsigned int) hash_length,
                                              hash,

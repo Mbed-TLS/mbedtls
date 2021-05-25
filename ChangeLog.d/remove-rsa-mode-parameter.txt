@@ -1,0 +1,9 @@
+Removals
+   * The RSA module no longer supports private-key operations with the public
+     key and vice versa.
+API changes
+   * Remove the mode parameter from RSA operation functions. Signature and
+     decryption functions now always use the private key and verification and
+     encryption use the public key. Verification functions also no longer have
+     RNG parameters.
+   * The RNG is now mandatory for all private-key RSA operations.

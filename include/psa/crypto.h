@@ -4422,9 +4422,10 @@ psa_status_t psa_pake_set_password_stretch(
 
 /** Set the user ID for a password-authenticated key exchange.
  *
- * Some PAKE algorithms associate only a single user identifier with the
- * session.  Such algorithms must call this function (psa_pake_set_user()) to
- * set the identifier for the PAKE context.
+ * Call this function to set the user ID. For PAKE algorithms that associate a
+ * user identifier with each side of the session you need to call
+ * psa_pake_set_peer() as well. For PAKE algorithms that associate a single
+ * user identifier with the session, call psa_pake_set_user() only.
  *
  * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
@@ -4461,9 +4462,10 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
 
 /** Set the peer ID for a password-authenticated key exchange.
  *
- * Some PAKE algorithms associate only a single user identifier with the
- * session.  Such algorithms must call psa_pake_set_user() to set the
- * identifier for the PAKE context.
+ * Call this function in addition to psa_pake_set_user() for PAKE algorithms
+ * that associate a user identifier with each side of the session. For PAKE
+ * algorithms that associate a single user identifier with the session, call
+ * psa_pake_set_user() only.
  *
  * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)

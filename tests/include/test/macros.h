@@ -177,14 +177,6 @@
         }                                                   \
     } while( 0 )
 
-#if defined(MBEDTLS_CHECK_PARAMS) && !defined(MBEDTLS_PARAM_FAILED_ALT)
-#define TEST_INVALID_PARAM_RET( PARAM_ERR_VALUE, TEST )     \
-    do { if( ( TEST ) != ( PARAM_ERR_VALUE ) ) goto exit; } while( 0 )
-
-#define TEST_INVALID_PARAM( TEST )                          \
-    do { TEST; } while( 0 )
-#endif /* MBEDTLS_CHECK_PARAMS && !MBEDTLS_PARAM_FAILED_ALT */
-
 /**
  * \brief   This macro tests the statement passed to it as a test step or
  *          individual test in a test case. The macro assumes the test will not fail.

@@ -1,9 +1,6 @@
 SHA-1 - Valid parameters
 sha1_valid_param:
 
-SHA-1 - Invalid parameters
-sha1_invalid_param:
-
 # Test the operation of SHA-1 and SHA-2
 SHA-1 Test Vector NIST CAVS #1
 depends_on:MBEDTLS_SHA1_C

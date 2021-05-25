@@ -98,7 +98,7 @@ cleanup:
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+/* BEGIN_CASE depends_on:NOT_DEFINED */
 void ecjpake_invalid_param( )
 {
     mbedtls_ecjpake_context ctx;

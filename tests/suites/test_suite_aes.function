@@ -206,9 +206,6 @@ void aes_crypt_xts_size( int size, int retval )
     mbedtls_aes_xts_init( &ctx );
     memset( data_unit, 0x00, sizeof( data_unit ) );
 
-
-    /* Valid pointers are passed for builds with MBEDTLS_CHECK_PARAMS, as
-     * otherwise we wouldn't get to the size check we're interested in. */
     TEST_ASSERT( mbedtls_aes_crypt_xts( &ctx, MBEDTLS_AES_ENCRYPT, length, data_unit, src, output ) == retval );
 }
 /* END_CASE */
@@ -359,7 +356,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+/* BEGIN_CASE depends_on:NOT_DEFINED */
 void aes_invalid_mode( )
 {
     mbedtls_aes_context aes_ctx;

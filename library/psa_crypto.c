@@ -1021,10 +1021,7 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
 
     /*
      * As the return error code may not be handled in case of multiple errors,
-     * do our best to report an unexpected lock counter: if available
-     * call MBEDTLS_PARAM_FAILED that may terminate execution (if called as
-     * part of the execution of a test suite this will stop the test suite
-     * execution).
+     * do our best to report an unexpected lock counter.
      */
     if( slot->lock_count != 1 )
     {

@@ -38,7 +38,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+/* BEGIN_CASE depends_on:NOT_DEFINED */
 void ecp_invalid_param( )
 {
     mbedtls_ecp_group grp;

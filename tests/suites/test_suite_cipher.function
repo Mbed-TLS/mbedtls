@@ -207,7 +207,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+/* BEGIN_CASE depends_on:NOT_DEFINED */
 void cipher_invalid_param_conditional( )
 {
     mbedtls_cipher_context_t valid_ctx;

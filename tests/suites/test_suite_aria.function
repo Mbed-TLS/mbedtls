@@ -23,7 +23,7 @@ void aria_valid_param( )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+/* BEGIN_CASE depends_on:NOT_DEFINED */
 void aria_invalid_param( )
 {
     mbedtls_aria_context ctx;

@@ -387,6 +387,21 @@ static void busy_msleep( unsigned long msec )
     (void) j;
 }
 
+static void print_timers( struct mbedtls_timing_hr_time *hires,
+                          mbedtls_timing_delay_context *ctx )
+{
+#if defined(MBEDTLS_TIMING_ALT)
+    mbedtls_printf( " elapsed(hires)=%lu elapsed(ctx)=?? status(ctx)=%d\n",
+                    mbedtls_timing_get_timer( hires, 0 ),
+                    mbedtls_timing_get_delay( ctx ) );
+#else
+    mbedtls_printf( " elapsed(hires)=%lu elapsed(ctx)=%lu status(ctx)=%d\n",
+                    mbedtls_timing_get_timer( hires, 0 ),
+                    mbedtls_timing_get_timer( &ctx->timer, 0 ),
+                    mbedtls_timing_get_delay( ctx ) );
+#endif
+}
+
 #define FAIL    do                                                      \
     {                                                                   \
         if( verbose != 0 )                                              \
@@ -395,10 +410,7 @@ static void busy_msleep( unsigned long msec )
             mbedtls_printf( " cycles=%lu ratio=%lu millisecs=%lu secs=%lu hardfail=%d a=%lu b=%lu\n", \
                             cycles, ratio, millisecs, secs, hardfail,   \
                             (unsigned long) a, (unsigned long) b );     \
-            mbedtls_printf( " elapsed(hires)=%lu elapsed(ctx)=%lu status(ctx)=%d\n", \
-                            mbedtls_timing_get_timer( &hires, 0 ),      \
-                            mbedtls_timing_get_timer( &ctx.timer, 0 ),  \
-                            mbedtls_timing_get_delay( &ctx ) );         \
+            print_timers( &hires, &ctx );                               \
         }                                                               \
         return( 1 );                                                    \
     } while( 0 )

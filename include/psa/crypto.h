@@ -4350,7 +4350,7 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with the algorithm in \p cipher_suite.
+ *         \p key is not compatible with the algorithm or the cipher suite.
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
@@ -4407,6 +4407,8 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         One of the inputs to \p key_derivation was a key whose policy didn't
  *         allow #PSA_KEY_USAGE_DERIVE.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with the algorithm or the cipher suite.
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize

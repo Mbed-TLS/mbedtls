@@ -1968,29 +1968,44 @@
 
 /** The Password-authenticated key exchange by juggling (J-PAKE) algorithm.
  *
- * J-PAKE can be instantiated over finite fields or elliptic curves. This can
- * be achieved by setting either #PSA_PAKE_PRIMITIVE_TYPE_DH or
- * #PSA_PAKE_PRIMITIVE_TYPE_ECC respectively in the cipher suite (see
- * ::psa_pake_cipher_suite_t) via psa_pake_cs_set_type(). (Before using the
- * cipher suite the field or curve must be fully specified by calling
- * psa_pake_cs_set_family() and psa_pake_cs_set_bits() as well. For more
- * information refer to the documentation of the individual
- * \c PSA_PAKE_PRIMITIVE_TYPE_XXX constants.)
+ * This is J-PAKE as defined by RFC 8236, instantiated with the following
+ * parameters:
  *
- * J-PAKE can be used with any secure cryptographic hash function. The choice
- * of hash must be supplied to the cipher suite by calling
- * psa_pake_cs_set_hash().
+ * - The group can be either an elliptic curve or defined over a finite field.
+ * - Schnorr NIZK proof as defined by RFC 8235 and using the same group as the
+ *   J-PAKE algorithm.
+ * - A secure cryptographic hash function.
  *
- * In theory the algorithm works with any non-interactive zero-knowledge proof.
- * Implementations of the present specification use Schnorr NIZKP and this does
- * not need to be configured in the cipher suites.
+ * To select these parameters and set up the cipher suite, call
+ *      psa_pake_cs_set_algorithm(cipher_suite, PSA_ALG_PAKE_JPAKE);
+ *      psa_pake_cs_set_primitive(cipher_suite,
+ *                                PSA_PAKE_PRIMITIVE(type, family, bits));
+ *      psa_pake_cs_set_hash(cipher_suite, hash);
  *
- * J-PAKE doesn't differentiate between sides and has a distinct identifier
- * associated with each entity. This means that both psa_pake_set_user() and
- * psa_pake_set_peer() need to be called before commencing the operation.
- * Another consequence is that psa_pake_set_side() is optional and is ignored.
+ * For more information on how to set a specific curve or field, refer to the
+ * documentation of the individual \c PSA_PAKE_PRIMITIVE_TYPE_XXX constants.
  *
- * The key exchange flow for JPAKE is as follows:
+ * After initializing a J-PAKE operation, call
+ *      psa_pake_setup(operation, cipher_suite);
+ *      psa_pake_set_user(operation, ...);
+ *      psa_pake_set_peer(operation, ...);
+ * and either
+ *      psa_pake_set_password_stretch(operation, ...);
+ * or
+ *      psa_pake_set_password_key(operation, ...);
+ *
+ * Either way the password is read as a byte array and must be non-empty. This
+ * can be the password itself (in some pre-defined character encoding) or some
+ * value derived from the password as mandated by some higher level protocol.
+ *
+ * (The implementation converts this byte array to a number as described in
+ * Section 2.3.8 of _SEC 1: Elliptic Curve Cryptography_
+ * (https://www.secg.org/sec1-v2.pdf), before reducing it modulo \c q. Here
+ * \c q is order of the group defined by the primitive set in the cipher suite.
+ * The \c psa_pake_set_password_xxx() functions return an error if the result
+ * of the reduction is 0.)
+ *
+ * The key exchange flow for J-PAKE is as follows:
  * -# To get the first round data that needs to be sent to the peer, call
  *      // Get g1
  *      psa_pake_output(operation, #PSA_PAKE_STEP_KEY_SHARE, ...);
@@ -2040,7 +2055,17 @@
  * For more information consult the documentation of the individual
  * \c PSA_PAKE_STEP_XXX constants.
  *
- * J-PAKE is standardised for example in RFC 8236.
+ * At this point there is a cryptographic guarantee that only the authenticated
+ * party who used the same password is able to compute the key. But there is no
+ * guarantee that the peer is the party he claims to be and was able to do so.
+ *
+ * That is, the authentication is only implicit (the peer is not authenticated
+ * at this point, and no action should be taken that assume that they are - like
+ * for example accessing restricted files).
+ *
+ * To make the authentication explicit there are various methods, see Section 5
+ * of RFC 8236 for two examples.
+ *
  */
 #define PSA_ALG_PAKE_JPAKE                   ((psa_algorithm_t)0x0a000100)
 

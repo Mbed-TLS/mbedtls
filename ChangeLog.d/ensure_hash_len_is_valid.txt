@@ -1,0 +1,6 @@
+Bugfix
+   * Ensure hashlen is suitable for given md_alg in pk verify and sign
+     functions. To avoid buffer over/under reads and writes, a check is made
+     on hashlen to ensure that, if not zero, it is equal to the expected
+     length of the md_alg's digest. If the length is 0 then the hash can be
+     assumed by using the length associated with the md_alg.

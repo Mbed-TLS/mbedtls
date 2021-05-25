@@ -4556,7 +4556,11 @@ psa_status_t psa_pake_set_side(psa_pake_operation_t *operation,
  * \param[in,out] operation    Active PAKE operation.
  * \param step                 The step of the algorithm for which the output is
  *                             requested.
- * \param[out] output          Buffer where the output is to be written.
+ * \param[out] output          Buffer where the output is to be written in the
+ *                             format appropriate for this \p step. Refer to
+ *                             the documentation of the individual
+ *                             \c PSA_PAKE_STEP_XXX constants for more
+ *                             information.
  * \param output_size          Size of the \p output buffer in bytes. This must
  *                             be at least #PSA_PAKE_OUTPUT_SIZE(\p alg, \c
  *                             cipher_suite, \p type).
@@ -4603,7 +4607,11 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  *
  * \param[in,out] operation    Active PAKE operation.
  * \param step                 The step for which the input is provided.
- * \param[out] input           Buffer containing the input.
+ * \param[out] input           Buffer containing the input in the format
+ *                             appropriate for this \p step. Refer to the
+ *                             documentation of the individual
+ *                             \c PSA_PAKE_STEP_XXX constants for more
+ *                             information.
  * \param[out] input_length    Size of the \p input buffer in bytes.
  *
  * \retval #PSA_SUCCESS

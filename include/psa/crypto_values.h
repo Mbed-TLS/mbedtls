@@ -2597,29 +2597,47 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 
 /** The key share being sent to or received from the peer.
  *
- * Unless the documentation of the PAKE algorithm says otherwise this is a
- * group element.
+ * The format for both input and output at this step is the same as for public
+ * keys on the group determined by the primitive (::psa_pake_primitive_t) would
+ * be.
  *
- * For information regarding representation consult the documentation of
- * individual ::psa_pake_primitive_type_t constants.
+ * For more information on the format, consult the documentation of
+ * psa_export_public_key().
+ *
+ * For information regarding how the group is determined, consult the
+ * documentation #PSA_PAKE_PRIMITIVE.
  */
 #define PSA_PAKE_STEP_KEY_SHARE                 ((psa_pake_step_t)0x01)
 
 /** A Schnorr NIZKP public key.
  *
- * This is a group element.
+ * The format for both input and output at this step is the same as for public
+ * keys on the group determined by the primitive (::psa_pake_primitive_t) would
+ * be.
  *
- * For information regarding representation consult the documentation of
- * individual ::psa_pake_primitive_type_t constants.
+ * For more information on the format, consult the documentation of
+ * psa_export_public_key().
+ *
+ * For information regarding how the group is determined, consult the
+ * documentation #PSA_PAKE_PRIMITIVE.
  */
 #define PSA_PAKE_STEP_ZK_PUBLIC                 ((psa_pake_step_t)0x02)
 
 /** A Schnorr NIZKP proof.
  *
- * This is a scalar value.
+ * The format for both input and output at this step is the same as for private
+ * keys on the group determined by the primitive (::psa_pake_primitive_t) would
+ * be.
  *
- * For information regarding representation consult the documentation of
- * individual ::psa_pake_primitive_type_t constants.
+ * Some public key algorithms mask the private keys and this might be reflected
+ * in the export format. Even if this is the case the masking is omitted at
+ * this step.
+ *
+ * For more information on the format, consult the documentation of
+ * psa_export_key().
+ *
+ * For information regarding how the group is determined, consult the
+ * documentation #PSA_PAKE_PRIMITIVE.
  */
 #define PSA_PAKE_STEP_ZK_PROOF                  ((psa_pake_step_t)0x03)
 

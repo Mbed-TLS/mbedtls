@@ -476,7 +476,7 @@ int mbedtls_ssl_tls1_3_evolve_secret(
  * \param md_type     The hash algorithm associated to the PSK \p psk.
  * \param psk         The buffer holding the PSK for which to create a binder.
  * \param psk_len     The size of \p psk in bytes.
- * \param is_external This indicates whether the PSK \p psk is externally
+ * \param psk_type    This indicates whether the PSK \p psk is externally
  *                    provisioned (#MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL) or a
  *                    resumption PSK (#MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION).
  * \param transcript  The handshake transcript up to the point where the

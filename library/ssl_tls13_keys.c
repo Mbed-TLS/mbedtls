@@ -628,6 +628,11 @@ int mbedtls_ssl_tls1_3_create_psk_binder( mbedtls_ssl_context *ssl,
     mbedtls_md_info_t const *md_info = mbedtls_md_info_from_type( md_type );
     size_t const md_size = mbedtls_md_get_size( md_info );
 
+#if !defined(MBEDTLS_DEBUG_C)
+    ssl = NULL; /* make sure we don't use it except for debug */
+    ((void) ssl);
+#endif
+
     /* We should never call this function with an unknown hash,
      * but add an assertion anyway. */
     if( md_info == 0 )

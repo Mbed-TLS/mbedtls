@@ -8555,12 +8555,6 @@ run_test    "export keys functionality" \
             "$P_SRV eap_tls=1 debug_level=3" \
             "$P_CLI eap_tls=1 debug_level=3" \
             0 \
-            -s "exported maclen is " \
-            -s "exported keylen is " \
-            -s "exported ivlen is "  \
-            -c "exported maclen is " \
-            -c "exported keylen is " \
-            -c "exported ivlen is " \
             -c "EAP-TLS key material is:"\
             -s "EAP-TLS key material is:"\
             -c "EAP-TLS IV is:" \

@@ -2817,7 +2817,12 @@ int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
  *                 - \c mbedtls_ssl_context*: The SSL context to which
  *                                            the operation applies.
  *                 - \c const unsigned char*: The PSK identity
- *                                            selected by the peer.
+ *                                            selected by the client
+ *                                            (server-side callback)
+ *                                            or,
+ *                                            the PSK identity hint
+ *                                            selected by the server
+ *                                            (client-side callback)
  *                 - \c size_t: The length of the PSK identity
  *                              selected by the peer.
  *

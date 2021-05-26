@@ -301,20 +301,25 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \param mode      The operation to perform: #MBEDTLS_CCM_ENCRYPT or
  *                  #MBEDTLS_CCM_DECRYPT or #MBEDTLS_CCM_STAR_ENCRYPT or
  *                  #MBEDTLS_CCM_STAR_DECRYPT.
- * \param iv        The initialization vector. This must be a readable buffer of
- *                  at least \p iv_len Bytes.
- * \param iv_len    The length of the IV.
- * \param ad_len    The length of the additional data in bytes.
- * \param body_len  The length of the data to encrypt or decrypt in bytes.
+ * \param iv        The initialization vector. This must be a readable buffer
+ *                  of at least \p iv_len Bytes.
+ * \param iv_len    The length of the IV in bytes.
+ * \param total_ad_len     The total length of additional data in bytes.
+ * \param total_input_len  The total length of input data to encrypt or decrypt
+ *                         in bytes.
  *
  * \return          \c 0 on success.
+ * \return          \#MBEDTLS_ERR_CCM_BAD_INPUT on failure:
+ *                  \p iv_len is invalid (lower than \c 7 or greater than
+ *                  \c 13),
+ *                  \p total_ad_len is greater than \c 0xFF00.
  */
 int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
                         int mode,
                         const unsigned char *iv,
                         size_t iv_len,
-                        size_t ad_len,
-                        size_t body_len );
+                        size_t total_ad_len,
+                        size_t total_input_len );
 
 /**
  * \brief           This function feeds an input buffer as associated data

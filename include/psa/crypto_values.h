@@ -1977,7 +1977,7 @@
  * - A secure cryptographic hash function.
  *
  * To select these parameters and set up the cipher suite, call
- *      psa_pake_cs_set_algorithm(cipher_suite, PSA_ALG_PAKE_JPAKE);
+ *      psa_pake_cs_set_algorithm(cipher_suite, PSA_ALG_JPAKE);
  *      psa_pake_cs_set_primitive(cipher_suite,
  *                                PSA_PAKE_PRIMITIVE(type, family, bits));
  *      psa_pake_cs_set_hash(cipher_suite, hash);
@@ -2067,7 +2067,7 @@
  * of RFC 8236 for two examples.
  *
  */
-#define PSA_ALG_PAKE_JPAKE                   ((psa_algorithm_t)0x0a000100)
+#define PSA_ALG_JPAKE                   ((psa_algorithm_t)0x0a000100)
 
 /**@}*/
 

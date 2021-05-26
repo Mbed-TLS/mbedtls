@@ -306,7 +306,7 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \param iv        The initialization vector. This must be a readable buffer
  *                  of at least \p iv_len Bytes.
  * \param iv_len    The length of the IV in bytes.
- * \param total_ad_len     The total length of additional data in bytes.
+ * \param total_add_len    The total length of additional data in bytes.
  * \param total_input_len  The total length of input data to encrypt or decrypt
  *                         in bytes.
  *
@@ -314,13 +314,13 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \return          \#MBEDTLS_ERR_CCM_BAD_INPUT on failure:
  *                  \p iv_len is invalid (lower than \c 7 or greater than
  *                  \c 13),
- *                  \p total_ad_len is greater than \c 0xFF00.
+ *                  \p total_add_len is greater than \c 0xFF00.
  */
 int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
                         int mode,
                         const unsigned char *iv,
                         size_t iv_len,
-                        size_t total_ad_len,
+                        size_t total_add_len,
                         size_t total_input_len );
 
 /**
@@ -332,8 +332,8 @@ int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
  *                  to pass successive parts of the additional data. The
  *                  lengths \p add_len of the data parts should eventually add
  *                  up exactly to the total length of additional data
- *                  \c total_ad_len passed to mbedtls_ccm_starts(). You may not
- *                  call this function after calling mbedtls_ccm_update().
+ *                  \c total_add_len passed to mbedtls_ccm_starts(). You may
+ *                  not call this function after calling mbedtls_ccm_update().
  *
  * \note            This function is not implemented in Mbed TLS yet.
  *
@@ -361,7 +361,7 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *                  to pass successive parts of the input: the plaintext to
  *                  encrypt, or the ciphertext (not including the tag) to
  *                  decrypt. After the last part of the input, call
- *                  mbedtls_ccm_finish(). The lengths \p input_length of the
+ *                  mbedtls_ccm_finish(). The lengths \p input_len of the
  *                  data parts should eventually add up exactly to the total
  *                  length of input data \c total_input_len passed to
  *                  mbedtls_ccm_starts().
@@ -384,11 +384,11 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *
  *                  In particular:
  *                  - It is always correct to call this function with
- *                    \p output_size >= \p input_length + 15.
- *                  - If \p input_length is a multiple of 16 for all the calls
+ *                    \p output_size >= \p input_len + 15.
+ *                  - If \p input_len is a multiple of 16 for all the calls
  *                    to this function during an operation (not necessary for
  *                    the last one) then it is correct to use \p output_size
- *                    =\p input_length.
+ *                    =\p input_len.
  *
  * \note            This function is not implemented in Mbed TLS yet.
  *
@@ -397,18 +397,18 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *                  must trail at least 8 Bytes behind the input buffer.
  *
  * \param ctx           The CCM context. This must be initialized.
- * \param input         The buffer holding the input data. If \p input_length
+ * \param input         The buffer holding the input data. If \p input_len
  *                      is greater than zero, this must be a readable buffer
- *                      of at least \p input_length bytes.
- * \param input_length  The length of the input data in bytes.
+ *                      of at least \p input_len bytes.
+ * \param input_len     The length of the input data in bytes.
  * \param output        The buffer for the output data. If \p output_size
  *                      is greater than zero, this must be a writable buffer of
  *                      at least \p output_size bytes.
  * \param output_size   The size of the output buffer in bytes.
  *                      See the function description regarding the output size.
- * \param output_length On success, \p *output_length contains the actual
+ * \param output_len    On success, \p *output_len contains the actual
  *                      length of the output written in \p output.
- *                      On failure, the content of \p *output_length is
+ *                      On failure, the content of \p *output_len is
  *                      unspecified.
  *
  * \return         \c 0 on success.
@@ -418,9 +418,9 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *                 or \p output_size too small.
  */
 int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
-                        const unsigned char *input, size_t input_length,
+                        const unsigned char *input, size_t input_len,
                         unsigned char *output, size_t output_size,
-                        size_t *output_length );
+                        size_t *output_len );
 
 /**
  * \brief           This function finishes the CCM operation and generates
@@ -443,7 +443,7 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
  *                  invalid value of \p tag_len,
  *                  the total amount of additional data passed to
  *                  mbedtls_ccm_update_ad() was lower than the total length of
- *                  additional data \c total_ad_len passed to
+ *                  additional data \c total_add_len passed to
  *                  mbedtls_ccm_starts(),
  *                  the total amount of input data passed to
  *                  mbedtls_ccm_update() was lower than the total length of

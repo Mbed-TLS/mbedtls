@@ -337,7 +337,7 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
                            const unsigned char *add, size_t add_len )
 {
     const unsigned char *p;
-    size_t use_len, i;
+    size_t use_len, i, offset;
 
     GCM_VALIDATE_RET( add_len == 0 || add != NULL );
 
@@ -345,15 +345,31 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
     if( (uint64_t) add_len >> 61 != 0 )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
 
-    /* Calling update_ad multiple times is not yet supported */
-    if( ctx->add_len != 0 )
-        return( MBEDTLS_ERR_GCM_BAD_INPUT );
-
-    ctx->add_len = add_len;
+    offset = ctx->add_len % 16;
     p = add;
-    while( add_len > 0 )
+
+    if (offset)
     {
-        use_len = ( add_len < 16 ) ? add_len : 16;
+        use_len = 16 - offset;
+        if( use_len > add_len )
+            use_len = add_len;
+
+        for (i = 0; i < use_len; i++)
+            ctx->buf[i+offset] ^= p[i];
+
+        if( offset + use_len == 16 )
+            gcm_mult( ctx, ctx->buf, ctx->buf );
+
+        ctx->add_len += use_len;
+        add_len -= use_len;
+        p += use_len;
+    }
+
+    ctx->add_len += add_len;
+
+    while( add_len >= 16 )
+    {
+        use_len = 16;
 
         for( i = 0; i < use_len; i++ )
             ctx->buf[i] ^= p[i];
@@ -362,6 +378,12 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
 
         add_len -= use_len;
         p += use_len;
+    }
+
+    if ( add_len > 0 )
+    {
+        for( i = 0; i < add_len; i++ )
+            ctx->buf[i] ^= p[i];
     }
 
     return( 0 );
@@ -442,6 +464,11 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
     }
 
+    if ( ( ctx->len == 0 ) && ( ctx->add_len % 16 ) )
+    {
+        gcm_mult( ctx, ctx->buf, ctx->buf );
+    }
+
     offset = ctx->len % 16;
     if( offset != 0 )
     {
@@ -506,6 +533,11 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
 
     orig_len = ctx->len * 8;
     orig_add_len = ctx->add_len * 8;
+
+    if ( ( ctx->len == 0 ) && ( ctx->add_len % 16 ) )
+    {
+        gcm_mult( ctx, ctx->buf, ctx->buf );
+    }
 
     if( tag_len > 16 || tag_len < 4 )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );

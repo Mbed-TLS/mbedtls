@@ -366,15 +366,17 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *                  ways:
  *                  - Immediate output: the output length is always equal
  *                    to the input length.
- *                  - Buffered output: but for the last chunck of input data,
+ *                  - Buffered output: but for the last part of input data,
  *                    the output consists of a whole number of 16-byte blocks.
  *                    If the total input length so far (not including
  *                    associated data) is 16 \* *B* + *A* with *A* < 16 then
  *                    the total output length is 16 \* *B*.
- *                    For the last chunck of input data, the output length is
- *                    equal to the input length. The function uses the length
- *                    in bytes of the body data passed in mbedtls_ccm_starts()
- *                    to detect the last chunck of data to encrypt or decrypt.
+ *                    For the last part of input data, the output length is
+ *                    equal to the input length plus the number of bytes (*A*)
+ *                    buffered in the previous call to the function (if any).
+ *                    The function uses the total length of input data
+ *                    \c total_input_len passed to mbedtls_ccm_starts()
+ *                    to detect the last part of input data.
  *
  *                  In particular:
  *                  - It is always correct to call this function with

@@ -854,7 +854,7 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  *      psa_pake_setup(operation, cipher_suite);
  *      psa_pake_set_user(operation, ...);
  *      psa_pake_set_peer(operation, ...);
- *      psa_pake_set_password_key(operation, ...);
+ *      psa_pake_set_secret_from_key(operation, ...);
  *
  * The password is read as a byte array and must be non-empty. This can be the
  * password itself (in some pre-defined character encoding) or some value
@@ -1345,14 +1345,15 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
 /** Set the password for a password-authenticated key exchange from key ID.
  *
  * Call this function when the password, or a value derived from the password,
- * is already present in the key store.
+ * (for example a hash of the password or a key derived from the password) is
+ * already present in the key store.
  *
  * \param[in,out] operation     The operation object to set the password for. It
  *                              must have been set up by psa_pake_setup() and
  *                              not yet in use (neither psa_pake_output() nor
  *                              psa_pake_input() has been called yet). It must
  *                              be on operation for which the password hasn't
- *                              been set yet (psa_pake_set_password_key()
+ *                              been set yet (psa_pake_set_secret_from_key()
  *                              hasn't been called yet).
  * \param password              Identifier of the key holding the password or a
  *                              value derived from the password (eg. by a
@@ -1379,8 +1380,8 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
-                                       mbedtls_svc_key_id_t password);
+psa_status_t psa_pake_set_secret_from_key(psa_pake_operation_t *operation,
+                                          mbedtls_svc_key_id_t password);
 
 /** Set the user ID for a password-authenticated key exchange.
  *

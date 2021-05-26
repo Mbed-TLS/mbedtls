@@ -1152,7 +1152,7 @@
  *                      the output type or PAKE algorithm is not recognized, or
  *                      the parameters are incompatible, return 0.
  */
-#define PSA_PAKE_OUTPUT_SIZE(alg, primitive, output_step)
+#define PSA_PAKE_OUTPUT_SIZE(alg, primitive, output_step) 0
 
 /** Output buffer size for psa_pake_output() for any of the supported cipher
  * suites and PAKE algorithms.
@@ -1161,6 +1161,6 @@
  *
  * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p cipher_suite, \p output).
  */
-#define PSA_PAKE_OUTPUT_MAX_SIZE
+#define PSA_PAKE_OUTPUT_MAX_SIZE 0
 
 #endif /* PSA_CRYPTO_SIZES_H */

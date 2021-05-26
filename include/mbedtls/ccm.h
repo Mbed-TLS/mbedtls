@@ -297,6 +297,8 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \brief           This function starts a CCM encryption or decryption
  *                  operation.
  *
+ * \note            This function is not implemented in Mbed TLS yet.
+ *
  * \param ctx       The CCM context. This must be initialized.
  * \param mode      The operation to perform: #MBEDTLS_CCM_ENCRYPT or
  *                  #MBEDTLS_CCM_DECRYPT or #MBEDTLS_CCM_STAR_ENCRYPT or
@@ -332,6 +334,8 @@ int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
  *                  up exactly to the total length of additional data
  *                  \c total_ad_len passed to mbedtls_ccm_starts(). You may not
  *                  call this function after calling mbedtls_ccm_update().
+ *
+ * \note            This function is not implemented in Mbed TLS yet.
  *
  * \param ctx       The CCM context. This must have been started with
  *                  mbedtls_ccm_starts() and must not have yet received
@@ -386,6 +390,8 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *                    the last one) then it is correct to use \p output_size
  *                    =\p input_length.
  *
+ * \note            This function is not implemented in Mbed TLS yet.
+ *
  * \note            For decryption, the output buffer cannot be the same as
  *                  the input buffer. If the buffers overlap, the output buffer
  *                  must trail at least 8 Bytes behind the input buffer.
@@ -422,6 +428,8 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
  *
  *                  It wraps up the CCM stream, and generates the
  *                  tag. The tag can have a maximum length of 16 Bytes.
+ *
+ * \note            This function is not implemented in Mbed TLS yet.
  *
  * \param ctx       The CCM context. This must be initialized.
  * \param tag       The buffer for holding the tag. If \p tag_len is greater

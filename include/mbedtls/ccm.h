@@ -432,7 +432,15 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_CCM_BAD_INPUT on failure:
- *                  invalid value of \p tag_len.
+ *                  invalid value of \p tag_len,
+ *                  the total amount of additional data passed to
+ *                  mbedtls_ccm_update_ad() was lower than the total length of
+ *                  additional data \c total_ad_len passed to
+ *                  mbedtls_ccm_starts(),
+ *                  the total amount of input data passed to
+ *                  mbedtls_ccm_update() was lower than the total length of
+ *                  input data \c total_input_len passed to
+ *                  mbedtls_ccm_starts().
  */
 int mbedtls_ccm_finish( mbedtls_ccm_context *ctx,
                         unsigned char *tag, size_t tag_len );

@@ -326,13 +326,12 @@ int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
  *                  (authenticated but not encrypted data) in a CCM
  *                  encryption or decryption operation.
  *
- *                  Call this function after mbedtls_ccm_starts() to pass
- *                  the associated data. If the associated data is empty,
- *                  you do not need to call this function. You may not
+ *                  You may call this function zero, one or more times
+ *                  to pass successive parts of the additional data. The
+ *                  lengths \p add_len of the data parts should eventually add
+ *                  up exactly to the total length of additional data
+ *                  \c total_ad_len passed to mbedtls_ccm_starts(). You may not
  *                  call this function after calling mbedtls_ccm_update().
- *
- * \note            This function may be called several times per operation,
- *                  passing the associated data in chunks.
  *
  * \param ctx       The CCM context. This must have been started with
  *                  mbedtls_ccm_starts() and must not have yet received
@@ -358,7 +357,10 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *                  to pass successive parts of the input: the plaintext to
  *                  encrypt, or the ciphertext (not including the tag) to
  *                  decrypt. After the last part of the input, call
- *                  mbedtls_ccm_finish().
+ *                  mbedtls_ccm_finish(). The lengths \p input_length of the
+ *                  data parts should eventually add up exactly to the total
+ *                  length of input data \c total_input_len passed to
+ *                  mbedtls_ccm_starts().
  *
  *                  This function may produce output in one of the following
  *                  ways:

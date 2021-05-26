@@ -937,6 +937,14 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
 /** @} */
 
 /** \defgroup pake Password-authenticated key exchange (PAKE)
+ *
+ * This is a proposed PAKE interface for the PSA Crypto API. It is not part of
+ * the official PSA Crypto API yet.
+ *
+ * \note The content of this section is not part of the stable API and ABI
+ *       of Mbed Crypto and may change arbitrarily from version to version.
+ *       Same holds for the corresponding macros #PSA_ALG_CATEGORY_PAKE and
+ *       #PSA_ALG_JPAKE.
  * @{
  */
 

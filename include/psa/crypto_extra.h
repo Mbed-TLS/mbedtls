@@ -854,14 +854,11 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  *      psa_pake_setup(operation, cipher_suite);
  *      psa_pake_set_user(operation, ...);
  *      psa_pake_set_peer(operation, ...);
- * and either
- *      psa_pake_set_password_stretch(operation, ...);
- * or
  *      psa_pake_set_password_key(operation, ...);
  *
- * Either way the password is read as a byte array and must be non-empty. This
- * can be the password itself (in some pre-defined character encoding) or some
- * value derived from the password as mandated by some higher level protocol.
+ * The password is read as a byte array and must be non-empty. This can be the
+ * password itself (in some pre-defined character encoding) or some value
+ * derived from the password as mandated by some higher level protocol.
  *
  * (The implementation converts this byte array to a number as described in
  * Section 2.3.8 of _SEC 1: Elliptic Curve Cryptography_
@@ -1348,19 +1345,15 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
 /** Set the password for a password-authenticated key exchange from key ID.
  *
  * Call this function when the password, or a value derived from the password,
- * is already present in the key store. To calculate the password-derived value
- * from a password input, use the key derivation interface and
- * psa_pake_set_password_stretch() instead.
+ * is already present in the key store.
  *
  * \param[in,out] operation     The operation object to set the password for. It
  *                              must have been set up by psa_pake_setup() and
  *                              not yet in use (neither psa_pake_output() nor
  *                              psa_pake_input() has been called yet). It must
  *                              be on operation for which the password hasn't
- *                              been set yet (neither
- *                              psa_pake_set_password_stretch() nor
- *                              psa_pake_set_password_key() has been called
- *                              yet).
+ *                              been set yet (psa_pake_set_password_key()
+ *                              hasn't been called yet).
  * \param password              Identifier of the key holding the password or a
  *                              value derived from the password (eg. by a
  *                              memory-hard function).  It must remain valid
@@ -1388,67 +1381,6 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  */
 psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
                                        mbedtls_svc_key_id_t password);
-
-/** Set the password for a password-authenticated key exchange via a key
- * stretching function.
- *
- * Some protocols use values derived from passwords via key stretching
- * functions to mitigate dictionary attacks. Key stretching functions can be
- * accessed through the key derivation interface and the result can be supplied
- * to the PAKE operation in the form of a key derivation object.
- *
- * This function draws bytes from a key derivation algorithm and sets those
- * bytes as a password for the password-authenticated key exchange.  If you
- * view the key derivation's output as a stream of bytes, this function
- * destructively reads the requested number of bytes from the stream.
- * The key derivation operation's capacity decreases by the number of bytes read.
- *
- * If this function returns anything other than #PSA_SUCCESS, both \p operation
- * and \p key_derivation operations enter an error state and must be aborted by
- * calling psa_pake_abort() and psa_key_derivation_abort() respectively.
- *
- * \param[in,out] operation       The operation object to set the password for.
- *                                It must have been set up by psa_pake_setup()
- *                                and not yet in use (neither psa_pake_output()
- *                                nor psa_pake_input() has been called yet). It
- *                                must be on operation for which the password
- *                                hasn't been set yet (neither
- *                                psa_pake_set_password_stretch() nor
- *                                psa_pake_set_password_key() has been called
- *                                yet).
- * \param[in,out] key_derivation  An ongoing key derivation operation set up
- *                                from the password and in a state suitable for
- *                                calling psa_key_derivation_output_bytes().
- * \param input_length            Number of bytes to input from the
- *                                \p key_derivation operation.
- *
- * \retval #PSA_SUCCESS
- *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The state of \p operation or \p key_derivation is not valid.
- * \retval #PSA_ERROR_INSUFFICIENT_DATA
- *         The \p key_derivation operation's capacity was less than
- *         \p input_length bytes.
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_NOT_PERMITTED
- *         One of the inputs to \p key_derivation was a key whose policy didn't
- *         allow #PSA_KEY_USAGE_DERIVE.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with the algorithm or the cipher suite.
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_pake_set_password_stretch(
-        psa_pake_operation_t *operation,
-        psa_key_derivation_operation_t *key_derivation,
-        size_t input_length
-        );
 
 /** Set the user ID for a password-authenticated key exchange.
  *

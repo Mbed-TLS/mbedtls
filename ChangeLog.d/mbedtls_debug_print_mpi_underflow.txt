@@ -1,0 +1,2 @@
+Bugfix
+   * Fix a crash and potential integer underflow in mbedtls_debug_print_mpi

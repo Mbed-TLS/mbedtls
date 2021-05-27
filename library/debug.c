@@ -227,6 +227,8 @@ void mbedtls_debug_print_mpi( const mbedtls_ssl_context *ssl, int level,
         NULL == ssl->conf        ||
         NULL == ssl->conf->f_dbg ||
         NULL == X                ||
+        NULL == X->p             ||
+        0    == X->n             ||
         level > debug_threshold )
     {
         return;

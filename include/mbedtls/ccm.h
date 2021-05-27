@@ -396,10 +396,6 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *
  * \note            This function is not implemented in Mbed TLS yet.
  *
- * \note            For decryption, the output buffer cannot be the same as
- *                  the input buffer. If the buffers overlap, the output buffer
- *                  must trail at least 8 Bytes behind the input buffer.
- *
  * \param ctx           The CCM context. This must have been started with
  *                      mbedtls_ccm_starts().
  * \param input         The buffer holding the input data. If \p input_len
@@ -419,7 +415,6 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  * \return         \c 0 on success.
  * \return         #MBEDTLS_ERR_CCM_BAD_INPUT on failure:
  *                 total input length too long,
- *                 unsupported input/output buffer overlap detected,
  *                 or \p output_size too small.
  */
 int mbedtls_ccm_update( mbedtls_ccm_context *ctx,

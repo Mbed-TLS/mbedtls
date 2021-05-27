@@ -25,6 +25,9 @@
 #ifndef TEST_HELPERS_H
 #define TEST_HELPERS_H
 
+/* Most fields of publicly available structs are private and are wrapped with
+ * MBEDTLS_PRIVATE macro. This define allows tests to access the private fields
+ * directly (without using the MBEDTLS_PRIVATE wrapper). */
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
 #if !defined(MBEDTLS_CONFIG_FILE)

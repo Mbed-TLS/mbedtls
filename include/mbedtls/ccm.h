@@ -375,7 +375,7 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *                  ways:
  *                  - Immediate output: the output length is always equal
  *                    to the input length.
- *                  - Buffered output: but for the last part of input data,
+ *                  - Buffered output: except for the last part of input data,
  *                    the output consists of a whole number of 16-byte blocks.
  *                    If the total input length so far (not including
  *                    associated data) is 16 \* *B* + *A* with *A* < 16 then

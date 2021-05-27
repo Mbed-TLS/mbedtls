@@ -229,7 +229,8 @@ void dhm_file( char * filename, char * p, char * g, int len )
 
     TEST_ASSERT( mbedtls_dhm_parse_dhmfile( &ctx, filename ) == 0 );
 
-    TEST_ASSERT( ctx.len == (size_t) len );
+    TEST_EQUAL( mbedtls_dhm_get_len( &ctx ), (size_t) len );
+    TEST_EQUAL( mbedtls_dhm_get_bitlen( &ctx ), mbedtls_mpi_bitlen( &P ) );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctx.P, &P ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctx.G, &G ) == 0 );
 

@@ -124,6 +124,16 @@ void mbedtls_dhm_init( mbedtls_dhm_context *ctx )
     memset( ctx, 0, sizeof( mbedtls_dhm_context ) );
 }
 
+size_t mbedtls_dhm_get_bitlen( const mbedtls_dhm_context *ctx )
+{
+    return( mbedtls_mpi_bitlen( &ctx->P ) );
+}
+
+size_t mbedtls_dhm_get_len( const mbedtls_dhm_context *ctx )
+{
+    return( mbedtls_mpi_size( &ctx->P ) );
+}
+
 /*
  * Parse the ServerKeyExchange parameters
  */
@@ -143,8 +153,6 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
 
     if( ( ret = dhm_check_range( &ctx->GY, &ctx->P ) ) != 0 )
         return( ret );
-
-    ctx->len = mbedtls_mpi_size( &ctx->P );
 
     return( 0 );
 }
@@ -247,8 +255,6 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
 
     *olen = p - output;
 
-    ctx->len = n1;
-
 cleanup:
     if( ret != 0 && ret > -128 )
         ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED, ret );
@@ -273,7 +279,6 @@ int mbedtls_dhm_set_group( mbedtls_dhm_context *ctx,
         return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_SET_GROUP_FAILED, ret ) );
     }
 
-    ctx->len = mbedtls_mpi_size( &ctx->P );
     return( 0 );
 }
 
@@ -287,7 +292,7 @@ int mbedtls_dhm_read_public( mbedtls_dhm_context *ctx,
     DHM_VALIDATE_RET( ctx != NULL );
     DHM_VALIDATE_RET( input != NULL );
 
-    if( ilen < 1 || ilen > ctx->len )
+    if( ilen < 1 || ilen > mbedtls_dhm_get_len( ctx ) )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_mpi_read_binary( &ctx->GY, input, ilen ) ) != 0 )
@@ -309,7 +314,7 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
     DHM_VALIDATE_RET( output != NULL );
     DHM_VALIDATE_RET( f_rng != NULL );
 
-    if( olen < 1 || olen > ctx->len )
+    if( olen < 1 || olen > mbedtls_dhm_get_len( ctx ) )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
 
     ret = dhm_make_common( ctx, x_size, f_rng, p_rng );
@@ -408,7 +413,7 @@ int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
     DHM_VALIDATE_RET( output != NULL );
     DHM_VALIDATE_RET( olen != NULL );
 
-    if( output_size < ctx->len )
+    if( output_size < mbedtls_dhm_get_len( ctx ) )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
 
     if( ( ret = dhm_check_range( &ctx->GY, &ctx->P ) ) != 0 )
@@ -563,8 +568,6 @@ int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,
     }
 
     ret = 0;
-
-    dhm->len = mbedtls_mpi_size( &dhm->P );
 
 exit:
 #if defined(MBEDTLS_PEM_PARSE_C)

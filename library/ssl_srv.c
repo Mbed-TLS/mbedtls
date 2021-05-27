@@ -3049,7 +3049,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
 
         if( ( ret = mbedtls_dhm_make_params(
                   &ssl->handshake->dhm_ctx,
-                  (int) mbedtls_mpi_size( &ssl->handshake->dhm_ctx.P ),
+                  (int) mbedtls_dhm_get_len( &ssl->handshake->dhm_ctx ),
                   ssl->out_msg + ssl->out_msglen, &len,
                   ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {

@@ -96,7 +96,6 @@ extern "C" {
  */
 typedef struct mbedtls_dhm_context
 {
-    size_t MBEDTLS_PRIVATE(len);         /*!<  The size of \p P in Bytes. */
     mbedtls_mpi MBEDTLS_PRIVATE(P);      /*!<  The prime modulus. */
     mbedtls_mpi MBEDTLS_PRIVATE(G);      /*!<  The generator. */
     mbedtls_mpi MBEDTLS_PRIVATE(X);      /*!<  Our secret value. */
@@ -281,6 +280,26 @@ int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
                      unsigned char *output, size_t output_size, size_t *olen,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng );
+
+/**
+ * \brief          This function returns the size of the prime modulus in bits.
+ *
+ * \param ctx      The DHM context to query.
+ *
+ * \return         The size of the prime modulus in bits,
+ *                 i.e. the number n such that 2^(n-1) <= P < 2^n.
+ */
+size_t mbedtls_dhm_get_bitlen( const mbedtls_dhm_context *ctx );
+
+/**
+ * \brief          This function returns the size of the prime modulus in bytes.
+ *
+ * \param ctx      The DHM context to query.
+ *
+ * \return         The size of the prime modulus in bytes,
+ *                 i.e. the number n such that 2^(8*(n-1)) <= P < 2^(8*n).
+ */
+size_t mbedtls_dhm_get_len( const mbedtls_dhm_context *ctx );
 
 /**
  * \brief          This function frees and clears the components

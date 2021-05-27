@@ -147,6 +147,15 @@ class Config:
             setting.active = adapter(setting.name, setting.active,
                                      setting.section)
 
+    def change_matching(self, regexs, enable):
+        """Change all symbols matching one of the regexs to the desired state."""
+        if not regexs:
+            return
+        regex = re.compile('|'.join(regexs))
+        for setting in self.settings.values():
+            if regex.search(setting.name):
+                setting.active = enable
+
 def is_full_section(section):
     """Is this section affected by "config.py full" and friends?"""
     return section.endswith('support') or section.endswith('modules')
@@ -454,11 +463,21 @@ if __name__ == '__main__':
         parser_set.add_argument('symbol', metavar='SYMBOL')
         parser_set.add_argument('value', metavar='VALUE', nargs='?',
                                 default='')
+        parser_set_all = subparsers.add_parser('set-all',
+                                               help="""Uncomment all #define
+                                               whose name contains a match for
+                                               REGEX.""")
+        parser_set_all.add_argument('regexs', metavar='REGEX', nargs='*')
         parser_unset = subparsers.add_parser('unset',
                                              help="""Comment out the #define
                                              for SYMBOL. Do nothing if none
                                              is present.""")
         parser_unset.add_argument('symbol', metavar='SYMBOL')
+        parser_unset_all = subparsers.add_parser('unset-all',
+                                                 help="""Comment out all #define
+                                                 whose name contains a match for
+                                                 REGEX.""")
+        parser_unset_all.add_argument('regexs', metavar='REGEX', nargs='*')
 
         def add_adapter(name, function, description):
             subparser = subparsers.add_parser(name, help=description)
@@ -505,8 +524,12 @@ if __name__ == '__main__':
                                  .format(args.symbol, config.filename))
                 return 1
             config.set(args.symbol, value=args.value)
+        elif args.command == 'set-all':
+            config.change_matching(args.regexs, True)
         elif args.command == 'unset':
             config.unset(args.symbol)
+        elif args.command == 'unset-all':
+            config.change_matching(args.regexs, False)
         else:
             config.adapt(args.adapter)
         config.write(args.write)

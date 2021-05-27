@@ -316,6 +316,7 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  *
  * \return          \c 0 on success.
  * \return          \#MBEDTLS_ERR_CCM_BAD_INPUT on failure:
+ *                  \p mode is invalid,
  *                  \p iv_len is invalid (lower than \c 7 or greater than
  *                  \c 13),
  *                  \p total_add_len is greater than \c 0xFF00.

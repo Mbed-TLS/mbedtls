@@ -63,9 +63,6 @@ while (my $line = <CONFIG_FILE>) {
     if ($line =~ /^(\/\/)?\s*#\s*define\s+(MBEDTLS_\w+).*/) {
         my $name = $2;
 
-        # Skip over the macro that prevents multiple inclusion
-        next if "MBEDTLS_CONFIG_H" eq $name;
-
         # Skip over the macro if it is in the ecluded list
         next if $name =~ /$excluded_re/;
 

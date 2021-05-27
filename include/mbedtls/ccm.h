@@ -305,8 +305,11 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  *                  #MBEDTLS_CCM_STAR_DECRYPT.
  * \param iv        The initialization vector. This must be a readable buffer
  *                  of at least \p iv_len Bytes.
- * \param iv_len    The length of the IV in bytes.
+ * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
+ *                  or 13. The length L of the message length field is
+ *                  15 - \p iv_len.
  * \param total_add_len  The total length of additional data in bytes.
+ *                       This must be less than `2^16 - 2^8`.
  * \param plaintext_len  The length in bytes of the plaintext to encrypt or
  *                       result of the decryption (thus not encompassing the
  *                       additional data that are not encrypted).
@@ -436,8 +439,9 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
  * \param tag       The buffer for holding the tag. If \p tag_len is greater
  *                  than zero, this must be a writable buffer of at least \p
  *                  tag_len Bytes.
- * \param tag_len   The length of the tag to generate. This must be at least
- *                  four for CCM but can be equal to \c 0 for CCM*.
+ * \param tag_len   The length of the tag to generate in Bytes:
+ *                  4, 6, 8, 10, 12, 14 or 16.
+ *                  For CCM*, zero is also valid.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_CCM_BAD_INPUT on failure:

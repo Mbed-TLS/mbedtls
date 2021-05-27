@@ -446,14 +446,11 @@ void mbedtls_cipher_free(mbedtls_cipher_context_t *ctx);
 
 
 /**
- * \brief               This function initializes a cipher context for
+ * \brief               This function prepares a cipher context for
  *                      use with the given cipher primitive.
  *
- *  \warning            The behavior if mbedtls_cipher_set_padding_mode()
- *                      is not called after calling this function is not
- *                      guaranteed.
- *
- * \param ctx           The context to initialize. This must be initialized.
+ * \param ctx           The context to prepare. This must be initialized by
+ *                      a call to mbedtls_cipher_init() first.
  * \param cipher_info   The cipher to use.
  *
  * \return              \c 0 on success.
@@ -461,10 +458,6 @@ void mbedtls_cipher_free(mbedtls_cipher_context_t *ctx);
  *                      parameter-verification failure.
  * \return              #MBEDTLS_ERR_CIPHER_ALLOC_FAILED if allocation of the
  *                      cipher-specific context fails.
- *
- * \internal Currently, the function also clears the structure.
- * In future versions, the caller will be required to call
- * mbedtls_cipher_init() on the structure first.
  */
 int mbedtls_cipher_setup(mbedtls_cipher_context_t *ctx,
                          const mbedtls_cipher_info_t *cipher_info);

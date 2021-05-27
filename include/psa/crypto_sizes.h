@@ -42,11 +42,7 @@
 
 /* Include the Mbed TLS configuration file, the way Mbed TLS does it
  * in each of its header files. */
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #define PSA_BITS_TO_BYTES(bits) (((bits) + 7) / 8)
 #define PSA_BYTES_TO_BITS(bytes) ((bytes) * 8)

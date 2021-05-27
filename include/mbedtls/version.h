@@ -26,11 +26,7 @@
 #ifndef MBEDTLS_VERSION_H
 #define MBEDTLS_VERSION_H
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 /**
  * The version number x.y.z is split into three parts.

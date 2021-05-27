@@ -21,11 +21,7 @@
 #ifndef PSA_CRYPTO_SE_H
 #define PSA_CRYPTO_SE_H
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"

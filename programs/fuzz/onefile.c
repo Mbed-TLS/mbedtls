@@ -5,11 +5,7 @@
 /* This file doesn't use any Mbed TLS function, but grab config.h anyway
  * in case it contains platform-specific #defines related to malloc or
  * stdio functions. */
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size);
 

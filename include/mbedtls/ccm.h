@@ -306,9 +306,10 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \param iv        The initialization vector. This must be a readable buffer
  *                  of at least \p iv_len Bytes.
  * \param iv_len    The length of the IV in bytes.
- * \param total_add_len    The total length of additional data in bytes.
- * \param total_input_len  The total length of input data to encrypt or decrypt
- *                         in bytes.
+ * \param total_add_len  The total length of additional data in bytes.
+ * \param plaintext_len  The length in bytes of the plaintext to encrypt or
+ *                       result of the decryption (thus not encompassing the
+ *                       additional data that are not encrypted).
  *
  * \return          \c 0 on success.
  * \return          \#MBEDTLS_ERR_CCM_BAD_INPUT on failure:
@@ -321,7 +322,7 @@ int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
                         const unsigned char *iv,
                         size_t iv_len,
                         size_t total_add_len,
-                        size_t total_input_len );
+                        size_t plaintext_len );
 
 /**
  * \brief           This function feeds an input buffer as associated data
@@ -362,8 +363,8 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *                  encrypt, or the ciphertext (not including the tag) to
  *                  decrypt. After the last part of the input, call
  *                  mbedtls_ccm_finish(). The lengths \p input_len of the
- *                  data parts should eventually add up exactly to the total
- *                  length of input data \c total_input_len passed to
+ *                  data parts should eventually add up exactly to the
+ *                  plaintext length \c plaintext_len passed to
  *                  mbedtls_ccm_starts().
  *
  *                  This function may produce output in one of the following
@@ -378,8 +379,8 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *                    For the last part of input data, the output length is
  *                    equal to the input length plus the number of bytes (*A*)
  *                    buffered in the previous call to the function (if any).
- *                    The function uses the total length of input data
- *                    \c total_input_len passed to mbedtls_ccm_starts()
+ *                    The function uses the plaintext length
+ *                    \c plaintext_len passed to mbedtls_ccm_starts()
  *                    to detect the last part of input data.
  *
  *                  In particular:
@@ -446,9 +447,8 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
  *                  additional data \c total_add_len passed to
  *                  mbedtls_ccm_starts(),
  *                  the total amount of input data passed to
- *                  mbedtls_ccm_update() was lower than the total length of
- *                  input data \c total_input_len passed to
- *                  mbedtls_ccm_starts().
+ *                  mbedtls_ccm_update() was lower than the plaintext length
+ *                  \c plaintext_len passed to mbedtls_ccm_starts().
  */
 int mbedtls_ccm_finish( mbedtls_ccm_context *ctx,
                         unsigned char *tag, size_t tag_len );

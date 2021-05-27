@@ -21,8 +21,6 @@
  * be set before config.h, which pulls in glibc's features.h indirectly.
  * Harmless on other platforms. */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
 #define _POSIX_C_SOURCE 200112L
 #define _XOPEN_SOURCE 600
 

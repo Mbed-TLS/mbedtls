@@ -18,8 +18,6 @@
  *  limitations under the License.
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -252,13 +250,13 @@ int main( void )
     addr.sin_addr.s_addr = *((char *) &ret) == ret ? ADDR_LE : ADDR_BE;
     ret = 0;
 
-    if( ( server_fd.fd = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0 )
+    if( ( server_fd.MBEDTLS_PRIVATE(fd) = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0 )
     {
         ret = socket_failed;
         goto exit;
     }
 
-    if( connect( server_fd.fd,
+    if( connect( server_fd.MBEDTLS_PRIVATE(fd),
                 (const struct sockaddr *) &addr, sizeof( addr ) ) < 0 )
     {
         ret = connect_failed;

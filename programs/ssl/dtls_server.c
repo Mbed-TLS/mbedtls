@@ -17,8 +17,6 @@
  *  limitations under the License.
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -231,7 +229,7 @@ int main( void )
                                    mbedtls_ssl_cache_set );
 #endif
 
-    mbedtls_ssl_conf_ca_chain( &conf, srvcert.next, NULL );
+    mbedtls_ssl_conf_ca_chain( &conf, srvcert.MBEDTLS_PRIVATE(next), NULL );
    if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert, &pkey ) ) != 0 )
     {
         printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );

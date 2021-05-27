@@ -805,7 +805,7 @@ int sni_callback( void *p_info, mbedtls_ssl_context *ssl,
             return( mbedtls_ssl_set_hs_own_cert( ssl, cur->cert, cur->key ) );
         }
 
-        cur = cur->MBEDTLS_PRIVATE(next);
+        cur = cur->next;
     }
 
     return( -1 );
@@ -921,7 +921,7 @@ int psk_callback( void *p_info, mbedtls_ssl_context *ssl,
             return( mbedtls_ssl_set_hs_psk( ssl, cur->key, cur->key_len ) );
         }
 
-        cur = cur->MBEDTLS_PRIVATE(next);
+        cur = cur->next;
     }
 
     return( -1 );

@@ -1,0 +1,4 @@
+Features
+   * Use the new function mbedtls_ecjpake_set_point_format() to select the
+     point format for ECJPAKE instead of accessing the point_format field
+     directly, which is no longer supported.

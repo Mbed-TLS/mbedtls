@@ -132,6 +132,21 @@ int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
                            size_t len );
 
 /**
+ * \brief               Set the point format for future reads and writes.
+ *
+ * \param ctx           The ECJPAKE context to configure.
+ * \param point_format  The point format to use:
+ *                      #MBEDTLS_ECP_PF_UNCOMPRESSED (default)
+ *                      or #MBEDTLS_ECP_PF_COMPRESSED.
+ *
+ * \return              \c 0 if successful.
+ * \return              #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p point_format
+ *                      is invalid.
+ */
+int mbedtls_ecjpake_set_point_format( mbedtls_ecjpake_context *ctx,
+                                      int point_format );
+
+/**
  * \brief           Check if an ECJPAKE context is ready for use.
  *
  * \param ctx       The ECJPAKE context to check. This must be

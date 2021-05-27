@@ -407,7 +407,8 @@ static int ssl_parse_supported_point_formats( mbedtls_ssl_context *ssl,
             ssl->handshake->ecdh_ctx.point_format = p[0];
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-            ssl->handshake->ecjpake_ctx.point_format = p[0];
+            mbedtls_ecjpake_set_point_format( &ssl->handshake->ecjpake_ctx,
+                                              p[0] );
 #endif
             MBEDTLS_SSL_DEBUG_MSG( 4, ( "point format selected: %d", p[0] ) );
             return( 0 );

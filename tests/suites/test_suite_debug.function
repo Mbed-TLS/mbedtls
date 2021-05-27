@@ -193,3 +193,30 @@ exit:
     mbedtls_ssl_config_free( &conf );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_debug_print_mpi_sanity ( char * file,
+                                      int line, char * prefix )
+{
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+    struct buffer_data buffer;
+    mbedtls_mpi val;
+
+    mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
+    mbedtls_mpi_init( &val );
+    memset( buffer.buf, 0, 2000 );
+    buffer.ptr = buffer.buf;
+
+    TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == 0 );
+
+    mbedtls_ssl_conf_dbg( &conf, string_debug, &buffer);
+    mbedtls_debug_print_mpi( &ssl, 0, file, line, prefix, &val);
+
+exit:
+    mbedtls_mpi_free( &val );
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
+}
+/* END_CASE */

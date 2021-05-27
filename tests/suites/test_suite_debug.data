@@ -62,3 +62,6 @@ mbedtls_debug_print_mpi:16:"0000000000000000000000000000000000000000000000000000
 
 Debug print mbedtls_mpi #6
 mbedtls_debug_print_mpi:16:"0000000000000000000000000000000000000000000000000000000041379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":"MyFile":999:"VALUE":"MyFile(0999)\: value of 'VALUE' (759 bits) is\:\nMyFile(0999)\:  41 37 9d 00 fe d1 49 1f e1 5d f2 84 df de 4a 14\nMyFile(0999)\:  2f 68 aa 8d 41 20 23 19 5c ee 66 88 3e 62 90 ff\nMyFile(0999)\:  e7 03 f4 ea 59 63 bf 21 27 13 ce e4 6b 10 7c 09\nMyFile(0999)\:  18 2b 5e dc d9 55 ad ac 41 8b f4 91 8e 28 89 af\nMyFile(0999)\:  48 e1 09 9d 51 38 30 ce c8 5c 26 ac 1e 15 8b 52\nMyFile(0999)\:  62 0e 33 ba 86 92 f8 93 ef bb 2f 95 8b 44 24\n"
+
+Debug print mbedtls_mpi_sanity #1
+mbedtls_debug_print_mpi_sanity:"MyFile":999:"VALUE"

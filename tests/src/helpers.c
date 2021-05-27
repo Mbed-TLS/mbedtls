@@ -204,15 +204,6 @@ int mbedtls_test_hexcmp( uint8_t * a, uint8_t * b,
     return ret;
 }
 
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    (void) failure_condition;
-    (void) file;
-    (void) line;
-}
-
 #if defined(MBEDTLS_TEST_HOOKS)
 void mbedtls_test_err_add_check( int high, int low,
                                  const char *file, int line )

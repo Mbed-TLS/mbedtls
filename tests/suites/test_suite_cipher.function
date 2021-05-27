@@ -213,14 +213,11 @@ void cipher_invalid_param_conditional( )
     mbedtls_cipher_context_t valid_ctx;
 
     mbedtls_operation_t invalid_operation = 100;
-    mbedtls_cipher_padding_t valid_mode = MBEDTLS_PADDING_ZEROS;
     unsigned char valid_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
     int valid_size = sizeof(valid_buffer);
     int valid_bitlen = valid_size * 8;
     const mbedtls_cipher_info_t *valid_info = mbedtls_cipher_info_from_type(
         *( mbedtls_cipher_list() ) );
-
-    (void)valid_mode; /* In some configurations this is unused */
 
     TEST_EQUAL(
         MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,

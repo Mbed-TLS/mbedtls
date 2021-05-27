@@ -17,6 +17,25 @@
  * END_DEPENDENCIES
  */
 
+/* BEGIN_CASE depends_on:NOT_DEFINED */
+void rsa_invalid_param( )
+{
+    mbedtls_rsa_context ctx;
+    const int valid_padding = MBEDTLS_RSA_PKCS_V21;
+    const int invalid_padding = 42;
+    unsigned char buf[42] = { 0 };
+    size_t olen;
+
+    TEST_INVALID_PARAM( mbedtls_rsa_init( &ctx, invalid_padding, 0 ) );
+
+    TEST_INVALID_PARAM( mbedtls_rsa_set_padding( &ctx,
+                                                 invalid_padding, 0 ) );
+
+exit:
+    return;
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void rsa_init_free( int reinit )
 {

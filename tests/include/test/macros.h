@@ -58,9 +58,6 @@
  *          It allows a library function to return a value and return an error
  *          code that can be tested.
  *
- *          This macro is not suitable for negative parameter validation tests,
- *          as it assumes the test step will not create an error.
- *
  *          Failing the test means:
  *          - Mark this test case as failed.
  *          - Print a message identifying the failure.

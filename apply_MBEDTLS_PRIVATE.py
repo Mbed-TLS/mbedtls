@@ -74,24 +74,33 @@ for struct_file in struct_files:
 pp = pprint.PrettyPrinter(indent=4)
 pp.pprint(files_to_visit)
 
+mbedtls_private_access_include = "#include \"mbedtls/private_access.h\""
+
 for file_path, variables in files_to_visit.items():
+  # check if this file has "mbedtls/private_access.h" include
+  file_has_private_access_include = False
+  with open(file_path, 'r') as file:
+    for line in file:
+      if mbedtls_private_access_include in line:
+        file_has_private_access_include = True
+        break
+
   # FileInput redirects stdout to to 'file', so every print in this block will be put inside 'file'
   with fileinput.FileInput(file_path, inplace=True) as file:
     output_line_number = 1
     # compile regex matching the header's include guard.
     re_include_guard = re.compile(r"^#define.*{name}$".format(name=os.path.basename(file_path).replace('.','_').upper()))
     for line in file:
-      insert_allow_private_include = False
+      insert_private_access_include = False
       if re_include_guard.match(line):
-        insert_allow_private_include = True
+        insert_private_access_include = not file_has_private_access_include
       # every line in file is checked against variables and lines in which they occur
       for variable, var_lines in variables.items():
         for var_line in var_lines:
           # wrap variable with MBEDTLS_PRIVATE(...) macro
           if output_line_number == var_line:
-            line = re.sub(r"(^.*?\W+)({var})(\W+.*$)".format(var=variable), r"\1MBEDTLS_PRIVATE(\2)\3", line)
+            line = re.sub(r"(^.*?\W+)((?!MBEDTLS_PRIVATE\(){var})(\W+.*$)".format(var=variable), r"\1MBEDTLS_PRIVATE(\2)\3", line)
       output_line_number += 1
       print(line, end='') # fileinput redirects stdout to the target file
-      if insert_allow_private_include:
-        insert_allow_private_include = False
+      if insert_private_access_include:
         print("#include \"mbedtls/private_access.h\"")

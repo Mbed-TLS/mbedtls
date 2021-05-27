@@ -17,13 +17,7 @@
  *  limitations under the License.
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include <test/helpers.h>
 
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
 #include "psa_crypto_hash.h"

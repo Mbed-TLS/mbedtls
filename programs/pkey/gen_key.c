@@ -395,7 +395,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( key );
         mbedtls_printf( "curve: %s\n",
-                mbedtls_ecp_curve_info_from_grp_id( ecp->MBEDTLS_PRIVATE(grp).MBEDTLS_PRIVATE(id) )->MBEDTLS_PRIVATE(name) );
+                mbedtls_ecp_curve_info_from_grp_id( ecp->MBEDTLS_PRIVATE(grp).id )->MBEDTLS_PRIVATE(name) );
         mbedtls_mpi_write_file( "X_Q:   ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), 16, NULL );
         mbedtls_mpi_write_file( "Y_Q:   ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), 16, NULL );
         mbedtls_mpi_write_file( "D:     ", &ecp->MBEDTLS_PRIVATE(d)  , 16, NULL );

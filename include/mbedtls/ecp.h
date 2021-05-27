@@ -206,25 +206,33 @@ mbedtls_ecp_point;
  * additions or subtractions. Therefore, it is only an approximative modular
  * reduction. It must return 0 on success and non-zero on failure.
  *
- * \note        Alternative implementations must keep the group IDs distinct. If
- *              two group structures have the same ID, then they must be
- *              identical.
- *
+ * \note        Alternative implementations of the ECP module must obey the
+ *              following constraints.
+ *              * Group IDs must be distinct: if two group structures have
+ *                the same ID, then they must be identical.
+ *              * The fields \c id, \c P, \c A, \c B, \c G, \c N,
+ *                \c pbits and \c nbits must have the same type and semantics
+ *                as in the built-in implementation.
+ *                They must be available for reading, but direct modification
+ *                of these fields does not need to be supported.
+ *                They do not need to be at the same offset in the structure.
  */
 typedef struct mbedtls_ecp_group
 {
-    mbedtls_ecp_group_id MBEDTLS_PRIVATE(id);    /*!< An internal group identifier. */
-    mbedtls_mpi MBEDTLS_PRIVATE(P);              /*!< The prime modulus of the base field. */
-    mbedtls_mpi MBEDTLS_PRIVATE(A);              /*!< For Short Weierstrass: \p A in the equation. For
+    mbedtls_ecp_group_id id;    /*!< An internal group identifier. */
+    mbedtls_mpi P;              /*!< The prime modulus of the base field. */
+    mbedtls_mpi A;              /*!< For Short Weierstrass: \p A in the equation. For
                                      Montgomery curves: <code>(A + 2) / 4</code>. */
-    mbedtls_mpi MBEDTLS_PRIVATE(B);              /*!< For Short Weierstrass: \p B in the equation.
+    mbedtls_mpi B;              /*!< For Short Weierstrass: \p B in the equation.
                                      For Montgomery curves: unused. */
-    mbedtls_ecp_point MBEDTLS_PRIVATE(G);        /*!< The generator of the subgroup used. */
-    mbedtls_mpi MBEDTLS_PRIVATE(N);              /*!< The order of \p G. */
-    size_t MBEDTLS_PRIVATE(pbits);               /*!< The number of bits in \p P.*/
-    size_t MBEDTLS_PRIVATE(nbits);               /*!< For Short Weierstrass: The number of bits in \p P.
+    mbedtls_ecp_point G;        /*!< The generator of the subgroup used. */
+    mbedtls_mpi N;              /*!< The order of \p G. */
+    size_t pbits;               /*!< The number of bits in \p P.*/
+    size_t nbits;               /*!< For Short Weierstrass: The number of bits in \p P.
                                      For Montgomery curves: the number of bits in the
                                      private keys. */
+    /* End of public fields */
+
     unsigned int MBEDTLS_PRIVATE(h);             /*!< \internal 1 if the constants are static. */
     int (*MBEDTLS_PRIVATE(modp))(mbedtls_mpi *); /*!< The function for fast pseudo-reduction
                                      mod \p P (see above).*/

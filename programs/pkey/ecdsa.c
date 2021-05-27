@@ -156,7 +156,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    mbedtls_printf( " ok (key size: %d bits)\n", (int) ctx_sign.MBEDTLS_PRIVATE(grp).MBEDTLS_PRIVATE(pbits) );
+    mbedtls_printf( " ok (key size: %d bits)\n", (int) ctx_sign.MBEDTLS_PRIVATE(grp).pbits );
 
     dump_pubkey( "  + Public key: ", &ctx_sign );
 

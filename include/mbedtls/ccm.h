@@ -138,10 +138,10 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
  *                  15 - \p iv_len.
- * \param add       The additional data field. If \p add_len is greater than
- *                  zero, \p add must be a readable buffer of at least that
+ * \param ad        The additional data field. If \p ad_len is greater than
+ *                  zero, \p ad must be a readable buffer of at least that
  *                  length.
- * \param add_len   The length of additional data in Bytes.
+ * \param ad_len    The length of additional data in Bytes.
  *                  This must be less than `2^16 - 2^8`.
  * \param input     The buffer holding the input data. If \p length is greater
  *                  than zero, \p input must be a readable buffer of at least
@@ -159,7 +159,7 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
  */
 int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
                          const unsigned char *iv, size_t iv_len,
-                         const unsigned char *add, size_t add_len,
+                         const unsigned char *ad, size_t ad_len,
                          const unsigned char *input, unsigned char *output,
                          unsigned char *tag, size_t tag_len );
 
@@ -184,9 +184,9 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
  *                  15 - \p iv_len.
- * \param add       The additional data field. This must be a readable buffer of
- *                  at least \p add_len Bytes.
- * \param add_len   The length of additional data in Bytes.
+ * \param ad        The additional data field. This must be a readable buffer of
+ *                  at least \p ad_len Bytes.
+ * \param ad_len    The length of additional data in Bytes.
  *                  This must be less than 2^16 - 2^8.
  * \param input     The buffer holding the input data. If \p length is greater
  *                  than zero, \p input must be a readable buffer of at least
@@ -207,7 +207,7 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  */
 int mbedtls_ccm_star_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
                          const unsigned char *iv, size_t iv_len,
-                         const unsigned char *add, size_t add_len,
+                         const unsigned char *ad, size_t ad_len,
                          const unsigned char *input, unsigned char *output,
                          unsigned char *tag, size_t tag_len );
 
@@ -223,9 +223,9 @@ int mbedtls_ccm_star_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
  *                  15 - \p iv_len.
- * \param add       The additional data field. This must be a readable buffer
- *                  of at least that \p add_len Bytes..
- * \param add_len   The length of additional data in Bytes.
+ * \param ad        The additional data field. This must be a readable buffer
+ *                  of at least that \p ad_len Bytes..
+ * \param ad_len    The length of additional data in Bytes.
  *                  This must be less than 2^16 - 2^8.
  * \param input     The buffer holding the input data. If \p length is greater
  *                  than zero, \p input must be a readable buffer of at least
@@ -244,7 +244,7 @@ int mbedtls_ccm_star_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  */
 int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
                       const unsigned char *iv, size_t iv_len,
-                      const unsigned char *add, size_t add_len,
+                      const unsigned char *ad, size_t ad_len,
                       const unsigned char *input, unsigned char *output,
                       const unsigned char *tag, size_t tag_len );
 
@@ -265,9 +265,9 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
  *                  15 - \p iv_len.
- * \param add       The additional data field. This must be a readable buffer of
- *                  at least that \p add_len Bytes.
- * \param add_len   The length of additional data in Bytes.
+ * \param ad        The additional data field. This must be a readable buffer of
+ *                  at least that \p ad_len Bytes.
+ * \param ad_len    The length of additional data in Bytes.
  *                  This must be less than 2^16 - 2^8.
  * \param input     The buffer holding the input data. If \p length is greater
  *                  than zero, \p input must be a readable buffer of at least
@@ -289,7 +289,7 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  */
 int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
                       const unsigned char *iv, size_t iv_len,
-                      const unsigned char *add, size_t add_len,
+                      const unsigned char *ad, size_t ad_len,
                       const unsigned char *input, unsigned char *output,
                       const unsigned char *tag, size_t tag_len );
 
@@ -308,7 +308,7 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
  *                  15 - \p iv_len.
- * \param total_add_len  The total length of additional data in bytes.
+ * \param total_ad_len   The total length of additional data in bytes.
  *                       This must be less than `2^16 - 2^8`.
  * \param plaintext_len  The length in bytes of the plaintext to encrypt or
  *                       result of the decryption (thus not encompassing the
@@ -319,13 +319,13 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  *                  \p mode is invalid,
  *                  \p iv_len is invalid (lower than \c 7 or greater than
  *                  \c 13),
- *                  \p total_add_len is greater than \c 0xFF00.
+ *                  \p total_ad_len is greater than \c 0xFF00.
  */
 int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
                         int mode,
                         const unsigned char *iv,
                         size_t iv_len,
-                        size_t total_add_len,
+                        size_t total_ad_len,
                         size_t plaintext_len );
 
 /**
@@ -335,9 +335,9 @@ int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
  *
  *                  You may call this function zero, one or more times
  *                  to pass successive parts of the additional data. The
- *                  lengths \p add_len of the data parts should eventually add
+ *                  lengths \p ad_len of the data parts should eventually add
  *                  up exactly to the total length of additional data
- *                  \c total_add_len passed to mbedtls_ccm_starts(). You may
+ *                  \c total_ad_len passed to mbedtls_ccm_starts(). You may
  *                  not call this function after calling mbedtls_ccm_update().
  *
  * \note            This function is not implemented in Mbed TLS yet.
@@ -345,18 +345,18 @@ int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
  * \param ctx       The CCM context. This must have been started with
  *                  mbedtls_ccm_starts() and must not have yet received
  *                  any input with mbedtls_ccm_update().
- * \param add       The buffer holding the additional data, or \c NULL
- *                  if \p add_len is \c 0.
- * \param add_len   The length of the additional data. If \c 0,
- *                  \p add may be \c NULL.
+ * \param ad        The buffer holding the additional data, or \c NULL
+ *                  if \p ad_len is \c 0.
+ * \param ad_len    The length of the additional data. If \c 0,
+ *                  \p ad may be \c NULL.
  *
  * \return          \c 0 on success.
  * \return          \#MBEDTLS_ERR_CCM_BAD_INPUT on failure:
  *                  total input length too long.
  */
 int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
-                           const unsigned char *add,
-                           size_t add_len );
+                           const unsigned char *ad,
+                           size_t ad_len );
 
 /**
  * \brief           This function feeds an input buffer into an ongoing CCM
@@ -446,7 +446,7 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
  *                  invalid value of \p tag_len,
  *                  the total amount of additional data passed to
  *                  mbedtls_ccm_update_ad() was lower than the total length of
- *                  additional data \c total_add_len passed to
+ *                  additional data \c total_ad_len passed to
  *                  mbedtls_ccm_starts(),
  *                  the total amount of input data passed to
  *                  mbedtls_ccm_update() was lower than the plaintext length

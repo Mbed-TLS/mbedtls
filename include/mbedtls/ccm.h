@@ -400,7 +400,8 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *                  the input buffer. If the buffers overlap, the output buffer
  *                  must trail at least 8 Bytes behind the input buffer.
  *
- * \param ctx           The CCM context. This must be initialized.
+ * \param ctx           The CCM context. This must have been started with
+ *                      mbedtls_ccm_starts().
  * \param input         The buffer holding the input data. If \p input_len
  *                      is greater than zero, this must be a readable buffer
  *                      of at least \p input_len bytes.
@@ -435,7 +436,8 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
  *
  * \note            This function is not implemented in Mbed TLS yet.
  *
- * \param ctx       The CCM context. This must be initialized.
+ * \param ctx       The CCM context. This must have been started with
+ *                  mbedtls_ccm_starts().
  * \param tag       The buffer for holding the tag. If \p tag_len is greater
  *                  than zero, this must be a writable buffer of at least \p
  *                  tag_len Bytes.

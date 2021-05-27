@@ -291,12 +291,3 @@ exit:
     mbedtls_ccm_free( &ctx );
 }
 /* END_CASE */
-
-/* BEGIN_CASE */
-void ccm_valid_param( )
-{
-    TEST_VALID_PARAM( mbedtls_ccm_free( NULL ) );
-exit:
-    return;
-}
-/* END_CASE */

@@ -7,13 +7,6 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
-void blowfish_valid_param( )
-{
-    TEST_VALID_PARAM( mbedtls_blowfish_free( NULL ) );
-}
-/* END_CASE */
-
 /* BEGIN_CASE depends_on:NOT_DEFINED */
 void blowfish_invalid_param( )
 {

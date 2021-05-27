@@ -43,13 +43,6 @@ exit:
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
-void ecdh_valid_param( )
-{
-    TEST_VALID_PARAM( mbedtls_ecdh_free( NULL ) );
-}
-/* END_CASE */
-
 /* BEGIN_CASE depends_on:NOT_DEFINED */
 void ecdh_invalid_param( )
 {

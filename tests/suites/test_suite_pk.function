@@ -211,12 +211,6 @@ void valid_parameters( )
 
     mbedtls_pk_init( &pk );
 
-    TEST_VALID_PARAM( mbedtls_pk_free( NULL ) );
-
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    TEST_VALID_PARAM( mbedtls_pk_restart_free( NULL ) );
-#endif
-
     TEST_ASSERT( mbedtls_pk_setup( &pk, NULL ) ==
                  MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 

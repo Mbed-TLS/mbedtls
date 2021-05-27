@@ -222,12 +222,6 @@ void cipher_invalid_param_conditional( )
 
     (void)valid_mode; /* In some configurations this is unused */
 
-    /* mbedtls_cipher_init() */
-    TEST_VALID_PARAM( mbedtls_cipher_init( &valid_ctx ) );
-
-    /* mbedtls_cipher_setup() */
-    TEST_VALID_PARAM( mbedtls_cipher_setup( &valid_ctx, valid_info ) );
-
     TEST_EQUAL(
         MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
         mbedtls_cipher_setkey( &valid_ctx,
@@ -236,7 +230,7 @@ void cipher_invalid_param_conditional( )
                                invalid_operation ) );
 
 exit:
-    TEST_VALID_PARAM( mbedtls_cipher_free( &valid_ctx ) );
+    ;
 }
 /* END_CASE */
 

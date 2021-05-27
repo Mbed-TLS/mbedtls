@@ -5,13 +5,6 @@
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA1_C */
-void sha1_valid_param( )
-{
-    TEST_VALID_PARAM( mbedtls_sha1_free( NULL ) );
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_SHA1_C */
 void mbedtls_sha1( data_t * src_str, data_t * hash )
 {
     unsigned char output[41];
@@ -22,13 +15,6 @@ void mbedtls_sha1( data_t * src_str, data_t * hash )
     TEST_ASSERT( mbedtls_sha1_ret( src_str->x, src_str->len, output ) == 0 );
 
     TEST_ASSERT( mbedtls_test_hexcmp( output, hash->x, 20, hash->len ) == 0 );
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
-void sha256_valid_param( )
-{
-    TEST_VALID_PARAM( mbedtls_sha256_free( NULL ) );
 }
 /* END_CASE */
 
@@ -78,13 +64,6 @@ void mbedtls_sha256( data_t * src_str, data_t * hash )
     TEST_ASSERT( mbedtls_sha256_ret( src_str->x, src_str->len, output, 0 ) == 0 );
 
     TEST_ASSERT( mbedtls_test_hexcmp( output, hash->x, 32, hash->len ) == 0 );
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_SHA512_C */
-void sha512_valid_param( )
-{
-    TEST_VALID_PARAM( mbedtls_sha512_free( NULL ) );
 }
 /* END_CASE */
 

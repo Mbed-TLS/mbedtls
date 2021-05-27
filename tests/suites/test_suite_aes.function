@@ -413,12 +413,6 @@ void aes_misc_params( )
     size_t size;
 #endif
 
-    /* These calls accept NULL */
-    TEST_VALID_PARAM( mbedtls_aes_free( NULL ) );
-#if defined(MBEDTLS_CIPHER_MODE_XTS)
-    TEST_VALID_PARAM( mbedtls_aes_xts_free( NULL ) );
-#endif
-
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     TEST_ASSERT( mbedtls_aes_crypt_cbc( &aes_ctx, MBEDTLS_AES_ENCRYPT,
                                         15,

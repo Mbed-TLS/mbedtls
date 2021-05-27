@@ -177,29 +177,6 @@
         }                                                   \
     } while( 0 )
 
-/**
- * \brief   This macro tests the statement passed to it as a test step or
- *          individual test in a test case. The macro assumes the test will not fail.
- *
- *          It assumes the library function under test cannot return a value and
- *          assumes errors can only be indicated by calls to
- *          MBEDTLS_PARAM_FAILED().
- *
- *          This macro is intended to test that functions returning void
- *          accept all of the parameter values they're supposed to accept - eg
- *          that they don't call MBEDTLS_PARAM_FAILED() when a parameter
- *          that's allowed to be NULL happens to be NULL.
- *
- *          Note: for functions that return something other that void,
- *          checking that they accept all the parameters they're supposed to
- *          accept is best done by using TEST_ASSERT() and checking the return
- *          value as well.
- *
- * \param   TEST                The test expression to be tested.
- */
-#define TEST_VALID_PARAM( TEST )                                    \
-    TEST_ASSERT( ( TEST, 1 ) );
-
 /** Allocate memory dynamically and fail the test case if this fails.
  *
  * You must set \p pointer to \c NULL before calling this macro and

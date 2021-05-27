@@ -16,6 +16,9 @@
 #include "test/psa_crypto_helpers.h"
 #include "test/psa_exercise_key.h"
 
+/* If this comes up, it's a bug in the test code or in the test data. */
+#define UNUSED 0xdeadbeef
+
 /** An invalid export length that will never be set by psa_export_key(). */
 static const size_t INVALID_EXPORT_LENGTH = ~0U;
 
@@ -4027,7 +4030,12 @@ void derive_input( int alg_arg,
 
     for( i = 0; i < ARRAY_LENGTH( steps ); i++ )
     {
-        if( key_types[i] != PSA_KEY_TYPE_NONE )
+        mbedtls_test_set_step( i );
+        if( steps[i] == 0 )
+        {
+            /* Skip this step */
+        }
+        else if( key_types[i] != PSA_KEY_TYPE_NONE )
         {
             psa_set_key_type( &attributes, key_types[i] );
             PSA_ASSERT( psa_import_key( &attributes,

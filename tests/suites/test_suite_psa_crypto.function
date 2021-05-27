@@ -4086,7 +4086,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void test_derive_invalid_key_derivation_state( int alg_arg )
+void derive_over_capacity( int alg_arg )
 {
     psa_algorithm_t alg = alg_arg;
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
@@ -4137,7 +4137,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void test_derive_invalid_key_derivation_tests( )
+void derive_actions_without_setup( )
 {
     uint8_t output_buffer[16];
     size_t buffer_size = 16;

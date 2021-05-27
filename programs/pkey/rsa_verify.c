@@ -140,8 +140,8 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = mbedtls_rsa_pkcs1_verify( &rsa, NULL, NULL, MBEDTLS_RSA_PUBLIC,
-                                  MBEDTLS_MD_SHA256, 20, hash, buf ) ) != 0 )
+    if( ( ret = mbedtls_rsa_pkcs1_verify( &rsa, MBEDTLS_MD_SHA256,
+                                          20, hash, buf ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_rsa_pkcs1_verify returned -0x%0x\n\n", (unsigned int) -ret );
         goto exit;

@@ -250,13 +250,6 @@ int main( void )
 #define USAGE_MAX_FRAG_LEN ""
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-#define USAGE_RECSPLIT \
-    "    recsplit=0/1        default: (library default: on)\n"
-#else
-#define USAGE_RECSPLIT
-#endif
-
 #if defined(MBEDTLS_DHM_C)
 #define USAGE_DHMLEN \
     "    dhmlen=%%d           default: (library default: 1024 bits)\n"
@@ -294,13 +287,6 @@ int main( void )
     "                        records within a single datgram.\n"
 #else
 #define USAGE_DTLS ""
-#endif
-
-#if defined(MBEDTLS_SSL_FALLBACK_SCSV)
-#define USAGE_FALLBACK \
-    "    fallback=0/1        default: (library default: off)\n"
-#else
-#define USAGE_FALLBACK ""
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
@@ -411,20 +397,18 @@ int main( void )
     USAGE_TRUNC_HMAC                                        \
     USAGE_CONTEXT_CRT_CB                                    \
     USAGE_ALPN                                              \
-    USAGE_FALLBACK                                          \
     USAGE_EMS                                               \
     USAGE_ETM                                               \
     USAGE_REPRODUCIBLE                                      \
     USAGE_CURVES                                            \
-    USAGE_RECSPLIT                                          \
     USAGE_DHMLEN                                            \
     "\n"
 #define USAGE4 \
     "    allow_sha1=%%d       default: 0\n"                             \
-    "    min_version=%%s      default: (library default: tls1)\n"       \
+    "    min_version=%%s      default: (library default: tls1_2)\n"       \
     "    max_version=%%s      default: (library default: tls1_2)\n"     \
     "    force_version=%%s    default: \"\" (none)\n"       \
-    "                        options: tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
+    "                        options: tls1_2, dtls1_2\n" \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     "    query_config=<name>         return 0 if the specified\n"       \
@@ -1065,15 +1049,6 @@ int main( int argc, char *argv[] )
         {
             opt.alpn_string = q;
         }
-        else if( strcmp( p, "fallback" ) == 0 )
-        {
-            switch( atoi( q ) )
-            {
-                case 0: opt.fallback = MBEDTLS_SSL_IS_NOT_FALLBACK; break;
-                case 1: opt.fallback = MBEDTLS_SSL_IS_FALLBACK; break;
-                default: goto usage;
-            }
-        }
         else if( strcmp( p, "extended_ms" ) == 0 )
         {
             switch( atoi( q ) )
@@ -1100,12 +1075,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "min_version" ) == 0 )
         {
-            if( strcmp( q, "tls1" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 ||
-                     strcmp( q, "dtls1" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 ||
+            if( strcmp( q, "tls1_2" ) == 0 ||
                      strcmp( q, "dtls1_2" ) == 0 )
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
             else
@@ -1113,12 +1083,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "max_version" ) == 0 )
         {
-            if( strcmp( q, "tls1" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 ||
-                     strcmp( q, "dtls1" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 ||
+            if( strcmp( q, "tls1_2" ) == 0 ||
                      strcmp( q, "dtls1_2" ) == 0 )
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
             else
@@ -1135,26 +1100,10 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "force_version" ) == 0 )
         {
-            if( strcmp( q, "tls1" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
-            }
-            else if( strcmp( q, "tls1_1" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_2;
-            }
-            else if( strcmp( q, "tls1_2" ) == 0 )
+            if( strcmp( q, "tls1_2" ) == 0 )
             {
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
-            }
-            else if( strcmp( q, "dtls1" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_2;
-                opt.transport = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
             }
             else if( strcmp( q, "dtls1_2" ) == 0 )
             {
@@ -1377,10 +1326,10 @@ int main( int argc, char *argv[] )
         if( opt.min_version < ciphersuite_info->min_minor_ver )
         {
             opt.min_version = ciphersuite_info->min_minor_ver;
-            /* DTLS starts with TLS 1.1 */
+            /* DTLS starts with TLS 1.2 */
             if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-                opt.min_version < MBEDTLS_SSL_MINOR_VERSION_2 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
+                opt.min_version < MBEDTLS_SSL_MINOR_VERSION_3 )
+                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1808,13 +1757,6 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-    if( opt.recsplit != DFL_RECSPLIT )
-        mbedtls_ssl_conf_cbc_record_splitting( &conf, opt.recsplit
-                                  ? MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED
-                                  : MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED );
-#endif
-
 #if defined(MBEDTLS_DHM_C)
     if( opt.dhmlen != DFL_DHMLEN )
         mbedtls_ssl_conf_dhm_min_bitlen( &conf, opt.dhmlen );
@@ -1936,11 +1878,6 @@ int main( int argc, char *argv[] )
     if( opt.max_version != DFL_MAX_VERSION )
         mbedtls_ssl_conf_max_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3,
                                       opt.max_version );
-
-#if defined(MBEDTLS_SSL_FALLBACK_SCSV)
-    if( opt.fallback != DFL_FALLBACK )
-        mbedtls_ssl_conf_fallback( &conf, opt.fallback );
-#endif
 
     if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
     {

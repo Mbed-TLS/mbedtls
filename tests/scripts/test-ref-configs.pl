@@ -31,9 +31,6 @@ my %configs = (
     'config-ccm-psk-tls1_2.h' => {
         'compat' => '-m tls1_2 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
     },
-    'config-mini-tls1_1.h' => {
-        'compat' => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'', #'
-    },
     'config-no-entropy.h' => {
     },
     'config-suite-b.h' => {

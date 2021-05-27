@@ -132,8 +132,8 @@
  * - RFC 8446: see section 4.2.1
  */
 #define MBEDTLS_SSL_MAJOR_VERSION_3             3
-#define MBEDTLS_SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 */
-#define MBEDTLS_SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
+#define MBEDTLS_SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 deprecated */
+#define MBEDTLS_SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 deprecated */
 #define MBEDTLS_SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
 #define MBEDTLS_SSL_MINOR_VERSION_4             4   /*!< TLS v1.3 (experimental) */
 
@@ -156,9 +156,6 @@
 
 #define MBEDTLS_SSL_IS_CLIENT                   0
 #define MBEDTLS_SSL_IS_SERVER                   1
-
-#define MBEDTLS_SSL_IS_NOT_FALLBACK             0
-#define MBEDTLS_SSL_IS_FALLBACK                 1
 
 #define MBEDTLS_SSL_EXTENDED_MS_DISABLED        0
 #define MBEDTLS_SSL_EXTENDED_MS_ENABLED         1
@@ -198,9 +195,6 @@
 
 #define MBEDTLS_SSL_SESSION_TICKETS_DISABLED     0
 #define MBEDTLS_SSL_SESSION_TICKETS_ENABLED      1
-
-#define MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED    0
-#define MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED     1
 
 #define MBEDTLS_SSL_PRESET_DEFAULT              0
 #define MBEDTLS_SSL_PRESET_SUITEB               2
@@ -283,7 +277,6 @@
  * Signaling ciphersuite values (SCSV)
  */
 #define MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */
-#define MBEDTLS_SSL_FALLBACK_SCSV_VALUE         0x5600 /**< RFC 7507 section 2 */
 
 /*
  * Supported Signature and Hash algorithms (For TLS 1.2)
@@ -1159,9 +1152,7 @@ struct mbedtls_ssl_config
                                          that triggers renegotiation        */
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned int MBEDTLS_PRIVATE(badmac_limit);      /*!< limit of records with a bad MAC    */
-#endif
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
     unsigned int MBEDTLS_PRIVATE(dhm_min_bitlen);    /*!< min. bit length of the DHM prime   */
@@ -1193,9 +1184,6 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
     unsigned int MBEDTLS_PRIVATE(anti_replay) : 1;   /*!< detect and prevent replay?         */
 #endif
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-    unsigned int MBEDTLS_PRIVATE(cbc_record_splitting) : 1;  /*!< do cbc record splitting    */
-#endif
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     unsigned int MBEDTLS_PRIVATE(disable_renegotiation) : 1; /*!< disable renegotiation?     */
 #endif
@@ -1204,9 +1192,6 @@ struct mbedtls_ssl_config
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     unsigned int MBEDTLS_PRIVATE(session_tickets) : 1;   /*!< use session tickets?           */
-#endif
-#if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
-    unsigned int MBEDTLS_PRIVATE(fallback) : 1;      /*!< is this a fallback?                */
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
     unsigned int MBEDTLS_PRIVATE(cert_req_ca_list) : 1;  /*!< enable sending CA list in
@@ -1240,10 +1225,7 @@ struct mbedtls_ssl_context
 
     int MBEDTLS_PRIVATE(major_ver);              /*!< equal to  MBEDTLS_SSL_MAJOR_VERSION_3    */
     int MBEDTLS_PRIVATE(minor_ver);              /*!< one of MBEDTLS_SSL_MINOR_VERSION_x macros */
-
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned MBEDTLS_PRIVATE(badmac_seen);       /*!< records with a bad MAC received    */
-#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /** Callback to customize X.509 certificate chain verification          */
@@ -1356,10 +1338,6 @@ struct mbedtls_ssl_context
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     uint16_t MBEDTLS_PRIVATE(mtu);               /*!< path mtu, used to fragment outgoing messages */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
-
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-    signed char MBEDTLS_PRIVATE(split_done);     /*!< current record already splitted? */
-#endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
 
     /*
      * PKI layer
@@ -2279,7 +2257,6 @@ int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_conf_dtls_anti_replay( mbedtls_ssl_config *conf, char mode );
 #endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
 /**
  * \brief          Set a limit on the number of records with a bad MAC
  *                 before terminating the connection.
@@ -2304,7 +2281,6 @@ void mbedtls_ssl_conf_dtls_anti_replay( mbedtls_ssl_config *conf, char mode );
  *                 many bogus packets.
  */
 void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limit );
-#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
@@ -2599,12 +2575,10 @@ int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf, size_t len,
  * \param ciphersuites  0-terminated list of allowed ciphersuites
  * \param major         Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3
  *                      supported)
- * \param minor         Minor version number (MBEDTLS_SSL_MINOR_VERSION_1,
- *                      MBEDTLS_SSL_MINOR_VERSION_2,
- *                      MBEDTLS_SSL_MINOR_VERSION_3 supported)
+ * \param minor         Minor version number (only MBEDTLS_SSL_MINOR_VERSION_3
+ *                      supported)
  *
- * \note                With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0
- *                      and MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
+ * \note                With DTLS, use MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  */
 void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
                                        const int *ciphersuites,
@@ -3254,8 +3228,7 @@ void mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ss
  *
  * \note           This ignores ciphersuites from higher versions.
  *
- * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
- *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
+ * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
@@ -3266,13 +3239,12 @@ void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int mino
 
 /**
  * \brief          Set the minimum accepted SSL/TLS protocol version
- *                 (Default: TLS 1.0)
+ *                 (Default: TLS 1.2)
  *
  * \note           Input outside of the SSL_MAX_XXXXX_VERSION and
  *                 SSL_MIN_XXXXX_VERSION range is ignored.
  *
- * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
- *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
+ * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
@@ -3281,29 +3253,6 @@ void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int mino
  *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
 void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor );
-
-#if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
-/**
- * \brief          Set the fallback flag (client-side only).
- *                 (Default: MBEDTLS_SSL_IS_NOT_FALLBACK).
- *
- * \note           Set to MBEDTLS_SSL_IS_FALLBACK when preparing a fallback
- *                 connection, that is a connection with max_version set to a
- *                 lower value than the value you're willing to use. Such
- *                 fallback connections are not recommended but are sometimes
- *                 necessary to interoperate with buggy (version-intolerant)
- *                 servers.
- *
- * \warning        You should NOT set this to MBEDTLS_SSL_IS_FALLBACK for
- *                 non-fallback connections! This would appear to work for a
- *                 while, then cause failures when the server is upgraded to
- *                 support a newer TLS version.
- *
- * \param conf     SSL configuration
- * \param fallback MBEDTLS_SSL_IS_NOT_FALLBACK or MBEDTLS_SSL_IS_FALLBACK
- */
-void mbedtls_ssl_conf_fallback( mbedtls_ssl_config *conf, char fallback );
-#endif /* MBEDTLS_SSL_FALLBACK_SCSV && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
 /**
@@ -3398,21 +3347,6 @@ int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_c
  */
 void mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate );
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
-
-#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-/**
- * \brief          Enable / Disable 1/n-1 record splitting
- *                 (Default: MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED)
- *
- * \note           Only affects TLS 1.0, not higher versions.
- *                 Does not affect non-CBC ciphersuites in any version.
- *
- * \param conf     SSL configuration
- * \param split    MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED or
- *                 MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED
- */
-void mbedtls_ssl_conf_cbc_record_splitting( mbedtls_ssl_config *conf, char split );
-#endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
 /**

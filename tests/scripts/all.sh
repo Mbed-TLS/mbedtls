@@ -828,6 +828,15 @@ component_test_psa_crypto_client () {
     make test
 }
 
+component_test_psa_crypto_rsa_no_genprime() {
+    msg "build: default config minus MBEDTLS_GENPRIME"
+    scripts/config.py unset MBEDTLS_GENPRIME
+    make
+
+    msg "test: default config minus MBEDTLS_GENPRIME"
+    make test
+}
+
 component_test_ref_configs () {
     msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
@@ -2040,24 +2049,6 @@ component_test_variable_ssl_in_out_buffer_len_CID () {
     if_build_succeeded tests/ssl-opt.sh
 
     msg "test: compat.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_DTLS_CONNECTION_ID enabled"
-    if_build_succeeded tests/compat.sh
-}
-
-component_test_variable_ssl_in_out_buffer_len_record_splitting () {
-    msg "build: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING enabled (ASan build)"
-    scripts/config.py set MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
-    scripts/config.py set MBEDTLS_SSL_CBC_RECORD_SPLITTING
-
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING"
-    make test
-
-    msg "test: ssl-opt.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING enabled"
-    if_build_succeeded tests/ssl-opt.sh
-
-    msg "test: compat.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING enabled"
     if_build_succeeded tests/compat.sh
 }
 

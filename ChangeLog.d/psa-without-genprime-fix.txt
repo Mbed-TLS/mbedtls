@@ -1,0 +1,5 @@
+Bugfix
+   * Restore the ability to configure PSA via Mbed TLS options to support RSA
+     key pair operations but exclude RSA key generation. When MBEDTLS_GENPRIME
+     is not defined PSA will no longer attempt to use mbedtls_rsa_gen_key().
+     Fixes #4512.

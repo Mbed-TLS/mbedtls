@@ -67,7 +67,7 @@ else
 fi
 
 # default values for options
-MODES="tls1 tls1_1 tls1_2 dtls1 dtls1_2"
+MODES="tls1_2 dtls1_2"
 VERIFIES="NO YES"
 TYPES="ECDSA RSA PSK"
 FILTER=""
@@ -155,19 +155,13 @@ log() {
 # is_dtls <mode>
 is_dtls()
 {
-    test "$1" = "dtls1" -o "$1" = "dtls1_2"
+    test "$1" = "dtls1_2"
 }
 
 # minor_ver <mode>
 minor_ver()
 {
     case "$1" in
-        tls1)
-            echo 1
-            ;;
-        tls1_1|dtls1)
-            echo 2
-            ;;
         tls1_2|dtls1_2)
             echo 3
             ;;
@@ -841,18 +835,8 @@ setup_arguments()
 {
     G_MODE=""
     case "$MODE" in
-        "tls1")
-            G_PRIO_MODE="+VERS-TLS1.0"
-            ;;
-        "tls1_1")
-            G_PRIO_MODE="+VERS-TLS1.1"
-            ;;
         "tls1_2")
             G_PRIO_MODE="+VERS-TLS1.2"
-            ;;
-        "dtls1")
-            G_PRIO_MODE="+VERS-DTLS1.0"
-            G_MODE="-u"
             ;;
         "dtls1_2")
             G_PRIO_MODE="+VERS-DTLS1.2"

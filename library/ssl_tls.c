@@ -3871,8 +3871,10 @@ int mbedtls_ssl_conf_dh_param_ctx( mbedtls_ssl_config *conf, mbedtls_dhm_context
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if( ( ret = mbedtls_mpi_copy( &conf->dhm_P, &dhm_ctx->P ) ) != 0 ||
-        ( ret = mbedtls_mpi_copy( &conf->dhm_G, &dhm_ctx->G ) ) != 0 )
+    if( ( ret = mbedtls_dhm_get_value( &conf->dhm_P, dhm_ctx,
+                                       MBEDTLS_DHM_PARAM_P ) ) != 0 ||
+        ( ret = mbedtls_dhm_get_value( &conf->dhm_G, dhm_ctx,
+                                       MBEDTLS_DHM_PARAM_G ) ) != 0 )
     {
         mbedtls_mpi_free( &conf->dhm_P );
         mbedtls_mpi_free( &conf->dhm_G );

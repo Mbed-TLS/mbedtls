@@ -134,6 +134,37 @@ size_t mbedtls_dhm_get_len( const mbedtls_dhm_context *ctx )
     return( mbedtls_mpi_size( &ctx->P ) );
 }
 
+int mbedtls_dhm_get_value( mbedtls_mpi *dest,
+                           const mbedtls_dhm_context *ctx,
+                           mbedtls_dhm_parameter param )
+{
+    const mbedtls_mpi *src = NULL;
+    switch( param )
+    {
+        case MBEDTLS_DHM_PARAM_P:
+            src = &ctx->P;
+            break;
+        case MBEDTLS_DHM_PARAM_G:
+            src = &ctx->G;
+            break;
+        case MBEDTLS_DHM_PARAM_X:
+            src = &ctx->X;
+            break;
+        case MBEDTLS_DHM_PARAM_GX:
+            src = &ctx->GX;
+            break;
+        case MBEDTLS_DHM_PARAM_GY:
+            src = &ctx->GY;
+            break;
+        case MBEDTLS_DHM_PARAM_K:
+            src = &ctx->K;
+            break;
+        default:
+            return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+    }
+    return( mbedtls_mpi_copy( dest, src ) );
+}
+
 /*
  * Parse the ServerKeyExchange parameters
  */

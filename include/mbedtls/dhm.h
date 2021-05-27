@@ -85,6 +85,17 @@
 #define MBEDTLS_ERR_DHM_FILE_IO_ERROR                     -0x3480  /**< Read or write of file failed. */
 #define MBEDTLS_ERR_DHM_SET_GROUP_FAILED                  -0x3580  /**< Setting the modulus and generator failed. */
 
+/** Which parameter to access in mbedtls_dhm_get_value(). */
+typedef enum
+{
+    MBEDTLS_DHM_PARAM_P,  /*!<  The prime modulus. */
+    MBEDTLS_DHM_PARAM_G,  /*!<  The generator. */
+    MBEDTLS_DHM_PARAM_X,  /*!<  Our secret value. */
+    MBEDTLS_DHM_PARAM_GX, /*!<  Our public key = \c G^X mod \c P. */
+    MBEDTLS_DHM_PARAM_GY, /*!<  The public key of the peer = \c G^Y mod \c P. */
+    MBEDTLS_DHM_PARAM_K,  /*!<  The shared secret = \c G^(XY) mod \c P. */
+} mbedtls_dhm_parameter;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -300,6 +311,22 @@ size_t mbedtls_dhm_get_bitlen( const mbedtls_dhm_context *ctx );
  *                 i.e. the number n such that 2^(8*(n-1)) <= P < 2^(8*n).
  */
 size_t mbedtls_dhm_get_len( const mbedtls_dhm_context *ctx );
+
+/**
+ * \brief          This function copies a parameter of a DHM key.
+ *
+ * \param dest     The MPI object to copy the value into. It must be
+ *                 initialized.
+ * \param ctx      The DHM context to query.
+ * \param param    The parameter to copy.
+ *
+ * \return         \c 0 on success.
+ * \return         #MBEDTLS_ERR_DHM_BAD_INPUT_DATA if \p field is invalid.
+ * \return         An \c MBEDTLS_ERR_MPI_XXX error code if the copy fails.
+ */
+int mbedtls_dhm_get_value( mbedtls_mpi *dest,
+                           const mbedtls_dhm_context *ctx,
+                           mbedtls_dhm_parameter param );
 
 /**
  * \brief          This function frees and clears the components

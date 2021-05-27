@@ -1151,9 +1151,7 @@ struct mbedtls_ssl_config
                                          that triggers renegotiation        */
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned int badmac_limit;      /*!< limit of records with a bad MAC    */
-#endif
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
     unsigned int dhm_min_bitlen;    /*!< min. bit length of the DHM prime   */
@@ -1226,10 +1224,7 @@ struct mbedtls_ssl_context
 
     int major_ver;              /*!< equal to  MBEDTLS_SSL_MAJOR_VERSION_3    */
     int minor_ver;              /*!< one of MBEDTLS_SSL_MINOR_VERSION_x macros */
-
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned badmac_seen;       /*!< records with a bad MAC received    */
-#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /** Callback to customize X.509 certificate chain verification          */
@@ -2261,7 +2256,6 @@ int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_conf_dtls_anti_replay( mbedtls_ssl_config *conf, char mode );
 #endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
 /**
  * \brief          Set a limit on the number of records with a bad MAC
  *                 before terminating the connection.
@@ -2286,7 +2280,6 @@ void mbedtls_ssl_conf_dtls_anti_replay( mbedtls_ssl_config *conf, char mode );
  *                 many bogus packets.
  */
 void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limit );
-#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 

@@ -872,7 +872,6 @@ void print_deserialized_ssl_context( const uint8_t *ssl, size_t len )
     print_if_bit( "MBEDTLS_SSL_SESSION_TICKETS and client", SESSION_CONFIG_CLIENT_TICKET_BIT, session_cfg_flag );
 
     print_if_bit( "MBEDTLS_SSL_DTLS_CONNECTION_ID", CONTEXT_CONFIG_DTLS_CONNECTION_ID_BIT, context_cfg_flag );
-    print_if_bit( "MBEDTLS_SSL_DTLS_BADMAC_LIMIT", CONTEXT_CONFIG_DTLS_BADMAC_LIMIT_BIT, context_cfg_flag );
     print_if_bit( "MBEDTLS_SSL_DTLS_ANTI_REPLAY", CONTEXT_CONFIG_DTLS_ANTI_REPLAY_BIT, context_cfg_flag );
     print_if_bit( "MBEDTLS_SSL_ALPN", CONTEXT_CONFIG_ALPN_BIT, context_cfg_flag );
 

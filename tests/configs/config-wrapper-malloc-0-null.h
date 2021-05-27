@@ -18,9 +18,6 @@
  *  limitations under the License.
  */
 
-#ifndef MBEDTLS_CONFIG_H
-/* Don't #define MBEDTLS_CONFIG_H, let config.h do it. */
-
 #include "mbedtls/config.h"
 
 #include <stdlib.h>
@@ -33,5 +30,3 @@ static inline void *custom_calloc( size_t nmemb, size_t size )
 
 #define MBEDTLS_PLATFORM_MEMORY
 #define MBEDTLS_PLATFORM_STD_CALLOC custom_calloc
-
-#endif /* MBEDTLS_CONFIG_H */

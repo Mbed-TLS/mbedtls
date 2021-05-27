@@ -24,13 +24,6 @@
  *  limitations under the License.
  */
 
-#ifndef MBEDTLS_CONFIG_H
-#define MBEDTLS_CONFIG_H
-
-#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
-#define _CRT_SECURE_NO_DEPRECATE 1
-#endif
-
 /**
  * \name SECTION: System support
  *
@@ -3263,20 +3256,3 @@
 //#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
 
 /* \} name SECTION: Customisation configuration options */
-
-/* Target and application specific configurations
- *
- * Allow user to override any previous default.
- *
- */
-#if defined(MBEDTLS_USER_CONFIG_FILE)
-#include MBEDTLS_USER_CONFIG_FILE
-#endif
-
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
-#include "mbedtls/config_psa.h"
-#endif
-
-#include "mbedtls/check_config.h"
-
-#endif /* MBEDTLS_CONFIG_H */

@@ -26,10 +26,29 @@
 #ifndef MBEDTLS_BUILD_INFO_H
 #define MBEDTLS_BUILD_INFO_H
 
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
+#define _CRT_SECURE_NO_DEPRECATE 1
+#endif
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
+
+/* Target and application specific configurations
+ *
+ * Allow user to override any previous default.
+ *
+ */
+#if defined(MBEDTLS_USER_CONFIG_FILE)
+#include MBEDTLS_USER_CONFIG_FILE
+#endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#include "mbedtls/config_psa.h"
+#endif
+
+#include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_BUILD_INFO_H */

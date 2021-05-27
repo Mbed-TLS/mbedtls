@@ -1692,7 +1692,7 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
  *                      #PSA_ALG_IS_PAKE(\p alg) is true).
  * \param primitive     A primitive of type ::psa_pake_primitive_t that is
  *                      compatible with algorithm \p alg.
- * \param output_step   A value of type ::psa_pake_step_t that is valid for the
+ * \param input_step    A value of type ::psa_pake_step_t that is valid for the
  *                      algorithm \p alg.
  * \return              A sufficient output buffer size for the specified
  *                      output, cipher suite and algorithm. If the cipher suite,

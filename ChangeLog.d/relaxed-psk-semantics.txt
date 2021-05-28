@@ -1,9 +1,7 @@
 API changes
     * Modify semantics of `mbedtls_ssl_conf_[opaque_]psk()`:
       In Mbed TLS 2.X, the API prescribes that later calls overwrite
-      the effect of earlier calls, implying that there can be at most one
-      statically configured PSK. In Mbed TLS 3.X, multiple invocations of
-      `mbedtls_ssl_conf_[opaque_]psk()` can be attempted to register
-      multiple PSKs. Once an implementation-defined limit of PSKs
-      is reached, the functions ignore the request to add
-      further PSKs and fail non-fatally.
+      the effect of earlier calls. In Mbed TLS 3.0, calling
+      `mbedtls_ssl_conf_[opaque_]psk()` more than once will fail,
+      leaving the PSK intact that was configured first. Support
+      for more than one PSK may be added in 3.X.

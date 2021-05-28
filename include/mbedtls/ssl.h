@@ -2693,20 +2693,14 @@ int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 /**
- * \brief          Configure one or more pre-shared keys (PSKs) and their
+ * \brief          Configure pre-shared keys (PSKs) and their
  *                 identities to be used in PSK-based ciphersuites.
  *
- *                 This function may be called multiple times to attempt
- *                 to register multiple PSKs. The number of supported PSKs
- *                 is version-specific (see below for the current limit).
- *                 Once the limit is reached, this function fails, maintaining
- *                 the PSKs previously configured and ignoring the excess request.
- *                 This behavior is in contrast to Mbed TLS 2.x, where later
- *                 invocations would overwrite the effect of earlier calls.
- *
- * \note           Currently, the library supports only support a single PSK,
- *                 but this limit is not part of the API and may change in
- *                 future minor versions.
+ *                 Only one PSK can be registered, through either
+ *                 mbedtls_ssl_conf_psk() or mbedtls_ssl_conf_psk_opaque().
+ *                 If you attempt to register more than one PSK, this function
+ *                 fails, though this may change in future versions, which
+ *                 may add support for multiple PSKs.
  *
  * \note           This is mainly useful for clients. Servers will usually
  *                 want to use \c mbedtls_ssl_conf_psk_cb() instead.
@@ -2727,8 +2721,7 @@ int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *conf,
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if no more PSKs
- *                 can be configured. In this case, the SSL configuration
- *                 remains usable, but the PSK has not been configured.
+ *                 can be configured. In this case, the old PSK(s) remain intact.
  * \return         Another negative error code on other kinds of failure.
  */
 int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
@@ -2740,17 +2733,11 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
  * \brief          Configure one or more opaque pre-shared keys (PSKs) and
  *                 their identities to be used in PSK-based ciphersuites.
  *
- *                 This function may be called multiple times to attempt
- *                 to register multiple PSKs. The number of supported PSKs
- *                 is version-specific (see below for the current limit).
- *                 Once the limit is reached, this function fails, maintaining
- *                 the PSKs previously configured and ignoring the excess request.
- *                 This behavior is in contrast to Mbed TLS 2.x, where later
- *                 invocations would overwrite the effect of earlier calls.
- *
- * \note           Currently, the library supports only support a single PSK,
- *                 but this limit is not part of the API and may change in
- *                 future minor versions.
+ *                 Only one PSK can be registered, through either
+ *                 mbedtls_ssl_conf_psk() or mbedtls_ssl_conf_psk_opaque().
+ *                 If you attempt to register more than one PSK, this function
+ *                 fails, though this may change in future versions, which
+ *                 may add support for multiple PSKs.
  *
  * \note           This is mainly useful for clients. Servers will usually
  *                 want to use \c mbedtls_ssl_conf_psk_cb() instead.
@@ -2776,8 +2763,7 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if no more PSKs
- *                 can be configured. In this case, the SSL configuration
- *                 remains usable, but the PSK has not been configured.
+ *                 can be configured. In this case, the old PSK(s) remain intact.
  * \return         Another negative error code on other kinds of failure.
  */
 int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,

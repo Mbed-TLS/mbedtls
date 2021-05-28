@@ -2160,7 +2160,7 @@ static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
  */
 static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 {
-    return( ( key.MBEDTLS_PRIVATE(key_id) == 0 ) && ( key.MBEDTLS_PRIVATE(owner) == 0 ) );
+    return( key.MBEDTLS_PRIVATE(key_id) == 0 );
 }
 
 #endif /* !MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */

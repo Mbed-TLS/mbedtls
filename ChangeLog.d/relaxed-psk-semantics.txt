@@ -3,5 +3,5 @@ API changes
       In Mbed TLS 2.X, the API prescribes that later calls overwrite
       the effect of earlier calls. In Mbed TLS 3.0, calling
       `mbedtls_ssl_conf_[opaque_]psk()` more than once will fail,
-      leaving the PSK intact that was configured first. Support
-      for more than one PSK may be added in 3.X.
+      leaving the PSK that was configured first intact.
+      Support for more than one PSK may be added in 3.X.

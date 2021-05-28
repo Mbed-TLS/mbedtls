@@ -447,6 +447,14 @@ void aes_misc_params( )
     TEST_ASSERT( mbedtls_aes_crypt_ofb( &aes_ctx, 16, &size, out, in, out )
                  == MBEDTLS_ERR_AES_BAD_INPUT_DATA );
 #endif
+
+/*
+ * The following line needs to be added to make the code compilable
+ * when all the conditions above will be not define in a specific
+ * choice of features.
+ */
+    TEST_ASSERT( 1 );
+/* TODO: It will be removed when the whole test will be reworked */
 }
 /* END_CASE */
 

@@ -8,7 +8,7 @@ multiple times on the same SSL configuration.
 In Mbed TLS 2.x, users would observe later calls overwriting
 the effect of earlier calls, with the prevailing PSK being
 the one that has been configured last. In Mbed TLS 3.0,
-calling `mbedtls_conf_[opaque_]psk()` multiple times
+calling `mbedtls_ssl_conf_[opaque_]psk()` multiple times
 will return an error, leaving the first PSK intact.
 
 To achieve equivalent functionality when migrating to Mbed TLS 3.0,

@@ -1,0 +1,3 @@
+Removals
+   * Remove the MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3 option and let the code
+     behave as if it was always disabled. Fixes #4386.

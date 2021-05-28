@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/* This file doesn't use any Mbed TLS function, but grab config.h anyway
+/* This file doesn't use any Mbed TLS function, but grab mbedtls_config.h anyway
  * in case it contains platform-specific #defines related to malloc or
  * stdio functions. */
 #include "mbedtls/build_info.h"

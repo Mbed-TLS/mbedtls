@@ -1,5 +1,5 @@
 /**
- * \file config.h
+ * \file mbedtls_config.h
  *
  * \brief Configuration options (set of defines)
  *
@@ -1736,7 +1736,7 @@
  *
  * If you enable this option and write your own configuration file, you must
  * include mbedtls/config_psa.h in your configuration file. The default
- * provided mbedtls/config.h contains the necessary inclusion.
+ * provided mbedtls/mbedtls_config.h contains the necessary inclusion.
  *
  * This feature is still experimental and is not ready for production since
  * it is not completed.

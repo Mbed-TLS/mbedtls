@@ -51,7 +51,7 @@ int mbedtls_platform_entropy_poll( void *data,
  * \brief           Entropy poll callback for a hardware source
  *
  * \warning         This is not provided by mbed TLS!
- *                  See \c MBEDTLS_ENTROPY_HARDWARE_ALT in config.h.
+ *                  See \c MBEDTLS_ENTROPY_HARDWARE_ALT in mbedtls_config.h.
  *
  * \note            This must accept NULL as its first argument.
  */

@@ -26,14 +26,14 @@ import os
 import re
 
 class Setting:
-    """Representation of one Mbed TLS config.h setting.
+    """Representation of one Mbed TLS mbedtls_config.h setting.
 
     Fields:
     * name: the symbol name ('MBEDTLS_xxx').
     * value: the value of the macro. The empty string for a plain #define
       with no value.
     * active: True if name is defined, False if a #define for name is
-      present in config.h but commented out.
+      present in mbedtls_config.h but commented out.
     * section: the name of the section that contains this symbol.
     """
     # pylint: disable=too-few-public-methods
@@ -321,7 +321,7 @@ class ConfigFile(Config):
     and modify the configuration.
     """
 
-    _path_in_tree = 'include/mbedtls/config.h'
+    _path_in_tree = 'include/mbedtls/mbedtls_config.h'
     default_path = [_path_in_tree,
                     os.path.join(os.path.dirname(__file__),
                                  os.pardir,
@@ -363,7 +363,7 @@ class ConfigFile(Config):
     _config_line_regexp = re.compile(r'|'.join([_define_line_regexp,
                                                 _section_line_regexp]))
     def _parse_line(self, line):
-        """Parse a line in config.h and return the corresponding template."""
+        """Parse a line in mbedtls_config.h and return the corresponding template."""
         line = line.rstrip('\r\n')
         m = re.match(self._config_line_regexp, line)
         if m is None:
@@ -384,7 +384,7 @@ class ConfigFile(Config):
             return template
 
     def _format_template(self, name, indent, middle):
-        """Build a line for config.h for the given setting.
+        """Build a line for mbedtls_config.h for the given setting.
 
         The line has the form "<indent>#define <name> <value>"
         where <middle> is "#define <name> ".
@@ -428,7 +428,7 @@ class ConfigFile(Config):
 
 if __name__ == '__main__':
     def main():
-        """Command line config.h manipulation tool."""
+        """Command line mbedtls_config.h manipulation tool."""
         parser = argparse.ArgumentParser(description="""
         Mbed TLS and Mbed Crypto configuration file manipulation tool.
         """)

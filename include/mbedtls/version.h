@@ -86,7 +86,7 @@ void mbedtls_version_get_string_full( char *string );
  *
  * \note            only checks against defines in the sections "System
  *                  support", "mbed TLS modules" and "mbed TLS feature
- *                  support" in config.h
+ *                  support" in mbedtls_config.h
  *
  * \param feature   The string for the define to check (e.g. "MBEDTLS_AES_C")
  *

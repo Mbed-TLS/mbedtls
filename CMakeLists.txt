@@ -86,7 +86,7 @@ endif()
 if(MBEDTLS_PYTHON_EXECUTABLE)
 
     # If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
-    execute_process(COMMAND ${MBEDTLS_PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+    execute_process(COMMAND ${MBEDTLS_PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/mbedtls_config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
                         RESULT_VARIABLE result)
     if(${result} EQUAL 0)
         message(WARNING ${CTR_DRBG_128_BIT_KEY_WARNING})

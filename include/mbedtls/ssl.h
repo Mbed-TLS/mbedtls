@@ -211,7 +211,7 @@
  * \name SECTION: Module settings
  *
  * The configuration options you can set for this module are in this section.
- * Either change them in config.h or define them on the compiler command line.
+ * Either change them in mbedtls_config.h or define them on the compiler command line.
  * \{
  */
 
@@ -3539,7 +3539,7 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
  *
  * \note           The logic to determine the maximum outgoing record payload is
  *                 version-specific. It takes into account various factors, such as
- *                 the config.h setting \c MBEDTLS_SSL_OUT_CONTENT_LEN, extensions
+ *                 the mbedtls_config.h setting \c MBEDTLS_SSL_OUT_CONTENT_LEN, extensions
  *                 such as the max fragment length or record size limit extension if
  *                 used, and for DTLS the path MTU as configured and current
  *                 record expansion.
@@ -3566,7 +3566,7 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl );
  *
  * \note           The logic to determine the maximum outgoing record payload is
  *                 version-specific. It takes into account various factors, such as
- *                 the config.h setting \c MBEDTLS_SSL_IN_CONTENT_LEN, extensions
+ *                 the mbedtls_config.h setting \c MBEDTLS_SSL_IN_CONTENT_LEN, extensions
  *                 such as the max fragment length extension or record size limit
  *                 extension if used, and the current record expansion.
  *

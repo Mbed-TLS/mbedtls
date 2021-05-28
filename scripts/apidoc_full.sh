@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Generate doxygen documentation with a full config.h (this ensures that every
+# Generate doxygen documentation with a full mbedtls_config.h (this ensures that every
 # available flag is documented, and avoids warnings about documentation
 # without a corresponding #define).
 #
@@ -24,7 +24,7 @@
 
 set -eu
 
-CONFIG_H='include/mbedtls/config.h'
+CONFIG_H='include/mbedtls/mbedtls_config.h'
 
 if [ -r $CONFIG_H ]; then :; else
     echo "$CONFIG_H not found" >&2

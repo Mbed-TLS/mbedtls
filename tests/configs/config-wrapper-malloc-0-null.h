@@ -1,4 +1,4 @@
-/* config.h wrapper that forces calloc(0) to return NULL.
+/* mbedtls_config.h wrapper that forces calloc(0) to return NULL.
  * Used for testing.
  */
 /*
@@ -18,7 +18,7 @@
  *  limitations under the License.
  */
 
-#include "mbedtls/config.h"
+#include "mbedtls/mbedtls_config.h"
 
 #include <stdlib.h>
 static inline void *custom_calloc( size_t nmemb, size_t size )

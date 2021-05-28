@@ -27,6 +27,9 @@ void aria_invalid_param( )
 
     ((void) iv_off);
     ((void) iv);
+    ((void) ctx);
+    ((void) input);
+    ((void) output);
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     TEST_EQUAL( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,

@@ -988,8 +988,11 @@ typedef enum
  *                                 session identification, and PRF for
  *                                 implementation of TLS key exporters.
  *
- * \param p_expkey  Context for the callback.
- * \param type      The type of the key that is being exported.
+ * \param p_expkey   Context for the callback.
+ * \param type       The type of the key that is being exported.
+ * \param secret     The address of the buffer holding the secret
+ *                   that's being exporterd.
+ * \param secret_len The length of \p secret in bytes.
  * \param client_random The client random bytes.
  * \param server_random The server random bytes.
  * \param tls_prf_type The identifier for the PRF used in the handshake

@@ -308,6 +308,26 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
  *                  15 - \p iv_len.
+ *
+ * \return          \c 0 on success.
+ * \return          \#MBEDTLS_ERR_CCM_BAD_INPUT on failure:
+ *                  \p mode is invalid,
+ *                  \p iv_len is invalid (lower than \c 7 or greater than
+ *                  \c 13).
+ */
+int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
+                        int mode,
+                        const unsigned char *iv,
+                        size_t iv_len );
+
+/**
+ * \brief           This function declares the lengths of the message
+ *                  and additional data for a CCM encryption or decryption
+ *                  operation.
+ *
+ * \note            This function is not implemented in Mbed TLS yet.
+ *
+ * \param ctx       The CCM context. This must be initialized.
  * \param total_ad_len   The total length of additional data in bytes.
  *                       This must be less than `2^16 - 2^8`.
  * \param plaintext_len  The length in bytes of the plaintext to encrypt or
@@ -316,17 +336,11 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  *
  * \return          \c 0 on success.
  * \return          \#MBEDTLS_ERR_CCM_BAD_INPUT on failure:
- *                  \p mode is invalid,
- *                  \p iv_len is invalid (lower than \c 7 or greater than
- *                  \c 13),
  *                  \p total_ad_len is greater than \c 0xFF00.
  */
-int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
-                        int mode,
-                        const unsigned char *iv,
-                        size_t iv_len,
-                        size_t total_ad_len,
-                        size_t plaintext_len );
+int mbedtls_ccm_set_lengths( mbedtls_ccm_context *ctx,
+                             size_t total_ad_len,
+                             size_t plaintext_len );
 
 /**
  * \brief           This function feeds an input buffer as associated data
@@ -337,14 +351,17 @@ int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
  *                  to pass successive parts of the additional data. The
  *                  lengths \p ad_len of the data parts should eventually add
  *                  up exactly to the total length of additional data
- *                  \c total_ad_len passed to mbedtls_ccm_starts(). You may
- *                  not call this function after calling mbedtls_ccm_update().
+ *                  \c total_ad_len passed to mbedtls_ccm_set_lengths(). You
+ *                  may not call this function after calling
+ *                  mbedtls_ccm_update().
  *
  * \note            This function is not implemented in Mbed TLS yet.
  *
  * \param ctx       The CCM context. This must have been started with
- *                  mbedtls_ccm_starts() and must not have yet received
- *                  any input with mbedtls_ccm_update().
+ *                  mbedtls_ccm_starts(), the lengths of the message and
+ *                  additional data must have been declared with
+ *                  mbedtls_ccm_set_lengths() and this must not have yet
+ *                  received any input with mbedtls_ccm_update().
  * \param ad        The buffer holding the additional data, or \c NULL
  *                  if \p ad_len is \c 0.
  * \param ad_len    The length of the additional data. If \c 0,
@@ -369,7 +386,7 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *                  mbedtls_ccm_finish(). The lengths \p input_len of the
  *                  data parts should eventually add up exactly to the
  *                  plaintext length \c plaintext_len passed to
- *                  mbedtls_ccm_starts().
+ *                  mbedtls_ccm_set_lengths().
  *
  *                  This function may produce output in one of the following
  *                  ways:
@@ -384,7 +401,7 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *                    equal to the input length plus the number of bytes (*A*)
  *                    buffered in the previous call to the function (if any).
  *                    The function uses the plaintext length
- *                    \c plaintext_len passed to mbedtls_ccm_starts()
+ *                    \c plaintext_len passed to mbedtls_ccm_set_lengths()
  *                    to detect the last part of input data.
  *
  *                  In particular:
@@ -398,7 +415,9 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  * \note            This function is not implemented in Mbed TLS yet.
  *
  * \param ctx           The CCM context. This must have been started with
- *                      mbedtls_ccm_starts().
+ *                      mbedtls_ccm_starts() and the lengths of the message and
+ *                      additional data must have been declared with
+ *                      mbedtls_ccm_set_lengths().
  * \param input         The buffer holding the input data. If \p input_len
  *                      is greater than zero, this must be a readable buffer
  *                      of at least \p input_len bytes.
@@ -433,7 +452,9 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
  * \note            This function is not implemented in Mbed TLS yet.
  *
  * \param ctx       The CCM context. This must have been started with
- *                  mbedtls_ccm_starts().
+ *                  mbedtls_ccm_starts() and the lengths of the message and
+ *                  additional data must have been declared with
+ *                  mbedtls_ccm_set_lengths().
  * \param tag       The buffer for holding the tag. If \p tag_len is greater
  *                  than zero, this must be a writable buffer of at least \p
  *                  tag_len Bytes.
@@ -447,10 +468,10 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
  *                  the total amount of additional data passed to
  *                  mbedtls_ccm_update_ad() was lower than the total length of
  *                  additional data \c total_ad_len passed to
- *                  mbedtls_ccm_starts(),
+ *                  mbedtls_ccm_set_lengths(),
  *                  the total amount of input data passed to
  *                  mbedtls_ccm_update() was lower than the plaintext length
- *                  \c plaintext_len passed to mbedtls_ccm_starts().
+ *                  \c plaintext_len passed to mbedtls_ccm_set_lengths().
  */
 int mbedtls_ccm_finish( mbedtls_ccm_context *ctx,
                         unsigned char *tag, size_t tag_len );

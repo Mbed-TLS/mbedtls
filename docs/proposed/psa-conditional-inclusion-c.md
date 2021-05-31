@@ -145,13 +145,13 @@ The following table summarizes where symbols are defined depending on the config
 * (D) indicates a symbol that is deduced from other symbols by code that ships with Mbed TLS.
 * (G) indicates a symbol that is generated from driver descriptions.
 
-| Symbols                   | With `MBEDTLS_PSA_CRYPTO_CONFIG` | Without `MBEDTLS_PSA_CRYPTO_CONFIG` |
-| ------------------------- | -------------------------------- | ----------------------------------- |
-| `MBEDTLS_xxx_C`           | `mbedtls/mbedtls_config.h` (U) or        | `mbedtls/mbedtls_config.h` (U)              |
-|                           | `mbedtls/config_psa.h` (D)       |                                     |
-| `PSA_WANT_xxx`            | `psa/crypto_config.h` (U)        | `mbedtls/config_psa.h` (D)          |
-| `MBEDTLS_PSA_BUILTIN_xxx` | `mbedtls/config_psa.h` (D)       | `mbedtls/config_psa.h` (D)          |
-| `MBEDTLS_PSA_ACCEL_xxx`   | `mbedtls/crypto_drivers.h` (G)   | N/A                                 |
+| Symbols                   | With `MBEDTLS_PSA_CRYPTO_CONFIG`  | Without `MBEDTLS_PSA_CRYPTO_CONFIG` |
+| ------------------------- | --------------------------------- | ----------------------------------- |
+| `MBEDTLS_xxx_C`           | `mbedtls/mbedtls_config.h` (U) or | `mbedtls/mbedtls_config.h` (U)      |
+|                           | `mbedtls/config_psa.h` (D)        |                                     |
+| `PSA_WANT_xxx`            | `psa/crypto_config.h` (U)         | `mbedtls/config_psa.h` (D)          |
+| `MBEDTLS_PSA_BUILTIN_xxx` | `mbedtls/config_psa.h` (D)        | `mbedtls/config_psa.h` (D)          |
+| `MBEDTLS_PSA_ACCEL_xxx`   | `mbedtls/crypto_drivers.h` (G)    | N/A                                 |
 
 #### Visibility of internal symbols
 

@@ -290,7 +290,7 @@ static int pk_group_from_specified( const mbedtls_asn1_buf *params, mbedtls_ecp_
      */
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-        return( ret );
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
 
     end_field = p + len;
 
@@ -303,7 +303,7 @@ static int pk_group_from_specified( const mbedtls_asn1_buf *params, mbedtls_ecp_
      * prime-field OBJECT IDENTIFIER ::= { id-fieldType 1 }
      */
     if( ( ret = mbedtls_asn1_get_tag( &p, end_field, &len, MBEDTLS_ASN1_OID ) ) != 0 )
-        return( ret );
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
 
     if( len != MBEDTLS_OID_SIZE( MBEDTLS_OID_ANSI_X9_62_PRIME_FIELD ) ||
         memcmp( p, MBEDTLS_OID_ANSI_X9_62_PRIME_FIELD, len ) != 0 )
@@ -334,7 +334,7 @@ static int pk_group_from_specified( const mbedtls_asn1_buf *params, mbedtls_ecp_
      */
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-        return( ret );
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
 
     end_curve = p + len;
 

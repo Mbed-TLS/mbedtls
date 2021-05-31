@@ -2712,21 +2712,20 @@ int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 /**
- * \brief          Configure a pre-shared key (PSK) and identity
- *                 to be used in PSK-based ciphersuites.
+ * \brief          Configure pre-shared keys (PSKs) and their
+ *                 identities to be used in PSK-based ciphersuites.
+ *
+ *                 Only one PSK can be registered, through either
+ *                 mbedtls_ssl_conf_psk() or mbedtls_ssl_conf_psk_opaque().
+ *                 If you attempt to register more than one PSK, this function
+ *                 fails, though this may change in future versions, which
+ *                 may add support for multiple PSKs.
  *
  * \note           This is mainly useful for clients. Servers will usually
  *                 want to use \c mbedtls_ssl_conf_psk_cb() instead.
  *
  * \note           A PSK set by \c mbedtls_ssl_set_hs_psk() in the PSK callback
  *                 takes precedence over a PSK configured by this function.
- *
- * \warning        Currently, clients can only register a single pre-shared key.
- *                 Calling this function or mbedtls_ssl_conf_psk_opaque() more
- *                 than once will overwrite values configured in previous calls.
- *                 Support for setting multiple PSKs on clients and selecting
- *                 one based on the identity hint is not a planned feature,
- *                 but feedback is welcomed.
  *
  * \param conf     The SSL configuration to register the PSK with.
  * \param psk      The pointer to the pre-shared key to use.
@@ -2740,7 +2739,9 @@ int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *conf,
  *                 of the SSL configuration.
  *
  * \return         \c 0 if successful.
- * \return         An \c MBEDTLS_ERR_SSL_XXX error code on failure.
+ * \return         #MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if no more PSKs
+ *                 can be configured. In this case, the old PSK(s) remain intact.
+ * \return         Another negative error code on other kinds of failure.
  */
 int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
                 const unsigned char *psk, size_t psk_len,
@@ -2748,8 +2749,14 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /**
- * \brief          Configure an opaque pre-shared key (PSK) and identity
- *                 to be used in PSK-based ciphersuites.
+ * \brief          Configure one or more opaque pre-shared keys (PSKs) and
+ *                 their identities to be used in PSK-based ciphersuites.
+ *
+ *                 Only one PSK can be registered, through either
+ *                 mbedtls_ssl_conf_psk() or mbedtls_ssl_conf_psk_opaque().
+ *                 If you attempt to register more than one PSK, this function
+ *                 fails, though this may change in future versions, which
+ *                 may add support for multiple PSKs.
  *
  * \note           This is mainly useful for clients. Servers will usually
  *                 want to use \c mbedtls_ssl_conf_psk_cb() instead.
@@ -2757,13 +2764,6 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
  * \note           An opaque PSK set by \c mbedtls_ssl_set_hs_psk_opaque() in
  *                 the PSK callback takes precedence over an opaque PSK
  *                 configured by this function.
- *
- * \warning        Currently, clients can only register a single pre-shared key.
- *                 Calling this function or mbedtls_ssl_conf_psk() more than
- *                 once will overwrite values configured in previous calls.
- *                 Support for setting multiple PSKs on clients and selecting
- *                 one based on the identity hint is not a planned feature,
- *                 but feedback is welcomed.
  *
  * \param conf     The SSL configuration to register the PSK with.
  * \param psk      The identifier of the key slot holding the PSK.
@@ -2781,7 +2781,9 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
  *                 SSL configuration.
  *
  * \return         \c 0 if successful.
- * \return         An \c MBEDTLS_ERR_SSL_XXX error code on failure.
+ * \return         #MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if no more PSKs
+ *                 can be configured. In this case, the old PSK(s) remain intact.
+ * \return         Another negative error code on other kinds of failure.
  */
 int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,
                                  psa_key_id_t psk,

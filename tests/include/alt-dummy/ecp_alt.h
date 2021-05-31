@@ -21,19 +21,15 @@
 
 typedef struct mbedtls_ecp_group
 {
-    int dummy;
+    const mbedtls_ecp_group_id id;
+    const mbedtls_mpi P;
+    const mbedtls_mpi A;
+    const mbedtls_mpi B;
+    const mbedtls_ecp_point G;
+    const mbedtls_mpi N;
+    const size_t pbits;
+    const size_t nbits;
 }
 mbedtls_ecp_group;
-
-#if !defined(MBEDTLS_ECP_WINDOW_SIZE)
-
-#define MBEDTLS_ECP_WINDOW_SIZE    6
-#endif
-
-#if !defined(MBEDTLS_ECP_FIXED_POINT_OPTIM)
-
-#define MBEDTLS_ECP_FIXED_POINT_OPTIM  1
-#endif
-
 
 #endif /* ecp_alt.h */

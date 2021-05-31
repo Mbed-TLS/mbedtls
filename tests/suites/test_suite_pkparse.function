@@ -126,3 +126,24 @@ exit:
     mbedtls_pk_free( &pk );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void pk_parse_ec_key( data_t * buf, int grp_id, int result )
+{
+    mbedtls_pk_context pk;
+    mbedtls_ecp_keypair *ec;
+    mbedtls_pk_init( &pk );
+
+    TEST_EQUAL( mbedtls_pk_parse_key( &pk, buf->x, buf->len, NULL, 0 ),
+                result );
+    if( result == 0 )
+    {
+        TEST_ASSERT( mbedtls_pk_can_do( &pk, MBEDTLS_PK_ECKEY ) );
+        ec = mbedtls_pk_ec( pk );
+        TEST_EQUAL( ec->grp.id, (mbedtls_ecp_group_id) grp_id );
+    }
+
+exit:
+    mbedtls_pk_free( &pk );
+}
+/* END_CASE */

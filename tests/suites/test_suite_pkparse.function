@@ -1,4 +1,5 @@
 /* BEGIN_HEADER */
+#include "mbedtls/asn1.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
@@ -145,5 +146,28 @@ void pk_parse_ec_key( data_t * buf, int grp_id, int result )
 
 exit:
     mbedtls_pk_free( &pk );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C:MBEDTLS_PK_PARSE_EC_EXTENDED:MBEDTLS_TEST_HOOKS */
+void group_id_from_specified( data_t *buf,
+                              int expected_grp_id, int expected_result )
+{
+    mbedtls_asn1_buf params = {0x30, buf->len, NULL};
+    mbedtls_ecp_group_id actual_grp_id = MBEDTLS_ECP_DP_NONE;
+
+    /* Make a copy of the input so that memory sanitizers are sure to detect
+     * a buffer overread (the test framework does not guarantee that
+     * buf->x[buf->len] is unallocated). */
+    ASSERT_ALLOC( params.p, buf->len );
+    memcpy( params.p, buf->x, buf->len );
+
+    TEST_EQUAL( mbedtls_pk_group_id_from_specified( &params, &actual_grp_id ),
+                expected_result );
+    TEST_EQUAL( actual_grp_id,
+                (mbedtls_ecp_group_id) expected_grp_id );
+
+exit:
+    mbedtls_free( params.p );
 }
 /* END_CASE */

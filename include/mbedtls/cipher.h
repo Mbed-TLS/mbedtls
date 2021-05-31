@@ -703,7 +703,7 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
  *                3. mbedtls_cipher_update() one or more times
  *                4. mbedtls_cipher_finish()
  *                .
- *                This sequence can be repeated to encrypt of decrypt multiple
+ *                This sequence can be repeated to encrypt or decrypt multiple
  *                messages with the same key.
  *
  * \note          With AEAD ciphers, the order of calls for each message
@@ -716,7 +716,7 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
  *                6. mbedtls_cipher_check_tag() (for decryption) or
  *                mbedtls_cipher_write_tag() (for encryption).
  *                .
- *                This sequence can be repeated to encrypt of decrypt multiple
+ *                This sequence can be repeated to encrypt or decrypt multiple
  *                messages with the same key.
  *
  * \param ctx     The generic cipher context. This must be bound to a key.

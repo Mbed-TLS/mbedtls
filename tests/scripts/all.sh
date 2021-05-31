@@ -1376,6 +1376,9 @@ component_build_module_alt () {
     scripts/config.py unset MBEDTLS_DEBUG_C
     # You can only have one threading implementation: alt or pthread, not both.
     scripts/config.py unset MBEDTLS_THREADING_PTHREAD
+    # The SpecifiedECDomain parsing code accesses mbedtls_ecp_group fields
+    # directly and assumes the implementation works with partial groups.
+    scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
     # Enable all MBEDTLS_XXX_ALT for whole modules. Do not enable
     # MBEDTLS_XXX_YYY_ALT which are for single functions.
     scripts/config.py set-all 'MBEDTLS_([A-Z0-9]*|NIST_KW)_ALT'

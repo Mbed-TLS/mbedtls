@@ -1,0 +1,6 @@
+API changes
+   * For multi-part AEAD operations with the Cipher module, calling
+     mbedtls_cipher_finish() is now mandatory. Previously the documentation
+     was unclear on this point, and this function happened to never do
+     anything with the currently implemented AEADs, so in practice is was
+     possible to skip calling it, which is no longer supported.

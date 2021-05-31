@@ -378,6 +378,8 @@ static int pk_group_from_specified( const mbedtls_asn1_buf *params, mbedtls_ecp_
         /*
          * If we can't read the point because it's compressed, cheat by
          * reading only the X coordinate and the parity bit of Y.
+         * Note that len >= 1 if ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE
+         * (relying on internal details of mbedtls_ecp_point_read_binary()).
          */
         if( ret != MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE ||
             ( p[0] != 0x02 && p[0] != 0x03 ) ||

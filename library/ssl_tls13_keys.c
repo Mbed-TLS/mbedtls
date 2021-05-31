@@ -368,9 +368,6 @@ int mbedtls_ssl_tls1_3_derive_early_secrets(
      *            v
      *  PSK ->  HKDF-Extract = Early Secret
      *            |
-     *            +-----> Derive-Secret(., "ext binder" | "res binder", "")
-     *            |                     = binder_key
-     *            |
      *            +-----> Derive-Secret(., "c e traffic", ClientHello)
      *            |                     = client_early_traffic_secret
      *            |

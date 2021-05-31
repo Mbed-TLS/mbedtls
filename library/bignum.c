@@ -270,8 +270,23 @@ static void mpi_safe_cond_assign( size_t n,
                                   unsigned char assign )
 {
     size_t i;
+
+    /* MSVC has a warning about unary minus on unsigned integer types,
+     * but this is well-defined and precisely what we want to do here. */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
+
+    /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
+    const mbedtls_mpi_uint mask = -assign;
+
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+
     for( i = 0; i < n; i++ )
-        dest[i] = dest[i] * ( 1 - assign ) + src[i] * assign;
+        dest[i] = ( src[i] & mask ) | ( dest[i] & ~mask );
 }
 
 /*
@@ -283,20 +298,36 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X, const mbedtls_mpi *Y, unsigned
 {
     int ret = 0;
     size_t i;
+    unsigned int mask;
+    mbedtls_mpi_uint limb_mask;
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( Y != NULL );
 
+    /* MSVC has a warning about unary minus on unsigned integer types,
+     * but this is well-defined and precisely what we want to do here. */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
+
     /* make sure assign is 0 or 1 in a time-constant manner */
     assign = (assign | (unsigned char)-assign) >> 7;
+    /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
+    mask = -assign;
+    limb_mask = -assign;
+
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
 
-    X->s = X->s * ( 1 - assign ) + Y->s * assign;
+    X->s = ( X->s & ~mask ) | ( Y->s & mask );
 
     mpi_safe_cond_assign( Y->n, X->p, Y->p, assign );
 
     for( i = Y->n; i < X->n; i++ )
-        X->p[i] *= ( 1 - assign );
+        X->p[i] &= ~limb_mask;
 
 cleanup:
     return( ret );

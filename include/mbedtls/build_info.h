@@ -36,13 +36,26 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if !defined(MBEDTLS_CONFIG_VERSION) || \
+    MBEDTLS_CONFIG_VERSION != 1
+#error "Invalid config version, MBEDTLS_CONFIG_VERSION != 1"
+#endif
+
 /* Target and application specific configurations
  *
  * Allow user to override any previous default.
  *
  */
+#if defined(MBEDTLS_USER_CONFIG_VERSION)
+#error "MBEDTLS_USER_CONFIG_VERSION defined outside MBEDTLS_USER_CONFIG_FILE"
+#endif
+
 #if defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE
+#if !defined(MBEDTLS_USER_CONFIG_VERSION) || \
+    MBEDTLS_USER_CONFIG_VERSION != MBEDTLS_CONFIG_VERSION
+#error "Version mismatch between config file and MBEDTLS_USER_CONFIG_FILE"
+#endif
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)

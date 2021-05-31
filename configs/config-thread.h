@@ -32,6 +32,8 @@
  * See README.txt for usage instructions.
  */
 
+#define MBEDTLS_CONFIG_VERSION 1
+
 /* System support */
 #define MBEDTLS_HAVE_ASM
 

@@ -24,6 +24,8 @@
  *  limitations under the License.
  */
 
+#define MBEDTLS_CONFIG_VERSION 1
+
 /**
  * \name SECTION: System support
  *

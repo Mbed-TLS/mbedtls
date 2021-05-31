@@ -773,6 +773,12 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
 int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n );
 #endif
 
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
+#include "mbedtls/asn1.h"
+int mbedtls_pk_group_id_from_specified( const mbedtls_asn1_buf *params,
+                                        mbedtls_ecp_group_id *grp_id );
+#endif
+
 #ifdef __cplusplus
 }
 #endif

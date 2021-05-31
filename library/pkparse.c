@@ -455,8 +455,11 @@ cleanup:
 /*
  * Parse a SpecifiedECDomain (SEC 1 C.2) and find the associated group ID
  */
-static int pk_group_id_from_specified( const mbedtls_asn1_buf *params,
-                                       mbedtls_ecp_group_id *grp_id )
+#if !defined(MBEDTLS_TEST_HOOKS)
+static
+#endif
+int mbedtls_pk_group_id_from_specified( const mbedtls_asn1_buf *params,
+                                        mbedtls_ecp_group_id *grp_id )
 {
     int ret;
     mbedtls_ecp_group grp;
@@ -496,7 +499,7 @@ static int pk_use_ecparams( const mbedtls_asn1_buf *params, mbedtls_ecp_group *g
     else
     {
 #if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
-        if( ( ret = pk_group_id_from_specified( params, &grp_id ) ) != 0 )
+        if( ( ret = mbedtls_pk_group_id_from_specified( params, &grp_id ) ) != 0 )
             return( ret );
 #else
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );

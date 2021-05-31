@@ -103,16 +103,6 @@ extern "C" {
 #endif /* !MBEDTLS_PSA_ACCEL_ALG_HMAC */
 #endif /* PSA_WANT_ALG_HMAC */
 
-#if defined(PSA_WANT_ALG_MD2) && !defined(MBEDTLS_PSA_ACCEL_ALG_MD2)
-#define MBEDTLS_PSA_BUILTIN_ALG_MD2 1
-#define MBEDTLS_MD2_C
-#endif
-
-#if defined(PSA_WANT_ALG_MD4) && !defined(MBEDTLS_PSA_ACCEL_ALG_MD4)
-#define MBEDTLS_PSA_BUILTIN_ALG_MD4 1
-#define MBEDTLS_MD4_C
-#endif
-
 #if defined(PSA_WANT_ALG_MD5) && !defined(MBEDTLS_PSA_ACCEL_ALG_MD5)
 #define MBEDTLS_PSA_BUILTIN_ALG_MD5 1
 #define MBEDTLS_MD5_C
@@ -276,13 +266,6 @@ extern "C" {
 #define MBEDTLS_AES_C
 #endif /* PSA_HAVE_SOFT_KEY_TYPE_AES || PSA_HAVE_SOFT_BLOCK_MODE */
 #endif /* PSA_WANT_KEY_TYPE_AES */
-
-#if defined(PSA_WANT_KEY_TYPE_ARC4)
-#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ARC4)
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ARC4 1
-#define MBEDTLS_ARC4_C
-#endif /*!MBEDTLS_PSA_ACCEL_KEY_TYPE_ARC4 */
-#endif /* PSA_WANT_KEY_TYPE_ARC4 */
 
 #if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA)
@@ -591,16 +574,6 @@ extern "C" {
 #define PSA_WANT_ALG_TLS12_PSK_TO_MS 1
 #endif /* MBEDTLS_MD_C */
 
-#if defined(MBEDTLS_MD2_C)
-#define MBEDTLS_PSA_BUILTIN_ALG_MD2 1
-#define PSA_WANT_ALG_MD2 1
-#endif
-
-#if defined(MBEDTLS_MD4_C)
-#define MBEDTLS_PSA_BUILTIN_ALG_MD4 1
-#define PSA_WANT_ALG_MD4 1
-#endif
-
 #if defined(MBEDTLS_MD5_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_MD5 1
 #define PSA_WANT_ALG_MD5 1
@@ -659,13 +632,6 @@ extern "C" {
 #if defined(MBEDTLS_AES_C)
 #define PSA_WANT_KEY_TYPE_AES 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_AES 1
-#endif
-
-#if defined(MBEDTLS_ARC4_C)
-#define PSA_WANT_KEY_TYPE_ARC4 1
-#define PSA_WANT_ALG_STREAM_CIPHER 1
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ARC4 1
-#define MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER 1
 #endif
 
 #if defined(MBEDTLS_CAMELLIA_C)

@@ -121,14 +121,6 @@ static inline psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg
 {
     switch( md_alg )
     {
-#if defined(MBEDTLS_MD2_C)
-    case MBEDTLS_MD_MD2:
-        return( PSA_ALG_MD2 );
-#endif
-#if defined(MBEDTLS_MD4_C)
-    case MBEDTLS_MD_MD4:
-        return( PSA_ALG_MD4 );
-#endif
 #if defined(MBEDTLS_MD5_C)
     case MBEDTLS_MD_MD5:
         return( PSA_ALG_MD5 );

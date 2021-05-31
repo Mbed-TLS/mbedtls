@@ -30,8 +30,6 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-#include "mbedtls/md2.h"
-#include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
 #include "mbedtls/ripemd160.h"
 #include "mbedtls/sha1.h"
@@ -50,24 +48,6 @@
 
 #if defined(MBEDTLS_FS_IO)
 #include <stdio.h>
-#endif
-
-#if defined(MBEDTLS_MD2_C)
-const mbedtls_md_info_t mbedtls_md2_info = {
-    "MD2",
-    MBEDTLS_MD_MD2,
-    16,
-    16,
-};
-#endif
-
-#if defined(MBEDTLS_MD4_C)
-const mbedtls_md_info_t mbedtls_md4_info = {
-    "MD4",
-    MBEDTLS_MD_MD4,
-    16,
-    64,
-};
 #endif
 
 #if defined(MBEDTLS_MD5_C)
@@ -165,14 +145,6 @@ static const int supported_digests[] = {
         MBEDTLS_MD_MD5,
 #endif
 
-#if defined(MBEDTLS_MD4_C)
-        MBEDTLS_MD_MD4,
-#endif
-
-#if defined(MBEDTLS_MD2_C)
-        MBEDTLS_MD_MD2,
-#endif
-
         MBEDTLS_MD_NONE
 };
 
@@ -187,14 +159,6 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string( const char *md_name )
         return( NULL );
 
     /* Get the appropriate digest information */
-#if defined(MBEDTLS_MD2_C)
-    if( !strcmp( "MD2", md_name ) )
-        return mbedtls_md_info_from_type( MBEDTLS_MD_MD2 );
-#endif
-#if defined(MBEDTLS_MD4_C)
-    if( !strcmp( "MD4", md_name ) )
-        return mbedtls_md_info_from_type( MBEDTLS_MD_MD4 );
-#endif
 #if defined(MBEDTLS_MD5_C)
     if( !strcmp( "MD5", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_MD5 );
@@ -230,14 +194,6 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type( mbedtls_md_type_t md_type )
 {
     switch( md_type )
     {
-#if defined(MBEDTLS_MD2_C)
-        case MBEDTLS_MD_MD2:
-            return( &mbedtls_md2_info );
-#endif
-#if defined(MBEDTLS_MD4_C)
-        case MBEDTLS_MD_MD4:
-            return( &mbedtls_md4_info );
-#endif
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_MD_MD5:
             return( &mbedtls_md5_info );
@@ -285,16 +241,6 @@ void mbedtls_md_free( mbedtls_md_context_t *ctx )
     {
         switch( ctx->md_info->type )
         {
-#if defined(MBEDTLS_MD2_C)
-            case MBEDTLS_MD_MD2:
-                mbedtls_md2_free( ctx->md_ctx );
-                break;
-#endif
-#if defined(MBEDTLS_MD4_C)
-            case MBEDTLS_MD_MD4:
-                mbedtls_md4_free( ctx->md_ctx );
-                break;
-#endif
 #if defined(MBEDTLS_MD5_C)
             case MBEDTLS_MD_MD5:
                 mbedtls_md5_free( ctx->md_ctx );
@@ -359,16 +305,6 @@ int mbedtls_md_clone( mbedtls_md_context_t *dst,
 
     switch( src->md_info->type )
     {
-#if defined(MBEDTLS_MD2_C)
-        case MBEDTLS_MD_MD2:
-            mbedtls_md2_clone( dst->md_ctx, src->md_ctx );
-            break;
-#endif
-#if defined(MBEDTLS_MD4_C)
-        case MBEDTLS_MD_MD4:
-            mbedtls_md4_clone( dst->md_ctx, src->md_ctx );
-            break;
-#endif
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_MD_MD5:
             mbedtls_md5_clone( dst->md_ctx, src->md_ctx );
@@ -431,16 +367,6 @@ int mbedtls_md_setup( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_inf
 
     switch( md_info->type )
     {
-#if defined(MBEDTLS_MD2_C)
-        case MBEDTLS_MD_MD2:
-            ALLOC( md2 );
-            break;
-#endif
-#if defined(MBEDTLS_MD4_C)
-        case MBEDTLS_MD_MD4:
-            ALLOC( md4 );
-            break;
-#endif
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_MD_MD5:
             ALLOC( md5 );
@@ -501,14 +427,6 @@ int mbedtls_md_starts( mbedtls_md_context_t *ctx )
 
     switch( ctx->md_info->type )
     {
-#if defined(MBEDTLS_MD2_C)
-        case MBEDTLS_MD_MD2:
-            return( mbedtls_md2_starts( ctx->md_ctx ) );
-#endif
-#if defined(MBEDTLS_MD4_C)
-        case MBEDTLS_MD_MD4:
-            return( mbedtls_md4_starts( ctx->md_ctx ) );
-#endif
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_MD_MD5:
             return( mbedtls_md5_starts( ctx->md_ctx ) );
@@ -549,14 +467,6 @@ int mbedtls_md_update( mbedtls_md_context_t *ctx, const unsigned char *input, si
 
     switch( ctx->md_info->type )
     {
-#if defined(MBEDTLS_MD2_C)
-        case MBEDTLS_MD_MD2:
-            return( mbedtls_md2_update( ctx->md_ctx, input, ilen ) );
-#endif
-#if defined(MBEDTLS_MD4_C)
-        case MBEDTLS_MD_MD4:
-            return( mbedtls_md4_update( ctx->md_ctx, input, ilen ) );
-#endif
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_MD_MD5:
             return( mbedtls_md5_update( ctx->md_ctx, input, ilen ) );
@@ -597,14 +507,6 @@ int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output )
 
     switch( ctx->md_info->type )
     {
-#if defined(MBEDTLS_MD2_C)
-        case MBEDTLS_MD_MD2:
-            return( mbedtls_md2_finish( ctx->md_ctx, output ) );
-#endif
-#if defined(MBEDTLS_MD4_C)
-        case MBEDTLS_MD_MD4:
-            return( mbedtls_md4_finish( ctx->md_ctx, output ) );
-#endif
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_MD_MD5:
             return( mbedtls_md5_finish( ctx->md_ctx, output ) );
@@ -646,14 +548,6 @@ int mbedtls_md( const mbedtls_md_info_t *md_info, const unsigned char *input, si
 
     switch( md_info->type )
     {
-#if defined(MBEDTLS_MD2_C)
-        case MBEDTLS_MD_MD2:
-            return( mbedtls_md2( input, ilen, output ) );
-#endif
-#if defined(MBEDTLS_MD4_C)
-        case MBEDTLS_MD_MD4:
-            return( mbedtls_md4( input, ilen, output ) );
-#endif
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_MD_MD5:
             return( mbedtls_md5( input, ilen, output ) );
@@ -858,14 +752,6 @@ int mbedtls_md_process( mbedtls_md_context_t *ctx, const unsigned char *data )
 
     switch( ctx->md_info->type )
     {
-#if defined(MBEDTLS_MD2_C)
-        case MBEDTLS_MD_MD2:
-            return( mbedtls_internal_md2_process( ctx->md_ctx ) );
-#endif
-#if defined(MBEDTLS_MD4_C)
-        case MBEDTLS_MD_MD4:
-            return( mbedtls_internal_md4_process( ctx->md_ctx, data ) );
-#endif
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_MD_MD5:
             return( mbedtls_internal_md5_process( ctx->md_ctx, data ) );

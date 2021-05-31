@@ -100,7 +100,7 @@ int main( void )
     "                          Add NsCertType even if it is empty\n"    \
     "    md=%%s               default: SHA256\n"       \
     "                          possible values:\n"     \
-    "                          MD2, MD4, MD5, RIPEMD160, SHA1,\n" \
+    "                          MD5, RIPEMD160, SHA1,\n" \
     "                          SHA224, SHA256, SHA384, SHA512\n" \
     "\n"
 

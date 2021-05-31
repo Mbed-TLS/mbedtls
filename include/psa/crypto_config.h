@@ -69,8 +69,6 @@
 #define PSA_WANT_ALG_GCM                        1
 #define PSA_WANT_ALG_HKDF                       1
 #define PSA_WANT_ALG_HMAC                       1
-#define PSA_WANT_ALG_MD2                        1
-#define PSA_WANT_ALG_MD4                        1
 #define PSA_WANT_ALG_MD5                        1
 #define PSA_WANT_ALG_OFB                        1
 /* PBKDF2-HMAC is not yet supported via the PSA API in Mbed TLS.
@@ -118,7 +116,6 @@
 #define PSA_WANT_KEY_TYPE_DERIVE                1
 #define PSA_WANT_KEY_TYPE_HMAC                  1
 #define PSA_WANT_KEY_TYPE_AES                   1
-#define PSA_WANT_KEY_TYPE_ARC4                  1
 #define PSA_WANT_KEY_TYPE_CAMELLIA              1
 #define PSA_WANT_KEY_TYPE_CHACHA20              1
 #define PSA_WANT_KEY_TYPE_DES                   1

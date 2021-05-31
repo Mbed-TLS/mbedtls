@@ -25,13 +25,11 @@
 #endif
 
 #include "mbedtls/aes.h"
-#include "mbedtls/arc4.h"
 #include "mbedtls/aria.h"
 #include "mbedtls/asn1.h"
 #include "mbedtls/asn1write.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/bignum.h"
-#include "mbedtls/blowfish.h"
 #include "mbedtls/camellia.h"
 #include "mbedtls/ccm.h"
 #include "mbedtls/chacha20.h"
@@ -54,8 +52,6 @@
 #include "mbedtls/hkdf.h"
 #include "mbedtls/hmac_drbg.h"
 #include "mbedtls/md.h"
-#include "mbedtls/md2.h"
-#include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/nist_kw.h"
@@ -85,7 +81,6 @@
 #include "mbedtls/x509_crl.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_csr.h"
-#include "mbedtls/xtea.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"

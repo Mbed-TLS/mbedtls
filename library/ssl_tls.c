@@ -6098,6 +6098,11 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+/* The selection should be the same as mbedtls_x509_crt_profile_default in
+ * x509_crt.c. Here, the order matters: larger hashes first, for consistency
+ * with curves.
+ * See the documentation of mbedtls_ssl_conf_curves() for what we promise
+ * about this list. */
 static int ssl_preset_default_hashes[] = {
 #if defined(MBEDTLS_SHA512_C)
     MBEDTLS_MD_SHA512,
@@ -6108,13 +6113,46 @@ static int ssl_preset_default_hashes[] = {
 #if defined(MBEDTLS_SHA256_C)
     MBEDTLS_MD_SHA256,
 #endif
-#if defined(MBEDTLS_SHA224_C)
-    MBEDTLS_MD_SHA224,
-#endif
-#if defined(MBEDTLS_SHA1_C) && defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE)
-    MBEDTLS_MD_SHA1,
-#endif
     MBEDTLS_MD_NONE
+};
+#endif
+
+#if defined(MBEDTLS_ECP_C)
+/* The selection should be the same as mbedtls_x509_crt_profile_default in
+ * x509_crt.c, plus Montgomery curves for ECDHE. Here, the order matters:
+ * larger curves first, like ecp_supported_curves in ecp.c.
+ * See the documentation of mbedtls_ssl_conf_curves() for what we promise
+ * about this list. */
+static mbedtls_ecp_group_id ssl_preset_default_curves[] = {
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+    MBEDTLS_ECP_DP_SECP521R1,
+#endif
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+    MBEDTLS_ECP_DP_BP512R1,
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+    MBEDTLS_ECP_DP_CURVE448,
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+    MBEDTLS_ECP_DP_SECP384R1,
+#endif
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+    MBEDTLS_ECP_DP_BP384R1,
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+    // Positioned in the list as a fast 256-bit curve, not as a 255-bit curve
+    MBEDTLS_ECP_DP_CURVE25519,
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+    MBEDTLS_ECP_DP_SECP256R1,
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+    MBEDTLS_ECP_DP_SECP256K1,
+#endif
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+    MBEDTLS_ECP_DP_BP256R1,
+#endif
+    MBEDTLS_ECP_DP_NONE
 };
 #endif
 
@@ -6281,7 +6319,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_ECP_C)
-            conf->curve_list = mbedtls_ecp_grp_id_list();
+            conf->curve_list = ssl_preset_default_curves;
 #endif
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)

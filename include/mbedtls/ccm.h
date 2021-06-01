@@ -297,6 +297,11 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \brief           This function starts a CCM encryption or decryption
  *                  operation.
  *
+ *                  This function and mbedtls_ccm_set_lengths() must be called
+ *                  before calling mbedtls_ccm_update_ad() or
+ *                  mbedtls_ccm_update(). This function can be called before
+ *                  or after mbedtls_ccm_set_lengths().
+ *
  * \note            This function is not implemented in Mbed TLS yet.
  *
  * \param ctx       The CCM context. This must be initialized.
@@ -324,6 +329,11 @@ int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
  * \brief           This function declares the lengths of the message
  *                  and additional data for a CCM encryption or decryption
  *                  operation.
+ *
+ *                  This function and mbedtls_ccm_starts() must be called
+ *                  before calling mbedtls_ccm_update_ad() or
+ *                  mbedtls_ccm_update(). This function can be called before
+ *                  or after mbedtls_ccm_starts().
  *
  * \note            This function is not implemented in Mbed TLS yet.
  *

@@ -1076,22 +1076,6 @@ component_test_ecp_restartable_no_internal_rng () {
     # no SSL tests as they all depend on having a DRBG
 }
 
-component_test_new_ecdh_context () {
-    msg "build: new ECDH context (ASan build)" # ~ 6 min
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: new ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
-    make test
-
-    msg "test: new ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
-    if_build_succeeded tests/ssl-opt.sh -f ECDH
-
-    msg "test: new ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
-    # Exclude some symmetric ciphers that are redundant here to gain time.
-    if_build_succeeded tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
-}
-
 component_test_everest () {
     msg "build: Everest ECDH context (ASan build)" # ~ 6 min
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED

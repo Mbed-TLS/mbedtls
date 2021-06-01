@@ -989,7 +989,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_BP512R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_bp512_pub.pem":0
 
 Parse EC Key #1 (SEC1 DER)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.sec1.der":"NULL":0
 
 Parse EC Key #2 (SEC1 PEM)
@@ -1005,15 +1005,15 @@ depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8.der":"NULL":0
 
 Parse EC Key #4a (PKCS8 DER, no public key)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopub.der":"NULL":0
 
 Parse EC Key #4b (PKCS8 DER, no public key, with parameters)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopubparam.der":"NULL":0
 
 Parse EC Key #4c (PKCS8 DER, with parameters)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8param.der":"NULL":0
 
 Parse EC Key #5 (PKCS8 PEM)
@@ -1069,7 +1069,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_BP512R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_bp512_prv.pem":"NULL":0
 
 Parse EC Key #15 (SEC1 DER, secp256k1, SpecifiedECDomain)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256K1_ENABLED:MBEDTLS_PK_PARSE_EC_EXTENDED
+depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256K1_ENABLED:MBEDTLS_PK_PARSE_EC_EXTENDED
 pk_parse_keyfile_ec:"data_files/ec_prv.specdom.der":"NULL":0
 
 Key ASN1 (No data)

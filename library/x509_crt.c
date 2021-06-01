@@ -124,7 +124,26 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
 /* Next-generation profile. Currently identical to the default, but may
  * be tightened at any time. */
 const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next =
-    mbedtls_x509_crt_profile_default;
+{
+    /* Hashes from SHA-256 and above. */
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA384 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA512 ),
+    0xFFFFFFF, /* Any PK alg    */
+#if defined(MBEDTLS_ECP_C)
+    /* Curves at or above 128-bit security level. */
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP256R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP384R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP521R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_BP256R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_BP384R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_BP512R1 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP256K1 ),
+#else
+    0,
+#endif
+    2048,
+};
 
 /*
  * NSA Suite B Profile

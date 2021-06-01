@@ -1,6 +1,5 @@
 Removals
-   * Remove the MBEDTLS_REMOVE_3DES_CIPHERSUITES config.h option and makke as if
-     it was disabled. Remove all the 3DES ciphersuites:
+   * Remove all the 3DES ciphersuites:
      MBEDTLS_TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA,
      MBEDTLS_TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,
      MBEDTLS_TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,
@@ -9,4 +8,6 @@ Removals
      MBEDTLS_TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,
      MBEDTLS_TLS_PSK_WITH_3DES_EDE_CBC_SHA,
      MBEDTLS_TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA,
-     MBEDTLS_TLS_RSA_WITH_3DES_EDE_CBC_SHA . Fixes #4367.
+     MBEDTLS_TLS_RSA_WITH_3DES_EDE_CBC_SHA. Remove the
+     MBEDTLS_REMOVE_3DES_CIPHERSUITES option which is no longer relevant.
+     Fixes #4367.

@@ -2340,7 +2340,7 @@
  * \note When #MBEDTLS_CMAC_ALT is active, meaning that the underlying
  *       implementation of the CMAC algorithm is provided by an alternate
  *       implementation, that alternate implementation may opt to not support
- *       AES-192 as underlying block ciphers for the CMAC operation.
+ *       AES-192 or 3DES as underlying block ciphers for the CMAC operation.
  *
  * Module:  library/cmac.c
  *

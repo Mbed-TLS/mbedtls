@@ -95,25 +95,9 @@ typedef struct {
  */
 #define X509_MAX_VERIFY_CHAIN_SIZE    ( MBEDTLS_X509_MAX_INTERMEDIATE_CA + 2 )
 
-/*
- * Default profile
- */
+/* Default profile. Do not remove items unless there are serious security
+ * concerns. */
 const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
-{
-    /* Only SHA-2 hashes */
-    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA224 ) |
-    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 ) |
-    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA384 ) |
-    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA512 ),
-    0xFFFFFFF, /* Any PK alg    */
-    0xFFFFFFF, /* Any curve     */
-    2048,
-};
-
-/*
- * Next-default profile
- */
-const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next =
 {
     /* Hashes from SHA-256 and above */
     MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 ) |
@@ -134,6 +118,11 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next =
 #endif
     2048,
 };
+
+/* Next-generation profile. Currently identical to the default, but may
+ * be tightened at any time. */
+const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next =
+    mbedtls_x509_crt_profile_default;
 
 /*
  * NSA Suite B Profile

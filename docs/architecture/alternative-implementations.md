@@ -51,6 +51,18 @@ Where a context type needs to have a certain field, the field must have the same
 * ECP: `mbedtls_ecp_group` must have the fields `id`, `P`, `A`, `B`, `G`, `N`, `pbits` and `nbits`.
     * If `MBEDTLS_PK_PARSE_EC_EXTENDED` is enabled, those fields must be writable, and `mbedtls_ecp_point_read_binary()` must support a group structure where only `P`, `pbits`, `A` and `B` are set.
 
+It must be possible to move a context object in memory (except during the execution of a library function that takes this context as an argument). (This is necessary, for example, to support applications that populate a context on the stack of an inner function and then copy the context upwards through the call chain, or applications written in a language with automatic memory management that can move objects on the heap.) That is, call sequences like the following must work:
+```
+mbedtls_xxx_context ctx1, ctx2;
+mbedtls_xxx_init(&ctx1);
+mbedtls_xxx_setup(&ctx1, …);
+ctx2 = ctx1;
+memset(&ctx1, 0, sizeof(ctx1));
+mbedtls_xxx_do_stuff(&ctx2, …);
+mbedtls_xxx_free(&ctx2);
+```
+In practice, this means that a pointer to a context or to a part of a context does not remain valid across function calls. Alternative implementations do not need to support copying of contexts: contexts can only be cloned through explicit `clone()` functions.
+
 ## Function alternative implementations
 
 In some cases, it is possible to replace a single function or a small set of functions instead of [providing an alternative implementation of the whole module](#module-alternative-implementations).

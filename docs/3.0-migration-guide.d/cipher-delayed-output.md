@@ -1,7 +1,7 @@
 Calling `mbedtls_cipher_finish()` is mandatory for all multi-part operations
 ----------------------------------------------------------------------------
 
-This only affect people who use the Cipher module to perform AEAD operations
+This only affects people who use the cipher module to perform AEAD operations
 using the multi-part API.
 
 Previously, the documentation didn't state explicitly if it was OK to call

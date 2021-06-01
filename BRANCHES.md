@@ -28,6 +28,15 @@ undocumented features, then you should be able to re-compile it without
 modification with any later release x.y'.z' with the same major version
 number, and your code will still build, be secure, and work.
 
+Note that new releases of Mbed TLS may extend the API. Here are some example of changes that are common in minor releases of Mbed TLS, and are not considered compatibility breaks:
+
+* Adding or reordering fields in a structure or union.
+* Removing a field from a structure, unless the field is documented as public.
+* Adding items to an enum.
+* Returning an error code that was not previously documented for a function when a new error condition arises.
+* Changing which error code is returned in a case where multiple error conditions apply.
+* Changing the behavior of a function from failing to succeeding, when the change is a reasonable extension of the current behavior, i.e. the addition of a new feature.
+
 There are rare exceptions: code that was relying on something that became
 insecure in the meantime (for example, crypto that was found to be weak) may
 need to be changed. In case security comes in conflict with backwards

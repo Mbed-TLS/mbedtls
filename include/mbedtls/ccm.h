@@ -315,7 +315,8 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  *                  15 - \p iv_len.
  *
  * \return          \c 0 on success.
- * \return          \#MBEDTLS_ERR_CCM_BAD_INPUT on failure:
+ * \return          #MBEDTLS_ERR_CCM_BAD_INPUT on failure:
+ *                  \p ctx is in an invalid state,
  *                  \p mode is invalid,
  *                  \p iv_len is invalid (lower than \c 7 or greater than
  *                  \c 13).
@@ -345,7 +346,8 @@ int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
  *                       additional data that are not encrypted).
  *
  * \return          \c 0 on success.
- * \return          \#MBEDTLS_ERR_CCM_BAD_INPUT on failure:
+ * \return          #MBEDTLS_ERR_CCM_BAD_INPUT on failure:
+ *                  \p ctx is in an invalid state,
  *                  \p total_ad_len is greater than \c 0xFF00.
  */
 int mbedtls_ccm_set_lengths( mbedtls_ccm_context *ctx,
@@ -378,7 +380,8 @@ int mbedtls_ccm_set_lengths( mbedtls_ccm_context *ctx,
  *                  \p ad may be \c NULL.
  *
  * \return          \c 0 on success.
- * \return          \#MBEDTLS_ERR_CCM_BAD_INPUT on failure:
+ * \return          #MBEDTLS_ERR_CCM_BAD_INPUT on failure:
+ *                  \p ctx is in an invalid state,
  *                  total input length too long.
  */
 int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
@@ -444,6 +447,7 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
  *
  * \return         \c 0 on success.
  * \return         #MBEDTLS_ERR_CCM_BAD_INPUT on failure:
+ *                 \p ctx is in an invalid state,
  *                 total input length too long,
  *                 or \p output_size too small.
  */
@@ -474,6 +478,7 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_CCM_BAD_INPUT on failure:
+ *                  \p ctx is in an invalid state,
  *                  invalid value of \p tag_len,
  *                  the total amount of additional data passed to
  *                  mbedtls_ccm_update_ad() was lower than the total length of

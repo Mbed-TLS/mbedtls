@@ -650,6 +650,10 @@ pre_check_tools () {
     "$@" scripts/output_env.sh
 }
 
+pre_generate_files() {
+    make generated_files
+}
+
 
 
 ################################################################
@@ -673,8 +677,23 @@ component_check_recursion () {
 }
 
 component_check_generated_files () {
-    msg "Check: freshness of generated source files" # < 1s
+    msg "Check: check-generated-files, files generated with make" # 2s
+    make generated_files
     record_status tests/scripts/check-generated-files.sh
+
+    msg "Check: check-generated-files -u, files present" # 2s
+    record_status tests/scripts/check-generated-files.sh -u
+    # Check that the generated files are considered up to date.
+    record_status tests/scripts/check-generated-files.sh
+
+    msg "Check: check-generated-files -u, files absent" # 2s
+    command make neat
+    record_status tests/scripts/check-generated-files.sh -u
+    # Check that the generated files are considered up to date.
+    record_status tests/scripts/check-generated-files.sh
+
+    # This component ends with the generated files present in the source tree.
+    # This is necessary for subsequent components!
 }
 
 component_check_doxy_blocks () {
@@ -806,6 +825,15 @@ component_test_psa_crypto_client () {
     make
 
     msg "test: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT, make"
+    make test
+}
+
+component_test_psa_crypto_rsa_no_genprime() {
+    msg "build: default config minus MBEDTLS_GENPRIME"
+    scripts/config.py unset MBEDTLS_GENPRIME
+    make
+
+    msg "test: default config minus MBEDTLS_GENPRIME"
     make test
 }
 
@@ -2024,24 +2052,6 @@ component_test_variable_ssl_in_out_buffer_len_CID () {
     if_build_succeeded tests/compat.sh
 }
 
-component_test_variable_ssl_in_out_buffer_len_record_splitting () {
-    msg "build: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING enabled (ASan build)"
-    scripts/config.py set MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
-    scripts/config.py set MBEDTLS_SSL_CBC_RECORD_SPLITTING
-
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING"
-    make test
-
-    msg "test: ssl-opt.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING enabled"
-    if_build_succeeded tests/ssl-opt.sh
-
-    msg "test: compat.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING enabled"
-    if_build_succeeded tests/compat.sh
-}
-
 component_test_ssl_alloc_buffer_and_mfl () {
     msg "build: default config with memory buffer allocator and MFL extension"
     scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C
@@ -2072,21 +2082,6 @@ component_test_when_no_ciphersuites_have_mac () {
 
     msg "test ssl-opt.sh: !MBEDTLS_SSL_SOME_MODES_USE_MAC"
     if_build_succeeded tests/ssl-opt.sh -f 'Default\|EtM' -e 'without EtM'
-}
-
-component_test_null_entropy () {
-    msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
-    scripts/config.py set MBEDTLS_TEST_NULL_ENTROPY
-    scripts/config.py set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
-    scripts/config.py set MBEDTLS_ENTROPY_C
-    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
-    scripts/config.py unset MBEDTLS_ENTROPY_HARDWARE_ALT
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan -D UNSAFE_BUILD=ON .
-    make
-
-    msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites (inc. selftests) (ASan build)"
-    make test
 }
 
 component_test_no_date_time () {
@@ -2740,6 +2735,7 @@ pre_prepare_outcome_file
 pre_print_configuration
 pre_check_tools
 cleanup
+pre_generate_files
 
 # Run the requested tests.
 for component in $RUN_COMPONENTS; do

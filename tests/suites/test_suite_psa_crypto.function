@@ -4026,9 +4026,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void sign_deterministic( int key_type_arg, data_t *key_data,
-                         int alg_arg, data_t *input_data,
-                         data_t *output_data )
+void sign_hash_deterministic( int key_type_arg, data_t *key_data,
+                              int alg_arg, data_t *input_data,
+                              data_t *output_data )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -4081,9 +4081,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void sign_fail( int key_type_arg, data_t *key_data,
-                int alg_arg, data_t *input_data,
-                int signature_size_arg, int expected_status_arg )
+void sign_hash_fail( int key_type_arg, data_t *key_data,
+                     int alg_arg, data_t *input_data,
+                     int signature_size_arg, int expected_status_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -4126,8 +4126,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void sign_verify( int key_type_arg, data_t *key_data,
-                  int alg_arg, data_t *input_data )
+void sign_verify_hash( int key_type_arg, data_t *key_data,
+                       int alg_arg, data_t *input_data )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -4197,9 +4197,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void asymmetric_verify( int key_type_arg, data_t *key_data,
-                        int alg_arg, data_t *hash_data,
-                        data_t *signature_data )
+void verify_hash( int key_type_arg, data_t *key_data,
+                  int alg_arg, data_t *hash_data,
+                  data_t *signature_data )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -4229,10 +4229,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
-                             int alg_arg, data_t *hash_data,
-                             data_t *signature_data,
-                             int expected_status_arg )
+void verify_hash_fail( int key_type_arg, data_t *key_data,
+                       int alg_arg, data_t *hash_data,
+                       data_t *signature_data,
+                       int expected_status_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -4253,6 +4253,239 @@ void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
     actual_status = psa_verify_hash( key, alg,
                                      hash_data->x, hash_data->len,
                                      signature_data->x, signature_data->len );
+    TEST_EQUAL( actual_status, expected_status );
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void sign_message_deterministic( int key_type_arg,
+                                 data_t *key_data,
+                                 int alg_arg,
+                                 data_t *input_data,
+                                 data_t *output_data )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
+    unsigned char *signature = NULL;
+    size_t signature_size;
+    size_t signature_length = 0xdeadbeef;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
+
+    signature_size = PSA_SIGN_OUTPUT_SIZE( key_type, key_bits, alg );
+    TEST_ASSERT( signature_size != 0 );
+    TEST_ASSERT( signature_size <= PSA_SIGNATURE_MAX_SIZE );
+    ASSERT_ALLOC( signature, signature_size );
+
+    PSA_ASSERT( psa_sign_message( key, alg,
+                                  input_data->x, input_data->len,
+                                  signature, signature_size,
+                                  &signature_length ) );
+
+    ASSERT_COMPARE( output_data->x, output_data->len,
+                    signature, signature_length );
+
+exit:
+    psa_reset_key_attributes( &attributes );
+
+    psa_destroy_key( key );
+    mbedtls_free( signature );
+    PSA_DONE( );
+
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void sign_message_fail( int key_type_arg,
+                        data_t *key_data,
+                        int alg_arg,
+                        data_t *input_data,
+                        int signature_size_arg,
+                        int expected_status_arg )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t signature_size = signature_size_arg;
+    psa_status_t actual_status;
+    psa_status_t expected_status = expected_status_arg;
+    unsigned char *signature = NULL;
+    size_t signature_length = 0xdeadbeef;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    ASSERT_ALLOC( signature, signature_size );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+
+    actual_status = psa_sign_message( key, alg,
+                                      input_data->x, input_data->len,
+                                      signature, signature_size,
+                                      &signature_length );
+    TEST_EQUAL( actual_status, expected_status );
+    /* The value of *signature_length is unspecified on error, but
+     * whatever it is, it should be less than signature_size, so that
+     * if the caller tries to read *signature_length bytes without
+     * checking the error code then they don't overflow a buffer. */
+    TEST_ASSERT( signature_length <= signature_size );
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    mbedtls_free( signature );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void sign_verify_message( int key_type_arg,
+                          data_t *key_data,
+                          int alg_arg,
+                          data_t *input_data )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
+    unsigned char *signature = NULL;
+    size_t signature_size;
+    size_t signature_length = 0xdeadbeef;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE |
+                                          PSA_KEY_USAGE_VERIFY_MESSAGE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
+
+    signature_size = PSA_SIGN_OUTPUT_SIZE( key_type, key_bits, alg );
+    TEST_ASSERT( signature_size != 0 );
+    TEST_ASSERT( signature_size <= PSA_SIGNATURE_MAX_SIZE );
+    ASSERT_ALLOC( signature, signature_size );
+
+    PSA_ASSERT( psa_sign_message( key, alg,
+                                  input_data->x, input_data->len,
+                                  signature, signature_size,
+                                  &signature_length ) );
+    TEST_ASSERT( signature_length <= signature_size );
+    TEST_ASSERT( signature_length > 0 );
+
+    PSA_ASSERT( psa_verify_message( key, alg,
+                                    input_data->x, input_data->len,
+                                    signature, signature_length ) );
+
+    if( input_data->len != 0 )
+    {
+        /* Flip a bit in the input and verify that the signature is now
+         * detected as invalid. Flip a bit at the beginning, not at the end,
+         * because ECDSA may ignore the last few bits of the input. */
+        input_data->x[0] ^= 1;
+        TEST_EQUAL( psa_verify_message( key, alg,
+                                        input_data->x, input_data->len,
+                                        signature, signature_length ),
+                    PSA_ERROR_INVALID_SIGNATURE );
+    }
+
+exit:
+    psa_reset_key_attributes( &attributes );
+
+    psa_destroy_key( key );
+    mbedtls_free( signature );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void verify_message( int key_type_arg,
+                     data_t *key_data,
+                     int alg_arg,
+                     data_t *input_data,
+                     data_t *signature_data )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    TEST_ASSERT( signature_data->len <= PSA_SIGNATURE_MAX_SIZE );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_MESSAGE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+
+    PSA_ASSERT( psa_verify_message( key, alg,
+                                    input_data->x, input_data->len,
+                                    signature_data->x, signature_data->len ) );
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void verify_message_fail( int key_type_arg,
+                          data_t *key_data,
+                          int alg_arg,
+                          data_t *hash_data,
+                          data_t *signature_data,
+                          int expected_status_arg )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t actual_status;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_MESSAGE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+
+    actual_status = psa_verify_message( key, alg,
+                                        hash_data->x, hash_data->len,
+                                        signature_data->x,
+                                        signature_data->len );
     TEST_EQUAL( actual_status, expected_status );
 
 exit:

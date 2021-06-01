@@ -363,12 +363,8 @@ int main( void )
 #define USAGE_ANTI_REPLAY ""
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
 #define USAGE_BADMAC_LIMIT \
     "    badmac_limit=%%d     default: (library default: disabled)\n"
-#else
-#define USAGE_BADMAC_LIMIT ""
-#endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 #define USAGE_DTLS \
@@ -451,7 +447,7 @@ int main( void )
     "    server_port=%%d      default: 4433\n"              \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    buffer_size=%%d      default: 200 \n" \
-    "                         (minimum: 1, max: 16385)\n" \
+    "                         (minimum: 1)\n" \
     "    response_size=%%d    default: about 152 (basic response)\n" \
     "                          (minimum: 0, max: 16384)\n" \
     "                          increases buffer_size if bigger\n"\
@@ -500,10 +496,10 @@ int main( void )
     USAGE_SSL_ASYNC                                         \
     USAGE_SNI                                               \
     "    allow_sha1=%%d       default: 0\n"                             \
-    "    min_version=%%s      default: (library default: tls1)\n"       \
+    "    min_version=%%s      default: (library default: tls1_2)\n"       \
     "    max_version=%%s      default: (library default: tls1_2)\n"     \
     "    force_version=%%s    default: \"\" (none)\n"       \
-    "                        options: tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
+    "                        options: tls1_2, dtls1_2\n" \
     "\n"                                                                \
     "    version_suites=a,b,c        per-version ciphersuites\n"        \
     "                                in order from tls1 to tls1_2\n"    \
@@ -1572,13 +1568,13 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "buffer_size" ) == 0 )
         {
             opt.buffer_size = atoi( q );
-            if( opt.buffer_size < 1 || opt.buffer_size > MBEDTLS_SSL_MAX_CONTENT_LEN + 1 )
+            if( opt.buffer_size < 1 )
                 goto usage;
         }
         else if( strcmp( p, "response_size" ) == 0 )
         {
             opt.response_size = atoi( q );
-            if( opt.response_size < 0 || opt.response_size > MBEDTLS_SSL_MAX_CONTENT_LEN )
+            if( opt.response_size < 0 || opt.response_size > MBEDTLS_SSL_OUT_CONTENT_LEN )
                 goto usage;
             if( opt.buffer_size < opt.response_size )
                 opt.buffer_size = opt.response_size;
@@ -1726,12 +1722,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "min_version" ) == 0 )
         {
-            if( strcmp( q, "tls1" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 ||
-                     strcmp( q, "dtls1" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 ||
+            if( strcmp( q, "tls1_2" ) == 0 ||
                      strcmp( q, "dtls1_2" ) == 0 )
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
             else
@@ -1739,12 +1730,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "max_version" ) == 0 )
         {
-            if( strcmp( q, "tls1" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 ||
-                     strcmp( q, "dtls1" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 ||
+            if( strcmp( q, "tls1_2" ) == 0 ||
                      strcmp( q, "dtls1_2" ) == 0 )
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
             else
@@ -1761,26 +1747,10 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "force_version" ) == 0 )
         {
-            if( strcmp( q, "tls1" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_1;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_1;
-            }
-            else if( strcmp( q, "tls1_1" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_2;
-            }
-            else if( strcmp( q, "tls1_2" ) == 0 )
+            if( strcmp( q, "tls1_2" ) == 0 )
             {
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
-            }
-            else if( strcmp( q, "dtls1" ) == 0 )
-            {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_2;
-                opt.transport = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
             }
             else if( strcmp( q, "dtls1_2" ) == 0 )
             {
@@ -2087,11 +2057,11 @@ int main( int argc, char *argv[] )
             }
 
             /* Determine KDF algorithm the opaque PSK will be used in. */
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA384_C)
             if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
                 alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_384);
             else
-#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_SHA384_C */
                 alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
         }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -2711,10 +2681,8 @@ int main( int argc, char *argv[] )
             mbedtls_ssl_conf_dtls_anti_replay( &conf, opt.anti_replay );
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
         if( opt.badmac_limit != DFL_BADMAC_LIMIT )
             mbedtls_ssl_conf_dtls_badmac_limit( &conf, opt.badmac_limit );
-#endif
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 

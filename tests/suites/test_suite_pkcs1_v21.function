@@ -35,8 +35,8 @@ void pkcs1_rsaes_oaep_encrypt( int mod, data_t * input_N, data_t * input_E,
         message_str->x = NULL;
     TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx,
                                             &mbedtls_test_rnd_buffer_rand,
-                                            &info, MBEDTLS_RSA_PUBLIC,
-                                            message_str->len, message_str->x,
+                                            &info, message_str->len,
+                                            message_str->x,
                                             output ) == result );
     if( result == 0 )
     {
@@ -85,7 +85,6 @@ void pkcs1_rsaes_oaep_decrypt( int mod, data_t * input_P, data_t * input_Q,
         TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx,
                                                 &mbedtls_test_rnd_pseudo_rand,
                                                 &rnd_info,
-                                                MBEDTLS_RSA_PRIVATE,
                                                 &output_len, message_str->x,
                                                 NULL, 0 ) == result );
     }
@@ -94,7 +93,6 @@ void pkcs1_rsaes_oaep_decrypt( int mod, data_t * input_P, data_t * input_Q,
         TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx,
                                                 &mbedtls_test_rnd_pseudo_rand,
                                                 &rnd_info,
-                                                MBEDTLS_RSA_PRIVATE,
                                                 &output_len, message_str->x,
                                                 output,
                                                 sizeof( output ) ) == result );
@@ -150,8 +148,8 @@ void pkcs1_rsassa_pss_sign( int mod, data_t * input_P, data_t * input_Q,
     if (fixed_salt_length == MBEDTLS_RSA_SALT_LEN_ANY)
     {
         TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &mbedtls_test_rnd_buffer_rand,
-                                             &info, MBEDTLS_RSA_PRIVATE, digest, 0,
-                                             hash_result, output ) == result );
+                                             &info, digest, 0,hash_result,
+                                             output ) == result );
         if( result == 0 )
         {
             ASSERT_COMPARE( output, ctx.len, result_str->x, result_str->len );
@@ -201,7 +199,7 @@ void pkcs1_rsassa_pss_verify( int mod, data_t * input_N, data_t * input_E,
     if( mbedtls_md_info_from_type( digest ) != NULL )
         TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, digest, 0, hash_result, result_str->x ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, digest, 0, hash_result, result_str->x ) == result );
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &E );
@@ -246,14 +244,13 @@ void pkcs1_rsassa_pss_verify_ext( int mod, data_t * input_N, data_t * input_E,
         hash_len = message_str->len;
     }
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC,
-                                   msg_digest_id, hash_len, hash_result,
-                                   result_str->x ) == result_simple );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, msg_digest_id,
+                                           hash_len, hash_result,
+                                           result_str->x ) == result_simple );
 
-    TEST_ASSERT( mbedtls_rsa_rsassa_pss_verify_ext( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC,
-                                        msg_digest_id, hash_len, hash_result,
-                                        mgf_hash, salt_len,
-                                        result_str->x ) == result_full );
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_verify_ext( &ctx, msg_digest_id, hash_len,
+                                                    hash_result, mgf_hash, salt_len,
+                                                    result_str->x ) == result_full );
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &E );

@@ -43,78 +43,87 @@ LOCAL_LDFLAGS += -lws2_32
 ifdef SHARED
 SHARED_SUFFIX=.$(DLEXT)
 endif
+PYTHON ?= python
 else
 DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
+PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
 endif
 
+## The following assignment is the list of base names of applications that
+## will be built on Windows. Extra Linux/Unix/POSIX-only applications can
+## be declared by appending with `APPS += ...` afterwards.
+## See the get_app_list function in scripts/generate_visualc_files.pl and
+## make sure to check that it still works if you tweak the format here.
 APPS = \
-	aes/crypt_and_hash$(EXEXT) \
-	hash/generic_sum$(EXEXT) \
-	hash/hello$(EXEXT) \
-	pkey/dh_client$(EXEXT) \
-	pkey/dh_genprime$(EXEXT) \
-	pkey/dh_server$(EXEXT) \
-	pkey/ecdh_curve25519$(EXEXT) \
-	pkey/ecdsa$(EXEXT) \
-	pkey/gen_key$(EXEXT) \
-	pkey/key_app$(EXEXT) \
-	pkey/key_app_writer$(EXEXT) \
-	pkey/mpi_demo$(EXEXT) \
-	pkey/pk_decrypt$(EXEXT) \
-	pkey/pk_encrypt$(EXEXT) \
-	pkey/pk_sign$(EXEXT) \
-	pkey/pk_verify$(EXEXT) \
-	pkey/rsa_decrypt$(EXEXT) \
-	pkey/rsa_encrypt$(EXEXT) \
-	pkey/rsa_genkey$(EXEXT) \
-	pkey/rsa_sign$(EXEXT) \
-	pkey/rsa_sign_pss$(EXEXT) \
-	pkey/rsa_verify$(EXEXT) \
-	pkey/rsa_verify_pss$(EXEXT) \
-	psa/crypto_examples$(EXEXT) \
-	psa/key_ladder_demo$(EXEXT) \
-	psa/psa_constant_names$(EXEXT) \
-	random/gen_entropy$(EXEXT) \
-	random/gen_random_ctr_drbg$(EXEXT) \
-	ssl/dtls_client$(EXEXT) \
-	ssl/dtls_server$(EXEXT) \
-	ssl/mini_client$(EXEXT) \
-	ssl/ssl_client1$(EXEXT) \
-	ssl/ssl_client2$(EXEXT) \
-	ssl/ssl_context_info$(EXEXT) \
-	ssl/ssl_fork_server$(EXEXT) \
-	ssl/ssl_mail_client$(EXEXT) \
-	ssl/ssl_server$(EXEXT) \
-	ssl/ssl_server2$(EXEXT) \
-	test/benchmark$(EXEXT) \
-	test/query_compile_time_config$(EXEXT) \
-	test/selftest$(EXEXT) \
-	test/udp_proxy$(EXEXT) \
-	test/zeroize$(EXEXT) \
-	util/pem2der$(EXEXT) \
-	util/strerror$(EXEXT) \
-	x509/cert_app$(EXEXT) \
-	x509/cert_req$(EXEXT) \
-	x509/cert_write$(EXEXT) \
-	x509/crl_app$(EXEXT) \
-	x509/req_app$(EXEXT) \
+	aes/crypt_and_hash \
+	hash/generic_sum \
+	hash/hello \
+	pkey/dh_client \
+	pkey/dh_genprime \
+	pkey/dh_server \
+	pkey/ecdh_curve25519 \
+	pkey/ecdsa \
+	pkey/gen_key \
+	pkey/key_app \
+	pkey/key_app_writer \
+	pkey/mpi_demo \
+	pkey/pk_decrypt \
+	pkey/pk_encrypt \
+	pkey/pk_sign \
+	pkey/pk_verify \
+	pkey/rsa_decrypt \
+	pkey/rsa_encrypt \
+	pkey/rsa_genkey \
+	pkey/rsa_sign \
+	pkey/rsa_sign_pss \
+	pkey/rsa_verify \
+	pkey/rsa_verify_pss \
+	psa/crypto_examples \
+	psa/key_ladder_demo \
+	psa/psa_constant_names \
+	random/gen_entropy \
+	random/gen_random_ctr_drbg \
+	ssl/dtls_client \
+	ssl/dtls_server \
+	ssl/mini_client \
+	ssl/ssl_client1 \
+	ssl/ssl_client2 \
+	ssl/ssl_context_info \
+	ssl/ssl_fork_server \
+	ssl/ssl_mail_client \
+	ssl/ssl_server \
+	ssl/ssl_server2 \
+	test/benchmark \
+	test/query_compile_time_config \
+	test/selftest \
+	test/udp_proxy \
+	test/zeroize \
+	util/pem2der \
+	util/strerror \
+	x509/cert_app \
+	x509/cert_req \
+	x509/cert_write \
+	x509/crl_app \
+	x509/req_app \
 # End of APPS
 
 ifdef PTHREAD
-APPS +=	ssl/ssl_pthread_server$(EXEXT)
+APPS +=	ssl/ssl_pthread_server
 endif
 
 ifdef TEST_CPP
-APPS += test/cpp_dummy_build$(EXEXT)
+APPS += test/cpp_dummy_build
 endif
+
+EXES = $(patsubst %,%$(EXEXT),$(APPS))
 
 .SILENT:
 
 .PHONY: all clean list fuzz
 
-all: $(APPS)
+all: $(EXES)
 ifndef WINDOWS
 # APPS doesn't include the fuzzing programs, which aren't "normal"
 # sample or test programs, and don't build with MSVC which is
@@ -130,6 +139,30 @@ $(MBEDLIBS):
 
 ${MBEDTLS_TEST_OBJS}:
 	$(MAKE) -C ../tests mbedtls_test
+
+.PHONY: generated_files
+GENERATED_FILES = psa/psa_constant_names_generated.c test/query_config.c
+generated_files: $(GENERATED_FILES)
+
+psa/psa_constant_names_generated.c: ../scripts/generate_psa_constants.py
+psa/psa_constant_names_generated.c: ../include/psa/crypto_values.h
+psa/psa_constant_names_generated.c: ../include/psa/crypto_extra.h
+psa/psa_constant_names_generated.c: ../tests/suites/test_suite_psa_crypto_metadata.data
+psa/psa_constant_names_generated.c:
+	echo "  Gen   $@"
+	$(PYTHON) ../scripts/generate_psa_constants.py
+
+test/query_config.c: ../scripts/generate_query_config.pl
+## The generated file only depends on the options that are present in config.h,
+## not on which options are set. To avoid regenerating this file all the time
+## when switching between configurations, don't declare config.h as a
+## dependency. Remove this file from your working tree if you've just added or
+## removed an option in config.h.
+#test/query_config.c: ../include/mbedtls/config.h
+test/query_config.c: ../scripts/data_files/query_config.fmt
+test/query_config.c:
+	echo "  Gen   $@"
+	$(PERL) ../scripts/generate_query_config.pl
 
 aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP)
 	echo "  CC    aes/crypt_and_hash.c"
@@ -356,7 +389,7 @@ psa/crypto_examples$(EXEXT): psa/crypto_examples.c $(DEP)
 
 clean:
 ifndef WINDOWS
-	rm -f $(APPS)
+	rm -f $(EXES)
 	-rm -f ssl/ssl_pthread_server$(EXEXT)
 	-rm -f test/cpp_dummy_build$(EXEXT)
 else
@@ -365,5 +398,12 @@ else
 endif
 	$(MAKE) -C fuzz clean
 
+neat: clean
+ifndef WINDOWS
+	rm -f $(GENERATED_FILES)
+else
+	for %f in ($(subst /,\,$(GENERATED_FILES))) if exist %f del /Q /F %f
+endif
+
 list:
-	echo $(APPS)
+	echo $(EXES)

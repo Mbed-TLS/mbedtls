@@ -96,7 +96,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
         case PSA_ALG_SHA_1:
             return( &mbedtls_sha1_info );
 #endif
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SHA224_C)
         case PSA_ALG_SHA_224:
             return( &mbedtls_sha224_info );
 #endif
@@ -104,7 +104,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
         case PSA_ALG_SHA_256:
             return( &mbedtls_sha256_info );
 #endif
-#if defined(MBEDTLS_SHA512_C) && !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
         case PSA_ALG_SHA_384:
             return( &mbedtls_sha384_info );
 #endif

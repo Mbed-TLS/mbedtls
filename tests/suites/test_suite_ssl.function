@@ -8,6 +8,8 @@
 #include <ssl_tls13_keys.h>
 #include "test/certs.h"
 
+#include <psa/crypto.h>
+
 #include <ssl_invasive.h>
 
 #include <test/constant_flow.h>
@@ -1254,7 +1256,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
                                 keylen << 3, MBEDTLS_DECRYPT ) == 0 );
 
     /* Setup MAC contexts */
-#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     if( cipher_info->mode == MBEDTLS_MODE_CBC ||
         cipher_info->mode == MBEDTLS_MODE_STREAM )
     {
@@ -1287,7 +1289,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     }
 #else
     ((void) hash_id);
-#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
 
     /* Pick IV's (regardless of whether they
@@ -1301,7 +1303,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
      */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) && \
-    defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+    defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     t_out->encrypt_then_mac = etm;
     t_in->encrypt_then_mac = etm;
 #else
@@ -2649,7 +2651,7 @@ exit:
 void ssl_message_mock_uninitialized( )
 {
     enum { MSGLEN = 10 };
-    unsigned char message[MSGLEN], received[MSGLEN];
+    unsigned char message[MSGLEN] = {0}, received[MSGLEN];
     mbedtls_mock_socket client, server;
     mbedtls_test_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
@@ -4533,5 +4535,111 @@ void ssl_cf_memcpy_offset( int offset_min, int offset_max, int len )
 exit:
     mbedtls_free( dst );
     mbedtls_free( src );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+void test_multiple_psks()
+{
+    unsigned char psk0[10] = { 0 };
+    unsigned char psk0_identity[] = { 'f', 'o', 'o' };
+
+    unsigned char psk1[10] = { 0 };
+    unsigned char psk1_identity[] = { 'b', 'a', 'r' };
+
+    mbedtls_ssl_config conf;
+
+    mbedtls_ssl_config_init( &conf );
+
+    TEST_ASSERT( mbedtls_ssl_conf_psk( &conf,
+                     psk0, sizeof( psk0 ),
+                     psk0_identity, sizeof( psk0_identity ) ) == 0 );
+    TEST_ASSERT( mbedtls_ssl_conf_psk( &conf,
+                     psk1, sizeof( psk1 ),
+                     psk1_identity, sizeof( psk1_identity ) ) ==
+                 MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+
+exit:
+
+    mbedtls_ssl_config_free( &conf );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED:MBEDTLS_USE_PSA_CRYPTO */
+void test_multiple_psks_opaque( int mode )
+{
+    /*
+     * Mode 0: Raw PSK, then opaque PSK
+     * Mode 1: Opaque PSK, then raw PSK
+     * Mode 2: 2x opaque PSK
+     */
+
+    unsigned char psk0_raw[10] = { 0 };
+    unsigned char psk0_raw_identity[] = { 'f', 'o', 'o' };
+
+    psa_key_id_t psk0_opaque = (psa_key_id_t) 1;
+    unsigned char psk0_opaque_identity[] = { 'f', 'o', 'o' };
+
+    unsigned char psk1_raw[10] = { 0 };
+    unsigned char psk1_raw_identity[] = { 'b', 'a', 'r' };
+
+    psa_key_id_t psk1_opaque = (psa_key_id_t) 2;
+    unsigned char psk1_opaque_identity[] = { 'b', 'a', 'r' };
+
+    mbedtls_ssl_config conf;
+
+    USE_PSA_INIT( );
+    mbedtls_ssl_config_init( &conf );
+
+    switch( mode )
+    {
+        case 0:
+
+            TEST_ASSERT( mbedtls_ssl_conf_psk( &conf,
+                         psk0_raw, sizeof( psk0_raw ),
+                         psk0_raw_identity, sizeof( psk0_raw_identity ) )
+                   == 0 );
+            TEST_ASSERT( mbedtls_ssl_conf_psk_opaque( &conf,
+                         psk1_opaque,
+                         psk1_opaque_identity, sizeof( psk1_opaque_identity ) )
+                   == MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+            break;
+
+        case 1:
+
+            TEST_ASSERT( mbedtls_ssl_conf_psk_opaque( &conf,
+                         psk0_opaque,
+                         psk0_opaque_identity, sizeof( psk0_opaque_identity ) )
+                   == 0 );
+            TEST_ASSERT( mbedtls_ssl_conf_psk( &conf,
+                         psk1_raw, sizeof( psk1_raw ),
+                         psk1_raw_identity, sizeof( psk1_raw_identity ) )
+                   == MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+
+            break;
+
+        case 2:
+
+            TEST_ASSERT( mbedtls_ssl_conf_psk_opaque( &conf,
+                         psk0_opaque,
+                         psk0_opaque_identity, sizeof( psk0_opaque_identity ) )
+                   == 0 );
+            TEST_ASSERT( mbedtls_ssl_conf_psk_opaque( &conf,
+                         psk1_opaque,
+                         psk1_opaque_identity, sizeof( psk1_opaque_identity ) )
+                   == MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+
+            break;
+
+        default:
+            TEST_ASSERT( 0 );
+            break;
+    }
+
+exit:
+
+    mbedtls_ssl_config_free( &conf );
+    USE_PSA_DONE( );
+
 }
 /* END_CASE */

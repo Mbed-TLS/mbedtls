@@ -22,11 +22,13 @@ generate only the specified files.
 
 import argparse
 import os
+import posixpath
 import re
 import sys
 from typing import Callable, Dict, FrozenSet, Iterable, Iterator, List, Optional, TypeVar
 
 import scripts_path # pylint: disable=unused-import
+from mbedtls_dev import build_tree
 from mbedtls_dev import crypto_knowledge
 from mbedtls_dev import macro_collector
 from mbedtls_dev import psa_storage
@@ -58,6 +60,14 @@ def finish_family_dependencies(dependencies: List[str], bits: int) -> List[str]:
     """
     return [finish_family_dependency(dep, bits) for dep in dependencies]
 
+SYMBOLS_WITHOUT_DEPENDENCY = frozenset([
+    'PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG', # modifier, only in policies
+    'PSA_ALG_AEAD_WITH_SHORTENED_TAG', # modifier
+    'PSA_ALG_ANY_HASH', # only in policies
+    'PSA_ALG_AT_LEAST_THIS_LENGTH_MAC', # modifier, only in policies
+    'PSA_ALG_KEY_AGREEMENT', # chaining
+    'PSA_ALG_TRUNCATED_MAC', # modifier
+])
 def automatic_dependencies(*expressions: str) -> List[str]:
     """Infer dependencies of a test case by looking for PSA_xxx symbols.
 
@@ -68,6 +78,7 @@ def automatic_dependencies(*expressions: str) -> List[str]:
     used = set()
     for expr in expressions:
         used.update(re.findall(r'PSA_(?:ALG|ECC_FAMILY|KEY_TYPE)_\w+', expr))
+    used.difference_update(SYMBOLS_WITHOUT_DEPENDENCY)
     return sorted(psa_want_symbol(name) for name in used)
 
 # A temporary hack: at the time of writing, not all dependency symbols
@@ -79,9 +90,13 @@ def read_implemented_dependencies(filename: str) -> FrozenSet[str]:
     return frozenset(symbol
                      for line in open(filename)
                      for symbol in re.findall(r'\bPSA_WANT_\w+\b', line))
-IMPLEMENTED_DEPENDENCIES = read_implemented_dependencies('include/psa/crypto_config.h')
+_implemented_dependencies = None #type: Optional[FrozenSet[str]] #pylint: disable=invalid-name
 def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
-    if not all(dep.lstrip('!') in IMPLEMENTED_DEPENDENCIES
+    global _implemented_dependencies #pylint: disable=global-statement,invalid-name
+    if _implemented_dependencies is None:
+        _implemented_dependencies = \
+            read_implemented_dependencies('include/psa/crypto_config.h')
+    if not all(dep.lstrip('!') in _implemented_dependencies
                for dep in dependencies):
         dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
 
@@ -94,24 +109,27 @@ class Information:
 
     @staticmethod
     def remove_unwanted_macros(
-            constructors: macro_collector.PSAMacroCollector
+            constructors: macro_collector.PSAMacroEnumerator
     ) -> None:
-        # Mbed TLS doesn't support DSA. Don't attempt to generate any related
-        # test case.
+        # Mbed TLS doesn't support finite-field DH yet and will not support
+        # finite-field DSA. Don't attempt to generate any related test case.
+        constructors.key_types.discard('PSA_KEY_TYPE_DH_KEY_PAIR')
+        constructors.key_types.discard('PSA_KEY_TYPE_DH_PUBLIC_KEY')
         constructors.key_types.discard('PSA_KEY_TYPE_DSA_KEY_PAIR')
         constructors.key_types.discard('PSA_KEY_TYPE_DSA_PUBLIC_KEY')
-        constructors.algorithms_from_hash.pop('PSA_ALG_DSA', None)
-        constructors.algorithms_from_hash.pop('PSA_ALG_DETERMINISTIC_DSA', None)
 
-    def read_psa_interface(self) -> macro_collector.PSAMacroCollector:
+    def read_psa_interface(self) -> macro_collector.PSAMacroEnumerator:
         """Return the list of known key types, algorithms, etc."""
-        constructors = macro_collector.PSAMacroCollector()
+        constructors = macro_collector.InputsForTest()
         header_file_names = ['include/psa/crypto_values.h',
                              'include/psa/crypto_extra.h']
+        test_suites = ['tests/suites/test_suite_psa_crypto_metadata.data']
         for header_file_name in header_file_names:
-            with open(header_file_name, 'rb') as header_file:
-                constructors.read_file(header_file)
+            constructors.parse_header(header_file_name)
+        for test_cases in test_suites:
+            constructors.parse_test_cases(test_cases)
         self.remove_unwanted_macros(constructors)
+        constructors.gather_arguments()
         return constructors
 
 
@@ -193,14 +211,18 @@ class NotSupported:
             )
             # To be added: derive
 
+    ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
+                     'PSA_KEY_TYPE_ECC_PUBLIC_KEY')
+
     def test_cases_for_not_supported(self) -> Iterator[test_case.TestCase]:
         """Generate test cases that exercise the creation of keys of unsupported types."""
         for key_type in sorted(self.constructors.key_types):
+            if key_type in self.ECC_KEY_TYPES:
+                continue
             kt = crypto_knowledge.KeyType(key_type)
             yield from self.test_cases_for_key_type_not_supported(kt)
         for curve_family in sorted(self.constructors.ecc_curves):
-            for constr in ('PSA_KEY_TYPE_ECC_KEY_PAIR',
-                           'PSA_KEY_TYPE_ECC_PUBLIC_KEY'):
+            for constr in self.ECC_KEY_TYPES:
                 kt = crypto_knowledge.KeyType(constr, [curve_family])
                 yield from self.test_cases_for_key_type_not_supported(
                     kt, param_descr='type')
@@ -254,13 +276,17 @@ class StorageFormat:
         if self.forward:
             extra_arguments = []
         else:
+            flags = []
             # Some test keys have the RAW_DATA type and attributes that don't
             # necessarily make sense. We do this to validate numerical
             # encodings of the attributes.
             # Raw data keys have no useful exercise anyway so there is no
             # loss of test coverage.
-            exercise = key.type.string != 'PSA_KEY_TYPE_RAW_DATA'
-            extra_arguments = ['1' if exercise else '0']
+            if key.type.string != 'PSA_KEY_TYPE_RAW_DATA':
+                flags.append('TEST_FLAG_EXERCISE')
+            if 'READ_ONLY' in key.lifetime.string:
+                flags.append('TEST_FLAG_READ_ONLY')
+            extra_arguments = [' | '.join(flags) if flags else '0']
         tc.set_arguments([key.lifetime.string,
                           key.type.string, str(key.bits),
                           key.usage.string, key.alg.string, key.alg2.string,
@@ -329,23 +355,17 @@ class StorageFormat:
 
     def all_keys_for_types(self) -> Iterator[StorageKey]:
         """Generate test keys covering key types and their representations."""
-        for key_type in sorted(self.constructors.key_types):
+        key_types = sorted(self.constructors.key_types)
+        for key_type in self.constructors.generate_expressions(key_types):
             yield from self.keys_for_type(key_type)
-        for key_type in sorted(self.constructors.key_types_from_curve):
-            for curve in sorted(self.constructors.ecc_curves):
-                yield from self.keys_for_type(key_type, [curve])
-        ## Diffie-Hellman (FFDH) is not supported yet, either in
-        ## crypto_knowledge.py or in Mbed TLS.
-        # for key_type in sorted(self.constructors.key_types_from_group):
-        #     for group in sorted(self.constructors.dh_groups):
-        #         yield from self.keys_for_type(key_type, [group])
 
     def keys_for_algorithm(self, alg: str) -> Iterator[StorageKey]:
         """Generate test keys for the specified algorithm."""
         # For now, we don't have information on the compatibility of key
         # types and algorithms. So we just test the encoding of algorithms,
         # and not that operations can be performed with them.
-        descr = alg
+        descr = re.sub(r'PSA_ALG_', r'', alg)
+        descr = re.sub(r',', r', ', re.sub(r' +', r'', descr))
         usage = 'PSA_KEY_USAGE_EXPORT'
         key1 = StorageKey(version=self.version,
                           id=1, lifetime=0x00000001,
@@ -364,17 +384,21 @@ class StorageFormat:
 
     def all_keys_for_algorithms(self) -> Iterator[StorageKey]:
         """Generate test keys covering algorithm encodings."""
-        for alg in sorted(self.constructors.algorithms):
+        algorithms = sorted(self.constructors.algorithms)
+        for alg in self.constructors.generate_expressions(algorithms):
             yield from self.keys_for_algorithm(alg)
-        # To do: algorithm constructors with parameters
 
     def all_test_cases(self) -> Iterator[test_case.TestCase]:
         """Generate all storage format test cases."""
-        for key in self.all_keys_for_usage_flags():
-            yield self.make_test_case(key)
-        for key in self.all_keys_for_types():
-            yield self.make_test_case(key)
-        for key in self.all_keys_for_algorithms():
+        # First build a list of all keys, then construct all the corresponding
+        # test cases. This allows all required information to be obtained in
+        # one go, which is a significant performance gain as the information
+        # includes numerical values obtained by compiling a C program.
+        keys = [] #type: List[StorageKey]
+        keys += self.all_keys_for_usage_flags()
+        keys += self.all_keys_for_types()
+        keys += self.all_keys_for_algorithms()
+        for key in keys:
             yield self.make_test_case(key)
         # To do: vary id, lifetime
 
@@ -394,7 +418,7 @@ class TestGenerator:
 
     def filename_for(self, basename: str) -> str:
         """The location of the data file with the specified base name."""
-        return os.path.join(self.test_suite_directory, basename + '.data')
+        return posixpath.join(self.test_suite_directory, basename + '.data')
 
     def write_test_data_file(self, basename: str,
                              test_cases: Iterable[test_case.TestCase]) -> None:
@@ -426,6 +450,7 @@ def main(args):
     parser.add_argument('targets', nargs='*', metavar='TARGET',
                         help='Target file to generate (default: all; "-": none)')
     options = parser.parse_args(args)
+    build_tree.chdir_to_root()
     generator = TestGenerator(options)
     if options.list:
         for name in sorted(generator.TARGETS):

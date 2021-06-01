@@ -1,0 +1,7 @@
+Requirement changes
+   * If you build the development version of Mbed TLS, rather than an official
+     release, some configuration-independent files are now generated at build
+     time rather than checked into source control. This includes some library
+     source files as well as the Visual Studio solution. Perl, Python 3 and a
+     C compiler for the host platform are required. See “Generated source files
+     in the development branch” in README.md for more information.

@@ -235,6 +235,7 @@ int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
  * \param ctx       CSR context to use
  * \param oid       OID of the extension
  * \param oid_len   length of the OID
+ * \param critical  Set to 1 to mark the extension as critical, 0 otherwise.
  * \param val       value of the extension OCTET STRING
  * \param val_len   length of the value data
  *
@@ -242,6 +243,7 @@ int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
  */
 int mbedtls_x509write_csr_set_extension( mbedtls_x509write_csr *ctx,
                                  const char *oid, size_t oid_len,
+                                 int critical,
                                  const unsigned char *val, size_t val_len );
 
 /**

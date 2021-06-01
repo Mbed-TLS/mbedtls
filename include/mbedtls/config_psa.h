@@ -38,6 +38,30 @@
 extern "C" {
 #endif
 
+
+
+/****************************************************************/
+/* De facto synonyms */
+/****************************************************************/
+
+#if defined(PSA_WANT_ALG_ECDSA_ANY) && !defined(PSA_WANT_ALG_ECDSA)
+#define PSA_WANT_ALG_ECDSA PSA_WANT_ALG_ECDSA_ANY
+#elif !defined(PSA_WANT_ALG_ECDSA_ANY) && defined(PSA_WANT_ALG_ECDSA)
+#define PSA_WANT_ALG_ECDSA_ANY PSA_WANT_ALG_ECDSA
+#endif
+
+#if defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN_RAW) && !defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN)
+#define PSA_WANT_ALG_RSA_PKCS1V15_SIGN PSA_WANT_ALG_RSA_PKCS1V15_SIGN_RAW
+#elif !defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN_RAW) && defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN)
+#define PSA_WANT_ALG_RSA_PKCS1V15_SIGN_RAW PSA_WANT_ALG_RSA_PKCS1V15_SIGN
+#endif
+
+
+
+/****************************************************************/
+/* Require built-in implementations based on PSA requirements */
+/****************************************************************/
+
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 
 #if defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)
@@ -149,7 +173,7 @@ extern "C" {
 
 #if defined(PSA_WANT_ALG_SHA_224) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_224)
 #define MBEDTLS_PSA_BUILTIN_ALG_SHA_224 1
-#define MBEDTLS_SHA256_C
+#define MBEDTLS_SHA224_C
 #endif
 
 #if defined(PSA_WANT_ALG_SHA_256) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_256)
@@ -159,7 +183,7 @@ extern "C" {
 
 #if defined(PSA_WANT_ALG_SHA_384) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_384)
 #define MBEDTLS_PSA_BUILTIN_ALG_SHA_384 1
-#define MBEDTLS_SHA512_C
+#define MBEDTLS_SHA384_C
 #endif
 
 #if defined(PSA_WANT_ALG_SHA_512) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512)
@@ -497,6 +521,12 @@ extern "C" {
 #endif /* !MBEDTLS_PSA_ACCEL_ECC_SECP_K1_256 */
 #endif /* PSA_WANT_ECC_SECP_K1_256 */
 
+
+
+/****************************************************************/
+/* Infer PSA requirements from Mbed TLS capabilities */
+/****************************************************************/
+
 #else /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
 /*
@@ -522,6 +552,7 @@ extern "C" {
 #if defined(MBEDTLS_ECDSA_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_ECDSA 1
 #define PSA_WANT_ALG_ECDSA 1
+#define PSA_WANT_ALG_ECDSA_ANY 1
 
 // Only add in DETERMINISTIC support if ECDSA is also enabled
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
@@ -586,6 +617,7 @@ extern "C" {
 #define PSA_WANT_ALG_RSA_PKCS1V15_CRYPT 1
 #define MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN 1
 #define PSA_WANT_ALG_RSA_PKCS1V15_SIGN 1
+#define PSA_WANT_ALG_RSA_PKCS1V15_SIGN_RAW 1
 #endif /* MBEDTLSS_PKCS1_V15 */
 #if defined(MBEDTLS_PKCS1_V21)
 #define MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP 1
@@ -604,18 +636,22 @@ extern "C" {
 #define PSA_WANT_ALG_SHA_1 1
 #endif
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SHA224_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_SHA_224 1
-#define MBEDTLS_PSA_BUILTIN_ALG_SHA_256 1
 #define PSA_WANT_ALG_SHA_224 1
+#endif
+
+#if defined(MBEDTLS_SHA256_C)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA_256 1
 #define PSA_WANT_ALG_SHA_256 1
 #endif
 
-#if defined(MBEDTLS_SHA512_C)
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_SHA_384 1
 #define PSA_WANT_ALG_SHA_384 1
 #endif
+
+#if defined(MBEDTLS_SHA512_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_SHA_512 1
 #define PSA_WANT_ALG_SHA_512 1
 #endif

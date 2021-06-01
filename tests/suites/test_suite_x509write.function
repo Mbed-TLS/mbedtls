@@ -7,20 +7,20 @@
 #include "mbedtls/rsa.h"
 
 #if defined(MBEDTLS_RSA_C)
-int mbedtls_rsa_decrypt_func( void *ctx, int mode, size_t *olen,
+int mbedtls_rsa_decrypt_func( void *ctx, size_t *olen,
                        const unsigned char *input, unsigned char *output,
                        size_t output_max_len )
 {
-    return( mbedtls_rsa_pkcs1_decrypt( (mbedtls_rsa_context *) ctx, NULL, NULL, mode, olen,
-                               input, output, output_max_len ) );
+    return( mbedtls_rsa_pkcs1_decrypt( (mbedtls_rsa_context *) ctx, NULL, NULL,
+                                        olen, input, output, output_max_len ) );
 }
 int mbedtls_rsa_sign_func( void *ctx,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                   int mode, mbedtls_md_type_t md_alg, unsigned int hashlen,
+                   mbedtls_md_type_t md_alg, unsigned int hashlen,
                    const unsigned char *hash, unsigned char *sig )
 {
-    return( mbedtls_rsa_pkcs1_sign( (mbedtls_rsa_context *) ctx, f_rng, p_rng, mode,
-                            md_alg, hashlen, hash, sig ) );
+    return( mbedtls_rsa_pkcs1_sign( (mbedtls_rsa_context *) ctx, f_rng, p_rng,
+                                    md_alg, hashlen, hash, sig ) );
 }
 size_t mbedtls_rsa_key_len_func( void *ctx )
 {

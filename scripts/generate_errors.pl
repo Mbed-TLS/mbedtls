@@ -56,7 +56,7 @@ my @high_level_modules = qw( CIPHER DHM ECP MD
 my $line_separator = $/;
 undef $/;
 
-open(FORMAT_FILE, "$error_format_file") or die "Opening error format file '$error_format_file': $!";
+open(FORMAT_FILE, '<:crlf', "$error_format_file") or die "Opening error format file '$error_format_file': $!";
 my $error_format = <FORMAT_FILE>;
 close(FORMAT_FILE);
 
@@ -66,7 +66,7 @@ my @files = <$include_dir/*.h>;
 my @necessary_include_files;
 my @matches;
 foreach my $file (@files) {
-    open(FILE, "$file");
+    open(FILE, '<:crlf', "$file");
     my @grep_res = grep(/^\s*#define\s+MBEDTLS_ERR_\w+\s+\-0x[0-9A-Fa-f]+/, <FILE>);
     push(@matches, @grep_res);
     close FILE;

@@ -1781,29 +1781,6 @@ read_record_header:
             ext += 4 + ext_size;
         }
 
-#if defined(MBEDTLS_SSL_FALLBACK_SCSV)
-    for( i = 0, p = buf + ciph_offset + 2; i < ciph_len; i += 2, p += 2 )
-    {
-        if( p[0] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE >> 8 ) & 0xff ) &&
-            p[1] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE      ) & 0xff ) )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "received FALLBACK_SCSV" ) );
-
-            if( ssl->minor_ver < ssl->conf->max_minor_ver )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
-
-                mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_INAPROPRIATE_FALLBACK );
-
-                return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
-            }
-
-            break;
-        }
-    }
-#endif /* MBEDTLS_SSL_FALLBACK_SCSV */
-
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
@@ -2461,6 +2438,54 @@ static int ssl_write_hello_verify_request( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 
+static void ssl_handle_id_based_session_resumption( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    mbedtls_ssl_session session_tmp;
+    mbedtls_ssl_session * const session = ssl->session_negotiate;
+
+    /* Resume is 0  by default, see ssl_handshake_init().
+     * It may be already set to 1 by ssl_parse_session_ticket_ext(). */
+    if( ssl->handshake->resume == 1 )
+        return;
+    if( session->id_len == 0 )
+        return;
+    if( ssl->conf->f_get_cache == NULL )
+        return;
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
+        return;
+#endif
+
+    mbedtls_ssl_session_init( &session_tmp );
+
+    ret = ssl->conf->f_get_cache( ssl->conf->p_cache,
+                                  session->id,
+                                  session->id_len,
+                                  &session_tmp );
+    if( ret != 0 )
+        goto exit;
+
+    if( session->ciphersuite != session_tmp.ciphersuite ||
+        session->compression != session_tmp.compression )
+    {
+        /* Mismatch between cached and negotiated session */
+        goto exit;
+    }
+
+    /* Move semantics */
+    mbedtls_ssl_session_free( session );
+    *session = session_tmp;
+    memset( &session_tmp, 0, sizeof( session_tmp ) );
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "session successfully restored from cache" ) );
+    ssl->handshake->resume = 1;
+
+exit:
+
+    mbedtls_ssl_session_free( &session_tmp );
+}
+
 static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_HAVE_TIME)
@@ -2531,22 +2556,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes", buf + 6, 32 );
 
-    /*
-     * Resume is 0  by default, see ssl_handshake_init().
-     * It may be already set to 1 by ssl_parse_session_ticket_ext().
-     * If not, try looking up session ID in our cache.
-     */
-    if( ssl->handshake->resume == 0 &&
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-        ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE &&
-#endif
-        ssl->session_negotiate->id_len != 0 &&
-        ssl->conf->f_get_cache != NULL &&
-        ssl->conf->f_get_cache( ssl->conf->p_cache, ssl->session_negotiate ) == 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "session successfully restored from cache" ) );
-        ssl->handshake->resume = 1;
-    }
+    ssl_handle_id_based_session_resumption( ssl );
 
     if( ssl->handshake->resume == 0 )
     {
@@ -3138,11 +3148,8 @@ curve_matching_done:
 
         /*
          * 2.1: Choose hash algorithm:
-         * A: For TLS 1.2, obey signature-hash-algorithm extension
-         *    to choose appropriate hash.
-         * B: For TLS1.0, TLS1.1 and ECDHE_ECDSA, use SHA1
-         *    (RFC 4492, Sec. 5.4)
-         * C: Otherwise, use MD5 + SHA1 (RFC 4346, Sec. 7.4.3)
+         *      For TLS 1.2, obey signature-hash-algorithm extension
+         *      to choose appropriate hash.
          */
 
         mbedtls_md_type_t md_alg;
@@ -3152,7 +3159,7 @@ curve_matching_done:
             mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
         if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
         {
-            /* A: For TLS 1.2, obey signature-hash-algorithm extension
+            /*    For TLS 1.2, obey signature-hash-algorithm extension
              *    (RFC 5246, Sec. 7.4.1.4.1). */
             if( sig_alg == MBEDTLS_PK_NONE ||
                 ( md_alg = mbedtls_ssl_sig_hash_set_find( &ssl->handshake->hash_algs,
@@ -3165,39 +3172,18 @@ curve_matching_done:
             }
         }
         else
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
-        {
-            /* B: Default hash SHA1 */
-            md_alg = MBEDTLS_MD_SHA1;
-        }
-        else
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
-        {
-            /* C: MD5 + SHA1 */
-            md_alg = MBEDTLS_MD_NONE;
-        }
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "pick hash algorithm %u for signing", (unsigned) md_alg ) );
 
         /*
          * 2.2: Compute the hash to be signed
          */
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-        if( md_alg == MBEDTLS_MD_NONE )
-        {
-            hashlen = 36;
-            ret = mbedtls_ssl_get_key_exchange_md_ssl_tls( ssl, hash,
-                                                           dig_signed,
-                                                           dig_signed_len );
-            if( ret != 0 )
-                return( ret );
-        }
-        else
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( md_alg != MBEDTLS_MD_NONE )
         {
             ret = mbedtls_ssl_get_key_exchange_md_tls1_2( ssl, hash, &hashlen,
@@ -3208,8 +3194,7 @@ curve_matching_done:
                 return( ret );
         }
         else
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
-          MBEDTLS_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -3523,8 +3508,7 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
     /*
      * Prepare to decrypt the premaster using own private RSA key
      */
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if ( p + 2 > end ) {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
@@ -4144,22 +4128,6 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
      *     opaque signature<0..2^16-1>;
      *  } DigitallySigned;
      */
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
-    {
-        md_alg = MBEDTLS_MD_NONE;
-        hashlen = 36;
-
-        /* For ECDSA, use SHA-1, not MD-5 + SHA-1 */
-        if( mbedtls_pk_can_do( peer_pk, MBEDTLS_PK_ECDSA ) )
-        {
-            hash_start += 16;
-            hashlen -= 16;
-            md_alg = MBEDTLS_MD_SHA1;
-        }
-    }
-    else
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {

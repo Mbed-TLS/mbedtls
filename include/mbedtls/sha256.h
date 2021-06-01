@@ -127,13 +127,14 @@ int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
  * \param ctx      The SHA-256 context. This must be initialized
  *                 and have a hash operation started.
  * \param output   The SHA-224 or SHA-256 checksum result.
- *                 This must be a writable buffer of length \c 32 Bytes.
+ *                 This must be a writable buffer of length \c 32 bytes
+ *                 for SHA-256, \c 28 bytes for SHA-224.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
 int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
-                               unsigned char output[32] );
+                               unsigned char *output );
 
 /**
  * \brief          This function processes a single data block within
@@ -163,14 +164,15 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
  * \param input    The buffer holding the data. This must be a readable
  *                 buffer of length \p ilen Bytes.
  * \param ilen     The length of the input data in Bytes.
- * \param output   The SHA-224 or SHA-256 checksum result. This must
- *                 be a writable buffer of length \c 32 Bytes.
+ * \param output   The SHA-224 or SHA-256 checksum result.
+ *                 This must be a writable buffer of length \c 32 bytes
+ *                 for SHA-256, \c 28 bytes for SHA-224.
  * \param is224    Determines which function to use. This must be
  *                 either \c 0 for SHA-256, or \c 1 for SHA-224.
  */
 int mbedtls_sha256_ret( const unsigned char *input,
                         size_t ilen,
-                        unsigned char output[32],
+                        unsigned char *output,
                         int is224 );
 
 #if defined(MBEDTLS_SELF_TEST)

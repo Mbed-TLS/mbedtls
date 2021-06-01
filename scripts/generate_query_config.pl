@@ -38,6 +38,12 @@ my $config_file = "./include/mbedtls/config.h";
 my $query_config_format_file = "./scripts/data_files/query_config.fmt";
 my $query_config_file = "./programs/test/query_config.c";
 
+unless( -f $config_file && -f $query_config_format_file ) {
+    chdir '..' or die;
+    -f $config_file && -f $query_config_format_file
+      or die "Without arguments, must be run from root or a subdirectory\n";
+}
+
 # Excluded macros from the generated query_config.c. For example, macros that
 # have commas or function-like macros cannot be transformed into strings easily
 # using the preprocessor, so they should be excluded or the preprocessor will

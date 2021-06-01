@@ -55,7 +55,7 @@ typedef struct mbedtls_sha512_context
     uint64_t total[2];          /*!< The number of Bytes processed. */
     uint64_t state[8];          /*!< The intermediate digest state. */
     unsigned char buffer[128];  /*!< The data block being processed. */
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
+#if defined(MBEDTLS_SHA384_C)
     int is384;                  /*!< Determines which function to use:
                                      0: Use SHA-512, or 1: Use SHA-384. */
 #endif
@@ -101,8 +101,8 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
  * \param is384    Determines which function to use. This must be
  *                 either \c 0 for SHA-512, or \c 1 for SHA-384.
  *
- * \note           When \c MBEDTLS_SHA512_NO_SHA384 is defined, \p is384 must
- *                 be \c 0, or the function will return
+ * \note           When \c MBEDTLS_SHA384_C is not defined,
+ *                 \p is384 must be \c 0, or the function will return
  *                 #MBEDTLS_ERR_SHA512_BAD_INPUT_DATA.
  *
  * \return         \c 0 on success.
@@ -134,13 +134,14 @@ int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx,
  * \param ctx      The SHA-512 context. This must be initialized
  *                 and have a hash operation started.
  * \param output   The SHA-384 or SHA-512 checksum result.
- *                 This must be a writable buffer of length \c 64 Bytes.
+ *                 This must be a writable buffer of length \c 64 bytes
+ *                 for SHA-512, \c 48 bytes for SHA-384.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
 int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
-                               unsigned char output[64] );
+                               unsigned char *output );
 
 /**
  * \brief          This function processes a single data block within
@@ -171,11 +172,12 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
  *                 a readable buffer of length \p ilen Bytes.
  * \param ilen     The length of the input data in Bytes.
  * \param output   The SHA-384 or SHA-512 checksum result.
- *                 This must be a writable buffer of length \c 64 Bytes.
+ *                 This must be a writable buffer of length \c 64 bytes
+ *                 for SHA-512, \c 48 bytes for SHA-384.
  * \param is384    Determines which function to use. This must be either
  *                 \c 0 for SHA-512, or \c 1 for SHA-384.
  *
- * \note           When \c MBEDTLS_SHA512_NO_SHA384 is defined, \p is384 must
+ * \note           When \c MBEDTLS_SHA384_C is not defined, \p is384 must
  *                 be \c 0, or the function will return
  *                 #MBEDTLS_ERR_SHA512_BAD_INPUT_DATA.
  *
@@ -184,7 +186,7 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
  */
 int mbedtls_sha512_ret( const unsigned char *input,
                         size_t ilen,
-                        unsigned char output[64],
+                        unsigned char *output,
                         int is384 );
 
 #if defined(MBEDTLS_SELF_TEST)

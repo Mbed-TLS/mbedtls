@@ -3059,6 +3059,11 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
 {
     int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     size_t n_size;
+#if defined(ECP_SHORTWEIERSTRASS)
+    mbedtls_mpi one;
+
+    mbedtls_mpi_init( &one );
+#endif
 
     ECP_VALIDATE_RET( grp   != NULL );
     ECP_VALIDATE_RET( d     != NULL );
@@ -3099,7 +3104,10 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
     {
         /* SEC1 3.2.1: Generate d such that 1 <= n < N */
         int count = 0;
-        unsigned cmp = 0;
+        unsigned lt_lower = 1, lt_upper = 0;
+
+        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &one, grp->N.n ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &one, 1 ) );
 
         /*
          * Match the procedure given in RFC 6979 (deterministic ECDSA):
@@ -3123,19 +3131,22 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
              * such as secp224k1 are actually very close to the worst case.
              */
             if( ++count > 30 )
-                return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
-
-            ret = mbedtls_mpi_lt_mpi_ct( d, &grp->N, &cmp );
-            if( ret != 0 )
             {
+                ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
                 goto cleanup;
             }
+
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lt_mpi_ct( d, &grp->N, &lt_upper ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lt_mpi_ct( d, &one, &lt_lower ) );
         }
-        while( mbedtls_mpi_cmp_int( d, 1 ) < 0 || cmp != 1 );
+        while( lt_lower != 0 || lt_upper == 0 );
     }
 #endif /* ECP_SHORTWEIERSTRASS */
 
 cleanup:
+#if defined(ECP_SHORTWEIERSTRASS)
+    mbedtls_mpi_free( &one );
+#endif
     return( ret );
 }
 

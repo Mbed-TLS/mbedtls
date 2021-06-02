@@ -6120,27 +6120,12 @@ static int ssl_preset_default_hashes[] = {
 #if defined(MBEDTLS_ECP_C)
 /* The selection should be the same as mbedtls_x509_crt_profile_default in
  * x509_crt.c, plus Montgomery curves for ECDHE. Here, the order matters:
- * larger curves first, like ecp_supported_curves in ecp.c.
+ * curves with a lower resource usage come first.
  * See the documentation of mbedtls_ssl_conf_curves() for what we promise
- * about this list. */
+ * about this list.
+ */
 static mbedtls_ecp_group_id ssl_preset_default_curves[] = {
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
-    MBEDTLS_ECP_DP_SECP521R1,
-#endif
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
-    MBEDTLS_ECP_DP_BP512R1,
-#endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
-    MBEDTLS_ECP_DP_CURVE448,
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-    MBEDTLS_ECP_DP_SECP384R1,
-#endif
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
-    MBEDTLS_ECP_DP_BP384R1,
-#endif
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-    // Positioned in the list as a fast 256-bit curve, not as a 255-bit curve
     MBEDTLS_ECP_DP_CURVE25519,
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
@@ -6149,8 +6134,23 @@ static mbedtls_ecp_group_id ssl_preset_default_curves[] = {
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
     MBEDTLS_ECP_DP_SECP256K1,
 #endif
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+    MBEDTLS_ECP_DP_SECP384R1,
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+    MBEDTLS_ECP_DP_CURVE448,
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+    MBEDTLS_ECP_DP_SECP521R1,
+#endif
 #if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
     MBEDTLS_ECP_DP_BP256R1,
+#endif
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+    MBEDTLS_ECP_DP_BP384R1,
+#endif
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+    MBEDTLS_ECP_DP_BP512R1,
 #endif
     MBEDTLS_ECP_DP_NONE
 };

@@ -14,3 +14,10 @@ my_profile.allowed_mds |= MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA224 );
 ```
 
 If you still need to allow hashes and curves in TLS that have been removed from the default configuration, call `mbedtls_ssl_conf_sig_hashes()` and `mbedtls_ssl_conf_curves()` with the desired lists.
+
+TLS now favors faster curves over larger curves
+-----------------------------------------------
+
+The default preference order for curves in TLS now favors resource usage (performance and memory consumption) over size. The exact order is unspecified and may change, but generally you can expect 256-bit curves to be preferred.
+
+If you prefer a different order, call `mbedtls_ssl_conf_curves()` when configuring a TLS connection.

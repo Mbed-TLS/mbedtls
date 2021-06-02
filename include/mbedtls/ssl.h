@@ -2916,8 +2916,7 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
  * \note           The default list is the same set of curves that
  *                 #mbedtls_x509_crt_profile_default allows, plus
  *                 ECDHE-only curves selected according to the same criteria.
- *                 Larger (generally more secure but slower) curves are
- *                 preferred over smaller curves.
+ *                 The order favors curves with the lowest resource usage.
  *
  * \param conf     SSL configuration
  * \param curves   Ordered list of allowed curves,

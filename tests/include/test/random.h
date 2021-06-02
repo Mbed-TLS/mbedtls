@@ -84,8 +84,7 @@ int mbedtls_test_rnd_zero_rand( void *rng_state,
  * \p rng_state shall be a pointer to a #mbedtls_test_rnd_buf_info structure.
  *
  * The number of bytes released from the buffer on each call to
- * the random function is specified by per_call. (Can be between
- * 1 and 4)
+ * the random function is specified by \p len.
  *
  * After the buffer is empty, this function will call the fallback RNG in the
  * #mbedtls_test_rnd_buf_info structure if there is one, and

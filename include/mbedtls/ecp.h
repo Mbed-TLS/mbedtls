@@ -467,8 +467,7 @@ mbedtls_ecp_curve_type mbedtls_ecp_get_type( const mbedtls_ecp_group *grp );
 
 /**
  * \brief           This function retrieves the information defined in
- *                  mbedtls_ecp_curve_info() for all supported curves in order
- *                  of preference.
+ *                  mbedtls_ecp_curve_info() for all supported curves.
  *
  * \note            This function returns information about all curves
  *                  supported by the library. Some curves may not be

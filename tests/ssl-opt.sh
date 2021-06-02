@@ -1233,7 +1233,7 @@ trap cleanup INT TERM HUP
 
 # Checks that:
 # - things work with all ciphersuites active (used with config-full in all.sh)
-# - the expected (highest security) parameters are selected
+# - the expected parameters are selected
 #   ("signature_algorithm ext: 6" means SHA-512 (highest common hash))
 run_test    "Default" \
             "$P_SRV debug_level=3" \
@@ -1242,7 +1242,7 @@ run_test    "Default" \
             -s "Protocol is TLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256" \
             -s "client hello v3, signature_algorithm ext: 6" \
-            -s "ECDHE curve: secp521r1" \
+            -s "ECDHE curve: x25519" \
             -S "error" \
             -C "error"
 

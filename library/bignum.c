@@ -181,6 +181,27 @@ int mbedtls_mpi_shrink( mbedtls_mpi *X, size_t nblimbs )
     return( 0 );
 }
 
+/* Resize X to have exactly n limbs and set it to 0. */
+static int mbedtls_mpi_resize_clear( mbedtls_mpi *X, size_t limbs )
+{
+    if( limbs == 0 )
+    {
+        mbedtls_mpi_free( X );
+        return( 0 );
+    }
+    else if( X->n == limbs )
+    {
+        memset( X->p, 0, limbs * ciL );
+        X->s = 1;
+        return( 0 );
+    }
+    else
+    {
+        mbedtls_mpi_free( X );
+        return( mbedtls_mpi_grow( X, limbs ) );
+    }
+}
+
 /*
  * Copy the contents of Y into X
  */
@@ -838,14 +859,7 @@ int mbedtls_mpi_read_binary_le( mbedtls_mpi *X,
     size_t const limbs = CHARS_TO_LIMBS( buflen );
 
     /* Ensure that target MPI has exactly the necessary number of limbs */
-    if( X->n != limbs )
-    {
-        mbedtls_mpi_free( X );
-        mbedtls_mpi_init( X );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, limbs ) );
-    }
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_resize_clear( X, limbs ) );
 
     for( i = 0; i < buflen; i++ )
         X->p[i / ciL] |= ((mbedtls_mpi_uint) buf[i]) << ((i % ciL) << 3);
@@ -874,17 +888,11 @@ int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t bu
     MPI_VALIDATE_RET( buflen == 0 || buf != NULL );
 
     /* Ensure that target MPI has exactly the necessary number of limbs */
-    if( X->n != limbs )
-    {
-        mbedtls_mpi_free( X );
-        mbedtls_mpi_init( X );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, limbs ) );
-    }
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_resize_clear( X, limbs ) );
 
-    /* Avoid calling `memcpy` with NULL source argument,
+    /* Avoid calling `memcpy` with NULL source or destination argument,
      * even if buflen is 0. */
-    if( buf != NULL )
+    if( buflen != 0 )
     {
         Xp = (unsigned char*) X->p;
         memcpy( Xp + overhead, buf, buflen );
@@ -2438,13 +2446,7 @@ int mbedtls_mpi_fill_random( mbedtls_mpi *X, size_t size,
     MPI_VALIDATE_RET( f_rng != NULL );
 
     /* Ensure that target MPI has exactly the necessary number of limbs */
-    if( X->n != limbs )
-    {
-        mbedtls_mpi_free( X );
-        mbedtls_mpi_init( X );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, limbs ) );
-    }
-    X->s = 1;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_resize_clear( X, limbs ) );
     if( size == 0 )
         return( 0 );
 
@@ -2493,13 +2495,7 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
     /* Ensure that target MPI has exactly the same number of limbs
      * as the upper bound, even if the upper bound has leading zeros.
      * This is necessary for the mbedtls_mpi_lt_mpi_ct() check. */
-    if( X->n != N->n )
-    {
-        mbedtls_mpi_free( X );
-        mbedtls_mpi_init( X );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, N->n ) );
-    }
-    X->s = 1;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_resize_clear( X, N->n ) );
 
     /*
      * Match the procedure given in RFC 6979 §3.3 (deterministic ECDSA)

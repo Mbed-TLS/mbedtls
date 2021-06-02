@@ -2488,10 +2488,7 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
      * is small, use a higher repeat count, otherwise the probability of
      * failure is macroscopic.
      */
-    if( n_bytes <= 4 )
-        count = 250;
-    else
-        count = 30;
+    count = ( n_bytes > 4 ? 30 : 250 );
 
     /* Ensure that target MPI has exactly the same number of limbs
      * as the upper bound, even if the upper bound has leading zeros.

@@ -2943,8 +2943,9 @@ void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
  * \note           By default, all supported hashes whose length is at least
  *                 256 bits are allowed. This is the same set as the default
  *                 for certificate verification
- *                 (#mbedtls_x509_crt_profile_default). Larger hashes are
- *                 preferred.
+ *                 (#mbedtls_x509_crt_profile_default).
+ *                 The preference order is currently unspecified and may
+ *                 change in future versions.
  *
  * \param conf     SSL configuration
  * \param hashes   Ordered list of allowed signature hashes,

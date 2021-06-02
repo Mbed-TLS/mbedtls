@@ -6099,8 +6099,8 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /* The selection should be the same as mbedtls_x509_crt_profile_default in
- * x509_crt.c. Here, the order matters: larger hashes first, for consistency
- * with curves.
+ * x509_crt.c. Here, the order matters. Currently we favor stronger hashes,
+ * for no fundamental reason.
  * See the documentation of mbedtls_ssl_conf_curves() for what we promise
  * about this list. */
 static int ssl_preset_default_hashes[] = {

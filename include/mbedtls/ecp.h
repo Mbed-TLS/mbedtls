@@ -285,11 +285,17 @@ mbedtls_ecp_group;
 #error "MBEDTLS_ECP_MAX_BITS is smaller than the largest supported curve"
 #endif
 
-#else
+#elif defined(MBEDTLS_ECP_C)
 /**
  * The maximum size of the groups, that is, of \c N and \c P.
  */
-#define MBEDTLS_ECP_MAX_BITS     521   /**< The maximum size of groups, in bits. */
+#define MBEDTLS_ECP_MAX_BITS     MBEDTLS_ECP_MAX_BITS_MIN
+
+#else
+/* MBEDTLS_ECP_MAX_BITS is not relevant without MBEDTLS_ECP_C, but set it
+ * to a nonzero value so that code that unconditionally allocates an array
+ * of a size based on it keeps working if built without ECC support. */
+#define MBEDTLS_ECP_MAX_BITS 1
 #endif
 
 #define MBEDTLS_ECP_MAX_BYTES    ( ( MBEDTLS_ECP_MAX_BITS + 7 ) / 8 )

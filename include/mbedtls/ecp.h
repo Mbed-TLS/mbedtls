@@ -276,15 +276,16 @@ mbedtls_ecp_group;
 
 #if !defined(MBEDTLS_ECP_FIXED_POINT_OPTIM)
 /*
- * Trade ROM usage for speed on fixed-point multiplication.
+ * Trade code size for speed on fixed-point multiplication.
  *
  * This speeds up repeated multiplication of the generator (that is, the
  * multiplication in ECDSA signatures, and half of the multiplications in
  * ECDSA verification and ECDHE) by a factor roughly 3 to 4.
  *
- * The cost is increasing ROM usage by a factor roughly 2.
+ * For each n-bit Short Weierstrass curve that is enabled, this adds 4n bytes
+ * of code size if n < 384 and 8n otherwise.
  *
- * Change this value to 0 to reduce ROM usage.
+ * Change this value to 0 to reduce code size.
  */
 #define MBEDTLS_ECP_FIXED_POINT_OPTIM  1   /**< Enable fixed-point speed-up. */
 #endif /* MBEDTLS_ECP_FIXED_POINT_OPTIM */

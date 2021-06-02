@@ -1,0 +1,5 @@
+Bugfix
+   * Fix a crash in mbedtls_mpi_debug_mpi on a bignum having 0 limbs. This
+     could notably be triggered by setting the TLS debug level to 3 or above
+     and using a Montgomery curve for the key exchange. Reported by lhuang04
+     in #4578. Fixes #4608.

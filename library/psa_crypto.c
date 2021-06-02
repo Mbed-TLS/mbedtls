@@ -1019,10 +1019,6 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
 {
     psa_status_t status = psa_remove_key_data_from_memory( slot );
 
-    /*
-     * As the return error code may not be handled in case of multiple errors,
-     * do our best to report an unexpected lock counter.
-     */
     if( slot->lock_count != 1 )
     {
         status = PSA_ERROR_CORRUPTION_DETECTED;

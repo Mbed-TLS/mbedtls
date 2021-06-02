@@ -200,6 +200,9 @@
 #define MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED    0
 #define MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED      1
 
+#define MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREF_ENABLED    1
+#define MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREF_DISABLED   0
+
 /*
  * Default range for DTLS retransmission timer value, in milliseconds.
  * RFC 6347 4.2.4.1 says from 1 second to 60 seconds.
@@ -1185,6 +1188,9 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_SSL_SRV_C)
     unsigned int cert_req_ca_list : 1;  /*!< enable sending CA list in
                                           Certificate Request messages?     */
+    unsigned int respect_cli_pref : 1;  /*!< pick the ciphersuite according to
+                                          the client's preferences rather
+                                          than ours                         */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     unsigned int ignore_unexpected_cid : 1; /*!< Determines whether DTLS
@@ -2494,7 +2500,7 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
  *
  *                      Note: The server uses its own preferences
  *                      over the preference of the client unless
- *                      MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE is defined!
+ *                      conf->respect_cli_pref is enabled!
  *
  * \param conf          SSL configuration
  * \param ciphersuites  0-terminated list of allowed ciphersuites
@@ -3291,6 +3297,19 @@ void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
  */
 int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_code );
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+#if defined(MBEDTLS_SSL_SRV_C)
+/**
+ * \brief          Pick the ciphersuite according to the client's preferences
+ *                 rather than ours in the SSL Server module (MBEDTLS_SSL_SRV_C).
+ *                 (Default: MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREF_DISABLED)
+ *
+ * \param conf     SSL configuration
+ * \param enable   Enable or disable (MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREF_ENABLED
+ *                                 or MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREF_DISABLED)
+ */
+void mbedtls_ssl_conf_respect_client_preference( mbedtls_ssl_config *conf, int enable );
+#endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
 /**

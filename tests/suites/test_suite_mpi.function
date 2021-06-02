@@ -1530,6 +1530,8 @@ void mpi_random_many( int min, data_t *bound_bytes, int iterations )
     }
     else
     {
+        int statistically_safe_all_the_way =
+            is_significantly_above_a_power_of_2( bound_bytes );
         for( b = 0; b < n_bits; b++ )
         {
             mbedtls_test_set_step( 1000000 + b );
@@ -1541,8 +1543,7 @@ void mpi_random_many( int min, data_t *bound_bytes, int iterations )
              * As an exception, the top bit may legitimately never be set
              * if bound is a power of 2 or only slightly above.
              */
-            if( b != n_bits - 1 ||
-                is_significantly_above_a_power_of_2( bound_bytes ) )
+            if( statistically_safe_all_the_way || b != n_bits - 1 )
             {
                 TEST_ASSERT( stats[b] > 0 );
             }

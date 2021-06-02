@@ -3443,27 +3443,10 @@
  */
 //#define MBEDTLS_SSL_CID_OUT_LEN_MAX 32
 
-/** \def MBEDTLS_SSL_CID_PADDING_GRANULARITY
+/** \def MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY
  *
  * This option controls the use of record plaintext padding
- * when using the Connection ID extension in DTLS 1.2.
- *
- * The padding will always be chosen so that the length of the
- * padded plaintext is a multiple of the value of this option.
- *
- * Note: A value of \c 1 means that no padding will be used
- *       for outgoing records.
- *
- * Note: On systems lacking division instructions,
- *       a power of two should be preferred.
- *
- */
-//#define MBEDTLS_SSL_CID_PADDING_GRANULARITY 16
-
-/** \def MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY
- *
- * This option controls the use of record plaintext padding
- * in TLS 1.3.
+ * in TLS 1.3 and when using the Connection ID extension in DTLS 1.2.
  *
  * The padding will always be chosen so that the length of the
  * padded plaintext is a multiple of the value of this option.
@@ -3474,7 +3457,7 @@
  * Note: On systems lacking division instructions,
  *       a power of two should be preferred.
  */
-//#define MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY 1
+//#define MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 16
 
 /** \def MBEDTLS_SSL_OUT_CONTENT_LEN
  *

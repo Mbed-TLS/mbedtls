@@ -836,6 +836,14 @@
 #error "MBEDTLS_SSL_PROTO_TLS1_1 (TLS v1.1 support) was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4286"
 #endif
 
+#if defined(MBEDTLS_SSL_CID_PADDING_GRANULARITY) //no-check-names
+#error "MBEDTLS_SSL_CID_PADDING_GRANULARITY was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4335"
+#endif
+
+#if defined(MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY) //no-check-names
+#error "MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4335"
+#endif
+
 /*
  * Avoid warning from -pedantic. This is a convenient place for this
  * workaround since this is included by every single file before the

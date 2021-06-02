@@ -1144,7 +1144,7 @@ mpi_random_many:1:"800000000000000000":100
 MPI random in range: 1..2^71+1
 mpi_random_many:1:"800000000000000001":100
 
-MPI random in range: 1..2^71+2^63
+MPI random in range: 1..2^71+2^70
 mpi_random_many:1:"c00000000000000000":100
 
 MPI random in range: 1..2^72-1
@@ -1156,7 +1156,7 @@ mpi_random_many:1:"01000000000000000000":100
 MPI random in range: 1..2^72+1
 mpi_random_many:1:"01000000000000000001":100
 
-MPI random in range: 1..2^72+2^63
+MPI random in range: 1..2^72+2^71
 mpi_random_many:1:"01800000000000000000":100
 
 MPI random in range: 0..1

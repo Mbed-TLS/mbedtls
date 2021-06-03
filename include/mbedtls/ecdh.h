@@ -51,9 +51,6 @@
  * will support alternative implementations of ECDH operations.
  * The new format is incompatible with applications that access
  * context fields directly and with restartable ECP operations.
- *
- * This option has no effect if #MBEDTLS_ECDH_C is not enabled.
- *
  */
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)

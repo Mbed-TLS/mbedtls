@@ -1109,6 +1109,9 @@ typedef uint32_t psa_pake_primitive_t;
 
 /** A Schnorr NIZKP public key.
  *
+ * This is the ephemeral public key in the Schnorr Non-Interactive
+ * Zero-Knowledge Proof (the value denoted by the letter 'V' in RFC 8235).
+ *
  * The format for both input and output at this step is the same as for public
  * keys on the group determined by the primitive (::psa_pake_primitive_t) would
  * be.
@@ -1123,16 +1126,16 @@ typedef uint32_t psa_pake_primitive_t;
 
 /** A Schnorr NIZKP proof.
  *
- * The format for both input and output at this step is the same as for private
- * keys on the group determined by the primitive (::psa_pake_primitive_t) would
- * be.
+ * This is the proof in the Schnorr Non-Interactive Zero-Knowledge Proof (the
+ * value denoted by the letter 'r' in RFC 8235).
  *
- * Some public key algorithms mask the private keys and this might be reflected
- * in the export format. Even if this is the case the masking is omitted at
- * this step.
+ * Both input and output at this step is an integer less than the group
+ * selected in the cipher suite. The format depends on the group as well:
  *
- * For more information on the format, consult the documentation of
- * psa_export_key().
+ * - For Montgomery curves, the encoding is little endian (see decoding of
+ *   scalars in Section 5 of RFC 7748).
+ * - For everything else the encoding is big endian (see Section 2.3.8 of
+ *   _SEC 1: Elliptic Curve Cryptography_ at https://www.secg.org/sec1-v2.pdf).
  *
  * For information regarding how the group is determined, consult the
  * documentation #PSA_PAKE_PRIMITIVE.

@@ -1694,9 +1694,9 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
  *                      compatible with algorithm \p alg.
  * \param input_step    A value of type ::psa_pake_step_t that is valid for the
  *                      algorithm \p alg.
- * \return              A sufficient output buffer size for the specified
- *                      output, cipher suite and algorithm. If the cipher suite,
- *                      the output type or PAKE algorithm is not recognized, or
+ * \return              A sufficient input buffer size for the specified
+ *                      input, cipher suite and algorithm. If the cipher suite,
+ *                      the input type or PAKE algorithm is not recognized, or
  *                      the parameters are incompatible, return 0.
  */
 #define PSA_PAKE_INPUT_SIZE(alg, primitive, input_step) 0
@@ -1715,7 +1715,7 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
  *
  * This macro must expand to a compile-time constant integer.
  *
- * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p cipher_suite, \p output).
+ * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p cipher_suite, \p input).
  */
 #define PSA_PAKE_INPUT_MAX_SIZE 0
 

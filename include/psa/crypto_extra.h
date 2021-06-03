@@ -1606,9 +1606,10 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  * party who used the same password is able to compute the key. But there is no
  * guarantee that the peer is the party it claims to be and was able to do so.
  *
- * That is, the authentication is only implicit (the peer is not authenticated
- * at this point, and no action should be taken that assume that they are - like
- * for example accessing restricted files).
+ * That is, the authentication is only implicit. Since the peer is not
+ * authenticated yet, no action should be taken yet that assumes that the peer
+ * is who it claims to be. For example, do not access restricted files on the
+ * peer's behalf until an explicit authentication has succeeded.
  *
  * This function can be called after the key exchange phase of the operation
  * has completed. It imports the shared secret output of the PAKE into the
@@ -1683,8 +1684,9 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
 
 /** A sufficient input buffer size for psa_pake_input().
  *
- * If the size of the input is larger than this, it is guaranteed
- * that psa_pake_input() will fail with #PSA_ERROR_INVALID_ARGUMENT.
+ * The value returned by this macro is guaranteed to be large enough for any
+ * valid input to psa_pake_input() in an operation with the specified
+ * parameters.
  *
  * See also #PSA_PAKE_INPUT_MAX_SIZE
  *

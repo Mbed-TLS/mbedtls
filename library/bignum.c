@@ -2516,11 +2516,7 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
             goto cleanup;
         }
 
-        ret = mbedtls_mpi_lt_mpi_ct( X, N, &cmp );
-        if( ret != 0 )
-        {
-            goto cleanup;
-        }
+        MBEDTLS_MPI_CHK( mbedtls_mpi_lt_mpi_ct( X, N, &cmp ) );
     }
     while( mbedtls_mpi_cmp_int( X, min ) < 0 || cmp != 1 );
 

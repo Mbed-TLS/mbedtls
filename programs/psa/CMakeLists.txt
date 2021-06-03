@@ -4,6 +4,7 @@ set(executables
     psa_constant_names
     psa_random
     psa_mac
+	psa_hkdf
     psa_hash
     psa_encrypt
     psa_sign_verify

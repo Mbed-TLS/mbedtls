@@ -1317,10 +1317,7 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  * - A successful call to psa_pake_get_implicit_key().
  *
  * \param[in,out] operation     The operation object to set up. It must have
- *                              been initialized as per the documentation for
- *                              #psa_pake_operation_t and not yet in use (no
- *                              other function has been called on it since the
- *                              last initialization).
+ *                              been initialized but not set up yet.
  * \param cipher_suite          The cipher suite to use. (A cipher suite fully
  *                              characterizes a PAKE algorithm and determines
  *                              the algorithm as well.)

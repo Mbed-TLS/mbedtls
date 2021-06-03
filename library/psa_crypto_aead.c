@@ -397,7 +397,7 @@ psa_status_t mbedtls_psa_aead_set_nonce(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
     {
         status = mbedtls_to_psa_error(
@@ -427,6 +427,7 @@ psa_status_t mbedtls_psa_aead_set_nonce(
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
+        ( void ) operation;
         ( void ) nonce;
         ( void ) nonce_length;
 
@@ -474,6 +475,7 @@ psa_status_t mbedtls_psa_aead_set_lengths(
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
+        ( void ) operation;
         ( void ) ad_length;
         ( void ) plaintext_length;
 
@@ -510,8 +512,9 @@ psa_status_t mbedtls_psa_aead_update_ad(
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
-        (void) input;
-        (void) input_length;
+        ( void ) operation;
+        ( void ) input;
+        ( void ) input_length;
 
         return ( PSA_ERROR_NOT_SUPPORTED );
     }
@@ -561,8 +564,8 @@ psa_status_t mbedtls_psa_aead_update(
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
-        (void) input;
-        (void) input_length;
+        ( void ) input;
+        ( void ) input_length;
 
         return ( PSA_ERROR_NOT_SUPPORTED );
     }

@@ -2031,6 +2031,42 @@ static void mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N,
     mpi_montmul( A, &U, N, mm, T );
 }
 
+/*
+ * Constant-flow boolean "equal" comparison:
+ * return x == y
+ *
+ * This function can be used to write constant-time code by replacing branches
+ * with bit operations - it can be used in conjunction with
+ * mbedtls_ssl_cf_mask_from_bit().
+ *
+ * This function is implemented without using comparison operators, as those
+ * might be translated to branches by some compilers on some platforms.
+ */
+static size_t mbedtls_mpi_cf_bool_eq( size_t x, size_t y )
+{
+    /* diff = 0 if x == y, non-zero otherwise */
+    const size_t diff = x ^ y;
+
+    /* MSVC has a warning about unary minus on unsigned integer types,
+     * but this is well-defined and precisely what we want to do here. */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
+
+    /* diff_msb's most significant bit is equal to x != y */
+    const size_t diff_msb = ( diff | -diff );
+
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+
+    /* diff1 = (x != y) ? 1 : 0 */
+    const size_t diff1 = diff_msb >> ( sizeof( diff_msb ) * 8 - 1 );
+
+    return( 1 ^ diff1 );
+}
+
 /**
  * Select an MPI from a table without leaking the index.
  *
@@ -2051,7 +2087,10 @@ static int mpi_select( mbedtls_mpi *R, const mbedtls_mpi *T, size_t T_size, size
     int ret;
 
     for( size_t i = 0; i < T_size; i++ )
-        MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( R, &T[i], i == idx ) );
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( R, &T[i],
+                                        mbedtls_mpi_cf_bool_eq( i, idx ) ) );
+    }
 
 cleanup:
     return( ret );

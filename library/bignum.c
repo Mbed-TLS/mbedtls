@@ -322,6 +322,8 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X, mbedtls_mpi *Y, unsigned char sw
 {
     int ret, s;
     size_t i;
+    unsigned int sign_mask;
+    mbedtls_mpi_uint limb_mask;
     mbedtls_mpi_uint tmp;
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( Y != NULL );
@@ -329,22 +331,36 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X, mbedtls_mpi *Y, unsigned char sw
     if( X == Y )
         return( 0 );
 
+    /* MSVC has a warning about unary minus on unsigned integer types,
+     * but this is well-defined and precisely what we want to do here. */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
+
     /* make sure swap is 0 or 1 in a time-constant manner */
     swap = (swap | (unsigned char)-swap) >> 7;
+    /* all-bits 1 if swap is 1, all-bits 0 if swap is 0 */
+    sign_mask = -swap;
+    limb_mask = -swap;
+
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( Y, X->n ) );
 
     s = X->s;
-    X->s = X->s * ( 1 - swap ) + Y->s * swap;
-    Y->s = Y->s * ( 1 - swap ) +    s * swap;
+    X->s = ( X->s & ~sign_mask ) | ( Y->s & sign_mask );
+    Y->s = ( Y->s & ~sign_mask ) | (    s & sign_mask );
 
 
     for( i = 0; i < X->n; i++ )
     {
         tmp = X->p[i];
-        X->p[i] = X->p[i] * ( 1 - swap ) + Y->p[i] * swap;
-        Y->p[i] = Y->p[i] * ( 1 - swap ) +     tmp * swap;
+        X->p[i] = ( X->p[i] & ~limb_mask ) | ( Y->p[i] & limb_mask );
+        Y->p[i] = ( Y->p[i] & ~limb_mask ) | (     tmp & limb_mask );
     }
 
 cleanup:

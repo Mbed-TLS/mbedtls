@@ -919,7 +919,7 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  *
  * At this point there is a cryptographic guarantee that only the authenticated
  * party who used the same password is able to compute the key. But there is no
- * guarantee that the peer is the party he claims to be and was able to do so.
+ * guarantee that the peer is the party it claims to be and was able to do so.
  *
  * That is, the authentication is only implicit (the peer is not authenticated
  * at this point, and no action should be taken that assume that they are - like
@@ -1604,7 +1604,7 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  *
  * At this point there is a cryptographic guarantee that only the authenticated
  * party who used the same password is able to compute the key. But there is no
- * guarantee that the peer is the party he claims to be and was able to do so.
+ * guarantee that the peer is the party it claims to be and was able to do so.
  *
  * That is, the authentication is only implicit (the peer is not authenticated
  * at this point, and no action should be taken that assume that they are - like

@@ -181,7 +181,7 @@ psa_status_t mbedtls_psa_aead_decrypt(
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p key is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
- *         \p alg is not supported or is not an AEAD algorithm.
+ *         \p alg is not supported.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  *         Failed to allocate memory for key material
  */
@@ -225,7 +225,7 @@ psa_status_t mbedtls_psa_aead_encrypt_setup(
  * * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p key is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
- *         \p alg is not supported or is not an AEAD algorithm.
+ *         \p alg is not supported.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  *         Failed to allocate memory for key material
  */
@@ -263,8 +263,6 @@ psa_status_t mbedtls_psa_aead_decrypt_setup(
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         Algorithm previously set is not supported in this configuration of
  *         the library.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- *         (GCM and CCM only) Unable to allocate buffer for nonce.
  */
 psa_status_t mbedtls_psa_aead_set_nonce(
     mbedtls_psa_aead_operation_t *operation,
@@ -289,7 +287,6 @@ psa_status_t mbedtls_psa_aead_set_nonce(
  * - For #PSA_ALG_CCM, calling this function is required.
  * - For the other AEAD algorithms defined in this specification, calling
  *   this function is not required.
- * - For vendor-defined algorithm, refer to the vendor documentation.
  *
  * If this function returns an error status, the PSA core calls
  * mbedtls_psa_aead_abort().
@@ -341,9 +338,6 @@ psa_status_t mbedtls_psa_aead_set_lengths(
  *          to undo any action that depends on the input if
  *          mbedtls_psa_aead_verify() returns an error status.
  *
- * \note    For the time being #PSA_ALG_CCM and #PSA_ALG_GCM require the entire
- *          additional data to be passed in in one go, i.e.
- *          mbedtls_psa_aead_update_ad() can only be called once.
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[in] input             Buffer containing the fragment of
@@ -352,12 +346,6 @@ psa_status_t mbedtls_psa_aead_set_lengths(
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The total input length overflows the additional data length that
- *         was previously specified with mbedtls_psa_aead_set_lengths().
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         (For GCM / CCM) PSA core attempted to call mbedtls_psa_update_ad()
- *         more than once.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         Algorithm previously set is not supported in this configuration of
  *         the library.
@@ -392,10 +380,6 @@ psa_status_t mbedtls_psa_aead_update_ad(
  * mbedtls_psa_aead_verify() provides sufficient input. The amount of data that
  * can be delayed in this way is bounded by #PSA_AEAD_UPDATE_OUTPUT_SIZE.
  *
- * \note For the time being #PSA_ALG_CCM and #PSA_ALG_GCM require the entire
- *       data to be passed in in one go, i.e. mbedtls_psa_aead_update() can only
- *       be called once.
- *
  * \param[in,out] operation     Active AEAD operation.
  * \param[in] input             Buffer containing the message fragment to
  *                              encrypt or decrypt.
@@ -425,19 +409,6 @@ psa_status_t mbedtls_psa_aead_update_ad(
  *         #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c key_type, \c alg, \p input_length) or
  *         #PSA_AEAD_UPDATE_OUTPUT_MAX_SIZE(\p input_length) can be used to
  *         determine the required buffer size.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The total length of input to mbedtls_psa_aead_update_ad() so far is
- *         less than the additional data length that was previously
- *         specified with mbedtls_psa_aead_set_lengths().
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The total input length overflows the plaintext length that
- *         was previously specified with mbedtls_psa_aead_set_lengths().
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         (GCM / CCM only) PSA core attempted to call mbedtls_psa_update() more
- *         than once.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- *         (CCM only) Unable to allocate memory for the tag or the body
-
  */
 psa_status_t mbedtls_psa_aead_update(
     mbedtls_psa_aead_operation_t *operation,
@@ -505,9 +476,6 @@ psa_status_t mbedtls_psa_aead_update(
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be an active encryption
- *         operation with a nonce set).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p ciphertext or \p tag buffer is too small.
  *         #PSA_AEAD_FINISH_OUTPUT_SIZE(\c key_type, \c alg) or
@@ -515,14 +483,6 @@ psa_status_t mbedtls_psa_aead_update(
  *         required \p ciphertext buffer size. #PSA_AEAD_TAG_LENGTH(\c key_type,
  *         \c key_bits, \c alg) or #PSA_AEAD_TAG_MAX_SIZE can be used to
  *         determine the required \p tag buffer size.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The total length of input to mbedtls_psa_aead_update_ad() so far is
- *         less than the additional data length that was previously
- *         specified with mbedtls_psa_aead_set_lengths().
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The total length of input to mbedtls_psa_aead_update() so far is
- *         less than the plaintext length that was previously
- *         specified with mbedtls_psa_aead_set_lengths().
  */
 psa_status_t mbedtls_psa_aead_finish(
     mbedtls_psa_aead_operation_t *operation,
@@ -590,24 +550,11 @@ psa_status_t mbedtls_psa_aead_finish(
  * \retval #PSA_ERROR_INVALID_SIGNATURE
  *         The calculations were successful, but the authentication tag is
  *         not correct.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be an active decryption
- *         operation with a nonce set).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p plaintext buffer is too small.
  *         #PSA_AEAD_VERIFY_OUTPUT_SIZE(\c key_type, \c alg) or
  *         #PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE can be used to determine the
  *         required buffer size.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The total length of input to mbedtls_psa_aead_update_ad() so far is
- *         less than the additional data length that was previously
- *         specified with mbedtls_psa_aead_set_lengths().
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The total length of input to mbedtls_psa_aead_update() so far is
- *         less than the plaintext length that was previously
- *         specified with mbedtls_psa_aead_set_lengths().
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- *         (CCM only) Failed to allocate temporary buffer
  */
 psa_status_t mbedtls_psa_aead_verify(
     mbedtls_psa_aead_operation_t *operation,

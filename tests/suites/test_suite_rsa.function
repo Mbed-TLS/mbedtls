@@ -18,6 +18,30 @@
  */
 
 /* BEGIN_CASE */
+void rsa_invalid_param( )
+{
+    mbedtls_rsa_context ctx;
+    const int invalid_padding = 42;
+    const int invalid_hash_id = 0xff;
+
+    mbedtls_rsa_init( &ctx, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_NONE );
+
+    TEST_EQUAL( mbedtls_rsa_set_padding( &ctx,
+                                         invalid_padding,
+                                         MBEDTLS_MD_NONE ),
+                MBEDTLS_ERR_RSA_INVALID_PADDING );
+
+    TEST_EQUAL( mbedtls_rsa_set_padding( &ctx,
+                                         MBEDTLS_RSA_PKCS_V21,
+                                         invalid_hash_id ),
+                MBEDTLS_ERR_RSA_INVALID_PADDING );
+
+exit:
+    mbedtls_rsa_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void rsa_init_free( int reinit )
 {
     mbedtls_rsa_context ctx;

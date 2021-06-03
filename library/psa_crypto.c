@@ -2838,13 +2838,14 @@ psa_status_t psa_verify_hash( mbedtls_svc_key_id_t key,
 }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
-static void psa_rsa_oaep_set_padding_mode( psa_algorithm_t alg,
-                                           mbedtls_rsa_context *rsa )
+static int psa_rsa_oaep_set_padding_mode( psa_algorithm_t alg,
+                                          mbedtls_rsa_context *rsa )
 {
     psa_algorithm_t hash_alg = PSA_ALG_RSA_OAEP_GET_HASH( alg );
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
     mbedtls_md_type_t md_alg = mbedtls_md_get_type( md_info );
-    mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
+
+    return( mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg ) );
 }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) */
 
@@ -2917,7 +2918,11 @@ psa_status_t psa_asymmetric_encrypt( mbedtls_svc_key_id_t key,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
         if( PSA_ALG_IS_RSA_OAEP( alg ) )
         {
-            psa_rsa_oaep_set_padding_mode( alg, rsa );
+            status = mbedtls_to_psa_error(
+                         psa_rsa_oaep_set_padding_mode( alg, rsa ) );
+            if( status != PSA_SUCCESS )
+                goto rsa_exit;
+
             status = mbedtls_to_psa_error(
                 mbedtls_rsa_rsaes_oaep_encrypt( rsa,
                                                 mbedtls_psa_get_random,
@@ -3023,7 +3028,11 @@ psa_status_t psa_asymmetric_decrypt( mbedtls_svc_key_id_t key,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
         if( PSA_ALG_IS_RSA_OAEP( alg ) )
         {
-            psa_rsa_oaep_set_padding_mode( alg, rsa );
+            status = mbedtls_to_psa_error(
+                         psa_rsa_oaep_set_padding_mode( alg, rsa ) );
+            if( status != PSA_SUCCESS )
+                goto rsa_exit;
+
             status = mbedtls_to_psa_error(
                 mbedtls_rsa_rsaes_oaep_decrypt( rsa,
                                                 mbedtls_psa_get_random,

@@ -399,9 +399,15 @@ int mbedtls_rsa_export_crt( const mbedtls_rsa_context *ctx,
  * \param padding  The padding mode to use. This must be either
  *                 #MBEDTLS_RSA_PKCS_V15 or #MBEDTLS_RSA_PKCS_V21.
  * \param hash_id  The #MBEDTLS_RSA_PKCS_V21 hash identifier.
+ *                 #MBEDTLS_MD_NONE is accepted by this function but may be
+ *                 not suitable for some operations.
+ *
+ * \return         \c 0 on success.
+ * \return         #MBEDTLS_ERR_RSA_INVALID_PADDING failure:
+ *                 \p padding or \p hash_id is invalid.
  */
-void mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding,
-                              int hash_id );
+int mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding,
+                             mbedtls_md_type_t hash_id );
 
 /**
  * \brief          This function retrieves the length of RSA modulus in Bytes.

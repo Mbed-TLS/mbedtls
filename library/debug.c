@@ -246,7 +246,7 @@ void mbedtls_debug_print_mpi( const mbedtls_ssl_context *ssl, int level,
     else
     {
         int n;
-        for( n = ( bitlen - 1 ) / 8; n >= 0; n-- )
+        for( n = (int) ( bitlen - 1 ) / 8; n >= 0; n-- )
         {
             size_t limb_offset = n / sizeof( mbedtls_mpi_uint );
             size_t offset_in_limb = n % sizeof( mbedtls_mpi_uint );

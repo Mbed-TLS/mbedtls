@@ -1,0 +1,12 @@
+Changes
+   * config.h has been split into build_info.h and mbedtls_config.h
+     build_info.h is intended to be included from C code directly, while
+     mbedtls_config.h is intended to be edited by end users whishing to
+     change the build configuration, and should generally only be included from
+     build_info.h.
+   * The handling of MBEDTLS_CONFIG_FILE has been moved into build_info.h.
+   * Mandatory version symbols MBEDTLS_CONFIG_VERSION and
+     MBEDTLS_USER_CONFIG_VERSION were introduced for MBEDTLS_CONFIG_FILE and
+     MBEDTLS_USER_CONFIG_FILE respectively. They have to be defined with a
+     value of one in their respective config file for the config to be
+     considered valid.

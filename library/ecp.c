@@ -729,6 +729,18 @@ void mbedtls_ecp_point_free( mbedtls_ecp_point *pt )
 }
 
 /*
+ * Check that the comb table (grp->T) is static initialized.
+ */
+static int ecp_group_is_static_comb_table( const mbedtls_ecp_group *grp ) {
+#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
+    return grp->T != NULL && grp->T_size == 0;
+#else
+    (void) grp;
+    return 0;
+#endif
+}
+
+/*
  * Unallocate (the components of) a group
  */
 void mbedtls_ecp_group_free( mbedtls_ecp_group *grp )
@@ -747,7 +759,7 @@ void mbedtls_ecp_group_free( mbedtls_ecp_group *grp )
         mbedtls_mpi_free( &grp->N );
     }
 
-    if( grp->T != NULL )
+    if( !ecp_group_is_static_comb_table(grp) && grp->T != NULL )
     {
         for( i = 0; i < grp->T_size; i++ )
             mbedtls_ecp_point_free( &grp->T[i] );
@@ -2245,11 +2257,16 @@ static unsigned char ecp_pick_window_size( const mbedtls_ecp_group *grp,
         w++;
 
     /*
-     * Make sure w is within bounds.
+     * If static comb table may not be used (!p_eq_g) or static comb table does
+     * not exists, make sure w is within bounds.
      * (The last test is useful only for very small curves in the test suite.)
+     *
+     * The user reduces MBEDTLS_ECP_WINDOW_SIZE does not changes the size of
+     * static comb table, because the size of static comb table is fixed when
+     * it is generated.
      */
 #if( MBEDTLS_ECP_WINDOW_SIZE < 6 )
-    if( w > MBEDTLS_ECP_WINDOW_SIZE )
+    if( (!p_eq_g || !ecp_group_is_static_comb_table(grp)) && w > MBEDTLS_ECP_WINDOW_SIZE )
         w = MBEDTLS_ECP_WINDOW_SIZE;
 #endif
     if( w >= grp->nbits )

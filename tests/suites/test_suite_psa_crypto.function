@@ -3170,14 +3170,15 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
     unsigned char *part_data = NULL;
     unsigned char *final_data = NULL;
     size_t output_size = 0;
+    size_t finish_output_size;
     size_t part_data_size = 0;
     size_t output_length = 0;
     size_t key_bits = 0;
     size_t tag_length = 0;
     size_t tag_size = 0;
     size_t nonce_length = 0;
-    uint8_t nonce_buffer[16];
-    uint8_t tag_buffer[16];
+    uint8_t nonce_buffer[PSA_AEAD_NONCE_MAX_SIZE];
+    uint8_t tag_buffer[PSA_AEAD_TAG_MAX_SIZE];
     uint32_t part_offset = 0;
     size_t part_length = 0;
     size_t output_part_length = 0;
@@ -3198,7 +3199,7 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
 
     tag_length = PSA_AEAD_TAG_LENGTH( key_type, key_bits, alg );
 
-    TEST_ASSERT( tag_length <= 16 );
+    TEST_ASSERT( tag_length <= PSA_AEAD_TAG_MAX_SIZE );
 
     output_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg,
                                                ( input_data->len +
@@ -3206,9 +3207,13 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
 
     ASSERT_ALLOC( output_data, output_size );
 
-    ASSERT_ALLOC( final_data, PSA_AEAD_FINISH_OUTPUT_MAX_SIZE );
+    finish_output_size = PSA_AEAD_FINISH_OUTPUT_SIZE( key_type, alg );
 
-    operation = psa_aead_operation_init();
+    TEST_ASSERT( finish_output_size <= PSA_AEAD_FINISH_OUTPUT_MAX_SIZE );
+
+    ASSERT_ALLOC( final_data, finish_output_size );
+
+    operation = psa_aead_operation_init( );
 
     status = psa_aead_encrypt_setup( &operation, key, alg );
 
@@ -3319,7 +3324,7 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
     }
 
     PSA_ASSERT( psa_aead_finish( &operation, final_data,
-                                 PSA_AEAD_FINISH_OUTPUT_MAX_SIZE,
+                                 finish_output_size,
                                  &output_part_length,
                                  tag_buffer, tag_length,
                                  &tag_size ) );
@@ -3381,6 +3386,7 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
     unsigned char *final_data = NULL;
     size_t part_data_size;
     size_t output_size = 0;
+    size_t finish_output_size = 0;
     size_t output_length = 0;
     unsigned char *output_data2 = NULL;
     size_t output_size2 = 0;
@@ -3389,8 +3395,8 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
     size_t tag_length = 0;
     size_t tag_size = 0;
     size_t nonce_length = 0;
-    uint8_t nonce_buffer[16];
-    uint8_t tag_buffer[16];
+    uint8_t nonce_buffer[PSA_AEAD_NONCE_MAX_SIZE];
+    uint8_t tag_buffer[PSA_AEAD_TAG_MAX_SIZE];
     uint32_t part_offset = 0;
     size_t part_length = 0;
     size_t output_part_length = 0;
@@ -3413,14 +3419,19 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
 
     tag_length = PSA_AEAD_TAG_LENGTH( key_type, key_bits, alg );
 
-    TEST_ASSERT( tag_length <= 16 );
+    TEST_ASSERT( tag_length <= PSA_AEAD_TAG_MAX_SIZE );
 
     output_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg, input_data->len );
 
     ASSERT_ALLOC( output_data, output_size );
-    ASSERT_ALLOC( final_data, PSA_AEAD_FINISH_OUTPUT_MAX_SIZE );
 
-    operation = psa_aead_operation_init();
+    finish_output_size = PSA_AEAD_FINISH_OUTPUT_SIZE( key_type, alg );
+
+    TEST_ASSERT( finish_output_size <= PSA_AEAD_FINISH_OUTPUT_MAX_SIZE );
+
+    ASSERT_ALLOC( final_data, finish_output_size );
+
+    operation = psa_aead_operation_init( );
 
     status = psa_aead_encrypt_setup( &operation, key, alg );
 
@@ -3567,7 +3578,7 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
     }
 
     status = psa_aead_finish( &operation, final_data,
-                              PSA_AEAD_FINISH_OUTPUT_MAX_SIZE,
+                              finish_output_size,
                               &output_part_length,
                               tag_buffer, tag_length,
                               &tag_size );
@@ -3612,7 +3623,7 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
                      PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE( output_length +
                                                        tag_length ) );
 
-        operation = psa_aead_operation_init();
+        operation = psa_aead_operation_init( );
 
         status = psa_aead_decrypt_setup( &operation, key, alg );
 
@@ -3735,7 +3746,7 @@ void aead_multipart_encrypt_decrypt( int key_type_arg, data_t *key_data,
         }
 
         PSA_ASSERT( psa_aead_verify( &operation, final_data,
-                                     PSA_AEAD_FINISH_OUTPUT_MAX_SIZE,
+                                     finish_output_size,
                                      &output_part_length,
                                      tag_buffer, tag_length ) );
 
@@ -3782,11 +3793,12 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
     unsigned char *final_data = NULL;
     size_t part_data_size;
     size_t output_size = 0;
+    size_t verify_output_size = 0;
     size_t output_length = 0;
     size_t key_bits = 0;
     size_t tag_length = 0;
     size_t nonce_length = 0;
-    uint8_t nonce_buffer[16];
+    uint8_t nonce_buffer[PSA_AEAD_NONCE_MAX_SIZE];
     uint32_t part_offset = 0;
     size_t part_length = 0;
     size_t output_part_length = 0;
@@ -3813,9 +3825,12 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                                  tag_length ) );
 
     ASSERT_ALLOC( output_data, output_size );
-    ASSERT_ALLOC( final_data, PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE );
 
-    operation = psa_aead_operation_init();
+    verify_output_size = PSA_AEAD_VERIFY_OUTPUT_SIZE( key_type, alg );
+    TEST_ASSERT( verify_output_size <= PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE );
+    ASSERT_ALLOC( final_data, verify_output_size );
+
+    operation = psa_aead_operation_init( );
 
     status = psa_aead_decrypt_setup( &operation, key, alg );
 
@@ -3963,11 +3978,10 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
     }
 
     status = psa_aead_verify( &operation, final_data,
-                                 PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE,
-                                 &output_part_length,
-                                 ( input_data->x + input_data->len -
-                                   tag_length ),
-                                 tag_length );
+                              verify_output_size,
+                              &output_part_length,
+                              ( input_data->x + input_data->len - tag_length ),
+                              tag_length );
 
     if( status != PSA_SUCCESS )
     {

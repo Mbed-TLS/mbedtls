@@ -2405,6 +2405,8 @@ cleanup:
 
 /* Fill X with n_bytes random bytes.
  * X must already have room for those bytes.
+ * The ordering of the bytes returned from the RNG is suitable for
+ * deterministic ECDSA (see RFC 6979 §3.3 and mbedtls_mpi_random()).
  * The size and sign of X are unchanged.
  * n_bytes must not be 0.
  */

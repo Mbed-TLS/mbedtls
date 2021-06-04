@@ -3547,7 +3547,7 @@ psa_status_t psa_aead_generate_nonce( psa_aead_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t required_nonce_size;
 
-     *nonce_length = 0;
+    *nonce_length = 0;
 
     if( operation->id == 0 )
     {

@@ -992,46 +992,246 @@ Test bit set (Invalid bit value)
 mbedtls_mpi_set_bit:16:"00":5:2:16:"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Fill random: 0 bytes
-mpi_fill_random:0:0:0
+mpi_fill_random:0:0:0:0
 
 Fill random: 1 byte, good
-mpi_fill_random:1:1:0
+mpi_fill_random:1:1:0:0
 
 Fill random: 2 bytes, good, no leading zero
-mpi_fill_random:2:2:0
+mpi_fill_random:2:2:0:0
 
 Fill random: 2 bytes, good, 1 leading zero
-mpi_fill_random:2:256:0
+mpi_fill_random:2:256:0:0
 
 Fill random: MAX_SIZE - 7, good
-mpi_fill_random:MBEDTLS_MPI_MAX_SIZE - 7:MBEDTLS_MPI_MAX_SIZE - 7:0
+mpi_fill_random:MBEDTLS_MPI_MAX_SIZE - 7:MBEDTLS_MPI_MAX_SIZE - 7:0:0
 
 Fill random: MAX_SIZE, good
-mpi_fill_random:MBEDTLS_MPI_MAX_SIZE:MBEDTLS_MPI_MAX_SIZE:0
+mpi_fill_random:MBEDTLS_MPI_MAX_SIZE:MBEDTLS_MPI_MAX_SIZE:0:0
+
+Fill random: 0 bytes, previously small >0
+mpi_fill_random:0:0:1:0
+
+Fill random: 0 bytes, previously small <0
+mpi_fill_random:0:0:-1:0
+
+Fill random: 0 bytes, previously large >0
+mpi_fill_random:0:0:65:0
+
+Fill random: 0 bytes, previously large <0
+mpi_fill_random:0:0:-65:0
+
+Fill random: 1 byte, previously small >0
+mpi_fill_random:1:1:1:0
+
+Fill random: 1 byte, previously small <0
+mpi_fill_random:1:1:-1:0
+
+Fill random: 1 byte, previously large >0
+mpi_fill_random:1:1:65:0
+
+Fill random: 1 byte, previously large <0
+mpi_fill_random:1:1:-65:0
+
+Fill random: 9 bytes, previously small >0
+mpi_fill_random:1:1:1:0
+
+Fill random: 9 bytes, previously small <0
+mpi_fill_random:1:1:-1:0
 
 Fill random: 1 byte, RNG failure
-mpi_fill_random:1:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+mpi_fill_random:1:0:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
 
 Fill random: 2 bytes, RNG failure after 1 byte
-mpi_fill_random:2:1:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+mpi_fill_random:2:1:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
 
 Fill random: 4 bytes, RNG failure after 3 bytes
-mpi_fill_random:4:3:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+mpi_fill_random:4:3:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
 
 Fill random: 8 bytes, RNG failure after 7 bytes
-mpi_fill_random:8:7:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+mpi_fill_random:8:7:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
 
 Fill random: 16 bytes, RNG failure after 1 bytes
-mpi_fill_random:16:1:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+mpi_fill_random:16:1:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
 
 Fill random: 16 bytes, RNG failure after 8 bytes
-mpi_fill_random:16:8:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+mpi_fill_random:16:8:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
 
 Fill random: 16 bytes, RNG failure after 15 bytes
-mpi_fill_random:16:15:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+mpi_fill_random:16:15:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
 
 Fill random: MAX_SIZE bytes, RNG failure after MAX_SIZE-1 bytes
-mpi_fill_random:MBEDTLS_MPI_MAX_SIZE:MBEDTLS_MPI_MAX_SIZE-1:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+mpi_fill_random:MBEDTLS_MPI_MAX_SIZE:MBEDTLS_MPI_MAX_SIZE-1:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+
+MPI random in range: 1..2
+mpi_random_many:1:"02":1000
+
+MPI random in range: 1..3
+mpi_random_many:1:"03":1000
+
+MPI random in range: 1..4
+mpi_random_many:1:"04":1000
+
+MPI random in range: 1..5
+mpi_random_many:1:"05":1000
+
+MPI random in range: 1..6
+mpi_random_many:1:"06":1000
+
+MPI random in range: 1..7
+mpi_random_many:1:"07":1000
+
+MPI random in range: 1..8
+mpi_random_many:1:"08":1000
+
+MPI random in range: 1..9
+mpi_random_many:1:"09":1000
+
+MPI random in range: 1..10
+mpi_random_many:1:"0a":1000
+
+MPI random in range: 1..11
+mpi_random_many:1:"0b":1000
+
+MPI random in range: 1..12
+mpi_random_many:1:"0c":1000
+
+MPI random in range: 1..255
+mpi_random_many:1:"ff":100
+
+MPI random in range: 1..256
+mpi_random_many:1:"0100":100
+
+MPI random in range: 1..257
+mpi_random_many:1:"0101":100
+
+MPI random in range: 1..272
+mpi_random_many:1:"0110":100
+
+MPI random in range: 1..2^64-1
+mpi_random_many:1:"ffffffffffffffff":100
+
+MPI random in range: 1..2^64
+mpi_random_many:1:"010000000000000000":100
+
+MPI random in range: 1..2^64+1
+mpi_random_many:1:"010000000000000001":100
+
+MPI random in range: 1..2^64+2^63
+mpi_random_many:1:"018000000000000000":100
+
+MPI random in range: 1..2^65-1
+mpi_random_many:1:"01ffffffffffffffff":100
+
+MPI random in range: 1..2^65
+mpi_random_many:1:"020000000000000000":100
+
+MPI random in range: 1..2^65+1
+mpi_random_many:1:"020000000000000001":100
+
+MPI random in range: 1..2^65+2^64
+mpi_random_many:1:"030000000000000000":100
+
+MPI random in range: 1..2^66+2^65
+mpi_random_many:1:"060000000000000000":100
+
+MPI random in range: 1..2^71-1
+mpi_random_many:1:"7fffffffffffffffff":100
+
+MPI random in range: 1..2^71
+mpi_random_many:1:"800000000000000000":100
+
+MPI random in range: 1..2^71+1
+mpi_random_many:1:"800000000000000001":100
+
+MPI random in range: 1..2^71+2^70
+mpi_random_many:1:"c00000000000000000":100
+
+MPI random in range: 1..2^72-1
+mpi_random_many:1:"ffffffffffffffffff":100
+
+MPI random in range: 1..2^72
+mpi_random_many:1:"01000000000000000000":100
+
+MPI random in range: 1..2^72+1
+mpi_random_many:1:"01000000000000000001":100
+
+MPI random in range: 1..2^72+2^71
+mpi_random_many:1:"01800000000000000000":100
+
+MPI random in range: 0..1
+mpi_random_many:0:"04":10000
+
+MPI random in range: 0..4
+mpi_random_many:0:"04":10000
+
+MPI random in range: 2..4
+mpi_random_many:2:"04":10000
+
+MPI random in range: 3..4
+mpi_random_many:3:"04":10000
+
+MPI random in range: smaller result
+mpi_random_sizes:1:"aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb":1:0
+
+MPI random in range: same size result (32-bit limbs)
+mpi_random_sizes:1:"aaaaaaaaaaaaaaaa":2:0
+
+MPI random in range: same size result (64-bit limbs)
+mpi_random_sizes:1:"aaaaaaaaaaaaaaaa":1:0
+
+MPI random in range: larger result
+mpi_random_sizes:1:"aaaaaaaaaaaaaaaa":3:0
+
+## The "0 limb in upper bound" tests rely on the fact that
+## mbedtls_mpi_read_binary() bases the size of the MPI on the size of
+## the input, without first checking for leading zeros. If this was
+## not the case, the tests would still pass, but would not exercise
+## the advertised behavior.
+MPI random in range: leading 0 limb in upper bound #0
+mpi_random_sizes:1:"00aaaaaaaaaaaaaaaa":0:0
+
+MPI random in range: leading 0 limb in upper bound #1
+mpi_random_sizes:1:"00aaaaaaaaaaaaaaaa":1:0
+
+MPI random in range: leading 0 limb in upper bound #2
+mpi_random_sizes:1:"00aaaaaaaaaaaaaaaa":2:0
+
+MPI random in range: leading 0 limb in upper bound #3
+mpi_random_sizes:1:"00aaaaaaaaaaaaaaaa":3:0
+
+MPI random in range: leading 0 limb in upper bound #4
+mpi_random_sizes:1:"00aaaaaaaaaaaaaaaa":4:0
+
+MPI random in range: previously small >0
+mpi_random_sizes:1:"1234567890":4:1
+
+MPI random in range: previously small <0
+mpi_random_sizes:1:"1234567890":4:-1
+
+MPI random in range: previously large >0
+mpi_random_sizes:1:"1234":4:65
+
+MPI random in range: previously large <0
+mpi_random_sizes:1:"1234":4:-65
+
+MPI random bad arguments: min < 0
+mpi_random_fail:-1:"04":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+MPI random bad arguments: min = N = 0
+mpi_random_fail:0:"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+MPI random bad arguments: min = N = 1
+mpi_random_fail:1:"01":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+MPI random bad arguments: min > N = 0
+mpi_random_fail:1:"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+MPI random bad arguments: min > N = 1
+mpi_random_fail:2:"01":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+MPI random bad arguments: min > N = 1, 0 limb in upper bound
+mpi_random_fail:2:"000000000000000001":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 MPI Selftest
 depends_on:MBEDTLS_SELF_TEST

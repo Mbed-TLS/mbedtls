@@ -240,6 +240,8 @@ void ecdh_primitive_testvec( int id, data_t * rnd_buf_A, char * xA_str,
 
     rnd_info_A.buf = rnd_buf_A->x;
     rnd_info_A.length = rnd_buf_A->len;
+    rnd_info_A.fallback_f_rng = mbedtls_test_rnd_std_rand;
+    rnd_info_A.fallback_p_rng = NULL;
 
     /* Fix rnd_buf_A->x by shifting it left if necessary */
     if( grp.nbits % 8 != 0 )
@@ -256,6 +258,8 @@ void ecdh_primitive_testvec( int id, data_t * rnd_buf_A, char * xA_str,
 
     rnd_info_B.buf = rnd_buf_B->x;
     rnd_info_B.length = rnd_buf_B->len;
+    rnd_info_B.fallback_f_rng = mbedtls_test_rnd_std_rand;
+    rnd_info_B.fallback_p_rng = NULL;
 
     /* Fix rnd_buf_B->x by shifting it left if necessary */
     if( grp.nbits % 8 != 0 )
@@ -362,9 +366,13 @@ void ecdh_restart( int id, data_t *dA, data_t *dB, data_t *z,
     mbedtls_ecdh_init( &srv );
     mbedtls_ecdh_init( &cli );
 
+    rnd_info_A.fallback_f_rng = mbedtls_test_rnd_std_rand;
+    rnd_info_A.fallback_p_rng = NULL;
     rnd_info_A.buf = dA->x;
     rnd_info_A.length = dA->len;
 
+    rnd_info_B.fallback_f_rng = mbedtls_test_rnd_std_rand;
+    rnd_info_B.fallback_p_rng = NULL;
     rnd_info_B.buf = dB->x;
     rnd_info_B.length = dB->len;
 

@@ -3191,8 +3191,7 @@ void mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ss
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
- * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
- *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
+ * \param minor    Minor version number (only MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
 void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor );
 
@@ -3207,9 +3206,7 @@ void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int mino
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
- * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_1,
- *                 MBEDTLS_SSL_MINOR_VERSION_2,
- *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
+ * \param minor    Minor version number (only MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
 void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor );
 

@@ -125,14 +125,10 @@
  */
 
 /* These are the high an low bytes of ProtocolVersion as defined by:
- * - RFC 2246: ProtocolVersion version = { 3, 1 };     // TLS v1.0
- * - RFC 4346: ProtocolVersion version = { 3, 2 };     // TLS v1.1
  * - RFC 5246: ProtocolVersion version = { 3, 3 };     // TLS v1.2
  * - RFC 8446: see section 4.2.1
  */
 #define MBEDTLS_SSL_MAJOR_VERSION_3             3
-#define MBEDTLS_SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 deprecated */
-#define MBEDTLS_SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 deprecated */
 #define MBEDTLS_SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
 #define MBEDTLS_SSL_MINOR_VERSION_4             4   /*!< TLS v1.3 (experimental) */
 

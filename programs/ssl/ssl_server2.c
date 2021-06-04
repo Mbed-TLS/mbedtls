@@ -2027,10 +2027,6 @@ int main( int argc, char *argv[] )
         if( opt.min_version < ciphersuite_info->min_minor_ver )
         {
             opt.min_version = ciphersuite_info->min_minor_ver;
-            /* DTLS starts with TLS 1.1 */
-            if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-                opt.min_version < MBEDTLS_SSL_MINOR_VERSION_2 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

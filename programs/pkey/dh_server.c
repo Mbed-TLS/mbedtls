@@ -95,7 +95,6 @@ int main( void )
 
     mbedtls_net_init( &listen_fd );
     mbedtls_net_init( &client_fd );
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_SHA256 );
     mbedtls_dhm_init( &dhm );
     mbedtls_aes_init( &aes );
     mbedtls_ctr_drbg_init( &ctr_drbg );
@@ -131,7 +130,7 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
+    mbedtls_rsa_init( &rsa );
 
     if( ( ret = mbedtls_mpi_read_file( &N , 16, f ) ) != 0 ||
         ( ret = mbedtls_mpi_read_file( &E , 16, f ) ) != 0 ||

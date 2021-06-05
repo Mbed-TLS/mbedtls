@@ -477,17 +477,14 @@ int mbedtls_rsa_export_crt( const mbedtls_rsa_context *ctx,
 /*
  * Initialize an RSA context
  */
-void mbedtls_rsa_init( mbedtls_rsa_context *ctx,
-               int padding,
-               int hash_id )
+void mbedtls_rsa_init( mbedtls_rsa_context *ctx )
 {
     RSA_VALIDATE( ctx != NULL );
-    RSA_VALIDATE( padding == MBEDTLS_RSA_PKCS_V15 ||
-                  padding == MBEDTLS_RSA_PKCS_V21 );
 
     memset( ctx, 0, sizeof( mbedtls_rsa_context ) );
 
-    mbedtls_rsa_set_padding( ctx, padding, hash_id );
+    ctx->padding = MBEDTLS_RSA_PKCS_V15;
+    ctx->hash_id = MBEDTLS_MD_NONE;
 
 #if defined(MBEDTLS_THREADING_C)
     /* Set ctx->ver to nonzero to indicate that the mutex has been
@@ -2592,7 +2589,7 @@ int mbedtls_rsa_self_test( int verbose )
     mbedtls_mpi K;
 
     mbedtls_mpi_init( &K );
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
+    mbedtls_rsa_init( &rsa );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &K, 16, RSA_N  ) );
     MBEDTLS_MPI_CHK( mbedtls_rsa_import( &rsa, &K, NULL, NULL, NULL, NULL ) );

@@ -165,7 +165,7 @@ static void *rsa_alloc_wrap( void )
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_rsa_context ) );
 
     if( ctx != NULL )
-        mbedtls_rsa_init( (mbedtls_rsa_context *) ctx, 0, 0 );
+        mbedtls_rsa_init( (mbedtls_rsa_context *) ctx );
 
     return( ctx );
 }

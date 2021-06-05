@@ -317,7 +317,7 @@ static psa_status_t rsa_generate_key(
     if( status != PSA_SUCCESS )
         return( status );
 
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_NONE );
+    mbedtls_rsa_init( &rsa );
     ret = mbedtls_rsa_gen_key( &rsa,
                                mbedtls_psa_get_random,
                                MBEDTLS_PSA_RANDOM_STATE,

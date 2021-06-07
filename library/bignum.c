@@ -237,6 +237,45 @@ void mbedtls_mpi_swap( mbedtls_mpi *X, mbedtls_mpi *Y )
     memcpy(  Y, &T, sizeof( mbedtls_mpi ) );
 }
 
+/**
+ * Select between two sign values in constant-time.
+ *
+ * This is functionally equivalent to second ? a : b but uses only bit
+ * operations in order to avoid branches.
+ *
+ * \param[in] a         The first sign; must be either +1 or -1.
+ * \param[in] b         The second sign; must be either +1 or -1.
+ * \param[in] second    Must be either 1 (return b) or 0 (return a).
+ *
+ * \return The selected sign value.
+ */
+static int mpi_safe_cond_select_sign( int a, int b, unsigned char second )
+{
+    /* In order to avoid questions about what we can reasonnably assume about
+     * the representations of signed integers, move everything to unsigned
+     * by taking advantage of the fact that a and b are either +1 or -1. */
+    unsigned ua = a + 1;
+    unsigned ub = b + 1;
+
+    /* MSVC has a warning about unary minus on unsigned integer types,
+     * but this is well-defined and precisely what we want to do here. */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
+    /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
+    const unsigned mask = -second;
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+
+    /* select ua or ub */
+    unsigned ur = ( ua & ~mask ) | ( ub & mask );
+
+    /* ur is now 0 or 2, convert back to -1 or +1 */
+    return( (int) ur - 1 );
+}
+
 /*
  * Conditionally assign dest = src, without leaking information
  * about whether the assignment was made or not.
@@ -277,7 +316,6 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X, const mbedtls_mpi *Y, unsigned
 {
     int ret = 0;
     size_t i;
-    unsigned int mask;
     mbedtls_mpi_uint limb_mask;
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( Y != NULL );
@@ -292,7 +330,6 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X, const mbedtls_mpi *Y, unsigned
     /* make sure assign is 0 or 1 in a time-constant manner */
     assign = (assign | (unsigned char)-assign) >> 7;
     /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
-    mask = -assign;
     limb_mask = -assign;
 
 #if defined(_MSC_VER)
@@ -301,7 +338,7 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X, const mbedtls_mpi *Y, unsigned
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
 
-    X->s = ( X->s & ~mask ) | ( Y->s & mask );
+    X->s = mpi_safe_cond_select_sign( X->s, Y->s, assign );
 
     mpi_safe_cond_assign( Y->n, X->p, Y->p, assign );
 
@@ -322,7 +359,6 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X, mbedtls_mpi *Y, unsigned char sw
 {
     int ret, s;
     size_t i;
-    unsigned int sign_mask;
     mbedtls_mpi_uint limb_mask;
     mbedtls_mpi_uint tmp;
     MPI_VALIDATE_RET( X != NULL );
@@ -341,7 +377,6 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X, mbedtls_mpi *Y, unsigned char sw
     /* make sure swap is 0 or 1 in a time-constant manner */
     swap = (swap | (unsigned char)-swap) >> 7;
     /* all-bits 1 if swap is 1, all-bits 0 if swap is 0 */
-    sign_mask = -swap;
     limb_mask = -swap;
 
 #if defined(_MSC_VER)
@@ -352,8 +387,8 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X, mbedtls_mpi *Y, unsigned char sw
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( Y, X->n ) );
 
     s = X->s;
-    X->s = ( X->s & ~sign_mask ) | ( Y->s & sign_mask );
-    Y->s = ( Y->s & ~sign_mask ) | (    s & sign_mask );
+    X->s = mpi_safe_cond_select_sign( X->s, Y->s, swap );
+    Y->s = mpi_safe_cond_select_sign( Y->s, s, swap );
 
 
     for( i = 0; i < X->n; i++ )

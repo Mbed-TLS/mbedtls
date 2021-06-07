@@ -348,7 +348,7 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
     offset = ctx->add_len % 16;
     p = add;
 
-    if (offset)
+    if( offset != 0 )
     {
         use_len = 16 - offset;
         if( use_len > add_len )
@@ -380,7 +380,7 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
         p += use_len;
     }
 
-    if ( add_len > 0 )
+    if( add_len > 0 )
     {
         for( i = 0; i < add_len; i++ )
             ctx->buf[i] ^= p[i];
@@ -464,7 +464,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
     }
 
-    if ( ( ctx->len == 0 ) && ( ctx->add_len % 16 ) )
+    if( ctx->len == 0 && ctx->add_len % 16 != 0 )
     {
         gcm_mult( ctx, ctx->buf, ctx->buf );
     }
@@ -534,7 +534,7 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
     orig_len = ctx->len * 8;
     orig_add_len = ctx->add_len * 8;
 
-    if ( ( ctx->len == 0 ) && ( ctx->add_len % 16 ) )
+    if( ctx->len == 0 && ctx->add_len % 16 != 0 )
     {
         gcm_mult( ctx, ctx->buf, ctx->buf );
     }

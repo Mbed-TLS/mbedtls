@@ -5,7 +5,7 @@ The default X.509 verification profile (`mbedtls_x509_crt_profile_default`) and 
 
 Hashes and curves weaker than 255 bits (security strength less than 128 bits) are no longer accepted by default. The following hashes have been removed: SHA-1 (formerly only accepted for key exchanges but not for certificate signatures), SHA-224 (weaker hashes were already not accepted). The following curves have been removed: secp192r1, secp224r1, secp192k1, secp224k1.
 
-The compile-time option `MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE` is no longer available.
+The compile-time options `MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES` and `MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE` are no longer available.
 
 If you still need to accept certificates signed with algorithms that have been removed from the default profile, call `mbedtls_x509_crt_verify_with_profile` instead of `mbedtls_x509_crt_verify` and pass a profile that allows the curves and hashes you want. For example, to allow SHA-224:
 ```

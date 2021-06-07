@@ -102,7 +102,8 @@ extern "C" {
  *   MBEDTLS_ECP_yyy_ENABLED above.
  * - Add the necessary definitions to ecp_curves.c.
  * - Add the curve to the ecp_supported_curves array in ecp.c.
- * - Add the curve to applicable profiles in x509_crt.c if applicable.
+ * - Add the curve to applicable profiles in x509_crt.c.
+ * - Add the curve to applicable presets in ssl_tls.c.
  */
 typedef enum
 {

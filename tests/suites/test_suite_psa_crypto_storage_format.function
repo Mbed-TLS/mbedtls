@@ -7,6 +7,8 @@
 
 #include <psa_crypto_its.h>
 
+#define TEST_FLAG_EXERCISE      0x00000001
+
 /** Write a key with the given attributes and key material to storage.
  * Test that it has the expected representation.
  *
@@ -67,7 +69,7 @@ static int test_read_key( const psa_key_attributes_t *expected_attributes,
                           const data_t *expected_material,
                           psa_storage_uid_t uid,
                           const data_t *representation,
-                          int exercise )
+                          int flags )
 {
     psa_key_attributes_t actual_attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = psa_get_key_id( expected_attributes );
@@ -105,7 +107,7 @@ static int test_read_key( const psa_key_attributes_t *expected_attributes,
                         exported_material, length );
     }
 
-    if( exercise )
+    if( flags & TEST_FLAG_EXERCISE )
     {
         TEST_ASSERT( mbedtls_test_psa_exercise_key(
                          key_id,
@@ -183,7 +185,7 @@ exit:
 void key_storage_read( int lifetime_arg, int type_arg, int bits_arg,
                        int usage_arg, int alg_arg, int alg2_arg,
                        data_t *material,
-                       data_t *representation, int exercise )
+                       data_t *representation, int flags )
 {
     /* Backward compatibility: read a key in the format of a past version
      * and check that this version can use it. */
@@ -213,7 +215,7 @@ void key_storage_read( int lifetime_arg, int type_arg, int bits_arg,
      * guarantees backward compatibility with keys that were stored by
      * past versions of Mbed TLS. */
     TEST_ASSERT( test_read_key( &attributes, material,
-                                uid, representation, exercise ) );
+                                uid, representation, flags ) );
 
 exit:
     psa_reset_key_attributes( &attributes );

@@ -15,6 +15,7 @@
 #define ECP_PT_RESET( x )           \
     mbedtls_ecp_point_free( x );    \
     mbedtls_ecp_point_init( x );
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -913,6 +914,55 @@ exit:
     mbedtls_mpi_free( &C );
     mbedtls_mpi_free( &M );
     mbedtls_mpi_free( &N );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_MONTGOMERY_ENABLED */
+void genkey_mx_known_answer( int bits, data_t *seed, data_t *expected )
+{
+    mbedtls_test_rnd_buf_info rnd_info;
+    mbedtls_mpi d;
+    int ret;
+    uint8_t *actual = NULL;
+
+    mbedtls_mpi_init( &d );
+    rnd_info.buf = seed->x;
+    rnd_info.length = seed->len;
+    rnd_info.fallback_f_rng = NULL;
+    rnd_info.fallback_p_rng = NULL;
+
+    ASSERT_ALLOC( actual, expected->len );
+
+    ret = mbedtls_ecp_gen_privkey_mx( bits, &d,
+                                      mbedtls_test_rnd_buffer_rand, &rnd_info );
+
+    if( expected->len == 0 )
+    {
+        /* Expecting an error (happens if there isn't enough randomness) */
+        TEST_ASSERT( ret != 0 );
+    }
+    else
+    {
+        TEST_EQUAL( ret, 0 );
+        TEST_EQUAL( (size_t) bits + 1, mbedtls_mpi_bitlen( &d ) );
+        TEST_EQUAL( 0, mbedtls_mpi_write_binary( &d, actual, expected->len ) );
+        /* Test the exact result. This assumes that the output of the
+         * RNG is used in a specific way, which is overly constraining.
+         * The advantage is that it's easier to test the expected properties
+         * of the generated key:
+         * - The most significant bit must be at a specific positions
+         *   (can be enforced by checking the bit-length).
+         * - The least significant bits must have specific values
+         *   (can be enforced by checking these bits).
+         * - Other bits must be random (by testing with different RNG outputs,
+         *   we validate that those bits are indeed influenced by the RNG). */
+        ASSERT_COMPARE( expected->x, expected->len,
+                        actual, expected->len );
+    }
+
+exit:
+    mbedtls_free( actual );
+    mbedtls_mpi_free( &d );
 }
 /* END_CASE */
 

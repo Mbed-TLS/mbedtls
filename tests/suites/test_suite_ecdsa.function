@@ -95,6 +95,8 @@ void ecdsa_prim_test_vectors( int id, char * d_str, char * xQ_str,
     TEST_ASSERT( mbedtls_mpi_read_string( &d, 16, d_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &r_check, 16, r_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &s_check, 16, s_str ) == 0 );
+    rnd_info.fallback_f_rng = mbedtls_test_rnd_std_rand;
+    rnd_info.fallback_p_rng = NULL;
     rnd_info.buf = rnd_buf->x;
     rnd_info.length = rnd_buf->len;
 

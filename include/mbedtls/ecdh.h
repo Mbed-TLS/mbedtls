@@ -40,6 +40,25 @@
 
 #include "mbedtls/ecp.h"
 
+/*
+ * Mbed TLS supports two formats for ECDH contexts (#mbedtls_ecdh_context
+ * defined in `ecdh.h`). For most applications, the choice of format makes
+ * no difference, since all library functions can work with either format,
+ * except that the new format is incompatible with MBEDTLS_ECP_RESTARTABLE.
+
+ * The new format used when this option is disabled is smaller
+ * (56 bytes on a 32-bit platform). In future versions of the library, it
+ * will support alternative implementations of ECDH operations.
+ * The new format is incompatible with applications that access
+ * context fields directly and with restartable ECP operations.
+ */
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+#define MBEDTLS_ECDH_LEGACY_CONTEXT
+#else
+#undef MBEDTLS_ECDH_LEGACY_CONTEXT
+#endif
+
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
 #undef MBEDTLS_ECDH_LEGACY_CONTEXT
 #include "everest/everest.h"

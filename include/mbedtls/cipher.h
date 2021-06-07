@@ -437,10 +437,23 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx );
 
 
 /**
- * \brief               This function initializes a cipher context for
+ * \brief               This function prepares a cipher context for
  *                      use with the given cipher primitive.
  *
- * \param ctx           The context to initialize. This must be initialized.
+ * \note                After calling this function, you should call
+ *                      mbedtls_cipher_setkey() and, if the mode uses padding,
+ *                      mbedtls_cipher_set_padding_mode(), then for each
+ *                      message to encrypt or decrypt with this key, either:
+ *                      - mbedtls_cipher_crypt() for one-shot processing with
+ *                      non-AEAD modes;
+ *                      - mbedtls_cipher_auth_encrypt_ext() or
+ *                      mbedtls_cipher_auth_decrypt_ext() for one-shot
+ *                      processing with AEAD modes or NIST_KW;
+ *                      - for multi-part processing, see the documentation of
+ *                      mbedtls_cipher_reset().
+ *
+ * \param ctx           The context to prepare. This must be initialized by
+ *                      a call to mbedtls_cipher_init() first.
  * \param cipher_info   The cipher to use.
  *
  * \return              \c 0 on success.
@@ -448,10 +461,6 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx );
  *                      parameter-verification failure.
  * \return              #MBEDTLS_ERR_CIPHER_ALLOC_FAILED if allocation of the
  *                      cipher-specific context fails.
- *
- * \internal Currently, the function also clears the structure.
- * In future versions, the caller will be required to call
- * mbedtls_cipher_init() on the structure first.
  */
 int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
                           const mbedtls_cipher_info_t *cipher_info );
@@ -687,7 +696,30 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
 /**
  * \brief         This function resets the cipher state.
  *
- * \param ctx     The generic cipher context. This must be initialized.
+ * \note          With non-AEAD ciphers, the order of calls for each message
+ *                is as follows:
+ *                1. mbedtls_cipher_set_iv() if the mode uses an IV/nonce.
+ *                2. mbedtls_cipher_reset()
+ *                3. mbedtls_cipher_update() one or more times
+ *                4. mbedtls_cipher_finish()
+ *                .
+ *                This sequence can be repeated to encrypt or decrypt multiple
+ *                messages with the same key.
+ *
+ * \note          With AEAD ciphers, the order of calls for each message
+ *                is as follows:
+ *                1. mbedtls_cipher_set_iv() if the mode uses an IV/nonce.
+ *                2. mbedtls_cipher_reset()
+ *                3. mbedtls_cipher_update_ad()
+ *                4. mbedtls_cipher_update() one or more times
+ *                5. mbedtls_cipher_finish()
+ *                6. mbedtls_cipher_check_tag() (for decryption) or
+ *                mbedtls_cipher_write_tag() (for encryption).
+ *                .
+ *                This sequence can be repeated to encrypt or decrypt multiple
+ *                messages with the same key.
+ *
+ * \param ctx     The generic cipher context. This must be bound to a key.
  *
  * \return        \c 0 on success.
  * \return        #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on

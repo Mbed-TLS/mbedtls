@@ -1,23 +1,89 @@
-Diffie-Hellman full exchange #1
-dhm_do_dhm:10:"23":10:"5":0
+Diffie-Hellman full exchange: tiny x_size
+dhm_do_dhm:10:"93450983094850938450983409623":1:10:"9345098304850938450983409622":0
 
-Diffie-Hellman full exchange #2
-dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622":0
+Diffie-Hellman full exchange: 5-bit, x_size=3
+dhm_do_dhm:10:"23":3:10:"5":0
 
-Diffie-Hellman full exchange #3
-dhm_do_dhm:10:"93450983094850938450983409623982317398171298719873918739182739712938719287391879381271":10:"9345098309485093845098340962223981329819812792137312973297123912791271":0
+Diffie-Hellman full exchange: 5-bit, x_size=2
+dhm_do_dhm:10:"23":2:10:"5":0
+
+## Repeat this test case and a few similar ones several times. The RNG state
+## changes, so we get to exercise the code with a few different values.
+Diffie-Hellman full exchange: 5-bit #1
+dhm_do_dhm:10:"23":1:10:"5":0
+
+Diffie-Hellman full exchange: 5-bit #2
+dhm_do_dhm:10:"23":1:10:"5":0
+
+Diffie-Hellman full exchange: 5-bit #3
+dhm_do_dhm:10:"23":1:10:"5":0
+
+Diffie-Hellman full exchange: 5-bit #4
+dhm_do_dhm:10:"23":1:10:"5":0
+
+Diffie-Hellman full exchange: 5-bit #5
+dhm_do_dhm:10:"23":1:10:"5":0
+
+## This is x_size = P_size + 1. Arguably x_size > P_size makes no sense,
+## but it's the current undocumented behavior to treat it the same as when
+## x_size = P_size. If this behavior changes in the future, change the expected
+## return status from 0 to MBEDTLS_ERR_DHM_BAD_INPUT_DATA.
+Diffie-Hellman full exchange: 97-bit, x_size=14
+dhm_do_dhm:10:"93450983094850938450983409623":14:10:"9345098304850938450983409622":0
+
+Diffie-Hellman full exchange: 97-bit #1
+dhm_do_dhm:10:"93450983094850938450983409623":13:10:"9345098304850938450983409622":0
+
+Diffie-Hellman full exchange: 97-bit #2
+dhm_do_dhm:10:"93450983094850938450983409623":13:10:"9345098304850938450983409622":0
+
+Diffie-Hellman full exchange: 97-bit #3
+dhm_do_dhm:10:"93450983094850938450983409623":13:10:"9345098304850938450983409622":0
+
+Diffie-Hellman full exchange: 97-bit #4
+dhm_do_dhm:10:"93450983094850938450983409623":13:10:"9345098304850938450983409622":0
+
+Diffie-Hellman full exchange: 97-bit #5
+dhm_do_dhm:10:"93450983094850938450983409623":13:10:"9345098304850938450983409622":0
+
+Diffie-Hellman full exchange: 97-bit, x_size=12
+dhm_do_dhm:10:"93450983094850938450983409623":12:10:"9345098304850938450983409622":0
+
+Diffie-Hellman full exchange: 97-bit, x_size=11
+dhm_do_dhm:10:"93450983094850938450983409623":11:10:"9345098304850938450983409622":0
+
+Diffie-Hellman full exchange: 97-bit, x_size=1 #1
+dhm_do_dhm:10:"93450983094850938450983409623":1:10:"9345098304850938450983409622":0
+
+Diffie-Hellman full exchange: 97-bit, x_size=1 #2
+dhm_do_dhm:10:"93450983094850938450983409623":1:10:"9345098304850938450983409622":0
+
+Diffie-Hellman full exchange: 97-bit, x_size=1 #3
+dhm_do_dhm:10:"93450983094850938450983409623":1:10:"9345098304850938450983409622":0
+
+Diffie-Hellman full exchange: 97-bit, x_size=1 #4
+dhm_do_dhm:10:"93450983094850938450983409623":1:10:"9345098304850938450983409622":0
+
+Diffie-Hellman full exchange: 97-bit, x_size=1 #5
+dhm_do_dhm:10:"93450983094850938450983409623":1:10:"9345098304850938450983409622":0
+
+Diffie-Hellman full exchange: 286-bit
+dhm_do_dhm:10:"93450983094850938450983409623982317398171298719873918739182739712938719287391879381271":36:10:"9345098309485093845098340962223981329819812792137312973297123912791271":0
 
 Diffie-Hellman trivial subgroup #1
-dhm_do_dhm:10:"23":10:"1":MBEDTLS_ERR_DHM_BAD_INPUT_DATA
+dhm_do_dhm:10:"23":1:10:"1":MBEDTLS_ERR_DHM_BAD_INPUT_DATA
 
 Diffie-Hellman trivial subgroup #2
-dhm_do_dhm:10:"23":10:"-1":MBEDTLS_ERR_DHM_BAD_INPUT_DATA
+dhm_do_dhm:10:"23":1:10:"-1":MBEDTLS_ERR_DHM_BAD_INPUT_DATA
 
 Diffie-Hellman small modulus
-dhm_do_dhm:10:"3":10:"5":MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED
+dhm_do_dhm:10:"3":1:10:"5":MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED+MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Diffie-Hellman zero modulus
-dhm_do_dhm:10:"0":10:"5":MBEDTLS_ERR_DHM_BAD_INPUT_DATA
+dhm_do_dhm:10:"0":1:10:"5":MBEDTLS_ERR_DHM_BAD_INPUT_DATA
+
+Diffie-Hellman: x_size < 0
+dhm_do_dhm:10:"93450983094850938450983409623":-1:10:"9345098304850938450983409622":MBEDTLS_ERR_DHM_BAD_INPUT_DATA
 
 Diffie-Hellman MPI_MAX_SIZE modulus
 dhm_make_public:MBEDTLS_MPI_MAX_SIZE:10:"5":0

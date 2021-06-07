@@ -116,6 +116,8 @@ void ecdh_primitive_testvec( int id, data_t * rnd_buf_A, char * xA_str,
 
     rnd_info_A.buf = rnd_buf_A->x;
     rnd_info_A.length = rnd_buf_A->len;
+    rnd_info_A.fallback_f_rng = mbedtls_test_rnd_std_rand;
+    rnd_info_A.fallback_p_rng = NULL;
 
     /* Fix rnd_buf_A->x by shifting it left if necessary */
     if( grp.nbits % 8 != 0 )
@@ -132,6 +134,8 @@ void ecdh_primitive_testvec( int id, data_t * rnd_buf_A, char * xA_str,
 
     rnd_info_B.buf = rnd_buf_B->x;
     rnd_info_B.length = rnd_buf_B->len;
+    rnd_info_B.fallback_f_rng = mbedtls_test_rnd_std_rand;
+    rnd_info_B.fallback_p_rng = NULL;
 
     /* Fix rnd_buf_B->x by shifting it left if necessary */
     if( grp.nbits % 8 != 0 )
@@ -238,9 +242,13 @@ void ecdh_restart( int id, data_t *dA, data_t *dB, data_t *z,
     mbedtls_ecdh_init( &srv );
     mbedtls_ecdh_init( &cli );
 
+    rnd_info_A.fallback_f_rng = mbedtls_test_rnd_std_rand;
+    rnd_info_A.fallback_p_rng = NULL;
     rnd_info_A.buf = dA->x;
     rnd_info_A.length = dA->len;
 
+    rnd_info_B.fallback_f_rng = mbedtls_test_rnd_std_rand;
+    rnd_info_B.fallback_p_rng = NULL;
     rnd_info_B.buf = dB->x;
     rnd_info_B.length = dB->len;
 
@@ -336,47 +344,6 @@ void ecdh_restart( int id, data_t *dA, data_t *dB, data_t *z,
 
 exit:
     mbedtls_ecp_group_free( &grp );
-    mbedtls_ecdh_free( &srv );
-    mbedtls_ecdh_free( &cli );
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_ECDH_LEGACY_CONTEXT */
-void ecdh_exchange_legacy( int id )
-{
-    mbedtls_ecdh_context srv, cli;
-    unsigned char buf[1000];
-    const unsigned char *vbuf;
-    size_t len;
-
-    mbedtls_test_rnd_pseudo_info rnd_info;
-
-    mbedtls_ecdh_init( &srv );
-    mbedtls_ecdh_init( &cli );
-    memset( &rnd_info, 0x00, sizeof( mbedtls_test_rnd_pseudo_info ) );
-
-    TEST_ASSERT( mbedtls_ecp_group_load( &srv.grp, id ) == 0 );
-
-    memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
-    TEST_ASSERT( mbedtls_ecdh_make_params( &srv, &len, buf, 1000,
-                                           &mbedtls_test_rnd_pseudo_rand,
-                                           &rnd_info ) == 0 );
-    TEST_ASSERT( mbedtls_ecdh_read_params( &cli, &vbuf, buf + len ) == 0 );
-
-    memset( buf, 0x00, sizeof( buf ) );
-    TEST_ASSERT( mbedtls_ecdh_make_public( &cli, &len, buf, 1000,
-                                           &mbedtls_test_rnd_pseudo_rand,
-                                           &rnd_info ) == 0 );
-    TEST_ASSERT( mbedtls_ecdh_read_public( &srv, buf, len ) == 0 );
-
-    TEST_ASSERT( mbedtls_ecdh_calc_secret( &srv, &len, buf, 1000,
-                                           &mbedtls_test_rnd_pseudo_rand,
-                                           &rnd_info ) == 0 );
-    TEST_ASSERT( mbedtls_ecdh_calc_secret( &cli, &len, buf, 1000, NULL,
-                                           NULL ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &srv.z, &cli.z ) == 0 );
-
-exit:
     mbedtls_ecdh_free( &srv );
     mbedtls_ecdh_free( &cli );
 }

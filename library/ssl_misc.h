@@ -65,6 +65,16 @@
 #define inline __inline
 #endif
 
+/* Legacy minor version numbers as defined by:
+ * - RFC 2246: ProtocolVersion version = { 3, 1 };     // TLS v1.0
+ * - RFC 4346: ProtocolVersion version = { 3, 2 };     // TLS v1.1
+ *
+ * We no longer support these versions, but some code still references those
+ * constants, for keep them for now until we clean up that code.
+ */
+#define MBEDTLS_SSL_MINOR_VERSION_1             1
+#define MBEDTLS_SSL_MINOR_VERSION_2             2
+
 /* Determine minimum supported version */
 #define MBEDTLS_SSL_MIN_MAJOR_VERSION           MBEDTLS_SSL_MAJOR_VERSION_3
 
@@ -164,7 +174,7 @@
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-#define MBEDTLS_SSL_MAX_CID_EXPANSION      MBEDTLS_SSL_CID_PADDING_GRANULARITY
+#define MBEDTLS_SSL_MAX_CID_EXPANSION      MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY
 #else
 #define MBEDTLS_SSL_MAX_CID_EXPANSION        0
 #endif

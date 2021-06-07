@@ -2,13 +2,9 @@ Removals
    * Remove support for TLS 1.0, TLS 1.1 and DTLS 1.0, as well as support for
      CBC record splitting, fallback SCSV, and the ability to configure
      ciphersuites per version, which are no longer relevant. This removes the
-     following public constants: MBEDTLS_SSL_PROTO_TLS1,
-     MBEDTLS_SSL_PROTO_TLS1_1, MBEDTLS_SSL_MINOR_VERSION_1,
-     MBEDTLS_SSL_MINOR_VERSION_2, MBEDTLS_SSL_CBC_RECORD_SPLITTING,
-     MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED,
-     MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED,
-     MBEDTLS_SSL_FALLBACK_SCSV, MBEDTLS_SSL_FALLBACK_SCSV_VALUE,
-     MBEDTLS_SSL_IS_FALLBACK, MBEDTLS_SSL_IS_NOT_FALLBACK; and functions:
+     configuration options MBEDTLS_SSL_PROTO_TLS1,
+     MBEDTLS_SSL_PROTO_TLS1_1, MBEDTLS_SSL_CBC_RECORD_SPLITTING and
+     MBEDTLS_SSL_FALLBACK_SCSV as well as the functions
      mbedtls_ssl_conf_cbc_record_splitting(),
      mbedtls_ssl_get_key_exchange_md_ssl_tls(), mbedtls_ssl_conf_fallback(),
-     mbedtls_ssl_conf_ciphersuites_for_version(). Fixes #4286.
+     and mbedtls_ssl_conf_ciphersuites_for_version(). Fixes #4286.

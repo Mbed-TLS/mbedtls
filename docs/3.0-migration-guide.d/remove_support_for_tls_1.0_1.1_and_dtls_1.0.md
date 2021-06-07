@@ -10,9 +10,9 @@ surface, even if the code is supposedly not used.
 
 The migration path is to adopt the latest versions of the protocol.
 
-As a consequence of removing 1.0, support for CBC record splitting was also
-removed, as it was a work-around for a weakness in this particular version.
-There is no migration path is no longer makes sense with newer versions.
+As a consequence of removing TLS 1.0, support for CBC record splitting was
+also removed, as it was a work-around for a weakness in this particular
+version. There is no migration path since the feature is no longer relevant.
 
 As a consequence of currently supporting only one version of (D)TLS (and in the
 future 1.3 which will have a different version negociation mechanism), support

@@ -1870,7 +1870,7 @@ read_record_header:
      * and certificate from the SNI callback triggered by the SNI extension.)
      */
     got_common_suite = 0;
-    ciphersuites = mbedtls_ssl_get_protocol_version_ciphersuites( ssl->conf, ssl->minor_ver );
+    ciphersuites = ssl->conf->ciphersuite_list;
     ciphersuite_info = NULL;
 #if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
     for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )

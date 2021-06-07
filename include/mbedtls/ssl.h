@@ -125,14 +125,10 @@
  */
 
 /* These are the high an low bytes of ProtocolVersion as defined by:
- * - RFC 2246: ProtocolVersion version = { 3, 1 };     // TLS v1.0
- * - RFC 4346: ProtocolVersion version = { 3, 2 };     // TLS v1.1
  * - RFC 5246: ProtocolVersion version = { 3, 3 };     // TLS v1.2
  * - RFC 8446: see section 4.2.1
  */
 #define MBEDTLS_SSL_MAJOR_VERSION_3             3
-#define MBEDTLS_SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 deprecated */
-#define MBEDTLS_SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 deprecated */
 #define MBEDTLS_SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
 #define MBEDTLS_SSL_MINOR_VERSION_4             4   /*!< TLS v1.3 (experimental) */
 
@@ -976,10 +972,8 @@ struct mbedtls_ssl_config
      * Pointers
      */
 
-    /** Allowed ciphersuites per version. To access list's elements, please use
-     *  \c mbedtls_ssl_get_protocol_version_ciphersuites
-     */
-    const int *ciphersuite_list[3];
+    /** Allowed ciphersuites for (D)TLS 1.2 (0-terminated)                  */
+    const int *ciphersuite_list;
 
     /** Callback for printing debug output                                  */
     void (*f_dbg)(void *, int, const char *, int, const char *);
@@ -2508,17 +2502,6 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                    const int *ciphersuites );
 
-/**
- * \brief               Get ciphersuite for given protocol's minor version.
- *
- * \param conf          The SSL configuration.
- * \param prot_version  Protocol version. One of MBEDTLS_SSL_MINOR_VERSION_x macros.
- * \return              Ciphersuites pointer if successful.
- * \return              \c NULL if no ciphersuites where found.
- */
-const int *mbedtls_ssl_get_protocol_version_ciphersuites(
-    const mbedtls_ssl_config *conf, int prot_version );
-
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0
 #define MBEDTLS_SSL_UNEXPECTED_CID_FAIL   1
@@ -2557,27 +2540,6 @@ const int *mbedtls_ssl_get_protocol_version_ciphersuites(
 int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf, size_t len,
                           int ignore_other_cids );
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-
-/**
- * \brief               Set the list of allowed ciphersuites and the
- *                      preference order for a specific version of the protocol.
- *                      (Only useful on the server side)
- *
- *                      The ciphersuites array is not copied, and must remain
- *                      valid for the lifetime of the ssl_config.
- *
- * \param conf          SSL configuration
- * \param ciphersuites  0-terminated list of allowed ciphersuites
- * \param major         Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3
- *                      supported)
- * \param minor         Minor version number (only MBEDTLS_SSL_MINOR_VERSION_3
- *                      supported)
- *
- * \note                With DTLS, use MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
- */
-void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
-                                       const int *ciphersuites,
-                                       int major, int minor );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
@@ -3229,8 +3191,7 @@ void mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ss
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
- * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
- *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
+ * \param minor    Minor version number (only MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
 void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor );
 
@@ -3245,9 +3206,7 @@ void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int mino
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
- * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_1,
- *                 MBEDTLS_SSL_MINOR_VERSION_2,
- *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
+ * \param minor    Minor version number (only MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
 void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor );
 

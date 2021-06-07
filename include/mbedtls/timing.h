@@ -52,7 +52,7 @@ struct mbedtls_timing_hr_time
  */
 typedef struct mbedtls_timing_delay_context
 {
-    struct mbedtls_timing_hr_time   timer;
+    struct mbedtls_timing_hr_time   MBEDTLS_PRIVATE(timer);
     uint32_t                        MBEDTLS_PRIVATE(int_ms);
     uint32_t                        MBEDTLS_PRIVATE(fin_ms);
 } mbedtls_timing_delay_context;

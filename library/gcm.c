@@ -332,7 +332,16 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
     return( 0 );
 }
 
-
+/**
+ * mbedtls_gcm_context::buf contains different data type, depending
+ * on the values of mbedtls_gcm_context::::add_len and
+ * mbedtls_gcm_context::len:
+ *     * When add_len % 16 == 0 and len == 0: initial state.
+ *     * When add_len % 16 != 0 and len == 0: the first `add_len % 16` bytes
+ *       of buf have a partial AD block xored in and not yet multiplied in.
+ *     * When len != 0: the first `add_len % 16` bytes of buf have partial
+ *       ciphertext xored in and not yet multiplied in.
+ */
 int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
                            const unsigned char *add, size_t add_len )
 {

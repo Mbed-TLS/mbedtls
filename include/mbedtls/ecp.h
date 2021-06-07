@@ -93,6 +93,7 @@ extern "C" {
  * - Add it at the end of this enum, otherwise you'll break the ABI by
  *   changing the numerical value for existing curves.
  * - Increment MBEDTLS_ECP_DP_MAX below if needed.
+ * - Update the calculation of MBEDTLS_ECP_MAX_BITS below.
  * - Add the corresponding MBEDTLS_ECP_DP_xxx_ENABLED macro definition to
  *   config.h.
  * - List the curve as a dependency of MBEDTLS_ECP_C and

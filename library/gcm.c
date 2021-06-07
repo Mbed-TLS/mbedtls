@@ -454,7 +454,9 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
     *output_length = input_length;
 
     /* Exit early if input_length==0 so that we don't do any pointer arithmetic
-     * on a potentially null pointer. */
+     * on a potentially null pointer.
+     * Returning early also means that the last partial block of AD remains
+     * untouched for mbedtls_gcm_finish */
     if( input_length == 0 )
         return( 0 );
 

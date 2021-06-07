@@ -84,6 +84,8 @@ Several platform functions can be reconfigured dynamically by following the proc
 * Define the symbol `MBEDTLS_PLATFORM_XXX_ALT` at compile time.
 * During the initialization of your application, set the global variable `mbedtls_xxx` to an alternative implementation of `xxx()`.
 
+For example, to provide a custom `printf` function at run time, enable `MBEDTLS_PLATFORM_PRINTF_ALT` at compile time and assign to `mbedtls_printf` during the initialization of your application.
+
 Merely enabling `MBEDTLS_PLATFORM_XXX_ALT` does not change the behavior: by default, `mbedtls_xxx` points to the standard function `xxx`.
 
-Note that there are variations on the naming pattern. Consult the documentation of individual configuration options and of the platform module for details.
+Note that there are variations on the naming pattern. For example, some configurable functions are activated in pairs, such as `mbedtls_calloc` and `mbedtls_free` via `MBEDTLS_PLATFORM_MEMORY`. Consult the documentation of individual configuration options and of the platform module for details.

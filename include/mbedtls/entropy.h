@@ -124,7 +124,7 @@ typedef struct mbedtls_entropy_context
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
     mbedtls_sha512_context  MBEDTLS_PRIVATE(accumulator);
 #else
-    mbedtls_sha256_context  accumulator;
+    mbedtls_sha256_context  MBEDTLS_PRIVATE(accumulator);
 #endif
     int             MBEDTLS_PRIVATE(source_count); /* Number of entries used in source. */
     mbedtls_entropy_source_state    MBEDTLS_PRIVATE(source)[MBEDTLS_ENTROPY_MAX_SOURCES];

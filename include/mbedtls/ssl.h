@@ -940,9 +940,9 @@ struct mbedtls_ssl_session
 #else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     /*! The digest of the peer's end-CRT. This must be kept to detect CRT
      *  changes during renegotiation, mitigating the triple handshake attack. */
-    unsigned char *peer_cert_digest;
-    size_t peer_cert_digest_len;
-    mbedtls_md_type_t peer_cert_digest_type;
+    unsigned char *MBEDTLS_PRIVATE(peer_cert_digest);
+    size_t MBEDTLS_PRIVATE(peer_cert_digest_len);
+    mbedtls_md_type_t MBEDTLS_PRIVATE(peer_cert_digest_type);
 #endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
     uint32_t MBEDTLS_PRIVATE(verify_result);          /*!<  verification result     */

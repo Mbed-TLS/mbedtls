@@ -59,7 +59,7 @@ typedef struct mbedtls_ssl_cookie_ctx
 {
     mbedtls_md_context_t    MBEDTLS_PRIVATE(hmac_ctx);   /*!< context for the HMAC portion   */
 #if !defined(MBEDTLS_HAVE_TIME)
-    unsigned long   serial;     /*!< serial number for expiration   */
+    unsigned long   MBEDTLS_PRIVATE(serial);     /*!< serial number for expiration   */
 #endif
     unsigned long   MBEDTLS_PRIVATE(timeout);    /*!< timeout delay, in seconds if HAVE_TIME,
                                      or in number of tickets issued */

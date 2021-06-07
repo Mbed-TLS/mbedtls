@@ -29,6 +29,7 @@
 
 #ifndef MBEDTLS_ECDSA_H
 #define MBEDTLS_ECDSA_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"

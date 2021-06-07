@@ -134,8 +134,8 @@ typedef struct mbedtls_ecdh_context
     mbedtls_ecp_point MBEDTLS_PRIVATE(Vf);    /*!< The unblinding value. */
     mbedtls_mpi MBEDTLS_PRIVATE(_d);          /*!< The previous \p d. */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    int restart_enabled;        /*!< The flag for restartable mode. */
-    mbedtls_ecp_restart_ctx rs; /*!< The restart context for EC computations. */
+    int MBEDTLS_PRIVATE(restart_enabled);        /*!< The flag for restartable mode. */
+    mbedtls_ecp_restart_ctx MBEDTLS_PRIVATE(rs); /*!< The restart context for EC computations. */
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 #else
     uint8_t MBEDTLS_PRIVATE(point_format);       /*!< The format of point export in TLS messages

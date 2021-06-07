@@ -21,7 +21,7 @@ To configure entropy sources (hardware random generators), see the `MBEDTLS_ENTR
 
 For networking, the `net_sockets` module does not currently support alternative implementations. If this module does not work on your platform, disable `MBEDTLS_NET_C` and use custom functions for TLS.
 
-If your platform has a cryptographic accelerator, you can use it via a [PSA driver](#psa-cryptography-drivers) or an [declare an alternative implementation of the corresponding module(s)](#module-alternative-implementations) or [specific functions](#function-alternative-implementations).
+If your platform has a cryptographic accelerator, you can use it via a [PSA driver](#psa-cryptography-drivers) or declare an [alternative implementation of the corresponding module(s)](#module-alternative-implementations) or [of specific functions](#function-alternative-implementations). PSA drivers will ultimately replace the alternative implementation mechanism, but alternative implementation will remain supported in at least all Mbed TLS versions of the form 3.x. The interface of PSA drivers is currently still experimental and subject to change.
 
 ## PSA cryptography drivers
 

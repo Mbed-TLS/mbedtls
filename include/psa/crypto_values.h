@@ -1901,10 +1901,11 @@
  * They must be created through platform-specific means that bypass the API.
  *
  * Some platforms may offer ways to destroy read-only keys. For example,
- * a platform with multiple levels of privilege may expose a key to an
- * application without allowing that application to destroy the key, in
- * which case it may show the key a view of the key metadata where the
- * lifetime is read-only.
+ * consider a platform with multiple levels of privilege, where a
+ * low-privilege application can use a key but is not allowed to destroy
+ * it, and the platform exposes the key to the application with a read-only
+ * lifetime. High-privilege code can destroy the key even though the
+ * application sees the key as read-only.
  *
  * \param lifetime      The lifetime value to query (value of type
  *                      ::psa_key_lifetime_t).

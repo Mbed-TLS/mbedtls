@@ -28,7 +28,7 @@ undocumented features, then you should be able to re-compile it without
 modification with any later release x.y'.z' with the same major version
 number, and your code will still build, be secure, and work.
 
-Note that new releases of Mbed TLS may extend the API. Here are some example of changes that are common in minor releases of Mbed TLS, and are not considered API compatibility breaks:
+Note that new releases of Mbed TLS may extend the API. Here are some examples of changes that are common in minor releases of Mbed TLS, and are not considered API compatibility breaks:
 
 * Adding or reordering fields in a structure or union.
 * Removing a field from a structure, unless the field is documented as public.
@@ -42,6 +42,8 @@ relying on something that became insecure in the meantime (for example,
 crypto that was found to be weak) may need to be changed. In case security
 comes in conflict with backwards compatibility, we will put security first,
 but always attempt to provide a compatibility option.
+
+## Long-time support branches
 
 For the LTS branches, additionally we try very hard to also maintain ABI
 compatibility (same definition as API except with re-linking instead of

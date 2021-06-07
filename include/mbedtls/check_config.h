@@ -130,16 +130,6 @@
 #error "MBEDTLS_ECP_RESTARTABLE defined, but it cannot coexist with an alternative or PSA-based ECP implementation"
 #endif
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)           && \
-    ! defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-#error "MBEDTLS_ECP_RESTARTABLE defined, but not MBEDTLS_ECDH_LEGACY_CONTEXT"
-#endif
-
-#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)           && \
-    defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-#error "MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED defined, but MBEDTLS_ECDH_LEGACY_CONTEXT not disabled"
-#endif
-
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC) && !defined(MBEDTLS_HMAC_DRBG_C)
 #error "MBEDTLS_ECDSA_DETERMINISTIC defined, but not all prerequisites"
 #endif
@@ -834,6 +824,14 @@
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_1) //no-check-names
 #error "MBEDTLS_SSL_PROTO_TLS1_1 (TLS v1.1 support) was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4286"
+#endif
+
+#if defined(MBEDTLS_SSL_CID_PADDING_GRANULARITY) //no-check-names
+#error "MBEDTLS_SSL_CID_PADDING_GRANULARITY was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4335"
+#endif
+
+#if defined(MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY) //no-check-names
+#error "MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4335"
 #endif
 
 /*

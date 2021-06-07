@@ -1,5 +1,68 @@
 /* BEGIN_HEADER */
 #include "mbedtls/dhm.h"
+
+/* Sanity checks on a Diffie-Hellman parameter: check the length-value
+ * syntax and check that the value is the expected one (taken from the
+ * DHM context by the caller). */
+static int check_dhm_param_output( const mbedtls_mpi *expected,
+                                   const unsigned char *buffer,
+                                   size_t size,
+                                   size_t *offset )
+{
+    size_t n;
+    mbedtls_mpi actual;
+    int ok = 0;
+    mbedtls_mpi_init( &actual );
+
+    ++mbedtls_test_info.step;
+
+    TEST_ASSERT( size >= *offset + 2 );
+    n = ( buffer[*offset] << 8 ) | buffer[*offset + 1];
+    *offset += 2;
+    /* The DHM param output from Mbed TLS has leading zeros stripped, as
+     * permitted but not required by RFC 5246 \S4.4. */
+    TEST_EQUAL( n, mbedtls_mpi_size( expected ) );
+    TEST_ASSERT( size >= *offset + n );
+    TEST_EQUAL( 0, mbedtls_mpi_read_binary( &actual, buffer + *offset, n ) );
+    TEST_EQUAL( 0, mbedtls_mpi_cmp_mpi( expected, &actual ) );
+    *offset += n;
+
+    ok = 1;
+exit:
+    mbedtls_mpi_free( &actual );
+    return( ok );
+}
+
+/* Sanity checks on Diffie-Hellman parameters: syntax, range, and comparison
+ * against the context. */
+static int check_dhm_params( const mbedtls_dhm_context *ctx,
+                             size_t x_size,
+                             const unsigned char *ske, size_t ske_len )
+{
+    size_t offset = 0;
+
+    /* Check that ctx->X and ctx->GX are within range. */
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &ctx->X, 1 ) > 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctx->X, &ctx->P ) < 0 );
+    TEST_ASSERT( mbedtls_mpi_size( &ctx->X ) <= x_size );
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &ctx->GX, 1 ) > 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctx->GX, &ctx->P ) < 0 );
+
+    /* Check ske: it must contain P, G and G^X, each prefixed with a
+     * 2-byte size. */
+    if( !check_dhm_param_output( &ctx->P, ske, ske_len, &offset ) )
+        goto exit;
+    if( !check_dhm_param_output( &ctx->G, ske, ske_len, &offset ) )
+        goto exit;
+    if( !check_dhm_param_output( &ctx->GX, ske, ske_len, &offset ) )
+        goto exit;
+    TEST_EQUAL( offset, ske_len );
+
+    return( 1 );
+exit:
+    return( 0 );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -115,7 +178,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void dhm_do_dhm( int radix_P, char *input_P,
+void dhm_do_dhm( int radix_P, char *input_P, int x_size,
                  int radix_G, char *input_G, int result )
 {
     mbedtls_dhm_context ctx_srv;
@@ -129,7 +192,7 @@ void dhm_do_dhm( int radix_P, char *input_P,
     size_t pub_cli_len = 0;
     size_t sec_srv_len;
     size_t sec_cli_len;
-    int x_size, i;
+    int i;
     mbedtls_test_rnd_pseudo_info rnd_info;
 
     mbedtls_dhm_init( &ctx_srv );
@@ -145,16 +208,18 @@ void dhm_do_dhm( int radix_P, char *input_P,
      */
     TEST_ASSERT( mbedtls_mpi_read_string( &ctx_srv.P, radix_P, input_P ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &ctx_srv.G, radix_G, input_G ) == 0 );
-    x_size = mbedtls_mpi_size( &ctx_srv.P );
-    pub_cli_len = x_size;
+    pub_cli_len = mbedtls_mpi_size( &ctx_srv.P );
 
     /*
      * First key exchange
      */
+    mbedtls_test_set_step( 10 );
     TEST_ASSERT( mbedtls_dhm_make_params( &ctx_srv, x_size, ske, &ske_len,
                                           &mbedtls_test_rnd_pseudo_rand,
                                           &rnd_info ) == result );
     if ( result != 0 )
+        goto exit;
+    if( !check_dhm_params( &ctx_srv, x_size, ske, ske_len ) )
         goto exit;
 
     ske[ske_len++] = 0;
@@ -179,6 +244,7 @@ void dhm_do_dhm( int radix_P, char *input_P,
     /* Re-do calc_secret on server a few times to test update of blinding values */
     for( i = 0; i < 3; i++ )
     {
+        mbedtls_test_set_step( 20 + i );
         sec_srv_len = 1000;
         TEST_ASSERT( mbedtls_dhm_calc_secret( &ctx_srv, sec_srv,
                                               sizeof( sec_srv ), &sec_srv_len,
@@ -195,9 +261,12 @@ void dhm_do_dhm( int radix_P, char *input_P,
      */
     p = ske;
 
+    mbedtls_test_set_step( 30 );
     TEST_ASSERT( mbedtls_dhm_make_params( &ctx_srv, x_size, ske, &ske_len,
                                           &mbedtls_test_rnd_pseudo_rand,
                                           &rnd_info ) == 0 );
+    if( !check_dhm_params( &ctx_srv, x_size, ske, ske_len ) )
+        goto exit;
     ske[ske_len++] = 0;
     ske[ske_len++] = 0;
     TEST_ASSERT( mbedtls_dhm_read_params( &ctx_cli, &p, ske + ske_len ) == 0 );

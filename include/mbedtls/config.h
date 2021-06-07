@@ -683,26 +683,6 @@
 //#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
 
 /**
- * \def MBEDTLS_REMOVE_3DES_CIPHERSUITES
- *
- * Remove 3DES ciphersuites by default in SSL / TLS.
- * This flag removes the ciphersuites based on 3DES from the default list as
- * returned by mbedtls_ssl_list_ciphersuites(). However, it is still possible
- * to enable (some of) them with mbedtls_ssl_conf_ciphersuites() by including
- * them explicitly.
- *
- * A man-in-the-browser attacker can recover authentication tokens sent through
- * a TLS connection using a 3DES based cipher suite (see "On the Practical
- * (In-)Security of 64-bit Block Ciphers" by Karthikeyan Bhargavan and Gaëtan
- * Leurent, see https://sweet32.info/SWEET32_CCS16.pdf). If this attack falls
- * in your threat model or you are unsure, then you should keep this option
- * enabled to remove 3DES based cipher suites.
- *
- * Comment this macro to keep 3DES in the default ciphersuite list.
- */
-#define MBEDTLS_REMOVE_3DES_CIPHERSUITES
-
-/**
  * \def MBEDTLS_ECP_DP_SECP192R1_ENABLED
  *
  * MBEDTLS_ECP_XXXX_ENABLED: Enables specific curves within the Elliptic Curve
@@ -779,38 +759,9 @@
  *
  * \note  This option only works with the default software implementation of
  *        elliptic curve functionality. It is incompatible with
- *        MBEDTLS_ECP_ALT, MBEDTLS_ECDH_XXX_ALT, MBEDTLS_ECDSA_XXX_ALT
- *        and MBEDTLS_ECDH_LEGACY_CONTEXT.
+ *        MBEDTLS_ECP_ALT, MBEDTLS_ECDH_XXX_ALT, MBEDTLS_ECDSA_XXX_ALT.
  */
 //#define MBEDTLS_ECP_RESTARTABLE
-
-/**
- * \def MBEDTLS_ECDH_LEGACY_CONTEXT
- *
- * Use a backward compatible ECDH context.
- *
- * Mbed TLS supports two formats for ECDH contexts (#mbedtls_ecdh_context
- * defined in `ecdh.h`). For most applications, the choice of format makes
- * no difference, since all library functions can work with either format,
- * except that the new format is incompatible with MBEDTLS_ECP_RESTARTABLE.
-
- * The new format used when this option is disabled is smaller
- * (56 bytes on a 32-bit platform). In future versions of the library, it
- * will support alternative implementations of ECDH operations.
- * The new format is incompatible with applications that access
- * context fields directly and with restartable ECP operations.
- *
- * Define this macro if you enable MBEDTLS_ECP_RESTARTABLE or if you
- * want to access ECDH context fields directly. Otherwise you should
- * comment out this macro definition.
- *
- * This option has no effect if #MBEDTLS_ECDH_C is not enabled.
- *
- * \note This configuration option is experimental. Future versions of the
- *       library may modify the way the ECDH context layout is configured
- *       and may modify the layout of the new context type.
- */
-#define MBEDTLS_ECDH_LEGACY_CONTEXT
 
 /**
  * \def MBEDTLS_ECDSA_DETERMINISTIC
@@ -843,7 +794,6 @@
  *      MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256
- *      MBEDTLS_TLS_PSK_WITH_3DES_EDE_CBC_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
 
@@ -866,7 +816,6 @@
  *      MBEDTLS_TLS_DHE_PSK_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256
- *      MBEDTLS_TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA
  *
  * \warning    Using DHE constitutes a security risk as it
  *             is not possible to validate custom DH parameters.
@@ -892,7 +841,6 @@
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256
- *      MBEDTLS_TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 
@@ -916,7 +864,6 @@
  *      MBEDTLS_TLS_RSA_PSK_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_RSA_PSK_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256
- *      MBEDTLS_TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
 
@@ -942,7 +889,6 @@
  *      MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_RSA_WITH_CAMELLIA_128_CBC_SHA
- *      MBEDTLS_TLS_RSA_WITH_3DES_EDE_CBC_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
 
@@ -968,7 +914,6 @@
  *      MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256
  *      MBEDTLS_TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA
- *      MBEDTLS_TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA
  *
  * \warning    Using DHE constitutes a security risk as it
  *             is not possible to validate custom DH parameters.
@@ -999,7 +944,6 @@
  *      MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_ECDHE_RSA_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256
- *      MBEDTLS_TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 
@@ -1022,7 +966,6 @@
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256
  *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256
- *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA
  */
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 
@@ -1035,7 +978,6 @@
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA
  *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA
  *      MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256
@@ -1058,7 +1000,6 @@
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
- *      MBEDTLS_TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA
  *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA
  *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_256_CBC_SHA
  *      MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256
@@ -1939,16 +1880,6 @@
 #define MBEDTLS_VERSION_FEATURES
 
 /**
- * \def MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
- *
- * If set, the X509 parser will not break-off when parsing an X509 certificate
- * and encountering an extension in a v1 or v2 certificate.
- *
- * Uncomment to prevent an error.
- */
-//#define MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
-
-/**
  * \def MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
  *
  * If set, the X509 parser will not break-off when parsing an X509 certificate
@@ -2421,19 +2352,6 @@
  * Module:  library/des.c
  * Caller:  library/pem.c
  *          library/cipher.c
- *
- * This module enables the following ciphersuites (if other requisites are
- * enabled as well):
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_RSA_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA
- *      MBEDTLS_TLS_PSK_WITH_3DES_EDE_CBC_SHA
  *
  * PEM_PARSE uses DES/3DES for decrypting encrypted keys.
  *
@@ -3486,27 +3404,10 @@
  */
 //#define MBEDTLS_SSL_CID_OUT_LEN_MAX 32
 
-/** \def MBEDTLS_SSL_CID_PADDING_GRANULARITY
+/** \def MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY
  *
  * This option controls the use of record plaintext padding
- * when using the Connection ID extension in DTLS 1.2.
- *
- * The padding will always be chosen so that the length of the
- * padded plaintext is a multiple of the value of this option.
- *
- * Note: A value of \c 1 means that no padding will be used
- *       for outgoing records.
- *
- * Note: On systems lacking division instructions,
- *       a power of two should be preferred.
- *
- */
-//#define MBEDTLS_SSL_CID_PADDING_GRANULARITY 16
-
-/** \def MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY
- *
- * This option controls the use of record plaintext padding
- * in TLS 1.3.
+ * in TLS 1.3 and when using the Connection ID extension in DTLS 1.2.
  *
  * The padding will always be chosen so that the length of the
  * padded plaintext is a multiple of the value of this option.
@@ -3517,7 +3418,7 @@
  * Note: On systems lacking division instructions,
  *       a power of two should be preferred.
  */
-//#define MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY 1
+//#define MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 16
 
 /** \def MBEDTLS_SSL_OUT_CONTENT_LEN
  *

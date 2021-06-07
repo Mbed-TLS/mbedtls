@@ -44,23 +44,28 @@ if [ $# -ne 0 ] && [ "$1" = "-u" ]; then
     UPDATE='y'
 fi
 
+# check SCRIPT FILENAME[...]
+# check SCRIPT DIRECTORY
+# Run SCRIPT and check that it does not modify any of the specified files.
+# In the first form, there can be any number of FILENAMEs, which must be
+# regular files.
+# In the second form, there must be a single DIRECTORY, standing for the
+# list of files in the directory. Running SCRIPT must not modify any file
+# in the directory and must not add or remove files either.
+# If $UPDATE is empty, abort with an error status if a file is modified.
 check()
 {
     SCRIPT=$1
-    TO_CHECK=$2
-    PATTERN=""
-    FILES=""
+    shift
 
-    if [ -d $TO_CHECK ]; then
-        rm -f "$TO_CHECK"/*.bak
-        for FILE in $TO_CHECK/*; do
-            FILES="$FILE $FILES"
-        done
-    else
-        FILES=$TO_CHECK
+    directory=
+    if [ -d "$1" ]; then
+        directory="$1"
+        rm -f "$directory"/*.bak
+        set -- "$1"/*
     fi
 
-    for FILE in $FILES; do
+    for FILE in "$@"; do
         if [ -e "$FILE" ]; then
             cp "$FILE" "$FILE.bak"
         else
@@ -68,37 +73,32 @@ check()
         fi
     done
 
-    $SCRIPT
+    "$SCRIPT"
 
     # Compare the script output to the old files and remove backups
-    for FILE in $FILES; do
-        if ! diff $FILE $FILE.bak >/dev/null 2>&1; then
+    for FILE in "$@"; do
+        if ! diff "$FILE" "$FILE.bak" >/dev/null 2>&1; then
             echo "'$FILE' was either modified or deleted by '$SCRIPT'"
             if [ -z "$UPDATE" ]; then
                 exit 1
             fi
         fi
         if [ -z "$UPDATE" ]; then
-            mv $FILE.bak $FILE
+            mv "$FILE.bak" "$FILE"
         else
             rm -f "$FILE.bak"
         fi
-
-        if [ -d $TO_CHECK ]; then
-            # Create a grep regular expression that we can check against the
-            # directory contents to test whether new files have been created
-            if [ -z $PATTERN ]; then
-                PATTERN="$(basename $FILE)"
-            else
-                PATTERN="$PATTERN\|$(basename $FILE)"
-            fi
-        fi
     done
 
-    if [ -d $TO_CHECK ]; then
+    if [ -n "$directory" ]; then
+        old_list="$*"
+        set -- "$directory"/*
+        new_list="$*"
         # Check if there are any new files
-        if ls -1 $TO_CHECK | grep -v "$PATTERN" >/dev/null 2>&1; then
-            echo "Files were created by '$SCRIPT'"
+        if [ "$old_list" != "$new_list" ]; then
+            echo "Files were deleted or created by '$SCRIPT'"
+            echo "Before: $old_list"
+            echo "After: $new_list"
             if [ -z "$UPDATE" ]; then
                 exit 1
             fi

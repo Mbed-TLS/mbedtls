@@ -1,0 +1,4 @@
+API changes
+   * The option MBEDTLS_ECP_FIXED_POINT_OPTIM use pre-computed comb tables
+     instead of computing tables in runtime. Thus, this option now increase
+     code size, and it does not increase RAM usage in runtime anymore.

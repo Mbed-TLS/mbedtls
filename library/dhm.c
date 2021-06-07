@@ -100,22 +100,21 @@ static int dhm_read_bignum( mbedtls_mpi *X,
  */
 static int dhm_check_range( const mbedtls_mpi *param, const mbedtls_mpi *P )
 {
-    mbedtls_mpi L, U;
+    mbedtls_mpi U;
     int ret = 0;
 
-    mbedtls_mpi_init( &L ); mbedtls_mpi_init( &U );
+    mbedtls_mpi_init( &U );
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &L, 2 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &U, P, 2 ) );
 
-    if( mbedtls_mpi_cmp_mpi( param, &L ) < 0 ||
+    if( mbedtls_mpi_cmp_int( param, 2 ) < 0 ||
         mbedtls_mpi_cmp_mpi( param, &U ) > 0 )
     {
         ret = MBEDTLS_ERR_DHM_BAD_INPUT_DATA;
     }
 
 cleanup:
-    mbedtls_mpi_free( &L ); mbedtls_mpi_free( &U );
+    mbedtls_mpi_free( &U );
     return( ret );
 }
 
@@ -151,38 +150,44 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
 }
 
 /*
- * Setup and write the ServerKeyExchange parameters
+ * Pick a random R in the range [2, M-2] for blinding or key generation.
  */
-int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
-                     unsigned char *output, size_t *olen,
-                     int (*f_rng)(void *, unsigned char *, size_t),
-                     void *p_rng )
+static int dhm_random_below( mbedtls_mpi *R, const mbedtls_mpi *M,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    int ret, count = 0;
-    size_t n1, n2, n3;
-    unsigned char *p;
-    DHM_VALIDATE_RET( ctx != NULL );
-    DHM_VALIDATE_RET( output != NULL );
-    DHM_VALIDATE_RET( olen != NULL );
-    DHM_VALIDATE_RET( f_rng != NULL );
+    int ret;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_random( R, 3, M, f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( R, R, 1 ) );
+
+cleanup:
+    return( ret );
+}
+
+static int dhm_make_common( mbedtls_dhm_context *ctx, int x_size,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng )
+{
+    int ret = 0;
 
     if( mbedtls_mpi_cmp_int( &ctx->P, 0 ) == 0 )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+    if( x_size < 0 )
+        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
 
-    /*
-     * Generate X as large as possible ( < P )
-     */
-    do
+    if( (unsigned) x_size < mbedtls_mpi_size( &ctx->P ) )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &ctx->X, x_size, f_rng, p_rng ) );
-
-        while( mbedtls_mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &ctx->X, 1 ) );
-
-        if( count++ > 10 )
-            return( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED );
     }
-    while( dhm_check_range( &ctx->X, &ctx->P ) != 0 );
+    else
+    {
+        /* Generate X as large as possible ( <= P - 2 ) */
+        ret = dhm_random_below( &ctx->X, &ctx->P, f_rng, p_rng );
+        if( ret == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
+            return( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED );
+        if( ret != 0 )
+            return( ret );
+    }
 
     /*
      * Calculate GX = G^X mod P
@@ -193,8 +198,33 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
     if( ( ret = dhm_check_range( &ctx->GX, &ctx->P ) ) != 0 )
         return( ret );
 
+cleanup:
+    return( ret );
+}
+
+/*
+ * Setup and write the ServerKeyExchange parameters
+ */
+int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
+                     unsigned char *output, size_t *olen,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng )
+{
+    int ret;
+    size_t n1, n2, n3;
+    unsigned char *p;
+    DHM_VALIDATE_RET( ctx != NULL );
+    DHM_VALIDATE_RET( output != NULL );
+    DHM_VALIDATE_RET( olen != NULL );
+    DHM_VALIDATE_RET( f_rng != NULL );
+
+    ret = dhm_make_common( ctx, x_size, f_rng, p_rng );
+    if( ret != 0 )
+        goto cleanup;
+
     /*
-     * export P, G, GX
+     * Export P, G, GX. RFC 5246 §4.4 states that "leading zero octets are
+     * not required". We omit leading zeros for compactness.
      */
 #define DHM_MPI_EXPORT( X, n )                                          \
     do {                                                                \
@@ -220,11 +250,9 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
     ctx->len = n1;
 
 cleanup:
-
-    if( ret != 0 )
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED, ret ) );
-
-    return( 0 );
+    if( ret != 0 && ret > -128 )
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED, ret );
+    return( ret );
 }
 
 /*
@@ -276,7 +304,7 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
-    int ret, count = 0;
+    int ret;
     DHM_VALIDATE_RET( ctx != NULL );
     DHM_VALIDATE_RET( output != NULL );
     DHM_VALIDATE_RET( f_rng != NULL );
@@ -284,62 +312,17 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
     if( olen < 1 || olen > ctx->len )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
 
-    if( mbedtls_mpi_cmp_int( &ctx->P, 0 ) == 0 )
-        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
-
-    /*
-     * generate X and calculate GX = G^X mod P
-     */
-    do
-    {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &ctx->X, x_size, f_rng, p_rng ) );
-
-        while( mbedtls_mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &ctx->X, 1 ) );
-
-        if( count++ > 10 )
-            return( MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED );
-    }
-    while( dhm_check_range( &ctx->X, &ctx->P ) != 0 );
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &ctx->GX, &ctx->G, &ctx->X,
-                          &ctx->P , &ctx->RP ) );
-
-    if( ( ret = dhm_check_range( &ctx->GX, &ctx->P ) ) != 0 )
-        return( ret );
+    ret = dhm_make_common( ctx, x_size, f_rng, p_rng );
+    if( ret == MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED )
+        return( MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED );
+    if( ret != 0 )
+        goto cleanup;
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &ctx->GX, output, olen ) );
 
 cleanup:
-
-    if( ret != 0 )
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED, ret ) );
-
-    return( 0 );
-}
-
-/*
- * Pick a random R in the range [2, M) for blinding purposes
- */
-static int dhm_random_below( mbedtls_mpi *R, const mbedtls_mpi *M,
-                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
-{
-    int ret, count;
-
-    count = 0;
-    do
-    {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( R, mbedtls_mpi_size( M ), f_rng, p_rng ) );
-
-        while( mbedtls_mpi_cmp_mpi( R, M ) >= 0 )
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( R, 1 ) );
-
-        if( count++ > 10 )
-            return( MBEDTLS_ERR_MPI_NOT_ACCEPTABLE );
-    }
-    while( mbedtls_mpi_cmp_int( R, 1 ) <= 0 );
-
-cleanup:
+    if( ret != 0 && ret > -128 )
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED, ret );
     return( ret );
 }
 
@@ -390,7 +373,7 @@ static int dhm_update_blinding( mbedtls_dhm_context *ctx,
      * We need to generate blinding values from scratch
      */
 
-    /* Vi = random( 2, P-1 ) */
+    /* Vi = random( 2, P-2 ) */
     MBEDTLS_MPI_CHK( dhm_random_below( &ctx->Vi, &ctx->P, f_rng, p_rng ) );
 
     /* Vf = Vi^-X mod P
@@ -454,8 +437,9 @@ int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->K, &ctx->K, &ctx->P ) );
     }
 
+    /* Output the secret without any leading zero byte. This is mandatory
+     * for TLS per RFC 5246 §8.1.2. */
     *olen = mbedtls_mpi_size( &ctx->K );
-
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &ctx->K, output, *olen ) );
 
 cleanup:

@@ -174,38 +174,6 @@
         }                                                   \
     } while( 0 )
 
-/** Allocate memory dynamically and fail the test case if this fails.
- *
- * You must set \p pointer to \c NULL before calling this macro and
- * put `mbedtls_free( pointer )` in the test's cleanup code.
- *
- * If \p length is zero, the resulting \p pointer will be \c NULL.
- * This is usually what we want in tests since API functions are
- * supposed to accept null pointers when a buffer size is zero.
- *
- * This macro expands to an instruction, not an expression.
- * It may jump to the \c exit label.
- *
- * \param pointer   An lvalue where the address of the allocated buffer
- *                  will be stored.
- *                  This expression may be evaluated multiple times.
- * \param length    Number of elements to allocate.
- *                  This expression may be evaluated multiple times.
- *
- */
-#define ASSERT_ALLOC( pointer, length )                           \
-    do                                                            \
-    {                                                             \
-        TEST_ASSERT( ( pointer ) == NULL );                       \
-        if( ( length ) != 0 )                                     \
-        {                                                         \
-            ( pointer ) = mbedtls_calloc( sizeof( *( pointer ) ), \
-                                          ( length ) );           \
-            TEST_ASSERT( ( pointer ) != NULL );                   \
-        }                                                         \
-    }                                                             \
-    while( 0 )
-
 #define TEST_HELPER_ASSERT(a) if( !( a ) )                          \
 {                                                                   \
     mbedtls_fprintf( stderr, "Assertion Failed at %s:%d - %s\n",    \

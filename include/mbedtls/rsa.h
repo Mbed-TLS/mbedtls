@@ -82,10 +82,6 @@ extern "C" {
 
 /**
  * \brief   The RSA context structure.
- *
- * \note    Direct manipulation of the members of this structure
- *          is deprecated. All manipulation should instead be done through
- *          the public interface functions.
  */
 typedef struct mbedtls_rsa_context
 {

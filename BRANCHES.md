@@ -16,9 +16,10 @@ At any point in time, we have a number of maintained branches consisting of:
   these only get bug fixes and security fixes.
 
 We use [Semantic Versioning](https://semver.org/). In particular, we maintain
-API compatibility in the `master` branch between major version changes. We
-also maintain ABI compatibility within LTS branches; see the next section for
-details.
+API compatibility in the `master` branch across minor version changes (e.g.
+the API of 3.(x+1) is backward compatible with 3.x). We only break API
+compatibility on major version changes (e.g. from 3.x to 4.0). We also maintain
+ABI compatibility within LTS branches; see the next section for details.
 
 ## Backwards Compatibility
 

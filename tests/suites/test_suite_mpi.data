@@ -1079,19 +1079,15 @@ Base test mbedtls_mpi_exp_mod #6 (Negative base + exponent)
 mbedtls_mpi_exp_mod:10:"-23":10:"-13":10:"29":10:"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Test mbedtls_mpi_exp_mod: 0 (null) ^ 0 (null) mod 9
-depends_on:TEST_TEMPORARILY_DISABLED_BECAUSE_IT_CAUSES_A_CRASH
 mbedtls_mpi_exp_mod:16:"":16:"":16:"09":16:"1":0
 
 Test mbedtls_mpi_exp_mod: 0 (null) ^ 0 (1 limb) mod 9
-depends_on:TEST_TEMPORARILY_DISABLED_BECAUSE_IT_CAUSES_A_CRASH
 mbedtls_mpi_exp_mod:16:"":16:"00":16:"09":16:"1":0
 
 Test mbedtls_mpi_exp_mod: 0 (null) ^ 1 mod 9
-depends_on:TEST_TEMPORARILY_DISABLED_BECAUSE_IT_CAUSES_A_CRASH
 mbedtls_mpi_exp_mod:16:"":16:"01":16:"09":16:"":0
 
 Test mbedtls_mpi_exp_mod: 0 (null) ^ 2 mod 9
-depends_on:TEST_TEMPORARILY_DISABLED_BECAUSE_IT_CAUSES_A_CRASH
 mbedtls_mpi_exp_mod:16:"":16:"02":16:"09":16:"":0
 
 Test mbedtls_mpi_exp_mod: 0 (1 limb) ^ 0 (null) mod 9

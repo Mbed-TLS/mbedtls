@@ -462,9 +462,9 @@ int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
  *                     #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT.
  * \return             An error from the underlying AES cipher on failure.
  */
-int mbedtls_ctr_drbg_update_ret( mbedtls_ctr_drbg_context *ctx,
-                                 const unsigned char *additional,
-                                 size_t add_len );
+int mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
+                             const unsigned char *additional,
+                             size_t add_len );
 
 /**
  * \brief   This function updates a CTR_DRBG instance with additional

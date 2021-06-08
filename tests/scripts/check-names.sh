@@ -90,7 +90,7 @@ done
 
 printf "Likely typos: "
 sort -u actual-macros enum-consts > _caps
-HEADERS=$( ls include/mbedtls/*.h include/psa/*.h )
+HEADERS=$( ls include/mbedtls/*.h include/psa/*.h | egrep -v 'compat-2\.x\.h' )
 HEADERS="$HEADERS library/*.h"
 HEADERS="$HEADERS 3rdparty/everest/include/everest/everest.h 3rdparty/everest/include/everest/x25519.h"
 LIBRARY="$( ls library/*.c )"

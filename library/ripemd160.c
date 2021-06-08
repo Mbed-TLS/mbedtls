@@ -89,7 +89,7 @@ void mbedtls_ripemd160_clone( mbedtls_ripemd160_context *dst,
 /*
  * RIPEMD-160 context setup
  */
-int mbedtls_ripemd160_starts_ret( mbedtls_ripemd160_context *ctx )
+int mbedtls_ripemd160_starts( mbedtls_ripemd160_context *ctx )
 {
     ctx->total[0] = 0;
     ctx->total[1] = 0;
@@ -305,7 +305,7 @@ int mbedtls_internal_ripemd160_process( mbedtls_ripemd160_context *ctx,
 /*
  * RIPEMD-160 process buffer
  */
-int mbedtls_ripemd160_update_ret( mbedtls_ripemd160_context *ctx,
+int mbedtls_ripemd160_update( mbedtls_ripemd160_context *ctx,
                                   const unsigned char *input,
                                   size_t ilen )
 {
@@ -365,7 +365,7 @@ static const unsigned char ripemd160_padding[64] =
 /*
  * RIPEMD-160 final digest
  */
-int mbedtls_ripemd160_finish_ret( mbedtls_ripemd160_context *ctx,
+int mbedtls_ripemd160_finish( mbedtls_ripemd160_context *ctx,
                                   unsigned char output[20] )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -383,11 +383,11 @@ int mbedtls_ripemd160_finish_ret( mbedtls_ripemd160_context *ctx,
     last = ctx->total[0] & 0x3F;
     padn = ( last < 56 ) ? ( 56 - last ) : ( 120 - last );
 
-    ret = mbedtls_ripemd160_update_ret( ctx, ripemd160_padding, padn );
+    ret = mbedtls_ripemd160_update( ctx, ripemd160_padding, padn );
     if( ret != 0 )
         return( ret );
 
-    ret = mbedtls_ripemd160_update_ret( ctx, msglen, 8 );
+    ret = mbedtls_ripemd160_update( ctx, msglen, 8 );
     if( ret != 0 )
         return( ret );
 
@@ -405,7 +405,7 @@ int mbedtls_ripemd160_finish_ret( mbedtls_ripemd160_context *ctx,
 /*
  * output = RIPEMD-160( input buffer )
  */
-int mbedtls_ripemd160_ret( const unsigned char *input,
+int mbedtls_ripemd160( const unsigned char *input,
                            size_t ilen,
                            unsigned char output[20] )
 {
@@ -414,13 +414,13 @@ int mbedtls_ripemd160_ret( const unsigned char *input,
 
     mbedtls_ripemd160_init( &ctx );
 
-    if( ( ret = mbedtls_ripemd160_starts_ret( &ctx ) ) != 0 )
+    if( ( ret = mbedtls_ripemd160_starts( &ctx ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_ripemd160_update_ret( &ctx, input, ilen ) ) != 0 )
+    if( ( ret = mbedtls_ripemd160_update( &ctx, input, ilen ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_ripemd160_finish_ret( &ctx, output ) ) != 0 )
+    if( ( ret = mbedtls_ripemd160_finish( &ctx, output ) ) != 0 )
         goto exit;
 
 exit:
@@ -487,7 +487,7 @@ int mbedtls_ripemd160_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  RIPEMD-160 test #%d: ", i + 1 );
 
-        ret = mbedtls_ripemd160_ret( ripemd160_test_str[i],
+        ret = mbedtls_ripemd160( ripemd160_test_str[i],
                                      ripemd160_test_strlen[i], output );
         if( ret != 0 )
             goto fail;

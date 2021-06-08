@@ -220,9 +220,9 @@ int main( void )
     /*
      * 5. Sign the parameters and send them
      */
-    if( ( ret = mbedtls_sha1_ret( buf, n, hash ) ) != 0 )
+    if( ( ret = mbedtls_sha1( buf, n, hash ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_sha1_ret returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_sha1 returned %d\n\n", ret );
         goto exit;
     }
 

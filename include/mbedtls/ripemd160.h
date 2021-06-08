@@ -84,7 +84,7 @@ void mbedtls_ripemd160_clone( mbedtls_ripemd160_context *dst,
  *
  * \return         0 if successful
  */
-int mbedtls_ripemd160_starts_ret( mbedtls_ripemd160_context *ctx );
+int mbedtls_ripemd160_starts( mbedtls_ripemd160_context *ctx );
 
 /**
  * \brief          RIPEMD-160 process buffer
@@ -95,9 +95,9 @@ int mbedtls_ripemd160_starts_ret( mbedtls_ripemd160_context *ctx );
  *
  * \return         0 if successful
  */
-int mbedtls_ripemd160_update_ret( mbedtls_ripemd160_context *ctx,
-                                  const unsigned char *input,
-                                  size_t ilen );
+int mbedtls_ripemd160_update( mbedtls_ripemd160_context *ctx,
+                              const unsigned char *input,
+                              size_t ilen );
 
 /**
  * \brief          RIPEMD-160 final digest
@@ -107,8 +107,8 @@ int mbedtls_ripemd160_update_ret( mbedtls_ripemd160_context *ctx,
  *
  * \return         0 if successful
  */
-int mbedtls_ripemd160_finish_ret( mbedtls_ripemd160_context *ctx,
-                                  unsigned char output[20] );
+int mbedtls_ripemd160_finish( mbedtls_ripemd160_context *ctx,
+                              unsigned char output[20] );
 
 /**
  * \brief          RIPEMD-160 process data block (internal use only)
@@ -130,9 +130,9 @@ int mbedtls_internal_ripemd160_process( mbedtls_ripemd160_context *ctx,
  *
  * \return         0 if successful
  */
-int mbedtls_ripemd160_ret( const unsigned char *input,
-                           size_t ilen,
-                           unsigned char output[20] );
+int mbedtls_ripemd160( const unsigned char *input,
+                       size_t ilen,
+                       unsigned char output[20] );
 
 #if defined(MBEDTLS_SELF_TEST)
 

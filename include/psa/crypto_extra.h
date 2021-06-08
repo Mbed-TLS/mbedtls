@@ -1130,13 +1130,16 @@ typedef uint32_t psa_pake_primitive_t;
  * This is the proof in the Schnorr Non-Interactive Zero-Knowledge Proof (the
  * value denoted by the letter 'r' in RFC 8235).
  *
- * Both input and output at this step is an integer less than the group
- * selected in the cipher suite. The format depends on the group as well:
+ * Both for input and output, the value at this step is an integer less than
+ * the order of the group selected in the cipher suite. The format depends on
+ * the group as well:
  *
- * - For Montgomery curves, the encoding is little endian (see decoding of
- *   scalars in Section 5 of RFC 7748).
+ * - For Montgomery curves, the encoding is little endian.
  * - For everything else the encoding is big endian (see Section 2.3.8 of
  *   _SEC 1: Elliptic Curve Cryptography_ at https://www.secg.org/sec1-v2.pdf).
+ *
+ * In both cases leading zeroes are allowed as long as the length in bytes does
+ * not exceed the byte length of the group order.
  *
  * For information regarding how the group is determined, consult the
  * documentation #PSA_PAKE_PRIMITIVE.

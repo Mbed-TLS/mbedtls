@@ -839,9 +839,10 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  * - The group can be either an elliptic curve or defined over a finite field.
  * - Schnorr NIZK proof as defined by RFC 8235 and using the same group as the
  *   J-PAKE algorithm.
- * - A secure cryptographic hash function.
+ * - A cryptographic hash function.
  *
- * To select these parameters and set up the cipher suite, call
+ * To select these parameters and set up the cipher suite, call these functions
+ * in any order:
  *
  * \code
  * psa_pake_cs_set_algorithm(cipher_suite, PSA_ALG_JPAKE);
@@ -1499,8 +1500,8 @@ psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
  *                              yet).
  * \param side                  A value of type ::psa_pake_side_t signaling the
  *                              side of the algorithm that is being set up. For
- *                              more information see the documentation of \c
- *                              PSA_PAKE_SIDE_XXX constants.
+ *                              more information see the documentation of
+ *                              \c PSA_PAKE_SIDE_XXX constants.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1652,8 +1653,8 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active, but beyond that
- *         validity is specific to the algorithm).
+ *         The PAKE operation state is not valid (it must be active, but beyond
+ *         that validity is specific to the algorithm).
  * \retval #PSA_ERROR_BAD_STATE
  *         The state of \p output is not valid for
  *         the #PSA_KEY_DERIVATION_INPUT_SECRET step. This can happen if the
@@ -1685,7 +1686,7 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
  *
  * See also #PSA_PAKE_OUTPUT_MAX_SIZE
  *
- * \param alg           A PAKE algorithm (PSA_ALG_XXX value such that
+ * \param alg           A PAKE algorithm (\c PSA_ALG_XXX value such that
  *                      #PSA_ALG_IS_PAKE(\p alg) is true).
  * \param primitive     A primitive of type ::psa_pake_primitive_t that is
  *                      compatible with algorithm \p alg.
@@ -1706,7 +1707,7 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
  *
  * See also #PSA_PAKE_INPUT_MAX_SIZE
  *
- * \param alg           A PAKE algorithm (PSA_ALG_XXX value such that
+ * \param alg           A PAKE algorithm (\c PSA_ALG_XXX value such that
  *                      #PSA_ALG_IS_PAKE(\p alg) is true).
  * \param primitive     A primitive of type ::psa_pake_primitive_t that is
  *                      compatible with algorithm \p alg.

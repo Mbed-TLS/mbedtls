@@ -50,7 +50,9 @@ The function `mbedtls_ssl_conf_dh_param()` was removed. Please use
 `mbedtls_ssl_conf_dh_param_bin()` or `mbedtls_ssl_conf_dh_param_ctx()` instead.
 
 The function `mbedtls_ssl_get_max_frag_len()` was removed. Please use
-`mbedtls_ssl_get_output_max_frag_len()` instead.
+`mbedtls_ssl_get_max_out_record_payload()` and
+`mbedtls_ssl_get_max_in_record_payload()`
+instead.
 
 Deprecated hex-encoded primes were removed from DHM
 ---------------------------------------------------

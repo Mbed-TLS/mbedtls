@@ -119,7 +119,7 @@ int main( int argc, char *argv[] )
                                          MBEDTLS_RSA_PKCS_V21,
                                          MBEDTLS_MD_SHA256 ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! Invalid padding\n" );
+        mbedtls_printf( " failed\n  ! Padding not supported\n" );
         goto exit;
     }
 

@@ -500,9 +500,20 @@ void mbedtls_rsa_init( mbedtls_rsa_context *ctx )
 int mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding,
                              mbedtls_md_type_t hash_id )
 {
-    if( ( padding != MBEDTLS_RSA_PKCS_V15 ) &&
-        ( padding != MBEDTLS_RSA_PKCS_V21 ) )
-        return( MBEDTLS_ERR_RSA_INVALID_PADDING );
+    switch( padding )
+    {
+#if defined(MBEDTLS_PKCS1_V15)
+        case MBEDTLS_RSA_PKCS_V15:
+            break;
+#endif
+
+#if defined(MBEDTLS_PKCS1_V21)
+        case MBEDTLS_RSA_PKCS_V21:
+            break;
+#endif
+        default:
+            return( MBEDTLS_ERR_RSA_INVALID_PADDING );
+    }
 
     if( ( padding == MBEDTLS_RSA_PKCS_V21 ) &&
         ( hash_id != MBEDTLS_MD_NONE ) )

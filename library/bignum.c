@@ -2080,6 +2080,11 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
 #endif
 
     j = N->n + 1;
+    /* All W[i] and X must have at least N->n limbs for the mpi_montmul()
+     * and mpi_montred() calls later. Here we ensure that W[1] and X are
+     * large enough, and later we'll grow other W[i] to the same length.
+     * They must not be shrunk midway through this function!
+     */
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, j ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[1],  j ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &T, j * 2 ) );
@@ -2117,6 +2122,10 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &W[1], A, N ) );
     else
         MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[1], A ) );
+    /* Re-grow W[1] if necessary. This should be only necessary in one corner
+     * case: when A == 0 represented with A.n == 0, mbedtls_mpi_copy shrinks
+     * W[1] to 0 limbs. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[1], N->n +1 ) );
 
     mpi_montmul( &W[1], &RR, N, mm, &T );
 

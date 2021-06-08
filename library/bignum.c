@@ -512,6 +512,12 @@ int mbedtls_mpi_read_string( mbedtls_mpi *X, int radix, const char *s )
 
     mbedtls_mpi_init( &T );
 
+    if( s[0] == 0 )
+    {
+        mbedtls_mpi_free( X );
+        return( 0 );
+    }
+
     if( s[0] == '-' )
     {
         ++s;

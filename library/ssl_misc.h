@@ -289,7 +289,7 @@ size_t mbedtls_ssl_get_output_max_frag_len( const mbedtls_ssl_context *ssl );
 /**
  * \brief          Return the maximum fragment length (payload, in bytes) for
  *                 the input buffer. This is the negotiated maximum fragment
- *                 length, or, if there is none, MBEDTLS_SSL_MAX_CONTENT_LEN.
+ *                 length, or, if there is none, MBEDTLS_SSL_IN_CONTENT_LEN.
  *                 If it is not defined either, the value is 2^14. This function
  *                 works as its predecessor, \c mbedtls_ssl_get_max_frag_len().
  *

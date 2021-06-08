@@ -203,7 +203,13 @@ static int mbedtls_mpi_resize_clear( mbedtls_mpi *X, size_t limbs )
 }
 
 /*
- * Copy the contents of Y into X
+ * Copy the contents of Y into X.
+ *
+ * This function is not constant-time. Leading zeros in Y may be removed.
+ *
+ * Ensure that X does not shrink. This is not guaranteed by the public API,
+ * but some code in the bignum module relies on this property, for example
+ * in mbedtls_mpi_exp_mod().
  */
 int mbedtls_mpi_copy( mbedtls_mpi *X, const mbedtls_mpi *Y )
 {
@@ -217,7 +223,11 @@ int mbedtls_mpi_copy( mbedtls_mpi *X, const mbedtls_mpi *Y )
 
     if( Y->n == 0 )
     {
-        mbedtls_mpi_free( X );
+        if( X->n != 0 )
+        {
+            X->s = 1;
+            memset( X->p, 0, X->n * ciL );
+        }
         return( 0 );
     }
 
@@ -2175,6 +2185,11 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
 #endif
 
     j = N->n + 1;
+    /* All W[i] and X must have at least N->n limbs for the mpi_montmul()
+     * and mpi_montred() calls later. Here we ensure that W[1] and X are
+     * large enough, and later we'll grow other W[i] to the same length.
+     * They must not be shrunk midway through this function!
+     */
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, j ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[1],  j ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &T, j * 2 ) );
@@ -2209,10 +2224,18 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
      * W[1] = A * R^2 * R^-1 mod N = A * R mod N
      */
     if( mbedtls_mpi_cmp_mpi( A, N ) >= 0 )
+    {
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &W[1], A, N ) );
+        /* This should be a no-op because W[1] is already that large before
+         * mbedtls_mpi_mod_mpi(), but it's necessary to avoid an overflow
+         * in mpi_montmul() below, so let's make sure. */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[1], N->n +1 ) );
+    }
     else
         MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[1], A ) );
 
+    /* Note that this is safe because W[1] always has at least N->n limbs
+     * (it grew above and was preserved by mbedtls_mpi_copy()). */
     mpi_montmul( &W[1], &RR, N, mm, &T );
 
     /*

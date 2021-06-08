@@ -24,6 +24,7 @@
 #include "mbedtls/hkdf.h"
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
+#include "mbedtls/debug.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -343,6 +344,358 @@ int mbedtls_ssl_tls1_3_evolve_secret(
 
     mbedtls_platform_zeroize( tmp_secret, sizeof(tmp_secret) );
     mbedtls_platform_zeroize( tmp_input,  sizeof(tmp_input)  );
+    return( ret );
+}
+
+int mbedtls_ssl_tls1_3_derive_early_secrets(
+          mbedtls_md_type_t md_type,
+          unsigned char const *early_secret,
+          unsigned char const *transcript, size_t transcript_len,
+          mbedtls_ssl_tls1_3_early_secrets *derived )
+{
+    int ret;
+    mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
+    size_t const md_size = mbedtls_md_get_size( md_info );
+
+    /* We should never call this function with an unknown hash,
+     * but add an assertion anyway. */
+    if( md_info == 0 )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+
+    /*
+     *            0
+     *            |
+     *            v
+     *  PSK ->  HKDF-Extract = Early Secret
+     *            |
+     *            +-----> Derive-Secret(., "c e traffic", ClientHello)
+     *            |                     = client_early_traffic_secret
+     *            |
+     *            +-----> Derive-Secret(., "e exp master", ClientHello)
+     *            |                     = early_exporter_master_secret
+     *            v
+     */
+
+    /* Create client_early_traffic_secret */
+    ret = mbedtls_ssl_tls1_3_derive_secret( md_type,
+                         early_secret, md_size,
+                         MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( c_e_traffic ),
+                         transcript, transcript_len,
+                         MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED,
+                         derived->client_early_traffic_secret,
+                         md_size );
+    if( ret != 0 )
+        return( ret );
+
+    /* Create early exporter */
+    ret = mbedtls_ssl_tls1_3_derive_secret( md_type,
+                         early_secret, md_size,
+                         MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( e_exp_master ),
+                         transcript, transcript_len,
+                         MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED,
+                         derived->early_exporter_master_secret,
+                         md_size );
+    if( ret != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
+int mbedtls_ssl_tls1_3_derive_handshake_secrets(
+          mbedtls_md_type_t md_type,
+          unsigned char const *handshake_secret,
+          unsigned char const *transcript, size_t transcript_len,
+          mbedtls_ssl_tls1_3_handshake_secrets *derived )
+{
+    int ret;
+    mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
+    size_t const md_size = mbedtls_md_get_size( md_info );
+
+    /* We should never call this function with an unknown hash,
+     * but add an assertion anyway. */
+    if( md_info == 0 )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+
+    /*
+     *
+     * Handshake Secret
+     * |
+     * +-----> Derive-Secret( ., "c hs traffic",
+     * |                     ClientHello...ServerHello )
+     * |                     = client_handshake_traffic_secret
+     * |
+     * +-----> Derive-Secret( ., "s hs traffic",
+     * |                     ClientHello...ServerHello )
+     * |                     = server_handshake_traffic_secret
+     *
+     */
+
+    /*
+     * Compute client_handshake_traffic_secret with
+     * Derive-Secret( ., "c hs traffic", ClientHello...ServerHello )
+     */
+
+    ret = mbedtls_ssl_tls1_3_derive_secret( md_type,
+             handshake_secret, md_size,
+             MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( c_hs_traffic ),
+             transcript, transcript_len,
+             MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED,
+             derived->client_handshake_traffic_secret,
+             md_size );
+    if( ret != 0 )
+        return( ret );
+
+    /*
+     * Compute server_handshake_traffic_secret with
+     * Derive-Secret( ., "s hs traffic", ClientHello...ServerHello )
+     */
+
+    ret = mbedtls_ssl_tls1_3_derive_secret( md_type,
+             handshake_secret, md_size,
+             MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( s_hs_traffic ),
+             transcript, transcript_len,
+             MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED,
+             derived->server_handshake_traffic_secret,
+             md_size );
+    if( ret != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
+int mbedtls_ssl_tls1_3_derive_application_secrets(
+          mbedtls_md_type_t md_type,
+          unsigned char const *application_secret,
+          unsigned char const *transcript, size_t transcript_len,
+          mbedtls_ssl_tls1_3_application_secrets *derived )
+{
+    int ret;
+    mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
+    size_t const md_size = mbedtls_md_get_size( md_info );
+
+    /* We should never call this function with an unknown hash,
+     * but add an assertion anyway. */
+    if( md_info == 0 )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+
+    /* Generate {client,server}_application_traffic_secret_0
+     *
+     * Master Secret
+     * |
+     * +-----> Derive-Secret( ., "c ap traffic",
+     * |                      ClientHello...server Finished )
+     * |                      = client_application_traffic_secret_0
+     * |
+     * +-----> Derive-Secret( ., "s ap traffic",
+     * |                      ClientHello...Server Finished )
+     * |                      = server_application_traffic_secret_0
+     * |
+     * +-----> Derive-Secret( ., "exp master",
+     * |                      ClientHello...server Finished)
+     * |                      = exporter_master_secret
+     *
+     */
+
+    ret = mbedtls_ssl_tls1_3_derive_secret( md_type,
+              application_secret, md_size,
+              MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( c_ap_traffic ),
+              transcript, transcript_len,
+              MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED,
+              derived->client_application_traffic_secret_N,
+              md_size );
+    if( ret != 0 )
+        return( ret );
+
+    ret = mbedtls_ssl_tls1_3_derive_secret( md_type,
+              application_secret, md_size,
+              MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( s_ap_traffic ),
+              transcript, transcript_len,
+              MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED,
+              derived->server_application_traffic_secret_N,
+              md_size );
+    if( ret != 0 )
+        return( ret );
+
+    ret = mbedtls_ssl_tls1_3_derive_secret( md_type,
+              application_secret, md_size,
+              MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( exp_master ),
+              transcript, transcript_len,
+              MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED,
+              derived->exporter_master_secret,
+              md_size );
+    if( ret != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
+/* Generate resumption_master_secret for use with the ticket exchange.
+ *
+ * This is not integrated with mbedtls_ssl_tls1_3_derive_application_secrets()
+ * because it uses the transcript hash up to and including ClientFinished. */
+int mbedtls_ssl_tls1_3_derive_resumption_master_secret(
+          mbedtls_md_type_t md_type,
+          unsigned char const *application_secret,
+          unsigned char const *transcript, size_t transcript_len,
+          mbedtls_ssl_tls1_3_application_secrets *derived )
+{
+    int ret;
+    mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
+    size_t const md_size = mbedtls_md_get_size( md_info );
+
+    /* We should never call this function with an unknown hash,
+     * but add an assertion anyway. */
+    if( md_info == 0 )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+
+    ret = mbedtls_ssl_tls1_3_derive_secret( md_type,
+              application_secret, md_size,
+              MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( res_master ),
+              transcript, transcript_len,
+              MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED,
+              derived->resumption_master_secret,
+              md_size );
+
+    if( ret != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
+static int ssl_tls1_3_calc_finished_core( mbedtls_md_type_t md_type,
+                                          unsigned char const *base_key,
+                                          unsigned char const *transcript,
+                                          unsigned char *dst )
+{
+    const mbedtls_md_info_t* const md_info = mbedtls_md_info_from_type( md_type );
+    size_t const md_size = mbedtls_md_get_size( md_info );
+    unsigned char finished_key[MBEDTLS_MD_MAX_SIZE];
+    int ret;
+
+    /* We should never call this function with an unknown hash,
+     * but add an assertion anyway. */
+    if( md_info == 0 )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+
+    /* TLS 1.3 Finished message
+     *
+     * struct {
+     *     opaque verify_data[Hash.length];
+     * } Finished;
+     *
+     * verify_data =
+     *     HMAC( finished_key,
+     *            Hash( Handshake Context +
+     *                  Certificate*      +
+     *                  CertificateVerify* )
+     *    )
+     *
+     * finished_key =
+     *    HKDF-Expand-Label( BaseKey, "finished", "", Hash.length )
+     */
+
+    ret = mbedtls_ssl_tls1_3_hkdf_expand_label(
+                                 md_type, base_key, md_size,
+                                 MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( finished ),
+                                 NULL, 0,
+                                 finished_key, md_size );
+    if( ret != 0 )
+        goto exit;
+
+    ret = mbedtls_md_hmac( md_info, finished_key, md_size, transcript, md_size, dst );
+    if( ret != 0 )
+        goto exit;
+
+exit:
+
+    mbedtls_platform_zeroize( finished_key, sizeof( finished_key ) );
+    return( ret );
+}
+
+int mbedtls_ssl_tls1_3_create_psk_binder( mbedtls_ssl_context *ssl,
+                               const mbedtls_md_type_t md_type,
+                               unsigned char const *psk, size_t psk_len,
+                               int psk_type,
+                               unsigned char const *transcript,
+                               unsigned char *result )
+{
+    int ret = 0;
+    unsigned char binder_key[MBEDTLS_MD_MAX_SIZE];
+    unsigned char early_secret[MBEDTLS_MD_MAX_SIZE];
+    mbedtls_md_info_t const *md_info = mbedtls_md_info_from_type( md_type );
+    size_t const md_size = mbedtls_md_get_size( md_info );
+
+#if !defined(MBEDTLS_DEBUG_C)
+    ssl = NULL; /* make sure we don't use it except for debug */
+    ((void) ssl);
+#endif
+
+    /* We should never call this function with an unknown hash,
+     * but add an assertion anyway. */
+    if( md_info == 0 )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+
+    /*
+     *            0
+     *            |
+     *            v
+     *  PSK ->  HKDF-Extract = Early Secret
+     *            |
+     *            +-----> Derive-Secret(., "ext binder" | "res binder", "")
+     *            |                     = binder_key
+     *            v
+     */
+
+    ret = mbedtls_ssl_tls1_3_evolve_secret( md_type,
+                                            NULL,          /* Old secret */
+                                            psk, psk_len,  /* Input      */
+                                            early_secret );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_evolve_secret", ret );
+        goto exit;
+    }
+
+    if( psk_type == MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION )
+    {
+        ret = mbedtls_ssl_tls1_3_derive_secret( md_type,
+                            early_secret, md_size,
+                            MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( res_binder ),
+                            NULL, 0, MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED,
+                            binder_key, md_size );
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "Derive Early Secret with 'res binder'" ) );
+    }
+    else
+    {
+        ret = mbedtls_ssl_tls1_3_derive_secret( md_type,
+                            early_secret, md_size,
+                            MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( ext_binder ),
+                            NULL, 0, MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED,
+                            binder_key, md_size );
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "Derive Early Secret with 'ext binder'" ) );
+    }
+
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_derive_secret", ret );
+        goto exit;
+    }
+
+    /*
+     * The binding_value is computed in the same way as the Finished message
+     * but with the BaseKey being the binder_key.
+     */
+
+    ret = ssl_tls1_3_calc_finished_core( md_type, binder_key, transcript, result );
+    if( ret != 0 )
+        goto exit;
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "psk binder", result, md_size );
+
+exit:
+
+    mbedtls_platform_zeroize( early_secret, sizeof( early_secret ) );
+    mbedtls_platform_zeroize( binder_key,   sizeof( binder_key ) );
     return( ret );
 }
 

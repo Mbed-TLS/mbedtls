@@ -1,0 +1,4 @@
+Removals
+   * Remove the following macros: MBEDTLS_CHECK_PARAMS,
+     MBEDTLS_CHECK_PARAMS_ASSERT, MBEDTLS_PARAM_FAILED,
+     MBEDTLS_PARAM_FAILED_ALT. Fixes #4313.

@@ -50,7 +50,6 @@ unless( -f $config_file && -f $query_config_format_file ) {
 # throw errors.
 my @excluded = qw(
 MBEDTLS_SSL_CIPHERSUITES
-MBEDTLS_PARAM_FAILED
 );
 my $excluded_re = join '|', @excluded;
 

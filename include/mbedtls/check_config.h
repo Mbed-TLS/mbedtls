@@ -826,6 +826,10 @@
 #error "MBEDTLS_SSL_PROTO_TLS1_1 (TLS v1.1 support) was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4286"
 #endif
 
+#if defined(MBEDTLS_CHECK_PARAMS) //no-check-names
+#error "MBEDTLS_CHECK_PARAMS was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4313"
+#endif
+
 #if defined(MBEDTLS_SSL_CID_PADDING_GRANULARITY) //no-check-names
 #error "MBEDTLS_SSL_CID_PADDING_GRANULARITY was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4335"
 #endif

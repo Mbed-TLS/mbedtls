@@ -159,50 +159,6 @@ $dispatch_code
 };
 
 /**
- * \brief        Execute the test function.
- *
- *               This is a wrapper function around the test function execution
- *               to allow the setjmp() call used to catch any calls to the
- *               parameter failure callback, to be used. Calls to setjmp()
- *               can invalidate the state of any local auto variables.
- *
- * \param fp     Function pointer to the test function.
- * \param params Parameters to pass to the #TestWrapper_t wrapper function.
- *
- */
-void execute_function_ptr(TestWrapper_t fp, void **params)
-{
-#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
-    mbedtls_test_enable_insecure_external_rng( );
-#endif
-
-#if defined(MBEDTLS_CHECK_PARAMS)
-    mbedtls_test_param_failed_location_record_t location_record;
-
-    if ( setjmp( mbedtls_test_param_failed_get_state_buf( ) ) == 0 )
-    {
-        fp( params );
-    }
-    else
-    {
-        /* Unexpected parameter validation error */
-        mbedtls_test_param_failed_get_location_record( &location_record );
-        mbedtls_test_fail( location_record.failure_condition,
-                           location_record.line,
-                           location_record.file );
-    }
-
-    mbedtls_test_param_failed_reset_state( );
-#else
-    fp( params );
-#endif
-
-#if defined(MBEDTLS_TEST_MUTEX_USAGE)
-    mbedtls_test_mutex_usage_check( );
-#endif /* MBEDTLS_TEST_MUTEX_USAGE */
-}
-
-/**
  * \brief        Dispatches test functions based on function index.
  *
  * \param func_idx    Test function index.
@@ -222,7 +178,17 @@ int dispatch_test( size_t func_idx, void ** params )
     {
         fp = test_funcs[func_idx];
         if ( fp )
-            execute_function_ptr(fp, params);
+        {
+            #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+                mbedtls_test_enable_insecure_external_rng( );
+            #endif
+
+                fp( params );
+
+            #if defined(MBEDTLS_TEST_MUTEX_USAGE)
+                mbedtls_test_mutex_usage_check( );
+            #endif /* MBEDTLS_TEST_MUTEX_USAGE */
+        }
         else
             ret = DISPATCH_UNSUPPORTED_SUITE;
     }

@@ -3536,45 +3536,15 @@ const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl );
  */
 int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
 
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-/**
- * \brief          Return the maximum fragment length (payload, in bytes) for
- *                 the output buffer. For the client, this is the configured
- *                 value. For the server, it is the minimum of two - the
- *                 configured value and the negotiated one.
- *
- * \sa             mbedtls_ssl_conf_max_frag_len()
- * \sa             mbedtls_ssl_get_max_record_payload()
- *
- * \param ssl      SSL context
- *
- * \return         Current maximum fragment length for the output buffer.
- */
-size_t mbedtls_ssl_get_output_max_frag_len( const mbedtls_ssl_context *ssl );
-
-/**
- * \brief          Return the maximum fragment length (payload, in bytes) for
- *                 the input buffer. This is the negotiated maximum fragment
- *                 length, or, if there is none, MBEDTLS_SSL_IN_CONTENT_LEN.
- *                 If it is not defined either, the value is 2^14. This function
- *                 works as its predecessor, \c mbedtls_ssl_get_max_frag_len().
- *
- * \sa             mbedtls_ssl_conf_max_frag_len()
- * \sa             mbedtls_ssl_get_max_record_payload()
- *
- * \param ssl      SSL context
- *
- * \return         Current maximum fragment length for the output buffer.
- */
-size_t mbedtls_ssl_get_input_max_frag_len( const mbedtls_ssl_context *ssl );
-#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
-
 /**
  * \brief          Return the current maximum outgoing record payload in bytes.
- *                 This takes into account the config.h setting \c
- *                 MBEDTLS_SSL_OUT_CONTENT_LEN, the configured and negotiated
- *                 max fragment length extension if used, and for DTLS the
- *                 path MTU as configured and current record expansion.
+ *
+ * \note           The logic to determine the maximum outgoing record payload is
+ *                 version-specific. It takes into account various factors, such as
+ *                 the config.h setting \c MBEDTLS_SSL_OUT_CONTENT_LEN, extensions
+ *                 such as the max fragment length or record size limit extension if
+ *                 used, and for DTLS the path MTU as configured and current
+ *                 record expansion.
  *
  * \note           With DTLS, \c mbedtls_ssl_write() will return an error if
  *                 called with a larger length value.
@@ -3583,9 +3553,7 @@ size_t mbedtls_ssl_get_input_max_frag_len( const mbedtls_ssl_context *ssl );
  *                 to the caller to call \c mbedtls_ssl_write() again in
  *                 order to send the remaining bytes if any.
  *
- * \sa             mbedtls_ssl_set_mtu()
- * \sa             mbedtls_ssl_get_output_max_frag_len()
- * \sa             mbedtls_ssl_get_input_max_frag_len()
+ * \sa             mbedtls_ssl_get_max_out_record_payload()
  * \sa             mbedtls_ssl_get_record_expansion()
  *
  * \param ssl      SSL context
@@ -3594,6 +3562,26 @@ size_t mbedtls_ssl_get_input_max_frag_len( const mbedtls_ssl_context *ssl );
  *                 or a negative error code.
  */
 int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl );
+
+/**
+ * \brief          Return the current maximum incoming record payload in bytes.
+ *
+ * \note           The logic to determine the maximum outgoing record payload is
+ *                 version-specific. It takes into account various factors, such as
+ *                 the config.h setting \c MBEDTLS_SSL_IN_CONTENT_LEN, extensions
+ *                 such as the max fragment length extension or record size limit
+ *                 extension if used, and the current record expansion.
+ *
+ * \sa             mbedtls_ssl_set_mtu()
+ * \sa             mbedtls_ssl_get_max_in_record_payload()
+ * \sa             mbedtls_ssl_get_record_expansion()
+ *
+ * \param ssl      SSL context
+ *
+ * \return         Current maximum payload for an outgoing record,
+ *                 or a negative error code.
+ */
+int mbedtls_ssl_get_max_in_record_payload( const mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
@@ -3893,7 +3881,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
  *                 or negotiated with the peer), then:
  *                 - with TLS, less bytes than requested are written.
  *                 - with DTLS, MBEDTLS_ERR_SSL_BAD_INPUT_DATA is returned.
- *                 \c mbedtls_ssl_get_output_max_frag_len() may be used to
+ *                 \c mbedtls_ssl_get_max_out_record_payload() may be used to
  *                 query the active maximum fragment length.
  *
  * \note           Attempting to write 0 bytes will result in an empty TLS

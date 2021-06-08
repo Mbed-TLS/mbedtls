@@ -1,0 +1,9 @@
+API changes
+   * Remove the SSL APIs mbedtls_ssl_get_input_max_frag_len() and
+     mbedtls_ssl_get_output_max_frag_len(), and add a new API
+     mbedtls_ssl_get_max_in_record_payload(), complementing the existing
+     mbedtls_ssl_get_max_out_record_payload().
+     Uses of mbedtls_ssl_get_input_max_frag_len() and
+     mbedtls_ssl_get_input_max_frag_len() should be replaced by
+     mbedtls_ssl_get_max_in_record_payload() and
+     mbedtls_ssl_get_max_out_record_payload(), respectively.

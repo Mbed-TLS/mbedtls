@@ -180,23 +180,23 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
 }
 
 /*
- * Pick a random R in the range [2, M) for blinding or key generation.
+ * Pick a random R in the range [2, M-2] for blinding or key generation.
  */
 static int dhm_random_below( mbedtls_mpi *R, const mbedtls_mpi *M,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret, count;
+    size_t m_size = mbedtls_mpi_size( M );
+    size_t m_bitlen = mbedtls_mpi_bitlen( M );
 
     count = 0;
     do
     {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( R, mbedtls_mpi_size( M ), f_rng, p_rng ) );
-
-        while( mbedtls_mpi_cmp_mpi( R, M ) >= 0 )
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( R, 1 ) );
-
-        if( count++ > 10 )
+        if( count++ > 30 )
             return( MBEDTLS_ERR_MPI_NOT_ACCEPTABLE );
+
+        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( R, m_size, f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( R, ( m_size * 8 ) - m_bitlen ) );
     }
     while( dhm_check_range( R, M ) != 0 );
 

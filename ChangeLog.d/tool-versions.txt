@@ -1,0 +1,4 @@
+Requirement changes
+   * Refresh the minimum supported versions of tools to build the
+     library. CMake versions older than 3.10.2 and Python older
+     than 3.6 are no longer supported.

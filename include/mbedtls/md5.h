@@ -113,7 +113,8 @@ void mbedtls_md5_clone( mbedtls_md5_context *dst,
  *                 stronger message digests instead.
  *
  */
-int mbedtls_md5_starts_ret( mbedtls_md5_context *ctx );
+int mbedtls_md5_starts( mbedtls_md5_context *ctx );
+#define mbedtls_md5_starts_ret  mbedtls_md5_starts
 
 /**
  * \brief          MD5 process buffer
@@ -129,9 +130,10 @@ int mbedtls_md5_starts_ret( mbedtls_md5_context *ctx );
  *                 stronger message digests instead.
  *
  */
-int mbedtls_md5_update_ret( mbedtls_md5_context *ctx,
-                            const unsigned char *input,
-                            size_t ilen );
+int mbedtls_md5_update( mbedtls_md5_context *ctx,
+                        const unsigned char *input,
+                        size_t ilen );
+#define mbedtls_md5_update_ret  mbedtls_md5_update
 
 /**
  * \brief          MD5 final digest
@@ -146,8 +148,9 @@ int mbedtls_md5_update_ret( mbedtls_md5_context *ctx,
  *                 stronger message digests instead.
  *
  */
-int mbedtls_md5_finish_ret( mbedtls_md5_context *ctx,
-                            unsigned char output[16] );
+int mbedtls_md5_finish( mbedtls_md5_context *ctx,
+                        unsigned char output[16] );
+#define mbedtls_md5_finish_ret  mbedtls_md5_finish
 
 /**
  * \brief          MD5 process data block (internal use only)
@@ -179,9 +182,10 @@ int mbedtls_internal_md5_process( mbedtls_md5_context *ctx,
  *                 stronger message digests instead.
  *
  */
-int mbedtls_md5_ret( const unsigned char *input,
-                     size_t ilen,
-                     unsigned char output[16] );
+int mbedtls_md5( const unsigned char *input,
+                 size_t ilen,
+                 unsigned char output[16] );
+#define mbedtls_md5_ret  mbedtls_md5
 
 #if defined(MBEDTLS_SELF_TEST)
 

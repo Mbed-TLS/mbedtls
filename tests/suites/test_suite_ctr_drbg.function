@@ -288,7 +288,7 @@ void ctr_drbg_entropy_usage( int entropy_nonce_len )
     /* Call update with too much data (sizeof entropy > MAX(_SEED)_INPUT).
      * Make sure it's detected as an error and doesn't cause memory
      * corruption. */
-    TEST_ASSERT( mbedtls_ctr_drbg_update_ret(
+    TEST_ASSERT( mbedtls_ctr_drbg_update(
                      &ctx, entropy, sizeof( entropy ) ) != 0 );
 
     /* Now enable PR, so the next few calls should all reseed */

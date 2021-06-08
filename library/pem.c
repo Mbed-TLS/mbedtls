@@ -87,13 +87,13 @@ static int pem_pbkdf1( unsigned char *key, size_t keylen,
     /*
      * key[ 0..15] = MD5(pwd || IV)
      */
-    if( ( ret = mbedtls_md5_starts_ret( &md5_ctx ) ) != 0 )
+    if( ( ret = mbedtls_md5_starts( &md5_ctx ) ) != 0 )
         goto exit;
-    if( ( ret = mbedtls_md5_update_ret( &md5_ctx, pwd, pwdlen ) ) != 0 )
+    if( ( ret = mbedtls_md5_update( &md5_ctx, pwd, pwdlen ) ) != 0 )
         goto exit;
-    if( ( ret = mbedtls_md5_update_ret( &md5_ctx, iv,  8 ) ) != 0 )
+    if( ( ret = mbedtls_md5_update( &md5_ctx, iv,  8 ) ) != 0 )
         goto exit;
-    if( ( ret = mbedtls_md5_finish_ret( &md5_ctx, md5sum ) ) != 0 )
+    if( ( ret = mbedtls_md5_finish( &md5_ctx, md5sum ) ) != 0 )
         goto exit;
 
     if( keylen <= 16 )
@@ -107,15 +107,15 @@ static int pem_pbkdf1( unsigned char *key, size_t keylen,
     /*
      * key[16..23] = MD5(key[ 0..15] || pwd || IV])
      */
-    if( ( ret = mbedtls_md5_starts_ret( &md5_ctx ) ) != 0 )
+    if( ( ret = mbedtls_md5_starts( &md5_ctx ) ) != 0 )
         goto exit;
-    if( ( ret = mbedtls_md5_update_ret( &md5_ctx, md5sum, 16 ) ) != 0 )
+    if( ( ret = mbedtls_md5_update( &md5_ctx, md5sum, 16 ) ) != 0 )
         goto exit;
-    if( ( ret = mbedtls_md5_update_ret( &md5_ctx, pwd, pwdlen ) ) != 0 )
+    if( ( ret = mbedtls_md5_update( &md5_ctx, pwd, pwdlen ) ) != 0 )
         goto exit;
-    if( ( ret = mbedtls_md5_update_ret( &md5_ctx, iv, 8 ) ) != 0 )
+    if( ( ret = mbedtls_md5_update( &md5_ctx, iv, 8 ) ) != 0 )
         goto exit;
-    if( ( ret = mbedtls_md5_finish_ret( &md5_ctx, md5sum ) ) != 0 )
+    if( ( ret = mbedtls_md5_finish( &md5_ctx, md5sum ) ) != 0 )
         goto exit;
 
     use_len = 16;

@@ -503,39 +503,39 @@ int mbedtls_md_starts( mbedtls_md_context_t *ctx )
     {
 #if defined(MBEDTLS_MD2_C)
         case MBEDTLS_MD_MD2:
-            return( mbedtls_md2_starts_ret( ctx->md_ctx ) );
+            return( mbedtls_md2_starts( ctx->md_ctx ) );
 #endif
 #if defined(MBEDTLS_MD4_C)
         case MBEDTLS_MD_MD4:
-            return( mbedtls_md4_starts_ret( ctx->md_ctx ) );
+            return( mbedtls_md4_starts( ctx->md_ctx ) );
 #endif
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_MD_MD5:
-            return( mbedtls_md5_starts_ret( ctx->md_ctx ) );
+            return( mbedtls_md5_starts( ctx->md_ctx ) );
 #endif
 #if defined(MBEDTLS_RIPEMD160_C)
         case MBEDTLS_MD_RIPEMD160:
-            return( mbedtls_ripemd160_starts_ret( ctx->md_ctx ) );
+            return( mbedtls_ripemd160_starts( ctx->md_ctx ) );
 #endif
 #if defined(MBEDTLS_SHA1_C)
         case MBEDTLS_MD_SHA1:
-            return( mbedtls_sha1_starts_ret( ctx->md_ctx ) );
+            return( mbedtls_sha1_starts( ctx->md_ctx ) );
 #endif
 #if defined(MBEDTLS_SHA224_C)
         case MBEDTLS_MD_SHA224:
-            return( mbedtls_sha256_starts_ret( ctx->md_ctx, 1 ) );
+            return( mbedtls_sha256_starts( ctx->md_ctx, 1 ) );
 #endif
 #if defined(MBEDTLS_SHA256_C)
         case MBEDTLS_MD_SHA256:
-            return( mbedtls_sha256_starts_ret( ctx->md_ctx, 0 ) );
+            return( mbedtls_sha256_starts( ctx->md_ctx, 0 ) );
 #endif
 #if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_MD_SHA384:
-            return( mbedtls_sha512_starts_ret( ctx->md_ctx, 1 ) );
+            return( mbedtls_sha512_starts( ctx->md_ctx, 1 ) );
 #endif
 #if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_MD_SHA512:
-            return( mbedtls_sha512_starts_ret( ctx->md_ctx, 0 ) );
+            return( mbedtls_sha512_starts( ctx->md_ctx, 0 ) );
 #endif
         default:
             return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
@@ -551,39 +551,39 @@ int mbedtls_md_update( mbedtls_md_context_t *ctx, const unsigned char *input, si
     {
 #if defined(MBEDTLS_MD2_C)
         case MBEDTLS_MD_MD2:
-            return( mbedtls_md2_update_ret( ctx->md_ctx, input, ilen ) );
+            return( mbedtls_md2_update( ctx->md_ctx, input, ilen ) );
 #endif
 #if defined(MBEDTLS_MD4_C)
         case MBEDTLS_MD_MD4:
-            return( mbedtls_md4_update_ret( ctx->md_ctx, input, ilen ) );
+            return( mbedtls_md4_update( ctx->md_ctx, input, ilen ) );
 #endif
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_MD_MD5:
-            return( mbedtls_md5_update_ret( ctx->md_ctx, input, ilen ) );
+            return( mbedtls_md5_update( ctx->md_ctx, input, ilen ) );
 #endif
 #if defined(MBEDTLS_RIPEMD160_C)
         case MBEDTLS_MD_RIPEMD160:
-            return( mbedtls_ripemd160_update_ret( ctx->md_ctx, input, ilen ) );
+            return( mbedtls_ripemd160_update( ctx->md_ctx, input, ilen ) );
 #endif
 #if defined(MBEDTLS_SHA1_C)
         case MBEDTLS_MD_SHA1:
-            return( mbedtls_sha1_update_ret( ctx->md_ctx, input, ilen ) );
+            return( mbedtls_sha1_update( ctx->md_ctx, input, ilen ) );
 #endif
 #if defined(MBEDTLS_SHA224_C)
         case MBEDTLS_MD_SHA224:
-            return( mbedtls_sha256_update_ret( ctx->md_ctx, input, ilen ) );
+            return( mbedtls_sha256_update( ctx->md_ctx, input, ilen ) );
 #endif
 #if defined(MBEDTLS_SHA256_C)
         case MBEDTLS_MD_SHA256:
-            return( mbedtls_sha256_update_ret( ctx->md_ctx, input, ilen ) );
+            return( mbedtls_sha256_update( ctx->md_ctx, input, ilen ) );
 #endif
 #if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_MD_SHA384:
-            return( mbedtls_sha512_update_ret( ctx->md_ctx, input, ilen ) );
+            return( mbedtls_sha512_update( ctx->md_ctx, input, ilen ) );
 #endif
 #if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_MD_SHA512:
-            return( mbedtls_sha512_update_ret( ctx->md_ctx, input, ilen ) );
+            return( mbedtls_sha512_update( ctx->md_ctx, input, ilen ) );
 #endif
         default:
             return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
@@ -599,39 +599,39 @@ int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output )
     {
 #if defined(MBEDTLS_MD2_C)
         case MBEDTLS_MD_MD2:
-            return( mbedtls_md2_finish_ret( ctx->md_ctx, output ) );
+            return( mbedtls_md2_finish( ctx->md_ctx, output ) );
 #endif
 #if defined(MBEDTLS_MD4_C)
         case MBEDTLS_MD_MD4:
-            return( mbedtls_md4_finish_ret( ctx->md_ctx, output ) );
+            return( mbedtls_md4_finish( ctx->md_ctx, output ) );
 #endif
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_MD_MD5:
-            return( mbedtls_md5_finish_ret( ctx->md_ctx, output ) );
+            return( mbedtls_md5_finish( ctx->md_ctx, output ) );
 #endif
 #if defined(MBEDTLS_RIPEMD160_C)
         case MBEDTLS_MD_RIPEMD160:
-            return( mbedtls_ripemd160_finish_ret( ctx->md_ctx, output ) );
+            return( mbedtls_ripemd160_finish( ctx->md_ctx, output ) );
 #endif
 #if defined(MBEDTLS_SHA1_C)
         case MBEDTLS_MD_SHA1:
-            return( mbedtls_sha1_finish_ret( ctx->md_ctx, output ) );
+            return( mbedtls_sha1_finish( ctx->md_ctx, output ) );
 #endif
 #if defined(MBEDTLS_SHA224_C)
         case MBEDTLS_MD_SHA224:
-            return( mbedtls_sha256_finish_ret( ctx->md_ctx, output ) );
+            return( mbedtls_sha256_finish( ctx->md_ctx, output ) );
 #endif
 #if defined(MBEDTLS_SHA256_C)
         case MBEDTLS_MD_SHA256:
-            return( mbedtls_sha256_finish_ret( ctx->md_ctx, output ) );
+            return( mbedtls_sha256_finish( ctx->md_ctx, output ) );
 #endif
 #if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_MD_SHA384:
-            return( mbedtls_sha512_finish_ret( ctx->md_ctx, output ) );
+            return( mbedtls_sha512_finish( ctx->md_ctx, output ) );
 #endif
 #if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_MD_SHA512:
-            return( mbedtls_sha512_finish_ret( ctx->md_ctx, output ) );
+            return( mbedtls_sha512_finish( ctx->md_ctx, output ) );
 #endif
         default:
             return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
@@ -648,39 +648,39 @@ int mbedtls_md( const mbedtls_md_info_t *md_info, const unsigned char *input, si
     {
 #if defined(MBEDTLS_MD2_C)
         case MBEDTLS_MD_MD2:
-            return( mbedtls_md2_ret( input, ilen, output ) );
+            return( mbedtls_md2( input, ilen, output ) );
 #endif
 #if defined(MBEDTLS_MD4_C)
         case MBEDTLS_MD_MD4:
-            return( mbedtls_md4_ret( input, ilen, output ) );
+            return( mbedtls_md4( input, ilen, output ) );
 #endif
 #if defined(MBEDTLS_MD5_C)
         case MBEDTLS_MD_MD5:
-            return( mbedtls_md5_ret( input, ilen, output ) );
+            return( mbedtls_md5( input, ilen, output ) );
 #endif
 #if defined(MBEDTLS_RIPEMD160_C)
         case MBEDTLS_MD_RIPEMD160:
-            return( mbedtls_ripemd160_ret( input, ilen, output ) );
+            return( mbedtls_ripemd160( input, ilen, output ) );
 #endif
 #if defined(MBEDTLS_SHA1_C)
         case MBEDTLS_MD_SHA1:
-            return( mbedtls_sha1_ret( input, ilen, output ) );
+            return( mbedtls_sha1( input, ilen, output ) );
 #endif
 #if defined(MBEDTLS_SHA224_C)
         case MBEDTLS_MD_SHA224:
-            return( mbedtls_sha256_ret( input, ilen, output, 1 ) );
+            return( mbedtls_sha256( input, ilen, output, 1 ) );
 #endif
 #if defined(MBEDTLS_SHA256_C)
         case MBEDTLS_MD_SHA256:
-            return( mbedtls_sha256_ret( input, ilen, output, 0 ) );
+            return( mbedtls_sha256( input, ilen, output, 0 ) );
 #endif
 #if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_MD_SHA384:
-            return( mbedtls_sha512_ret( input, ilen, output, 1 ) );
+            return( mbedtls_sha512( input, ilen, output, 1 ) );
 #endif
 #if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_MD_SHA512:
-            return( mbedtls_sha512_ret( input, ilen, output, 0 ) );
+            return( mbedtls_sha512( input, ilen, output, 0 ) );
 #endif
         default:
             return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );

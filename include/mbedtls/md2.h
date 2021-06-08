@@ -114,7 +114,8 @@ void mbedtls_md2_clone( mbedtls_md2_context *dst,
  *                 stronger message digests instead.
  *
  */
-int mbedtls_md2_starts_ret( mbedtls_md2_context *ctx );
+int mbedtls_md2_starts( mbedtls_md2_context *ctx );
+#define mbedtls_md2_starts_ret mbedtls_md2_starts
 
 /**
  * \brief          MD2 process buffer
@@ -130,9 +131,10 @@ int mbedtls_md2_starts_ret( mbedtls_md2_context *ctx );
  *                 stronger message digests instead.
  *
  */
-int mbedtls_md2_update_ret( mbedtls_md2_context *ctx,
-                            const unsigned char *input,
-                            size_t ilen );
+int mbedtls_md2_update( mbedtls_md2_context *ctx,
+                        const unsigned char *input,
+                        size_t ilen );
+#define mbedtls_md2_update_ret  mbedtls_md2_update
 
 /**
  * \brief          MD2 final digest
@@ -147,8 +149,9 @@ int mbedtls_md2_update_ret( mbedtls_md2_context *ctx,
  *                 stronger message digests instead.
  *
  */
-int mbedtls_md2_finish_ret( mbedtls_md2_context *ctx,
-                            unsigned char output[16] );
+int mbedtls_md2_finish( mbedtls_md2_context *ctx,
+                        unsigned char output[16] );
+//define mbe dtls_md2 _fin ish_ret  mb edtls_md2_finish
 
 /**
  * \brief          MD2 process data block (internal use only)
@@ -176,9 +179,10 @@ int mbedtls_internal_md2_process( mbedtls_md2_context *ctx );
  *                 stronger message digests instead.
  *
  */
-int mbedtls_md2_ret( const unsigned char *input,
-                     size_t ilen,
-                     unsigned char output[16] );
+int mbedtls_md2( const unsigned char *input,
+                 size_t ilen,
+                 unsigned char output[16] );
+#define mbedtls_md2_ret  mbedtls_md2
 
 #if defined(MBEDTLS_SELF_TEST)
 

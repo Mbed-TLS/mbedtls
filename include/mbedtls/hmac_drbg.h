@@ -294,8 +294,9 @@ void mbedtls_hmac_drbg_set_reseed_interval( mbedtls_hmac_drbg_context *ctx,
  * \return              \c 0 on success, or an error from the underlying
  *                      hash calculation.
  */
-int mbedtls_hmac_drbg_update_ret( mbedtls_hmac_drbg_context *ctx,
+int mbedtls_hmac_drbg_update( mbedtls_hmac_drbg_context *ctx,
                        const unsigned char *additional, size_t add_len );
+#define mbedtls_hmac_drbg_update_ret mbedtls_hmac_drbg_update
 
 /**
  * \brief               This function reseeds the HMAC_DRBG context, that is

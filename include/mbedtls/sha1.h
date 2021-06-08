@@ -123,7 +123,8 @@ void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
  * \return         A negative error code on failure.
  *
  */
-int mbedtls_sha1_starts_ret( mbedtls_sha1_context *ctx );
+int mbedtls_sha1_starts( mbedtls_sha1_context *ctx );
+#define mbedtls_sha1_starts_ret  mbedtls_sha1_starts
 
 /**
  * \brief          This function feeds an input buffer into an ongoing SHA-1
@@ -142,9 +143,10 @@ int mbedtls_sha1_starts_ret( mbedtls_sha1_context *ctx );
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha1_update_ret( mbedtls_sha1_context *ctx,
-                             const unsigned char *input,
-                             size_t ilen );
+int mbedtls_sha1_update( mbedtls_sha1_context *ctx,
+                         const unsigned char *input,
+                         size_t ilen );
+#define mbedtls_sha1_update_ret  mbedtls_sha1_update
 
 /**
  * \brief          This function finishes the SHA-1 operation, and writes
@@ -162,8 +164,9 @@ int mbedtls_sha1_update_ret( mbedtls_sha1_context *ctx,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha1_finish_ret( mbedtls_sha1_context *ctx,
-                             unsigned char output[20] );
+int mbedtls_sha1_finish( mbedtls_sha1_context *ctx,
+                         unsigned char output[20] );
+#define mbedtls_sha1_finish_ret  mbedtls_sha1_finish
 
 /**
  * \brief          SHA-1 process data block (internal use only).
@@ -206,9 +209,10 @@ int mbedtls_internal_sha1_process( mbedtls_sha1_context *ctx,
  * \return         A negative error code on failure.
  *
  */
-int mbedtls_sha1_ret( const unsigned char *input,
-                      size_t ilen,
-                      unsigned char output[20] );
+int mbedtls_sha1( const unsigned char *input,
+                  size_t ilen,
+                  unsigned char output[20] );
+#define mbedtls_sha1_ret  mbedtls_sha1
 
 #if defined(MBEDTLS_SELF_TEST)
 

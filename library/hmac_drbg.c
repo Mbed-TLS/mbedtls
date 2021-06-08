@@ -59,7 +59,7 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx )
 /*
  * HMAC_DRBG update, using optional additional data (10.1.2.2)
  */
-int mbedtls_hmac_drbg_update_ret( mbedtls_hmac_drbg_context *ctx,
+int mbedtls_hmac_drbg_update( mbedtls_hmac_drbg_context *ctx,
                                   const unsigned char *additional,
                                   size_t add_len )
 {
@@ -130,7 +130,7 @@ int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
         return( ret );
     memset( ctx->V, 0x01, mbedtls_md_get_size( md_info ) );
 
-    if( ( ret = mbedtls_hmac_drbg_update_ret( ctx, data, data_len ) ) != 0 )
+    if( ( ret = mbedtls_hmac_drbg_update( ctx, data, data_len ) ) != 0 )
         return( ret );
 
     return( 0 );
@@ -205,7 +205,7 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
     }
 
     /* 2. Update state */
-    if( ( ret = mbedtls_hmac_drbg_update_ret( ctx, seed, seedlen ) ) != 0 )
+    if( ( ret = mbedtls_hmac_drbg_update( ctx, seed, seedlen ) ) != 0 )
         goto exit;
 
     /* 3. Reset reseed_counter */
@@ -348,7 +348,7 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
     /* 2. Use additional data if any */
     if( additional != NULL && add_len != 0 )
     {
-        if( ( ret = mbedtls_hmac_drbg_update_ret( ctx,
+        if( ( ret = mbedtls_hmac_drbg_update( ctx,
                                                   additional, add_len ) ) != 0 )
             goto exit;
     }
@@ -372,7 +372,7 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
     }
 
     /* 6. Update */
-    if( ( ret = mbedtls_hmac_drbg_update_ret( ctx,
+    if( ( ret = mbedtls_hmac_drbg_update( ctx,
                                               additional, add_len ) ) != 0 )
         goto exit;
 
@@ -479,7 +479,7 @@ int mbedtls_hmac_drbg_update_seed_file( mbedtls_hmac_drbg_context *ctx, const ch
     fclose( f );
     f = NULL;
 
-    ret = mbedtls_hmac_drbg_update_ret( ctx, buf, n );
+    ret = mbedtls_hmac_drbg_update( ctx, buf, n );
 
 exit:
     mbedtls_platform_zeroize( buf, sizeof( buf ) );

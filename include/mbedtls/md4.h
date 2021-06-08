@@ -113,7 +113,8 @@ void mbedtls_md4_clone( mbedtls_md4_context *dst,
  *                 constitutes a security risk. We recommend considering
  *                 stronger message digests instead.
  */
-int mbedtls_md4_starts_ret( mbedtls_md4_context *ctx );
+int mbedtls_md4_starts( mbedtls_md4_context *ctx );
+#define mbedtls_md4_starts_ret   mbedtls_md4_starts
 
 /**
  * \brief          MD4 process buffer
@@ -129,9 +130,10 @@ int mbedtls_md4_starts_ret( mbedtls_md4_context *ctx );
  *                 stronger message digests instead.
  *
  */
-int mbedtls_md4_update_ret( mbedtls_md4_context *ctx,
-                            const unsigned char *input,
-                            size_t ilen );
+int mbedtls_md4_update( mbedtls_md4_context *ctx,
+                        const unsigned char *input,
+                        size_t ilen );
+#define mbedtls_md4_update_ret  mbedtls_md4_update
 
 /**
  * \brief          MD4 final digest
@@ -146,8 +148,9 @@ int mbedtls_md4_update_ret( mbedtls_md4_context *ctx,
  *                 stronger message digests instead.
  *
  */
-int mbedtls_md4_finish_ret( mbedtls_md4_context *ctx,
-                            unsigned char output[16] );
+int mbedtls_md4_finish( mbedtls_md4_context *ctx,
+                        unsigned char output[16] );
+#define mbedtls_md4_finish_ret  mbedtls_md4_finish
 
 /**
  * \brief          MD4 process data block (internal use only)
@@ -179,9 +182,10 @@ int mbedtls_internal_md4_process( mbedtls_md4_context *ctx,
  *                 stronger message digests instead.
  *
  */
-int mbedtls_md4_ret( const unsigned char *input,
-                     size_t ilen,
-                     unsigned char output[16] );
+int mbedtls_md4( const unsigned char *input,
+                 size_t ilen,
+                 unsigned char output[16] );
+#define mbedtls_md4_ret  mbedtls_md4
 
 #if defined(MBEDTLS_SELF_TEST)
 

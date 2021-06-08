@@ -49,7 +49,7 @@ extern "C" {
  *
  *                 The structure is used both for SHA-256 and for SHA-224
  *                 checksum calculations. The choice between these two is
- *                 made in the call to mbedtls_sha256_starts_ret().
+ *                 made in the call to mbedtls_sha256_starts().
  */
 typedef struct mbedtls_sha256_context
 {
@@ -101,7 +101,8 @@ void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 );
+int mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 );
+#define mbedtls_sha256_starts_ret  mbedtls_sha256_starts
 
 /**
  * \brief          This function feeds an input buffer into an ongoing
@@ -116,9 +117,10 @@ int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 );
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
-                               const unsigned char *input,
-                               size_t ilen );
+int mbedtls_sha256_update( mbedtls_sha256_context *ctx,
+                           const unsigned char *input,
+                           size_t ilen );
+#define mbedtls_sha256_update_ret  mbedtls_sha256_update
 
 /**
  * \brief          This function finishes the SHA-256 operation, and writes
@@ -133,8 +135,9 @@ int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
-                               unsigned char *output );
+int mbedtls_sha256_finish( mbedtls_sha256_context *ctx,
+                           unsigned char *output );
+#define mbedtls_sha256_finish_ret  mbedtls_sha256_finish
 
 /**
  * \brief          This function processes a single data block within
@@ -170,10 +173,11 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
  * \param is224    Determines which function to use. This must be
  *                 either \c 0 for SHA-256, or \c 1 for SHA-224.
  */
-int mbedtls_sha256_ret( const unsigned char *input,
-                        size_t ilen,
-                        unsigned char *output,
-                        int is224 );
+int mbedtls_sha256( const unsigned char *input,
+                    size_t ilen,
+                    unsigned char *output,
+                    int is224 );
+#define mbedtls_sha256_ret  mbedtls_sha256
 
 #if defined(MBEDTLS_SELF_TEST)
 

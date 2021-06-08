@@ -145,7 +145,7 @@ mbedtls_mpi_bitlen:10:"16":5
 Base test mbedtls_mpi_bitlen #6
 mbedtls_mpi_bitlen:10:"10":4
 
-Base test mbedtls_mpi_bitlen #7
+Base test mbedtls_mpi_bitlen: 0 (1 limb)
 mbedtls_mpi_bitlen:10:"0":0
 
 Base test mbedtls_mpi_cmp_int #1
@@ -298,7 +298,7 @@ mbedtls_mpi_cmp_abs:10:"-2":10:"-3":-1
 Base test mbedtls_mpi_cmp_abs (Negative values) #3
 mbedtls_mpi_cmp_abs:10:"-2":10:"-1":1
 
-Base test mbedtls_mpi_cmp_abs (Zero and Zero) #4
+Test mbedtls_mpi_cmp_abs: 0 (1 limb) = 0 (1 limb)
 mbedtls_mpi_cmp_abs:10:"0":10:"0":0
 
 Base test mbedtls_mpi_cmp_abs (Mix values) #1
@@ -628,7 +628,7 @@ mbedtls_mpi_mul_int:10:"-2039568783564019774057658669290345772801939933143482630
 Base test mbedtls_mpi_div_mpi #1
 mbedtls_mpi_div_mpi:10:"1000":10:"13":10:"76":10:"12":0
 
-Base test mbedtls_mpi_div_mpi #2 (Divide by zero)
+Base test mbedtls_mpi_div_mpi #2 (Divide by zero (1 limb))
 mbedtls_mpi_div_mpi:10:"1000":10:"0":10:"1":10:"1":MBEDTLS_ERR_MPI_DIVISION_BY_ZERO
 
 Base test mbedtls_mpi_div_mpi #3
@@ -664,7 +664,7 @@ mbedtls_mpi_div_int:10:"20133056642518226042310730101376278483547239130123806338
 Base test mbedtls_mpi_mod_mpi #1
 mbedtls_mpi_mod_mpi:10:"1000":10:"13":10:"12":0
 
-Base test mbedtls_mpi_mod_mpi #2 (Divide by zero)
+Base test mbedtls_mpi_mod_mpi #2 (Divide by zero (1 limb))
 mbedtls_mpi_mod_mpi:10:"1000":10:"0":10:"0":MBEDTLS_ERR_MPI_DIVISION_BY_ZERO
 
 Base test mbedtls_mpi_mod_mpi #3
@@ -762,16 +762,16 @@ mbedtls_mpi_gcd:10:"433019240910377478217373572959560109819648647016096560523769
 Base test mbedtls_mpi_inv_mod #1
 mbedtls_mpi_inv_mod:10:"3":10:"11":10:"4":0
 
-Base test mbedtls_mpi_inv_mod #2
+Test mbedtls_mpi_inv_mod: mod 0 (1 limb)
 mbedtls_mpi_inv_mod:10:"3":10:"0":10:"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-Base test mbedtls_mpi_inv_mod #3
+Test mbedtls_mpi_inv_mod: mod negative
 mbedtls_mpi_inv_mod:10:"3":10:"-11":10:"4":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-Base test mbedtls_mpi_inv_mod #4
+Test mbedtls_mpi_inv_mod: 2^-1 mod 4
 mbedtls_mpi_inv_mod:10:"2":10:"4":10:"0":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
 
-Base test mbedtls_mpi_inv_mod #5
+Test mbedtls_mpi_inv_mod: mod 1
 mbedtls_mpi_inv_mod:10:"3":10:"1":10:"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Test mbedtls_mpi_inv_mod #1

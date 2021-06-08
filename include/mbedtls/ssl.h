@@ -1074,12 +1074,6 @@ struct mbedtls_ssl_config
     void *MBEDTLS_PRIVATE(p_ticket);                 /*!< context for the ticket callbacks   */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
-    /** Callback to export key block and master secret                      */
-    mbedtls_ssl_export_keys_t *MBEDTLS_PRIVATE(f_export_keys);
-    void *MBEDTLS_PRIVATE(p_export_keys);            /*!< context for key export callback    */
-#endif
-
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     size_t MBEDTLS_PRIVATE(cid_len); /*!< The length of CIDs for incoming DTLS records.      */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
@@ -1259,6 +1253,12 @@ struct mbedtls_ssl_context
     int MBEDTLS_PRIVATE(major_ver);              /*!< equal to  MBEDTLS_SSL_MAJOR_VERSION_3    */
     int MBEDTLS_PRIVATE(minor_ver);              /*!< one of MBEDTLS_SSL_MINOR_VERSION_x macros */
     unsigned MBEDTLS_PRIVATE(badmac_seen);       /*!< records with a bad MAC received    */
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    /** Callback to export key block and master secret                      */
+    mbedtls_ssl_export_keys_t *MBEDTLS_PRIVATE(f_export_keys);
+    void *MBEDTLS_PRIVATE(p_export_keys);            /*!< context for key export callback    */
+#endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /** Callback to customize X.509 certificate chain verification          */
@@ -2015,17 +2015,15 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
  *            key exporters, e.g. for EAP-TLS or DTLS-SRTP.
  *
  *
- * \param conf           The SSL configuration to which the export
- *                       callback should be attached. All connections
- *                       subsequently bound to this configuration will
- *                       have their keys exported.
+ * \param ssl            The SSL context to which the export
+ *                       callback should be attached.
  * \param f_export_keys  The callback for the key export.
  * \param p_export_keys  The opaque context pointer to be passed to the
  *                       callback \p f_export_keys.
  */
-void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
-                                      mbedtls_ssl_export_keys_t *f_export_keys,
-                                      void *p_export_keys );
+void mbedtls_ssl_set_export_keys_cb( mbedtls_ssl_context *ssl,
+                                     mbedtls_ssl_export_keys_t *f_export_keys,
+                                     void *p_export_keys );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)

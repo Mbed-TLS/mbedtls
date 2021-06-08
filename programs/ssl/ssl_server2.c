@@ -2525,27 +2525,6 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_encrypt_then_mac( &conf, opt.etm );
 #endif
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
-    if( opt.eap_tls != 0 )
-    {
-        mbedtls_ssl_conf_export_keys_cb( &conf, eap_tls_key_derivation,
-                                         &eap_tls_keying );
-    }
-    else if( opt.nss_keylog != 0 )
-    {
-        mbedtls_ssl_conf_export_keys_cb( &conf,
-                                         nss_keylog_export,
-                                         NULL );
-    }
-#if defined( MBEDTLS_SSL_DTLS_SRTP )
-    else if( opt.use_srtp != 0 )
-    {
-        mbedtls_ssl_conf_export_keys_cb( &conf, dtls_srtp_key_derivation,
-                                         &dtls_srtp_keying );
-    }
-#endif /* MBEDTLS_SSL_DTLS_SRTP */
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
-
 #if defined(MBEDTLS_SSL_ALPN)
     if( opt.alpn_string != NULL )
         if( ( ret = mbedtls_ssl_conf_alpn_protocols( &conf, alpn_list ) ) != 0 )
@@ -2871,6 +2850,27 @@ int main( int argc, char *argv[] )
         mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned -0x%x\n\n", (unsigned int) -ret );
         goto exit;
     }
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    if( opt.eap_tls != 0 )
+    {
+        mbedtls_ssl_set_export_keys_cb( &ssl, eap_tls_key_derivation,
+                                        &eap_tls_keying );
+    }
+    else if( opt.nss_keylog != 0 )
+    {
+        mbedtls_ssl_set_export_keys_cb( &ssl,
+                                        nss_keylog_export,
+                                        NULL );
+    }
+#if defined( MBEDTLS_SSL_DTLS_SRTP )
+    else if( opt.use_srtp != 0 )
+    {
+        mbedtls_ssl_set_export_keys_cb( &ssl, dtls_srtp_key_derivation,
+                                        &dtls_srtp_keying );
+    }
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
     io_ctx.ssl = &ssl;
     io_ctx.net = &client_fd;

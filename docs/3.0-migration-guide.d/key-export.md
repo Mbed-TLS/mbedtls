@@ -7,9 +7,13 @@ This affects users of the SSL key export APIs:
     mbedtls_ssl_conf_export_keys_ext_cb()
 ```
 
-The API `mbedtls_ssl_conf_export_keys_ext_cb()` has been removed,
-and the function type of key export callback passed to
-`mbedtls_ssl_conf_export_keys_cb()` has changed, as follows:
+Those APIs have been removed and replaced by the new API
+`mbedtls_ssl_set_export_keys_cb()`. This API differs from
+the previous key export API in the following ways:
+
+- It is no longer bound to an SSL configuration, but to an
+  SSL context. This allows users to more easily identify the
+  connection an exported key belongs to.
 - It no longer exports raw keys and IV.
 - A secret type parameter has been added to identify which key
   is being exported. For TLS 1.2, only the master secret is

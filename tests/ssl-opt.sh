@@ -3033,10 +3033,10 @@ run_test    "Max fragment length: enabled, default" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3" \
             0 \
-            -c "Maximum input fragment length is $MAX_CONTENT_LEN" \
-            -c "Maximum output fragment length is $MAX_CONTENT_LEN" \
-            -s "Maximum input fragment length is $MAX_CONTENT_LEN" \
-            -s "Maximum output fragment length is $MAX_CONTENT_LEN" \
+            -c "Maximum incoming record payload length is $MAX_CONTENT_LEN" \
+            -c "Maximum outgoing record payload length is $MAX_CONTENT_LEN" \
+            -s "Maximum incoming record payload length is $MAX_CONTENT_LEN" \
+            -s "Maximum outgoing record payload length is $MAX_CONTENT_LEN" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
@@ -3047,10 +3047,10 @@ run_test    "Max fragment length: enabled, default, larger message" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             0 \
-            -c "Maximum input fragment length is $MAX_CONTENT_LEN" \
-            -c "Maximum output fragment length is $MAX_CONTENT_LEN" \
-            -s "Maximum input fragment length is $MAX_CONTENT_LEN" \
-            -s "Maximum output fragment length is $MAX_CONTENT_LEN" \
+            -c "Maximum incoming record payload length is $MAX_CONTENT_LEN" \
+            -c "Maximum outgoing record payload length is $MAX_CONTENT_LEN" \
+            -s "Maximum incoming record payload length is $MAX_CONTENT_LEN" \
+            -s "Maximum outgoing record payload length is $MAX_CONTENT_LEN" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
@@ -3064,10 +3064,10 @@ run_test    "Max fragment length, DTLS: enabled, default, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
             "$P_CLI debug_level=3 dtls=1 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             1 \
-            -c "Maximum input fragment length is $MAX_CONTENT_LEN" \
-            -c "Maximum output fragment length is $MAX_CONTENT_LEN" \
-            -s "Maximum input fragment length is $MAX_CONTENT_LEN" \
-            -s "Maximum output fragment length is $MAX_CONTENT_LEN" \
+            -c "Maximum incoming record payload length is $MAX_CONTENT_LEN" \
+            -c "Maximum outgoing record payload length is $MAX_CONTENT_LEN" \
+            -s "Maximum incoming record payload length is $MAX_CONTENT_LEN" \
+            -s "Maximum outgoing record payload length is $MAX_CONTENT_LEN" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
@@ -3083,10 +3083,10 @@ run_test    "Max fragment length: disabled, larger message" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             0 \
-            -C "Maximum input fragment length is 16384" \
-            -C "Maximum output fragment length is 16384" \
-            -S "Maximum input fragment length is 16384" \
-            -S "Maximum output fragment length is 16384" \
+            -C "Maximum incoming record payload length is 16384" \
+            -C "Maximum outgoing record payload length is 16384" \
+            -S "Maximum incoming record payload length is 16384" \
+            -S "Maximum outgoing record payload length is 16384" \
             -c "$(( $MAX_CONTENT_LEN + 1)) bytes written in 2 fragments" \
             -s "$MAX_CONTENT_LEN bytes read" \
             -s "1 bytes read"
@@ -3096,10 +3096,10 @@ run_test    "Max fragment length DTLS: disabled, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
             "$P_CLI debug_level=3 dtls=1 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             1 \
-            -C "Maximum input fragment length is 16384" \
-            -C "Maximum output fragment length is 16384" \
-            -S "Maximum input fragment length is 16384" \
-            -S "Maximum output fragment length is 16384" \
+            -C "Maximum incoming record payload length is 16384" \
+            -C "Maximum outgoing record payload length is 16384" \
+            -S "Maximum incoming record payload length is 16384" \
+            -S "Maximum outgoing record payload length is 16384" \
             -c "fragment larger than.*maximum "
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
@@ -3107,10 +3107,10 @@ run_test    "Max fragment length: used by client" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=4096" \
             0 \
-            -c "Maximum input fragment length is 4096" \
-            -c "Maximum output fragment length is 4096" \
-            -s "Maximum input fragment length is 4096" \
-            -s "Maximum output fragment length is 4096" \
+            -c "Maximum incoming record payload length is 4096" \
+            -c "Maximum outgoing record payload length is 4096" \
+            -s "Maximum incoming record payload length is 4096" \
+            -s "Maximum outgoing record payload length is 4096" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3121,10 +3121,10 @@ run_test    "Max fragment length: client 512, server 1024" \
             "$P_SRV debug_level=3 max_frag_len=1024" \
             "$P_CLI debug_level=3 max_frag_len=512" \
             0 \
-            -c "Maximum input fragment length is 512" \
-            -c "Maximum output fragment length is 512" \
-            -s "Maximum input fragment length is 512" \
-            -s "Maximum output fragment length is 512" \
+            -c "Maximum incoming record payload length is 512" \
+            -c "Maximum outgoing record payload length is 512" \
+            -s "Maximum incoming record payload length is 512" \
+            -s "Maximum outgoing record payload length is 512" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3135,10 +3135,10 @@ run_test    "Max fragment length: client 512, server 2048" \
             "$P_SRV debug_level=3 max_frag_len=2048" \
             "$P_CLI debug_level=3 max_frag_len=512" \
             0 \
-            -c "Maximum input fragment length is 512" \
-            -c "Maximum output fragment length is 512" \
-            -s "Maximum input fragment length is 512" \
-            -s "Maximum output fragment length is 512" \
+            -c "Maximum incoming record payload length is 512" \
+            -c "Maximum outgoing record payload length is 512" \
+            -s "Maximum incoming record payload length is 512" \
+            -s "Maximum outgoing record payload length is 512" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3149,10 +3149,10 @@ run_test    "Max fragment length: client 512, server 4096" \
             "$P_SRV debug_level=3 max_frag_len=4096" \
             "$P_CLI debug_level=3 max_frag_len=512" \
             0 \
-            -c "Maximum input fragment length is 512" \
-            -c "Maximum output fragment length is 512" \
-            -s "Maximum input fragment length is 512" \
-            -s "Maximum output fragment length is 512" \
+            -c "Maximum incoming record payload length is 512" \
+            -c "Maximum outgoing record payload length is 512" \
+            -s "Maximum incoming record payload length is 512" \
+            -s "Maximum outgoing record payload length is 512" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3163,10 +3163,10 @@ run_test    "Max fragment length: client 1024, server 512" \
             "$P_SRV debug_level=3 max_frag_len=512" \
             "$P_CLI debug_level=3 max_frag_len=1024" \
             0 \
-            -c "Maximum input fragment length is 1024" \
-            -c "Maximum output fragment length is 1024" \
-            -s "Maximum input fragment length is 1024" \
-            -s "Maximum output fragment length is 512" \
+            -c "Maximum incoming record payload length is 1024" \
+            -c "Maximum outgoing record payload length is 1024" \
+            -s "Maximum incoming record payload length is 1024" \
+            -s "Maximum outgoing record payload length is 512" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3177,10 +3177,10 @@ run_test    "Max fragment length: client 1024, server 2048" \
             "$P_SRV debug_level=3 max_frag_len=2048" \
             "$P_CLI debug_level=3 max_frag_len=1024" \
             0 \
-            -c "Maximum input fragment length is 1024" \
-            -c "Maximum output fragment length is 1024" \
-            -s "Maximum input fragment length is 1024" \
-            -s "Maximum output fragment length is 1024" \
+            -c "Maximum incoming record payload length is 1024" \
+            -c "Maximum outgoing record payload length is 1024" \
+            -s "Maximum incoming record payload length is 1024" \
+            -s "Maximum outgoing record payload length is 1024" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3191,10 +3191,10 @@ run_test    "Max fragment length: client 1024, server 4096" \
             "$P_SRV debug_level=3 max_frag_len=4096" \
             "$P_CLI debug_level=3 max_frag_len=1024" \
             0 \
-            -c "Maximum input fragment length is 1024" \
-            -c "Maximum output fragment length is 1024" \
-            -s "Maximum input fragment length is 1024" \
-            -s "Maximum output fragment length is 1024" \
+            -c "Maximum incoming record payload length is 1024" \
+            -c "Maximum outgoing record payload length is 1024" \
+            -s "Maximum incoming record payload length is 1024" \
+            -s "Maximum outgoing record payload length is 1024" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3205,10 +3205,10 @@ run_test    "Max fragment length: client 2048, server 512" \
             "$P_SRV debug_level=3 max_frag_len=512" \
             "$P_CLI debug_level=3 max_frag_len=2048" \
             0 \
-            -c "Maximum input fragment length is 2048" \
-            -c "Maximum output fragment length is 2048" \
-            -s "Maximum input fragment length is 2048" \
-            -s "Maximum output fragment length is 512" \
+            -c "Maximum incoming record payload length is 2048" \
+            -c "Maximum outgoing record payload length is 2048" \
+            -s "Maximum incoming record payload length is 2048" \
+            -s "Maximum outgoing record payload length is 512" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3219,10 +3219,10 @@ run_test    "Max fragment length: client 2048, server 1024" \
             "$P_SRV debug_level=3 max_frag_len=1024" \
             "$P_CLI debug_level=3 max_frag_len=2048" \
             0 \
-            -c "Maximum input fragment length is 2048" \
-            -c "Maximum output fragment length is 2048" \
-            -s "Maximum input fragment length is 2048" \
-            -s "Maximum output fragment length is 1024" \
+            -c "Maximum incoming record payload length is 2048" \
+            -c "Maximum outgoing record payload length is 2048" \
+            -s "Maximum incoming record payload length is 2048" \
+            -s "Maximum outgoing record payload length is 1024" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3233,10 +3233,10 @@ run_test    "Max fragment length: client 2048, server 4096" \
             "$P_SRV debug_level=3 max_frag_len=4096" \
             "$P_CLI debug_level=3 max_frag_len=2048" \
             0 \
-            -c "Maximum input fragment length is 2048" \
-            -c "Maximum output fragment length is 2048" \
-            -s "Maximum input fragment length is 2048" \
-            -s "Maximum output fragment length is 2048" \
+            -c "Maximum incoming record payload length is 2048" \
+            -c "Maximum outgoing record payload length is 2048" \
+            -s "Maximum incoming record payload length is 2048" \
+            -s "Maximum outgoing record payload length is 2048" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3247,10 +3247,10 @@ run_test    "Max fragment length: client 4096, server 512" \
             "$P_SRV debug_level=3 max_frag_len=512" \
             "$P_CLI debug_level=3 max_frag_len=4096" \
             0 \
-            -c "Maximum input fragment length is 4096" \
-            -c "Maximum output fragment length is 4096" \
-            -s "Maximum input fragment length is 4096" \
-            -s "Maximum output fragment length is 512" \
+            -c "Maximum incoming record payload length is 4096" \
+            -c "Maximum outgoing record payload length is 4096" \
+            -s "Maximum incoming record payload length is 4096" \
+            -s "Maximum outgoing record payload length is 512" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3261,10 +3261,10 @@ run_test    "Max fragment length: client 4096, server 1024" \
             "$P_SRV debug_level=3 max_frag_len=1024" \
             "$P_CLI debug_level=3 max_frag_len=4096" \
             0 \
-            -c "Maximum input fragment length is 4096" \
-            -c "Maximum output fragment length is 4096" \
-            -s "Maximum input fragment length is 4096" \
-            -s "Maximum output fragment length is 1024" \
+            -c "Maximum incoming record payload length is 4096" \
+            -c "Maximum outgoing record payload length is 4096" \
+            -s "Maximum incoming record payload length is 4096" \
+            -s "Maximum outgoing record payload length is 1024" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3275,10 +3275,10 @@ run_test    "Max fragment length: client 4096, server 2048" \
             "$P_SRV debug_level=3 max_frag_len=2048" \
             "$P_CLI debug_level=3 max_frag_len=4096" \
             0 \
-            -c "Maximum input fragment length is 4096" \
-            -c "Maximum output fragment length is 4096" \
-            -s "Maximum input fragment length is 4096" \
-            -s "Maximum output fragment length is 2048" \
+            -c "Maximum incoming record payload length is 4096" \
+            -c "Maximum outgoing record payload length is 4096" \
+            -s "Maximum incoming record payload length is 4096" \
+            -s "Maximum outgoing record payload length is 2048" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3289,10 +3289,10 @@ run_test    "Max fragment length: used by server" \
             "$P_SRV debug_level=3 max_frag_len=4096" \
             "$P_CLI debug_level=3" \
             0 \
-            -c "Maximum input fragment length is $MAX_CONTENT_LEN" \
-            -c "Maximum output fragment length is $MAX_CONTENT_LEN" \
-            -s "Maximum input fragment length is $MAX_CONTENT_LEN" \
-            -s "Maximum output fragment length is 4096" \
+            -c "Maximum incoming record payload length is $MAX_CONTENT_LEN" \
+            -c "Maximum outgoing record payload length is $MAX_CONTENT_LEN" \
+            -s "Maximum incoming record payload length is $MAX_CONTENT_LEN" \
+            -s "Maximum outgoing record payload length is 4096" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
@@ -3304,8 +3304,8 @@ run_test    "Max fragment length: gnutls server" \
             "$G_SRV" \
             "$P_CLI debug_level=3 max_frag_len=4096" \
             0 \
-            -c "Maximum input fragment length is 4096" \
-            -c "Maximum output fragment length is 4096" \
+            -c "Maximum incoming record payload length is 4096" \
+            -c "Maximum outgoing record payload length is 4096" \
             -c "client hello, adding max_fragment_length extension" \
             -c "found max_fragment_length extension"
 
@@ -3314,10 +3314,10 @@ run_test    "Max fragment length: client, message just fits" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=2048 request_size=2048" \
             0 \
-            -c "Maximum input fragment length is 2048" \
-            -c "Maximum output fragment length is 2048" \
-            -s "Maximum input fragment length is 2048" \
-            -s "Maximum output fragment length is 2048" \
+            -c "Maximum incoming record payload length is 2048" \
+            -c "Maximum outgoing record payload length is 2048" \
+            -s "Maximum incoming record payload length is 2048" \
+            -s "Maximum outgoing record payload length is 2048" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3330,10 +3330,10 @@ run_test    "Max fragment length: client, larger message" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=2048 request_size=2345" \
             0 \
-            -c "Maximum input fragment length is 2048" \
-            -c "Maximum output fragment length is 2048" \
-            -s "Maximum input fragment length is 2048" \
-            -s "Maximum output fragment length is 2048" \
+            -c "Maximum incoming record payload length is 2048" \
+            -c "Maximum outgoing record payload length is 2048" \
+            -s "Maximum incoming record payload length is 2048" \
+            -s "Maximum outgoing record payload length is 2048" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3347,10 +3347,10 @@ run_test    "Max fragment length: DTLS client, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
             "$P_CLI debug_level=3 dtls=1 max_frag_len=2048 request_size=2345" \
             1 \
-            -c "Maximum input fragment length is 2048" \
-            -c "Maximum output fragment length is 2048" \
-            -s "Maximum input fragment length is 2048" \
-            -s "Maximum output fragment length is 2048" \
+            -c "Maximum incoming record payload length is 2048" \
+            -c "Maximum outgoing record payload length is 2048" \
+            -s "Maximum incoming record payload length is 2048" \
+            -s "Maximum outgoing record payload length is 2048" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \
@@ -3457,10 +3457,10 @@ run_test    "Renegotiation with max fragment length: client 2048, server 512" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1 max_frag_len=512" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 max_frag_len=2048 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
             0 \
-            -c "Maximum input fragment length is 2048" \
-            -c "Maximum output fragment length is 2048" \
-            -s "Maximum input fragment length is 2048" \
-            -s "Maximum output fragment length is 512" \
+            -c "Maximum incoming record payload length is 2048" \
+            -c "Maximum outgoing record payload length is 2048" \
+            -s "Maximum incoming record payload length is 2048" \
+            -s "Maximum outgoing record payload length is 512" \
             -c "client hello, adding max_fragment_length extension" \
             -s "found max fragment length extension" \
             -s "server hello, max_fragment_length extension" \

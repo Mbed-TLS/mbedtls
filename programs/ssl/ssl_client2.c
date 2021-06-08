@@ -2083,6 +2083,13 @@ int main( int argc, char *argv[] )
     else
         mbedtls_printf( "    [ Record expansion is unknown ]\n" );
 
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    mbedtls_printf( "    [ Maximum incoming record payload length is %u ]\n",
+                    (unsigned int) mbedtls_ssl_get_max_in_record_payload( &ssl ) );
+    mbedtls_printf( "    [ Maximum outgoing record payload length is %u ]\n",
+                    (unsigned int) mbedtls_ssl_get_max_out_record_payload( &ssl ) );
+#endif
+
 #if defined(MBEDTLS_SSL_ALPN)
     if( opt.alpn_string != NULL )
     {

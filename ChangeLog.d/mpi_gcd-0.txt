@@ -1,0 +1,4 @@
+Bugfix
+   * Fix mbedtls_mpi_gcd(G,A,B) when the value of B is zero. This had no
+     effect on Mbed TLS's internal use of mbedtls_mpi_gcd(), but may affect
+     applications that call mbedtls_mpi_gcd() directly. Fixes #4642.

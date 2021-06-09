@@ -2391,6 +2391,16 @@ int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B 
     lz = mbedtls_mpi_lsb( &TA );
     lzt = mbedtls_mpi_lsb( &TB );
 
+    /* The loop below gives the correct result when A==0 but not when B==0.
+     * So have a special case for B==0. Leverage the fact that we just
+     * calculated the lsb and lsb(B)==0 iff B is odd or 0 to make the test
+     * slightly more efficient than cmp_int(). */
+    if( lzt == 0 && mbedtls_mpi_get_bit( &TB, 0 ) == 0 )
+    {
+        ret = mbedtls_mpi_copy( G, A );
+        goto cleanup;
+    }
+
     if( lzt < lz )
         lz = lzt;
 

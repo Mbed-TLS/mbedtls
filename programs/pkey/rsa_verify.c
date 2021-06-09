@@ -66,7 +66,7 @@ int main( int argc, char *argv[] )
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     char filename[512];
 
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
+    mbedtls_rsa_init( &rsa );
 
     if( argc != 2 )
     {

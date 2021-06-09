@@ -863,7 +863,7 @@ void pk_rsa_alt(  )
     size_t sig_len, ciph_len, test_len;
     int ret = MBEDTLS_ERR_PK_TYPE_MISMATCH;
 
-    mbedtls_rsa_init( &raw, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_NONE );
+    mbedtls_rsa_init( &raw );
     mbedtls_pk_init( &rsa ); mbedtls_pk_init( &alt );
 
     memset( hash, 0x2a, sizeof hash );

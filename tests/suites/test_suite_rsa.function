@@ -18,6 +18,44 @@
  */
 
 /* BEGIN_CASE */
+void rsa_invalid_param( )
+{
+    mbedtls_rsa_context ctx;
+    const int invalid_padding = 42;
+    const int invalid_hash_id = 0xff;
+
+    mbedtls_rsa_init( &ctx );
+
+    TEST_EQUAL( mbedtls_rsa_set_padding( &ctx,
+                                         invalid_padding,
+                                         MBEDTLS_MD_NONE ),
+                MBEDTLS_ERR_RSA_INVALID_PADDING );
+
+    TEST_EQUAL( mbedtls_rsa_set_padding( &ctx,
+                                         MBEDTLS_RSA_PKCS_V21,
+                                         invalid_hash_id ),
+                MBEDTLS_ERR_RSA_INVALID_PADDING );
+
+#if !defined(MBEDTLS_PKCS1_V15)
+    TEST_EQUAL( mbedtls_rsa_set_padding( &ctx,
+                                         MBEDTLS_RSA_PKCS_V15,
+                                         MBEDTLS_MD_NONE ),
+                MBEDTLS_ERR_RSA_INVALID_PADDING );
+#endif
+
+#if !defined(MBEDTLS_PKCS1_V21)
+    TEST_EQUAL( mbedtls_rsa_set_padding( &ctx,
+                                         MBEDTLS_RSA_PKCS_V21,
+                                         MBEDTLS_MD_NONE ),
+                MBEDTLS_ERR_RSA_INVALID_PADDING );
+#endif
+
+exit:
+    mbedtls_rsa_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void rsa_init_free( int reinit )
 {
     mbedtls_rsa_context ctx;
@@ -27,11 +65,11 @@ void rsa_init_free( int reinit )
      * unconditionally on an error path without checking whether it has
      * already been called in the success path. */
 
-    mbedtls_rsa_init( &ctx, 0, 0 );
+    mbedtls_rsa_init( &ctx );
     mbedtls_rsa_free( &ctx );
 
     if( reinit )
-        mbedtls_rsa_init( &ctx, 0, 0 );
+        mbedtls_rsa_init( &ctx );
     mbedtls_rsa_free( &ctx );
 
     /* This test case always succeeds, functionally speaking. A plausible
@@ -55,7 +93,9 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
 
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P );
     mbedtls_mpi_init( &Q ); mbedtls_mpi_init( &E );
-    mbedtls_rsa_init( &ctx, padding_mode, 0 );
+    mbedtls_rsa_init( &ctx );
+    TEST_ASSERT( mbedtls_rsa_set_padding( &ctx,padding_mode,
+                                          MBEDTLS_MD_NONE ) == 0 );
 
     memset( hash_result, 0x00, sizeof( hash_result ) );
     memset( output, 0x00, sizeof( output ) );
@@ -104,7 +144,9 @@ void mbedtls_rsa_pkcs1_verify( data_t * message_str, int padding_mode,
     mbedtls_mpi N, E;
 
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &E );
-    mbedtls_rsa_init( &ctx, padding_mode, 0 );
+    mbedtls_rsa_init( &ctx );
+    TEST_ASSERT( mbedtls_rsa_set_padding( &ctx, padding_mode,
+                                          MBEDTLS_MD_NONE ) == 0 );
     memset( hash_result, 0x00, sizeof( hash_result ) );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
@@ -138,7 +180,9 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
     mbedtls_mpi N, P, Q, E;
     mbedtls_test_rnd_pseudo_info rnd_info;
 
-    mbedtls_rsa_init( &ctx, padding_mode, 0 );
+    mbedtls_rsa_init( &ctx );
+    TEST_ASSERT( mbedtls_rsa_set_padding( &ctx, padding_mode,
+                                          MBEDTLS_MD_NONE ) == 0 );
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P );
     mbedtls_mpi_init( &Q ); mbedtls_mpi_init( &E );
 
@@ -185,7 +229,9 @@ void rsa_pkcs1_verify_raw( data_t * hash_result,
     mbedtls_mpi N, E;
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &E );
 
-    mbedtls_rsa_init( &ctx, padding_mode, 0 );
+    mbedtls_rsa_init( &ctx );
+    TEST_ASSERT( mbedtls_rsa_set_padding( &ctx, padding_mode,
+                                          MBEDTLS_MD_NONE ) == 0 );
     memset( output, 0x00, sizeof( output ) );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
@@ -219,7 +265,9 @@ void mbedtls_rsa_pkcs1_encrypt( data_t * message_str, int padding_mode,
 
     memset( &rnd_info, 0, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
-    mbedtls_rsa_init( &ctx, padding_mode, 0 );
+    mbedtls_rsa_init( &ctx );
+    TEST_ASSERT( mbedtls_rsa_set_padding( &ctx, padding_mode,
+                                          MBEDTLS_MD_NONE ) == 0 );
     memset( output, 0x00, sizeof( output ) );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
@@ -260,7 +308,9 @@ void rsa_pkcs1_encrypt_bad_rng( data_t * message_str, int padding_mode,
     mbedtls_mpi N, E;
 
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &E );
-    mbedtls_rsa_init( &ctx, padding_mode, 0 );
+    mbedtls_rsa_init( &ctx );
+    TEST_ASSERT( mbedtls_rsa_set_padding( &ctx, padding_mode,
+                                          MBEDTLS_MD_NONE ) == 0 );
     memset( output, 0x00, sizeof( output ) );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
@@ -305,7 +355,9 @@ void mbedtls_rsa_pkcs1_decrypt( data_t * message_str, int padding_mode,
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P );
     mbedtls_mpi_init( &Q ); mbedtls_mpi_init( &E );
 
-    mbedtls_rsa_init( &ctx, padding_mode, 0 );
+    mbedtls_rsa_init( &ctx );
+    TEST_ASSERT( mbedtls_rsa_set_padding( &ctx, padding_mode,
+                                          MBEDTLS_MD_NONE ) == 0 );
 
     memset( output, 0x00, sizeof( output ) );
     memset( &rnd_info, 0, sizeof( mbedtls_test_rnd_pseudo_info ) );
@@ -353,8 +405,8 @@ void mbedtls_rsa_public( data_t * message_str, int mod, int radix_N,
     mbedtls_mpi N, E;
 
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &E );
-    mbedtls_rsa_init( &ctx, MBEDTLS_RSA_PKCS_V15, 0 );
-    mbedtls_rsa_init( &ctx2, MBEDTLS_RSA_PKCS_V15, 0 );
+    mbedtls_rsa_init( &ctx );
+    mbedtls_rsa_init( &ctx2 );
     memset( output, 0x00, sizeof( output ) );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
@@ -411,8 +463,8 @@ void mbedtls_rsa_private( data_t * message_str, int mod, int radix_P,
 
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P );
     mbedtls_mpi_init( &Q ); mbedtls_mpi_init( &E );
-    mbedtls_rsa_init( &ctx, MBEDTLS_RSA_PKCS_V15, 0 );
-    mbedtls_rsa_init( &ctx2, MBEDTLS_RSA_PKCS_V15, 0 );
+    mbedtls_rsa_init( &ctx );
+    mbedtls_rsa_init( &ctx2 );
 
     memset( &rnd_info, 0, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
@@ -488,7 +540,7 @@ void mbedtls_rsa_check_pubkey( int radix_N, char * input_N, int radix_E,
     mbedtls_mpi N, E;
 
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &E );
-    mbedtls_rsa_init( &ctx, MBEDTLS_RSA_PKCS_V15, 0 );
+    mbedtls_rsa_init( &ctx );
 
     if( strlen( input_N ) )
     {
@@ -519,7 +571,7 @@ void mbedtls_rsa_check_privkey( int mod, int radix_P, char * input_P,
 {
     mbedtls_rsa_context ctx;
 
-    mbedtls_rsa_init( &ctx, MBEDTLS_RSA_PKCS_V15, 0 );
+    mbedtls_rsa_init( &ctx );
 
     ctx.len = mod / 8;
     if( strlen( input_P ) )
@@ -580,8 +632,8 @@ void rsa_check_pubpriv( int mod, int radix_Npub, char * input_Npub,
 {
     mbedtls_rsa_context pub, prv;
 
-    mbedtls_rsa_init( &pub, MBEDTLS_RSA_PKCS_V15, 0 );
-    mbedtls_rsa_init( &prv, MBEDTLS_RSA_PKCS_V15, 0 );
+    mbedtls_rsa_init( &pub );
+    mbedtls_rsa_init( &prv );
 
     pub.len = mod / 8;
     prv.len = mod / 8;
@@ -652,7 +704,7 @@ void mbedtls_rsa_gen_key( int nrbits, int exponent, int result)
 
     mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_entropy_init( &entropy );
-    mbedtls_rsa_init ( &ctx, 0, 0 );
+    mbedtls_rsa_init ( &ctx );
 
     TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
                                         &entropy, (const unsigned char *) pers,
@@ -804,7 +856,7 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
 
     mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_entropy_init( &entropy );
-    mbedtls_rsa_init( &ctx, 0, 0 );
+    mbedtls_rsa_init( &ctx );
 
     mbedtls_mpi_init( &N );
     mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
@@ -945,7 +997,7 @@ void mbedtls_rsa_export( int radix_N, char *input_N,
 
     mbedtls_rsa_context ctx;
 
-    mbedtls_rsa_init( &ctx, 0, 0 );
+    mbedtls_rsa_init( &ctx );
 
     mbedtls_mpi_init( &N );
     mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
@@ -1125,7 +1177,7 @@ void mbedtls_rsa_export_raw( data_t *input_N, data_t *input_P,
 
     mbedtls_rsa_context ctx;
 
-    mbedtls_rsa_init( &ctx, 0, 0 );
+    mbedtls_rsa_init( &ctx );
 
     /* Setup RSA context */
     TEST_ASSERT( mbedtls_rsa_import_raw( &ctx,
@@ -1227,7 +1279,7 @@ void mbedtls_rsa_import_raw( data_t *input_N,
 
     mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_entropy_init( &entropy );
-    mbedtls_rsa_init( &ctx, 0, 0 );
+    mbedtls_rsa_init( &ctx );
 
     TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
                                         &entropy, (const unsigned char *) pers,

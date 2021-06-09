@@ -134,33 +134,51 @@ mbedtls_rsa_context;
 /**
  * \brief          This function initializes an RSA context.
  *
+ * \note           This function initializes the padding and the hash
+ *                 identifier to respectively #MBEDTLS_RSA_PKCS_V15 and
+ *                 #MBEDTLS_MD_NONE. See mbedtls_rsa_set_padding() for more
+ *                 information about those parameters.
+ *
+ * \param ctx      The RSA context to initialize. This must not be \c NULL.
+ */
+void mbedtls_rsa_init( mbedtls_rsa_context *ctx );
+
+/**
+ * \brief          This function sets padding for an already initialized RSA
+ *                 context.
+ *
  * \note           Set padding to #MBEDTLS_RSA_PKCS_V21 for the RSAES-OAEP
  *                 encryption scheme and the RSASSA-PSS signature scheme.
  *
  * \note           The \p hash_id parameter is ignored when using
  *                 #MBEDTLS_RSA_PKCS_V15 padding.
  *
- * \note           The choice of padding mode is strictly enforced for private key
- *                 operations, since there might be security concerns in
+ * \note           The choice of padding mode is strictly enforced for private
+ *                 key operations, since there might be security concerns in
  *                 mixing padding modes. For public key operations it is
  *                 a default value, which can be overridden by calling specific
- *                 \c rsa_rsaes_xxx or \c rsa_rsassa_xxx functions.
+ *                 \c mbedtls_rsa_rsaes_xxx or \c mbedtls_rsa_rsassa_xxx
+ *                 functions.
  *
  * \note           The hash selected in \p hash_id is always used for OEAP
  *                 encryption. For PSS signatures, it is always used for
  *                 making signatures, but can be overridden for verifying them.
  *                 If set to #MBEDTLS_MD_NONE, it is always overridden.
  *
- * \param ctx      The RSA context to initialize. This must not be \c NULL.
+ * \param ctx      The initialized RSA context to be configured.
  * \param padding  The padding mode to use. This must be either
  *                 #MBEDTLS_RSA_PKCS_V15 or #MBEDTLS_RSA_PKCS_V21.
- * \param hash_id  The hash identifier of ::mbedtls_md_type_t type, if
- *                 \p padding is #MBEDTLS_RSA_PKCS_V21. It is unused
- *                 otherwise.
+ * \param hash_id  The hash identifier for PSS or OAEP, if \p padding is
+ *                 #MBEDTLS_RSA_PKCS_V21. #MBEDTLS_MD_NONE is accepted by this
+ *                 function but may be not suitable for some operations.
+ *                 Ignored if \p padding is #MBEDTLS_RSA_PKCS_V15.
+ *
+ * \return         \c 0 on success.
+ * \return         #MBEDTLS_ERR_RSA_INVALID_PADDING failure:
+ *                 \p padding or \p hash_id is invalid.
  */
-void mbedtls_rsa_init( mbedtls_rsa_context *ctx,
-                       int padding,
-                       int hash_id );
+int mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding,
+                             mbedtls_md_type_t hash_id );
 
 /**
  * \brief          This function imports a set of core parameters into an
@@ -390,18 +408,6 @@ int mbedtls_rsa_export_raw( const mbedtls_rsa_context *ctx,
  */
 int mbedtls_rsa_export_crt( const mbedtls_rsa_context *ctx,
                             mbedtls_mpi *DP, mbedtls_mpi *DQ, mbedtls_mpi *QP );
-
-/**
- * \brief          This function sets padding for an already initialized RSA
- *                 context. See mbedtls_rsa_init() for details.
- *
- * \param ctx      The initialized RSA context to be configured.
- * \param padding  The padding mode to use. This must be either
- *                 #MBEDTLS_RSA_PKCS_V15 or #MBEDTLS_RSA_PKCS_V21.
- * \param hash_id  The #MBEDTLS_RSA_PKCS_V21 hash identifier.
- */
-void mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding,
-                              int hash_id );
 
 /**
  * \brief          This function retrieves the length of RSA modulus in Bytes.

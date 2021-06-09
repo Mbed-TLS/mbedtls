@@ -786,7 +786,7 @@ int main( int argc, char *argv[] )
         {
             mbedtls_snprintf( title, sizeof( title ), "RSA-%d", keysize );
 
-            mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
+            mbedtls_rsa_init( &rsa );
             mbedtls_rsa_gen_key( &rsa, myrand, NULL, keysize, 65537 );
 
             TIME_PUBLIC( title, " public",

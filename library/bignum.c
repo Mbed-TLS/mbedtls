@@ -2404,9 +2404,6 @@ int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B 
     if( lzt < lz )
         lz = lzt;
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &TA, lz ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &TB, lz ) );
-
     TA.s = TB.s = 1;
 
     while( mbedtls_mpi_cmp_int( &TA, 0 ) != 0 )

@@ -16,9 +16,10 @@ At any point in time, we have a number of maintained branches consisting of:
   these only get bug fixes and security fixes.
 
 We use [Semantic Versioning](https://semver.org/). In particular, we maintain
-API compatibility in the `master` branch between major version changes. We
-also maintain ABI compatibility within LTS branches; see the next section for
-details.
+API compatibility in the `master` branch across minor version changes (e.g.
+the API of 3.(x+1) is backward compatible with 3.x). We only break API
+compatibility on major version changes (e.g. from 3.x to 4.0). We also maintain
+ABI compatibility within LTS branches; see the next section for details.
 
 ## Backwards Compatibility
 
@@ -28,11 +29,28 @@ undocumented features, then you should be able to re-compile it without
 modification with any later release x.y'.z' with the same major version
 number, and your code will still build, be secure, and work.
 
-There are rare exceptions: code that was relying on something that became
-insecure in the meantime (for example, crypto that was found to be weak) may
-need to be changed. In case security comes in conflict with backwards
-compatibility, we will put security first, but always attempt to provide a
-compatibility option.
+Note that new releases of Mbed TLS may extend the API. Here are some
+examples of changes that are common in minor releases of Mbed TLS, and are
+not considered API compatibility breaks:
+
+* Adding or reordering fields in a structure or union.
+* Removing a field from a structure, unless the field is documented as public.
+* Adding items to an enum.
+* Returning an error code that was not previously documented for a function
+  when a new error condition arises.
+* Changing which error code is returned in a case where multiple error
+  conditions apply.
+* Changing the behavior of a function from failing to succeeding, when the
+  change is a reasonable extension of the current behavior, i.e. the
+  addition of a new feature.
+
+There are rare exceptions where we break API compatibility: code that was
+relying on something that became insecure in the meantime (for example,
+crypto that was found to be weak) may need to be changed. In case security
+comes in conflict with backwards compatibility, we will put security first,
+but always attempt to provide a compatibility option.
+
+## Long-time support branches
 
 For the LTS branches, additionally we try very hard to also maintain ABI
 compatibility (same definition as API except with re-linking instead of

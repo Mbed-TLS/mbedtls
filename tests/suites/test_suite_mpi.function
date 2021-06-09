@@ -985,8 +985,7 @@ exit:
 /* BEGIN_CASE */
 void mbedtls_mpi_exp_mod( int radix_A, char * input_A, int radix_E,
                           char * input_E, int radix_N, char * input_N,
-                          int radix_RR, char * input_RR, int radix_X,
-                          char * input_X, int div_result )
+                          int radix_X, char * input_X, int div_result )
 {
     mbedtls_mpi A, E, N, RR, Z, X;
     int res;
@@ -997,9 +996,6 @@ void mbedtls_mpi_exp_mod( int radix_A, char * input_A, int radix_E,
     TEST_ASSERT( mbedtls_test_read_mpi( &E, radix_E, input_E ) == 0 );
     TEST_ASSERT( mbedtls_test_read_mpi( &N, radix_N, input_N ) == 0 );
     TEST_ASSERT( mbedtls_test_read_mpi( &X, radix_X, input_X ) == 0 );
-
-    if( strlen( input_RR ) )
-        TEST_ASSERT( mbedtls_test_read_mpi( &RR, radix_RR, input_RR ) == 0 );
 
     res = mbedtls_mpi_exp_mod( &Z, &A, &E, &N, &RR );
     TEST_ASSERT( res == div_result );

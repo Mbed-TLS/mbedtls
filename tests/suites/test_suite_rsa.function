@@ -411,9 +411,11 @@ void mbedtls_rsa_public( data_t * message_str, int mod, int radix_N,
     TEST_ASSERT( mbedtls_test_read_mpi( &E, radix_E, input_E ) == 0 );
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, NULL, NULL, NULL, &E ) == 0 );
+
+    /* Check test data consistency */
+    TEST_ASSERT( message_str->len == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
-
 
     TEST_ASSERT( mbedtls_rsa_public( &ctx, message_str->x, output ) == result );
     if( result == 0 )
@@ -472,10 +474,12 @@ void mbedtls_rsa_private( data_t * message_str, int mod, int radix_P,
     TEST_ASSERT( mbedtls_test_read_mpi( &E, radix_E, input_E ) == 0 );
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
+
+    /* Check test data consistency */
+    TEST_ASSERT( message_str->len == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
-
 
     /* repeat three times to test updating of blinding values */
     for( i = 0; i < 3; i++ )

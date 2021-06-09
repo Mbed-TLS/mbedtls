@@ -1,27 +1,4 @@
 Removals
-    * Remove MD2, MD4, RC4, Blowfish and XTEA cryptographic primitives and
-      ciphersuites. Remove the following library files: arc4.c/h, blowfish.c/h,
-      md2.c/h, md4.c/h, xtea.c/h and belonging csr/crt/pem files. Remove the
-      following defines: MBEDTLS_RC4_C, MBEDTLS_ARC4_C, MBEDTLS_ARC4_ALT,
-      PSA_WANT_KEY_TYPE_ARC4, PSA_WANT_ALG_STREAM_CIPHER,
-      MBEDTLS_PSA_ACCEL_KEY_TYPE_ARC4, MBEDTLS_CIPHER_ID_ARC4,
-      MBEDTLS_CIPHER_ARC4_128, MBEDTLS_BLOWFISH_C, MBEDTLS_BLOWFISH_ALT,
-      MBEDTLS_CIPHER_ID_BLOWFISH, MBEDTLS_CIPHER_BLOWFISH_ECB,
-      MBEDTLS_CIPHER_BLOWFISH_CBC, MBEDTLS_CIPHER_BLOWFISH_CFB64,
-      MBEDTLS_CIPHER_BLOWFISH_CTR, MBEDTLS_MD2_C, MBEDTLS_MD2_ALT,
-      MBEDTLS_MD2_PROCESS_ALT, PSA_ALG_MD2, PSA_WANT_ALG_MD2,
-      MBEDTLS_PSA_ACCEL_ALG_MD2, MBEDTLS_OID_PKCS1_MD2,
-      MBEDTLS_OID_DIGEST_ALG_MD2, MBEDTLS_OID_PKCS5_PBE_MD2_DES_CBC,
-      MBEDTLS_MD_MD2, MBEDTLS_MD4_C, MBEDTLS_MD4_ALT, MBEDTLS_MD4_PROCESS_ALT,
-      PSA_ALG_MD4, PSA_WANT_ALG_MD4, MBEDTLS_PSA_ACCEL_ALG_MD4,
-      MBEDTLS_OID_PKCS1_MD4, MBEDTLS_OID_DIGEST_ALG_MD4,
-      MBEDTLS_OID_PKCS5_PBE_MD2_RC2_CBC, MBEDTLS_MD_MD4, MBEDTLS_XTEA_C,
-      MBEDTLS_XTEA_ALT. Remove the following functions:
-      mbedtls_arc4_self_test(), mbedtls_md2_free(), mbedtls_md2_clone(),
-      mbedtls_md2_starts_ret(), mbedtls_md2_update_ret(),
-      mbedtls_md2_finish_ret(), mbedtls_md2_ret(), mbedtls_md2_self_test(),
-      mbedtls_internal_md2_process(), mbedtls_md4_free(), mbedtls_md4_clone(),
-      mbedtls_md4_starts_ret(), mbedtls_md4_update_ret(),
-      mbedtls_md4_finish_ret(), mbedtls_md4_ret(), mbedtls_md4_self_test(),
-      mbedtls_internal_md4_process(), mbedtls_xtea_self_test().
-      Remove the related tests and test suites and error codes. Fixes #4084.
+    * Remove all support for MD2, MD4, RC4, Blowfish and XTEA. This removes the
+      corresponding modules and all their APIs and related configuration
+      options. Fixes #4084.

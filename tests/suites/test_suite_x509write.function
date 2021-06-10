@@ -246,7 +246,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     (void) rsa_alt;
 #endif
 
-    TEST_ASSERT( mbedtls_mpi_read_string( &serial, 10, serial_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &serial, 10, serial_str ) == 0 );
 
     if( ver != -1 )
         mbedtls_x509write_crt_set_version( &crt, ver );

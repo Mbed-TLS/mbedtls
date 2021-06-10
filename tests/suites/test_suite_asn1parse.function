@@ -417,7 +417,7 @@ void get_integer( const data_t *input,
     }
 
 #if defined(MBEDTLS_BIGNUM_C)
-    ret = mbedtls_mpi_read_string( &expected_mpi, 16, expected_hex );
+    ret = mbedtls_test_read_mpi( &expected_mpi, 16, expected_hex );
     TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
     if( ret == MBEDTLS_ERR_MPI_BAD_INPUT_DATA )
     {

@@ -28,12 +28,6 @@ jobs:
       script:
         - tests/scripts/all.sh -k test_full_cmake_gcc_asan
 
-    - name: macOS
-      os: osx
-      compiler: clang
-      script:
-        - tests/scripts/all.sh -k test_default_out_of_box
-
     - name: Windows
       os: windows
       before_install:

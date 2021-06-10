@@ -569,8 +569,8 @@ void pk_rsa_verify_test_vec( data_t * message_str, int digest, int mod,
     rsa = mbedtls_pk_rsa( pk );
 
     rsa->len = mod / 8;
-    TEST_ASSERT( mbedtls_mpi_read_string( &rsa->N, radix_N, input_N ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &rsa->E, radix_E, input_E ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &rsa->N, radix_N, input_N ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &rsa->E, radix_E, input_E ) == 0 );
 
 
     if( mbedtls_md_info_from_type( digest ) != NULL )
@@ -612,8 +612,8 @@ void pk_rsa_verify_ext_test_vec( data_t * message_str, int digest,
     rsa = mbedtls_pk_rsa( pk );
 
     rsa->len = mod / 8;
-    TEST_ASSERT( mbedtls_mpi_read_string( &rsa->N, radix_N, input_N ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &rsa->E, radix_E, input_E ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &rsa->N, radix_N, input_N ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &rsa->E, radix_E, input_E ) == 0 );
 
 
     if( digest != MBEDTLS_MD_NONE )
@@ -698,7 +698,7 @@ void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
 
     TEST_ASSERT( mbedtls_pk_setup( &prv, mbedtls_pk_info_from_type( pk_type ) ) == 0 );
     TEST_ASSERT( mbedtls_ecp_group_load( &mbedtls_pk_ec( prv )->grp, grp_id ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &mbedtls_pk_ec( prv )->d, 16, d_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &mbedtls_pk_ec( prv )->d, 16, d_str ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_setup( &pub, mbedtls_pk_info_from_type( pk_type ) ) == 0 );
     TEST_ASSERT( mbedtls_ecp_group_load( &mbedtls_pk_ec( pub )->grp, grp_id ) == 0 );
@@ -869,8 +869,8 @@ void pk_rsa_encrypt_test_vec( data_t * message, int mod, int radix_N,
     rsa = mbedtls_pk_rsa( pk );
 
     rsa->len = mod / 8;
-    TEST_ASSERT( mbedtls_mpi_read_string( &rsa->N, radix_N, input_N ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &rsa->E, radix_E, input_E ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &rsa->N, radix_N, input_N ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &rsa->E, radix_E, input_E ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_encrypt( &pk, message->x, message->len,
                              output, &olen, sizeof( output ),
@@ -908,12 +908,12 @@ void pk_rsa_decrypt_test_vec( data_t * cipher, int mod, int radix_P,
     rsa = mbedtls_pk_rsa( pk );
 
     /* load public key */
-    TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &N, radix_N, input_N ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &E, radix_E, input_E ) == 0 );
 
     /* load private key */
-    TEST_ASSERT( mbedtls_mpi_read_string( &P, radix_P, input_P ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &Q, radix_Q, input_Q ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &P, radix_P, input_P ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Q, radix_Q, input_Q ) == 0 );
     TEST_ASSERT( mbedtls_rsa_import( rsa, &N, &P, &Q, NULL, &E ) == 0 );
     TEST_ASSERT( mbedtls_rsa_get_len( rsa ) == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_complete( rsa ) == 0 );

@@ -277,9 +277,9 @@ void ecdsa_prim_test_vectors( int id, char * d_str, char * xQ_str,
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
     TEST_ASSERT( mbedtls_ecp_point_read_string( &Q, 16, xQ_str, yQ_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &d, 16, d_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &r_check, 16, r_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &s_check, 16, s_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &d, 16, d_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &r_check, 16, r_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &s_check, 16, s_str ) == 0 );
     rnd_info.buf = rnd_buf->x;
     rnd_info.length = rnd_buf->len;
 
@@ -340,9 +340,9 @@ void ecdsa_det_test_vectors( int id, char * d_str, int md_alg, char * msg,
     memset( hash, 0, sizeof( hash ) );
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &d, 16, d_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &r_check, 16, r_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &s_check, 16, s_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &d, 16, d_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &r_check, 16, r_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &s_check, 16, s_str ) == 0 );
 
     md_info = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md_info != NULL );
@@ -513,7 +513,7 @@ void ecdsa_write_restart( int id, char *d_str, int md_alg,
     memset( sig, 0, sizeof( sig ) );
 
     TEST_ASSERT( mbedtls_ecp_group_load( &ctx.grp, id ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &ctx.d, 16, d_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &ctx.d, 16, d_str ) == 0 );
 
     md_info = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md_info != NULL );

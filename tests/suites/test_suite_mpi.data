@@ -586,42 +586,6 @@ mbedtls_mpi_shrink:4:1:0:1
 Shrink 0 limbs in a buffer of size 4 to 0 yielding 1
 mbedtls_mpi_shrink:4:0:0:1
 
-Test mbedtls_mpi_safe_cond_assign #1
-mbedtls_mpi_safe_cond_assign:+1:"01":+1:"02"
-
-Test mbedtls_mpi_safe_cond_assign #2
-mbedtls_mpi_safe_cond_assign:+1:"FF000000000000000001":+1:"02"
-
-Test mbedtls_mpi_safe_cond_assign #3
-mbedtls_mpi_safe_cond_assign:+1:"01":+1:"FF000000000000000002"
-
-Test mbedtls_mpi_safe_cond_assign #4
-mbedtls_mpi_safe_cond_assign:+1:"01":-1:"02"
-
-Test mbedtls_mpi_safe_cond_assign #5
-mbedtls_mpi_safe_cond_assign:-1:"01":+1:"02"
-
-Test mbedtls_mpi_safe_cond_assign #6
-mbedtls_mpi_safe_cond_assign:-1:"01":-1:"02"
-
-Test mbedtls_mpi_safe_cond_swap #1
-mbedtls_mpi_safe_cond_swap:+1:"01":+1:"02"
-
-Test mbedtls_mpi_safe_cond_swap #2
-mbedtls_mpi_safe_cond_swap:+1:"FF000000000000000001":+1:"02"
-
-Test mbedtls_mpi_safe_cond_swap #3
-mbedtls_mpi_safe_cond_swap:+1:"01":+1:"FF000000000000000002"
-
-Test mbedtls_mpi_safe_cond_swap #4
-mbedtls_mpi_safe_cond_swap:+1:"01":-1:"02"
-
-Test mbedtls_mpi_safe_cond_swap #5
-mbedtls_mpi_safe_cond_swap:-1:"01":+1:"02"
-
-Test mbedtls_mpi_safe_cond_swap #6
-mbedtls_mpi_safe_cond_swap:-1:"01":-1:"02"
-
 Base test mbedtls_mpi_add_abs #1
 mbedtls_mpi_add_abs:10:"12345678":10:"642531":10:"12988209"
 

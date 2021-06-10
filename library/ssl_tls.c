@@ -6544,22 +6544,10 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
                           uint32_t *flags )
 {
     int ret = 0;
-#if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
     int usage = 0;
-#endif
-#if defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
     const char *ext_oid;
     size_t ext_len;
-#endif
 
-#if !defined(MBEDTLS_X509_CHECK_KEY_USAGE) &&          \
-    !defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
-    ((void) cert);
-    ((void) cert_endpoint);
-    ((void) flags);
-#endif
-
-#if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
     if( cert_endpoint == MBEDTLS_SSL_IS_SERVER )
     {
         /* Server part of the key exchange */
@@ -6601,11 +6589,7 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
         *flags |= MBEDTLS_X509_BADCERT_KEY_USAGE;
         ret = -1;
     }
-#else
-    ((void) ciphersuite);
-#endif /* MBEDTLS_X509_CHECK_KEY_USAGE */
 
-#if defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
     if( cert_endpoint == MBEDTLS_SSL_IS_SERVER )
     {
         ext_oid = MBEDTLS_OID_SERVER_AUTH;
@@ -6622,7 +6606,6 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
         *flags |= MBEDTLS_X509_BADCERT_EXT_KEY_USAGE;
         ret = -1;
     }
-#endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 
     return( ret );
 }

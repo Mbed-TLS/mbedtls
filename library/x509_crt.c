@@ -2231,7 +2231,6 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
 }
 #endif /* MBEDTLS_X509_REMOVE_INFO */
 
-#if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
 int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,
                                       unsigned int usage )
 {
@@ -2254,9 +2253,7 @@ int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,
 
     return( 0 );
 }
-#endif
 
-#if defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
 int mbedtls_x509_crt_check_extended_key_usage( const mbedtls_x509_crt *crt,
                                        const char *usage_oid,
                                        size_t usage_len )
@@ -2286,7 +2283,6 @@ int mbedtls_x509_crt_check_extended_key_usage( const mbedtls_x509_crt *crt,
 
     return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 }
-#endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
 /*
@@ -2337,14 +2333,12 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
         /*
          * Check if the CA is configured to sign CRLs
          */
-#if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
         if( mbedtls_x509_crt_check_key_usage( ca,
                                               MBEDTLS_X509_KU_CRL_SIGN ) != 0 )
         {
             flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
             break;
         }
-#endif
 
         /*
          * Check if CRL is correctly signed by the trusted CA
@@ -2481,13 +2475,11 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
     if( need_ca_bit && ! parent->ca_istrue )
         return( -1 );
 
-#if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
     if( need_ca_bit &&
         mbedtls_x509_crt_check_key_usage( parent, MBEDTLS_X509_KU_KEY_CERT_SIGN ) != 0 )
     {
         return( -1 );
     }
-#endif
 
     return( 0 );
 }

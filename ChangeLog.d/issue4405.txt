@@ -1,0 +1,4 @@
+Removals
+    * Remove the MBEDTLS_X509_CHECK_KEY_USAGE and
+      MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE config.h options and let the code
+      behave as if they were always enabled. Fixes #4405.

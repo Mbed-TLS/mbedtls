@@ -1658,7 +1658,17 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     for( ; j > 0; j-- )
         mpi_mul_hlp( i, A->p, X->p + j - 1, B->p[j - 1] );
 
-    X->s = A->s * B->s;
+    /* If the result is 0, we don't shortcut the operation, which reduces
+     * but does not eliminate side channels leaking the zero-ness. We do
+     * need to take care to set the sign bit properly since the library does
+     * not fully support an MPI object with a value of 0 and s == -1. */
+    if( ( i == 0 && ( A->n == 0 || A->p[0] == 0 ) ) ||
+        ( j == 0 && ( B->n == 0 || B->p[0] == 0 ) ) )
+    {
+        X->s = 1;
+    }
+    else
+        X->s = A->s * B->s;
 
 cleanup:
 

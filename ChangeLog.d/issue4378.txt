@@ -1,0 +1,4 @@
+Removals
+   * Remove the  MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION config.h
+     option. The mbedtls_x509_crt_parse_der_with_ext_cb() is the way to go for
+     migration path. Fixes #4378.

@@ -436,43 +436,130 @@ mpi_copy_self:"0"
 Copy self: zero (null)
 mpi_copy_self:""
 
-Swap zero (1 limb) with positive (1 limb)
-mbedtls_mpi_swap_sint:0:1500
+Swap large negative with large negative
+mbedtls_mpi_swap:"-ca5cadedb01dfaceacc01ade":"-face1e55ca11ab1ecab005e5"
 
-Swap zero (1 limb) with negative (1 limb)
-mbedtls_mpi_swap_sint:0:-1500
+Swap large negative with large positive
+mbedtls_mpi_swap:"-ca5cadedb01dfaceacc01ade":"face1e55ca11ab1ecab005e5"
 
-Swap positive (1 limb) with zero (1 limb)
-mbedtls_mpi_swap_sint:1500:0
+Swap large negative with small negative
+mbedtls_mpi_swap:"-ca5cadedb01dfaceacc01ade":"-beef"
 
-Swap negative (1 limb) with zero (1 limb)
-mbedtls_mpi_swap_sint:-1500:0
+Swap large negative with small positive
+mbedtls_mpi_swap:"-ca5cadedb01dfaceacc01ade":"beef"
 
-Swap positive (1 limb) with negative (1 limb)
-mbedtls_mpi_swap_sint:1500:-42
+Swap large negative with zero (1 limb)
+mbedtls_mpi_swap:"-ca5cadedb01dfaceacc01ade":"0"
 
-Swap negative (1 limb) with positive (1 limb)
-mbedtls_mpi_swap_sint:-42:1500
+Swap large negative with zero (null)
+mbedtls_mpi_swap:"-ca5cadedb01dfaceacc01ade":""
+
+Swap large positive with large negative
+mbedtls_mpi_swap:"ca5cadedb01dfaceacc01ade":"-face1e55ca11ab1ecab005e5"
+
+Swap large positive with large positive
+mbedtls_mpi_swap:"ca5cadedb01dfaceacc01ade":"face1e55ca11ab1ecab005e5"
+
+Swap large positive with small negative
+mbedtls_mpi_swap:"ca5cadedb01dfaceacc01ade":"-beef"
+
+Swap large positive with small positive
+mbedtls_mpi_swap:"ca5cadedb01dfaceacc01ade":"beef"
+
+Swap large positive with zero (1 limb)
+mbedtls_mpi_swap:"ca5cadedb01dfaceacc01ade":"0"
+
+Swap large positive with zero (null)
+mbedtls_mpi_swap:"ca5cadedb01dfaceacc01ade":""
+
+Swap small negative with large negative
+mbedtls_mpi_swap:"-bead":"-face1e55ca11ab1ecab005e5"
+
+Swap small negative with large positive
+mbedtls_mpi_swap:"-bead":"face1e55ca11ab1ecab005e5"
+
+Swap small negative with small negative
+mbedtls_mpi_swap:"-bead":"-beef"
+
+Swap small negative with small positive
+mbedtls_mpi_swap:"-bead":"beef"
+
+Swap small negative with zero (1 limb)
+mbedtls_mpi_swap:"-bead":"0"
+
+Swap small negative with zero (null)
+mbedtls_mpi_swap:"-bead":""
+
+Swap small positive with large negative
+mbedtls_mpi_swap:"bead":"-face1e55ca11ab1ecab005e5"
+
+Swap small positive with large positive
+mbedtls_mpi_swap:"bead":"face1e55ca11ab1ecab005e5"
+
+Swap small positive with small negative
+mbedtls_mpi_swap:"bead":"-beef"
+
+Swap small positive with small positive
+mbedtls_mpi_swap:"bead":"beef"
+
+Swap small positive with zero (1 limb)
+mbedtls_mpi_swap:"bead":"0"
+
+Swap small positive with zero (null)
+mbedtls_mpi_swap:"bead":""
+
+Swap zero (1 limb) with large negative
+mbedtls_mpi_swap:"0":"-face1e55ca11ab1ecab005e5"
+
+Swap zero (1 limb) with large positive
+mbedtls_mpi_swap:"0":"face1e55ca11ab1ecab005e5"
+
+Swap zero (1 limb) with small negative
+mbedtls_mpi_swap:"0":"-beef"
+
+Swap zero (1 limb) with small positive
+mbedtls_mpi_swap:"0":"beef"
+
+Swap zero (1 limb) with zero (1 limb)
+mbedtls_mpi_swap:"0":"0"
+
+Swap zero (1 limb) with zero (null)
+mbedtls_mpi_swap:"0":""
+
+Swap zero (null) with large negative
+mbedtls_mpi_swap:"":"-face1e55ca11ab1ecab005e5"
+
+Swap zero (null) with large positive
+mbedtls_mpi_swap:"":"face1e55ca11ab1ecab005e5"
+
+Swap zero (null) with small negative
+mbedtls_mpi_swap:"":"-beef"
+
+Swap zero (null) with small positive
+mbedtls_mpi_swap:"":"beef"
+
+Swap zero (null) with zero (1 limb)
+mbedtls_mpi_swap:"":"0"
 
 Swap zero (null) with zero (null)
-mbedtls_mpi_swap_binary:"":""
+mbedtls_mpi_swap:"":""
 
-Swap zero (null) with positive (1 limb)
-mbedtls_mpi_swap_binary:"":"1234"
+Swap self: large negative
+mpi_swap_self:"-ca5cadedb01dfaceacc01ade"
 
-Swap positive (1 limb) with zero (null)
-mbedtls_mpi_swap_binary:"1234":""
+Swap self: large positive
+mpi_swap_self:"ca5cadedb01dfaceacc01ade"
 
-Swap positive with larger
-mbedtls_mpi_swap_binary:"bead":"ca5cadedb01dfaceacc01ade"
+Swap self: small negative
+mpi_swap_self:"-bead"
 
-Swap positive with smaller
-mbedtls_mpi_swap_binary:"ca5cadedb01dfaceacc01ade":"bead"
+Swap self: small positive
+mpi_swap_self:"bead"
 
-Swap self: 1 limb
-mpi_swap_self:"face"
+Swap self: zero (1 limb)
+mpi_swap_self:"0"
 
-Swap self: null
+Swap self: zero (null)
 mpi_swap_self:""
 
 Shrink 2 limbs in a buffer of size 2 to 4

@@ -843,6 +843,19 @@ struct mbedtls_ssl_key_cert
 };
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if defined(MBEDTLS_SSL_TRUSTED_CA_KEYS)
+/*
+ * List of trusted authorities
+ */
+struct mbedtls_ssl_trusted_authority
+{
+    unsigned char *id;      /*!< identifier                   */
+    size_t len;             /*!< length of id                 */
+    int id_type;            /*!< CA root key identifier type  */
+    mbedtls_ssl_trusted_authority *next;  /*!< next trusted authority           */
+};
+#endif /* MBEDTLS_SSL_TRUSTED_CA_KEYS */
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 /*
  * List of handshake messages kept around for resending

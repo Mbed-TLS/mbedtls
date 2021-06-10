@@ -301,6 +301,15 @@
 #define MBEDTLS_SSL_CERT_TYPE_ECDSA_SIGN    64
 
 /*
+ * Trusted CA Key Identifier Types
+ * RFC 6066 section 6
+ */
+#define MBEDTLS_SSL_CA_ID_TYPE_PRE_AGREED       0
+#define MBEDTLS_SSL_CA_ID_TYPE_KEY_SHA1_HASH    1
+#define MBEDTLS_SSL_CA_ID_TYPE_X509_NAME        2
+#define MBEDTLS_SSL_CA_ID_TYPE_CERT_SHA1_HASH   3
+
+/*
  * Message, alert and handshake types
  */
 #define MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC     20
@@ -362,6 +371,8 @@
 #define MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME          0
 
 #define MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH          1
+
+#define MBEDTLS_TLS_EXT_TRUSTED_CA_KEYS              3
 
 #define MBEDTLS_TLS_EXT_TRUNCATED_HMAC               4
 
@@ -585,6 +596,9 @@ typedef struct mbedtls_ssl_key_cert mbedtls_ssl_key_cert;
 #endif
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
+#endif
+#if defined(MBEDTLS_SSL_TRUSTED_CA_KEYS)
+typedef struct mbedtls_ssl_trusted_authority mbedtls_ssl_trusted_authority;
 #endif
 
 /**
@@ -1084,6 +1098,9 @@ struct mbedtls_ssl_config
     mbedtls_x509_crt_ca_cb_t MBEDTLS_PRIVATE(f_ca_cb);
     void *MBEDTLS_PRIVATE(p_ca_cb);
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+#if defined(MBEDTLS_SSL_TRUSTED_CA_KEYS)
+    mbedtls_ssl_trusted_authority *trusted_auth; /*!< trusted authorities   */
+#endif /* MBEDTLS_SSL_TRUSTED_CA_KEYS */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
@@ -3035,6 +3052,30 @@ void mbedtls_ssl_conf_sni( mbedtls_ssl_config *conf,
                                size_t),
                   void *p_sni );
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
+#if defined(MBEDTLS_SSL_TRUSTED_CA_KEYS)
+/**
+ * \brief          Configure trusted authority for TrustedCAKeys TLS extension.
+ *
+ * \param conf     SSL configuration
+ * \param id       identifier of the CA root key, may be NULL if it does not exist
+ * \param id_len   length of id in bytes, may be 0 if id does not exist
+ * \param id_type  identifier type (allowed values:
+ *                 MBEDTLS_SSL_CA_ID_TYPE_PRE_AGREED, MBEDTLS_SSL_CA_ID_TYPE_KEY_SHA1_HASH,
+ *                 MBEDTLS_SSL_CA_ID_TYPE_X509_NAME, MBEDTLS_SSL_CA_ID_TYPE_CERT_SHA1_HASH)
+ *
+ * \note           This function can be called multiple times to
+ *                 provision more than one trusted authority.
+ *
+ * \return         0 on success, MBEDTLS_ERR_SSL_ALLOC_FAILED on
+ *                 allocation failure, MBEDTLS_ERR_SSL_BAD_INPUT_DATA on
+ *                 too long input id or on not expected id type.
+ */
+int mbedtls_ssl_conf_trusted_authority( mbedtls_ssl_config *conf,
+                                        const unsigned char *id,
+                                        size_t id_len,
+                                        int id_type );
+#endif /* MBEDTLS_SSL_TRUSTED_CA_KEYS */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 /**

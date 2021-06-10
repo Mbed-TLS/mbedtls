@@ -268,7 +268,7 @@
 /**
  * \def MBEDTLS_TIMING_ALT
  *
- * Uncomment to provide your own alternate implementation for mbedtls_timing_hardclock(),
+ * Uncomment to provide your own alternate implementation for
  * mbedtls_timing_get_timer(), mbedtls_set_alarm(), mbedtls_set/get_delay()
  *
  * Only works if you have MBEDTLS_TIMING_C enabled.
@@ -1015,7 +1015,7 @@
  * \def MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
  *
  * Do not add default entropy sources. These are the platform specific
- * or mbedtls_timing_hardclock poll function.
+ * poll function.
  *
  * This is useful to have more control over the added entropy sources in an
  * application.

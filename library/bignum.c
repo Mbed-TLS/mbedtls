@@ -257,17 +257,8 @@ static int mpi_safe_cond_select_sign( int a, int b, unsigned char second )
     unsigned ua = a + 1;
     unsigned ub = b + 1;
 
-    /* MSVC has a warning about unary minus on unsigned integer types,
-     * but this is well-defined and precisely what we want to do here. */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-    /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
-    const unsigned mask = -second;
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
+    /* second was 0 or 1, mask is 0 or 2 as are ua and ub */
+    const unsigned mask = second << 1;
 
     /* select ua or ub */
     unsigned ur = ( ua & ~mask ) | ( ub & mask );

@@ -27,6 +27,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#include "psa_crypto_service_integration.h"
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
 

@@ -996,17 +996,14 @@ typedef enum
  * \param server_random The server random bytes.
  * \param tls_prf_type The identifier for the PRF used in the handshake
  *                     to which the key belongs.
- *
- * \return          \c 0 if successful.
- * \return          A negative error code on failure.
  */
-typedef int mbedtls_ssl_export_keys_t( void *p_expkey,
-                                       mbedtls_ssl_key_export_type type,
-                                       const unsigned char *secret,
-                                       size_t secret_len,
-                                       const unsigned char client_random[32],
-                                       const unsigned char server_random[32],
-                                       mbedtls_tls_prf_types tls_prf_type );
+typedef void mbedtls_ssl_export_keys_t( void *p_expkey,
+                                        mbedtls_ssl_key_export_type type,
+                                        const unsigned char *secret,
+                                        size_t secret_len,
+                                        const unsigned char client_random[32],
+                                        const unsigned char server_random[32],
+                                        mbedtls_tls_prf_types tls_prf_type );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 /**

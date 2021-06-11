@@ -46,6 +46,10 @@ typedef UINT32 uint32_t;
 #include <strings.h>
 #endif
 
+#if defined(MBEDTLS_BIGNUM_C)
+#include "mbedtls/bignum.h"
+#endif
+
 #if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_PTHREAD) && \
     defined(MBEDTLS_TEST_HOOKS)
 #include "mbedtls/threading.h"
@@ -846,6 +850,21 @@ int mbedtls_test_hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_le
     }
     return ret;
 }
+
+#if defined(MBEDTLS_BIGNUM_C)
+int mbedtls_test_read_mpi( mbedtls_mpi *X, int radix, const char *s )
+{
+    /* mbedtls_mpi_read_string() currently retains leading zeros.
+     * It always allocates at least one limb for the value 0. */
+    if( s[0] == 0 )
+    {
+        mbedtls_mpi_free( X );
+        return( 0 );
+    }
+    else
+        return( mbedtls_mpi_read_string( X, radix, s ) );
+}
+#endif /* MBEDTLS_BIGNUM_C */
 
 #if defined(MBEDTLS_TEST_MUTEX_USAGE)
 /** Mutex usage verification framework.

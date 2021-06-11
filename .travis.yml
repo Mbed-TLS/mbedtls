@@ -32,12 +32,6 @@ jobs:
       script:
         - tests/scripts/all.sh -k 'test_depends_*' 'build_key_exchanges'
 
-    - name: macOS
-      os: osx
-      compiler: clang
-      script:
-        - tests/scripts/all.sh -k test_default_out_of_box
-
     - name: Windows
       os: windows
       script:

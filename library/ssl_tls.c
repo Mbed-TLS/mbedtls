@@ -1895,6 +1895,9 @@ int mbedtls_ssl_cf_hmac(
             MD_CHK( mbedtls_md_update( ctx, data + offset, 1 ) );
     }
 
+    /* The context needs to finish() before it starts() again */
+    MD_CHK( mbedtls_md_finish( ctx, aux_out ) );
+
     /* Now compute HASH(okey + inner_hash) */
     MD_CHK( mbedtls_md_starts( ctx ) );
     MD_CHK( mbedtls_md_update( ctx, okey, block_size ) );

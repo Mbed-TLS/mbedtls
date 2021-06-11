@@ -19,13 +19,6 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#define mbedtls_printf     printf
-#endif
-
 #if defined(MBEDTLS_TIMING_C)
 
 #include "mbedtls/timing.h"
@@ -149,22 +142,4 @@ int mbedtls_timing_get_delay( void *data )
 }
 
 #endif /* !MBEDTLS_TIMING_ALT */
-
-#if defined(MBEDTLS_SELF_TEST)
-
-#define FAIL    do                                                      \
-    {                                                                   \
-        if( verbose != 0 )                                              \
-        {                                                               \
-            mbedtls_printf( "failed at line %d\n", __LINE__ );          \
-            mbedtls_printf( " cycles=%lu ratio=%lu millisecs=%lu secs=%lu hardfail=%d a=%lu b=%lu\n", \
-                            cycles, ratio, millisecs, secs, hardfail,   \
-                            (unsigned long) a, (unsigned long) b );     \
-            print_timers( &hires, &ctx );                               \
-        }                                                               \
-        return( 1 );                                                    \
-    } while( 0 )
-
-#endif /* MBEDTLS_SELF_TEST */
-
 #endif /* MBEDTLS_TIMING_C */

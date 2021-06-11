@@ -9,7 +9,7 @@ int check_get_value( const mbedtls_dhm_context *ctx,
     int ok = 0;
     mbedtls_mpi_init( &actual );
 
-    TEST_ASSERT( mbedtls_dhm_get_value( &actual, ctx, param ) == 0 );
+    TEST_ASSERT( mbedtls_dhm_get_value( ctx, param, &actual ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &actual, expected ) == 0 );
     ok = 1;
 

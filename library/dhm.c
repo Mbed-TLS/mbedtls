@@ -134,9 +134,9 @@ size_t mbedtls_dhm_get_len( const mbedtls_dhm_context *ctx )
     return( mbedtls_mpi_size( &ctx->P ) );
 }
 
-int mbedtls_dhm_get_value( mbedtls_mpi *dest,
-                           const mbedtls_dhm_context *ctx,
-                           mbedtls_dhm_parameter param )
+int mbedtls_dhm_get_value( const mbedtls_dhm_context *ctx,
+                           mbedtls_dhm_parameter param,
+                           mbedtls_mpi *dest )
 {
     const mbedtls_mpi *src = NULL;
     switch( param )

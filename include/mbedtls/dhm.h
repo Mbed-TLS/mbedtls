@@ -315,18 +315,18 @@ size_t mbedtls_dhm_get_len( const mbedtls_dhm_context *ctx );
 /**
  * \brief          This function copies a parameter of a DHM key.
  *
- * \param dest     The MPI object to copy the value into. It must be
- *                 initialized.
  * \param ctx      The DHM context to query.
  * \param param    The parameter to copy.
+ * \param dest     The MPI object to copy the value into. It must be
+ *                 initialized.
  *
  * \return         \c 0 on success.
  * \return         #MBEDTLS_ERR_DHM_BAD_INPUT_DATA if \p field is invalid.
  * \return         An \c MBEDTLS_ERR_MPI_XXX error code if the copy fails.
  */
-int mbedtls_dhm_get_value( mbedtls_mpi *dest,
-                           const mbedtls_dhm_context *ctx,
-                           mbedtls_dhm_parameter param );
+int mbedtls_dhm_get_value( const mbedtls_dhm_context *ctx,
+                           mbedtls_dhm_parameter param,
+                           mbedtls_mpi *dest );
 
 /**
  * \brief          This function frees and clears the components

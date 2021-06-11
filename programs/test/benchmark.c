@@ -77,6 +77,10 @@ int main( void )
 
 #include "mbedtls/error.h"
 
+#ifndef asm
+#define asm __asm
+#endif
+
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 
 #include <windows.h>

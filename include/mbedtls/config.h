@@ -47,7 +47,6 @@
  *
  * Used in:
  *      library/aria.c
- *      library/timing.c
  *      library/bn_mul.h
  *
  * Required by:

@@ -38,10 +38,6 @@
 #error "This module only works on Unix and Windows, see MBEDTLS_TIMING_C in config.h"
 #endif
 
-#ifndef asm
-#define asm __asm
-#endif
-
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 
 #include <windows.h>

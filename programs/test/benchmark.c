@@ -248,7 +248,7 @@ do {                                                                    \
 
 #define HAVE_HARDCLOCK
 
-unsigned long mbedtls_timing_hardclock( void )
+static unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long tsc;
     __asm   rdtsc
@@ -265,7 +265,7 @@ unsigned long mbedtls_timing_hardclock( void )
 
 #define HAVE_HARDCLOCK
 
-unsigned long mbedtls_timing_hardclock( void )
+static unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long lo, hi;
     asm volatile( "rdtsc" : "=a" (lo), "=d" (hi) );
@@ -279,7 +279,7 @@ unsigned long mbedtls_timing_hardclock( void )
 
 #define HAVE_HARDCLOCK
 
-unsigned long mbedtls_timing_hardclock( void )
+static unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long lo, hi;
     asm volatile( "rdtsc" : "=a" (lo), "=d" (hi) );
@@ -293,7 +293,7 @@ unsigned long mbedtls_timing_hardclock( void )
 
 #define HAVE_HARDCLOCK
 
-unsigned long mbedtls_timing_hardclock( void )
+static unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long tbl, tbu0, tbu1;
 
@@ -318,7 +318,7 @@ unsigned long mbedtls_timing_hardclock( void )
 #else
 #define HAVE_HARDCLOCK
 
-unsigned long mbedtls_timing_hardclock( void )
+static unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long tick;
     asm volatile( "rdpr %%tick, %0;" : "=&r" (tick) );
@@ -333,7 +333,7 @@ unsigned long mbedtls_timing_hardclock( void )
 
 #define HAVE_HARDCLOCK
 
-unsigned long mbedtls_timing_hardclock( void )
+static unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long tick;
     asm volatile( ".byte 0x83, 0x41, 0x00, 0x00" );
@@ -348,7 +348,7 @@ unsigned long mbedtls_timing_hardclock( void )
 
 #define HAVE_HARDCLOCK
 
-unsigned long mbedtls_timing_hardclock( void )
+static unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long cc;
     asm volatile( "rpcc %0" : "=r" (cc) );
@@ -362,7 +362,7 @@ unsigned long mbedtls_timing_hardclock( void )
 
 #define HAVE_HARDCLOCK
 
-unsigned long mbedtls_timing_hardclock( void )
+static unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long itc;
     asm volatile( "mov %0 = ar.itc" : "=r" (itc) );
@@ -376,7 +376,7 @@ unsigned long mbedtls_timing_hardclock( void )
 
 #define HAVE_HARDCLOCK
 
-unsigned long mbedtls_timing_hardclock( void )
+static unsigned long mbedtls_timing_hardclock( void )
 {
     LARGE_INTEGER offset;
 
@@ -393,7 +393,7 @@ unsigned long mbedtls_timing_hardclock( void )
 static int hardclock_init = 0;
 static struct timeval tv_init;
 
-unsigned long mbedtls_timing_hardclock( void )
+static unsigned long mbedtls_timing_hardclock( void )
 {
     struct timeval tv_cur;
 

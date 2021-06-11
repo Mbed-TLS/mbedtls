@@ -1,0 +1,5 @@
+Changes
+    * Remove the following functions: mbedtls_timing_self_test() and
+      mbedtls_hardclock_poll(). Move the following functions to the benchmark.c
+      file and make them static: mbedtls_timing_hardclock() and
+      mbedtls_set_alarm(). Fixes #4083.

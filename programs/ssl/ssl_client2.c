@@ -235,13 +235,6 @@ int main( void )
 #define USAGE_SRTP ""
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-#define USAGE_TRUNC_HMAC                                    \
-    "    trunc_hmac=%%d       default: library default\n"
-#else
-#define USAGE_TRUNC_HMAC ""
-#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
-
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 #define USAGE_MAX_FRAG_LEN                                      \
     "    max_frag_len=%%d     default: 16384 (tls default)\n"   \
@@ -394,7 +387,6 @@ int main( void )
     USAGE_TICKETS                                           \
     USAGE_EAP_TLS                                           \
     USAGE_MAX_FRAG_LEN                                      \
-    USAGE_TRUNC_HMAC                                        \
     USAGE_CONTEXT_CRT_CB                                    \
     USAGE_ALPN                                              \
     USAGE_EMS                                               \
@@ -1720,11 +1712,6 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
-
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    if( opt.trunc_hmac != DFL_TRUNC_HMAC )
-        mbedtls_ssl_conf_truncated_hmac( &conf, opt.trunc_hmac );
-#endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     if( opt.extended_ms != DFL_EXTENDED_MS )

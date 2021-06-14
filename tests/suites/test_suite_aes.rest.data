@@ -10,8 +10,8 @@ aes_encrypt_cbc:"000000000000000000000000000000000000000000000000000000000000000
 AES-256-CBC Decrypt (Invalid input length)
 aes_decrypt_cbc:"0000000000000000000000000000000000000000000000000000000000000000":"00000000000000000000000000000000":"623a52fcea5d443e48d9181ab32c74":"":MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH
 
-AES - Optional Parameter Validation (MBEDTLS_CHECK_PARAMS)
-aes_check_params:
+AES - Mode Parameter Validation
+aes_invalid_mode:
 
 AES - Mandatory Parameter Validation and Valid Parameters
 aes_misc_params:

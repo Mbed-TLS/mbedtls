@@ -1,6 +1,3 @@
-ECDH - Valid parameters
-ecdh_valid_param:
-
 ECDH - Invalid parameters
 ecdh_invalid_param:
 

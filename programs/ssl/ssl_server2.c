@@ -95,7 +95,6 @@ int main( void )
 #define DFL_ECJPAKE_PW          NULL
 #define DFL_PSK_LIST            NULL
 #define DFL_FORCE_CIPHER        0
-#define DFL_VERSION_SUITES      NULL
 #define DFL_RENEGOTIATION       MBEDTLS_SSL_RENEGOTIATION_DISABLED
 #define DFL_ALLOW_LEGACY        -2
 #define DFL_RENEGOTIATE         0
@@ -503,9 +502,6 @@ int main( void )
     "    force_version=%%s    default: \"\" (none)\n"       \
     "                        options: tls1_2, dtls1_2\n" \
     "\n"                                                                \
-    "    version_suites=a,b,c        per-version ciphersuites\n"        \
-    "                                in order from tls1 to tls1_2\n"    \
-    "                                default: all enabled\n"            \
     "    force_ciphersuite=<name>    default: all enabled\n"            \
     "    query_config=<name>         return 0 if the specified\n"       \
     "                                configuration macro is defined and 1\n"  \
@@ -567,7 +563,6 @@ struct options
     char *psk_list;             /* list of PSK id/key pairs for callback    */
     const char *ecjpake_pw;     /* the EC J-PAKE password                   */
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
-    const char *version_suites; /* per-version ciphersuites                 */
     int renegotiation;          /* enable / disable renegotiation           */
     int allow_legacy;           /* allow legacy renegotiation               */
     int renegotiate;            /* attempt renegotiation?                   */
@@ -1255,7 +1250,6 @@ int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags, exchanges_left;
     int query_config_ret = 0;
-    int version_suites[3][2];
     io_ctx_t io_ctx;
     unsigned char* buf = 0;
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
@@ -1483,7 +1477,6 @@ int main( int argc, char *argv[] )
     opt.psk_list            = DFL_PSK_LIST;
     opt.ecjpake_pw          = DFL_ECJPAKE_PW;
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
-    opt.version_suites      = DFL_VERSION_SUITES;
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
     opt.renegotiate         = DFL_RENEGOTIATE;
@@ -1671,8 +1664,6 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "curves" ) == 0 )
             opt.curves = q;
-        else if( strcmp( p, "version_suites" ) == 0 )
-            opt.version_suites = q;
         else if( strcmp( p, "renegotiation" ) == 0 )
         {
             opt.renegotiation = (atoi( q )) ?
@@ -2038,10 +2029,6 @@ int main( int argc, char *argv[] )
         if( opt.min_version < ciphersuite_info->min_minor_ver )
         {
             opt.min_version = ciphersuite_info->min_minor_ver;
-            /* DTLS starts with TLS 1.1 */
-            if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-                opt.min_version < MBEDTLS_SSL_MINOR_VERSION_2 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -2067,47 +2054,6 @@ int main( int argc, char *argv[] )
                 alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
         }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-    }
-
-    if( opt.version_suites != NULL )
-    {
-        const char *name[3] = { 0 };
-
-        /* Parse 4-element coma-separated list */
-        for( i = 0, p = (char *) opt.version_suites;
-             i < 3 && *p != '\0';
-             i++ )
-        {
-            name[i] = p;
-
-            /* Terminate the current string and move on to next one */
-            while( *p != ',' && *p != '\0' )
-                p++;
-            if( *p == ',' )
-                *p++ = '\0';
-        }
-
-        if( i != 3 )
-        {
-            mbedtls_printf( "too few values for version_suites\n" );
-            ret = 1;
-            goto exit;
-        }
-
-        memset( version_suites, 0, sizeof( version_suites ) );
-
-        /* Get the suites identifiers from their name */
-        for( i = 0; i < 3; i++ )
-        {
-            version_suites[i][0] = mbedtls_ssl_get_ciphersuite_id( name[i] );
-
-            if( version_suites[i][0] == 0 )
-            {
-                mbedtls_printf( "unknown ciphersuite: '%s'\n", name[i] );
-                ret = 2;
-                goto usage;
-            }
-        }
     }
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -2691,19 +2637,6 @@ int main( int argc, char *argv[] )
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         mbedtls_ssl_conf_ciphersuites( &conf, opt.force_ciphersuite );
 
-    if( opt.version_suites != NULL )
-    {
-        mbedtls_ssl_conf_ciphersuites_for_version( &conf, version_suites[0],
-                                          MBEDTLS_SSL_MAJOR_VERSION_3,
-                                          MBEDTLS_SSL_MINOR_VERSION_1 );
-        mbedtls_ssl_conf_ciphersuites_for_version( &conf, version_suites[1],
-                                          MBEDTLS_SSL_MAJOR_VERSION_3,
-                                          MBEDTLS_SSL_MINOR_VERSION_2 );
-        mbedtls_ssl_conf_ciphersuites_for_version( &conf, version_suites[2],
-                                          MBEDTLS_SSL_MAJOR_VERSION_3,
-                                          MBEDTLS_SSL_MINOR_VERSION_3 );
-    }
-
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )
         mbedtls_ssl_conf_legacy_renegotiation( &conf, opt.allow_legacy );
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -3135,10 +3068,10 @@ handshake:
         mbedtls_printf( "    [ Record expansion is unknown ]\n" );
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    mbedtls_printf( "    [ Maximum input fragment length is %u ]\n",
-                    (unsigned int) mbedtls_ssl_get_input_max_frag_len( &ssl ) );
-    mbedtls_printf( "    [ Maximum output fragment length is %u ]\n",
-                    (unsigned int) mbedtls_ssl_get_output_max_frag_len( &ssl ) );
+    mbedtls_printf( "    [ Maximum incoming record payload length is %u ]\n",
+                    (unsigned int) mbedtls_ssl_get_max_in_record_payload( &ssl ) );
+    mbedtls_printf( "    [ Maximum outgoing record payload length is %u ]\n",
+                    (unsigned int) mbedtls_ssl_get_max_out_record_payload( &ssl ) );
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)

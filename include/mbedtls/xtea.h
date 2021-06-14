@@ -21,6 +21,7 @@
  */
 #ifndef MBEDTLS_XTEA_H
 #define MBEDTLS_XTEA_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -49,7 +50,7 @@ extern "C" {
  */
 typedef struct mbedtls_xtea_context
 {
-    uint32_t k[4];       /*!< key */
+    uint32_t MBEDTLS_PRIVATE(k)[4];       /*!< key */
 }
 mbedtls_xtea_context;
 

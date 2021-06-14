@@ -26,6 +26,7 @@
  */
 #ifndef MBEDTLS_MD2_H
 #define MBEDTLS_MD2_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -53,10 +54,10 @@ extern "C" {
  */
 typedef struct mbedtls_md2_context
 {
-    unsigned char cksum[16];    /*!< checksum of the data block */
-    unsigned char state[48];    /*!< intermediate digest state  */
-    unsigned char buffer[16];   /*!< data block being processed */
-    size_t left;                /*!< amount of data in buffer   */
+    unsigned char MBEDTLS_PRIVATE(cksum)[16];    /*!< checksum of the data block */
+    unsigned char MBEDTLS_PRIVATE(state)[48];    /*!< intermediate digest state  */
+    unsigned char MBEDTLS_PRIVATE(buffer)[16];   /*!< data block being processed */
+    size_t MBEDTLS_PRIVATE(left);                /*!< amount of data in buffer   */
 }
 mbedtls_md2_context;
 

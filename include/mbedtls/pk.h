@@ -22,6 +22,7 @@
 
 #ifndef MBEDTLS_PK_H
 #define MBEDTLS_PK_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -91,8 +92,8 @@ typedef enum {
  */
 typedef struct mbedtls_pk_rsassa_pss_options
 {
-    mbedtls_md_type_t mgf1_hash_id;
-    int expected_salt_len;
+    mbedtls_md_type_t MBEDTLS_PRIVATE(mgf1_hash_id);
+    int MBEDTLS_PRIVATE(expected_salt_len);
 
 } mbedtls_pk_rsassa_pss_options;
 
@@ -163,9 +164,9 @@ typedef enum
  */
 typedef struct mbedtls_pk_debug_item
 {
-    mbedtls_pk_debug_type type;
-    const char *name;
-    void *value;
+    mbedtls_pk_debug_type MBEDTLS_PRIVATE(type);
+    const char *MBEDTLS_PRIVATE(name);
+    void *MBEDTLS_PRIVATE(value);
 } mbedtls_pk_debug_item;
 
 /** Maximum number of item send for debugging, plus 1 */
@@ -181,8 +182,8 @@ typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
  */
 typedef struct mbedtls_pk_context
 {
-    const mbedtls_pk_info_t *   pk_info; /**< Public key information         */
-    void *                      pk_ctx;  /**< Underlying public key context  */
+    const mbedtls_pk_info_t *   MBEDTLS_PRIVATE(pk_info); /**< Public key information         */
+    void *                      MBEDTLS_PRIVATE(pk_ctx);  /**< Underlying public key context  */
 } mbedtls_pk_context;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -191,8 +192,8 @@ typedef struct mbedtls_pk_context
  */
 typedef struct
 {
-    const mbedtls_pk_info_t *   pk_info; /**< Public key information         */
-    void *                      rs_ctx;  /**< Underlying restart context     */
+    const mbedtls_pk_info_t *   MBEDTLS_PRIVATE(pk_info); /**< Public key information         */
+    void *                      MBEDTLS_PRIVATE(rs_ctx);  /**< Underlying restart context     */
 } mbedtls_pk_restart_ctx;
 #else /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 /* Now we can declare functions that take a pointer to that */
@@ -208,7 +209,7 @@ typedef void mbedtls_pk_restart_ctx;
  */
 static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
 {
-    return( (mbedtls_rsa_context *) (pk).pk_ctx );
+    return( (mbedtls_rsa_context *) (pk).MBEDTLS_PRIVATE(pk_ctx) );
 }
 #endif /* MBEDTLS_RSA_C */
 
@@ -221,7 +222,7 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
  */
 static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
 {
-    return( (mbedtls_ecp_keypair *) (pk).pk_ctx );
+    return( (mbedtls_ecp_keypair *) (pk).MBEDTLS_PRIVATE(pk_ctx) );
 }
 #endif /* MBEDTLS_ECP_C */
 

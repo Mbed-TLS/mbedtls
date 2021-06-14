@@ -24,6 +24,7 @@
  */
 #ifndef MBEDTLS_SHA256_H
 #define MBEDTLS_SHA256_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -53,10 +54,10 @@ extern "C" {
  */
 typedef struct mbedtls_sha256_context
 {
-    uint32_t total[2];          /*!< The number of Bytes processed.  */
-    uint32_t state[8];          /*!< The intermediate digest state.  */
-    unsigned char buffer[64];   /*!< The data block being processed. */
-    int is224;                  /*!< Determines which function to use:
+    uint32_t MBEDTLS_PRIVATE(total)[2];          /*!< The number of Bytes processed.  */
+    uint32_t MBEDTLS_PRIVATE(state)[8];          /*!< The intermediate digest state.  */
+    unsigned char MBEDTLS_PRIVATE(buffer)[64];   /*!< The data block being processed. */
+    int MBEDTLS_PRIVATE(is224);                  /*!< Determines which function to use:
                                      0: Use SHA-256, or 1: Use SHA-224. */
 }
 mbedtls_sha256_context;

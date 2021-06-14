@@ -127,9 +127,6 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
                                             &ticket_ctx );
     }
 #endif
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    mbedtls_ssl_conf_truncated_hmac( &conf, (options & 0x8) ? MBEDTLS_SSL_TRUNC_HMAC_ENABLED : MBEDTLS_SSL_TRUNC_HMAC_DISABLED);
-#endif
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     mbedtls_ssl_conf_extended_master_secret( &conf, (options & 0x10) ? MBEDTLS_SSL_EXTENDED_MS_DISABLED : MBEDTLS_SSL_EXTENDED_MS_ENABLED);
 #endif

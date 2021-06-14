@@ -6189,7 +6189,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_SRV_C)
     conf->cert_req_ca_list = MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED;
-    conf->respect_cli_pref = MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREF_DISABLED;
+    conf->respect_cli_pref = MBEDTLS_SSL_SRV_CIPHERSUITE_ORDER_SERVER;
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

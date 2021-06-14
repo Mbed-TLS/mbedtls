@@ -1873,7 +1873,7 @@ read_record_header:
     ciphersuites = ssl->conf->ciphersuite_list;
     ciphersuite_info = NULL;
 
-    if (ssl->conf->respect_cli_pref == MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREF_ENABLED)
+    if (ssl->conf->respect_cli_pref == MBEDTLS_SSL_SRV_CIPHERSUITE_ORDER_CLIENT)
     {
         for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
             for( i = 0; ciphersuites[i] != 0; i++ )
@@ -4433,9 +4433,9 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
     return( ret );
 }
 
-void mbedtls_ssl_conf_respect_client_preference( mbedtls_ssl_config *conf, int enable )
+void mbedtls_ssl_conf_preference_order( mbedtls_ssl_config *conf, int order )
 {
-    conf->respect_cli_pref = enable;
+    conf->respect_cli_pref = order;
 }
 
 #endif /* MBEDTLS_SSL_SRV_C */

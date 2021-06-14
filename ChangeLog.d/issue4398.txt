@@ -1,9 +1,3 @@
 API changes
-    * Remove the MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE option from config.h.
-      Replace it with SSL runtime option which can be enabled or disabled using
-      new added API function mbedtls_ssl_conf_respect_client_preference(). Add
-      a new field respect_cli_pref in the mbedtls_ssl_config structure and two
-      defines used as a parameter: MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREF_DISABLED
-      and MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREF_ENABLED. Adapt the code used for
-      searching for a matching ciphersuite to use the new field instead of the
-      removed config.h option. Fixes #3498.
+    * Replace MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE by a runtime
+      configuration function mbedtls_ssl_conf_preference_order(). Fixes #4398.

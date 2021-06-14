@@ -380,8 +380,49 @@ psa_status_t psa_driver_wrapper_verify_hash(
     }
 }
 
+/** calculate the key buffer size required to store the key material of a key
+ *  associated with an opaque driver from input key data.
+ *
+ *
+ * \param[in] attributes        The key attributes
+ * \param[in] data              The input key data.
+ * \param[in] data_length       The input data length.
+ * \param[out] key_buffer_size  Minimum buffer size to contain the key material.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ */
+psa_status_t psa_driver_wrapper_get_key_buffer_size_from_key_data(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *data,
+    size_t data_length,
+    size_t *key_buffer_size )
+{
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
+    psa_key_type_t key_type = attributes->core.type;
+
+    *key_buffer_size = 0;
+    switch( location )
+    {
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+        case PSA_CRYPTO_TEST_DRIVER_LOCATION:
+            *key_buffer_size = mbedtls_test_opaque_size_function( key_type,
+                                     PSA_BYTES_TO_BITS( data_length ) );
+            return( ( *key_buffer_size != 0 ) ?
+                    PSA_SUCCESS : PSA_ERROR_NOT_SUPPORTED );
+#endif /* PSA_CRYPTO_DRIVER_TEST */
+
+        default:
+            (void)key_type;
+            (void)data;
+            (void)data_length;
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+}
+
 /** Get the key buffer size required to store the key material of a key
- *  associated with an opaque driver without storage.
+ *  associated with an opaque driver.
  *
  * \param[in] attributes  The key attributes.
  * \param[out] key_buffer_size  Minimum buffer size to contain the key material
@@ -389,11 +430,11 @@ psa_status_t psa_driver_wrapper_verify_hash(
  * \retval #PSA_SUCCESS
  *         The minimum size for a buffer to contain the key material has been
  *         returned successfully.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The size in bits of the key is not valid.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The type and/or the size in bits of the key or the combination of
  *         the two is not supported.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key is declared with a lifetime not known to us.
  */
 psa_status_t psa_driver_wrapper_get_key_buffer_size(
     const psa_key_attributes_t *attributes,
@@ -426,7 +467,7 @@ psa_status_t psa_driver_wrapper_get_key_buffer_size(
         default:
             (void)key_type;
             (void)key_bits;
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
 }
 

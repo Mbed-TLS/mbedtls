@@ -1891,6 +1891,7 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
     size_t bits;
+    size_t storage_size = data_length;
 
     *key = MBEDTLS_SVC_KEY_ID_INIT;
 
@@ -1906,12 +1907,18 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
         goto exit;
 
     /* In the case of a transparent key or an opaque key stored in local
-     * storage (thus not in the case of generating a key in a secure element
-     * or cryptoprocessor with storage), we have to allocate a buffer to
-     * hold the generated key material. */
+     * storage, we have to allocate a buffer to hold the generated key
+     * material. */
     if( slot->key.data == NULL )
     {
-        status = psa_allocate_buffer_to_slot( slot, data_length );
+        if( psa_key_lifetime_is_external( attributes->core.lifetime ) )
+        {
+            status = psa_driver_wrapper_get_key_buffer_size_from_key_data( attributes, data,
+                                           data_length , &storage_size );
+            if( status != PSA_SUCCESS )
+                goto exit;
+        }
+        status = psa_allocate_buffer_to_slot( slot, storage_size );
         if( status != PSA_SUCCESS )
             goto exit;
     }
@@ -4142,6 +4149,7 @@ static psa_status_t psa_generate_derived_key_internal(
 {
     uint8_t *data = NULL;
     size_t bytes = PSA_BITS_TO_BYTES( bits );
+    size_t storage_size = bytes;
     psa_status_t status;
 
     if( ! key_type_is_raw_bytes( slot->attr.type ) )
@@ -4160,14 +4168,20 @@ static psa_status_t psa_generate_derived_key_internal(
         psa_des_set_key_parity( data, bytes );
 #endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES */
 
-    status = psa_allocate_buffer_to_slot( slot, bytes );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
     slot->attr.bits = (psa_key_bits_t) bits;
     psa_key_attributes_t attributes = {
       .core = slot->attr
     };
+
+    if( psa_key_lifetime_is_external( attributes.core.lifetime ) )
+    {
+        status = psa_driver_wrapper_get_key_buffer_size( &attributes, &storage_size );
+        if( status != PSA_SUCCESS )
+            goto exit;
+    }
+    status = psa_allocate_buffer_to_slot( slot, storage_size );
+    if( status != PSA_SUCCESS )
+        goto exit;
 
     status = psa_driver_wrapper_import_key( &attributes,
                                             data, bytes,

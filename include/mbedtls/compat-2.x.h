@@ -22,8 +22,6 @@
  *  limitations under the License.
  */
 
-#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
-
 #if defined(MBEDTLS_DEPRECATED_WARNING)
 #warning "Including compat-2.x.h is deprecated"
 #endif
@@ -66,4 +64,3 @@
 #define mbedtls_sha512_ret            mbedtls_sha512
 
 #endif /* MBEDTLS_COMPAT2X_H */
-#endif /* MBEDTLS_DEPRECATED_REMOVED */

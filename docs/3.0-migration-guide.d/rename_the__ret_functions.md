@@ -1,7 +1,9 @@
-Rename mbedtls_*_ret() cryptography functions whose deprecated variants have been removed in #4029
---
+Rename mbedtls_*_ret() cryptography functions whose deprecated variants
+have been removed in #4029
+--------------------------
 
-This change affects users who were using the `mbedtls_*_ret()` criptography functions.
+This change affects users who were using the `mbedtls_*_ret()` cryptography
+functions.
 
 Those functions were created based on now-deprecated functions according to a
 requirement that a function needs to return a value. This change brings back the

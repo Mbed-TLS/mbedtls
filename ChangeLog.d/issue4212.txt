@@ -1,4 +1,4 @@
-Changes
+API changes
    * Rename functions whose deprecated variants have been removed via #4029:
      mbedtls_ctr_drbg_update_ret  -> mbedtls_ctr_drbg_update
      mbedtls_hmac_drbg_update_ret -> mbedtls_hmac_drbg_update

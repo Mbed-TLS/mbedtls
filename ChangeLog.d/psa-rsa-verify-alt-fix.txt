@@ -1,0 +1,7 @@
+Bugfix
+   * psa_verify_hash() was relying on implementation-specific behavior of
+     mbedtls_rsa_rsassa_pss_verify() and was causing failures in some _ALT
+     implementations. This reliance is now removed. Fixes #3990.
+   * Disallow inputs of length different from the corresponding hash when
+     signing or verifying with PSA_ALG_RSA_PSS (The PSA Crypto API mandates
+     that PSA_ALG_RSA_PSS uses the same hash throughout the algorithm.)

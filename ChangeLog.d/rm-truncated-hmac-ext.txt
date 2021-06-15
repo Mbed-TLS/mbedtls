@@ -1,0 +1,3 @@
+Removals
+   * Remove MBEDTLS_SSL_TRUNCATED_HMAC config option since it is no longer
+     supported in 3.0. Addresses #4341.

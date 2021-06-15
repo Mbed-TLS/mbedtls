@@ -498,7 +498,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
  *                  given the key type.
  * \param sig_len   On successful return,
  *                  the number of bytes written to \p sig.
- * \param f_rng     RNG function
+ * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
  *
  * \return          0 on success, or a specific error code.
@@ -538,7 +538,7 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  *                  given the key type.
  * \param sig_len   On successful return,
  *                  the number of bytes written to \p sig.
- * \param f_rng     RNG function
+ * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
  * \param rs_ctx    Restart context (NULL to disable restart)
  *
@@ -563,7 +563,7 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
  * \param output    Decrypted output
  * \param olen      Decrypted message length
  * \param osize     Size of the output buffer
- * \param f_rng     RNG function
+ * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
  *
  * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
@@ -584,8 +584,10 @@ int mbedtls_pk_decrypt( mbedtls_pk_context *ctx,
  * \param output    Encrypted output
  * \param olen      Encrypted output length
  * \param osize     Size of the output buffer
- * \param f_rng     RNG function
+ * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
+ *
+ * \note            \p f_rng is used for padding generation.
  *
  * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
  *

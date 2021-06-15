@@ -1641,6 +1641,7 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t i, j;
     mbedtls_mpi TA, TB;
+    int result_is_zero = 0;
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( A != NULL );
     MPI_VALIDATE_RET( B != NULL );
@@ -1653,10 +1654,14 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     for( i = A->n; i > 0; i-- )
         if( A->p[i - 1] != 0 )
             break;
+    if( i == 0 && ( A->n == 0 || A->p[0] == 0 ) )
+        result_is_zero = 1;
 
     for( j = B->n; j > 0; j-- )
         if( B->p[j - 1] != 0 )
             break;
+    if( j == 0 && ( B->n == 0 || B->p[0] == 0 ) )
+        result_is_zero = 1;
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, i + j ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
@@ -1668,11 +1673,8 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
      * but does not eliminate side channels leaking the zero-ness. We do
      * need to take care to set the sign bit properly since the library does
      * not fully support an MPI object with a value of 0 and s == -1. */
-    if( ( i == 0 && ( A->n == 0 || A->p[0] == 0 ) ) ||
-        ( j == 0 && ( B->n == 0 || B->p[0] == 0 ) ) )
-    {
+    if( result_is_zero )
         X->s = 1;
-    }
     else
         X->s = A->s * B->s;
 

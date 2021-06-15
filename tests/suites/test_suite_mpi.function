@@ -989,7 +989,7 @@ exit:
 /* BEGIN_CASE */
 void mbedtls_mpi_exp_mod( int radix_A, char * input_A, int radix_E,
                           char * input_E, int radix_N, char * input_N,
-                          int radix_X, char * input_X, int div_result )
+                          int radix_X, char * input_X, int exp_result )
 {
     mbedtls_mpi A, E, N, RR, Z, X;
     int res;
@@ -1002,7 +1002,7 @@ void mbedtls_mpi_exp_mod( int radix_A, char * input_A, int radix_E,
     TEST_ASSERT( mbedtls_test_read_mpi( &X, radix_X, input_X ) == 0 );
 
     res = mbedtls_mpi_exp_mod( &Z, &A, &E, &N, NULL );
-    TEST_ASSERT( res == div_result );
+    TEST_ASSERT( res == exp_result );
     if( res == 0 )
     {
         TEST_ASSERT( sign_is_valid( &Z ) );
@@ -1011,7 +1011,7 @@ void mbedtls_mpi_exp_mod( int radix_A, char * input_A, int radix_E,
 
     /* Now test again with the speed-up parameter supplied as an output. */
     res = mbedtls_mpi_exp_mod( &Z, &A, &E, &N, &RR );
-    TEST_ASSERT( res == div_result );
+    TEST_ASSERT( res == exp_result );
     if( res == 0 )
     {
         TEST_ASSERT( sign_is_valid( &Z ) );
@@ -1020,7 +1020,7 @@ void mbedtls_mpi_exp_mod( int radix_A, char * input_A, int radix_E,
 
     /* Now test again with the speed-up parameter supplied in calculated form. */
     res = mbedtls_mpi_exp_mod( &Z, &A, &E, &N, &RR );
-    TEST_ASSERT( res == div_result );
+    TEST_ASSERT( res == exp_result );
     if( res == 0 )
     {
         TEST_ASSERT( sign_is_valid( &Z ) );

@@ -11,12 +11,12 @@ static int check_multipart( mbedtls_gcm_context *ctx,
                             const data_t *input,
                             const data_t *expected_output,
                             const data_t *tag,
-                            size_t n1 )
+                            size_t n1,
+                            size_t n1_add)
 {
     int ok = 0;
     uint8_t *output = NULL;
     size_t n2 = input->len - n1;
-    size_t n1_add = n1 < add->len ? add->len - n1 : add->len;
     size_t n2_add = add->len - n1_add;
     size_t olen;
 
@@ -105,6 +105,7 @@ void gcm_encrypt_and_tag( int cipher_id, data_t * key_str,
     mbedtls_gcm_context ctx;
     size_t tag_len = tag_len_bits / 8;
     size_t n1;
+    size_t n1_add;
 
     mbedtls_gcm_init( &ctx );
 
@@ -123,11 +124,16 @@ void gcm_encrypt_and_tag( int cipher_id, data_t * key_str,
         for( n1 = 0; n1 <= src_str->len; n1 += 1 )
         {
             mbedtls_test_set_step( n1 );
-            if( !check_multipart( &ctx, MBEDTLS_GCM_ENCRYPT,
-                                  iv_str, add_str, src_str,
-                                  dst, tag,
-                                  n1 ) )
-                goto exit;
+
+            for( n1_add = 0; n1_add <= add_str->len; n1_add += 1 )
+            {
+                mbedtls_test_set_step( n1_add );
+                if( !check_multipart( &ctx, MBEDTLS_GCM_ENCRYPT,
+                                    iv_str, add_str, src_str,
+                                    dst, tag,
+                                    n1, n1_add ) )
+                    goto exit;
+            }
         }
     }
 
@@ -148,6 +154,7 @@ void gcm_decrypt_and_verify( int cipher_id, data_t * key_str,
     int ret;
     size_t tag_len = tag_len_bits / 8;
     size_t n1;
+    size_t n1_add;
 
     mbedtls_gcm_init( &ctx );
 
@@ -171,11 +178,15 @@ void gcm_decrypt_and_verify( int cipher_id, data_t * key_str,
             for( n1 = 0; n1 <= src_str->len; n1 += 1 )
             {
                 mbedtls_test_set_step( n1 );
-                if( !check_multipart( &ctx, MBEDTLS_GCM_DECRYPT,
-                                      iv_str, add_str, src_str,
-                                      pt_result, tag_str,
-                                      n1 ) )
-                    goto exit;
+                for( n1_add = 0; n1_add <= add_str->len; n1_add += 1 )
+                {
+                    mbedtls_test_set_step( n1_add );
+                    if( !check_multipart( &ctx, MBEDTLS_GCM_DECRYPT,
+                                        iv_str, add_str, src_str,
+                                        pt_result, tag_str,
+                                        n1, n1_add ) )
+                        goto exit;
+                }
             }
         }
     }

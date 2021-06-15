@@ -222,10 +222,7 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
  *                  This must be initialized.
  * \param d         Our secret exponent (private key).
  *                  This must be initialized.
- * \param f_rng     The RNG function. This may be \c NULL if randomization
- *                  of intermediate results during the ECP computations is
- *                  not needed (discouraged). See the documentation of
- *                  mbedtls_ecp_mul() for more.
+ * \param f_rng     The RNG function to use. This must not be \c NULL.
  * \param p_rng     The RNG context to be passed to \p f_rng. This may be
  *                  \c NULL if \p f_rng is \c NULL or doesn't need a
  *                  context argument.
@@ -428,8 +425,7 @@ int mbedtls_ecdh_read_public( mbedtls_ecdh_context *ctx,
  * \param buf       The buffer to write the generated shared key to. This
  *                  must be a writable buffer of size \p blen Bytes.
  * \param blen      The length of the destination buffer \p buf in Bytes.
- * \param f_rng     The RNG function, for blinding purposes. This may
- *                  b \c NULL if blinding isn't needed.
+ * \param f_rng     The RNG function to use. This must not be \c NULL.
  * \param p_rng     The RNG context. This may be \c NULL if \p f_rng
  *                  doesn't need a context argument.
  *

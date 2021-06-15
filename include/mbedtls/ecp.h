@@ -911,15 +911,8 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp,
  * \note            To prevent timing attacks, this function
  *                  executes the exact same sequence of base-field
  *                  operations for any valid \p m. It avoids any if-branch or
- *                  array index depending on the value of \p m.
- *
- * \note            If \p f_rng is not NULL, it is used to randomize
- *                  intermediate results to prevent potential timing attacks
- *                  targeting these results. We recommend always providing
- *                  a non-NULL \p f_rng. The overhead is negligible.
- *                  Note: unless #MBEDTLS_ECP_NO_INTERNAL_RNG is defined, when
- *                  \p f_rng is NULL, an internal RNG (seeded from the value
- *                  of \p m) will be used instead.
+ *                  array index depending on the value of \p m. If also uses
+ *                  \p f_rng to randomize some intermediate results.
  *
  * \param grp       The ECP group to use.
  *                  This must be initialized and have group parameters
@@ -928,9 +921,9 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp,
  *                  This must be initialized.
  * \param m         The integer by which to multiply. This must be initialized.
  * \param P         The point to multiply. This must be initialized.
- * \param f_rng     The RNG function. This may be \c NULL if randomization
- *                  of intermediate results isn't desired (discouraged).
- * \param p_rng     The RNG context to be passed to \p p_rng.
+ * \param f_rng     The RNG function. This must not be \c NULL.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may be \c
+ *                  NULL if \p f_rng doesn't need a context.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_ECP_INVALID_KEY if \p m is not a valid private
@@ -959,9 +952,9 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  This must be initialized.
  * \param m         The integer by which to multiply. This must be initialized.
  * \param P         The point to multiply. This must be initialized.
- * \param f_rng     The RNG function. This may be \c NULL if randomization
- *                  of intermediate results isn't desired (discouraged).
- * \param p_rng     The RNG context to be passed to \p p_rng.
+ * \param f_rng     The RNG function. This must not be \c NULL.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may be \c
+ *                  NULL if \p f_rng doesn't need a context.
  * \param rs_ctx    The restart context (NULL disables restart).
  *
  * \return          \c 0 on success.

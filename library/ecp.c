@@ -2684,6 +2684,9 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     ECP_VALIDATE_RET( m   != NULL );
     ECP_VALIDATE_RET( P   != NULL );
 
+    if( f_rng == NULL )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     /* reset ops count for this call if top-level */
     if( rs_ctx != NULL && rs_ctx->depth++ == 0 )
@@ -3315,6 +3318,28 @@ cleanup:
 
 #if defined(MBEDTLS_SELF_TEST)
 
+/*
+ * PRNG for test - !!!INSECURE NEVER USE IN PRODUCTION!!!
+ *
+ * This is the linear congruential generator from numerical recipes,
+ * except we only use the low byte as the output. See
+ * https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
+ */
+static int self_test_rng( void *ctx, unsigned char *out, size_t len )
+{
+    static uint32_t state = 42;
+
+    (void) ctx;
+
+    for( size_t i = 0; i < len; i++ )
+    {
+        state = state * 1664525u + 1013904223u;
+        out[i] = (unsigned char) state;
+    }
+
+    return( 0 );
+}
+
 /* Adjust the exponent to be a valid private point for the specified curve.
  * This is sometimes necessary because we use a single set of exponents
  * for all curves but the validity of values depends on the curve. */
@@ -3370,7 +3395,7 @@ static int self_test_point( int verbose,
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( m, 16, exponents[0] ) );
     MBEDTLS_MPI_CHK( self_test_adjust_exponent( grp, m ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R, m, P, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R, m, P, self_test_rng, NULL ) );
 
     for( i = 1; i < n_exponents; i++ )
     {
@@ -3383,7 +3408,7 @@ static int self_test_point( int verbose,
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( m, 16, exponents[i] ) );
         MBEDTLS_MPI_CHK( self_test_adjust_exponent( grp, m ) );
-        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R, m, P, NULL, NULL ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R, m, P, self_test_rng, NULL ) );
 
         if( add_count != add_c_prev ||
             dbl_count != dbl_c_prev ||
@@ -3461,7 +3486,7 @@ int mbedtls_ecp_self_test( int verbose )
         mbedtls_printf( "  ECP SW test #1 (constant op_count, base point G): " );
     /* Do a dummy multiplication first to trigger precomputation */
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &m, 2 ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &grp, &P, &m, &grp.G, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &grp, &P, &m, &grp.G, self_test_rng, NULL ) );
     ret = self_test_point( verbose,
                            &grp, &R, &m, &grp.G,
                            sw_exponents,

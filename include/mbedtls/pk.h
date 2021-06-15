@@ -603,6 +603,8 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
  *
  * \param pub       Context holding a public key.
  * \param prv       Context holding a private (and public) key.
+ * \param f_rng     RNG function, must not be \c NULL.
+ * \param p_rng     RNG parameter
  *
  * \return          \c 0 on success (keys were checked and match each other).
  * \return          #MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE if the keys could not
@@ -610,7 +612,10 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
  * \return          #MBEDTLS_ERR_PK_BAD_INPUT_DATA if a context is invalid.
  * \return          Another non-zero value if the keys do not match.
  */
-int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
+int mbedtls_pk_check_pair( const mbedtls_pk_context *pub,
+                           const mbedtls_pk_context *prv,
+                           int (*f_rng)(void *, unsigned char *, size_t),
+                           void *p_rng );
 
 /**
  * \brief           Export debug information

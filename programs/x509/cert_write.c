@@ -606,7 +606,8 @@ int main( int argc, char *argv[] )
     //
     if( strlen( opt.issuer_crt ) )
     {
-        if( mbedtls_pk_check_pair( &issuer_crt.MBEDTLS_PRIVATE(pk), issuer_key ) != 0 )
+        if( mbedtls_pk_check_pair( &issuer_crt.MBEDTLS_PRIVATE(pk), issuer_key,
+                                   mbedtls_ctr_drbg_random, &ctr_drbg ) != 0 )
         {
             mbedtls_printf( " failed\n  !  issuer_key does not match "
                             "issuer certificate\n\n" );

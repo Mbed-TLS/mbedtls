@@ -81,8 +81,7 @@
 #define MBEDTLS_AES_ROM_TABLES
 
 /* Save RAM by adjusting to our exact needs */
-#define MBEDTLS_ECP_MAX_BITS             256
-#define MBEDTLS_MPI_MAX_SIZE              32 // 256 bits is 32 bytes
+#define MBEDTLS_MPI_MAX_SIZE              32 // 32 bytes for a 256-bit elliptic curve
 
 /* Save ROM and a few bytes of RAM by specifying our own ciphersuite list */
 #define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_ECJPAKE_WITH_AES_128_CCM_8

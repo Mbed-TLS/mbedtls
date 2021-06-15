@@ -279,7 +279,8 @@ void valid_parameters( )
                  MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_PK_PARSE_C)
-    TEST_ASSERT( mbedtls_pk_parse_key( &pk, NULL, 0, NULL, 1 ) ==
+    TEST_ASSERT( mbedtls_pk_parse_key( &pk, NULL, 0, NULL, 1,
+                                       mbedtls_test_rnd_std_rand, NULL ) ==
                  MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
 
     TEST_ASSERT( mbedtls_pk_parse_public_key( &pk, NULL, 0 ) ==
@@ -296,8 +297,8 @@ void valid_parameters_pkwrite( data_t *key_data )
     /* For the write tests to be effective, we need a valid key pair. */
     mbedtls_pk_init( &pk );
     TEST_ASSERT( mbedtls_pk_parse_key( &pk,
-                                       key_data->x, key_data->len,
-                                       NULL, 0 ) == 0 );
+                key_data->x, key_data->len, NULL, 0,
+                mbedtls_test_rnd_std_rand, NULL ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_write_key_der( &pk, NULL, 0 ) ==
                  MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
@@ -349,7 +350,9 @@ void mbedtls_pk_check_pair( char * pub_file, char * prv_file, int ret )
     mbedtls_pk_init( &alt );
 
     TEST_ASSERT( mbedtls_pk_parse_public_keyfile( &pub, pub_file ) == 0 );
-    TEST_ASSERT( mbedtls_pk_parse_keyfile( &prv, prv_file, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_pk_parse_keyfile( &prv, prv_file, NULL,
+                                           mbedtls_test_rnd_std_rand, NULL )
+                 == 0 );
 
     TEST_ASSERT( mbedtls_pk_check_pair( &pub, &prv,
                                         mbedtls_test_rnd_std_rand, NULL )

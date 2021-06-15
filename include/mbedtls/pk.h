@@ -667,6 +667,8 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
  *                  The empty password is not supported.
  * \param pwdlen    Size of the password in bytes.
  *                  Ignored if \p pwd is \c NULL.
+ * \param f_rng     RNG function, must not be \c NULL. Used for blinding.
+ * \param p_rng     RNG parameter
  *
  * \note            On entry, ctx must be empty, either freshly initialised
  *                  with mbedtls_pk_init() or reset with mbedtls_pk_free(). If you need a
@@ -677,8 +679,9 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
  * \return          0 if successful, or a specific PK or PEM error code
  */
 int mbedtls_pk_parse_key( mbedtls_pk_context *ctx,
-                  const unsigned char *key, size_t keylen,
-                  const unsigned char *pwd, size_t pwdlen );
+              const unsigned char *key, size_t keylen,
+              const unsigned char *pwd, size_t pwdlen,
+              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /** \ingroup pk_module */
 /**
@@ -718,6 +721,8 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
  *                  Pass a null-terminated string if expecting an encrypted
  *                  key; a non-encrypted key will also be accepted.
  *                  The empty password is not supported.
+ * \param f_rng     RNG function, must not be \c NULL. Used for blinding.
+ * \param p_rng     RNG parameter
  *
  * \note            On entry, ctx must be empty, either freshly initialised
  *                  with mbedtls_pk_init() or reset with mbedtls_pk_free(). If you need a
@@ -728,7 +733,8 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
  * \return          0 if successful, or a specific PK or PEM error code
  */
 int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
-                      const char *path, const char *password );
+                  const char *path, const char *password,
+                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /** \ingroup pk_module */
 /**

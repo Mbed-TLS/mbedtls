@@ -125,7 +125,23 @@ int main( void )
 #endif
 
     /*
-     * 1. Load the certificates and private RSA key
+     * 1. Seed the RNG
+     */
+    mbedtls_printf( "  . Seeding the random number generator..." );
+    fflush( stdout );
+
+    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
+                               (const unsigned char *) pers,
+                               strlen( pers ) ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret );
+        goto exit;
+    }
+
+    mbedtls_printf( " ok\n" );
+
+    /*
+     * 2. Load the certificates and private RSA key
      */
     mbedtls_printf( "\n  . Loading the server cert. and key..." );
     fflush( stdout );
@@ -152,7 +168,8 @@ int main( void )
     }
 
     ret =  mbedtls_pk_parse_key( &pkey, (const unsigned char *) mbedtls_test_srv_key,
-                         mbedtls_test_srv_key_len, NULL, 0 );
+                         mbedtls_test_srv_key_len, NULL, 0,
+                         mbedtls_ctr_drbg_random, &ctr_drbg );
     if( ret != 0 )
     {
         mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned %d\n\n", ret );
@@ -162,7 +179,7 @@ int main( void )
     mbedtls_printf( " ok\n" );
 
     /*
-     * 2. Setup the listening TCP socket
+     * 3. Setup the listening TCP socket
      */
     mbedtls_printf( "  . Bind on https://localhost:4433/ ..." );
     fflush( stdout );
@@ -170,22 +187,6 @@ int main( void )
     if( ( ret = mbedtls_net_bind( &listen_fd, NULL, "4433", MBEDTLS_NET_PROTO_TCP ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_net_bind returned %d\n\n", ret );
-        goto exit;
-    }
-
-    mbedtls_printf( " ok\n" );
-
-    /*
-     * 3. Seed the RNG
-     */
-    mbedtls_printf( "  . Seeding the random number generator..." );
-    fflush( stdout );
-
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
-                               (const unsigned char *) pers,
-                               strlen( pers ) ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret );
         goto exit;
     }
 

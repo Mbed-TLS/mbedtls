@@ -108,7 +108,8 @@ psa_status_t mbedtls_psa_rsa_load_representation(
     /* Parse the data. */
     if( PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
         status = mbedtls_to_psa_error(
-            mbedtls_pk_parse_key( &ctx, data, data_length, NULL, 0 ) );
+            mbedtls_pk_parse_key( &ctx, data, data_length, NULL, 0,
+                mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE ) );
     else
         status = mbedtls_to_psa_error(
             mbedtls_pk_parse_public_key( &ctx, data, data_length ) );

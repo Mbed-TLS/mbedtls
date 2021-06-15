@@ -20,6 +20,7 @@
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
 #include "ssl_test_lib.h"
+#include "test/random.h"
 
 #if defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
 int main( void )
@@ -727,7 +728,8 @@ sni_entry *sni_parse( char *sni_string )
         mbedtls_pk_init( new->key );
 
         if( mbedtls_x509_crt_parse_file( new->cert, crt_file ) != 0 ||
-            mbedtls_pk_parse_keyfile( new->key, key_file, "" ) != 0 )
+            mbedtls_pk_parse_keyfile( new->key, key_file, "",
+                mbedtls_test_rnd_std_rand, NULL ) != 0 )
             goto error;
 
         if( strcmp( ca_file, "-" ) != 0 )
@@ -2257,7 +2259,7 @@ int main( int argc, char *argv[] )
     {
         key_cert_init++;
         if( ( ret = mbedtls_pk_parse_keyfile( &pkey, opt.key_file,
-                                              opt.key_pwd ) ) != 0 )
+                                              opt.key_pwd, rng_get, &rng ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%x\n\n", (unsigned int) -ret );
             goto exit;
@@ -2283,7 +2285,7 @@ int main( int argc, char *argv[] )
     {
         key_cert_init2++;
         if( ( ret = mbedtls_pk_parse_keyfile( &pkey2, opt.key_file2,
-                                              opt.key_pwd2 ) ) != 0 )
+                                              opt.key_pwd2, rng_get, &rng ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile(2) returned -0x%x\n\n",
                             (unsigned int) -ret );
@@ -2314,7 +2316,8 @@ int main( int argc, char *argv[] )
         }
         if( ( ret = mbedtls_pk_parse_key( &pkey,
                                   (const unsigned char *) mbedtls_test_srv_key_rsa,
-                                  mbedtls_test_srv_key_rsa_len, NULL, 0 ) ) != 0 )
+                                  mbedtls_test_srv_key_rsa_len, NULL, 0,
+                                  rng_get, &rng ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned -0x%x\n\n",
                             (unsigned int) -ret );
@@ -2333,7 +2336,8 @@ int main( int argc, char *argv[] )
         }
         if( ( ret = mbedtls_pk_parse_key( &pkey2,
                                   (const unsigned char *) mbedtls_test_srv_key_ec,
-                                  mbedtls_test_srv_key_ec_len, NULL, 0 ) ) != 0 )
+                                  mbedtls_test_srv_key_ec_len, NULL, 0,
+                                  rng_get, &rng ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  pk_parse_key2 returned -0x%x\n\n",
                             (unsigned int) -ret );

@@ -39,6 +39,8 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/error.h"
 
+#include "test/random.h"
+
 #include <stdio.h>
 #include <string.h>
 #endif
@@ -292,8 +294,8 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "\n  . Loading the private key ..." );
         fflush( stdout );
 
-        ret = mbedtls_pk_parse_keyfile( &key, opt.filename, NULL );
-
+        ret = mbedtls_pk_parse_keyfile( &key, opt.filename, NULL,
+                                        mbedtls_test_rnd_std_rand, NULL );
         if( ret != 0 )
         {
             mbedtls_strerror( ret, (char *) buf, sizeof(buf) );

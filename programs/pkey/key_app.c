@@ -40,6 +40,8 @@
 #include "mbedtls/rsa.h"
 #include "mbedtls/pk.h"
 
+#include "test/random.h"
+
 #include <string.h>
 #endif
 
@@ -181,7 +183,8 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "\n  . Loading the private key ..." );
         fflush( stdout );
 
-        ret = mbedtls_pk_parse_keyfile( &pk, opt.filename, opt.password );
+        ret = mbedtls_pk_parse_keyfile( &pk, opt.filename, opt.password,
+                                        mbedtls_test_rnd_std_rand, NULL );
 
         if( ret != 0 )
         {

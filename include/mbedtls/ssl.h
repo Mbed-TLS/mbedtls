@@ -956,10 +956,6 @@ struct mbedtls_ssl_session
     unsigned char MBEDTLS_PRIVATE(mfl_code);     /*!< MaxFragmentLength negotiated by peer */
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    int MBEDTLS_PRIVATE(trunc_hmac);             /*!< flag for truncated hmac activation   */
-#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
-
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     int MBEDTLS_PRIVATE(encrypt_then_mac);       /*!< flag for EtM activation                */
 #endif
@@ -1179,9 +1175,6 @@ struct mbedtls_ssl_config
 #endif
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     unsigned int MBEDTLS_PRIVATE(disable_renegotiation) : 1; /*!< disable renegotiation?     */
-#endif
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    unsigned int MBEDTLS_PRIVATE(trunc_hmac) : 1;    /*!< negotiate truncated hmac?          */
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     unsigned int MBEDTLS_PRIVATE(session_tickets) : 1;   /*!< use session tickets?           */
@@ -3314,18 +3307,6 @@ int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_c
  */
 void mbedtls_ssl_conf_preference_order( mbedtls_ssl_config *conf, int order );
 #endif /* MBEDTLS_SSL_SRV_C */
-
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-/**
- * \brief          Activate negotiation of truncated HMAC
- *                 (Default: MBEDTLS_SSL_TRUNC_HMAC_DISABLED)
- *
- * \param conf     SSL configuration
- * \param truncate Enable or disable (MBEDTLS_SSL_TRUNC_HMAC_ENABLED or
- *                                    MBEDTLS_SSL_TRUNC_HMAC_DISABLED)
- */
-void mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate );
-#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
 /**

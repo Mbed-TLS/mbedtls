@@ -43,15 +43,18 @@ The following snippet classes are available:
 Unit tests are in ``../tests/scripts/test_c_generator.py``.
 """
 
+import copy
 import re
-from typing import List, Optional, Sequence, Tuple # pylint: disable=unused-import
+import typing
+from typing import Any, Iterator, List, Optional, Sequence, Tuple, Union # pylint: disable=unused-import
+import typing_extensions #pylint: disable=import-error
 
 
-class Writable:
+class Writable(typing_extensions.Protocol):
     """Abstract class for typing hints."""
-    # pylint: disable=too-few-public-methods
-    def write(self, text: str) -> None:
-        raise NotImplementedError
+    # pylint: disable=no-self-use,too-few-public-methods,unused-argument
+    def write(self, text: str) -> Any:
+        ...
 
 
 class Options:
@@ -73,6 +76,15 @@ class Snippet:
 
     def __init__(self) -> None:
         pass
+
+    def simple_block_items(self) -> Optional[List['Snippet']]: #pylint: disable=no-self-use
+        """Return the statements that make up this simple block, or None.
+
+        If this is a simple block of statements that can be spliced into
+        another block, return the list of statements. Otherwise return
+        ``None``.
+        """
+        return None
 
     @staticmethod
     def output_line(stream: Writable, indent: str, *contents: str) -> None:
@@ -174,7 +186,113 @@ class Return(Simple):
         super().__init__(content)
 
 
-class Block(Snippet):
+_Item = typing.TypeVar('_Item')
+_SelfListLike = typing.TypeVar('_SelfListLike', bound='ListLike')
+
+class ListLike(typing.Generic[_Item]):
+    """Abstract class implementing a list-like behavior."""
+
+    def __init__(self) -> None:
+        self.items = [] #type: List[_Item]
+
+    def normalize_item(self, item: _Item) -> _Item:
+        """Return a normalized form of the given item."""
+        raise NotImplementedError
+
+    def copy(self: _SelfListLike) -> _SelfListLike:
+        """Make a shallow copy of this snippet which is made of a list of items.
+
+        The copy is not modified if the snippet itself is modified, but is
+        modified if its items are modified.
+        """
+        new = copy.copy(self)
+        new.items = copy.copy(self.items)
+        return new
+
+    def __len__(self) -> int:
+        return len(self.items)
+
+    def __getitem__(self, key: int) -> _Item:
+        return self.items[key]
+
+    def __iter__(self) -> Iterator[_Item]:
+        # Python would automatically infer this from __getitem__.
+        # But mypy doesn't: https://github.com/python/mypy/issues/2220
+        return iter(self.items)
+
+    def __setitem__(self, key: int, value: _Item) -> None:
+        self.items[key] = self.normalize_item(value)
+
+    def __delitem__(self, key: Union[int, slice]) -> None:
+        del self.items[key]
+
+    def append(self, elt: _Item) -> None:
+        self.items.append(self.normalize_item(elt))
+
+
+_SelfDecoratedBlock = typing.TypeVar('_SelfDecoratedBlock', bound='DecoratedBlock')
+
+class DecoratedBlock(Snippet, ListLike[Snippet]):
+    """A statement or definition containing a block.
+
+    For example, a loop with its body, or a function definition.
+    """
+
+    def __init__(self, *content: Snippet) -> None:
+        """A block statement.
+
+        The arguments are the statements or pseudo-statements to put inside
+        the block.
+        """
+        Snippet.__init__(self)
+        self.items = list(content)
+
+    def normalize_item(self, item: Snippet) -> Snippet: #pylint: disable=no-self-use
+        return item
+
+    def __add__(self: _SelfDecoratedBlock, other: Snippet) -> _SelfDecoratedBlock:
+        """Return a new decorated block containing both arguments' content.
+
+        If ``other`` is a `Block`, return a new block containing the elements
+        of ``self`` followed by the elements of ``other``.
+        Otherwise return a new block containing the elements of ``self``
+        followed by ``other``.
+        """
+        new_block = self.copy()
+        new_block += other
+        return new_block
+
+    def __iadd__(self: _SelfDecoratedBlock, other: Snippet) -> _SelfDecoratedBlock:
+        """Add a block's content or a snippet to this block in place.
+
+        If ``other`` is a `Block`, add its element to our list of elements.
+        Otherwise append ``other`` to our list of elements.
+        """
+        items = other.simple_block_items()
+        if items is not None:
+            self.items += items
+        else:
+            self.items.append(other)
+        return self
+
+    def output_before(self, stream: Writable, options: Options, indent: str) -> None: # pylint: disable=bad-whitespace
+        pass
+
+    def output_after(self, stream: Writable, options: Options, indent: str) -> None: # pylint: disable=bad-whitespace
+        pass
+
+    def output(self, stream: Writable,
+               options: Options = DEFAULT_OPTIONS, indent: str = '') -> None: # pylint: disable=bad-whitespace
+        more_indent = indent + ' ' * options.indent
+        self.output_before(stream, options, indent)
+        self.output_line(stream, indent, '{')
+        for item in self.items:
+            item.output(stream, options, more_indent)
+        self.output_line(stream, indent, '}')
+        self.output_after(stream, options, indent)
+
+
+class Block(DecoratedBlock):
     """A code block (statements between braces).
 
     Code blocks behave mostly like lists of statements (or more precisely
@@ -189,69 +307,8 @@ class Block(Snippet):
     Adding a snippet that isn't a block is equivalent to appending the snippet.
     """
 
-    def __init__(self, *content: Snippet) -> None:
-        """A block statement.
-
-        The arguments are the statements or pseudo-statements to put inside
-        the block.
-        """
-        super().__init__()
-        self.content = list(content)
-
-    def copy(self) -> 'Block':
-        """Make a shallow copy of this block.
-
-        The copy is not modified if the block itself is modified, but is
-        modified if subblocks are modified.
-        """
-        return Block(*self.content)
-
-    def __len__(self) -> int:
-        return len(self.content)
-
-    def __getitem__(self, key: int) -> Snippet:
-        return self.content[key]
-
-    def __setitem__(self, key: int, value: Snippet) -> None:
-        self.content[key] = value
-
-    def __delitem__(self, key: int) -> None:
-        del self.content[key]
-
-    def __add__(self, other: Snippet) -> 'Block':
-        """Return a new block containing both arguments' content.
-
-        If ``other`` is a `Block`, return a new block containing the elements
-        of ``self`` followed by the elements of ``other``.
-        Otherwise return a new block containing the elements of ``self``
-        followed by ``other``.
-        """
-        new_block = self.copy()
-        new_block += other
-        return new_block
-
-    def __iadd__(self, other: Snippet) -> 'Block':
-        """Add a block's content or a snippet to this block in place.
-
-        If ``other`` is a `Block`, add its element to our list of elements.
-        Otherwise append ``other`` to our list of elements.
-        """
-        if isinstance(other, Block):
-            self.content += other.content
-        else:
-            self.content.append(other)
-        return self
-
-    def append(self, elt: Snippet) -> None:
-        self.content.append(elt)
-
-    def output(self, stream: Writable,
-               options: Options = DEFAULT_OPTIONS, indent: str = '') -> None: # pylint: disable=bad-whitespace
-        more_indent = indent + ' ' * options.indent
-        self.output_line(stream, indent, '{')
-        for item in self.content:
-            item.output(stream, options, more_indent)
-        self.output_line(stream, indent, '}')
+    def simple_block_items(self):
+        return self.items
 
 
 class PreprocessorConditional(Snippet):

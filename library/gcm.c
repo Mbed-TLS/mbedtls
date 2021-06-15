@@ -363,7 +363,7 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
         if( use_len > add_len )
             use_len = add_len;
 
-        for (i = 0; i < use_len; i++)
+        for ( i = 0; i < use_len; i++ )
             ctx->buf[i+offset] ^= p[i];
 
         if( offset + use_len == 16 )
@@ -378,15 +378,13 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
 
     while( add_len >= 16 )
     {
-        use_len = 16;
-
-        for( i = 0; i < use_len; i++ )
+        for( i = 0; i < 16; i++ )
             ctx->buf[i] ^= p[i];
 
         gcm_mult( ctx, ctx->buf, ctx->buf );
 
-        add_len -= use_len;
-        p += use_len;
+        add_len -= 16;
+        p += 16;
     }
 
     if( add_len > 0 )

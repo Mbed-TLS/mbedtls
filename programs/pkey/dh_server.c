@@ -254,14 +254,14 @@ int main( void )
 
     memset( buf, 0, sizeof( buf ) );
 
-    n = dhm.MBEDTLS_PRIVATE(len);
+    n = mbedtls_dhm_get_len( &dhm );
     if( ( ret = mbedtls_net_recv( &client_fd, buf, n ) ) != (int) n )
     {
         mbedtls_printf( " failed\n  ! mbedtls_net_recv returned %d\n\n", ret );
         goto exit;
     }
 
-    if( ( ret = mbedtls_dhm_read_public( &dhm, buf, dhm.MBEDTLS_PRIVATE(len) ) ) != 0 )
+    if( ( ret = mbedtls_dhm_read_public( &dhm, buf, n ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_dhm_read_public returned %d\n\n", ret );
         goto exit;

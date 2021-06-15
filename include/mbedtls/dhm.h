@@ -85,6 +85,17 @@
 #define MBEDTLS_ERR_DHM_FILE_IO_ERROR                     -0x3480  /**< Read or write of file failed. */
 #define MBEDTLS_ERR_DHM_SET_GROUP_FAILED                  -0x3580  /**< Setting the modulus and generator failed. */
 
+/** Which parameter to access in mbedtls_dhm_get_value(). */
+typedef enum
+{
+    MBEDTLS_DHM_PARAM_P,  /*!<  The prime modulus. */
+    MBEDTLS_DHM_PARAM_G,  /*!<  The generator. */
+    MBEDTLS_DHM_PARAM_X,  /*!<  Our secret value. */
+    MBEDTLS_DHM_PARAM_GX, /*!<  Our public key = \c G^X mod \c P. */
+    MBEDTLS_DHM_PARAM_GY, /*!<  The public key of the peer = \c G^Y mod \c P. */
+    MBEDTLS_DHM_PARAM_K,  /*!<  The shared secret = \c G^(XY) mod \c P. */
+} mbedtls_dhm_parameter;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -96,7 +107,6 @@ extern "C" {
  */
 typedef struct mbedtls_dhm_context
 {
-    size_t MBEDTLS_PRIVATE(len);         /*!<  The size of \p P in Bytes. */
     mbedtls_mpi MBEDTLS_PRIVATE(P);      /*!<  The prime modulus. */
     mbedtls_mpi MBEDTLS_PRIVATE(G);      /*!<  The generator. */
     mbedtls_mpi MBEDTLS_PRIVATE(X);      /*!<  Our secret value. */
@@ -281,6 +291,42 @@ int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
                      unsigned char *output, size_t output_size, size_t *olen,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng );
+
+/**
+ * \brief          This function returns the size of the prime modulus in bits.
+ *
+ * \param ctx      The DHM context to query.
+ *
+ * \return         The size of the prime modulus in bits,
+ *                 i.e. the number n such that 2^(n-1) <= P < 2^n.
+ */
+size_t mbedtls_dhm_get_bitlen( const mbedtls_dhm_context *ctx );
+
+/**
+ * \brief          This function returns the size of the prime modulus in bytes.
+ *
+ * \param ctx      The DHM context to query.
+ *
+ * \return         The size of the prime modulus in bytes,
+ *                 i.e. the number n such that 2^(8*(n-1)) <= P < 2^(8*n).
+ */
+size_t mbedtls_dhm_get_len( const mbedtls_dhm_context *ctx );
+
+/**
+ * \brief          This function copies a parameter of a DHM key.
+ *
+ * \param ctx      The DHM context to query.
+ * \param param    The parameter to copy.
+ * \param dest     The MPI object to copy the value into. It must be
+ *                 initialized.
+ *
+ * \return         \c 0 on success.
+ * \return         #MBEDTLS_ERR_DHM_BAD_INPUT_DATA if \p field is invalid.
+ * \return         An \c MBEDTLS_ERR_MPI_XXX error code if the copy fails.
+ */
+int mbedtls_dhm_get_value( const mbedtls_dhm_context *ctx,
+                           mbedtls_dhm_parameter param,
+                           mbedtls_mpi *dest );
 
 /**
  * \brief          This function frees and clears the components

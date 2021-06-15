@@ -128,6 +128,20 @@ cleanup:
     return( ret );
 }
 
+int mbedtls_ecjpake_set_point_format( mbedtls_ecjpake_context *ctx,
+                                      int point_format )
+{
+    switch( point_format )
+    {
+        case MBEDTLS_ECP_PF_UNCOMPRESSED:
+        case MBEDTLS_ECP_PF_COMPRESSED:
+            ctx->point_format = point_format;
+            return( 0 );
+        default:
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    }
+}
+
 /*
  * Check if context is ready for use
  */

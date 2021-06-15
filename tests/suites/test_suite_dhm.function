@@ -1,6 +1,23 @@
 /* BEGIN_HEADER */
 #include "mbedtls/dhm.h"
 
+int check_get_value( const mbedtls_dhm_context *ctx,
+                     mbedtls_dhm_parameter param,
+                     const mbedtls_mpi *expected )
+{
+    mbedtls_mpi actual;
+    int ok = 0;
+    mbedtls_mpi_init( &actual );
+
+    TEST_ASSERT( mbedtls_dhm_get_value( ctx, param, &actual ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &actual, expected ) == 0 );
+    ok = 1;
+
+exit:
+    mbedtls_mpi_free( &actual );
+    return( ok );
+}
+
 /* Sanity checks on a Diffie-Hellman parameter: check the length-value
  * syntax and check that the value is the expected one (taken from the
  * DHM context by the caller). */
@@ -102,6 +119,8 @@ void dhm_do_dhm( int radix_P, char *input_P, int x_size,
     TEST_ASSERT( mbedtls_mpi_read_string( &ctx_srv.P, radix_P, input_P ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &ctx_srv.G, radix_G, input_G ) == 0 );
     pub_cli_len = mbedtls_mpi_size( &ctx_srv.P );
+    TEST_ASSERT( check_get_value( &ctx_srv, MBEDTLS_DHM_PARAM_P, &ctx_srv.P ) );
+    TEST_ASSERT( check_get_value( &ctx_srv, MBEDTLS_DHM_PARAM_G, &ctx_srv.G ) );
 
     /*
      * First key exchange
@@ -118,6 +137,9 @@ void dhm_do_dhm( int radix_P, char *input_P, int x_size,
     ske[ske_len++] = 0;
     ske[ske_len++] = 0;
     TEST_ASSERT( mbedtls_dhm_read_params( &ctx_cli, &p, ske + ske_len ) == 0 );
+    /* The domain parameters must be the same on both side. */
+    TEST_ASSERT( check_get_value( &ctx_cli, MBEDTLS_DHM_PARAM_P, &ctx_srv.P ) );
+    TEST_ASSERT( check_get_value( &ctx_cli, MBEDTLS_DHM_PARAM_G, &ctx_srv.G ) );
 
     TEST_ASSERT( mbedtls_dhm_make_public( &ctx_cli, x_size, pub_cli, pub_cli_len,
                                           &mbedtls_test_rnd_pseudo_rand,
@@ -133,6 +155,17 @@ void dhm_do_dhm( int radix_P, char *input_P, int x_size,
     TEST_ASSERT( sec_srv_len == sec_cli_len );
     TEST_ASSERT( sec_srv_len != 0 );
     TEST_ASSERT( memcmp( sec_srv, sec_cli, sec_srv_len ) == 0 );
+
+    /* Internal value checks */
+    TEST_ASSERT( check_get_value( &ctx_cli, MBEDTLS_DHM_PARAM_X, &ctx_cli.X ) );
+    TEST_ASSERT( check_get_value( &ctx_srv, MBEDTLS_DHM_PARAM_X, &ctx_srv.X ) );
+    /* Cross-checks */
+    TEST_ASSERT( check_get_value( &ctx_cli, MBEDTLS_DHM_PARAM_GX, &ctx_srv.GY ) );
+    TEST_ASSERT( check_get_value( &ctx_cli, MBEDTLS_DHM_PARAM_GY, &ctx_srv.GX ) );
+    TEST_ASSERT( check_get_value( &ctx_cli, MBEDTLS_DHM_PARAM_K, &ctx_srv.K ) );
+    TEST_ASSERT( check_get_value( &ctx_srv, MBEDTLS_DHM_PARAM_GX, &ctx_cli.GY ) );
+    TEST_ASSERT( check_get_value( &ctx_srv, MBEDTLS_DHM_PARAM_GY, &ctx_cli.GX ) );
+    TEST_ASSERT( check_get_value( &ctx_srv, MBEDTLS_DHM_PARAM_K, &ctx_cli.K ) );
 
     /* Re-do calc_secret on server a few times to test update of blinding values */
     for( i = 0; i < 3; i++ )
@@ -229,9 +262,10 @@ void dhm_file( char * filename, char * p, char * g, int len )
 
     TEST_ASSERT( mbedtls_dhm_parse_dhmfile( &ctx, filename ) == 0 );
 
-    TEST_ASSERT( ctx.len == (size_t) len );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctx.P, &P ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctx.G, &G ) == 0 );
+    TEST_EQUAL( mbedtls_dhm_get_len( &ctx ), (size_t) len );
+    TEST_EQUAL( mbedtls_dhm_get_bitlen( &ctx ), mbedtls_mpi_bitlen( &P ) );
+    TEST_ASSERT( check_get_value( &ctx, MBEDTLS_DHM_PARAM_P, &P ) );
+    TEST_ASSERT( check_get_value( &ctx, MBEDTLS_DHM_PARAM_G, &G ) );
 
 exit:
     mbedtls_mpi_free( &P ); mbedtls_mpi_free( &G );

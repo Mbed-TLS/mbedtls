@@ -1,0 +1,6 @@
+Features
+   * Alternative implementations of the AES, DHM, ECJPAKE, ECP, RSA and timing
+     modules had undocumented constraints on their context types. These
+     constraints have been relaxed.
+     See docs/architecture/alternative-implementations.md for the remaining
+     constraints.

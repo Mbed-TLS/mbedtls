@@ -929,8 +929,11 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     RSA_VALIDATE_RET( input  != NULL );
     RSA_VALIDATE_RET( output != NULL );
 
-    if( rsa_check_context( ctx, 1             /* private key checks */,
-                                f_rng != NULL /* blinding y/n       */ ) != 0 )
+    if( f_rng == NULL )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    if( rsa_check_context( ctx, 1 /* private key checks */,
+                                1 /* blinding on        */ ) != 0 )
     {
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
@@ -947,15 +950,12 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     mbedtls_mpi_init( &Q1 );
     mbedtls_mpi_init( &R );
 
-    if( f_rng != NULL )
-    {
 #if defined(MBEDTLS_RSA_NO_CRT)
-        mbedtls_mpi_init( &D_blind );
+    mbedtls_mpi_init( &D_blind );
 #else
-        mbedtls_mpi_init( &DP_blind );
-        mbedtls_mpi_init( &DQ_blind );
+    mbedtls_mpi_init( &DP_blind );
+    mbedtls_mpi_init( &DQ_blind );
 #endif
-    }
 
 #if !defined(MBEDTLS_RSA_NO_CRT)
     mbedtls_mpi_init( &TP ); mbedtls_mpi_init( &TQ );
@@ -975,57 +975,54 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &I, &T ) );
 
-    if( f_rng != NULL )
-    {
-        /*
-         * Blinding
-         * T = T * Vi mod N
-         */
-        MBEDTLS_MPI_CHK( rsa_prepare_blinding( ctx, f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T, &T, &ctx->Vi ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &T, &T, &ctx->N ) );
+    /*
+     * Blinding
+     * T = T * Vi mod N
+     */
+    MBEDTLS_MPI_CHK( rsa_prepare_blinding( ctx, f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T, &T, &ctx->Vi ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &T, &T, &ctx->N ) );
 
-        /*
-         * Exponent blinding
-         */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &P1, &ctx->P, 1 ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &Q1, &ctx->Q, 1 ) );
+    /*
+     * Exponent blinding
+     */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &P1, &ctx->P, 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &Q1, &ctx->Q, 1 ) );
 
 #if defined(MBEDTLS_RSA_NO_CRT)
-        /*
-         * D_blind = ( P - 1 ) * ( Q - 1 ) * R + D
-         */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &R, RSA_EXPONENT_BLINDING,
-                         f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &D_blind, &P1, &Q1 ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &D_blind, &D_blind, &R ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &D_blind, &D_blind, &ctx->D ) );
+    /*
+     * D_blind = ( P - 1 ) * ( Q - 1 ) * R + D
+     */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &R, RSA_EXPONENT_BLINDING,
+                     f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &D_blind, &P1, &Q1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &D_blind, &D_blind, &R ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &D_blind, &D_blind, &ctx->D ) );
 
-        D = &D_blind;
+    D = &D_blind;
 #else
-        /*
-         * DP_blind = ( P - 1 ) * R + DP
-         */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &R, RSA_EXPONENT_BLINDING,
-                         f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &DP_blind, &P1, &R ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &DP_blind, &DP_blind,
-                    &ctx->DP ) );
+    /*
+     * DP_blind = ( P - 1 ) * R + DP
+     */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &R, RSA_EXPONENT_BLINDING,
+                     f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &DP_blind, &P1, &R ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &DP_blind, &DP_blind,
+                &ctx->DP ) );
 
-        DP = &DP_blind;
+    DP = &DP_blind;
 
-        /*
-         * DQ_blind = ( Q - 1 ) * R + DQ
-         */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &R, RSA_EXPONENT_BLINDING,
-                         f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &DQ_blind, &Q1, &R ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &DQ_blind, &DQ_blind,
-                    &ctx->DQ ) );
+    /*
+     * DQ_blind = ( Q - 1 ) * R + DQ
+     */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &R, RSA_EXPONENT_BLINDING,
+                     f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &DQ_blind, &Q1, &R ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &DQ_blind, &DQ_blind,
+                &ctx->DQ ) );
 
-        DQ = &DQ_blind;
+    DQ = &DQ_blind;
 #endif /* MBEDTLS_RSA_NO_CRT */
-    }
 
 #if defined(MBEDTLS_RSA_NO_CRT)
     MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &T, &T, D, &ctx->N, &ctx->RN ) );
@@ -1054,15 +1051,12 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
     MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &T, &TQ, &TP ) );
 #endif /* MBEDTLS_RSA_NO_CRT */
 
-    if( f_rng != NULL )
-    {
-        /*
-         * Unblind
-         * T = T * Vf mod N
-         */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T, &T, &ctx->Vf ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &T, &T, &ctx->N ) );
-    }
+    /*
+     * Unblind
+     * T = T * Vf mod N
+     */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T, &T, &ctx->Vf ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &T, &T, &ctx->N ) );
 
     /* Verify the result to prevent glitching attacks. */
     MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &C, &T, &ctx->E,
@@ -1086,15 +1080,12 @@ cleanup:
     mbedtls_mpi_free( &Q1 );
     mbedtls_mpi_free( &R );
 
-    if( f_rng != NULL )
-    {
 #if defined(MBEDTLS_RSA_NO_CRT)
-        mbedtls_mpi_free( &D_blind );
+    mbedtls_mpi_free( &D_blind );
 #else
-        mbedtls_mpi_free( &DP_blind );
-        mbedtls_mpi_free( &DQ_blind );
+    mbedtls_mpi_free( &DP_blind );
+    mbedtls_mpi_free( &DQ_blind );
 #endif
-    }
 
     mbedtls_mpi_free( &T );
 

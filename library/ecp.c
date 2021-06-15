@@ -3290,7 +3290,9 @@ cleanup:
 /*
  * Check a public-private key pair
  */
-int mbedtls_ecp_check_pub_priv( const mbedtls_ecp_keypair *pub, const mbedtls_ecp_keypair *prv )
+int mbedtls_ecp_check_pub_priv(
+        const mbedtls_ecp_keypair *pub, const mbedtls_ecp_keypair *prv,
+        int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_point Q;
@@ -3314,7 +3316,7 @@ int mbedtls_ecp_check_pub_priv( const mbedtls_ecp_keypair *pub, const mbedtls_ec
     mbedtls_ecp_group_copy( &grp, &prv->grp );
 
     /* Also checks d is valid */
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &grp, &Q, &prv->d, &prv->grp.G, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &grp, &Q, &prv->d, &prv->grp.G, f_rng, p_rng ) );
 
     if( mbedtls_mpi_cmp_mpi( &Q.X, &prv->Q.X ) ||
         mbedtls_mpi_cmp_mpi( &Q.Y, &prv->Q.Y ) ||

@@ -2384,6 +2384,9 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     mbedtls_mpi PX;
     mbedtls_ecp_point_init( &RP ); mbedtls_mpi_init( &PX );
 
+    if( f_rng == NULL )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
     /* Save PX and read from P before writing to R, in case P == R */
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &PX, &P->X ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &RP, P ) );
@@ -2397,8 +2400,7 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MOD_ADD( RP.X );
 
     /* Randomize coordinates of the starting point */
-    if( f_rng != NULL )
-        MBEDTLS_MPI_CHK( ecp_randomize_mxz( grp, &RP, f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( ecp_randomize_mxz( grp, &RP, f_rng, p_rng ) );
 
     /* Loop invariant: R = result so far, RP = R + P */
     i = mbedtls_mpi_bitlen( m ); /* one past the (zero-based) most significant bit */
@@ -2430,9 +2432,7 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
      *
      * Avoid the leak by randomizing coordinates before we normalize them.
      */
-    if( f_rng != NULL )
-        MBEDTLS_MPI_CHK( ecp_randomize_mxz( grp, R, f_rng, p_rng ) );
-
+    MBEDTLS_MPI_CHK( ecp_randomize_mxz( grp, R, f_rng, p_rng ) );
     MBEDTLS_MPI_CHK( ecp_normalize_mxz( grp, R ) );
 
 cleanup:

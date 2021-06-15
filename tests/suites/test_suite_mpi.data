@@ -706,13 +706,13 @@ mbedtls_mpi_add_abs:10:"12345678":10:"-642531":10:"12988209"
 Base test mbedtls_mpi_add_abs #4
 mbedtls_mpi_add_abs:10:"-12345678":10:"-642531":10:"12988209"
 
-Test mbedtls_mpi_add_abs: 0 + 0
+Test mbedtls_mpi_add_abs: 0 (null) + 0 (null)
 mbedtls_mpi_add_abs:16:"":16:"":16:"0"
 
-Test mbedtls_mpi_add_abs: 0 + 1
+Test mbedtls_mpi_add_abs: 0 (null) + 1
 mbedtls_mpi_add_abs:16:"":16:"01":16:"01"
 
-Test mbedtls_mpi_add_abs: 1 + 0
+Test mbedtls_mpi_add_abs: 1 + 0 (null)
 mbedtls_mpi_add_abs:16:"01":16:"":16:"01"
 
 Test mbedtls_mpi_add_abs #1
@@ -736,19 +736,19 @@ mbedtls_mpi_add_mpi:10:"12345678":10:"-642531":10:"11703147"
 Base test mbedtls_mpi_add_mpi #4
 mbedtls_mpi_add_mpi:10:"-12345678":10:"-642531":10:"-12988209"
 
-Test mbedtls_mpi_add_mpi: 0 + 0
+Test mbedtls_mpi_add_mpi: 0 (null) + 0 (null)
 mbedtls_mpi_add_mpi:16:"":16:"":16:"0"
 
-Test mbedtls_mpi_add_mpi: 0 + 1
+Test mbedtls_mpi_add_mpi: 0 (null) + 1
 mbedtls_mpi_add_mpi:16:"":16:"01":16:"01"
 
-Test mbedtls_mpi_add_mpi: 1 + 0
+Test mbedtls_mpi_add_mpi: 1 + 0 (null)
 mbedtls_mpi_add_mpi:16:"01":16:"":16:"01"
 
-Test mbedtls_mpi_add_mpi: 0 + -1
+Test mbedtls_mpi_add_mpi: 0 (null) + -1
 mbedtls_mpi_add_mpi:16:"":16:"-01":16:"-01"
 
-Test mbedtls_mpi_add_mpi: -1 + 0
+Test mbedtls_mpi_add_mpi: -1 + 0 (null)
 mbedtls_mpi_add_mpi:16:"-01":16:"":16:"-01"
 
 Test mbedtls_mpi_add_mpi #1

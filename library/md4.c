@@ -89,7 +89,7 @@ void mbedtls_md4_clone( mbedtls_md4_context *dst,
 /*
  * MD4 context setup
  */
-int mbedtls_md4_starts_ret( mbedtls_md4_context *ctx )
+int mbedtls_md4_starts( mbedtls_md4_context *ctx )
 {
     ctx->total[0] = 0;
     ctx->total[1] = 0;
@@ -236,7 +236,7 @@ int mbedtls_internal_md4_process( mbedtls_md4_context *ctx,
 /*
  * MD4 process buffer
  */
-int mbedtls_md4_update_ret( mbedtls_md4_context *ctx,
+int mbedtls_md4_update( mbedtls_md4_context *ctx,
                             const unsigned char *input,
                             size_t ilen )
 {
@@ -298,7 +298,7 @@ static const unsigned char md4_padding[64] =
 /*
  * MD4 final digest
  */
-int mbedtls_md4_finish_ret( mbedtls_md4_context *ctx,
+int mbedtls_md4_finish( mbedtls_md4_context *ctx,
                             unsigned char output[16] )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -316,11 +316,11 @@ int mbedtls_md4_finish_ret( mbedtls_md4_context *ctx,
     last = ctx->total[0] & 0x3F;
     padn = ( last < 56 ) ? ( 56 - last ) : ( 120 - last );
 
-    ret = mbedtls_md4_update_ret( ctx, (unsigned char *)md4_padding, padn );
+    ret = mbedtls_md4_update( ctx, (unsigned char *)md4_padding, padn );
     if( ret != 0 )
         return( ret );
 
-    if( ( ret = mbedtls_md4_update_ret( ctx, msglen, 8 ) ) != 0 )
+    if( ( ret = mbedtls_md4_update( ctx, msglen, 8 ) ) != 0 )
         return( ret );
 
 
@@ -337,7 +337,7 @@ int mbedtls_md4_finish_ret( mbedtls_md4_context *ctx,
 /*
  * output = MD4( input buffer )
  */
-int mbedtls_md4_ret( const unsigned char *input,
+int mbedtls_md4( const unsigned char *input,
                      size_t ilen,
                      unsigned char output[16] )
 {
@@ -346,13 +346,13 @@ int mbedtls_md4_ret( const unsigned char *input,
 
     mbedtls_md4_init( &ctx );
 
-    if( ( ret = mbedtls_md4_starts_ret( &ctx ) ) != 0 )
+    if( ( ret = mbedtls_md4_starts( &ctx ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_md4_update_ret( &ctx, input, ilen ) ) != 0 )
+    if( ( ret = mbedtls_md4_update( &ctx, input, ilen ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_md4_finish_ret( &ctx, output ) ) != 0 )
+    if( ( ret = mbedtls_md4_finish( &ctx, output ) ) != 0 )
         goto exit;
 
 exit:
@@ -413,7 +413,7 @@ int mbedtls_md4_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  MD4 test #%d: ", i + 1 );
 
-        ret = mbedtls_md4_ret( md4_test_str[i], md4_test_strlen[i], md4sum );
+        ret = mbedtls_md4( md4_test_str[i], md4_test_strlen[i], md4sum );
         if( ret != 0 )
             goto fail;
 

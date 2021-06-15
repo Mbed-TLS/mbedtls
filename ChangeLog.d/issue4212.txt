@@ -1,0 +1,6 @@
+API changes
+   * In modules that implement cryptographic hash functions, many functions
+     mbedtls_xxx() now return int instead of void, and the corresponding
+     function mbedtls_xxx_ret() which was identical except for returning int
+     has been removed. This also concerns mbedtls_xxx_drbg_update(). See the
+     migration guide for more information. Fixes #4212.

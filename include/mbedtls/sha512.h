@@ -49,7 +49,7 @@ extern "C" {
  *
  *                 The structure is used both for SHA-384 and for SHA-512
  *                 checksum calculations. The choice between these two is
- *                 made in the call to mbedtls_sha512_starts_ret().
+ *                 made in the call to mbedtls_sha512_starts().
  */
 typedef struct mbedtls_sha512_context
 {
@@ -109,7 +109,7 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 );
+int mbedtls_sha512_starts( mbedtls_sha512_context *ctx, int is384 );
 
 /**
  * \brief          This function feeds an input buffer into an ongoing
@@ -124,9 +124,9 @@ int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 );
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx,
-                    const unsigned char *input,
-                    size_t ilen );
+int mbedtls_sha512_update( mbedtls_sha512_context *ctx,
+                           const unsigned char *input,
+                           size_t ilen );
 
 /**
  * \brief          This function finishes the SHA-512 operation, and writes
@@ -141,8 +141,8 @@ int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
-                               unsigned char *output );
+int mbedtls_sha512_finish( mbedtls_sha512_context *ctx,
+                           unsigned char *output );
 
 /**
  * \brief          This function processes a single data block within
@@ -185,10 +185,10 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha512_ret( const unsigned char *input,
-                        size_t ilen,
-                        unsigned char *output,
-                        int is384 );
+int mbedtls_sha512( const unsigned char *input,
+                    size_t ilen,
+                    unsigned char *output,
+                    int is384 );
 
 #if defined(MBEDTLS_SELF_TEST)
 

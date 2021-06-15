@@ -12,7 +12,7 @@ void mbedtls_sha1( data_t * src_str, data_t * hash )
     memset(output, 0x00, 41);
 
 
-    TEST_ASSERT( mbedtls_sha1_ret( src_str->x, src_str->len, output ) == 0 );
+    TEST_ASSERT( mbedtls_sha1( src_str->x, src_str->len, output ) == 0 );
 
     TEST_ASSERT( mbedtls_test_hexcmp( output, hash->x, 20, hash->len ) == 0 );
 }
@@ -28,10 +28,10 @@ void sha256_invalid_param( )
     int invalid_type = 42;
 
     TEST_EQUAL( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA,
-                            mbedtls_sha256_starts_ret( &ctx, invalid_type ) );
+                            mbedtls_sha256_starts( &ctx, invalid_type ) );
 
     TEST_EQUAL( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA,
-                            mbedtls_sha256_ret( buf, buflen,
+                            mbedtls_sha256( buf, buflen,
                                                 buf, invalid_type ) );
 
 exit:
@@ -47,7 +47,7 @@ void sha224( data_t * src_str, data_t * hash )
     memset(output, 0x00, 57);
 
 
-    TEST_ASSERT( mbedtls_sha256_ret( src_str->x, src_str->len, output, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_sha256( src_str->x, src_str->len, output, 1 ) == 0 );
 
     TEST_ASSERT( mbedtls_test_hexcmp( output, hash->x, 28, hash->len ) == 0 );
 }
@@ -61,7 +61,7 @@ void mbedtls_sha256( data_t * src_str, data_t * hash )
     memset(output, 0x00, 65);
 
 
-    TEST_ASSERT( mbedtls_sha256_ret( src_str->x, src_str->len, output, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_sha256( src_str->x, src_str->len, output, 0 ) == 0 );
 
     TEST_ASSERT( mbedtls_test_hexcmp( output, hash->x, 32, hash->len ) == 0 );
 }
@@ -77,10 +77,10 @@ void sha512_invalid_param( )
     int invalid_type = 42;
 
     TEST_EQUAL( MBEDTLS_ERR_SHA512_BAD_INPUT_DATA,
-                            mbedtls_sha512_starts_ret( &ctx, invalid_type ) );
+                            mbedtls_sha512_starts( &ctx, invalid_type ) );
 
     TEST_EQUAL( MBEDTLS_ERR_SHA512_BAD_INPUT_DATA,
-                            mbedtls_sha512_ret( buf, buflen,
+                            mbedtls_sha512( buf, buflen,
                                                 buf, invalid_type ) );
 
 exit:
@@ -96,7 +96,7 @@ void sha384( data_t * src_str, data_t * hash )
     memset(output, 0x00, 97);
 
 
-    TEST_ASSERT( mbedtls_sha512_ret( src_str->x, src_str->len, output, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_sha512( src_str->x, src_str->len, output, 1 ) == 0 );
 
     TEST_ASSERT( mbedtls_test_hexcmp( output, hash->x, 48, hash->len ) == 0 );
 }
@@ -110,7 +110,7 @@ void mbedtls_sha512( data_t * src_str, data_t * hash )
     memset(output, 0x00, 129);
 
 
-    TEST_ASSERT( mbedtls_sha512_ret( src_str->x, src_str->len, output, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_sha512( src_str->x, src_str->len, output, 0 ) == 0 );
 
     TEST_ASSERT( mbedtls_test_hexcmp( output, hash->x, 64, hash->len ) == 0 );
 }

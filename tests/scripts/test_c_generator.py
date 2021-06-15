@@ -19,17 +19,28 @@
 
 """Unit tests for ../scripts/test_c_generator.py"""
 
-import importlib
+import contextlib
 import io
 import operator
 import os
 import sys
 import unittest
 
+
 # The file c_generator.py is not in the same directory. To make this testing
-# program self-contained, go and look for it in ../../scripts. This is done
-# below with C = load_module().
-# # import c_generator as C
+# program self-contained, go and look for it in ../../scripts.
+@contextlib.contextmanager
+def saved_sys_path(*directories):
+    saved = sys.path
+    sys.path = list(directories) + sys.path
+    try:
+        yield
+    finally:
+        sys.path = saved
+
+with saved_sys_path(os.path.join(os.path.dirname(__file__),
+                                 os.pardir, os.pardir, 'scripts')):
+    import c_generator as C
 
 
 class OptionsTest(unittest.TestCase):
@@ -588,24 +599,5 @@ two;
         """)
 
 
-def load_module():
-    """Load the c_generator module.
-
-    The module is located in a different directory from the test script,
-    hence all the complication.
-    """
-    # Part of the reason to do this in a function is to keep Pylint
-    # warnings local to this function at most.
-    scripts_dir = os.path.join(os.path.dirname(__file__),
-                               os.pardir, os.pardir, 'scripts')
-    save_sys_path = sys.path
-    try:
-        # pylint: disable=invalid-name,global-variable-undefined
-        sys.path = [scripts_dir] + sys.path
-        return importlib.import_module('c_generator')
-    finally:
-        sys.path = save_sys_path
-
 if __name__ == '__main__':
-    C = load_module()
     unittest.main()

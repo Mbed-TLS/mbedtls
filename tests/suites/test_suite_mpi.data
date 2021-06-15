@@ -647,7 +647,7 @@ Base test mbedtls_mpi_add_abs #4
 mbedtls_mpi_add_abs:10:"-12345678":10:"-642531":10:"12988209"
 
 Test mbedtls_mpi_add_abs: 0 + 0
-mbedtls_mpi_add_abs:16:"":16:"":16:""
+mbedtls_mpi_add_abs:16:"":16:"":16:"0"
 
 Test mbedtls_mpi_add_abs: 0 + 1
 mbedtls_mpi_add_abs:16:"":16:"01":16:"01"
@@ -677,7 +677,7 @@ Base test mbedtls_mpi_add_mpi #4
 mbedtls_mpi_add_mpi:10:"-12345678":10:"-642531":10:"-12988209"
 
 Test mbedtls_mpi_add_mpi: 0 + 0
-mbedtls_mpi_add_mpi:16:"":16:"":16:""
+mbedtls_mpi_add_mpi:16:"":16:"":16:"0"
 
 Test mbedtls_mpi_add_mpi: 0 + 1
 mbedtls_mpi_add_mpi:16:"":16:"01":16:"01"
@@ -713,7 +713,7 @@ Test mbedtls_mpi_add_int #2
 mbedtls_mpi_add_int:10:"2039568783564019774057658669290345772801939933143482630947726464532830627227012776329":-9871232:10:"2039568783564019774057658669290345772801939933143482630947726464532830627227002905097"
 
 Test mbedtls_mpi_add_int: 0 (null) + 0
-mbedtls_mpi_add_int:16:"":0:16:""
+mbedtls_mpi_add_int:16:"":0:16:"0"
 
 Test mbedtls_mpi_add_int: 0 (null) + 1
 mbedtls_mpi_add_int:16:"":1:16:"1"
@@ -797,10 +797,10 @@ Base test mbedtls_mpi_sub_mpi #4 (Test with negative subtraction)
 mbedtls_mpi_sub_mpi:10:"5":10:"-7":10:"12"
 
 Test mbedtls_mpi_sub_mpi: 0 (null) - 0 (null)
-mbedtls_mpi_sub_mpi:16:"":16:"":16:""
+mbedtls_mpi_sub_mpi:16:"":16:"":16:"0"
 
 Test mbedtls_mpi_sub_mpi: 0 (null) - 0 (1 limb)
-mbedtls_mpi_sub_mpi:16:"":16:"00":16:""
+mbedtls_mpi_sub_mpi:16:"":16:"00":16:"0"
 
 Test mbedtls_mpi_sub_mpi: 0 (null) - 1
 mbedtls_mpi_sub_mpi:16:"":16:"1":16:"-1"
@@ -809,7 +809,7 @@ Test mbedtls_mpi_sub_mpi: 0 (null) - -1
 mbedtls_mpi_sub_mpi:16:"":16:"-1":16:"1"
 
 Test mbedtls_mpi_sub_mpi: 0 (1 limb) - 0 (null)
-mbedtls_mpi_sub_mpi:16:"00":16:"":16:""
+mbedtls_mpi_sub_mpi:16:"00":16:"":16:"0"
 
 Test mbedtls_mpi_sub_mpi: 1 - 0 (null)
 mbedtls_mpi_sub_mpi:16:"1":16:"":16:"1"
@@ -830,7 +830,7 @@ Test mbedtls_mpi_sub_int #2
 mbedtls_mpi_sub_int:10:"2039568783564019774057658669290345772801939933143482630947726464532830627227012776329":9871232:10:"2039568783564019774057658669290345772801939933143482630947726464532830627227002905097"
 
 Test mbedtls_mpi_sub_int: 0 (null) - 0
-mbedtls_mpi_sub_int:16:"":0:16:""
+mbedtls_mpi_sub_int:16:"":0:16:"0"
 
 Test mbedtls_mpi_sub_int: 0 (null) - 1
 mbedtls_mpi_sub_int:16:"":1:16:"-1"
@@ -845,13 +845,13 @@ Test mbedtls_mpi_shift_l #2
 mbedtls_mpi_shift_l:10:"658385546911733550164516088405238961461880256029834598831972039469421755117818013653494814438931957316403111689187691446941406788869098983929874080332195117465344344350008880118042764943201875870917468833709791733282363323948005998269792207":37:10:"90487820548639020691922304619723076305400961610119884872723190678642804168382367856686134531865643066983017249846286450251272364365605022750900439437595355052945035915579216557330505438734955340526145476988250171181404966718289259743378883640981192704"
 
 Test mbedtls_mpi_shift_l: 0 (null) <<= 0
-mbedtls_mpi_shift_l:16:"":1:16:""
+mbedtls_mpi_shift_l:16:"":1:16:"0"
 
 Test mbedtls_mpi_shift_l: 0 (null) <<= 1
-mbedtls_mpi_shift_l:16:"":1:16:""
+mbedtls_mpi_shift_l:16:"":1:16:"0"
 
 Test mbedtls_mpi_shift_l: 0 (null) <<= 64
-mbedtls_mpi_shift_l:16:"":64:16:""
+mbedtls_mpi_shift_l:16:"":64:16:"0"
 
 Test mbedtls_mpi_shift_r #1
 mbedtls_mpi_shift_r:10:"128":1:10:"64"
@@ -872,13 +872,13 @@ Test mbedtls_mpi_shift_r #7
 mbedtls_mpi_shift_r:16:"FFFFFFFFFFFFFFFF":128:16:"00"
 
 Test mbedtls_mpi_shift_r: 0 (null) >>= 0
-mbedtls_mpi_shift_r:16:"":0:16:""
+mbedtls_mpi_shift_r:16:"":0:16:"0"
 
 Test mbedtls_mpi_shift_r: 0 (null) >>= 1
-mbedtls_mpi_shift_r:16:"":1:16:""
+mbedtls_mpi_shift_r:16:"":1:16:"0"
 
 Test mbedtls_mpi_shift_r: 0 (null) >>= 64
-mbedtls_mpi_shift_r:16:"":64:16:""
+mbedtls_mpi_shift_r:16:"":64:16:"0"
 
 Base test mbedtls_mpi_mul_mpi #1
 mbedtls_mpi_mul_mpi:10:"5":10:"7":10:"35"
@@ -893,31 +893,31 @@ Base test mbedtls_mpi_mul_mpi #4
 mbedtls_mpi_mul_mpi:10:"-5":10:"-7":10:"35"
 
 Test mbedtls_mpi_mul_mpi: 0 (null) * 0 (null)
-mbedtls_mpi_mul_mpi:16:"":16:"":16:""
+mbedtls_mpi_mul_mpi:16:"":16:"":16:"0"
 
 Test mbedtls_mpi_mul_mpi: 0 (null) * 0 (1 limb)
-mbedtls_mpi_mul_mpi:16:"":16:"00":16:""
+mbedtls_mpi_mul_mpi:16:"":16:"00":16:"0"
 
 Test mbedtls_mpi_mul_mpi: 0 (null) * 1
-mbedtls_mpi_mul_mpi:16:"":16:"01":16:""
+mbedtls_mpi_mul_mpi:16:"":16:"01":16:"0"
 
 Test mbedtls_mpi_mul_mpi: 0 (null) * -1
-mbedtls_mpi_mul_mpi:16:"":16:"-01":16:""
+mbedtls_mpi_mul_mpi:16:"":16:"-01":16:"0"
 
 Test mbedtls_mpi_mul_mpi: 0 (1 limb) * -1
-mbedtls_mpi_mul_mpi:16:"00":16:"-01":16:""
+mbedtls_mpi_mul_mpi:16:"00":16:"-01":16:"0"
 
 Test mbedtls_mpi_mul_mpi: 0 (1 limb) * 0 (null)
-mbedtls_mpi_mul_mpi:16:"":16:"00":16:""
+mbedtls_mpi_mul_mpi:16:"":16:"00":16:"0"
 
 Test mbedtls_mpi_mul_mpi: 1 * 0 (null)
-mbedtls_mpi_mul_mpi:16:"01":16:"":16:""
+mbedtls_mpi_mul_mpi:16:"01":16:"":16:"0"
 
 Test mbedtls_mpi_mul_mpi: -1 * 0 (null)
-mbedtls_mpi_mul_mpi:16:"-01":16:"":16:""
+mbedtls_mpi_mul_mpi:16:"-01":16:"":16:"0"
 
 Test mbedtls_mpi_mul_mpi: -1 * 0 (1 limb)
-mbedtls_mpi_mul_mpi:16:"-01":16:"00":16:""
+mbedtls_mpi_mul_mpi:16:"-01":16:"00":16:"0"
 
 Test mbedtls_mpi_mul_mpi #1
 mbedtls_mpi_mul_mpi:16:"02f77b94b179d4a51360f04fa56e2c0784ce3b8a742280b016904896a5605fbe9e0f0683f82c439d979ab14e11b34e05ae96232b18fb2e0d1319f4942732d7eadf92ae90cb8c68ec8ece154d334f553564b6f6db185b33b8d3635598c3d128acde8bbb7b13697e48d1a542e5f9168d2d83a8dd05ae1eaf2451":16:"01b0b14c432710cde936e3fc100515e95dca61e10b8a68d9632bfa0546a9731a1ce6bebc6cb5fe6f5fd7e57b25f737f6a0ce5402e216b8b81c06f0c5ccce447d7f5631d14bff9dfa16f7cc72c56c84b636d00a5f35199d17ee9bf3f8746f44374ffd4ae22cf84089f04a9f7f356d6dc9f8cf8ef208a9b88c89":16:"0503ae899d35ae5b7706b067aed7cb2952da37a5d4ad58f05f69abe14e8aaae88eab2baed858177cb4595c0edc92e5ac13c2bba2bfa23276dd023e9e52f547d4c9edb138d86aad329d7afb01e15eab7281e181cb249fc91bf09d621d86561301edda156f80e3bbff853a312852fe9e3d0541cb86801390aff1dc3c05bcb592c266f625b70e419b4c7e7e85399bb06c0e50b099b4292f9eaff4d869681faa1f745b5fcb3349ed93c572739a31dcf76b43370cf9f86cc54e982dfac9467bde915c697e60554e0d698be6bb2dd1f8bc64659f6baee7641b51f4b5ed7010c04600fcd382db84a93fe3d4d86e86a459c6cebb59"
@@ -1261,10 +1261,10 @@ Base test GCD #3
 mbedtls_mpi_gcd:10:"768454923":10:"542167814":10:"1"
 
 Test GCD: 0 (null), 0 (null)
-mbedtls_mpi_gcd:16:"":16:"":16:""
+mbedtls_mpi_gcd:16:"":16:"":16:"0"
 
 Test GCD: 0 (null), 0 (1 limb)
-mbedtls_mpi_gcd:16:"":16:"00":16:""
+mbedtls_mpi_gcd:16:"":16:"00":16:"0"
 
 Test GCD: 0 (null), 3
 mbedtls_mpi_gcd:16:"":16:"03":16:"3"
@@ -1273,7 +1273,7 @@ Test GCD: 0 (null), 6
 mbedtls_mpi_gcd:16:"":16:"06":16:"6"
 
 Test GCD: 0 (1 limb), 0 (null)
-mbedtls_mpi_gcd:16:"00":16:"00":16:""
+mbedtls_mpi_gcd:16:"00":16:"00":16:"0"
 
 Test GCD: 0 (1 limb), 3
 mbedtls_mpi_gcd:16:"00":16:"03":16:"3"

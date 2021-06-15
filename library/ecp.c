@@ -2669,8 +2669,11 @@ cleanup:
 
 /*
  * Restartable multiplication R = m * P
+ *
+ * This internal function can be called without an RNG in case where we know
+ * the inputs are not sensitive.
  */
-int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+static int ecp_mul_restartable_internal( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
              mbedtls_ecp_restart_ctx *rs_ctx )
@@ -2679,13 +2682,6 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     char is_grp_capable = 0;
 #endif
-    ECP_VALIDATE_RET( grp != NULL );
-    ECP_VALIDATE_RET( R   != NULL );
-    ECP_VALIDATE_RET( m   != NULL );
-    ECP_VALIDATE_RET( P   != NULL );
-
-    if( f_rng == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     /* reset ops count for this call if top-level */
@@ -2736,6 +2732,25 @@ cleanup:
 #endif
 
     return( ret );
+}
+
+/*
+ * Restartable multiplication R = m * P
+ */
+int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+             const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+             mbedtls_ecp_restart_ctx *rs_ctx )
+{
+    ECP_VALIDATE_RET( grp != NULL );
+    ECP_VALIDATE_RET( R   != NULL );
+    ECP_VALIDATE_RET( m   != NULL );
+    ECP_VALIDATE_RET( P   != NULL );
+
+    if( f_rng == NULL )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    return( ecp_mul_restartable_internal( grp, R, m, P, f_rng, p_rng, rs_ctx ) );
 }
 
 /*
@@ -2831,8 +2846,8 @@ static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
     }
     else
     {
-        MBEDTLS_MPI_CHK( mbedtls_ecp_mul_restartable( grp, R, m, P,
-                                                      NULL, NULL, rs_ctx ) );
+        MBEDTLS_MPI_CHK( ecp_mul_restartable_internal( grp, R, m, P,
+                                                       NULL, NULL, rs_ctx ) );
     }
 
 cleanup:

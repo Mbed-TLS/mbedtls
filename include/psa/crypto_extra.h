@@ -27,6 +27,7 @@
 
 #ifndef PSA_CRYPTO_EXTRA_H
 #define PSA_CRYPTO_EXTRA_H
+#include "mbedtls/private_access.h"
 
 #include "mbedtls/platform_util.h"
 
@@ -71,7 +72,7 @@ static inline void psa_set_key_enrollment_algorithm(
     psa_key_attributes_t *attributes,
     psa_algorithm_t alg2)
 {
-    attributes->core.policy.alg2 = alg2;
+    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg2) = alg2;
 }
 
 /** Retrieve the enrollment algorithm policy from key attributes.
@@ -83,7 +84,7 @@ static inline void psa_set_key_enrollment_algorithm(
 static inline psa_algorithm_t psa_get_key_enrollment_algorithm(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->core.policy.alg2 );
+    return( attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg2) );
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -141,8 +142,8 @@ static inline void psa_set_key_slot_number(
     psa_key_attributes_t *attributes,
     psa_key_slot_number_t slot_number )
 {
-    attributes->core.flags |= MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
-    attributes->slot_number = slot_number;
+    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(flags) |= MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
+    attributes->MBEDTLS_PRIVATE(slot_number) = slot_number;
 }
 
 /** Remove the slot number attribute from a key attribute structure.
@@ -154,7 +155,7 @@ static inline void psa_set_key_slot_number(
 static inline void psa_clear_key_slot_number(
     psa_key_attributes_t *attributes )
 {
-    attributes->core.flags &= ~MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
+    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(flags) &= ~MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
 }
 
 /** Register a key that is already present in a secure element.
@@ -226,26 +227,26 @@ void mbedtls_psa_crypto_free( void );
 typedef struct mbedtls_psa_stats_s
 {
     /** Number of slots containing key material for a volatile key. */
-    size_t volatile_slots;
+    size_t MBEDTLS_PRIVATE(volatile_slots);
     /** Number of slots containing key material for a key which is in
      * internal persistent storage. */
-    size_t persistent_slots;
+    size_t MBEDTLS_PRIVATE(persistent_slots);
     /** Number of slots containing a reference to a key in a
      * secure element. */
-    size_t external_slots;
+    size_t MBEDTLS_PRIVATE(external_slots);
     /** Number of slots which are occupied, but do not contain
      * key material yet. */
-    size_t half_filled_slots;
+    size_t MBEDTLS_PRIVATE(half_filled_slots);
     /** Number of slots that contain cache data. */
-    size_t cache_slots;
+    size_t MBEDTLS_PRIVATE(cache_slots);
     /** Number of slots that are not used for anything. */
-    size_t empty_slots;
+    size_t MBEDTLS_PRIVATE(empty_slots);
     /** Number of slots that are locked. */
-    size_t locked_slots;
+    size_t MBEDTLS_PRIVATE(locked_slots);
     /** Largest key id value among open keys in internal persistent storage. */
-    psa_key_id_t max_open_internal_key_id;
+    psa_key_id_t MBEDTLS_PRIVATE(max_open_internal_key_id);
     /** Largest key id value among open keys in secure elements. */
-    psa_key_id_t max_open_external_key_id;
+    psa_key_id_t MBEDTLS_PRIVATE(max_open_external_key_id);
 } mbedtls_psa_stats_t;
 
 /** \brief Get statistics about

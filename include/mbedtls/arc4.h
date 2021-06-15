@@ -25,6 +25,7 @@
  */
 #ifndef MBEDTLS_ARC4_H
 #define MBEDTLS_ARC4_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -51,9 +52,9 @@ extern "C" {
  */
 typedef struct mbedtls_arc4_context
 {
-    int x;                      /*!< permutation index */
-    int y;                      /*!< permutation index */
-    unsigned char m[256];       /*!< permutation table */
+    int MBEDTLS_PRIVATE(x);                      /*!< permutation index */
+    int MBEDTLS_PRIVATE(y);                      /*!< permutation index */
+    unsigned char MBEDTLS_PRIVATE(m)[256];       /*!< permutation table */
 }
 mbedtls_arc4_context;
 

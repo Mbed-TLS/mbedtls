@@ -34,6 +34,7 @@
 
 #ifndef MBEDTLS_NIST_KW_H
 #define MBEDTLS_NIST_KW_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -65,7 +66,7 @@ typedef enum
  *           Don't make any assumptions on this context!
  */
 typedef struct {
-    mbedtls_cipher_context_t cipher_ctx;    /*!< The cipher context used. */
+    mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher_ctx);    /*!< The cipher context used. */
 } mbedtls_nist_kw_context;
 
 #else  /* MBEDTLS_NIST_key wrapping_ALT */

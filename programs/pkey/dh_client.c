@@ -126,15 +126,15 @@ int main( void )
 
     mbedtls_rsa_init( &rsa );
 
-    if( ( ret = mbedtls_mpi_read_file( &rsa.N, 16, f ) ) != 0 ||
-        ( ret = mbedtls_mpi_read_file( &rsa.E, 16, f ) ) != 0 )
+    if( ( ret = mbedtls_mpi_read_file( &rsa.MBEDTLS_PRIVATE(N), 16, f ) ) != 0 ||
+        ( ret = mbedtls_mpi_read_file( &rsa.MBEDTLS_PRIVATE(E), 16, f ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned %d\n\n", ret );
         fclose( f );
         goto exit;
     }
 
-    rsa.len = ( mbedtls_mpi_bitlen( &rsa.N ) + 7 ) >> 3;
+    rsa.MBEDTLS_PRIVATE(len) = ( mbedtls_mpi_bitlen( &rsa.MBEDTLS_PRIVATE(N) ) + 7 ) >> 3;
 
     fclose( f );
 
@@ -192,7 +192,7 @@ int main( void )
         goto exit;
     }
 
-    if( dhm.len < 64 || dhm.len > 512 )
+    if( dhm.MBEDTLS_PRIVATE(len) < 64 || dhm.MBEDTLS_PRIVATE(len) > 512 )
     {
         mbedtls_printf( " failed\n  ! Invalid DHM modulus size\n\n" );
         goto exit;
@@ -207,7 +207,7 @@ int main( void )
 
     p += 2;
 
-    if( ( n = (size_t) ( end - p ) ) != rsa.len )
+    if( ( n = (size_t) ( end - p ) ) != rsa.MBEDTLS_PRIVATE(len) )
     {
         mbedtls_printf( " failed\n  ! Invalid RSA signature size\n\n" );
         goto exit;
@@ -232,8 +232,8 @@ int main( void )
     mbedtls_printf( "\n  . Sending own public value to server" );
     fflush( stdout );
 
-    n = dhm.len;
-    if( ( ret = mbedtls_dhm_make_public( &dhm, (int) dhm.len, buf, n,
+    n = dhm.MBEDTLS_PRIVATE(len);
+    if( ( ret = mbedtls_dhm_make_public( &dhm, (int) dhm.MBEDTLS_PRIVATE(len), buf, n,
                                  mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_dhm_make_public returned %d\n\n", ret );

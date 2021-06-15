@@ -33,6 +33,7 @@
 
 #ifndef PSA_CRYPTO_VALUES_H
 #define PSA_CRYPTO_VALUES_H
+#include "mbedtls/private_access.h"
 
 /** \defgroup error Error codes
  * @{
@@ -2124,8 +2125,8 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 static inline mbedtls_svc_key_id_t mbedtls_svc_key_id_make(
     mbedtls_key_owner_id_t owner_id, psa_key_id_t key_id )
 {
-    return( (mbedtls_svc_key_id_t){ .key_id = key_id,
-                                    .owner = owner_id } );
+    return( (mbedtls_svc_key_id_t){ .MBEDTLS_PRIVATE(key_id) = key_id,
+                                    .MBEDTLS_PRIVATE(owner) = owner_id } );
 }
 
 /** Compare two key identifiers.
@@ -2138,8 +2139,8 @@ static inline mbedtls_svc_key_id_t mbedtls_svc_key_id_make(
 static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
                                             mbedtls_svc_key_id_t id2 )
 {
-    return( ( id1.key_id == id2.key_id ) &&
-            mbedtls_key_owner_id_equal( id1.owner, id2.owner ) );
+    return( ( id1.MBEDTLS_PRIVATE(key_id) == id2.MBEDTLS_PRIVATE(key_id) ) &&
+            mbedtls_key_owner_id_equal( id1.MBEDTLS_PRIVATE(owner), id2.MBEDTLS_PRIVATE(owner) ) );
 }
 
 /** Check whether a key identifier is null.
@@ -2150,7 +2151,7 @@ static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
  */
 static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 {
-    return( ( key.key_id == 0 ) && ( key.owner == 0 ) );
+    return( ( key.MBEDTLS_PRIVATE(key_id) == 0 ) && ( key.MBEDTLS_PRIVATE(owner) == 0 ) );
 }
 
 #endif /* !MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */

@@ -44,7 +44,9 @@ Unit tests are in ``../tests/scripts/test_c_generator.py``.
 """
 
 import copy
+import os
 import re
+import tempfile
 import typing
 from typing import Any, Iterator, List, Optional, Sequence, Tuple, Union # pylint: disable=unused-import
 import typing_extensions #pylint: disable=import-error
@@ -441,3 +443,64 @@ class Switch(Snippet):
             code.output(stream, options, code_indent)
             self.output_line(stream, case_indent, '}')
         self.output_line(stream, indent, '}')
+
+
+class FunctionDefinition(DecoratedBlock):
+    pass #TODO
+
+
+Toplevel = Union[Comment,
+                 Directive,
+                 PreprocessorConditional,
+                 FunctionDefinition]
+
+class File(ListLike[Toplevel]):
+    """A file containing C code."""
+
+    def __init__(self, filename: str) -> None:
+        super().__init__()
+        self.filename = filename
+
+    def make_header(self) -> List[Toplevel]: # pylint: disable=no-self-use
+        return []
+
+    def make_footer(self) -> List[Toplevel]: # pylint: disable=no-self-use
+        return []
+
+    def output(self, stream: Writable,
+               options: Options = DEFAULT_OPTIONS) -> None: # pylint: disable=bad-whitespace
+        first = True
+        for item in self.make_header() + self.items + self.make_footer():
+            if not first:
+                stream.write('\n')
+                first = False
+            item.output(stream, options)
+
+    def save(self, options: Options = DEFAULT_OPTIONS) -> None: # pylint: disable=bad-whitespace
+        tmp = self.filename + '.tmp'
+        with open(tmp, 'w') as out:
+            self.output(out, options)
+        os.rename(tmp, self.filename)
+
+
+class CFile(File):
+    def make_header(self) -> List[Toplevel]: # pylint: disable=no-self-use
+        return [Comment('Automatically generated file. Do not edit!')]
+
+    def make_footer(self) -> List[Toplevel]: # pylint: disable=no-self-use
+        return [Comment('End of generated file {}'.format(self.filename))]
+
+
+class HFile(File):
+    def __init__(self, filename: str) -> None:
+        super().__init__(filename)
+        self.guard = re.sub(r'[^0-9A-Z]+', '_',
+                            os.path.basename(filename).upper())
+
+    def make_header(self) -> List[Toplevel]: # pylint: disable=no-self-use
+        return [Comment('Automatically generated file. Do not edit!'),
+                Directive('ifndef', self.guard),
+                Directive('define', self.guard)]
+
+    def make_footer(self) -> List[Toplevel]: # pylint: disable=no-self-use
+        return [Directive('endif', '/*', self.guard, '*/')]

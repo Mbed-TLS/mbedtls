@@ -214,17 +214,77 @@ mbedtls_mpi_cmp_mpi:10:"0":10:"":0
 Test mbedtls_mpi_cmp_mpi: 0 (1 limb) = 0 (1 limb)
 mbedtls_mpi_cmp_mpi:10:"0":10:"0":0
 
-Test mbedtls_mpi_cmp_mpi: 0 < positive
+Test mbedtls_mpi_cmp_mpi: 0 (null) < positive
+mbedtls_mpi_cmp_mpi:10:"":10:"123":-1
+
+Test mbedtls_mpi_cmp_mpi: 0 (1 limb) < positive
 mbedtls_mpi_cmp_mpi:10:"0":10:"123":-1
 
-Test mbedtls_mpi_cmp_mpi: 0 > negative
+Test mbedtls_mpi_cmp_mpi: 0 (null) > negative
+mbedtls_mpi_cmp_mpi:10:"":10:"-123":1
+
+Test mbedtls_mpi_cmp_mpi: 0 (1 limb) > negative
 mbedtls_mpi_cmp_mpi:10:"0":10:"-123":1
 
-Test mbedtls_mpi_cmp_mpi: positive > 0
+Test mbedtls_mpi_cmp_mpi: positive > 0 (null)
 mbedtls_mpi_cmp_mpi:10:"123":10:"":1
 
-Test mbedtls_mpi_cmp_mpi: negative < 0
+Test mbedtls_mpi_cmp_mpi: positive > 0 (1 limb)
+mbedtls_mpi_cmp_mpi:10:"123":10:"0":1
+
+Test mbedtls_mpi_cmp_mpi: negative < 0 (null)
 mbedtls_mpi_cmp_mpi:10:"-123":10:"":-1
+
+Test mbedtls_mpi_cmp_mpi: negative < 0 (1 limb)
+mbedtls_mpi_cmp_mpi:10:"-123":10:"0":-1
+
+Test mbedtls_mpi_cmp_mpi: 0 (null) < positive with leading zero limb
+mbedtls_mpi_cmp_mpi:16:"":16:"0000000000000000123":-1
+
+Test mbedtls_mpi_cmp_mpi: 0 (1 limb) < positive with leading zero limb
+mbedtls_mpi_cmp_mpi:16:"0":16:"0000000000000000123":-1
+
+Test mbedtls_mpi_cmp_mpi: 0 (null) > negative with leading zero limb
+mbedtls_mpi_cmp_mpi:16:"":16:"-0000000000000000123":1
+
+Test mbedtls_mpi_cmp_mpi: 0 (1 limb) > negative with leading zero limb
+mbedtls_mpi_cmp_mpi:16:"0":16:"-0000000000000000123":1
+
+Test mbedtls_mpi_cmp_mpi: positive with leading zero limb > 0 (null)
+mbedtls_mpi_cmp_mpi:16:"0000000000000000123":16:"":1
+
+Test mbedtls_mpi_cmp_mpi: positive with leading zero limb > 0 (1 limb)
+mbedtls_mpi_cmp_mpi:16:"0000000000000000123":16:"0":1
+
+Test mbedtls_mpi_cmp_mpi: negative with leading zero limb < 0 (null)
+mbedtls_mpi_cmp_mpi:16:"-0000000000000000123":16:"":-1
+
+Test mbedtls_mpi_cmp_mpi: negative with leading zero limb < 0 (1 limb)
+mbedtls_mpi_cmp_mpi:16:"-0000000000000000123":16:"0":-1
+
+Test mbedtls_mpi_cmp_mpi: 0 (null) < large positive
+mbedtls_mpi_cmp_mpi:16:"":16:"1230000000000000000":-1
+
+Test mbedtls_mpi_cmp_mpi: 0 (1 limb) < large positive
+mbedtls_mpi_cmp_mpi:16:"0":16:"1230000000000000000":-1
+
+Test mbedtls_mpi_cmp_mpi: 0 (null) > large negative
+mbedtls_mpi_cmp_mpi:16:"":16:"-1230000000000000000":1
+
+Test mbedtls_mpi_cmp_mpi: 0 (1 limb) > large negative
+mbedtls_mpi_cmp_mpi:16:"0":16:"-1230000000000000000":1
+
+Test mbedtls_mpi_cmp_mpi: large positive > 0 (null)
+mbedtls_mpi_cmp_mpi:16:"1230000000000000000":16:"":1
+
+Test mbedtls_mpi_cmp_mpi: large positive > 0 (1 limb)
+mbedtls_mpi_cmp_mpi:16:"1230000000000000000":16:"0":1
+
+Test mbedtls_mpi_cmp_mpi: large negative < 0 (null)
+mbedtls_mpi_cmp_mpi:16:"-1230000000000000000":16:"":-1
+
+Test mbedtls_mpi_cmp_mpi: large negative < 0 (1 limb)
+mbedtls_mpi_cmp_mpi:16:"-1230000000000000000":16:"0":-1
 
 Base test mbedtls_mpi_lt_mpi_ct #1
 mbedtls_mpi_lt_mpi_ct:1:"2B5":1:"2B5":0:0

@@ -310,6 +310,22 @@ class Block(DecoratedBlock):
     def simple_block_items(self):
         return self.items
 
+class While(DecoratedBlock):
+    """A while loop."""
+
+    def __init__(self, condition: str, *instructions: Snippet) -> None:
+        super().__init__(*instructions)
+        self.set_condition(condition)
+
+    def get_condition(self) -> str:
+        return self.condition
+
+    def set_condition(self, condition: str):
+        self.condition = condition.strip()
+
+    def output_before(self, stream: Writable, options: Options, indent: str) -> None: # pylint: disable=bad-whitespace
+        self.output_line(stream, indent, 'while( ' + self.condition + ' )')
+
 
 class PreprocessorConditional(Snippet):
     """Code guarded by conditional compilation directives."""

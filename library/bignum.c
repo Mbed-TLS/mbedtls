@@ -2424,6 +2424,13 @@ int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B 
 
     TA.s = TB.s = 1;
 
+    /* We follow the procedure described in HAC 14.54, except that sequences
+     * of divisions by 2 are grouped into a single shift. The procedure in HAC
+     * assumes that the numbers are initially positive. The case B=0 was
+     * short-circuited above. If A=0, the loop goes through 0 iterations
+     * and the result is correctly B.
+     */
+
     while( mbedtls_mpi_cmp_int( &TA, 0 ) != 0 )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &TA, mbedtls_mpi_lsb( &TA ) ) );

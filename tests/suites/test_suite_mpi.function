@@ -630,11 +630,14 @@ void mbedtls_mpi_shrink( int before, int used, int min, int after )
     mbedtls_mpi_init( &X );
 
     TEST_ASSERT( mbedtls_mpi_grow( &X, before ) == 0 );
-    TEST_ASSERT( used <= before );
-    if( before > 0 )
-        memset( X.p, 0x2a, used * sizeof( mbedtls_mpi_uint ) );
+    if( used > 0 )
+    {
+        size_t used_bit_count = used * 8 * sizeof( mbedtls_mpi_uint );
+        TEST_ASSERT( mbedtls_mpi_set_bit( &X, used_bit_count - 1, 1 ) == 0 );
+    }
+    TEST_EQUAL( X.n, (size_t) before );
     TEST_ASSERT( mbedtls_mpi_shrink( &X, min ) == 0 );
-    TEST_ASSERT( X.n == (size_t) after );
+    TEST_EQUAL( X.n, (size_t) after );
 
 exit:
     mbedtls_mpi_free( &X );

@@ -1,0 +1,4 @@
+Bugfix
+   * When MBEDTLS_PSA_CRYPTO_SPM is enabled, crypto_spe.h was not included
+     in all the right places. Include it from crypto_platform.h, which is
+     the natural place. Fixes #4649.

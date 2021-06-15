@@ -81,6 +81,18 @@ static inline int mbedtls_key_owner_id_equal( mbedtls_key_owner_id_t id1,
 
 #endif /* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
 
+/*
+ * When MBEDTLS_PSA_CRYPTO_SPM is defined, the code is being built for SPM
+ * (Secure Partition Manager) integration which separates the code into two
+ * parts: NSPE (Non-Secure Processing Environment) and SPE (Secure Processing
+ * Environment). When building for the SPE, an additional header file should be
+ * included.
+ */
+#if defined(MBEDTLS_PSA_CRYPTO_SPM)
+#define PSA_CRYPTO_SECURE 1
+#include "crypto_spe.h"
+#endif // MBEDTLS_PSA_CRYPTO_SPM
+
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 /** The type of the context passed to mbedtls_psa_external_get_random().
  *

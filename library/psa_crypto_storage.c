@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "psa_crypto_service_integration.h"
 #include "psa/crypto.h"
 #include "psa_crypto_storage.h"
 #include "mbedtls/platform_util.h"

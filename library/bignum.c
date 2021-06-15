@@ -2157,7 +2157,7 @@ static size_t mbedtls_mpi_cf_bool_eq( size_t x, size_t y )
  */
 static int mpi_select( mbedtls_mpi *R, const mbedtls_mpi *T, size_t T_size, size_t idx )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
     for( size_t i = 0; i < T_size; i++ )
     {

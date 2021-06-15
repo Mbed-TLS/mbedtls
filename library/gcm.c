@@ -333,14 +333,21 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
 }
 
 /**
- * mbedtls_gcm_context::buf contains different data type, depending
- * on the values of mbedtls_gcm_context::::add_len and
- * mbedtls_gcm_context::len:
- *     * When add_len % 16 == 0 and len == 0: initial state.
- *     * When add_len % 16 != 0 and len == 0: the first `add_len % 16` bytes
- *       of buf have a partial AD block xored in and not yet multiplied in.
- *     * When len != 0: the first `add_len % 16` bytes of buf have partial
- *       ciphertext xored in and not yet multiplied in.
+ * mbedtls_gcm_context::buf contains the partial state of the computation of
+ * the authentication tag.
+ * mbedtls_gcm_context::::add_len and mbedtls_gcm_context::len indicate
+ * differenet stages of the computation:
+ *     * len == 0 && add_len == 0:      initial state
+ *     * len == 0 && add_len % 16 != 0: the first `add_len % 16` bytes have
+ *                                      a partial block of AD that has been
+ *                                      xored in but not yet multiplied in.
+ *     * len == 0 && add_len % 16 == 0: the authentication tag is correct if
+ *                                      the data ends now.
+ *     * len % 16 != 0:                 the first `len % 16` bytes have
+ *                                      a partial block of ciphertext that has
+ *                                      been xored in but not yet multiplied in.
+ *     * len > 0 && len % 16 == 0:      the authentication tag is correct if
+ *                                      the data ends now.
  */
 int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
                            const unsigned char *add, size_t add_len )

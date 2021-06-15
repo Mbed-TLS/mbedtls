@@ -1535,7 +1535,7 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
  * \brief          Set the random number generator callback
  *
  * \param conf     SSL configuration
- * \param f_rng    RNG function
+ * \param f_rng    RNG function (mandatory)
  * \param p_rng    RNG parameter
  */
 void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,

@@ -279,10 +279,10 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
  * \param output_size   The size of the destination buffer. This must be at
  *                      least the size of \c ctx->len (the size of \c P).
  * \param olen          On exit, holds the actual number of Bytes written.
- * \param f_rng         The RNG function, for blinding purposes. This may
- *                      b \c NULL if blinding isn't needed.
- * \param p_rng         The RNG context. This may be \c NULL if \p f_rng
- *                      doesn't need a context argument.
+ * \param f_rng         The RNG function. Must not be \c NULL. Used for
+ *                      blinding.
+ * \param p_rng         The RNG context to be passed to \p f_rng. This may be
+ *                      \c NULL if \p f_rng doesn't need a context parameter.
  *
  * \return              \c 0 on success.
  * \return              An \c MBEDTLS_ERR_DHM_XXX error code on failure.

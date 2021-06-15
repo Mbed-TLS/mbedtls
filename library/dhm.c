@@ -444,6 +444,9 @@ int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
     DHM_VALIDATE_RET( output != NULL );
     DHM_VALIDATE_RET( olen != NULL );
 
+    if( f_rng == NULL )
+        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+
     if( output_size < mbedtls_dhm_get_len( ctx ) )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
 
@@ -453,25 +456,17 @@ int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
     mbedtls_mpi_init( &GYb );
 
     /* Blind peer's value */
-    if( f_rng != NULL )
-    {
-        MBEDTLS_MPI_CHK( dhm_update_blinding( ctx, f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &GYb, &ctx->GY, &ctx->Vi ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &GYb, &GYb, &ctx->P ) );
-    }
-    else
-        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &GYb, &ctx->GY ) );
+    MBEDTLS_MPI_CHK( dhm_update_blinding( ctx, f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &GYb, &ctx->GY, &ctx->Vi ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &GYb, &GYb, &ctx->P ) );
 
     /* Do modular exponentiation */
     MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &ctx->K, &GYb, &ctx->X,
                           &ctx->P, &ctx->RP ) );
 
     /* Unblind secret value */
-    if( f_rng != NULL )
-    {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->K, &ctx->K, &ctx->Vf ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->K, &ctx->K, &ctx->P ) );
-    }
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->K, &ctx->K, &ctx->Vf ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->K, &ctx->K, &ctx->P ) );
 
     /* Output the secret without any leading zero byte. This is mandatory
      * for TLS per RFC 5246 §8.1.2. */

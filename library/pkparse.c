@@ -1010,6 +1010,11 @@ static int pk_parse_key_pkcs8_unencrypted_der(
     mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
     const mbedtls_pk_info_t *pk_info;
 
+#if !defined(MBEDTLS_ECP_C)
+    (void) f_rng;
+    (void) p_rng;
+#endif
+
     /*
      * This function parses the PrivateKeyInfo object (PKCS#8 v1.2 = RFC 5208)
      *

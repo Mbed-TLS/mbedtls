@@ -8,7 +8,6 @@ if(FUZZINGENGINE_LIB)
 endif()
 
 set(executables_no_common_c
-    fuzz_privkey
     fuzz_pubkey
     fuzz_x509crl
     fuzz_x509crt
@@ -16,6 +15,7 @@ set(executables_no_common_c
 )
 
 set(executables_with_common_c
+    fuzz_privkey
     fuzz_client
     fuzz_dtlsclient
     fuzz_dtlsserver

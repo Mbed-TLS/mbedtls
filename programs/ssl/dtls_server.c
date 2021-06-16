@@ -81,7 +81,6 @@ int main( void )
 #include "mbedtls/timing.h"
 
 #include "test/certs.h"
-#include "test/random.h"
 
 #if defined(MBEDTLS_SSL_CACHE_C)
 #include "mbedtls/ssl_cache.h"

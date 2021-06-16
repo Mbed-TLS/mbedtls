@@ -34,12 +34,15 @@
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
 
-#if defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_FS_IO)
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_WRITE_C) && \
+    defined(MBEDTLS_FS_IO) && \
+    defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_CTR_DRBG_C)
 #include "mbedtls/error.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/error.h"
 
-#include "test/random.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -90,10 +93,14 @@
 
 #if !defined(MBEDTLS_PK_PARSE_C) || \
     !defined(MBEDTLS_PK_WRITE_C) || \
-    !defined(MBEDTLS_FS_IO)
+    !defined(MBEDTLS_FS_IO)      || \
+    !defined(MBEDTLS_ENTROPY_C)  || \
+    !defined(MBEDTLS_CTR_DRBG_C)
 int main( void )
 {
-    mbedtls_printf( "MBEDTLS_PK_PARSE_C and/or MBEDTLS_PK_WRITE_C and/or MBEDTLS_FS_IO not defined.\n" );
+    mbedtls_printf( "MBEDTLS_PK_PARSE_C and/or MBEDTLS_PK_WRITE_C and/or "
+                    "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
+                    "MBEDTLS_FS_IO not defined.\n" );
     mbedtls_exit( 0 );
 }
 #else
@@ -203,12 +210,19 @@ int main( int argc, char *argv[] )
     int i;
     char *p, *q;
 
+    const char *pers = "pkey/key_app";
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+
     mbedtls_pk_context key;
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
 
     /*
      * Set to sane values
      */
+    mbedtls_entropy_init( &entropy );
+    mbedtls_ctr_drbg_init( &ctr_drbg );
+
     mbedtls_pk_init( &key );
     memset( buf, 0, sizeof( buf ) );
 
@@ -294,8 +308,16 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "\n  . Loading the private key ..." );
         fflush( stdout );
 
+        if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
+                                   (const unsigned char *) pers,
+                                   strlen( pers ) ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_seed returned -0x%04x\n", (unsigned int) -ret );
+            goto exit;
+        }
+
         ret = mbedtls_pk_parse_keyfile( &key, opt.filename, NULL,
-                                        mbedtls_test_rnd_std_rand, NULL );
+                                        mbedtls_ctr_drbg_random, &ctr_drbg );
         if( ret != 0 )
         {
             mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
@@ -431,6 +453,9 @@ exit:
 
     mbedtls_pk_free( &key );
 
+    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_entropy_free( &entropy );
+
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
@@ -438,4 +463,5 @@ exit:
 
     mbedtls_exit( exit_code );
 }
-#endif /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C && MBEDTLS_FS_IO */
+#endif /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C && MBEDTLS_FS_IO &&
+          MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */

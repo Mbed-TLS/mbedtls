@@ -20,7 +20,6 @@
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
 #include "ssl_test_lib.h"
-#include "test/random.h"
 
 #if defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
 int main( void )
@@ -689,7 +688,7 @@ void sni_free( sni_entry *head )
  *
  * Modifies the input string! This is not production quality!
  */
-sni_entry *sni_parse( char *sni_string )
+sni_entry *sni_parse( char *sni_string, rng_context_t *p_rng )
 {
     sni_entry *cur = NULL, *new = NULL;
     char *p = sni_string;
@@ -728,8 +727,7 @@ sni_entry *sni_parse( char *sni_string )
         mbedtls_pk_init( new->key );
 
         if( mbedtls_x509_crt_parse_file( new->cert, crt_file ) != 0 ||
-            mbedtls_pk_parse_keyfile( new->key, key_file, "",
-                mbedtls_test_rnd_std_rand, NULL ) != 0 )
+            mbedtls_pk_parse_keyfile( new->key, key_file, "", rng_get, p_rng ) != 0 )
             goto error;
 
         if( strcmp( ca_file, "-" ) != 0 )
@@ -2373,7 +2371,7 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "  . Setting up SNI information..." );
         fflush( stdout );
 
-        if( ( sni_info = sni_parse( opt.sni ) ) == NULL )
+        if( ( sni_info = sni_parse( opt.sni, &rng ) ) == NULL )
         {
             mbedtls_printf( " failed\n" );
             goto exit;

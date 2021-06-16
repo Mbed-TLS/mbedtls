@@ -63,25 +63,7 @@ typedef struct mbedtls_timing_delay_context
 
 extern volatile int mbedtls_timing_alarmed;
 
-/**
- * \brief          Return the elapsed time in milliseconds
- *
- * \warning        May change without notice
- *
- * \param val      points to a timer structure
- * \param reset    If 0, query the elapsed time. Otherwise (re)start the timer.
- *
- * \return         Elapsed time since the previous reset in ms. When
- *                 restarting, this is always 0.
- *
- * \note           To initialize a timer, call this function with reset=1.
- *
- *                 Determining the elapsed time and resetting the timer is not
- *                 atomic on all platforms, so after the sequence
- *                 `{ get_timer(1); ...; time1 = get_timer(1); ...; time2 =
- *                 get_timer(0) }` the value time1+time2 is only approximately
- *                 the delay since the first reset.
- */
+/* Internal use */
 unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int reset );
 
 /**

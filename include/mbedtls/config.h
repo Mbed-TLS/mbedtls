@@ -1013,8 +1013,7 @@
 /**
  * \def MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
  *
- * Do not add default entropy sources. These are the platform specific
- * poll function.
+ * Do not add default entropy sources in mbedtls_entropy_init().
  *
  * This is useful to have more control over the added entropy sources in an
  * application.

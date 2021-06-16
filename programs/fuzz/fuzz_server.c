@@ -56,6 +56,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     options = Data[Size - 1];
 
     if (initialized == 0) {
+        mbedtls_ctr_drbg_init( &ctr_drbg );
+        mbedtls_entropy_init( &entropy );
+
+        if( mbedtls_ctr_drbg_seed( &ctr_drbg, dummy_entropy, &entropy,
+                                  (const unsigned char *) pers, strlen( pers ) ) != 0 )
+            return 1;
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
         mbedtls_x509_crt_init( &srvcert );
         mbedtls_pk_init( &pkey );
@@ -67,7 +74,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
             return 1;
         if (mbedtls_pk_parse_key( &pkey, (const unsigned char *) mbedtls_test_srv_key,
                                  mbedtls_test_srv_key_len, NULL, 0,
-                                 mbedtls_ctr_drbg_random, &ctr_drbg ) != 0)
+                                 dummy_random, &ctr_drbg ) != 0)
             return 1;
 #endif
 
@@ -81,16 +88,9 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     }
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
-    mbedtls_ctr_drbg_init( &ctr_drbg );
-    mbedtls_entropy_init( &entropy );
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     mbedtls_ssl_ticket_init( &ticket_ctx );
 #endif
-
-    if( mbedtls_ctr_drbg_seed( &ctr_drbg, dummy_entropy, &entropy,
-                              (const unsigned char *) pers, strlen( pers ) ) != 0 )
-        goto exit;
-
 
     if( mbedtls_ssl_config_defaults( &conf,
                                     MBEDTLS_SSL_IS_SERVER,

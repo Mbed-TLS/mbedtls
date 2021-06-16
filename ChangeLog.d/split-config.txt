@@ -1,7 +1,7 @@
 Changes
    * config.h has been split into build_info.h and mbedtls_config.h
      build_info.h is intended to be included from C code directly, while
-     mbedtls_config.h is intended to be edited by end users whishing to
+     mbedtls_config.h is intended to be edited by end users wishing to
      change the build configuration, and should generally only be included from
      build_info.h.
    * The handling of MBEDTLS_CONFIG_FILE has been moved into build_info.h.

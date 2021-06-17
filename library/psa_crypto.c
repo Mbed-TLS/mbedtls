@@ -2463,27 +2463,59 @@ psa_status_t psa_mac_compute( mbedtls_svc_key_id_t key,
                               size_t *mac_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+    uint8_t operation_mac_size = 0;
 
-    status = psa_mac_sign_setup( &operation, key, alg );
+    status = psa_get_and_lock_key_slot_with_policy(
+                 key, &slot, PSA_KEY_USAGE_SIGN_HASH, alg );
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_mac_update( &operation, input, input_length );
+    psa_key_attributes_t attributes = {
+        .core = slot->attr
+    };
+
+    status = psa_mac_finalize_alg_and_key_validation( alg, &attributes,
+                                                      &operation_mac_size );
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_mac_sign_finish( &operation, mac, mac_size, mac_length );
-    if( status != PSA_SUCCESS )
+    if( mac_size < operation_mac_size )
+    {
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
         goto exit;
+    }
+
+    status = psa_driver_wrapper_mac_compute(
+                 &attributes,
+                 slot->key.data, slot->key.bytes,
+                 alg,
+                 input, input_length,
+                 mac, operation_mac_size, mac_length );
 
 exit:
-    if ( status == PSA_SUCCESS )
-        status = psa_mac_abort( &operation );
+    if( status == PSA_SUCCESS )
+    {
+        /* Set the excess room in the output buffer to an invalid value, to
+         * avoid potentially leaking a longer MAC. */
+        if( mac_size > operation_mac_size )
+            memset( &mac[operation_mac_size],
+                    '!',
+                    mac_size - operation_mac_size );
+    }
     else
-        psa_mac_abort( &operation );
+    {
+        /* Set the output length and content to a safe default, such that in
+         * case the caller misses an error check, the output would be an
+         * unachievable MAC. */
+        *mac_length = mac_size;
+        memset( mac, '!', mac_size );
+    }
 
-    return ( status );
+    unlock_status = psa_unlock_key_slot( slot );
+
+    return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
 psa_status_t psa_mac_verify( mbedtls_svc_key_id_t key,

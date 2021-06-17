@@ -2248,13 +2248,11 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
+    uint8_t mac_size;
 
     /* A context must be freshly initialized before it can be set up. */
     if( operation->id != 0 )
         return( PSA_ERROR_BAD_STATE );
-
-    if( ! PSA_ALG_IS_MAC( alg ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_get_and_lock_key_slot_with_policy(
                  key,
@@ -2264,24 +2262,28 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     if( status != PSA_SUCCESS )
         return( status );
 
-    psa_key_attributes_t attributes = {
+    psa_key_attributes_t key_attributes = {
         .core = slot->attr
     };
+    psa_key_attributes_t *attributes = &key_attributes;
+
+    if( ! PSA_ALG_IS_MAC( alg ) )
+    {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
 
     /* Validate the combination of key type and algorithm */
-    status = psa_mac_key_can_do( alg, psa_get_key_type( &attributes ) );
+    status = psa_mac_key_can_do( alg, psa_get_key_type( attributes ) );
     if( status != PSA_SUCCESS )
         goto exit;
 
-    operation->is_sign = is_sign;
-
     /* Get the output length for the algorithm and key combination */
-    operation->mac_size = PSA_MAC_LENGTH(
-                            psa_get_key_type( &attributes ),
-                            psa_get_key_bits( &attributes ),
-                            alg );
+    mac_size = PSA_MAC_LENGTH( psa_get_key_type( attributes ),
+                               psa_get_key_bits( attributes ),
+                               alg );
 
-    if( operation->mac_size < 4 )
+    if( mac_size < 4 )
     {
         /* A very short MAC is too short for security since it can be
          * brute-forced. Ancient protocols with 32-bit MACs do exist,
@@ -2291,9 +2293,9 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         goto exit;
     }
 
-    if( operation->mac_size > PSA_MAC_LENGTH( psa_get_key_type( &attributes ),
-                                              psa_get_key_bits( &attributes ),
-                                              PSA_ALG_FULL_LENGTH_MAC( alg ) ) )
+    if( mac_size > PSA_MAC_LENGTH( psa_get_key_type( attributes ),
+                                   psa_get_key_bits( attributes ),
+                                   PSA_ALG_FULL_LENGTH_MAC( alg ) ) )
     {
         /* It's impossible to "truncate" to a larger length than the full length
          * of the algorithm. */
@@ -2301,11 +2303,14 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         goto exit;
     }
 
+    operation->is_sign = is_sign;
+    operation->mac_size = mac_size;
+
     /* Dispatch the MAC setup call with validated input */
     if( is_sign )
     {
         status = psa_driver_wrapper_mac_sign_setup( operation,
-                                                    &attributes,
+                                                    &key_attributes,
                                                     slot->key.data,
                                                     slot->key.bytes,
                                                     alg );
@@ -2313,7 +2318,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     else
     {
         status = psa_driver_wrapper_mac_verify_setup( operation,
-                                                      &attributes,
+                                                      &key_attributes,
                                                       slot->key.data,
                                                       slot->key.bytes,
                                                       alg );

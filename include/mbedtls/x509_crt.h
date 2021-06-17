@@ -156,6 +156,10 @@ mbedtls_x509_subject_alternative_name;
  * Security profile for certificate verification.
  *
  * All lists are bitfields, built by ORing flags from MBEDTLS_X509_ID_FLAG().
+ *
+ * The fields of this structure are part of the public API and can be
+ * manipulated directly by applications. Future versions of the library may
+ * add extra fields or reorder existing fields.
  */
 typedef struct mbedtls_x509_crt_profile
 {

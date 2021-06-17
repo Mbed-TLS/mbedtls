@@ -2240,32 +2240,12 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
     return( status );
 }
 
-static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
-                                   mbedtls_svc_key_id_t key,
-                                   psa_algorithm_t alg,
-                                   int is_sign )
+static psa_status_t psa_mac_finalize_alg_and_key_validation(
+    psa_algorithm_t alg,
+    const psa_key_attributes_t *attributes )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
     uint8_t mac_size;
-
-    /* A context must be freshly initialized before it can be set up. */
-    if( operation->id != 0 )
-        return( PSA_ERROR_BAD_STATE );
-
-    status = psa_get_and_lock_key_slot_with_policy(
-                 key,
-                 &slot,
-                 is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH,
-                 alg );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    psa_key_attributes_t key_attributes = {
-        .core = slot->attr
-    };
-    psa_key_attributes_t *attributes = &key_attributes;
 
     if( ! PSA_ALG_IS_MAC( alg ) )
     {
@@ -2303,14 +2283,50 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         goto exit;
     }
 
-    operation->is_sign = is_sign;
-    operation->mac_size = mac_size;
+    status = PSA_SUCCESS;
 
+exit:
+    return( status );
+}
+
+static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
+                                   mbedtls_svc_key_id_t key,
+                                   psa_algorithm_t alg,
+                                   int is_sign )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+
+    /* A context must be freshly initialized before it can be set up. */
+    if( operation->id != 0 )
+        return( PSA_ERROR_BAD_STATE );
+
+    status = psa_get_and_lock_key_slot_with_policy(
+                 key,
+                 &slot,
+                 is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH,
+                 alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    psa_key_attributes_t attributes = {
+        .core = slot->attr
+    };
+
+    status = psa_mac_finalize_alg_and_key_validation( alg, &attributes );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    operation->is_sign = is_sign;
+    operation->mac_size = PSA_MAC_LENGTH( psa_get_key_type( &attributes ),
+                                          psa_get_key_bits( &attributes ),
+                                          alg );
     /* Dispatch the MAC setup call with validated input */
     if( is_sign )
     {
         status = psa_driver_wrapper_mac_sign_setup( operation,
-                                                    &key_attributes,
+                                                    &attributes,
                                                     slot->key.data,
                                                     slot->key.bytes,
                                                     alg );
@@ -2318,7 +2334,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     else
     {
         status = psa_driver_wrapper_mac_verify_setup( operation,
-                                                      &key_attributes,
+                                                      &attributes,
                                                       slot->key.data,
                                                       slot->key.bytes,
                                                       alg );

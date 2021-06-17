@@ -132,6 +132,23 @@ exit:
     mbedtls_free( output_tag );
 }
 
+static void check_no_cipher_no_ad( mbedtls_gcm_context *ctx,
+                                   int mode,
+                                   const data_t *iv,
+                                   const data_t *tag )
+{
+    uint8_t *output = NULL;
+
+    TEST_EQUAL( 0, mbedtls_gcm_starts( ctx, mode,
+                                       iv->x, iv->len ) );
+    ASSERT_ALLOC( output, tag->len );
+    TEST_EQUAL( 0, mbedtls_gcm_finish( ctx, NULL, 0, output, tag->len ) );
+    ASSERT_COMPARE( output, tag->len, tag->x, tag->len );
+
+exit:
+    mbedtls_free( output );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -308,6 +325,24 @@ void gcm_decrypt_and_verify_empty_ad( int cipher_id,
 /* END_CASE */
 
 /* BEGIN_CASE */
+void gcm_decrypt_and_verify_no_ad_no_cipher( int cipher_id,
+                                             data_t * key_str,
+                                             data_t * iv_str,
+                                             data_t * tag_str )
+{
+    mbedtls_gcm_context ctx;
+
+    mbedtls_gcm_init( &ctx );
+
+    TEST_ASSERT( mbedtls_gcm_setkey( &ctx, cipher_id, key_str->x, key_str->len * 8 ) == 0 );
+    check_no_cipher_no_ad( &ctx, MBEDTLS_GCM_DECRYPT,
+                           iv_str, tag_str );
+
+    mbedtls_gcm_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void gcm_encrypt_and_tag_empty_cipher( int cipher_id,
                                        data_t * key_str,
                                        data_t * iv_str,
@@ -348,6 +383,24 @@ void gcm_encrypt_and_tag_empty_ad( int cipher_id,
                                 ad_update_calls );
 
 exit:
+    mbedtls_gcm_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void gcm_encrypt_and_verify_no_ad_no_cipher( int cipher_id,
+                                             data_t * key_str,
+                                             data_t * iv_str,
+                                             data_t * tag_str )
+{
+    mbedtls_gcm_context ctx;
+
+    mbedtls_gcm_init( &ctx );
+
+    TEST_ASSERT( mbedtls_gcm_setkey( &ctx, cipher_id, key_str->x, key_str->len * 8 ) == 0 );
+    check_no_cipher_no_ad( &ctx, MBEDTLS_GCM_ENCRYPT,
+                           iv_str, tag_str );
+
     mbedtls_gcm_free( &ctx );
 }
 /* END_CASE */

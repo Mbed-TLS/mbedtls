@@ -2242,51 +2242,42 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
 
 static psa_status_t psa_mac_finalize_alg_and_key_validation(
     psa_algorithm_t alg,
-    const psa_key_attributes_t *attributes )
+    const psa_key_attributes_t *attributes,
+    uint8_t *mac_size )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    uint8_t mac_size;
+    psa_key_type_t key_type = psa_get_key_type( attributes );
+    size_t key_bits = psa_get_key_bits( attributes );
 
     if( ! PSA_ALG_IS_MAC( alg ) )
-    {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto exit;
-    }
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     /* Validate the combination of key type and algorithm */
-    status = psa_mac_key_can_do( alg, psa_get_key_type( attributes ) );
+    status = psa_mac_key_can_do( alg, key_type );
     if( status != PSA_SUCCESS )
-        goto exit;
+        return( status );
 
     /* Get the output length for the algorithm and key combination */
-    mac_size = PSA_MAC_LENGTH( psa_get_key_type( attributes ),
-                               psa_get_key_bits( attributes ),
-                               alg );
+    *mac_size = PSA_MAC_LENGTH( key_type, key_bits, alg );
 
-    if( mac_size < 4 )
+    if( *mac_size < 4 )
     {
         /* A very short MAC is too short for security since it can be
          * brute-forced. Ancient protocols with 32-bit MACs do exist,
          * so we make this our minimum, even though 32 bits is still
          * too small for security. */
-        status = PSA_ERROR_NOT_SUPPORTED;
-        goto exit;
+        return( PSA_ERROR_NOT_SUPPORTED );
     }
 
-    if( mac_size > PSA_MAC_LENGTH( psa_get_key_type( attributes ),
-                                   psa_get_key_bits( attributes ),
-                                   PSA_ALG_FULL_LENGTH_MAC( alg ) ) )
+    if( *mac_size > PSA_MAC_LENGTH( key_type, key_bits,
+                                    PSA_ALG_FULL_LENGTH_MAC( alg ) ) )
     {
         /* It's impossible to "truncate" to a larger length than the full length
          * of the algorithm. */
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto exit;
+        return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
-    status = PSA_SUCCESS;
-
-exit:
-    return( status );
+    return( PSA_SUCCESS );
 }
 
 static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
@@ -2314,14 +2305,12 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         .core = slot->attr
     };
 
-    status = psa_mac_finalize_alg_and_key_validation( alg, &attributes );
+    status = psa_mac_finalize_alg_and_key_validation( alg, &attributes,
+                                                      &operation->mac_size );
     if( status != PSA_SUCCESS )
         goto exit;
 
     operation->is_sign = is_sign;
-    operation->mac_size = PSA_MAC_LENGTH( psa_get_key_type( &attributes ),
-                                          psa_get_key_bits( &attributes ),
-                                          alg );
     /* Dispatch the MAC setup call with validated input */
     if( is_sign )
     {

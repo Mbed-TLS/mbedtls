@@ -2918,6 +2918,14 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
  *                 ECDHE-only curves selected according to the same criteria.
  *                 The order favors curves with the lowest resource usage.
  *
+ * \note           New minor versions of Mbed TLS may extend this list,
+ *                 for example if new curves are added to the library.
+ *                 New minor versions of Mbed TLS will not remove items
+ *                 from this list unless serious security concerns require it.
+ *                 New minor versions of Mbed TLS may change the order in
+ *                 keeping with the general principle of favoring the lowest
+ *                 resource usage.
+ *
  * \param conf     SSL configuration
  * \param curves   Ordered list of allowed curves,
  *                 terminated by MBEDTLS_ECP_DP_NONE.
@@ -2946,6 +2954,11 @@ void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
  *                 (#mbedtls_x509_crt_profile_default).
  *                 The preference order is currently unspecified and may
  *                 change in future versions.
+ *
+ * \note           New minor versions of Mbed TLS may extend this list,
+ *                 for example if new curves are added to the library.
+ *                 New minor versions of Mbed TLS will not remove items
+ *                 from this list unless serious security concerns require it.
  *
  * \param conf     SSL configuration
  * \param hashes   Ordered list of allowed signature hashes,

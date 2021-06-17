@@ -1654,13 +1654,13 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     for( i = A->n; i > 0; i-- )
         if( A->p[i - 1] != 0 )
             break;
-    if( i == 0 && ( A->n == 0 || A->p[0] == 0 ) )
+    if( i == 0 )
         result_is_zero = 1;
 
     for( j = B->n; j > 0; j-- )
         if( B->p[j - 1] != 0 )
             break;
-    if( j == 0 && ( B->n == 0 || B->p[0] == 0 ) )
+    if( j == 0 )
         result_is_zero = 1;
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, i + j ) );

@@ -159,10 +159,10 @@ mbedtls_x509_subject_alternative_name;
  */
 typedef struct mbedtls_x509_crt_profile
 {
-    uint32_t MBEDTLS_PRIVATE(allowed_mds);       /**< MDs for signatures         */
-    uint32_t MBEDTLS_PRIVATE(allowed_pks);       /**< PK algs for signatures     */
-    uint32_t MBEDTLS_PRIVATE(allowed_curves);    /**< Elliptic curves for ECDSA  */
-    uint32_t MBEDTLS_PRIVATE(rsa_min_bitlen);    /**< Minimum size for RSA keys  */
+    uint32_t allowed_mds;       /**< MDs for signatures         */
+    uint32_t allowed_pks;       /**< PK algs for signatures     */
+    uint32_t allowed_curves;    /**< Elliptic curves for ECDSA  */
+    uint32_t rsa_min_bitlen;    /**< Minimum size for RSA keys  */
 }
 mbedtls_x509_crt_profile;
 

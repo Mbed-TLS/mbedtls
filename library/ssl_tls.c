@@ -6131,9 +6131,6 @@ static mbedtls_ecp_group_id ssl_preset_default_curves[] = {
 #if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
     MBEDTLS_ECP_DP_SECP256R1,
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
-    MBEDTLS_ECP_DP_SECP256K1,
-#endif
 #if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
     MBEDTLS_ECP_DP_SECP384R1,
 #endif

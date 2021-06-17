@@ -335,11 +335,11 @@ typedef void mbedtls_x509_crt_restart_ctx;
  *
  * This profile permits:
  * - SHA2 hashes with at least 256 bits: SHA-256, SHA-384, SHA-512.
- * - Elliptic curves with 255 bits and above.
+ * - Elliptic curves with 255 bits and above except secp256k1.
  * - RSA with 2048 bits and above.
  *
  * New minor versions of Mbed TLS may extend this profile, for example if
- * new curves are added to the library. New minor versions of Mbed TLS will
+ * new algorithms are added to the library. New minor versions of Mbed TLS will
  * not reduce this profile unless serious security concerns require it.
  */
 extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default;

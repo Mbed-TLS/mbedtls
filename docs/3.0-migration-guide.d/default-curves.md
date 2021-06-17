@@ -7,6 +7,8 @@ Hashes and curves weaker than 255 bits (security strength less than 128 bits) ar
 
 The compile-time options `MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES` and `MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE` are no longer available.
 
+The curve secp256k1 has also been removed from the default X.509 and TLS profiles. [RFC 8422](https://datatracker.ietf.org/doc/html/rfc8422#section-5.1.1) deprecates it in TLS, and it is very rarely used, although it is not known to be weak at the time of writing.
+
 If you still need to accept certificates signed with algorithms that have been removed from the default profile, call `mbedtls_x509_crt_verify_with_profile` instead of `mbedtls_x509_crt_verify` and pass a profile that allows the curves and hashes you want. For example, to allow SHA-224:
 ```
 mbedtls_x509_crt_profile my_profile = mbedtls_x509_crt_profile_default;

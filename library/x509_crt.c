@@ -114,7 +114,7 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
     MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_BP256R1 ) |
     MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_BP384R1 ) |
     MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_BP512R1 ) |
-    MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP256K1 ),
+    0,
 #else
     0,
 #endif

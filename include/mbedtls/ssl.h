@@ -1251,12 +1251,6 @@ struct mbedtls_ssl_context
     int MBEDTLS_PRIVATE(minor_ver);              /*!< one of MBEDTLS_SSL_MINOR_VERSION_x macros */
     unsigned MBEDTLS_PRIVATE(badmac_seen);       /*!< records with a bad MAC received    */
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
-    /** Callback to export key block and master secret                      */
-    mbedtls_ssl_export_keys_t *MBEDTLS_PRIVATE(f_export_keys);
-    void *MBEDTLS_PRIVATE(p_export_keys);            /*!< context for key export callback    */
-#endif
-
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /** Callback to customize X.509 certificate chain verification          */
     int (*MBEDTLS_PRIVATE(f_vrfy))(void *, mbedtls_x509_crt *, int, uint32_t *);
@@ -1427,6 +1421,12 @@ struct mbedtls_ssl_context
                             *   Possible values are #MBEDTLS_SSL_CID_ENABLED
                             *   and #MBEDTLS_SSL_CID_DISABLED. */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    /** Callback to export key block and master secret                      */
+    mbedtls_ssl_export_keys_t *MBEDTLS_PRIVATE(f_export_keys);
+    void *MBEDTLS_PRIVATE(p_export_keys);            /*!< context for key export callback    */
+#endif
 };
 
 /**

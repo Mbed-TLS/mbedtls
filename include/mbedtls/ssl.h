@@ -2386,8 +2386,8 @@ void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
  *                 to reject any attempt for resumption and fall back to
  *                 a full handshake.
  *
- * \note           The mechanism of session resumption is opaque to this
- *                 call: For TLS 1.2, both session ID-based resumption and
+ * \note           This function can handle a variety of mechanisms for session
+ *                 resumption: For TLS 1.2, both session ID-based resumption and
  *                 ticket-based resumption will be considered. For TLS 1.3,
  *                 once implemented, sessions equate to tickets, and loading
  *                 one or more sessions via this call will lead to their
@@ -3718,8 +3718,8 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ss
  *                 This must have been initialized with mbedtls_ssl_init_session()
  *                 but otherwise be unused.
  *
- * \note           The mechanism of session resumption is opaque to this
- *                 call: For TLS 1.2, both session ID-based resumption and
+ * \note           This function can handle a variety of mechanism for session
+ *                 resumption: For TLS 1.2, both session ID-based resumption and
  *                 ticket-based resumption will be considered. For TLS 1.3,
  *                 once implemented, sessions equate to tickets, and calling
  *                 this function multiple times will export the available

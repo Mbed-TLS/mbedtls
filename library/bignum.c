@@ -349,7 +349,7 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X, const mbedtls_mpi *Y, unsigned
 #endif
 
     /* make sure assign is 0 or 1 in a time-constant manner */
-    assign = (assign | (unsigned char)-assign) >> 7;
+    assign = (assign | (unsigned char)-assign) >> (sizeof( assign ) * 8 - 1);
     /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
     limb_mask = -assign;
 
@@ -396,7 +396,7 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X, mbedtls_mpi *Y, unsigned char sw
 #endif
 
     /* make sure swap is 0 or 1 in a time-constant manner */
-    swap = (swap | (unsigned char)-swap) >> 7;
+    swap = (swap | (unsigned char)-swap) >> (sizeof( swap ) * 8 - 1);
     /* all-bits 1 if swap is 1, all-bits 0 if swap is 0 */
     limb_mask = -swap;
 
@@ -2128,7 +2128,7 @@ static size_t mbedtls_mpi_cf_bool_eq( size_t x, size_t y )
 #endif
 
     /* diff_msb's most significant bit is equal to x != y */
-    const size_t diff_msb = ( diff | -diff );
+    const size_t diff_msb = ( diff | (size_t) -diff );
 
 #if defined(_MSC_VER)
 #pragma warning( pop )

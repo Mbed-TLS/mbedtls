@@ -3730,6 +3730,17 @@ static psa_status_t psa_key_derivation_tls12_prf_read(
     psa_status_t status;
     uint8_t offset, length;
 
+    switch( tls12_prf->state )
+    {
+        case PSA_TLS12_PRF_STATE_LABEL_SET:
+            tls12_prf->state = PSA_TLS12_PRF_STATE_OUTPUT;
+            break;
+        case PSA_TLS12_PRF_STATE_OUTPUT:
+            break;
+        default:
+            return( PSA_ERROR_BAD_STATE );
+    }
+
     while( output_length != 0 )
     {
         /* Check if we have fully processed the current block. */

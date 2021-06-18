@@ -157,6 +157,17 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb =
 };
 
 /*
+ * Empty / all-forbidden profile
+ */
+const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_none =
+{
+    0,
+    0,
+    0,
+    (uint32_t) -1,
+};
+
+/*
  * Check md_alg against profile
  * Return 0 if md_alg is acceptable for this profile, -1 otherwise
  */

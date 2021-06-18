@@ -2452,13 +2452,14 @@ cleanup:
     return( status == PSA_SUCCESS ? abort_status : status );
 }
 
-psa_status_t psa_mac_compute( mbedtls_svc_key_id_t key,
-                              psa_algorithm_t alg,
-                              const uint8_t *input,
-                              size_t input_length,
-                              uint8_t *mac,
-                              size_t mac_size,
-                              size_t *mac_length)
+static psa_status_t psa_mac_compute_internal( mbedtls_svc_key_id_t key,
+                                              psa_algorithm_t alg,
+                                              const uint8_t *input,
+                                              size_t input_length,
+                                              uint8_t *mac,
+                                              size_t mac_size,
+                                              size_t *mac_length,
+                                              int is_sign )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -2466,7 +2467,9 @@ psa_status_t psa_mac_compute( mbedtls_svc_key_id_t key,
     uint8_t operation_mac_size = 0;
 
     status = psa_get_and_lock_key_slot_with_policy(
-                 key, &slot, PSA_KEY_USAGE_SIGN_HASH, alg );
+                 key, &slot,
+                 is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH,
+                 alg );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -2510,6 +2513,19 @@ exit:
     unlock_status = psa_unlock_key_slot( slot );
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
+}
+
+psa_status_t psa_mac_compute( mbedtls_svc_key_id_t key,
+                              psa_algorithm_t alg,
+                              const uint8_t *input,
+                              size_t input_length,
+                              uint8_t *mac,
+                              size_t mac_size,
+                              size_t *mac_length)
+{
+    return( psa_mac_compute_internal( key, alg,
+                                      input, input_length,
+                                      mac, mac_size, mac_length, 1 ) );
 }
 
 psa_status_t psa_mac_verify( mbedtls_svc_key_id_t key,

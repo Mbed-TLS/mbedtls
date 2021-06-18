@@ -2403,23 +2403,21 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
                                                  mac, operation->mac_size,
                                                  mac_length );
 
-    if( status == PSA_SUCCESS )
+    /* In case of success, set the potential excess room in the output buffer
+     * to an invalid value, to avoid potentially leaking a longer MAC.
+     * In case of error, set the output length and content to a safe default,
+     * such that in case the caller misses an error check, the output would be
+     * an unachievable MAC.
+     */
+    if( status != PSA_SUCCESS )
     {
-        /* Set the excess room in the output buffer to an invalid value, to
-         * avoid potentially leaking a longer MAC. */
-        if( mac_size > operation->mac_size )
-            memset( &mac[operation->mac_size],
-                    '!',
-                    mac_size - operation->mac_size );
-    }
-    else
-    {
-        /* Set the output length and content to a safe default, such that in
-         * case the caller misses an error check, the output would be an
-         * unachievable MAC. */
         *mac_length = mac_size;
-        memset( mac, '!', mac_size );
+        operation->mac_size = 0;
     }
+
+    if( mac_size > operation->mac_size )
+        memset( &mac[operation->mac_size], '!',
+                mac_size - operation->mac_size );
 
     abort_status = psa_mac_abort( operation );
 
@@ -2495,23 +2493,19 @@ psa_status_t psa_mac_compute( mbedtls_svc_key_id_t key,
                  mac, operation_mac_size, mac_length );
 
 exit:
-    if( status == PSA_SUCCESS )
+    /* In case of success, set the potential excess room in the output buffer
+     * to an invalid value, to avoid potentially leaking a longer MAC.
+     * In case of error, set the output length and content to a safe default,
+     * such that in case the caller misses an error check, the output would be
+     * an unachievable MAC.
+     */
+    if( status != PSA_SUCCESS )
     {
-        /* Set the excess room in the output buffer to an invalid value, to
-         * avoid potentially leaking a longer MAC. */
-        if( mac_size > operation_mac_size )
-            memset( &mac[operation_mac_size],
-                    '!',
-                    mac_size - operation_mac_size );
-    }
-    else
-    {
-        /* Set the output length and content to a safe default, such that in
-         * case the caller misses an error check, the output would be an
-         * unachievable MAC. */
         *mac_length = mac_size;
-        memset( mac, '!', mac_size );
+        operation_mac_size = 0;
     }
+    if( mac_size > operation_mac_size )
+        memset( &mac[operation_mac_size], '!', mac_size - operation_mac_size );
 
     unlock_status = psa_unlock_key_slot( slot );
 

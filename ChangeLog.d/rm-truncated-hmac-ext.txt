@@ -1,3 +1,4 @@
 Removals
-   * Remove MBEDTLS_SSL_TRUNCATED_HMAC config option since it is no longer
-     supported in 3.0. Addresses #4341.
+   * Remove MBEDTLS_SSL_TRUNCATED_HMAC config option. Users are better served by
+     using a CCM-8 ciphersuite than a CBC ciphersuite with truncated HMAC.
+     Addresses #4341.

@@ -2536,25 +2536,29 @@ psa_status_t psa_mac_verify( mbedtls_svc_key_id_t key,
                              size_t mac_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+    uint8_t actual_mac[PSA_MAC_MAX_SIZE];
+    size_t actual_mac_length;
 
-    status = psa_mac_verify_setup( &operation, key, alg );
+    status = psa_mac_compute_internal( key, alg,
+                                       input, input_length,
+                                       actual_mac, sizeof( actual_mac ),
+                                       &actual_mac_length, 0 );
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_mac_update( &operation, input, input_length );
-    if( status != PSA_SUCCESS )
+    if( mac_length != actual_mac_length )
+    {
+        status = PSA_ERROR_INVALID_SIGNATURE;
         goto exit;
-
-    status = psa_mac_verify_finish( &operation, mac, mac_length );
-    if( status != PSA_SUCCESS )
+    }
+    if( mbedtls_psa_safer_memcmp( mac, actual_mac, actual_mac_length ) != 0 )
+    {
+        status = PSA_ERROR_INVALID_SIGNATURE;
         goto exit;
+    }
 
 exit:
-    if ( status == PSA_SUCCESS )
-        status = psa_mac_abort( &operation );
-    else
-        psa_mac_abort( &operation );
+    mbedtls_platform_zeroize( actual_mac, sizeof( actual_mac ) );
 
     return ( status );
 }

@@ -335,6 +335,8 @@
 //#define MBEDTLS_ECP_ALT
 
 /**
+ * \def MBEDTLS_SHA256_PROCESS_ALT
+ *
  * MBEDTLS__FUNCTION_NAME__ALT: Uncomment a macro to let mbed TLS use you
  * alternate core implementation of symmetric crypto or hash function. Keep in
  * mind that function prototypes should remain the same.

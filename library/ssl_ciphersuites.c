@@ -38,7 +38,7 @@
 /*
  * Ordered from most preferred to least preferred in terms of security.
  *
- * Current rule (except RC4 and 3DES, weak and null which come last):
+ * Current rule (except weak and null which come last):
  * 1. By key exchange:
  *    Forward-secure non-PSK > forward-secure PSK > ECJPAKE > other non-PSK > other PSK
  * 2. By key length and cipher:

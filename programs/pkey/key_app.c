@@ -35,10 +35,13 @@
 #endif /* MBEDTLS_PLATFORM_C */
 
 #if defined(MBEDTLS_BIGNUM_C) && \
-    defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_FS_IO)
+    defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_FS_IO) && \
+    defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_CTR_DRBG_C)
 #include "mbedtls/error.h"
 #include "mbedtls/rsa.h"
 #include "mbedtls/pk.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
 
 #include <string.h>
 #endif
@@ -63,11 +66,13 @@
     "\n"
 
 #if !defined(MBEDTLS_BIGNUM_C) ||                                  \
-    !defined(MBEDTLS_PK_PARSE_C) || !defined(MBEDTLS_FS_IO)
+    !defined(MBEDTLS_PK_PARSE_C) || !defined(MBEDTLS_FS_IO) || \
+    !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C)
 int main( void )
 {
     mbedtls_printf("MBEDTLS_BIGNUM_C and/or "
-           "MBEDTLS_PK_PARSE_C and/or MBEDTLS_FS_IO not defined.\n");
+           "MBEDTLS_PK_PARSE_C and/or MBEDTLS_FS_IO and/or "
+           "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C not defined.\n");
     mbedtls_exit( 0 );
 }
 #else
@@ -92,12 +97,19 @@ int main( int argc, char *argv[] )
     int i;
     char *p, *q;
 
+    const char *pers = "pkey/key_app";
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+
     mbedtls_pk_context pk;
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
 
     /*
      * Set to sane values
      */
+    mbedtls_entropy_init( &entropy );
+    mbedtls_ctr_drbg_init( &ctr_drbg );
+
     mbedtls_pk_init( &pk );
     memset( buf, 0, sizeof(buf) );
 
@@ -181,7 +193,16 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "\n  . Loading the private key ..." );
         fflush( stdout );
 
-        ret = mbedtls_pk_parse_keyfile( &pk, opt.filename, opt.password );
+        if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
+                                   (const unsigned char *) pers,
+                                   strlen( pers ) ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_seed returned -0x%04x\n", (unsigned int) -ret );
+            goto cleanup;
+        }
+
+        ret = mbedtls_pk_parse_keyfile( &pk, opt.filename, opt.password,
+                                        mbedtls_ctr_drbg_random, &ctr_drbg );
 
         if( ret != 0 )
         {
@@ -299,6 +320,9 @@ cleanup:
     }
 #endif
 
+    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_entropy_free( &entropy );
+
     mbedtls_pk_free( &pk );
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
     mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
@@ -311,4 +335,5 @@ cleanup:
 
     mbedtls_exit( exit_code );
 }
-#endif /* MBEDTLS_BIGNUM_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO */
+#endif /* MBEDTLS_BIGNUM_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO &&
+          MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */

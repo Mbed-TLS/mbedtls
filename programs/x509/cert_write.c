@@ -577,7 +577,7 @@ int main( int argc, char *argv[] )
         fflush( stdout );
 
         ret = mbedtls_pk_parse_keyfile( &loaded_subject_key, opt.subject_key,
-                                 opt.subject_pwd );
+                opt.subject_pwd, mbedtls_ctr_drbg_random, &ctr_drbg );
         if( ret != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
@@ -593,7 +593,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     ret = mbedtls_pk_parse_keyfile( &loaded_issuer_key, opt.issuer_key,
-                             opt.issuer_pwd );
+            opt.issuer_pwd, mbedtls_ctr_drbg_random, &ctr_drbg );
     if( ret != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
@@ -606,7 +606,8 @@ int main( int argc, char *argv[] )
     //
     if( strlen( opt.issuer_crt ) )
     {
-        if( mbedtls_pk_check_pair( &issuer_crt.MBEDTLS_PRIVATE(pk), issuer_key ) != 0 )
+        if( mbedtls_pk_check_pair( &issuer_crt.MBEDTLS_PRIVATE(pk), issuer_key,
+                                   mbedtls_ctr_drbg_random, &ctr_drbg ) != 0 )
         {
             mbedtls_printf( " failed\n  !  issuer_key does not match "
                             "issuer certificate\n\n" );

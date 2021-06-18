@@ -85,7 +85,9 @@ struct mbedtls_pk_info_t
                          void *p_rng );
 
     /** Check public-private key pair */
-    int (*check_pair_func)( const void *pub, const void *prv );
+    int (*check_pair_func)( const void *pub, const void *prv,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng );
 
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );

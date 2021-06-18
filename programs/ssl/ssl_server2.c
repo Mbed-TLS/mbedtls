@@ -525,6 +525,8 @@ int main( void )
     (out_be)[(i) + 7] = (unsigned char)( ( (in_le) >> 0  ) & 0xFF );    \
 }
 
+/* This is global so it can be easily accessed by callback functions */
+rng_context_t rng;
 
 /*
  * global options
@@ -727,7 +729,7 @@ sni_entry *sni_parse( char *sni_string )
         mbedtls_pk_init( new->key );
 
         if( mbedtls_x509_crt_parse_file( new->cert, crt_file ) != 0 ||
-            mbedtls_pk_parse_keyfile( new->key, key_file, "" ) != 0 )
+            mbedtls_pk_parse_keyfile( new->key, key_file, "", rng_get, &rng ) != 0 )
             goto error;
 
         if( strcmp( ca_file, "-" ) != 0 )
@@ -1045,7 +1047,8 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
     for( slot = 0; slot < config_data->slots_used; slot++ )
     {
         if( mbedtls_pk_check_pair( &cert->pk,
-                                   config_data->slots[slot].pk ) == 0 )
+                                   config_data->slots[slot].pk,
+                                   rng_get, &rng ) == 0 )
             break;
     }
     if( slot == config_data->slots_used )
@@ -1271,7 +1274,6 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
 #endif
-    rng_context_t rng;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
 #if defined(MBEDTLS_TIMING_C)
@@ -2257,7 +2259,7 @@ int main( int argc, char *argv[] )
     {
         key_cert_init++;
         if( ( ret = mbedtls_pk_parse_keyfile( &pkey, opt.key_file,
-                                              opt.key_pwd ) ) != 0 )
+                                              opt.key_pwd, rng_get, &rng ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%x\n\n", (unsigned int) -ret );
             goto exit;
@@ -2283,7 +2285,7 @@ int main( int argc, char *argv[] )
     {
         key_cert_init2++;
         if( ( ret = mbedtls_pk_parse_keyfile( &pkey2, opt.key_file2,
-                                              opt.key_pwd2 ) ) != 0 )
+                                              opt.key_pwd2, rng_get, &rng ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile(2) returned -0x%x\n\n",
                             (unsigned int) -ret );
@@ -2314,7 +2316,8 @@ int main( int argc, char *argv[] )
         }
         if( ( ret = mbedtls_pk_parse_key( &pkey,
                                   (const unsigned char *) mbedtls_test_srv_key_rsa,
-                                  mbedtls_test_srv_key_rsa_len, NULL, 0 ) ) != 0 )
+                                  mbedtls_test_srv_key_rsa_len, NULL, 0,
+                                  rng_get, &rng ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned -0x%x\n\n",
                             (unsigned int) -ret );
@@ -2333,7 +2336,8 @@ int main( int argc, char *argv[] )
         }
         if( ( ret = mbedtls_pk_parse_key( &pkey2,
                                   (const unsigned char *) mbedtls_test_srv_key_ec,
-                                  mbedtls_test_srv_key_ec_len, NULL, 0 ) ) != 0 )
+                                  mbedtls_test_srv_key_ec_len, NULL, 0,
+                                  rng_get, &rng ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  pk_parse_key2 returned -0x%x\n\n",
                             (unsigned int) -ret );

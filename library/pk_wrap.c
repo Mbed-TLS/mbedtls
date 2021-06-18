@@ -154,8 +154,12 @@ static int rsa_encrypt_wrap( void *ctx,
                                        ilen, input, output ) );
 }
 
-static int rsa_check_pair_wrap( const void *pub, const void *prv )
+static int rsa_check_pair_wrap( const void *pub, const void *prv,
+                                int (*f_rng)(void *, unsigned char *, size_t),
+                                void *p_rng )
 {
+    (void) f_rng;
+    (void) p_rng;
     return( mbedtls_rsa_check_pub_priv( (const mbedtls_rsa_context *) pub,
                                 (const mbedtls_rsa_context *) prv ) );
 }
@@ -388,10 +392,13 @@ cleanup:
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 #endif /* MBEDTLS_ECDSA_C */
 
-static int eckey_check_pair( const void *pub, const void *prv )
+static int eckey_check_pair( const void *pub, const void *prv,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng )
 {
     return( mbedtls_ecp_check_pub_priv( (const mbedtls_ecp_keypair *) pub,
-                                (const mbedtls_ecp_keypair *) prv ) );
+                                (const mbedtls_ecp_keypair *) prv,
+                                f_rng, p_rng ) );
 }
 
 static void *eckey_alloc_wrap( void )
@@ -799,7 +806,9 @@ static int rsa_alt_decrypt_wrap( void *ctx,
 }
 
 #if defined(MBEDTLS_RSA_C)
-static int rsa_alt_check_pair( const void *pub, const void *prv )
+static int rsa_alt_check_pair( const void *pub, const void *prv,
+                               int (*f_rng)(void *, unsigned char *, size_t),
+                               void *p_rng )
 {
     unsigned char sig[MBEDTLS_MPI_MAX_SIZE];
     unsigned char hash[32];
@@ -813,7 +822,7 @@ static int rsa_alt_check_pair( const void *pub, const void *prv )
 
     if( ( ret = rsa_alt_sign_wrap( (void *) prv, MBEDTLS_MD_NONE,
                                    hash, sizeof( hash ),
-                                   sig, &sig_len, NULL, NULL ) ) != 0 )
+                                   sig, &sig_len, f_rng, p_rng ) ) != 0 )
     {
         return( ret );
     }

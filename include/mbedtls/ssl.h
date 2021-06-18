@@ -3718,7 +3718,7 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ss
  *                 This must have been initialized with mbedtls_ssl_init_session()
  *                 but otherwise be unused.
  *
- * \note           This function can handle a variety of mechanism for session
+ * \note           This function can handle a variety of mechanisms for session
  *                 resumption: For TLS 1.2, both session ID-based resumption and
  *                 ticket-based resumption will be considered. For TLS 1.3,
  *                 once implemented, sessions equate to tickets, and calling

@@ -61,8 +61,6 @@ typedef struct mbedtls_timing_delay_context
 #include "timing_alt.h"
 #endif /* MBEDTLS_TIMING_ALT */
 
-extern volatile int mbedtls_timing_alarmed;
-
 /* Internal use */
 unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int reset );
 

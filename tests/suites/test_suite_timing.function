@@ -17,15 +17,6 @@
  */
 
 /* BEGIN_CASE */
-void timing_hardclock( )
-{
-    (void) mbedtls_timing_hardclock();
-    /* This goto is added to avoid warnings from the generated code. */
-    goto exit;
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
 void timing_get_timer( )
 {
     struct mbedtls_timing_hr_time time;
@@ -33,23 +24,6 @@ void timing_get_timer( )
     (void) mbedtls_timing_get_timer( &time, 0 );
     /* This goto is added to avoid warnings from the generated code. */
     goto exit;
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void timing_set_alarm( int seconds )
-{
-    if( seconds == 0 )
-    {
-        mbedtls_set_alarm( seconds );
-        TEST_ASSERT( mbedtls_timing_alarmed == 1 );
-    }
-    else
-    {
-        mbedtls_set_alarm( seconds );
-        TEST_ASSERT( mbedtls_timing_alarmed == 0 ||
-                     mbedtls_timing_alarmed == 1 );
-    }
 }
 /* END_CASE */
 

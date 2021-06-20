@@ -136,6 +136,26 @@ static int net_prepare( void )
 }
 
 /*
+ * Return 0 if the file descriptor is valid, an error otherwise.
+ * If for_select != 0, check whether the file descriptor is within the range
+ * allowed for fd_set used for the FD_xxx macros and the select() function.
+ */
+static int check_fd( int fd, int for_select )
+{
+    if( fd < 0 )
+        return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
+
+    /* A limitation of select() is that it only works with file descriptors
+     * that are strictly less than FD_SETSIZE. This is a limitation of the
+     * fd_set type. Error out early, because attempting to call FD_SET on a
+     * large file descriptor is a buffer overflow on typical platforms. */
+    if( for_select && fd >= FD_SETSIZE )
+        return( MBEDTLS_ERR_NET_POLL_FAILED );
+
+    return( 0 );
+}
+
+/*
  * Initialize a context
  */
 void mbedtls_net_init( mbedtls_net_context *ctx )
@@ -466,15 +486,9 @@ int mbedtls_net_poll( mbedtls_net_context *ctx, uint32_t rw, uint32_t timeout )
 
     int fd = ctx->fd;
 
-    if( fd < 0 )
-        return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
-
-    /* A limitation of select() is that it only works with file descriptors
-     * that are strictly less than FD_SETSIZE. This is a limitation of the
-     * fd_set type. Error out early, because attempting to call FD_SET on a
-     * large file descriptor is a buffer overflow on typical platforms. */
-    if( fd >= FD_SETSIZE )
-        return( MBEDTLS_ERR_NET_POLL_FAILED );
+    ret = check_fd( fd, 1 );
+    if( ret != 0 )
+        return( ret );
 
 #if defined(__has_feature)
 #if __has_feature(memory_sanitizer)
@@ -553,8 +567,9 @@ int mbedtls_net_recv( void *ctx, unsigned char *buf, size_t len )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     int fd = ((mbedtls_net_context *) ctx)->fd;
 
-    if( fd < 0 )
-        return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
+    ret = check_fd( fd, 0 );
+    if( ret != 0 )
+        return( ret );
 
     ret = (int) read( fd, buf, len );
 
@@ -592,15 +607,9 @@ int mbedtls_net_recv_timeout( void *ctx, unsigned char *buf,
     fd_set read_fds;
     int fd = ((mbedtls_net_context *) ctx)->fd;
 
-    if( fd < 0 )
-        return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
-
-    /* A limitation of select() is that it only works with file descriptors
-     * that are strictly less than FD_SETSIZE. This is a limitation of the
-     * fd_set type. Error out early, because attempting to call FD_SET on a
-     * large file descriptor is a buffer overflow on typical platforms. */
-    if( fd >= FD_SETSIZE )
-        return( MBEDTLS_ERR_NET_POLL_FAILED );
+    ret = check_fd( fd, 1 );
+    if( ret != 0 )
+        return( ret );
 
     FD_ZERO( &read_fds );
     FD_SET( fd, &read_fds );
@@ -640,8 +649,9 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     int fd = ((mbedtls_net_context *) ctx)->fd;
 
-    if( fd < 0 )
-        return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
+    ret = check_fd( fd, 0 );
+    if( ret != 0 )
+        return( ret );
 
     ret = (int) write( fd, buf, len );
 

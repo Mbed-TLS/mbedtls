@@ -145,12 +145,17 @@ static int check_fd( int fd, int for_select )
     if( fd < 0 )
         return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
 
+#if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
+    !defined(EFI32)
+    (void) for_select;
+#else
     /* A limitation of select() is that it only works with file descriptors
      * that are strictly less than FD_SETSIZE. This is a limitation of the
      * fd_set type. Error out early, because attempting to call FD_SET on a
      * large file descriptor is a buffer overflow on typical platforms. */
     if( for_select && fd >= FD_SETSIZE )
         return( MBEDTLS_ERR_NET_POLL_FAILED );
+#endif
 
     return( 0 );
 }

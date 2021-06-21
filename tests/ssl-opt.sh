@@ -3899,24 +3899,14 @@ run_test    "Authentication: client no cert, openssl server required" \
             -c "skip write certificate verify" \
             -c "! mbedtls_ssl_handshake returned"
 
-# The "max_int chain" tests assume that MAX_INTERMEDIATE_CA is set to its
-# default value (8)
+# config.h contains a value for MBEDTLS_X509_MAX_INTERMEDIATE_CA that is
+# different from the script's assumed default value (below).
+# Relevant tests are skipped if they do not match.
 
 MAX_IM_CA='8'
-MAX_IM_CA_CONFIG=$( ../scripts/config.py get MBEDTLS_X509_MAX_INTERMEDIATE_CA)
 
-if [ -n "$MAX_IM_CA_CONFIG" ] && [ "$MAX_IM_CA_CONFIG" -ne "$MAX_IM_CA" ]; then
-    cat <<EOF
-${CONFIG_H} contains a value for the configuration of
-MBEDTLS_X509_MAX_INTERMEDIATE_CA that is different from the script's
-test value of ${MAX_IM_CA}.
-
-The tests assume this value and if it changes, the tests in this
-script should also be adjusted.
-EOF
-    exit 1
-fi
-
+requires_config_value_at_least "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
+requires_config_value_at_most "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
 run_test    "Authentication: server max_int chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c09.pem \
@@ -3975,6 +3965,8 @@ run_test    "Authentication: client max_int+1 chain, server required" \
             1 \
             -s "X509 - A fatal error occurred"
 
+requires_config_value_at_least "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
+requires_config_value_at_most "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int chain, server required" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
@@ -4152,6 +4144,8 @@ run_test    "Authentication, CA callback: client badcert, server optional" \
             -C "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
+requires_config_value_at_least "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
+requires_config_value_at_most "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server max_int chain, client default" \
@@ -4203,6 +4197,8 @@ run_test    "Authentication, CA callback: client max_int+1 chain, server require
             -s "use CA callback for X.509 CRT verification" \
             -s "X509 - A fatal error occurred"
 
+requires_config_value_at_least "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
+requires_config_value_at_most "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: client max_int chain, server required" \

@@ -368,11 +368,6 @@ static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
         if( mbedtls_md_get_size( md_info ) != hash_length )
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
-    else
-    {
-        if( hash_alg != 0 )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-    }
 
     return( PSA_SUCCESS );
 }

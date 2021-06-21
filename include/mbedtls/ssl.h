@@ -3019,7 +3019,9 @@ void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /**
  * \brief          Set the allowed hashes for signatures during the handshake.
- *                 (Default: all SHA2 hashes, largest first.)
+ *                 (Default: all SHA-2 hashes, largest first. Also SHA-1 if
+ *                 the compile-time option
+ *                 `MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE` is enabled.)
  *
  * \note           This only affects which hashes are offered and can be used
  *                 for signatures during the handshake. Hashes for message

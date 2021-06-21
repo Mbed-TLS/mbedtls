@@ -24,7 +24,14 @@
  *  limitations under the License.
  */
 
-#define MBEDTLS_CONFIG_VERSION 1
+/**
+ * This is an optional version symbol that enables comatibility handling of
+ * config files.
+ *
+ * It is equal to the #MBEDTLS_VERSION_NUMBER of the mbedtls version that
+ * introduced the config format we want to be compatible with.
+ */
+#define MBEDTLS_CONFIG_VERSION 0x03000000
 
 /**
  * \name SECTION: System support

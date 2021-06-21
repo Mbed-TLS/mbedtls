@@ -49,7 +49,11 @@
 #define MBEDTLS_VERSION_STRING         "2.26.0"
 #define MBEDTLS_VERSION_STRING_FULL    "mbed TLS 2.26.0"
 
-#define MBEDTLS_CONFIG_VERSION_LATEST 1
+/**
+ * Equal to the #MBEDTLS_VERSION_NUMBER of the mbedtls version that introduced
+ * the most recent config version
+ */
+#define MBEDTLS_CONFIG_VERSION_LATEST  0x03000000
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1

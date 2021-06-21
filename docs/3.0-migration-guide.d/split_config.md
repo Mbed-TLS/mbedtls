@@ -9,8 +9,12 @@ change the build configuration, and should generally only be included from
 into `build_info.h`, including the handling of the `MBEDTLS_CONFIG_FILE`
 macro.
 
-Mandatory version symbols were introduced for `MBEDTLS_CONFIG_FILE` and
-`MBEDTLS_USER_CONFIG_FILE`, `MBEDTLS_CONFIG_VERSION` and
-`MBEDTLS_USER_CONFIG_VERSION` respectively. Both config files should include
-a definiton of their respective version symbol, with a value of `1` to be
-considered valid.
+Config file symbols `MBEDTLS_CONFIG_VERSION` and `MBEDTLS_USER_CONFIG_VERSION`
+were introduced for use in `MBEDTLS_CONFIG_FILE` and
+`MBEDTLS_USER_CONFIG_FILE` respectively.
+Defining them to a particular value will ensure that mbedtls interprets
+the config file in a way that's compatible with the config file format
+indicated by the value.
+The config file versions are based on the value of `MBEDTLS_VERSION_NUMBER`
+of the mbedtls version that first introduced that config file format.
+The only value currently supported is `0x03000000`.

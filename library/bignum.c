@@ -2428,12 +2428,15 @@ int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B 
      * minor differences:
      * - Sequences of multiplications or divisions by 2 are grouped into a
      *   single shift operation.
-     * - The procedure in HAC assumes that 0 < A <= B.
-     *     - The condition A <= B is not actually necessary for correctness;
-     *       the first round through the loop results in TA < TB.
-     *     - If A = 0, the loop goes through 0 iterations and the result is
-     *       correctly B.
-     *     - The case B=0 was short-circuited above.
+     * - The procedure in HAC assumes that 0 < TB <= TA.
+     *     - The condition TB <= TA is not actually necessary for correctness.
+     *       TA and TB have symmetric roles except for the loop termination
+     *       condition, and the shifts at the beginning of the loop body
+     *       remove any significance from the ordering of TA vs TB before
+     *       the shifts.
+     *     - If TA = 0, the loop goes through 0 iterations and the result is
+     *       correctly TB.
+     *     - The case TB = 0 was short-circuited above.
      *
      * For the correctness proof below, decompose the original values of
      * A and B as

@@ -49,6 +49,8 @@
 #define MBEDTLS_VERSION_STRING         "2.26.0"
 #define MBEDTLS_VERSION_STRING_FULL    "mbed TLS 2.26.0"
 
+#define MBEDTLS_CONFIG_VERSION_LATEST 1
+
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
@@ -59,9 +61,10 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if !defined(MBEDTLS_CONFIG_VERSION) || \
-    MBEDTLS_CONFIG_VERSION != 1
-#error "Invalid config version, MBEDTLS_CONFIG_VERSION != 1"
+#if !defined(MBEDTLS_CONFIG_VERSION)
+#define MBEDTLS_CONFIG_VERSION MBEDTLS_CONFIG_VERSION_LATEST
+#elif MBEDTLS_CONFIG_VERSION != MBEDTLS_CONFIG_VERSION_LATEST
+#error "Invalid config version, defined value of MBEDTLS_CONFIG_VERSION is unsupported"
 #endif
 
 #if defined(MBEDTLS_USER_CONFIG_VERSION)
@@ -75,7 +78,7 @@
  */
 #if defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE
-#if !defined(MBEDTLS_USER_CONFIG_VERSION) || \
+#if defined(MBEDTLS_USER_CONFIG_VERSION) && \
     MBEDTLS_USER_CONFIG_VERSION != MBEDTLS_CONFIG_VERSION
 #error "Version mismatch between config file and MBEDTLS_USER_CONFIG_FILE"
 #endif

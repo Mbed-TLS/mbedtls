@@ -20,8 +20,6 @@
  *  limitations under the License.
  */
 
-#define MBEDTLS_CONFIG_VERSION 1
-
 /* System support */
 //#define MBEDTLS_HAVE_ASM
 #define MBEDTLS_HAVE_TIME

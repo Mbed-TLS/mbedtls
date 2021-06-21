@@ -30,8 +30,6 @@
  * See README.txt for usage instructions.
  */
 
-#define MBEDTLS_CONFIG_VERSION 1
-
 /* System support */
 //#define MBEDTLS_HAVE_TIME /* Optionally used in Hello messages */
 /* Other MBEDTLS_HAVE_XXX flags irrelevant for this configuration */

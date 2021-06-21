@@ -67,6 +67,7 @@
 #define MBEDTLS_ERR_PK_UNKNOWN_NAMED_CURVE -0x3A00  /**< Elliptic curve is unsupported (only NIST curves are supported). */
 #define MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE -0x3980  /**< Unavailable feature, e.g. RSA disabled for RSA key. */
 #define MBEDTLS_ERR_PK_SIG_LEN_MISMATCH    -0x3900  /**< The buffer contains a valid signature followed by more data. */
+#define MBEDTLS_ERR_PK_BUFFER_TOO_SMALL    -0x3880  /**< The output buffer is too small. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -499,6 +500,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
  *                  #MBEDTLS_PK_SIGNATURE_MAX_SIZE is always enough.
  *                  You may use a smaller buffer if it is large enough
  *                  given the key type.
+ * \param sig_size  The size of the \p sig buffer in bytes.
  * \param sig_len   On successful return,
  *                  the number of bytes written to \p sig.
  * \param f_rng     RNG function, must not be \c NULL.
@@ -515,7 +517,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
  */
 int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,
-             unsigned char *sig, size_t *sig_len,
+             unsigned char *sig, size_t sig_size, size_t *sig_len,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
@@ -536,6 +538,7 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  *                  #MBEDTLS_PK_SIGNATURE_MAX_SIZE is always enough.
  *                  You may use a smaller buffer if it is large enough
  *                  given the key type.
+ * \param sig_size  The size of the \p sig buffer in bytes.
  * \param sig_len   On successful return,
  *                  the number of bytes written to \p sig.
  * \param f_rng     RNG function, must not be \c NULL.
@@ -549,7 +552,7 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
 int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
              mbedtls_md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,
-             unsigned char *sig, size_t *sig_len,
+             unsigned char *sig, size_t sig_size, size_t *sig_len,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
              mbedtls_pk_restart_ctx *rs_ctx );
 

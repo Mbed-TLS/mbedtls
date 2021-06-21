@@ -1131,7 +1131,7 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
             ret = mbedtls_pk_sign( key_slot->pk,
                                    ctx->md_alg,
                                    ctx->input, ctx->input_len,
-                                   output, output_len,
+                                   output, output_size, output_len,
                                    config_data->f_rng, config_data->p_rng );
             break;
         default:

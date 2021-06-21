@@ -3948,6 +3948,11 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
     mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
     size_t hashlen;
     void *rs_ctx = NULL;
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    size_t out_buf_len = ssl->out_buf_len - ( ssl->out_msg - ssl->out_buf );
+#else
+    size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN - ( ssl->out_msg - ssl->out_buf );
+#endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
 
@@ -4046,7 +4051,9 @@ sign:
 
     if( ( ret = mbedtls_pk_sign_restartable( mbedtls_ssl_own_key( ssl ),
                          md_alg, hash_start, hashlen,
-                         ssl->out_msg + 6 + offset, &n,
+                         ssl->out_msg + 6 + offset,
+                         out_buf_len - 6 - offset,
+                         &n,
                          ssl->conf->f_rng, ssl->conf->p_rng, rs_ctx ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );

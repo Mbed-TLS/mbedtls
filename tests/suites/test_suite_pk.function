@@ -226,7 +226,7 @@ void valid_parameters( )
     TEST_ASSERT( mbedtls_pk_sign_restartable( &pk,
                                               MBEDTLS_MD_NONE,
                                               NULL, 0,
-                                              buf, &len,
+                                              buf, sizeof( buf ), &len,
                                               mbedtls_test_rnd_std_rand, NULL,
                                               NULL ) ==
                  MBEDTLS_ERR_PK_BAD_INPUT_DATA );
@@ -234,7 +234,7 @@ void valid_parameters( )
     TEST_ASSERT( mbedtls_pk_sign_restartable( &pk,
                                               MBEDTLS_MD_NONE,
                                               NULL, 0,
-                                              buf, &len,
+                                              buf, sizeof( buf ), &len,
                                               mbedtls_test_rnd_std_rand, NULL,
                                               NULL ) ==
                  MBEDTLS_ERR_PK_BAD_INPUT_DATA );
@@ -242,7 +242,7 @@ void valid_parameters( )
     TEST_ASSERT( mbedtls_pk_sign( &pk,
                                   MBEDTLS_MD_NONE,
                                   NULL, 0,
-                                  buf, &len,
+                                  buf, sizeof( buf ), &len,
                                   mbedtls_test_rnd_std_rand, NULL ) ==
                  MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -555,8 +555,9 @@ void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
     cnt_restart = 0;
     do {
         ret = mbedtls_pk_sign_restartable( &prv, md_alg, hash, hlen,
-                                            sig, &slen, mbedtls_test_rnd_std_rand,
-                                            NULL, &rs_ctx );
+                                           sig, sizeof( sig ), &slen,
+                                           mbedtls_test_rnd_std_rand, NULL,
+                                           &rs_ctx );
     } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restart );
 
     TEST_ASSERT( ret == 0 );
@@ -603,8 +604,9 @@ void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
 
         slen = sizeof( sig );
         ret = mbedtls_pk_sign_restartable( &prv, md_alg, hash, hlen,
-                                            sig, &slen, mbedtls_test_rnd_std_rand,
-                                            NULL, &rs_ctx );
+                                           sig, sizeof sig, &slen,
+                                           mbedtls_test_rnd_std_rand, NULL,
+                                           &rs_ctx );
         TEST_ASSERT( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
     }
 
@@ -645,8 +647,10 @@ void pk_sign_verify( int type, int parameter, int sign_ret, int verify_ret )
     TEST_ASSERT( pk_genkey( &pk, parameter ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_sign_restartable( &pk, MBEDTLS_MD_SHA256,
-                 hash, hash_len, sig, &sig_len,
-                 mbedtls_test_rnd_std_rand, NULL, rs_ctx ) == sign_ret );
+                                              hash, hash_len,
+                                              sig, sizeof sig, &sig_len,
+                                              mbedtls_test_rnd_std_rand, NULL,
+                                              rs_ctx ) == sign_ret );
     if( sign_ret == 0 )
         TEST_ASSERT( sig_len <= MBEDTLS_PK_SIGNATURE_MAX_SIZE );
     else
@@ -669,7 +673,7 @@ void pk_sign_verify( int type, int parameter, int sign_ret, int verify_ret )
     }
 
     TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, hash_len,
-                                  sig, &sig_len,
+                                  sig, sizeof sig, &sig_len,
                                   mbedtls_test_rnd_std_rand,
                                   NULL ) == sign_ret );
     if( sign_ret == 0 )
@@ -848,8 +852,9 @@ void pk_rsa_overflow( )
     TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_NONE, hash, hash_len,
                     sig, sig_len ) == MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_NONE, hash, hash_len, sig,
-                                  &sig_len, mbedtls_test_rnd_std_rand, NULL )
+    TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_NONE, hash, hash_len,
+                                  sig, sizeof sig, &sig_len,
+                                  mbedtls_test_rnd_std_rand, NULL )
                  == MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
 exit:
@@ -903,12 +908,14 @@ void pk_rsa_alt(  )
 
     /* Test signature */
 #if SIZE_MAX > UINT_MAX
-    TEST_ASSERT( mbedtls_pk_sign( &alt, MBEDTLS_MD_NONE, hash, SIZE_MAX, sig,
-                                  &sig_len, mbedtls_test_rnd_std_rand, NULL )
+    TEST_ASSERT( mbedtls_pk_sign( &alt, MBEDTLS_MD_NONE, hash, SIZE_MAX,
+                                  sig, sizeof sig, &sig_len,
+                                  mbedtls_test_rnd_std_rand, NULL )
                  == MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 #endif /* SIZE_MAX > UINT_MAX */
-    TEST_ASSERT( mbedtls_pk_sign( &alt, MBEDTLS_MD_NONE, hash, sizeof hash, sig,
-                                  &sig_len, mbedtls_test_rnd_std_rand, NULL )
+    TEST_ASSERT( mbedtls_pk_sign( &alt, MBEDTLS_MD_NONE, hash, sizeof hash,
+                                  sig, sizeof sig, &sig_len,
+                                  mbedtls_test_rnd_std_rand, NULL )
                  == 0 );
     TEST_ASSERT( sig_len == RSA_KEY_LEN );
     TEST_ASSERT( mbedtls_pk_verify( &rsa, MBEDTLS_MD_NONE,
@@ -996,7 +1003,7 @@ void pk_psa_sign( int grpid_arg,
     memset( sig, 0, sizeof sig );
 
     TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256,
-                 hash, sizeof hash, sig, &sig_len,
+                 hash, sizeof hash, sig, sizeof sig, &sig_len,
                  NULL, NULL ) == 0 );
 
     /* Export underlying public key for re-importing in a psa context. */

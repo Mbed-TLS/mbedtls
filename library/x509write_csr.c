@@ -136,7 +136,7 @@ int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
 static int x509write_csr_der_internal( mbedtls_x509write_csr *ctx,
                                  unsigned char *buf,
                                  size_t size,
-                                 unsigned char *sig,
+                                 unsigned char *sig, size_t sig_size,
                                  int (*f_rng)(void *, unsigned char *, size_t),
                                  void *p_rng )
 {
@@ -235,7 +235,8 @@ static int x509write_csr_der_internal( mbedtls_x509write_csr *ctx,
     if( ret != 0 )
         return( ret );
 #endif
-    if( ( ret = mbedtls_pk_sign( ctx->key, ctx->md_alg, hash, 0, sig, &sig_len,
+    if( ( ret = mbedtls_pk_sign( ctx->key, ctx->md_alg, hash, 0,
+                                 sig, sig_size, &sig_len,
                                  f_rng, p_rng ) ) != 0 )
     {
         return( ret );
@@ -304,7 +305,9 @@ int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf,
         return( MBEDTLS_ERR_X509_ALLOC_FAILED );
     }
 
-    ret = x509write_csr_der_internal( ctx, buf, size, sig, f_rng, p_rng );
+    ret = x509write_csr_der_internal( ctx, buf, size,
+                                      sig, MBEDTLS_PK_SIGNATURE_MAX_SIZE,
+                                      f_rng, p_rng );
 
     mbedtls_free( sig );
 

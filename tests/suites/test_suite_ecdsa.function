@@ -205,7 +205,7 @@ void ecdsa_write_read_zero( int id )
     /* generate and write signature, then read and verify it */
     TEST_ASSERT( mbedtls_ecdsa_write_signature( &ctx, MBEDTLS_MD_SHA256,
                  hash, sizeof( hash ),
-                 sig, &sig_len, &mbedtls_test_rnd_pseudo_rand,
+                 sig, sizeof( sig ), &sig_len, &mbedtls_test_rnd_pseudo_rand,
                  &rnd_info ) == 0 );
     TEST_ASSERT( mbedtls_ecdsa_read_signature( &ctx, hash, sizeof( hash ),
                  sig, sig_len ) == 0 );
@@ -269,7 +269,7 @@ void ecdsa_write_read_random( int id )
     /* generate and write signature, then read and verify it */
     TEST_ASSERT( mbedtls_ecdsa_write_signature( &ctx, MBEDTLS_MD_SHA256,
                  hash, sizeof( hash ),
-                 sig, &sig_len, &mbedtls_test_rnd_pseudo_rand,
+                 sig, sizeof( sig ), &sig_len, &mbedtls_test_rnd_pseudo_rand,
                  &rnd_info ) == 0 );
     TEST_ASSERT( mbedtls_ecdsa_read_signature( &ctx, hash, sizeof( hash ),
                  sig, sig_len ) == 0 );
@@ -404,8 +404,8 @@ void ecdsa_write_restart( int id, char *d_str, int md_alg,
     cnt_restart = 0;
     do {
         ret = mbedtls_ecdsa_write_signature_restartable( &ctx,
-                md_alg, hash, hlen, sig, &slen, mbedtls_test_rnd_std_rand, NULL,
-                &rs_ctx );
+                md_alg, hash, hlen, sig, sizeof( sig ), &slen,
+                mbedtls_test_rnd_std_rand, NULL, &rs_ctx );
     } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restart );
 
     TEST_ASSERT( ret == 0 );
@@ -420,8 +420,8 @@ void ecdsa_write_restart( int id, char *d_str, int md_alg,
     if( min_restart > 0 )
     {
         ret = mbedtls_ecdsa_write_signature_restartable( &ctx,
-                md_alg, hash, hlen, sig, &slen, mbedtls_test_rnd_std_rand, NULL,
-                &rs_ctx );
+                md_alg, hash, hlen, sig, sizeof( sig ), &slen,
+                mbedtls_test_rnd_std_rand, NULL, &rs_ctx );
         TEST_ASSERT( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
     }
 

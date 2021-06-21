@@ -2486,7 +2486,7 @@ int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B 
      *   and TA = 0, so TB is odd and gcd(TA,TB) = gcd(A',B'). In this case,
      *   lz = min(a,b) so gcd(A,B) = 2^lz * TB.
      * - If there was no loop iteration, then A was 0, and gcd(A,B) = B.
-     *   In this case, B = 2^lz * TB so gcd(A,B) = 2^lz * TB as well.
+     *   In this case, lz = 0 and B = TB so gcd(A,B) = B = 2^lz * TB as well.
      */
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &TB, lz ) );

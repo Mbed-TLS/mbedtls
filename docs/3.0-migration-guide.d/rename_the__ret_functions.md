@@ -13,14 +13,6 @@ original names of those functions. The renamed functions are:
 |------------------------------|--------------------------|
 | mbedtls_ctr_drbg_update_ret  | mbedtls_ctr_drbg_update  |
 | mbedtls_hmac_drbg_update_ret | mbedtls_hmac_drbg_update |
-| mbedtls_md2_starts_ret       | mbedtls_md2_starts       |
-| mbedtls_md2_update_ret       | mbedtls_md2_update       |
-| mbedtls_md2_finish_ret       | mbedtls_md2_finish       |
-| mbedtls_md2_ret              | mbedtls_md2              |
-| mbedtls_md4_starts_ret       | mbedtls_md4_starts       |
-| mbedtls_md4_update_ret       | mbedtls_md4_update       |
-| mbedtls_md4_finish_ret       | mbedtls_md4_finish       |
-| mbedtls_md4_ret              | mbedtls_md4              |
 | mbedtls_md5_starts_ret       | mbedtls_md5_starts       |
 | mbedtls_md5_update_ret       | mbedtls_md5_update       |
 | mbedtls_md5_finish_ret       | mbedtls_md5_finish       |

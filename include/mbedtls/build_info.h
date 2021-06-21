@@ -26,6 +26,29 @@
 #ifndef MBEDTLS_BUILD_INFO_H
 #define MBEDTLS_BUILD_INFO_H
 
+/*
+ * This set of compile-time defines can be used to determine the version number
+ * of the mbed TLS library used. Run-time variables for the same can be found in
+ * version.h
+ */
+
+/**
+ * The version number x.y.z is split into three parts.
+ * Major, Minor, Patchlevel
+ */
+#define MBEDTLS_VERSION_MAJOR  2
+#define MBEDTLS_VERSION_MINOR  26
+#define MBEDTLS_VERSION_PATCH  0
+
+/**
+ * The single version number has the following structure:
+ *    MMNNPP00
+ *    Major version | Minor version | Patch version
+ */
+#define MBEDTLS_VERSION_NUMBER         0x021A0000
+#define MBEDTLS_VERSION_STRING         "2.26.0"
+#define MBEDTLS_VERSION_STRING_FULL    "mbed TLS 2.26.0"
+
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif

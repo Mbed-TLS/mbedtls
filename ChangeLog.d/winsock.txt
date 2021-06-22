@@ -1,0 +1,4 @@
+Bugfix
+   * Fix mbedtls_net_poll() and mbedtls_net_recv_timeout() often failing with
+     MBEDTLS_ERR_NET_POLL_FAILED on Windows. Fixes #4465.
+

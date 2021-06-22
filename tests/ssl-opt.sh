@@ -366,8 +366,8 @@ requires_not_i686() {
 
 # Calculate the input & output maximum content lengths set in the config
 MAX_CONTENT_LEN=16384
-MAX_IN_LEN=$(get_config_value_or_default "MBEDTLS_SSL_IN_CONTENT_LEN")
-MAX_OUT_LEN=$(get_config_value_or_default "MBEDTLS_SSL_OUT_CONTENT_LEN")
+MAX_IN_LEN=$( get_config_value_or_default "MBEDTLS_SSL_IN_CONTENT_LEN" )
+MAX_OUT_LEN=$( get_config_value_or_default "MBEDTLS_SSL_OUT_CONTENT_LEN" )
 
 # Calculate the maximum content length that fits both
 if [ "$MAX_IN_LEN" -lt "$MAX_CONTENT_LEN" ]; then

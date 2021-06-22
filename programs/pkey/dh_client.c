@@ -221,7 +221,7 @@ int main( void )
     }
 
     if( ( ret = mbedtls_rsa_pkcs1_verify( &rsa, MBEDTLS_MD_SHA256,
-                                          0, hash, p ) ) != 0 )
+                                          32, hash, p ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_rsa_pkcs1_verify returned %d\n\n", ret );
         goto exit;

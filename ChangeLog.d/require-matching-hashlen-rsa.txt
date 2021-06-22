@@ -1,0 +1,4 @@
+API changes
+   * Functions in the RSA module that accept a hashlen parameter now require
+     it to match the output size of the hash algorithm used, except when
+     signing raw data.

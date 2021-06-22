@@ -1,4 +1,5 @@
 API changes
-   * Functions in the RSA module that accept a hashlen parameter now require
-     it to match the output size of the hash algorithm used, except when
-     signing raw data.
+   * Signature functions in the RSA and PK modules now require the hash
+     length parameter to be the size of the hash input. For RSA signatures
+     other than raw PKCS#1 v1.5, this must match the output size of the
+     specified hash algorithm.

@@ -1,0 +1,5 @@
+Removals
+   * Remove MBEDTLS_SSL_TRUNCATED_HMAC and also remove
+     MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT config option. Users are better served by
+     using a CCM-8 ciphersuite than a CBC ciphersuite with truncated HMAC.
+     See issue #4341 for more details.

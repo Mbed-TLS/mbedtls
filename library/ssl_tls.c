@@ -672,9 +672,6 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
                                    int encrypt_then_mac,
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-                                   int trunc_hmac,
-#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
                                    ssl_tls_prf_t tls_prf,
                                    const unsigned char randbytes[64],
@@ -844,18 +841,6 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
         /* Get MAC length */
         mac_key_len = mbedtls_md_get_size( md_info );
         transform->maclen = mac_key_len;
-
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-        /*
-         * If HMAC is to be truncated, we shall keep the leftmost bytes,
-         * (rfc 6066 page 13 or rfc 2104 section 4),
-         * so we only need to adjust the length here.
-         */
-        if( trunc_hmac == MBEDTLS_SSL_TRUNC_HMAC_ENABLED )
-        {
-            transform->maclen = MBEDTLS_SSL_TRUNCATED_HMAC_LEN;
-        }
-#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
         /* IV length */
         transform->ivlen = cipher_info->iv_size;
@@ -1368,9 +1353,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
                                   ssl->session_negotiate->encrypt_then_mac,
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-                                  ssl->session_negotiate->trunc_hmac,
-#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
                                   ssl->handshake->tls_prf,
                                   ssl->handshake->randbytes,
@@ -4141,13 +4123,6 @@ int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_c
 }
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-void mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate )
-{
-    conf->trunc_hmac = truncate;
-}
-#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
-
 void mbedtls_ssl_conf_legacy_renegotiation( mbedtls_ssl_config *conf, int allow_legacy )
 {
     conf->allow_legacy_renegotiation = allow_legacy;
@@ -4536,11 +4511,7 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl,
 #define SSL_SERIALIZED_SESSION_CONFIG_MFL 0
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-#define SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC 1
-#else
 #define SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC 0
-#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
 #define SSL_SERIALIZED_SESSION_CONFIG_ETM 1
@@ -4783,13 +4754,6 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
         *p++ = session->mfl_code;
 #endif
 
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    used += 1;
-
-    if( used <= buf_len )
-        *p++ = (unsigned char)( ( session->trunc_hmac ) & 0xFF );
-#endif
-
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     used += 1;
 
@@ -5023,13 +4987,6 @@ static int ssl_session_load( mbedtls_ssl_session *session,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     session->mfl_code = *p++;
-#endif
-
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    if( 1 > (size_t)( end - p ) )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
-    session->trunc_hmac = *p++;
 #endif
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -5847,9 +5804,6 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
                   ssl->session->encrypt_then_mac,
-#endif
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-                  ssl->session->trunc_hmac,
 #endif
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
                   ssl_tls12prf_from_cs( ssl->session->ciphersuite ),

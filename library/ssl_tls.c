@@ -971,23 +971,14 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     ((void) mac_enc);
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
-    if( ssl->conf->f_export_keys != NULL )
+    if( ssl->f_export_keys != NULL )
     {
-        ssl->conf->f_export_keys( ssl->conf->p_export_keys,
-                                  master, keyblk,
-                                  mac_key_len, keylen,
-                                  iv_copy_len );
-    }
-
-    if( ssl->conf->f_export_keys_ext != NULL )
-    {
-        ssl->conf->f_export_keys_ext( ssl->conf->p_export_keys,
-                                      master, keyblk,
-                                      mac_key_len, keylen,
-                                      iv_copy_len,
-                                      randbytes + 32,
-                                      randbytes,
-                                      tls_prf_get_type( tls_prf ) );
+        ssl->f_export_keys( ssl->p_export_keys,
+                            MBEDTLS_SSL_KEY_EXPORT_TLS12_MASTER_SECRET,
+                            master, 48,
+                            randbytes + 32,
+                            randbytes,
+                            tls_prf_get_type( tls_prf ) );
     }
 #endif
 
@@ -4168,20 +4159,12 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
-void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
-        mbedtls_ssl_export_keys_t *f_export_keys,
-        void *p_export_keys )
+void mbedtls_ssl_set_export_keys_cb( mbedtls_ssl_context *ssl,
+                                     mbedtls_ssl_export_keys_t *f_export_keys,
+                                     void *p_export_keys )
 {
-    conf->f_export_keys = f_export_keys;
-    conf->p_export_keys = p_export_keys;
-}
-
-void mbedtls_ssl_conf_export_keys_ext_cb( mbedtls_ssl_config *conf,
-        mbedtls_ssl_export_keys_ext_t *f_export_keys_ext,
-        void *p_export_keys )
-{
-    conf->f_export_keys_ext = f_export_keys_ext;
-    conf->p_export_keys = p_export_keys;
+    ssl->f_export_keys = f_export_keys;
+    ssl->p_export_keys = p_export_keys;
 }
 #endif
 

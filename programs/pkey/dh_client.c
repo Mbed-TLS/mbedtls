@@ -92,7 +92,6 @@ int main( void )
     mbedtls_aes_context aes;
 
     mbedtls_net_init( &server_fd );
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_SHA256 );
     mbedtls_dhm_init( &dhm );
     mbedtls_aes_init( &aes );
     mbedtls_ctr_drbg_init( &ctr_drbg );
@@ -125,17 +124,17 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
+    mbedtls_rsa_init( &rsa );
 
-    if( ( ret = mbedtls_mpi_read_file( &rsa.N, 16, f ) ) != 0 ||
-        ( ret = mbedtls_mpi_read_file( &rsa.E, 16, f ) ) != 0 )
+    if( ( ret = mbedtls_mpi_read_file( &rsa.MBEDTLS_PRIVATE(N), 16, f ) ) != 0 ||
+        ( ret = mbedtls_mpi_read_file( &rsa.MBEDTLS_PRIVATE(E), 16, f ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned %d\n\n", ret );
         fclose( f );
         goto exit;
     }
 
-    rsa.len = ( mbedtls_mpi_bitlen( &rsa.N ) + 7 ) >> 3;
+    rsa.MBEDTLS_PRIVATE(len) = ( mbedtls_mpi_bitlen( &rsa.MBEDTLS_PRIVATE(N) ) + 7 ) >> 3;
 
     fclose( f );
 
@@ -193,7 +192,8 @@ int main( void )
         goto exit;
     }
 
-    if( dhm.len < 64 || dhm.len > 512 )
+    n = mbedtls_dhm_get_len( &dhm );
+    if( n < 64 || n > 512 )
     {
         mbedtls_printf( " failed\n  ! Invalid DHM modulus size\n\n" );
         goto exit;
@@ -208,15 +208,15 @@ int main( void )
 
     p += 2;
 
-    if( ( n = (size_t) ( end - p ) ) != rsa.len )
+    if( ( n = (size_t) ( end - p ) ) != rsa.MBEDTLS_PRIVATE(len) )
     {
         mbedtls_printf( " failed\n  ! Invalid RSA signature size\n\n" );
         goto exit;
     }
 
-    if( ( ret = mbedtls_sha1_ret( buf, (int)( p - 2 - buf ), hash ) ) != 0 )
+    if( ( ret = mbedtls_sha1( buf, (int)( p - 2 - buf ), hash ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_sha1_ret returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_sha1 returned %d\n\n", ret );
         goto exit;
     }
 
@@ -233,8 +233,8 @@ int main( void )
     mbedtls_printf( "\n  . Sending own public value to server" );
     fflush( stdout );
 
-    n = dhm.len;
-    if( ( ret = mbedtls_dhm_make_public( &dhm, (int) dhm.len, buf, n,
+    n = mbedtls_dhm_get_len( &dhm );
+    if( ( ret = mbedtls_dhm_make_public( &dhm, (int) n, buf, n,
                                  mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_dhm_make_public returned %d\n\n", ret );

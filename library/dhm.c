@@ -124,6 +124,47 @@ void mbedtls_dhm_init( mbedtls_dhm_context *ctx )
     memset( ctx, 0, sizeof( mbedtls_dhm_context ) );
 }
 
+size_t mbedtls_dhm_get_bitlen( const mbedtls_dhm_context *ctx )
+{
+    return( mbedtls_mpi_bitlen( &ctx->P ) );
+}
+
+size_t mbedtls_dhm_get_len( const mbedtls_dhm_context *ctx )
+{
+    return( mbedtls_mpi_size( &ctx->P ) );
+}
+
+int mbedtls_dhm_get_value( const mbedtls_dhm_context *ctx,
+                           mbedtls_dhm_parameter param,
+                           mbedtls_mpi *dest )
+{
+    const mbedtls_mpi *src = NULL;
+    switch( param )
+    {
+        case MBEDTLS_DHM_PARAM_P:
+            src = &ctx->P;
+            break;
+        case MBEDTLS_DHM_PARAM_G:
+            src = &ctx->G;
+            break;
+        case MBEDTLS_DHM_PARAM_X:
+            src = &ctx->X;
+            break;
+        case MBEDTLS_DHM_PARAM_GX:
+            src = &ctx->GX;
+            break;
+        case MBEDTLS_DHM_PARAM_GY:
+            src = &ctx->GY;
+            break;
+        case MBEDTLS_DHM_PARAM_K:
+            src = &ctx->K;
+            break;
+        default:
+            return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+    }
+    return( mbedtls_mpi_copy( dest, src ) );
+}
+
 /*
  * Parse the ServerKeyExchange parameters
  */
@@ -143,8 +184,6 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
 
     if( ( ret = dhm_check_range( &ctx->GY, &ctx->P ) ) != 0 )
         return( ret );
-
-    ctx->len = mbedtls_mpi_size( &ctx->P );
 
     return( 0 );
 }
@@ -247,8 +286,6 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
 
     *olen = p - output;
 
-    ctx->len = n1;
-
 cleanup:
     if( ret != 0 && ret > -128 )
         ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED, ret );
@@ -273,7 +310,6 @@ int mbedtls_dhm_set_group( mbedtls_dhm_context *ctx,
         return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_SET_GROUP_FAILED, ret ) );
     }
 
-    ctx->len = mbedtls_mpi_size( &ctx->P );
     return( 0 );
 }
 
@@ -287,7 +323,7 @@ int mbedtls_dhm_read_public( mbedtls_dhm_context *ctx,
     DHM_VALIDATE_RET( ctx != NULL );
     DHM_VALIDATE_RET( input != NULL );
 
-    if( ilen < 1 || ilen > ctx->len )
+    if( ilen < 1 || ilen > mbedtls_dhm_get_len( ctx ) )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_mpi_read_binary( &ctx->GY, input, ilen ) ) != 0 )
@@ -309,7 +345,7 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
     DHM_VALIDATE_RET( output != NULL );
     DHM_VALIDATE_RET( f_rng != NULL );
 
-    if( olen < 1 || olen > ctx->len )
+    if( olen < 1 || olen > mbedtls_dhm_get_len( ctx ) )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
 
     ret = dhm_make_common( ctx, x_size, f_rng, p_rng );
@@ -408,7 +444,10 @@ int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
     DHM_VALIDATE_RET( output != NULL );
     DHM_VALIDATE_RET( olen != NULL );
 
-    if( output_size < ctx->len )
+    if( f_rng == NULL )
+        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+
+    if( output_size < mbedtls_dhm_get_len( ctx ) )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
 
     if( ( ret = dhm_check_range( &ctx->GY, &ctx->P ) ) != 0 )
@@ -417,25 +456,17 @@ int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
     mbedtls_mpi_init( &GYb );
 
     /* Blind peer's value */
-    if( f_rng != NULL )
-    {
-        MBEDTLS_MPI_CHK( dhm_update_blinding( ctx, f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &GYb, &ctx->GY, &ctx->Vi ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &GYb, &GYb, &ctx->P ) );
-    }
-    else
-        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &GYb, &ctx->GY ) );
+    MBEDTLS_MPI_CHK( dhm_update_blinding( ctx, f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &GYb, &ctx->GY, &ctx->Vi ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &GYb, &GYb, &ctx->P ) );
 
     /* Do modular exponentiation */
     MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &ctx->K, &GYb, &ctx->X,
                           &ctx->P, &ctx->RP ) );
 
     /* Unblind secret value */
-    if( f_rng != NULL )
-    {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->K, &ctx->K, &ctx->Vf ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->K, &ctx->K, &ctx->P ) );
-    }
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->K, &ctx->K, &ctx->Vf ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->K, &ctx->K, &ctx->P ) );
 
     /* Output the secret without any leading zero byte. This is mandatory
      * for TLS per RFC 5246 §8.1.2. */
@@ -563,8 +594,6 @@ int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,
     }
 
     ret = 0;
-
-    dhm->len = mbedtls_mpi_size( &dhm->P );
 
 exit:
 #if defined(MBEDTLS_PEM_PARSE_C)

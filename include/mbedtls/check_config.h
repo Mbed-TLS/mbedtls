@@ -55,9 +55,8 @@
 #endif
 #endif /* _WIN32 */
 
-#if defined(TARGET_LIKE_MBED) && \
-    ( defined(MBEDTLS_NET_C) || defined(MBEDTLS_TIMING_C) )
-#error "The NET and TIMING modules are not available for mbed OS - please use the network and timing functions provided by mbed OS"
+#if defined(TARGET_LIKE_MBED) && defined(MBEDTLS_NET_C)
+#error "The NET module is not available for mbed OS - please use the network functions provided by Mbed OS"
 #endif
 
 #if defined(MBEDTLS_DEPRECATED_WARNING) && \
@@ -149,14 +148,6 @@
     !defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) &&                 \
     !defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) ) )
 #error "MBEDTLS_ECP_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_ECP_C) && !(            \
-    defined(MBEDTLS_ECP_ALT) ||             \
-    defined(MBEDTLS_CTR_DRBG_C) ||          \
-    defined(MBEDTLS_HMAC_DRBG_C) ||         \
-    defined(MBEDTLS_ECP_NO_INTERNAL_RNG))
-#error "MBEDTLS_ECP_C requires a DRBG module unless MBEDTLS_ECP_NO_INTERNAL_RNG is defined or an alternative implementation is used"
 #endif
 
 #if defined(MBEDTLS_PK_PARSE_C) && !defined(MBEDTLS_ASN1_PARSE_C)
@@ -824,6 +815,10 @@
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_1) //no-check-names
 #error "MBEDTLS_SSL_PROTO_TLS1_1 (TLS v1.1 support) was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4286"
+#endif
+
+#if defined(MBEDTLS_CHECK_PARAMS) //no-check-names
+#error "MBEDTLS_CHECK_PARAMS was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4313"
 #endif
 
 #if defined(MBEDTLS_SSL_CID_PADDING_GRANULARITY) //no-check-names

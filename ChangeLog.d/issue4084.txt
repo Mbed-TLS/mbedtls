@@ -1,0 +1,4 @@
+Removals
+    * Remove all support for MD2, MD4, RC4, Blowfish and XTEA. This removes the
+      corresponding modules and all their APIs and related configuration
+      options. Fixes #4084.

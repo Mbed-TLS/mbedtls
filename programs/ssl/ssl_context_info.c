@@ -17,6 +17,8 @@
  *  limitations under the License.
  */
 
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -697,12 +699,6 @@ void print_deserialized_ssl_session( const uint8_t *ssl, uint32_t len,
             {
                 case MBEDTLS_MD_NONE:
                     printf( "none\n" );
-                    break;
-                case MBEDTLS_MD_MD2:
-                    printf( "MD2\n" );
-                    break;
-                case MBEDTLS_MD_MD4:
-                    printf( "MD4\n" );
                     break;
                 case MBEDTLS_MD_MD5:
                     printf( "MD5\n" );

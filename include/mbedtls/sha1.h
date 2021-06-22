@@ -28,6 +28,7 @@
  */
 #ifndef MBEDTLS_SHA1_H
 #define MBEDTLS_SHA1_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -58,9 +59,9 @@ extern "C" {
  */
 typedef struct mbedtls_sha1_context
 {
-    uint32_t total[2];          /*!< The number of Bytes processed.  */
-    uint32_t state[5];          /*!< The intermediate digest state.  */
-    unsigned char buffer[64];   /*!< The data block being processed. */
+    uint32_t MBEDTLS_PRIVATE(total)[2];          /*!< The number of Bytes processed.  */
+    uint32_t MBEDTLS_PRIVATE(state)[5];          /*!< The intermediate digest state.  */
+    unsigned char MBEDTLS_PRIVATE(buffer)[64];   /*!< The data block being processed. */
 }
 mbedtls_sha1_context;
 
@@ -123,7 +124,7 @@ void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
  * \return         A negative error code on failure.
  *
  */
-int mbedtls_sha1_starts_ret( mbedtls_sha1_context *ctx );
+int mbedtls_sha1_starts( mbedtls_sha1_context *ctx );
 
 /**
  * \brief          This function feeds an input buffer into an ongoing SHA-1
@@ -142,9 +143,9 @@ int mbedtls_sha1_starts_ret( mbedtls_sha1_context *ctx );
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha1_update_ret( mbedtls_sha1_context *ctx,
-                             const unsigned char *input,
-                             size_t ilen );
+int mbedtls_sha1_update( mbedtls_sha1_context *ctx,
+                         const unsigned char *input,
+                         size_t ilen );
 
 /**
  * \brief          This function finishes the SHA-1 operation, and writes
@@ -162,8 +163,8 @@ int mbedtls_sha1_update_ret( mbedtls_sha1_context *ctx,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha1_finish_ret( mbedtls_sha1_context *ctx,
-                             unsigned char output[20] );
+int mbedtls_sha1_finish( mbedtls_sha1_context *ctx,
+                         unsigned char output[20] );
 
 /**
  * \brief          SHA-1 process data block (internal use only).
@@ -206,9 +207,9 @@ int mbedtls_internal_sha1_process( mbedtls_sha1_context *ctx,
  * \return         A negative error code on failure.
  *
  */
-int mbedtls_sha1_ret( const unsigned char *input,
-                      size_t ilen,
-                      unsigned char output[20] );
+int mbedtls_sha1( const unsigned char *input,
+                  size_t ilen,
+                  unsigned char output[20] );
 
 #if defined(MBEDTLS_SELF_TEST)
 

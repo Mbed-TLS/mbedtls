@@ -1155,8 +1155,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     /*
      * Ciphersuite list
      */
-    ciphersuites = mbedtls_ssl_get_protocol_version_ciphersuites( ssl->conf,
-                                                                ssl->minor_ver );
+    ciphersuites = ssl->conf->ciphersuite_list;
 
     /* Skip writing ciphersuite length for now */
     n = 0;
@@ -1664,7 +1663,8 @@ static int ssl_parse_supported_point_formats_ext( mbedtls_ssl_context *ssl,
             ssl->handshake->ecdh_ctx.point_format = p[0];
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-            ssl->handshake->ecjpake_ctx.point_format = p[0];
+            mbedtls_ecjpake_set_point_format( &ssl->handshake->ecjpake_ctx,
+                                              p[0] );
 #endif
             MBEDTLS_SSL_DEBUG_MSG( 4, ( "point format selected: %d", p[0] ) );
             return( 0 );
@@ -2244,7 +2244,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     i = 0;
     while( 1 )
     {
-        if( mbedtls_ssl_get_protocol_version_ciphersuites( ssl->conf, ssl->minor_ver )[i] == 0 )
+        if( ssl->conf->ciphersuite_list[i] == 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
             mbedtls_ssl_send_alert_message(
@@ -2254,7 +2254,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
 
-        if( mbedtls_ssl_get_protocol_version_ciphersuites( ssl->conf, ssl->minor_ver )[i++] ==
+        if( ssl->conf->ciphersuite_list[i++] ==
             ssl->session_negotiate->ciphersuite )
         {
             break;
@@ -2554,7 +2554,7 @@ static int ssl_parse_server_dh_params( mbedtls_ssl_context *ssl,
         return( ret );
     }
 
-    dhm_actual_bitlen = mbedtls_mpi_bitlen( &ssl->handshake->dhm_ctx.P );
+    dhm_actual_bitlen = mbedtls_dhm_get_bitlen( &ssl->handshake->dhm_ctx );
     if( dhm_actual_bitlen < ssl->conf->dhm_min_bitlen )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "DHM prime too short: %" MBEDTLS_PRINTF_SIZET " < %u",
@@ -3589,14 +3589,14 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         /*
          * DHM key exchange -- send G^X mod P
          */
-        content_len = ssl->handshake->dhm_ctx.len;
+        content_len = mbedtls_dhm_get_len( &ssl->handshake->dhm_ctx );
 
         ssl->out_msg[4] = (unsigned char)( content_len >> 8 );
         ssl->out_msg[5] = (unsigned char)( content_len      );
         header_len = 6;
 
         ret = mbedtls_dhm_make_public( &ssl->handshake->dhm_ctx,
-                          (int) mbedtls_mpi_size( &ssl->handshake->dhm_ctx.P ),
+                          (int) mbedtls_dhm_get_len( &ssl->handshake->dhm_ctx ),
                           &ssl->out_msg[header_len], content_len,
                           ssl->conf->f_rng, ssl->conf->p_rng );
         if( ret != 0 )
@@ -3849,7 +3849,7 @@ ecdh_calc_secret:
             /*
              * ClientDiffieHellmanPublic public (DHM send G^X mod P)
              */
-            content_len = ssl->handshake->dhm_ctx.len;
+            content_len = mbedtls_dhm_get_len( &ssl->handshake->dhm_ctx );
 
             if( header_len + 2 + content_len >
                 MBEDTLS_SSL_OUT_CONTENT_LEN )
@@ -3863,7 +3863,7 @@ ecdh_calc_secret:
             ssl->out_msg[header_len++] = (unsigned char)( content_len      );
 
             ret = mbedtls_dhm_make_public( &ssl->handshake->dhm_ctx,
-                    (int) mbedtls_mpi_size( &ssl->handshake->dhm_ctx.P ),
+                    (int) mbedtls_dhm_get_len( &ssl->handshake->dhm_ctx ),
                     &ssl->out_msg[header_len], content_len,
                     ssl->conf->f_rng, ssl->conf->p_rng );
             if( ret != 0 )

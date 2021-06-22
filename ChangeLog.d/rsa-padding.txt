@@ -1,0 +1,5 @@
+API changes
+   * mbedtls_rsa_init() now always selects the PKCS#1v1.5 encoding for an RSA
+     key. To use an RSA key with PSS or OAEP, call mbedtls_rsa_set_padding()
+     after initializing the context. mbedtls_rsa_set_padding() now returns an
+     error if its parameters are invalid.

@@ -22,6 +22,7 @@
 
 #ifndef MBEDTLS_PK_H
 #define MBEDTLS_PK_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -91,8 +92,8 @@ typedef enum {
  */
 typedef struct mbedtls_pk_rsassa_pss_options
 {
-    mbedtls_md_type_t mgf1_hash_id;
-    int expected_salt_len;
+    mbedtls_md_type_t MBEDTLS_PRIVATE(mgf1_hash_id);
+    int MBEDTLS_PRIVATE(expected_salt_len);
 
 } mbedtls_pk_rsassa_pss_options;
 
@@ -163,9 +164,9 @@ typedef enum
  */
 typedef struct mbedtls_pk_debug_item
 {
-    mbedtls_pk_debug_type type;
-    const char *name;
-    void *value;
+    mbedtls_pk_debug_type MBEDTLS_PRIVATE(type);
+    const char *MBEDTLS_PRIVATE(name);
+    void *MBEDTLS_PRIVATE(value);
 } mbedtls_pk_debug_item;
 
 /** Maximum number of item send for debugging, plus 1 */
@@ -181,8 +182,8 @@ typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
  */
 typedef struct mbedtls_pk_context
 {
-    const mbedtls_pk_info_t *   pk_info; /**< Public key information         */
-    void *                      pk_ctx;  /**< Underlying public key context  */
+    const mbedtls_pk_info_t *   MBEDTLS_PRIVATE(pk_info); /**< Public key information         */
+    void *                      MBEDTLS_PRIVATE(pk_ctx);  /**< Underlying public key context  */
 } mbedtls_pk_context;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -191,8 +192,8 @@ typedef struct mbedtls_pk_context
  */
 typedef struct
 {
-    const mbedtls_pk_info_t *   pk_info; /**< Public key information         */
-    void *                      rs_ctx;  /**< Underlying restart context     */
+    const mbedtls_pk_info_t *   MBEDTLS_PRIVATE(pk_info); /**< Public key information         */
+    void *                      MBEDTLS_PRIVATE(rs_ctx);  /**< Underlying restart context     */
 } mbedtls_pk_restart_ctx;
 #else /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 /* Now we can declare functions that take a pointer to that */
@@ -208,7 +209,7 @@ typedef void mbedtls_pk_restart_ctx;
  */
 static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
 {
-    return( (mbedtls_rsa_context *) (pk).pk_ctx );
+    return( (mbedtls_rsa_context *) (pk).MBEDTLS_PRIVATE(pk_ctx) );
 }
 #endif /* MBEDTLS_RSA_C */
 
@@ -221,7 +222,7 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
  */
 static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
 {
-    return( (mbedtls_ecp_keypair *) (pk).pk_ctx );
+    return( (mbedtls_ecp_keypair *) (pk).MBEDTLS_PRIVATE(pk_ctx) );
 }
 #endif /* MBEDTLS_ECP_C */
 
@@ -497,7 +498,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
  *                  given the key type.
  * \param sig_len   On successful return,
  *                  the number of bytes written to \p sig.
- * \param f_rng     RNG function
+ * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
  *
  * \return          0 on success, or a specific error code.
@@ -537,7 +538,7 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  *                  given the key type.
  * \param sig_len   On successful return,
  *                  the number of bytes written to \p sig.
- * \param f_rng     RNG function
+ * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
  * \param rs_ctx    Restart context (NULL to disable restart)
  *
@@ -562,7 +563,7 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
  * \param output    Decrypted output
  * \param olen      Decrypted message length
  * \param osize     Size of the output buffer
- * \param f_rng     RNG function
+ * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
  *
  * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
@@ -583,8 +584,10 @@ int mbedtls_pk_decrypt( mbedtls_pk_context *ctx,
  * \param output    Encrypted output
  * \param olen      Encrypted output length
  * \param osize     Size of the output buffer
- * \param f_rng     RNG function
+ * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
+ *
+ * \note            \p f_rng is used for padding generation.
  *
  * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
  *
@@ -600,6 +603,8 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
  *
  * \param pub       Context holding a public key.
  * \param prv       Context holding a private (and public) key.
+ * \param f_rng     RNG function, must not be \c NULL.
+ * \param p_rng     RNG parameter
  *
  * \return          \c 0 on success (keys were checked and match each other).
  * \return          #MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE if the keys could not
@@ -607,7 +612,10 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
  * \return          #MBEDTLS_ERR_PK_BAD_INPUT_DATA if a context is invalid.
  * \return          Another non-zero value if the keys do not match.
  */
-int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
+int mbedtls_pk_check_pair( const mbedtls_pk_context *pub,
+                           const mbedtls_pk_context *prv,
+                           int (*f_rng)(void *, unsigned char *, size_t),
+                           void *p_rng );
 
 /**
  * \brief           Export debug information
@@ -659,6 +667,8 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
  *                  The empty password is not supported.
  * \param pwdlen    Size of the password in bytes.
  *                  Ignored if \p pwd is \c NULL.
+ * \param f_rng     RNG function, must not be \c NULL. Used for blinding.
+ * \param p_rng     RNG parameter
  *
  * \note            On entry, ctx must be empty, either freshly initialised
  *                  with mbedtls_pk_init() or reset with mbedtls_pk_free(). If you need a
@@ -669,8 +679,9 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
  * \return          0 if successful, or a specific PK or PEM error code
  */
 int mbedtls_pk_parse_key( mbedtls_pk_context *ctx,
-                  const unsigned char *key, size_t keylen,
-                  const unsigned char *pwd, size_t pwdlen );
+              const unsigned char *key, size_t keylen,
+              const unsigned char *pwd, size_t pwdlen,
+              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /** \ingroup pk_module */
 /**
@@ -710,6 +721,8 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
  *                  Pass a null-terminated string if expecting an encrypted
  *                  key; a non-encrypted key will also be accepted.
  *                  The empty password is not supported.
+ * \param f_rng     RNG function, must not be \c NULL. Used for blinding.
+ * \param p_rng     RNG parameter
  *
  * \note            On entry, ctx must be empty, either freshly initialised
  *                  with mbedtls_pk_init() or reset with mbedtls_pk_free(). If you need a
@@ -720,7 +733,8 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
  * \return          0 if successful, or a specific PK or PEM error code
  */
 int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
-                      const char *path, const char *password );
+                  const char *path, const char *password,
+                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /** \ingroup pk_module */
 /**

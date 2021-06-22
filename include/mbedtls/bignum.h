@@ -21,6 +21,7 @@
  */
 #ifndef MBEDTLS_BIGNUM_H
 #define MBEDTLS_BIGNUM_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -183,9 +184,9 @@ extern "C" {
  */
 typedef struct mbedtls_mpi
 {
-    int s;              /*!<  Sign: -1 if the mpi is negative, 1 otherwise */
-    size_t n;           /*!<  total # of limbs  */
-    mbedtls_mpi_uint *p;          /*!<  pointer to limbs  */
+    int MBEDTLS_PRIVATE(s);              /*!<  Sign: -1 if the mpi is negative, 1 otherwise */
+    size_t MBEDTLS_PRIVATE(n);           /*!<  total # of limbs  */
+    mbedtls_mpi_uint *MBEDTLS_PRIVATE(p);          /*!<  pointer to limbs  */
 }
 mbedtls_mpi;
 

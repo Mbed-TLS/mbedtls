@@ -54,8 +54,6 @@ my @ssl = split( /\s+/, `sed -n -e '$ssl_sed_cmd' $config_h` );
 # should be tested together. Certain options depend on eachother and
 # separating them would generate invalid configurations.
 my @hash_configs = (
-    ['unset MBEDTLS_MD2_C'],
-    ['unset MBEDTLS_MD4_C'],
     ['unset MBEDTLS_MD5_C'],
     ['unset MBEDTLS_SHA512_C', 'unset MBEDTLS_SHA384_C '],
     ['unset MBEDTLS_SHA384_C'],

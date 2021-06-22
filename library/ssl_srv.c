@@ -407,7 +407,8 @@ static int ssl_parse_supported_point_formats( mbedtls_ssl_context *ssl,
             ssl->handshake->ecdh_ctx.point_format = p[0];
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-            ssl->handshake->ecjpake_ctx.point_format = p[0];
+            mbedtls_ecjpake_set_point_format( &ssl->handshake->ecjpake_ctx,
+                                              p[0] );
 #endif
             MBEDTLS_SSL_DEBUG_MSG( 4, ( "point format selected: %d", p[0] ) );
             return( 0 );
@@ -1870,29 +1871,45 @@ read_record_header:
      * and certificate from the SNI callback triggered by the SNI extension.)
      */
     got_common_suite = 0;
-    ciphersuites = mbedtls_ssl_get_protocol_version_ciphersuites( ssl->conf, ssl->minor_ver );
+    ciphersuites = ssl->conf->ciphersuite_list;
     ciphersuite_info = NULL;
-#if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
-    for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
-        for( i = 0; ciphersuites[i] != 0; i++ )
-#else
-    for( i = 0; ciphersuites[i] != 0; i++ )
+
+    if (ssl->conf->respect_cli_pref == MBEDTLS_SSL_SRV_CIPHERSUITE_ORDER_CLIENT)
+    {
         for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
-#endif
-        {
-            if( p[0] != ( ( ciphersuites[i] >> 8 ) & 0xFF ) ||
-                p[1] != ( ( ciphersuites[i]      ) & 0xFF ) )
-                continue;
+            for( i = 0; ciphersuites[i] != 0; i++ )
+            {
+                if( p[0] != ( ( ciphersuites[i] >> 8 ) & 0xFF ) ||
+                    p[1] != ( ( ciphersuites[i]      ) & 0xFF ) )
+                    continue;
 
-            got_common_suite = 1;
+                got_common_suite = 1;
 
-            if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
-                                               &ciphersuite_info ) ) != 0 )
-                return( ret );
+                if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
+                                                   &ciphersuite_info ) ) != 0 )
+                    return( ret );
 
-            if( ciphersuite_info != NULL )
-                goto have_ciphersuite;
-        }
+                if( ciphersuite_info != NULL )
+                    goto have_ciphersuite;
+            }
+    } else {
+        for( i = 0; ciphersuites[i] != 0; i++ )
+            for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
+            {
+                if( p[0] != ( ( ciphersuites[i] >> 8 ) & 0xFF ) ||
+                    p[1] != ( ( ciphersuites[i]      ) & 0xFF ) )
+                    continue;
+
+                got_common_suite = 1;
+
+                if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
+                                                   &ciphersuite_info ) ) != 0 )
+                    return( ret );
+
+                if( ciphersuite_info != NULL )
+                    goto have_ciphersuite;
+            }
+    }
 
     if( got_common_suite )
     {
@@ -3049,7 +3066,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
 
         if( ( ret = mbedtls_dhm_make_params(
                   &ssl->handshake->dhm_ctx,
-                  (int) mbedtls_mpi_size( &ssl->handshake->dhm_ctx.P ),
+                  (int) mbedtls_dhm_get_len( &ssl->handshake->dhm_ctx ),
                   ssl->out_msg + ssl->out_msglen, &len,
                   ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
@@ -4416,4 +4433,10 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
 
     return( ret );
 }
+
+void mbedtls_ssl_conf_preference_order( mbedtls_ssl_config *conf, int order )
+{
+    conf->respect_cli_pref = order;
+}
+
 #endif /* MBEDTLS_SSL_SRV_C */

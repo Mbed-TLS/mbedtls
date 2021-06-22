@@ -128,6 +128,20 @@ cleanup:
     return( ret );
 }
 
+int mbedtls_ecjpake_set_point_format( mbedtls_ecjpake_context *ctx,
+                                      int point_format )
+{
+    switch( point_format )
+    {
+        case MBEDTLS_ECP_PF_UNCOMPRESSED:
+        case MBEDTLS_ECP_PF_COMPRESSED:
+            ctx->point_format = point_format;
+            return( 0 );
+        default:
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    }
+}
+
 /*
  * Check if context is ready for use
  */
@@ -948,6 +962,28 @@ static const unsigned char ecjpake_test_pms[] = {
     0xb4, 0x38, 0xf7, 0x19, 0xd3, 0xc4, 0xf3, 0x51
 };
 
+/*
+ * PRNG for test - !!!INSECURE NEVER USE IN PRODUCTION!!!
+ *
+ * This is the linear congruential generator from numerical recipes,
+ * except we only use the low byte as the output. See
+ * https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
+ */
+static int self_test_rng( void *ctx, unsigned char *out, size_t len )
+{
+    static uint32_t state = 42;
+
+    (void) ctx;
+
+    for( size_t i = 0; i < len; i++ )
+    {
+        state = state * 1664525u + 1013904223u;
+        out[i] = (unsigned char) state;
+    }
+
+    return( 0 );
+}
+
 /* Load my private keys and generate the corresponding public keys */
 static int ecjpake_test_load( mbedtls_ecjpake_context *ctx,
                               const unsigned char *xm1, size_t len1,
@@ -958,9 +994,9 @@ static int ecjpake_test_load( mbedtls_ecjpake_context *ctx,
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->xm1, xm1, len1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->xm2, xm2, len2 ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &ctx->grp, &ctx->Xm1, &ctx->xm1,
-                                      &ctx->grp.G, NULL, NULL ) );
+                                      &ctx->grp.G, self_test_rng, NULL ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &ctx->grp, &ctx->Xm2, &ctx->xm2,
-                                      &ctx->grp.G, NULL, NULL ) );
+                                      &ctx->grp.G, self_test_rng, NULL ) );
 
 cleanup:
     return( ret );

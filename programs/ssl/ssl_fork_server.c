@@ -166,7 +166,8 @@ int main( void )
     }
 
     ret =  mbedtls_pk_parse_key( &pkey, (const unsigned char *) mbedtls_test_srv_key,
-                          mbedtls_test_srv_key_len, NULL, 0 );
+                          mbedtls_test_srv_key_len, NULL, 0,
+                          mbedtls_ctr_drbg_random, &ctr_drbg );
     if( ret != 0 )
     {
         mbedtls_printf( " failed!  mbedtls_pk_parse_key returned %d\n\n", ret );
@@ -193,7 +194,7 @@ int main( void )
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
-    mbedtls_ssl_conf_ca_chain( &conf, srvcert.next, NULL );
+    mbedtls_ssl_conf_ca_chain( &conf, srvcert.MBEDTLS_PRIVATE(next), NULL );
     if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert, &pkey ) ) != 0 )
     {
         mbedtls_printf( " failed!  mbedtls_ssl_conf_own_cert returned %d\n\n", ret );

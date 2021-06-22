@@ -335,7 +335,7 @@ int main( int argc, char *argv[] )
 
             mbedtls_printf( "%s\n", buf );
 
-            cur = cur->next;
+            cur = cur->MBEDTLS_PRIVATE(next);
         }
 
         /*

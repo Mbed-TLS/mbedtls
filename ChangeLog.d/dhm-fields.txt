@@ -1,0 +1,9 @@
+Features
+   * The new functions mbedtls_dhm_get_len() and mbedtls_dhm_get_bitlen()
+     query the size of the modulus in a Diffie-Hellman context.
+   * The new function mbedtls_dhm_get_value() copy a field out of a
+     Diffie-Hellman context.
+
+API changes
+   * Instead of accessing the len field of a DHM context, which is no longer
+     supported, use the new function mbedtls_dhm_get_len() .

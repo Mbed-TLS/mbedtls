@@ -62,6 +62,7 @@
 
 #ifndef MBEDTLS_DHM_H
 #define MBEDTLS_DHM_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -84,6 +85,17 @@
 #define MBEDTLS_ERR_DHM_FILE_IO_ERROR                     -0x3480  /**< Read or write of file failed. */
 #define MBEDTLS_ERR_DHM_SET_GROUP_FAILED                  -0x3580  /**< Setting the modulus and generator failed. */
 
+/** Which parameter to access in mbedtls_dhm_get_value(). */
+typedef enum
+{
+    MBEDTLS_DHM_PARAM_P,  /*!<  The prime modulus. */
+    MBEDTLS_DHM_PARAM_G,  /*!<  The generator. */
+    MBEDTLS_DHM_PARAM_X,  /*!<  Our secret value. */
+    MBEDTLS_DHM_PARAM_GX, /*!<  Our public key = \c G^X mod \c P. */
+    MBEDTLS_DHM_PARAM_GY, /*!<  The public key of the peer = \c G^Y mod \c P. */
+    MBEDTLS_DHM_PARAM_K,  /*!<  The shared secret = \c G^(XY) mod \c P. */
+} mbedtls_dhm_parameter;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -95,17 +107,16 @@ extern "C" {
  */
 typedef struct mbedtls_dhm_context
 {
-    size_t len;         /*!<  The size of \p P in Bytes. */
-    mbedtls_mpi P;      /*!<  The prime modulus. */
-    mbedtls_mpi G;      /*!<  The generator. */
-    mbedtls_mpi X;      /*!<  Our secret value. */
-    mbedtls_mpi GX;     /*!<  Our public key = \c G^X mod \c P. */
-    mbedtls_mpi GY;     /*!<  The public key of the peer = \c G^Y mod \c P. */
-    mbedtls_mpi K;      /*!<  The shared secret = \c G^(XY) mod \c P. */
-    mbedtls_mpi RP;     /*!<  The cached value = \c R^2 mod \c P. */
-    mbedtls_mpi Vi;     /*!<  The blinding value. */
-    mbedtls_mpi Vf;     /*!<  The unblinding value. */
-    mbedtls_mpi pX;     /*!<  The previous \c X. */
+    mbedtls_mpi MBEDTLS_PRIVATE(P);      /*!<  The prime modulus. */
+    mbedtls_mpi MBEDTLS_PRIVATE(G);      /*!<  The generator. */
+    mbedtls_mpi MBEDTLS_PRIVATE(X);      /*!<  Our secret value. */
+    mbedtls_mpi MBEDTLS_PRIVATE(GX);     /*!<  Our public key = \c G^X mod \c P. */
+    mbedtls_mpi MBEDTLS_PRIVATE(GY);     /*!<  The public key of the peer = \c G^Y mod \c P. */
+    mbedtls_mpi MBEDTLS_PRIVATE(K);      /*!<  The shared secret = \c G^(XY) mod \c P. */
+    mbedtls_mpi MBEDTLS_PRIVATE(RP);     /*!<  The cached value = \c R^2 mod \c P. */
+    mbedtls_mpi MBEDTLS_PRIVATE(Vi);     /*!<  The blinding value. */
+    mbedtls_mpi MBEDTLS_PRIVATE(Vf);     /*!<  The unblinding value. */
+    mbedtls_mpi MBEDTLS_PRIVATE(pX);     /*!<  The previous \c X. */
 }
 mbedtls_dhm_context;
 
@@ -268,10 +279,10 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
  * \param output_size   The size of the destination buffer. This must be at
  *                      least the size of \c ctx->len (the size of \c P).
  * \param olen          On exit, holds the actual number of Bytes written.
- * \param f_rng         The RNG function, for blinding purposes. This may
- *                      b \c NULL if blinding isn't needed.
- * \param p_rng         The RNG context. This may be \c NULL if \p f_rng
- *                      doesn't need a context argument.
+ * \param f_rng         The RNG function. Must not be \c NULL. Used for
+ *                      blinding.
+ * \param p_rng         The RNG context to be passed to \p f_rng. This may be
+ *                      \c NULL if \p f_rng doesn't need a context parameter.
  *
  * \return              \c 0 on success.
  * \return              An \c MBEDTLS_ERR_DHM_XXX error code on failure.
@@ -280,6 +291,42 @@ int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
                      unsigned char *output, size_t output_size, size_t *olen,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng );
+
+/**
+ * \brief          This function returns the size of the prime modulus in bits.
+ *
+ * \param ctx      The DHM context to query.
+ *
+ * \return         The size of the prime modulus in bits,
+ *                 i.e. the number n such that 2^(n-1) <= P < 2^n.
+ */
+size_t mbedtls_dhm_get_bitlen( const mbedtls_dhm_context *ctx );
+
+/**
+ * \brief          This function returns the size of the prime modulus in bytes.
+ *
+ * \param ctx      The DHM context to query.
+ *
+ * \return         The size of the prime modulus in bytes,
+ *                 i.e. the number n such that 2^(8*(n-1)) <= P < 2^(8*n).
+ */
+size_t mbedtls_dhm_get_len( const mbedtls_dhm_context *ctx );
+
+/**
+ * \brief          This function copies a parameter of a DHM key.
+ *
+ * \param ctx      The DHM context to query.
+ * \param param    The parameter to copy.
+ * \param dest     The MPI object to copy the value into. It must be
+ *                 initialized.
+ *
+ * \return         \c 0 on success.
+ * \return         #MBEDTLS_ERR_DHM_BAD_INPUT_DATA if \p field is invalid.
+ * \return         An \c MBEDTLS_ERR_MPI_XXX error code if the copy fails.
+ */
+int mbedtls_dhm_get_value( const mbedtls_dhm_context *ctx,
+                           mbedtls_dhm_parameter param,
+                           mbedtls_mpi *dest );
 
 /**
  * \brief          This function frees and clears the components

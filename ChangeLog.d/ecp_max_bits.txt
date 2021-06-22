@@ -1,0 +1,3 @@
+Removals
+   * MBEDTLS_ECP_MAX_BITS is no longer a configuration option because it is
+     now determined automatically based on supported curves.

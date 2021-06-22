@@ -33,6 +33,7 @@
 
 #ifndef PSA_CRYPTO_VALUES_H
 #define PSA_CRYPTO_VALUES_H
+#include "mbedtls/private_access.h"
 
 /** \defgroup error Error codes
  * @{
@@ -480,12 +481,6 @@
  * Camellia block cipher. */
 #define PSA_KEY_TYPE_CAMELLIA                       ((psa_key_type_t)0x2403)
 
-/** Key for the RC4 stream cipher.
- *
- * Note that RC4 is weak and deprecated and should only be used in
- * legacy protocols. */
-#define PSA_KEY_TYPE_ARC4                           ((psa_key_type_t)0x2002)
-
 /** Key for the ChaCha20 stream cipher or the Chacha20-Poly1305 AEAD algorithm.
  *
  * ChaCha20 and the ChaCha20_Poly1305 construction are defined in RFC 7539.
@@ -849,10 +844,6 @@
      (alg) & PSA_ALG_KEY_DERIVATION_STRETCHING_FLAG)
 
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
-/** MD2 */
-#define PSA_ALG_MD2                             ((psa_algorithm_t)0x02000001)
-/** MD4 */
-#define PSA_ALG_MD4                             ((psa_algorithm_t)0x02000002)
 /** MD5 */
 #define PSA_ALG_MD5                             ((psa_algorithm_t)0x02000003)
 /** PSA_ALG_RIPEMD160 */
@@ -1114,7 +1105,6 @@
  *
  * The underlying stream cipher is determined by the key type.
  * - To use ChaCha20, use a key type of #PSA_KEY_TYPE_CHACHA20.
- * - To use ARC4, use a key type of #PSA_KEY_TYPE_ARC4.
  */
 #define PSA_ALG_STREAM_CIPHER                   ((psa_algorithm_t)0x04800100)
 
@@ -2124,8 +2114,8 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 static inline mbedtls_svc_key_id_t mbedtls_svc_key_id_make(
     mbedtls_key_owner_id_t owner_id, psa_key_id_t key_id )
 {
-    return( (mbedtls_svc_key_id_t){ .key_id = key_id,
-                                    .owner = owner_id } );
+    return( (mbedtls_svc_key_id_t){ .MBEDTLS_PRIVATE(key_id) = key_id,
+                                    .MBEDTLS_PRIVATE(owner) = owner_id } );
 }
 
 /** Compare two key identifiers.
@@ -2138,8 +2128,8 @@ static inline mbedtls_svc_key_id_t mbedtls_svc_key_id_make(
 static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
                                             mbedtls_svc_key_id_t id2 )
 {
-    return( ( id1.key_id == id2.key_id ) &&
-            mbedtls_key_owner_id_equal( id1.owner, id2.owner ) );
+    return( ( id1.MBEDTLS_PRIVATE(key_id) == id2.MBEDTLS_PRIVATE(key_id) ) &&
+            mbedtls_key_owner_id_equal( id1.MBEDTLS_PRIVATE(owner), id2.MBEDTLS_PRIVATE(owner) ) );
 }
 
 /** Check whether a key identifier is null.
@@ -2150,7 +2140,7 @@ static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
  */
 static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 {
-    return( ( key.key_id == 0 ) && ( key.owner == 0 ) );
+    return( ( key.MBEDTLS_PRIVATE(key_id) == 0 ) && ( key.MBEDTLS_PRIVATE(owner) == 0 ) );
 }
 
 #endif /* !MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */

@@ -33,6 +33,7 @@
 
 #ifndef MBEDTLS_ECP_H
 #define MBEDTLS_ECP_H
+#include "mbedtls/private_access.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -92,6 +93,7 @@ extern "C" {
  * - Add it at the end of this enum, otherwise you'll break the ABI by
  *   changing the numerical value for existing curves.
  * - Increment MBEDTLS_ECP_DP_MAX below if needed.
+ * - Update the calculation of MBEDTLS_ECP_MAX_BITS below.
  * - Add the corresponding MBEDTLS_ECP_DP_xxx_ENABLED macro definition to
  *   config.h.
  * - List the curve as a dependency of MBEDTLS_ECP_C and
@@ -100,7 +102,8 @@ extern "C" {
  *   MBEDTLS_ECP_yyy_ENABLED above.
  * - Add the necessary definitions to ecp_curves.c.
  * - Add the curve to the ecp_supported_curves array in ecp.c.
- * - Add the curve to applicable profiles in x509_crt.c if applicable.
+ * - Add the curve to applicable profiles in x509_crt.c.
+ * - Add the curve to applicable presets in ssl_tls.c.
  */
 typedef enum
 {
@@ -142,10 +145,10 @@ typedef enum
  */
 typedef struct mbedtls_ecp_curve_info
 {
-    mbedtls_ecp_group_id grp_id;    /*!< An internal identifier. */
-    uint16_t tls_id;                /*!< The TLS NamedCurve identifier. */
-    uint16_t bit_size;              /*!< The curve size in bits. */
-    const char *name;               /*!< A human-friendly name. */
+    mbedtls_ecp_group_id MBEDTLS_PRIVATE(grp_id);    /*!< An internal identifier. */
+    uint16_t MBEDTLS_PRIVATE(tls_id);                /*!< The TLS NamedCurve identifier. */
+    uint16_t MBEDTLS_PRIVATE(bit_size);              /*!< The curve size in bits. */
+    const char *MBEDTLS_PRIVATE(name);               /*!< A human-friendly name. */
 } mbedtls_ecp_curve_info;
 
 /**
@@ -161,9 +164,9 @@ typedef struct mbedtls_ecp_curve_info
  */
 typedef struct mbedtls_ecp_point
 {
-    mbedtls_mpi X;          /*!< The X coordinate of the ECP point. */
-    mbedtls_mpi Y;          /*!< The Y coordinate of the ECP point. */
-    mbedtls_mpi Z;          /*!< The Z coordinate of the ECP point. */
+    mbedtls_mpi MBEDTLS_PRIVATE(X);          /*!< The X coordinate of the ECP point. */
+    mbedtls_mpi MBEDTLS_PRIVATE(Y);          /*!< The Y coordinate of the ECP point. */
+    mbedtls_mpi MBEDTLS_PRIVATE(Z);          /*!< The Z coordinate of the ECP point. */
 }
 mbedtls_ecp_point;
 
@@ -203,10 +206,16 @@ mbedtls_ecp_point;
  * additions or subtractions. Therefore, it is only an approximative modular
  * reduction. It must return 0 on success and non-zero on failure.
  *
- * \note        Alternative implementations must keep the group IDs distinct. If
- *              two group structures have the same ID, then they must be
- *              identical.
- *
+ * \note        Alternative implementations of the ECP module must obey the
+ *              following constraints.
+ *              * Group IDs must be distinct: if two group structures have
+ *                the same ID, then they must be identical.
+ *              * The fields \c id, \c P, \c A, \c B, \c G, \c N,
+ *                \c pbits and \c nbits must have the same type and semantics
+ *                as in the built-in implementation.
+ *                They must be available for reading, but direct modification
+ *                of these fields does not need to be supported.
+ *                They do not need to be at the same offset in the structure.
  */
 typedef struct mbedtls_ecp_group
 {
@@ -222,14 +231,16 @@ typedef struct mbedtls_ecp_group
     size_t nbits;               /*!< For Short Weierstrass: The number of bits in \p P.
                                      For Montgomery curves: the number of bits in the
                                      private keys. */
-    unsigned int h;             /*!< \internal 1 if the constants are static. */
-    int (*modp)(mbedtls_mpi *); /*!< The function for fast pseudo-reduction
+    /* End of public fields */
+
+    unsigned int MBEDTLS_PRIVATE(h);             /*!< \internal 1 if the constants are static. */
+    int (*MBEDTLS_PRIVATE(modp))(mbedtls_mpi *); /*!< The function for fast pseudo-reduction
                                      mod \p P (see above).*/
-    int (*t_pre)(mbedtls_ecp_point *, void *);  /*!< Unused. */
-    int (*t_post)(mbedtls_ecp_point *, void *); /*!< Unused. */
-    void *t_data;               /*!< Unused. */
-    mbedtls_ecp_point *T;       /*!< Pre-computed points for ecp_mul_comb(). */
-    size_t T_size;              /*!< The number of dynamic allocated pre-computed points. */
+    int (*MBEDTLS_PRIVATE(t_pre))(mbedtls_ecp_point *, void *);  /*!< Unused. */
+    int (*MBEDTLS_PRIVATE(t_post))(mbedtls_ecp_point *, void *); /*!< Unused. */
+    void *MBEDTLS_PRIVATE(t_data);               /*!< Unused. */
+    mbedtls_ecp_point *MBEDTLS_PRIVATE(T);       /*!< Pre-computed points for ecp_mul_comb(). */
+    size_t MBEDTLS_PRIVATE(T_size);              /*!< The number of dynamic allocated pre-computed points. */
 }
 mbedtls_ecp_group;
 
@@ -240,16 +251,6 @@ mbedtls_ecp_group;
  * Either change them in config.h, or define them using the compiler command line.
  * \{
  */
-
-#if !defined(MBEDTLS_ECP_MAX_BITS)
-/**
- * The maximum size of the groups, that is, of \c N and \c P.
- */
-#define MBEDTLS_ECP_MAX_BITS     521   /**< The maximum size of groups, in bits. */
-#endif
-
-#define MBEDTLS_ECP_MAX_BYTES    ( ( MBEDTLS_ECP_MAX_BITS + 7 ) / 8 )
-#define MBEDTLS_ECP_MAX_PT_LEN   ( 2 * MBEDTLS_ECP_MAX_BYTES + 1 )
 
 #if !defined(MBEDTLS_ECP_WINDOW_SIZE)
 /*
@@ -296,6 +297,47 @@ mbedtls_ecp_group;
 #include "ecp_alt.h"
 #endif /* MBEDTLS_ECP_ALT */
 
+/**
+ * The maximum size of the groups, that is, of \c N and \c P.
+ */
+#if !defined(MBEDTLS_ECP_C)
+/* Dummy definition to help code that has optional ECP support and
+ * defines an MBEDTLS_ECP_MAX_BYTES-sized array unconditionally. */
+#define MBEDTLS_ECP_MAX_BITS 1
+/* Note: the curves must be listed in DECREASING size! */
+#elif defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 521
+#elif defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 512
+#elif defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 448
+#elif defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 384
+#elif defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 384
+#elif defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 256
+#elif defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 256
+#elif defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 256
+#elif defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 255
+#elif defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 225 // n is slightly above 2^224
+#elif defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 224
+#elif defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 192
+#elif defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 192
+#else
+#error "Missing definition of MBEDTLS_ECP_MAX_BITS"
+#endif
+
+#define MBEDTLS_ECP_MAX_BYTES    ( ( MBEDTLS_ECP_MAX_BITS + 7 ) / 8 )
+#define MBEDTLS_ECP_MAX_PT_LEN   ( 2 * MBEDTLS_ECP_MAX_BYTES + 1 )
+
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 
 /**
@@ -317,10 +359,10 @@ typedef struct mbedtls_ecp_restart_muladd mbedtls_ecp_restart_muladd_ctx;
  */
 typedef struct
 {
-    unsigned ops_done;                  /*!<  current ops count             */
-    unsigned depth;                     /*!<  call depth (0 = top-level)    */
-    mbedtls_ecp_restart_mul_ctx *rsm;   /*!<  ecp_mul_comb() sub-context    */
-    mbedtls_ecp_restart_muladd_ctx *ma; /*!<  ecp_muladd() sub-context      */
+    unsigned MBEDTLS_PRIVATE(ops_done);                  /*!<  current ops count             */
+    unsigned MBEDTLS_PRIVATE(depth);                     /*!<  call depth (0 = top-level)    */
+    mbedtls_ecp_restart_mul_ctx *MBEDTLS_PRIVATE(rsm);   /*!<  ecp_mul_comb() sub-context    */
+    mbedtls_ecp_restart_muladd_ctx *MBEDTLS_PRIVATE(ma); /*!<  ecp_muladd() sub-context      */
 } mbedtls_ecp_restart_ctx;
 
 /*
@@ -370,9 +412,9 @@ typedef void mbedtls_ecp_restart_ctx;
  */
 typedef struct mbedtls_ecp_keypair
 {
-    mbedtls_ecp_group grp;      /*!<  Elliptic curve and base point     */
-    mbedtls_mpi d;              /*!<  our secret value                  */
-    mbedtls_ecp_point Q;        /*!<  our public value                  */
+    mbedtls_ecp_group MBEDTLS_PRIVATE(grp);      /*!<  Elliptic curve and base point     */
+    mbedtls_mpi MBEDTLS_PRIVATE(d);              /*!<  our secret value                  */
+    mbedtls_ecp_point MBEDTLS_PRIVATE(Q);        /*!<  our public value                  */
 }
 mbedtls_ecp_keypair;
 
@@ -869,15 +911,8 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp,
  * \note            To prevent timing attacks, this function
  *                  executes the exact same sequence of base-field
  *                  operations for any valid \p m. It avoids any if-branch or
- *                  array index depending on the value of \p m.
- *
- * \note            If \p f_rng is not NULL, it is used to randomize
- *                  intermediate results to prevent potential timing attacks
- *                  targeting these results. We recommend always providing
- *                  a non-NULL \p f_rng. The overhead is negligible.
- *                  Note: unless #MBEDTLS_ECP_NO_INTERNAL_RNG is defined, when
- *                  \p f_rng is NULL, an internal RNG (seeded from the value
- *                  of \p m) will be used instead.
+ *                  array index depending on the value of \p m. If also uses
+ *                  \p f_rng to randomize some intermediate results.
  *
  * \param grp       The ECP group to use.
  *                  This must be initialized and have group parameters
@@ -886,9 +921,9 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp,
  *                  This must be initialized.
  * \param m         The integer by which to multiply. This must be initialized.
  * \param P         The point to multiply. This must be initialized.
- * \param f_rng     The RNG function. This may be \c NULL if randomization
- *                  of intermediate results isn't desired (discouraged).
- * \param p_rng     The RNG context to be passed to \p p_rng.
+ * \param f_rng     The RNG function. This must not be \c NULL.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may be \c
+ *                  NULL if \p f_rng doesn't need a context.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_ECP_INVALID_KEY if \p m is not a valid private
@@ -917,9 +952,9 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  This must be initialized.
  * \param m         The integer by which to multiply. This must be initialized.
  * \param P         The point to multiply. This must be initialized.
- * \param f_rng     The RNG function. This may be \c NULL if randomization
- *                  of intermediate results isn't desired (discouraged).
- * \param p_rng     The RNG context to be passed to \p p_rng.
+ * \param f_rng     The RNG function. This must not be \c NULL.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may be \c
+ *                  NULL if \p f_rng doesn't need a context.
  * \param rs_ctx    The restart context (NULL disables restart).
  *
  * \return          \c 0 on success.
@@ -1223,14 +1258,18 @@ int mbedtls_ecp_write_key( mbedtls_ecp_keypair *key,
  *                  part is ignored.
  * \param prv       The keypair structure holding the full keypair.
  *                  This must be initialized.
+ * \param f_rng     The RNG function. This must not be \c NULL.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may be \c
+ *                  NULL if \p f_rng doesn't need a context.
  *
  * \return          \c 0 on success, meaning that the keys are valid and match.
  * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if the keys are invalid or do not match.
  * \return          An \c MBEDTLS_ERR_ECP_XXX or an \c MBEDTLS_ERR_MPI_XXX
  *                  error code on calculation failure.
  */
-int mbedtls_ecp_check_pub_priv( const mbedtls_ecp_keypair *pub,
-                                const mbedtls_ecp_keypair *prv );
+int mbedtls_ecp_check_pub_priv(
+        const mbedtls_ecp_keypair *pub, const mbedtls_ecp_keypair *prv,
+        int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 #if defined(MBEDTLS_SELF_TEST)
 

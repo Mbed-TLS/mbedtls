@@ -46,10 +46,6 @@ static size_t psa_get_hash_block_size( psa_algorithm_t alg )
 {
     switch( alg )
     {
-        case PSA_ALG_MD2:
-            return( 16 );
-        case PSA_ALG_MD4:
-            return( 64 );
         case PSA_ALG_MD5:
             return( 64 );
         case PSA_ALG_RIPEMD160:

@@ -1,12 +1,6 @@
 CCM self test
 mbedtls_ccm_self_test:
 
-CCM - Invalid parameters
-ccm_invalid_param:
-
-CCM - Valid parameters
-ccm_valid_param:
-
 CCM init #1 AES-128: OK
 depends_on:MBEDTLS_AES_C
 mbedtls_ccm_setkey:MBEDTLS_CIPHER_ID_AES:128:0
@@ -19,9 +13,9 @@ CCM init #3 AES-224: bad key size
 depends_on:MBEDTLS_AES_C
 mbedtls_ccm_setkey:MBEDTLS_CIPHER_ID_AES:224:MBEDTLS_ERR_CCM_BAD_INPUT
 
-CCM init #4 BLOWFISH-128: bad block size
-depends_on:MBEDTLS_BLOWFISH_C
-mbedtls_ccm_setkey:MBEDTLS_CIPHER_ID_BLOWFISH:128:MBEDTLS_ERR_CCM_BAD_INPUT
+CCM init #4 DES: bad block size
+depends_on:MBEDTLS_DES_C
+mbedtls_ccm_setkey:MBEDTLS_CIPHER_ID_DES:128:MBEDTLS_ERR_CCM_BAD_INPUT
 
 CCM lengths #1 all OK
 ccm_lengths:5:10:5:8:0

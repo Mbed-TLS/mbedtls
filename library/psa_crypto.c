@@ -58,11 +58,9 @@
 #endif
 
 #include "mbedtls/aes.h"
-#include "mbedtls/arc4.h"
 #include "mbedtls/asn1.h"
 #include "mbedtls/asn1write.h"
 #include "mbedtls/bignum.h"
-#include "mbedtls/blowfish.h"
 #include "mbedtls/camellia.h"
 #include "mbedtls/chacha20.h"
 #include "mbedtls/chachapoly.h"
@@ -75,8 +73,6 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/error.h"
 #include "mbedtls/gcm.h"
-#include "mbedtls/md2.h"
-#include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
 #include "mbedtls/md.h"
 #include "md_wrap.h"
@@ -89,7 +85,6 @@
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
-#include "mbedtls/xtea.h"
 
 #define ARRAY_LENGTH( array ) ( sizeof( array ) / sizeof( *( array ) ) )
 
@@ -149,12 +144,6 @@ psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
         case MBEDTLS_ERR_ASN1_BUF_TOO_SMALL:
             return( PSA_ERROR_BUFFER_TOO_SMALL );
-
-#if defined(MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA)
-        case MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA:
-#endif
-        case MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH:
-            return( PSA_ERROR_NOT_SUPPORTED );
 
 #if defined(MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA)
         case MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA:
@@ -301,9 +290,6 @@ psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
         case MBEDTLS_ERR_RSA_RNG_FAILED:
             return( PSA_ERROR_INSUFFICIENT_ENTROPY );
-
-        case MBEDTLS_ERR_XTEA_INVALID_INPUT_LENGTH:
-            return( PSA_ERROR_INVALID_ARGUMENT );
 
         case MBEDTLS_ERR_ECP_BAD_INPUT_DATA:
         case MBEDTLS_ERR_ECP_INVALID_KEY:
@@ -475,12 +461,6 @@ static psa_status_t validate_unstructured_key_bit_size( psa_key_type_t type,
 #if defined(PSA_WANT_KEY_TYPE_DES)
         case PSA_KEY_TYPE_DES:
             if( bits != 64 && bits != 128 && bits != 192 )
-                return( PSA_ERROR_INVALID_ARGUMENT );
-            break;
-#endif
-#if defined(PSA_WANT_KEY_TYPE_ARC4)
-        case PSA_KEY_TYPE_ARC4:
-            if( bits < 8 || bits > 2048 )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             break;
 #endif
@@ -1019,18 +999,8 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
 {
     psa_status_t status = psa_remove_key_data_from_memory( slot );
 
-    /*
-     * As the return error code may not be handled in case of multiple errors,
-     * do our best to report an unexpected lock counter: if available
-     * call MBEDTLS_PARAM_FAILED that may terminate execution (if called as
-     * part of the execution of a test suite this will stop the test suite
-     * execution).
-     */
     if( slot->lock_count != 1 )
     {
-#ifdef MBEDTLS_CHECK_PARAMS
-        MBEDTLS_PARAM_FAILED( slot->lock_count == 1 );
-#endif
         status = PSA_ERROR_CORRUPTION_DETECTED;
     }
 
@@ -2848,13 +2818,14 @@ psa_status_t psa_verify_hash( mbedtls_svc_key_id_t key,
 }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
-static void psa_rsa_oaep_set_padding_mode( psa_algorithm_t alg,
-                                           mbedtls_rsa_context *rsa )
+static int psa_rsa_oaep_set_padding_mode( psa_algorithm_t alg,
+                                          mbedtls_rsa_context *rsa )
 {
     psa_algorithm_t hash_alg = PSA_ALG_RSA_OAEP_GET_HASH( alg );
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
     mbedtls_md_type_t md_alg = mbedtls_md_get_type( md_info );
-    mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
+
+    return( mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg ) );
 }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) */
 
@@ -2927,7 +2898,11 @@ psa_status_t psa_asymmetric_encrypt( mbedtls_svc_key_id_t key,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
         if( PSA_ALG_IS_RSA_OAEP( alg ) )
         {
-            psa_rsa_oaep_set_padding_mode( alg, rsa );
+            status = mbedtls_to_psa_error(
+                         psa_rsa_oaep_set_padding_mode( alg, rsa ) );
+            if( status != PSA_SUCCESS )
+                goto rsa_exit;
+
             status = mbedtls_to_psa_error(
                 mbedtls_rsa_rsaes_oaep_encrypt( rsa,
                                                 mbedtls_psa_get_random,
@@ -3033,7 +3008,11 @@ psa_status_t psa_asymmetric_decrypt( mbedtls_svc_key_id_t key,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
         if( PSA_ALG_IS_RSA_OAEP( alg ) )
         {
-            psa_rsa_oaep_set_padding_mode( alg, rsa );
+            status = mbedtls_to_psa_error(
+                         psa_rsa_oaep_set_padding_mode( alg, rsa ) );
+            if( status != PSA_SUCCESS )
+                goto rsa_exit;
+
             status = mbedtls_to_psa_error(
                 mbedtls_rsa_rsaes_oaep_decrypt( rsa,
                                                 mbedtls_psa_get_random,
@@ -3730,6 +3709,17 @@ static psa_status_t psa_key_derivation_tls12_prf_read(
     uint8_t hash_length = PSA_HASH_LENGTH( hash_alg );
     psa_status_t status;
     uint8_t offset, length;
+
+    switch( tls12_prf->state )
+    {
+        case PSA_TLS12_PRF_STATE_LABEL_SET:
+            tls12_prf->state = PSA_TLS12_PRF_STATE_OUTPUT;
+            break;
+        case PSA_TLS12_PRF_STATE_OUTPUT:
+            break;
+        default:
+            return( PSA_ERROR_BAD_STATE );
+    }
 
     while( output_length != 0 )
     {

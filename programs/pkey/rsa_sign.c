@@ -67,7 +67,7 @@ int main( int argc, char *argv[] )
     char filename[512];
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
 
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
+    mbedtls_rsa_init( &rsa );
 
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
     mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E ); mbedtls_mpi_init( &DP );
@@ -164,7 +164,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    for( i = 0; i < rsa.len; i++ )
+    for( i = 0; i < rsa.MBEDTLS_PRIVATE(len); i++ )
         mbedtls_fprintf( f, "%02X%s", buf[i],
                  ( i + 1 ) % 16 == 0 ? "\r\n" : " " );
 

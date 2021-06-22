@@ -18,10 +18,6 @@ Certificate Request check Server1 SHA512
 depends_on:MBEDTLS_SHA512_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"data_files/server1.key":"data_files/server1.req.sha512":MBEDTLS_MD_SHA512:0:0:0:0
 
-Certificate Request check Server1 MD4
-depends_on:MBEDTLS_MD4_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
-x509_csr_check:"data_files/server1.key":"data_files/server1.req.md4":MBEDTLS_MD_MD4:0:0:0:0
-
 Certificate Request check Server1 MD5
 depends_on:MBEDTLS_MD5_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"data_files/server1.key":"data_files/server1.req.md5":MBEDTLS_MD_MD5:0:0:0:0

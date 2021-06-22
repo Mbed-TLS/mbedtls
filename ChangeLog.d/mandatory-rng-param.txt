@@ -1,0 +1,14 @@
+API changes
+   * For all functions that take a random number generator (RNG) as a
+     parameter, this parameter is now mandatory (that is, NULL is not an
+     acceptable value). Functions which previously accepted NULL and now
+     reject it are: the X.509 CRT and CSR writing functions; the PK and RSA
+     sign and decrypt function; mbedtls_rsa_private(); the functions
+     in DHM and ECDH that compute the shared secret; the scalar multiplication
+     functions in ECP.
+   * The following functions now require an RNG parameter:
+     mbedtls_ecp_check_pub_priv(), mbedtls_pk_check_pair(),
+     mbedtls_pk_parse_key(), mbedtls_pk_parse_keyfile().
+Removals
+   * The configuration option MBEDTLS_ECP_NO_INTERNAL_RNG has been removed as
+     it no longer had any effect.

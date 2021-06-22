@@ -26,7 +26,7 @@ Documentation for the Mbed TLS interfaces in the default library configuration i
 
 To generate a local copy of the library documentation in HTML format, tailored to your compile-time configuration:
 
-1. Make sure that [Doxygen](http://www.doxygen.nl/) is installed. We use version 1.8.11 but slightly older or more recent versions should work.
+1. Make sure that [Doxygen](http://www.doxygen.nl/) is installed.
 1. Run `make apidoc`.
 1. Browse `apidoc/index.html` or `apidoc/modules.html`.
 
@@ -39,7 +39,7 @@ There are currently three active build systems used within Mbed TLS releases:
 
 -   GNU Make
 -   CMake
--   Microsoft Visual Studio (Microsoft Visual Studio 2013 or later)
+-   Microsoft Visual Studio
 
 The main systems used for development are CMake and GNU Make. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and Make build system, although features may not be ported there automatically.
 
@@ -49,10 +49,13 @@ The Make and CMake build systems create three libraries: libmbedcrypto, libmbedx
 
 You need the following tools to build the library with the provided makefiles:
 
-* GNU Make or a build tool that CMake supports.
-* A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, IAR8 and Visual Studio 2013. More recent versions should work. Slightly older versions may work.
-* Python 3 to generate the test code, and to generate sample programs in the development branch.
+* GNU Make 3.82 or a build tool that CMake supports.
+* A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, IAR 8 and Visual Studio 2013. More recent versions should work. Slightly older versions may work.
+* Python 3.6 to generate the test code, and to generate sample programs in the development branch.
 * Perl to run the tests, and to generate some source files in the development branch.
+* CMake 3.10.2 or later (if using CMake).
+* Microsoft Visual Studio 2013 or later (if using Visual Studio).
+* Doxygen 1.8.11 or later (if building the documentation; slightly older versions should work).
 
 ### Generated source files in the development branch
 

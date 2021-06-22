@@ -255,7 +255,8 @@ mbedtls_ecp_group;
 #if !defined(MBEDTLS_ECP_WINDOW_SIZE)
 /*
  * Maximum "window" size used for point multiplication.
- * Default: 6.
+ * Default: a point where higher memory usage yields disminishing performance
+ *          returns.
  * Minimum value: 2. Maximum value: 7.
  *
  * Result is an array of at most ( 1 << ( MBEDTLS_ECP_WINDOW_SIZE - 1 ) )
@@ -272,7 +273,7 @@ mbedtls_ecp_group;
  *      224       475     475     453     398     342
  *      192       640     640     633     587     476
  */
-#define MBEDTLS_ECP_WINDOW_SIZE    6   /**< The maximum window size used. */
+#define MBEDTLS_ECP_WINDOW_SIZE    4   /**< The maximum window size used. */
 #endif /* MBEDTLS_ECP_WINDOW_SIZE */
 
 #if !defined(MBEDTLS_ECP_FIXED_POINT_OPTIM)
@@ -505,8 +506,7 @@ mbedtls_ecp_curve_type mbedtls_ecp_get_type( const mbedtls_ecp_group *grp );
 
 /**
  * \brief           This function retrieves the information defined in
- *                  mbedtls_ecp_curve_info() for all supported curves in order
- *                  of preference.
+ *                  mbedtls_ecp_curve_info() for all supported curves.
  *
  * \note            This function returns information about all curves
  *                  supported by the library. Some curves may not be

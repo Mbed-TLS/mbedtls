@@ -66,4 +66,14 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  */
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
+/** Byte Reading Macros
+ * 
+ * To tidy up code and save horizontal and vertical space, use byte 
+ * reading macros to cast
+ */
+#define BYTE_0( x ) ( (uint8_t) ( ( x ) & 0xff )  )
+#define BYTE_1( x ) ( (uint8_t) ( ( ( x ) >> 8 ) & 0xff )  )
+#define BYTE_2( x ) ( (uint8_t) ( ( ( x ) >> 16 ) & 0xff ) )
+#define BYTE_3( x ) ( (uint8_t) ( ( ( x ) >> 24 ) & 0xff ) )
+
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

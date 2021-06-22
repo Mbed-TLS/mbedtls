@@ -272,6 +272,7 @@ static psa_status_t aead_multipart_encrypt_internal( int key_type_arg,
                                                      int ad_part_len,
                                                      data_t *input_data,
                                                      int data_part_len,
+                                                     int test_set_lengths_arg,
                                                      data_t *expected_result )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
@@ -340,13 +341,11 @@ static psa_status_t aead_multipart_encrypt_internal( int key_type_arg,
 
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
-    if( operation.alg == PSA_ALG_GCM )
+    if( test_set_lengths_arg )
     {
         PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
                                           input_data->len ) );
     }
-#endif
 
     if( ad_part_len != -1 )
     {
@@ -475,6 +474,7 @@ void aead_multipart_decrypt_internal( int key_type_arg, data_t *key_data,
                                       int ad_part_len,
                                       data_t *input_data,
                                       int data_part_len,
+                                      int test_set_lengths_arg,
                                       data_t *expected_data,
                                       int expected_result_arg )
 {
@@ -549,8 +549,7 @@ void aead_multipart_decrypt_internal( int key_type_arg, data_t *key_data,
         goto exit;
     }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
-    if( operation.alg == PSA_ALG_GCM )
+    if( test_set_lengths_arg )
     {
         status = psa_aead_set_lengths( &operation, additional_data->len,
                                        ( input_data->len - tag_length ) );
@@ -561,7 +560,6 @@ void aead_multipart_decrypt_internal( int key_type_arg, data_t *key_data,
             goto exit;
         }
     }
-#endif
 
     if( ad_part_len != -1 )
     {
@@ -3601,6 +3599,7 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                              int test_ad_mp_arg,
                              data_t *input_data,
                              int test_data_mp_arg,
+                             int test_set_lengths_arg,
                              data_t *expected_result_arg )
 {
     size_t ad_part_len = 0;
@@ -3618,6 +3617,7 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                              additional_data,
                                              ad_part_len,
                                              input_data, -1,
+                                             test_set_lengths_arg,
                                              expected_result_arg );
         }
     }
@@ -3631,6 +3631,7 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                              alg_arg, nonce,
                                              additional_data, -1,
                                              input_data, data_part_len,
+                                             test_set_lengths_arg,
                                              expected_result_arg );
         }
     }
@@ -3649,6 +3650,7 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                              int test_ad_mp_arg,
                              data_t *input_data,
                              int test_data_mp_arg,
+                             int test_set_lengths_arg,
                              data_t *expected_data,
                              int expected_status )
 {
@@ -3667,6 +3669,7 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                              additional_data,
                                              ad_part_len,
                                              input_data, -1,
+                                             test_set_lengths_arg,
                                              expected_data, expected_status );
         }
     }
@@ -3680,6 +3683,7 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                              alg_arg, nonce,
                                              additional_data, -1,
                                              input_data, data_part_len,
+                                             test_set_lengths_arg,
                                              expected_data, expected_status );
         }
     }

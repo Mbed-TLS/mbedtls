@@ -3469,7 +3469,10 @@ exit:
         status = unlock_status;
 
     if( status == PSA_SUCCESS )
+    {
         operation->alg = psa_aead_get_base_algorithm( alg );
+        operation->is_encrypt = 1;
+    }
     else
         psa_aead_abort( operation );
 
@@ -3531,7 +3534,10 @@ exit:
         status = unlock_status;
 
     if( status == PSA_SUCCESS )
+    {
         operation->alg = psa_aead_get_base_algorithm( alg );
+        operation->is_encrypt = 0;
+    }
     else
         psa_aead_abort( operation );
 
@@ -3556,7 +3562,7 @@ psa_status_t psa_aead_generate_nonce( psa_aead_operation_t *operation,
     }
 
     if( operation->nonce_set || operation->ad_started ||
-        operation->body_started )
+        operation->body_started  || operation->is_encrypt == 0 )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3881,6 +3887,7 @@ psa_status_t psa_aead_abort( psa_aead_operation_t *operation )
     operation->lengths_set = 0;
     operation->ad_started = 0;
     operation->body_started = 0;
+    operation->is_encrypt = 0;
 
     return( status );
 }

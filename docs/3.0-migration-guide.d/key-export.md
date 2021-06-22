@@ -18,6 +18,10 @@ the previous key export API in the following ways:
 - A secret type parameter has been added to identify which key
   is being exported. For TLS 1.2, only the master secret is
   exported, but upcoming TLS 1.3 support will add other kinds of keys.
+- The callback now specifies a void return type, rather than
+  returning an error code. It is the responsibility of the application
+  to handle failures in the key export callback, for example by
+  shutting down the TLS connection.
 
 For users which do not rely on raw keys and IV, adjusting to the new
 callback type should be straightforward - see the example programs

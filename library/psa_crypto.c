@@ -3772,7 +3772,7 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     *ciphertext_length = 0;
-    *tag_length = 0;
+    *tag_length = tag_size;
 
     if( operation->id == 0 )
     {

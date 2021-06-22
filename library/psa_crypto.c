@@ -3396,7 +3396,7 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
 }
 
 /* Helper function to get the base algorithm from its variants. */
-static psa_algorithm_t psa_aead_get_base_algorithm(psa_algorithm_t alg)
+static psa_algorithm_t psa_aead_get_base_algorithm( psa_algorithm_t alg )
 {
     return PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG( alg );
 }
@@ -3487,7 +3487,7 @@ psa_status_t psa_aead_decrypt_setup( psa_aead_operation_t *operation,
         goto exit;
     }
 
-   if( operation->nonce_set || operation->lengths_set ||
+    if( operation->nonce_set || operation->lengths_set ||
         operation->ad_started || operation->body_started )
     {
         status = PSA_ERROR_BAD_STATE;

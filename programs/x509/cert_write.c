@@ -119,7 +119,7 @@ int main( void )
     "    max_pathlen=%%d          default: -1 (none)\n"     \
     "    md=%%s                   default: SHA256\n"        \
     "                            Supported values (if enabled):\n"      \
-    "                            MD2, MD4, MD5, RIPEMD160, SHA1,\n" \
+    "                            MD5, RIPEMD160, SHA1,\n" \
     "                            SHA224, SHA256, SHA384, SHA512\n" \
     "    version=%%d              default: 3\n"            \
     "                            Possible values: 1, 2, 3\n"\

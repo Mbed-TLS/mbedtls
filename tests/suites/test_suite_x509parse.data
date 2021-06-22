@@ -22,14 +22,6 @@ X509 CRT information #3 (DER)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_cert_info:"data_files/test-ca.crt.der":"cert. version     \: 3\nserial number     \: 03\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nissued  on        \: 2019-02-10 14\:44\:00\nexpires on        \: 2029-02-10 14\:44\:00\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=true\n"
 
-X509 CRT information MD2 Digest
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD2_C
-x509_cert_info:"data_files/cert_md2.crt":"cert. version     \: 3\nserial number     \: 09\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD2\nissued  on        \: 2000-01-01 12\:12\:12\nexpires on        \: 2030-01-01 12\:12\:12\nsigned using      \: RSA with MD2\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
-
-X509 CRT information MD4 Digest
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD4_C
-x509_cert_info:"data_files/cert_md4.crt":"cert. version     \: 3\nserial number     \: 05\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD4\nissued  on        \: 2000-01-01 12\:12\:12\nexpires on        \: 2030-01-01 12\:12\:12\nsigned using      \: RSA with MD4\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
-
 X509 CRT information MD5 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD5_C
 x509_cert_info:"data_files/cert_md5.crt":"cert. version     \: 3\nserial number     \: 06\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD5\nissued  on        \: 2000-01-01 12\:12\:12\nexpires on        \: 2030-01-01 12\:12\:12\nsigned using      \: RSA with MD5\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
@@ -202,14 +194,6 @@ X509 CRL information #1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
 mbedtls_x509_crl_info:"data_files/crl_expired.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-20 10\:24\:19\nnext update   \: 2011-02-20 11\:24\:19\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA1\n"
 
-X509 CRL Information MD2 Digest
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD2_C:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl_md2.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2009-07-19 19\:56\:37\nnext update   \: 2009-09-17 19\:56\:37\nRevoked certificates\:\nserial number\: 01 revocation date\: 2009-02-09 21\:12\:36\nserial number\: 03 revocation date\: 2009-02-09 21\:12\:36\nsigned using  \: RSA with MD2\n"
-
-X509 CRL Information MD4 Digest
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD4_C:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl_md4.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with MD4\n"
-
 X509 CRL Information MD5 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD5_C:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
 mbedtls_x509_crl_info:"data_files/crl_md5.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with MD5\n"
@@ -285,10 +269,6 @@ mbedtls_x509_crl_parse:"data_files/crl-idp.pem":MBEDTLS_ERR_X509_INVALID_EXTENSI
 X509 CRL Unsupported non-critical extension (issuingDistributionPoint)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
 mbedtls_x509_crl_parse:"data_files/crl-idpnc.pem":0
-
-X509 CSR Information RSA with MD4
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD4_C:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_csr_info:"data_files/server1.req.md4":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with MD4\nRSA key size  \: 2048 bits\n"
 
 X509 CSR Information RSA with MD5
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD5_C:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
@@ -527,25 +507,9 @@ X509 CRT verification #10 (Not trusted Cert, Expired CRL)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA1_C
 x509_verify:"data_files/server2.crt":"data_files/server1.crt":"data_files/crl_expired.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:"compat":"NULL"
 
-X509 CRT verification #12 (Valid Cert MD2 Digest, MD2 forbidden)
-depends_on:MBEDTLS_MD2_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
-x509_verify:"data_files/cert_md2.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_MD:"compat":"NULL"
-
-X509 CRT verification #12 (Valid Cert MD4 Digest, MD4 forbidden)
-depends_on:MBEDTLS_MD4_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
-x509_verify:"data_files/cert_md4.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_MD:"compat":"NULL"
-
 X509 CRT verification #13 (Valid Cert MD5 Digest, MD5 forbidden)
 depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_md5.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_MD:"compat":"NULL"
-
-X509 CRT verification #12 (Valid Cert MD2 Digest, MD2 allowed)
-depends_on:MBEDTLS_MD2_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
-x509_verify:"data_files/cert_md2.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"all":"NULL"
-
-X509 CRT verification #12 (Valid Cert MD4 Digest, MD4 allowed)
-depends_on:MBEDTLS_MD4_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
-x509_verify:"data_files/cert_md4.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"all":"NULL"
 
 X509 CRT verification #13 (Valid Cert MD5 Digest, MD5 allowed)
 depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15

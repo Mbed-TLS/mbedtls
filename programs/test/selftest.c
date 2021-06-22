@@ -32,14 +32,11 @@
 #include "mbedtls/gcm.h"
 #include "mbedtls/ccm.h"
 #include "mbedtls/cmac.h"
-#include "mbedtls/md2.h"
-#include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
 #include "mbedtls/ripemd160.h"
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
-#include "mbedtls/arc4.h"
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/camellia.h"
@@ -51,7 +48,6 @@
 #include "mbedtls/bignum.h"
 #include "mbedtls/rsa.h"
 #include "mbedtls/x509.h"
-#include "mbedtls/xtea.h"
 #include "mbedtls/pkcs5.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/ecjpake.h"
@@ -256,12 +252,6 @@ typedef struct
 const selftest_t selftests[] =
 {
     {"calloc", calloc_self_test},
-#if defined(MBEDTLS_MD2_C)
-    {"md2", mbedtls_md2_self_test},
-#endif
-#if defined(MBEDTLS_MD4_C)
-    {"md4", mbedtls_md4_self_test},
-#endif
 #if defined(MBEDTLS_MD5_C)
     {"md5", mbedtls_md5_self_test},
 #endif
@@ -276,9 +266,6 @@ const selftest_t selftests[] =
 #endif
 #if defined(MBEDTLS_SHA512_C)
     {"sha512", mbedtls_sha512_self_test},
-#endif
-#if defined(MBEDTLS_ARC4_C)
-    {"arc4", mbedtls_arc4_self_test},
 #endif
 #if defined(MBEDTLS_DES_C)
     {"des", mbedtls_des_self_test},
@@ -315,9 +302,6 @@ const selftest_t selftests[] =
 #endif
 #if defined(MBEDTLS_RSA_C)
     {"rsa", mbedtls_rsa_self_test},
-#endif
-#if defined(MBEDTLS_XTEA_C)
-    {"xtea", mbedtls_xtea_self_test},
 #endif
 #if defined(MBEDTLS_CAMELLIA_C)
     {"camellia", mbedtls_camellia_self_test},

@@ -34,14 +34,6 @@
  */
 #define mbedtls_ctr_drbg_update_ret   mbedtls_ctr_drbg_update
 #define mbedtls_hmac_drbg_update_ret  mbedtls_hmac_drbg_update
-#define mbedtls_md2_starts_ret        mbedtls_md2_starts
-#define mbedtls_md2_update_ret        mbedtls_md2_update
-#define mbedtls_md2_finish_ret        mbedtls_md2_finish
-#define mbedtls_md2_ret               mbedtls_md2
-#define mbedtls_md4_starts_ret        mbedtls_md4_starts
-#define mbedtls_md4_update_ret        mbedtls_md4_update
-#define mbedtls_md4_finish_ret        mbedtls_md4_finish
-#define mbedtls_md4_ret               mbedtls_md4
 #define mbedtls_md5_starts_ret        mbedtls_md5_starts
 #define mbedtls_md5_update_ret        mbedtls_md5_update
 #define mbedtls_md5_finish_ret        mbedtls_md5_finish

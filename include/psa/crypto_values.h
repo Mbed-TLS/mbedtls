@@ -481,12 +481,6 @@
  * Camellia block cipher. */
 #define PSA_KEY_TYPE_CAMELLIA                       ((psa_key_type_t)0x2403)
 
-/** Key for the RC4 stream cipher.
- *
- * Note that RC4 is weak and deprecated and should only be used in
- * legacy protocols. */
-#define PSA_KEY_TYPE_ARC4                           ((psa_key_type_t)0x2002)
-
 /** Key for the ChaCha20 stream cipher or the Chacha20-Poly1305 AEAD algorithm.
  *
  * ChaCha20 and the ChaCha20_Poly1305 construction are defined in RFC 7539.
@@ -850,10 +844,6 @@
      (alg) & PSA_ALG_KEY_DERIVATION_STRETCHING_FLAG)
 
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
-/** MD2 */
-#define PSA_ALG_MD2                             ((psa_algorithm_t)0x02000001)
-/** MD4 */
-#define PSA_ALG_MD4                             ((psa_algorithm_t)0x02000002)
 /** MD5 */
 #define PSA_ALG_MD5                             ((psa_algorithm_t)0x02000003)
 /** PSA_ALG_RIPEMD160 */
@@ -1115,7 +1105,6 @@
  *
  * The underlying stream cipher is determined by the key type.
  * - To use ChaCha20, use a key type of #PSA_KEY_TYPE_CHACHA20.
- * - To use ARC4, use a key type of #PSA_KEY_TYPE_ARC4.
  */
 #define PSA_ALG_STREAM_CIPHER                   ((psa_algorithm_t)0x04800100)
 

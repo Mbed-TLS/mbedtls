@@ -46,15 +46,13 @@ extern "C" {
 /**
  * \brief     Supported message digests.
  *
- * \warning   MD2, MD4, MD5 and SHA-1 are considered weak message digests and
+ * \warning   MD5 and SHA-1 are considered weak message digests and
  *            their use constitutes a security risk. We recommend considering
  *            stronger message digests instead.
  *
  */
 typedef enum {
     MBEDTLS_MD_NONE=0,    /**< None. */
-    MBEDTLS_MD_MD2,       /**< The MD2 message digest. */
-    MBEDTLS_MD_MD4,       /**< The MD4 message digest. */
     MBEDTLS_MD_MD5,       /**< The MD5 message digest. */
     MBEDTLS_MD_SHA1,      /**< The SHA-1 message digest. */
     MBEDTLS_MD_SHA224,    /**< The SHA-224 message digest. */

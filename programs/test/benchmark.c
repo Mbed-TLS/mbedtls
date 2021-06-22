@@ -47,18 +47,15 @@ int main( void )
 
 #include "mbedtls/timing.h"
 
-#include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
 #include "mbedtls/ripemd160.h"
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 
-#include "mbedtls/arc4.h"
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/aria.h"
-#include "mbedtls/blowfish.h"
 #include "mbedtls/camellia.h"
 #include "mbedtls/chacha20.h"
 #include "mbedtls/gcm.h"
@@ -129,8 +126,8 @@ static void mbedtls_set_alarm( int seconds );
 #define TITLE_LEN       25
 
 #define OPTIONS                                                         \
-    "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
-    "arc4, des3, des, camellia, blowfish, chacha20,\n"                  \
+    "md5, ripemd160, sha1, sha256, sha512,\n"                      \
+    "des3, des, camellia, chacha20,\n"                  \
     "aes_cbc, aes_gcm, aes_ccm, aes_xts, chachapoly,\n"                 \
     "aes_cmac, des3_cmac, poly1305\n"                                   \
     "ctr_drbg, hmac_drbg\n"                                     \
@@ -540,11 +537,11 @@ static int set_ecp_curve( const char *string, mbedtls_ecp_curve_info *curve )
 unsigned char buf[BUFSIZE];
 
 typedef struct {
-    char md4, md5, ripemd160, sha1, sha256, sha512,
-         arc4, des3, des,
+    char md5, ripemd160, sha1, sha256, sha512,
+         des3, des,
          aes_cbc, aes_gcm, aes_ccm, aes_xts, chachapoly,
          aes_cmac, des3_cmac,
-         aria, camellia, blowfish, chacha20,
+         aria, camellia, chacha20,
          poly1305,
          ctr_drbg, hmac_drbg,
          rsa, dhm, ecdsa, ecdh;
@@ -582,9 +579,7 @@ int main( int argc, char *argv[] )
 
         for( i = 1; i < argc; i++ )
         {
-            if( strcmp( argv[i], "md4" ) == 0 )
-                todo.md4 = 1;
-            else if( strcmp( argv[i], "md5" ) == 0 )
+            if( strcmp( argv[i], "md5" ) == 0 )
                 todo.md5 = 1;
             else if( strcmp( argv[i], "ripemd160" ) == 0 )
                 todo.ripemd160 = 1;
@@ -594,8 +589,6 @@ int main( int argc, char *argv[] )
                 todo.sha256 = 1;
             else if( strcmp( argv[i], "sha512" ) == 0 )
                 todo.sha512 = 1;
-            else if( strcmp( argv[i], "arc4" ) == 0 )
-                todo.arc4 = 1;
             else if( strcmp( argv[i], "des3" ) == 0 )
                 todo.des3 = 1;
             else if( strcmp( argv[i], "des" ) == 0 )
@@ -618,8 +611,6 @@ int main( int argc, char *argv[] )
                 todo.aria = 1;
             else if( strcmp( argv[i], "camellia" ) == 0 )
                 todo.camellia = 1;
-            else if( strcmp( argv[i], "blowfish" ) == 0 )
-                todo.blowfish = 1;
             else if( strcmp( argv[i], "chacha20" ) == 0 )
                 todo.chacha20 = 1;
             else if( strcmp( argv[i], "poly1305" ) == 0 )
@@ -656,11 +647,6 @@ int main( int argc, char *argv[] )
     memset( buf, 0xAA, sizeof( buf ) );
     memset( tmp, 0xBB, sizeof( tmp ) );
 
-#if defined(MBEDTLS_MD4_C)
-    if( todo.md4 )
-        TIME_AND_TSC( "MD4", mbedtls_md4( buf, BUFSIZE, tmp ) );
-#endif
-
 #if defined(MBEDTLS_MD5_C)
     if( todo.md5 )
         TIME_AND_TSC( "MD5", mbedtls_md5( buf, BUFSIZE, tmp ) );
@@ -684,17 +670,6 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SHA512_C)
     if( todo.sha512 )
         TIME_AND_TSC( "SHA-512", mbedtls_sha512( buf, BUFSIZE, tmp, 0 ) );
-#endif
-
-#if defined(MBEDTLS_ARC4_C)
-    if( todo.arc4 )
-    {
-        mbedtls_arc4_context arc4;
-        mbedtls_arc4_init( &arc4 );
-        mbedtls_arc4_setup( &arc4, tmp, 32 );
-        TIME_AND_TSC( "ARC4", mbedtls_arc4_crypt( &arc4, BUFSIZE, buf, buf ) );
-        mbedtls_arc4_free( &arc4 );
-    }
 #endif
 
 #if defined(MBEDTLS_DES_C)
@@ -936,30 +911,6 @@ int main( int argc, char *argv[] )
     if ( todo.poly1305 )
     {
         TIME_AND_TSC( "Poly1305", mbedtls_poly1305_mac( buf, buf, BUFSIZE, buf ) );
-    }
-#endif
-
-#if defined(MBEDTLS_BLOWFISH_C) && defined(MBEDTLS_CIPHER_MODE_CBC)
-    if( todo.blowfish )
-    {
-        int keysize;
-        mbedtls_blowfish_context blowfish;
-        mbedtls_blowfish_init( &blowfish );
-
-        for( keysize = 128; keysize <= 256; keysize += 64 )
-        {
-            mbedtls_snprintf( title, sizeof( title ), "BLOWFISH-CBC-%d", keysize );
-
-            memset( buf, 0, sizeof( buf ) );
-            memset( tmp, 0, sizeof( tmp ) );
-            mbedtls_blowfish_setkey( &blowfish, tmp, keysize );
-
-            TIME_AND_TSC( title,
-                    mbedtls_blowfish_crypt_cbc( &blowfish, MBEDTLS_BLOWFISH_ENCRYPT, BUFSIZE,
-                        tmp, buf, buf ) );
-        }
-
-        mbedtls_blowfish_free( &blowfish );
     }
 #endif
 

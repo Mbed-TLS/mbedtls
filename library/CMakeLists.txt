@@ -13,13 +13,11 @@ endif()
 set(src_crypto
     aes.c
     aesni.c
-    arc4.c
     aria.c
     asn1parse.c
     asn1write.c
     base64.c
     bignum.c
-    blowfish.c
     camellia.c
     ccm.c
     chacha20.c
@@ -42,8 +40,6 @@ set(src_crypto
     hkdf.c
     hmac_drbg.c
     md.c
-    md2.c
-    md4.c
     md5.c
     memory_buffer_alloc.c
     mps_reader.c
@@ -84,7 +80,6 @@ set(src_crypto
     timing.c
     version.c
     version_features.c
-    xtea.c
 )
 
 list(APPEND src_crypto ${thirdparty_src})

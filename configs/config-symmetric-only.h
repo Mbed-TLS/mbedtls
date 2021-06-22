@@ -47,11 +47,9 @@
 
 /* Mbed Crypto modules */
 #define MBEDTLS_AES_C
-#define MBEDTLS_ARC4_C
 #define MBEDTLS_ASN1_PARSE_C
 #define MBEDTLS_ASN1_WRITE_C
 #define MBEDTLS_BASE64_C
-#define MBEDTLS_BLOWFISH_C
 #define MBEDTLS_CAMELLIA_C
 #define MBEDTLS_ARIA_C
 #define MBEDTLS_CCM_C
@@ -68,8 +66,6 @@
 #define MBEDTLS_HMAC_DRBG_C
 #define MBEDTLS_NIST_KW_C
 #define MBEDTLS_MD_C
-#define MBEDTLS_MD2_C
-#define MBEDTLS_MD4_C
 #define MBEDTLS_MD5_C
 #define MBEDTLS_OID_C
 #define MBEDTLS_PEM_PARSE_C
@@ -94,7 +90,6 @@
 //#define MBEDTLS_THREADING_C
 #define MBEDTLS_TIMING_C
 #define MBEDTLS_VERSION_C
-#define MBEDTLS_XTEA_C
 
 #include "mbedtls/config_psa.h"
 

@@ -25,8 +25,6 @@
  */
 
 /**
- * \def MBEDTLS_CONFIG_VERSION
- *
  * This is an optional version symbol that enables comatibility handling of
  * config files.
  *

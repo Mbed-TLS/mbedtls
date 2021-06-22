@@ -686,13 +686,13 @@ static int ecdsa_verify_rs_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
 static int ecdsa_sign_rs_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,
-                   unsigned char *sig, size_t *sig_len,
+                   unsigned char *sig, size_t sig_size, size_t *sig_len,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                    void *rs_ctx )
 {
     return( mbedtls_ecdsa_write_signature_restartable(
                 (mbedtls_ecdsa_context *) ctx,
-                md_alg, hash, hash_len, sig, sig_len, f_rng, p_rng,
+                md_alg, hash, hash_len, sig, sig_size, sig_len, f_rng, p_rng,
                 (mbedtls_ecdsa_restart_ctx *) rs_ctx ) );
 
 }

@@ -4037,6 +4037,41 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
+    /* Test calling finish on decryption. */
+
+    operation = psa_aead_operation_init( );
+
+    PSA_ASSERT( psa_aead_decrypt_setup( &operation, key, alg ) );
+
+    PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
+
+    TEST_EQUAL( psa_aead_finish( &operation, final_data,
+                                 finish_output_size,
+                                 &output_part_length,
+                                 tag_buffer, tag_length,
+                                 &tag_size ),
+                PSA_ERROR_BAD_STATE );
+
+    psa_aead_abort( &operation );
+
+    /* Test calling verify on encryption. */
+
+    operation = psa_aead_operation_init( );
+
+    PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
+
+    PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
+
+    TEST_EQUAL( psa_aead_verify( &operation, final_data,
+                                 finish_output_size,
+                                 &output_part_length,
+                                 tag_buffer,
+                                 tag_length ),
+                PSA_ERROR_BAD_STATEcd );
+
+    psa_aead_abort( &operation );
+
+
 exit:
     psa_destroy_key( key );
     psa_aead_abort( &operation );

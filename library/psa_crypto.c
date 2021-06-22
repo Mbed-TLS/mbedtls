@@ -3780,7 +3780,7 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( !operation->nonce_set )
+    if( !operation->nonce_set || operation->is_encrypt == 0 )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3829,7 +3829,7 @@ psa_status_t psa_aead_verify( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( !operation->nonce_set )
+    if( !operation->nonce_set || operation->is_encrypt == 1 )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;

@@ -1,0 +1,3 @@
+Features
+   * Implement psa_mac_compute() and psa_mac_verify() as defined in the
+     PSA Cryptograpy API 1.0.0 specification.

@@ -651,6 +651,9 @@ pre_check_tools () {
 }
 
 pre_generate_files() {
+    # since make doesn't have proper dependencies, remove any possibly outdate
+    # file that might be around before generating fresh ones
+    make neat
     make generated_files
 }
 

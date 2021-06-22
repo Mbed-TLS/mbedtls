@@ -65,14 +65,9 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if !defined(MBEDTLS_CONFIG_VERSION)
-#define MBEDTLS_CONFIG_VERSION MBEDTLS_CONFIG_VERSION_LATEST
-#elif MBEDTLS_CONFIG_VERSION != MBEDTLS_CONFIG_VERSION_LATEST
+#if defined(MBEDTLS_CONFIG_VERSION) && \
+    MBEDTLS_CONFIG_VERSION != MBEDTLS_CONFIG_VERSION_LATEST
 #error "Invalid config version, defined value of MBEDTLS_CONFIG_VERSION is unsupported"
-#endif
-
-#if defined(MBEDTLS_USER_CONFIG_VERSION)
-#error "MBEDTLS_USER_CONFIG_VERSION defined outside MBEDTLS_USER_CONFIG_FILE"
 #endif
 
 /* Target and application specific configurations
@@ -82,10 +77,6 @@
  */
 #if defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE
-#if defined(MBEDTLS_USER_CONFIG_VERSION) && \
-    MBEDTLS_USER_CONFIG_VERSION != MBEDTLS_CONFIG_VERSION
-#error "Version mismatch between config file and MBEDTLS_USER_CONFIG_FILE"
-#endif
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)

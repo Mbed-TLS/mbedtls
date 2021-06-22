@@ -3398,20 +3398,7 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
 /* Helper function to get the base algorithm from its variants. */
 static psa_algorithm_t psa_aead_get_base_algorithm(psa_algorithm_t alg)
 {
-    switch( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) )
-    {
-        case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ):
-            return( PSA_ALG_CCM );
-
-        case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ):
-            return( PSA_ALG_GCM );
-
-        case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CHACHA20_POLY1305, 0 ):
-            return( PSA_ALG_CHACHA20_POLY1305 );
-
-        default:
-            return( PSA_ERROR_NOT_SUPPORTED );
-    }
+    return PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG( alg );
 }
 
 /* Set the key for a multipart authenticated encryption operation. */

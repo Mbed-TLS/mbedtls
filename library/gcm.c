@@ -281,7 +281,7 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
     GCM_VALIDATE_RET( ctx != NULL );
     GCM_VALIDATE_RET( iv != NULL );
 
-    /* IV is are limited to 2^64 bits, so 2^61 bytes */
+    /* IV is limited to 2^64 bits, so 2^61 bytes */
     /* IV is not allowed to be zero length */
     if( iv_len == 0 || (uint64_t) iv_len >> 61 != 0 )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
@@ -335,8 +335,8 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
 /**
  * mbedtls_gcm_context::buf contains the partial state of the computation of
  * the authentication tag.
- * mbedtls_gcm_context::::add_len and mbedtls_gcm_context::len indicate
- * differenet stages of the computation:
+ * mbedtls_gcm_context::add_len and mbedtls_gcm_context::len indicate
+ * different stages of the computation:
  *     * len == 0 && add_len == 0:      initial state
  *     * len == 0 && add_len % 16 != 0: the first `add_len % 16` bytes have
  *                                      a partial block of AD that has been
@@ -357,7 +357,7 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
 
     GCM_VALIDATE_RET( add_len == 0 || add != NULL );
 
-    /* IV is are limited to 2^64 bits, so 2^61 bytes */
+    /* IV is limited to 2^64 bits, so 2^61 bytes */
     if( (uint64_t) add_len >> 61 != 0 )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
 
@@ -370,7 +370,7 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
         if( use_len > add_len )
             use_len = add_len;
 
-        for ( i = 0; i < use_len; i++ )
+        for( i = 0; i < use_len; i++ )
             ctx->buf[i+offset] ^= p[i];
 
         if( offset + use_len == 16 )

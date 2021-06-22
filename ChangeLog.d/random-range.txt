@@ -1,0 +1,4 @@
+Security
+* Fix a bias in the generation of finite-field Diffie-Hellman-Merkle (DHM)
+  private keys and of blinding values for DHM and elliptic curves (ECP)
+  computations. Reported by FlorianF89 in #4245.

@@ -2987,7 +2987,9 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_ECP_C)
 /**
  * \brief          Set the allowed curves in order of preference.
- *                 (Default: all defined curves in order of decreasing size.)
+ *                 (Default: all defined curves in order of decreasing size,
+ *                 except that Montgomery curves come last. This order
+ *                 is likely to change in a future version.)
  *
  *                 On server: this only affects selection of the ECDHE curve;
  *                 the curves used for ECDH and ECDSA are determined by the

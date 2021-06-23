@@ -339,6 +339,10 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
  *                    then mbedtls_gcm_finish() never produces any output,
  *                    so \p output_size can be \c 0.
  *                  - \p output_size never needs to be more than \c 15.
+ * \param output_length On success, \p *output_length contains the actual
+ *                      length of the output written in \p output.
+ *                      On failure, the content of \p *output_length is
+ *                      unspecified.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_GCM_BAD_INPUT on failure:
@@ -347,6 +351,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
  */
 int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
                         unsigned char *output, size_t output_size,
+                        size_t *output_length,
                         unsigned char *tag, size_t tag_len );
 
 /**

@@ -156,13 +156,33 @@ mbedtls_x509_subject_alternative_name;
  * Security profile for certificate verification.
  *
  * All lists are bitfields, built by ORing flags from MBEDTLS_X509_ID_FLAG().
+ *
+ * The fields of this structure are part of the public API and can be
+ * manipulated directly by applications. Future versions of the library may
+ * add extra fields or reorder existing fields.
+ *
+ * You can create custom profiles by starting from a copy of
+ * an existing profile, such as mbedtls_x509_crt_profile_default or
+ * mbedtls_x509_ctr_profile_none and then tune it to your needs.
+ *
+ * For example to allow SHA-224 in addition to the default:
+ *
+ *  mbedtls_x509_crt_profile my_profile = mbedtls_x509_crt_profile_default;
+ *  my_profile.allowed_mds |= MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA224 );
+ *
+ * Or to allow only RSA-3072+ with SHA-256:
+ *
+ *  mbedtls_x509_crt_profile my_profile = mbedtls_x509_crt_profile_none;
+ *  my_profile.allowed_mds = MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 );
+ *  my_profile.allowed_pks = MBEDTLS_X509_ID_FLAG( MBEDTLS_PK_RSA );
+ *  my_profile.rsa_min_bitlen = 3072;
  */
 typedef struct mbedtls_x509_crt_profile
 {
-    uint32_t MBEDTLS_PRIVATE(allowed_mds);       /**< MDs for signatures         */
-    uint32_t MBEDTLS_PRIVATE(allowed_pks);       /**< PK algs for signatures     */
-    uint32_t MBEDTLS_PRIVATE(allowed_curves);    /**< Elliptic curves for ECDSA  */
-    uint32_t MBEDTLS_PRIVATE(rsa_min_bitlen);    /**< Minimum size for RSA keys  */
+    uint32_t allowed_mds;       /**< MDs for signatures         */
+    uint32_t allowed_pks;       /**< PK algs for signatures     */
+    uint32_t allowed_curves;    /**< Elliptic curves for ECDSA  */
+    uint32_t rsa_min_bitlen;    /**< Minimum size for RSA keys  */
 }
 mbedtls_x509_crt_profile;
 
@@ -355,6 +375,12 @@ extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next;
  * NSA Suite B profile.
  */
 extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb;
+
+/**
+ * Empty profile that allows nothing. Useful as a basis for constructing
+ * custom profiles.
+ */
+extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_none;
 
 /**
  * \brief          Parse a single DER formatted certificate and add it

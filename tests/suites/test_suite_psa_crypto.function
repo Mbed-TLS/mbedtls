@@ -4067,7 +4067,7 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
                                  &output_part_length,
                                  tag_buffer,
                                  tag_length ),
-                PSA_ERROR_BAD_STATEcd );
+                PSA_ERROR_BAD_STATE );
 
     psa_aead_abort( &operation );
 

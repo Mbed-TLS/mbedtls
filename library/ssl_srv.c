@@ -75,6 +75,12 @@
 #include "mbedtls/platform_time.h"
 #endif
 
+/* Byte reading macros */
+#define BYTE_0( x ) ( (uint8_t) ( ( x ) & 0xff )  )
+#define BYTE_1( x ) ( (uint8_t) ( ( ( x ) >> 8 ) & 0xff )  )
+#define BYTE_2( x ) ( (uint8_t) ( ( ( x ) >> 16 ) & 0xff ) )
+#define BYTE_3( x ) ( (uint8_t) ( ( ( x ) >> 24 ) & 0xff ) )
+
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
 int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
                                  const unsigned char *info,
@@ -1118,8 +1124,8 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     for( i = 0, p = buf + 6; i < ciph_len; i += 3, p += 3 )
     {
         if( p[0] == 0 &&
-            p[1] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE >> 8 ) & 0xff ) &&
-            p[2] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE      ) & 0xff ) )
+            p[1] == (unsigned char)( BYTE_1( MBEDTLS_SSL_FALLBACK_SCSV_VALUE ) ) &&
+            p[2] == (unsigned char)( BYTE_0( MBEDTLS_SSL_FALLBACK_SCSV_VALUE ) ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "received FALLBACK_SCSV" ) );
 
@@ -1871,8 +1877,8 @@ read_record_header:
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV)
     for( i = 0, p = buf + ciph_offset + 2; i < ciph_len; i += 2, p += 2 )
     {
-        if( p[0] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE >> 8 ) & 0xff ) &&
-            p[1] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE      ) & 0xff ) )
+        if( p[0] == (unsigned char)( BYTE_1( MBEDTLS_SSL_FALLBACK_SCSV_VALUE ) ) &&
+            p[1] == (unsigned char)( BYTE_0( MBEDTLS_SSL_FALLBACK_SCSV_VALUE ) ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "received FALLBACK_SCSV" ) );
 

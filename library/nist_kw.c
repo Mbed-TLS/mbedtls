@@ -82,6 +82,12 @@
 #define KW_SEMIBLOCK_LENGTH    8
 #define MIN_SEMIBLOCKS_COUNT   3
 
+/* Byte reading macros */
+#define BYTE_0( x ) ( (uint8_t) ( ( x ) & 0xff )  )
+#define BYTE_1( x ) ( (uint8_t) ( ( ( x ) >> 8 ) & 0xff )  )
+#define BYTE_2( x ) ( (uint8_t) ( ( ( x ) >> 16 ) & 0xff ) )
+#define BYTE_3( x ) ( (uint8_t) ( ( ( x ) >> 24 ) & 0xff ) )
+
 /* constant-time buffer comparison */
 static inline unsigned char mbedtls_nist_kw_safer_memcmp( const void *a, const void *b, size_t n )
 {
@@ -199,7 +205,7 @@ static void calc_a_xor_t( unsigned char A[KW_SEMIBLOCK_LENGTH], uint64_t t )
     size_t i = 0;
     for( i = 0; i < sizeof( t ); i++ )
     {
-        A[i] ^= ( t >> ( ( sizeof( t ) - 1 - i ) * 8 ) ) & 0xff;
+        A[i] ^= BYTE_0( t >> ( ( sizeof( t ) - 1 - i ) * 8 ) );
     }
 }
 

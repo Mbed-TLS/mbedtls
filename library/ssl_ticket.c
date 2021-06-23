@@ -66,6 +66,12 @@
 
 #include <string.h>
 
+/* Byte reading macros */
+#define BYTE_0( x ) ( (uint8_t) ( ( x ) & 0xff )  )
+#define BYTE_1( x ) ( (uint8_t) ( ( ( x ) >> 8 ) & 0xff )  )
+#define BYTE_2( x ) ( (uint8_t) ( ( ( x ) >> 16 ) & 0xff ) )
+#define BYTE_3( x ) ( (uint8_t) ( ( ( x ) >> 24 ) & 0xff ) )
+
 /*
  * Initialze context
  */
@@ -368,8 +374,8 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
     {
          goto cleanup;
     }
-    state_len_bytes[0] = ( clear_len >> 8 ) & 0xff;
-    state_len_bytes[1] = ( clear_len      ) & 0xff;
+    state_len_bytes[0] = BYTE_1( clear_len );
+    state_len_bytes[1] = BYTE_0( clear_len );
 
     /* Encrypt and authenticate */
     tag = state + clear_len;

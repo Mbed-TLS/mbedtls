@@ -2220,6 +2220,46 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
     return( status );
 }
 
+static psa_status_t psa_mac_finalize_alg_and_key_validation(
+    psa_algorithm_t alg,
+    const psa_key_attributes_t *attributes,
+    uint8_t *mac_size )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_type_t key_type = psa_get_key_type( attributes );
+    size_t key_bits = psa_get_key_bits( attributes );
+
+    if( ! PSA_ALG_IS_MAC( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    /* Validate the combination of key type and algorithm */
+    status = psa_mac_key_can_do( alg, key_type );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    /* Get the output length for the algorithm and key combination */
+    *mac_size = PSA_MAC_LENGTH( key_type, key_bits, alg );
+
+    if( *mac_size < 4 )
+    {
+        /* A very short MAC is too short for security since it can be
+         * brute-forced. Ancient protocols with 32-bit MACs do exist,
+         * so we make this our minimum, even though 32 bits is still
+         * too small for security. */
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+    if( *mac_size > PSA_MAC_LENGTH( key_type, key_bits,
+                                    PSA_ALG_FULL_LENGTH_MAC( alg ) ) )
+    {
+        /* It's impossible to "truncate" to a larger length than the full length
+         * of the algorithm. */
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
+    return( PSA_SUCCESS );
+}
+
 static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
                                    mbedtls_svc_key_id_t key,
                                    psa_algorithm_t alg,
@@ -2233,9 +2273,6 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     if( operation->id != 0 )
         return( PSA_ERROR_BAD_STATE );
 
-    if( ! PSA_ALG_IS_MAC( alg ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
     status = psa_get_and_lock_key_slot_with_policy(
                  key,
                  &slot,
@@ -2248,39 +2285,12 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         .core = slot->attr
     };
 
-    /* Validate the combination of key type and algorithm */
-    status = psa_mac_key_can_do( alg, psa_get_key_type( &attributes ) );
+    status = psa_mac_finalize_alg_and_key_validation( alg, &attributes,
+                                                      &operation->mac_size );
     if( status != PSA_SUCCESS )
         goto exit;
 
     operation->is_sign = is_sign;
-
-    /* Get the output length for the algorithm and key combination */
-    operation->mac_size = PSA_MAC_LENGTH(
-                            psa_get_key_type( &attributes ),
-                            psa_get_key_bits( &attributes ),
-                            alg );
-
-    if( operation->mac_size < 4 )
-    {
-        /* A very short MAC is too short for security since it can be
-         * brute-forced. Ancient protocols with 32-bit MACs do exist,
-         * so we make this our minimum, even though 32 bits is still
-         * too small for security. */
-        status = PSA_ERROR_NOT_SUPPORTED;
-        goto exit;
-    }
-
-    if( operation->mac_size > PSA_MAC_LENGTH( psa_get_key_type( &attributes ),
-                                              psa_get_key_bits( &attributes ),
-                                              PSA_ALG_FULL_LENGTH_MAC( alg ) ) )
-    {
-        /* It's impossible to "truncate" to a larger length than the full length
-         * of the algorithm. */
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto exit;
-    }
-
     /* Dispatch the MAC setup call with validated input */
     if( is_sign )
     {
@@ -2373,23 +2383,21 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
                                                  mac, operation->mac_size,
                                                  mac_length );
 
-    if( status == PSA_SUCCESS )
+    /* In case of success, set the potential excess room in the output buffer
+     * to an invalid value, to avoid potentially leaking a longer MAC.
+     * In case of error, set the output length and content to a safe default,
+     * such that in case the caller misses an error check, the output would be
+     * an unachievable MAC.
+     */
+    if( status != PSA_SUCCESS )
     {
-        /* Set the excess room in the output buffer to an invalid value, to
-         * avoid potentially leaking a longer MAC. */
-        if( mac_size > operation->mac_size )
-            memset( &mac[operation->mac_size],
-                    '!',
-                    mac_size - operation->mac_size );
-    }
-    else
-    {
-        /* Set the output length and content to a safe default, such that in
-         * case the caller misses an error check, the output would be an
-         * unachievable MAC. */
         *mac_length = mac_size;
-        memset( mac, '!', mac_size );
+        operation->mac_size = 0;
     }
+
+    if( mac_size > operation->mac_size )
+        memset( &mac[operation->mac_size], '!',
+                mac_size - operation->mac_size );
 
     abort_status = psa_mac_abort( operation );
 
@@ -2424,7 +2432,116 @@ cleanup:
     return( status == PSA_SUCCESS ? abort_status : status );
 }
 
+static psa_status_t psa_mac_compute_internal( mbedtls_svc_key_id_t key,
+                                              psa_algorithm_t alg,
+                                              const uint8_t *input,
+                                              size_t input_length,
+                                              uint8_t *mac,
+                                              size_t mac_size,
+                                              size_t *mac_length,
+                                              int is_sign )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+    uint8_t operation_mac_size = 0;
 
+    status = psa_get_and_lock_key_slot_with_policy(
+                 key, &slot,
+                 is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH,
+                 alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    psa_key_attributes_t attributes = {
+        .core = slot->attr
+    };
+
+    status = psa_mac_finalize_alg_and_key_validation( alg, &attributes,
+                                                      &operation_mac_size );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    if( mac_size < operation_mac_size )
+    {
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+        goto exit;
+    }
+
+    status = psa_driver_wrapper_mac_compute(
+                 &attributes,
+                 slot->key.data, slot->key.bytes,
+                 alg,
+                 input, input_length,
+                 mac, operation_mac_size, mac_length );
+
+exit:
+    /* In case of success, set the potential excess room in the output buffer
+     * to an invalid value, to avoid potentially leaking a longer MAC.
+     * In case of error, set the output length and content to a safe default,
+     * such that in case the caller misses an error check, the output would be
+     * an unachievable MAC.
+     */
+    if( status != PSA_SUCCESS )
+    {
+        *mac_length = mac_size;
+        operation_mac_size = 0;
+    }
+    if( mac_size > operation_mac_size )
+        memset( &mac[operation_mac_size], '!', mac_size - operation_mac_size );
+
+    unlock_status = psa_unlock_key_slot( slot );
+
+    return( ( status == PSA_SUCCESS ) ? unlock_status : status );
+}
+
+psa_status_t psa_mac_compute( mbedtls_svc_key_id_t key,
+                              psa_algorithm_t alg,
+                              const uint8_t *input,
+                              size_t input_length,
+                              uint8_t *mac,
+                              size_t mac_size,
+                              size_t *mac_length)
+{
+    return( psa_mac_compute_internal( key, alg,
+                                      input, input_length,
+                                      mac, mac_size, mac_length, 1 ) );
+}
+
+psa_status_t psa_mac_verify( mbedtls_svc_key_id_t key,
+                             psa_algorithm_t alg,
+                             const uint8_t *input,
+                             size_t input_length,
+                             const uint8_t *mac,
+                             size_t mac_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    uint8_t actual_mac[PSA_MAC_MAX_SIZE];
+    size_t actual_mac_length;
+
+    status = psa_mac_compute_internal( key, alg,
+                                       input, input_length,
+                                       actual_mac, sizeof( actual_mac ),
+                                       &actual_mac_length, 0 );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    if( mac_length != actual_mac_length )
+    {
+        status = PSA_ERROR_INVALID_SIGNATURE;
+        goto exit;
+    }
+    if( mbedtls_psa_safer_memcmp( mac, actual_mac, actual_mac_length ) != 0 )
+    {
+        status = PSA_ERROR_INVALID_SIGNATURE;
+        goto exit;
+    }
+
+exit:
+    mbedtls_platform_zeroize( actual_mac, sizeof( actual_mac ) );
+
+    return ( status );
+}
 
 /****************************************************************/
 /* Asymmetric cryptography */

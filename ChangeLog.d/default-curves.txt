@@ -1,0 +1,9 @@
+Default behavior changes
+   * Some default policies for X.509 certificate verification and TLS have
+     changed: curves and hashes weaker than 255 bits are no longer accepted
+     by default. The default order in TLS now favors faster curves over larger
+     curves.
+
+Removals
+   * Remove the compile-time option
+     MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE.

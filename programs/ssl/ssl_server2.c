@@ -334,13 +334,6 @@ int main( void )
 #define USAGE_MAX_FRAG_LEN ""
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-#define USAGE_TRUNC_HMAC \
-    "    trunc_hmac=%%d       default: library default\n"
-#else
-#define USAGE_TRUNC_HMAC ""
-#endif
-
 #if defined(MBEDTLS_SSL_ALPN)
 #define USAGE_ALPN \
     "    alpn=%%s             default: \"\" (disabled)\n"   \
@@ -487,7 +480,6 @@ int main( void )
     USAGE_NSS_KEYLOG_FILE                                   \
     USAGE_CACHE                                             \
     USAGE_MAX_FRAG_LEN                                      \
-    USAGE_TRUNC_HMAC                                        \
     USAGE_ALPN                                              \
     USAGE_EMS                                               \
     USAGE_ETM                                               \
@@ -2510,11 +2502,6 @@ int main( int argc, char *argv[] )
     }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    if( opt.trunc_hmac != DFL_TRUNC_HMAC )
-        mbedtls_ssl_conf_truncated_hmac( &conf, opt.trunc_hmac );
-#endif
-
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     if( opt.extended_ms != DFL_EXTENDED_MS )
         mbedtls_ssl_conf_extended_master_secret( &conf, opt.extended_ms );
@@ -2524,27 +2511,6 @@ int main( int argc, char *argv[] )
     if( opt.etm != DFL_ETM )
         mbedtls_ssl_conf_encrypt_then_mac( &conf, opt.etm );
 #endif
-
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
-    if( opt.eap_tls != 0 )
-    {
-        mbedtls_ssl_conf_export_keys_ext_cb( &conf, eap_tls_key_derivation,
-                                             &eap_tls_keying );
-    }
-    else if( opt.nss_keylog != 0 )
-    {
-        mbedtls_ssl_conf_export_keys_ext_cb( &conf,
-                                             nss_keylog_export,
-                                             NULL );
-    }
-#if defined( MBEDTLS_SSL_DTLS_SRTP )
-    else if( opt.use_srtp != 0 )
-    {
-        mbedtls_ssl_conf_export_keys_ext_cb( &conf, dtls_srtp_key_derivation,
-                                             &dtls_srtp_keying );
-    }
-#endif /* MBEDTLS_SSL_DTLS_SRTP */
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_ALPN)
     if( opt.alpn_string != NULL )
@@ -2871,6 +2837,27 @@ int main( int argc, char *argv[] )
         mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned -0x%x\n\n", (unsigned int) -ret );
         goto exit;
     }
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    if( opt.eap_tls != 0 )
+    {
+        mbedtls_ssl_set_export_keys_cb( &ssl, eap_tls_key_derivation,
+                                        &eap_tls_keying );
+    }
+    else if( opt.nss_keylog != 0 )
+    {
+        mbedtls_ssl_set_export_keys_cb( &ssl,
+                                        nss_keylog_export,
+                                        NULL );
+    }
+#if defined( MBEDTLS_SSL_DTLS_SRTP )
+    else if( opt.use_srtp != 0 )
+    {
+        mbedtls_ssl_set_export_keys_cb( &ssl, dtls_srtp_key_derivation,
+                                        &dtls_srtp_keying );
+    }
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
     io_ctx.ssl = &ssl;
     io_ctx.net = &client_fd;

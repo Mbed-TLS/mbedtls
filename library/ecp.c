@@ -2969,6 +2969,10 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
 #if defined(ECP_MONTGOMERY)
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+/* The following constants are defined in ecp_curves.c */
+extern const mbedtls_mpi mbedtls_ecp_x25519_bad_point_1;
+extern const mbedtls_mpi mbedtls_ecp_x25519_bad_point_2;
+
 /*
  * Check that the input point is not one of the low-order points.
  * This is recommended by the "May the Fourth" paper:
@@ -2978,10 +2982,9 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 static int ecp_check_pubkey_x25519( const mbedtls_mpi *X, const mbedtls_mpi *P )
 {
     int ret;
-    mbedtls_mpi XmP, bad;
+    mbedtls_mpi XmP;
 
     mbedtls_mpi_init( &XmP );
-    mbedtls_mpi_init( &bad );
 
     /* Reduce X mod P so that we only need to check values less than P.
      * We know X < 2^256 so we can proceed by subtraction. */
@@ -2994,25 +2997,21 @@ static int ecp_check_pubkey_x25519( const mbedtls_mpi *X, const mbedtls_mpi *P )
     if( mbedtls_mpi_cmp_int( &XmP, 1 ) <= 0 ) /* takes care of 0 and 1 */
         return( MBEDTLS_ERR_ECP_INVALID_KEY );
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &bad, 10,
-        "325606250916557431795983626356110631294008115727848805560023387167927233504" ) );
-    if( mbedtls_mpi_cmp_mpi( &XmP, &bad ) == 0 )
+    if( mbedtls_mpi_cmp_mpi( &XmP, &mbedtls_ecp_x25519_bad_point_1 ) == 0 )
         return( MBEDTLS_ERR_ECP_INVALID_KEY );
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &bad, 10,
-        "39382357235489614581723060781553021112529911719440698176882885853963445705823" ) );
-    if( mbedtls_mpi_cmp_mpi( &XmP, &bad ) == 0 )
+    if( mbedtls_mpi_cmp_mpi( &XmP, &mbedtls_ecp_x25519_bad_point_2 ) == 0 )
         return( MBEDTLS_ERR_ECP_INVALID_KEY );
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &bad, P, 1 ) );
-    if( mbedtls_mpi_cmp_mpi( &XmP, &bad ) == 0 )
+    /* Final check: check if XmP + 1 is P (final because it changes XmP!) */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &XmP, &XmP, 1 ) );
+    if( mbedtls_mpi_cmp_mpi( &XmP, P ) == 0 )
         return( MBEDTLS_ERR_ECP_INVALID_KEY );
 
     ret = 0;
 
 cleanup:
     mbedtls_mpi_free( &XmP );
-    mbedtls_mpi_free( &bad );
 
     return( ret );
 }

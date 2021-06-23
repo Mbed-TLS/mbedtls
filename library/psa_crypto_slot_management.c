@@ -391,6 +391,10 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
         if( status == PSA_ERROR_DOES_NOT_EXIST )
             status = PSA_ERROR_INVALID_HANDLE;
     }
+    else
+        /* Do the key usage policy extension. */
+        psa_extend_key_usage_flags( &(*p_slot)->attr.policy.usage );
+
     return( status );
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
     return( PSA_ERROR_INVALID_HANDLE );

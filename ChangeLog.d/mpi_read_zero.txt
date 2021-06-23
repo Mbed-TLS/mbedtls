@@ -1,0 +1,9 @@
+Changes
+   * mbedtls_mpi_read_binary(), mbedtls_mpi_read_binary_le() and
+     mbedtls_mpi_read_string() now construct an mbedtls_mpi object with 0 limbs
+     when their input has length 0. Note that this is an implementation detail
+     and can change at any time, so this change should be transparent, but it
+     may result in mbedtls_mpi_write_binary() or mbedtls_mpi_write_string()
+     now writing an empty string where it previously wrote one or more
+     zero digits when operating from values constructed with an mpi_read
+     function and some mpi operations.

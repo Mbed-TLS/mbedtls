@@ -83,14 +83,13 @@
 
 #define ECP_MPI_INIT(s, n, p) {s, (n), (mbedtls_mpi_uint *)(p)}
 
+#define ECP_MPI_INIT_ARRAY(x)   \
+    ECP_MPI_INIT(1, sizeof(x) / sizeof(mbedtls_mpi_uint), x)
+
 #define ECP_POINT_INIT_XY_Z0(x, y) { \
-    ECP_MPI_INIT(1, sizeof(x) / sizeof(mbedtls_mpi_uint), x),\
-    ECP_MPI_INIT(1, sizeof(y) / sizeof(mbedtls_mpi_uint), y), \
-    ECP_MPI_INIT(1, 0, NULL) }
+    ECP_MPI_INIT_ARRAY(x), ECP_MPI_INIT_ARRAY(y), ECP_MPI_INIT(1, 0, NULL) }
 #define ECP_POINT_INIT_XY_Z1(x, y) { \
-    ECP_MPI_INIT(1, sizeof(x) / sizeof(mbedtls_mpi_uint), x),\
-    ECP_MPI_INIT(1, sizeof(y) / sizeof(mbedtls_mpi_uint), y), \
-    ECP_MPI_INIT(1, 1, mpi_one) }
+    ECP_MPI_INIT_ARRAY(x), ECP_MPI_INIT_ARRAY(y), ECP_MPI_INIT(1, 1, mpi_one) }
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||   \
@@ -4703,6 +4702,28 @@ cleanup:
 
     return( ret );
 }
+
+/*
+ * Constants for the two points other than 0, 1, -1 (mod p) in
+ * https://cr.yp.to/ecdh.html#validate
+ * See ecp_check_pubkey_x25519().
+ */
+static const mbedtls_mpi_uint x25519_bad_point_1[] = {
+    BYTES_TO_T_UINT_8( 0xe0, 0xeb, 0x7a, 0x7c, 0x3b, 0x41, 0xb8, 0xae ),
+    BYTES_TO_T_UINT_8( 0x16, 0x56, 0xe3, 0xfa, 0xf1, 0x9f, 0xc4, 0x6a ),
+    BYTES_TO_T_UINT_8( 0xda, 0x09, 0x8d, 0xeb, 0x9c, 0x32, 0xb1, 0xfd ),
+    BYTES_TO_T_UINT_8( 0x86, 0x62, 0x05, 0x16, 0x5f, 0x49, 0xb8, 0x00 ),
+};
+static const mbedtls_mpi_uint x25519_bad_point_2[] = {
+    BYTES_TO_T_UINT_8( 0x5f, 0x9c, 0x95, 0xbc, 0xa3, 0x50, 0x8c, 0x24 ),
+    BYTES_TO_T_UINT_8( 0xb1, 0xd0, 0xb1, 0x55, 0x9c, 0x83, 0xef, 0x5b ),
+    BYTES_TO_T_UINT_8( 0x04, 0x44, 0x5c, 0xc4, 0x58, 0x1c, 0x8e, 0x86 ),
+    BYTES_TO_T_UINT_8( 0xd8, 0x22, 0x4e, 0xdd, 0xd0, 0x9f, 0x11, 0x57 ),
+};
+const mbedtls_mpi mbedtls_ecp_x25519_bad_point_1 = ECP_MPI_INIT_ARRAY(
+        x25519_bad_point_1 );
+const mbedtls_mpi mbedtls_ecp_x25519_bad_point_2 = ECP_MPI_INIT_ARRAY(
+        x25519_bad_point_2 );
 #endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)

@@ -247,6 +247,21 @@ static psa_status_t psa_aead_unpadded_locate_tag( size_t tag_length,
     return( PSA_SUCCESS );
 }
 
+static psa_status_t mbedtls_aead_check_nonce_length(
+    mbedtls_psa_aead_operation_t *operation,
+    size_t nonce_length )
+{
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
+    if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
+    {
+        if( nonce_length != 12 )
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
+
+    return PSA_SUCCESS;
+}
+
 psa_status_t mbedtls_psa_aead_decrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
@@ -271,6 +286,13 @@ psa_status_t mbedtls_psa_aead_decrypt(
                                            plaintext_size, &tag );
     if( status != PSA_SUCCESS )
         goto exit;
+
+    if( mbedtls_aead_check_nonce_length( &operation, nonce_length )
+        != PSA_SUCCESS)
+    {
+        status = PSA_ERROR_NOT_SUPPORTED;
+        goto exit;
+    }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation.alg == PSA_ALG_CCM )
@@ -303,7 +325,7 @@ psa_status_t mbedtls_psa_aead_decrypt(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation.alg == PSA_ALG_CHACHA20_POLY1305 )
     {
-        if( nonce_length != 12 || operation.tag_length != 16 )
+        if( operation.tag_length != 16 )
         {
             status = PSA_ERROR_NOT_SUPPORTED;
             goto exit;
@@ -397,6 +419,12 @@ psa_status_t mbedtls_psa_aead_set_nonce(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
+    if( mbedtls_aead_check_nonce_length( operation, nonce_length )
+        != PSA_SUCCESS)
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
     {
@@ -412,11 +440,6 @@ psa_status_t mbedtls_psa_aead_set_nonce(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
     {
-        if( nonce_length != 12 && nonce_length != 8)
-        {
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        }
-
         status = mbedtls_to_psa_error(
            mbedtls_chachapoly_starts( &operation->ctx.chachapoly,
                                       nonce,

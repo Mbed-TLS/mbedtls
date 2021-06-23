@@ -34,12 +34,23 @@ typedef struct {
      * function call. */
     psa_status_t forced_status;
     /* Count the amount of times AEAD driver functions are called. */
-    unsigned long hits;
+    unsigned long hits_encrypt;
+    unsigned long hits_decrypt;
+    unsigned long hits_encrypt_setup;
+    unsigned long hits_decrypt_setup;
+    unsigned long hits_set_nonce;
+    unsigned long hits_set_lengths;
+    unsigned long hits_update_ad;
+    unsigned long hits_update;
+    unsigned long hits_finish;
+    unsigned long hits_verify;
+    unsigned long hits_abort;
+
     /* Status returned by the last AEAD driver function call. */
     psa_status_t driver_status;
 } mbedtls_test_driver_aead_hooks_t;
 
-#define MBEDTLS_TEST_DRIVER_AEAD_INIT { 0, 0, 0 }
+#define MBEDTLS_TEST_DRIVER_AEAD_INIT { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 static inline mbedtls_test_driver_aead_hooks_t
     mbedtls_test_driver_aead_hooks_init( void )
 {

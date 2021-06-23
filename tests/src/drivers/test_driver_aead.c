@@ -40,7 +40,7 @@ psa_status_t mbedtls_test_transparent_aead_encrypt(
     const uint8_t *plaintext, size_t plaintext_length,
     uint8_t *ciphertext, size_t ciphertext_size, size_t *ciphertext_length )
 {
-    mbedtls_test_driver_aead_hooks.hits++;
+    mbedtls_test_driver_aead_hooks.hits_encrypt++;
 
     if( mbedtls_test_driver_aead_hooks.forced_status != PSA_SUCCESS )
     {
@@ -71,7 +71,7 @@ psa_status_t mbedtls_test_transparent_aead_decrypt(
     const uint8_t *ciphertext, size_t ciphertext_length,
     uint8_t *plaintext, size_t plaintext_size, size_t *plaintext_length )
 {
-    mbedtls_test_driver_aead_hooks.hits++;
+    mbedtls_test_driver_aead_hooks.hits_decrypt++;
 
     if( mbedtls_test_driver_aead_hooks.forced_status != PSA_SUCCESS )
     {
@@ -99,7 +99,7 @@ psa_status_t mbedtls_test_transparent_aead_encrypt_setup(
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg )
 {
-    mbedtls_test_driver_aead_hooks.hits++;
+    mbedtls_test_driver_aead_hooks.hits_encrypt_setup++;
 
     if( mbedtls_test_driver_aead_hooks.forced_status != PSA_SUCCESS )
     {
@@ -122,7 +122,7 @@ psa_status_t mbedtls_test_transparent_aead_decrypt_setup(
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg )
 {
-    mbedtls_test_driver_aead_hooks.hits++;
+    mbedtls_test_driver_aead_hooks.hits_decrypt_setup++;
 
     if( mbedtls_test_driver_aead_hooks.forced_status != PSA_SUCCESS )
     {
@@ -144,7 +144,7 @@ psa_status_t mbedtls_test_transparent_aead_set_nonce(
     const uint8_t *nonce,
     size_t nonce_length )
 {
-    mbedtls_test_driver_aead_hooks.hits++;
+    mbedtls_test_driver_aead_hooks.hits_set_nonce++;
 
     if( mbedtls_test_driver_aead_hooks.forced_status != PSA_SUCCESS )
     {
@@ -165,7 +165,7 @@ psa_status_t mbedtls_test_transparent_aead_set_lengths(
     size_t ad_length,
     size_t plaintext_length )
 {
-    mbedtls_test_driver_aead_hooks.hits++;
+    mbedtls_test_driver_aead_hooks.hits_set_lengths++;
 
     if( mbedtls_test_driver_aead_hooks.forced_status != PSA_SUCCESS )
     {
@@ -187,7 +187,7 @@ psa_status_t mbedtls_test_transparent_aead_update_ad(
     const uint8_t *input,
     size_t input_length )
 {
-    mbedtls_test_driver_aead_hooks.hits++;
+    mbedtls_test_driver_aead_hooks.hits_update_ad++;
 
     if( mbedtls_test_driver_aead_hooks.forced_status != PSA_SUCCESS )
     {
@@ -211,7 +211,7 @@ psa_status_t mbedtls_test_transparent_aead_update(
    size_t output_size,
    size_t *output_length )
 {
-    mbedtls_test_driver_aead_hooks.hits++;
+    mbedtls_test_driver_aead_hooks.hits_update++;
 
     if( mbedtls_test_driver_aead_hooks.forced_status != PSA_SUCCESS )
     {
@@ -237,7 +237,7 @@ psa_status_t mbedtls_test_transparent_aead_finish(
    size_t tag_size,
    size_t *tag_length )
 {
-   mbedtls_test_driver_aead_hooks.hits++;
+   mbedtls_test_driver_aead_hooks.hits_finish++;
 
     if( mbedtls_test_driver_aead_hooks.forced_status != PSA_SUCCESS )
     {
@@ -263,7 +263,7 @@ psa_status_t mbedtls_test_transparent_aead_verify(
    const uint8_t *tag,
    size_t tag_length )
 {
-   mbedtls_test_driver_aead_hooks.hits++;
+   mbedtls_test_driver_aead_hooks.hits_verify++;
 
     if( mbedtls_test_driver_aead_hooks.forced_status != PSA_SUCCESS )
     {
@@ -283,7 +283,7 @@ psa_status_t mbedtls_test_transparent_aead_verify(
 psa_status_t mbedtls_test_transparent_aead_abort(
    mbedtls_transparent_test_driver_aead_operation_t *operation )
 {
-   mbedtls_test_driver_aead_hooks.hits++;
+   mbedtls_test_driver_aead_hooks.hits_abort++;
 
     if( mbedtls_test_driver_aead_hooks.forced_status != PSA_SUCCESS )
     {

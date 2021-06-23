@@ -345,6 +345,9 @@ int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
  * \param plaintext_len  The length in bytes of the plaintext to encrypt or
  *                       result of the decryption (thus not encompassing the
  *                       additional data that are not encrypted).
+ * \param tag_len   The length of the tag to generate in Bytes:
+ *                  4, 6, 8, 10, 12, 14 or 16.
+ *                  For CCM*, zero is also valid.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_CCM_BAD_INPUT on failure:
@@ -353,7 +356,8 @@ int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
  */
 int mbedtls_ccm_set_lengths( mbedtls_ccm_context *ctx,
                              size_t total_ad_len,
-                             size_t plaintext_len );
+                             size_t plaintext_len,
+                             size_t tag_len );
 
 /**
  * \brief           This function feeds an input buffer as associated data
@@ -473,9 +477,8 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
  * \param tag       The buffer for holding the tag. If \p tag_len is greater
  *                  than zero, this must be a writable buffer of at least \p
  *                  tag_len Bytes.
- * \param tag_len   The length of the tag to generate in Bytes:
- *                  4, 6, 8, 10, 12, 14 or 16.
- *                  For CCM*, zero is also valid.
+ * \param tag_len   The length of the tag. Must match the tag length passed to
+ *                  mbedtls_ccm_set_lengths() function.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_CCM_BAD_INPUT on failure:

@@ -267,6 +267,8 @@ psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_NOT_SUPPORTED );
         case MBEDTLS_ERR_PK_SIG_LEN_MISMATCH:
             return( PSA_ERROR_INVALID_SIGNATURE );
+        case MBEDTLS_ERR_PK_BUFFER_TOO_SMALL:
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
 
         case MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );

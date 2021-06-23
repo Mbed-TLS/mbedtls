@@ -477,9 +477,8 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
  * \param tag       The buffer for holding the tag. If \p tag_len is greater
  *                  than zero, this must be a writable buffer of at least \p
  *                  tag_len Bytes.
- * \param tag_len   The length of the tag to generate in Bytes:
- *                  4, 6, 8, 10, 12, 14 or 16.
- *                  For CCM*, zero is also valid.
+ * \param tag_len   The length of the tag. Must match the tag length passed to
+ *                  mbedtls_ccm_set_lengths() function.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_CCM_BAD_INPUT on failure:

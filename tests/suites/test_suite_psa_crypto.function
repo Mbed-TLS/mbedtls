@@ -3636,9 +3636,10 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
         }
     }
 
-    goto exit;
 
-exit:
+    /* Goto is required to silence warnings about unused labels, as we
+     * don't actually do any test assertions in this function. */
+    goto exit;
 }
 /* END_CASE */
 
@@ -3688,9 +3689,9 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
         }
     }
 
+    /* Goto is required to silence warnings about unused labels, as we
+     * don't actually do any test assertions in this function. */
     goto exit;
-
-exit:
 }
 /* END_CASE */
 

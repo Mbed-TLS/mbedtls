@@ -250,9 +250,9 @@ class StorageFormat:
           generate backward compatibility test cases which inject a key
           representation and check that it can be read and used.
         """
-        self.constructors = info.constructors
-        self.version = version
-        self.forward = forward
+        self.constructors = info.constructors #type: macro_collector.PSAMacroEnumerator
+        self.version = version #type: int
+        self.forward = forward #type: bool
 
     def make_test_case(self, key: StorageKey) -> test_case.TestCase:
         """Construct a storage format test case for the given key.

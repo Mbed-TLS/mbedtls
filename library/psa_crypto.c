@@ -3569,8 +3569,7 @@ psa_status_t psa_aead_generate_nonce( psa_aead_operation_t *operation,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_driver_wrapper_aead_set_nonce( operation, nonce,
-                                                required_nonce_size );
+    status = psa_aead_set_nonce( operation, nonce, required_nonce_size );
 
 exit:
 

@@ -2020,6 +2020,27 @@
     (PSA_KEY_LIFETIME_GET_PERSISTENCE(lifetime) == \
      PSA_KEY_PERSISTENCE_VOLATILE)
 
+/** Whether a key lifetime indicates that the key is read-only.
+ *
+ * Read-only keys cannot be created or destroyed through the PSA Crypto API.
+ * They must be created through platform-specific means that bypass the API.
+ *
+ * Some platforms may offer ways to destroy read-only keys. For example,
+ * consider a platform with multiple levels of privilege, where a
+ * low-privilege application can use a key but is not allowed to destroy
+ * it, and the platform exposes the key to the application with a read-only
+ * lifetime. High-privilege code can destroy the key even though the
+ * application sees the key as read-only.
+ *
+ * \param lifetime      The lifetime value to query (value of type
+ *                      ::psa_key_lifetime_t).
+ *
+ * \return \c 1 if the key is read-only, otherwise \c 0.
+ */
+#define PSA_KEY_LIFETIME_IS_READ_ONLY(lifetime)  \
+    (PSA_KEY_LIFETIME_GET_PERSISTENCE(lifetime) == \
+     PSA_KEY_PERSISTENCE_READ_ONLY)
+
 /** Construct a lifetime from a persistence level and a location.
  *
  * \param persistence   The persistence level
@@ -2140,7 +2161,7 @@ static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
  */
 static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 {
-    return( ( key.MBEDTLS_PRIVATE(key_id) == 0 ) && ( key.MBEDTLS_PRIVATE(owner) == 0 ) );
+    return( key.MBEDTLS_PRIVATE(key_id) == 0 );
 }
 
 #endif /* !MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */

@@ -164,6 +164,10 @@ class Key:
         """
         return self.bytes().hex()
 
+    def location_value(self) -> int:
+        """The numerical value of the location encoded in the key's lifetime."""
+        return self.lifetime.value() >> 8
+
 
 class TestKey(unittest.TestCase):
     # pylint: disable=line-too-long

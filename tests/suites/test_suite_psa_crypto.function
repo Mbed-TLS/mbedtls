@@ -2305,6 +2305,7 @@ void cipher_bad_order( )
     PSA_ASSERT( psa_cipher_abort( &operation ) );
 
     /* Call update without an IV where an IV is required. */
+    PSA_ASSERT( psa_cipher_encrypt_setup( &operation, key, alg ) );
     TEST_EQUAL( psa_cipher_update( &operation,
                                    text, sizeof( text ),
                                    buffer, sizeof( buffer ),

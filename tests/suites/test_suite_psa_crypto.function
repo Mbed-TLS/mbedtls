@@ -3979,6 +3979,46 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
+    /* Test that generate/set nonce and set lengths are interchangeable (we
+     * already tested set nonce followed by set lengths above). */
+
+    operation = psa_aead_operation_init( );
+
+    PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
+
+    PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
+                                      input_data->len ) );
+
+    PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
+
+    psa_aead_abort( &operation );
+
+    operation = psa_aead_operation_init( );
+
+    PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
+
+    PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
+                                      input_data->len ) );
+
+    PSA_ASSERT( psa_aead_generate_nonce( &operation, nonce_buffer,
+                                         PSA_AEAD_NONCE_MAX_SIZE,
+                                         &nonce_length ) );
+
+    psa_aead_abort( &operation );
+
+    operation = psa_aead_operation_init( );
+
+    PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
+
+    PSA_ASSERT( psa_aead_generate_nonce( &operation, nonce_buffer,
+                                         PSA_AEAD_NONCE_MAX_SIZE,
+                                         &nonce_length ) );
+
+    PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
+                                      input_data->len ) );
+
+    psa_aead_abort( &operation );
+
     /* Test for setting lengths after already starting data. */
 
     operation = psa_aead_operation_init( );

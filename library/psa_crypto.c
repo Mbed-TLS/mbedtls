@@ -2365,19 +2365,27 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
      * unachievable MAC. */
     *mac_length = mac_size;
 
-    if( operation->id == 0 )
-        return( PSA_ERROR_BAD_STATE );
+    if( operation->id == 0 ) {
+        status = PSA_ERROR_BAD_STATE;
+        goto cleanup;
+    }
 
-    if( ! operation->is_sign )
-        return( PSA_ERROR_BAD_STATE );
+    if( ! operation->is_sign ) {
+        status = PSA_ERROR_BAD_STATE;
+        goto cleanup;
+    }
 
     /* Sanity check. This will guarantee that mac_size != 0 (and so mac != NULL)
      * once all the error checks are done. */
-    if( operation->mac_size == 0 )
-        return( PSA_ERROR_BAD_STATE );
+    if( operation->mac_size == 0 ) {
+        status = PSA_ERROR_BAD_STATE;
+        goto cleanup;
+    }
 
-    if( mac_size < operation->mac_size )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
+    if( mac_size < operation->mac_size ) {
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+        goto cleanup;
+    }
 
     status = psa_driver_wrapper_mac_sign_finish( operation,
                                                  mac, operation->mac_size,
@@ -2399,6 +2407,7 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
         memset( &mac[operation->mac_size], '!',
                 mac_size - operation->mac_size );
 
+cleanup:
     abort_status = psa_mac_abort( operation );
 
     return( status == PSA_SUCCESS ? abort_status : status );
@@ -2411,11 +2420,15 @@ psa_status_t psa_mac_verify_finish( psa_mac_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( operation->id == 0 )
-        return( PSA_ERROR_BAD_STATE );
+    if( operation->id == 0 ) {
+        status = PSA_ERROR_BAD_STATE;
+        goto cleanup;
+    }
 
-    if( operation->is_sign )
-        return( PSA_ERROR_BAD_STATE );
+    if( operation->is_sign ) {
+        status = PSA_ERROR_BAD_STATE;
+        goto cleanup;
+    }
 
     if( operation->mac_size != mac_length )
     {
@@ -3257,12 +3270,14 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
 
     if( operation->id == 0 )
     {
-        return( PSA_ERROR_BAD_STATE );
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
     }
 
     if( operation->iv_set || ! operation->iv_required )
     {
-        return( PSA_ERROR_BAD_STATE );
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
     }
 
     if( iv_size < operation->default_iv_length )
@@ -3297,19 +3312,26 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( operation->id == 0 )
-        return( PSA_ERROR_BAD_STATE );
+    if( operation->id == 0 ) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
 
-    if( operation->iv_set || ! operation->iv_required )
-        return( PSA_ERROR_BAD_STATE );
+    if( operation->iv_set || ! operation->iv_required ) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
 
-    if( iv_length > PSA_CIPHER_IV_MAX_SIZE )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+    if( iv_length > PSA_CIPHER_IV_MAX_SIZE ) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
 
     status = psa_driver_wrapper_cipher_set_iv( operation,
                                                iv,
                                                iv_length );
 
+exit:
     if( status == PSA_SUCCESS )
         operation->iv_set = 1;
     else
@@ -3328,11 +3350,14 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
 
     if( operation->id == 0 )
     {
-        return( PSA_ERROR_BAD_STATE );
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
     }
+
     if( operation->iv_required && ! operation->iv_set )
     {
-        return( PSA_ERROR_BAD_STATE );
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
     }
 
     status = psa_driver_wrapper_cipher_update( operation,
@@ -3341,6 +3366,8 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
                                                output,
                                                output_size,
                                                output_length );
+
+exit:
     if( status != PSA_SUCCESS )
         psa_cipher_abort( operation );
 
@@ -3356,17 +3383,22 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
 
     if( operation->id == 0 )
     {
-        return( PSA_ERROR_BAD_STATE );
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
     }
+
     if( operation->iv_required && ! operation->iv_set )
     {
-        return( PSA_ERROR_BAD_STATE );
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
     }
 
     status = psa_driver_wrapper_cipher_finish( operation,
                                                output,
                                                output_size,
                                                output_length );
+
+exit:
     if( status == PSA_SUCCESS )
         return( psa_cipher_abort( operation ) );
     else

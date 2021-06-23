@@ -246,11 +246,6 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
  *                  you do not need to call this function. You may not
  *                  call this function after calling mbedtls_cipher_update().
  *
- * \note            This function may only be called once per operation:
- *                  you must pass the whole associated data in a single
- *                  call. This limitation will be lifted in a future version
- *                  of Mbed TLS.
- *
  * \param ctx       The GCM context. This must have been started with
  *                  mbedtls_gcm_starts() and must not have yet received
  *                  any input with mbedtls_gcm_update().

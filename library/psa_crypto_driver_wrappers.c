@@ -1458,25 +1458,24 @@ psa_status_t psa_driver_wrapper_aead_encrypt_setup(
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
+            operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
             status = mbedtls_test_transparent_aead_encrypt_setup(
                         &operation->ctx.transparent_test_driver_ctx,
                         attributes, key_buffer, key_buffer_size,
                         alg );
-            /* Declared with fallback == true */
-            operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
 
+            /* Declared with fallback == true */
             if( status != PSA_ERROR_NOT_SUPPORTED )
                 return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
             /* Fell through, meaning no accelerator supports this operation */
+            operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
             status = mbedtls_psa_aead_encrypt_setup(
                         &operation->ctx.mbedtls_ctx, attributes,
                         key_buffer, key_buffer_size,
                         alg );
-
-            operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
 
             return( status );
 
@@ -1507,27 +1506,26 @@ psa_status_t psa_driver_wrapper_aead_decrypt_setup(
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
+            operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
             status = mbedtls_test_transparent_aead_decrypt_setup(
                         &operation->ctx.transparent_test_driver_ctx,
                          attributes,
                         key_buffer, key_buffer_size,
                         alg );
-            /* Declared with fallback == true */
-            operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
 
+            /* Declared with fallback == true */
             if( status != PSA_ERROR_NOT_SUPPORTED )
                 return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
             /* Fell through, meaning no accelerator supports this operation */
+            operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
             status = mbedtls_psa_aead_decrypt_setup(
                         &operation->ctx.mbedtls_ctx,
                          attributes,
                         key_buffer, key_buffer_size,
                         alg );
-
-            operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
 
             return( status );
 

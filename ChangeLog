@@ -81,8 +81,12 @@ Bugfix
      in line with version 1.0.0 of the specification. Fix #4162.
    * Fix a bug in ECDSA that would cause it to fail when the hash is all-bits
      zero. Fixes #1792
-   * mbedtls_mpi_read_string on "-0" produced an MPI object that was not treated
-     as equal to 0 in all cases. Fix it to produce the same object as "0".
+   * Fix some cases in the bignum module where the library constructed an
+     unintended representation of the value 0 which was not processed
+     correctly by some bignum operations. This could happen when
+     mbedtls_mpi_read_string() was called on "-0", or when
+     mbedtls_mpi_mul_mpi() and mbedtls_mpi_mul_int() was called with one of
+     the arguments being negative and the other being 0. Fixes #4643.
 
 Changes
    * Fix the setting of the read timeout in the DTLS sample programs.

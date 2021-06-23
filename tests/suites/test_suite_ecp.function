@@ -82,9 +82,9 @@ void ecp_check_pub( int grp_id, char * x_hex, char * y_hex, char * z_hex,
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, grp_id ) == 0 );
 
-    TEST_ASSERT( mbedtls_mpi_read_string( &P.X, 16, x_hex ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &P.Y, 16, y_hex ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &P.Z, 16, z_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &P.X, 16, x_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &P.Y, 16, y_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &P.Z, 16, z_hex ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_check_pubkey( &grp, &P ) == ret );
 
@@ -135,13 +135,13 @@ void ecp_test_vect_restart( int id,
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
-    TEST_ASSERT( mbedtls_mpi_read_string( &dA, 16, dA_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &xA, 16, xA_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &yA, 16, yA_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &dA, 16, dA_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xA, 16, xA_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &yA, 16, yA_str ) == 0 );
 
-    TEST_ASSERT( mbedtls_mpi_read_string( &dB, 16, dB_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &xZ, 16, xZ_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &yZ, 16, yZ_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &dB, 16, dB_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xZ, 16, xZ_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &yZ, 16, yZ_str ) == 0 );
 
     mbedtls_ecp_set_max_ops( (unsigned) max_ops );
 
@@ -222,13 +222,13 @@ void ecp_muladd_restart( int id, char *xR_str, char *yR_str,
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
-    TEST_ASSERT( mbedtls_mpi_read_string( &u1, 16, u1_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &u2, 16, u2_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &xR, 16, xR_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &yR, 16, yR_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &u1, 16, u1_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &u2, 16, u2_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xR, 16, xR_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &yR, 16, yR_str ) == 0 );
 
-    TEST_ASSERT( mbedtls_mpi_read_string( &Q.X, 16, xQ_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &Q.Y, 16, yQ_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Q.X, 16, xQ_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Q.Y, 16, yQ_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_lset( &Q.Z, 1 ) == 0 );
 
     mbedtls_ecp_set_max_ops( (unsigned) max_ops );
@@ -285,14 +285,14 @@ void ecp_test_vect( int id, char * dA_str, char * xA_str, char * yA_str,
 
     TEST_ASSERT( mbedtls_ecp_check_pubkey( &grp, &grp.G ) == 0 );
 
-    TEST_ASSERT( mbedtls_mpi_read_string( &dA, 16, dA_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &xA, 16, xA_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &yA, 16, yA_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &dB, 16, dB_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &xB, 16, xB_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &yB, 16, yB_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &xZ, 16, xZ_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &yZ, 16, yZ_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &dA, 16, dA_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xA, 16, xA_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &yA, 16, yA_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &dB, 16, dB_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xB, 16, xB_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &yB, 16, yB_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xZ, 16, xZ_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &yZ, 16, yZ_str ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_mul( &grp, &R, &dA, &grp.G,
                           &mbedtls_test_rnd_pseudo_rand, &rnd_info ) == 0 );
@@ -342,11 +342,11 @@ void ecp_test_vec_x( int id, char * dA_hex, char * xA_hex, char * dB_hex,
 
     TEST_ASSERT( mbedtls_ecp_check_pubkey( &grp, &grp.G ) == 0 );
 
-    TEST_ASSERT( mbedtls_mpi_read_string( &dA, 16, dA_hex ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &dB, 16, dB_hex ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &xA, 16, xA_hex ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &xB, 16, xB_hex ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &xS, 16, xS_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &dA, 16, dA_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &dB, 16, dB_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xA, 16, xA_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xB, 16, xB_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xS, 16, xS_hex ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_mul( &grp, &R, &dA, &grp.G,
                           &mbedtls_test_rnd_pseudo_rand, &rnd_info ) == 0 );
@@ -508,7 +508,7 @@ void ecp_fast_mod( int id, char * N_str )
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &R );
     mbedtls_ecp_group_init( &grp );
 
-    TEST_ASSERT( mbedtls_mpi_read_string( &N, 16, N_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &N, 16, N_str ) == 0 );
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
     TEST_ASSERT( grp.modp != NULL );
 
@@ -547,9 +547,9 @@ void ecp_write_binary( int id, char * x, char * y, char * z, int format,
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
-    TEST_ASSERT( mbedtls_mpi_read_string( &P.X, 16, x ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &P.Y, 16, y ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &P.Z, 16, z ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &P.X, 16, x ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &P.Y, 16, y ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &P.Z, 16, z ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_point_write_binary( &grp, &P, format,
                                    &olen, buf, blen ) == ret );
@@ -579,9 +579,9 @@ void ecp_read_binary( int id, data_t * buf, char * x, char * y, char * z,
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
-    TEST_ASSERT( mbedtls_mpi_read_string( &X, 16, x ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &Y, 16, y ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &Z, 16, z ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &X, 16, x ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Y, 16, y ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Z, 16, z ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_point_read_binary( &grp, &P, buf->x, buf->len ) == ret );
 
@@ -623,9 +623,9 @@ void mbedtls_ecp_tls_read_point( int id, data_t * buf, char * x, char * y,
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
-    TEST_ASSERT( mbedtls_mpi_read_string( &X, 16, x ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &Y, 16, y ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &Z, 16, z ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &X, 16, x ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Y, 16, y ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Z, 16, z ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_tls_read_point( &grp, &P, &vbuf, buf->len ) == ret );
 
@@ -760,7 +760,7 @@ void mbedtls_ecp_check_privkey( int id, char * key_hex, int ret )
     mbedtls_mpi_init( &d );
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &d, 16, key_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &d, 16, key_hex ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_check_privkey( &grp, &d ) == ret );
 
@@ -789,7 +789,7 @@ void mbedtls_ecp_check_pub_priv( int id_pub, char * Qx_pub, char * Qy_pub,
     if( id != MBEDTLS_ECP_DP_NONE )
         TEST_ASSERT( mbedtls_ecp_group_load( &prv.grp, id ) == 0 );
     TEST_ASSERT( mbedtls_ecp_point_read_string( &prv.Q, 16, Qx, Qy ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string( &prv.d, 16, d ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &prv.d, 16, d ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_check_pub_priv( &pub, &prv,
                           &mbedtls_test_rnd_pseudo_rand, &rnd_info ) == ret );

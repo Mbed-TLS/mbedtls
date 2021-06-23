@@ -976,8 +976,9 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  * \brief          This function performs a PKCS#1 v2.1 PSS signature
  *                 operation (RSASSA-PSS-SIGN).
  *
- * \note           The \c hash_id set in \p ctx by calling
- *                 mbedtls_rsa_set_padding() selects the hash used for the
+ * \note           The \c hash_id set in \p ctx (when calling
+ *                 mbedtls_rsa_init() or by calling mbedtls_rsa_set_padding()
+ *                 afterwards) selects the hash used for the
  *                 encoding operation and for the mask generation function
  *                 (MGF1). For more details on the encoding operation and the
  *                 mask generation function, consult <em>RFC-3447: Public-Key
@@ -1030,8 +1031,9 @@ int mbedtls_rsa_rsassa_pss_sign_ext( mbedtls_rsa_context *ctx,
  * \brief          This function performs a PKCS#1 v2.1 PSS signature
  *                 operation (RSASSA-PSS-SIGN).
  *
- * \note           The \c hash_id set in \p ctx by calling
- *                 mbedtls_rsa_set_padding() selects the hash used for the
+ * \note           The \c hash_id set in \p ctx (when calling
+ *                 mbedtls_rsa_init() or by calling mbedtls_rsa_set_padding()
+ *                 afterwards) selects the hash used for the
  *                 encoding operation and for the mask generation function
  *                 (MGF1). For more details on the encoding operation and the
  *                 mask generation function, consult <em>RFC-3447: Public-Key
@@ -1192,15 +1194,15 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
  * \brief          This function performs a PKCS#1 v2.1 PSS verification
  *                 operation (RSASSA-PSS-VERIFY).
  *
- * \note           The \c hash_id set in \p ctx by calling
- *                 mbedtls_rsa_set_padding() selects the hash used for the
+ * \note           The \c hash_id set in \p ctx (when calling
+ *                 mbedtls_rsa_init() or by calling mbedtls_rsa_set_padding()
+ *                 afterwards) selects the hash used for the
  *                 encoding operation and for the mask generation function
  *                 (MGF1). For more details on the encoding operation and the
  *                 mask generation function, consult <em>RFC-3447: Public-Key
  *                 Cryptography Standards (PKCS) #1 v2.1: RSA Cryptography
- *                 Specifications</em>. If the \c hash_id set in \p ctx by
- *                 mbedtls_rsa_set_padding() is #MBEDTLS_MD_NONE, the \p md_alg
- *                 parameter is used.
+ *                 Specifications</em>. If the \c hash_id set in \p ctx is
+ *                 #MBEDTLS_MD_NONE, the \p md_alg parameter is used.
  *
  * \deprecated     It is deprecated and discouraged to call this function
  *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
@@ -1251,8 +1253,9 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
  * \note           The \p sig buffer must be as large as the size
  *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
- * \note           The \c hash_id set in \p ctx by mbedtls_rsa_set_padding() is
- *                 ignored.
+ * \note           The \c hash_id set in \p ctx (when calling
+ *                 mbedtls_rsa_init() or by calling mbedtls_rsa_set_padding()
+ *                 afterwards) is ignored.
  *
  * \param ctx      The initialized RSA public key context to use.
  * \param f_rng    The RNG function to use. If \p mode is #MBEDTLS_RSA_PRIVATE,

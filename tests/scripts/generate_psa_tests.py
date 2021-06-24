@@ -254,11 +254,12 @@ class StorageKey(psa_storage.Key):
                      self.original_usage  #type: psa_storage.Expr
 
 class StorageKeyBuilder:
+    # pylint: disable=too-few-public-methods
     def __init__(self, usage_extension: bool) -> None:
         self.usage_extension = usage_extension #type: bool
 
     def build(self, **kwargs) -> StorageKey:
-        return StorageKey(usage_extension = self.usage_extension, **kwargs)
+        return StorageKey(usage_extension=self.usage_extension, **kwargs)
 
 class StorageFormat:
     """Storage format stability test cases."""
@@ -276,7 +277,7 @@ class StorageFormat:
         self.constructors = info.constructors #type: macro_collector.PSAMacroEnumerator
         self.version = version #type: int
         self.forward = forward #type: bool
-        self.key_builder = StorageKeyBuilder(usage_extension = True) #type: StorageKeyBuilder
+        self.key_builder = StorageKeyBuilder(usage_extension=True) #type: StorageKeyBuilder
 
     def make_test_case(self, key: StorageKey) -> test_case.TestCase:
         """Construct a storage format test case for the given key.
@@ -329,13 +330,12 @@ class StorageFormat:
                        r'', short)
         short = re.sub(r'PSA_KEY_[A-Z]+_', r'', short)
         description = 'lifetime: ' + short
-        key = self.key_builder.build(
-                    version=self.version,
-                    id=1, lifetime=lifetime,
-                    type='PSA_KEY_TYPE_RAW_DATA', bits=8,
-                    usage='PSA_KEY_USAGE_EXPORT', alg=0, alg2=0,
-                    material=b'L',
-                    description=description)
+        key = self.key_builder.build(version=self.version,
+                                     id=1, lifetime=lifetime,
+                                     type='PSA_KEY_TYPE_RAW_DATA', bits=8,
+                                     usage='PSA_KEY_USAGE_EXPORT', alg=0, alg2=0,
+                                     material=b'L',
+                                     description=description)
         return key
 
     def all_keys_for_lifetimes(self) -> List[StorageKey]:
@@ -373,7 +373,7 @@ class StorageFormat:
                                       material=b'K',
                                       description=description)
 
-    def all_keys_for_usage_flags(
+    def generate_keys_for_usage_flags(
             self,
             extra_desc: Optional[str] = None
     ) -> List[StorageKey]:
@@ -411,20 +411,20 @@ class StorageFormat:
                                       r'',
                                       kt.expression)
             description = 'type: {} {}-bit'.format(short_expression, bits)
-            keys.append(self.key_builder.build(
-                            version=self.version,
-                            id=1, lifetime=0x00000001,
-                            type=kt.expression, bits=bits,
-                            usage=usage_flags, alg=alg, alg2=alg2,
-                            material=key_material,
-                            description=description))
+            keys.append(self.key_builder.build(version=self.version,
+                                               id=1, lifetime=0x00000001,
+                                               type=kt.expression, bits=bits,
+                                               usage=usage_flags, alg=alg, alg2=alg2,
+                                               material=key_material,
+                                               description=description))
         return keys
 
     def all_keys_for_types(self) -> List[StorageKey]:
         """Generate test keys covering key types and their representations."""
         key_types = sorted(self.constructors.key_types)
-        return [key for key_type in self.constructors.generate_expressions(key_types)
-                    for key in self.keys_for_type(key_type)]
+        return [key
+                for key_type in self.constructors.generate_expressions(key_types)
+                for key in self.keys_for_type(key_type)]
 
     def keys_for_algorithm(self, alg: str) -> List[StorageKey]:
         """Generate test keys for the specified algorithm."""
@@ -451,8 +451,9 @@ class StorageFormat:
     def all_keys_for_algorithms(self) -> List[StorageKey]:
         """Generate test keys covering algorithm encodings."""
         algorithms = sorted(self.constructors.algorithms)
-        return [key for alg in self.constructors.generate_expressions(algorithms)
-                    for key in self.keys_for_algorithm(alg)]
+        return [key
+                for alg in self.constructors.generate_expressions(algorithms)
+                for key in self.keys_for_algorithm(alg)]
 
     def generate_all_keys(self) -> List[StorageKey]:
         """Generate all keys for the test cases."""
@@ -497,7 +498,9 @@ class StorageFormatV0(StorageFormat):
         """Generate test keys covering usage flags."""
         # First generate keys without usage policy extension for
         # compatibility testing, then generate the keys with extension
-        # to check the extension is working.
+        # to check the extension is working. Finally generate key for all known
+        # usage flag which needs to be separted because it is not affected by
+        # usage extension.
         keys = [] #type: List[StorageKey]
         prev_builder = self.key_builder
 
@@ -517,6 +520,7 @@ class StorageFormatV0(StorageFormat):
             key_type: str,
             params: Optional[Iterable[str]] = None
     ) -> List[StorageKey]:
+        # pylint: disable=too-many-locals
         """Generate test keys for the specified extendable usage flag,
            algorithm and key type combination.
         """
@@ -533,22 +537,22 @@ class StorageFormatV0(StorageFormat):
             alg_expression = re.sub(r'PSA_ALG_', r'', alg)
             alg_expression = re.sub(r',', r', ', re.sub(r' +', r'', alg_expression))
             key_type_expression = re.sub(r'\bPSA_(?:KEY_TYPE|ECC_FAMILY)_',
-                                      r'',
-                                      kt.expression)
+                                         r'',
+                                         kt.expression)
             description = 'extend {}: {} {} {}-bit'.format(
                 usage_expression, alg_expression, key_type_expression, bits)
-            keys.append(self.key_builder.build(
-                            version=self.version,
-                            id=1, lifetime=0x00000001,
-                            type=kt.expression, bits=bits,
-                            usage=material_usage_flags,
-                            expected_usage=expected_usage_flags,
-                            alg=alg, alg2=alg2,
-                            material=key_material,
-                            description=description))
+            keys.append(self.key_builder.build(version=self.version,
+                                               id=1, lifetime=0x00000001,
+                                               type=kt.expression, bits=bits,
+                                               usage=material_usage_flags,
+                                               expected_usage=expected_usage_flags,
+                                               alg=alg, alg2=alg2,
+                                               material=key_material,
+                                               description=description))
         return keys
 
     def gather_key_types_for_sign_alg(self) -> Dict[str, List[str]]:
+        # pylint: disable=too-many-locals
         """Match possible key types for sign algorithms."""
         # To create a valid combinaton both the algorithms and key types
         # must be filtered. Pair them with keywords created from its names.
@@ -561,10 +565,8 @@ class StorageFormatV0(StorageFormat):
         exclusive_keywords = {
             'EDWARDS': 'ECC'
         }
-        key_types = set(self.constructors.generate_expressions(
-                            self.constructors.key_types))
-        algorithms = set(self.constructors.generate_expressions(
-                            self.constructors.sign_algorithms))
+        key_types = set(self.constructors.generate_expressions(self.constructors.key_types))
+        algorithms = set(self.constructors.generate_expressions(self.constructors.sign_algorithms))
         alg_with_keys = {} #type: Dict[str, List[str]]
         translation_table = str.maketrans('(', '_', ')')
         for alg in algorithms:
@@ -606,17 +608,18 @@ class StorageFormatV0(StorageFormat):
         prev_builder = self.key_builder
 
         # Generate the key without usage extension
-        self.key_builder = StorageKeyBuilder(usage_extension = False)
+        self.key_builder = StorageKeyBuilder(usage_extension=False)
         alg_with_keys = self.gather_key_types_for_sign_alg()
         key_restrictions = StorageKey.EXTENDABLE_USAGE_FLAGS_KEY_RESTRICTION
         # Walk through all combintion. The key types must be filtered to fit
         # the specific usage flag.
-        keys += [key for usage in StorageKey.EXTENDABLE_USAGE_FLAGS.keys()
-                     for alg in sorted(alg_with_keys.keys())
-                     for key_type in sorted(filter(
-                            lambda kt: re.match(key_restrictions[usage.string], kt),
-                            alg_with_keys[alg]))
-                     for key in self.keys_for_usage_extension(usage, alg, key_type)]
+        keys += [key
+                 for usage in StorageKey.EXTENDABLE_USAGE_FLAGS
+                 for alg in sorted(alg_with_keys)
+                 for key_type in sorted([kt
+                                         for kt in alg_with_keys[alg]
+                                         if re.match(key_restrictions[usage.string], kt)])
+                 for key in self.keys_for_usage_extension(usage, alg, key_type)]
 
         self.key_builder = prev_builder
         return keys

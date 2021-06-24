@@ -467,16 +467,16 @@ exit:
     return( status );
 }
 
-void aead_multipart_decrypt_internal( int key_type_arg, data_t *key_data,
-                                      int alg_arg,
-                                      data_t *nonce,
-                                      data_t *additional_data,
-                                      int ad_part_len,
-                                      data_t *input_data,
-                                      int data_part_len,
-                                      int test_set_lengths_arg,
-                                      data_t *expected_data,
-                                      int expected_result_arg )
+static void aead_multipart_decrypt_internal( int key_type_arg, data_t *key_data,
+                                             int alg_arg,
+                                             data_t *nonce,
+                                             data_t *additional_data,
+                                             int ad_part_len,
+                                             data_t *input_data,
+                                             int data_part_len,
+                                             int test_set_lengths_arg,
+                                             data_t *expected_data,
+                                             int expected_result_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;

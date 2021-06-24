@@ -386,7 +386,18 @@ class StorageFormat:
         keys += [self.key_for_usage_flags([flag1, flag2], extra_desc=extra_desc)
                  for flag1, flag2 in zip(known_flags,
                                          known_flags[1:] + [known_flags[0]])]
-        keys.append(self.key_for_usage_flags(known_flags, short='all known'))
+        return keys
+
+    def generate_key_for_all_usage_flags(self) -> StorageKey:
+        known_flags = sorted(self.constructors.key_usage_flags)
+        return self.key_for_usage_flags(known_flags, short='all known')
+
+    def all_keys_for_usage_flags(
+            self,
+            extra_desc: Optional[str] = None
+    ) -> List[StorageKey]:
+        keys = self.generate_keys_for_usage_flags(extra_desc=extra_desc)
+        keys.append(self.generate_key_for_all_usage_flags())
         return keys
 
     def keys_for_type(
@@ -504,11 +515,13 @@ class StorageFormatV0(StorageFormat):
         keys = [] #type: List[StorageKey]
         prev_builder = self.key_builder
 
-        self.key_builder = StorageKeyBuilder(usage_extension = False)
-        keys += super().all_keys_for_usage_flags(extra_desc = 'without extension')
+        self.key_builder = StorageKeyBuilder(usage_extension=False)
+        keys += self.generate_keys_for_usage_flags(extra_desc='without extension')
 
-        self.key_builder = StorageKeyBuilder(usage_extension = True)
-        keys += super().all_keys_for_usage_flags(extra_desc = 'with extension')
+        self.key_builder = StorageKeyBuilder(usage_extension=True)
+        keys += self.generate_keys_for_usage_flags(extra_desc='with extension')
+
+        keys.append(self.generate_key_for_all_usage_flags())
 
         self.key_builder = prev_builder
         return keys

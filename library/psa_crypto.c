@@ -3252,7 +3252,6 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
         goto exit;
     }
 
-    /* Fetch key material from key storage. */
     status = psa_get_and_lock_key_slot_with_policy( key, &slot, usage, alg );
     if( status != PSA_SUCCESS )
         goto exit;
@@ -3499,7 +3498,6 @@ psa_status_t psa_cipher_encrypt( mbedtls_svc_key_id_t key,
     if( ! PSA_ALG_IS_CIPHER( alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    /* Fetch key material from key storage. */
     status = psa_get_and_lock_key_slot_with_policy( key, &slot,
                                                     PSA_KEY_USAGE_ENCRYPT,
                                                     alg );
@@ -3549,11 +3547,9 @@ psa_status_t psa_cipher_decrypt( mbedtls_svc_key_id_t key,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
-    /* The requested algorithm must be one that can be processed by cipher. */
     if( ! PSA_ALG_IS_CIPHER( alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    /* Fetch key material from key storage. */
     status = psa_get_and_lock_key_slot_with_policy( key, &slot,
                                                     PSA_KEY_USAGE_DECRYPT,
                                                     alg );

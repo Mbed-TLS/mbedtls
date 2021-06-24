@@ -437,22 +437,27 @@ class StorageFormat:
         return [key for alg in self.constructors.generate_expressions(algorithms)
                     for key in self.keys_for_algorithm(alg)]
 
+    def generate_all_keys(self) -> List[StorageKey]:
+        """Generate all keys for the test cases."""
+        keys = [] #type: List[StorageKey]
+        keys += self.all_keys_for_lifetimes()
+        keys += self.all_keys_for_usage_flags()
+        keys += self.all_keys_for_types()
+        keys += self.all_keys_for_algorithms()
+        return keys
+
     def all_test_cases(self) -> List[test_case.TestCase]:
         """Generate all storage format test cases."""
         # First build a list of all keys, then construct all the corresponding
         # test cases. This allows all required information to be obtained in
         # one go, which is a significant performance gain as the information
         # includes numerical values obtained by compiling a C program.
-        keys = [] #type: List[StorageKey]
-        keys += self.all_keys_for_lifetimes()
-        keys += self.all_keys_for_usage_flags()
-        keys += self.all_keys_for_types()
-        keys += self.all_keys_for_algorithms()
- 
+        generated_keys = self.generate_all_keys()
+
         # Skip keys with a non-default location, because they
         # require a driver and we currently have no mechanism to
         # determine whether a driver is available.
-        keys = filter(lambda key: key.location_value() == 0, keys)
+        keys = filter(lambda key: key.location_value() == 0, generated_keys)
 
         return [self.make_test_case(key) for key in keys]
 

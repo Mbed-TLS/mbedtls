@@ -1545,14 +1545,27 @@ void hash_bad_order( )
 
     /* Call setup twice in a row. */
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    ASSERT_OPERATION_IS_ACTIVE( operation );
     TEST_EQUAL( psa_hash_setup( &operation, alg ),
                 PSA_ERROR_BAD_STATE );
+    ASSERT_OPERATION_IS_INACTIVE( operation );
     PSA_ASSERT( psa_hash_abort( &operation ) );
+    ASSERT_OPERATION_IS_INACTIVE( operation );
 
     /* Call update without calling setup beforehand. */
     TEST_EQUAL( psa_hash_update( &operation, input, sizeof( input ) ),
                 PSA_ERROR_BAD_STATE );
     PSA_ASSERT( psa_hash_abort( &operation ) );
+
+    /* Check that update calls abort on error. */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    operation.ctx.mbedtls_ctx.alg = PSA_ALG_XTS;
+    ASSERT_OPERATION_IS_ACTIVE( operation );
+    TEST_EQUAL( psa_hash_update( &operation, input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    ASSERT_OPERATION_IS_INACTIVE( operation );
+    PSA_ASSERT( psa_hash_abort( &operation ) );
+    ASSERT_OPERATION_IS_INACTIVE( operation );
 
     /* Call update after finish. */
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
@@ -1579,11 +1592,14 @@ void hash_bad_order( )
 
     /* Call verify twice in a row. */
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    ASSERT_OPERATION_IS_ACTIVE( operation );
     PSA_ASSERT( psa_hash_verify( &operation,
                                  valid_hash, sizeof( valid_hash ) ) );
+    ASSERT_OPERATION_IS_INACTIVE( operation );
     TEST_EQUAL( psa_hash_verify( &operation,
                                  valid_hash, sizeof( valid_hash ) ),
                 PSA_ERROR_BAD_STATE );
+    ASSERT_OPERATION_IS_INACTIVE( operation );
     PSA_ASSERT( psa_hash_abort( &operation ) );
 
     /* Call finish without calling setup beforehand. */
@@ -1632,8 +1648,12 @@ void hash_verify_bad_args( )
 
     /* psa_hash_verify with a smaller hash than expected */
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    ASSERT_OPERATION_IS_ACTIVE( operation );
     TEST_EQUAL( psa_hash_verify( &operation, hash, expected_size - 1 ),
                 PSA_ERROR_INVALID_SIGNATURE );
+    ASSERT_OPERATION_IS_INACTIVE( operation );
+    PSA_ASSERT( psa_hash_abort( &operation ) );
+    ASSERT_OPERATION_IS_INACTIVE( operation );
 
     /* psa_hash_verify with a non-matching hash */
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
@@ -1876,9 +1896,12 @@ void mac_bad_order( )
 
     /* Call setup twice in a row. */
     PSA_ASSERT( psa_mac_sign_setup( &operation, key, alg ) );
+    ASSERT_OPERATION_IS_ACTIVE( operation );
     TEST_EQUAL( psa_mac_sign_setup( &operation, key, alg ),
                 PSA_ERROR_BAD_STATE );
+    ASSERT_OPERATION_IS_INACTIVE( operation );
     PSA_ASSERT( psa_mac_abort( &operation ) );
+    ASSERT_OPERATION_IS_INACTIVE( operation );
 
     /* Call update after sign finish. */
     PSA_ASSERT( psa_mac_sign_setup( &operation, key, alg ) );
@@ -2244,15 +2267,21 @@ void cipher_bad_order( )
 
     /* Call encrypt setup twice in a row. */
     PSA_ASSERT( psa_cipher_encrypt_setup( &operation, key, alg ) );
+    ASSERT_OPERATION_IS_ACTIVE( operation );
     TEST_EQUAL( psa_cipher_encrypt_setup( &operation, key, alg ),
                 PSA_ERROR_BAD_STATE );
+    ASSERT_OPERATION_IS_INACTIVE( operation );
     PSA_ASSERT( psa_cipher_abort( &operation ) );
+    ASSERT_OPERATION_IS_INACTIVE( operation );
 
     /* Call decrypt setup twice in a row. */
     PSA_ASSERT( psa_cipher_decrypt_setup( &operation, key, alg ) );
+    ASSERT_OPERATION_IS_ACTIVE( operation );
     TEST_EQUAL( psa_cipher_decrypt_setup( &operation, key, alg ),
                 PSA_ERROR_BAD_STATE );
+    ASSERT_OPERATION_IS_INACTIVE( operation );
     PSA_ASSERT( psa_cipher_abort( &operation ) );
+    ASSERT_OPERATION_IS_INACTIVE( operation );
 
     /* Generate an IV without calling setup beforehand. */
     TEST_EQUAL( psa_cipher_generate_iv( &operation,

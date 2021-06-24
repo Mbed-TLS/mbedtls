@@ -4061,7 +4061,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         ssl->in_msg[0] != MBEDTLS_SSL_HS_CERTIFICATE_VERIFY )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
     i = mbedtls_ssl_hs_hdr_len( ssl );
@@ -4089,7 +4089,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         if( i + 2 > ssl->in_hslen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
         }
 
         /*
@@ -4101,7 +4101,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
                                 " for verify message" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         }
 
 #if !defined(MBEDTLS_MD_SHA1)
@@ -4122,7 +4122,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
                                 " for verify message" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         }
 
         /*
@@ -4131,7 +4131,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         if( !mbedtls_pk_can_do( peer_pk, pk_alg ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "sig_alg doesn't match cert key" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         }
 
         i++;
@@ -4146,7 +4146,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( i + 2 > ssl->in_hslen )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
     sig_len = ( ssl->in_msg[i] << 8 ) | ssl->in_msg[i+1];
@@ -4155,7 +4155,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( i + sig_len != ssl->in_hslen )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
     /* Calculate hash and verify signature */

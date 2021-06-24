@@ -3782,6 +3782,8 @@ void aead_multipart_generate_nonce( int key_type_arg, data_t *key_data,
 
 exit:
     psa_destroy_key( key );
+    mbedtls_free( output_data );
+    mbedtls_free( final_data );
     psa_aead_abort( &operation );
     PSA_DONE( );
 }

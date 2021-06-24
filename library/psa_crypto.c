@@ -3749,14 +3749,24 @@ exit:
     return( status );
 }
 
-static psa_status_t psa_aead_final_checks( psa_aead_operation_t *operation )
+static psa_status_t psa_aead_final_checks( psa_aead_operation_t *operation,
+                                           size_t output_size )
 {
+    size_t finish_output_size;
+
     if( operation->id == 0 || !operation->nonce_set )
         return( PSA_ERROR_BAD_STATE );
 
     if( operation->lengths_set && (operation->ad_remaining != 0 ||
                                    operation->body_remaining != 0 ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
+
+    finish_output_size = operation->is_encrypt ?
+         PSA_AEAD_FINISH_OUTPUT_SIZE( operation->key_type, operation->alg ) :
+         PSA_AEAD_VERIFY_OUTPUT_SIZE( operation->key_type, operation->alg );
+
+    if( output_size < finish_output_size )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
 
     return( PSA_SUCCESS );
 }
@@ -3775,7 +3785,7 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
     *ciphertext_length = 0;
     *tag_length = tag_size;
 
-    status = psa_aead_final_checks( operation );
+    status = psa_aead_final_checks( operation, ciphertext_size );
 
     if( status != PSA_SUCCESS )
         goto exit;
@@ -3816,7 +3826,7 @@ psa_status_t psa_aead_verify( psa_aead_operation_t *operation,
 
     *plaintext_length = 0;
 
-    status = psa_aead_final_checks( operation );
+    status = psa_aead_final_checks( operation, plaintext_size );
 
     if( status != PSA_SUCCESS )
         goto exit;

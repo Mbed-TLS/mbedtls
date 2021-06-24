@@ -603,19 +603,9 @@ psa_status_t mbedtls_psa_aead_update(
    mbedtls_psa_aead_verify() */
 static psa_status_t mbedtls_psa_aead_finish_checks(
     mbedtls_psa_aead_operation_t *operation,
-    size_t output_size,
     size_t tag_size )
 {
-    size_t finish_output_size;
-
     if( tag_size < operation->tag_length )
-        return ( PSA_ERROR_BUFFER_TOO_SMALL );
-
-    finish_output_size = operation->is_encrypt ?
-        PSA_AEAD_FINISH_OUTPUT_SIZE( operation->key_type, operation->alg ) :
-        PSA_AEAD_VERIFY_OUTPUT_SIZE( operation->key_type, operation->alg );
-
-    if( output_size < finish_output_size )
         return ( PSA_ERROR_BUFFER_TOO_SMALL );
 
     return ( PSA_SUCCESS );
@@ -634,8 +624,7 @@ psa_status_t mbedtls_psa_aead_finish(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t finish_output_size = 0;
 
-    status = mbedtls_psa_aead_finish_checks( operation, ciphertext_size,
-                                             tag_size );
+    status = mbedtls_psa_aead_finish_checks( operation, tag_size );
 
     if( status != PSA_SUCCESS )
         return status;
@@ -690,8 +679,7 @@ psa_status_t mbedtls_psa_aead_verify(
     int do_tag_check = 1;
     uint8_t check_tag[PSA_AEAD_TAG_MAX_SIZE];
 
-    status = mbedtls_psa_aead_finish_checks( operation, plaintext_size,
-                                             tag_length );
+    status = mbedtls_psa_aead_finish_checks( operation, tag_length );
 
     if( status != PSA_SUCCESS )
         return status;

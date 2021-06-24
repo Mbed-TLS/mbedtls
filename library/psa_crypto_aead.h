@@ -477,12 +477,10 @@ psa_status_t mbedtls_psa_aead_update(
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         The size of the \p ciphertext or \p tag buffer is too small.
- *         #PSA_AEAD_FINISH_OUTPUT_SIZE(\c key_type, \c alg) or
- *         #PSA_AEAD_FINISH_OUTPUT_MAX_SIZE can be used to determine the
- *         required \p ciphertext buffer size. #PSA_AEAD_TAG_LENGTH(\c key_type,
- *         \c key_bits, \c alg) or #PSA_AEAD_TAG_MAX_SIZE can be used to
- *         determine the required \p tag buffer size.
+ *         The size of the \p tag buffer is too small.
+ *         #PSA_AEAD_TAG_LENGTH(\c key_type, key_bits, \c alg) or
+ *         #PSA_AEAD_TAG_MAX_SIZE can be used to determine the required \p tag
+ *         buffer size.
  */
 psa_status_t mbedtls_psa_aead_finish(
     mbedtls_psa_aead_operation_t *operation,
@@ -551,10 +549,10 @@ psa_status_t mbedtls_psa_aead_finish(
  *         The calculations were successful, but the authentication tag is
  *         not correct.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         The size of the \p plaintext buffer is too small.
- *         #PSA_AEAD_VERIFY_OUTPUT_SIZE(\c key_type, \c alg) or
- *         #PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE can be used to determine the
- *         required buffer size.
+ *         The size of the \p tag buffer is too small.
+ *         #PSA_AEAD_TAG_LENGTH(\c key_type, key_bits, \c alg) or
+ *         #PSA_AEAD_TAG_MAX_SIZE can be used to determine the required \p tag
+ *         buffer size.
  */
 psa_status_t mbedtls_psa_aead_verify(
     mbedtls_psa_aead_operation_t *operation,

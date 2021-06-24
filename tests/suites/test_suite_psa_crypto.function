@@ -1559,7 +1559,7 @@ void hash_bad_order( )
 
     /* Check that update calls abort on error. */
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
-    operation.ctx.mbedtls_ctx.alg = PSA_ALG_XTS;
+    operation.id = UINT_MAX;
     ASSERT_OPERATION_IS_ACTIVE( operation );
     TEST_EQUAL( psa_hash_update( &operation, input, sizeof( input ) ),
                 PSA_ERROR_BAD_STATE );

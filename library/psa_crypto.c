@@ -3401,6 +3401,28 @@ static psa_algorithm_t psa_aead_get_base_algorithm( psa_algorithm_t alg )
     return PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG( alg );
 }
 
+static psa_status_t psa_aead_setup_checks( psa_aead_operation_t *operation,
+                                           psa_algorithm_t alg )
+{
+    if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
+    if( operation->id != 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+
+    if( operation->nonce_set || operation->lengths_set ||
+        operation->ad_started || operation->body_started )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+
+    return( PSA_SUCCESS );
+}
+
 /* Set the key for a multipart authenticated encryption operation. */
 psa_status_t psa_aead_encrypt_setup( psa_aead_operation_t *operation,
                                      mbedtls_svc_key_id_t key,
@@ -3410,24 +3432,10 @@ psa_status_t psa_aead_encrypt_setup( psa_aead_operation_t *operation,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
 
-    if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
-    {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto exit;
-    }
+    status = psa_aead_setup_checks( operation, alg );
 
-    if( operation->id != 0 )
-    {
-        status = PSA_ERROR_BAD_STATE;
+    if( status != PSA_SUCCESS )
         goto exit;
-    }
-
-    if( operation->nonce_set || operation->lengths_set ||
-        operation->ad_started || operation->body_started )
-    {
-        status = PSA_ERROR_BAD_STATE;
-        goto exit;
-    }
 
     status = psa_get_and_lock_key_slot_with_policy(
                  key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
@@ -3453,10 +3461,8 @@ exit:
     unlock_status = psa_unlock_key_slot( slot );
 
     if( status == PSA_SUCCESS )
-        status = unlock_status;
-
-    if( status == PSA_SUCCESS )
     {
+        status = unlock_status;
         operation->alg = psa_aead_get_base_algorithm( alg );
         operation->is_encrypt = 1;
     }
@@ -3475,24 +3481,10 @@ psa_status_t psa_aead_decrypt_setup( psa_aead_operation_t *operation,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
 
-    if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
-    {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto exit;
-    }
+    status = psa_aead_setup_checks( operation, alg );
 
-    if( operation->id != 0 )
-    {
-        status = PSA_ERROR_BAD_STATE;
+    if( status != PSA_SUCCESS )
         goto exit;
-    }
-
-    if( operation->nonce_set || operation->lengths_set ||
-        operation->ad_started || operation->body_started )
-    {
-        status = PSA_ERROR_BAD_STATE;
-        goto exit;
-    }
 
     status = psa_get_and_lock_key_slot_with_policy(
                  key, &slot, PSA_KEY_USAGE_DECRYPT, alg );
@@ -3518,10 +3510,8 @@ exit:
     unlock_status = psa_unlock_key_slot( slot );
 
     if( status == PSA_SUCCESS )
-        status = unlock_status;
-
-    if( status == PSA_SUCCESS )
     {
+        status = unlock_status;
         operation->alg = psa_aead_get_base_algorithm( alg );
         operation->is_encrypt = 0;
     }

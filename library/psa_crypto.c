@@ -2172,12 +2172,14 @@ psa_status_t psa_hash_setup( psa_hash_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     /* A context must be freshly initialized before it can be set up. */
-    if( operation->id != 0 ) {
+    if( operation->id != 0 )
+    {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
     }
 
-    if( !PSA_ALG_IS_HASH( alg ) ) {
+    if( !PSA_ALG_IS_HASH( alg ) )
+    {
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
@@ -2190,7 +2192,7 @@ psa_status_t psa_hash_setup( psa_hash_operation_t *operation,
 
 exit:
     if( status != PSA_SUCCESS )
-        psa_hash_abort(operation);
+        psa_hash_abort( operation );
 
     return status;
 }
@@ -2201,7 +2203,8 @@ psa_status_t psa_hash_update( psa_hash_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( operation->id == 0 ) {
+    if( operation->id == 0 )
+    {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
     }
@@ -2249,7 +2252,8 @@ psa_status_t psa_hash_verify( psa_hash_operation_t *operation,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    if( actual_hash_length != hash_length ) {
+    if( actual_hash_length != hash_length )
+    {
         status = PSA_ERROR_INVALID_SIGNATURE;
         goto exit;
     }
@@ -2386,7 +2390,8 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     psa_key_slot_t *slot = NULL;
 
     /* A context must be freshly initialized before it can be set up. */
-    if( operation->id != 0 ) {
+    if( operation->id != 0 )
+    {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
     }
@@ -2488,19 +2493,22 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
         goto cleanup;
     }
 
-    if( ! operation->is_sign ) {
+    if( ! operation->is_sign )
+    {
         status = PSA_ERROR_BAD_STATE;
         goto cleanup;
     }
 
     /* Sanity check. This will guarantee that mac_size != 0 (and so mac != NULL)
      * once all the error checks are done. */
-    if( operation->mac_size == 0 ) {
+    if( operation->mac_size == 0 )
+    {
         status = PSA_ERROR_BAD_STATE;
         goto cleanup;
     }
 
-    if( mac_size < operation->mac_size ) {
+    if( mac_size < operation->mac_size )
+    {
         status = PSA_ERROR_BUFFER_TOO_SMALL;
         goto cleanup;
     }
@@ -2538,12 +2546,14 @@ psa_status_t psa_mac_verify_finish( psa_mac_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( operation->id == 0 ) {
+    if( operation->id == 0 )
+    {
         status = PSA_ERROR_BAD_STATE;
         goto cleanup;
     }
 
-    if( operation->is_sign ) {
+    if( operation->is_sign )
+    {
         status = PSA_ERROR_BAD_STATE;
         goto cleanup;
     }
@@ -3308,13 +3318,15 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
                               PSA_KEY_USAGE_DECRYPT );
 
     /* A context must be freshly initialized before it can be set up. */
-    if( operation->id != 0 ) {
+    if( operation->id != 0 )
+    {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
     }
 
     /* The requested algorithm must be one that can be processed by cipher. */
-    if( ! PSA_ALG_IS_CIPHER( alg ) ) {
+    if( ! PSA_ALG_IS_CIPHER( alg ) )
+    {
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
@@ -3429,17 +3441,20 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( operation->id == 0 ) {
+    if( operation->id == 0 )
+    {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
     }
 
-    if( operation->iv_set || ! operation->iv_required ) {
+    if( operation->iv_set || ! operation->iv_required )
+    {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
     }
 
-    if( iv_length > PSA_CIPHER_IV_MAX_SIZE ) {
+    if( iv_length > PSA_CIPHER_IV_MAX_SIZE )
+    {
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }

@@ -3479,7 +3479,7 @@ static int ssl_parse_server_hello_done( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello done message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
     ssl->state++;

@@ -37,5 +37,3 @@ Migration paths:
   * `MBEDTLS_ERR_SSL_BAD_CERTIFICATE`
   * `MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME`
   instead.
-
-  Users should check for the generic error codes instead.

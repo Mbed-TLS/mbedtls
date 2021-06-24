@@ -2558,7 +2558,7 @@ static int ssl_parse_server_ecdh_params_psa( mbedtls_ssl_context *ssl,
 
     /* First byte is curve_type; only named_curve is handled */
     if( *(*p)++ != MBEDTLS_ECP_TLS_NAMED_CURVE )
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
 
     /* Next two bytes are the namedcurve value */
     tls_id = *(*p)++;
@@ -2569,7 +2569,7 @@ static int ssl_parse_server_ecdh_params_psa( mbedtls_ssl_context *ssl,
     if( ( handshake->ecdh_psa_type =
           mbedtls_psa_parse_tls_ecc_group( tls_id, &ecdh_bits ) ) == 0 )
     {
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
     if( ecdh_bits > 0xffff )
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
@@ -2631,7 +2631,7 @@ static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
             ( "bad server key exchange message (ECDHE curve)" ) );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
     return( ret );
@@ -2801,7 +2801,7 @@ static int ssl_parse_signature_algorithm( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
             ( "Server used unsupported HashAlgorithm %d", *(p)[0] ) );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
     /*

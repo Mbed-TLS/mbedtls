@@ -1785,7 +1785,7 @@ read_record_header:
                                             "during renegotiation" ) );
                 mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                                 MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
-                return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+                return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
             }
 #endif
             ssl->secure_renegotiation = MBEDTLS_SSL_SECURE_RENEGOTIATION;

@@ -1907,8 +1907,8 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
             mbedtls_ssl_send_alert_message( ssl,
                             MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+                            MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
+            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         }
 
         /* Read length of the next CRT in the chain. */

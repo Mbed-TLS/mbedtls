@@ -3955,7 +3955,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_read_round_two", ret );
-            return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
         ret = mbedtls_ecjpake_derive_secret( &ssl->handshake->ecjpake_ctx,

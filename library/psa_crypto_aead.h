@@ -179,7 +179,7 @@ psa_status_t mbedtls_psa_aead_decrypt(
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
+ *         An invalid block length was supplied.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -222,8 +222,8 @@ psa_status_t mbedtls_psa_aead_encrypt_setup(
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         An invalid block length was supplied.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -403,7 +403,7 @@ psa_status_t mbedtls_psa_aead_update_ad(
  *
  * \retval #PSA_SUCCESS
  *         Success.
-
+ *
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
  *         #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c key_type, \c alg, \p input_length) or

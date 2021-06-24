@@ -236,6 +236,12 @@ class StorageKey(psa_storage.Key):
     def __init__(self, *, description: str, **kwargs) -> None:
         super().__init__(**kwargs)
         self.description = description #type: str
+class StorageKeyBuilder:
+    def __init__(self) -> None:
+        pass
+
+    def build(self, **kwargs) -> StorageKey:
+        return StorageKey(**kwargs)
 
 class StorageFormat:
     """Storage format stability test cases."""
@@ -253,6 +259,7 @@ class StorageFormat:
         self.constructors = info.constructors #type: macro_collector.PSAMacroEnumerator
         self.version = version #type: int
         self.forward = forward #type: bool
+        self.key_builder = StorageKeyBuilder() #type: StorageKeyBuilder
 
     def make_test_case(self, key: StorageKey) -> test_case.TestCase:
         """Construct a storage format test case for the given key.
@@ -305,12 +312,13 @@ class StorageFormat:
                        r'', short)
         short = re.sub(r'PSA_KEY_[A-Z]+_', r'', short)
         description = 'lifetime: ' + short
-        key = StorageKey(version=self.version,
-                         id=1, lifetime=lifetime,
-                         type='PSA_KEY_TYPE_RAW_DATA', bits=8,
-                         usage='PSA_KEY_USAGE_EXPORT', alg=0, alg2=0,
-                         material=b'L',
-                         description=description)
+        key = self.key_builder.build(
+                    version=self.version,
+                    id=1, lifetime=lifetime,
+                    type='PSA_KEY_TYPE_RAW_DATA', bits=8,
+                    usage='PSA_KEY_USAGE_EXPORT', alg=0, alg2=0,
+                    material=b'L',
+                    description=description)
         return key
 
     def all_keys_for_lifetimes(self) -> List[StorageKey]:
@@ -339,12 +347,12 @@ class StorageFormat:
         if short is None:
             short = re.sub(r'\bPSA_KEY_USAGE_', r'', usage)
         description = 'usage: ' + short
-        return StorageKey(version=self.version,
-                          id=1, lifetime=0x00000001,
-                          type='PSA_KEY_TYPE_RAW_DATA', bits=8,
-                          usage=usage, alg=0, alg2=0,
-                          material=b'K',
-                          description=description)
+        return self.key_builder.build(version=self.version,
+                                      id=1, lifetime=0x00000001,
+                                      type='PSA_KEY_TYPE_RAW_DATA', bits=8,
+                                      usage=usage, alg=0, alg2=0,
+                                      material=b'K',
+                                      description=description)
 
     def all_keys_for_usage_flags(self) -> List[StorageKey]:
         """Generate test keys covering usage flags."""
@@ -381,12 +389,13 @@ class StorageFormat:
                                       r'',
                                       kt.expression)
             description = 'type: {} {}-bit'.format(short_expression, bits)
-            keys.append(StorageKey(version=self.version,
-                                   id=1, lifetime=0x00000001,
-                                   type=kt.expression, bits=bits,
-                                   usage=usage_flags, alg=alg, alg2=alg2,
-                                   material=key_material,
-                                   description=description))
+            keys.append(self.key_builder.build(
+                            version=self.version,
+                            id=1, lifetime=0x00000001,
+                            type=kt.expression, bits=bits,
+                            usage=usage_flags, alg=alg, alg2=alg2,
+                            material=key_material,
+                            description=description))
         return keys
 
     def all_keys_for_types(self) -> List[StorageKey]:
@@ -403,18 +412,18 @@ class StorageFormat:
         descr = re.sub(r'PSA_ALG_', r'', alg)
         descr = re.sub(r',', r', ', re.sub(r' +', r'', descr))
         usage = 'PSA_KEY_USAGE_EXPORT'
-        key1 = StorageKey(version=self.version,
-                          id=1, lifetime=0x00000001,
-                          type='PSA_KEY_TYPE_RAW_DATA', bits=8,
-                          usage=usage, alg=alg, alg2=0,
-                          material=b'K',
-                          description='alg: ' + descr)
-        key2 = StorageKey(version=self.version,
-                          id=1, lifetime=0x00000001,
-                          type='PSA_KEY_TYPE_RAW_DATA', bits=8,
-                          usage=usage, alg=0, alg2=alg,
-                          material=b'L',
-                          description='alg2: ' + descr)
+        key1 = self.key_builder.build(version=self.version,
+                                      id=1, lifetime=0x00000001,
+                                      type='PSA_KEY_TYPE_RAW_DATA', bits=8,
+                                      usage=usage, alg=alg, alg2=0,
+                                      material=b'K',
+                                      description='alg: ' + descr)
+        key2 = self.key_builder.build(version=self.version,
+                                      id=1, lifetime=0x00000001,
+                                      type='PSA_KEY_TYPE_RAW_DATA', bits=8,
+                                      usage=usage, alg=0, alg2=alg,
+                                      material=b'L',
+                                      description='alg2: ' + descr)
         return [key1, key2]
 
     def all_keys_for_algorithms(self) -> List[StorageKey]:

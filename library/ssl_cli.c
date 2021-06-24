@@ -4121,7 +4121,7 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
     msg = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
@@ -4136,7 +4136,7 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket length: %" MBEDTLS_PRINTF_SIZET, ticket_len ) );

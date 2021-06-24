@@ -532,6 +532,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
 
 int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
                         unsigned char *output, size_t output_size,
+                        size_t *output_length,
                         unsigned char *tag, size_t tag_len )
 {
     unsigned char work_buf[16];
@@ -546,6 +547,7 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
      * for the sake of alternative implementations. */
     (void) output;
     (void) output_size;
+    *output_length = 0;
 
     orig_len = ctx->len * 8;
     orig_add_len = ctx->add_len * 8;
@@ -616,7 +618,7 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
                                     output, length, &olen ) ) != 0 )
         return( ret );
 
-    if( ( ret = mbedtls_gcm_finish( ctx, NULL, 0, tag, tag_len ) ) != 0 )
+    if( ( ret = mbedtls_gcm_finish( ctx, NULL, 0, &olen, tag, tag_len ) ) != 0 )
         return( ret );
 
     return( 0 );
@@ -1068,7 +1070,7 @@ int mbedtls_gcm_self_test( int verbose )
                     goto exit;
             }
 
-            ret = mbedtls_gcm_finish( &ctx, NULL, 0, tag_buf, 16 );
+            ret = mbedtls_gcm_finish( &ctx, NULL, 0, &olen, tag_buf, 16 );
             if( ret != 0 )
                 goto exit;
 
@@ -1140,7 +1142,7 @@ int mbedtls_gcm_self_test( int verbose )
                     goto exit;
             }
 
-            ret = mbedtls_gcm_finish( &ctx, NULL, 0, tag_buf, 16 );
+            ret = mbedtls_gcm_finish( &ctx, NULL, 0, &olen, tag_buf, 16 );
             if( ret != 0 )
                 goto exit;
 

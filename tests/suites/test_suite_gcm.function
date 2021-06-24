@@ -50,7 +50,8 @@ static int check_multipart( mbedtls_gcm_context *ctx,
     output = NULL;
 
     ASSERT_ALLOC( output, tag->len );
-    TEST_EQUAL( 0, mbedtls_gcm_finish( ctx, NULL, 0, output, tag->len ) );
+    TEST_EQUAL( 0, mbedtls_gcm_finish( ctx, NULL, 0, &olen, output, tag->len ) );
+    TEST_EQUAL( 0, olen );
     ASSERT_COMPARE( output, tag->len, tag->x, tag->len );
     mbedtls_free( output );
     output = NULL;
@@ -96,7 +97,8 @@ static void check_cipher_with_empty_ad( mbedtls_gcm_context *ctx,
     output = NULL;
 
     ASSERT_ALLOC( output, tag->len );
-    TEST_EQUAL( 0, mbedtls_gcm_finish( ctx, NULL, 0, output, tag->len ) );
+    TEST_EQUAL( 0, mbedtls_gcm_finish( ctx, NULL, 0, &olen, output, tag->len ) );
+    TEST_EQUAL( 0, olen );
     ASSERT_COMPARE( output, tag->len, tag->x, tag->len );
 
 exit:
@@ -125,7 +127,9 @@ static void check_empty_cipher_with_ad( mbedtls_gcm_context *ctx,
     }
 
     ASSERT_ALLOC( output_tag, tag->len );
-    TEST_EQUAL( 0, mbedtls_gcm_finish( ctx, NULL, 0, output_tag, tag->len ) );
+    TEST_EQUAL( 0, mbedtls_gcm_finish( ctx, NULL, 0, &olen,
+                                       output_tag, tag->len ) );
+    TEST_EQUAL( 0, olen );
     ASSERT_COMPARE( output_tag, tag->len, tag->x, tag->len );
 
 exit:
@@ -138,11 +142,13 @@ static void check_no_cipher_no_ad( mbedtls_gcm_context *ctx,
                                    const data_t *tag )
 {
     uint8_t *output = NULL;
+    size_t olen = 0;
 
     TEST_EQUAL( 0, mbedtls_gcm_starts( ctx, mode,
                                        iv->x, iv->len ) );
     ASSERT_ALLOC( output, tag->len );
-    TEST_EQUAL( 0, mbedtls_gcm_finish( ctx, NULL, 0, output, tag->len ) );
+    TEST_EQUAL( 0, mbedtls_gcm_finish( ctx, NULL, 0, &olen, output, tag->len ) );
+    TEST_EQUAL( 0, olen );
     ASSERT_COMPARE( output, tag->len, tag->x, tag->len );
 
 exit:

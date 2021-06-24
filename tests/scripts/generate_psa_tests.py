@@ -236,12 +236,14 @@ class StorageKey(psa_storage.Key):
     def __init__(self, *, description: str, **kwargs) -> None:
         super().__init__(**kwargs)
         self.description = description #type: str
+        self.usage = self.original_usage #type: psa_storage.Expr
+
 class StorageKeyBuilder:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, usage_extension: bool) -> None:
+        self.usage_extension = usage_extension #type: bool
 
     def build(self, **kwargs) -> StorageKey:
-        return StorageKey(**kwargs)
+        return StorageKey(usage_extension = self.usage_extension, **kwargs)
 
 class StorageFormat:
     """Storage format stability test cases."""
@@ -259,7 +261,7 @@ class StorageFormat:
         self.constructors = info.constructors #type: macro_collector.PSAMacroEnumerator
         self.version = version #type: int
         self.forward = forward #type: bool
-        self.key_builder = StorageKeyBuilder() #type: StorageKeyBuilder
+        self.key_builder = StorageKeyBuilder(usage_extension = True) #type: StorageKeyBuilder
 
     def make_test_case(self, key: StorageKey) -> test_case.TestCase:
         """Construct a storage format test case for the given key.
@@ -472,6 +474,24 @@ class StorageFormatV0(StorageFormat):
 
     def __init__(self, info: Information) -> None:
         super().__init__(info, 0, False)
+
+    def all_keys_for_usage_flags(self) -> List[StorageKey]:
+        """Generate test keys covering usage flags."""
+        # First generate keys without usage policy extension for
+        # compatibility testing, then generate the keys with extension
+        # to check the extension is working.
+        keys = [] #type: List[StorageKey]
+        prev_builder = self.key_builder
+
+        self.key_builder = StorageKeyBuilder(usage_extension = False)
+        keys += super().all_keys_for_usage_flags(extra_desc = 'without extension')
+
+        self.key_builder = StorageKeyBuilder(usage_extension = True)
+        keys += super().all_keys_for_usage_flags(extra_desc = 'with extension')
+
+        self.key_builder = prev_builder
+        return keys
+
 
 class TestGenerator:
     """Generate test data."""

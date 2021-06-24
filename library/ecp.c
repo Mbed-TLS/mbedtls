@@ -2772,6 +2772,7 @@ static const mbedtls_mpi ecp_x25519_bad_point_1 = ECP_MPI_INIT_ARRAY(
         x25519_bad_point_1 );
 static const mbedtls_mpi ecp_x25519_bad_point_2 = ECP_MPI_INIT_ARRAY(
         x25519_bad_point_2 );
+#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
 
 /*
  * Check that the input point is not one of the low-order points.
@@ -2779,7 +2780,8 @@ static const mbedtls_mpi ecp_x25519_bad_point_2 = ECP_MPI_INIT_ARRAY(
  * https://eprint.iacr.org/2017/806.pdf
  * Those points are never sent by an honest peer.
  */
-static int ecp_check_pubkey_x25519( const mbedtls_mpi *X, const mbedtls_mpi *P )
+static int ecp_check_bad_points_mx( const mbedtls_mpi *X, const mbedtls_mpi *P,
+                                    const mbedtls_ecp_group_id grp_id )
 {
     int ret;
     mbedtls_mpi XmP;
@@ -2792,25 +2794,31 @@ static int ecp_check_pubkey_x25519( const mbedtls_mpi *X, const mbedtls_mpi *P )
     while( mbedtls_mpi_cmp_mpi( &XmP, P ) >= 0 )
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &XmP, &XmP, P ) );
 
-    /* Check against the known bad values that are less than P in the
-     * following list: https://cr.yp.to/ecdh.html#validate */
+    /* Check against the known bad values that are less than P. For Curve448
+     * these are 0, 1 and -1. For Curve25519 we check the values less than P
+     * from the following list: https://cr.yp.to/ecdh.html#validate */
     if( mbedtls_mpi_cmp_int( &XmP, 1 ) <= 0 ) /* takes care of 0 and 1 */
     {
         ret = MBEDTLS_ERR_ECP_INVALID_KEY;
         goto cleanup;
     }
 
-    if( mbedtls_mpi_cmp_mpi( &XmP, &ecp_x25519_bad_point_1 ) == 0 )
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+    if( grp_id == MBEDTLS_ECP_DP_CURVE25519 )
     {
-        ret = MBEDTLS_ERR_ECP_INVALID_KEY;
-        goto cleanup;
-    }
+        if( mbedtls_mpi_cmp_mpi( &XmP, &ecp_x25519_bad_point_1 ) == 0 )
+        {
+            ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+            goto cleanup;
+        }
 
-    if( mbedtls_mpi_cmp_mpi( &XmP, &ecp_x25519_bad_point_2 ) == 0 )
-    {
-        ret = MBEDTLS_ERR_ECP_INVALID_KEY;
-        goto cleanup;
+        if( mbedtls_mpi_cmp_mpi( &XmP, &ecp_x25519_bad_point_2 ) == 0 )
+        {
+            ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+            goto cleanup;
+        }
     }
+#endif
 
     /* Final check: check if XmP + 1 is P (final because it changes XmP!) */
     MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &XmP, &XmP, 1 ) );
@@ -2827,7 +2835,6 @@ cleanup:
 
     return( ret );
 }
-#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
 
 /*
  * Check validity of a public key for Montgomery curves with x-only schemes
@@ -2846,12 +2853,7 @@ static int ecp_check_pubkey_mx( const mbedtls_ecp_group *grp, const mbedtls_ecp_
     if( mbedtls_mpi_cmp_int( &pt->X, 0 ) < 0 )
         return( MBEDTLS_ERR_ECP_INVALID_KEY );
 
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-    if( grp->id == MBEDTLS_ECP_DP_CURVE25519 )
-        return( ecp_check_pubkey_x25519( &pt->X, &grp->P ) );
-#endif
-
-    return( 0 );
+    return( ecp_check_bad_points_mx( &pt->X, &grp->P, grp->id ) );
 }
 #endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 

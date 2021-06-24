@@ -620,19 +620,23 @@ class StorageFormatV0(StorageFormat):
         keys = [] #type: List[StorageKey]
         prev_builder = self.key_builder
 
-        # Generate the key without usage extension
+        # Generate the keys without usage extension
         self.key_builder = StorageKeyBuilder(usage_extension=False)
         alg_with_keys = self.gather_key_types_for_sign_alg()
-        key_restrictions = StorageKey.EXTENDABLE_USAGE_FLAGS_KEY_RESTRICTION
+        key_filter = StorageKey.EXTENDABLE_USAGE_FLAGS_KEY_RESTRICTION
+
+        # Use a lookup for the extendable usage flags to able to sort them
+        usage_lookup = {} #type: Dict[str, psa_storage.Expr]
+        for usage_flag in StorageKey.EXTENDABLE_USAGE_FLAGS:
+            usage_lookup[usage_flag.string] = usage_flag
+
         # Walk through all combintion. The key types must be filtered to fit
         # the specific usage flag.
         keys += [key
-                 for usage in StorageKey.EXTENDABLE_USAGE_FLAGS
+                 for usage in sorted(usage_lookup)
                  for alg in sorted(alg_with_keys)
-                 for key_type in sorted([kt
-                                         for kt in alg_with_keys[alg]
-                                         if re.match(key_restrictions[usage.string], kt)])
-                 for key in self.keys_for_usage_extension(usage, alg, key_type)]
+                 for key_type in sorted(alg_with_keys[alg]) if re.match(key_filter[usage], key_type)
+                 for key in self.keys_for_usage_extension(usage_lookup[usage], alg, key_type)]
 
         self.key_builder = prev_builder
         return keys

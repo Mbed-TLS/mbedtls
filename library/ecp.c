@@ -2999,18 +2999,30 @@ static int ecp_check_pubkey_x25519( const mbedtls_mpi *X, const mbedtls_mpi *P )
     /* Check against the known bad values that are less than P in the
      * following list: https://cr.yp.to/ecdh.html#validate */
     if( mbedtls_mpi_cmp_int( &XmP, 1 ) <= 0 ) /* takes care of 0 and 1 */
-        return( MBEDTLS_ERR_ECP_INVALID_KEY );
+    {
+        ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+        goto cleanup;
+    }
 
     if( mbedtls_mpi_cmp_mpi( &XmP, &ecp_x25519_bad_point_1 ) == 0 )
-        return( MBEDTLS_ERR_ECP_INVALID_KEY );
+    {
+        ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+        goto cleanup;
+    }
 
     if( mbedtls_mpi_cmp_mpi( &XmP, &ecp_x25519_bad_point_2 ) == 0 )
-        return( MBEDTLS_ERR_ECP_INVALID_KEY );
+    {
+        ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+        goto cleanup;
+    }
 
     /* Final check: check if XmP + 1 is P (final because it changes XmP!) */
     MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &XmP, &XmP, 1 ) );
     if( mbedtls_mpi_cmp_mpi( &XmP, P ) == 0 )
-        return( MBEDTLS_ERR_ECP_INVALID_KEY );
+    {
+        ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+        goto cleanup;
+    }
 
     ret = 0;
 

@@ -3549,7 +3549,7 @@ psa_status_t psa_aead_generate_nonce( psa_aead_operation_t *operation,
     }
 
     if( operation->nonce_set || operation->ad_started ||
-        operation->body_started  || operation->is_encrypt == 0 )
+        operation->body_started || !operation->is_encrypt )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3635,7 +3635,7 @@ psa_status_t psa_aead_set_lengths( psa_aead_operation_t *operation,
     }
 
     if( operation->lengths_set || operation->ad_started ||
-        operation->body_started)
+        operation->body_started )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3761,7 +3761,7 @@ exit:
 
 static psa_status_t psa_aead_final_checks( psa_aead_operation_t *operation )
 {
-    if( operation->id == 0 || operation->nonce_set == 0 )
+    if( operation->id == 0 || !operation->nonce_set )
         return( PSA_ERROR_BAD_STATE );
 
     if( operation->lengths_set && (operation->ad_remaining != 0 ||
@@ -3790,7 +3790,7 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    if( operation->is_encrypt == 0 )
+    if( !operation->is_encrypt )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3831,16 +3831,11 @@ psa_status_t psa_aead_verify( psa_aead_operation_t *operation,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    if( operation->is_encrypt == 1 )
+    if( operation->is_encrypt )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
     }
-
-    status = psa_aead_final_checks( operation );
-
-    if( status != PSA_SUCCESS )
-        goto exit;
 
     status = psa_driver_wrapper_aead_verify( operation, plaintext,
                                              plaintext_size,

@@ -340,13 +340,15 @@ class StorageFormat:
     def key_for_usage_flags(
             self,
             usage_flags: List[str],
-            short: Optional[str] = None
+            short: Optional[str] = None,
+            extra_desc: Optional[str] = None
     ) -> StorageKey:
         """Construct a test key for the given key usage."""
         usage = ' | '.join(usage_flags) if usage_flags else '0'
         if short is None:
             short = re.sub(r'\bPSA_KEY_USAGE_', r'', usage)
-        description = 'usage: ' + short
+        extra_desc = ' ' + extra_desc if extra_desc is not None and len(extra_desc) > 0 else ''
+        description = 'usage' + extra_desc + ': ' + short
         return self.key_builder.build(version=self.version,
                                       id=1, lifetime=0x00000001,
                                       type='PSA_KEY_TYPE_RAW_DATA', bits=8,
@@ -354,14 +356,17 @@ class StorageFormat:
                                       material=b'K',
                                       description=description)
 
-    def all_keys_for_usage_flags(self) -> List[StorageKey]:
+    def all_keys_for_usage_flags(
+            self,
+            extra_desc: Optional[str] = None
+    ) -> List[StorageKey]:
         """Generate test keys covering usage flags."""
         known_flags = sorted(self.constructors.key_usage_flags)
         keys = [] #type List[StorageKey]
-        keys.append(self.key_for_usage_flags(['0']))
-        keys += [self.key_for_usage_flags([usage_flag])
+        keys.append(self.key_for_usage_flags(['0'], extra_desc=extra_desc))
+        keys += [self.key_for_usage_flags([usage_flag], extra_desc=extra_desc)
                  for usage_flag in known_flags]
-        keys += [self.key_for_usage_flags([flag1, flag2])
+        keys += [self.key_for_usage_flags([flag1, flag2], extra_desc=extra_desc)
                  for flag1, flag2 in zip(known_flags,
                                          known_flags[1:] + [known_flags[0]])]
         keys.append(self.key_for_usage_flags(known_flags, short='all known'))

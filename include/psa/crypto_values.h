@@ -835,7 +835,7 @@
  *
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
  *
- * \return 1 if \p alg is a key stretching / passowrd hashing algorithm, 0
+ * \return 1 if \p alg is a key stretching / password hashing algorithm, 0
  *         otherwise. This macro may return either 0 or 1 if \p alg is not a
  *         supported algorithm identifier.
  */
@@ -2265,13 +2265,15 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 
 /** Whether the key may be used to derive other keys or produce a password
  * hash.
+ * 
+ * This flag allows the key to be used for a key derivation operation or for
+ * a key agreement operation, if otherwise permitted by by the key's type and
+ * policy.
  *
- * This flag allows the key to be used as the input of
- * psa_key_derivation_input_key() at the step
- * #PSA_KEY_DERIVATION_INPUT_SECRET of #PSA_KEY_DERIVATION_INPUT_PASSWORD
- * depending on the algorithm, and allows the use of
- * psa_key_derivation_output_bytes() or psa_key_derivation_output_key()
- * at the end of the operation.
+ * If this flag is present on all keys used in calls to
+ * psa_key_derivation_input_key() for a key derivation operation, then it
+ * permits calling psa_key_derivation_output_bytes() or
+ * psa_key_derivation_output_key() at the end of the operation.
  */
 #define PSA_KEY_USAGE_DERIVE                    ((psa_key_usage_t)0x00004000)
 
@@ -2280,14 +2282,13 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *
  * This flag allows the key to be used:
  *
- * - for a key of type #PSA_KEY_TYPE_PASSWORD_HASH, as the \c key argument of
- *   psa_key_derivation_verify_key();
- * - for a key of type #PSA_KEY_TYPE_PASSWORD (or #PSA_KEY_TYPE_DERIVE), as
- *   the input to psa_key_derivation_input_key() at the step
- *   #PSA_KEY_DERIVATION_INPUT_PASSWORD (or #PSA_KEY_DERIVATION_INPUT_SECRET);
- *   then at the end of the operation use of psa_key_derivation_verify_bytes()
- *   or psa_key_derivation_verify_key() will be permitted (but not
- *   psa_key_derivation_output_xxx() unless #PSA_KEY_USAGE_DERIVE is set).
+ * This flag allows the key to be used in a key derivation operation, if
+ * otherwise permitted by by the key's type and policy.
+ *
+ * If this flag is present on all keys used in calls to
+ * psa_key_derivation_input_key() for a key derivation operation, then it
+ * permits calling psa_key_derivation_verify_bytes() or
+ * psa_key_derivation_verify_key() at the end of the operation.
  */
 #define PSA_KEY_USAGE_VERIFY_DERIVATION         ((psa_key_usage_t)0x00008000)
 
@@ -2306,11 +2307,11 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *
  * The secret can also be a direct input (passed to
  * key_derivation_input_bytes()). In this case, the derivation operation
- * may not be used to derive or verify keys: the operation will only allow
- * psa_key_derivation_output_bytes() or
- * psa_key_derivation_verify_bytes() but not
- * psa_key_derivation_output_key() or
- * psa_key_derivation_verify_key().
+ * may not be used to derive keys: the operation will only allow
+ * psa_key_derivation_output_bytes(),
+ * psa_key_derivation_verify_bytes(), or
+ * psa_key_derivation_verify_key(), but not
+ * psa_key_derivation_output_key().
  */
 #define PSA_KEY_DERIVATION_INPUT_SECRET     ((psa_key_derivation_step_t)0x0101)
 
@@ -2324,11 +2325,11 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *
  * The secret can also be a direct input (passed to
  * key_derivation_input_bytes()). In this case, the derivation operation
- * may not be used to derive or verify keys: the operation will only allow
- * psa_key_derivation_output_bytes() or
- * psa_key_derivation_verify_bytes(), not
- * psa_key_derivation_output_key() or
- * psa_key_derivation_verify_key().
+ * may not be used to derive keys: the operation will only allow
+ * psa_key_derivation_output_bytes(),
+ * psa_key_derivation_verify_bytes(), or
+ * psa_key_derivation_verify_key(), but not
+ * psa_key_derivation_output_key().
  */
 #define PSA_KEY_DERIVATION_INPUT_PASSWORD   ((psa_key_derivation_step_t)0x0102)
 

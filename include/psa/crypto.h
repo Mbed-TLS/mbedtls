@@ -3805,7 +3805,7 @@ psa_status_t psa_key_derivation_output_key(
  * This function calculates output bytes from a key derivation algorithm and
  * compares those bytes to an expected value in constant time.
  * If you view the key derivation's output as a stream of bytes, this
- * function destructively reads the requested number of bytes from the
+ * function destructively reads the expected number of bytes from the
  * stream before comparing them.
  * The operation's capacity decreases by the number of bytes read.
  *
@@ -3824,13 +3824,13 @@ psa_status_t psa_key_derivation_output_key(
  * psa_key_derivation_abort().
  *
  * \param[in,out] operation The key derivation operation object to read from.
- * \param[in] expected_output Buffer where the output will be written.
+ * \param[in] expected_output Buffer containing the expected derivation output.
  * \param output_length     Length ot the expected output; this is also the
  *                          number of bytes that will be read.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_SIGNATURE
- *         The output was read successfully, but if differs from the expected
+ *         The output was read successfully, but it differs from the expected
  *         output.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         One of the inputs was a key whose policy didn't allow
@@ -3840,7 +3840,7 @@ psa_status_t psa_key_derivation_output_key(
  *                          \p output_length bytes. Note that in this case,
  *                          the operation's capacity is set to 0, thus
  *                          subsequent calls to this function will not
- *                          succeed, even with a smaller output buffer.
+ *                          succeed, even with a smaller expected output.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active and completed
  *         all required input steps).
@@ -3905,7 +3905,7 @@ psa_status_t psa_key_derivation_verify_bytes(
  *                          the length of the expected value. In this case,
  *                          the operation's capacity is set to 0, thus
  *                          subsequent calls to this function will not
- *                          succeed, even with a smaller output buffer.
+ *                          succeed, even with a smaller expected output.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active and completed
  *         all required input steps).

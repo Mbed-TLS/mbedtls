@@ -2080,34 +2080,51 @@ psa_status_t psa_hash_abort( psa_hash_operation_t *operation )
 psa_status_t psa_hash_setup( psa_hash_operation_t *operation,
                              psa_algorithm_t alg )
 {
-    /* A context must be freshly initialized before it can be set up. */
-    if( operation->id != 0 )
-        return( PSA_ERROR_BAD_STATE );
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( !PSA_ALG_IS_HASH( alg ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+    /* A context must be freshly initialized before it can be set up. */
+    if( operation->id != 0 ) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if( !PSA_ALG_IS_HASH( alg ) ) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
 
     /* Ensure all of the context is zeroized, since PSA_HASH_OPERATION_INIT only
      * directly zeroes the int-sized dummy member of the context union. */
     memset( &operation->ctx, 0, sizeof( operation->ctx ) );
 
-    return( psa_driver_wrapper_hash_setup( operation, alg ) );
+    status = psa_driver_wrapper_hash_setup( operation, alg );
+
+exit:
+    if( status != PSA_SUCCESS )
+        psa_hash_abort(operation);
+
+    return status;
 }
 
 psa_status_t psa_hash_update( psa_hash_operation_t *operation,
                               const uint8_t *input,
                               size_t input_length )
 {
-    if( operation->id == 0 )
-        return( PSA_ERROR_BAD_STATE );
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if( operation->id == 0 ) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
 
     /* Don't require hash implementations to behave correctly on a
      * zero-length input, which may have an invalid pointer. */
     if( input_length == 0 )
         return( PSA_SUCCESS );
 
-    psa_status_t status = psa_driver_wrapper_hash_update( operation,
-                                                          input, input_length );
+    status = psa_driver_wrapper_hash_update( operation, input, input_length );
+
+exit:
     if( status != PSA_SUCCESS )
         psa_hash_abort( operation );
 
@@ -2139,13 +2156,23 @@ psa_status_t psa_hash_verify( psa_hash_operation_t *operation,
                             operation,
                             actual_hash, sizeof( actual_hash ),
                             &actual_hash_length );
+
     if( status != PSA_SUCCESS )
-        return( status );
-    if( actual_hash_length != hash_length )
-        return( PSA_ERROR_INVALID_SIGNATURE );
+        goto exit;
+
+    if( actual_hash_length != hash_length ) {
+        status = PSA_ERROR_INVALID_SIGNATURE;
+        goto exit;
+    }
+
     if( mbedtls_psa_safer_memcmp( hash, actual_hash, actual_hash_length ) != 0 )
-        return( PSA_ERROR_INVALID_SIGNATURE );
-    return( PSA_SUCCESS );
+        status = PSA_ERROR_INVALID_SIGNATURE;
+
+exit:
+    if( status != PSA_SUCCESS )
+        psa_hash_abort(operation);
+
+    return( status );
 }
 
 psa_status_t psa_hash_compute( psa_algorithm_t alg,

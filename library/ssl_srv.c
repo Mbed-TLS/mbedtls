@@ -3389,7 +3389,7 @@ static int ssl_parse_client_dh_public( mbedtls_ssl_context *ssl, unsigned char *
     if( *p + 2 > end )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
     n = ( (*p)[0] << 8 ) | (*p)[1];
@@ -3398,7 +3398,7 @@ static int ssl_parse_client_dh_public( mbedtls_ssl_context *ssl, unsigned char *
     if( *p + n > end )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
     if( ( ret = mbedtls_dhm_read_public( &ssl->handshake->dhm_ctx, *p, n ) ) != 0 )
@@ -3466,20 +3466,20 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if ( p + 2 > end ) {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
     if( *p++ != ( ( len >> 8 ) & 0xFF ) ||
         *p++ != ( ( len      ) & 0xFF ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 #endif
 
     if( p + len != end )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
     /*
@@ -3640,7 +3640,7 @@ static int ssl_parse_client_psk_identity( mbedtls_ssl_context *ssl, unsigned cha
     if( end - *p < 2 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
     n = ( (*p)[0] << 8 ) | (*p)[1];
@@ -3649,7 +3649,7 @@ static int ssl_parse_client_psk_identity( mbedtls_ssl_context *ssl, unsigned cha
     if( n == 0 || n > end - *p )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
     if( ssl->conf->f_psk != NULL )
@@ -3718,13 +3718,13 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
     if( ssl->in_msg[0] != MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
@@ -3739,7 +3739,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         if( p != end )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
         }
 
         if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
@@ -3805,7 +3805,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         if( p != end )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -3890,7 +3890,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         if( p != end )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
         }
 
         if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,

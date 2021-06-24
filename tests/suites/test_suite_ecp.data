@@ -64,16 +64,6 @@ depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
 ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"1":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
 
 # see https://cr.yp.to/ecdh.html#validate
-ECP check pubkey Montgomery low-order point #1 0
-depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
-ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"0":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
-
-# see https://cr.yp.to/ecdh.html#validate
-ECP check pubkey Montgomery low-order point #2 1
-depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
-ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"1":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
-
-# see https://cr.yp.to/ecdh.html#validate
 ECP check pubkey Montgomery low-order point #3 (let's call this u)
 depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
 ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"b8495f16056286fdb1329ceb8d09da6ac49ff1fae35616aeb8413b7c7aebe0":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY

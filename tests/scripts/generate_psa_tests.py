@@ -461,6 +461,17 @@ class StorageFormat:
 
         return [self.make_test_case(key) for key in keys]
 
+class StorageFormatForward(StorageFormat):
+    """Storage format stability test cases for forward compatibility."""
+
+    def __init__(self, info: Information, version: int) -> None:
+        super().__init__(info, version, True)
+
+class StorageFormatV0(StorageFormat):
+    """Storage format stability test cases for version 0 compatibility."""
+
+    def __init__(self, info: Information) -> None:
+        super().__init__(info, 0, False)
 
 class TestGenerator:
     """Generate test data."""
@@ -492,9 +503,9 @@ class TestGenerator:
         'test_suite_psa_crypto_not_supported.generated':
         lambda info: NotSupported(info).test_cases_for_not_supported(),
         'test_suite_psa_crypto_storage_format.current':
-        lambda info: StorageFormat(info, 0, True).all_test_cases(),
+        lambda info: StorageFormatForward(info, 0).all_test_cases(),
         'test_suite_psa_crypto_storage_format.v0':
-        lambda info: StorageFormat(info, 0, False).all_test_cases(),
+        lambda info: StorageFormatV0(info).all_test_cases(),
     } #type: Dict[str, Callable[[Information], Iterable[test_case.TestCase]]]
 
     def generate_target(self, name: str) -> None:

@@ -4629,7 +4629,7 @@ static int ecp_mod_p256k1( mbedtls_mpi * );
 
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
 /* Constants used by ecp_use_curve25519() */
-static const unsigned char curve25519_a24[] = { 0x01, 0xDB, 0x42 };
+static const mbedtls_mpi_sint curve25519_a24 = 0x01DB42;
 static const unsigned char curve25519_part_of_n[] = {
     0x14, 0xDE, 0xF9, 0xDE, 0xA2, 0xF7, 0x9C, 0xD6,
     0x58, 0x12, 0x63, 0x1A, 0x5C, 0xF5, 0xD3, 0xED,
@@ -4643,8 +4643,7 @@ static int ecp_use_curve25519( mbedtls_ecp_group *grp )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* Actually ( A + 2 ) / 4 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &grp->A,
-                        curve25519_a24, sizeof( curve25519_a24 ) ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &grp->A, curve25519_a24 ) );
 
     /* P = 2^255 - 19 */
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &grp->P, 1 ) );
@@ -4676,7 +4675,7 @@ cleanup:
 
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 /* Constants used by ecp_use_curve448() */
-static const unsigned char curve448_a24[] = { 0x98, 0xAA };
+static const mbedtls_mpi_sint curve448_a24 = 0x98AA;
 static const unsigned char curve448_part_of_n[] = {
     0x83, 0x35, 0xDC, 0x16, 0x3B, 0xB1, 0x24,
     0xB6, 0x51, 0x29, 0xC9, 0x6F, 0xDE, 0x93,
@@ -4695,8 +4694,7 @@ static int ecp_use_curve448( mbedtls_ecp_group *grp )
     mbedtls_mpi_init( &Ns );
 
     /* Actually ( A + 2 ) / 4 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &grp->A,
-                        curve448_a24, sizeof( curve448_a24 ) ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &grp->A, curve448_a24 ) );
 
     /* P = 2^448 - 2^224 - 1 */
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &grp->P, 1 ) );

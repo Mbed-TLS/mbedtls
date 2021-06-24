@@ -2294,11 +2294,13 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
+    psa_key_slot_t *slot = NULL;
 
     /* A context must be freshly initialized before it can be set up. */
-    if( operation->id != 0 )
-        return( PSA_ERROR_BAD_STATE );
+    if( operation->id != 0 ) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
 
     status = psa_get_and_lock_key_slot_with_policy(
                  key,
@@ -2306,7 +2308,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
                  is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH,
                  alg );
     if( status != PSA_SUCCESS )
-        return( status );
+        goto exit;
 
     psa_key_attributes_t attributes = {
         .core = slot->attr
@@ -3216,18 +3218,22 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
+    psa_key_slot_t *slot = NULL;
     psa_key_usage_t usage = ( cipher_operation == MBEDTLS_ENCRYPT ?
                               PSA_KEY_USAGE_ENCRYPT :
                               PSA_KEY_USAGE_DECRYPT );
 
     /* A context must be freshly initialized before it can be set up. */
-    if( operation->id != 0 )
-        return( PSA_ERROR_BAD_STATE );
+    if( operation->id != 0 ) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
 
     /* The requested algorithm must be one that can be processed by cipher. */
-    if( ! PSA_ALG_IS_CIPHER( alg ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+    if( ! PSA_ALG_IS_CIPHER( alg ) ) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
 
     /* Fetch key material from key storage. */
     status = psa_get_and_lock_key_slot_with_policy( key, &slot, usage, alg );

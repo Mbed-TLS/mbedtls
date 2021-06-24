@@ -3363,7 +3363,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
     cert_type_len = buf[mbedtls_ssl_hs_hdr_len( ssl )];
     n = cert_type_len;
@@ -3383,7 +3383,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
     /* supported_signature_algorithms */
@@ -3418,7 +3418,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
                 ssl,
                 MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                 MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
+            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
         }
 
 #if defined(MBEDTLS_DEBUG_C)
@@ -3445,7 +3445,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
 exit:

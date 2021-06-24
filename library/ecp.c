@@ -106,6 +106,7 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/threading.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/bn_mul.h"
 
 #include <string.h>
 
@@ -2969,22 +2970,6 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
 #if defined(ECP_MONTGOMERY)
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-/* Duplicated macros from ecp_curves.c */
-#if defined(MBEDTLS_HAVE_INT32)
-#define BYTES_TO_T_UINT_8( a, b, c, d, e, f, g, h ) \
-    BYTES_TO_T_UINT_4( a, b, c, d ),                \
-    BYTES_TO_T_UINT_4( e, f, g, h )
-#else /* 64-bits */
-#define BYTES_TO_T_UINT_8( a, b, c, d, e, f, g, h ) \
-    ( (mbedtls_mpi_uint) (a) <<  0 ) |                        \
-    ( (mbedtls_mpi_uint) (b) <<  8 ) |                        \
-    ( (mbedtls_mpi_uint) (c) << 16 ) |                        \
-    ( (mbedtls_mpi_uint) (d) << 24 ) |                        \
-    ( (mbedtls_mpi_uint) (e) << 32 ) |                        \
-    ( (mbedtls_mpi_uint) (f) << 40 ) |                        \
-    ( (mbedtls_mpi_uint) (g) << 48 ) |                        \
-    ( (mbedtls_mpi_uint) (h) << 56 )
-#endif /* bits in mbedtls_mpi_uint */
 #define ECP_MPI_INIT(s, n, p) {s, (n), (mbedtls_mpi_uint *)(p)}
 #define ECP_MPI_INIT_ARRAY(x)   \
     ECP_MPI_INIT(1, sizeof(x) / sizeof(mbedtls_mpi_uint), x)

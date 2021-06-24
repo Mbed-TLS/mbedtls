@@ -1887,7 +1887,7 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                      MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
 
-        return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
+        return( MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION );
     }
 
     cookie_len = *p++;
@@ -2041,7 +2041,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                      MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
 
-        return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
+        return( MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION );
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu",

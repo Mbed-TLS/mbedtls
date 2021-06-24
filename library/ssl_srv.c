@@ -1405,7 +1405,7 @@ read_record_header:
                             ssl->conf->min_major_ver, ssl->conf->min_minor_ver ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                      MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
-        return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
+        return( MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION );
     }
 
     if( ssl->major_ver > ssl->conf->max_major_ver )

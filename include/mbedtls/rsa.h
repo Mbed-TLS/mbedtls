@@ -796,13 +796,11 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  *                 if \p f_rng doesn't need a context argument.
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
- * \param hashlen  The length of the message digest.
- *                 Ths is only used if \p md_alg is #MBEDTLS_MD_NONE.
+ * \param hashlen  The length of the message digest or raw data in Bytes.
+ *                 If \p md_alg is not #MBEDTLS_MD_NONE, this must match the
+ *                 output length of the corresponding hash algorithm.
  * \param hash     The buffer holding the message digest or raw data.
- *                 If \p md_alg is #MBEDTLS_MD_NONE, this must be a readable
- *                 buffer of length \p hashlen Bytes. If \p md_alg is not
- *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
- *                 the size of the hash corresponding to \p md_alg.
+ *                 This must be a readable buffer of at least \p hashlen Bytes.
  * \param sig      The buffer to hold the signature. This must be a writable
  *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
  *                 for an 2048-bit RSA modulus. A buffer length of
@@ -830,13 +828,11 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  *                 if \p f_rng doesn't need a context argument.
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
- * \param hashlen  The length of the message digest.
- *                 Ths is only used if \p md_alg is #MBEDTLS_MD_NONE.
+ * \param hashlen  The length of the message digest or raw data in Bytes.
+ *                 If \p md_alg is not #MBEDTLS_MD_NONE, this must match the
+ *                 output length of the corresponding hash algorithm.
  * \param hash     The buffer holding the message digest or raw data.
- *                 If \p md_alg is #MBEDTLS_MD_NONE, this must be a readable
- *                 buffer of length \p hashlen Bytes. If \p md_alg is not
- *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
- *                 the size of the hash corresponding to \p md_alg.
+ *                 This must be a readable buffer of at least \p hashlen Bytes.
  * \param sig      The buffer to hold the signature. This must be a writable
  *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
  *                 for an 2048-bit RSA modulus. A buffer length of
@@ -878,13 +874,11 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  *                 if \p f_rng doesn't need a context argument.
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
- * \param hashlen  The length of the message digest.
- *                 Ths is only used if \p md_alg is #MBEDTLS_MD_NONE.
+ * \param hashlen  The length of the message digest or raw data in Bytes.
+ *                 If \p md_alg is not #MBEDTLS_MD_NONE, this must match the
+ *                 output length of the corresponding hash algorithm.
  * \param hash     The buffer holding the message digest or raw data.
- *                 If \p md_alg is #MBEDTLS_MD_NONE, this must be a readable
- *                 buffer of length \p hashlen Bytes. If \p md_alg is not
- *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
- *                 the size of the hash corresponding to \p md_alg.
+ *                 This must be a readable buffer of at least \p hashlen Bytes.
  * \param saltlen  The length of the salt that should be used.
  *                 If passed #MBEDTLS_RSA_SALT_LEN_ANY, the function will use
  *                 the largest possible salt length up to the hash length,
@@ -935,13 +929,11 @@ int mbedtls_rsa_rsassa_pss_sign_ext( mbedtls_rsa_context *ctx,
  *                 if \p f_rng doesn't need a context argument.
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
- * \param hashlen  The length of the message digest.
- *                 This is only used if \p md_alg is #MBEDTLS_MD_NONE.
+ * \param hashlen  The length of the message digest or raw data in Bytes.
+ *                 If \p md_alg is not #MBEDTLS_MD_NONE, this must match the
+ *                 output length of the corresponding hash algorithm.
  * \param hash     The buffer holding the message digest or raw data.
- *                 If \p md_alg is #MBEDTLS_MD_NONE, this must be a readable
- *                 buffer of length \p hashlen Bytes. If \p md_alg is not
- *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
- *                 the size of the hash corresponding to \p md_alg.
+ *                 This must be a readable buffer of at least \p hashlen Bytes.
  * \param sig      The buffer to hold the signature. This must be a writable
  *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
  *                 for an 2048-bit RSA modulus. A buffer length of
@@ -972,13 +964,11 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  * \param ctx      The initialized RSA public key context to use.
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
- * \param hashlen  The length of the message digest.
- *                 This is only used if \p md_alg is #MBEDTLS_MD_NONE.
+ * \param hashlen  The length of the message digest or raw data in Bytes.
+ *                 If \p md_alg is not #MBEDTLS_MD_NONE, this must match the
+ *                 output length of the corresponding hash algorithm.
  * \param hash     The buffer holding the message digest or raw data.
- *                 If \p md_alg is #MBEDTLS_MD_NONE, this must be a readable
- *                 buffer of length \p hashlen Bytes. If \p md_alg is not
- *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
- *                 the size of the hash corresponding to \p md_alg.
+ *                 This must be a readable buffer of at least \p hashlen Bytes.
  * \param sig      The buffer holding the signature. This must be a readable
  *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
  *                 for an 2048-bit RSA modulus.
@@ -999,13 +989,11 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
  * \param ctx      The initialized RSA public key context to use.
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
- * \param hashlen  The length of the message digest.
- *                 This is only used if \p md_alg is #MBEDTLS_MD_NONE.
+ * \param hashlen  The length of the message digest or raw data in Bytes.
+ *                 If \p md_alg is not #MBEDTLS_MD_NONE, this must match the
+ *                 output length of the corresponding hash algorithm.
  * \param hash     The buffer holding the message digest or raw data.
- *                 If \p md_alg is #MBEDTLS_MD_NONE, this must be a readable
- *                 buffer of length \p hashlen Bytes. If \p md_alg is not
- *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
- *                 the size of the hash corresponding to \p md_alg.
+ *                 This must be a readable buffer of at least \p hashlen Bytes.
  * \param sig      The buffer holding the signature. This must be a readable
  *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
  *                 for an 2048-bit RSA modulus.
@@ -1036,13 +1024,11 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
  * \param ctx      The initialized RSA public key context to use.
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
- * \param hashlen  The length of the message digest.
- *                 This is only used if \p md_alg is #MBEDTLS_MD_NONE.
+ * \param hashlen  The length of the message digest or raw data in Bytes.
+ *                 If \p md_alg is not #MBEDTLS_MD_NONE, this must match the
+ *                 output length of the corresponding hash algorithm.
  * \param hash     The buffer holding the message digest or raw data.
- *                 If \p md_alg is #MBEDTLS_MD_NONE, this must be a readable
- *                 buffer of length \p hashlen Bytes. If \p md_alg is not
- *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
- *                 the size of the hash corresponding to \p md_alg.
+ *                 This must be a readable buffer of at least \p hashlen Bytes.
  * \param sig      The buffer holding the signature. This must be a readable
  *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
  *                 for an 2048-bit RSA modulus.
@@ -1069,13 +1055,11 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
  * \param ctx      The initialized RSA public key context to use.
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
- * \param hashlen  The length of the message digest.
- *                 This is only used if \p md_alg is #MBEDTLS_MD_NONE.
+ * \param hashlen  The length of the message digest or raw data in Bytes.
+ *                 If \p md_alg is not #MBEDTLS_MD_NONE, this must match the
+ *                 output length of the corresponding hash algorithm.
  * \param hash     The buffer holding the message digest or raw data.
- *                 If \p md_alg is #MBEDTLS_MD_NONE, this must be a readable
- *                 buffer of length \p hashlen Bytes. If \p md_alg is not
- *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
- *                 the size of the hash corresponding to \p md_alg.
+ *                 This must be a readable buffer of at least \p hashlen Bytes.
  * \param mgf1_hash_id      The message digest algorithm used for the
  *                          verification operation and the mask generation
  *                          function (MGF1). For more details on the encoding

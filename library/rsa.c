@@ -1790,7 +1790,8 @@ static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
         if( md_info == NULL )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-        hashlen = mbedtls_md_get_size( md_info );
+        if( hashlen != mbedtls_md_get_size( md_info ) )
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
 
     md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) ctx->hash_id );
@@ -1925,14 +1926,13 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  * Parameters:
  * - md_alg:  Identifies the hash algorithm used to generate the given hash;
  *            MBEDTLS_MD_NONE if raw data is signed.
- * - hashlen: Length of hash in case hashlen is MBEDTLS_MD_NONE.
+ * - hashlen: Length of hash. Must match md_alg if that's not NONE.
  * - hash:    Buffer containing the hashed message or the raw data.
  * - dst_len: Length of the encoded message.
  * - dst:     Buffer to hold the encoded message.
  *
  * Assumptions:
- * - hash has size hashlen if md_alg == MBEDTLS_MD_NONE.
- * - hash has size corresponding to md_alg if md_alg != MBEDTLS_MD_NONE.
+ * - hash has size hashlen.
  * - dst points to a buffer of size at least dst_len.
  *
  */
@@ -1957,7 +1957,8 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
         if( mbedtls_oid_get_oid_by_md( md_alg, &oid, &oid_size ) != 0 )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-        hashlen = mbedtls_md_get_size( md_info );
+        if( hashlen != mbedtls_md_get_size( md_info ) )
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
         /* Double-check that 8 + hashlen + oid_size can be used as a
          * 1-byte ASN.1 length encoding and that there's no overflow. */
@@ -2022,6 +2023,8 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
      *                                 TAG-NULL + LEN [ NULL ] ]
      *                 TAG-OCTET + LEN [ HASH ] ]
      */
+    if( 0x08 + oid_size + hashlen >= 0x80 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     *p++ = MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED;
     *p++ = (unsigned char)( 0x08 + oid_size + hashlen );
     *p++ = MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED;
@@ -2203,7 +2206,8 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
         if( md_info == NULL )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-        hashlen = mbedtls_md_get_size( md_info );
+        if( hashlen != mbedtls_md_get_size( md_info ) )
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
 
     md_info = mbedtls_md_info_from_type( mgf1_hash_id );
@@ -2674,7 +2678,7 @@ int mbedtls_rsa_self_test( int verbose )
     }
 
     if( mbedtls_rsa_pkcs1_sign( &rsa, myrand, NULL,
-                                MBEDTLS_MD_SHA1, 0,
+                                MBEDTLS_MD_SHA1, 20,
                                 sha1sum, rsa_ciphertext ) != 0 )
     {
         if( verbose != 0 )
@@ -2687,7 +2691,7 @@ int mbedtls_rsa_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "passed\n  PKCS#1 sig. verify: " );
 
-    if( mbedtls_rsa_pkcs1_verify( &rsa, MBEDTLS_MD_SHA1, 0,
+    if( mbedtls_rsa_pkcs1_verify( &rsa, MBEDTLS_MD_SHA1, 20,
                                   sha1sum, rsa_ciphertext ) != 0 )
     {
         if( verbose != 0 )

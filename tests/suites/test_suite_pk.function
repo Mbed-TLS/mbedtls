@@ -452,9 +452,10 @@ void pk_rsa_verify_ext_test_vec( data_t * message_str, int digest,
 
     if( digest != MBEDTLS_MD_NONE )
     {
-        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ),
-                     message_str->x, message_str->len, hash_result ) == 0 );
-        hash_len = 0;
+        const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( digest );
+        TEST_ASSERT( mbedtls_md( md_info, message_str->x, message_str->len,
+                                 hash_result ) == 0 );
+        hash_len = mbedtls_md_get_size( md_info );
     }
     else
     {
@@ -619,7 +620,8 @@ void pk_sign_verify( int type, int parameter, int sign_ret, int verify_ret )
 {
     mbedtls_pk_context pk;
     size_t sig_len;
-    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+    unsigned char hash[32]; // Hard-coded for SHA256
+    size_t hash_len = sizeof( hash );
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
     void *rs_ctx = NULL;
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -643,7 +645,7 @@ void pk_sign_verify( int type, int parameter, int sign_ret, int verify_ret )
     TEST_ASSERT( pk_genkey( &pk, parameter ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_sign_restartable( &pk, MBEDTLS_MD_SHA256,
-                 hash, sizeof hash, sig, &sig_len,
+                 hash, hash_len, sig, &sig_len,
                  mbedtls_test_rnd_std_rand, NULL, rs_ctx ) == sign_ret );
     if( sign_ret == 0 )
         TEST_ASSERT( sig_len <= MBEDTLS_PK_SIGNATURE_MAX_SIZE );
@@ -651,22 +653,22 @@ void pk_sign_verify( int type, int parameter, int sign_ret, int verify_ret )
         sig_len = MBEDTLS_PK_SIGNATURE_MAX_SIZE;
 
     TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA256,
-                            hash, sizeof hash, sig, sig_len ) == verify_ret );
+                            hash, hash_len, sig, sig_len ) == verify_ret );
 
     if( verify_ret == 0 )
     {
         hash[0]++;
         TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA256,
-                                hash, sizeof hash, sig, sig_len ) != 0 );
+                                hash, hash_len, sig, sig_len ) != 0 );
         hash[0]--;
 
         sig[0]++;
         TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA256,
-                                hash, sizeof hash, sig, sig_len ) != 0 );
+                                hash, hash_len, sig, sig_len ) != 0 );
         sig[0]--;
     }
 
-    TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, sizeof hash,
+    TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, hash_len,
                                   sig, &sig_len,
                                   mbedtls_test_rnd_std_rand,
                                   NULL ) == sign_ret );
@@ -676,7 +678,7 @@ void pk_sign_verify( int type, int parameter, int sign_ret, int verify_ret )
         sig_len = MBEDTLS_PK_SIGNATURE_MAX_SIZE;
 
     TEST_ASSERT( mbedtls_pk_verify_restartable( &pk, MBEDTLS_MD_SHA256,
-                 hash, sizeof hash, sig, sig_len, rs_ctx ) == verify_ret );
+                 hash, hash_len, sig, sig_len, rs_ctx ) == verify_ret );
 
     if( verify_ret == 0 )
     {

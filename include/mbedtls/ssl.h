@@ -96,7 +96,7 @@
 #define MBEDTLS_ERR_SSL_HW_ACCEL_FAILED                   -0x7F80  /**< Hardware acceleration function returned with error */
 #define MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH              -0x6F80  /**< Hardware acceleration function skipped / left alone data */
 #define MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION              -0x6E80  /**< Handshake protocol not within min/max boundaries */
-#define MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE                 -0x6E00  /**< Handshake negotiation failed because of incompatible parameter sets supported by client and server. */
+#define MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE                 -0x6E00  /**< The handshake negotiation failed. */
 #define MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED            -0x6D80  /**< Session ticket has expired. */
 #define MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH                  -0x6D00  /**< Public key type mismatch (eg, asked for RSA key exchange and presented EC key) */
 #define MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY                  -0x6C80  /**< Unknown identity received (eg, PSK identity) */

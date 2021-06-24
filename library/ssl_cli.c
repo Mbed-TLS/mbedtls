@@ -3090,8 +3090,8 @@ start_processing:
             mbedtls_ssl_send_alert_message(
                 ssl,
                 MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+                MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
+            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         }
     }
     else

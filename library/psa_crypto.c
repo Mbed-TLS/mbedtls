@@ -2394,12 +2394,8 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    /* Set the output length and content to a safe default, such that in
-     * case the caller misses an error check, the output would be an
-     * unachievable MAC. */
-    *mac_length = mac_size;
-
-    if( operation->id == 0 ) {
+    if( operation->id == 0 )
+    {
         status = PSA_ERROR_BAD_STATE;
         goto cleanup;
     }
@@ -2428,6 +2424,7 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
                                                  mac, operation->mac_size,
                                                  mac_length );
 
+cleanup:
     /* In case of success, set the potential excess room in the output buffer
      * to an invalid value, to avoid potentially leaking a longer MAC.
      * In case of error, set the output length and content to a safe default,
@@ -2444,7 +2441,6 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
         memset( &mac[operation->mac_size], '!',
                 mac_size - operation->mac_size );
 
-cleanup:
     abort_status = psa_mac_abort( operation );
 
     return( status == PSA_SUCCESS ? abort_status : status );

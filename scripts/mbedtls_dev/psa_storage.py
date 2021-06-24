@@ -107,6 +107,14 @@ class Key:
     } #type: Dict[Expr, Expr]
     """The extendable usage flags with the corresponding extension flags."""
 
+    EXTENDABLE_USAGE_FLAGS_KEY_RESTRICTION = {
+        'PSA_KEY_USAGE_SIGN_HASH': '.*KEY_PAIR',
+        'PSA_KEY_USAGE_VERIFY_HASH': '.*KEY.*'
+    } #type: Dict[str, str]
+    """The key type filter for the extendable usage flags.
+    The filter is a regexp.
+    """
+
     def __init__(self, *,
                  version: Optional[int] = None,
                  id: Optional[int] = None, #pylint: disable=redefined-builtin

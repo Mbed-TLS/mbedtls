@@ -2486,13 +2486,13 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
     if( operation->id == 0 )
     {
         status = PSA_ERROR_BAD_STATE;
-        goto cleanup;
+        goto exit;
     }
 
     if( ! operation->is_sign )
     {
         status = PSA_ERROR_BAD_STATE;
-        goto cleanup;
+        goto exit;
     }
 
     /* Sanity check. This will guarantee that mac_size != 0 (and so mac != NULL)
@@ -2500,20 +2500,20 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
     if( operation->mac_size == 0 )
     {
         status = PSA_ERROR_BAD_STATE;
-        goto cleanup;
+        goto exit;
     }
 
     if( mac_size < operation->mac_size )
     {
         status = PSA_ERROR_BUFFER_TOO_SMALL;
-        goto cleanup;
+        goto exit;
     }
 
     status = psa_driver_wrapper_mac_sign_finish( operation,
                                                  mac, operation->mac_size,
                                                  mac_length );
 
-cleanup:
+exit:
     /* In case of success, set the potential excess room in the output buffer
      * to an invalid value, to avoid potentially leaking a longer MAC.
      * In case of error, set the output length and content to a safe default,
@@ -2545,25 +2545,25 @@ psa_status_t psa_mac_verify_finish( psa_mac_operation_t *operation,
     if( operation->id == 0 )
     {
         status = PSA_ERROR_BAD_STATE;
-        goto cleanup;
+        goto exit;
     }
 
     if( operation->is_sign )
     {
         status = PSA_ERROR_BAD_STATE;
-        goto cleanup;
+        goto exit;
     }
 
     if( operation->mac_size != mac_length )
     {
         status = PSA_ERROR_INVALID_SIGNATURE;
-        goto cleanup;
+        goto exit;
     }
 
     status = psa_driver_wrapper_mac_verify_finish( operation,
                                                    mac, mac_length );
 
-cleanup:
+exit:
     abort_status = psa_mac_abort( operation );
 
     return( status == PSA_SUCCESS ? abort_status : status );

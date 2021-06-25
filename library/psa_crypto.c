@@ -3493,6 +3493,8 @@ psa_status_t psa_cipher_encrypt( mbedtls_svc_key_id_t key,
     psa_key_type_t key_type;
     size_t iv_length;
 
+    *output_length = 0;
+
     if( ! PSA_ALG_IS_CIPHER( alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
@@ -3544,6 +3546,8 @@ psa_status_t psa_cipher_decrypt( mbedtls_svc_key_id_t key,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
+
+    *output_length = 0;
 
     if( ! PSA_ALG_IS_CIPHER( alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );

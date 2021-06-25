@@ -2265,7 +2265,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 
 /** Whether the key may be used to derive other keys or produce a password
  * hash.
- * 
+ *
  * This flag allows the key to be used for a key derivation operation or for
  * a key agreement operation, if otherwise permitted by by the key's type and
  * policy.

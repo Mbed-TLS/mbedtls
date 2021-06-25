@@ -2818,6 +2818,8 @@ static int ecp_check_bad_points_mx( const mbedtls_mpi *X, const mbedtls_mpi *P,
             goto cleanup;
         }
     }
+#else
+    (void) grp_id;
 #endif
 
     /* Final check: check if XmP + 1 is P (final because it changes XmP!) */

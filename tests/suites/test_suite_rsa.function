@@ -179,10 +179,11 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
     mbedtls_test_rnd_pseudo_info rnd_info;
 
     mbedtls_rsa_init( &ctx );
-    TEST_ASSERT( mbedtls_rsa_set_padding( &ctx, padding_mode,
-                                          MBEDTLS_MD_NONE ) == 0 );
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P );
     mbedtls_mpi_init( &Q ); mbedtls_mpi_init( &E );
+
+    TEST_ASSERT( mbedtls_rsa_set_padding( &ctx, padding_mode,
+                                          MBEDTLS_MD_NONE ) == 0 );
 
     memset( output, 0x00, sizeof( output ) );
     memset( &rnd_info, 0, sizeof( mbedtls_test_rnd_pseudo_info ) );

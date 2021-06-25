@@ -213,14 +213,26 @@ psa_status_t mbedtls_psa_cipher_abort( mbedtls_psa_cipher_operation_t *operation
  * \param[in] alg               The cipher algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
- * \param[in]  input            Buffer containing the iv and the plaintext.
+ * \param[in]  input            Buffer containing the message to encrypt.
  * \param[in]  input_length     Size of the \p input buffer in bytes.
  * \param[in,out] output        Buffer where the output is to be written.
- *                              The IV must be written to this buffer before
- *                              this function is called.
- * \param[in]  output_size      Size of the \p output buffer in bytes.
- * \param[out] output_length    On success, the number of bytes
- *                              that make up the returned output.
+ *                              The core has generated and written the IV
+ *                              at the beginning of this buffer before
+ *                              this function is called. The size of the IV
+ *                              is PSA_CIPHER_IV_LENGTH( key_type, alg ) where
+ *                              \c key_type is the type of the key identified
+ *                              by \p key and \p alg is the cipher algorithm
+ *                              to compute.
+ * \param[in]  output_size      Size of the \p output buffer in bytes. The core
+ *                              has checked that this size is greater or equal to
+ *                              PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, input_length )
+ *                              where \c key_type is the type of the key
+ *                              identified by \p key, \p alg is the cipher
+ *                              algorithm to compute and \p input_length is the
+ *                              size of the \p input buffer.
+ * \param[out] output_length    On success, the number of bytes that make up
+ *                              the returned output. Initialized to zero
+ *                              by the core.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_NOT_SUPPORTED
@@ -263,12 +275,20 @@ psa_status_t mbedtls_psa_cipher_encrypt( const psa_key_attributes_t *attributes,
  * \param[in]  alg              The cipher algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
- * \param[in]  input            Buffer containing the iv and the  ciphertext.
+ * \param[in]  input            Buffer containing the iv and the ciphertext.
  * \param[in]  input_length     Size of the \p input buffer in bytes.
  * \param[out] output           Buffer where the output is to be written.
  * \param[in]  output_size      Size of the \p output buffer in bytes.
- * \param[out] output_length    On success, the number of bytes
- *                              that make up the returned output.
+ *                              The core has checked that this size is
+ *                              greater or equal to
+ *                              PSA_CIPHER_DECRYPT_OUTPUT_SIZE( key_type, alg, input_length )
+ *                              where \c key_type is the type of the key
+ *                              identified by \p key, \p alg is the cipher
+ *                              algorithm to compute and \p input_length is the
+ *                              size of the \p input buffer.
+ * \param[out] output_length    On success, the number of bytes that make up
+ *                              the returned output. Initialized to zero
+ *                              by the core.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_NOT_SUPPORTED

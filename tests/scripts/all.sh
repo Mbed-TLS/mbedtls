@@ -820,6 +820,32 @@ component_test_psa_crypto_key_id_encodes_owner () {
     make test
 }
 
+# check_renamed_symbols HEADER LIB
+# Check that if HEADER contains '#define MACRO ...' then MACRO is not a symbol
+# name is LIB.
+check_renamed_symbols () {
+    ! nm "$2" | sed 's/.* //' |
+      grep -x -F "$(sed -n 's/^ *# *define  *\([A-Z_a-z][0-9A-Z_a-z]*\)..*/\1/p' "$1")"
+}
+
+component_build_psa_crypto_spm () {
+    msg "build: full config - USE_PSA_CRYPTO + PSA_CRYPTO_KEY_ID_ENCODES_OWNER + PSA_CRYPTO_SPM, make, gcc"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_SPM
+    # We can only compile, not link, since our test and sample programs
+    # aren't equipped for the modified names used when MBEDTLS_PSA_CRYPTO_SPM
+    # is active.
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -I../tests/include/spe' lib
+
+    # Check that if a symbol is renamed by crypto_spe.h, the non-renamed
+    # version is not present.
+    echo "Checking for renamed symbols in the library"
+    if_build_succeeded check_renamed_symbols tests/include/spe/crypto_spe.h library/libmbedcrypto.a
+}
+
 component_test_psa_crypto_client () {
     msg "build: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT, make"
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C

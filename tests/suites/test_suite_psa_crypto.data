@@ -1420,51 +1420,51 @@ cipher_bad_order:
 
 PSA cipher encrypt: without initialization
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_error:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"":"":PSA_ERROR_BAD_STATE
+cipher_encrypt_fail:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"":"":PSA_ERROR_BAD_STATE
 
 PSA cipher encrypt: invalid key type
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING
-cipher_encrypt_error:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_RAW_DATA:"2b7e151628aed2a6abf7158809cf4f3c":"":PSA_ERROR_NOT_SUPPORTED
+cipher_encrypt_fail:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_RAW_DATA:"2b7e151628aed2a6abf7158809cf4f3c":"":PSA_ERROR_NOT_SUPPORTED
 
 PSA cipher encrypt: incompatible key ARC4 for CTR
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_ARC4
 # Either INVALID_ARGUMENT or NOT_SUPPORTED would be reasonable here
-cipher_encrypt_error:PSA_ALG_CTR:PSA_KEY_TYPE_ARC4:"2b7e151628aed2a6abf7158809cf4f3c":"":PSA_ERROR_NOT_SUPPORTED
+cipher_encrypt_fail:PSA_ALG_CTR:PSA_KEY_TYPE_ARC4:"2b7e151628aed2a6abf7158809cf4f3c":"":PSA_ERROR_NOT_SUPPORTED
 
 PSA cipher encrypt: bad algorithm (unknown cipher algorithm)
 depends_on:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_error:PSA_ALG_CATEGORY_CIPHER:PSA_KEY_TYPE_RAW_DATA:"2b7e151628aed2a6abf7158809cf4f3c":"":PSA_ERROR_NOT_SUPPORTED
+cipher_encrypt_fail:PSA_ALG_CATEGORY_CIPHER:PSA_KEY_TYPE_RAW_DATA:"2b7e151628aed2a6abf7158809cf4f3c":"":PSA_ERROR_NOT_SUPPORTED
 
 PSA cipher encrypt: bad algorithm (not a cipher algorithm)
 depends_on:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_error:PSA_ALG_MD4:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":PSA_ERROR_INVALID_ARGUMENT
+cipher_encrypt_fail:PSA_ALG_MD4:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":PSA_ERROR_INVALID_ARGUMENT
 
 PSA symmetric encrypt: AES-ECB, input too short (15 bytes)
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_error:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e11739317":PSA_ERROR_INVALID_ARGUMENT
+cipher_encrypt_fail:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e11739317":PSA_ERROR_INVALID_ARGUMENT
 
 PSA symmetric encrypt: AES-CBC-nopad, input too short
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_error:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee223":PSA_ERROR_INVALID_ARGUMENT
+cipher_encrypt_fail:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee223":PSA_ERROR_INVALID_ARGUMENT
 
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_noiv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":""
+cipher_encrypt_alg_without_iv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":""
 
 PSA symmetric encrypt: AES-ECB, 16 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_noiv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":"3ad77bb40d7a3660a89ecaf32466ef97"
+cipher_encrypt_alg_without_iv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":"3ad77bb40d7a3660a89ecaf32466ef97"
 
 PSA symmetric encrypt: AES-ECB, 32 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_noiv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a3ad77bb40d7a3660a89ecaf32466ef97":"3ad77bb40d7a3660a89ecaf32466ef972249a2638c6f1c755a84f9681a9f08c1"
+cipher_encrypt_alg_without_iv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a3ad77bb40d7a3660a89ecaf32466ef97":"3ad77bb40d7a3660a89ecaf32466ef972249a2638c6f1c755a84f9681a9f08c1"
 
 PSA symmetric encrypt: 2-key 3DES-ECB, 8 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_DES
-cipher_encrypt_noiv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce":"c78e2b38139610e3":"5d0652429c5b0ac7"
+cipher_encrypt_alg_without_iv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce":"c78e2b38139610e3":"5d0652429c5b0ac7"
 
 PSA symmetric encrypt: 3-key 3DES-ECB, 8 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_DES
-cipher_encrypt_noiv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"c78e2b38139610e3":"817ca7d69b80d86a"
+cipher_encrypt_alg_without_iv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"c78e2b38139610e3":"817ca7d69b80d86a"
 
 PSA symmetric encrypt validation: AES-CBC-nopad, 16 bytes, good
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
@@ -1560,35 +1560,35 @@ cipher_encrypt_simple_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"0102040
 
 PSA cipher decrypt: without initialization
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_error:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"":"":"":PSA_ERROR_BAD_STATE
+cipher_decrypt_fail:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"":"":"":PSA_ERROR_BAD_STATE
 
 PSA cipher decrypt: invalid key type
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING
-cipher_decrypt_error:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_RAW_DATA:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"":PSA_ERROR_NOT_SUPPORTED
+cipher_decrypt_fail:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_RAW_DATA:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"":PSA_ERROR_NOT_SUPPORTED
 
 PSA cipher decrypt: incompatible key ARC4 for CTR
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_ARC4
 # Either INVALID_ARGUMENT or NOT_SUPPORTED would be reasonable here
-cipher_decrypt_error:PSA_ALG_CTR:PSA_KEY_TYPE_ARC4:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"":PSA_ERROR_NOT_SUPPORTED
+cipher_decrypt_fail:PSA_ALG_CTR:PSA_KEY_TYPE_ARC4:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"":PSA_ERROR_NOT_SUPPORTED
 
 PSA cipher decrypt: bad algorithm (unknown cipher algorithm)
-cipher_decrypt_error:PSA_ALG_CATEGORY_CIPHER:PSA_KEY_TYPE_RAW_DATA:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"":PSA_ERROR_NOT_SUPPORTED
+cipher_decrypt_fail:PSA_ALG_CATEGORY_CIPHER:PSA_KEY_TYPE_RAW_DATA:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"":PSA_ERROR_NOT_SUPPORTED
 
 PSA cipher decrypt: bad algorithm (not a cipher algorithm)
 depends_on:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_error:PSA_ALG_MD4:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"":PSA_ERROR_INVALID_ARGUMENT
+cipher_decrypt_fail:PSA_ALG_MD4:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"":PSA_ERROR_INVALID_ARGUMENT
 
 PSA symmetric decrypt: AES-CBC-PKCS#7, input too short (15 bytes)
 depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_error:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":PSA_ERROR_INVALID_ARGUMENT
+cipher_decrypt_fail:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":PSA_ERROR_INVALID_ARGUMENT
 
 PSA symmetric decrypt: AES-ECB, input too short (15 bytes)
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_error:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"396ee84fb75fdbb5c2b13c7fe5a654":PSA_ERROR_INVALID_ARGUMENT
+cipher_decrypt_fail:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"396ee84fb75fdbb5c2b13c7fe5a654":PSA_ERROR_INVALID_ARGUMENT
 
 PSA symmetric decrypt: AES-CBC-nopad, input too short (5 bytes)
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_error:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee223":PSA_ERROR_INVALID_ARGUMENT
+cipher_decrypt_fail:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee223":PSA_ERROR_INVALID_ARGUMENT
 
 PSA symmetric decrypt: AES-ECB, 0 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES

@@ -458,37 +458,38 @@ static psa_status_t cipher_encrypt( const psa_key_attributes_t *attributes,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_psa_cipher_operation_t operation = MBEDTLS_PSA_CIPHER_OPERATION_INIT;
-    size_t olength;
+    size_t olength, accumulated_length;
 
    status = cipher_encrypt_setup( &operation, attributes,
                                   key_buffer, key_buffer_size, alg );
     if( status != PSA_SUCCESS )
         goto exit;
 
-    *output_length = 0;
+    accumulated_length = 0;
     if( operation.iv_length > 0 )
     {
         status = cipher_set_iv( &operation, output, operation.iv_length );
         if( status != PSA_SUCCESS )
             goto exit;
 
-        *output_length = operation.iv_length;
+        accumulated_length = operation.iv_length;
     }
 
-    olength = 0;
     status = cipher_update( &operation, input, input_length,
-                            output + *output_length,output_size - *output_length,
+                            output + operation.iv_length,
+                            output_size - operation.iv_length,
                             &olength );
-    *output_length += olength;
+    accumulated_length += olength;
     if( status != PSA_SUCCESS )
         goto exit;
 
-    olength = 0;
-    status = cipher_finish( &operation, output + *output_length,
-                            output_size - *output_length, &olength );
-    *output_length += olength;
+    status = cipher_finish( &operation, output + accumulated_length,
+                            output_size - accumulated_length, &olength );
+    accumulated_length += olength;
     if( status != PSA_SUCCESS )
         goto exit;
+
+    *output_length = accumulated_length;
 
 exit:
     if( status == PSA_SUCCESS )
@@ -510,7 +511,7 @@ static psa_status_t cipher_decrypt( const psa_key_attributes_t *attributes,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_psa_cipher_operation_t operation = MBEDTLS_PSA_CIPHER_OPERATION_INIT;
-    size_t olength;
+    size_t olength, accumulated_length;
 
     status = cipher_decrypt_setup( &operation, attributes,
                                    key_buffer, key_buffer_size, alg );
@@ -524,20 +525,20 @@ static psa_status_t cipher_decrypt( const psa_key_attributes_t *attributes,
             goto exit;
     }
 
-    olength = 0;
     status = cipher_update( &operation, input + operation.iv_length,
                             input_length - operation.iv_length,
                             output, output_size, &olength );
-    *output_length = olength;
+    accumulated_length = olength;
     if( status != PSA_SUCCESS )
         goto exit;
 
-    olength = 0;
-    status = cipher_finish( &operation, output + *output_length,
-                            output_size - *output_length, &olength );
-    *output_length += olength;
+    status = cipher_finish( &operation, output + accumulated_length,
+                            output_size - accumulated_length, &olength );
+    accumulated_length += olength;
     if( status != PSA_SUCCESS )
         goto exit;
+
+    *output_length = accumulated_length;
 
 exit:
     if ( status == PSA_SUCCESS )

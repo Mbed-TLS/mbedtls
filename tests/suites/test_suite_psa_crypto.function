@@ -2501,48 +2501,6 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void cipher_encrypt_sanity( int alg_arg,
-                            int key_type_arg,
-                            data_t *key_data,
-                            data_t *input )
-{
-    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
-    psa_key_type_t key_type = key_type_arg;
-    psa_algorithm_t alg = alg_arg;
-    unsigned char *output = NULL;
-    size_t output_buffer_size = 0;
-    size_t output_length = 0;
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-
-    PSA_ASSERT( psa_crypto_init( ) );
-
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
-    psa_set_key_algorithm( &attributes, alg );
-    psa_set_key_type( &attributes, key_type );
-
-    output_buffer_size = PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, input->len );
-    ASSERT_ALLOC( output, output_buffer_size );
-
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
-                                &key ) );
-
-    PSA_ASSERT( psa_cipher_encrypt( key, alg, input->x, input->len, output,
-                                    output_buffer_size, &output_length ) );
-    TEST_ASSERT( output_length <=
-                 PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, input->len ) );
-    TEST_ASSERT( output_length <=
-                 PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE( input->len ) );
-
-    /* The one-shot cipher encryption uses generated iv so validating
-       the output is not possible. Only sanity checking is done here. */
-exit:
-    mbedtls_free( output );
-    psa_destroy_key( key );
-    PSA_DONE( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
 void cipher_encrypt_validation( int alg_arg,
                                 int key_type_arg,
                                 data_t *key_data,
@@ -2577,6 +2535,8 @@ void cipher_encrypt_validation( int alg_arg,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
 
+    /* The one-shot cipher encryption uses generated iv so validating
+       the output is not possible. Validating with multipart encryption. */
     PSA_ASSERT( psa_cipher_encrypt( key, alg, input->x, input->len, output1,
                                     output1_buffer_size, &output1_length ) );
     TEST_ASSERT( output1_length <=

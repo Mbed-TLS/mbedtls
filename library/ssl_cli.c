@@ -1878,7 +1878,7 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
      * even is lower than our min version.
      */
     if( major_ver < MBEDTLS_SSL_MAJOR_VERSION_3 ||
-        minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 ||
+        minor_ver < MBEDTLS_SSL_MAJOR_VERSION_3 - 1 ||
         major_ver > ssl->conf->max_major_ver  ||
         minor_ver > ssl->conf->max_minor_ver  )
     {

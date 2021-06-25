@@ -100,9 +100,7 @@ int mbedtls_ssl_check_record( mbedtls_ssl_context const *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 3, "record buffer", buf, buflen );
 
     /* We don't support record checking in TLS because
-     * (a) there doesn't seem to be a usecase for it, and
-     * (b) In TLS 1.0, CBC record decryption has state
-     *     and we'd need to backup the transform here.
+     * there doesn't seem to be a usecase for it.
      */
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_STREAM )
     {
@@ -645,7 +643,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if( transform->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
+        if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
         {
             unsigned char mac[MBEDTLS_SSL_MAC_ADD];
 
@@ -902,7 +900,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
              *     TLSCipherText.type +
              *     TLSCipherText.version +
              *     length_of( (IV +) ENC(...) ) +
-             *     IV + // except for TLS 1.0
+             *     IV +
              *     ENC(content + padding + padding_length));
              */
 
@@ -1107,7 +1105,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_ssl_cf_hmac(
      * Then we only need to compute HASH(okey + inner_hash) and we're done.
      */
     const mbedtls_md_type_t md_alg = mbedtls_md_get_type( ctx->md_info );
-    /* TLS 1.0-1.2 only support SHA-384, SHA-256, SHA-1, MD-5,
+    /* TLS 1.2 only supports SHA-384, SHA-256, SHA-1, MD-5,
      * all of which have the same block size except SHA-384. */
     const size_t block_size = md_alg == MBEDTLS_MD_SHA384 ? 128 : 64;
     const unsigned char * const ikey = ctx->hmac_ctx;
@@ -5171,7 +5169,7 @@ static int ssl_handle_hs_message_post_handshake( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "refusing renegotiation, sending alert" ) );
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
+        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
         {
             if( ( ret = mbedtls_ssl_send_alert_message( ssl,
                              MBEDTLS_SSL_ALERT_LEVEL_WARNING,
@@ -5601,7 +5599,6 @@ static void ssl_buffering_free_slot( mbedtls_ssl_context *ssl,
  *
  * For TLS this is the identity.
  * For DTLS, use 1's complement (v -> 255 - v, and then map as follows:
- * 1.0 <-> 3.2      (DTLS 1.0 is based on TLS 1.1)
  * 1.x <-> 3.x+1    for x != 0 (DTLS 1.2 based on TLS 1.2)
  */
 void mbedtls_ssl_write_version( int major, int minor, int transport,
@@ -5610,7 +5607,7 @@ void mbedtls_ssl_write_version( int major, int minor, int transport,
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        if( minor == MBEDTLS_SSL_MINOR_VERSION_2 )
+        if( minor == MBEDTLS_SSL_MINOR_VERSION_3 - 1 )
             --minor; /* DTLS 1.0 stored as TLS 1.1 internally */
 
         ver[0] = (unsigned char)( 255 - ( major - 2 ) );
@@ -5635,7 +5632,7 @@ void mbedtls_ssl_read_version( int *major, int *minor, int transport,
         *major = 255 - ver[0] + 2;
         *minor = 255 - ver[1] + 1;
 
-        if( *minor == MBEDTLS_SSL_MINOR_VERSION_1 )
+        if( *minor == MBEDTLS_SSL_MINOR_VERSION_3 - 2 )
             ++*minor; /* DTLS 1.0 stored as TLS 1.1 internally */
     }
     else

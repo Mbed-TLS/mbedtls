@@ -460,8 +460,8 @@ static psa_status_t cipher_encrypt( const psa_key_attributes_t *attributes,
     mbedtls_psa_cipher_operation_t operation = MBEDTLS_PSA_CIPHER_OPERATION_INIT;
     size_t olength, accumulated_length;
 
-   status = cipher_encrypt_setup( &operation, attributes,
-                                  key_buffer, key_buffer_size, alg );
+    status = cipher_encrypt_setup( &operation, attributes,
+                                   key_buffer, key_buffer_size, alg );
     if( status != PSA_SUCCESS )
         goto exit;
 

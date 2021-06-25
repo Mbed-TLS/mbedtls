@@ -4,3 +4,4 @@ Changes
    * Move the (PUT and GET) UINT32_ (BE and LE) macro functions into
      library/common.h. Rename with the prefix MBEDTLS_ to satisfy
      test/scripts/check-names.sh (e.g MBEDTLS_PUT_UINT32_LE). Fixes #4274.
+

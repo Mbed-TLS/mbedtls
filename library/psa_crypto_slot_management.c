@@ -22,7 +22,6 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
-#include "psa_crypto_service_integration.h"
 #include "psa/crypto.h"
 
 #include "psa_crypto_core.h"

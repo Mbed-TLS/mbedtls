@@ -26,7 +26,6 @@
 #include "check_crypto_config.h"
 #endif
 
-#include "psa_crypto_service_integration.h"
 #include "psa/crypto.h"
 
 #include "psa_crypto_cipher.h"

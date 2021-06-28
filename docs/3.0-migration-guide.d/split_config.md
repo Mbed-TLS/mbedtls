@@ -2,12 +2,15 @@ Introduce a level of indirection and versioning in the config files
 -------------------------------------------------------------------
 
 `config.h` was split into `build_info.h` and `mbedtls_config.h`.
-`build_info.h` is intended to be included from C code directly, while
-`mbedtls_config.h` is intended to be edited by end users wishing to
-change the build configuration, and should generally only be included from
-`build_info.h`. This is because all the preprocessor logic has been moved
-into `build_info.h`, including the handling of the `MBEDTLS_CONFIG_FILE`
-macro.
+
+* In code, use `#include <mbedtls/build_info.h>`. Don't include `mbedtls/config.h` and don't refer to `MBEDTLS_CONFIG_FILE`.
+* In build tools, edit `mbedtls_config.h`, or edit `MBEDTLS_CONFIG_FILE` as before.
+* If you had a tool that parsed the library version from `include/mbedtls/version.h`, this has moved to `include/mbedtls/build_info.h`. From C code, both headers now define the `MBEDTLS_VERSION_xxx` macros.
+
+Also, if you have a custom configuration file:
+
+* Don't include `check_config.h` anymore.
+* Don't define `MBEDTLS_CONFIG_H` anymore.
 
 A config file version symbol, `MBEDTLS_CONFIG_VERSION` was introduced.
 Defining it to a particular value will ensure that Mbed TLS interprets

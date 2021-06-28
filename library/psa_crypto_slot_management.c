@@ -392,7 +392,7 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
             status = PSA_ERROR_INVALID_HANDLE;
     }
     else
-        /* Do the key usage policy extension. */
+        /* Add implicit usage flags. */
         psa_extend_key_usage_flags( &(*p_slot)->attr.policy.usage );
 
     return( status );

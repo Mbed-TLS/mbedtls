@@ -1,0 +1,3 @@
+Removals
+    * Remove all instances of MBEDTLS_SSL_MINOR_VERSION_1 and
+      MBEDTLS_SSL_MINOR_VERSION_2 and related dead code and tests. Fixes #4564.

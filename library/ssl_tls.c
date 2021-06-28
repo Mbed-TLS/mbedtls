@@ -1898,7 +1898,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
             mbedtls_ssl_send_alert_message( ssl,
                               MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                               MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-            return( MBEDTLS_ERR_SSL_BAD_CERTIFICATE );
+            return( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         }
         /* In theory, the CRT can be up to 2**24 Bytes, but we don't support
          * anything beyond 2**16 ~ 64K. */

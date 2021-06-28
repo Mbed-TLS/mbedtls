@@ -85,7 +85,7 @@
 # means that components can assume that the working directory is in a
 # cleaned-up state, and don't need to perform the cleanup themselves.
 # * Run `make clean`.
-# * Restore `include/mbedtks/mbedtls_config.h` from a backup made before running
+# * Restore `include/mbedtls/mbedtls_config.h` from a backup made before running
 #   the component.
 # * Check out `Makefile`, `library/Makefile`, `programs/Makefile`,
 #   `tests/Makefile` and `programs/fuzz/Makefile` from git.

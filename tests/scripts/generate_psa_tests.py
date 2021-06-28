@@ -364,7 +364,7 @@ class StorageFormat:
         usage = ' | '.join(usage_flags) if usage_flags else '0'
         if short is None:
             short = re.sub(r'\bPSA_KEY_USAGE_', r'', usage)
-        extra_desc = ' ' + extra_desc if extra_desc is not None and len(extra_desc) > 0 else ''
+        extra_desc = ' ' + extra_desc if extra_desc else ''
         description = 'usage' + extra_desc + ': ' + short
         return self.key_builder.build(version=self.version,
                                       id=1, lifetime=0x00000001,
@@ -481,14 +481,12 @@ class StorageFormat:
         # test cases. This allows all required information to be obtained in
         # one go, which is a significant performance gain as the information
         # includes numerical values obtained by compiling a C program.
-        generated_keys = self.generate_all_keys()
+        keys = self.generate_all_keys()
 
         # Skip keys with a non-default location, because they
         # require a driver and we currently have no mechanism to
         # determine whether a driver is available.
-        keys = filter(lambda key: key.location_value() == 0, generated_keys)
-
-        return [self.make_test_case(key) for key in keys]
+        return [self.make_test_case(key) for key in keys if key.location_value() == 0]
 
 class StorageFormatForward(StorageFormat):
     """Storage format stability test cases for forward compatibility."""

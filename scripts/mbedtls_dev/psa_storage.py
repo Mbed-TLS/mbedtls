@@ -107,14 +107,6 @@ class Key:
     } #type: Dict[str, str]
     """Mapping of usage flags to the flags that they imply."""
 
-    IMPLICIT_USAGE_FLAGS_KEY_RESTRICTION = {
-        'PSA_KEY_USAGE_SIGN_HASH': '.*KEY_PAIR',
-        'PSA_KEY_USAGE_VERIFY_HASH': '.*KEY.*'
-    } #type: Dict[str, str]
-    """Use a regexp to determine key types for which signature is possible
-       when using the actual usage flag.
-    """
-
     def __init__(self, *,
                  version: Optional[int] = None,
                  id: Optional[int] = None, #pylint: disable=redefined-builtin

@@ -494,32 +494,30 @@ class StorageFormatV0(StorageFormat):
             self,
             implyer_usage: str,
             alg: str,
-            key_type: str,
-            params: Optional[Iterable[str]] = None
+            key_type: crypto_knowledge.KeyType
     ) -> StorageKey:
         # pylint: disable=too-many-locals
         """Generate test keys for the specified implicit usage flag,
            algorithm and key type combination.
         """
-        kt = crypto_knowledge.KeyType(key_type, params)
-        bits = kt.sizes_to_test()[0]
+        bits = key_type.sizes_to_test()[0]
         implicit_usage = StorageKey.IMPLICIT_USAGE_FLAGS[implyer_usage]
         usage_flags = 'PSA_KEY_USAGE_EXPORT'
         material_usage_flags = usage_flags + ' | ' + implyer_usage
         expected_usage_flags = material_usage_flags + ' | ' + implicit_usage
         alg2 = 0
-        key_material = kt.key_material(bits)
+        key_material = key_type.key_material(bits)
         usage_expression = re.sub(r'PSA_KEY_USAGE_', r'', implyer_usage)
         alg_expression = re.sub(r'PSA_ALG_', r'', alg)
         alg_expression = re.sub(r',', r', ', re.sub(r' +', r'', alg_expression))
         key_type_expression = re.sub(r'\bPSA_(?:KEY_TYPE|ECC_FAMILY)_',
                                      r'',
-                                     kt.expression)
+                                     key_type.expression)
         description = 'implied by {}: {} {} {}-bit'.format(
             usage_expression, alg_expression, key_type_expression, bits)
         return StorageKey(version=self.version,
                           id=1, lifetime=0x00000001,
-                          type=kt.expression, bits=bits,
+                          type=key_type.expression, bits=bits,
                           usage=material_usage_flags,
                           expected_usage=expected_usage_flags,
                           alg=alg, alg2=alg2,
@@ -581,14 +579,14 @@ class StorageFormatV0(StorageFormat):
         # flag to generate a valid key for exercising. The key is generated
         # without usage extension to check the extension compatiblity.
         alg_with_keys = self.gather_key_types_for_sign_alg()
-        key_filter = StorageKey.IMPLICIT_USAGE_FLAGS_KEY_RESTRICTION
 
         for usage in sorted(StorageKey.IMPLICIT_USAGE_FLAGS, key=str):
             for alg in sorted(alg_with_keys):
                 for key_type in sorted(alg_with_keys[alg]):
                     # The key types must be filtered to fit the specific usage flag.
-                    if re.match(key_filter[usage], key_type):
-                        yield self.keys_for_implicit_usage(usage, alg, key_type)
+                    kt = crypto_knowledge.KeyType(key_type)
+                    if kt.is_valid_for_signature(usage):
+                        yield self.keys_for_implicit_usage(usage, alg, kt)
 
     def generate_all_keys(self) -> List[StorageKey]:
         keys = super().generate_all_keys()

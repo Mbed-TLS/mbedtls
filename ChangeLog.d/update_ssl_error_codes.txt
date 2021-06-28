@@ -1,0 +1,3 @@
+Changes
+   * Various changes to which alert and/or error code may be returned
+   * during the TLS handshake.

@@ -1898,7 +1898,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
             mbedtls_ssl_send_alert_message( ssl,
                               MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                               MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-            return( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
         }
         /* In theory, the CRT can be up to 2**24 Bytes, but we don't support
          * anything beyond 2**16 ~ 64K. */
@@ -1907,8 +1907,8 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
             mbedtls_ssl_send_alert_message( ssl,
                             MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                            MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
-            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+                            MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT );
+            return( MBEDTLS_ERR_SSL_BAD_CERTIFICATE );
         }
 
         /* Read length of the next CRT in the chain. */
@@ -1943,8 +1943,8 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "new server cert during renegotiation" ) );
                 mbedtls_ssl_send_alert_message( ssl,
                                                 MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
-                return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+                                                MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED );
+                return( MBEDTLS_ERR_SSL_BAD_CERTIFICATE );
             }
 
             /* Now we can safely free the original chain. */
@@ -2929,8 +2929,8 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+                                        MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)

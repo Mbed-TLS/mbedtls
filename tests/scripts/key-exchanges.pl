@@ -40,7 +40,7 @@ use strict;
 -d 'library' && -d 'include' && -d 'tests' or die "Must be run from root\n";
 
 my $sed_cmd = 's/^#define \(MBEDTLS_KEY_EXCHANGE_.*_ENABLED\)/\1/p';
-my $config_h = 'include/mbedtls/config.h';
+my $config_h = 'include/mbedtls/mbedtls_config.h';
 my @kexes = split( /\s+/, `sed -n -e '$sed_cmd' $config_h` );
 
 system( "cp $config_h $config_h.bak" ) and die;

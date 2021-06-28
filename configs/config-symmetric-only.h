@@ -20,9 +20,6 @@
  *  limitations under the License.
  */
 
-#ifndef MBEDTLS_CONFIG_H
-#define MBEDTLS_CONFIG_H
-
 /* System support */
 //#define MBEDTLS_HAVE_ASM
 #define MBEDTLS_HAVE_TIME
@@ -90,9 +87,3 @@
 //#define MBEDTLS_THREADING_C
 #define MBEDTLS_TIMING_C
 #define MBEDTLS_VERSION_C
-
-#include "mbedtls/config_psa.h"
-
-#include "check_config.h"
-
-#endif /* MBEDTLS_CONFIG_H */

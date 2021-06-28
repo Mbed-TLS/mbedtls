@@ -22,11 +22,7 @@
 #ifndef MBEDTLS_SSL_MISC_H
 #define MBEDTLS_SSL_MISC_H
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include "mbedtls/ssl.h"
 #include "mbedtls/cipher.h"

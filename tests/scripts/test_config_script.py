@@ -8,7 +8,7 @@ This is a harness to help regression testing, not a functional tester.
 Sample usage:
 
     test_config_script.py -d old
-    ## Modify config.py and/or config.h ##
+    ## Modify config.py and/or mbedtls_config.h ##
     test_config_script.py -d new
     diff -ru old new
 """
@@ -170,7 +170,7 @@ def main():
                         dest='output_directory', required=True,
                         help="""Output directory.""")
     parser.add_argument('-f', metavar='FILE',
-                        dest='input_file', default='include/mbedtls/config.h',
+                        dest='input_file', default='include/mbedtls/mbedtls_config.h',
                         help="""Config file (default: %(default)s).""")
     parser.add_argument('-p', metavar='PRESET,...',
                         dest='presets',

@@ -20,11 +20,6 @@
  *  limitations under the License.
  */
 
-/*
- * It is recommended to include this file from your config.h
- * in order to catch dependency issues early.
- */
-
 #ifndef MBEDTLS_CHECK_CONFIG_H
 #define MBEDTLS_CHECK_CONFIG_H
 
@@ -42,7 +37,7 @@
 #error "MBEDTLS_PLATFORM_C is required on Windows"
 #endif
 
-/* Fix the config here. Not convenient to put an #ifdef _WIN32 in config.h as
+/* Fix the config here. Not convenient to put an #ifdef _WIN32 in mbedtls_config.h as
  * it would confuse config.py. */
 #if !defined(MBEDTLS_PLATFORM_SNPRINTF_ALT) && \
     !defined(MBEDTLS_PLATFORM_SNPRINTF_MACRO)

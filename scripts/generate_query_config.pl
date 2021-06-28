@@ -8,9 +8,9 @@
 # the library, for example, for testing.
 #
 # The query_config.c is generated from the current configuration at
-# include/mbedtls/config.h. The idea is that the config.h contains ALL the
+# include/mbedtls/mbedtls_config.h. The idea is that the mbedtls_config.h contains ALL the
 # compile time configurations available in Mbed TLS (commented or uncommented).
-# This script extracts the configuration macros from the config.h and this
+# This script extracts the configuration macros from the mbedtls_config.h and this
 # information is used to automatically generate the body of the query_config()
 # function by using the template in scripts/data_files/query_config.fmt.
 #
@@ -33,7 +33,7 @@
 
 use strict;
 
-my $config_file = "./include/mbedtls/config.h";
+my $config_file = "./include/mbedtls/mbedtls_config.h";
 
 my $query_config_format_file = "./scripts/data_files/query_config.fmt";
 my $query_config_file = "./programs/test/query_config.c";
@@ -62,9 +62,6 @@ my $config_check = "";
 while (my $line = <CONFIG_FILE>) {
     if ($line =~ /^(\/\/)?\s*#\s*define\s+(MBEDTLS_\w+).*/) {
         my $name = $2;
-
-        # Skip over the macro that prevents multiple inclusion
-        next if "MBEDTLS_CONFIG_H" eq $name;
 
         # Skip over the macro if it is in the ecluded list
         next if $name =~ /$excluded_re/;

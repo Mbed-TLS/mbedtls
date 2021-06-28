@@ -1,5 +1,5 @@
 
-# Also see "include/mbedtls/config.h"
+# Also see "include/mbedtls/mbedtls_config.h"
 
 CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
@@ -281,12 +281,12 @@ error.c:
 
 version_features.c: ../scripts/generate_features.pl
 version_features.c: ../scripts/data_files/version_features.fmt
-## The generated file only depends on the options that are present in config.h,
+## The generated file only depends on the options that are present in mbedtls_config.h,
 ## not on which options are set. To avoid regenerating this file all the time
-## when switching between configurations, don't declare config.h as a
+## when switching between configurations, don't declare mbedtls_config.h as a
 ## dependency. Remove this file from your working tree if you've just added or
-## removed an option in config.h.
-#version_features.c: ../include/mbedtls/config.h
+## removed an option in mbedtls_config.h.
+#version_features.c: ../include/mbedtls/mbedtls_config.h
 version_features.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_features.pl

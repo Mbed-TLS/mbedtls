@@ -1,4 +1,4 @@
-Remove `MBEDTLS_X509_CHECK_*_KEY_USAGE` options from `config.h`
+Remove `MBEDTLS_X509_CHECK_*_KEY_USAGE` options from `mbedtls_config.h`
 -------------------------------------------------------------------
 
 This change affects users who have chosen the configuration options to disable the

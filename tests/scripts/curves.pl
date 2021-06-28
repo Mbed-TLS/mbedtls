@@ -36,7 +36,7 @@
 #
 # This script should be executed from the root of the project directory.
 #
-# Only curves that are enabled in config.h will be tested.
+# Only curves that are enabled in mbedtls_config.h will be tested.
 #
 # For best effect, run either with cmake disabled, or cmake enabled in a mode
 # that includes -Werror.
@@ -47,7 +47,7 @@ use strict;
 -d 'library' && -d 'include' && -d 'tests' or die "Must be run from root\n";
 
 my $sed_cmd = 's/^#define \(MBEDTLS_ECP_DP.*_ENABLED\)/\1/p';
-my $config_h = 'include/mbedtls/config.h';
+my $config_h = 'include/mbedtls/mbedtls_config.h';
 my @curves = split( /\s+/, `sed -n -e '$sed_cmd' $config_h` );
 
 # Determine which curves support ECDSA by checking the dependencies of

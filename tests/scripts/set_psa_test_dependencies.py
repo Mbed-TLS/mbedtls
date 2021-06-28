@@ -23,7 +23,7 @@ import re
 import sys
 
 CLASSIC_DEPENDENCIES = frozenset([
-    # This list is manually filtered from config.h.
+    # This list is manually filtered from mbedtls_config.h.
 
     # Mbed TLS feature support.
     # Only features that affect what can be done are listed here.

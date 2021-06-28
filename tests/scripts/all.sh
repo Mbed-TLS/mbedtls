@@ -34,7 +34,7 @@
 # Warning: the test is destructive. It includes various build modes and
 # configurations, and can and will arbitrarily change the current CMake
 # configuration. The following files must be committed into git:
-#    * include/mbedtls/config.h
+#    * include/mbedtls/mbedtls_config.h
 #    * Makefile, library/Makefile, programs/Makefile, tests/Makefile,
 #      programs/fuzz/Makefile
 # After running this script, the CMake cache will be lost and CMake
@@ -85,7 +85,7 @@
 # means that components can assume that the working directory is in a
 # cleaned-up state, and don't need to perform the cleanup themselves.
 # * Run `make clean`.
-# * Restore `include/mbedtks/config.h` from a backup made before running
+# * Restore `include/mbedtls/mbedtls_config.h` from a backup made before running
 #   the component.
 # * Check out `Makefile`, `library/Makefile`, `programs/Makefile`,
 #   `tests/Makefile` and `programs/fuzz/Makefile` from git.
@@ -125,7 +125,7 @@ pre_check_environment () {
 }
 
 pre_initialize_variables () {
-    CONFIG_H='include/mbedtls/config.h'
+    CONFIG_H='include/mbedtls/mbedtls_config.h'
     CONFIG_BAK="$CONFIG_H.bak"
     CRYPTO_CONFIG_H='include/psa/crypto_config.h'
     CRYPTO_CONFIG_BAK="$CRYPTO_CONFIG_H.bak"
@@ -463,8 +463,8 @@ pre_check_git () {
             exit 1
         fi
 
-        if ! git diff --quiet include/mbedtls/config.h; then
-            err_msg "Warning - the configuration file 'include/mbedtls/config.h' has been edited. "
+        if ! git diff --quiet include/mbedtls/mbedtls_config.h; then
+            err_msg "Warning - the configuration file 'include/mbedtls/mbedtls_config.h' has been edited. "
             echo "You can either delete or preserve your work, or force the test by rerunning the"
             echo "script as: $0 --force"
             exit 1

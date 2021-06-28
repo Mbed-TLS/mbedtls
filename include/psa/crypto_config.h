@@ -5,7 +5,7 @@
  */
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 /**
- * When #MBEDTLS_PSA_CRYPTO_CONFIG is enabled in config.h,
+ * When #MBEDTLS_PSA_CRYPTO_CONFIG is enabled in mbedtls_config.h,
  * this file determines which cryptographic mechanisms are enabled
  * through the PSA Cryptography API (\c psa_xxx() functions).
  *
@@ -24,7 +24,7 @@
  */
 #else
 /**
- * When \c MBEDTLS_PSA_CRYPTO_CONFIG is disabled in config.h,
+ * When \c MBEDTLS_PSA_CRYPTO_CONFIG is disabled in mbedtls_config.h,
  * this file is not used, and cryptographic mechanisms are supported
  * through the PSA API if and only if they are supported through the
  * mbedtls_xxx API.

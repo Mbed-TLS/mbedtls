@@ -51,7 +51,7 @@ fi
 : ${PERL:=perl}
 
 guess_config_name() {
-    if git diff --quiet ../include/mbedtls/config.h 2>/dev/null; then
+    if git diff --quiet ../include/mbedtls/mbedtls_config.h 2>/dev/null; then
         echo "default"
     else
         echo "unknown"
@@ -93,7 +93,7 @@ TESTS=0
 FAILS=0
 SKIPS=0
 
-CONFIG_H='../include/mbedtls/config.h'
+CONFIG_H='../include/mbedtls/mbedtls_config.h'
 
 MEMCHECK=0
 FILTER='.*'
@@ -178,7 +178,7 @@ case "$MBEDTLS_TEST_OUTCOME_FILE" in
         ;;
 esac
 
-# Read boolean configuration options from config.h for easy and quick
+# Read boolean configuration options from mbedtls_config.h for easy and quick
 # testing. Skip non-boolean options (with something other than spaces
 # and a comment after "#define SYMBOL"). The variable contains a
 # space-separated list of symbols.
@@ -194,7 +194,7 @@ skip_next_test() {
     SKIP_NEXT="YES"
 }
 
-# skip next test if the flag is not enabled in config.h
+# skip next test if the flag is not enabled in mbedtls_config.h
 requires_config_enabled() {
     case $CONFIGS_ENABLED in
         *" $1 "*) :;;
@@ -202,7 +202,7 @@ requires_config_enabled() {
     esac
 }
 
-# skip next test if the flag is enabled in config.h
+# skip next test if the flag is enabled in mbedtls_config.h
 requires_config_disabled() {
     case $CONFIGS_ENABLED in
         *" $1 "*) SKIP_NEXT="YES";;
@@ -3146,7 +3146,7 @@ run_test    "Renegotiation: server-initiated" \
 
 # Checks that no Signature Algorithm with SHA-1 gets negotiated. Negotiating SHA-1 would mean that
 # the server did not parse the Signature Algorithm extension. This test is valid only if an MD
-# algorithm stronger than SHA-1 is enabled in config.h
+# algorithm stronger than SHA-1 is enabled in mbedtls_config.h
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: Signature Algorithms parsing, client-initiated" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional" \
@@ -3164,7 +3164,7 @@ run_test    "Renegotiation: Signature Algorithms parsing, client-initiated" \
 
 # Checks that no Signature Algorithm with SHA-1 gets negotiated. Negotiating SHA-1 would mean that
 # the server did not parse the Signature Algorithm extension. This test is valid only if an MD
-# algorithm stronger than SHA-1 is enabled in config.h
+# algorithm stronger than SHA-1 is enabled in mbedtls_config.h
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: Signature Algorithms parsing, server-initiated" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \

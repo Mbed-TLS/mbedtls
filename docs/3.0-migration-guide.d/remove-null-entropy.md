@@ -1,7 +1,7 @@
 Remove the option to build the library without any entropy sources
 ------------------------------------------------------------------
 
-This does not affect users who use the default `config.h`, as this option was
+This does not affect users who use the default `mbedtls_config.h`, as this option was
 already off by default.
 
 If you were using the `MBEDTLS_TEST_NULL_ENTROPY` option and your platform

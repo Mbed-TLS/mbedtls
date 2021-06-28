@@ -2812,7 +2812,7 @@ static int ssl_parse_signature_algorithm( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
             ( "server used unsupported SignatureAlgorithm %d", (*p)[1] ) );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
     /*

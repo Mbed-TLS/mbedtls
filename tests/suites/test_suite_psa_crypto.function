@@ -711,10 +711,6 @@ void effective_key_attributes( int type_arg, int expected_type_arg,
     psa_key_usage_t expected_usage = expected_usage_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    /* Check if all implicit usage flags are deployed
-       in the expected usage flags. */
-    TEST_EQUAL( expected_usage, mbedtls_test_update_key_usage_flags( usage ) );
-
     PSA_ASSERT( psa_crypto_init( ) );
 
     psa_set_key_usage_flags( &attributes, usage );
@@ -745,10 +741,11 @@ exit:
 
 /* BEGIN_CASE */
 void check_key_policy( int type_arg, int bits_arg,
-                       int usage_arg, int expected_usage_arg, int alg_arg )
+                       int usage_arg, int alg_arg )
 {
     test_effective_key_attributes( type_arg, type_arg, bits_arg, bits_arg,
-                                   usage_arg, expected_usage_arg,
+                                   usage_arg,
+                                   mbedtls_test_update_key_usage_flags( usage_arg ),
                                    alg_arg, alg_arg );
     goto exit;
 }

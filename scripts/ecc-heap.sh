@@ -66,8 +66,6 @@ cat << EOF >$CONFIG_H
 #define MBEDTLS_ECP_DP_SECP521R1_ENABLED
 #define MBEDTLS_ECP_DP_CURVE25519_ENABLED
 
-#include "check_config.h"
-
 //#define MBEDTLS_ECP_WINDOW_SIZE            6
 //#define MBEDTLS_ECP_FIXED_POINT_OPTIM      1
 EOF

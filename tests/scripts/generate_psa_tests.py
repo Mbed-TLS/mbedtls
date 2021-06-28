@@ -526,7 +526,7 @@ class StorageFormatV0(StorageFormat):
 
     def keys_for_usage_extension(
             self,
-            implyer_usage: psa_storage.Expr,
+            implyer_usage: str,
             alg: str,
             key_type: str,
             params: Optional[Iterable[str]] = None
@@ -538,13 +538,13 @@ class StorageFormatV0(StorageFormat):
         keys = [] #type: List[StorageKey]
         kt = crypto_knowledge.KeyType(key_type, params)
         bits = kt.sizes_to_test()[0]
-        implicit = StorageKey.IMPLICIT_USAGE_FLAGS[implyer_usage]
+        implicit_usage = StorageKey.IMPLICIT_USAGE_FLAGS[implyer_usage]
         usage_flags = 'PSA_KEY_USAGE_EXPORT'
-        material_usage_flags = usage_flags + ' | ' + implyer_usage.string
-        expected_usage_flags = material_usage_flags + ' | ' + implicit.string
+        material_usage_flags = usage_flags + ' | ' + implyer_usage
+        expected_usage_flags = material_usage_flags + ' | ' + implicit_usage
         alg2 = 0
         key_material = kt.key_material(bits)
-        usage_expression = re.sub(r'PSA_KEY_USAGE_', r'', implyer_usage.string)
+        usage_expression = re.sub(r'PSA_KEY_USAGE_', r'', implyer_usage)
         alg_expression = re.sub(r'PSA_ALG_', r'', alg)
         alg_expression = re.sub(r',', r', ', re.sub(r' +', r'', alg_expression))
         key_type_expression = re.sub(r'\bPSA_(?:KEY_TYPE|ECC_FAMILY)_',
@@ -623,18 +623,13 @@ class StorageFormatV0(StorageFormat):
         alg_with_keys = self.gather_key_types_for_sign_alg()
         key_filter = StorageKey.IMPLICIT_USAGE_FLAGS_KEY_RESTRICTION
 
-        # Use a lookup for the extendable usage flags to able to sort them
-        usage_lookup = {} #type: Dict[str, psa_storage.Expr]
-        for usage_flag in StorageKey.IMPLICIT_USAGE_FLAGS:
-            usage_lookup[usage_flag.string] = usage_flag
-
         # Walk through all combintion. The key types must be filtered to fit
         # the specific usage flag.
         keys += [key
-                 for usage in sorted(usage_lookup)
+                 for usage in sorted(StorageKey.IMPLICIT_USAGE_FLAGS, key=str)
                  for alg in sorted(alg_with_keys)
                  for key_type in sorted(alg_with_keys[alg]) if re.match(key_filter[usage], key_type)
-                 for key in self.keys_for_usage_extension(usage_lookup[usage], alg, key_type)]
+                 for key in self.keys_for_usage_extension(usage, alg, key_type)]
 
         self.key_builder = prev_builder
         return keys

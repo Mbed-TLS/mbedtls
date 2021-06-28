@@ -102,9 +102,9 @@ class Key:
     """The latest version of the storage format."""
 
     IMPLICIT_USAGE_FLAGS = {
-        Expr('PSA_KEY_USAGE_SIGN_HASH'): Expr('PSA_KEY_USAGE_SIGN_MESSAGE'),
-        Expr('PSA_KEY_USAGE_VERIFY_HASH'): Expr('PSA_KEY_USAGE_VERIFY_MESSAGE')
-    } #type: Dict[Expr, Expr]
+        'PSA_KEY_USAGE_SIGN_HASH': 'PSA_KEY_USAGE_SIGN_MESSAGE',
+        'PSA_KEY_USAGE_VERIFY_HASH': 'PSA_KEY_USAGE_VERIFY_MESSAGE'
+    } #type: Dict[str, str]
     """Mapping of usage flags to the flags that they imply."""
 
     IMPLICIT_USAGE_FLAGS_KEY_RESTRICTION = {
@@ -138,10 +138,10 @@ class Key:
 
         if usage_extension:
             for flag, extension in self.IMPLICIT_USAGE_FLAGS.items():
-                if self.original_usage.value() & flag.value() and \
-                   self.original_usage.value() & extension.value() == 0:
+                if self.original_usage.value() & Expr(flag).value() and \
+                   self.original_usage.value() & Expr(extension).value() == 0:
                     self.updated_usage = Expr(self.updated_usage.string +
-                                              ' | ' + extension.string)
+                                              ' | ' + extension)
 
     MAGIC = b'PSA\000KEY\000'
 

@@ -1040,7 +1040,6 @@ void asymmetric_signature_key_policy( int policy_usage_arg,
                                       data_t *key_data,
                                       int exercise_alg,
                                       int payload_length_arg,
-                                      int hashing_permitted,
                                       int expected_usage_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
@@ -1092,7 +1091,8 @@ void asymmetric_signature_key_policy( int policy_usage_arg,
     else
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
 
-    if( hashing_permitted )
+    if( PSA_ALG_IS_HASH_AND_SIGN( exercise_alg ) &&
+        PSA_ALG_IS_HASH( PSA_ALG_SIGN_GET_HASH( exercise_alg ) ) )
     {
         status = psa_sign_message( key, exercise_alg,
                                    payload, payload_length,

@@ -21,7 +21,7 @@
  */
 /*
  * This set of run-time variables can be used to determine the version number of
- * the mbed TLS library used. Compile-time version defines for the same can be
+ * the Mbed TLS library used. Compile-time version defines for the same can be
  * found in build_info.h
  */
 #ifndef MBEDTLS_VERSION_H

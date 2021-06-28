@@ -101,18 +101,18 @@ class Key:
     LATEST_VERSION = 0
     """The latest version of the storage format."""
 
-    EXTENDABLE_USAGE_FLAGS = {
+    IMPLICIT_USAGE_FLAGS = {
         Expr('PSA_KEY_USAGE_SIGN_HASH'): Expr('PSA_KEY_USAGE_SIGN_MESSAGE'),
         Expr('PSA_KEY_USAGE_VERIFY_HASH'): Expr('PSA_KEY_USAGE_VERIFY_MESSAGE')
     } #type: Dict[Expr, Expr]
-    """The extendable usage flags with the corresponding extension flags."""
+    """Mapping of usage flags to the flags that they imply."""
 
-    EXTENDABLE_USAGE_FLAGS_KEY_RESTRICTION = {
+    IMPLICIT_USAGE_FLAGS_KEY_RESTRICTION = {
         'PSA_KEY_USAGE_SIGN_HASH': '.*KEY_PAIR',
         'PSA_KEY_USAGE_VERIFY_HASH': '.*KEY.*'
     } #type: Dict[str, str]
-    """The key type filter for the extendable usage flags.
-    The filter is a regexp.
+    """Use a regexp to determine key types for which signature is possible
+       when using the actual usage flag.
     """
 
     def __init__(self, *,
@@ -137,7 +137,7 @@ class Key:
         self.material = material #type: bytes
 
         if usage_extension:
-            for flag, extension in self.EXTENDABLE_USAGE_FLAGS.items():
+            for flag, extension in self.IMPLICIT_USAGE_FLAGS.items():
                 if self.original_usage.value() & flag.value() and \
                    self.original_usage.value() & extension.value() == 0:
                     self.updated_usage = Expr(self.updated_usage.string +

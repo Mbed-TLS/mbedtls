@@ -526,25 +526,25 @@ class StorageFormatV0(StorageFormat):
 
     def keys_for_usage_extension(
             self,
-            extendable: psa_storage.Expr,
+            implyer_usage: psa_storage.Expr,
             alg: str,
             key_type: str,
             params: Optional[Iterable[str]] = None
     ) -> List[StorageKey]:
         # pylint: disable=too-many-locals
-        """Generate test keys for the specified extendable usage flag,
+        """Generate test keys for the specified implicit usage flag,
            algorithm and key type combination.
         """
         keys = [] #type: List[StorageKey]
         kt = crypto_knowledge.KeyType(key_type, params)
         for bits in kt.sizes_to_test():
-            extension = StorageKey.EXTENDABLE_USAGE_FLAGS[extendable]
+            implicit = StorageKey.IMPLICIT_USAGE_FLAGS[implyer_usage]
             usage_flags = 'PSA_KEY_USAGE_EXPORT'
-            material_usage_flags = usage_flags + ' | ' + extendable.string
-            expected_usage_flags = material_usage_flags + ' | ' + extension.string
+            material_usage_flags = usage_flags + ' | ' + implyer_usage.string
+            expected_usage_flags = material_usage_flags + ' | ' + implicit.string
             alg2 = 0
             key_material = kt.key_material(bits)
-            usage_expression = re.sub(r'PSA_KEY_USAGE_', r'', extendable.string)
+            usage_expression = re.sub(r'PSA_KEY_USAGE_', r'', implyer_usage.string)
             alg_expression = re.sub(r'PSA_ALG_', r'', alg)
             alg_expression = re.sub(r',', r', ', re.sub(r' +', r'', alg_expression))
             key_type_expression = re.sub(r'\bPSA_(?:KEY_TYPE|ECC_FAMILY)_',
@@ -621,11 +621,11 @@ class StorageFormatV0(StorageFormat):
         # Generate the keys without usage extension
         self.key_builder = StorageKeyBuilder(usage_extension=False)
         alg_with_keys = self.gather_key_types_for_sign_alg()
-        key_filter = StorageKey.EXTENDABLE_USAGE_FLAGS_KEY_RESTRICTION
+        key_filter = StorageKey.IMPLICIT_USAGE_FLAGS_KEY_RESTRICTION
 
         # Use a lookup for the extendable usage flags to able to sort them
         usage_lookup = {} #type: Dict[str, psa_storage.Expr]
-        for usage_flag in StorageKey.EXTENDABLE_USAGE_FLAGS:
+        for usage_flag in StorageKey.IMPLICIT_USAGE_FLAGS:
             usage_lookup[usage_flag.string] = usage_flag
 
         # Walk through all combintion. The key types must be filtered to fit

@@ -20,11 +20,6 @@
  *  limitations under the License.
  */
 
-/*
- * It is recommended to include this file from your mbedtls_config.h
- * in order to catch dependency issues early.
- */
-
 #ifndef MBEDTLS_CHECK_CONFIG_H
 #define MBEDTLS_CHECK_CONFIG_H
 

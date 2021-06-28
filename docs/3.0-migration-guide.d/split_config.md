@@ -9,7 +9,7 @@ Introduce a level of indirection and versioning in the config files
 
 Also, if you have a custom configuration file:
 
-* Don't include `check_config.h` anymore.
+* Don't include `check_config.h` or `config_psa.h` anymore.
 * Don't define `MBEDTLS_CONFIG_H` anymore.
 
 A config file version symbol, `MBEDTLS_CONFIG_VERSION` was introduced.

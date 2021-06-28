@@ -1743,10 +1743,6 @@
  * Uncomment this to enable use of PSA Crypto configuration settings which
  * can be found in include/psa/crypto_config.h.
  *
- * If you enable this option and write your own configuration file, you must
- * include mbedtls/config_psa.h in your configuration file. The default
- * provided mbedtls/mbedtls_config.h contains the necessary inclusion.
- *
  * This feature is still experimental and is not ready for production since
  * it is not completed.
  */

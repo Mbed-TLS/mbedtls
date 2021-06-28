@@ -114,7 +114,7 @@ psa_status_t mbedtls_test_record_status( psa_status_t status,
 }
 #endif /* defined(RECORD_PSA_STATUS_COVERAGE_LOG) */
 
-psa_key_usage_t update_key_usage_flags( psa_key_usage_t usage_flags )
+psa_key_usage_t mbedtls_test_update_key_usage_flags( psa_key_usage_t usage_flags )
 {
     psa_key_usage_t updated_usage = usage_flags;
 

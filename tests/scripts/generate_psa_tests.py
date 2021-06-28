@@ -242,11 +242,10 @@ class StorageKey(psa_storage.Key):
         """Prepare to generate a key.
 
         * `description`: used for the the test case names
-        * `expected_usage`: the usage flags generated as the expected usage
-                            flags in the test cases. When testing usage
-                            extension the usage flags can differ in the
-                            generated key and the expected usage flags
-                            in the test cases.
+        * `implicit_usage`: the usage flags generated as the expected usage
+                            flags in the test cases. When testing implicit
+                            usage flags, they can differ in the generated keys
+                            and the expected usage flags in the test cases.
         """
         super().__init__(**kwargs)
         self.description = description #type: str
@@ -259,7 +258,7 @@ class StorageKeyBuilder:
         self.usage_extension = usage_extension #type: bool
 
     def build(self, **kwargs) -> StorageKey:
-        return StorageKey(usage_extension=self.usage_extension, **kwargs)
+        return StorageKey(implicit_usage=self.usage_extension, **kwargs)
 
 class StorageFormat:
     """Storage format stability test cases."""
@@ -524,7 +523,7 @@ class StorageFormatV0(StorageFormat):
         self.key_builder = prev_builder
         return keys
 
-    def keys_for_usage_extension(
+    def keys_for_implicit_usage(
             self,
             implyer_usage: str,
             alg: str,
@@ -550,7 +549,7 @@ class StorageFormatV0(StorageFormat):
         key_type_expression = re.sub(r'\bPSA_(?:KEY_TYPE|ECC_FAMILY)_',
                                      r'',
                                      kt.expression)
-        description = 'extend {}: {} {} {}-bit'.format(
+        description = 'implied by {}: {} {} {}-bit'.format(
             usage_expression, alg_expression, key_type_expression, bits)
         keys.append(self.key_builder.build(version=self.version,
                                            id=1, lifetime=0x00000001,
@@ -610,7 +609,7 @@ class StorageFormatV0(StorageFormat):
                         alg_with_keys[alg] = [key_type]
         return alg_with_keys
 
-    def all_keys_for_usage_extension(self) -> List[StorageKey]:
+    def all_keys_for_implicit_usage(self) -> List[StorageKey]:
         """Generate test keys for usage flag extensions."""
         # Generate a key type and algorithm pair for each extendable usage
         # flag to generate a valid key for exercising. The key is generated
@@ -629,14 +628,14 @@ class StorageFormatV0(StorageFormat):
                  for usage in sorted(StorageKey.IMPLICIT_USAGE_FLAGS, key=str)
                  for alg in sorted(alg_with_keys)
                  for key_type in sorted(alg_with_keys[alg]) if re.match(key_filter[usage], key_type)
-                 for key in self.keys_for_usage_extension(usage, alg, key_type)]
+                 for key in self.keys_for_implicit_usage(usage, alg, key_type)]
 
         self.key_builder = prev_builder
         return keys
 
     def generate_all_keys(self) -> List[StorageKey]:
         keys = super().generate_all_keys()
-        keys += self.all_keys_for_usage_extension()
+        keys += self.all_keys_for_implicit_usage()
         return keys
 
 class TestGenerator:

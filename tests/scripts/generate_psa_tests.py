@@ -537,29 +537,29 @@ class StorageFormatV0(StorageFormat):
         """
         keys = [] #type: List[StorageKey]
         kt = crypto_knowledge.KeyType(key_type, params)
-        for bits in kt.sizes_to_test():
-            implicit = StorageKey.IMPLICIT_USAGE_FLAGS[implyer_usage]
-            usage_flags = 'PSA_KEY_USAGE_EXPORT'
-            material_usage_flags = usage_flags + ' | ' + implyer_usage.string
-            expected_usage_flags = material_usage_flags + ' | ' + implicit.string
-            alg2 = 0
-            key_material = kt.key_material(bits)
-            usage_expression = re.sub(r'PSA_KEY_USAGE_', r'', implyer_usage.string)
-            alg_expression = re.sub(r'PSA_ALG_', r'', alg)
-            alg_expression = re.sub(r',', r', ', re.sub(r' +', r'', alg_expression))
-            key_type_expression = re.sub(r'\bPSA_(?:KEY_TYPE|ECC_FAMILY)_',
-                                         r'',
-                                         kt.expression)
-            description = 'extend {}: {} {} {}-bit'.format(
-                usage_expression, alg_expression, key_type_expression, bits)
-            keys.append(self.key_builder.build(version=self.version,
-                                               id=1, lifetime=0x00000001,
-                                               type=kt.expression, bits=bits,
-                                               usage=material_usage_flags,
-                                               expected_usage=expected_usage_flags,
-                                               alg=alg, alg2=alg2,
-                                               material=key_material,
-                                               description=description))
+        bits = kt.sizes_to_test()[0]
+        implicit = StorageKey.IMPLICIT_USAGE_FLAGS[implyer_usage]
+        usage_flags = 'PSA_KEY_USAGE_EXPORT'
+        material_usage_flags = usage_flags + ' | ' + implyer_usage.string
+        expected_usage_flags = material_usage_flags + ' | ' + implicit.string
+        alg2 = 0
+        key_material = kt.key_material(bits)
+        usage_expression = re.sub(r'PSA_KEY_USAGE_', r'', implyer_usage.string)
+        alg_expression = re.sub(r'PSA_ALG_', r'', alg)
+        alg_expression = re.sub(r',', r', ', re.sub(r' +', r'', alg_expression))
+        key_type_expression = re.sub(r'\bPSA_(?:KEY_TYPE|ECC_FAMILY)_',
+                                     r'',
+                                     kt.expression)
+        description = 'extend {}: {} {} {}-bit'.format(
+            usage_expression, alg_expression, key_type_expression, bits)
+        keys.append(self.key_builder.build(version=self.version,
+                                           id=1, lifetime=0x00000001,
+                                           type=kt.expression, bits=bits,
+                                           usage=material_usage_flags,
+                                           expected_usage=expected_usage_flags,
+                                           alg=alg, alg2=alg2,
+                                           material=key_material,
+                                           description=description))
         return keys
 
     def gather_key_types_for_sign_alg(self) -> Dict[str, List[str]]:

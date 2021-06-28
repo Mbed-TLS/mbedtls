@@ -1,0 +1,6 @@
+Security
+   * An adversary with access to precise enough timing information (typically, a
+     co-located process) could recover a Curve25519 or Curve448 static ECDH key
+     after inputting a chosen public key and observing the victim performing the
+     corresponding private-key operation. Found and reported by Leila Batina,
+     Lukas Chmielewski, Björn Haase, Niels Samwel and Peter Schwabe.

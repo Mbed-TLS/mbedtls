@@ -243,7 +243,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
     TEST_ASSERT( mbedtls_svc_key_id_equal(
                      psa_get_key_id( &attributes ), id ) );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ),
-                                         update_key_usage_flags( usage_flags ) );
+                mbedtls_test_update_key_usage_flags( usage_flags ) );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
     TEST_EQUAL( psa_get_key_enrollment_algorithm( &attributes ), alg2 );
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
@@ -263,7 +263,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
     TEST_ASSERT( mbedtls_svc_key_id_equal(
                      psa_get_key_id( &attributes ), id ) );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ),
-                                         update_key_usage_flags( usage_flags ) );
+                mbedtls_test_update_key_usage_flags( usage_flags ) );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
     TEST_EQUAL( psa_get_key_enrollment_algorithm( &attributes ), alg2 );
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
@@ -296,7 +296,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
                              psa_get_key_id( &attributes ),
                              psa_get_key_id( &read_attributes ) ) );
             TEST_EQUAL( psa_get_key_usage_flags( &attributes ),
-                                                 update_key_usage_flags( usage_flags ) );
+                        mbedtls_test_update_key_usage_flags( usage_flags ) );
             TEST_EQUAL( psa_get_key_algorithm( &attributes ),
                         psa_get_key_algorithm( &read_attributes ) );
             TEST_EQUAL( psa_get_key_enrollment_algorithm( &attributes ),

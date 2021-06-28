@@ -192,7 +192,7 @@ psa_status_t mbedtls_test_record_status( psa_status_t status,
  * permissions of other usage policies
  * (like PSA_KEY_USAGE_SIGN_HASH involves PSA_KEY_USAGE_SIGN_MESSGAE).
  */
-psa_key_usage_t update_key_usage_flags( psa_key_usage_t usage_flags );
+psa_key_usage_t mbedtls_test_update_key_usage_flags( psa_key_usage_t usage_flags );
 
 /** Skip a test case if the given key is a 192 bits AES key and the AES
  *  implementation is at least partially provided by an accelerator or

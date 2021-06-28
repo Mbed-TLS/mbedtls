@@ -1525,7 +1525,7 @@ static int ssl_parse_max_fragment_length_ext( mbedtls_ssl_context *ssl,
         mbedtls_ssl_send_alert_message(
             ssl,
             MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-            MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
+            MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 

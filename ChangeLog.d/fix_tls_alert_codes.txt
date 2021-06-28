@@ -1,0 +1,6 @@
+Bugfix
+   * Fix the alert raised when a client requests an invalid
+   * fragment length, as per RFC6066 section 4. We now alert with
+   * MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER. Similarly, raise
+   * MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR for an invalid finished
+   * message, as per RFC5247 section 7.2.2.

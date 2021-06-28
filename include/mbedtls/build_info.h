@@ -61,7 +61,7 @@
 
 #if defined(MBEDTLS_CONFIG_VERSION) && ( \
     MBEDTLS_CONFIG_VERSION < 0x03000000 || \
-    MBEDLTS_CONFIG_VERSION > MBEDTLS_VERSION_NUMBER )
+    MBEDTLS_CONFIG_VERSION > MBEDTLS_VERSION_NUMBER )
 #error "Invalid config version, defined value of MBEDTLS_CONFIG_VERSION is unsupported"
 #endif
 

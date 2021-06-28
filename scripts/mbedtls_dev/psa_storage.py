@@ -123,7 +123,7 @@ class Key:
                  bits: int,
                  usage: Exprable, alg: Exprable, alg2: Exprable,
                  material: bytes, #pylint: disable=used-before-assignment
-                 usage_extension: bool = True
+                 implicit_usage: bool = True
                 ) -> None:
         self.version = self.LATEST_VERSION if version is None else version
         self.id = id #pylint: disable=invalid-name #type: Optional[int]
@@ -136,7 +136,7 @@ class Key:
         self.alg2 = as_expr(alg2) #type: Expr
         self.material = material #type: bytes
 
-        if usage_extension:
+        if implicit_usage:
             for flag, extension in self.IMPLICIT_USAGE_FLAGS.items():
                 if self.original_usage.value() & Expr(flag).value() and \
                    self.original_usage.value() & Expr(extension).value() == 0:

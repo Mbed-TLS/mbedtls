@@ -19,7 +19,7 @@ This module is entirely based on the PSA API.
 # limitations under the License.
 
 import re
-from typing import Iterable, Optional, Tuple, Dict
+from typing import Dict, Iterable, Optional, Tuple
 
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
 

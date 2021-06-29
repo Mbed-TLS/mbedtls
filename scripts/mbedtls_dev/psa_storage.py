@@ -101,12 +101,6 @@ class Key:
     LATEST_VERSION = 0
     """The latest version of the storage format."""
 
-    IMPLICIT_USAGE_FLAGS = {
-        'PSA_KEY_USAGE_SIGN_HASH': 'PSA_KEY_USAGE_SIGN_MESSAGE',
-        'PSA_KEY_USAGE_VERIFY_HASH': 'PSA_KEY_USAGE_VERIFY_MESSAGE'
-    } #type: Dict[str, str]
-    """Mapping of usage flags to the flags that they imply."""
-
     def __init__(self, *,
                  version: Optional[int] = None,
                  id: Optional[int] = None, #pylint: disable=redefined-builtin
@@ -114,26 +108,17 @@ class Key:
                  type: Exprable, #pylint: disable=redefined-builtin
                  bits: int,
                  usage: Exprable, alg: Exprable, alg2: Exprable,
-                 material: bytes, #pylint: disable=used-before-assignment
-                 implicit_usage: bool = True
+                 material: bytes #pylint: disable=used-before-assignment
                 ) -> None:
         self.version = self.LATEST_VERSION if version is None else version
         self.id = id #pylint: disable=invalid-name #type: Optional[int]
         self.lifetime = as_expr(lifetime) #type: Expr
         self.type = as_expr(type) #type: Expr
         self.bits = bits #type: int
-        self.original_usage = as_expr(usage) #type: Expr
-        self.updated_usage = self.original_usage #type: Expr
+        self.usage = as_expr(usage) #type: Expr
         self.alg = as_expr(alg) #type: Expr
         self.alg2 = as_expr(alg2) #type: Expr
         self.material = material #type: bytes
-
-        if implicit_usage:
-            for flag, extension in self.IMPLICIT_USAGE_FLAGS.items():
-                if self.original_usage.value() & Expr(flag).value() and \
-                   self.original_usage.value() & Expr(extension).value() == 0:
-                    self.updated_usage = Expr(self.updated_usage.string +
-                                              ' | ' + extension)
 
     MAGIC = b'PSA\000KEY\000'
 
@@ -166,7 +151,7 @@ class Key:
         if self.version == 0:
             attributes = self.pack('LHHLLL',
                                    self.lifetime, self.type, self.bits,
-                                   self.updated_usage, self.alg, self.alg2)
+                                   self.usage, self.alg, self.alg2)
             material = self.pack('L', len(self.material)) + self.material
         else:
             raise NotImplementedError

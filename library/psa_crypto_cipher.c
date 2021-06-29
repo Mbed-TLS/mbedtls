@@ -532,11 +532,6 @@ static psa_status_t cipher_decrypt( const psa_key_attributes_t *attributes,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    if( output_size < accumulated_length )
-    {
-        status = PSA_ERROR_BUFFER_TOO_SMALL;
-        goto exit;
-    }
 
     status = cipher_finish( &operation, output + accumulated_length,
                             output_size - accumulated_length, &olength );

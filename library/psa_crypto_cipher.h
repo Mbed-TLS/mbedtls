@@ -223,13 +223,7 @@ psa_status_t mbedtls_psa_cipher_abort( mbedtls_psa_cipher_operation_t *operation
  *                              \c key_type is the type of the key identified
  *                              by \p key and \p alg is the cipher algorithm
  *                              to compute.
- * \param[in]  output_size      Size of the \p output buffer in bytes. The core
- *                              has checked that this size is greater or equal to
- *                              PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, input_length )
- *                              where \c key_type is the type of the key
- *                              identified by \p key, \p alg is the cipher
- *                              algorithm to compute and \p input_length is the
- *                              size of the \p input buffer.
+ * \param[in]  output_size      Size of the \p output buffer in bytes.
  * \param[out] output_length    On success, the number of bytes that make up
  *                              the returned output. Initialized to zero
  *                              by the core.
@@ -279,13 +273,6 @@ psa_status_t mbedtls_psa_cipher_encrypt( const psa_key_attributes_t *attributes,
  * \param[in]  input_length     Size of the \p input buffer in bytes.
  * \param[out] output           Buffer where the output is to be written.
  * \param[in]  output_size      Size of the \p output buffer in bytes.
- *                              The core has checked that this size is
- *                              greater or equal to
- *                              PSA_CIPHER_DECRYPT_OUTPUT_SIZE( key_type, alg, input_length )
- *                              where \c key_type is the type of the key
- *                              identified by \p key, \p alg is the cipher
- *                              algorithm to compute and \p input_length is the
- *                              size of the \p input buffer.
  * \param[out] output_length    On success, the number of bytes that make up
  *                              the returned output. Initialized to zero
  *                              by the core.

@@ -257,8 +257,7 @@ requires_ciphersuite_enabled() {
 # maybe_requires_ciphersuite_enabled CMD [RUN_TEST_OPTION...]
 # If CMD (call to a TLS client or server program) requires a specific
 # ciphersuite, arrange to only run the test case if this ciphersuite is
-# enabled. As an exception, do run the test case if it expects a ciphersuite
-# mismatch.
+# enabled.
 maybe_requires_ciphersuite_enabled() {
     case "$1" in
         *\ force_ciphersuite=*) :;;
@@ -268,15 +267,7 @@ maybe_requires_ciphersuite_enabled() {
     ciphersuite="${ciphersuite%%[!-0-9A-Z_a-z]*}"
     shift
 
-    case "$*" in
-        *"-s SSL - The handshake negotiation failed"*)
-            # This test case expects a ciphersuite mismatch, so it doesn't
-            # require the ciphersuite to be enabled.
-            ;;
-        *)
-            requires_ciphersuite_enabled "$ciphersuite"
-            ;;
-    esac
+    requires_ciphersuite_enabled "$ciphersuite"
 
     unset ciphersuite
 }

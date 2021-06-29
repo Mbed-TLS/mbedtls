@@ -482,14 +482,12 @@ class StorageFormat:
         for alg in self.constructors.generate_expressions(algorithms):
             yield from self.keys_for_algorithm(alg)
 
-    def generate_all_keys(self) -> List[StorageTestData]:
+    def generate_all_keys(self) -> Iterator[StorageTestData]:
         """Generate all keys for the test cases."""
-        keys = [] #type: List[StorageTestData]
-        keys += self.all_keys_for_lifetimes()
-        keys += self.all_keys_for_usage_flags()
-        keys += self.all_keys_for_types()
-        keys += self.all_keys_for_algorithms()
-        return keys
+        yield from self.all_keys_for_lifetimes()
+        yield from self.all_keys_for_usage_flags()
+        yield from self.all_keys_for_types()
+        yield from self.all_keys_for_algorithms()
 
     def all_test_cases(self) -> Iterator[test_case.TestCase]:
         """Generate all storage format test cases."""
@@ -621,10 +619,9 @@ class StorageFormatV0(StorageFormat):
                     if kt.is_valid_for_signature(usage):
                         yield self.keys_for_implicit_usage(usage, alg, kt)
 
-    def generate_all_keys(self) -> List[StorageTestData]:
-        keys = super().generate_all_keys()
-        keys += self.all_keys_for_implicit_usage()
-        return keys
+    def generate_all_keys(self) -> Iterator[StorageTestData]:
+        yield from super().generate_all_keys()
+        yield from self.all_keys_for_implicit_usage()
 
 class TestGenerator:
     """Generate test data."""

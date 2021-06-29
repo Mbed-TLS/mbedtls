@@ -368,7 +368,7 @@ class StorageFormat:
                 continue
             yield self.key_for_lifetime(lifetime)
 
-    def key_for_usage_flags(
+    def keys_for_usage_flags(
             self,
             usage_flags: List[str],
             short: Optional[str] = None,
@@ -403,16 +403,16 @@ class StorageFormat:
     def generate_keys_for_usage_flags(self, **kwargs) -> Iterator[StorageTestData]:
         """Generate test keys covering usage flags."""
         known_flags = sorted(self.constructors.key_usage_flags)
-        yield from self.key_for_usage_flags(['0'], **kwargs)
+        yield from self.keys_for_usage_flags(['0'], **kwargs)
         for usage_flag in known_flags:
-            yield from self.key_for_usage_flags([usage_flag], **kwargs)
+            yield from self.keys_for_usage_flags([usage_flag], **kwargs)
         for flag1, flag2 in zip(known_flags,
                                 known_flags[1:] + [known_flags[0]]):
-            yield from self.key_for_usage_flags([flag1, flag2], **kwargs)
+            yield from self.keys_for_usage_flags([flag1, flag2], **kwargs)
 
     def generate_key_for_all_usage_flags(self) -> Iterator[StorageTestData]:
         known_flags = sorted(self.constructors.key_usage_flags)
-        yield from self.key_for_usage_flags(known_flags, short='all known')
+        yield from self.keys_for_usage_flags(known_flags, short='all known')
 
     def all_keys_for_usage_flags(self) -> Iterator[StorageTestData]:
         yield from self.generate_keys_for_usage_flags()

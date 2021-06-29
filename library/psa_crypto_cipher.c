@@ -482,16 +482,17 @@ static psa_status_t cipher_encrypt( const psa_key_attributes_t *attributes,
                             output + operation.iv_length,
                             output_size - operation.iv_length,
                             &olength );
-    accumulated_length += olength;
     if( status != PSA_SUCCESS )
         goto exit;
+
+    accumulated_length += olength;
 
     status = cipher_finish( &operation, output + accumulated_length,
                             output_size - accumulated_length, &olength );
-    accumulated_length += olength;
     if( status != PSA_SUCCESS )
         goto exit;
 
+    accumulated_length += olength;
     *output_length = accumulated_length;
 
 exit:
@@ -531,17 +532,17 @@ static psa_status_t cipher_decrypt( const psa_key_attributes_t *attributes,
     status = cipher_update( &operation, input + operation.iv_length,
                             input_length - operation.iv_length,
                             output, output_size, &olength );
-    accumulated_length = olength;
     if( status != PSA_SUCCESS )
         goto exit;
 
+    accumulated_length = olength;
 
     status = cipher_finish( &operation, output + accumulated_length,
                             output_size - accumulated_length, &olength );
-    accumulated_length += olength;
     if( status != PSA_SUCCESS )
         goto exit;
 
+    accumulated_length += olength;
     *output_length = accumulated_length;
 
 exit:

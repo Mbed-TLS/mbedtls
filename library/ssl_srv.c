@@ -2922,6 +2922,14 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
     (void) signature_len;
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    size_t out_buf_len = ssl->out_buf_len - ( ssl->out_msg - ssl->out_buf );
+#else
+    size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN - ( ssl->out_msg - ssl->out_buf );
+#endif
+#endif
+
     ssl->out_msglen = 4; /* header (type:1, length:3) to be written later */
 
     /*
@@ -3224,6 +3232,7 @@ curve_matching_done:
         if( ( ret = mbedtls_pk_sign( mbedtls_ssl_own_key( ssl ),
                                      md_alg, hash, hashlen,
                                      ssl->out_msg + ssl->out_msglen + 2,
+                                     out_buf_len - ssl->out_msglen - 2,
                                      signature_len,
                                      ssl->conf->f_rng,
                                      ssl->conf->p_rng ) ) != 0 )

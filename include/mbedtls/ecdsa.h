@@ -290,6 +290,7 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
  *                  size of the curve used, plus 9. For example, 73 Bytes if
  *                  a 256-bit curve is used. A buffer length of
  *                  #MBEDTLS_ECDSA_MAX_LEN is always safe.
+ * \param sig_size  The size of the \p sig buffer in bytes.
  * \param slen      The address at which to store the actual length of
  *                  the signature written. Must not be \c NULL.
  * \param f_rng     The RNG function. This must not be \c NULL if
@@ -306,7 +307,7 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
 int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx,
                                    mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hlen,
-                           unsigned char *sig, size_t *slen,
+                           unsigned char *sig, size_t sig_size, size_t *slen,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng );
 
@@ -332,6 +333,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx,
  *                  size of the curve used, plus 9. For example, 73 Bytes if
  *                  a 256-bit curve is used. A buffer length of
  *                  #MBEDTLS_ECDSA_MAX_LEN is always safe.
+ * \param sig_size  The size of the \p sig buffer in bytes.
  * \param slen      The address at which to store the actual length of
  *                  the signature written. Must not be \c NULL.
  * \param f_rng     The RNG function. This must not be \c NULL if
@@ -352,7 +354,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx,
 int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
                            mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hlen,
-                           unsigned char *sig, size_t *slen,
+                           unsigned char *sig, size_t sig_size, size_t *slen,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng,
                            mbedtls_ecdsa_restart_ctx *rs_ctx );

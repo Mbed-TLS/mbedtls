@@ -119,8 +119,9 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, 0, buf, &olen,
-                         mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
+    if( ( ret = mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, 0,
+                                 buf, sizeof( buf ), &olen,
+                                 mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_pk_sign returned -0x%04x\n", (unsigned int) -ret );
         goto exit;

@@ -792,7 +792,6 @@ void mac_key_policy( int policy_usage_arg,
                      int key_type_arg,
                      data_t *key_data,
                      int exercise_alg_arg,
-                     int expected_usage_arg,
                      int expected_status_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
@@ -802,15 +801,9 @@ void mac_key_policy( int policy_usage_arg,
     psa_algorithm_t policy_alg = policy_alg_arg;
     psa_algorithm_t exercise_alg = exercise_alg_arg;
     psa_key_usage_t policy_usage = policy_usage_arg;
-    psa_key_usage_t expected_usage = expected_usage_arg;
     psa_status_t status;
     psa_status_t expected_status = expected_status_arg;
     unsigned char mac[PSA_MAC_MAX_SIZE];
-
-    /* Check if all implicit usage flags are deployed
-       in the expected usage flags. */
-    TEST_EQUAL( expected_usage,
-                mbedtls_test_update_key_usage_flags( policy_usage ) );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -821,7 +814,8 @@ void mac_key_policy( int policy_usage_arg,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
 
-    TEST_EQUAL( psa_get_key_usage_flags( &attributes ), expected_usage );
+    TEST_EQUAL( psa_get_key_usage_flags( &attributes ),
+                mbedtls_test_update_key_usage_flags( policy_usage ) );
 
     status = psa_mac_sign_setup( &operation, key, exercise_alg );
     if( ( policy_usage & PSA_KEY_USAGE_SIGN_HASH ) == 0 )

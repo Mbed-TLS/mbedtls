@@ -250,7 +250,7 @@ class StorageKey(psa_storage.Key):
         * `usage`                 : The usage flags used for the key.
         * `without_implicit_usage`: Flag to defide to apply the usage extension
         """
-        super().__init__(usage=usage,**kwargs)
+        super().__init__(usage=usage, **kwargs)
 
         if not without_implicit_usage:
             for flag, implicit in self.IMPLICIT_USAGE_FLAGS.items():

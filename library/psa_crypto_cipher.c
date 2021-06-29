@@ -390,6 +390,9 @@ static psa_status_t cipher_update( mbedtls_psa_cipher_operation_t *operation,
         status = mbedtls_to_psa_error(
             mbedtls_cipher_update( &operation->ctx.cipher, input,
                                    input_length, output, output_length ) );
+
+        if( *output_length > output_size )
+            return PSA_ERROR_CORRUPTION_DETECTED;
     }
 
     return( status );

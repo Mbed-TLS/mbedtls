@@ -1,5 +1,0 @@
-Bugfix
-   * Fix the error returned when a client requests an invalid
-   * fragment length, as per RFC6066 section 4. We now return
-   * MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER, and raise the corresponding
-   * alert.

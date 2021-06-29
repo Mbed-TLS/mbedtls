@@ -100,9 +100,9 @@
  * MD        5   5
  * HKDF      5   1 (Started from top)
  * SSL       5   2 (Started from 0x5F00)
- * CIPHER    6   7 (Started from 0x6080, gap at 0x6980)
- * SSL       6   24 (Started from top, plus 0x6000)
- * SSL       7   20 (Started from 0x7080, gaps at
+ * CIPHER    6   8 (Started from 0x6080)
+ * SSL       6   22 (Started from top, plus 0x6000)
+ * SSL       7   20 (Started from 0x7000, gaps at
  *                   0x7380, 0x7900-0x7980, 0x7A80-0x7E80)
  *
  * Module dependent error code (5 bits 0x.00.-0x.F8.)

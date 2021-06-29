@@ -63,6 +63,7 @@
 /*
  * SSL Error codes
  */
+#define MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS                -0x7000  /**< A cryptographic operation is in progress. Try again later. */
 #define MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE               -0x7080  /**< The requested feature is not available. */
 #define MBEDTLS_ERR_SSL_BAD_INPUT_DATA                    -0x7100  /**< Bad input parameters to function. */
 #define MBEDTLS_ERR_SSL_INVALID_MAC                       -0x7180  /**< Verification of the message MAC failed. */
@@ -116,9 +117,16 @@
 #define MBEDTLS_ERR_SSL_CONTINUE_PROCESSING               -0x6580  /**< Internal-only message signaling that further message-processing should be done */
 #define MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS                 -0x6500  /**< The asynchronous operation is not completed yet. */
 #define MBEDTLS_ERR_SSL_EARLY_MESSAGE                     -0x6480  /**< Internal-only message signaling that a message arrived early. */
+/* Error space gap */
+/* Error space gap */
+/* Error space gap */
+/* Error space gap */
+/* Error space gap */
+/* Error space gap */
+/* Error space gap */
+/* Error space gap */
 #define MBEDTLS_ERR_SSL_UNEXPECTED_CID                    -0x6000  /**< An encrypted DTLS-frame with an unexpected CID was received. */
 #define MBEDTLS_ERR_SSL_VERSION_MISMATCH                  -0x5F00  /**< An operation failed due to an unexpected version or configuration. */
-#define MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS                -0x7000  /**< A cryptographic operation is in progress. Try again later. */
 #define MBEDTLS_ERR_SSL_BAD_CONFIG                        -0x5E80  /**< Invalid value in SSL config */
 
 /*

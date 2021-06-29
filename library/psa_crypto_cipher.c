@@ -392,7 +392,7 @@ static psa_status_t cipher_update( mbedtls_psa_cipher_operation_t *operation,
                                    input_length, output, output_length ) );
 
         if( *output_length > output_size )
-            return PSA_ERROR_CORRUPTION_DETECTED;
+            return( PSA_ERROR_CORRUPTION_DETECTED );
     }
 
     return( status );
@@ -492,8 +492,7 @@ static psa_status_t cipher_encrypt( const psa_key_attributes_t *attributes,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    accumulated_length += olength;
-    *output_length = accumulated_length;
+    *output_length = accumulated_length + olength;
 
 exit:
     if( status == PSA_SUCCESS )
@@ -542,8 +541,7 @@ static psa_status_t cipher_decrypt( const psa_key_attributes_t *attributes,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    accumulated_length += olength;
-    *output_length = accumulated_length;
+    *output_length = accumulated_length + olength;
 
 exit:
     if ( status == PSA_SUCCESS )

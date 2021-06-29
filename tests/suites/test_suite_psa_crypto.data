@@ -1866,6 +1866,26 @@ PSA symmetric decryption multipart: AES-CTR, 16+0 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
 cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":16:16:0:"8f9408fe80a81d3e813da3c7b0b2bd32":PSA_SUCCESS
 
+PSA symmetric encrypt/decrypt multipart: AES-ECB, 16 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_verify_output_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":16
+
+PSA symmetric encrypt/decrypt multipart: AES-CBC-nopad, 16 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_verify_output_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":16
+
+PSA symmetric encrypt/decrypt multipart: AES-CBC-PKCS#7, 16 bytes
+depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
+cipher_verify_output_multipart:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":16
+
+PSA symmetric encrypt/decrypt multipart: AES-CBC-PKCS#7, 15 bytes
+depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
+cipher_verify_output_multipart:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e11739317":15
+
+PSA symmetric encrypt/decrypt multipart: AES-CTR
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_verify_output_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":16
+
 PSA symmetric encrypt/decrypt multipart: AES-CBC-nopad, 11+5 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
 cipher_verify_output_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"a076ec9dfbe47d52afc357336f20743b":11

@@ -1533,8 +1533,8 @@ static int ssl_parse_extended_ms_ext( mbedtls_ssl_context *ssl,
         mbedtls_ssl_send_alert_message(
             ssl,
             MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-            MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+            MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT );
+        return( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
     }
 
     ((void) buf);
@@ -1558,8 +1558,8 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
         mbedtls_ssl_send_alert_message(
             ssl,
             MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-            MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+            MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT );
+        return( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
     }
 
     ((void) buf);
@@ -1665,8 +1665,8 @@ static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
         mbedtls_ssl_send_alert_message(
             ssl,
             MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-            MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+            MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT );
+        return( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
     }
 
     /*
@@ -3031,8 +3031,8 @@ start_processing:
             mbedtls_ssl_send_alert_message(
                 ssl,
                 MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
+            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         }
     }
     else

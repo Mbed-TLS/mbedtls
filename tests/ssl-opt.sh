@@ -5438,7 +5438,7 @@ run_test    "ECJPAKE: client not configured" \
             -S "ciphersuite mismatch: ecjpake not configured" \
             -S "server hello, ecjpake kkpp extension" \
             -C "found ecjpake_kkpp extension" \
-            -S "None of the common ciphersuites is usable"
+            -S "SSL - The handshake negotiation failed"
 
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 run_test    "ECJPAKE: server not configured" \
@@ -5453,7 +5453,7 @@ run_test    "ECJPAKE: server not configured" \
             -s "ciphersuite mismatch: ecjpake not configured" \
             -S "server hello, ecjpake kkpp extension" \
             -C "found ecjpake_kkpp extension" \
-            -s "None of the common ciphersuites is usable"
+            -s "SSL - The handshake negotiation failed"
 
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 run_test    "ECJPAKE: working, TLS" \
@@ -5469,7 +5469,7 @@ run_test    "ECJPAKE: working, TLS" \
             -S "ciphersuite mismatch: ecjpake not configured" \
             -s "server hello, ecjpake kkpp extension" \
             -c "found ecjpake_kkpp extension" \
-            -S "None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Verification of the message MAC failed"
 
 server_needs_more_time 1

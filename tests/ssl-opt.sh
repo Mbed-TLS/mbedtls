@@ -269,7 +269,7 @@ maybe_requires_ciphersuite_enabled() {
     shift
 
     case "$*" in
-        *"-s SSL - The server has no ciphersuites in common"*)
+        *"-s SSL - The handshake negotiation failed"*)
             # This test case expects a ciphersuite mismatch, so it doesn't
             # require the ciphersuite to be enabled.
             ;;
@@ -5132,7 +5132,7 @@ run_test    "PSK callback: psk, no callback" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=foo psk=abc123" \
             0 \
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5146,7 +5146,7 @@ run_test    "PSK callback: opaque psk on client, no callback" \
             -S "skip PMS generation for opaque PSK"\
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5160,7 +5160,7 @@ run_test    "PSK callback: opaque psk on client, no callback, SHA-384" \
             -S "skip PMS generation for opaque PSK"\
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5174,7 +5174,7 @@ run_test    "PSK callback: opaque psk on client, no callback, EMS" \
             -S "skip PMS generation for opaque PSK"\
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5188,7 +5188,7 @@ run_test    "PSK callback: opaque psk on client, no callback, SHA-384, EMS" \
             -S "skip PMS generation for opaque PSK"\
             -c "session hash for extended master secret"\
             -s "session hash for extended master secret"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5202,7 +5202,7 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             -s "skip PMS generation for opaque PSK"\
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5216,7 +5216,7 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             -s "skip PMS generation for opaque PSK"\
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5231,7 +5231,7 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             -s "session hash for extended master secret"\
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5246,7 +5246,7 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             -s "session hash for extended master secret"\
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5260,7 +5260,7 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             -s "skip PMS generation for opaque PSK"\
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5274,7 +5274,7 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             -s "skip PMS generation for opaque PSK"\
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5289,7 +5289,7 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             -s "session hash for extended master secret"\
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5304,7 +5304,7 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             -s "session hash for extended master secret"\
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5318,7 +5318,7 @@ run_test    "PSK callback: raw psk on client, mismatching static raw PSK on serv
             -s "skip PMS generation for opaque PSK"\
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5332,7 +5332,7 @@ run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on s
             -s "skip PMS generation for opaque PSK"\
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5345,7 +5345,7 @@ run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on s
             -C "skip PMS generation for opaque PSK"\
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5358,7 +5358,7 @@ run_test    "PSK callback: raw psk on client, id-matching but wrong raw PSK on s
             -C "skip PMS generation for opaque PSK"\
             -C "session hash for extended master secret"\
             -S "session hash for extended master secret"\
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5384,7 +5384,7 @@ run_test    "PSK callback: callback overrides other settings" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=foo psk=abc123" \
             1 \
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -s "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5393,7 +5393,7 @@ run_test    "PSK callback: first id matches" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=abc psk=dead" \
             0 \
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5402,7 +5402,7 @@ run_test    "PSK callback: second id matches" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=def psk=beef" \
             0 \
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5411,7 +5411,7 @@ run_test    "PSK callback: no match" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=ghi psk=beef" \
             1 \
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -s "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
@@ -5420,7 +5420,7 @@ run_test    "PSK callback: wrong key" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=abc psk=beef" \
             1 \
-            -S "SSL - None of the common ciphersuites is usable" \
+            -S "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -s "SSL - Verification of the message MAC failed"
 

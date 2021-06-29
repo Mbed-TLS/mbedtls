@@ -5375,7 +5375,7 @@ run_test    "PSK callback: no psk, no callback" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=foo psk=abc123" \
             1 \
-            -s "SSL - None of the common ciphersuites is usable" \
+            -s "SSL - The handshake negotiation failed" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 

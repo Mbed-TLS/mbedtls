@@ -1885,7 +1885,7 @@ read_record_header:
                             "but none of them usable" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
-        return( MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
     else
     {

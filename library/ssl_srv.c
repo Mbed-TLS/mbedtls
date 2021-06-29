@@ -1892,7 +1892,7 @@ read_record_header:
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no ciphersuites in common" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
-        return( MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
 have_ciphersuite:
@@ -3054,7 +3054,7 @@ curve_matching_done:
         if( curve == NULL || *curve == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "no matching curve for ECDHE" ) );
-            return( MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN );
+            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         }
 
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDHE curve: %s", (*curve)->name ) );

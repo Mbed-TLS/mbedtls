@@ -69,7 +69,7 @@
 #define MBEDTLS_ERR_SSL_INVALID_RECORD                    -0x7200  /**< An invalid SSL record was received. */
 #define MBEDTLS_ERR_SSL_CONN_EOF                          -0x7280  /**< The connection indicated an EOF. */
 #define MBEDTLS_ERR_SSL_DECODE_ERROR                      -0x7300  /**< A message could not be parsed due to a syntactic error. */
-#define MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN                  -0x7380  /**< The server has no ciphersuites in common with the client. */
+/* Error space gap */
 #define MBEDTLS_ERR_SSL_NO_RNG                            -0x7400  /**< No RNG was provided to the SSL module. */
 #define MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE             -0x7480  /**< No client certification received from the client, but required by the authentication mode. */
 #define MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION             -0x7500  /**< Client received an extended server hello containing an unsupported extension */

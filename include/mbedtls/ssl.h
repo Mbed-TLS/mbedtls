@@ -72,8 +72,8 @@
 #define MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN                  -0x7380  /**< The server has no ciphersuites in common with the client. */
 #define MBEDTLS_ERR_SSL_NO_RNG                            -0x7400  /**< No RNG was provided to the SSL module. */
 #define MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE             -0x7480  /**< No client certification received from the client, but required by the authentication mode. */
-/* NOTE: Error space gap */
-/* NOTE: Error space gap */
+#define MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION             -0x7500  /**< Client received an extended server hello containing an unsupported extension */
+#define MBEDTLS_ERR_SSL_NO_APPLICATION_PROTOCOL           -0x7580  /**< No ALPN protocols supported that the client advertises */
 #define MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED              -0x7600  /**< The own private key or pre-shared key is not set, but needed. */
 #define MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED                 -0x7680  /**< No CA Chain is set, but required to operate. */
 #define MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE                -0x7700  /**< An unexpected message was received from our peer. */

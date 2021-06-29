@@ -749,7 +749,7 @@ static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
     /* If we get there, no match was found */
     mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                             MBEDTLS_SSL_ALERT_MSG_NO_APPLICATION_PROTOCOL );
-    return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    return( MBEDTLS_ERR_SSL_NO_APPLICATION_PROTOCOL );
 }
 #endif /* MBEDTLS_SSL_ALPN */
 

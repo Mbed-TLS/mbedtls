@@ -1454,7 +1454,7 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "CID extension unexpected" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        return( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
     }
 
     if( len == 0 )
@@ -1509,7 +1509,7 @@ static int ssl_parse_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
             ssl,
             MBEDTLS_SSL_ALERT_LEVEL_FATAL,
             MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        return( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
     }
 
     ((void) buf);

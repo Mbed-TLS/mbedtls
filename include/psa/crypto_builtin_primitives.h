@@ -105,7 +105,7 @@ typedef struct {
     uint8_t MBEDTLS_PRIVATE(iv_length);
     uint8_t MBEDTLS_PRIVATE(block_length);
     union {
-        unsigned int MBEDTLS_PRIVATE(initialised);
+        unsigned int MBEDTLS_PRIVATE(dummy);
         mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher);
     } MBEDTLS_PRIVATE(ctx);
 } mbedtls_psa_cipher_operation_t;

@@ -126,10 +126,21 @@ def detect_input_file(options) -> Tuple[str, VersionNumber]:
 
 class Chunk:
     """A chunk of a configuration file."""
-    # pylint: disable=too-few-public-methods
 
     def __init__(self, text: str) -> None:
         self.text = text #type: str
+
+    def is_blank(self) -> bool:
+        """True if this chunk is blank or is a comment."""
+        if not self.text.strip():
+            return True
+        if len(self.text) >= 2 and self.text[0] == '/':
+            return True
+        return False
+
+    def blank_clone(self) -> 'Chunk':
+        """Return a blank chunk with the same number of newlines as this one."""
+        return Chunk(re.sub(r'[^\n]+', r'', self.text))
 
 class Directive(Chunk):
     """A configuration file chunk that is a C preprocessor directive."""
@@ -261,17 +272,67 @@ class Configuration():
 
     ### Upgrader methods follow ####
 
+    def maybe_remove_short_conditional(self, idx: int) -> None:
+        """Remove a conditional directive around a single blank chunk.
+
+        Assumes that the chunk at index `idx`+2 is ``#endif``!
+        """
+        chunk0 = self.content[idx]
+        if not isinstance(chunk0, Directive):
+            return
+        if chunk0.name not in ('if', 'ifdef', 'ifndef'):
+            return
+        chunk1 = self.content[idx+1]
+        if chunk1.text.strip():
+            return
+        # At this point, we have #if...#endif surrounding a blank chunk.
+        self.content[idx] = self.content[idx].blank_clone()
+        self.content[idx+2] = self.content[idx+2].blank_clone()
+
+    REMOVED_INCLUSION_RE = re.compile(r'\s*["<](?:' +
+                                      r'|'.join([r'mbedtls/check_config\.h',
+                                                 r'mbedtls/config_psa\.h']) +
+                                      r')[">]')
+    CRT_SECURE_NO_DEPRECATE_CONDITION_RE = \
+        re.compile(r'#if defined\(_MSC_VER\) && !defined\(_CRT_SECURE_NO_DEPRECATE\)\s*\Z')
+
     @upgrader('3.0')
     def remove_v2_cruft(self) -> None:
         """Remove non-#define things that were expected in config.h in Mbed TLS 2."""
-        ## So far we just remove the inclusion of check_config.h.
         for idx in range(len(self.content)):
             chunk = self.content[idx]
             if not isinstance(chunk, Directive):
                 continue
             if chunk.name == 'include' and \
-               re.match(r'\s*["<]mbedtls/check_config.h[">]', chunk.trail):
-                self.content[idx] = Chunk('\n')
+               (self.REMOVED_INCLUSION_RE.match(chunk.trail) or
+                chunk.word == 'MBEDTLS_USER_CONFIG_FILE'):
+                self.content[idx] = chunk.blank_clone()
+            if chunk.name == 'define' and \
+               chunk.word == '_CRT_SECURE_NO_DEPRECATE' and \
+               re.match(r'\s*1\s*(?:\Z|/)', chunk.trail) and \
+               idx >= 1 and \
+               self.CRT_SECURE_NO_DEPRECATE_CONDITION_RE.match(self.content[idx-1].text):
+                self.content[idx] = chunk.blank_clone()
+            if idx >= 2 and chunk.name == 'endif':
+                self.maybe_remove_short_conditional(idx - 2)
+        # Remove MBEDTLS_CONFIG_H guard that comes from the standard file in
+        # Mbed TLS 2.x. Don't remove other guards because they could be
+        # something the user cares about.
+        for idx in range(len(self.content) - 2):
+            chunk = self.content[idx]
+            if chunk.is_blank():
+                continue
+            if chunk.text.strip() == '#ifndef MBEDTLS_CONFIG_H' and \
+               self.content[idx+1].text.strip() == '#define MBEDTLS_CONFIG_H':
+                for end in reversed(range(2, len(self.content))):
+                    if self.content[idx].is_blank():
+                        continue
+                    if self.content[end].text.startswith('#endif'):
+                        self.content[idx] = self.content[idx].blank_clone()
+                        self.content[idx+1] = self.content[idx+1].blank_clone()
+                        self.content[end] = self.content[end].blank_clone()
+                    break
+            break
 
 Upgrader = Callable[[Configuration], None]
 """The type of configuration upgrader methods."""

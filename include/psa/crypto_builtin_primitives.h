@@ -114,7 +114,7 @@ typedef struct {
     uint8_t iv_length;
     uint8_t block_length;
     union {
-        unsigned int initialised;
+        unsigned int dummy;
         mbedtls_cipher_context_t cipher;
     } ctx;
 } mbedtls_psa_cipher_operation_t;

@@ -1,46 +1,4 @@
-# Test MD2, MD4, MD5 and RIPEMD160
-mbedtls_md2 Test vector RFC1319 #1
-md2_text:"":"8350e5a3e24c153df2275c9f80692773"
-
-mbedtls_md2 Test vector RFC1319 #2
-md2_text:"a":"32ec01ec4a6dac72c0ab96fb34c0b5d1"
-
-mbedtls_md2 Test vector RFC1319 #3
-md2_text:"abc":"da853b0d3f88d99b30283a69e6ded6bb"
-
-mbedtls_md2 Test vector RFC1319 #4
-md2_text:"message digest":"ab4f496bfb2a530b219ff33031fe06b0"
-
-mbedtls_md2 Test vector RFC1319 #5
-md2_text:"abcdefghijklmnopqrstuvwxyz":"4e8ddff3650292ab5a4108c3aa47940b"
-
-mbedtls_md2 Test vector RFC1319 #6
-md2_text:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"da33def2a42df13975352846c30338cd"
-
-mbedtls_md2 Test vector RFC1319 #7
-md2_text:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"d5976f79d83d3a0dc9806c3c66f3efd8"
-
-mbedtls_md4 Test vector RFC1320 #1
-md4_text:"":"31d6cfe0d16ae931b73c59d7e0c089c0"
-
-mbedtls_md4 Test vector RFC1320 #2
-md4_text:"a":"bde52cb31de33e46245e05fbdbd6fb24"
-
-mbedtls_md4 Test vector RFC1320 #3
-md4_text:"abc":"a448017aaf21d8525fc10ae87aa6729d"
-
-mbedtls_md4 Test vector RFC1320 #4
-md4_text:"message digest":"d9130a8164549fe818874806e1c7014b"
-
-mbedtls_md4 Test vector RFC1320 #5
-md4_text:"abcdefghijklmnopqrstuvwxyz":"d79e1c308aa5bbcdeea8ed63df412da9"
-
-mbedtls_md4 Test vector RFC1320 #6
-md4_text:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"043f8582f241db351ce627e153e7f0e4"
-
-mbedtls_md4 Test vector RFC1320 #7
-md4_text:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"e33b4ddc9c38f2199c3e7b164fcc0536"
-
+# Test MD5 and RIPEMD160
 mbedtls_md5 Test vector RFC1321 #1
 md5_text:"":"d41d8cd98f00b204e9800998ecf8427e"
 
@@ -85,12 +43,6 @@ ripemd160_text:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":
 
 mbedtls_ripemd160 Test vector from paper #8
 ripemd160_text:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"9b752e45573d4b39f4dbd3323cab82bf63326bfb"
-
-MD2 Selftest
-md2_selftest:
-
-MD4 Selftest
-md4_selftest:
 
 MD5 Selftest
 md5_selftest:

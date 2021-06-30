@@ -63,7 +63,8 @@ void pk_write_key_check( char * key_file )
     memset( check_buf, 0, sizeof( check_buf ) );
 
     mbedtls_pk_init( &key );
-    TEST_ASSERT( mbedtls_pk_parse_keyfile( &key, key_file, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_pk_parse_keyfile( &key, key_file, NULL,
+                        mbedtls_test_rnd_std_rand, NULL ) == 0 );
 
     ret = mbedtls_pk_write_key_pem( &key, buf, sizeof( buf ));
     TEST_ASSERT( ret == 0 );

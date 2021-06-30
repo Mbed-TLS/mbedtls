@@ -259,3 +259,18 @@ void mbedtls_test_err_add_check( int high, int low,
     }
 }
 #endif /* MBEDTLS_TEST_HOOKS */
+
+#if defined(MBEDTLS_BIGNUM_C)
+int mbedtls_test_read_mpi( mbedtls_mpi *X, int radix, const char *s )
+{
+    /* mbedtls_mpi_read_string() currently retains leading zeros.
+     * It always allocates at least one limb for the value 0. */
+    if( s[0] == 0 )
+    {
+        mbedtls_mpi_free( X );
+        return( 0 );
+    }
+    else
+        return( mbedtls_mpi_read_string( X, radix, s ) );
+}
+#endif

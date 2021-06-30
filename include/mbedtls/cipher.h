@@ -28,11 +28,7 @@
 #define MBEDTLS_CIPHER_H
 #include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include <stddef.h>
 #include "mbedtls/platform_util.h"
@@ -45,7 +41,7 @@
 #define MBEDTLS_CIPHER_MODE_WITH_PADDING
 #endif
 
-#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER) || \
+#if defined(MBEDTLS_CIPHER_NULL_CIPHER) || \
     defined(MBEDTLS_CHACHA20_C)
 #define MBEDTLS_CIPHER_MODE_STREAM
 #endif
@@ -73,7 +69,7 @@ extern "C" {
 /**
  * \brief     Supported cipher types.
  *
- * \warning   RC4 and DES are considered weak ciphers and their use
+ * \warning   DES is considered weak cipher and its use
  *            constitutes a security risk. Arm recommends considering stronger
  *            ciphers instead.
  */
@@ -84,8 +80,6 @@ typedef enum {
     MBEDTLS_CIPHER_ID_DES,       /**< The DES cipher. */
     MBEDTLS_CIPHER_ID_3DES,      /**< The Triple DES cipher. */
     MBEDTLS_CIPHER_ID_CAMELLIA,  /**< The Camellia cipher. */
-    MBEDTLS_CIPHER_ID_BLOWFISH,  /**< The Blowfish cipher. */
-    MBEDTLS_CIPHER_ID_ARC4,      /**< The RC4 cipher. */
     MBEDTLS_CIPHER_ID_ARIA,      /**< The Aria cipher. */
     MBEDTLS_CIPHER_ID_CHACHA20,  /**< The ChaCha20 cipher. */
 } mbedtls_cipher_id_t;
@@ -93,7 +87,7 @@ typedef enum {
 /**
  * \brief     Supported {cipher type, cipher mode} pairs.
  *
- * \warning   RC4 and DES are considered weak ciphers and their use
+ * \warning   DES is considered weak cipher and its use
  *            constitutes a security risk. Arm recommends considering stronger
  *            ciphers instead.
  */
@@ -136,11 +130,6 @@ typedef enum {
     MBEDTLS_CIPHER_DES_EDE_CBC,          /**< DES cipher with EDE CBC mode. */
     MBEDTLS_CIPHER_DES_EDE3_ECB,         /**< DES cipher with EDE3 ECB mode. */
     MBEDTLS_CIPHER_DES_EDE3_CBC,         /**< DES cipher with EDE3 CBC mode. */
-    MBEDTLS_CIPHER_BLOWFISH_ECB,         /**< Blowfish cipher with ECB mode. */
-    MBEDTLS_CIPHER_BLOWFISH_CBC,         /**< Blowfish cipher with CBC mode. */
-    MBEDTLS_CIPHER_BLOWFISH_CFB64,       /**< Blowfish cipher with CFB64 mode. */
-    MBEDTLS_CIPHER_BLOWFISH_CTR,         /**< Blowfish cipher with CTR mode. */
-    MBEDTLS_CIPHER_ARC4_128,             /**< RC4 cipher with 128-bit mode. */
     MBEDTLS_CIPHER_AES_128_CCM,          /**< AES cipher with 128-bit CCM mode. */
     MBEDTLS_CIPHER_AES_192_CCM,          /**< AES cipher with 192-bit CCM mode. */
     MBEDTLS_CIPHER_AES_256_CCM,          /**< AES cipher with 256-bit CCM mode. */
@@ -732,8 +721,6 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx );
 /**
  * \brief               This function adds additional data for AEAD ciphers.
  *                      Currently supported with GCM and ChaCha20+Poly1305.
- *                      This must be called exactly once, after
- *                      mbedtls_cipher_reset().
  *
  * \param ctx           The generic cipher context. This must be initialized.
  * \param ad            The additional data to use. This must be a readable

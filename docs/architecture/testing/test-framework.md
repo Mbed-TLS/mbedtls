@@ -51,7 +51,7 @@ The outcome file is in a CSV format using `;` (semicolon) as the delimiter and n
 The outcome file has 6 fields:
 
 * **Platform**: a description of the platform, e.g. `Linux-x86_64` or `Linux-x86_64-gcc7-msan`.
-* **Configuration**: a unique description of the configuration (`config.h`).
+* **Configuration**: a unique description of the configuration (`mbedtls_config.h`).
 * **Test suite**: `test_suite_xxx` or `ssl-opt`.
 * **Test case**: the description of the test case.
 * **Result**: one of `PASS`, `SKIP` or `FAIL`.

@@ -2,7 +2,7 @@ Turn MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE configuration option into a runti
 --
 
 This change affects users who were enabling MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE
-option in the `config.h`
+option in the `mbedtls_config.h`
 
 This option has been removed and a new function with similar functionality has
 been introduced into the SSL API.

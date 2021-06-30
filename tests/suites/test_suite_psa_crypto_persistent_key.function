@@ -323,3 +323,18 @@ exit:
     psa_destroy_persistent_key( key_id );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void destroy_nonexistent( int id_arg, int expected_status_arg )
+{
+    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( 1, id_arg );
+    psa_status_t expected_status = expected_status_arg;
+
+    PSA_INIT( );
+
+    TEST_EQUAL( expected_status, psa_destroy_key( id ) );
+
+exit:
+    PSA_DONE( );
+}
+/* END_CASE */

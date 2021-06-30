@@ -29,8 +29,6 @@
  *
  * See README.txt for usage instructions.
  */
-#ifndef MBEDTLS_CONFIG_H
-#define MBEDTLS_CONFIG_H
 
 /* System support */
 //#define MBEDTLS_HAVE_TIME /* Optionally used in Hello messages */
@@ -85,7 +83,3 @@
  */
 #define MBEDTLS_SSL_IN_CONTENT_LEN             1024
 #define MBEDTLS_SSL_OUT_CONTENT_LEN             1024
-
-#include "mbedtls/check_config.h"
-
-#endif /* MBEDTLS_CONFIG_H */

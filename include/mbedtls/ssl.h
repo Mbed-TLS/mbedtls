@@ -23,11 +23,7 @@
 #define MBEDTLS_SSL_H
 #include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include "mbedtls/bignum.h"
 #include "mbedtls/ecp.h"
@@ -215,7 +211,7 @@
  * \name SECTION: Module settings
  *
  * The configuration options you can set for this module are in this section.
- * Either change them in config.h or define them on the compiler command line.
+ * Either change them in mbedtls_config.h or define them on the compiler command line.
  * \{
  */
 
@@ -457,18 +453,6 @@ typedef enum
     MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT,
 }
 mbedtls_ssl_states;
-
-/*
- * The tls_prf function types.
- */
-typedef enum
-{
-   MBEDTLS_SSL_TLS_PRF_NONE,
-   MBEDTLS_SSL_TLS_PRF_TLS1,
-   MBEDTLS_SSL_TLS_PRF_SHA384,
-   MBEDTLS_SSL_TLS_PRF_SHA256
-}
-mbedtls_tls_prf_types;
 
 /**
  * \brief          Callback type: send data on the network.
@@ -933,6 +917,8 @@ struct mbedtls_ssl_session
     unsigned char MBEDTLS_PRIVATE(id)[32];       /*!< session identifier */
     unsigned char MBEDTLS_PRIVATE(master)[48];   /*!< the master secret  */
 
+    unsigned char exported;
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     mbedtls_x509_crt *MBEDTLS_PRIVATE(peer_cert);       /*!< peer X.509 cert chain */
@@ -956,14 +942,61 @@ struct mbedtls_ssl_session
     unsigned char MBEDTLS_PRIVATE(mfl_code);     /*!< MaxFragmentLength negotiated by peer */
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    int MBEDTLS_PRIVATE(trunc_hmac);             /*!< flag for truncated hmac activation   */
-#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
-
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     int MBEDTLS_PRIVATE(encrypt_then_mac);       /*!< flag for EtM activation                */
 #endif
 };
+
+/*
+ * Identifiers for PRFs used in various versions of TLS.
+ */
+typedef enum
+{
+   MBEDTLS_SSL_TLS_PRF_NONE,
+   MBEDTLS_SSL_TLS_PRF_SHA384,
+   MBEDTLS_SSL_TLS_PRF_SHA256,
+   MBEDTLS_SSL_HKDF_EXPAND_SHA384,
+   MBEDTLS_SSL_HKDF_EXPAND_SHA256
+}
+mbedtls_tls_prf_types;
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+typedef enum
+{
+    MBEDTLS_SSL_KEY_EXPORT_TLS12_MASTER_SECRET = 0,
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    MBEDTLS_SSL_KEY_EXPORT_TLS13_CLIENT_EARLY_SECRET,
+    MBEDTLS_SSL_KEY_EXPORT_TLS13_EARLY_EXPORTER_SECRET,
+    MBEDTLS_SSL_KEY_EXPORT_TLS13_CLIENT_HANDSHAKE_TRAFFIC_SECRET,
+    MBEDTLS_SSL_KEY_EXPORT_TLS13_SERVER_HANDSHAKE_TRAFFIC_SECRET,
+    MBEDTLS_SSL_KEY_EXPORT_TLS13_CLIENT_APPLICATION_TRAFFIC_SECRET,
+    MBEDTLS_SSL_KEY_EXPORT_TLS13_SERVER_APPLICATION_TRAFFIC_SECRET,
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+} mbedtls_ssl_key_export_type;
+
+/**
+ * \brief           Callback type: Export key alongside random values for
+ *                                 session identification, and PRF for
+ *                                 implementation of TLS key exporters.
+ *
+ * \param p_expkey   Context for the callback.
+ * \param type       The type of the key that is being exported.
+ * \param secret     The address of the buffer holding the secret
+ *                   that's being exporterd.
+ * \param secret_len The length of \p secret in bytes.
+ * \param client_random The client random bytes.
+ * \param server_random The server random bytes.
+ * \param tls_prf_type The identifier for the PRF used in the handshake
+ *                     to which the key belongs.
+ */
+typedef void mbedtls_ssl_export_keys_t( void *p_expkey,
+                                        mbedtls_ssl_key_export_type type,
+                                        const unsigned char *secret,
+                                        size_t secret_len,
+                                        const unsigned char client_random[32],
+                                        const unsigned char server_random[32],
+                                        mbedtls_tls_prf_types tls_prf_type );
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 /**
  * SSL/TLS configuration to be shared between mbedtls_ssl_context structures.
@@ -1029,19 +1062,6 @@ struct mbedtls_ssl_config
     int (*MBEDTLS_PRIVATE(f_ticket_parse))( void *, mbedtls_ssl_session *, unsigned char *, size_t);
     void *MBEDTLS_PRIVATE(p_ticket);                 /*!< context for the ticket callbacks   */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
-
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
-    /** Callback to export key block and master secret                      */
-    int (*MBEDTLS_PRIVATE(f_export_keys))( void *, const unsigned char *,
-            const unsigned char *, size_t, size_t, size_t );
-    /** Callback to export key block, master secret,
-     *  tls_prf and random bytes. Should replace f_export_keys    */
-    int (*MBEDTLS_PRIVATE(f_export_keys_ext))( void *, const unsigned char *,
-                const unsigned char *, size_t, size_t, size_t,
-                const unsigned char[32], const unsigned char[32],
-                mbedtls_tls_prf_types );
-    void *MBEDTLS_PRIVATE(p_export_keys);            /*!< context for key export callback    */
-#endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     size_t MBEDTLS_PRIVATE(cid_len); /*!< The length of CIDs for incoming DTLS records.      */
@@ -1179,9 +1199,6 @@ struct mbedtls_ssl_config
 #endif
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     unsigned int MBEDTLS_PRIVATE(disable_renegotiation) : 1; /*!< disable renegotiation?     */
-#endif
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    unsigned int MBEDTLS_PRIVATE(trunc_hmac) : 1;    /*!< negotiate truncated hmac?          */
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     unsigned int MBEDTLS_PRIVATE(session_tickets) : 1;   /*!< use session tickets?           */
@@ -1393,6 +1410,12 @@ struct mbedtls_ssl_context
                             *   Possible values are #MBEDTLS_SSL_CID_ENABLED
                             *   and #MBEDTLS_SSL_CID_DISABLED. */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    /** Callback to export key block and master secret                      */
+    mbedtls_ssl_export_keys_t *MBEDTLS_PRIVATE(f_export_keys);
+    void *MBEDTLS_PRIVATE(p_export_keys);            /*!< context for key export callback    */
+#endif
 };
 
 /**
@@ -1535,7 +1558,7 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
  * \brief          Set the random number generator callback
  *
  * \param conf     SSL configuration
- * \param f_rng    RNG function
+ * \param f_rng    RNG function (mandatory)
  * \param p_rng    RNG parameter
  */
 void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,
@@ -1916,70 +1939,6 @@ typedef int mbedtls_ssl_ticket_write_t( void *p_ticket,
                                         size_t *tlen,
                                         uint32_t *lifetime );
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
-/**
- * \brief           Callback type: Export key block and master secret
- *
- * \note            This is required for certain uses of TLS, e.g. EAP-TLS
- *                  (RFC 5216) and Thread. The key pointers are ephemeral and
- *                  therefore must not be stored. The master secret and keys
- *                  should not be used directly except as an input to a key
- *                  derivation function.
- *
- * \param p_expkey  Context for the callback
- * \param ms        Pointer to master secret (fixed length: 48 bytes)
- * \param kb        Pointer to key block, see RFC 5246 section 6.3
- *                  (variable length: 2 * maclen + 2 * keylen + 2 * ivlen).
- * \param maclen    MAC length
- * \param keylen    Key length
- * \param ivlen     IV length
- *
- * \return          0 if successful, or
- *                  a specific MBEDTLS_ERR_XXX code.
- */
-typedef int mbedtls_ssl_export_keys_t( void *p_expkey,
-                                const unsigned char *ms,
-                                const unsigned char *kb,
-                                size_t maclen,
-                                size_t keylen,
-                                size_t ivlen );
-
-/**
- * \brief           Callback type: Export key block, master secret,
- *                                 handshake randbytes and the tls_prf function
- *                                 used to derive keys.
- *
- * \note            This is required for certain uses of TLS, e.g. EAP-TLS
- *                  (RFC 5216) and Thread. The key pointers are ephemeral and
- *                  therefore must not be stored. The master secret and keys
- *                  should not be used directly except as an input to a key
- *                  derivation function.
- *
- * \param p_expkey  Context for the callback.
- * \param ms        Pointer to master secret (fixed length: 48 bytes).
- * \param kb            Pointer to key block, see RFC 5246 section 6.3.
- *                      (variable length: 2 * maclen + 2 * keylen + 2 * ivlen).
- * \param maclen        MAC length.
- * \param keylen        Key length.
- * \param ivlen         IV length.
- * \param client_random The client random bytes.
- * \param server_random The server random bytes.
- * \param tls_prf_type The tls_prf enum type.
- *
- * \return          0 if successful, or
- *                  a specific MBEDTLS_ERR_XXX code.
- */
-typedef int mbedtls_ssl_export_keys_ext_t( void *p_expkey,
-                                           const unsigned char *ms,
-                                           const unsigned char *kb,
-                                           size_t maclen,
-                                           size_t keylen,
-                                           size_t ivlen,
-                                           const unsigned char client_random[32],
-                                           const unsigned char server_random[32],
-                                           mbedtls_tls_prf_types tls_prf_type );
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
-
 /**
  * \brief           Callback type: parse and load session ticket
  *
@@ -2031,34 +1990,26 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
 /**
- * \brief           Configure key export callback.
- *                  (Default: none.)
+ * \brief   Configure a key export callback.
+ *          (Default: none.)
  *
- * \note            See \c mbedtls_ssl_export_keys_t.
+ *          This API can be used for two purposes:
+ *          - Debugging: Use this API to e.g. generate an NSSKeylog
+ *            file and use it to inspect encrypted traffic in tools
+ *            such as Wireshark.
+ *          - Application-specific export: Use this API to implement
+ *            key exporters, e.g. for EAP-TLS or DTLS-SRTP.
  *
- * \param conf      SSL configuration context
- * \param f_export_keys     Callback for exporting keys
- * \param p_export_keys     Context for the callback
+ *
+ * \param ssl            The SSL context to which the export
+ *                       callback should be attached.
+ * \param f_export_keys  The callback for the key export.
+ * \param p_export_keys  The opaque context pointer to be passed to the
+ *                       callback \p f_export_keys.
  */
-void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
-        mbedtls_ssl_export_keys_t *f_export_keys,
-        void *p_export_keys );
-
-/**
- * \brief           Configure extended key export callback.
- *                  (Default: none.)
- *
- * \note            See \c mbedtls_ssl_export_keys_ext_t.
- * \warning         Exported key material must not be used for any purpose
- *                  before the (D)TLS handshake is completed
- *
- * \param conf      SSL configuration context
- * \param f_export_keys_ext Callback for exporting keys
- * \param p_export_keys     Context for the callback
- */
-void mbedtls_ssl_conf_export_keys_ext_cb( mbedtls_ssl_config *conf,
-        mbedtls_ssl_export_keys_ext_t *f_export_keys_ext,
-        void *p_export_keys );
+void mbedtls_ssl_set_export_keys_cb( mbedtls_ssl_context *ssl,
+                                     mbedtls_ssl_export_keys_t *f_export_keys,
+                                     void *p_export_keys );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
@@ -2391,18 +2342,49 @@ void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_CLI_C)
 /**
- * \brief          Request resumption of session (client-side only)
- *                 Session data is copied from presented session structure.
+ * \brief          Load a session for session resumption.
  *
- * \param ssl      SSL context
- * \param session  session context
+ *                 Sessions loaded through this call will be considered
+ *                 for session resumption in the next handshake.
  *
- * \return         0 if successful,
- *                 MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed,
- *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used server-side or
- *                 arguments are otherwise invalid
+ * \note           Even if this call succeeds, it is not guaranteed that
+ *                 the next handshake will indeed be shortened through the
+ *                 use of session resumption: The server is always free
+ *                 to reject any attempt for resumption and fall back to
+ *                 a full handshake.
+ *
+ * \note           This function can handle a variety of mechanisms for session
+ *                 resumption: For TLS 1.2, both session ID-based resumption and
+ *                 ticket-based resumption will be considered. For TLS 1.3,
+ *                 once implemented, sessions equate to tickets, and loading
+ *                 one or more sessions via this call will lead to their
+ *                 corresponding tickets being advertised as resumption PSKs
+ *                 by the client.
+ *
+ * \note           Calling this function multiple times will only be useful
+ *                 once TLS 1.3 is supported. For TLS 1.2 connections, this
+ *                 function should be called at most once.
+ *
+ * \param ssl      The SSL context representing the connection which should
+ *                 be attempted to be setup using session resumption. This
+ *                 must be initialized via mbedtls_ssl_init() and bound to
+ *                 an SSL configuration via mbedtls_ssl_setup(), but
+ *                 the handshake must not yet have been started.
+ * \param session  The session to be considered for session resumption.
+ *                 This must be a session previously exported via
+ *                 mbedtls_ssl_get_session(), and potentially serialized and
+ *                 deserialized through mbedtls_ssl_session_save() and
+ *                 mbedtls_ssl_session_load() in the meantime.
+ *
+ * \return         \c 0 if successful.
+ * \return         \c MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if the session
+ *                 could not be loaded because of an implementation limitation.
+ *                 This error is non-fatal, and has no observable effect on
+ *                 the SSL context or the session that was attempted to be loaded.
+ * \return         Another negative error code on other kinds of failure.
  *
  * \sa             mbedtls_ssl_get_session()
+ * \sa             mbedtls_ssl_session_load()
  */
 int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session *session );
 #endif /* MBEDTLS_SSL_CLI_C */
@@ -2451,7 +2433,6 @@ int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
  *                 of session cache or session tickets.
  *
  * \see            mbedtls_ssl_session_load()
- * \see            mbedtls_ssl_get_session_pointer()
  *
  * \param session  The session structure to be saved.
  * \param buf      The buffer to write the serialized data to. It must be a
@@ -2473,23 +2454,6 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
                               unsigned char *buf,
                               size_t buf_len,
                               size_t *olen );
-
-/**
- * \brief          Get a pointer to the current session structure, for example
- *                 to serialize it.
- *
- * \warning        Ownership of the session remains with the SSL context, and
- *                 the returned pointer is only guaranteed to be valid until
- *                 the next API call operating on the same \p ssl context.
- *
- * \see            mbedtls_ssl_session_save()
- *
- * \param ssl      The SSL context.
- *
- * \return         A pointer to the current session if successful.
- * \return         \c NULL if no session is active.
- */
-const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_context *ssl );
 
 /**
  * \brief               Set the list of allowed ciphersuites and the preference
@@ -2893,7 +2857,6 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_ECP_C)
 /**
  * \brief          Set the allowed curves in order of preference.
- *                 (Default: all defined curves.)
  *
  *                 On server: this only affects selection of the ECDHE curve;
  *                 the curves used for ECDH and ECDSA are determined by the
@@ -2914,6 +2877,19 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
  * \note           This list should be ordered by decreasing preference
  *                 (preferred curve first).
  *
+ * \note           The default list is the same set of curves that
+ *                 #mbedtls_x509_crt_profile_default allows, plus
+ *                 ECDHE-only curves selected according to the same criteria.
+ *                 The order favors curves with the lowest resource usage.
+ *
+ * \note           New minor versions of Mbed TLS may extend this list,
+ *                 for example if new curves are added to the library.
+ *                 New minor versions of Mbed TLS will not remove items
+ *                 from this list unless serious security concerns require it.
+ *                 New minor versions of Mbed TLS may change the order in
+ *                 keeping with the general principle of favoring the lowest
+ *                 resource usage.
+ *
  * \param conf     SSL configuration
  * \param curves   Ordered list of allowed curves,
  *                 terminated by MBEDTLS_ECP_DP_NONE.
@@ -2925,7 +2901,6 @@ void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /**
  * \brief          Set the allowed hashes for signatures during the handshake.
- *                 (Default: all available hashes except MD5.)
  *
  * \note           This only affects which hashes are offered and can be used
  *                 for signatures during the handshake. Hashes for message
@@ -2936,6 +2911,18 @@ void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
  *
  * \note           This list should be ordered by decreasing preference
  *                 (preferred hash first).
+ *
+ * \note           By default, all supported hashes whose length is at least
+ *                 256 bits are allowed. This is the same set as the default
+ *                 for certificate verification
+ *                 (#mbedtls_x509_crt_profile_default).
+ *                 The preference order is currently unspecified and may
+ *                 change in future versions.
+ *
+ * \note           New minor versions of Mbed TLS may extend this list,
+ *                 for example if new curves are added to the library.
+ *                 New minor versions of Mbed TLS will not remove items
+ *                 from this list unless serious security concerns require it.
  *
  * \param conf     SSL configuration
  * \param hashes   Ordered list of allowed signature hashes,
@@ -3315,18 +3302,6 @@ int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_c
 void mbedtls_ssl_conf_preference_order( mbedtls_ssl_config *conf, int order );
 #endif /* MBEDTLS_SSL_SRV_C */
 
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-/**
- * \brief          Activate negotiation of truncated HMAC
- *                 (Default: MBEDTLS_SSL_TRUNC_HMAC_DISABLED)
- *
- * \param conf     SSL configuration
- * \param truncate Enable or disable (MBEDTLS_SSL_TRUNC_HMAC_ENABLED or
- *                                    MBEDTLS_SSL_TRUNC_HMAC_DISABLED)
- */
-void mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate );
-#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
-
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
 /**
  * \brief          Enable / Disable session tickets (client only).
@@ -3564,7 +3539,7 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
  *
  * \note           The logic to determine the maximum outgoing record payload is
  *                 version-specific. It takes into account various factors, such as
- *                 the config.h setting \c MBEDTLS_SSL_OUT_CONTENT_LEN, extensions
+ *                 the mbedtls_config.h setting \c MBEDTLS_SSL_OUT_CONTENT_LEN, extensions
  *                 such as the max fragment length or record size limit extension if
  *                 used, and for DTLS the path MTU as configured and current
  *                 record expansion.
@@ -3591,7 +3566,7 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl );
  *
  * \note           The logic to determine the maximum outgoing record payload is
  *                 version-specific. It takes into account various factors, such as
- *                 the config.h setting \c MBEDTLS_SSL_IN_CONTENT_LEN, extensions
+ *                 the mbedtls_config.h setting \c MBEDTLS_SSL_IN_CONTENT_LEN, extensions
  *                 such as the max fragment length extension or record size limit
  *                 extension if used, and the current record expansion.
  *
@@ -3642,32 +3617,41 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ss
 
 #if defined(MBEDTLS_SSL_CLI_C)
 /**
- * \brief          Save session in order to resume it later (client-side only)
- *                 Session data is copied to presented session structure.
+ * \brief          Export a session in order to resume it later.
  *
+ * \param ssl      The SSL context representing the connection for which to
+ *                 to export a session structure for later resumption.
+ * \param session  The target structure in which to store the exported session.
+ *                 This must have been initialized with mbedtls_ssl_init_session()
+ *                 but otherwise be unused.
  *
- * \param ssl      SSL context
- * \param session  session context
+ * \note           This function can handle a variety of mechanisms for session
+ *                 resumption: For TLS 1.2, both session ID-based resumption and
+ *                 ticket-based resumption will be considered. For TLS 1.3,
+ *                 once implemented, sessions equate to tickets, and calling
+ *                 this function multiple times will export the available
+ *                 tickets one a time until no further tickets are available,
+ *                 in which case MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE will
+ *                 be returned.
  *
- * \return         0 if successful,
- *                 MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed,
- *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used server-side or
- *                 arguments are otherwise invalid.
+ * \note           Calling this function multiple times will only be useful
+ *                 once TLS 1.3 is supported. For TLS 1.2 connections, this
+ *                 function should be called at most once.
  *
- * \note           Only the server certificate is copied, and not the full chain,
- *                 so you should not attempt to validate the certificate again
- *                 by calling \c mbedtls_x509_crt_verify() on it.
- *                 Instead, you should use the results from the verification
- *                 in the original handshake by calling \c mbedtls_ssl_get_verify_result()
- *                 after loading the session again into a new SSL context
- *                 using \c mbedtls_ssl_set_session().
- *
- * \note           Once the session object is not needed anymore, you should
- *                 free it by calling \c mbedtls_ssl_session_free().
+ * \return         \c 0 if successful. In this case, \p session can be used for
+ *                 session resumption by passing it to mbedtls_ssl_set_session(),
+ *                 and serialized for storage via mbedtls_ssl_session_save().
+ * \return         #MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if no further session
+ *                 is available for export.
+ *                 This error is a non-fatal, and has no observable effect on
+ *                 the SSL context or the destination session.
+ * \return         Another negative error code on other kinds of failure.
  *
  * \sa             mbedtls_ssl_set_session()
+ * \sa             mbedtls_ssl_session_save()
  */
-int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session *session );
+int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl,
+                             mbedtls_ssl_session *session );
 #endif /* MBEDTLS_SSL_CLI_C */
 
 /**

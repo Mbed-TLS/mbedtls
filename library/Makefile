@@ -1,5 +1,5 @@
 
-# Also see "include/mbedtls/config.h"
+# Also see "include/mbedtls/mbedtls_config.h"
 
 CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
@@ -72,13 +72,11 @@ endif
 OBJS_CRYPTO= \
 	     aes.o \
 	     aesni.o \
-	     arc4.o \
 	     aria.o \
 	     asn1parse.o \
 	     asn1write.o \
 	     base64.o \
 	     bignum.o \
-	     blowfish.o \
 	     camellia.o \
 	     ccm.o \
 	     chacha20.o \
@@ -101,8 +99,6 @@ OBJS_CRYPTO= \
 	     hkdf.o \
 	     hmac_drbg.o \
 	     md.o \
-	     md2.o \
-	     md4.o \
 	     md5.o \
 	     memory_buffer_alloc.o \
 	     mps_reader.o \
@@ -143,7 +139,6 @@ OBJS_CRYPTO= \
 	     timing.o \
 	     version.o \
 	     version_features.o \
-	     xtea.o \
 	     # This line is intentionally left blank
 
 include ../3rdparty/Makefile.inc
@@ -286,12 +281,12 @@ error.c:
 
 version_features.c: ../scripts/generate_features.pl
 version_features.c: ../scripts/data_files/version_features.fmt
-## The generated file only depends on the options that are present in config.h,
+## The generated file only depends on the options that are present in mbedtls_config.h,
 ## not on which options are set. To avoid regenerating this file all the time
-## when switching between configurations, don't declare config.h as a
+## when switching between configurations, don't declare mbedtls_config.h as a
 ## dependency. Remove this file from your working tree if you've just added or
-## removed an option in config.h.
-#version_features.c: ../include/mbedtls/config.h
+## removed an option in mbedtls_config.h.
+#version_features.c: ../include/mbedtls/mbedtls_config.h
 version_features.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_features.pl

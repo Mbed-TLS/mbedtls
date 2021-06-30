@@ -40,17 +40,13 @@
  * Hash multi-part operation definitions.
  */
 
-#include "mbedtls/md2.h"
-#include "mbedtls/md4.h"
 #include "mbedtls/md5.h"
 #include "mbedtls/ripemd160.h"
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_MD2) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_MD4) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_MD5) || \
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_MD5) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RIPEMD160) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_1) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224) || \
@@ -66,12 +62,6 @@ typedef struct
     union
     {
         unsigned MBEDTLS_PRIVATE(dummy); /* Make the union non-empty even with no supported algorithms. */
-#if defined(MBEDTLS_MD2_C)
-        mbedtls_md2_context MBEDTLS_PRIVATE(md2);
-#endif
-#if defined(MBEDTLS_MD4_C)
-        mbedtls_md4_context MBEDTLS_PRIVATE(md4);
-#endif
 #if defined(MBEDTLS_MD5_C)
         mbedtls_md5_context MBEDTLS_PRIVATE(md5);
 #endif

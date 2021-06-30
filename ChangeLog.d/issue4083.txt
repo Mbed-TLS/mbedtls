@@ -1,0 +1,4 @@
+Removals
+    * Remove the following functions: mbedtls_timing_self_test(),
+      mbedtls_hardclock_poll(), mbedtls_timing_hardclock() and
+      mbedtls_set_alarm(). Fixes #4083.

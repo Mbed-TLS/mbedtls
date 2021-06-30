@@ -1,7 +1,7 @@
 Separated MBEDTLS_SHA224_C and MBEDTLS_SHA256_C
 -----------------------------------------------------------------
 
-This does not affect users who use the default `config.h`. MBEDTLS_SHA256_C
+This does not affect users who use the default `mbedtls_config.h`. MBEDTLS_SHA256_C
 was enabled by default. Now both MBEDTLS_SHA256_C and MBEDTLS_SHA224_C are
 enabled.
 

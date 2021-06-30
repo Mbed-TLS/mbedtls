@@ -23,7 +23,7 @@ import re
 import sys
 
 CLASSIC_DEPENDENCIES = frozenset([
-    # This list is manually filtered from config.h.
+    # This list is manually filtered from mbedtls_config.h.
 
     # Mbed TLS feature support.
     # Only features that affect what can be done are listed here.
@@ -61,9 +61,7 @@ CLASSIC_DEPENDENCIES = frozenset([
     # Only modules that provide cryptographic mechanisms are listed here.
     # Platform, data formatting, X.509 or TLS modules are omitted.
     'MBEDTLS_AES_C',
-    'MBEDTLS_ARC4_C',
     'MBEDTLS_BIGNUM_C',
-    #cipher#'MBEDTLS_BLOWFISH_C',
     'MBEDTLS_CAMELLIA_C',
     'MBEDTLS_ARIA_C',
     'MBEDTLS_CCM_C',
@@ -82,8 +80,6 @@ CLASSIC_DEPENDENCIES = frozenset([
     'MBEDTLS_HKDF_C',
     'MBEDTLS_HMAC_DRBG_C',
     'MBEDTLS_NIST_KW_C',
-    'MBEDTLS_MD2_C',
-    'MBEDTLS_MD4_C',
     'MBEDTLS_MD5_C',
     'MBEDTLS_PKCS5_C',
     'MBEDTLS_PKCS12_C',
@@ -93,7 +89,6 @@ CLASSIC_DEPENDENCIES = frozenset([
     'MBEDTLS_SHA1_C',
     'MBEDTLS_SHA256_C',
     'MBEDTLS_SHA512_C',
-    'MBEDTLS_XTEA_C',
 ])
 
 def is_classic_dependency(dep):

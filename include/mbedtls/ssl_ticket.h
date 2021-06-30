@@ -23,11 +23,7 @@
 #define MBEDTLS_SSL_TICKET_H
 #include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 /*
  * This implementation of the session ticket callbacks includes key
@@ -90,7 +86,7 @@ void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx );
  * \brief           Prepare context to be actually used
  *
  * \param ctx       Context to be set up
- * \param f_rng     RNG callback function
+ * \param f_rng     RNG callback function (mandatory)
  * \param p_rng     RNG callback context
  * \param cipher    AEAD cipher to use for ticket protection.
  *                  Recommended value: MBEDTLS_CIPHER_AES_256_GCM.

@@ -74,7 +74,7 @@ FILTER=""
 # exclude:
 # - NULL: excluded from our default config
 #   avoid plain DES but keep 3DES-EDE-CBC (mbedTLS), DES-CBC3 (OpenSSL)
-# - ARIA: not in default config.h + requires OpenSSL >= 1.1.1
+# - ARIA: not in default mbedtls_config.h + requires OpenSSL >= 1.1.1
 # - ChachaPoly: requires OpenSSL >= 1.1.0
 # - 3DES: not in default config
 EXCLUDE='NULL\|DES\|ARIA\|CHACHA20-POLY1305'

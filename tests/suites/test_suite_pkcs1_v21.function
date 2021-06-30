@@ -123,6 +123,7 @@ void pkcs1_rsassa_pss_sign( int mod, data_t * input_P, data_t * input_Q,
                             int result )
 {
     unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( digest );
     unsigned char output[512];
     mbedtls_rsa_context ctx;
     mbedtls_test_rnd_buf_info info;
@@ -152,14 +153,15 @@ void pkcs1_rsassa_pss_sign( int mod, data_t * input_P, data_t * input_Q,
     TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
-    if( mbedtls_md_info_from_type( digest ) != NULL )
-        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
+    if( md_info != NULL )
+        TEST_ASSERT( mbedtls_md( md_info, message_str->x, message_str->len, hash_result ) == 0 );
 
     if (fixed_salt_length == MBEDTLS_RSA_SALT_LEN_ANY)
     {
-        TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &mbedtls_test_rnd_buffer_rand,
-                                             &info, digest, 0,hash_result,
-                                             output ) == result );
+        TEST_ASSERT( mbedtls_rsa_pkcs1_sign(
+                         &ctx, &mbedtls_test_rnd_buffer_rand, &info,
+                         digest, mbedtls_md_get_size( md_info ), hash_result,
+                         output ) == result );
         if( result == 0 )
         {
             ASSERT_COMPARE( output, ctx.len, result_str->x, result_str->len );
@@ -169,9 +171,10 @@ void pkcs1_rsassa_pss_sign( int mod, data_t * input_P, data_t * input_Q,
         info.length = rnd_buf->len;
     }
 
-    TEST_ASSERT( mbedtls_rsa_rsassa_pss_sign_ext( &ctx, &mbedtls_test_rnd_buffer_rand,
-                                                  &info, digest, 0, hash_result,
-                                                  fixed_salt_length, output ) == result );
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_sign_ext(
+                     &ctx, &mbedtls_test_rnd_buffer_rand, &info,
+                     digest, mbedtls_md_get_size( md_info ), hash_result,
+                     fixed_salt_length, output ) == result );
     if( result == 0 )
     {
         ASSERT_COMPARE( output, ctx.len, result_str->x, result_str->len );
@@ -190,6 +193,7 @@ void pkcs1_rsassa_pss_verify( int mod, data_t * input_N, data_t * input_E,
                               char * salt, data_t * result_str, int result )
 {
     unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( digest );
     mbedtls_rsa_context ctx;
     mbedtls_mpi N, E;
     ((void) salt);
@@ -208,10 +212,10 @@ void pkcs1_rsassa_pss_verify( int mod, data_t * input_N, data_t * input_E,
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
 
-    if( mbedtls_md_info_from_type( digest ) != NULL )
-        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
+    if( md_info != NULL )
+        TEST_ASSERT( mbedtls_md( md_info, message_str->x, message_str->len, hash_result ) == 0 );
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, digest, 0, hash_result, result_str->x ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, digest, mbedtls_md_get_size( md_info ), hash_result, result_str->x ) == result );
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &E );
@@ -248,9 +252,12 @@ void pkcs1_rsassa_pss_verify_ext( int mod, data_t * input_N, data_t * input_E,
 
     if( msg_digest_id != MBEDTLS_MD_NONE )
     {
-        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( msg_digest_id ),
-                     message_str->x, message_str->len, hash_result ) == 0 );
-        hash_len = 0;
+        const mbedtls_md_info_t *md_info =
+            mbedtls_md_info_from_type( msg_digest_id );
+        TEST_ASSERT( mbedtls_md( md_info,
+                                 message_str->x, message_str->len,
+                                 hash_result ) == 0 );
+        hash_len = mbedtls_md_get_size( md_info );
     }
     else
     {

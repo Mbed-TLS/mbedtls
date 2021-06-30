@@ -20,11 +20,6 @@
  *  limitations under the License.
  */
 
-/*
- * It is recommended to include this file from your config.h
- * in order to catch dependency issues early.
- */
-
 #ifndef MBEDTLS_CHECK_CONFIG_H
 #define MBEDTLS_CHECK_CONFIG_H
 
@@ -42,7 +37,7 @@
 #error "MBEDTLS_PLATFORM_C is required on Windows"
 #endif
 
-/* Fix the config here. Not convenient to put an #ifdef _WIN32 in config.h as
+/* Fix the config here. Not convenient to put an #ifdef _WIN32 in mbedtls_config.h as
  * it would confuse config.py. */
 #if !defined(MBEDTLS_PLATFORM_SNPRINTF_ALT) && \
     !defined(MBEDTLS_PLATFORM_SNPRINTF_MACRO)
@@ -148,14 +143,6 @@
     !defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) &&                 \
     !defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) ) )
 #error "MBEDTLS_ECP_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_ECP_C) && !(            \
-    defined(MBEDTLS_ECP_ALT) ||             \
-    defined(MBEDTLS_CTR_DRBG_C) ||          \
-    defined(MBEDTLS_HMAC_DRBG_C) ||         \
-    defined(MBEDTLS_ECP_NO_INTERNAL_RNG))
-#error "MBEDTLS_ECP_C requires a DRBG module unless MBEDTLS_ECP_NO_INTERNAL_RNG is defined or an alternative implementation is used"
 #endif
 
 #if defined(MBEDTLS_PK_PARSE_C) && !defined(MBEDTLS_ASN1_PARSE_C)
@@ -835,6 +822,10 @@
 
 #if defined(MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY) //no-check-names
 #error "MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4335"
+#endif
+
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC) //no-check-names
+#error "MBEDTLS_SSL_TRUNCATED_HMAC was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4341"
 #endif
 
 /*

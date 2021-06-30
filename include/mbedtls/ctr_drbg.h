@@ -16,7 +16,7 @@
  * The security strength as defined in NIST SP 800-90A is
  * 128 bits when AES-128 is used (\c MBEDTLS_CTR_DRBG_USE_128_BIT_KEY enabled)
  * and 256 bits otherwise, provided that #MBEDTLS_CTR_DRBG_ENTROPY_LEN is
- * kept at its default value (and not overridden in config.h) and that the
+ * kept at its default value (and not overridden in mbedtls_config.h) and that the
  * DRBG instance is set up with default parameters.
  * See the documentation of mbedtls_ctr_drbg_seed() for more
  * information.
@@ -42,11 +42,7 @@
 #define MBEDTLS_CTR_DRBG_H
 #include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include "mbedtls/aes.h"
 
@@ -84,7 +80,7 @@
  * \name SECTION: Module settings
  *
  * The configuration options you can set for this module are in this section.
- * Either change them in config.h or define them using the compiler command
+ * Either change them in mbedtls_config.h or define them using the compiler command
  * line.
  * \{
  */

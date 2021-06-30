@@ -108,7 +108,8 @@ psa_status_t mbedtls_psa_rsa_load_representation(
     /* Parse the data. */
     if( PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
         status = mbedtls_to_psa_error(
-            mbedtls_pk_parse_key( &ctx, data, data_length, NULL, 0 ) );
+            mbedtls_pk_parse_key( &ctx, data, data_length, NULL, 0,
+                mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE ) );
     else
         status = mbedtls_to_psa_error(
             mbedtls_pk_parse_public_key( &ctx, data, data_length ) );
@@ -360,27 +361,14 @@ static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
         return( PSA_ERROR_INVALID_ARGUMENT );
 #endif
 
-#if defined(BUILTIN_ALG_RSA_PKCS1V15_SIGN)
-    /* For PKCS#1 v1.5 signature, if using a hash, the hash length
-     * must be correct. */
-    if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) &&
-        alg != PSA_ALG_RSA_PKCS1V15_SIGN_RAW )
+    /* For signatures using a hash, the hash length must be correct. */
+    if( alg != PSA_ALG_RSA_PKCS1V15_SIGN_RAW )
     {
         if( md_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
         if( mbedtls_md_get_size( md_info ) != hash_length )
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
-#endif /* BUILTIN_ALG_RSA_PKCS1V15_SIGN */
-
-#if defined(BUILTIN_ALG_RSA_PSS)
-    /* PSS requires a hash internally. */
-    if( PSA_ALG_IS_RSA_PSS( alg ) )
-    {
-        if( md_info == NULL )
-            return( PSA_ERROR_NOT_SUPPORTED );
-    }
-#endif /* BUILTIN_ALG_RSA_PSS */
 
     return( PSA_SUCCESS );
 }
@@ -516,7 +504,7 @@ static psa_status_t rsa_verify_hash(
         if( ret == 0 )
         {
             ret = mbedtls_rsa_rsassa_pss_verify( rsa,
-                                                 MBEDTLS_MD_NONE,
+                                                 md_alg,
                                                  (unsigned int) hash_length,
                                                  hash,
                                                  signature );

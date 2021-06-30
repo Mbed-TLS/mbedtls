@@ -31,14 +31,6 @@
 
 /* Use builtin defines specific to this compilation unit, since the test driver
  * relies on the software driver. */
-#if( defined(MBEDTLS_PSA_BUILTIN_ALG_MD2) || \
-    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_MD2) ) )
-#define BUILTIN_ALG_MD2         1
-#endif
-#if( defined(MBEDTLS_PSA_BUILTIN_ALG_MD4) || \
-    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_MD4) ) )
-#define BUILTIN_ALG_MD4         1
-#endif
 #if( defined(MBEDTLS_PSA_BUILTIN_ALG_MD5) || \
     ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_MD5) ) )
 #define BUILTIN_ALG_MD5         1
@@ -76,14 +68,6 @@ const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
 {
     switch( alg )
     {
-#if defined(MBEDTLS_MD2_C)
-        case PSA_ALG_MD2:
-            return( &mbedtls_md2_info );
-#endif
-#if defined(MBEDTLS_MD4_C)
-        case PSA_ALG_MD4:
-            return( &mbedtls_md4_info );
-#endif
 #if defined(MBEDTLS_MD5_C)
         case PSA_ALG_MD5:
             return( &mbedtls_md5_info );
@@ -134,16 +118,6 @@ static psa_status_t hash_abort(
              * in use. It's ok to call abort on such an object, and there's
              * nothing to do. */
             break;
-#if defined(BUILTIN_ALG_MD2)
-        case PSA_ALG_MD2:
-            mbedtls_md2_free( &operation->ctx.md2 );
-            break;
-#endif
-#if defined(BUILTIN_ALG_MD4)
-        case PSA_ALG_MD4:
-            mbedtls_md4_free( &operation->ctx.md4 );
-            break;
-#endif
 #if defined(BUILTIN_ALG_MD5)
         case PSA_ALG_MD5:
             mbedtls_md5_free( &operation->ctx.md5 );
@@ -200,18 +174,6 @@ static psa_status_t hash_setup(
 
     switch( alg )
     {
-#if defined(BUILTIN_ALG_MD2)
-        case PSA_ALG_MD2:
-            mbedtls_md2_init( &operation->ctx.md2 );
-            ret = mbedtls_md2_starts( &operation->ctx.md2 );
-            break;
-#endif
-#if defined(BUILTIN_ALG_MD4)
-        case PSA_ALG_MD4:
-            mbedtls_md4_init( &operation->ctx.md4 );
-            ret = mbedtls_md4_starts( &operation->ctx.md4 );
-            break;
-#endif
 #if defined(BUILTIN_ALG_MD5)
         case PSA_ALG_MD5:
             mbedtls_md5_init( &operation->ctx.md5 );
@@ -274,18 +236,6 @@ static psa_status_t hash_clone(
     {
         case 0:
             return( PSA_ERROR_BAD_STATE );
-#if defined(BUILTIN_ALG_MD2)
-        case PSA_ALG_MD2:
-            mbedtls_md2_clone( &target_operation->ctx.md2,
-                               &source_operation->ctx.md2 );
-            break;
-#endif
-#if defined(BUILTIN_ALG_MD4)
-        case PSA_ALG_MD4:
-            mbedtls_md4_clone( &target_operation->ctx.md4,
-                               &source_operation->ctx.md4 );
-            break;
-#endif
 #if defined(BUILTIN_ALG_MD5)
         case PSA_ALG_MD5:
             mbedtls_md5_clone( &target_operation->ctx.md5,
@@ -347,18 +297,6 @@ static psa_status_t hash_update(
 
     switch( operation->alg )
     {
-#if defined(BUILTIN_ALG_MD2)
-        case PSA_ALG_MD2:
-            ret = mbedtls_md2_update( &operation->ctx.md2,
-                                          input, input_length );
-            break;
-#endif
-#if defined(BUILTIN_ALG_MD4)
-        case PSA_ALG_MD4:
-            ret = mbedtls_md4_update( &operation->ctx.md4,
-                                          input, input_length );
-            break;
-#endif
 #if defined(BUILTIN_ALG_MD5)
         case PSA_ALG_MD5:
             ret = mbedtls_md5_update( &operation->ctx.md5,
@@ -437,16 +375,6 @@ static psa_status_t hash_finish(
 
     switch( operation->alg )
     {
-#if defined(BUILTIN_ALG_MD2)
-        case PSA_ALG_MD2:
-            ret = mbedtls_md2_finish( &operation->ctx.md2, hash );
-            break;
-#endif
-#if defined(BUILTIN_ALG_MD4)
-        case PSA_ALG_MD4:
-            ret = mbedtls_md4_finish( &operation->ctx.md4, hash );
-            break;
-#endif
 #if defined(BUILTIN_ALG_MD5)
         case PSA_ALG_MD5:
             ret = mbedtls_md5_finish( &operation->ctx.md5, hash );
@@ -587,14 +515,6 @@ static int is_hash_accelerated( psa_algorithm_t alg )
 {
     switch( alg )
     {
-#if defined(MBEDTLS_PSA_ACCEL_ALG_MD2)
-        case PSA_ALG_MD2:
-            return( 1 );
-#endif
-#if defined(MBEDTLS_PSA_ACCEL_ALG_MD4)
-        case PSA_ALG_MD4:
-            return( 1 );
-#endif
 #if defined(MBEDTLS_PSA_ACCEL_ALG_MD5)
         case PSA_ALG_MD5:
             return( 1 );

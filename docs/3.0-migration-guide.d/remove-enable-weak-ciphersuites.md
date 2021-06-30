@@ -1,7 +1,7 @@
 Remove the configuration to enable weak ciphersuites in SSL / TLS
 -----------------------------------------------------------------
 
-This does not affect users who use the default `config.h`, as this option was
+This does not affect users who use the default `mbedtls_config.h`, as this option was
 already off by default.
 
 If you were using a weak cipher, please switch to any of the modern,

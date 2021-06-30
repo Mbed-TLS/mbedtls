@@ -26,11 +26,7 @@
 #ifndef MBEDTLS_MD_WRAP_H
 #define MBEDTLS_MD_WRAP_H
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include "mbedtls/md.h"
 
@@ -57,12 +53,6 @@ struct mbedtls_md_info_t
     unsigned char block_size;
 };
 
-#if defined(MBEDTLS_MD2_C)
-extern const mbedtls_md_info_t mbedtls_md2_info;
-#endif
-#if defined(MBEDTLS_MD4_C)
-extern const mbedtls_md_info_t mbedtls_md4_info;
-#endif
 #if defined(MBEDTLS_MD5_C)
 extern const mbedtls_md_info_t mbedtls_md5_info;
 #endif

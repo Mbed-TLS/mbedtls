@@ -1,7 +1,7 @@
 Replaced MBEDTLS_SHA512_NO_SHA384 with MBEDTLS_SHA384_C
 ------------------------------------------------------
 
-This does not affect users who use the default `config.h`.
+This does not affect users who use the default `mbedtls_config.h`.
 MBEDTLS_SHA512_NO_SHA384 was disabled by default, now MBEDTLS_SHA384_C is
 enabled by default.
 

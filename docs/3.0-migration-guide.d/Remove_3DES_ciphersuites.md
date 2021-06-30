@@ -1,7 +1,7 @@
 Remove 3DES ciphersuites
 --
 
-This change does not affect users using default settings for 3DES in `config.h`
+This change does not affect users using default settings for 3DES in `mbedtls_config.h`
 because the 3DES ciphersuites were disabled by that.
 
 3DES has weaknesses/limitations and there are better alternatives, and more and

@@ -13,7 +13,7 @@ Stability
 Configuration
 -------------
 
-Mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully documented configuration file `include/mbedtls/config.h`, which is also the place where features can be selected. This file can be edited manually, or in a more programmatic way using the Python 3 script `scripts/config.py` (use `--help` for usage instructions).
+Mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully documented configuration file `include/mbedtls/mbedtls_config.h`, which is also the place where features can be selected. This file can be edited manually, or in a more programmatic way using the Python 3 script `scripts/config.py` (use `--help` for usage instructions).
 
 Compiler options can be set using conventional environment variables such as `CC` and `CFLAGS` when using the Make and CMake build system (see below).
 
@@ -184,6 +184,33 @@ Regarding variables, also note that if you set CFLAGS when invoking cmake,
 your value of CFLAGS doesn't override the content provided by cmake (depending
 on the build mode as seen above), it's merely prepended to it.
 
+#### Consuming Mbed TLS
+
+Mbed TLS provides a package config file for consumption as a dependency in other
+CMake projects. You can include Mbed TLS's CMake targets yourself with:
+
+    find_package(MbedTLS)
+
+If prompted, set `MbedTLS_DIR` to `${YOUR_MBEDTLS_INSTALL_DIR}/cmake`. This
+creates the following targets:
+
+- `MbedTLS::mbedcrypto` (Crypto library)
+- `MbedTLS::mbedtls` (TLS library)
+- `MbedTLS::mbedx509` (X509 library)
+
+You can then use these directly through `target_link_libraries()`:
+
+    add_executable(xyz)
+
+    target_link_libraries(xyz
+        PUBLIC MbedTLS::mbedtls
+               MbedTLS::mbedcrypto
+               MbedTLS::mbedx509)
+
+This will link the Mbed TLS libraries to your library or application, and add
+its include directories to your target (transitively, in the case of `PUBLIC` or
+`INTERFACE` link libraries).
+
 #### Mbed TLS as a subproject
 
 Mbed TLS supports being built as a CMake subproject. One can
@@ -215,7 +242,7 @@ For machines with a Unix shell and OpenSSL (and optionally GnuTLS) installed, ad
 -   `tests/compat.sh` tests interoperability of every ciphersuite with other implementations.
 -   `tests/scripts/test-ref-configs.pl` test builds in various reduced configurations.
 -   `tests/scripts/key-exchanges.pl` test builds in configurations with a single key exchange enabled
--   `tests/scripts/all.sh` runs a combination of the above tests, plus some more, with various build options (such as ASan, full `config.h`, etc).
+-   `tests/scripts/all.sh` runs a combination of the above tests, plus some more, with various build options (such as ASan, full `mbedtls_config.h`, etc).
 
 Porting Mbed TLS
 ----------------
@@ -254,7 +281,7 @@ A browsable copy of the PSA Cryptography API documents is available on the [PSA 
 Mbed TLS includes a reference implementation of the PSA Cryptography API.
 This implementation is not yet as mature as the rest of the library. Some parts of the code have not been reviewed as thoroughly, and some parts of the PSA implementation are not yet well optimized for code size.
 
-The X.509 and TLS code can use PSA cryptography for a limited subset of operations. To enable this support, activate the compilation option `MBEDTLS_USE_PSA_CRYPTO` in `config.h`.
+The X.509 and TLS code can use PSA cryptography for a limited subset of operations. To enable this support, activate the compilation option `MBEDTLS_USE_PSA_CRYPTO` in `mbedtls_config.h`.
 
 There are currently a few deviations where the library does not yet implement the latest version of the specification. Please refer to the [compliance issues on Github](https://github.com/ARMmbed/mbed-crypto/labels/compliance) for an up-to-date list.
 

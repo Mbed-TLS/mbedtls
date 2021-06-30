@@ -35,11 +35,7 @@
 #define MBEDTLS_ECP_H
 #include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include "mbedtls/bignum.h"
 
@@ -95,7 +91,7 @@ extern "C" {
  * - Increment MBEDTLS_ECP_DP_MAX below if needed.
  * - Update the calculation of MBEDTLS_ECP_MAX_BITS below.
  * - Add the corresponding MBEDTLS_ECP_DP_xxx_ENABLED macro definition to
- *   config.h.
+ *   mbedtls_config.h.
  * - List the curve as a dependency of MBEDTLS_ECP_C and
  *   MBEDTLS_ECDSA_C if supported in check_config.h.
  * - Add the curve to the appropriate curve type macro
@@ -248,14 +244,15 @@ mbedtls_ecp_group;
  * \name SECTION: Module settings
  *
  * The configuration options you can set for this module are in this section.
- * Either change them in config.h, or define them using the compiler command line.
+ * Either change them in mbedtls_config.h, or define them using the compiler command line.
  * \{
  */
 
 #if !defined(MBEDTLS_ECP_WINDOW_SIZE)
 /*
  * Maximum "window" size used for point multiplication.
- * Default: 6.
+ * Default: a point where higher memory usage yields disminishing performance
+ *          returns.
  * Minimum value: 2. Maximum value: 7.
  *
  * Result is an array of at most ( 1 << ( MBEDTLS_ECP_WINDOW_SIZE - 1 ) )
@@ -272,7 +269,7 @@ mbedtls_ecp_group;
  *      224       475     475     453     398     342
  *      192       640     640     633     587     476
  */
-#define MBEDTLS_ECP_WINDOW_SIZE    6   /**< The maximum window size used. */
+#define MBEDTLS_ECP_WINDOW_SIZE    4   /**< The maximum window size used. */
 #endif /* MBEDTLS_ECP_WINDOW_SIZE */
 
 #if !defined(MBEDTLS_ECP_FIXED_POINT_OPTIM)
@@ -505,8 +502,7 @@ mbedtls_ecp_curve_type mbedtls_ecp_get_type( const mbedtls_ecp_group *grp );
 
 /**
  * \brief           This function retrieves the information defined in
- *                  mbedtls_ecp_curve_info() for all supported curves in order
- *                  of preference.
+ *                  mbedtls_ecp_curve_info() for all supported curves.
  *
  * \note            This function returns information about all curves
  *                  supported by the library. Some curves may not be
@@ -911,15 +907,8 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp,
  * \note            To prevent timing attacks, this function
  *                  executes the exact same sequence of base-field
  *                  operations for any valid \p m. It avoids any if-branch or
- *                  array index depending on the value of \p m.
- *
- * \note            If \p f_rng is not NULL, it is used to randomize
- *                  intermediate results to prevent potential timing attacks
- *                  targeting these results. We recommend always providing
- *                  a non-NULL \p f_rng. The overhead is negligible.
- *                  Note: unless #MBEDTLS_ECP_NO_INTERNAL_RNG is defined, when
- *                  \p f_rng is NULL, an internal RNG (seeded from the value
- *                  of \p m) will be used instead.
+ *                  array index depending on the value of \p m. If also uses
+ *                  \p f_rng to randomize some intermediate results.
  *
  * \param grp       The ECP group to use.
  *                  This must be initialized and have group parameters
@@ -928,9 +917,9 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp,
  *                  This must be initialized.
  * \param m         The integer by which to multiply. This must be initialized.
  * \param P         The point to multiply. This must be initialized.
- * \param f_rng     The RNG function. This may be \c NULL if randomization
- *                  of intermediate results isn't desired (discouraged).
- * \param p_rng     The RNG context to be passed to \p p_rng.
+ * \param f_rng     The RNG function. This must not be \c NULL.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may be \c
+ *                  NULL if \p f_rng doesn't need a context.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_ECP_INVALID_KEY if \p m is not a valid private
@@ -959,9 +948,9 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  This must be initialized.
  * \param m         The integer by which to multiply. This must be initialized.
  * \param P         The point to multiply. This must be initialized.
- * \param f_rng     The RNG function. This may be \c NULL if randomization
- *                  of intermediate results isn't desired (discouraged).
- * \param p_rng     The RNG context to be passed to \p p_rng.
+ * \param f_rng     The RNG function. This must not be \c NULL.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may be \c
+ *                  NULL if \p f_rng doesn't need a context.
  * \param rs_ctx    The restart context (NULL disables restart).
  *
  * \return          \c 0 on success.
@@ -1265,14 +1254,18 @@ int mbedtls_ecp_write_key( mbedtls_ecp_keypair *key,
  *                  part is ignored.
  * \param prv       The keypair structure holding the full keypair.
  *                  This must be initialized.
+ * \param f_rng     The RNG function. This must not be \c NULL.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may be \c
+ *                  NULL if \p f_rng doesn't need a context.
  *
  * \return          \c 0 on success, meaning that the keys are valid and match.
  * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if the keys are invalid or do not match.
  * \return          An \c MBEDTLS_ERR_ECP_XXX or an \c MBEDTLS_ERR_MPI_XXX
  *                  error code on calculation failure.
  */
-int mbedtls_ecp_check_pub_priv( const mbedtls_ecp_keypair *pub,
-                                const mbedtls_ecp_keypair *prv );
+int mbedtls_ecp_check_pub_priv(
+        const mbedtls_ecp_keypair *pub, const mbedtls_ecp_keypair *prv,
+        int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 #if defined(MBEDTLS_SELF_TEST)
 

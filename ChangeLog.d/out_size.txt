@@ -1,0 +1,5 @@
+API changes
+   * The functions mbedtls_pk_sign(), mbedtls_pk_sign_restartable(),
+     mbedtls_ecdsa_write_signature() and
+     mbedtls_ecdsa_write_signature_restartable() now take an extra parameter
+     indicating the size of the output buffer for the signature.

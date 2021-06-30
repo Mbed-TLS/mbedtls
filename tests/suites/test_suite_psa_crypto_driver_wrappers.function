@@ -1118,7 +1118,31 @@ void mac_sign( int key_type_arg,
     ASSERT_ALLOC( actual_mac, mac_buffer_size );
     mbedtls_test_driver_mac_hooks.forced_status = forced_status;
 
-    /* Calculate the MAC. */
+    /*
+     * Calculate the MAC, one-shot case.
+     */
+    status = psa_mac_compute( key, alg,
+                              input->x, input->len,
+                              actual_mac, mac_buffer_size,
+                              &mac_length );
+
+    TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
+    if( forced_status == PSA_SUCCESS ||
+        forced_status == PSA_ERROR_NOT_SUPPORTED )
+    {
+        PSA_ASSERT( status );
+    }
+    else
+        TEST_EQUAL( forced_status, status );
+
+    if( mac_buffer_size > 0 )
+        memset( actual_mac, 0, mac_buffer_size );
+    mbedtls_test_driver_mac_hooks = mbedtls_test_driver_mac_hooks_init();
+    mbedtls_test_driver_mac_hooks.forced_status = forced_status;
+
+    /*
+     * Calculate the MAC, multipart case.
+     */
     status = psa_mac_sign_setup( &operation, key, alg );
     TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
 
@@ -1214,7 +1238,27 @@ void mac_verify( int key_type_arg,
 
     mbedtls_test_driver_mac_hooks.forced_status = forced_status;
 
-    /* Test the correct MAC. */
+    /*
+     * Verify the MAC, one-shot case.
+     */
+    status = psa_mac_verify( key, alg,
+                             input->x, input->len,
+                             expected_mac->x, expected_mac->len );
+    TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
+    if( forced_status == PSA_SUCCESS ||
+        forced_status == PSA_ERROR_NOT_SUPPORTED )
+    {
+        PSA_ASSERT( status );
+    }
+    else
+        TEST_EQUAL( forced_status, status );
+
+    mbedtls_test_driver_mac_hooks = mbedtls_test_driver_mac_hooks_init();
+    mbedtls_test_driver_mac_hooks.forced_status = forced_status;
+
+    /*
+     * Verify the MAC, multi-part case.
+     */
     status = psa_mac_verify_setup( &operation, key, alg );
     TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
 

@@ -800,7 +800,8 @@ int mbedtls_endpoint_certificate_init( mbedtls_endpoint *ep, int pk_alg )
 
             ret = mbedtls_pk_parse_key( &( cert->pkey ),
                             (const unsigned char*) mbedtls_test_srv_key_rsa_der,
-                            mbedtls_test_srv_key_rsa_der_len, NULL, 0 );
+                            mbedtls_test_srv_key_rsa_der_len, NULL, 0,
+                            mbedtls_test_rnd_std_rand, NULL );
             TEST_ASSERT( ret == 0 );
         }
         else
@@ -812,7 +813,8 @@ int mbedtls_endpoint_certificate_init( mbedtls_endpoint *ep, int pk_alg )
 
             ret = mbedtls_pk_parse_key( &( cert->pkey ),
                             (const unsigned char*) mbedtls_test_srv_key_ec_der,
-                            mbedtls_test_srv_key_ec_der_len, NULL, 0 );
+                            mbedtls_test_srv_key_ec_der_len, NULL, 0,
+                            mbedtls_test_rnd_std_rand, NULL );
             TEST_ASSERT( ret == 0 );
         }
     }
@@ -827,7 +829,8 @@ int mbedtls_endpoint_certificate_init( mbedtls_endpoint *ep, int pk_alg )
 
             ret = mbedtls_pk_parse_key( &( cert->pkey ),
                           (const unsigned char *) mbedtls_test_cli_key_rsa_der,
-                          mbedtls_test_cli_key_rsa_der_len, NULL, 0 );
+                          mbedtls_test_cli_key_rsa_der_len, NULL, 0,
+                          mbedtls_test_rnd_std_rand, NULL );
             TEST_ASSERT( ret == 0 );
         }
         else
@@ -839,7 +842,8 @@ int mbedtls_endpoint_certificate_init( mbedtls_endpoint *ep, int pk_alg )
 
             ret = mbedtls_pk_parse_key( &( cert->pkey ),
                           (const unsigned char *) mbedtls_test_cli_key_ec_der,
-                          mbedtls_test_cli_key_ec_der_len, NULL, 0 );
+                          mbedtls_test_cli_key_ec_der_len, NULL, 0,
+                          mbedtls_test_rnd_std_rand, NULL );
             TEST_ASSERT( ret == 0 );
         }
     }
@@ -1503,9 +1507,6 @@ static int ssl_populate_session( mbedtls_ssl_session *session,
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     session->mfl_code = 1;
-#endif
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    session->trunc_hmac = 1;
 #endif
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     session->encrypt_then_mac = 1;
@@ -4076,10 +4077,6 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file )
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     TEST_ASSERT( original.mfl_code == restored.mfl_code );
-#endif
-
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    TEST_ASSERT( original.trunc_hmac == restored.trunc_hmac );
 #endif
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)

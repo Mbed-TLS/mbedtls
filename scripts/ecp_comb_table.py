@@ -126,7 +126,7 @@ int main()
     }
     if ( grp.T == NULL ) {
         fprintf( stderr, "grp.T is not generated. Please make sure"
-                         "MBEDTLS_ECP_FIXED_POINT_OPTIM is enabled in config.h\n" );
+                         "MBEDTLS_ECP_FIXED_POINT_OPTIM is enabled in mbedtls_config.h\n" );
         return 1;
     }
     dump_T( &grp );

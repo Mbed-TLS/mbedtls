@@ -123,7 +123,8 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n )
  * Load and parse a private key
  */
 int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
-                      const char *path, const char *pwd )
+        const char *path, const char *pwd,
+        int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
@@ -136,10 +137,10 @@ int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
         return( ret );
 
     if( pwd == NULL )
-        ret = mbedtls_pk_parse_key( ctx, buf, n, NULL, 0 );
+        ret = mbedtls_pk_parse_key( ctx, buf, n, NULL, 0, f_rng, p_rng );
     else
         ret = mbedtls_pk_parse_key( ctx, buf, n,
-                (const unsigned char *) pwd, strlen( pwd ) );
+                (const unsigned char *) pwd, strlen( pwd ), f_rng, p_rng );
 
     mbedtls_platform_zeroize( buf, n );
     mbedtls_free( buf );
@@ -859,8 +860,8 @@ cleanup:
  * Parse a SEC1 encoded private EC key
  */
 static int pk_parse_key_sec1_der( mbedtls_ecp_keypair *eck,
-                                  const unsigned char *key,
-                                  size_t keylen )
+        const unsigned char *key, size_t keylen,
+        int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     int version, pubkey_done;
@@ -967,7 +968,7 @@ static int pk_parse_key_sec1_der( mbedtls_ecp_keypair *eck,
 
     if( ! pubkey_done &&
         ( ret = mbedtls_ecp_mul( &eck->grp, &eck->Q, &eck->d, &eck->grp.G,
-                                                      NULL, NULL ) ) != 0 )
+                                 f_rng, p_rng ) ) != 0 )
     {
         mbedtls_ecp_keypair_free( eck );
         return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret ) );
@@ -997,9 +998,9 @@ static int pk_parse_key_sec1_der( mbedtls_ecp_keypair *eck,
  *
  */
 static int pk_parse_key_pkcs8_unencrypted_der(
-                                    mbedtls_pk_context *pk,
-                                    const unsigned char* key,
-                                    size_t keylen )
+        mbedtls_pk_context *pk,
+        const unsigned char* key, size_t keylen,
+        int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret, version;
     size_t len;
@@ -1008,6 +1009,11 @@ static int pk_parse_key_pkcs8_unencrypted_der(
     unsigned char *end = p + keylen;
     mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
     const mbedtls_pk_info_t *pk_info;
+
+#if !defined(MBEDTLS_ECP_C)
+    (void) f_rng;
+    (void) p_rng;
+#endif
 
     /*
      * This function parses the PrivateKeyInfo object (PKCS#8 v1.2 = RFC 5208)
@@ -1071,7 +1077,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
     if( pk_alg == MBEDTLS_PK_ECKEY || pk_alg == MBEDTLS_PK_ECKEY_DH )
     {
         if( ( ret = pk_use_ecparams( &params, &mbedtls_pk_ec( *pk )->grp ) ) != 0 ||
-            ( ret = pk_parse_key_sec1_der( mbedtls_pk_ec( *pk ), p, len )  ) != 0 )
+            ( ret = pk_parse_key_sec1_der( mbedtls_pk_ec( *pk ), p, len, f_rng, p_rng ) ) != 0 )
         {
             mbedtls_pk_free( pk );
             return( ret );
@@ -1094,9 +1100,10 @@ static int pk_parse_key_pkcs8_unencrypted_der(
  */
 #if defined(MBEDTLS_PKCS12_C) || defined(MBEDTLS_PKCS5_C)
 static int pk_parse_key_pkcs8_encrypted_der(
-                                    mbedtls_pk_context *pk,
-                                    unsigned char *key, size_t keylen,
-                                    const unsigned char *pwd, size_t pwdlen )
+        mbedtls_pk_context *pk,
+        unsigned char *key, size_t keylen,
+        const unsigned char *pwd, size_t pwdlen,
+        int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret, decrypted = 0;
     size_t len;
@@ -1163,24 +1170,6 @@ static int pk_parse_key_pkcs8_encrypted_der(
 
         decrypted = 1;
     }
-    else if( MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS12_PBE_SHA1_RC4_128, &pbe_alg_oid ) == 0 )
-    {
-        if( ( ret = mbedtls_pkcs12_pbe_sha1_rc4_128( &pbe_params,
-                                             MBEDTLS_PKCS12_PBE_DECRYPT,
-                                             pwd, pwdlen,
-                                             p, len, buf ) ) != 0 )
-        {
-            return( ret );
-        }
-
-        // Best guess for password mismatch when using RC4. If first tag is
-        // not MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE
-        //
-        if( *buf != ( MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) )
-            return( MBEDTLS_ERR_PK_PASSWORD_MISMATCH );
-
-        decrypted = 1;
-    }
     else
 #endif /* MBEDTLS_PKCS12_C */
 #if defined(MBEDTLS_PKCS5_C)
@@ -1206,7 +1195,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
     if( decrypted == 0 )
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 
-    return( pk_parse_key_pkcs8_unencrypted_der( pk, buf, len ) );
+    return( pk_parse_key_pkcs8_unencrypted_der( pk, buf, len, f_rng, p_rng ) );
 }
 #endif /* MBEDTLS_PKCS12_C || MBEDTLS_PKCS5_C */
 
@@ -1215,7 +1204,8 @@ static int pk_parse_key_pkcs8_encrypted_der(
  */
 int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
                   const unsigned char *key, size_t keylen,
-                  const unsigned char *pwd, size_t pwdlen )
+                  const unsigned char *pwd, size_t pwdlen,
+                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_pk_info_t *pk_info;
@@ -1278,7 +1268,8 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
 
         if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 ||
             ( ret = pk_parse_key_sec1_der( mbedtls_pk_ec( *pk ),
-                                           pem.buf, pem.buflen ) ) != 0 )
+                                           pem.buf, pem.buflen,
+                                           f_rng, p_rng ) ) != 0 )
         {
             mbedtls_pk_free( pk );
         }
@@ -1305,7 +1296,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     if( ret == 0 )
     {
         if( ( ret = pk_parse_key_pkcs8_unencrypted_der( pk,
-                                                pem.buf, pem.buflen ) ) != 0 )
+                        pem.buf, pem.buflen, f_rng, p_rng ) ) != 0 )
         {
             mbedtls_pk_free( pk );
         }
@@ -1327,9 +1318,8 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
                                key, NULL, 0, &len );
     if( ret == 0 )
     {
-        if( ( ret = pk_parse_key_pkcs8_encrypted_der( pk,
-                                                      pem.buf, pem.buflen,
-                                                      pwd, pwdlen ) ) != 0 )
+        if( ( ret = pk_parse_key_pkcs8_encrypted_der( pk, pem.buf, pem.buflen,
+                        pwd, pwdlen, f_rng, p_rng ) ) != 0 )
         {
             mbedtls_pk_free( pk );
         }
@@ -1362,7 +1352,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
         memcpy( key_copy, key, keylen );
 
         ret = pk_parse_key_pkcs8_encrypted_der( pk, key_copy, keylen,
-                                                pwd, pwdlen );
+                                                pwd, pwdlen, f_rng, p_rng );
 
         mbedtls_platform_zeroize( key_copy, keylen );
         mbedtls_free( key_copy );
@@ -1380,8 +1370,11 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     }
 #endif /* MBEDTLS_PKCS12_C || MBEDTLS_PKCS5_C */
 
-    if( ( ret = pk_parse_key_pkcs8_unencrypted_der( pk, key, keylen ) ) == 0 )
+    if( ( ret = pk_parse_key_pkcs8_unencrypted_der(
+                    pk, key, keylen, f_rng, p_rng ) ) == 0 )
+    {
         return( 0 );
+    }
 
     mbedtls_pk_free( pk );
     mbedtls_pk_init( pk );
@@ -1403,7 +1396,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY );
     if( mbedtls_pk_setup( pk, pk_info ) == 0 &&
         pk_parse_key_sec1_der( mbedtls_pk_ec( *pk ),
-                               key, keylen ) == 0 )
+                               key, keylen, f_rng, p_rng ) == 0 )
     {
         return( 0 );
     }

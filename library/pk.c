@@ -396,7 +396,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
 int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
              mbedtls_md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,
-             unsigned char *sig, size_t *sig_len,
+             unsigned char *sig, size_t sig_size, size_t *sig_len,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
              mbedtls_pk_restart_ctx *rs_ctx )
 {
@@ -421,7 +421,9 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
             return( ret );
 
         ret = ctx->pk_info->sign_rs_func( ctx->pk_ctx, md_alg,
-                hash, hash_len, sig, sig_len, f_rng, p_rng, rs_ctx->rs_ctx );
+                                          hash, hash_len,
+                                          sig, sig_size, sig_len,
+                                          f_rng, p_rng, rs_ctx->rs_ctx );
 
         if( ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
             mbedtls_pk_restart_free( rs_ctx );
@@ -435,8 +437,10 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
     if( ctx->pk_info->sign_func == NULL )
         return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
 
-    return( ctx->pk_info->sign_func( ctx->pk_ctx, md_alg, hash, hash_len,
-                                     sig, sig_len, f_rng, p_rng ) );
+    return( ctx->pk_info->sign_func( ctx->pk_ctx, md_alg,
+                                     hash, hash_len,
+                                     sig, sig_size, sig_len,
+                                     f_rng, p_rng ) );
 }
 
 /*
@@ -444,11 +448,12 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
  */
 int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,
-             unsigned char *sig, size_t *sig_len,
+             unsigned char *sig, size_t sig_size, size_t *sig_len,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     return( mbedtls_pk_sign_restartable( ctx, md_alg, hash, hash_len,
-                                         sig, sig_len, f_rng, p_rng, NULL ) );
+                                         sig, sig_size, sig_len,
+                                         f_rng, p_rng, NULL ) );
 }
 
 /*
@@ -500,7 +505,10 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
 /*
  * Check public-private key pair
  */
-int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv )
+int mbedtls_pk_check_pair( const mbedtls_pk_context *pub,
+                           const mbedtls_pk_context *prv,
+                           int (*f_rng)(void *, unsigned char *, size_t),
+                           void *p_rng )
 {
     PK_VALIDATE_RET( pub != NULL );
     PK_VALIDATE_RET( prv != NULL );
@@ -510,6 +518,9 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
     {
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
     }
+
+    if( f_rng == NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     if( prv->pk_info->check_pair_func == NULL )
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
@@ -525,7 +536,7 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
             return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
     }
 
-    return( prv->pk_info->check_pair_func( pub->pk_ctx, prv->pk_ctx ) );
+    return( prv->pk_info->check_pair_func( pub->pk_ctx, prv->pk_ctx, f_rng, p_rng ) );
 }
 
 /*

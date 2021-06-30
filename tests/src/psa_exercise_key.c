@@ -316,13 +316,14 @@ static int exercise_signature_key( mbedtls_svc_key_id_t key,
     #endif
         }
 
+        /* Some algorithms require the payload to have the size of
+         * the hash encoded in the algorithm. Use this input size
+         * even for algorithms that allow other input sizes. */
+        if( hash_alg != 0 )
+            payload_length = PSA_HASH_LENGTH( hash_alg );
+
         if( usage & PSA_KEY_USAGE_SIGN_HASH )
         {
-            /* Some algorithms require the payload to have the size of
-             * the hash encoded in the algorithm. Use this input size
-             * even for algorithms that allow other input sizes. */
-            if( hash_alg != 0 )
-                payload_length = PSA_HASH_LENGTH( hash_alg );
             PSA_ASSERT( psa_sign_hash( key, alg,
                                        payload, payload_length,
                                        signature, sizeof( signature ),

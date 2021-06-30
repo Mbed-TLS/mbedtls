@@ -19,11 +19,3 @@ RSA verification functions also no longer take random generator arguments (this
 was only needed when using a private key). This affects all applications using
 the RSA verify functions.
 
-RNG is now mandatory in all RSA private key operations
-------------------------------------------------------
-
-The random generator is now mandatory for blinding in all RSA private-key
-operations (`mbedtls_rsa_private`, `mbedtls_rsa_xxx_sign`,
-`mbedtls_rsa_xxx_decrypt`) as well as for encryption
-(`mbedtls_rsa_xxx_encrypt`). This means that passing a null `f_rng` is no longer
-supported.

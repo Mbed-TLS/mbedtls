@@ -15,7 +15,7 @@ MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 This macro will likely be renamed to `MBEDTLS_SSL_PROTO_TLS1_3` once a minimal viable
 implementation of the TLS 1.3 protocol is available.
 
-See the [documentation of `MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL`](../../include/mbedtls/config.h)
+See the [documentation of `MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL`](../../include/mbedtls/mbedtls_config.h)
 for more information.
 
 Status

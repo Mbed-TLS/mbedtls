@@ -32,11 +32,7 @@
 #define MBEDTLS_GCM_H
 #include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include "mbedtls/cipher.h"
 
@@ -246,11 +242,6 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
  *                  you do not need to call this function. You may not
  *                  call this function after calling mbedtls_cipher_update().
  *
- * \note            This function may only be called once per operation:
- *                  you must pass the whole associated data in a single
- *                  call. This limitation will be lifted in a future version
- *                  of Mbed TLS.
- *
  * \param ctx       The GCM context. This must have been started with
  *                  mbedtls_gcm_starts() and must not have yet received
  *                  any input with mbedtls_gcm_update().
@@ -344,6 +335,10 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
  *                    then mbedtls_gcm_finish() never produces any output,
  *                    so \p output_size can be \c 0.
  *                  - \p output_size never needs to be more than \c 15.
+ * \param output_length On success, \p *output_length contains the actual
+ *                      length of the output written in \p output.
+ *                      On failure, the content of \p *output_length is
+ *                      unspecified.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_GCM_BAD_INPUT on failure:
@@ -352,6 +347,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
  */
 int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
                         unsigned char *output, size_t output_size,
+                        size_t *output_length,
                         unsigned char *tag, size_t tag_len );
 
 /**

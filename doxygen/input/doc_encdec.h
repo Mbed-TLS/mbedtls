@@ -45,15 +45,11 @@
  * - Symmetric:
  *   - AES (see \c mbedtls_aes_crypt_ecb(), \c mbedtls_aes_crypt_cbc(), \c mbedtls_aes_crypt_cfb128() and
  *     \c mbedtls_aes_crypt_ctr()).
- *   - ARCFOUR (see \c mbedtls_arc4_crypt()).
- *   - Blowfish / BF (see \c mbedtls_blowfish_crypt_ecb(), \c mbedtls_blowfish_crypt_cbc(),
- *     \c mbedtls_blowfish_crypt_cfb64() and \c mbedtls_blowfish_crypt_ctr())
  *   - Camellia (see \c mbedtls_camellia_crypt_ecb(), \c mbedtls_camellia_crypt_cbc(),
  *     \c mbedtls_camellia_crypt_cfb128() and \c mbedtls_camellia_crypt_ctr()).
  *   - DES/3DES (see \c mbedtls_des_crypt_ecb(), \c mbedtls_des_crypt_cbc(), \c mbedtls_des3_crypt_ecb()
  *     and \c mbedtls_des3_crypt_cbc()).
  *   - GCM (AES-GCM and CAMELLIA-GCM) (see \c mbedtls_gcm_init())
- *   - XTEA (see \c mbedtls_xtea_crypt_ecb()).
  * - Asymmetric:
  *   - Diffie-Hellman-Merkle (see \c mbedtls_dhm_read_public(), \c mbedtls_dhm_make_public()
  *     and \c mbedtls_dhm_calc_secret()).

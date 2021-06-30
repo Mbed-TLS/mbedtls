@@ -6,4 +6,3 @@ API changes
      decryption functions now always use the private key and verification and
      encryption use the public key. Verification functions also no longer have
      RNG parameters.
-   * The RNG is now mandatory for all private-key RSA operations.

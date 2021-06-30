@@ -30,7 +30,7 @@
 #
 # The tests focus on functionality and do not consider performance.
 #
-# Note the tests self-adapt due to configurations in include/mbedtls/config.h
+# Note the tests self-adapt due to configurations in include/mbedtls/mbedtls_config.h
 # which can lead to some tests being skipped, and can cause the number of
 # available tests to fluctuate.
 #
@@ -68,7 +68,7 @@ export OPENSSL_CMD="$OPENSSL"
 export GNUTLS_CLI="$GNUTLS_CLI"
 export GNUTLS_SERV="$GNUTLS_SERV"
 
-CONFIG_H='include/mbedtls/config.h'
+CONFIG_H='include/mbedtls/mbedtls_config.h'
 CONFIG_BAK="$CONFIG_H.bak"
 
 # Step 0 - print build environment info
@@ -118,10 +118,10 @@ echo '################ compat.sh ################'
     sh compat.sh -m 'tls1_2 dtls1_2'
     echo
 
-    echo '#### compat.sh: legacy (null, DES, RC4)'
+    echo '#### compat.sh: legacy (null, DES)'
     OPENSSL_CMD="$OPENSSL_LEGACY" \
     GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" \
-    sh compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
+    sh compat.sh -e '^$' -f 'NULL\|DES'
     echo
 
     echo '#### compat.sh: next (ARIA, ChaCha)'

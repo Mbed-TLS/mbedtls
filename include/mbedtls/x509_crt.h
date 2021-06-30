@@ -23,11 +23,7 @@
 #define MBEDTLS_X509_CRT_H
 #include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include "mbedtls/x509.h"
 #include "mbedtls/x509_crl.h"
@@ -156,13 +152,33 @@ mbedtls_x509_subject_alternative_name;
  * Security profile for certificate verification.
  *
  * All lists are bitfields, built by ORing flags from MBEDTLS_X509_ID_FLAG().
+ *
+ * The fields of this structure are part of the public API and can be
+ * manipulated directly by applications. Future versions of the library may
+ * add extra fields or reorder existing fields.
+ *
+ * You can create custom profiles by starting from a copy of
+ * an existing profile, such as mbedtls_x509_crt_profile_default or
+ * mbedtls_x509_ctr_profile_none and then tune it to your needs.
+ *
+ * For example to allow SHA-224 in addition to the default:
+ *
+ *  mbedtls_x509_crt_profile my_profile = mbedtls_x509_crt_profile_default;
+ *  my_profile.allowed_mds |= MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA224 );
+ *
+ * Or to allow only RSA-3072+ with SHA-256:
+ *
+ *  mbedtls_x509_crt_profile my_profile = mbedtls_x509_crt_profile_none;
+ *  my_profile.allowed_mds = MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 );
+ *  my_profile.allowed_pks = MBEDTLS_X509_ID_FLAG( MBEDTLS_PK_RSA );
+ *  my_profile.rsa_min_bitlen = 3072;
  */
 typedef struct mbedtls_x509_crt_profile
 {
-    uint32_t MBEDTLS_PRIVATE(allowed_mds);       /**< MDs for signatures         */
-    uint32_t MBEDTLS_PRIVATE(allowed_pks);       /**< PK algs for signatures     */
-    uint32_t MBEDTLS_PRIVATE(allowed_curves);    /**< Elliptic curves for ECDSA  */
-    uint32_t MBEDTLS_PRIVATE(rsa_min_bitlen);    /**< Minimum size for RSA keys  */
+    uint32_t allowed_mds;       /**< MDs for signatures         */
+    uint32_t allowed_pks;       /**< PK algs for signatures     */
+    uint32_t allowed_curves;    /**< Elliptic curves for ECDSA  */
+    uint32_t rsa_min_bitlen;    /**< Minimum size for RSA keys  */
 }
 mbedtls_x509_crt_profile;
 
@@ -332,12 +348,22 @@ typedef void mbedtls_x509_crt_restart_ctx;
 /**
  * Default security profile. Should provide a good balance between security
  * and compatibility with current deployments.
+ *
+ * This profile permits:
+ * - SHA2 hashes with at least 256 bits: SHA-256, SHA-384, SHA-512.
+ * - Elliptic curves with 255 bits and above except secp256k1.
+ * - RSA with 2048 bits and above.
+ *
+ * New minor versions of Mbed TLS may extend this profile, for example if
+ * new algorithms are added to the library. New minor versions of Mbed TLS will
+ * not reduce this profile unless serious security concerns require it.
  */
 extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default;
 
 /**
  * Expected next default profile. Recommended for new deployments.
- * Currently targets a 128-bit security level, except for RSA-2048.
+ * Currently targets a 128-bit security level, except for allowing RSA-2048.
+ * This profile may change at any time.
  */
 extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next;
 
@@ -345,6 +371,12 @@ extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next;
  * NSA Suite B profile.
  */
 extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb;
+
+/**
+ * Empty profile that allows nothing. Useful as a basis for constructing
+ * custom profiles.
+ */
+extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_none;
 
 /**
  * \brief          Parse a single DER formatted certificate and add it
@@ -1108,16 +1140,13 @@ void mbedtls_x509write_crt_free( mbedtls_x509write_cert *ctx );
  * \param ctx       certificate to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
- * \param f_rng     RNG function (for signature, see note)
+ * \param f_rng     RNG function. This must not be \c NULL.
  * \param p_rng     RNG parameter
  *
  * \return          length of data written if successful, or a specific
  *                  error code
  *
- * \note            f_rng may be NULL if RSA is used for signature and the
- *                  signature is made offline (otherwise f_rng is desirable
- *                  for countermeasures against timing attacks).
- *                  ECDSA signatures always require a non-NULL f_rng.
+ * \note            \p f_rng is used for the signature operation.
  */
 int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, size_t size,
                        int (*f_rng)(void *, unsigned char *, size_t),
@@ -1130,15 +1159,12 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, 
  * \param ctx       certificate to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
- * \param f_rng     RNG function (for signature, see note)
+ * \param f_rng     RNG function. This must not be \c NULL.
  * \param p_rng     RNG parameter
  *
  * \return          0 if successful, or a specific error code
  *
- * \note            f_rng may be NULL if RSA is used for signature and the
- *                  signature is made offline (otherwise f_rng is desirable
- *                  for countermeasures against timing attacks).
- *                  ECDSA signatures always require a non-NULL f_rng.
+ * \note            \p f_rng is used for the signature operation.
  */
 int mbedtls_x509write_crt_pem( mbedtls_x509write_cert *ctx, unsigned char *buf, size_t size,
                        int (*f_rng)(void *, unsigned char *, size_t),

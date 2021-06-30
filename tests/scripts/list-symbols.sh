@@ -27,7 +27,7 @@ if grep -i cmake Makefile >/dev/null; then
     exit 1
 fi
 
-cp include/mbedtls/config.h include/mbedtls/config.h.bak
+cp include/mbedtls/mbedtls_config.h include/mbedtls/mbedtls_config.h.bak
 scripts/config.py full
 make clean
 make_ret=
@@ -39,7 +39,7 @@ CFLAGS=-fno-asynchronous-unwind-tables make lib \
     cat list-symbols.make.log >&2
   }
 rm list-symbols.make.log
-mv include/mbedtls/config.h.bak include/mbedtls/config.h
+mv include/mbedtls/mbedtls_config.h.bak include/mbedtls/mbedtls_config.h
 if [ -n "$make_ret" ]; then
     exit "$make_ret"
 fi

@@ -1109,9 +1109,14 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
 
 #if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
+    {
+        size_t output_length;
+        /* The code here doesn't yet support alternative implementations
+         * that can delay up to a block of output. */
         return( mbedtls_gcm_finish( (mbedtls_gcm_context *) ctx->cipher_ctx,
-                                    NULL, 0,
+                                    NULL, 0, &output_length,
                                     tag, tag_len ) );
+    }
 #endif
 
 #if defined(MBEDTLS_CHACHAPOLY_C)
@@ -1158,12 +1163,16 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
 #if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
     {
+        size_t output_length;
+        /* The code here doesn't yet support alternative implementations
+         * that can delay up to a block of output. */
+
         if( tag_len > sizeof( check_tag ) )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
         if( 0 != ( ret = mbedtls_gcm_finish(
                        (mbedtls_gcm_context *) ctx->cipher_ctx,
-                       NULL, 0,
+                       NULL, 0, &output_length,
                        check_tag, tag_len ) ) )
         {
             return( ret );

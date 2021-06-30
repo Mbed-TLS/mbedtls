@@ -20,9 +20,9 @@ NIST KW init #4 AES-224: bad key size
 depends_on:MBEDTLS_AES_C
 mbedtls_nist_kw_setkey:MBEDTLS_CIPHER_ID_AES:224:1:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
 
-NIST KW init #5 BLOWFISH-128: bad cipher
-depends_on:MBEDTLS_BLOWFISH_C
-mbedtls_nist_kw_setkey:MBEDTLS_CIPHER_ID_BLOWFISH:128:0:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+NIST KW init #5 3DES: bad cipher
+depends_on:MBEDTLS_DES_C
+mbedtls_nist_kw_setkey:MBEDTLS_CIPHER_ID_3DES:128:0:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
 
 NIST KW lengths #1 KW plaintext OK (2 to 2^54 - 1 semiblocks)
 nist_kw_plaintext_lengths:16:24:MBEDTLS_KW_MODE_KW:0

@@ -163,8 +163,6 @@ static psa_status_t cipher_setup(
 
     (void)key_buffer_size;
 
-    /* Proceed with initializing an mbed TLS cipher context if no driver is
-     * available for the given algorithm & key. */
     mbedtls_cipher_init( &operation->ctx.cipher );
 
     operation->alg = alg;

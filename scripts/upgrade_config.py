@@ -26,7 +26,7 @@ import functools
 import os
 import re
 import sys
-from typing import List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from mbedtls_dev import typing_util
 
@@ -139,6 +139,24 @@ class Directive:
         self.trail = text[m.end():] #type: str
 
 
+def upgrader(before_string: str) -> Callable[['Upgrader'], 'Upgrader']:
+    """Decorator for configuration upgrader methods.
+
+    To declare a method of the `Configuration` class as an upgrader,
+    decorate it with ``@upgrader(VERSION)`` (e.g. ``@upgrader('3.0')``).
+    The upgrader will be applied if the old configuration version is less
+    than VERSION. In other words, it will be called when upgrading to or
+    past VERSION, but not when upgrading from VERSION or newer.
+
+    An upgrader method must take no arguments other than self and return
+    nothing.
+    """
+    before_version = VersionNumber(before_string)
+    def register(func: 'Upgrader') -> 'Upgrader':
+        setattr(func, 'before_version', before_version)
+        return func
+    return register
+
 class Configuration():
     """A representation of an Mbed TLS configuration file."""
 
@@ -202,7 +220,18 @@ class Configuration():
 
         You must load a configuration and call `analyze` first.
         """
-        pass
+        for method_name in dir(self):
+            if method_name.startswith('_'):
+                continue
+            method = getattr(self, method_name)
+            if not hasattr(method, '__call__'):
+                continue
+            if not hasattr(method, 'before_version'):
+                continue
+            before_version = getattr(method, 'before_version')
+            assert isinstance(before_version, VersionNumber)
+            if self.content_version < before_version:
+                method()
 
     @staticmethod
     def maybe_backup(filename: str) -> None:
@@ -223,6 +252,10 @@ class Configuration():
         self.maybe_backup(filename)
         with open(filename, 'w') as out:
             self.write(out)
+
+Upgrader = Callable[[Configuration], None]
+"""The type of configuration upgrader methods."""
+
 
 
 def convert_config(

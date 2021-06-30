@@ -19,7 +19,7 @@ This module is entirely based on the PSA API.
 # limitations under the License.
 
 import re
-from typing import Iterable, Optional, Tuple
+from typing import Dict, Iterable, Optional, Pattern, Tuple
 
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
 
@@ -138,3 +138,18 @@ class KeyType:
             return des3[:length]
         return b''.join([self.DATA_BLOCK] * (length // len(self.DATA_BLOCK)) +
                         [self.DATA_BLOCK[:length % len(self.DATA_BLOCK)]])
+
+    KEY_TYPE_FOR_SIGNATURE = {
+        'PSA_KEY_USAGE_SIGN_HASH': re.compile('.*KEY_PAIR'),
+        'PSA_KEY_USAGE_VERIFY_HASH': re.compile('.*KEY.*')
+    } #type: Dict[str, Pattern]
+    """Use a regexp to determine key types for which signature is possible
+       when using the actual usage flag.
+    """
+    def is_valid_for_signature(self, usage: str) -> bool:
+        """Determine if the key type is compatible with the specified
+           signitute type.
+
+        """
+        # This is just temporaly solution for the implicit usage flags.
+        return re.match(self.KEY_TYPE_FOR_SIGNATURE[usage], self.name) is not None

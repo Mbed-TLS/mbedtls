@@ -1,0 +1,5 @@
+Changes
+   * Implicitly add PSA_KEY_USAGE_SIGN_MESSAGE key usage policy flag when
+     PSA_KEY_USAGE_SIGN_HASH flag is set and PSA_KEY_USAGE_VERIFY_MESSAGE flag
+     when PSA_KEY_USAGE_VERIFY_HASH flag is set. This usage flag extension
+     is also applied when loading a key from storage.

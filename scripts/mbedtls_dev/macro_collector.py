@@ -101,6 +101,7 @@ class PSAMacroEnumerator:
         self.kdf_algorithms = set() #type: Set[str]
         self.pake_algorithms = set() #type: Set[str]
         self.aead_algorithms = set() #type: Set[str]
+        self.sign_algorithms = set() #type: Set[str]
         # macro name -> list of argument names
         self.argspecs = {} #type: Dict[str, List[str]]
         # argument name -> list of values
@@ -135,6 +136,7 @@ class PSAMacroEnumerator:
         self.arguments_for['ka_alg'] = sorted(self.ka_algorithms)
         self.arguments_for['kdf_alg'] = sorted(self.kdf_algorithms)
         self.arguments_for['aead_alg'] = sorted(self.aead_algorithms)
+        self.arguments_for['sign_alg'] = sorted(self.sign_algorithms)
         self.arguments_for['curve'] = sorted(self.ecc_curves)
         self.arguments_for['group'] = sorted(self.dh_groups)
         self.arguments_for['persistence'] = sorted(self.persistence_levels)
@@ -368,11 +370,11 @@ enumerate
             'hash_algorithm': [self.hash_algorithms],
             'mac_algorithm': [self.mac_algorithms],
             'cipher_algorithm': [],
-            'hmac_algorithm': [self.mac_algorithms],
+            'hmac_algorithm': [self.mac_algorithms, self.sign_algorithms],
             'aead_algorithm': [self.aead_algorithms],
             'key_derivation_algorithm': [self.kdf_algorithms],
             'key_agreement_algorithm': [self.ka_algorithms],
-            'asymmetric_signature_algorithm': [],
+            'asymmetric_signature_algorithm': [self.sign_algorithms],
             'asymmetric_signature_wildcard': [self.algorithms],
             'asymmetric_encryption_algorithm': [],
             'pake_algorithm': [self.pake_algorithms],

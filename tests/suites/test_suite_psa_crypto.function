@@ -322,7 +322,8 @@ void import_with_policy( int type_arg,
 
     PSA_ASSERT( psa_get_key_attributes( key, &got_attributes ) );
     TEST_EQUAL( psa_get_key_type( &got_attributes ), type );
-    TEST_EQUAL( psa_get_key_usage_flags( &got_attributes ), usage );
+    TEST_EQUAL( psa_get_key_usage_flags( &got_attributes ),
+                mbedtls_test_update_key_usage_flags( usage ) );
     TEST_EQUAL( psa_get_key_algorithm( &got_attributes ), alg );
     ASSERT_NO_SLOT_NUMBER( &got_attributes );
 
@@ -743,7 +744,9 @@ void check_key_policy( int type_arg, int bits_arg,
                        int usage_arg, int alg_arg )
 {
     test_effective_key_attributes( type_arg, type_arg, bits_arg, bits_arg,
-                                   usage_arg, usage_arg, alg_arg, alg_arg );
+                                   usage_arg,
+                                   mbedtls_test_update_key_usage_flags( usage_arg ),
+                                   alg_arg, alg_arg );
     goto exit;
 }
 /* END_CASE */
@@ -784,16 +787,20 @@ void key_attributes_init( )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mac_key_policy( int policy_usage,
-                     int policy_alg,
-                     int key_type,
+void mac_key_policy( int policy_usage_arg,
+                     int policy_alg_arg,
+                     int key_type_arg,
                      data_t *key_data,
-                     int exercise_alg,
+                     int exercise_alg_arg,
                      int expected_status_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t policy_alg = policy_alg_arg;
+    psa_algorithm_t exercise_alg = exercise_alg_arg;
+    psa_key_usage_t policy_usage = policy_usage_arg;
     psa_status_t status;
     psa_status_t expected_status = expected_status_arg;
     unsigned char mac[PSA_MAC_MAX_SIZE];
@@ -806,6 +813,9 @@ void mac_key_policy( int policy_usage,
 
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
+
+    TEST_EQUAL( psa_get_key_usage_flags( &attributes ),
+                mbedtls_test_update_key_usage_flags( policy_usage ) );
 
     status = psa_mac_sign_setup( &operation, key, exercise_alg );
     if( ( policy_usage & PSA_KEY_USAGE_SIGN_HASH ) == 0 )
@@ -830,7 +840,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void cipher_key_policy( int policy_usage,
+void cipher_key_policy( int policy_usage_arg,
                         int policy_alg,
                         int key_type,
                         data_t *key_data,
@@ -839,6 +849,7 @@ void cipher_key_policy( int policy_usage,
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+    psa_key_usage_t policy_usage = policy_usage_arg;
     psa_status_t status;
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -849,6 +860,10 @@ void cipher_key_policy( int policy_usage,
 
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
+
+    /* Check if no key usage flag implication is done */
+    TEST_EQUAL( policy_usage,
+                mbedtls_test_update_key_usage_flags( policy_usage ) );
 
     status = psa_cipher_encrypt_setup( &operation, key, exercise_alg );
     if( policy_alg == exercise_alg &&
@@ -873,7 +888,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void aead_key_policy( int policy_usage,
+void aead_key_policy( int policy_usage_arg,
                       int policy_alg,
                       int key_type,
                       data_t *key_data,
@@ -884,6 +899,7 @@ void aead_key_policy( int policy_usage,
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_usage_t policy_usage = policy_usage_arg;
     psa_status_t status;
     psa_status_t expected_status = expected_status_arg;
     unsigned char nonce[16] = {0};
@@ -903,6 +919,10 @@ void aead_key_policy( int policy_usage,
 
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
+
+    /* Check if no key usage implication is done */
+    TEST_EQUAL( policy_usage,
+                mbedtls_test_update_key_usage_flags( policy_usage ) );
 
     status = psa_aead_encrypt( key, exercise_alg,
                                nonce, nonce_length,
@@ -936,7 +956,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void asymmetric_encryption_key_policy( int policy_usage,
+void asymmetric_encryption_key_policy( int policy_usage_arg,
                                        int policy_alg,
                                        int key_type,
                                        data_t *key_data,
@@ -944,6 +964,7 @@ void asymmetric_encryption_key_policy( int policy_usage,
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_usage_t policy_usage = policy_usage_arg;
     psa_status_t status;
     size_t key_bits;
     size_t buffer_length;
@@ -958,6 +979,10 @@ void asymmetric_encryption_key_policy( int policy_usage,
 
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
+
+    /* Check if no key usage implication is done */
+    TEST_EQUAL( policy_usage,
+                mbedtls_test_update_key_usage_flags( policy_usage ) );
 
     PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
     key_bits = psa_get_key_bits( &attributes );
@@ -1003,15 +1028,18 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void asymmetric_signature_key_policy( int policy_usage,
+void asymmetric_signature_key_policy( int policy_usage_arg,
                                       int policy_alg,
                                       int key_type,
                                       data_t *key_data,
                                       int exercise_alg,
-                                      int payload_length_arg )
+                                      int payload_length_arg,
+                                      int expected_usage_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_usage_t policy_usage = policy_usage_arg;
+    psa_key_usage_t expected_usage = expected_usage_arg;
     psa_status_t status;
     unsigned char payload[PSA_HASH_MAX_SIZE] = {1};
     /* If `payload_length_arg > 0`, `exercise_alg` is supposed to be
@@ -1023,6 +1051,11 @@ void asymmetric_signature_key_policy( int policy_usage,
     unsigned char signature[PSA_SIGNATURE_MAX_SIZE] = {0};
     size_t signature_length;
 
+    /* Check if all implicit usage flags are deployed
+       in the expected usage flags. */
+    TEST_EQUAL( expected_usage,
+                mbedtls_test_update_key_usage_flags( policy_usage ) );
+
     PSA_ASSERT( psa_crypto_init( ) );
 
     psa_set_key_usage_flags( &attributes, policy_usage );
@@ -1032,11 +1065,13 @@ void asymmetric_signature_key_policy( int policy_usage,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
 
+    TEST_EQUAL( psa_get_key_usage_flags( &attributes ), expected_usage );
+
     status = psa_sign_hash( key, exercise_alg,
                             payload, payload_length,
                             signature, sizeof( signature ),
                             &signature_length );
-    if( compatible_alg && ( policy_usage & PSA_KEY_USAGE_SIGN_HASH ) != 0 )
+    if( compatible_alg && ( expected_usage & PSA_KEY_USAGE_SIGN_HASH ) != 0 )
         PSA_ASSERT( status );
     else
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
@@ -1045,10 +1080,32 @@ void asymmetric_signature_key_policy( int policy_usage,
     status = psa_verify_hash( key, exercise_alg,
                               payload, payload_length,
                               signature, sizeof( signature ) );
-    if( compatible_alg && ( policy_usage & PSA_KEY_USAGE_VERIFY_HASH ) != 0 )
+    if( compatible_alg && ( expected_usage & PSA_KEY_USAGE_VERIFY_HASH ) != 0 )
         TEST_EQUAL( status, PSA_ERROR_INVALID_SIGNATURE );
     else
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+
+    if( PSA_ALG_IS_HASH_AND_SIGN( exercise_alg ) &&
+        PSA_ALG_IS_HASH( PSA_ALG_SIGN_GET_HASH( exercise_alg ) ) )
+    {
+        status = psa_sign_message( key, exercise_alg,
+                                   payload, payload_length,
+                                   signature, sizeof( signature ),
+                                   &signature_length );
+        if( compatible_alg && ( expected_usage & PSA_KEY_USAGE_SIGN_MESSAGE ) != 0 )
+            PSA_ASSERT( status );
+        else
+            TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+
+        memset( signature, 0, sizeof( signature ) );
+        status = psa_verify_message( key, exercise_alg,
+                                     payload, payload_length,
+                                     signature, sizeof( signature ) );
+        if( compatible_alg && ( expected_usage & PSA_KEY_USAGE_VERIFY_MESSAGE ) != 0 )
+            TEST_EQUAL( status, PSA_ERROR_INVALID_SIGNATURE );
+        else
+            TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+    }
 
 exit:
     psa_destroy_key( key );
@@ -1162,6 +1219,8 @@ void key_policy_alg2( int key_type_arg, data_t *key_data,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
 
+    /* Update the usage flags to obtain implicit usage flags */
+    usage = mbedtls_test_update_key_usage_flags( usage );
     PSA_ASSERT( psa_get_key_attributes( key, &got_attributes ) );
     TEST_EQUAL( psa_get_key_usage_flags( &got_attributes ), usage );
     TEST_EQUAL( psa_get_key_algorithm( &got_attributes ), alg );
@@ -5186,7 +5245,8 @@ void persistent_key_load_key_from_storage( data_t *data,
                 PSA_KEY_LIFETIME_PERSISTENT );
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
     TEST_EQUAL( psa_get_key_bits( &attributes ), bits );
-    TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage_flags );
+    TEST_EQUAL( psa_get_key_usage_flags( &attributes ),
+                mbedtls_test_update_key_usage_flags( usage_flags ) );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
 
     /* Export the key again if permitted by the key policy. */

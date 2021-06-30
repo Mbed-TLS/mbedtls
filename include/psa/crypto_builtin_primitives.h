@@ -113,7 +113,10 @@ typedef struct {
     psa_algorithm_t alg;
     uint8_t iv_length;
     uint8_t block_length;
-    mbedtls_cipher_context_t cipher;
+    union {
+        unsigned int dummy;
+        mbedtls_cipher_context_t cipher;
+    } ctx;
 } mbedtls_psa_cipher_operation_t;
 
 #define MBEDTLS_PSA_CIPHER_OPERATION_INIT {0, 0, 0, {0}}

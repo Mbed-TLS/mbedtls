@@ -1842,7 +1842,7 @@ void perform_handshake( handshake_test_options* options )
 
     if( options->expected_negotiated_version == TEST_SSL_MINOR_VERSION_NONE )
     {
-        expected_handshake_result = MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION;
+        expected_handshake_result = MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
     }
 
     TEST_ASSERT( mbedtls_move_handshake_to_state( &(client.ssl),

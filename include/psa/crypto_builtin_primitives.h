@@ -104,7 +104,10 @@ typedef struct {
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
     uint8_t MBEDTLS_PRIVATE(iv_length);
     uint8_t MBEDTLS_PRIVATE(block_length);
-    mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher);
+    union {
+        unsigned int MBEDTLS_PRIVATE(dummy);
+        mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher);
+    } MBEDTLS_PRIVATE(ctx);
 } mbedtls_psa_cipher_operation_t;
 
 #define MBEDTLS_PSA_CIPHER_OPERATION_INIT {0, 0, 0, {0}}

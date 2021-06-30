@@ -1459,132 +1459,292 @@ depends_on:MBEDTLS_CIPHER_MODE_CTR
 cipher_setup:PSA_KEY_TYPE_RAW_DATA:"000102030405060708090a0b0c0d0e0f":PSA_ALG_CTR:PSA_ERROR_NOT_SUPPORTED
 
 PSA cipher setup: incompatible key ChaCha20 for CTR
-depends_on:MBEDTLS_ARC4_C:MBEDTLS_CIPHER_MODE_CTR
+depends_on:PSA_WANT_KEY_TYPE_CHACHA20:MBEDTLS_CIPHER_MODE_CTR
 # Either INVALID_ARGUMENT or NOT_SUPPORTED would be reasonable here
 cipher_setup:PSA_KEY_TYPE_CHACHA20:"000102030405060708090a0b0c0d0e0f10111213141516171819202122232425":PSA_ALG_CTR:PSA_ERROR_NOT_SUPPORTED
 
 PSA cipher: bad order function calls
 cipher_bad_order:
 
-PSA symmetric encrypt: AES-ECB, 0 bytes, good
+PSA cipher encrypt: without initialization
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"":"":PSA_SUCCESS
+cipher_encrypt_fail:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"":"":PSA_ERROR_BAD_STATE
 
-PSA symmetric encrypt: AES-ECB, 16 bytes, good
-depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"6bc1bee22e409f96e93d7e117393172a":"3ad77bb40d7a3660a89ecaf32466ef97":PSA_SUCCESS
+PSA cipher encrypt: invalid key type
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING
+cipher_encrypt_fail:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_RAW_DATA:"2b7e151628aed2a6abf7158809cf4f3c":"":PSA_ERROR_NOT_SUPPORTED
 
-PSA symmetric encrypt: AES-ECB, 32 bytes, good
-depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"6bc1bee22e409f96e93d7e117393172a3ad77bb40d7a3660a89ecaf32466ef97":"3ad77bb40d7a3660a89ecaf32466ef972249a2638c6f1c755a84f9681a9f08c1":PSA_SUCCESS
+PSA cipher encrypt: incompatible key ChaCha20 for CTR
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_CHACHA20
+# Either INVALID_ARGUMENT or NOT_SUPPORTED would be reasonable here
+cipher_encrypt_fail:PSA_ALG_CTR:PSA_KEY_TYPE_CHACHA20:"000102030405060708090a0b0c0d0e0f10111213141516171819202122232425":"":PSA_ERROR_NOT_SUPPORTED
 
-PSA symmetric encrypt: AES-CBC-nopad, 16 bytes, good
-depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":"a076ec9dfbe47d52afc357336f20743b":PSA_SUCCESS
+PSA cipher encrypt: bad algorithm (unknown cipher algorithm)
+depends_on:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_fail:PSA_ALG_CATEGORY_CIPHER:PSA_KEY_TYPE_RAW_DATA:"2b7e151628aed2a6abf7158809cf4f3c":"":PSA_ERROR_NOT_SUPPORTED
 
-PSA symmetric encrypt: AES-CBC-PKCS#7, 16 bytes, good
-depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":"a076ec9dfbe47d52afc357336f20743bca7e8a15dc3c776436314293031cd4f3":PSA_SUCCESS
-
-PSA symmetric encrypt: AES-CBC-PKCS#7, 15 bytes, good
-depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":"6279b49d7f7a8dd87b685175d4276e24":PSA_SUCCESS
+PSA cipher encrypt: bad algorithm (not a cipher algorithm)
+depends_on:PSA_WANT_KEY_TYPE_AES:PSA_WANT_ALG_MD5
+cipher_encrypt_fail:PSA_ALG_MD5:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":PSA_ERROR_INVALID_ARGUMENT
 
 PSA symmetric encrypt: AES-ECB, input too short (15 bytes)
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"6bc1bee22e409f96e93d7e11739317":"":PSA_ERROR_INVALID_ARGUMENT
+cipher_encrypt_fail:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e11739317":PSA_ERROR_INVALID_ARGUMENT
 
 PSA symmetric encrypt: AES-CBC-nopad, input too short
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee223":"6bc1bee223":PSA_ERROR_INVALID_ARGUMENT
+cipher_encrypt_fail:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee223":PSA_ERROR_INVALID_ARGUMENT
 
-PSA symmetric encrypt: AES-CTR, 16 bytes, good
-depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":"8f9408fe80a81d3e813da3c7b0b2bd32":PSA_SUCCESS
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_alg_without_iv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":""
 
-PSA symmetric encrypt: AES-CTR, 15 bytes, good
-depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":"8f9408fe80a81d3e813da3c7b0b2bd":PSA_SUCCESS
+PSA symmetric encrypt: AES-ECB, 16 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_alg_without_iv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":"3ad77bb40d7a3660a89ecaf32466ef97"
 
-PSA symmetric encrypt: DES-CBC-nopad, 8 bytes, good
-depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
-cipher_encrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0e":"2a2a2a2a2a2a2a2a":"eda4011239bc3ac9":"64f917b0152f8f05":PSA_SUCCESS
-
-PSA symmetric encrypt: 2-key 3DES-CBC-nopad, 8 bytes, good
-depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
-cipher_encrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce":"2a2a2a2a2a2a2a2a":"eda4011239bc3ac9":"5d0652429c5b0ac7":PSA_SUCCESS
-
-PSA symmetric encrypt: 3-key 3DES-CBC-nopad, 8 bytes, good
-depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
-cipher_encrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"2a2a2a2a2a2a2a2a":"eda4011239bc3ac9":"817ca7d69b80d86a":PSA_SUCCESS
+PSA symmetric encrypt: AES-ECB, 32 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_alg_without_iv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a3ad77bb40d7a3660a89ecaf32466ef97":"3ad77bb40d7a3660a89ecaf32466ef972249a2638c6f1c755a84f9681a9f08c1"
 
 PSA symmetric encrypt: 2-key 3DES-ECB, 8 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_DES
-cipher_encrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce":"":"c78e2b38139610e3":"5d0652429c5b0ac7":PSA_SUCCESS
+cipher_encrypt_alg_without_iv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce":"c78e2b38139610e3":"5d0652429c5b0ac7"
 
 PSA symmetric encrypt: 3-key 3DES-ECB, 8 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_DES
-cipher_encrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"":"c78e2b38139610e3":"817ca7d69b80d86a":PSA_SUCCESS
+cipher_encrypt_alg_without_iv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"c78e2b38139610e3":"817ca7d69b80d86a"
 
-PSA symmetric decrypt: AES-ECB, 0 bytes, good
-depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"":"":PSA_SUCCESS
-
-PSA symmetric decrypt: AES-ECB, 16 bytes, good
-depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"396ee84fb75fdbb5c2b13c7fe5a654aa":"63cecc46a382414d5fa7d2b79387437f":PSA_SUCCESS
-
-PSA symmetric decrypt: AES-ECB, 32 bytes, good
-depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"3ad77bb40d7a3660a89ecaf32466ef972249a2638c6f1c755a84f9681a9f08c1":"6bc1bee22e409f96e93d7e117393172a3ad77bb40d7a3660a89ecaf32466ef97":PSA_SUCCESS
-
-PSA symmetric decrypt: AES-CBC-nopad, 16 bytes, good
+PSA symmetric encrypt validation: AES-CBC-nopad, 16 bytes, good
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"396ee84fb75fdbb5c2b13c7fe5a654aa":"49e4e66c89a86b67758df89db9ad6955":PSA_SUCCESS
+cipher_encrypt_validation:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
 
-PSA symmetric decrypt: AES-CBC-PKCS#7, 16 bytes, good
+PSA symmetric encrypt validation: AES-CBC-PKCS#7, 16 bytes, good
 depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743bca7e8a15dc3c776436314293031cd4f3":"6bc1bee22e409f96e93d7e117393172a":PSA_SUCCESS
+cipher_encrypt_validation:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
 
-PSA symmetric decrypt: AES-CBC-PKCS#7, 15 bytes, good
+PSA symmetric encrypt validation: AES-CBC-PKCS#7, 15 bytes, good
 depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6279b49d7f7a8dd87b685175d4276e24":"6bc1bee22e409f96e93d7e11739317":PSA_SUCCESS
+cipher_encrypt_validation:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e11739317"
+
+PSA symmetric encrypt validation: AES-CTR, 16 bytes, good
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_validation:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
+
+PSA symmetric encrypt validation: AES-CTR, 15 bytes, good
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_validation:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e11739317"
+
+PSA symmetric encrypt validation: DES-CBC-nopad, 8 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
+cipher_encrypt_validation:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0e":"eda4011239bc3ac9"
+
+PSA symmetric encrypt validation: 2-key 3DES-CBC-nopad, 8 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
+cipher_encrypt_validation:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce":"eda4011239bc3ac9"
+
+PSA symmetric encrypt validation: 3-key 3DES-CBC-nopad, 8 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
+cipher_encrypt_validation:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"eda4011239bc3ac9"
+
+PSA symmetric encrypt multipart: AES-ECB, 0 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"":0:0:0:"":PSA_SUCCESS
+
+PSA symmetric encrypt multipart: AES-ECB, 16 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"6bc1bee22e409f96e93d7e117393172a":16:16:0:"3ad77bb40d7a3660a89ecaf32466ef97":PSA_SUCCESS
+
+PSA symmetric encrypt multipart: AES-ECB, 32 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"6bc1bee22e409f96e93d7e117393172a3ad77bb40d7a3660a89ecaf32466ef97":32:32:0:"3ad77bb40d7a3660a89ecaf32466ef972249a2638c6f1c755a84f9681a9f08c1":PSA_SUCCESS
+
+PSA symmetric encrypt multipart: AES-CBC-nopad, 16 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":16:16:0:"a076ec9dfbe47d52afc357336f20743b":PSA_SUCCESS
+
+PSA symmetric encrypt multipart: AES-CBC-PKCS#7, 16 bytes, good
+depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_multipart:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":16:16:0:"a076ec9dfbe47d52afc357336f20743bca7e8a15dc3c776436314293031cd4f3":PSA_SUCCESS
+
+PSA symmetric encrypt multipart: AES-CBC-PKCS#7, 15 bytes, good
+depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_multipart:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":15:0:0:"6279b49d7f7a8dd87b685175d4276e24":PSA_SUCCESS
+
+PSA symmetric encrypt multipart: AES-ECB, input too short (15 bytes)
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"6bc1bee22e409f96e93d7e11739317":0:0:0:"":PSA_ERROR_INVALID_ARGUMENT
+
+PSA symmetric encrypt multipart: AES-CBC-nopad, input too short
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee223":0:0:0:"6bc1bee223":PSA_ERROR_INVALID_ARGUMENT
+
+PSA symmetric encrypt multipart: AES-CTR, 16 bytes, good
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":16:16:0:"8f9408fe80a81d3e813da3c7b0b2bd32":PSA_SUCCESS
+
+PSA symmetric encrypt multipart: AES-CTR, 15 bytes, good
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":15:15:0:"8f9408fe80a81d3e813da3c7b0b2bd":PSA_SUCCESS
+
+PSA symmetric encrypt multipart: DES-CBC-nopad, 8 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
+cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0e":"2a2a2a2a2a2a2a2a":"eda4011239bc3ac9":8:8:0:"64f917b0152f8f05":PSA_SUCCESS
+
+PSA symmetric encrypt multipart: 2-key 3DES-CBC-nopad, 8 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
+cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce":"2a2a2a2a2a2a2a2a":"eda4011239bc3ac9":8:8:0:"5d0652429c5b0ac7":PSA_SUCCESS
+
+PSA symmetric encrypt multipart: 3-key 3DES-CBC-nopad, 8 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
+cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"2a2a2a2a2a2a2a2a":"eda4011239bc3ac9":8:8:0:"817ca7d69b80d86a":PSA_SUCCESS
+
+PSA symmetric encrypt multipart: 2-key 3DES-ECB, 8 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_DES
+cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce":"":"c78e2b38139610e3":8:8:0:"5d0652429c5b0ac7":PSA_SUCCESS
+
+PSA symmetric encrypt multipart: 3-key 3DES-ECB, 8 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_DES
+cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"":"c78e2b38139610e3":8:8:0:"817ca7d69b80d86a":PSA_SUCCESS
+
+PSA cipher decrypt: without initialization
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt_fail:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"":"":"":PSA_ERROR_BAD_STATE
+
+PSA cipher decrypt: invalid key type
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING
+cipher_decrypt_fail:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_RAW_DATA:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"":PSA_ERROR_NOT_SUPPORTED
+
+PSA cipher decrypt: incompatible key ChaCha20 for CTR
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_CHACHA20
+# Either INVALID_ARGUMENT or NOT_SUPPORTED would be reasonable here
+cipher_decrypt_fail:PSA_ALG_CTR:PSA_KEY_TYPE_CHACHA20:"000102030405060708090a0b0c0d0e0f10111213141516171819202122232425":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"":PSA_ERROR_NOT_SUPPORTED
+
+PSA cipher decrypt: bad algorithm (unknown cipher algorithm)
+cipher_decrypt_fail:PSA_ALG_CATEGORY_CIPHER:PSA_KEY_TYPE_RAW_DATA:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"":PSA_ERROR_NOT_SUPPORTED
+
+PSA cipher decrypt: bad algorithm (not a cipher algorithm)
+depends_on:PSA_WANT_KEY_TYPE_AES:PSA_WANT_ALG_MD5
+cipher_decrypt_fail:PSA_ALG_MD5:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"":PSA_ERROR_INVALID_ARGUMENT
 
 PSA symmetric decrypt: AES-CBC-PKCS#7, input too short (15 bytes)
 depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":"49e4e66c89a86b67758df89db9ad6955":PSA_ERROR_INVALID_ARGUMENT
-
-PSA symmetric decrypt: AES-CTR, 16 bytes, good
-depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"396ee84fb75fdbb5c2b13c7fe5a654aa":"dd3b5e5319b7591daab1e1a92687feb2":PSA_SUCCESS
+cipher_decrypt_fail:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":PSA_ERROR_INVALID_ARGUMENT
 
 PSA symmetric decrypt: AES-ECB, input too short (15 bytes)
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"396ee84fb75fdbb5c2b13c7fe5a654":"63cecc46a382414d5fa7d2b7938743":PSA_ERROR_INVALID_ARGUMENT
+cipher_decrypt_fail:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"396ee84fb75fdbb5c2b13c7fe5a654":PSA_ERROR_INVALID_ARGUMENT
 
 PSA symmetric decrypt: AES-CBC-nopad, input too short (5 bytes)
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee223":"6bc1bee223":PSA_ERROR_INVALID_ARGUMENT
+cipher_decrypt_fail:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee223":PSA_ERROR_INVALID_ARGUMENT
+
+PSA symmetric decrypt: AES-ECB, 0 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"":""
+
+PSA symmetric decrypt: AES-ECB, 16 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"396ee84fb75fdbb5c2b13c7fe5a654aa":"63cecc46a382414d5fa7d2b79387437f"
+
+PSA symmetric decrypt: AES-ECB, 32 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"3ad77bb40d7a3660a89ecaf32466ef972249a2638c6f1c755a84f9681a9f08c1":"6bc1bee22e409f96e93d7e117393172a3ad77bb40d7a3660a89ecaf32466ef97"
+
+PSA symmetric decrypt: AES-CBC-nopad, 16 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"396ee84fb75fdbb5c2b13c7fe5a654aa":"49e4e66c89a86b67758df89db9ad6955"
+
+PSA symmetric decrypt: AES-CBC-PKCS#7, 16 bytes, good
+depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743bca7e8a15dc3c776436314293031cd4f3":"6bc1bee22e409f96e93d7e117393172a"
+
+PSA symmetric decrypt: AES-CBC-PKCS#7, 15 bytes, good
+depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6279b49d7f7a8dd87b685175d4276e24":"6bc1bee22e409f96e93d7e11739317"
+
+PSA symmetric decrypt: AES-CTR, 16 bytes, good
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"396ee84fb75fdbb5c2b13c7fe5a654aa":"dd3b5e5319b7591daab1e1a92687feb2"
 
 PSA symmetric decrypt: DES-CBC-nopad, 8 bytes, good
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
-cipher_decrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0e":"2a2a2a2a2a2a2a2a":"64f917b0152f8f05":"eda4011239bc3ac9":PSA_SUCCESS
+cipher_decrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0e":"2a2a2a2a2a2a2a2a":"64f917b0152f8f05":"eda4011239bc3ac9"
 
 PSA symmetric decrypt: 2-key 3DES-CBC-nopad, 8 bytes, good
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
-cipher_decrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce":"2a2a2a2a2a2a2a2a":"5d0652429c5b0ac7":"eda4011239bc3ac9":PSA_SUCCESS
+cipher_decrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce":"2a2a2a2a2a2a2a2a":"5d0652429c5b0ac7":"eda4011239bc3ac9"
 
 PSA symmetric decrypt: 3-key 3DES-CBC-nopad, 8 bytes, good
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
-cipher_decrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"2a2a2a2a2a2a2a2a":"817ca7d69b80d86a":"eda4011239bc3ac9":PSA_SUCCESS
+cipher_decrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"2a2a2a2a2a2a2a2a":"817ca7d69b80d86a":"eda4011239bc3ac9"
 
 PSA symmetric decrypt: 2-key 3DES-ECB, 8 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_DES
-cipher_decrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce":"":"5d0652429c5b0ac7":"c78e2b38139610e3":PSA_SUCCESS
+cipher_decrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce":"":"5d0652429c5b0ac7":"c78e2b38139610e3"
 
 PSA symmetric decrypt: 3-key 3DES-ECB, 8 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_DES
-cipher_decrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"":"817ca7d69b80d86a":"c78e2b38139610e3":PSA_SUCCESS
+cipher_decrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"":"817ca7d69b80d86a":"c78e2b38139610e3"
+
+PSA symmetric decrypt multipart: AES-ECB, 0 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"":0:0:0:"":PSA_SUCCESS
+
+PSA symmetric decrypt multipart: AES-ECB, 16 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"396ee84fb75fdbb5c2b13c7fe5a654aa":16:16:0:"63cecc46a382414d5fa7d2b79387437f":PSA_SUCCESS
+
+PSA symmetric decrypt multipart: AES-ECB, 32 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"3ad77bb40d7a3660a89ecaf32466ef972249a2638c6f1c755a84f9681a9f08c1":32:32:0:"6bc1bee22e409f96e93d7e117393172a3ad77bb40d7a3660a89ecaf32466ef97":PSA_SUCCESS
+
+PSA symmetric decrypt multipart: AES-CBC-nopad, 16 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"396ee84fb75fdbb5c2b13c7fe5a654aa":16:16:0:"49e4e66c89a86b67758df89db9ad6955":PSA_SUCCESS
+
+PSA symmetric decrypt multipart: AES-CBC-PKCS#7, 16 bytes, good
+depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt_multipart:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743bca7e8a15dc3c776436314293031cd4f3":16:0:16:"6bc1bee22e409f96e93d7e117393172a":PSA_SUCCESS
+
+PSA symmetric decrypt multipart: AES-CBC-PKCS#7, 15 bytes, good
+depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt_multipart:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6279b49d7f7a8dd87b685175d4276e24":16:0:0:"6bc1bee22e409f96e93d7e11739317":PSA_SUCCESS
+
+PSA symmetric decrypt multipart: AES-CBC-PKCS#7, input too short (15 bytes)
+depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt_multipart:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":0:0:0:"49e4e66c89a86b67758df89db9ad6955":PSA_ERROR_INVALID_ARGUMENT
+
+PSA symmetric decrypt multipart: AES-CTR, 16 bytes, good
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"396ee84fb75fdbb5c2b13c7fe5a654aa":16:16:0:"dd3b5e5319b7591daab1e1a92687feb2":PSA_SUCCESS
+
+PSA symmetric decrypt multipart: AES-ECB, input too short (15 bytes)
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"396ee84fb75fdbb5c2b13c7fe5a654":0:0:0:"63cecc46a382414d5fa7d2b7938743":PSA_ERROR_INVALID_ARGUMENT
+
+PSA symmetric decrypt multipart: AES-CBC-nopad, input too short (5 bytes)
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee223":0:0:0:"6bc1bee223":PSA_ERROR_INVALID_ARGUMENT
+
+PSA symmetric decrypt multipart: DES-CBC-nopad, 8 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
+cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0e":"2a2a2a2a2a2a2a2a":"64f917b0152f8f05":8:8:0:"eda4011239bc3ac9":PSA_SUCCESS
+
+PSA symmetric decrypt multipart: 2-key 3DES-CBC-nopad, 8 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
+cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce":"2a2a2a2a2a2a2a2a":"5d0652429c5b0ac7":8:8:0:"eda4011239bc3ac9":PSA_SUCCESS
+
+PSA symmetric decrypt multipart: 3-key 3DES-CBC-nopad, 8 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
+cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"2a2a2a2a2a2a2a2a":"817ca7d69b80d86a":8:8:0:"eda4011239bc3ac9":PSA_SUCCESS
+
+PSA symmetric decrypt multipart: 2-key 3DES-ECB, 8 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_DES
+cipher_decrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce":"":"5d0652429c5b0ac7":8:8:0:"c78e2b38139610e3":PSA_SUCCESS
+
+PSA symmetric decrypt multipart: 3-key 3DES-ECB, 8 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_DES
+cipher_decrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"":"817ca7d69b80d86a":8:8:0:"c78e2b38139610e3":PSA_SUCCESS
 
 PSA symmetric encrypt/decrypt: AES-ECB, 16 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
@@ -1608,151 +1768,171 @@ cipher_verify_output:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4
 
 PSA symmetric encryption multipart: AES-ECB, 16+16 bytes
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":16:16:16:"3ad77bb40d7a3660a89ecaf32466ef9755ed5e9e066820fa52c729886d18854c"
+cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":16:16:16:"3ad77bb40d7a3660a89ecaf32466ef9755ed5e9e066820fa52c729886d18854c":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-ECB, 13+19 bytes
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":13:0:32:"3ad77bb40d7a3660a89ecaf32466ef9755ed5e9e066820fa52c729886d18854c"
+cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":13:0:32:"3ad77bb40d7a3660a89ecaf32466ef9755ed5e9e066820fa52c729886d18854c":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-ECB, 24+12 bytes
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":24:16:16:"3ad77bb40d7a3660a89ecaf32466ef9755ed5e9e066820fa52c729886d18854c"
+cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":24:16:16:"3ad77bb40d7a3660a89ecaf32466ef9755ed5e9e066820fa52c729886d18854c":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CBC-nopad, 7+9 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":7:0:16:"a076ec9dfbe47d52afc357336f20743b"
+cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":7:0:16:"a076ec9dfbe47d52afc357336f20743b":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CBC-nopad, 3+13 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":3:0:16:"a076ec9dfbe47d52afc357336f20743b"
+cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":3:0:16:"a076ec9dfbe47d52afc357336f20743b":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CBC-nopad, 4+12 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":4:0:16:"a076ec9dfbe47d52afc357336f20743b"
+cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":4:0:16:"a076ec9dfbe47d52afc357336f20743b":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CBC-nopad, 11+5 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":11:0:16:"a076ec9dfbe47d52afc357336f20743b"
+cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":11:0:16:"a076ec9dfbe47d52afc357336f20743b":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CBC-nopad, 16+16 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":16:16:16:"a076ec9dfbe47d52afc357336f20743b89906f2f9207ac02aa658cb4ef19c61f"
+cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":16:16:16:"a076ec9dfbe47d52afc357336f20743b89906f2f9207ac02aa658cb4ef19c61f":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CBC-nopad, 12+20 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":12:0:32:"a076ec9dfbe47d52afc357336f20743b89906f2f9207ac02aa658cb4ef19c61f"
+cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":12:0:32:"a076ec9dfbe47d52afc357336f20743b89906f2f9207ac02aa658cb4ef19c61f":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CBC-nopad, 20+12 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":20:16:16:"a076ec9dfbe47d52afc357336f20743b89906f2f9207ac02aa658cb4ef19c61f"
+cipher_encrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":20:16:16:"a076ec9dfbe47d52afc357336f20743b89906f2f9207ac02aa658cb4ef19c61f":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CTR, 11+5 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":11:11:5:"8f9408fe80a81d3e813da3c7b0b2bd32"
+cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":11:11:5:"8f9408fe80a81d3e813da3c7b0b2bd32":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CTR, 16+16 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":16:16:16:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7baf71025f6ef6393ca587"
+cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":16:16:16:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7baf71025f6ef6393ca587":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CTR, 12+20 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":12:12:20:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7baf71025f6ef6393ca587"
+cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":12:12:20:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7baf71025f6ef6393ca587":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CTR, 20+12 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":20:20:12:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7baf71025f6ef6393ca587"
+cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":20:20:12:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7baf71025f6ef6393ca587":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CTR, 12+10 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597":12:12:10:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7b"
+cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597":12:12:10:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7b":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CTR, 0+15 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":0:0:15:"8f9408fe80a81d3e813da3c7b0b2bd"
+cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":0:0:15:"8f9408fe80a81d3e813da3c7b0b2bd":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CTR, 15+0 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":15:15:0:"8f9408fe80a81d3e813da3c7b0b2bd"
+cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":15:15:0:"8f9408fe80a81d3e813da3c7b0b2bd":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CTR, 0+16 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":0:0:16:"8f9408fe80a81d3e813da3c7b0b2bd32"
+cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":0:0:16:"8f9408fe80a81d3e813da3c7b0b2bd32":PSA_SUCCESS
 
 PSA symmetric encryption multipart: AES-CTR, 16+0 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":16:16:0:"8f9408fe80a81d3e813da3c7b0b2bd32"
+cipher_encrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":16:16:0:"8f9408fe80a81d3e813da3c7b0b2bd32":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-ECB, 16+16 bytes
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"3ad77bb40d7a3660a89ecaf32466ef9755ed5e9e066820fa52c729886d18854c":16:16:16:"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef"
+cipher_decrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"3ad77bb40d7a3660a89ecaf32466ef9755ed5e9e066820fa52c729886d18854c":16:16:16:"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-ECB, 11+21 bytes
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"3ad77bb40d7a3660a89ecaf32466ef9755ed5e9e066820fa52c729886d18854c":11:0:32:"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef"
+cipher_decrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"3ad77bb40d7a3660a89ecaf32466ef9755ed5e9e066820fa52c729886d18854c":11:0:32:"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-ECB, 28+4 bytes
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"3ad77bb40d7a3660a89ecaf32466ef9755ed5e9e066820fa52c729886d18854c":28:16:16:"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef"
+cipher_decrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"3ad77bb40d7a3660a89ecaf32466ef9755ed5e9e066820fa52c729886d18854c":28:16:16:"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CBC-nopad, 7+9 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743b":7:0:16:"6bc1bee22e409f96e93d7e117393172a"
+cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743b":7:0:16:"6bc1bee22e409f96e93d7e117393172a":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CBC-nopad, 3+13 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743b":3:0:16:"6bc1bee22e409f96e93d7e117393172a"
+cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743b":3:0:16:"6bc1bee22e409f96e93d7e117393172a":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CBC-nopad, 11+5 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743b":11:0:16:"6bc1bee22e409f96e93d7e117393172a"
+cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743b":11:0:16:"6bc1bee22e409f96e93d7e117393172a":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CBC-nopad, 16+16 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743b89906f2f9207ac02aa658cb4ef19c61f":16:16:16:"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef"
+cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743b89906f2f9207ac02aa658cb4ef19c61f":16:16:16:"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CBC-nopad, 12+20 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743b89906f2f9207ac02aa658cb4ef19c61f":12:0:32:"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef"
+cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743b89906f2f9207ac02aa658cb4ef19c61f":12:0:32:"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CBC-nopad, 20+12 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743b89906f2f9207ac02aa658cb4ef19c61f":20:16:16:"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef"
+cipher_decrypt_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"a076ec9dfbe47d52afc357336f20743b89906f2f9207ac02aa658cb4ef19c61f":20:16:16:"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CTR, 11+5 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":11:11:5:"8f9408fe80a81d3e813da3c7b0b2bd32"
+cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":11:11:5:"8f9408fe80a81d3e813da3c7b0b2bd32":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CTR, 16+16 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":16:16:16:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7baf71025f6ef6393ca587"
+cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":16:16:16:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7baf71025f6ef6393ca587":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CTR, 12+20 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":12:12:20:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7baf71025f6ef6393ca587"
+cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":12:12:20:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7baf71025f6ef6393ca587":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CTR, 20+12 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":20:20:12:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7baf71025f6ef6393ca587"
+cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597bcef1389318c7fc865ef":20:20:12:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7baf71025f6ef6393ca587":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CTR, 12+10 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597":12:12:10:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7b"
+cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a5434f378a597":12:12:10:"8f9408fe80a81d3e813da3c7b0b2bd321c965bb1de7b":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CTR, 0+15 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":0:0:15:"8f9408fe80a81d3e813da3c7b0b2bd"
+cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":0:0:15:"8f9408fe80a81d3e813da3c7b0b2bd":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CTR, 15+0 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":15:15:0:"8f9408fe80a81d3e813da3c7b0b2bd"
+cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e11739317":15:15:0:"8f9408fe80a81d3e813da3c7b0b2bd":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CTR, 0+16 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":0:0:16:"8f9408fe80a81d3e813da3c7b0b2bd32"
+cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":0:0:16:"8f9408fe80a81d3e813da3c7b0b2bd32":PSA_SUCCESS
 
 PSA symmetric decryption multipart: AES-CTR, 16+0 bytes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
-cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":16:16:0:"8f9408fe80a81d3e813da3c7b0b2bd32"
+cipher_decrypt_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee22e409f96e93d7e117393172a":16:16:0:"8f9408fe80a81d3e813da3c7b0b2bd32":PSA_SUCCESS
+
+PSA symmetric encrypt/decrypt multipart: AES-ECB, 16 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_verify_output_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":16
+
+PSA symmetric encrypt/decrypt multipart: AES-CBC-nopad, 16 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_verify_output_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":16
+
+PSA symmetric encrypt/decrypt multipart: AES-CBC-PKCS#7, 16 bytes
+depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
+cipher_verify_output_multipart:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":16
+
+PSA symmetric encrypt/decrypt multipart: AES-CBC-PKCS#7, 15 bytes
+depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
+cipher_verify_output_multipart:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e11739317":15
+
+PSA symmetric encrypt/decrypt multipart: AES-CTR
+depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
+cipher_verify_output_multipart:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":16
 
 PSA symmetric encrypt/decrypt multipart: AES-CBC-nopad, 11+5 bytes
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
@@ -1762,25 +1942,33 @@ PSA symmetric encrypt/decrypt multipart: AES-CBC-PKCS#7 padding, 4+12 bytes
 depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
 cipher_verify_output_multipart:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"a076ec9dfbe47d52afc357336f20743b":4
 
-PSA symmetric encrypt: ChaCha20, K=0 N=0
+PSA symmetric encrypt validation: ChaCha20, K=0 N=0
 depends_on:PSA_WANT_ALG_STREAM_CIPHER:PSA_WANT_KEY_TYPE_CHACHA20
-cipher_encrypt:PSA_ALG_STREAM_CIPHER:PSA_KEY_TYPE_CHACHA20:"0000000000000000000000000000000000000000000000000000000000000000":"000000000000000000000000":"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000":"76b8e0ada0f13d90405d6ae55386bd28bdd219b8a08ded1aa836efcc8b770dc7da41597c5157488d7724e03fb8d84a376a43b8f41518a11cc387b669b2ee6586":PSA_SUCCESS
+cipher_encrypt_validation:PSA_ALG_STREAM_CIPHER:PSA_KEY_TYPE_CHACHA20:"0000000000000000000000000000000000000000000000000000000000000000":"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 
-PSA symmetric encrypt: ChaCha20, K=rand N=rand
+PSA symmetric encrypt validation: ChaCha20, K=rand N=rand
 depends_on:PSA_WANT_ALG_STREAM_CIPHER:PSA_WANT_KEY_TYPE_CHACHA20
-cipher_encrypt:PSA_ALG_STREAM_CIPHER:PSA_KEY_TYPE_CHACHA20:"4bddc98c551a95395ef719557f813656b566bc45aac04eca3866324cc75489f2":"a170d9349d24955aa4501891":"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000":"9ba7d8de0c6b579fc436e368619e09228070d23246c836d6c6b4c476af6f5eb2b78fbe809d03f7881e6af28cfe3746e8dcf1eb7f762fe7d003141f1539a6cec4":PSA_SUCCESS
+cipher_encrypt_validation:PSA_ALG_STREAM_CIPHER:PSA_KEY_TYPE_CHACHA20:"4bddc98c551a95395ef719557f813656b566bc45aac04eca3866324cc75489f2":"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+
+PSA symmetric encrypt multipart: ChaCha20, K=0 N=0
+depends_on:PSA_WANT_ALG_STREAM_CIPHER:PSA_WANT_KEY_TYPE_CHACHA20
+cipher_encrypt_multipart:PSA_ALG_STREAM_CIPHER:PSA_KEY_TYPE_CHACHA20:"0000000000000000000000000000000000000000000000000000000000000000":"000000000000000000000000":"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000":64:64:0:"76b8e0ada0f13d90405d6ae55386bd28bdd219b8a08ded1aa836efcc8b770dc7da41597c5157488d7724e03fb8d84a376a43b8f41518a11cc387b669b2ee6586":PSA_SUCCESS
+
+PSA symmetric encrypt multipart: ChaCha20, K=rand N=rand
+depends_on:PSA_WANT_ALG_STREAM_CIPHER:PSA_WANT_KEY_TYPE_CHACHA20
+cipher_encrypt_multipart:PSA_ALG_STREAM_CIPHER:PSA_KEY_TYPE_CHACHA20:"4bddc98c551a95395ef719557f813656b566bc45aac04eca3866324cc75489f2":"a170d9349d24955aa4501891":"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000":64:64:0:"9ba7d8de0c6b579fc436e368619e09228070d23246c836d6c6b4c476af6f5eb2b78fbe809d03f7881e6af28cfe3746e8dcf1eb7f762fe7d003141f1539a6cec4":PSA_SUCCESS
 
 PSA symmetric encryption multipart: ChaCha20, 14+50 bytes
 depends_on:PSA_WANT_ALG_STREAM_CIPHER:PSA_WANT_KEY_TYPE_CHACHA20
-cipher_encrypt_multipart:PSA_ALG_STREAM_CIPHER:PSA_KEY_TYPE_CHACHA20:"4bddc98c551a95395ef719557f813656b566bc45aac04eca3866324cc75489f2":"a170d9349d24955aa4501891":"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000":14:14:50:"9ba7d8de0c6b579fc436e368619e09228070d23246c836d6c6b4c476af6f5eb2b78fbe809d03f7881e6af28cfe3746e8dcf1eb7f762fe7d003141f1539a6cec4"
+cipher_encrypt_multipart:PSA_ALG_STREAM_CIPHER:PSA_KEY_TYPE_CHACHA20:"4bddc98c551a95395ef719557f813656b566bc45aac04eca3866324cc75489f2":"a170d9349d24955aa4501891":"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000":14:14:50:"9ba7d8de0c6b579fc436e368619e09228070d23246c836d6c6b4c476af6f5eb2b78fbe809d03f7881e6af28cfe3746e8dcf1eb7f762fe7d003141f1539a6cec4":PSA_SUCCESS
 
-PSA symmetric decrypt: ChaCha20, K=rand N=rand
+PSA symmetric decrypt multipart: ChaCha20, K=rand N=rand
 depends_on:PSA_WANT_ALG_STREAM_CIPHER:PSA_WANT_KEY_TYPE_CHACHA20
-cipher_decrypt:PSA_ALG_STREAM_CIPHER:PSA_KEY_TYPE_CHACHA20:"4bddc98c551a95395ef719557f813656b566bc45aac04eca3866324cc75489f2":"a170d9349d24955aa4501891":"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000":"9ba7d8de0c6b579fc436e368619e09228070d23246c836d6c6b4c476af6f5eb2b78fbe809d03f7881e6af28cfe3746e8dcf1eb7f762fe7d003141f1539a6cec4":PSA_SUCCESS
+cipher_decrypt_multipart:PSA_ALG_STREAM_CIPHER:PSA_KEY_TYPE_CHACHA20:"4bddc98c551a95395ef719557f813656b566bc45aac04eca3866324cc75489f2":"a170d9349d24955aa4501891":"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000":64:64:0:"9ba7d8de0c6b579fc436e368619e09228070d23246c836d6c6b4c476af6f5eb2b78fbe809d03f7881e6af28cfe3746e8dcf1eb7f762fe7d003141f1539a6cec4":PSA_SUCCESS
 
 PSA symmetric decryption multipart: ChaCha20, 14+50 bytes
 depends_on:PSA_WANT_ALG_STREAM_CIPHER:PSA_WANT_KEY_TYPE_CHACHA20
-cipher_decrypt_multipart:PSA_ALG_STREAM_CIPHER:PSA_KEY_TYPE_CHACHA20:"4bddc98c551a95395ef719557f813656b566bc45aac04eca3866324cc75489f2":"a170d9349d24955aa4501891":"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000":14:14:50:"9ba7d8de0c6b579fc436e368619e09228070d23246c836d6c6b4c476af6f5eb2b78fbe809d03f7881e6af28cfe3746e8dcf1eb7f762fe7d003141f1539a6cec4"
+cipher_decrypt_multipart:PSA_ALG_STREAM_CIPHER:PSA_KEY_TYPE_CHACHA20:"4bddc98c551a95395ef719557f813656b566bc45aac04eca3866324cc75489f2":"a170d9349d24955aa4501891":"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000":14:14:50:"9ba7d8de0c6b579fc436e368619e09228070d23246c836d6c6b4c476af6f5eb2b78fbe809d03f7881e6af28cfe3746e8dcf1eb7f762fe7d003141f1539a6cec4":PSA_SUCCESS
 
 PSA AEAD encrypt/decrypt: AES-CCM, 19 bytes #1
 depends_on:PSA_WANT_ALG_CCM:PSA_WANT_KEY_TYPE_AES

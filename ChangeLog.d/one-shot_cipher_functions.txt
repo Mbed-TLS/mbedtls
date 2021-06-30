@@ -1,0 +1,4 @@
+API changes
+   * Implement one-shot cipher functions, psa_cipher_encrypt and
+     psa_cipher_decrypt, according to the PSA Crypto API 1.0.0
+     specification.

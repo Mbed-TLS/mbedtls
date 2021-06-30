@@ -253,6 +253,21 @@ class Configuration():
         with open(filename, 'w') as out:
             self.write(out)
 
+    ### Upgrader methods follow ####
+
+    @upgrader('3.0')
+    def remove_v2_cruft(self) -> None:
+        """Remove non-#define things that were expected in config.h in Mbed TLS 2."""
+        ## So far we just remove the inclusion of check_config.h.
+        for idx in range(len(self.content)):
+            chunk = self.content[idx]
+            d = self.parse_directive(chunk)
+            if not d:
+                continue
+            if d.name == 'include' and \
+               re.match(r'\s*["<]mbedtls/check_config.h[">]', d.trail):
+                self.content[idx] = '\n'
+
 Upgrader = Callable[[Configuration], None]
 """The type of configuration upgrader methods."""
 

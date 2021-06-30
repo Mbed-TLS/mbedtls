@@ -124,13 +124,21 @@ def detect_input_file(options) -> Tuple[str, VersionNumber]:
         raise Exception('No Mbed TLS configuration file found.')
 
 
-class Directive:
-    """Information about a C preprocessor directive."""
+class Chunk:
+    """A chunk of a configuration file."""
+    # pylint: disable=too-few-public-methods
+
+    def __init__(self, text: str) -> None:
+        self.text = text #type: str
+
+class Directive(Chunk):
+    """A configuration file chunk that is a C preprocessor directive."""
     #pylint: disable=too-few-public-methods
 
     START_RE = re.compile(r'\s*#\s*(\w+)(?:\s+(\w+))?')
 
     def __init__(self, text: str) -> None:
+        super().__init__(text)
         m = self.START_RE.match(text)
         if not m:
             raise ValueError('Unable to parse preprocessor directive: ' + text)
@@ -161,7 +169,7 @@ class Configuration():
     """A representation of an Mbed TLS configuration file."""
 
     def reset(self) -> None:
-        self.content = [] #type: List[str]
+        self.content = [] #type: List[Chunk]
         self.explicit_version = None #type: Optional[VersionNumber]
         self.content_version = self.presumed_version
 
@@ -177,28 +185,25 @@ class Configuration():
         r'[^\n"#/]', # other
         '[\t ]*.']), re.S)
 
-    def parse(self, text: str) -> None:
+    def parse(self, content: str) -> None:
         """Load the configuration from a string."""
         self.reset()
         pos = 0
-        while pos < len(text):
-            m = self.CHUNK_RE.match(text, pos)
+        while pos < len(content):
+            m = self.CHUNK_RE.match(content, pos)
             assert m is not None
-            self.content.append(m.group(0))
+            text = m.group(0)
+            if text.startswith('#'):
+                chunk = Directive(text) #type: Chunk
+            else:
+                chunk = Chunk(text)
+            self.content.append(chunk)
             pos = m.end()
 
     def load(self, filename: str) -> None:
         """Load the configuration from a file."""
         text = open(filename).read()
         self.parse(text)
-
-    @staticmethod
-    def parse_directive(chunk: str) -> Optional[Directive]:
-        """Parse a C preprocessor directive line (beginning with '#')."""
-        if chunk[0] == '#':
-            return Directive(chunk)
-        else:
-            return None
 
     def analyze(self) -> None:
         """Analyze the loaded configuration.
@@ -210,10 +215,11 @@ class Configuration():
         # Mypy copes, but pylint is angry.
         #pylint: disable=attribute-defined-outside-init
         for chunk in self.content:
-            d = self.parse_directive(chunk)
-            if d and d.name == 'define' and d.word == 'MBEDTLS_CONFIG_VERSION':
-                self.explicit_version = version_number_from_c(d.trail)
-                self.content_version = self.explicit_version
+            if isinstance(chunk, Directive):
+                if chunk.name == 'define' and \
+                   chunk.word == 'MBEDTLS_CONFIG_VERSION':
+                    self.explicit_version = version_number_from_c(chunk.trail)
+                    self.content_version = self.explicit_version
 
     def upgrade(self) -> None:
         """Upgrade the configuration to the current version.
@@ -242,7 +248,7 @@ class Configuration():
     def write(self, out: typing_util.Writable) -> None:
         """Write the configuration to the specified output stream."""
         for chunk in self.content:
-            out.write(chunk)
+            out.write(chunk.text)
 
     def save(self, filename: str) -> None:
         """Save the configuration to the specified file.
@@ -261,12 +267,11 @@ class Configuration():
         ## So far we just remove the inclusion of check_config.h.
         for idx in range(len(self.content)):
             chunk = self.content[idx]
-            d = self.parse_directive(chunk)
-            if not d:
+            if not isinstance(chunk, Directive):
                 continue
-            if d.name == 'include' and \
-               re.match(r'\s*["<]mbedtls/check_config.h[">]', d.trail):
-                self.content[idx] = '\n'
+            if chunk.name == 'include' and \
+               re.match(r'\s*["<]mbedtls/check_config.h[">]', chunk.trail):
+                self.content[idx] = Chunk('\n')
 
 Upgrader = Callable[[Configuration], None]
 """The type of configuration upgrader methods."""

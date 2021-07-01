@@ -303,6 +303,10 @@ Features
      directly, which is no longer supported.
    * Implement psa_mac_compute() and psa_mac_verify() as defined in the
      PSA Cryptograpy API 1.0.0 specification.
+   * Introduce PSA_WANT_ECC_XXX for ECC curves, and PSA_WANT_CCM/GCM/CMAC,
+     which are used to decide at build time which cryptographic mechanisms to
+     include in the PSA Cryptography interface. For more information, please see
+     (https://github.com/ARMmbed/mbedtls/blob/development/docs/proposed/psa-conditional-inclusion-c.md).
 
 Security
 * Fix a bias in the generation of finite-field Diffie-Hellman-Merkle (DHM)

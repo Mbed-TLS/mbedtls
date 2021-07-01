@@ -155,9 +155,6 @@ API changes
    * mbedtls_ssl_get_session_pointer() has been removed, and
      mbedtls_ssl_{set,get}_session() may now only be called once for any given
      SSL context.
-   * The mode parameter has been removed from the RSA decrypt functions
-     mbedtls_pk_rsa_alt_decrypt_func(), mbedtls_rsa_pkcs1_decrypt(),
-     mbedtls_rsa_pkcs1_decrypt(), mbedtls_rsa_rsaes_oaep_decrypt().
 
 Default behavior changes
    * Enable by default the functionalities which have no reason to be disabled.
@@ -303,10 +300,6 @@ Features
      directly, which is no longer supported.
    * Implement psa_mac_compute() and psa_mac_verify() as defined in the
      PSA Cryptograpy API 1.0.0 specification.
-   * Introduce PSA_WANT_ECC_XXX for ECC curves, and PSA_WANT_CCM/GCM/CMAC,
-     which are used to decide at build time which cryptographic mechanisms to
-     include in the PSA Cryptography interface. For more information, please see
-     (https://github.com/ARMmbed/mbedtls/blob/development/docs/proposed/psa-conditional-inclusion-c.md).
 
 Security
 * Fix a bias in the generation of finite-field Diffie-Hellman-Merkle (DHM)

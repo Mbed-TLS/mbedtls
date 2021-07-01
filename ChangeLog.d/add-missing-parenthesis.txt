@@ -1,3 +1,0 @@
-Bugfix
-   * Fix a compilation error when MBEDTLS_ECP_RANDOMIZE_MXZ_ALT is
-     defined. Fixes #4217.

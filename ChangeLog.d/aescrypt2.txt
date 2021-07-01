@@ -1,3 +1,0 @@
-Changes
-   * Remove the AES sample application programs/aes/aescrypt2 which shows
-     bad cryptographic practice. Fix #1906.

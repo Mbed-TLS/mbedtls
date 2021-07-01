@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.27.0 branch released 2021-07-07
 
 API changes
    * Update AEAD output size macros to bring them in line with the PSA Crypto

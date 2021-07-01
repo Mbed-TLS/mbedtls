@@ -155,6 +155,9 @@ API changes
    * mbedtls_ssl_get_session_pointer() has been removed, and
      mbedtls_ssl_{set,get}_session() may now only be called once for any given
      SSL context.
+   * The mode parameter has been removed from the RSA decrypt functions
+     mbedtls_pk_rsa_alt_decrypt_func(), mbedtls_rsa_pkcs1_decrypt(),
+     mbedtls_rsa_pkcs1_decrypt(), mbedtls_rsa_rsaes_oaep_decrypt().
 
 Default behavior changes
    * Enable by default the functionalities which have no reason to be disabled.

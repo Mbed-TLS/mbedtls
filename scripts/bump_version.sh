@@ -81,6 +81,10 @@ then
   exit 1
 fi
 
+[ $VERBOSE ] && echo "Bumping VERSION in CMakeLists.txt"
+sed -e "s/ VERSION [0-9.]\{1,\}/ VERSION $VERSION/g" < CMakeLists.txt > tmp
+mv tmp CMakeLists.txt
+
 [ $VERBOSE ] && echo "Bumping VERSION in library/CMakeLists.txt"
 sed -e "s/ VERSION [0-9.]\{1,\}/ VERSION $VERSION/g" < library/CMakeLists.txt > tmp
 mv tmp library/CMakeLists.txt

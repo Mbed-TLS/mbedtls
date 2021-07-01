@@ -215,11 +215,16 @@ psa_status_t mbedtls_test_opaque_mac_compute(
     }
     else
     {
-        mbedtls_test_driver_mac_hooks.driver_status =
-            mbedtls_opaque_test_driver_mac_compute(
-                attributes, key_buffer, key_buffer_size, alg,
-                input, input_length,
-                mac, mac_size, mac_length );
+        (void) attributes;
+        (void) key_buffer;
+        (void) key_buffer_size;
+        (void) alg;
+        (void) input;
+        (void) input_length;
+        (void) mac;
+        (void) mac_size;
+        (void) mac_length;
+        mbedtls_test_driver_mac_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     return( mbedtls_test_driver_mac_hooks.driver_status );
@@ -241,9 +246,12 @@ psa_status_t mbedtls_test_opaque_mac_sign_setup(
     }
     else
     {
-        mbedtls_test_driver_mac_hooks.driver_status =
-            mbedtls_opaque_test_driver_mac_sign_setup(
-                operation, attributes, key_buffer, key_buffer_size, alg );
+        (void) operation;
+        (void) attributes;
+        (void) key_buffer;
+        (void) key_buffer_size;
+        (void) alg;
+        mbedtls_test_driver_mac_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     return( mbedtls_test_driver_mac_hooks.driver_status );
@@ -265,9 +273,12 @@ psa_status_t mbedtls_test_opaque_mac_verify_setup(
     }
     else
     {
-        mbedtls_test_driver_mac_hooks.driver_status =
-            mbedtls_opaque_test_driver_mac_verify_setup(
-                operation, attributes, key_buffer, key_buffer_size, alg );
+        (void) operation;
+        (void) attributes;
+        (void) key_buffer;
+        (void) key_buffer_size;
+        (void) alg;
+        mbedtls_test_driver_mac_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     return( mbedtls_test_driver_mac_hooks.driver_status );
@@ -287,9 +298,10 @@ psa_status_t mbedtls_test_opaque_mac_update(
     }
     else
     {
-        mbedtls_test_driver_mac_hooks.driver_status =
-            mbedtls_opaque_test_driver_mac_update(
-                operation, input, input_length );
+        (void) operation;
+        (void) input;
+        (void) input_length;
+        mbedtls_test_driver_mac_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     return( mbedtls_test_driver_mac_hooks.driver_status );
@@ -310,9 +322,11 @@ psa_status_t mbedtls_test_opaque_mac_sign_finish(
     }
     else
     {
-        mbedtls_test_driver_mac_hooks.driver_status =
-            mbedtls_opaque_test_driver_mac_sign_finish(
-                operation, mac, mac_size, mac_length );
+        (void) operation;
+        (void) mac;
+        (void) mac_size;
+        (void) mac_length;
+        mbedtls_test_driver_mac_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     return( mbedtls_test_driver_mac_hooks.driver_status );
@@ -332,9 +346,10 @@ psa_status_t mbedtls_test_opaque_mac_verify_finish(
     }
     else
     {
-        mbedtls_test_driver_mac_hooks.driver_status =
-            mbedtls_opaque_test_driver_mac_verify_finish(
-                operation, mac, mac_length );
+        (void) operation;
+        (void) mac;
+        (void) mac_length;
+        mbedtls_test_driver_mac_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     return( mbedtls_test_driver_mac_hooks.driver_status );
@@ -352,8 +367,8 @@ psa_status_t mbedtls_test_opaque_mac_abort(
     }
     else
     {
-        mbedtls_test_driver_mac_hooks.driver_status =
-            mbedtls_opaque_test_driver_mac_abort( operation );
+        (void) operation;
+        mbedtls_test_driver_mac_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     return( mbedtls_test_driver_mac_hooks.driver_status );

@@ -152,6 +152,9 @@ API changes
      longer supported except for fields that are documented public. Use accessor
      functions instead. For more information, see the migration guide entry
      "Most structure fields are now private".
+   * mbedtls_ssl_get_session_pointer() has been removed, and
+     mbedtls_ssl_{set,get}_session() may now only be called once for any given
+     SSL context.
 
 Default behavior changes
    * Enable by default the functionalities which have no reason to be disabled.

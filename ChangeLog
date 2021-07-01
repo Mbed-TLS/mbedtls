@@ -421,6 +421,8 @@ Bugfix
      applicable RFC: on an invalid Finished message value, an
      invalid max_fragment_length extension, or an
      unsupported extension used by the server.
+   * Correct (change from 12 to 13 bytes) the value of the macro describing the
+     maximum nonce length returned by psa_aead_generate_nonce().
 
 Changes
    * Fix the setting of the read timeout in the DTLS sample programs.

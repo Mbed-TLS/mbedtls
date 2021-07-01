@@ -26,7 +26,7 @@ import functools
 import os
 import re
 import sys
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 from mbedtls_dev import typing_util
 
@@ -183,6 +183,7 @@ class Configuration():
         self.content = [] #type: List[Chunk]
         self.explicit_version = None #type: Optional[VersionNumber]
         self.content_version = self.presumed_version
+        self.symbols = {} #type: Dict[str, Optional[str]]
 
     def __init__(self, input_version: VersionNumber) -> None:
         self.presumed_version = input_version #type: VersionNumber
@@ -226,11 +227,12 @@ class Configuration():
         # Mypy copes, but pylint is angry.
         #pylint: disable=attribute-defined-outside-init
         for chunk in self.content:
-            if isinstance(chunk, Directive):
-                if chunk.name == 'define' and \
-                   chunk.word == 'MBEDTLS_CONFIG_VERSION':
+            if isinstance(chunk, Directive) and chunk.name == 'define':
+                if chunk.word == 'MBEDTLS_CONFIG_VERSION':
                     self.explicit_version = version_number_from_c(chunk.trail)
                     self.content_version = self.explicit_version
+                elif chunk.word:
+                    self.symbols[chunk.word] = chunk.trail
 
     def upgrade(self) -> None:
         """Upgrade the configuration to the current version.
@@ -270,7 +272,26 @@ class Configuration():
         with open(filename, 'w') as out:
             self.write(out)
 
-    ### Upgrader methods follow ####
+    ### Upgrader methods and their helper functions follow ####
+
+    def define_symbol(self, symbol: str, value: Optional[str] = None) -> None:
+        """Add a definition of `symbol` at the end of the file.
+        """
+        if symbol in self.symbols:
+            return
+        rhs = ' ' + value if value else ''
+        self.content.append(Directive('#define ' + symbol + rhs + '\n'))
+
+    def remove_definition(self, symbol: str) -> None:
+        """Remove all definitions of `symbol` (``#define symbol ...``)."""
+        for idx in range(self.content):
+            if not isinstance(self.content[idx], Directive):
+                continue
+            if self.content[idx].name != 'define':
+                continue
+            if self.content[idx].word != symbol:
+                continue
+            self.content[idx] = Chunk('// ' + self.content[idx].text)
 
     def maybe_remove_short_conditional(self, idx: int) -> None:
         """Remove a conditional directive around a single blank chunk.
@@ -333,6 +354,16 @@ class Configuration():
                         self.content[end] = self.content[end].blank_clone()
                     break
             break
+
+    @upgrader('3.0')
+    def changed_options_3_0(self) -> None:
+        if 'MBEDTLS_SHA512_C' in self.symbols:
+            if 'MBEDTLS_SHA512_NO_SHA384' in self.symbols:
+                self.remove_definition('MBEDTLS_SHA512_NO_SHA384')
+            else:
+                self.define_symbol('MBEDTLS_SHA384_C')
+        if 'MBEDTLS_SHA256_C' in self.symbols:
+            self.define_symbol('MBEDTLS_SHA224_C')
 
 Upgrader = Callable[[Configuration], None]
 """The type of configuration upgrader methods."""

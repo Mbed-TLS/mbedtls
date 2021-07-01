@@ -122,10 +122,10 @@ then
   mv tmp library/Makefile
 fi
 
-[ $VERBOSE ] && echo "Bumping VERSION in include/mbedtls/version.h"
+[ $VERBOSE ] && echo "Bumping VERSION in include/mbedtls/build_info.h"
 read MAJOR MINOR PATCH <<<$(IFS="."; echo $VERSION)
 VERSION_NR="$( printf "0x%02X%02X%02X00" $MAJOR $MINOR $PATCH )"
-cat include/mbedtls/version.h |                                    \
+cat include/mbedtls/build_info.h |                                    \
     sed -e "s/_VERSION_MAJOR .\{1,\}/_VERSION_MAJOR  $MAJOR/" |    \
     sed -e "s/_VERSION_MINOR .\{1,\}/_VERSION_MINOR  $MINOR/" |    \
     sed -e "s/_VERSION_PATCH .\{1,\}/_VERSION_PATCH  $PATCH/" |    \
@@ -133,7 +133,7 @@ cat include/mbedtls/version.h |                                    \
     sed -e "s/_VERSION_STRING .\{1,\}/_VERSION_STRING         \"$VERSION\"/" |    \
     sed -e "s/_VERSION_STRING_FULL .\{1,\}/_VERSION_STRING_FULL    \"mbed TLS $VERSION\"/" \
     > tmp
-mv tmp include/mbedtls/version.h
+mv tmp include/mbedtls/build_info.h
 
 [ $VERBOSE ] && echo "Bumping version in tests/suites/test_suite_version.data"
 sed -e "s/version:\".\{1,\}/version:\"$VERSION\"/g" < tests/suites/test_suite_version.data > tmp

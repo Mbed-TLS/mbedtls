@@ -24,6 +24,8 @@
 #                           [ -v | --verbose ] [ -h | --help ]
 #
 
+set -e
+
 VERSION=""
 SOVERSION=""
 

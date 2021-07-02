@@ -263,6 +263,12 @@ requires_openssl_with_fallback_scsv() {
     fi
 }
 
+# skip next test if either IN_CONTENT_LEN or MAX_CONTENT_LEN are below a value
+requires_max_content_len() {
+    requires_config_value_at_least "MBEDTLS_SSL_IN_CONTENT_LEN" $1
+    requires_config_value_at_least "MBEDTLS_SSL_OUT_CONTENT_LEN" $1
+}
+
 # skip next test if GnuTLS isn't available
 requires_gnutls() {
     if [ -z "${GNUTLS_AVAILABLE:-}" ]; then
@@ -1932,10 +1938,6 @@ run_test    "Session resume using cache, DTLS: openssl server" \
 
 # Tests for Max Fragment Length extension
 
-if [ $MAX_CONTENT_LEN -ne 16384 ]; then
-    echo "Using non-default maximum content length $MAX_CONTENT_LEN instead of 16384    "
-fi
-
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: enabled, default" \
             "$P_SRV debug_level=3" \
@@ -2000,9 +2002,7 @@ run_test    "Max fragment length, DTLS: disabled, larger message" \
             -S "Maximum fragment length is 16384" \
             -c "fragment larger than.*maximum "
 
-# Make sure it was compiled with lengths over 4096
-requires_config_value_at_least "MBEDTLS_SSL_IN_CONTENT_LEN" 4096
-requires_config_value_at_least "MBEDTLS_SSL_OUT_CONTENT_LEN" 4096
+requires_max_content_len 4096
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: used by client" \
             "$P_SRV debug_level=3" \
@@ -2015,8 +2015,7 @@ run_test    "Max fragment length: used by client" \
             -s "server hello, max_fragment_length extension" \
             -c "found max_fragment_length extension"
 
-requires_config_value_at_least "MBEDTLS_SSL_IN_CONTENT_LEN" 4096
-requires_config_value_at_least "MBEDTLS_SSL_OUT_CONTENT_LEN" 4096
+requires_max_content_len 4096
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: used by server" \
             "$P_SRV debug_level=3 max_frag_len=4096" \
@@ -2029,8 +2028,7 @@ run_test    "Max fragment length: used by server" \
             -S "server hello, max_fragment_length extension" \
             -C "found max_fragment_length extension"
 
-requires_config_value_at_least "MBEDTLS_SSL_IN_CONTENT_LEN" 4096
-requires_config_value_at_least "MBEDTLS_SSL_OUT_CONTENT_LEN" 4096
+requires_max_content_len 4096
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_gnutls
 run_test    "Max fragment length: gnutls server" \
@@ -2041,8 +2039,7 @@ run_test    "Max fragment length: gnutls server" \
             -c "client hello, adding max_fragment_length extension" \
             -c "found max_fragment_length extension"
 
-requires_config_value_at_least "MBEDTLS_SSL_IN_CONTENT_LEN" 2048
-requires_config_value_at_least "MBEDTLS_SSL_OUT_CONTENT_LEN" 2048
+requires_max_content_len 2048
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: client, message just fits" \
             "$P_SRV debug_level=3" \
@@ -2057,8 +2054,7 @@ run_test    "Max fragment length: client, message just fits" \
             -c "2048 bytes written in 1 fragments" \
             -s "2048 bytes read"
 
-requires_config_value_at_least "MBEDTLS_SSL_IN_CONTENT_LEN" 2048
-requires_config_value_at_least "MBEDTLS_SSL_OUT_CONTENT_LEN" 2048
+requires_max_content_len 2048
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: client, larger message" \
             "$P_SRV debug_level=3" \
@@ -2074,8 +2070,7 @@ run_test    "Max fragment length: client, larger message" \
             -s "2048 bytes read" \
             -s "297 bytes read"
 
-requires_config_value_at_least "MBEDTLS_SSL_IN_CONTENT_LEN" 2048
-requires_config_value_at_least "MBEDTLS_SSL_OUT_CONTENT_LEN" 2048
+requires_max_content_len 2048
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: DTLS client, larger message" \
             "$P_SRV debug_level=3 dtls=1" \

@@ -50,8 +50,8 @@ API changes
      returned from the public SSL API.
    * Remove `MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE` and return
      `MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL` instead.
-   * The output parameter of mbedtls_sha512_finish_ret, mbedtls_sha512_ret,
-     mbedtls_sha256_finish_ret and mbedtls_sha256_ret now has a pointer type
+   * The output parameter of mbedtls_sha512_finish, mbedtls_sha512,
+     mbedtls_sha256_finish and mbedtls_sha256 now has a pointer type
      rather than array type. This removes spurious warnings in some compilers
      when outputting a SHA-384 or SHA-224 hash into a buffer of exactly
      the hash size.

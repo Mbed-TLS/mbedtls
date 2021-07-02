@@ -68,7 +68,7 @@ Bugfix
    * Add printf function attributes to mbedtls_debug_print_msg to ensure we
      get printf format specifier warnings.
    * Fix premature fopen() call in mbedtls_entropy_write_seed_file which may
-     lead to the seed file corruption in case if the path to the seed file is
+     lead to seed file corruption in the case where the path to the seed file is
      equal to MBEDTLS_PLATFORM_STD_NV_SEED_FILE. Contributed by Victor
      Krasnoshchok in #3616.
    * PSA functions other than psa_open_key now return PSA_ERROR_INVALID_HANDLE
@@ -131,8 +131,8 @@ Bugfix
      and using a Montgomery curve for the key exchange. Reported by lhuang04
      in #4578. Fixes #4608.
    * psa_verify_hash() was relying on implementation-specific behavior of
-     mbedtls_rsa_rsassa_pss_verify() and was causing failures in some _ALT
-     implementations. This reliance is now removed. Fixes #3990.
+     mbedtls_rsa_rsassa_pss_verify() and was causing failures in some
+     alternative implementations. This reliance is now removed. Fixes #3990.
    * Disallow inputs of length different from the corresponding hash when
      signing or verifying with PSA_ALG_RSA_PSS (The PSA Crypto API mandates
      that PSA_ALG_RSA_PSS uses the same hash throughout the algorithm.)
@@ -165,7 +165,7 @@ Bugfix
 
 Changes
    * Add extra printf compiler warning flags to builds.
-   * Fix memsan build false positive in x509_crt.c with clang 11
+   * Fix memsan build false positive in x509_crt.c with Clang 11
    * Fix the setting of the read timeout in the DTLS sample programs.
    * Remove the AES sample application programs/aes/aescrypt2 which shows
      bad cryptographic practice. Fix #1906.
@@ -182,7 +182,7 @@ Changes
       double-check that custom session cache implementations return
       sessions which are consistent with the negotiated ciphersuite
       and compression method.
-   * fix build failure on MinGW toolchain when __USE_MING_ANSI_STDIO is on.
+   * Fix build failure on MinGW toolchain when __USE_MING_ANSI_STDIO is on.
      When that flag is on, standard GNU C printf format specifiers
      should be used.
    * Reduce the default value of MBEDTLS_ECP_WINDOW_SIZE. This reduces RAM usage
@@ -402,7 +402,7 @@ Security
      Johan Malmgren and Johan Uppman Bruce from Sectra.
 
 Bugfix
-   * Fix an invalid (but nonzero) return code from mbedtls_pk_parse_subpubkey()
+   * Fix an invalid (but non-zero) return code from mbedtls_pk_parse_subpubkey()
      when the input has trailing garbage. Fixes #2512.
    * Fix build failure in configurations where MBEDTLS_USE_PSA_CRYPTO is
      enabled but ECDSA is disabled. Contributed by jdurkop. Fixes #3294.

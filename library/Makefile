@@ -41,9 +41,9 @@ LOCAL_CFLAGS += -fPIC -fpic
 endif
 endif
 
-SOEXT_TLS=so.14
-SOEXT_X509=so.2
-SOEXT_CRYPTO=so.7
+SOEXT_TLS=so.16
+SOEXT_X509=so.4
+SOEXT_CRYPTO=so.10
 
 # Set AR_DASH= (empty string) to use an ar implementation that does not accept
 # the - prefix for command line options (e.g. llvm-ar)

@@ -231,4 +231,13 @@ void mbedtls_test_err_add_check( int high, int low,
 int mbedtls_test_read_mpi( mbedtls_mpi *X, int radix, const char *s );
 #endif /* MBEDTLS_BIGNUM_C */
 
+/**
+ * \brief   Check value in first parameter.
+ *
+ * \note    If the check fails, fail the test currently being run.
+ */
+#if defined(MBEDTLS_TEST_HOOKS)
+void mbedtls_test_hook_value_check( int test, const char * file, int line );
+#endif
+
 #endif /* TEST_HELPERS_H */

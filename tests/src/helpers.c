@@ -274,3 +274,13 @@ int mbedtls_test_read_mpi( mbedtls_mpi *X, int radix, const char *s )
         return( mbedtls_mpi_read_string( X, radix, s ) );
 }
 #endif
+
+#if defined(MBEDTLS_TEST_HOOKS)
+void mbedtls_test_hook_value_check( int test, const char * file, int line )
+{
+    if ( !test )
+    {
+        mbedtls_test_fail( "Wrong value in test", line, file );
+    }
+}
+#endif

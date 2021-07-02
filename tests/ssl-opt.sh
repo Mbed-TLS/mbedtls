@@ -3883,12 +3883,16 @@ run_test    "Authentication: client no cert, openssl server required" \
             -c "skip write certificate verify" \
             -c "! mbedtls_ssl_handshake returned"
 
-# config.h contains a value for MBEDTLS_X509_MAX_INTERMEDIATE_CA that is
-# different from the script's assumed default value (below).
-# Relevant tests are skipped if they do not match.
+# This script assumes that MBEDTLS_X509_MAX_INTERMEDIATE_CA has its default
+# value, defined here as MAX_IM_CA. Some test cases will be skipped if the
+# library is configured with a different value.
 
 MAX_IM_CA='8'
 
+# The tests for the max_int tests can pass with any number higher than MAX_IM_CA
+# because only a chain of MAX_IM_CA length is tested. Equally, the max_int+1
+# tests can pass with any number less than MAX_IM_CA. However, stricter preconditions
+# are in place so that the semantics are consistent with the test description.
 requires_config_value_at_least "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_config_value_at_most "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer

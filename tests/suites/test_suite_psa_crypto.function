@@ -17,6 +17,9 @@
 #include "test/psa_exercise_key.h"
 #if defined(PSA_CRYPTO_DRIVER_TEST)
 #include "test/drivers/test_driver.h"
+#define TEST_DRIVER_LOCATION PSA_CRYPTO_TEST_DRIVER_LOCATION
+#else
+#define TEST_DRIVER_LOCATION 0x7fffff
 #endif
 
 /* If this comes up, it's a bug in the test code or in the test data. */
@@ -1305,10 +1308,12 @@ exit:
 /* BEGIN_CASE */
 void copy_success( int source_usage_arg,
                    int source_alg_arg, int source_alg2_arg,
+                   unsigned int source_lifetime_arg,
                    int type_arg, data_t *material,
                    int copy_attributes,
                    int target_usage_arg,
                    int target_alg_arg, int target_alg2_arg,
+                   unsigned int target_lifetime_arg,
                    int expected_usage_arg,
                    int expected_alg_arg, int expected_alg2_arg )
 {
@@ -1317,6 +1322,8 @@ void copy_success( int source_usage_arg,
     psa_key_usage_t expected_usage = expected_usage_arg;
     psa_algorithm_t expected_alg = expected_alg_arg;
     psa_algorithm_t expected_alg2 = expected_alg2_arg;
+    psa_key_lifetime_t source_lifetime = source_lifetime_arg;
+    psa_key_lifetime_t target_lifetime = target_lifetime_arg;
     mbedtls_svc_key_id_t source_key = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t target_key = MBEDTLS_SVC_KEY_ID_INIT;
     uint8_t *export_buffer = NULL;
@@ -1328,6 +1335,7 @@ void copy_success( int source_usage_arg,
     psa_set_key_algorithm( &source_attributes, source_alg_arg );
     psa_set_key_enrollment_algorithm( &source_attributes, source_alg2_arg );
     psa_set_key_type( &source_attributes, type_arg );
+    psa_set_key_lifetime( &source_attributes, source_lifetime);
     PSA_ASSERT( psa_import_key( &source_attributes,
                                 material->x, material->len,
                                 &source_key ) );
@@ -1337,9 +1345,8 @@ void copy_success( int source_usage_arg,
     if( copy_attributes )
     {
         target_attributes = source_attributes;
-        /* Set volatile lifetime to reset the key identifier to 0. */
-        psa_set_key_lifetime( &target_attributes, PSA_KEY_LIFETIME_VOLATILE );
     }
+    psa_set_key_lifetime( &target_attributes, target_lifetime);
 
     if( target_usage_arg != -1 )
         psa_set_key_usage_flags( &target_attributes, target_usage_arg );
@@ -1347,6 +1354,7 @@ void copy_success( int source_usage_arg,
         psa_set_key_algorithm( &target_attributes, target_alg_arg );
     if( target_alg2_arg != -1 )
         psa_set_key_enrollment_algorithm( &target_attributes, target_alg2_arg );
+
 
     /* Copy the key. */
     PSA_ASSERT( psa_copy_key( source_key,
@@ -1375,10 +1383,13 @@ void copy_success( int source_usage_arg,
                         export_buffer, length );
     }
 
-    if( ! mbedtls_test_psa_exercise_key( target_key, expected_usage, expected_alg ) )
-        goto exit;
-    if( ! mbedtls_test_psa_exercise_key( target_key, expected_usage, expected_alg2 ) )
-        goto exit;
+    if( !psa_key_lifetime_is_external( target_lifetime ) )
+    {
+        if( ! mbedtls_test_psa_exercise_key( target_key, expected_usage, expected_alg ) )
+            goto exit;
+        if( ! mbedtls_test_psa_exercise_key( target_key, expected_usage, expected_alg2 ) )
+            goto exit;
+    }
 
     PSA_ASSERT( psa_destroy_key( target_key ) );
 
@@ -1398,6 +1409,7 @@ exit:
 /* BEGIN_CASE */
 void copy_fail( int source_usage_arg,
                 int source_alg_arg, int source_alg2_arg,
+                int source_lifetime_arg,
                 int type_arg, data_t *material,
                 int target_type_arg, int target_bits_arg,
                 int target_usage_arg,
@@ -1418,6 +1430,7 @@ void copy_fail( int source_usage_arg,
     psa_set_key_algorithm( &source_attributes, source_alg_arg );
     psa_set_key_enrollment_algorithm( &source_attributes, source_alg2_arg );
     psa_set_key_type( &source_attributes, type_arg );
+    psa_set_key_lifetime( &source_attributes, source_lifetime_arg );
     PSA_ASSERT( psa_import_key( &source_attributes,
                                 material->x, material->len,
                                 &source_key ) );

@@ -948,7 +948,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( minor_ver >= MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         /* For HMAC-based ciphersuites, initialize the HMAC transforms.
            For AEAD-based ciphersuites, there is nothing to do here. */

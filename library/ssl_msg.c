@@ -643,7 +643,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( transform->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_3 )
         {
             unsigned char mac[MBEDTLS_SSL_MAC_ADD];
 
@@ -5169,7 +5169,7 @@ static int ssl_handle_hs_message_post_handshake( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "refusing renegotiation, sending alert" ) );
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_3 )
         {
             if( ( ret = mbedtls_ssl_send_alert_message( ssl,
                              MBEDTLS_SSL_ALERT_LEVEL_WARNING,

@@ -1003,8 +1003,8 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
     if( slot->lock_count != 1 )
     {
 #if defined(MBEDTLS_TEST_HOOKS)
-        if( *mbedtls_test_hook_value != NULL )
-            ( *mbedtls_test_hook_value )( slot->lock_count == 1, __FILE__, __LINE__ );
+        if( *mbedtls_test_hook_assert_test != NULL )
+            ( *mbedtls_test_hook_assert_test )( slot->lock_count == 1, __FILE__, __LINE__ );
 #endif
         status = PSA_ERROR_CORRUPTION_DETECTED;
     }

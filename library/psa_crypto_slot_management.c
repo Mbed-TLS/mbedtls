@@ -416,8 +416,8 @@ psa_status_t psa_unlock_key_slot( psa_key_slot_t *slot )
     slot->lock_count = 1;
 
 #if defined(MBEDTLS_TEST_HOOKS)
-    if( *mbedtls_test_hook_value != NULL )
-        ( *mbedtls_test_hook_value )( slot->lock_count > 0, __FILE__, __LINE__  );
+    if( *mbedtls_test_hook_assert_test != NULL )
+        ( *mbedtls_test_hook_assert_test )( slot->lock_count > 0, __FILE__, __LINE__  );
 #endif
 
     return( PSA_ERROR_CORRUPTION_DETECTED );

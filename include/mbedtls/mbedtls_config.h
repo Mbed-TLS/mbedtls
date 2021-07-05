@@ -1683,7 +1683,7 @@
  *
  * Uncomment to enable invasive tests.
  */
-#define MBEDTLS_TEST_HOOKS
+//#define MBEDTLS_TEST_HOOKS
 
 /**
  * \def MBEDTLS_THREADING_ALT

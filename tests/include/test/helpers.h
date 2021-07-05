@@ -237,7 +237,7 @@ int mbedtls_test_read_mpi( mbedtls_mpi *X, int radix, const char *s );
  * \note    If the check fails, fail the test currently being run.
  */
 #if defined(MBEDTLS_TEST_HOOKS)
-void mbedtls_test_hook_value_check( int test, const char * file, int line );
+void mbedtls_test_assert_test( int test, const char * file, int line );
 #endif
 
 #endif /* TEST_HELPERS_H */

@@ -1,5 +1,0 @@
-Bugfix
-   * Fix which alert is sent in some cases to conform to the
-     applicable RFC: on an invalid Finished message value, an
-     invalid max_fragment_length extension, or an
-     unsupported extension used by the server.

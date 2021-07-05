@@ -1,5 +1,0 @@
-Bugfix
-   * mbedtls_pk_sign() and mbedtls_pk_verify() and their extended and
-     restartable variants now require at least the specified hash length if
-     nonzero. Before, for RSA, hash_len was ignored in favor of the length of
-     the specified hash algorithm.

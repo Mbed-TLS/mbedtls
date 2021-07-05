@@ -1,3 +1,0 @@
-Bugfix
-   * Fix a resource leak in a test suite with an alternative AES
-     implementation. Fixes #4176.

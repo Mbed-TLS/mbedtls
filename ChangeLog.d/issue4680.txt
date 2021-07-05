@@ -1,0 +1,2 @@
+Changes
+    * Re-introduce extended checks for psa unlock/wipe key slot. Fixes #4680.

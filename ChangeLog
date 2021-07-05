@@ -73,20 +73,20 @@ API changes
    * Introduce MBEDTLS_SHA224_C.
      This separates config option enabling the SHA224 algorithm from option
      enabling SHA256.
-    * The getter and setter API of the SSL session cache (used for
-      session-ID based session resumption) has changed to that of
-      a key-value store with keys being session IDs and values
-      being opaque instances of `mbedtls_ssl_session`.
+   * The getter and setter API of the SSL session cache (used for
+     session-ID based session resumption) has changed to that of
+     a key-value store with keys being session IDs and values
+     being opaque instances of `mbedtls_ssl_session`.
    * Remove the mode parameter from RSA operation functions. Signature and
      decryption functions now always use the private key and verification and
      encryption use the public key. Verification functions also no longer have
      RNG parameters.
-    * Modify semantics of `mbedtls_ssl_conf_[opaque_]psk()`:
-      In Mbed TLS 2.X, the API prescribes that later calls overwrite
-      the effect of earlier calls. In Mbed TLS 3.0, calling
-      `mbedtls_ssl_conf_[opaque_]psk()` more than once will fail,
-      leaving the PSK that was configured first intact.
-      Support for more than one PSK may be added in 3.X.
+   * Modify semantics of `mbedtls_ssl_conf_[opaque_]psk()`:
+     In Mbed TLS 2.X, the API prescribes that later calls overwrite
+     the effect of earlier calls. In Mbed TLS 3.0, calling
+     `mbedtls_ssl_conf_[opaque_]psk()` more than once will fail,
+     leaving the PSK that was configured first intact.
+     Support for more than one PSK may be added in 3.X.
    * The function mbedtls_x509write_csr_set_extension() has an extra parameter
      which allows to mark an extension as critical. Fixes #4055.
    * For multi-part AEAD operations with the cipher module, calling
@@ -109,8 +109,8 @@ API changes
      key. To use an RSA key with PSS or OAEP, call mbedtls_rsa_set_padding()
      after initializing the context. mbedtls_rsa_set_padding() now returns an
      error if its parameters are invalid.
-    * Replace MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE by a runtime
-      configuration function mbedtls_ssl_conf_preference_order(). Fixes #4398.
+   * Replace MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE by a runtime
+     configuration function mbedtls_ssl_conf_preference_order(). Fixes #4398.
    * Instead of accessing the len field of a DHM context, which is no longer
      supported, use the new function mbedtls_dhm_get_len() .
    * In modules that implement cryptographic hash functions, many functions
@@ -250,19 +250,19 @@ Removals
    * Remove the  MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION config.h
      option. The mbedtls_x509_crt_parse_der_with_ext_cb() is the way to go for
      migration path. Fixes #4378.
-    * Remove the MBEDTLS_X509_CHECK_KEY_USAGE and
-      MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE config.h options and let the code
-      behave as if they were always enabled. Fixes #4405.
+   * Remove the MBEDTLS_X509_CHECK_KEY_USAGE and
+     MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE config.h options and let the code
+     behave as if they were always enabled. Fixes #4405.
    * MBEDTLS_ECP_MAX_BITS is no longer a configuration option because it is
      now determined automatically based on supported curves.
-    * Remove the following functions: mbedtls_timing_self_test(),
-      mbedtls_hardclock_poll(), mbedtls_timing_hardclock() and
-      mbedtls_set_alarm(). Fixes #4083.
+   * Remove the following functions: mbedtls_timing_self_test(),
+     mbedtls_hardclock_poll(), mbedtls_timing_hardclock() and
+     mbedtls_set_alarm(). Fixes #4083.
    * The configuration option MBEDTLS_ECP_NO_INTERNAL_RNG has been removed as
      it no longer had any effect.
-    * Remove all support for MD2, MD4, RC4, Blowfish and XTEA. This removes the
-      corresponding modules and all their APIs and related configuration
-      options. Fixes #4084.
+   * Remove all support for MD2, MD4, RC4, Blowfish and XTEA. This removes the
+     corresponding modules and all their APIs and related configuration
+     options. Fixes #4084.
    * Remove MBEDTLS_SSL_TRUNCATED_HMAC and also remove
      MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT config option. Users are better served by
      using a CCM-8 ciphersuite than a CBC ciphersuite with truncated HMAC.

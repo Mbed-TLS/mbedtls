@@ -127,8 +127,15 @@ def detect_input_file(options) -> Tuple[str, VersionNumber]:
 class Chunk:
     """A chunk of a configuration file."""
 
-    def __init__(self, text: str) -> None:
+    def __init__(self, text: str, line_number: int) -> None:
+        """A chunk with the given text.
+
+        `line_number` is the line number where the chunk starts. The first line
+        in the file is 1. Use 0 for chunks that are created during the
+        conversion.
+        """
         self.text = text #type: str
+        self.line_number = line_number #type: int
 
     def is_blank(self) -> bool:
         """True if this chunk is blank or is a comment."""
@@ -140,7 +147,7 @@ class Chunk:
 
     def blank_clone(self) -> 'Chunk':
         """Return a blank chunk with the same number of newlines as this one."""
-        return Chunk(re.sub(r'[^\n]+', r'', self.text))
+        return Chunk(re.sub(r'[^\n]+', r'', self.text), self.line_number)
 
 class Directive(Chunk):
     """A configuration file chunk that is a C preprocessor directive."""
@@ -148,8 +155,8 @@ class Directive(Chunk):
 
     START_RE = re.compile(r'\s*#\s*(\w+)(?:\s+(\w+))?')
 
-    def __init__(self, text: str) -> None:
-        super().__init__(text)
+    def __init__(self, text: str, line_number: int = 0) -> None:
+        super().__init__(text, line_number)
         m = self.START_RE.match(text)
         if not m:
             raise ValueError('Unable to parse preprocessor directive: ' + text)
@@ -201,16 +208,18 @@ class Configuration():
         """Load the configuration from a string."""
         self.reset()
         pos = 0
+        line_number = 1
         while pos < len(content):
             m = self.CHUNK_RE.match(content, pos)
             assert m is not None
             text = m.group(0)
             if text.startswith('#'):
-                chunk = Directive(text) #type: Chunk
+                chunk = Directive(text, line_number) #type: Chunk
             else:
-                chunk = Chunk(text)
+                chunk = Chunk(text, line_number)
             self.content.append(chunk)
             pos = m.end()
+            line_number += text.count('\n')
 
     def load(self, filename: str) -> None:
         """Load the configuration from a file."""
@@ -284,14 +293,13 @@ class Configuration():
 
     def remove_definition(self, symbol: str) -> None:
         """Remove all definitions of `symbol` (``#define symbol ...``)."""
-        for idx in range(self.content):
-            if not isinstance(self.content[idx], Directive):
-                continue
-            if self.content[idx].name != 'define':
-                continue
-            if self.content[idx].word != symbol:
-                continue
-            self.content[idx] = Chunk('// ' + self.content[idx].text)
+        for idx in range(len(self.content)):
+            chunk = self.content[idx]
+            if isinstance(chunk, Directive) and \
+               chunk.name == 'define' and \
+               chunk.word == symbol:
+                self.content[idx] = Chunk('// ' + self.content[idx].text,
+                                          self.content[idx].line_number)
 
     def maybe_remove_short_conditional(self, idx: int) -> None:
         """Remove a conditional directive around a single blank chunk.
@@ -341,12 +349,13 @@ class Configuration():
         # something the user cares about.
         for idx in range(len(self.content) - 2):
             chunk = self.content[idx]
-            if chunk.is_blank():
+            if chunk.line_number == 0 or chunk.is_blank():
                 continue
             if chunk.text.strip() == '#ifndef MBEDTLS_CONFIG_H' and \
                self.content[idx+1].text.strip() == '#define MBEDTLS_CONFIG_H':
                 for end in reversed(range(2, len(self.content))):
-                    if self.content[idx].is_blank():
+                    if self.content[end].line_number == 0 or \
+                       self.content[end].is_blank():
                         continue
                     if self.content[end].text.startswith('#endif'):
                         self.content[idx] = self.content[idx].blank_clone()

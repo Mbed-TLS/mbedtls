@@ -421,8 +421,6 @@ Changes
    * Fix the setting of the read timeout in the DTLS sample programs.
    * Add extra printf compiler warning flags to builds.
    * Fix memsan build false positive in x509_crt.c with clang 11
-   * There is ongoing work for the next release (= Mbed TLS 3.0.0 branch to
-     be released 2021-xx-xx), including various API-breaking changes.
    * Alternative implementations of CMAC may now opt to not support 3DES as a
      CMAC block cipher, and still pass the CMAC self test.
    * Remove the AES sample application programs/aes/aescrypt2 which shows

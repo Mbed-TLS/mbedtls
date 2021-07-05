@@ -178,10 +178,10 @@ Changes
      MBEDTLS_PSA_CRYPTO_C became enabled by default.
    * When building the test suites with GNU make, invoke python3 or python, not
      python2, which is no longer supported upstream.
-    * When using session cache based session resumption on the server,
-      double-check that custom session cache implementations return
-      sessions which are consistent with the negotiated ciphersuite
-      and compression method.
+   * When using session cache based session resumption on the server,
+     double-check that custom session cache implementations return
+     sessions which are consistent with the negotiated ciphersuite
+     and compression method.
    * Fix build failure on MinGW toolchain when __USE_MING_ANSI_STDIO is on.
      When that flag is on, standard GNU C printf format specifiers
      should be used.

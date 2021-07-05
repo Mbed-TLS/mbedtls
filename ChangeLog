@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.16.11 branch released 2021-07-07
 
 Security
    * Fix a bias in the generation of finite-field Diffie-Hellman-Merkle (DHM)

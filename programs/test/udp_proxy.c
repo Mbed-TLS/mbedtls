@@ -683,26 +683,21 @@ int send_delayed()
 }
 
 /*
- * Avoid dropping or delaying a packet that was already dropped twice: this
- * only results in uninteresting timeouts. We can't rely on type to identify
- * packets, since during renegotiation they're all encrypted.  So, rely on
- * size mod 2048 (which is usually just size).
- */
-static unsigned char dropped[2048] = { 0 };
-#define DROP_MAX 2
-
-/* We only drop packets at the level of entire datagrams, not at the level
+ * Avoid dropping or delaying a packet that was already dropped or delayed
+ * ("held") twice: this only results in uninteresting timeouts. We can't rely
+ * on type to identify packets, since during renegotiation they're all
+ * encrypted. So, rely on size mod 2048 (which is usually just size).
+ *
+ * We only hold packets at the level of entire datagrams, not at the level
  * of records. In particular, if the peer changes the way it packs multiple
  * records into a single datagram, we don't necessarily count the number of
- * times a record has been dropped correctly. However, the only known reason
+ * times a record has been held correctly. However, the only known reason
  * why a peer would change datagram packing is disabling the latter on
- * retransmission, in which case we'd drop involved records at most
- * DROP_MAX + 1 times. */
-void update_dropped( const packet *p )
-{
-    size_t id = p->len % sizeof( dropped );
-    ++dropped[id];
-}
+ * retransmission, in which case we'd hold involved records at most
+ * HOLD_MAX + 1 times.
+ */
+static unsigned char held[2048] = { 0 };
+#define HOLD_MAX 2
 
 int handle_message( const char *way,
                     mbedtls_net_context *dst,
@@ -729,7 +724,7 @@ int handle_message( const char *way,
     cur.dst  = dst;
     print_packet( &cur, NULL );
 
-    id = cur.len % sizeof( dropped );
+    id = cur.len % sizeof( held );
 
     if( strcmp( way, "S <- C" ) == 0 )
     {
@@ -771,10 +766,10 @@ int handle_message( const char *way,
           ! ( opt.protect_hvr &&
               strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
           cur.len != (size_t) opt.protect_len &&
-          dropped[id] < DROP_MAX &&
+          held[id] < HOLD_MAX &&
           rand() % opt.drop == 0 ) )
     {
-        update_dropped( &cur );
+        ++held[id];
     }
     else if( ( opt.delay_ccs == 1 &&
                strcmp( cur.type, "ChangeCipherSpec" ) == 0 ) ||
@@ -784,9 +779,10 @@ int handle_message( const char *way,
                ! ( opt.protect_hvr &&
                    strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
                cur.len != (size_t) opt.protect_len &&
-               dropped[id] < DROP_MAX &&
+               held[id] < HOLD_MAX &&
                rand() % opt.delay == 0 ) )
     {
+        ++held[id];
         delay_packet( &cur );
     }
     else
@@ -897,7 +893,7 @@ accept:
      * 3. Forward packets forever (kill the process to terminate it)
      */
     clear_pending();
-    memset( dropped, 0, sizeof( dropped ) );
+    memset( held, 0, sizeof( held ) );
 
     nb_fds = client_fd.fd;
     if( nb_fds < server_fd.fd )

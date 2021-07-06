@@ -643,7 +643,7 @@ int mbedtls_test_psa_exported_key_sanity_check(
         TEST_EQUAL( exported_length, PSA_BITS_TO_BYTES( bits ) );
     else
 
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C)
+#if defined(MBEDTLS_ASN1_PARSE_C)
     if( type == PSA_KEY_TYPE_RSA_KEY_PAIR )
     {
         uint8_t *p = (uint8_t*) exported;
@@ -690,7 +690,7 @@ int mbedtls_test_psa_exported_key_sanity_check(
         TEST_ASSERT( exported_length <= PSA_EXPORT_KEY_PAIR_MAX_SIZE );
     }
     else
-#endif /* MBEDTLS_RSA_C */
+#endif /* MBEDTLS_ASN1_PARSE_C */
 
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( type ) )
@@ -703,7 +703,7 @@ int mbedtls_test_psa_exported_key_sanity_check(
     else
 #endif /* MBEDTLS_ECP_C */
 
-#if defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_ASN1_PARSE_C)
     if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY )
     {
         uint8_t *p = (uint8_t*) exported;
@@ -731,7 +731,7 @@ int mbedtls_test_psa_exported_key_sanity_check(
                      PSA_EXPORT_PUBLIC_KEY_MAX_SIZE );
     }
     else
-#endif /* MBEDTLS_RSA_C */
+#endif /* MBEDTLS_ASN1_PARSE_C */
 
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( type ) )

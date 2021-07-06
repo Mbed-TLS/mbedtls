@@ -948,23 +948,14 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( minor_ver >= MBEDTLS_SSL_MINOR_VERSION_3 )
+    /* For HMAC-based ciphersuites, initialize the HMAC transforms.
+       For AEAD-based ciphersuites, there is nothing to do here. */
+    if( mac_key_len != 0 )
     {
-        /* For HMAC-based ciphersuites, initialize the HMAC transforms.
-           For AEAD-based ciphersuites, there is nothing to do here. */
-        if( mac_key_len != 0 )
-        {
-            mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, mac_key_len );
-            mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, mac_key_len );
-        }
+        mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, mac_key_len );
+        mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, mac_key_len );
     }
-    else
 #endif
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-        goto end;
-    }
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
     ((void) mac_dec);

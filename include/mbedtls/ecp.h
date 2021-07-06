@@ -96,6 +96,7 @@ extern "C" {
  * - Add it at the end of this enum, otherwise you'll break the ABI by
  *   changing the numerical value for existing curves.
  * - Increment MBEDTLS_ECP_DP_MAX below if needed.
+ * - Update the calculation of MBEDTLS_ECP_MAX_BITS_MIN below.
  * - Add the corresponding MBEDTLS_ECP_DP_xxx_ENABLED macro definition to
  *   config.h.
  * - List the curve as a dependency of MBEDTLS_ECP_C and
@@ -171,6 +172,40 @@ typedef struct mbedtls_ecp_point
 }
 mbedtls_ecp_point;
 
+/* Determine the minimum safe value of MBEDTLS_ECP_MAX_BITS. */
+#if !defined(MBEDTLS_ECP_C)
+#define MBEDTLS_ECP_MAX_BITS_MIN 0
+/* Note: the curves must be listed in DECREASING size! */
+#elif defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS_MIN 521
+#elif defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS_MIN 512
+#elif defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS_MIN 448
+#elif defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS_MIN 384
+#elif defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS_MIN 384
+#elif defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS_MIN 256
+#elif defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS_MIN 256
+#elif defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS_MIN 256
+#elif defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS_MIN 255
+#elif defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS_MIN 225 // n is slightly above 2^224
+#elif defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS_MIN 224
+#elif defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS_MIN 192
+#elif defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS_MIN 192
+#else
+#error "MBEDTLS_ECP_C enabled, but no curve?"
+#endif
+
 #if !defined(MBEDTLS_ECP_ALT)
 /*
  * default mbed TLS elliptic curve arithmetic implementation
@@ -245,11 +280,23 @@ mbedtls_ecp_group;
  * \{
  */
 
-#if !defined(MBEDTLS_ECP_MAX_BITS)
+#if defined(MBEDTLS_ECP_MAX_BITS)
+
+#if MBEDTLS_ECP_MAX_BITS < MBEDTLS_ECP_MAX_BITS_MIN
+#error "MBEDTLS_ECP_MAX_BITS is smaller than the largest supported curve"
+#endif
+
+#elif defined(MBEDTLS_ECP_C)
 /**
  * The maximum size of the groups, that is, of \c N and \c P.
  */
-#define MBEDTLS_ECP_MAX_BITS     521   /**< The maximum size of groups, in bits. */
+#define MBEDTLS_ECP_MAX_BITS     MBEDTLS_ECP_MAX_BITS_MIN
+
+#else
+/* MBEDTLS_ECP_MAX_BITS is not relevant without MBEDTLS_ECP_C, but set it
+ * to a nonzero value so that code that unconditionally allocates an array
+ * of a size based on it keeps working if built without ECC support. */
+#define MBEDTLS_ECP_MAX_BITS 1
 #endif
 
 #define MBEDTLS_ECP_MAX_BYTES    ( ( MBEDTLS_ECP_MAX_BITS + 7 ) / 8 )

@@ -1,3 +1,0 @@
-Changes
-   * Reduce the default value of MBEDTLS_ECP_WINDOW_SIZE. This reduces RAM usage
-     during ECC operations at a negligible performance cost.

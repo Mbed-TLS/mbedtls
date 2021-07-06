@@ -3616,7 +3616,7 @@
 //#define MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT      384 /**< Maximum size of (re)seed buffer */
 
 /* ECP options */
-//#define MBEDTLS_ECP_MAX_BITS             521 /**< Maximum bit size of groups */
+//#define MBEDTLS_ECP_MAX_BITS             521 /**< Maximum bit size of groups. Normally determined automatically from the configured curves. */
 //#define MBEDTLS_ECP_WINDOW_SIZE            4 /**< Maximum window size used */
 //#define MBEDTLS_ECP_FIXED_POINT_OPTIM      1 /**< Enable fixed-point speed-up */
 

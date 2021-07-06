@@ -430,8 +430,8 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
         * defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) */
 
-static psa_status_t validate_unstructured_key_bit_size( psa_key_type_t type,
-                                                        size_t bits )
+psa_status_t psa_validate_unstructured_key_bit_size( psa_key_type_t type,
+                                                   size_t bits )
 {
     /* Check that the bit size is acceptable for the key type */
     switch( type )
@@ -560,14 +560,14 @@ psa_status_t psa_import_key_into_slot(
 
         /* Ensure that the bytes-to-bits conversion hasn't overflown. */
         if( data_length > SIZE_MAX / 8 )
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return( status );
 
         /* Enforce a size limit, and in particular ensure that the bit
          * size fits in its representation type. */
         if( ( *bits ) > PSA_MAX_KEY_BITS )
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return( status );
 
-        status = validate_unstructured_key_bit_size( type, *bits );
+        status = psa_validate_unstructured_key_bit_size( attributes->core.type, *bits );
         if( status != PSA_SUCCESS )
             return( status );
 
@@ -1907,8 +1907,9 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
         goto exit;
 
     /* In the case of a transparent key or an opaque key stored in local
-     * storage, we have to allocate a buffer to hold the generated key
-     * material. */
+     * storage( thus not in the case of the old-style secure element interface
+     * (MBEDTLS_PSA_CRYPTO_SE_C)),we have to allocate a buffer to hold the
+     * imported key material. */
     if( slot->key.data == NULL )
     {
         if( psa_key_lifetime_is_external( attributes->core.lifetime ) )
@@ -5061,7 +5062,7 @@ static psa_status_t psa_validate_key_type_and_size_for_key_generation(
 
     if( key_type_is_raw_bytes( type ) )
     {
-        status = validate_unstructured_key_bit_size( type, bits );
+        status = psa_validate_unstructured_key_bit_size( type, bits );
         if( status != PSA_SUCCESS )
             return( status );
     }
@@ -5171,9 +5172,9 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
         goto exit;
 
     /* In the case of a transparent key or an opaque key stored in local
-     * storage (thus not in the case of generating a key in a secure element
-     * or cryptoprocessor with storage), we have to allocate a buffer to
-     * hold the generated key material. */
+     * storage( thus not in the case of the old-style secure element interface
+     * (MBEDTLS_PSA_CRYPTO_SE_C)),we have to allocate a buffer to hold the
+     * imported key material. */
     if( slot->key.data == NULL )
     {
         if ( PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime ) ==

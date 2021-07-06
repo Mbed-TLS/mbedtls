@@ -15,6 +15,9 @@
 #include "test/asn1_helpers.h"
 #include "test/psa_crypto_helpers.h"
 #include "test/psa_exercise_key.h"
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+#include "test/drivers/test_driver.h"
+#endif
 
 /* If this comes up, it's a bug in the test code or in the test data. */
 #define UNUSED 0xdeadbeef
@@ -484,6 +487,7 @@ exit:
 void import_export( data_t *data,
                     int type_arg,
                     int usage_arg, int alg_arg,
+                    int lifetime_arg,
                     int expected_bits,
                     int export_size_delta,
                     int expected_export_status_arg,
@@ -494,6 +498,7 @@ void import_export( data_t *data,
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_export_status = expected_export_status_arg;
     psa_status_t status;
+    psa_key_lifetime_t lifetime = lifetime_arg;
     unsigned char *exported = NULL;
     unsigned char *reexported = NULL;
     size_t export_size;
@@ -508,6 +513,7 @@ void import_export( data_t *data,
         ASSERT_ALLOC( reexported, export_size );
     PSA_ASSERT( psa_crypto_init( ) );
 
+    psa_set_key_lifetime( &attributes, lifetime );
     psa_set_key_usage_flags( &attributes, usage_arg );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, type );
@@ -543,8 +549,11 @@ void import_export( data_t *data,
      * this validates the canonical representations. For canonical inputs,
      * this doesn't directly validate the implementation, but it still helps
      * by cross-validating the test data with the sanity check code. */
-    if( ! mbedtls_test_psa_exercise_key( key, usage_arg, 0 ) )
-        goto exit;
+    if( !psa_key_lifetime_is_external( lifetime ) )
+    {
+        if( ! mbedtls_test_psa_exercise_key( key, usage_arg, 0 ) )
+            goto exit;
+    }
 
     if( canonical_input )
         ASSERT_COMPARE( data->x, data->len, exported, exported_length );
@@ -552,17 +561,17 @@ void import_export( data_t *data,
     {
         mbedtls_svc_key_id_t key2 = MBEDTLS_SVC_KEY_ID_INIT;
         PSA_ASSERT( psa_import_key( &attributes, exported, exported_length,
-                                    &key2 ) );
+                                     &key2 ) );
         PSA_ASSERT( psa_export_key( key2,
-                                    reexported,
-                                    export_size,
-                                    &reexported_length ) );
+                                     reexported,
+                                     export_size,
+                                     &reexported_length ) );
         ASSERT_COMPARE( exported, exported_length,
-                        reexported, reexported_length );
+                         reexported, reexported_length );
         PSA_ASSERT( psa_destroy_key( key2 ) );
     }
     TEST_ASSERT( exported_length <=
-                 PSA_EXPORT_KEY_OUTPUT_SIZE( type,
+             PSA_EXPORT_KEY_OUTPUT_SIZE( type,
                                              psa_get_key_bits( &got_attributes ) ) );
     TEST_ASSERT( exported_length <= PSA_EXPORT_KEY_PAIR_MAX_SIZE );
 
@@ -577,7 +586,7 @@ exit:
      * thus reset them as required.
      */
     psa_reset_key_attributes( &got_attributes );
-
+    psa_destroy_key( key ) ;
     mbedtls_free( exported );
     mbedtls_free( reexported );
     PSA_DONE( );
@@ -588,6 +597,7 @@ exit:
 void import_export_public_key( data_t *data,
                                int type_arg,
                                int alg_arg,
+                               int lifetime_arg,
                                int export_size_delta,
                                int expected_export_status_arg,
                                data_t *expected_public_key )
@@ -597,6 +607,7 @@ void import_export_public_key( data_t *data,
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_export_status = expected_export_status_arg;
     psa_status_t status;
+    psa_key_lifetime_t lifetime = lifetime_arg;
     unsigned char *exported = NULL;
     size_t export_size = expected_public_key->len + export_size_delta;
     size_t exported_length = INVALID_EXPORT_LENGTH;
@@ -604,6 +615,7 @@ void import_export_public_key( data_t *data,
 
     PSA_ASSERT( psa_crypto_init( ) );
 
+    psa_set_key_lifetime( &attributes, lifetime );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, type );
@@ -614,8 +626,8 @@ void import_export_public_key( data_t *data,
     /* Export the public key */
     ASSERT_ALLOC( exported, export_size );
     status = psa_export_public_key( key,
-                                    exported, export_size,
-                                    &exported_length );
+                                exported, export_size,
+                                &exported_length );
     TEST_EQUAL( status, expected_export_status );
     if( status == PSA_SUCCESS )
     {
@@ -632,7 +644,6 @@ void import_export_public_key( data_t *data,
         ASSERT_COMPARE( expected_public_key->x, expected_public_key->len,
                         exported, exported_length );
     }
-
 exit:
     /*
      * Key attributes may have been returned by psa_get_key_attributes()

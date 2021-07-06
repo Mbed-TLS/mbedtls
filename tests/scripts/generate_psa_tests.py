@@ -495,7 +495,8 @@ class StorageFormat:
         # test cases. This allows all required information to be obtained in
         # one go, which is a significant performance gain as the information
         # includes numerical values obtained by compiling a C program.
-        for key in self.generate_all_keys():
+        all_keys = list(self.generate_all_keys())
+        for key in all_keys:
             if key.location_value() != 0:
                 # Skip keys with a non-default location, because they
                 # require a driver and we currently have no mechanism to

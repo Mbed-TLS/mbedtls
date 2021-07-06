@@ -1,2 +1,0 @@
-Bugfix
-   * Fix an incorrect error code when parsing a PKCS#8 private key.

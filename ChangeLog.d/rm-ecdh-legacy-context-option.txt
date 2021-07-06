@@ -1,3 +1,0 @@
-Removals
-   * Remove MBEDTLS_ECDH_LEGACY_CONTEXT config option since this was purely for
-     backward compatibility which is no longer supported. Addresses #4404.

@@ -1,3 +1,0 @@
-API changes
-    * Replace MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE by a runtime
-      configuration function mbedtls_ssl_conf_preference_order(). Fixes #4398.

@@ -1,2 +1,0 @@
-Changes
-   * Add CMake package config generation for CMake projects consuming Mbed TLS.

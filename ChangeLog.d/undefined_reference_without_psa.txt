@@ -1,4 +1,0 @@
-Bugfix
-   * With MBEDTLS_PSA_CRYPTO_C disabled, some functions were getting built
-     nonetheless, resulting in undefined reference errors when building a
-     shared library. Reported by Guillermo Garcia M. in #4411.

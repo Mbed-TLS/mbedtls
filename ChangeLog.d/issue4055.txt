@@ -1,3 +1,0 @@
-API changes
-   * The function mbedtls_x509write_csr_set_extension() has an extra parameter
-     which allows to mark an extension as critical. Fixes #4055.

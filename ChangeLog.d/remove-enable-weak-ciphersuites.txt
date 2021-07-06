@@ -1,2 +1,0 @@
-Removals
-   * Remove MBEDTLS_ENABLE_WEAK_CIPHERSUITES configuration option. Fixes #4416.

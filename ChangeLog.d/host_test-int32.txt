@@ -1,3 +1,0 @@
-Bugfix
-   * Fix test suite code on platforms where int32_t is not int, such as
-     Arm Cortex-M. Fixes #4530.

@@ -619,7 +619,7 @@ void key_type( int type_arg, int classification_flags )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void block_cipher_key_type( int type_arg, int block_size_arg )
+void block_cipher_key_type( int type_arg, int block_size_arg, int expecting_power_2 )
 {
     psa_key_type_t type = type_arg;
     size_t block_size = block_size_arg;
@@ -628,7 +628,27 @@ void block_cipher_key_type( int type_arg, int block_size_arg )
 
     TEST_EQUAL( type & PSA_KEY_TYPE_CATEGORY_MASK,
                 PSA_KEY_TYPE_CATEGORY_SYMMETRIC );
-    TEST_EQUAL( PSA_BLOCK_CIPHER_BLOCK_LENGTH( type ), block_size );
+
+    if (expecting_power_2 == 0)
+        TEST_EQUAL( PSA_BLOCK_CIPHER_BLOCK_LENGTH( type ), block_size );
+
+    /* PSA_ROUND_UP_TO_MULTIPLE(block_size, length) in crypto_sizes.h
+     * Requires block sizes to be a power of 2. The following test ensures
+     * the block sizes are indeed powers of 2.
+     */
+    int check = 0;
+
+    while( block_size > 1)
+    {
+        if ( block_size % 2 != 0 )
+        {
+            check = 1;
+            break;
+        }
+        block_size = block_size / 2;
+    }
+    /* expecting_power_2 should be 0 if true (e.g 16, 32 etc.) or 1 otherwise */
+    TEST_EQUAL( check, expecting_power_2 );
 }
 /* END_CASE */
 

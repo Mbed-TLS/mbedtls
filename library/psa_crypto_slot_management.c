@@ -34,7 +34,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "mbedtls/error.h"
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -413,13 +412,7 @@ psa_status_t psa_unlock_key_slot( psa_key_slot_t *slot )
         return( PSA_SUCCESS );
     }
 
-    slot->lock_count = 1;
-
-#if defined(MBEDTLS_TEST_HOOKS)
-    if( *mbedtls_test_hook_assert_test != NULL )
-        ( *mbedtls_test_hook_assert_test )( slot->lock_count > 0, __FILE__, __LINE__  );
-#endif
-
+    MBEDTLS_TEST_HOOK_TEST_ASSERT( slot->lock_count > 0 );
     return( PSA_ERROR_CORRUPTION_DETECTED );
 }
 

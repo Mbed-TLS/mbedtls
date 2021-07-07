@@ -274,13 +274,3 @@ int mbedtls_test_read_mpi( mbedtls_mpi *X, int radix, const char *s )
         return( mbedtls_mpi_read_string( X, radix, s ) );
 }
 #endif
-
-#if defined(MBEDTLS_TEST_HOOKS)
-void mbedtls_test_assert_test( int test, const char * file, int line )
-{
-    if ( !test )
-    {
-        mbedtls_test_fail( "Test hook - test assertion failed.", line, file );
-    }
-}
-#endif

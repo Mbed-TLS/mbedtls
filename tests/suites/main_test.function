@@ -242,9 +242,8 @@ int main( int argc, const char *argv[] )
 #endif
 
 #if defined(MBEDTLS_TEST_HOOKS)
-    mbedtls_test_hook_assert_test = &mbedtls_test_assert_test;
+    mbedtls_test_hook_test_fail = &mbedtls_test_fail;
 #endif
-
 
     int ret = mbedtls_test_platform_setup();
     if( ret != 0 )

@@ -145,7 +145,7 @@ void dtls_srtp_key_derivation( void *p_expkey,
 int ssl_check_record( mbedtls_ssl_context const *ssl,
                       unsigned char const *buf, size_t len )
 {
-    int ret;
+    int my_ret = 0, ret_cr1, ret_cr2;
     unsigned char *tmp_buf;
 
     /* Record checking may modify the input buffer,
@@ -155,23 +155,21 @@ int ssl_check_record( mbedtls_ssl_context const *ssl,
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     memcpy( tmp_buf, buf, len );
 
-    ret = mbedtls_ssl_check_record( ssl, tmp_buf, len );
-    if( ret != MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE )
+    ret_cr1 = mbedtls_ssl_check_record( ssl, tmp_buf, len );
+    if( ret_cr1 != MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE )
     {
-        int ret_repeated;
-
         /* Test-only: Make sure that mbedtls_ssl_check_record()
          *            doesn't alter state. */
         memcpy( tmp_buf, buf, len ); /* Restore buffer */
-        ret_repeated = mbedtls_ssl_check_record( ssl, tmp_buf, len );
-        if( ret != ret_repeated )
+        ret_cr2 = mbedtls_ssl_check_record( ssl, tmp_buf, len );
+        if( ret_cr2 != ret_cr1 )
         {
             mbedtls_printf( "mbedtls_ssl_check_record() returned inconsistent results.\n" );
-            ret = -1;
+            my_ret = -1;
             goto cleanup;
         }
 
-        switch( ret )
+        switch( ret_cr1 )
         {
             case 0:
                 break;
@@ -179,24 +177,21 @@ int ssl_check_record( mbedtls_ssl_context const *ssl,
             case MBEDTLS_ERR_SSL_INVALID_RECORD:
                 if( opt.debug_level > 1 )
                     mbedtls_printf( "mbedtls_ssl_check_record() detected invalid record.\n" );
-                ret = 0;
                 break;
 
             case MBEDTLS_ERR_SSL_INVALID_MAC:
                 if( opt.debug_level > 1 )
                     mbedtls_printf( "mbedtls_ssl_check_record() detected unauthentic record.\n" );
-                ret = 0;
                 break;
 
             case MBEDTLS_ERR_SSL_UNEXPECTED_RECORD:
                 if( opt.debug_level > 1 )
                     mbedtls_printf( "mbedtls_ssl_check_record() detected unexpected record.\n" );
-                ret = 0;
                 break;
 
             default:
-                mbedtls_printf( "mbedtls_ssl_check_record() failed fatally with -%#04x.\n", (unsigned int) -ret );
-                ret = -1;
+                mbedtls_printf( "mbedtls_ssl_check_record() failed fatally with -%#04x.\n", (unsigned int) -ret_cr1 );
+                my_ret = -1;
                 goto cleanup;
         }
 
@@ -206,7 +201,7 @@ int ssl_check_record( mbedtls_ssl_context const *ssl,
 cleanup:
     mbedtls_free( tmp_buf );
 
-    return( ret );
+    return( my_ret );
 }
 
 int recv_cb( void *ctx, unsigned char *buf, size_t len )

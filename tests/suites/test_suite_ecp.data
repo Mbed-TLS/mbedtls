@@ -36,13 +36,133 @@ ECP curve info #8
 depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 mbedtls_ecp_curve_info:MBEDTLS_ECP_DP_SECP192R1:19:192:"secp192r1"
 
-ECP check pubkey Montgomery #1 (too big)
+ECP check pubkey Curve25519 #1 (biggest)
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF":"0":"1":0
+
+ECP check pubkey Curve25519 #2 (too big)
 depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
 ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"010000000000000000000000000000000000000000000000000000000000000000":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
 
-ECP check pubkey Montgomery #2 (biggest)
+ECP check pubkey Curve25519 #3 (DoS big)
 depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
-ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF":"0":"1":0
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"0100000000000000000000000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+ECP check pubkey Curve25519 y ignored
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"2":"-1":"1":0
+
+ECP check pubkey Curve25519 z is not 1
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"2":"0":"2":MBEDTLS_ERR_ECP_INVALID_KEY
+
+ECP check pubkey Curve25519 x negative
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"-2":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+# see https://cr.yp.to/ecdh.html#validate
+ECP check pubkey Curve25519 low-order point #1
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"0":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+# see https://cr.yp.to/ecdh.html#validate
+ECP check pubkey Curve25519 low-order point #2
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"1":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+# see https://cr.yp.to/ecdh.html#validate
+ECP check pubkey Curve25519 low-order point #3 (let's call this u)
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"b8495f16056286fdb1329ceb8d09da6ac49ff1fae35616aeb8413b7c7aebe0":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+# see https://cr.yp.to/ecdh.html#validate
+ECP check pubkey Curve25519 low-order point #4 (let's call this v)
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"57119fd0dd4e22d8868e1c58c45c44045bef839c55b1d0b1248c50a3bc959c5f":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+# see https://cr.yp.to/ecdh.html#validate
+ECP check pubkey Curve25519 low-order point #5 p-1
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffec":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+# see https://cr.yp.to/ecdh.html#validate
+ECP check pubkey Curve25519 low-order point #6 p
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+# see https://cr.yp.to/ecdh.html#validate
+ECP check pubkey Curve25519 low-order point #7 p+1
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffee":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+# see https://cr.yp.to/ecdh.html#validate
+ECP check pubkey Curve25519 low-order point #8 p+u
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"80b8495f16056286fdb1329ceb8d09da6ac49ff1fae35616aeb8413b7c7aebcd":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+# see https://cr.yp.to/ecdh.html#validate
+ECP check pubkey Curve25519 low-order point #9 p+v
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"d7119fd0dd4e22d8868e1c58c45c44045bef839c55b1d0b1248c50a3bc959c4c":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+# see https://cr.yp.to/ecdh.html#validate
+ECP check pubkey Curve25519 low-order point #10 2p-1
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd9":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+# see https://cr.yp.to/ecdh.html#validate
+ECP check pubkey Curve25519 low-order point #11 2p
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffda":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+# see https://cr.yp.to/ecdh.html#validate
+ECP check pubkey Curve25519 low-order point #12 2p+1
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE25519:"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdb":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+ECP check pubkey Curve448 #1 (biggest)
+depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE448:"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF":"0":"1":0
+
+ECP check pubkey Curve448 #2 (too big)
+depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE448:"01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+ECP check pubkey Curve448 #3 (DoS big)
+depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE448:"0100000000000000000000000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+ECP check pubkey Curve448 y ignored
+depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE448:"2":"-1":"1":0
+
+ECP check pubkey Curve448 z is not 1
+depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE448:"2":"0":"2":MBEDTLS_ERR_ECP_INVALID_KEY
+
+ECP check pubkey Curve448 x negative
+depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE448:"-2":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+ECP check pubkey Curve448 low-order point #1
+depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE448:"0":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+ECP check pubkey Curve448 low-order point #2
+depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE448:"1":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+ECP check pubkey Curve448 low-order point #3 p-1
+depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE448:"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+ECP check pubkey Curve448 low-order point #4 p
+depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE448:"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
+
+ECP check pubkey Curve448 low-order point #5 p+1
+depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
+ecp_check_pub:MBEDTLS_ECP_DP_CURVE448:"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000000000000000":"0":"1":MBEDTLS_ERR_ECP_INVALID_KEY
 
 ECP check pubkey Koblitz #1 (point not on curve)
 depends_on:MBEDTLS_ECP_DP_SECP224K1_ENABLED

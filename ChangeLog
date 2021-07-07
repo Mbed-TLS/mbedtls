@@ -1,5 +1,97 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.16.11 branch released 2021-07-07
+
+Security
+   * Fix a bias in the generation of finite-field Diffie-Hellman-Merkle (DHM)
+     private keys and of blinding values for DHM and elliptic curves (ECP)
+     computations. Reported by FlorianF89 in #4245.
+   * Fix a potential side channel vulnerability in ECDSA ephemeral key generation.
+     An adversary who is capable of very precise timing measurements could
+     learn partial information about the leading bits of the nonce used for the
+     signature, allowing the recovery of the private key after observing a
+     large number of signature operations. This completes a partial fix in
+     Mbed TLS 2.16.4.
+   * It was possible to configure MBEDTLS_ECP_MAX_BITS to a value that is
+     too small, leading to buffer overflows in ECC operations. Fail the build
+     in such a case.
+   * An adversary with access to precise enough information about memory
+     accesses (typically, an untrusted operating system attacking a secure
+     enclave) could recover an RSA private key after observing the victim
+     performing a single private-key operation. Found and reported by
+     Zili KOU, Wenjian HE, Sharad Sinha, and Wei ZHANG.
+   * An adversary with access to precise enough timing information (typically, a
+     co-located process) could recover a Curve25519 or Curve448 static ECDH key
+     after inputting a chosen public key and observing the victim performing the
+     corresponding private-key operation. Found and reported by Leila Batina,
+     Lukas Chmielewski, Björn Haase, Niels Samwel and Peter Schwabe.
+
+Bugfix
+   * Fix premature fopen() call in mbedtls_entropy_write_seed_file which may
+     lead to the seed file corruption in case if the path to the seed file is
+     equal to MBEDTLS_PLATFORM_STD_NV_SEED_FILE. Contributed by Victor
+     Krasnoshchok in #3616.
+   * Fix some cases in the bignum module where the library constructed an
+     unintended representation of the value 0 which was not processed
+     correctly by some bignum operations. This could happen when
+     mbedtls_mpi_read_string() was called on "-0", or when
+     mbedtls_mpi_mul_mpi() and mbedtls_mpi_mul_int() was called with one of
+     the arguments being negative and the other being 0. Fixes #4643.
+   * Fix a compilation error when MBEDTLS_ECP_RANDOMIZE_MXZ_ALT is
+     defined. Fixes #4217.
+   * Fix an incorrect error code when parsing a PKCS#8 private key.
+   * In a TLS client, enforce the Diffie-Hellman minimum parameter size
+     set with mbedtls_ssl_conf_dhm_min_bitlen() precisely. Before, the
+     minimum size was rounded down to the nearest multiple of 8.
+   * In library/net_sockets.c, _POSIX_C_SOURCE and _XOPEN_SOURCE are
+     defined to specific values.  If the code is used in a context
+     where these are already defined, this can result in a compilation
+     error.  Instead, assume that if they are defined, the values will
+     be adequate to build Mbed TLS.
+   * The cipher suite TLS-RSA-WITH-CAMELLIA-256-GCM-SHA384 was not available
+     when SHA-1 was disabled and was offered when SHA-1 was enabled but SHA-384
+     was disabled. Fix the dependency. Fixes #4472.
+   * Fix test suite code on platforms where int32_t is not int, such as
+     Arm Cortex-M. Fixes #4530.
+   * Fix some issues affecting MBEDTLS_ARIA_ALT implementations: a misplaced
+     directive in a header and a missing initialization in the self-test.
+   * Fix a missing initialization in the Camellia self-test, affecting
+     MBEDTLS_CAMELLIA_ALT implementations.
+   * Fix a regression introduced in 2.16.8 which broke (D)TLS CBC ciphersuites
+     (when the encrypt-then-MAC extension is not in use) with some ALT
+     implementations of the underlying hash (SHA-1, SHA-256, SHA-384), causing
+     the affected side to wrongly reject valid messages. Fixes #4118.
+   * Fix mbedtls_net_poll() and mbedtls_net_recv_timeout() often failing with
+     MBEDTLS_ERR_NET_POLL_FAILED on Windows. Fixes #4465.
+   * Fix a resource leak in a test suite with an alternative AES
+     implementation. Fixes #4176.
+   * Fix a crash in mbedtls_mpi_debug_mpi on a bignum having 0 limbs.
+     Reported by lhuang04 in #4578. Fixes #4608.
+   * Fix a null pointer dereference when mbedtls_mpi_exp_mod() was called with
+     A=0 represented with 0 limbs. This bug could not be triggered by code
+     that constructed A with one of the mbedtls_mpi_read_xxx functions
+     (including in particular TLS code) since those always built an mpi object
+     with at least one limb. Credit to OSS-Fuzz. Fixes #4641.
+   * Fix mbedtls_mpi_gcd(G,A,B) when the value of B is zero. This had no
+     effect on Mbed TLS's internal use of mbedtls_mpi_gcd(), but may affect
+     applications that call mbedtls_mpi_gcd() directly. Fixes #4642.
+   * mbedtls_pk_sign() and mbedtls_pk_verify() and their extended and
+     restartable variants now require at least the specified hash length if
+     nonzero. Before, for RSA, hash_len was ignored in favor of the length of
+     the specified hash algorithm.
+   * Fix which alert is sent in some cases to conform to the
+     applicable RFC: on an invalid Finished message value, an
+     invalid max_fragment_length extension, or an
+     unsupported extension used by the server.
+
+Changes
+   * Fix the setting of the read timeout in the DTLS sample programs.
+   * Remove the AES sample application programs/aes/aescrypt2 which shows
+     bad cryptographic practice. Fix #1906.
+   * When building the test suites with GNU make, invoke python3 or python, not
+     python2. The build still works with either Python 2.7 or 3.5+, but we
+     recommend using a version of Python that is supported upstream.
+
 = mbed TLS 2.16.10 branch released 2021-03-12
 
 Default behavior changes

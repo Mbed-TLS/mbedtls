@@ -1,3 +1,0 @@
-Features
-   * The new function mbedtls_mpi_random() generates a random value in a
-     given range uniformly.

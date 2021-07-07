@@ -1,5 +1,205 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.27.0 branch released 2021-07-07
+
+API changes
+   * Update AEAD output size macros to bring them in line with the PSA Crypto
+     API version 1.0 spec. This version of the spec parameterizes them on the
+     key type used, as well as the key bit-size in the case of
+     PSA_AEAD_TAG_LENGTH.
+     The old versions of these macros were renamed and deprecated as follows:
+     - PSA_AEAD_TAG_LENGTH          -> PSA_AEAD_TAG_LENGTH_1_ARG
+     - PSA_AEAD_ENCRYPT_OUTPUT_SIZE -> PSA_AEAD_ENCRYPT_OUTPUT_SIZE_2_ARG
+     - PSA_AEAD_DECRYPT_OUTPUT_SIZE -> PSA_AEAD_DECRYPT_OUTPUT_SIZE_2_ARG
+     - PSA_AEAD_UPDATE_OUTPUT_SIZE  -> PSA_AEAD_UPDATE_OUTPUT_SIZE_2_ARG
+     - PSA_AEAD_FINISH_OUTPUT_SIZE  -> PSA_AEAD_FINISH_OUTPUT_SIZE_1_ARG
+     - PSA_AEAD_VERIFY_OUTPUT_SIZE  -> PSA_AEAD_VERIFY_OUTPUT_SIZE_1_ARG
+   * Implement one-shot cipher functions, psa_cipher_encrypt and
+     psa_cipher_decrypt, according to the PSA Crypto API 1.0.0
+     specification.
+
+Requirement changes
+   * The library now uses the %zu format specifier with the printf() family of
+     functions, so requires a toolchain that supports it. This change does not
+     affect the maintained LTS branches, so when contributing changes please
+     bear this in mind and do not add them to backported code.
+
+Features
+   * Add mbedtls_rsa_rsassa_pss_sign_ext() function allowing to generate a
+     signature with a specific salt length. This function allows to validate
+     test cases provided in the NIST's CAVP test suite. Contributed by Cédric
+     Meuter in PR #3183.
+   * Added support for built-in driver keys through the PSA opaque crypto
+     driver interface. Refer to the documentation of
+     MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS for more information.
+   * Implement psa_sign_message() and psa_verify_message().
+   * The new function mbedtls_mpi_random() generates a random value in a
+     given range uniformly.
+   * Implement psa_mac_compute() and psa_mac_verify() as defined in the
+     PSA Cryptograpy API 1.0.0 specification.
+   * MBEDTLS_ECP_MAX_BITS is now determined automatically from the configured
+     curves and no longer needs to be configured explicitly to save RAM.
+
+Security
+   * Fix a bias in the generation of finite-field Diffie-Hellman-Merkle (DHM)
+     private keys and of blinding values for DHM and elliptic curves (ECP)
+     computations. Reported by FlorianF89 in #4245.
+   * Fix a potential side channel vulnerability in ECDSA ephemeral key generation.
+     An adversary who is capable of very precise timing measurements could
+     learn partial information about the leading bits of the nonce used for the
+     signature, allowing the recovery of the private key after observing a
+     large number of signature operations. This completes a partial fix in
+     Mbed TLS 2.20.0.
+   * It was possible to configure MBEDTLS_ECP_MAX_BITS to a value that is
+     too small, leading to buffer overflows in ECC operations. Fail the build
+     in such a case.
+   * An adversary with access to precise enough information about memory
+     accesses (typically, an untrusted operating system attacking a secure
+     enclave) could recover an RSA private key after observing the victim
+     performing a single private-key operation. Found and reported by
+     Zili KOU, Wenjian HE, Sharad Sinha, and Wei ZHANG.
+   * An adversary with access to precise enough timing information (typically, a
+     co-located process) could recover a Curve25519 or Curve448 static ECDH key
+     after inputting a chosen public key and observing the victim performing the
+     corresponding private-key operation. Found and reported by Leila Batina,
+     Lukas Chmielewski, Björn Haase, Niels Samwel and Peter Schwabe.
+
+Bugfix
+   * Add printf function attributes to mbedtls_debug_print_msg to ensure we
+     get printf format specifier warnings.
+   * Fix premature fopen() call in mbedtls_entropy_write_seed_file which may
+     lead to seed file corruption in the case where the path to the seed file is
+     equal to MBEDTLS_PLATFORM_STD_NV_SEED_FILE. Contributed by Victor
+     Krasnoshchok in #3616.
+   * PSA functions other than psa_open_key now return PSA_ERROR_INVALID_HANDLE
+     rather than PSA_ERROR_DOES_NOT_EXIST for an invalid handle, bringing them
+     in line with version 1.0.0 of the specification. Fix #4162.
+   * PSA functions creating a key now return PSA_ERROR_INVALID_ARGUMENT rather
+     than PSA_ERROR_INVALID_HANDLE when the identifier specified for the key
+     to create is not valid, bringing them in line with version 1.0.0 of the
+     specification. Fix #4271.
+   * Fix some cases in the bignum module where the library constructed an
+     unintended representation of the value 0 which was not processed
+     correctly by some bignum operations. This could happen when
+     mbedtls_mpi_read_string() was called on "-0", or when
+     mbedtls_mpi_mul_mpi() and mbedtls_mpi_mul_int() was called with one of
+     the arguments being negative and the other being 0. Fixes #4643.
+   * Fix a bug in ECDSA that would cause it to fail when the hash is all-bits
+     zero. Fixes #1792
+   * Fix a compilation error when MBEDTLS_ECP_RANDOMIZE_MXZ_ALT is
+     defined. Fixes #4217.
+   * Fix an incorrect error code when parsing a PKCS#8 private key.
+   * In a TLS client, enforce the Diffie-Hellman minimum parameter size
+     set with mbedtls_ssl_conf_dhm_min_bitlen() precisely. Before, the
+     minimum size was rounded down to the nearest multiple of 8.
+   * In library/net_sockets.c, _POSIX_C_SOURCE and _XOPEN_SOURCE are
+     defined to specific values.  If the code is used in a context
+     where these are already defined, this can result in a compilation
+     error.  Instead, assume that if they are defined, the values will
+     be adequate to build Mbed TLS.
+   * The cipher suite TLS-RSA-WITH-CAMELLIA-256-GCM-SHA384 was not available
+     when SHA-1 was disabled and was offered when SHA-1 was enabled but SHA-384
+     was disabled. Fix the dependency. Fixes #4472.
+   * Do not offer SHA384 cipher suites when SHA-384 is disabled. Fixes #4499.
+   * With MBEDTLS_PSA_CRYPTO_C disabled, some functions were getting built
+     nonetheless, resulting in undefined reference errors when building a
+     shared library. Reported by Guillermo Garcia M. in #4411.
+   * Fix test suite code on platforms where int32_t is not int, such as
+     Arm Cortex-M. Fixes #4530.
+   * Fix some issues affecting MBEDTLS_ARIA_ALT implementations: a misplaced
+     directive in a header and a missing initialization in the self-test.
+   * Fix a missing initialization in the Camellia self-test, affecting
+     MBEDTLS_CAMELLIA_ALT implementations.
+   * Restore the ability to configure PSA via Mbed TLS options to support RSA
+     key pair operations but exclude RSA key generation. When MBEDTLS_GENPRIME
+     is not defined PSA will no longer attempt to use mbedtls_rsa_gen_key().
+     Fixes #4512.
+   * Fix a regression introduced in 2.24.0 which broke (D)TLS CBC ciphersuites
+     (when the encrypt-then-MAC extension is not in use) with some ALT
+     implementations of the underlying hash (SHA-1, SHA-256, SHA-384), causing
+     the affected side to wrongly reject valid messages. Fixes #4118.
+   * Remove outdated check-config.h check that prevented implementing the
+     timing module on Mbed OS. Fixes #4633.
+   * Fix PSA_ALG_TLS12_PRF and PSA_ALG_TLS12_PSK_TO_MS being too permissive
+     about missing inputs.
+   * Fix mbedtls_net_poll() and mbedtls_net_recv_timeout() often failing with
+     MBEDTLS_ERR_NET_POLL_FAILED on Windows. Fixes #4465.
+   * Fix a resource leak in a test suite with an alternative AES
+     implementation. Fixes #4176.
+   * Fix a crash in mbedtls_mpi_debug_mpi on a bignum having 0 limbs. This
+     could notably be triggered by setting the TLS debug level to 3 or above
+     and using a Montgomery curve for the key exchange. Reported by lhuang04
+     in #4578. Fixes #4608.
+   * psa_verify_hash() was relying on implementation-specific behavior of
+     mbedtls_rsa_rsassa_pss_verify() and was causing failures in some _ALT
+     implementations. This reliance is now removed. Fixes #3990.
+   * Disallow inputs of length different from the corresponding hash when
+     signing or verifying with PSA_ALG_RSA_PSS (The PSA Crypto API mandates
+     that PSA_ALG_RSA_PSS uses the same hash throughout the algorithm.)
+   * Fix a null pointer dereference when mbedtls_mpi_exp_mod() was called with
+     A=0 represented with 0 limbs. Up to and including Mbed TLS 2.26, this bug
+     could not be triggered by code that constructed A with one of the
+     mbedtls_mpi_read_xxx functions (including in particular TLS code) since
+     those always built an mpi object with at least one limb.
+     Credit to OSS-Fuzz. Fixes #4641.
+   * Fix mbedtls_mpi_gcd(G,A,B) when the value of B is zero. This had no
+     effect on Mbed TLS's internal use of mbedtls_mpi_gcd(), but may affect
+     applications that call mbedtls_mpi_gcd() directly. Fixes #4642.
+   * The PSA API no longer allows the creation or destruction of keys with a
+     read-only lifetime. The persistence level PSA_KEY_PERSISTENCE_READ_ONLY
+     can now only be used as intended, for keys that cannot be modified through
+     normal use of the API.
+   * When MBEDTLS_PSA_CRYPTO_SPM is enabled, crypto_spe.h was not included
+     in all the right places. Include it from crypto_platform.h, which is
+     the natural place. Fixes #4649.
+   * mbedtls_pk_sign() and mbedtls_pk_verify() and their extended and
+     restartable variants now always honor the specified hash length if
+     nonzero. Before, for RSA, hash_len was ignored in favor of the length of
+     the specified hash algorithm.
+   * Fix which alert is sent in some cases to conform to the
+     applicable RFC: on an invalid Finished message value, an
+     invalid max_fragment_length extension, or an
+     unsupported extension used by the server.
+   * Correct (change from 12 to 13 bytes) the value of the macro describing the
+     maximum nonce length returned by psa_aead_generate_nonce().
+
+Changes
+   * Add extra printf compiler warning flags to builds.
+   * Fix memsan build false positive in x509_crt.c with Clang 11
+   * Fix the setting of the read timeout in the DTLS sample programs.
+   * Remove the AES sample application programs/aes/aescrypt2 which shows
+     bad cryptographic practice. Fix #1906.
+   * Alternative implementations of CMAC may now opt to not support 3DES as a
+     CMAC block cipher, and still pass the CMAC self test.
+   * Remove configs/config-psa-crypto.h, which was identical to the default
+     configuration except for having some extra cryptographic mechanisms
+     enabled and for unintended differences. This configuration was primarily
+     intended to demonstrate the PSA API, and lost most of its usefulness when
+     MBEDTLS_PSA_CRYPTO_C became enabled by default.
+   * When building the test suites with GNU make, invoke python3 or python, not
+     python2, which is no longer supported upstream.
+   * When using session cache based session resumption on the server,
+     double-check that custom session cache implementations return
+     sessions which are consistent with the negotiated ciphersuite
+     and compression method.
+   * Fix build failure on MinGW toolchain when __USE_MING_ANSI_STDIO is on.
+     When that flag is on, standard GNU C printf format specifiers
+     should be used.
+   * Reduce the default value of MBEDTLS_ECP_WINDOW_SIZE. This reduces RAM usage
+     during ECC operations at a negligible performance cost.
+   * mbedtls_mpi_read_binary(), mbedtls_mpi_read_binary_le() and
+     mbedtls_mpi_read_string() now construct an mbedtls_mpi object with 0 limbs
+     when their input has length 0. Note that this is an implementation detail
+     and can change at any time, so this change should be transparent, but it
+     may result in mbedtls_mpi_write_binary() or mbedtls_mpi_write_string()
+     now writing an empty string where it previously wrote one or more
+     zero digits when operating from values constructed with an mpi_read
+     function and some mpi operations.
+   * Implicitly add PSA_KEY_USAGE_SIGN_MESSAGE key usage policy flag when
+     PSA_KEY_USAGE_SIGN_HASH flag is set and PSA_KEY_USAGE_VERIFY_MESSAGE flag
+     when PSA_KEY_USAGE_VERIFY_HASH flag is set. This usage flag extension
+     is also applied when loading a key from storage.
+
 = mbed TLS 2.26.0 branch released 2021-03-08
 
 API changes
@@ -202,7 +402,7 @@ Security
      Johan Malmgren and Johan Uppman Bruce from Sectra.
 
 Bugfix
-   * Fix an invalid (but nonzero) return code from mbedtls_pk_parse_subpubkey()
+   * Fix an invalid (but non-zero) return code from mbedtls_pk_parse_subpubkey()
      when the input has trailing garbage. Fixes #2512.
    * Fix build failure in configurations where MBEDTLS_USE_PSA_CRYPTO is
      enabled but ECDSA is disabled. Contributed by jdurkop. Fixes #3294.

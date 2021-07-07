@@ -41,6 +41,8 @@ int main( void )
         return( EXIT_FAILURE );
     }
 
+    // Compute hash using multi-part operation
+
     status = psa_hash_setup( &sha256_psa, PSA_ALG_SHA_256 );
     if( status != PSA_SUCCESS )
     {
@@ -74,11 +76,39 @@ int main( void )
     {
         printf( "psa_hash_verify failed\n" );
         return( EXIT_FAILURE );
+    } else
+    {
+        printf( "Multi-part hash operation successful!\n");
     }
 
-    printf( "SHA-256(%s):\n", buf );
+    // Compute hash using one-shot function call
+    memset( hash,0,sizeof( hash ) );
+    hash_size = 0;
 
-    for( size_t j = 0; j < hash_size; j++ )
+    status = psa_hash_compute( PSA_ALG_SHA_256,
+                               buf, sizeof( buf ),
+                               hash, sizeof( hash ),
+                               &hash_size );
+    if( status != PSA_SUCCESS )
+    {
+        printf( "psa_hash_compute failed\n" );
+        return( EXIT_FAILURE );
+    } 
+
+    for( size_t j = 0; j < mbedtls_test_sha256_hash_len; j++ )
+    {
+        if( hash[j] != mbedtls_test_sha256_hash[j] )
+        {
+            printf( "One-shot hash operation failed!\n\n");
+            return( EXIT_FAILURE );
+        }
+    }
+    
+    printf( "One-shot hash operation successful!\n\n");
+    
+    printf( "The SHA-256( '%s' ) is:\n", buf );
+
+    for( size_t j = 0; j < mbedtls_test_sha256_hash_len; j++ )
     {
         if( j % 8 == 0 ) printf( "\n    " );
         printf( "%02x ", hash[j] );

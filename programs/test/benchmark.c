@@ -178,6 +178,18 @@ do {                                                                    \
     }                                                                   \
 } while( 0 )
 
+#define CHECK_AND_CONTINUE( R )                                         \
+    {                                                                   \
+        int CHECK_AND_CONTINUE_ret = ( R );                             \
+        if( CHECK_AND_CONTINUE_ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) { \
+            mbedtls_printf( "Feature not supported. Skipping.\n" );     \
+            continue;                                                   \
+        }                                                               \
+        else if( CHECK_AND_CONTINUE_ret != 0 ) {                        \
+            mbedtls_exit( 1 );                                          \
+        }                                                               \
+    }
+
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && defined(MBEDTLS_MEMORY_DEBUG)
 
 /* How much space to reserve for the title when printing heap usage results.
@@ -434,7 +446,8 @@ int main( int argc, char *argv[] )
     {
         mbedtls_des3_context des3;
         mbedtls_des3_init( &des3 );
-        mbedtls_des3_set3key_enc( &des3, tmp );
+        if( mbedtls_des3_set3key_enc( &des3, tmp ) != 0 )
+            mbedtls_exit( 1 );
         TIME_AND_TSC( "3DES",
                 mbedtls_des3_crypt_cbc( &des3, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
         mbedtls_des3_free( &des3 );
@@ -444,7 +457,8 @@ int main( int argc, char *argv[] )
     {
         mbedtls_des_context des;
         mbedtls_des_init( &des );
-        mbedtls_des_setkey_enc( &des, tmp );
+        if( mbedtls_des_setkey_enc( &des, tmp ) != 0 )
+            mbedtls_exit( 1 );
         TIME_AND_TSC( "DES",
                 mbedtls_des_crypt_cbc( &des, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
         mbedtls_des_free( &des );
@@ -482,7 +496,7 @@ int main( int argc, char *argv[] )
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            mbedtls_aes_setkey_enc( &aes, tmp, keysize );
+            CHECK_AND_CONTINUE( mbedtls_aes_setkey_enc( &aes, tmp, keysize ) );
 
             TIME_AND_TSC( title,
                 mbedtls_aes_crypt_cbc( &aes, MBEDTLS_AES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
@@ -503,7 +517,7 @@ int main( int argc, char *argv[] )
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            mbedtls_aes_xts_setkey_enc( &ctx, tmp, keysize * 2 );
+            CHECK_AND_CONTINUE( mbedtls_aes_xts_setkey_enc( &ctx, tmp, keysize * 2 ) );
 
             TIME_AND_TSC( title,
                     mbedtls_aes_crypt_xts( &ctx, MBEDTLS_AES_ENCRYPT, BUFSIZE,

@@ -70,7 +70,8 @@
  * - RFC 4346: ProtocolVersion version = { 3, 2 };     // TLS v1.1
  *
  * We no longer support these versions, but some code still references those
- * constants, for keep them for now until we clean up that code.
+ * constants as part of negotiating with the peer, so keep them available
+ * internally.
  */
 #define MBEDTLS_SSL_MINOR_VERSION_1             1
 #define MBEDTLS_SSL_MINOR_VERSION_2             2

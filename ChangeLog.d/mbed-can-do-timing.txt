@@ -1,3 +1,0 @@
-Bugfix
-   * Remove outdated check-config.h check that prevented implementing the
-     timing module on Mbed OS. Fixes #4633.

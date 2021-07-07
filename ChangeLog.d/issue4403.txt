@@ -1,2 +1,0 @@
-Removals
-   * Remove the MBEDTLS_SSL_DTLS_BADMAC_LIMIT config.h option. Fixes #4403.

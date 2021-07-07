@@ -1,5 +1,0 @@
-API changes
-   * Direct access to fields of structures declared in public headers is no
-     longer supported except for fields that are documented public. Use accessor
-     functions instead. For more information, see the migration guide entry
-     "Most structure fields are now private".

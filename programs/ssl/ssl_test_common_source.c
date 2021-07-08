@@ -163,7 +163,7 @@ int dtls_srtp_key_derivation( void *p_expkey,
 int ssl_check_record( mbedtls_ssl_context const *ssl,
                       unsigned char const *buf, size_t len )
 {
-    int ret;
+    int my_ret = 0, ret_cr1, ret_cr2;
     unsigned char *tmp_buf;
 
     /* Record checking may modify the input buffer,
@@ -173,22 +173,21 @@ int ssl_check_record( mbedtls_ssl_context const *ssl,
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     memcpy( tmp_buf, buf, len );
 
-    ret = mbedtls_ssl_check_record( ssl, tmp_buf, len );
-    if( ret != MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE )
+    ret_cr1 = mbedtls_ssl_check_record( ssl, tmp_buf, len );
+    if( ret_cr1 != MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE )
     {
-        int ret_repeated;
-
         /* Test-only: Make sure that mbedtls_ssl_check_record()
          *            doesn't alter state. */
         memcpy( tmp_buf, buf, len ); /* Restore buffer */
-        ret_repeated = mbedtls_ssl_check_record( ssl, tmp_buf, len );
-        if( ret != ret_repeated )
+        ret_cr2 = mbedtls_ssl_check_record( ssl, tmp_buf, len );
+        if( ret_cr2 != ret_cr1 )
         {
             mbedtls_printf( "mbedtls_ssl_check_record() returned inconsistent results.\n" );
-            return( -1 );
+            my_ret = -1;
+            goto cleanup;
         }
 
-        switch( ret )
+        switch( ret_cr1 )
         {
             case 0:
                 break;
@@ -209,16 +208,18 @@ int ssl_check_record( mbedtls_ssl_context const *ssl,
                 break;
 
             default:
-                mbedtls_printf( "mbedtls_ssl_check_record() failed fatally with -%#04x.\n", (unsigned int) -ret );
-                return( -1 );
+                mbedtls_printf( "mbedtls_ssl_check_record() failed fatally with -%#04x.\n", (unsigned int) -ret_cr1 );
+                my_ret = -1;
+                goto cleanup;
         }
 
         /* Regardless of the outcome, forward the record to the stack. */
     }
 
+cleanup:
     mbedtls_free( tmp_buf );
 
-    return( 0 );
+    return( my_ret );
 }
 #endif /* MBEDTLS_SSL_RECORD_CHECKING */
 

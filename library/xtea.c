@@ -61,7 +61,7 @@ void mbedtls_xtea_setup( mbedtls_xtea_context *ctx, const unsigned char key[16] 
 
     for( i = 0; i < 4; i++ )
     {
-        MBEDTLS_GET_UINT32_BE( ctx->k[i], key, i << 2 );
+        ctx->k[i] = MBEDTLS_GET_UINT32_BE( key, i << 2 );
     }
 }
 
@@ -75,8 +75,8 @@ int mbedtls_xtea_crypt_ecb( mbedtls_xtea_context *ctx, int mode,
 
     k = ctx->k;
 
-    MBEDTLS_GET_UINT32_BE( v0, input, 0 );
-    MBEDTLS_GET_UINT32_BE( v1, input, 4 );
+    v0 = MBEDTLS_GET_UINT32_BE( input, 0 );
+    v1 = MBEDTLS_GET_UINT32_BE( input, 4 );
 
     if( mode == MBEDTLS_XTEA_ENCRYPT )
     {

@@ -219,8 +219,8 @@ int mbedtls_blowfish_crypt_ecb( mbedtls_blowfish_context *ctx,
     BLOWFISH_VALIDATE_RET( input  != NULL );
     BLOWFISH_VALIDATE_RET( output != NULL );
 
-    MBEDTLS_GET_UINT32_BE( X0, input,  0 );
-    MBEDTLS_GET_UINT32_BE( X1, input,  4 );
+    X0 = MBEDTLS_GET_UINT32_BE( input,  0 );
+    X1 = MBEDTLS_GET_UINT32_BE( input,  4 );
 
     if( mode == MBEDTLS_BLOWFISH_DECRYPT )
     {

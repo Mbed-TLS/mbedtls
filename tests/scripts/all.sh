@@ -713,7 +713,11 @@ pre_generate_files() {
     # since make doesn't have proper dependencies, remove any possibly outdate
     # file that might be around before generating fresh ones
     make neat
-    make generated_files
+    if [ $QUIET -eq 1 ]; then
+        make -s generated_files
+    else
+        make generated_files
+    fi
 }
 
 

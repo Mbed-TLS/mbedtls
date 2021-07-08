@@ -2244,9 +2244,12 @@ run_test    "Connection ID, 3D: Cli+Srv enabled, Srv disables on renegotiation" 
             -c "ignoring unexpected CID" \
             -s "ignoring unexpected CID"
 
+# This and the test below it requires MAX_CONTENT_LEN to be MFL+1, because the
+# tests check that the buffer contents are reallocated when the message is
+# larger than the buffer.
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
-requires_max_content_len 512
+requires_max_content_len 513
 run_test    "Connection ID: Cli+Srv enabled, variable buffer lengths, MFL=512" \
             "$P_SRV dtls=1 cid=1 cid_val=dead debug_level=2" \
             "$P_CLI force_ciphersuite="TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" max_frag_len=512 dtls=1 cid=1 cid_val=beef" \
@@ -2260,7 +2263,7 @@ run_test    "Connection ID: Cli+Srv enabled, variable buffer lengths, MFL=512" \
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
-requires_max_content_len 1024
+requires_max_content_len 1025
 run_test    "Connection ID: Cli+Srv enabled, variable buffer lengths, MFL=1024" \
             "$P_SRV dtls=1 cid=1 cid_val=dead debug_level=2" \
             "$P_CLI force_ciphersuite="TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" max_frag_len=1024 dtls=1 cid=1 cid_val=beef" \

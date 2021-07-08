@@ -544,14 +544,15 @@ pre_setup_keep_going () {
     }
 }
 
-# These functions are kept temporarily for backward compatibility.
-# Don't use them in new components.
+# record_status() and if_build_succeeded() are kept temporarily for backward
+# compatibility. Don't use them in new components.
 record_status () {
     "$@"
 }
 if_build_succeeded () {
     "$@"
 }
+
 not() {
     ! "$@"
 }
@@ -695,28 +696,28 @@ pre_check_tools () {
 
 component_check_recursion () {
     msg "Check: recursion.pl" # < 1s
-    record_status tests/scripts/recursion.pl library/*.c
+    tests/scripts/recursion.pl library/*.c
 }
 
 component_check_generated_files () {
     msg "Check: freshness of generated source files" # < 1s
-    record_status tests/scripts/check-generated-files.sh
+    tests/scripts/check-generated-files.sh
 }
 
 component_check_doxy_blocks () {
     msg "Check: doxygen markup outside doxygen blocks" # < 1s
-    record_status tests/scripts/check-doxy-blocks.pl
+    tests/scripts/check-doxy-blocks.pl
 }
 
 component_check_files () {
     msg "Check: file sanity checks (permissions, encodings)" # < 1s
-    record_status tests/scripts/check_files.py
+    tests/scripts/check_files.py
 }
 
 component_check_changelog () {
     msg "Check: changelog entries" # < 1s
     rm -f ChangeLog.new
-    record_status scripts/assemble_changelog.py -o ChangeLog.new
+    scripts/assemble_changelog.py -o ChangeLog.new
     if [ -e ChangeLog.new ]; then
         # Show the diff for information. It isn't an error if the diff is
         # non-empty.
@@ -727,7 +728,7 @@ component_check_changelog () {
 
 component_check_names () {
     msg "Check: declared and exported names (builds the library)" # < 3s
-    record_status tests/scripts/check_names.py -v
+    tests/scripts/check_names.py -v
 }
 
 component_check_test_cases () {
@@ -737,13 +738,13 @@ component_check_test_cases () {
     else
         opt=''
     fi
-    record_status tests/scripts/check_test_cases.py $opt
+    tests/scripts/check_test_cases.py $opt
     unset opt
 }
 
 component_check_doxygen_warnings () {
     msg "Check: doxygen warnings (builds the documentation)" # ~ 3s
-    record_status tests/scripts/doxygen.sh
+    tests/scripts/doxygen.sh
 }
 
 
@@ -763,7 +764,7 @@ component_test_default_out_of_box () {
     make test
 
     msg "selftest: make, default config (out-of-box)" # ~10s
-    if_build_succeeded programs/test/selftest
+    programs/test/selftest
 
     export MBEDTLS_TEST_OUTCOME_FILE="$SAVE_MBEDTLS_TEST_OUTCOME_FILE"
     unset SAVE_MBEDTLS_TEST_OUTCOME_FILE
@@ -778,16 +779,16 @@ component_test_default_cmake_gcc_asan () {
     make test
 
     msg "test: selftest (ASan build)" # ~ 10s
-    if_build_succeeded programs/test/selftest
+    programs/test/selftest
 
     msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 
     msg "test: compat.sh (ASan build)" # ~ 6 min
-    if_build_succeeded tests/compat.sh
+    tests/compat.sh
 
     msg "test: context-info.sh (ASan build)" # ~ 15 sec
-    if_build_succeeded tests/context-info.sh
+    tests/context-info.sh
 }
 
 component_test_full_cmake_gcc_asan () {
@@ -800,16 +801,16 @@ component_test_full_cmake_gcc_asan () {
     make test
 
     msg "test: selftest (ASan build)" # ~ 10s
-    if_build_succeeded programs/test/selftest
+    programs/test/selftest
 
     msg "test: ssl-opt.sh (full config, ASan build)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 
     msg "test: compat.sh (full config, ASan build)"
-    if_build_succeeded tests/compat.sh
+    tests/compat.sh
 
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
-    if_build_succeeded tests/context-info.sh
+    tests/context-info.sh
 }
 
 component_test_psa_crypto_key_id_encodes_owner () {
@@ -847,7 +848,7 @@ component_build_psa_crypto_spm () {
     # Check that if a symbol is renamed by crypto_spe.h, the non-renamed
     # version is not present.
     echo "Checking for renamed symbols in the library"
-    if_build_succeeded check_renamed_symbols tests/include/spe/crypto_spe.h library/libmbedcrypto.a
+    check_renamed_symbols tests/include/spe/crypto_spe.h library/libmbedcrypto.a
 }
 
 component_test_psa_crypto_client () {
@@ -870,7 +871,7 @@ component_test_zlib_make() {
     make test
 
     msg "test: ssl-opt.sh (zlib, make)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 support_test_zlib_make () {
     base=support_test_zlib_$$
@@ -894,7 +895,7 @@ component_test_zlib_cmake() {
     make test
 
     msg "test: ssl-opt.sh (zlib, cmake)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 support_test_zlib_cmake () {
     support_test_zlib_make "$@"
@@ -912,7 +913,7 @@ component_test_psa_crypto_rsa_no_genprime() {
 component_test_ref_configs () {
     msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    record_status tests/scripts/test-ref-configs.pl
+    tests/scripts/test-ref-configs.pl
 }
 
 component_test_sslv3 () {
@@ -925,14 +926,14 @@ component_test_sslv3 () {
     make test
 
     msg "build: SSLv3 - compat.sh (ASan build)" # ~ 6 min
-    if_build_succeeded tests/compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
-    if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
+    tests/compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
+    env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 
     msg "build: SSLv3 - ssl-opt.sh (ASan build)" # ~ 6 min
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 
     msg "build: SSLv3 - context-info.sh (ASan build)" # ~ 15 sec
-    if_build_succeeded tests/context-info.sh
+    tests/context-info.sh
 }
 
 component_test_no_renegotiation () {
@@ -945,7 +946,7 @@ component_test_no_renegotiation () {
     make test
 
     msg "test: !MBEDTLS_SSL_RENEGOTIATION - ssl-opt.sh (ASan build)" # ~ 6 min
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 
 component_test_no_pem_no_fs () {
@@ -961,7 +962,7 @@ component_test_no_pem_no_fs () {
     make test
 
     msg "test: !MBEDTLS_PEM_PARSE_C !MBEDTLS_FS_IO - ssl-opt.sh (ASan build)" # ~ 6 min
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 
 component_test_rsa_no_crt () {
@@ -974,13 +975,13 @@ component_test_rsa_no_crt () {
     make test
 
     msg "test: RSA_NO_CRT - RSA-related part of ssl-opt.sh (ASan build)" # ~ 5s
-    if_build_succeeded tests/ssl-opt.sh -f RSA
+    tests/ssl-opt.sh -f RSA
 
     msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
-    if_build_succeeded tests/compat.sh -t RSA
+    tests/compat.sh -t RSA
 
     msg "test: RSA_NO_CRT - RSA-related part of context-info.sh (ASan build)" # ~ 15 sec
-    if_build_succeeded tests/context-info.sh
+    tests/context-info.sh
 }
 
 component_test_no_ctr_drbg_classic () {
@@ -999,10 +1000,10 @@ component_test_no_ctr_drbg_classic () {
     # The SSL tests are slow, so run a small subset, just enough to get
     # confidence that the SSL code copes with HMAC_DRBG.
     msg "test: Full minus CTR_DRBG, classic crypto - ssl-opt.sh (subset)"
-    if_build_succeeded tests/ssl-opt.sh -f 'Default\|SSL async private.*delay=\|tickets enabled on server'
+    tests/ssl-opt.sh -f 'Default\|SSL async private.*delay=\|tickets enabled on server'
 
     msg "test: Full minus CTR_DRBG, classic crypto - compat.sh (subset)"
-    if_build_succeeded tests/compat.sh -m tls1_2 -t 'ECDSA PSK' -V NO -p OpenSSL
+    tests/compat.sh -m tls1_2 -t 'ECDSA PSK' -V NO -p OpenSSL
 }
 
 component_test_no_ctr_drbg_use_psa () {
@@ -1021,10 +1022,10 @@ component_test_no_ctr_drbg_use_psa () {
     # The SSL tests are slow, so run a small subset, just enough to get
     # confidence that the SSL code copes with HMAC_DRBG.
     msg "test: Full minus CTR_DRBG, USE_PSA_CRYPTO - ssl-opt.sh (subset)"
-    if_build_succeeded tests/ssl-opt.sh -f 'Default\|SSL async private.*delay=\|tickets enabled on server'
+    tests/ssl-opt.sh -f 'Default\|SSL async private.*delay=\|tickets enabled on server'
 
     msg "test: Full minus CTR_DRBG, USE_PSA_CRYPTO - compat.sh (subset)"
-    if_build_succeeded tests/compat.sh -m tls1_2 -t 'ECDSA PSK' -V NO -p OpenSSL
+    tests/compat.sh -m tls1_2 -t 'ECDSA PSK' -V NO -p OpenSSL
 }
 
 component_test_no_hmac_drbg_classic () {
@@ -1046,12 +1047,12 @@ component_test_no_hmac_drbg_classic () {
     # Test SSL with non-deterministic ECDSA. Only test features that
     # might be affected by how ECDSA signature is performed.
     msg "test: Full minus HMAC_DRBG, classic crypto - ssl-opt.sh (subset)"
-    if_build_succeeded tests/ssl-opt.sh -f 'Default\|SSL async private: sign'
+    tests/ssl-opt.sh -f 'Default\|SSL async private: sign'
 
     # To save time, only test one protocol version, since this part of
     # the protocol is identical in (D)TLS up to 1.2.
     msg "test: Full minus HMAC_DRBG, classic crypto - compat.sh (ECDSA)"
-    if_build_succeeded tests/compat.sh -m tls1_2 -t 'ECDSA'
+    tests/compat.sh -m tls1_2 -t 'ECDSA'
 }
 
 component_test_no_hmac_drbg_use_psa () {
@@ -1073,12 +1074,12 @@ component_test_no_hmac_drbg_use_psa () {
     # Test SSL with non-deterministic ECDSA. Only test features that
     # might be affected by how ECDSA signature is performed.
     msg "test: Full minus HMAC_DRBG, USE_PSA_CRYPTO - ssl-opt.sh (subset)"
-    if_build_succeeded tests/ssl-opt.sh -f 'Default\|SSL async private: sign'
+    tests/ssl-opt.sh -f 'Default\|SSL async private: sign'
 
     # To save time, only test one protocol version, since this part of
     # the protocol is identical in (D)TLS up to 1.2.
     msg "test: Full minus HMAC_DRBG, USE_PSA_CRYPTO - compat.sh (ECDSA)"
-    if_build_succeeded tests/compat.sh -m tls1_2 -t 'ECDSA'
+    tests/compat.sh -m tls1_2 -t 'ECDSA'
 }
 
 component_test_psa_external_rng_no_drbg_classic () {
@@ -1102,7 +1103,7 @@ component_test_psa_external_rng_no_drbg_classic () {
     make test
 
     msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, classic crypto - ssl-opt.sh (subset)"
-    if_build_succeeded tests/ssl-opt.sh -f 'Default'
+    tests/ssl-opt.sh -f 'Default'
 }
 
 component_test_psa_external_rng_no_drbg_use_psa () {
@@ -1122,7 +1123,7 @@ component_test_psa_external_rng_no_drbg_use_psa () {
     make test
 
     msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto - ssl-opt.sh (subset)"
-    if_build_succeeded tests/ssl-opt.sh -f 'Default\|opaque'
+    tests/ssl-opt.sh -f 'Default\|opaque'
 }
 
 component_test_psa_external_rng_use_psa_crypto () {
@@ -1137,7 +1138,7 @@ component_test_psa_external_rng_use_psa_crypto () {
     make test
 
     msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
-    if_build_succeeded tests/ssl-opt.sh -f 'Default\|opaque'
+    tests/ssl-opt.sh -f 'Default\|opaque'
 }
 
 component_test_ecp_no_internal_rng () {
@@ -1187,11 +1188,11 @@ component_test_new_ecdh_context () {
     make test
 
     msg "test: new ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
-    if_build_succeeded tests/ssl-opt.sh -f ECDH
+    tests/ssl-opt.sh -f ECDH
 
     msg "test: new ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
     # Exclude some symmetric ciphers that are redundant here to gain time.
-    if_build_succeeded tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
+    tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
 }
 
 component_test_everest () {
@@ -1205,11 +1206,11 @@ component_test_everest () {
     make test
 
     msg "test: Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
-    if_build_succeeded tests/ssl-opt.sh -f ECDH
+    tests/ssl-opt.sh -f ECDH
 
     msg "test: Everest ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
     # Exclude some symmetric ciphers that are redundant here to gain time.
-    if_build_succeeded tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
+    tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
 }
 
 component_test_everest_curve25519_only () {
@@ -1239,7 +1240,7 @@ component_test_small_ssl_out_content_len () {
     make
 
     msg "test: small SSL_OUT_CONTENT_LEN - ssl-opt.sh MFL and large packet tests"
-    if_build_succeeded tests/ssl-opt.sh -f "Max fragment\|Large packet"
+    tests/ssl-opt.sh -f "Max fragment\|Large packet"
 }
 
 component_test_small_ssl_in_content_len () {
@@ -1250,7 +1251,7 @@ component_test_small_ssl_in_content_len () {
     make
 
     msg "test: small SSL_IN_CONTENT_LEN - ssl-opt.sh MFL tests"
-    if_build_succeeded tests/ssl-opt.sh -f "Max fragment"
+    tests/ssl-opt.sh -f "Max fragment"
 }
 
 component_test_small_ssl_dtls_max_buffering () {
@@ -1260,7 +1261,7 @@ component_test_small_ssl_dtls_max_buffering () {
     make
 
     msg "test: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #0 - ssl-opt.sh specific reordering test"
-    if_build_succeeded tests/ssl-opt.sh -f "DTLS reordering: Buffer out-of-order hs msg before reassembling next, free buffered msg"
+    tests/ssl-opt.sh -f "DTLS reordering: Buffer out-of-order hs msg before reassembling next, free buffered msg"
 }
 
 component_test_small_mbedtls_ssl_dtls_max_buffering () {
@@ -1270,15 +1271,15 @@ component_test_small_mbedtls_ssl_dtls_max_buffering () {
     make
 
     msg "test: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #1 - ssl-opt.sh specific reordering test"
-    if_build_succeeded tests/ssl-opt.sh -f "DTLS reordering: Buffer encrypted Finished message, drop for fragmented NewSessionTicket"
+    tests/ssl-opt.sh -f "DTLS reordering: Buffer encrypted Finished message, drop for fragmented NewSessionTicket"
 }
 
 component_test_psa_collect_statuses () {
   msg "build+test: psa_collect_statuses" # ~30s
   scripts/config.py full
-  record_status tests/scripts/psa_collect_statuses.py
+  tests/scripts/psa_collect_statuses.py
   # Check that psa_crypto_init() succeeded at least once
-  record_status grep -q '^0:psa_crypto_init:' tests/statuses.log
+  grep -q '^0:psa_crypto_init:' tests/statuses.log
   rm -f tests/statuses.log
 }
 
@@ -1292,16 +1293,16 @@ component_test_full_cmake_clang () {
     make test
 
     msg "test: psa_constant_names (full config, clang)" # ~ 1s
-    record_status tests/scripts/test_psa_constant_names.py
+    tests/scripts/test_psa_constant_names.py
 
     msg "test: ssl-opt.sh default, ECJPAKE, SSL async (full config)" # ~ 1s
-    if_build_succeeded tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'
+    tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'
 
     msg "test: compat.sh RC4, DES, 3DES & NULL (full config)" # ~ 2 min
-    if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
+    env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
     msg "test: compat.sh ARIA + ChachaPoly"
-    if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
+    env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
 component_test_memsan_constant_flow () {
@@ -1408,59 +1409,59 @@ component_build_crypto_default () {
   msg "build: make, crypto only"
   scripts/config.py crypto
   make CFLAGS='-O1 -Werror'
-  if_build_succeeded are_empty_libraries library/libmbedx509.* library/libmbedtls.*
+  are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }
 
 component_build_crypto_full () {
   msg "build: make, crypto only, full config"
   scripts/config.py crypto_full
   make CFLAGS='-O1 -Werror'
-  if_build_succeeded are_empty_libraries library/libmbedx509.* library/libmbedtls.*
+  are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }
 
 component_build_crypto_baremetal () {
   msg "build: make, crypto only, baremetal config"
   scripts/config.py crypto_baremetal
   make CFLAGS='-O1 -Werror'
-  if_build_succeeded are_empty_libraries library/libmbedx509.* library/libmbedtls.*
+  are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }
 
 component_test_depends_curves () {
     msg "test/build: curves.pl (gcc)" # ~ 4 min
-    record_status tests/scripts/curves.pl
+    tests/scripts/curves.pl
 }
 
 component_test_depends_curves_psa () {
     msg "test/build: curves.pl with MBEDTLS_USE_PSA_CRYPTO defined (gcc)"
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
-    record_status tests/scripts/curves.pl
+    tests/scripts/curves.pl
 }
 
 component_test_depends_hashes () {
     msg "test/build: depends-hashes.pl (gcc)" # ~ 2 min
-    record_status tests/scripts/depends-hashes.pl
+    tests/scripts/depends-hashes.pl
 }
 
 component_test_depends_hashes_psa () {
     msg "test/build: depends-hashes.pl with MBEDTLS_USE_PSA_CRYPTO defined (gcc)"
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
-    record_status tests/scripts/depends-hashes.pl
+    tests/scripts/depends-hashes.pl
 }
 
 component_test_depends_pkalgs () {
     msg "test/build: depends-pkalgs.pl (gcc)" # ~ 2 min
-    record_status tests/scripts/depends-pkalgs.pl
+    tests/scripts/depends-pkalgs.pl
 }
 
 component_test_depends_pkalgs_psa () {
     msg "test/build: depends-pkalgs.pl with MBEDTLS_USE_PSA_CRYPTO defined (gcc)"
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
-    record_status tests/scripts/depends-pkalgs.pl
+    tests/scripts/depends-pkalgs.pl
 }
 
 component_build_key_exchanges () {
     msg "test/build: key-exchanges (gcc)" # ~ 1 min
-    record_status tests/scripts/key-exchanges.pl
+    tests/scripts/key-exchanges.pl
 }
 
 component_build_default_make_gcc_and_cxx () {
@@ -1468,7 +1469,7 @@ component_build_default_make_gcc_and_cxx () {
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os'
 
     msg "test: verify header list in cpp_dummy_build.cpp"
-    record_status check_headers_in_cpp
+    check_headers_in_cpp
 
     msg "build: Unix make, incremental g++"
     make TEST_CPP=1
@@ -1491,16 +1492,16 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     make test
 
     msg "test: ssl-opt.sh (full minus MBEDTLS_USE_PSA_CRYPTO)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 
     msg "test: compat.sh default (full minus MBEDTLS_USE_PSA_CRYPTO)"
-    if_build_succeeded tests/compat.sh
+    tests/compat.sh
 
     msg "test: compat.sh RC4, DES & NULL (full minus MBEDTLS_USE_PSA_CRYPTO)"
-    if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
+    env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
     msg "test: compat.sh ARIA + ChachaPoly (full minus MBEDTLS_USE_PSA_CRYPTO)"
-    if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
+    env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
 component_test_psa_crypto_config_basic() {
@@ -2061,7 +2062,7 @@ component_test_memory_buffer_allocator () {
 
     msg "test: ssl-opt.sh, MBEDTLS_MEMORY_BUFFER_ALLOC_C"
     # MBEDTLS_MEMORY_BUFFER_ALLOC is slow. Skip tests that tend to time out.
-    if_build_succeeded tests/ssl-opt.sh -e '^DTLS proxy'
+    tests/ssl-opt.sh -e '^DTLS proxy'
 }
 
 component_test_no_max_fragment_length () {
@@ -2072,7 +2073,7 @@ component_test_no_max_fragment_length () {
     make
 
     msg "test: ssl-opt.sh, MFL-related tests"
-    if_build_succeeded tests/ssl-opt.sh -f "Max fragment length"
+    tests/ssl-opt.sh -f "Max fragment length"
 }
 
 component_test_asan_remove_peer_certificate () {
@@ -2085,13 +2086,13 @@ component_test_asan_remove_peer_certificate () {
     make test
 
     msg "test: ssl-opt.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 
     msg "test: compat.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
-    if_build_succeeded tests/compat.sh
+    tests/compat.sh
 
     msg "test: context-info.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
-    if_build_succeeded tests/context-info.sh
+    tests/context-info.sh
 }
 
 component_test_no_max_fragment_length_small_ssl_out_content_len () {
@@ -2103,10 +2104,10 @@ component_test_no_max_fragment_length_small_ssl_out_content_len () {
     make
 
     msg "test: MFL tests (disabled MFL extension case) & large packet tests"
-    if_build_succeeded tests/ssl-opt.sh -f "Max fragment length\|Large buffer"
+    tests/ssl-opt.sh -f "Max fragment length\|Large buffer"
 
     msg "test: context-info.sh (disabled MFL extension case)"
-    if_build_succeeded tests/context-info.sh
+    tests/context-info.sh
 }
 
 component_test_variable_ssl_in_out_buffer_len () {
@@ -2119,10 +2120,10 @@ component_test_variable_ssl_in_out_buffer_len () {
     make test
 
     msg "test: ssl-opt.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH enabled"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 
     msg "test: compat.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH enabled"
-    if_build_succeeded tests/compat.sh
+    tests/compat.sh
 }
 
 component_test_variable_ssl_in_out_buffer_len_CID () {
@@ -2137,10 +2138,10 @@ component_test_variable_ssl_in_out_buffer_len_CID () {
     make test
 
     msg "test: ssl-opt.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_DTLS_CONNECTION_ID enabled"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 
     msg "test: compat.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_DTLS_CONNECTION_ID enabled"
-    if_build_succeeded tests/compat.sh
+    tests/compat.sh
 }
 
 component_test_variable_ssl_in_out_buffer_len_record_splitting () {
@@ -2155,10 +2156,10 @@ component_test_variable_ssl_in_out_buffer_len_record_splitting () {
     make test
 
     msg "test: ssl-opt.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING enabled"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 
     msg "test: compat.sh, MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING enabled"
-    if_build_succeeded tests/compat.sh
+    tests/compat.sh
 }
 
 component_test_ssl_alloc_buffer_and_mfl () {
@@ -2175,7 +2176,7 @@ component_test_ssl_alloc_buffer_and_mfl () {
     make test
 
     msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH, MBEDTLS_MEMORY_BUFFER_ALLOC_C, MBEDTLS_MEMORY_DEBUG and MBEDTLS_SSL_MAX_FRAGMENT_LENGTH"
-    if_build_succeeded tests/ssl-opt.sh -f "Handshake memory usage"
+    tests/ssl-opt.sh -f "Handshake memory usage"
 }
 
 component_test_when_no_ciphersuites_have_mac () {
@@ -2189,7 +2190,7 @@ component_test_when_no_ciphersuites_have_mac () {
     make test
 
     msg "test ssl-opt.sh: !MBEDTLS_SSL_SOME_MODES_USE_MAC"
-    if_build_succeeded tests/ssl-opt.sh -f 'Default\|EtM' -e 'without EtM'
+    tests/ssl-opt.sh -f 'Default\|EtM' -e 'without EtM'
 }
 
 component_test_null_entropy () {
@@ -2241,7 +2242,7 @@ component_test_malloc_0_null () {
     msg "selftest: malloc(0) returns NULL (ASan+UBSan build)"
     # Just the calloc selftest. "make test" ran the others as part of the
     # test suites.
-    if_build_succeeded programs/test/selftest calloc
+    programs/test/selftest calloc
 
     msg "test ssl-opt.sh: malloc(0) returns NULL (ASan+UBSan build)"
     # Run a subset of the tests. The choice is a balance between coverage
@@ -2249,7 +2250,7 @@ component_test_malloc_0_null () {
     # The current choice is to skip tests whose description includes
     # "proxy", which is an approximation of skipping tests that use the
     # UDP proxy, which tend to be slower and flakier.
-    if_build_succeeded tests/ssl-opt.sh -e 'proxy'
+    tests/ssl-opt.sh -e 'proxy'
 }
 
 component_test_aes_fewer_tables () {
@@ -2442,7 +2443,7 @@ component_test_m32_o1 () {
     make test
 
     msg "test ssl-opt.sh, i386, make, gcc-O1"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 support_test_m32_o1 () {
     support_test_m32_o0 "$@"
@@ -2458,11 +2459,11 @@ component_test_m32_everest () {
     make test
 
     msg "test: i386, Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
-    if_build_succeeded tests/ssl-opt.sh -f ECDH
+    tests/ssl-opt.sh -f ECDH
 
     msg "test: i386, Everest ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
     # Exclude some symmetric ciphers that are redundant here to gain time.
-    if_build_succeeded tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
+    tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
 }
 support_test_m32_everest () {
     support_test_m32_o0 "$@"
@@ -2602,7 +2603,7 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
     scripts/config.py set MBEDTLS_NO_UDBL_DIVISION
     make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-std=c99 -Werror -Wall -Wextra' lib
     echo "Checking that software 64-bit division is not required"
-    if_build_succeeded not grep __aeabi_uldiv library/*.o
+    not grep __aeabi_uldiv library/*.o
 }
 
 component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
@@ -2611,7 +2612,7 @@ component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
     scripts/config.py set MBEDTLS_NO_64BIT_MULTIPLICATION
     make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-std=c99 -Werror -O1 -march=armv6-m -mthumb' lib
     echo "Checking that software 64-bit multiplication is not required"
-    if_build_succeeded not grep __aeabi_lmul library/*.o
+    not grep __aeabi_lmul library/*.o
 }
 
 component_build_armcc () {
@@ -2685,13 +2686,13 @@ component_test_memsan () {
     make test
 
     msg "test: ssl-opt.sh (MSan)" # ~ 1 min
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 
     # Optional part(s)
 
     if [ "$MEMORY" -gt 0 ]; then
         msg "test: compat.sh (MSan)" # ~ 6 min 20s
-        if_build_succeeded tests/compat.sh
+        tests/compat.sh
     fi
 }
 
@@ -2707,17 +2708,17 @@ component_test_valgrind () {
     # seem to receive signals under valgrind on OS X).
     if [ "$MEMORY" -gt 0 ]; then
         msg "test: ssl-opt.sh --memcheck (Release)"
-        if_build_succeeded tests/ssl-opt.sh --memcheck
+        tests/ssl-opt.sh --memcheck
     fi
 
     if [ "$MEMORY" -gt 1 ]; then
         msg "test: compat.sh --memcheck (Release)"
-        if_build_succeeded tests/compat.sh --memcheck
+        tests/compat.sh --memcheck
     fi
 
     if [ "$MEMORY" -gt 0 ]; then
         msg "test: context-info.sh --memcheck (Release)"
-        if_build_succeeded tests/context-info.sh --memcheck
+        tests/context-info.sh --memcheck
     fi
 }
 
@@ -2736,10 +2737,10 @@ component_test_cmake_out_of_source () {
     # "No such file or directory", which would indicate that some required
     # file is missing (ssl-opt.sh tolerates the absence of some files so
     # may exit with status 0 but emit errors).
-    if_build_succeeded ./tests/ssl-opt.sh -f 'Fallback SCSV: beginning of list' 2>ssl-opt.err
+    ./tests/ssl-opt.sh -f 'Fallback SCSV: beginning of list' 2>ssl-opt.err
     cat ssl-opt.err >&2
     # If ssl-opt.err is non-empty, record an error and keep going.
-    record_status [ ! -s ssl-opt.err ]
+    [ ! -s ssl-opt.err ]
     rm ssl-opt.err
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
@@ -2753,7 +2754,7 @@ component_test_cmake_as_subdirectory () {
     cd programs/test/cmake_subproject
     cmake .
     make
-    if_build_succeeded ./cmake_subproject
+    ./cmake_subproject
 
     cd "$MBEDTLS_ROOT_DIR"
     unset MBEDTLS_ROOT_DIR
@@ -2778,9 +2779,9 @@ component_test_zeroize () {
         for compiler in clang gcc; do
             msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
             make programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
-            if_build_succeeded gdb -ex "$gdb_disable_aslr" -x tests/scripts/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
-            if_build_succeeded grep "The buffer was correctly zeroized" test_zeroize.log
-            if_build_succeeded not grep -i "error" test_zeroize.log
+            gdb -ex "$gdb_disable_aslr" -x tests/scripts/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
+            grep "The buffer was correctly zeroized" test_zeroize.log
+            not grep -i "error" test_zeroize.log
             rm -f test_zeroize.log
             make clean
         done
@@ -2791,7 +2792,7 @@ component_test_zeroize () {
 
 component_check_python_files () {
     msg "Lint: Python scripts"
-    record_status tests/scripts/check-python-files.sh
+    tests/scripts/check-python-files.sh
 }
 
 component_check_generate_test_code () {
@@ -2799,7 +2800,7 @@ component_check_generate_test_code () {
     # unittest writes out mundane stuff like number or tests run on stderr.
     # Our convention is to reserve stderr for actual errors, and write
     # harmless info on stdout so it can be suppress with --quiet.
-    record_status ./tests/scripts/test_generate_test_code.py 2>&1
+    ./tests/scripts/test_generate_test_code.py 2>&1
 }
 
 ################################################################

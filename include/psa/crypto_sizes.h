@@ -1074,12 +1074,13 @@
  */
 #define PSA_CIPHER_UPDATE_OUTPUT_SIZE(key_type, alg, input_length)              \
     (PSA_ALG_IS_CIPHER(alg) ?                                                   \
+    (PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) != 0 ?                             \
      (((alg) == PSA_ALG_CBC_PKCS7      ||                                       \
        (alg) == PSA_ALG_CBC_NO_PADDING ||                                       \
        (alg) == PSA_ALG_ECB_NO_PADDING) ?                                       \
       PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type),         \
                                 input_length) :                                 \
-      (input_length)) :                                                         \
+      (input_length)) : 0) :                                                    \
      0)
 
 /** A sufficient output buffer size for psa_cipher_update(), for any of the

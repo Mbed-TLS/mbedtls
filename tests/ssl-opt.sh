@@ -2246,6 +2246,7 @@ run_test    "Connection ID, 3D: Cli+Srv enabled, Srv disables on renegotiation" 
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+requires_max_content_len 512
 run_test    "Connection ID: Cli+Srv enabled, variable buffer lengths, MFL=512" \
             "$P_SRV dtls=1 cid=1 cid_val=dead debug_level=2" \
             "$P_CLI force_ciphersuite="TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" max_frag_len=512 dtls=1 cid=1 cid_val=beef" \
@@ -2259,6 +2260,7 @@ run_test    "Connection ID: Cli+Srv enabled, variable buffer lengths, MFL=512" \
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+requires_max_content_len 1024
 run_test    "Connection ID: Cli+Srv enabled, variable buffer lengths, MFL=1024" \
             "$P_SRV dtls=1 cid=1 cid_val=dead debug_level=2" \
             "$P_CLI force_ciphersuite="TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" max_frag_len=1024 dtls=1 cid=1 cid_val=beef" \
@@ -5717,6 +5719,7 @@ run_test    "Large client packet TLS 1.2 AEAD shorter tag" \
             -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
             -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
+# The tests below fail when the server's OUT_CONTENT_LEN is less than 16384.
 run_test    "Large server packet TLS 1.2 BlockCipher" \
             "$P_SRV response_size=16384" \
             "$P_CLI force_version=tls1_2 \
@@ -6539,6 +6542,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_max_content_len 4096
 run_test    "DTLS fragmenting: none (for reference)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
@@ -6559,6 +6563,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: server only (max_frag_len)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
@@ -6583,6 +6588,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_max_content_len 4096
 run_test    "DTLS fragmenting: server only (more) (max_frag_len)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
@@ -6603,6 +6609,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: client-initiated, server only (max_frag_len)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=none \
              crt_file=data_files/server7_int-ca.crt \
@@ -6630,6 +6637,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: client-initiated, server only (max_frag_len), proxy MTU" \
             -p "$P_PXY mtu=1110" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=none \
@@ -6651,6 +6659,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: client-initiated, both (max_frag_len)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
@@ -6678,6 +6687,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: client-initiated, both (max_frag_len), proxy MTU" \
             -p "$P_PXY mtu=1110" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -6698,6 +6708,7 @@ run_test    "DTLS fragmenting: client-initiated, both (max_frag_len), proxy MTU"
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
+requires_max_content_len 4096
 run_test    "DTLS fragmenting: none (for reference) (MTU)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
@@ -6717,6 +6728,7 @@ run_test    "DTLS fragmenting: none (for reference) (MTU)" \
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
+requires_max_content_len 4096
 run_test    "DTLS fragmenting: client (MTU)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
@@ -6736,6 +6748,7 @@ run_test    "DTLS fragmenting: client (MTU)" \
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: server (MTU)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
@@ -6755,6 +6768,7 @@ run_test    "DTLS fragmenting: server (MTU)" \
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: both (MTU=1024)" \
             -p "$P_PXY mtu=1024" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -6780,6 +6794,7 @@ requires_config_enabled MBEDTLS_SHA256_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: both (MTU=512)" \
             -p "$P_PXY mtu=512" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -6811,6 +6826,7 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU: auto-reduction (not valgrind)" \
             -p "$P_PXY mtu=508" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -6835,6 +6851,7 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU: auto-reduction (with valgrind)" \
             -p "$P_PXY mtu=508" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -6858,6 +6875,7 @@ not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, simple handshake (MTU=1024)" \
             -p "$P_PXY mtu=1024" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -6887,6 +6905,7 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, simple handshake (MTU=512)" \
             -p "$P_PXY mtu=512" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -6910,6 +6929,7 @@ not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio (MTU=1024)" \
             -p "$P_PXY mtu=1024" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -6936,6 +6956,7 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio (MTU=512)" \
             -p "$P_PXY mtu=512" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -6972,6 +6993,7 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, resumed handshake" \
             -p "$P_PXY mtu=1450" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -7001,6 +7023,7 @@ requires_config_enabled MBEDTLS_SHA256_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_CHACHAPOLY_C
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, ChachaPoly renego" \
             -p "$P_PXY mtu=512" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -7033,6 +7056,7 @@ requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-GCM renego" \
             -p "$P_PXY mtu=512" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -7065,6 +7089,7 @@ requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_CCM_C
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-CCM renego" \
             -p "$P_PXY mtu=1024" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -7098,6 +7123,7 @@ requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_config_enabled MBEDTLS_SSL_ENCRYPT_THEN_MAC
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-CBC EtM renego" \
             -p "$P_PXY mtu=1024" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -7130,6 +7156,7 @@ requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-CBC non-EtM renego" \
             -p "$P_PXY mtu=1024" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -7159,6 +7186,7 @@ requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
 client_needs_more_time 2
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU + 3d" \
             -p "$P_PXY mtu=512 drop=8 delay=8 duplicate=8" \
             "$P_SRV dgram_packing=0 dtls=1 debug_level=2 auth_mode=required \
@@ -7183,6 +7211,7 @@ requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
 client_needs_more_time 2
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU + 3d, nbio" \
             -p "$P_PXY mtu=512 drop=8 delay=8 duplicate=8" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -7208,6 +7237,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_gnutls
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
             "$G_SRV -u" \
             "$P_CLI dtls=1 debug_level=2 \
@@ -7231,6 +7261,7 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_gnutls
 requires_not_i686
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
@@ -7244,6 +7275,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: openssl server, DTLS 1.2" \
             "$O_SRV -dtls1_2 -verify 10" \
             "$P_CLI dtls=1 debug_level=2 \
@@ -7258,6 +7290,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: openssl client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
@@ -7277,6 +7310,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 client_needs_more_time 4
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.2" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$G_NEXT_SRV -u" \
@@ -7294,6 +7328,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 client_needs_more_time 4
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$P_SRV dtls=1 debug_level=2 \
@@ -7315,6 +7350,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 client_needs_more_time 4
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$O_SRV -dtls1_2 -verify 10" \
@@ -7332,6 +7368,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 client_needs_more_time 4
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$P_SRV dtls=1 debug_level=2 \
@@ -8406,6 +8443,7 @@ run_test    "export keys functionality" \
 requires_config_enabled MBEDTLS_MEMORY_DEBUG
 requires_config_enabled MBEDTLS_MEMORY_BUFFER_ALLOC_C
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_max_content_len 16384
 run_tests_memory_after_hanshake
 
 # Final report

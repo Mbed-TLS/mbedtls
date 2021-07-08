@@ -607,24 +607,6 @@ not () {
     fi
 }
 
-pre_setup_quiet_redirect () {
-    if [ $QUIET -ne 1 ]; then
-        redirect_out () {
-            "$@"
-        }
-        redirect_err () {
-            "$@"
-        }
-    else
-        redirect_out () {
-            "$@" >/dev/null
-        }
-        redirect_err () {
-            "$@" 2>/dev/null
-        }
-    fi
-}
-
 pre_prepare_outcome_file () {
     case "$MBEDTLS_TEST_OUTCOME_FILE" in
       [!/]*) MBEDTLS_TEST_OUTCOME_FILE="$PWD/$MBEDTLS_TEST_OUTCOME_FILE";;
@@ -2726,7 +2708,12 @@ run_component () {
     # Unconditionally create a seedfile that's sufficiently long.
     # Do this before each component, because a previous component may
     # have messed it up or shortened it.
-    redirect_err dd if=/dev/urandom of=./tests/seedfile bs=64 count=1
+    local dd_cmd
+    dd_cmd=(dd if=/dev/urandom of=./tests/seedfile bs=64 count=1)
+    case $OSTYPE in
+        linux*|freebsd*|openbsd*|darwin*) dd_cmd+=(status=none)
+    esac
+    "${dd_cmd[@]}"
 
     # Run the component in a subshell
     if [ $KEEP_GOING -eq 1 ]; then
@@ -2774,7 +2761,6 @@ build_status=0
 if [ $KEEP_GOING -eq 1 ]; then
     pre_setup_keep_going
 fi
-pre_setup_quiet_redirect
 pre_prepare_outcome_file
 pre_print_configuration
 pre_check_tools

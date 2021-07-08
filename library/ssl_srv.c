@@ -1323,7 +1323,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     {
         if( p[0] == 0 &&
             p[1] == MBEDTLS_CHAR_1( MBEDTLS_SSL_FALLBACK_SCSV_VALUE ) &&
-            p[2] == MBEDTLS_CHAR_0( MBEDTLS_SSL_FALLBACK_SCSV_VALUE )
+            p[2] == MBEDTLS_CHAR_0( MBEDTLS_SSL_FALLBACK_SCSV_VALUE ))
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "received FALLBACK_SCSV" ) );
 

@@ -352,7 +352,7 @@ static int ecjpake_zkp_write( const mbedtls_md_info_t *md_info,
         goto cleanup;
     }
 
-    *(*p)++ = (unsigned char)( len & 0xFF );
+    *(*p)++ = MBEDTLS_CHAR_0( len );
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &h, *p, len ) ); /* r */
     *p += len;
 

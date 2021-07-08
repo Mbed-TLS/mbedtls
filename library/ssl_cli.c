@@ -632,7 +632,7 @@ static int ssl_write_extended_ms_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 4 );
 
     *p++ = MBEDTLS_CHAR_1( MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET );
-    *p++ = MBEDTLS_CHAR_1( MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET );
+    *p++ = MBEDTLS_CHAR_0( MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET );
 
     *p++ = 0x00;
     *p++ = 0x00;

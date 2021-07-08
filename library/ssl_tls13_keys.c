@@ -112,7 +112,7 @@ static void ssl_tls1_3_hkdf_encode_label(
 #endif
 
     *p++ = 0;
-    *p++ = (unsigned char)( ( desired_length >> 0 ) & 0xFF );
+    *p++ = MBEDTLS_CHAR_0( desired_length );
 
     /* Add label incl. prefix */
     *p++ = (unsigned char)( total_label_len & 0xFF );

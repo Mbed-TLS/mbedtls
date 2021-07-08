@@ -221,8 +221,8 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         src = add;
 
         memset( b, 0, 16 );
-        b[0] = (unsigned char)( ( add_len >> 8 ) & 0xFF );
-        b[1] = (unsigned char)( ( add_len      ) & 0xFF );
+        b[0] = MBEDTLS_CHAR_1( add_len );
+        b[1] = MBEDTLS_CHAR_0( add_len );
 
         use_len = len_left < 16 - 2 ? len_left : 16 - 2;
         memcpy( b + 2, src, use_len );

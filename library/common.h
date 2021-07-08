@@ -60,28 +60,14 @@
 #define MBEDTLS_BYTE_2( x ) ( (uint8_t) ( ( ( x ) >> 16 ) & 0xff ) )
 #define MBEDTLS_BYTE_3( x ) ( (uint8_t) ( ( ( x ) >> 24 ) & 0xff ) )
 
-/*
- * 32-bit integer manipulation macros (little endian)
- */
-#ifndef MBEDTLS_GET_UINT32_LE
-#define MBEDTLS_GET_UINT32_LE(n,b,i)                    \
-    do {                                                \
-        (n) = ( (uint32_t) (b)[(i)    ]       )         \
-            | ( (uint32_t) (b)[(i) + 1] <<  8 )         \
-            | ( (uint32_t) (b)[(i) + 2] << 16 )         \
-            | ( (uint32_t) (b)[(i) + 3] << 24 );        \
-    } while( 0 )
-#endif
-
-#ifndef MBEDTLS_PUT_UINT32_LE
-#define MBEDTLS_PUT_UINT32_LE(n,b,i)                                \
-    do {                                                            \
-        (b)[(i)    ] = (unsigned char) ( ( (n)       ) & 0xFF );    \
-        (b)[(i) + 1] = (unsigned char) ( ( (n) >>  8 ) & 0xFF );    \
-        (b)[(i) + 2] = (unsigned char) ( ( (n) >> 16 ) & 0xFF );    \
-        (b)[(i) + 3] = (unsigned char) ( ( (n) >> 24 ) & 0xFF );    \
-    } while( 0 )
-#endif
+#define MBEDTLS_CHAR_0( x ) ( (unsigned char) (   ( x )         & 0xff ) )
+#define MBEDTLS_CHAR_1( x ) ( (unsigned char) ( ( ( x ) >> 8  ) & 0xff ) )
+#define MBEDTLS_CHAR_2( x ) ( (unsigned char) ( ( ( x ) >> 16 ) & 0xff ) )
+#define MBEDTLS_CHAR_3( x ) ( (unsigned char) ( ( ( x ) >> 24 ) & 0xff ) )
+#define MBEDTLS_CHAR_4( x ) ( (unsigned char) ( ( ( x ) >> 32 ) & 0xff ) )
+#define MBEDTLS_CHAR_5( x ) ( (unsigned char) ( ( ( x ) >> 40 ) & 0xff ) )
+#define MBEDTLS_CHAR_6( x ) ( (unsigned char) ( ( ( x ) >> 48 ) & 0xff ) )
+#define MBEDTLS_CHAR_7( x ) ( (unsigned char) ( ( ( x ) >> 56 ) & 0xff ) )
 
 /**
  * 32-bit integer manipulation GET macros (big endian)

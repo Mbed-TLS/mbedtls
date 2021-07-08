@@ -3566,20 +3566,21 @@ psa_status_t psa_cipher_encrypt( mbedtls_svc_key_id_t key,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
+    psa_key_slot_t *slot = NULL;
     psa_key_type_t key_type;
     size_t iv_length;
 
-    *output_length = 0;
-
     if( ! PSA_ALG_IS_CIPHER( alg ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+    {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
 
     status = psa_get_and_lock_key_slot_with_policy( key, &slot,
                                                     PSA_KEY_USAGE_ENCRYPT,
                                                     alg );
     if( status != PSA_SUCCESS )
-        return( status );
+        goto exit;
 
     psa_key_attributes_t attributes = {
       .core = slot->attr
@@ -3608,8 +3609,13 @@ psa_status_t psa_cipher_encrypt( mbedtls_svc_key_id_t key,
 
 exit:
     unlock_status = psa_unlock_key_slot( slot );
+    if( status == PSA_SUCCESS )
+        status = unlock_status;
 
-    return( ( status == PSA_SUCCESS ) ? unlock_status : status );
+    if( status != PSA_SUCCESS )
+        *output_length = 0;
+
+    return( status );
 }
 
 psa_status_t psa_cipher_decrypt( mbedtls_svc_key_id_t key,
@@ -3622,18 +3628,19 @@ psa_status_t psa_cipher_decrypt( mbedtls_svc_key_id_t key,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
-
-    *output_length = 0;
+    psa_key_slot_t *slot = NULL;
 
     if( ! PSA_ALG_IS_CIPHER( alg ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+    {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
 
     status = psa_get_and_lock_key_slot_with_policy( key, &slot,
                                                     PSA_KEY_USAGE_DECRYPT,
                                                     alg );
     if( status != PSA_SUCCESS )
-        return( status );
+        goto exit;
 
     psa_key_attributes_t attributes = {
       .core = slot->attr
@@ -3652,8 +3659,13 @@ psa_status_t psa_cipher_decrypt( mbedtls_svc_key_id_t key,
 
 exit:
     unlock_status = psa_unlock_key_slot( slot );
+    if( status == PSA_SUCCESS )
+        status = unlock_status;
 
-    return( ( status == PSA_SUCCESS ) ? unlock_status : status );
+    if( status != PSA_SUCCESS )
+        *output_length = 0;
+
+    return( status );
 }
 
 

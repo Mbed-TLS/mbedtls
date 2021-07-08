@@ -362,8 +362,8 @@ static int ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
     *p++ = MBEDTLS_CHAR_1( elliptic_curve_len + 2 );
     *p++ = MBEDTLS_CHAR_0( elliptic_curve_len + 2 );
 
-    *p++ = MBEDTLS_CHAR_1( elliptic_curve_len     );
-    *p++ = MBEDTLS_CHAR_0( elliptic_curve_len     );
+    *p++ = MBEDTLS_CHAR_1( elliptic_curve_len );
+    *p++ = MBEDTLS_CHAR_0( elliptic_curve_len );
 
     *olen = 6 + elliptic_curve_len;
 
@@ -570,7 +570,7 @@ static int ssl_write_truncated_hmac_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 4 );
 
     *p++ = MBEDTLS_CHAR_1( MBEDTLS_TLS_EXT_TRUNCATED_HMAC );
-    *p++ = MBEDTLS_CHAR_1( MBEDTLS_TLS_EXT_TRUNCATED_HMAC );
+    *p++ = MBEDTLS_CHAR_0( MBEDTLS_TLS_EXT_TRUNCATED_HMAC );
 
     *p++ = 0x00;
     *p++ = 0x00;

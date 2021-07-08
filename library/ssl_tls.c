@@ -6150,10 +6150,9 @@ static unsigned char ssl_serialized_context_header[] = {
     MBEDTLS_VERSION_PATCH,
     MBEDTLS_CHAR_1( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG ),
     MBEDTLS_CHAR_0( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG ),
-    MBEDTLS_CHAR_2( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG ),
-    MBEDTLS_CHAR_1( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG ),
-    MBEDTLS_CHAR_0( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG ),
-
+    MBEDTLS_CHAR_2( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG ),
+    MBEDTLS_CHAR_1( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG ),
+    MBEDTLS_CHAR_0( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG ),
 };
 
 /*
@@ -6349,7 +6348,8 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
     used += 16;
     if( used <= buf_len )
-    {   *p++ = MBEDTLS_CHAR_7( ssl->in_window_top );
+    {
+        *p++ = MBEDTLS_CHAR_7( ssl->in_window_top );
         *p++ = MBEDTLS_CHAR_6( ssl->in_window_top );
         *p++ = MBEDTLS_CHAR_5( ssl->in_window_top );
         *p++ = MBEDTLS_CHAR_4( ssl->in_window_top );

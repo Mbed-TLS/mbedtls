@@ -661,17 +661,12 @@ typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
  * - For stream/CBC, (static) encryption/decryption keys for the digest.
  * - For AEAD transformations, the size (potentially 0) of an explicit,
  *   random initialization vector placed in encrypted records.
- * - For some transformations (currently AEAD) an implicit IV. It may be static
- *   (e.g. AEAD) or dynamic (e.g. CBC) and (if present) is combined with the
- *   explicit IV in a transformation-dependent way (e.g. appending in TLS 1.2
- *   and XOR'ing in TLS 1.3).
+ * - For some transformations (currently AEAD) an implicit IV. It is static
+ *   and (if present) is combined with the explicit IV in a transformation-
+ *   -dependent way (e.g. appending in TLS 1.2 and XOR'ing in TLS 1.3).
  * - For stream/CBC, a flag determining the order of encryption and MAC.
  * - The details of the transformation depend on the SSL/TLS version.
  * - The length of the authentication tag.
- *
- * Note: These parameters are constant across multiple encryption/decryption
- *       operations. For CBC, the implicit IV needs to be updated after each
- *       operation.
  *
  * The struct below refines this abstract view as follows:
  * - The cipher underlying the transformation is managed in

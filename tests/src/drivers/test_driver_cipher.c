@@ -64,8 +64,6 @@ psa_status_t mbedtls_test_transparent_cipher_encrypt(
     if( mbedtls_test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
         return( mbedtls_test_driver_cipher_hooks.forced_status );
 
-    psa_generate_random( output, PSA_CIPHER_IV_LENGTH( attributes->core.type, alg ) );
-
     return( mbedtls_transparent_test_driver_cipher_encrypt(
                 attributes, key_buffer, key_buffer_size,
                 alg, input, input_length,

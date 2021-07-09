@@ -368,14 +368,6 @@ check_tools()
     done
 }
 
-check_headers_in_cpp () {
-    ls include/mbedtls | grep "\.h$" >headers.txt
-    <programs/test/cpp_dummy_build.cpp sed -n 's/"$//; s!^#include "mbedtls/!!p' |
-    sort |
-    diff headers.txt -
-    rm headers.txt
-}
-
 pre_parse_command_line () {
     COMMAND_LINE_COMPONENTS=
     all_except=0
@@ -1406,15 +1398,13 @@ component_build_key_exchanges () {
     tests/scripts/key-exchanges.pl
 }
 
-component_build_default_make_gcc_and_cxx () {
-    msg "build: Unix make, -Os (gcc)" # ~ 30s
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os'
+component_test_make_cxx () {
+    msg "build: Unix make, full, gcc + g++"
+    scripts/config.py full
+    make TEST_CPP=1 lib programs
 
-    msg "test: verify header list in cpp_dummy_build.cpp"
-    check_headers_in_cpp
-
-    msg "build: Unix make, incremental g++"
-    make TEST_CPP=1
+    msg "test: cpp_dummy_build"
+    programs/test/cpp_dummy_build
 }
 
 component_build_module_alt () {

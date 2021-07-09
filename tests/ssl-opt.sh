@@ -2244,7 +2244,7 @@ run_test    "Connection ID, 3D: Cli+Srv enabled, Srv disables on renegotiation" 
             -c "ignoring unexpected CID" \
             -s "ignoring unexpected CID"
 
-# This and the test below it requires MAX_CONTENT_LEN to be MFL+1, because the
+# This and the test below it require MAX_CONTENT_LEN to be at least MFL+1, because the
 # tests check that the buffer contents are reallocated when the message is
 # larger than the buffer.
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID

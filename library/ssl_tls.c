@@ -80,10 +80,12 @@
 #endif
 
 /* Byte reading macros */
-#define BYTE_0( x ) ( (uint8_t) ( ( x ) & 0xff )  )
-#define BYTE_1( x ) ( (uint8_t) ( ( ( x ) >> 8 ) & 0xff )  )
+#define BYTE_0( x ) ( (uint8_t) (   ( x )         & 0xff ) )
+#define BYTE_1( x ) ( (uint8_t) ( ( ( x ) >> 8  ) & 0xff ) )
 #define BYTE_2( x ) ( (uint8_t) ( ( ( x ) >> 16 ) & 0xff ) )
-#define BYTE_3( x ) ( (uint8_t) ( ( ( x ) >> 24 ) & 0xff ) )
+
+#define CHAR_0( x ) ( (unsigned char) ( ( ( x )       ) & 0xFF ) )
+#define CHAR_1( x ) ( (unsigned char) ( ( ( x ) >> 8  ) & 0xFF ) )
 
 static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl );
 static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl );
@@ -1575,8 +1577,8 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
         add_data[8]  = ssl->out_msgtype;
         mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
                            ssl->conf->transport, add_data + 9 );
-        add_data[11] = ( ssl->out_msglen >> 8 ) & 0xFF;
-        add_data[12] = ssl->out_msglen & 0xFF;
+        add_data[11] = CHAR_1( ssl->out_msglen );
+        add_data[12] = CHAR_0( ssl->out_msglen );
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "additional data for AEAD", add_data, 13 );
 
@@ -1750,8 +1752,8 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
 
             memcpy( pseudo_hdr +  0, ssl->out_ctr, 8 );
             memcpy( pseudo_hdr +  8, ssl->out_hdr, 3 );
-            pseudo_hdr[11] = (unsigned char)( ( ssl->out_msglen >> 8 ) & 0xFF );
-            pseudo_hdr[12] = (unsigned char)( ( ssl->out_msglen      ) & 0xFF );
+            pseudo_hdr[11] = CHAR_1( ssl->out_msglen );
+            pseudo_hdr[12] = CHAR_0( ssl->out_msglen );
 
             MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", pseudo_hdr, 13 );
 
@@ -2033,8 +2035,8 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
         add_data[8]  = ssl->in_msgtype;
         mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
                            ssl->conf->transport, add_data + 9 );
-        add_data[11] = ( ssl->in_msglen >> 8 ) & 0xFF;
-        add_data[12] = ssl->in_msglen & 0xFF;
+        add_data[11] = CHAR_1( ssl->in_msglen );
+        add_data[12] = CHAR_0( ssl->in_msglen );
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "additional data for AEAD", add_data, 13 );
 
@@ -2146,8 +2148,8 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
 
             memcpy( pseudo_hdr +  0, ssl->in_ctr, 8 );
             memcpy( pseudo_hdr +  8, ssl->in_hdr, 3 );
-            pseudo_hdr[11] = (unsigned char)( ( ssl->in_msglen >> 8 ) & 0xFF );
-            pseudo_hdr[12] = (unsigned char)( ( ssl->in_msglen      ) & 0xFF );
+            pseudo_hdr[11] = CHAR_1( ssl->in_msglen );
+            pseudo_hdr[12] = CHAR_0( ssl->in_msglen );
 
             MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", pseudo_hdr, 13 );
 
@@ -3384,8 +3386,8 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
             /* Write message_seq and update it, except for HelloRequest */
             if( hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST )
             {
-                ssl->out_msg[4] = ( ssl->handshake->out_msg_seq >> 8 ) & 0xFF;
-                ssl->out_msg[5] = ( ssl->handshake->out_msg_seq      ) & 0xFF;
+                ssl->out_msg[4] = CHAR_1( ssl->handshake->out_msg_seq );
+                ssl->out_msg[5] = CHAR_0( ssl->handshake->out_msg_seq );
                 ++( ssl->handshake->out_msg_seq );
             }
             else

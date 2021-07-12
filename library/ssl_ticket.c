@@ -67,10 +67,12 @@
 #include <string.h>
 
 /* Byte reading macros */
-#define BYTE_0( x ) ( (uint8_t) ( ( x ) & 0xff )  )
-#define BYTE_1( x ) ( (uint8_t) ( ( ( x ) >> 8 ) & 0xff )  )
-#define BYTE_2( x ) ( (uint8_t) ( ( ( x ) >> 16 ) & 0xff ) )
-#define BYTE_3( x ) ( (uint8_t) ( ( ( x ) >> 24 ) & 0xff ) )
+#define BYTE_0( x ) ( (uint8_t) (   ( x )         & 0xff ) )
+#define BYTE_1( x ) ( (uint8_t) ( ( ( x ) >> 8  ) & 0xff ) )
+
+#define CHAR_0( x ) ( (unsigned char) ( ( ( x )       ) & 0xFF ) )
+#define CHAR_1( x ) ( (unsigned char) ( ( ( x ) >> 8  ) & 0xFF ) )
+#define CHAR_2( x ) ( (unsigned char) ( ( ( x ) >> 16 ) & 0xFF ) )
 
 /*
  * Initialze context
@@ -233,9 +235,9 @@ static int ssl_save_session( const mbedtls_ssl_session *session,
     if( left < 3 + cert_len )
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
-    *p++ = (unsigned char)( ( cert_len >> 16 ) & 0xFF );
-    *p++ = (unsigned char)( ( cert_len >>  8 ) & 0xFF );
-    *p++ = (unsigned char)( ( cert_len       ) & 0xFF );
+    *p++ = CHAR_2( cert_len );
+    *p++ = CHAR_1( cert_len );
+    *p++ = CHAR_0( cert_len );
 
     if( session->peer_cert != NULL )
         memcpy( p, session->peer_cert->raw.p, cert_len );

@@ -3080,7 +3080,7 @@ int mbedtls_ecp_read_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
         if( grp_id == MBEDTLS_ECP_DP_CURVE25519 )
         {
             if( buflen != ECP_CURVE25519_KEY_SIZE )
-                return MBEDTLS_ERR_ECP_INVALID_KEY;
+                return( MBEDTLS_ERR_ECP_INVALID_KEY );
 
             MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &key->d, buf, buflen ) );
 
@@ -3104,7 +3104,7 @@ int mbedtls_ecp_read_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
         else if( grp_id == MBEDTLS_ECP_DP_CURVE448 )
         {
             if( buflen != ECP_CURVE448_KEY_SIZE )
-                return MBEDTLS_ERR_ECP_INVALID_KEY;
+                return( MBEDTLS_ERR_ECP_INVALID_KEY );
 
             MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &key->d, buf, buflen ) );
 
@@ -3155,13 +3155,13 @@ int mbedtls_ecp_write_key( mbedtls_ecp_keypair *key,
         if( key->grp.id == MBEDTLS_ECP_DP_CURVE25519 )
         {
             if( buflen < ECP_CURVE25519_KEY_SIZE )
-                return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+                return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
         }
-        else if ( key->grp.id == MBEDTLS_ECP_DP_CURVE448 )
+        else if( key->grp.id == MBEDTLS_ECP_DP_CURVE448 )
         {
             if( buflen < ECP_CURVE448_KEY_SIZE )
-                return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+                return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
         }
         MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &key->d, buf, buflen ) );
     }

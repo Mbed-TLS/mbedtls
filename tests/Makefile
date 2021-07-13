@@ -63,18 +63,25 @@ GENERATED_DATA_FILES := $(patsubst tests/%,%,$(shell $(PYTHON) scripts/generate_
 GENERATED_FILES := $(GENERATED_DATA_FILES)
 generated_files: $(GENERATED_FILES)
 
-$(GENERATED_DATA_FILES): scripts/generate_psa_tests.py
+# generate_psa_tests.py spends more time analyzing inputs than generating
+# outputs. Its inputs are the same no matter which files are being generated.
+# It's rare not to want all the outputs. So always generate all of its outputs.
+# Use an intermediate phony dependency so that parallel builds don't run
+# a separate instance of the recipe for each output file.
+.SECONDARY: generated_psa_test_data
+$(GENERATED_DATA_FILES): generated_psa_test_data
+generated_psa_test_data: scripts/generate_psa_tests.py
 ## The generated file only depends on the options that are present in
 ## crypto_config.h, not on which options are set. To avoid regenerating this
 ## file all the time when switching between configurations, don't declare
 ## crypto_config.h as a dependency. Remove this file from your working tree
 ## if you've just added or removed an option in crypto_config.h.
-#$(GENERATED_DATA_FILES): ../include/psa/crypto_config.h
-$(GENERATED_DATA_FILES): ../include/psa/crypto_values.h
-$(GENERATED_DATA_FILES): ../include/psa/crypto_extra.h
-$(GENERATED_DATA_FILES): suites/test_suite_psa_crypto_metadata.data
-$(GENERATED_DATA_FILES):
-	echo "  Gen   $@ ..."
+#generated_psa_test_data: ../include/psa/crypto_config.h
+generated_psa_test_data: ../include/psa/crypto_values.h
+generated_psa_test_data: ../include/psa/crypto_extra.h
+generated_psa_test_data: suites/test_suite_psa_crypto_metadata.data
+generated_psa_test_data:
+	echo "  Gen   $(GENERATED_DATA_FILES) ..."
 	$(PYTHON) scripts/generate_psa_tests.py
 
 # A test application is built for each suites/test_suite_*.data file.

@@ -63,7 +63,13 @@ PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; els
 endif
 
 .PHONY: generated_files
-GENERATED_DATA_FILES := $(patsubst tests/%,%,$(shell $(PYTHON) scripts/generate_psa_tests.py --list))
+GENERATED_DATA_FILES := $(patsubst tests/%,%,$(shell \
+	$(PYTHON) scripts/generate_psa_tests.py --list || \
+	echo FAILED \
+))
+ifeq ($(GENERATED_DATA_FILES),FAILED)
+$(error "$(PYTHON) scripts/generate_psa_tests.py --list" failed)
+endif
 GENERATED_FILES := $(GENERATED_DATA_FILES)
 generated_files: $(GENERATED_FILES)
 

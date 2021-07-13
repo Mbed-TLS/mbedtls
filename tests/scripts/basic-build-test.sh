@@ -112,6 +112,7 @@ echo
 # Step 2b - System Tests (keep going even if some tests fail)
 echo
 echo '################ ssl-opt.sh ################'
+echo "ssl-opt.sh will use SEED=$SEED for udp_proxy"
 sh ssl-opt.sh |tee sys-test-$TEST_OUTPUT
 echo '^^^^^^^^^^^^^^^^ ssl-opt.sh ^^^^^^^^^^^^^^^^'
 echo

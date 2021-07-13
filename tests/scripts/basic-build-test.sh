@@ -89,6 +89,11 @@ fi
 : ${SEED:=1}
 export SEED
 
+# if MAKEFLAGS is not set add the -j option to speed up invocations of make
+if [ -z "${MAKEFLAGS+set}" ]; then
+    export MAKEFLAGS="-j"
+fi
+
 # To avoid setting OpenSSL and GnuTLS for each call to compat.sh and ssl-opt.sh
 # we just export the variables they require
 export OPENSSL_CMD="$OPENSSL"
@@ -113,7 +118,7 @@ export CFLAGS=' --coverage -g3 -O0 '
 make clean
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
-make -j
+make
 
 
 # Step 2 - Execute the tests

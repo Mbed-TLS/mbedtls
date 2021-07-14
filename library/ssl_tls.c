@@ -5278,8 +5278,8 @@ static unsigned char ssl_serialized_session_header[] = {
     MBEDTLS_VERSION_MAJOR,
     MBEDTLS_VERSION_MINOR,
     MBEDTLS_VERSION_PATCH,
-    MBEDTLS_CHAR_1( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG ),
-    MBEDTLS_CHAR_0( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG ),
+    MBEDTLS_BYTE_1( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG ),
+    MBEDTLS_BYTE_0( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG ),
 };
 
 /*
@@ -5360,14 +5360,14 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
     {
         start = (uint64_t) session->start;
 
-        *p++ = MBEDTLS_CHAR_7( start );
-        *p++ = MBEDTLS_CHAR_6( start );
-        *p++ = MBEDTLS_CHAR_5( start );
-        *p++ = MBEDTLS_CHAR_4( start );
-        *p++ = MBEDTLS_CHAR_3( start );
-        *p++ = MBEDTLS_CHAR_2( start );
-        *p++ = MBEDTLS_CHAR_1( start );
-        *p++ = MBEDTLS_CHAR_0( start );
+        *p++ = MBEDTLS_BYTE_7( start );
+        *p++ = MBEDTLS_BYTE_6( start );
+        *p++ = MBEDTLS_BYTE_5( start );
+        *p++ = MBEDTLS_BYTE_4( start );
+        *p++ = MBEDTLS_BYTE_3( start );
+        *p++ = MBEDTLS_BYTE_2( start );
+        *p++ = MBEDTLS_BYTE_1( start );
+        *p++ = MBEDTLS_BYTE_0( start );
     }
 #endif /* MBEDTLS_HAVE_TIME */
 
@@ -5383,22 +5383,22 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
 
     if( used <= buf_len )
     {
-        *p++ = MBEDTLS_CHAR_1( session->ciphersuite );
-        *p++ = MBEDTLS_CHAR_0( session->ciphersuite );
+        *p++ = MBEDTLS_BYTE_1( session->ciphersuite );
+        *p++ = MBEDTLS_BYTE_0( session->ciphersuite );
 
-        *p++ = MBEDTLS_CHAR_0( session->compression );
+        *p++ = MBEDTLS_BYTE_0( session->compression );
 
-        *p++ = MBEDTLS_CHAR_0( session->id_len );
+        *p++ = MBEDTLS_BYTE_0( session->id_len );
         memcpy( p, session->id, 32 );
         p += 32;
 
         memcpy( p, session->master, 48 );
         p += 48;
 
-        *p++ = MBEDTLS_CHAR_3( session->verify_result );
-        *p++ = MBEDTLS_CHAR_2( session->verify_result );
-        *p++ = MBEDTLS_CHAR_1( session->verify_result );
-        *p++ = MBEDTLS_CHAR_0( session->verify_result );
+        *p++ = MBEDTLS_BYTE_3( session->verify_result );
+        *p++ = MBEDTLS_BYTE_2( session->verify_result );
+        *p++ = MBEDTLS_BYTE_1( session->verify_result );
+        *p++ = MBEDTLS_BYTE_0( session->verify_result );
     }
 
     /*
@@ -5415,9 +5415,9 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
 
     if( used <= buf_len )
     {
-        *p++ = MBEDTLS_CHAR_2( cert_len );
-        *p++ = MBEDTLS_CHAR_1( cert_len );
-        *p++ = MBEDTLS_CHAR_0( cert_len );
+        *p++ = MBEDTLS_BYTE_2( cert_len );
+        *p++ = MBEDTLS_BYTE_1( cert_len );
+        *p++ = MBEDTLS_BYTE_0( cert_len );
 
         if( session->peer_cert != NULL )
         {
@@ -5458,9 +5458,9 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
 
     if( used <= buf_len )
     {
-        *p++ = MBEDTLS_CHAR_2( session->ticket_len );
-        *p++ = MBEDTLS_CHAR_1( session->ticket_len );
-        *p++ = MBEDTLS_CHAR_0( session->ticket_len );
+        *p++ = MBEDTLS_BYTE_2( session->ticket_len );
+        *p++ = MBEDTLS_BYTE_1( session->ticket_len );
+        *p++ = MBEDTLS_BYTE_0( session->ticket_len );
 
         if( session->ticket != NULL )
         {
@@ -5468,10 +5468,10 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
             p += session->ticket_len;
         }
 
-        *p++ = MBEDTLS_CHAR_3( session->ticket_lifetime );
-        *p++ = MBEDTLS_CHAR_2( session->ticket_lifetime );
-        *p++ = MBEDTLS_CHAR_1( session->ticket_lifetime );
-        *p++ = MBEDTLS_CHAR_0( session->ticket_lifetime );
+        *p++ = MBEDTLS_BYTE_3( session->ticket_lifetime );
+        *p++ = MBEDTLS_BYTE_2( session->ticket_lifetime );
+        *p++ = MBEDTLS_BYTE_1( session->ticket_lifetime );
+        *p++ = MBEDTLS_BYTE_0( session->ticket_lifetime );
     }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
@@ -5496,7 +5496,7 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
     used += 1;
 
     if( used <= buf_len )
-        *p++ = MBEDTLS_CHAR_0( session->encrypt_then_mac );
+        *p++ = MBEDTLS_BYTE_0( session->encrypt_then_mac );
 #endif
 
     /* Done */
@@ -6149,11 +6149,11 @@ static unsigned char ssl_serialized_context_header[] = {
     MBEDTLS_VERSION_MAJOR,
     MBEDTLS_VERSION_MINOR,
     MBEDTLS_VERSION_PATCH,
-    MBEDTLS_CHAR_1( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG ),
-    MBEDTLS_CHAR_0( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG ),
-    MBEDTLS_CHAR_2( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG ),
-    MBEDTLS_CHAR_1( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG ),
-    MBEDTLS_CHAR_0( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG ),
+    MBEDTLS_BYTE_1( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG ),
+    MBEDTLS_BYTE_0( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG ),
+    MBEDTLS_BYTE_2( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG ),
+    MBEDTLS_BYTE_1( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG ),
+    MBEDTLS_BYTE_0( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG ),
 };
 
 /*
@@ -6294,10 +6294,10 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
     used += 4 + session_len;
     if( used <= buf_len )
     {
-        *p++ = MBEDTLS_CHAR_3( session_len );
-        *p++ = MBEDTLS_CHAR_2( session_len );
-        *p++ = MBEDTLS_CHAR_1( session_len );
-        *p++ = MBEDTLS_CHAR_0( session_len );
+        *p++ = MBEDTLS_BYTE_3( session_len );
+        *p++ = MBEDTLS_BYTE_2( session_len );
+        *p++ = MBEDTLS_BYTE_1( session_len );
+        *p++ = MBEDTLS_BYTE_0( session_len );
 
         ret = ssl_session_save( ssl->session, 1,
                                 p, session_len, &session_len );
@@ -6339,10 +6339,10 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
     used += 4;
     if( used <= buf_len )
     {
-        *p++ = MBEDTLS_CHAR_3( ssl->badmac_seen );
-        *p++ = MBEDTLS_CHAR_2( ssl->badmac_seen );
-        *p++ = MBEDTLS_CHAR_1( ssl->badmac_seen );
-        *p++ = MBEDTLS_CHAR_0( ssl->badmac_seen );
+        *p++ = MBEDTLS_BYTE_3( ssl->badmac_seen );
+        *p++ = MBEDTLS_BYTE_2( ssl->badmac_seen );
+        *p++ = MBEDTLS_BYTE_1( ssl->badmac_seen );
+        *p++ = MBEDTLS_BYTE_0( ssl->badmac_seen );
     }
 #endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
@@ -6350,23 +6350,23 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
     used += 16;
     if( used <= buf_len )
     {
-        *p++ = MBEDTLS_CHAR_7( ssl->in_window_top );
-        *p++ = MBEDTLS_CHAR_6( ssl->in_window_top );
-        *p++ = MBEDTLS_CHAR_5( ssl->in_window_top );
-        *p++ = MBEDTLS_CHAR_4( ssl->in_window_top );
-        *p++ = MBEDTLS_CHAR_3( ssl->in_window_top );
-        *p++ = MBEDTLS_CHAR_2( ssl->in_window_top );
-        *p++ = MBEDTLS_CHAR_1( ssl->in_window_top );
-        *p++ = MBEDTLS_CHAR_0( ssl->in_window_top );
+        *p++ = MBEDTLS_BYTE_7( ssl->in_window_top );
+        *p++ = MBEDTLS_BYTE_6( ssl->in_window_top );
+        *p++ = MBEDTLS_BYTE_5( ssl->in_window_top );
+        *p++ = MBEDTLS_BYTE_4( ssl->in_window_top );
+        *p++ = MBEDTLS_BYTE_3( ssl->in_window_top );
+        *p++ = MBEDTLS_BYTE_2( ssl->in_window_top );
+        *p++ = MBEDTLS_BYTE_1( ssl->in_window_top );
+        *p++ = MBEDTLS_BYTE_0( ssl->in_window_top );
 
-        *p++ = MBEDTLS_CHAR_7( ssl->in_window );
-        *p++ = MBEDTLS_CHAR_6( ssl->in_window );
-        *p++ = MBEDTLS_CHAR_5( ssl->in_window );
-        *p++ = MBEDTLS_CHAR_4( ssl->in_window );
-        *p++ = MBEDTLS_CHAR_3( ssl->in_window );
-        *p++ = MBEDTLS_CHAR_2( ssl->in_window );
-        *p++ = MBEDTLS_CHAR_1( ssl->in_window );
-        *p++ = MBEDTLS_CHAR_0( ssl->in_window );
+        *p++ = MBEDTLS_BYTE_7( ssl->in_window );
+        *p++ = MBEDTLS_BYTE_6( ssl->in_window );
+        *p++ = MBEDTLS_BYTE_5( ssl->in_window );
+        *p++ = MBEDTLS_BYTE_4( ssl->in_window );
+        *p++ = MBEDTLS_BYTE_3( ssl->in_window );
+        *p++ = MBEDTLS_BYTE_2( ssl->in_window );
+        *p++ = MBEDTLS_BYTE_1( ssl->in_window );
+        *p++ = MBEDTLS_BYTE_0( ssl->in_window );
     }
 #endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
@@ -6389,8 +6389,8 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
     used += 2;
     if( used <= buf_len )
     {
-        *p++ = MBEDTLS_CHAR_1( ssl->mtu );
-        *p++ = MBEDTLS_CHAR_0( ssl->mtu );
+        *p++ = MBEDTLS_BYTE_1( ssl->mtu );
+        *p++ = MBEDTLS_BYTE_0( ssl->mtu );
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 

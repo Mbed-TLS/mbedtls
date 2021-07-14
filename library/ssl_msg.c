@@ -2481,8 +2481,8 @@ int mbedtls_ssl_write_handshake_msg_ext( mbedtls_ssl_context *ssl,
             /* Write message_seq and update it, except for HelloRequest */
             if( hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST )
             {
-                ssl->out_msg[4] = MBEDTLS_CHAR_1( ssl->handshake->out_msg_seq );
-                ssl->out_msg[5] = MBEDTLS_CHAR_0( ssl->handshake->out_msg_seq );
+                ssl->out_msg[4] = MBEDTLS_BYTE_1( ssl->handshake->out_msg_seq );
+                ssl->out_msg[5] = MBEDTLS_BYTE_0( ssl->handshake->out_msg_seq );
                 ++( ssl->handshake->out_msg_seq );
             }
             else

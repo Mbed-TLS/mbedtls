@@ -68,8 +68,8 @@
 
 
 /* Byte reading macros */
-#define CHAR_0( x ) ( (unsigned char) (   ( x )         & 0xFF))
-#define CHAR_1( x ) ( (unsigned char) ( ( ( x ) >> 8  ) & 0xFF))
+#define BYTE_0( x ) ( (unsigned char) (   ( x )         & 0xFF))
+#define BYTE_1( x ) ( (unsigned char) ( ( ( x ) >> 8  ) & 0xFF))
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
 #if defined(MBEDTLS_PLATFORM_C)
@@ -234,7 +234,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     memcpy( b + 1, iv, iv_len );
 
     for( i = 0, len_left = length; i < q; i++, len_left >>= 8 )
-        b[15-i] = CHAR_0( len_left );
+        b[15-i] = BYTE_0( len_left );
 
     if( len_left > 0 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
@@ -255,8 +255,8 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         src = add;
 
         memset( b, 0, 16 );
-        b[0] = CHAR_1( add_len );
-        b[1] = CHAR_0( add_len );
+        b[0] = BYTE_1( add_len );
+        b[1] = BYTE_0( add_len );
 
         use_len = len_left < 16 - 2 ? len_left : 16 - 2;
         memcpy( b + 2, src, use_len );

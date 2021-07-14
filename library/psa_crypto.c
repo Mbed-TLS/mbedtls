@@ -3757,7 +3757,7 @@ static psa_status_t psa_aead_final_checks( psa_aead_operation_t *operation,
     if( operation->id == 0 || !operation->nonce_set )
         return( PSA_ERROR_BAD_STATE );
 
-    if( operation->lengths_set && (operation->ad_remaining != 0 ||
+    if( operation->lengths_set && ( operation->ad_remaining != 0 ||
                                    operation->body_remaining != 0 ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 

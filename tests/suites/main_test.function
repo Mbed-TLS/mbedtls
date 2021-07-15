@@ -24,6 +24,7 @@
 #endif
 
 #include "mbedtls/build_info.h"
+#include "common.h"
 
 /* Test code may use deprecated identifiers only if the preprocessor symbol
  * MBEDTLS_TEST_DEPRECATED is defined. When building tests, set

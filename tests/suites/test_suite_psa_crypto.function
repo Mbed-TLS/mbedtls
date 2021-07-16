@@ -3859,6 +3859,8 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
+    /* ------------------------------------------------------- */
+
     operation = psa_aead_operation_init( );
 
     TEST_EQUAL( psa_aead_set_lengths( &operation, additional_data->len,
@@ -3866,6 +3868,8 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
                 PSA_ERROR_BAD_STATE );
 
     psa_aead_abort( &operation );
+
+    /* ------------------------------------------------------- */
 
     operation = psa_aead_operation_init( );
 
@@ -3875,6 +3879,8 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
+    /* ------------------------------------------------------- */
+
     operation = psa_aead_operation_init( );
 
     TEST_EQUAL( psa_aead_update( &operation, input_data->x,
@@ -3883,6 +3889,8 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
                 PSA_ERROR_BAD_STATE );
 
     psa_aead_abort( &operation );
+
+    /* ------------------------------------------------------- */
 
     operation = psa_aead_operation_init( );
 
@@ -3894,6 +3902,8 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
                 PSA_ERROR_BAD_STATE );
 
     psa_aead_abort( &operation );
+
+    /* ------------------------------------------------------- */
 
     operation = psa_aead_operation_init( );
 
@@ -3916,6 +3926,8 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
                 PSA_ERROR_BAD_STATE );
 
     psa_aead_abort( &operation );
+
+    /* ------------------------------------------------------- */
 
     operation = psa_aead_operation_init( );
 
@@ -3995,6 +4007,8 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
+    /* ------------------------------------------------------- */
+
     operation = psa_aead_operation_init( );
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
@@ -4007,6 +4021,8 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
                                          &nonce_length ) );
 
     psa_aead_abort( &operation );
+
+    /* ------------------------------------------------------- */
 
     operation = psa_aead_operation_init( );
 

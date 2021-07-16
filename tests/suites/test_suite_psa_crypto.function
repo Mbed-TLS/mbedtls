@@ -3758,8 +3758,6 @@ void aead_multipart_generate_nonce( int key_type_arg, data_t *key_data,
 
     PSA_ASSERT( status );
 
-    TEST_ASSERT( nonce_len < PSA_AEAD_NONCE_MAX_SIZE );
-
     status = psa_aead_generate_nonce( &operation, nonce_buffer,
                                       nonce_len,
                                       &nonce_generated_len );
@@ -3767,6 +3765,8 @@ void aead_multipart_generate_nonce( int key_type_arg, data_t *key_data,
     TEST_ASSERT( status == expected_status_arg );
 
     TEST_EQUAL( nonce_generated_len, expected_generated_len );
+
+    TEST_ASSERT( nonce_generated_len < PSA_AEAD_NONCE_MAX_SIZE );
 
     if( expected_status_arg == PSA_SUCCESS )
     {

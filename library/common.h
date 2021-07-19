@@ -194,6 +194,40 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
 #endif
 
 /**
+ * Get the unsigned 16 bits integer corresponding to two bytes in
+ * big-endian order (LSB first).
+ *
+ * \param   data    Base address of the memory to get the two bytes from.
+ * \param   offset  Offset from \p base of the first and most significant
+ *                  byte of the two bytes to build the 16 bits unsigned
+ *                  integer from.
+ */
+#ifndef MBEDTLS_GET_UINT16_BE
+#define MBEDTLS_GET_UINT16_BE( data, offset )              \
+    (                                                      \
+          ( (uint16_t) ( data )[( offset )    ] << 8 )     \
+        | ( (uint16_t) ( data )[( offset ) + 1]      )     \
+    )
+#endif
+
+/**
+ * Put in memory a 16 bits unsigned integer in big-endian order.
+ *
+ * \param   n       16 bits unsigned integer to put in memory.
+ * \param   data    Base address of the memory where to put the 16
+ *                  bits unsigned integer in.
+ * \param   offset  Offset from \p base where to put the most significant
+ *                  byte of the 16 bits unsigned integer \p n.
+ */
+#ifndef MBEDTLS_PUT_UINT16_BE
+#define MBEDTLS_PUT_UINT16_BE( n, data, offset )                           \
+{                                                                          \
+    ( data )[( offset )    ] = (unsigned char) ( ( (n) >> 8 ) & 0xFF );    \
+    ( data )[( offset ) + 1] = (unsigned char) ( ( (n)      ) & 0xFF );    \
+}
+#endif
+
+/**
  * Get the unsigned 64 bits integer corresponding to eight bytes in
  * big-endian order (MSB first).
  *

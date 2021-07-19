@@ -250,22 +250,10 @@ static void poly1305_compute_mac( const mbedtls_poly1305_context *ctx,
     acc3 += ctx->s[3] + (uint32_t) ( d >> 32U );
 
     /* Compute MAC (128 least significant bits of the accumulator) */
-    mac[ 0] = MBEDTLS_BYTE_0( acc0 );
-    mac[ 1] = MBEDTLS_BYTE_1( acc0 );
-    mac[ 2] = MBEDTLS_BYTE_2( acc0 );
-    mac[ 3] = MBEDTLS_BYTE_3( acc0 );
-    mac[ 4] = MBEDTLS_BYTE_0( acc1 );
-    mac[ 5] = MBEDTLS_BYTE_1( acc1 );
-    mac[ 6] = MBEDTLS_BYTE_2( acc1 );
-    mac[ 7] = MBEDTLS_BYTE_3( acc1 );
-    mac[ 8] = MBEDTLS_BYTE_0( acc2 );
-    mac[ 9] = MBEDTLS_BYTE_1( acc2 );
-    mac[10] = MBEDTLS_BYTE_2( acc2 );
-    mac[11] = MBEDTLS_BYTE_3( acc2 );
-    mac[12] = MBEDTLS_BYTE_0( acc3 );
-    mac[13] = MBEDTLS_BYTE_1( acc3 );
-    mac[14] = MBEDTLS_BYTE_2( acc3 );
-    mac[15] = MBEDTLS_BYTE_3( acc3 );
+    MBEDTLS_PUT_UINT32_LE( acc0, mac,  0 );
+    MBEDTLS_PUT_UINT32_LE( acc1, mac,  4 );
+    MBEDTLS_PUT_UINT32_LE( acc2, mac,  8 );
+    MBEDTLS_PUT_UINT32_LE( acc3, mac, 12 );
 }
 
 void mbedtls_poly1305_init( mbedtls_poly1305_context *ctx )

@@ -245,8 +245,7 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
     {
          goto cleanup;
     }
-    state_len_bytes[0] = MBEDTLS_BYTE_1( clear_len );
-    state_len_bytes[1] = MBEDTLS_BYTE_0( clear_len );
+    MBEDTLS_PUT_UINT16_BE( clear_len, state_len_bytes, 0 );
 
     /* Encrypt and authenticate */
     if( ( ret = mbedtls_cipher_auth_encrypt_ext( &key->ctx,

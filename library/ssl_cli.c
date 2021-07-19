@@ -703,12 +703,10 @@ static int ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
     *olen = p - buf;
 
     /* List length = olen - 2 (ext_type) - 2 (ext_len) - 2 (list_len) */
-    buf[4] = MBEDTLS_BYTE_1( *olen - 6 );
-    buf[5] = MBEDTLS_BYTE_0( *olen - 6 );
+    MBEDTLS_PUT_UINT16_BE( *olen - 6, buf, 4 );
 
     /* Extension length = olen - 2 (ext_type) - 2 (ext_len) */
-    buf[2] = MBEDTLS_BYTE_1( *olen - 4 );
-    buf[3] = MBEDTLS_BYTE_0( *olen - 4 );
+    MBEDTLS_PUT_UINT16_BE( *olen - 4, buf, 2 );
 
     return( 0 );
 }
@@ -2745,8 +2743,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( len_bytes == 2 )
     {
-        ssl->out_msg[offset+0] = MBEDTLS_BYTE_1( *olen );
-        ssl->out_msg[offset+1] = MBEDTLS_BYTE_0( *olen );
+        MBEDTLS_PUT_UINT16_BE( *olen, ssl->out_msg, offset );
         *olen += 2;
     }
 #endif
@@ -3503,8 +3500,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
          */
         content_len = mbedtls_dhm_get_len( &ssl->handshake->dhm_ctx );
 
-        ssl->out_msg[4] = MBEDTLS_BYTE_1( content_len );
-        ssl->out_msg[5] = MBEDTLS_BYTE_0( content_len );
+        MBEDTLS_PUT_UINT16_BE( content_len, ssl->out_msg, 4 );
         header_len = 6;
 
         ret = mbedtls_dhm_make_public( &ssl->handshake->dhm_ctx,
@@ -4054,8 +4050,7 @@ sign:
         return( ret );
     }
 
-    ssl->out_msg[4 + offset] = MBEDTLS_BYTE_1( n );
-    ssl->out_msg[5 + offset] = MBEDTLS_BYTE_0( n );
+    MBEDTLS_PUT_UINT16_BE( n, ssl->out_msg, offset + 4 );
 
     ssl->out_msglen  = 6 + n + offset;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;

@@ -454,15 +454,13 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
         *cur = rec->cid_len;
         cur++;
 
-        cur[0] = MBEDTLS_CHAR_1( ad_len_field );
-        cur[1] = MBEDTLS_CHAR_0( ad_len_field );
+        MBEDTLS_PUT_UINT16_BE( ad_len_field, cur, 0 );
         cur += 2;
     }
     else
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     {
-        cur[0] = MBEDTLS_CHAR_1( ad_len_field );
-        cur[1] = MBEDTLS_CHAR_0( ad_len_field );
+        MBEDTLS_PUT_UINT16_BE( ad_len_field, cur, 0 );
         cur += 2;
     }
 
@@ -2481,8 +2479,7 @@ int mbedtls_ssl_write_handshake_msg_ext( mbedtls_ssl_context *ssl,
             /* Write message_seq and update it, except for HelloRequest */
             if( hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST )
             {
-                ssl->out_msg[4] = MBEDTLS_BYTE_1( ssl->handshake->out_msg_seq );
-                ssl->out_msg[5] = MBEDTLS_BYTE_0( ssl->handshake->out_msg_seq );
+                MBEDTLS_PUT_UINT16_BE( ssl->handshake->out_msg_seq, ssl->out_msg, 4 );
                 ++( ssl->handshake->out_msg_seq );
             }
             else
@@ -2566,8 +2563,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
                            ssl->conf->transport, ssl->out_hdr + 1 );
 
         memcpy( ssl->out_ctr, ssl->cur_out_ctr, 8 );
-        ssl->out_len[0] = MBEDTLS_BYTE_1( len );
-        ssl->out_len[1] = MBEDTLS_BYTE_0( len );
+        MBEDTLS_PUT_UINT16_BE( len, ssl->out_len, 0);
 
         if( ssl->transform_out != NULL )
         {
@@ -2607,8 +2603,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
             memcpy( ssl->out_cid, rec.cid, rec.cid_len );
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
             ssl->out_msglen = len = rec.data_len;
-            ssl->out_len[0] = MBEDTLS_BYTE_1( rec.data_len );
-            ssl->out_len[1] = MBEDTLS_BYTE_0( rec.data_len );
+            MBEDTLS_PUT_UINT16_BE( rec.data_len, ssl->out_len, 0 );
         }
 
         protected_record_size = len + mbedtls_ssl_out_hdr_len( ssl );
@@ -3184,8 +3179,7 @@ static int ssl_check_dtls_clihlo_cookie(
     obuf[15] = obuf[23] = MBEDTLS_BYTE_1( *olen - 25 );
     obuf[16] = obuf[24] = MBEDTLS_BYTE_0( *olen - 25 );
 
-    obuf[11] = MBEDTLS_BYTE_1( *olen - 13 );
-    obuf[12] = MBEDTLS_BYTE_0( *olen - 13 );
+    MBEDTLS_PUT_UINT16_BE( *olen - 13, obuf, 11 );
 
     return( MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED );
 }
@@ -4565,8 +4559,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
     ssl->in_hdr[0] = rec.type;
     ssl->in_msg    = rec.buf + rec.data_offset;
     ssl->in_msglen = rec.data_len;
-    ssl->in_len[0] = MBEDTLS_BYTE_1( rec.data_len );
-    ssl->in_len[1] = MBEDTLS_BYTE_0( rec.data_len );
+    MBEDTLS_PUT_UINT16_BE( rec.data_len, ssl->in_len, 0 );
 
     return( 0 );
 }

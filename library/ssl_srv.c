@@ -2238,16 +2238,13 @@ static void ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
      * 6 . 6    protocol name length
      * 7 . 7+n  protocol name
      */
-    buf[0] = MBEDTLS_BYTE_1( MBEDTLS_TLS_EXT_ALPN );
-    buf[1] = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_ALPN );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_ALPN, buf, 0);
 
     *olen = 7 + strlen( ssl->alpn_chosen );
 
-    buf[2] = MBEDTLS_BYTE_1( *olen - 4 );
-    buf[3] = MBEDTLS_BYTE_0( *olen - 4 );
+    MBEDTLS_PUT_UINT16_BE( *olen - 4, buf, 2 );
 
-    buf[4] = MBEDTLS_BYTE_1( *olen - 6 );
-    buf[5] = MBEDTLS_BYTE_0( *olen - 6 );
+    MBEDTLS_PUT_UINT16_BE( *olen - 6, buf, 4 );
 
     buf[6] = MBEDTLS_BYTE_0( *olen - 7 );
 
@@ -2294,15 +2291,13 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
     }
 
     /* extension */
-    buf[0] = MBEDTLS_BYTE_1( MBEDTLS_TLS_EXT_USE_SRTP );
-    buf[1] = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_USE_SRTP );
+    MBEDTLS_PUT_UINT16_BE(MBEDTLS_TLS_EXT_USE_SRTP, buf, 0 );
     /*
      * total length 5 and mki value: only one profile(2 bytes)
      *              and length(2 bytes) and srtp_mki  )
      */
     ext_len = 5 + mki_len;
-    buf[2] = MBEDTLS_BYTE_1( ext_len );
-    buf[3] = MBEDTLS_BYTE_0( ext_len );
+    MBEDTLS_PUT_UINT16_BE( ext_len, buf, 2 );
 
     /* protection profile length: 2 */
     buf[4] = 0x00;
@@ -2311,8 +2306,7 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
                                 ssl->dtls_srtp_info.chosen_dtls_srtp_profile );
     if( profile_value != MBEDTLS_TLS_SRTP_UNSET )
     {
-        buf[6] = MBEDTLS_BYTE_1( profile_value );
-        buf[7] = MBEDTLS_BYTE_0( profile_value );
+        MBEDTLS_PUT_UINT16_BE( profile_value, buf, 6 );
     }
     else
     {
@@ -2785,8 +2779,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 #endif
         }
 
-        p[0] = MBEDTLS_BYTE_1( sa_len );
-        p[1] = MBEDTLS_BYTE_0( sa_len );
+        MBEDTLS_PUT_UINT16_BE( sa_len, p, 0 );
         sa_len += 2;
         p += sa_len;
     }
@@ -2841,8 +2834,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
     ssl->out_msglen  = p - buf;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE_REQUEST;
-    ssl->out_msg[4 + ct_len + sa_len] = MBEDTLS_BYTE_1( total_dn_size );
-    ssl->out_msg[5 + ct_len + sa_len] = MBEDTLS_BYTE_0( total_dn_size );
+    MBEDTLS_PUT_UINT16_BE( total_dn_size, ssl->out_msg, 4 + ct_len + sa_len );
 
     ret = mbedtls_ssl_write_handshake_msg( ssl );
 
@@ -4223,14 +4215,8 @@ static int ssl_write_new_session_ticket( mbedtls_ssl_context *ssl )
         tlen = 0;
     }
 
-    ssl->out_msg[4] = MBEDTLS_BYTE_3( lifetime );
-    ssl->out_msg[5] = MBEDTLS_BYTE_2( lifetime );
-    ssl->out_msg[6] = MBEDTLS_BYTE_1( lifetime );
-    ssl->out_msg[7] = MBEDTLS_BYTE_0( lifetime );
-
-    ssl->out_msg[8] = MBEDTLS_BYTE_1( tlen );
-    ssl->out_msg[9] = MBEDTLS_BYTE_0( tlen );
-
+    MBEDTLS_PUT_UINT32_BE( lifetime, ssl->out_msg, 4 );
+    MBEDTLS_PUT_UINT16_BE( tlen, ssl->out_msg, 8 );
     ssl->out_msglen = 10 + tlen;
 
     /*

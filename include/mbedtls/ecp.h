@@ -147,13 +147,17 @@ typedef enum
 
 /**
  * Curve information, for use by other modules.
+ *
+ * The fields of this structure are part of the public API and can be
+ * accessed directly by applications. Future versions of the library may
+ * add extra fields or reorder existing fields.
  */
 typedef struct mbedtls_ecp_curve_info
 {
-    mbedtls_ecp_group_id MBEDTLS_PRIVATE(grp_id);    /*!< An internal identifier. */
-    uint16_t MBEDTLS_PRIVATE(tls_id);                /*!< The TLS NamedCurve identifier. */
-    uint16_t MBEDTLS_PRIVATE(bit_size);              /*!< The curve size in bits. */
-    const char *MBEDTLS_PRIVATE(name);               /*!< A human-friendly name. */
+    mbedtls_ecp_group_id grp_id;    /*!< An internal identifier. */
+    uint16_t tls_id;                /*!< The TLS NamedCurve identifier. */
+    uint16_t bit_size;              /*!< The curve size in bits. */
+    const char *name;               /*!< A human-friendly name. */
 } mbedtls_ecp_curve_info;
 
 /**

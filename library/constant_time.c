@@ -31,10 +31,9 @@
 
 #include <string.h>
 
-/* constant-time buffer comparison */
-int mbedtls_ssl_safer_memcmp( const void *a,
-                              const void *b,
-                              size_t n )
+int mbedtls_cf_memcmp( const void *a,
+                       const void *b,
+                       size_t n )
 {
     size_t i;
     volatile const unsigned char *A = (volatile const unsigned char *) a;
@@ -49,66 +48,8 @@ int mbedtls_ssl_safer_memcmp( const void *a,
         unsigned char x = A[i], y = B[i];
         diff |= x ^ y;
     }
-
-    return( diff );
-}
-
-/* Compare the contents of two buffers in constant time.
- * Returns 0 if the contents are bitwise identical, otherwise returns
- * a non-zero value.
- * This is currently only used by GCM and ChaCha20+Poly1305.
- */
-int mbedtls_constant_time_memcmp( const void *v1,
-                                  const void *v2,
-                                  size_t len )
-{
-    const unsigned char *p1 = (const unsigned char*) v1;
-    const unsigned char *p2 = (const unsigned char*) v2;
-    size_t i;
-    unsigned char diff;
-
-    for( diff = 0, i = 0; i < len; i++ )
-        diff |= p1[i] ^ p2[i];
 
     return( (int)diff );
-}
-
-/* constant-time buffer comparison */
-unsigned char mbedtls_nist_kw_safer_memcmp( const void *a,
-                                            const void *b,
-                                            size_t n )
-{
-    size_t i;
-    volatile const unsigned char *A = (volatile const unsigned char *) a;
-    volatile const unsigned char *B = (volatile const unsigned char *) b;
-    volatile unsigned char diff = 0;
-
-    for( i = 0; i < n; i++ )
-    {
-        /* Read volatile data in order before computing diff.
-         * This avoids IAR compiler warning:
-         * 'the order of volatile accesses is undefined ..' */
-        unsigned char x = A[i], y = B[i];
-        diff |= x ^ y;
-    }
-
-    return( diff );
-}
-
-/* constant-time buffer comparison */
-int mbedtls_safer_memcmp( const void *a,
-                          const void *b,
-                          size_t n )
-{
-    size_t i;
-    const unsigned char *A = (const unsigned char *) a;
-    const unsigned char *B = (const unsigned char *) b;
-    unsigned char diff = 0;
-
-    for( i = 0; i < n; i++ )
-        diff |= A[i] ^ B[i];
-
-    return( diff );
 }
 
 /** Turn zero-or-nonzero into zero-or-all-bits-one, without branches.

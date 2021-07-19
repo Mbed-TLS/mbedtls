@@ -29,22 +29,10 @@
 
 #include <stddef.h>
 
-int mbedtls_ssl_safer_memcmp( const void *a,
-                              const void *b,
-                              size_t n );
 
-int mbedtls_constant_time_memcmp( const void *v1,
-                                  const void *v2,
-                                  size_t len );
-
-unsigned char mbedtls_nist_kw_safer_memcmp( const void *a,
-                                            const void *b,
-                                            size_t n );
-
-int mbedtls_safer_memcmp( const void *a,
-                          const void *b,
-                          size_t n );
-
+int mbedtls_cf_memcmp( const void *a,
+                       const void *b,
+                       size_t n );
 
 unsigned mbedtls_cf_uint_mask( unsigned value );
 

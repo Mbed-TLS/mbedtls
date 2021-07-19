@@ -399,7 +399,7 @@ int mbedtls_nist_kw_unwrap( mbedtls_nist_kw_context *ctx,
             goto cleanup;
 
         /* Check ICV in "constant-time" */
-        diff = mbedtls_nist_kw_safer_memcmp( NIST_KW_ICV1, A, KW_SEMIBLOCK_LENGTH );
+        diff = mbedtls_cf_memcmp( NIST_KW_ICV1, A, KW_SEMIBLOCK_LENGTH );
 
         if( diff != 0 )
         {
@@ -448,7 +448,7 @@ int mbedtls_nist_kw_unwrap( mbedtls_nist_kw_context *ctx,
         }
 
         /* Check ICV in "constant-time" */
-        diff = mbedtls_nist_kw_safer_memcmp( NIST_KW_ICV2, A, KW_SEMIBLOCK_LENGTH / 2 );
+        diff = mbedtls_cf_memcmp( NIST_KW_ICV2, A, KW_SEMIBLOCK_LENGTH / 2 );
 
         if( diff != 0 )
         {

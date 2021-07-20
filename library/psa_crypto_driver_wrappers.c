@@ -1739,11 +1739,29 @@ psa_status_t psa_driver_wrapper_aead_verify(
     {
 #if defined(MBEDTLS_PSA_BUILTIN_AEAD)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_aead_verify( &operation->ctx.mbedtls_ctx,
-                                             plaintext,
-                                             plaintext_size,
-                                             plaintext_length,
-                                             tag, tag_length ) );
+            {
+                psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+                uint8_t check_tag[PSA_AEAD_TAG_MAX_SIZE];
+                size_t check_tag_length;
+
+                status = mbedtls_psa_aead_finish( &operation->ctx.mbedtls_ctx,
+                                                  plaintext,
+                                                  plaintext_size,
+                                                  plaintext_length,
+                                                  check_tag,
+                                                  tag_length,
+                                                  &check_tag_length );
+
+                if( status == PSA_SUCCESS )
+                {
+                    if( tag_length != check_tag_length ||
+                        mbedtls_psa_safer_memcmp( tag, check_tag, tag_length )
+                        != 0 )
+                        status = PSA_ERROR_INVALID_SIGNATURE;
+                }
+
+                return( status );
+            }
 
 #endif /* MBEDTLS_PSA_BUILTIN_AEAD */
 

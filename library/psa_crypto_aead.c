@@ -607,18 +607,6 @@ psa_status_t mbedtls_psa_aead_update(
     return( status );
 }
 
-/* Common checks for both mbedtls_psa_aead_finish() and
-   mbedtls_psa_aead_verify() */
-static psa_status_t mbedtls_psa_aead_finish_checks(
-    mbedtls_psa_aead_operation_t *operation,
-    size_t tag_size )
-{
-    if( tag_size < operation->tag_length )
-        return ( PSA_ERROR_BUFFER_TOO_SMALL );
-
-    return ( PSA_SUCCESS );
-}
-
 /* Finish encrypting a message in a multipart AEAD operation. */
 psa_status_t mbedtls_psa_aead_finish(
     mbedtls_psa_aead_operation_t *operation,
@@ -632,10 +620,8 @@ psa_status_t mbedtls_psa_aead_finish(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t finish_output_size = 0;
 
-    status = mbedtls_psa_aead_finish_checks( operation, tag_size );
-
-    if( status != PSA_SUCCESS )
-        return status;
+    if( tag_size < operation->tag_length )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
@@ -667,66 +653,6 @@ psa_status_t mbedtls_psa_aead_finish(
     {
         *ciphertext_length = finish_output_size;
         *tag_length = operation->tag_length;
-    }
-
-    return ( status );
-}
-
-/* Finish authenticating and decrypting a message in a multipart AEAD
- * operation.*/
-psa_status_t mbedtls_psa_aead_verify(
-    mbedtls_psa_aead_operation_t *operation,
-    uint8_t *plaintext,
-    size_t plaintext_size,
-    size_t *plaintext_length,
-    const uint8_t *tag,
-    size_t tag_length )
-{
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t finish_output_size = 0;
-    int do_tag_check = 1;
-    uint8_t check_tag[PSA_AEAD_TAG_MAX_SIZE];
-
-    status = mbedtls_psa_aead_finish_checks( operation, tag_length );
-
-    if( status != PSA_SUCCESS )
-        return status;
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
-    if( operation->alg == PSA_ALG_GCM )
-        /* Call finish to get the tag for comparison */
-        status =  mbedtls_to_psa_error(
-           mbedtls_gcm_finish( &operation->ctx.gcm,
-                               plaintext, plaintext_size,
-                               check_tag, operation->tag_length ) );
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
-    if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
-        // call finish to get the tag for comparison.
-        status = mbedtls_to_psa_error(
-           mbedtls_chachapoly_finish( &operation->ctx.chachapoly,
-                                      check_tag ) );
-
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
-    {
-        ( void ) plaintext;
-        ( void ) plaintext_size;
-        ( void ) plaintext_length;
-        ( void ) tag;
-        ( void ) tag_length;
-
-        return ( PSA_ERROR_NOT_SUPPORTED );
-    }
-
-    if( status == PSA_SUCCESS )
-    {
-        *plaintext_length = finish_output_size;
-
-        if( do_tag_check && ( tag_length != operation->tag_length ||
-            mbedtls_psa_safer_memcmp(tag, check_tag, tag_length) != 0 ) )
-            status = PSA_ERROR_INVALID_SIGNATURE;
     }
 
     return ( status );

@@ -19,6 +19,8 @@ P_CLI="ssl_client2"
 P_SRV="ssl_server2"
 SESSION="session.tmp"
 SKIP_NEXT=
+SRV_PORT=4433
+TCP_CLIENT=":"
 
 client_needs_more_time () {
   :

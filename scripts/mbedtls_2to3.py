@@ -28,7 +28,7 @@ import json
 import os
 import re
 import sys
-from typing import Dict, FrozenSet, List
+from typing import Dict, FrozenSet, List, Optional
 
 import clang.cindex #type: ignore
 from clang.cindex import Cursor, SourceLocation, TranslationUnit, Type
@@ -58,6 +58,17 @@ class Knowledge():
             {k: frozenset(v) for k, v in data['public_fields'].items()} \
             # type: Dict[str, FrozenSet[str]]
 
+    PRIVATE_FIELD_ADVICE = {
+        'mbedtls_rsa_context': {
+            'N': 'Use mbedtls_rsa_get_len().'
+        },
+    }
+    def private_field_advice(self, type_name, field_name) -> Optional[str]:
+        # Provide the same advice if the code has already been edited to
+        # use MBEDTLS_PRIVATE(field_name).
+        if field_name.startswith('private_'):
+            field_name = field_name[8:]
+        return self.PRIVATE_FIELD_ADVICE.get(type_name, {}).get(field_name)
 
 class Ast:
     """Abstract representation of the source code."""
@@ -76,7 +87,7 @@ class Ast:
 
     @staticmethod
     def report(stream: typing_util.Writable, node: Cursor,
-               message, *args, **kwargs) -> None:
+               message: str, *args, **kwargs) -> None:
         try:
             filename = node.location.file.name
         except AttributeError:
@@ -86,8 +97,12 @@ class Ast:
                      message.format(*args, **kwargs) +
                      '\n')
 
-    def note(self, *args, **kwargs) -> None:
-        self.report(sys.stdout, *args, **kwargs)
+    def note(self, node: Cursor, message: str, *args,
+             advice: Optional[str] = None, **kwargs) -> None:
+        if advice is not None:
+            message += '\n    Suggestion: {}'
+            args += (advice,)
+        self.report(sys.stdout, node, message, *args, **kwargs)
 
     def warn(self, *args, **kwargs) -> None:
         self.report(sys.stderr, *args, **kwargs)
@@ -118,8 +133,11 @@ class Ast:
         structure_type = self.get_type_core(lhs.type)
         if structure_type in self.knowledge.public_fields and \
            field_name not in self.knowledge.public_fields[structure_type]:
+            advice = self.knowledge.private_field_advice(structure_type,
+                                                         field_name)
             self.note(node, 'Access to private field .{} of {}',
-                      field_name, structure_type)
+                      field_name, structure_type,
+                      advice=advice)
 
     BORING_FILE_RE = re.compile(r'(?:.*/)?(mbedtls|psa)/[^/]*\.h\Z')
     def in_boring_file(self, location: SourceLocation) -> bool:

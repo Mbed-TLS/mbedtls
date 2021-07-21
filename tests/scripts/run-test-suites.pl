@@ -22,6 +22,7 @@
 Execute all the test suites and print a summary of the results.
 
  run-test-suites.pl [[-v|--verbose] [VERBOSITY]] [--skip=SUITE[...]]
+                    [--qemu_binary=QEMU_BINARY]
 
 Options:
 
@@ -31,6 +32,10 @@ Options:
   --skip=SUITE[,SUITE...]
                       Skip the specified SUITE(s). This option can be used
                       multiple times.
+  --qemu_binary=QEMU_BINARY
+                      QEMU binary (user mode) to use to run the test suites
+                      when compiled for an architecture different from the
+                      host one.
 
 =cut
 
@@ -45,9 +50,11 @@ use Pod::Usage;
 
 my $verbose = 0;
 my @skip_patterns = ();
+my $qemu_binary = '';
 GetOptions(
            'skip=s' => \@skip_patterns,
            'verbose|v:1' => \$verbose,
+           'qemu_binary=s' => \$qemu_binary,
           ) or die;
 
 # All test suites = executable files, excluding source files, debug
@@ -71,8 +78,7 @@ my $skip_re =
 # in case test suites are linked dynamically
 $ENV{'LD_LIBRARY_PATH'} = '../library';
 $ENV{'DYLD_LIBRARY_PATH'} = '../library';
-
-my $prefix = $^O eq "MSWin32" ? '' : './';
+my $prefix = $^O eq "MSWin32" ? '' : ($qemu_binary ne "" ? "${qemu_binary} ./" : './');
 
 my ($failed_suites, $total_tests_run, $failed, $suite_cases_passed,
     $suite_cases_failed, $suite_cases_skipped, $total_cases_passed,

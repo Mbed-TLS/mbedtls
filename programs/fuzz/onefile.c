@@ -9,9 +9,9 @@
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size);
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-    FILE * fp;
+    FILE *fp;
     uint8_t *Data;
     size_t Size;
 

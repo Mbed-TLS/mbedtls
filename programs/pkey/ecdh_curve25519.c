@@ -33,13 +33,13 @@
 #if !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_ECDH_LEGACY_CONTEXT) || \
     !defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C)
-int main( void )
+int main(void)
 {
-    mbedtls_printf( "MBEDTLS_ECDH_C and/or MBEDTLS_ECDH_LEGACY_CONTEXT and/or "
-                    "MBEDTLS_ECP_DP_CURVE25519_ENABLED and/or "
-                    "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C "
-                    "not defined\n" );
-    mbedtls_exit( 0 );
+    mbedtls_printf("MBEDTLS_ECDH_C and/or MBEDTLS_ECDH_LEGACY_CONTEXT and/or "
+                   "MBEDTLS_ECP_DP_CURVE25519_ENABLED and/or "
+                   "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C "
+                   "not defined\n");
+    mbedtls_exit(0);
 }
 #else
 
@@ -48,7 +48,7 @@ int main( void )
 #include "mbedtls/ecdh.h"
 
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
@@ -60,179 +60,166 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
-    mbedtls_ecdh_init( &ctx_cli );
-    mbedtls_ecdh_init( &ctx_srv );
-    mbedtls_ctr_drbg_init( &ctr_drbg );
+    mbedtls_ecdh_init(&ctx_cli);
+    mbedtls_ecdh_init(&ctx_srv);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
 
     /*
      * Initialize random number generation
      */
-    mbedtls_printf( "  . Seeding the random number generator..." );
-    fflush( stdout );
+    mbedtls_printf("  . Seeding the random number generator...");
+    fflush(stdout);
 
-    mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
-                               (const unsigned char *) pers,
-                               sizeof pers ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret );
+    mbedtls_entropy_init(&entropy);
+    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
+                                     (const unsigned char *) pers,
+                                     sizeof pers)) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n" );
+    mbedtls_printf(" ok\n");
 
     /*
      * Client: initialize context and generate keypair
      */
-    mbedtls_printf( "  . Setting up client context..." );
-    fflush( stdout );
+    mbedtls_printf("  . Setting up client context...");
+    fflush(stdout);
 
-    ret = mbedtls_ecp_group_load( &ctx_cli.MBEDTLS_PRIVATE(grp), MBEDTLS_ECP_DP_CURVE25519 );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ecp_group_load returned %d\n", ret );
+    ret = mbedtls_ecp_group_load(&ctx_cli.MBEDTLS_PRIVATE(grp), MBEDTLS_ECP_DP_CURVE25519);
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ecp_group_load returned %d\n", ret);
         goto exit;
     }
 
-    ret = mbedtls_ecdh_gen_public( &ctx_cli.MBEDTLS_PRIVATE(grp), &ctx_cli.MBEDTLS_PRIVATE(d), &ctx_cli.MBEDTLS_PRIVATE(Q),
-                                   mbedtls_ctr_drbg_random, &ctr_drbg );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ecdh_gen_public returned %d\n", ret );
+    ret = mbedtls_ecdh_gen_public(&ctx_cli.MBEDTLS_PRIVATE(grp), &ctx_cli.MBEDTLS_PRIVATE(d), &ctx_cli.MBEDTLS_PRIVATE(Q),
+                                  mbedtls_ctr_drbg_random, &ctr_drbg);
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ecdh_gen_public returned %d\n", ret);
         goto exit;
     }
 
-    ret = mbedtls_mpi_write_binary( &ctx_cli.MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), cli_to_srv, 32 );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_write_binary returned %d\n", ret );
+    ret = mbedtls_mpi_write_binary(&ctx_cli.MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), cli_to_srv, 32);
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_mpi_write_binary returned %d\n", ret);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n" );
+    mbedtls_printf(" ok\n");
 
     /*
      * Server: initialize context and generate keypair
      */
-    mbedtls_printf( "  . Setting up server context..." );
-    fflush( stdout );
+    mbedtls_printf("  . Setting up server context...");
+    fflush(stdout);
 
-    ret = mbedtls_ecp_group_load( &ctx_srv.MBEDTLS_PRIVATE(grp), MBEDTLS_ECP_DP_CURVE25519 );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ecp_group_load returned %d\n", ret );
+    ret = mbedtls_ecp_group_load(&ctx_srv.MBEDTLS_PRIVATE(grp), MBEDTLS_ECP_DP_CURVE25519);
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ecp_group_load returned %d\n", ret);
         goto exit;
     }
 
-    ret = mbedtls_ecdh_gen_public( &ctx_srv.MBEDTLS_PRIVATE(grp), &ctx_srv.MBEDTLS_PRIVATE(d), &ctx_srv.MBEDTLS_PRIVATE(Q),
-                                   mbedtls_ctr_drbg_random, &ctr_drbg );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ecdh_gen_public returned %d\n", ret );
+    ret = mbedtls_ecdh_gen_public(&ctx_srv.MBEDTLS_PRIVATE(grp), &ctx_srv.MBEDTLS_PRIVATE(d), &ctx_srv.MBEDTLS_PRIVATE(Q),
+                                  mbedtls_ctr_drbg_random, &ctr_drbg);
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ecdh_gen_public returned %d\n", ret);
         goto exit;
     }
 
-    ret = mbedtls_mpi_write_binary( &ctx_srv.MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), srv_to_cli, 32 );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_write_binary returned %d\n", ret );
+    ret = mbedtls_mpi_write_binary(&ctx_srv.MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), srv_to_cli, 32);
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_mpi_write_binary returned %d\n", ret);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n" );
+    mbedtls_printf(" ok\n");
 
     /*
      * Server: read peer's key and generate shared secret
      */
-    mbedtls_printf( "  . Server reading client key and computing secret..." );
-    fflush( stdout );
+    mbedtls_printf("  . Server reading client key and computing secret...");
+    fflush(stdout);
 
-    ret = mbedtls_mpi_lset( &ctx_srv.MBEDTLS_PRIVATE(Qp).MBEDTLS_PRIVATE(Z), 1 );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_lset returned %d\n", ret );
+    ret = mbedtls_mpi_lset(&ctx_srv.MBEDTLS_PRIVATE(Qp).MBEDTLS_PRIVATE(Z), 1);
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_mpi_lset returned %d\n", ret);
         goto exit;
     }
 
-    ret = mbedtls_mpi_read_binary( &ctx_srv.MBEDTLS_PRIVATE(Qp).MBEDTLS_PRIVATE(X), cli_to_srv, 32 );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_read_binary returned %d\n", ret );
+    ret = mbedtls_mpi_read_binary(&ctx_srv.MBEDTLS_PRIVATE(Qp).MBEDTLS_PRIVATE(X), cli_to_srv, 32);
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_mpi_read_binary returned %d\n", ret);
         goto exit;
     }
 
-    ret = mbedtls_ecdh_compute_shared( &ctx_srv.MBEDTLS_PRIVATE(grp), &ctx_srv.MBEDTLS_PRIVATE(z),
-                                       &ctx_srv.MBEDTLS_PRIVATE(Qp), &ctx_srv.MBEDTLS_PRIVATE(d),
-                                       mbedtls_ctr_drbg_random, &ctr_drbg );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ecdh_compute_shared returned %d\n", ret );
+    ret = mbedtls_ecdh_compute_shared(&ctx_srv.MBEDTLS_PRIVATE(grp), &ctx_srv.MBEDTLS_PRIVATE(z),
+                                      &ctx_srv.MBEDTLS_PRIVATE(Qp), &ctx_srv.MBEDTLS_PRIVATE(d),
+                                      mbedtls_ctr_drbg_random, &ctr_drbg);
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ecdh_compute_shared returned %d\n", ret);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n" );
+    mbedtls_printf(" ok\n");
 
     /*
      * Client: read peer's key and generate shared secret
      */
-    mbedtls_printf( "  . Client reading server key and computing secret..." );
-    fflush( stdout );
+    mbedtls_printf("  . Client reading server key and computing secret...");
+    fflush(stdout);
 
-    ret = mbedtls_mpi_lset( &ctx_cli.MBEDTLS_PRIVATE(Qp).MBEDTLS_PRIVATE(Z), 1 );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_lset returned %d\n", ret );
+    ret = mbedtls_mpi_lset(&ctx_cli.MBEDTLS_PRIVATE(Qp).MBEDTLS_PRIVATE(Z), 1);
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_mpi_lset returned %d\n", ret);
         goto exit;
     }
 
-    ret = mbedtls_mpi_read_binary( &ctx_cli.MBEDTLS_PRIVATE(Qp).MBEDTLS_PRIVATE(X), srv_to_cli, 32 );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_read_binary returned %d\n", ret );
+    ret = mbedtls_mpi_read_binary(&ctx_cli.MBEDTLS_PRIVATE(Qp).MBEDTLS_PRIVATE(X), srv_to_cli, 32);
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_mpi_read_binary returned %d\n", ret);
         goto exit;
     }
 
-    ret = mbedtls_ecdh_compute_shared( &ctx_cli.MBEDTLS_PRIVATE(grp), &ctx_cli.MBEDTLS_PRIVATE(z),
-                                       &ctx_cli.MBEDTLS_PRIVATE(Qp), &ctx_cli.MBEDTLS_PRIVATE(d),
-                                       mbedtls_ctr_drbg_random, &ctr_drbg );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ecdh_compute_shared returned %d\n", ret );
+    ret = mbedtls_ecdh_compute_shared(&ctx_cli.MBEDTLS_PRIVATE(grp), &ctx_cli.MBEDTLS_PRIVATE(z),
+                                      &ctx_cli.MBEDTLS_PRIVATE(Qp), &ctx_cli.MBEDTLS_PRIVATE(d),
+                                      mbedtls_ctr_drbg_random, &ctr_drbg);
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ecdh_compute_shared returned %d\n", ret);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n" );
+    mbedtls_printf(" ok\n");
 
     /*
      * Verification: are the computed secrets equal?
      */
-    mbedtls_printf( "  . Checking if both computed secrets are equal..." );
-    fflush( stdout );
+    mbedtls_printf("  . Checking if both computed secrets are equal...");
+    fflush(stdout);
 
-    ret = mbedtls_mpi_cmp_mpi( &ctx_cli.MBEDTLS_PRIVATE(z), &ctx_srv.MBEDTLS_PRIVATE(z) );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ecdh_compute_shared returned %d\n", ret );
+    ret = mbedtls_mpi_cmp_mpi(&ctx_cli.MBEDTLS_PRIVATE(z), &ctx_srv.MBEDTLS_PRIVATE(z));
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ecdh_compute_shared returned %d\n", ret);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n" );
+    mbedtls_printf(" ok\n");
 
     exit_code = MBEDTLS_EXIT_SUCCESS;
 
 exit:
 
 #if defined(_WIN32)
-    mbedtls_printf( "  + Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
+    mbedtls_printf("  + Press Enter to exit this program.\n");
+    fflush(stdout);
+    getchar();
 #endif
 
-    mbedtls_ecdh_free( &ctx_srv );
-    mbedtls_ecdh_free( &ctx_cli );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
+    mbedtls_ecdh_free(&ctx_srv);
+    mbedtls_ecdh_free(&ctx_cli);
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
 
-    mbedtls_exit( exit_code );
+    mbedtls_exit(exit_code);
 }
 #endif /* MBEDTLS_ECDH_C && MBEDTLS_ECP_DP_CURVE25519_ENABLED &&
           MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */

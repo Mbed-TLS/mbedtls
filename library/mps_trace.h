@@ -58,8 +58,7 @@
  * rest of this file.
  */
 
-typedef enum
-{
+typedef enum {
     MBEDTLS_MPS_TRACE_TYPE_COMMENT,
     MBEDTLS_MPS_TRACE_TYPE_CALL,
     MBEDTLS_MPS_TRACE_TYPE_ERROR,
@@ -118,14 +117,14 @@ typedef enum
 
 /* We have to avoid globals because E-ACSL chokes on them...
  * Wrap everything in stub functions. */
-int  mbedtls_mps_trace_get_depth( void );
-void mbedtls_mps_trace_inc_depth( void );
-void mbedtls_mps_trace_dec_depth( void );
+int  mbedtls_mps_trace_get_depth(void);
+void mbedtls_mps_trace_inc_depth(void);
+void mbedtls_mps_trace_dec_depth(void);
 
-void mbedtls_mps_trace_color( int id );
-void mbedtls_mps_trace_indent( int level, mbedtls_mps_trace_type ty );
+void mbedtls_mps_trace_color(int id);
+void mbedtls_mps_trace_indent(int level, mbedtls_mps_trace_type ty);
 
-void mbedtls_mps_trace_print_msg( int id, int line, const char *format, ... );
+void mbedtls_mps_trace_print_msg(int id, int line, const char *format, ...);
 
 #define MBEDTLS_MPS_TRACE( type, ... )                                              \
     do {                                                                            \

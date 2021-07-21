@@ -45,12 +45,10 @@
 #define MBEDTLS_SSL_TLS1_3_LABEL( name, string )       \
     const unsigned char name    [ sizeof(string) - 1 ];
 
-union mbedtls_ssl_tls1_3_labels_union
-{
+union mbedtls_ssl_tls1_3_labels_union {
     MBEDTLS_SSL_TLS1_3_LABEL_LIST
 };
-struct mbedtls_ssl_tls1_3_labels_struct
-{
+struct mbedtls_ssl_tls1_3_labels_struct {
     MBEDTLS_SSL_TLS1_3_LABEL_LIST
 };
 #undef MBEDTLS_SSL_TLS1_3_LABEL
@@ -70,21 +68,18 @@ extern const struct mbedtls_ssl_tls1_3_labels_struct mbedtls_ssl_tls1_3_labels;
 #define MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_CONTEXT_LEN  \
     MBEDTLS_MD_MAX_SIZE
 
-typedef struct
-{
+typedef struct {
     unsigned char binder_key                  [ MBEDTLS_MD_MAX_SIZE ];
     unsigned char client_early_traffic_secret [ MBEDTLS_MD_MAX_SIZE ];
     unsigned char early_exporter_master_secret[ MBEDTLS_MD_MAX_SIZE ];
 } mbedtls_ssl_tls1_3_early_secrets;
 
-typedef struct
-{
+typedef struct {
     unsigned char client_handshake_traffic_secret[ MBEDTLS_MD_MAX_SIZE ];
     unsigned char server_handshake_traffic_secret[ MBEDTLS_MD_MAX_SIZE ];
 } mbedtls_ssl_tls1_3_handshake_secrets;
 
-typedef struct
-{
+typedef struct {
     unsigned char client_application_traffic_secret_N[ MBEDTLS_MD_MAX_SIZE ];
     unsigned char server_application_traffic_secret_N[ MBEDTLS_MD_MAX_SIZE ];
     unsigned char exporter_master_secret             [ MBEDTLS_MD_MAX_SIZE ];
@@ -128,11 +123,11 @@ typedef struct
  */
 
 int mbedtls_ssl_tls1_3_hkdf_expand_label(
-                     mbedtls_md_type_t hash_alg,
-                     const unsigned char *secret, size_t slen,
-                     const unsigned char *label, size_t llen,
-                     const unsigned char *ctx, size_t clen,
-                     unsigned char *buf, size_t blen );
+    mbedtls_md_type_t hash_alg,
+    const unsigned char *secret, size_t slen,
+    const unsigned char *label, size_t llen,
+    const unsigned char *ctx, size_t clen,
+    unsigned char *buf, size_t blen);
 
 /**
  * \brief           This function is part of the TLS 1.3 key schedule.
@@ -164,11 +159,11 @@ int mbedtls_ssl_tls1_3_hkdf_expand_label(
  */
 
 int mbedtls_ssl_tls1_3_make_traffic_keys(
-                     mbedtls_md_type_t hash_alg,
-                     const unsigned char *client_secret,
-                     const unsigned char *server_secret,
-                     size_t slen, size_t key_len, size_t iv_len,
-                     mbedtls_ssl_key_set *keys );
+    mbedtls_md_type_t hash_alg,
+    const unsigned char *client_secret,
+    const unsigned char *server_secret,
+    size_t slen, size_t key_len, size_t iv_len,
+    mbedtls_ssl_key_set *keys);
 
 
 #define MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED 0
@@ -212,12 +207,12 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
  * \returns        A negative error code on failure.
  */
 int mbedtls_ssl_tls1_3_derive_secret(
-                   mbedtls_md_type_t hash_alg,
-                   const unsigned char *secret, size_t slen,
-                   const unsigned char *label, size_t llen,
-                   const unsigned char *ctx, size_t clen,
-                   int ctx_hashed,
-                   unsigned char *dstbuf, size_t buflen );
+    mbedtls_md_type_t hash_alg,
+    const unsigned char *secret, size_t slen,
+    const unsigned char *label, size_t llen,
+    const unsigned char *ctx, size_t clen,
+    int ctx_hashed,
+    unsigned char *dstbuf, size_t buflen);
 
 /**
  * \brief Derive TLS 1.3 early data key material from early secret.
@@ -262,10 +257,10 @@ int mbedtls_ssl_tls1_3_derive_secret(
  * \returns        A negative error code on failure.
  */
 int mbedtls_ssl_tls1_3_derive_early_secrets(
-          mbedtls_md_type_t md_type,
-          unsigned char const *early_secret,
-          unsigned char const *transcript, size_t transcript_len,
-          mbedtls_ssl_tls1_3_early_secrets *derived );
+    mbedtls_md_type_t md_type,
+    unsigned char const *early_secret,
+    unsigned char const *transcript, size_t transcript_len,
+    mbedtls_ssl_tls1_3_early_secrets *derived);
 
 /**
  * \brief Derive TLS 1.3 handshake key material from the handshake secret.
@@ -307,10 +302,10 @@ int mbedtls_ssl_tls1_3_derive_early_secrets(
  * \returns        A negative error code on failure.
  */
 int mbedtls_ssl_tls1_3_derive_handshake_secrets(
-          mbedtls_md_type_t md_type,
-          unsigned char const *handshake_secret,
-          unsigned char const *transcript, size_t transcript_len,
-          mbedtls_ssl_tls1_3_handshake_secrets *derived );
+    mbedtls_md_type_t md_type,
+    unsigned char const *handshake_secret,
+    unsigned char const *transcript, size_t transcript_len,
+    mbedtls_ssl_tls1_3_handshake_secrets *derived);
 
 /**
  * \brief Derive TLS 1.3 application key material from the master secret.
@@ -357,10 +352,10 @@ int mbedtls_ssl_tls1_3_derive_handshake_secrets(
  * \returns        A negative error code on failure.
  */
 int mbedtls_ssl_tls1_3_derive_application_secrets(
-          mbedtls_md_type_t md_type,
-          unsigned char const *master_secret,
-          unsigned char const *transcript, size_t transcript_len,
-          mbedtls_ssl_tls1_3_application_secrets *derived );
+    mbedtls_md_type_t md_type,
+    unsigned char const *master_secret,
+    unsigned char const *transcript, size_t transcript_len,
+    mbedtls_ssl_tls1_3_application_secrets *derived);
 
 /**
  * \brief Derive TLS 1.3 resumption master secret from the master secret.
@@ -387,10 +382,10 @@ int mbedtls_ssl_tls1_3_derive_application_secrets(
  * \returns        A negative error code on failure.
  */
 int mbedtls_ssl_tls1_3_derive_resumption_master_secret(
-          mbedtls_md_type_t md_type,
-          unsigned char const *application_secret,
-          unsigned char const *transcript, size_t transcript_len,
-          mbedtls_ssl_tls1_3_application_secrets *derived );
+    mbedtls_md_type_t md_type,
+    unsigned char const *application_secret,
+    unsigned char const *transcript, size_t transcript_len,
+    mbedtls_ssl_tls1_3_application_secrets *derived);
 
 /**
  * \brief Compute the next secret in the TLS 1.3 key schedule
@@ -460,10 +455,10 @@ int mbedtls_ssl_tls1_3_derive_resumption_master_secret(
  */
 
 int mbedtls_ssl_tls1_3_evolve_secret(
-                   mbedtls_md_type_t hash_alg,
-                   const unsigned char *secret_old,
-                   const unsigned char *input, size_t input_len,
-                   unsigned char *secret_new );
+    mbedtls_md_type_t hash_alg,
+    const unsigned char *secret_old,
+    const unsigned char *input, size_t input_len,
+    unsigned char *secret_new);
 
 #define MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL   0
 #define MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION 1
@@ -491,11 +486,11 @@ int mbedtls_ssl_tls1_3_evolve_secret(
  * \returns           \c 0 on success.
  * \returns           A negative error code on failure.
  */
-int mbedtls_ssl_tls1_3_create_psk_binder( mbedtls_ssl_context *ssl,
-                               const mbedtls_md_type_t md_type,
-                               unsigned char const *psk, size_t psk_len,
-                               int psk_type,
-                               unsigned char const *transcript,
-                               unsigned char *result );
+int mbedtls_ssl_tls1_3_create_psk_binder(mbedtls_ssl_context *ssl,
+        const mbedtls_md_type_t md_type,
+        unsigned char const *psk, size_t psk_len,
+        int psk_type,
+        unsigned char const *transcript,
+        unsigned char *result);
 
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

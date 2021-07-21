@@ -66,32 +66,27 @@ typedef struct {
 
 size_t mbedtls_test_size_function(
     const psa_key_type_t key_type,
-    const size_t key_bits )
+    const size_t key_bits)
 {
     size_t key_buffer_size = 0;
 
-    if( PSA_KEY_TYPE_IS_KEY_PAIR( key_type ) )
-    {
+    if (PSA_KEY_TYPE_IS_KEY_PAIR(key_type)) {
         int public_key_overhead =
-            ( ( TEST_DRIVER_KEY_CONTEXT_STORE_PUBLIC_KEY == 1 )
-              ? PSA_EXPORT_KEY_OUTPUT_SIZE( key_type, key_bits ) : 0 );
+            ((TEST_DRIVER_KEY_CONTEXT_STORE_PUBLIC_KEY == 1)
+             ? PSA_EXPORT_KEY_OUTPUT_SIZE(key_type, key_bits) : 0);
         key_buffer_size = TEST_DRIVER_KEY_CONTEXT_BASE_SIZE +
                           TEST_DRIVER_KEY_CONTEXT_PUBLIC_KEY_SIZE +
                           public_key_overhead;
-    }
-    else if( PSA_KEY_TYPE_IS_PUBLIC_KEY( key_type ) )
-    {
+    } else if (PSA_KEY_TYPE_IS_PUBLIC_KEY(key_type)) {
         key_buffer_size = TEST_DRIVER_KEY_CONTEXT_BASE_SIZE +
                           TEST_DRIVER_KEY_CONTEXT_PUBLIC_KEY_SIZE;
-    }
-    else if ( !PSA_KEY_TYPE_IS_KEY_PAIR( key_type ) &&
-              !PSA_KEY_TYPE_IS_PUBLIC_KEY ( key_type ) )
-    {
+    } else if (!PSA_KEY_TYPE_IS_KEY_PAIR(key_type) &&
+               !PSA_KEY_TYPE_IS_PUBLIC_KEY(key_type)) {
         key_buffer_size = TEST_DRIVER_KEY_CONTEXT_BASE_SIZE +
-                          ( TEST_DRIVER_KEY_CONTEXT_SYMMETRIC_FACTOR *
-                            ( ( key_bits + 7 ) / 8 ) );
+                          (TEST_DRIVER_KEY_CONTEXT_SYMMETRIC_FACTOR *
+                           ((key_bits + 7) / 8));
     }
 
-    return( key_buffer_size );
+    return (key_buffer_size);
 }
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

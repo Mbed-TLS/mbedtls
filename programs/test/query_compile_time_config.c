@@ -38,13 +38,12 @@
 
 #include "query_config.h"
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
-    if ( argc != 2 )
-    {
-        mbedtls_printf( USAGE, argv[0] );
-        return( MBEDTLS_EXIT_FAILURE );
+    if (argc != 2) {
+        mbedtls_printf(USAGE, argv[0]);
+        return (MBEDTLS_EXIT_FAILURE);
     }
 
-    return( query_config( argv[1] ) );
+    return (query_config(argv[1]));
 }

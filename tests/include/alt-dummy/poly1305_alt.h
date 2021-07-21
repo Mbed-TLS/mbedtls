@@ -19,8 +19,7 @@
 #ifndef POLY1305_ALT_H
 #define POLY1305_ALT_H
 
-typedef struct mbedtls_poly1305_context
-{
+typedef struct mbedtls_poly1305_context {
     int dummy;
 }
 mbedtls_poly1305_context;

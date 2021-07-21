@@ -45,8 +45,7 @@
 #endif
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC) || defined(PSA_CRYPTO_DRIVER_TEST)
-typedef struct
-{
+typedef struct {
     /** The HMAC algorithm in use */
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
     /** The hash context. */
@@ -60,11 +59,9 @@ typedef struct
 
 #include "mbedtls/cmac.h"
 
-typedef struct
-{
+typedef struct {
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
-    union
-    {
+    union {
         unsigned MBEDTLS_PRIVATE(dummy); /* Make the union non-empty even with no supported algorithms. */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC) || defined(PSA_CRYPTO_DRIVER_TEST)
         mbedtls_psa_hmac_operation_t MBEDTLS_PRIVATE(hmac);

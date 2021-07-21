@@ -19,8 +19,7 @@
 #ifndef ECP_ALT_H
 #define ECP_ALT_H
 
-typedef struct mbedtls_ecp_group
-{
+typedef struct mbedtls_ecp_group {
     const mbedtls_ecp_group_id id;
     const mbedtls_mpi P;
     const mbedtls_mpi A;

@@ -56,11 +56,9 @@
 #define MBEDTLS_PSA_BUILTIN_HASH
 #endif
 
-typedef struct
-{
+typedef struct {
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
-    union
-    {
+    union {
         unsigned MBEDTLS_PRIVATE(dummy); /* Make the union non-empty even with no supported algorithms. */
 #if defined(MBEDTLS_MD5_C)
         mbedtls_md5_context MBEDTLS_PRIVATE(md5);
@@ -122,7 +120,7 @@ typedef mbedtls_psa_hash_operation_t mbedtls_transparent_test_driver_hash_operat
 #define MBEDTLS_TRANSPARENT_TEST_DRIVER_HASH_OPERATION_INIT MBEDTLS_PSA_HASH_OPERATION_INIT
 
 typedef mbedtls_psa_cipher_operation_t
-        mbedtls_transparent_test_driver_cipher_operation_t;
+mbedtls_transparent_test_driver_cipher_operation_t;
 
 typedef struct {
     unsigned int initialised : 1;

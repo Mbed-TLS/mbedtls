@@ -503,7 +503,7 @@
                 "addx    %%g1, 0, %%o2          \n\t"   \
                 "inc     4, %%o1                \n\t"
 
-        #define MULADDC_STOP                            \
+#define MULADDC_STOP                            \
                 "st      %%o2, %0               \n\t"   \
                 "stx     %%o1, %1               \n\t"   \
                 "stx     %%o0, %2               \n\t"   \

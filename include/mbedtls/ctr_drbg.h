@@ -163,8 +163,7 @@ extern "C" {
 /**
  * \brief          The CTR_DRBG context structure.
  */
-typedef struct mbedtls_ctr_drbg_context
-{
+typedef struct mbedtls_ctr_drbg_context {
     unsigned char MBEDTLS_PRIVATE(counter)[16];  /*!< The counter (V). */
     int MBEDTLS_PRIVATE(reseed_counter);         /*!< The reseed counter.
                                  * This is the number of requests that have
@@ -192,7 +191,7 @@ typedef struct mbedtls_ctr_drbg_context
      * Callbacks (Entropy)
      */
     int (*MBEDTLS_PRIVATE(f_entropy))(void *, unsigned char *, size_t);
-                                /*!< The entropy callback function. */
+    /*!< The entropy callback function. */
 
     void *MBEDTLS_PRIVATE(p_entropy);            /*!< The context for the entropy function. */
 
@@ -221,7 +220,7 @@ mbedtls_ctr_drbg_context;
  *
  * \param ctx           The CTR_DRBG context to initialize.
  */
-void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
+void mbedtls_ctr_drbg_init(mbedtls_ctr_drbg_context *ctx);
 
 /**
  * \brief               This function seeds and sets up the CTR_DRBG
@@ -322,11 +321,11 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on failure.
  */
-int mbedtls_ctr_drbg_seed( mbedtls_ctr_drbg_context *ctx,
-                   int (*f_entropy)(void *, unsigned char *, size_t),
-                   void *p_entropy,
-                   const unsigned char *custom,
-                   size_t len );
+int mbedtls_ctr_drbg_seed(mbedtls_ctr_drbg_context *ctx,
+                          int (*f_entropy)(void *, unsigned char *, size_t),
+                          void *p_entropy,
+                          const unsigned char *custom,
+                          size_t len);
 
 /**
  * \brief               This function resets CTR_DRBG context to the state immediately
@@ -334,7 +333,7 @@ int mbedtls_ctr_drbg_seed( mbedtls_ctr_drbg_context *ctx,
  *
  * \param ctx           The CTR_DRBG context to clear.
  */
-void mbedtls_ctr_drbg_free( mbedtls_ctr_drbg_context *ctx );
+void mbedtls_ctr_drbg_free(mbedtls_ctr_drbg_context *ctx);
 
 /**
  * \brief               This function turns prediction resistance on or off.
@@ -349,8 +348,8 @@ void mbedtls_ctr_drbg_free( mbedtls_ctr_drbg_context *ctx );
  * \param ctx           The CTR_DRBG context.
  * \param resistance    #MBEDTLS_CTR_DRBG_PR_ON or #MBEDTLS_CTR_DRBG_PR_OFF.
  */
-void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx,
-                                         int resistance );
+void mbedtls_ctr_drbg_set_prediction_resistance(mbedtls_ctr_drbg_context *ctx,
+        int resistance);
 
 /**
  * \brief               This function sets the amount of entropy grabbed on each
@@ -376,8 +375,8 @@ void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx,
  *                      and at most the maximum length accepted by the
  *                      entropy function that is set in the context.
  */
-void mbedtls_ctr_drbg_set_entropy_len( mbedtls_ctr_drbg_context *ctx,
-                               size_t len );
+void mbedtls_ctr_drbg_set_entropy_len(mbedtls_ctr_drbg_context *ctx,
+                                      size_t len);
 
 /**
  * \brief               This function sets the amount of entropy grabbed
@@ -398,8 +397,8 @@ void mbedtls_ctr_drbg_set_entropy_len( mbedtls_ctr_drbg_context *ctx,
  * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED
  *                      if the initial seeding has already taken place.
  */
-int mbedtls_ctr_drbg_set_nonce_len( mbedtls_ctr_drbg_context *ctx,
-                                    size_t len );
+int mbedtls_ctr_drbg_set_nonce_len(mbedtls_ctr_drbg_context *ctx,
+                                   size_t len);
 
 /**
  * \brief               This function sets the reseed interval.
@@ -413,8 +412,8 @@ int mbedtls_ctr_drbg_set_nonce_len( mbedtls_ctr_drbg_context *ctx,
  * \param ctx           The CTR_DRBG context.
  * \param interval      The reseed interval.
  */
-void mbedtls_ctr_drbg_set_reseed_interval( mbedtls_ctr_drbg_context *ctx,
-                                   int interval );
+void mbedtls_ctr_drbg_set_reseed_interval(mbedtls_ctr_drbg_context *ctx,
+        int interval);
 
 /**
  * \brief               This function reseeds the CTR_DRBG context, that is
@@ -436,8 +435,8 @@ void mbedtls_ctr_drbg_set_reseed_interval( mbedtls_ctr_drbg_context *ctx,
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on failure.
  */
-int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
-                     const unsigned char *additional, size_t len );
+int mbedtls_ctr_drbg_reseed(mbedtls_ctr_drbg_context *ctx,
+                            const unsigned char *additional, size_t len);
 
 /**
  * \brief              This function updates the state of the CTR_DRBG context.
@@ -459,9 +458,9 @@ int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
  *                     #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT.
  * \return             An error from the underlying AES cipher on failure.
  */
-int mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
-                             const unsigned char *additional,
-                             size_t add_len );
+int mbedtls_ctr_drbg_update(mbedtls_ctr_drbg_context *ctx,
+                            const unsigned char *additional,
+                            size_t add_len);
 
 /**
  * \brief   This function updates a CTR_DRBG instance with additional
@@ -494,9 +493,9 @@ int mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
  * \return    #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED or
  *            #MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG on failure.
  */
-int mbedtls_ctr_drbg_random_with_add( void *p_rng,
-                              unsigned char *output, size_t output_len,
-                              const unsigned char *additional, size_t add_len );
+int mbedtls_ctr_drbg_random_with_add(void *p_rng,
+                                     unsigned char *output, size_t output_len,
+                                     const unsigned char *additional, size_t add_len);
 
 /**
  * \brief   This function uses CTR_DRBG to generate random data.
@@ -522,8 +521,8 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
  * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED or
  *                      #MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG on failure.
  */
-int mbedtls_ctr_drbg_random( void *p_rng,
-                     unsigned char *output, size_t output_len );
+int mbedtls_ctr_drbg_random(void *p_rng,
+                            unsigned char *output, size_t output_len);
 
 #if defined(MBEDTLS_FS_IO)
 /**
@@ -537,7 +536,7 @@ int mbedtls_ctr_drbg_random( void *p_rng,
  * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on reseed
  *                      failure.
  */
-int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const char *path );
+int mbedtls_ctr_drbg_write_seed_file(mbedtls_ctr_drbg_context *ctx, const char *path);
 
 /**
  * \brief               This function reads and updates a seed file. The seed
@@ -553,7 +552,7 @@ int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const char 
  * \return              #MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG if the existing
  *                      seed file is too large.
  */
-int mbedtls_ctr_drbg_update_seed_file( mbedtls_ctr_drbg_context *ctx, const char *path );
+int mbedtls_ctr_drbg_update_seed_file(mbedtls_ctr_drbg_context *ctx, const char *path);
 #endif /* MBEDTLS_FS_IO */
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -564,7 +563,7 @@ int mbedtls_ctr_drbg_update_seed_file( mbedtls_ctr_drbg_context *ctx, const char
  * \return              \c 0 on success.
  * \return              \c 1 on failure.
  */
-int mbedtls_ctr_drbg_self_test( int verbose );
+int mbedtls_ctr_drbg_self_test(int verbose);
 
 #endif /* MBEDTLS_SELF_TEST */
 

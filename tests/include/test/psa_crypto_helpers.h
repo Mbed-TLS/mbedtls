@@ -37,11 +37,11 @@
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 
 /* Internal function for #TEST_USES_KEY_ID. Return 1 on success, 0 on failure. */
-int mbedtls_test_uses_key_id( mbedtls_svc_key_id_t key_id );
+int mbedtls_test_uses_key_id(mbedtls_svc_key_id_t key_id);
 
 /** Destroy persistent keys recorded with #TEST_USES_KEY_ID.
  */
-void mbedtls_test_psa_purge_key_storage( void );
+void mbedtls_test_psa_purge_key_storage(void);
 
 /** Purge the in-memory cache of persistent keys recorded with
  * #TEST_USES_KEY_ID.
@@ -49,7 +49,7 @@ void mbedtls_test_psa_purge_key_storage( void );
  * Call this function before calling PSA_DONE() if it's ok for
  * persistent keys to still exist at this point.
  */
-void mbedtls_test_psa_purge_key_cache( void );
+void mbedtls_test_psa_purge_key_cache(void);
 
 /** \def TEST_USES_KEY_ID
  *
@@ -96,7 +96,7 @@ void mbedtls_test_psa_purge_key_cache( void );
  * \return A string literal explaining what has not been cleaned up
  *         if applicable.
  */
-const char *mbedtls_test_helper_is_psa_leaking( void );
+const char *mbedtls_test_helper_is_psa_leaking(void);
 
 /** Check that no PSA Crypto key slots are in use.
  *
@@ -150,10 +150,10 @@ const char *mbedtls_test_helper_is_psa_leaking( void );
 
 
 #if defined(RECORD_PSA_STATUS_COVERAGE_LOG)
-psa_status_t mbedtls_test_record_status( psa_status_t status,
-                                         const char *func,
-                                         const char *file, int line,
-                                         const char *expr );
+psa_status_t mbedtls_test_record_status(psa_status_t status,
+                                        const char *func,
+                                        const char *file, int line,
+                                        const char *expr);
 
 /** Return value logging wrapper macro.
  *
@@ -192,7 +192,7 @@ psa_status_t mbedtls_test_record_status( psa_status_t status,
  * permissions of other usage policies
  * (like PSA_KEY_USAGE_SIGN_HASH involves PSA_KEY_USAGE_SIGN_MESSGAE).
  */
-psa_key_usage_t mbedtls_test_update_key_usage_flags( psa_key_usage_t usage_flags );
+psa_key_usage_t mbedtls_test_update_key_usage_flags(psa_key_usage_t usage_flags);
 
 /** Skip a test case if the given key is a 192 bits AES key and the AES
  *  implementation is at least partially provided by an accelerator or

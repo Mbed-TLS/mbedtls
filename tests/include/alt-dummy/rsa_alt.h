@@ -19,8 +19,7 @@
 #ifndef RSA_ALT_H
 #define RSA_ALT_H
 
-typedef struct mbedtls_rsa_context
-{
+typedef struct mbedtls_rsa_context {
     int dummy;
 }
 mbedtls_rsa_context;

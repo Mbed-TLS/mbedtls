@@ -137,8 +137,8 @@ static psa_key_attributes_t psa_key_attributes_init(void);
  * \param[out] attributes  The attribute structure to write to.
  * \param key              The persistent identifier for the key.
  */
-static void psa_set_key_id( psa_key_attributes_t *attributes,
-                            mbedtls_svc_key_id_t key );
+static void psa_set_key_id(psa_key_attributes_t *attributes,
+                           mbedtls_svc_key_id_t key);
 
 #ifdef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
 /** Set the owner identifier of a key.
@@ -155,8 +155,8 @@ static void psa_set_key_id( psa_key_attributes_t *attributes,
  * \param[out] attributes  The attribute structure to write to.
  * \param owner_id         The key owner identifier.
  */
-static void mbedtls_set_key_owner_id( psa_key_attributes_t *attributes,
-                                      mbedtls_key_owner_id_t owner_id );
+static void mbedtls_set_key_owner_id(psa_key_attributes_t *attributes,
+                                     mbedtls_key_owner_id_t owner_id);
 #endif
 
 /** Set the location of a persistent key.
@@ -2918,13 +2918,13 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_sign_message( mbedtls_svc_key_id_t key,
-                               psa_algorithm_t alg,
-                               const uint8_t * input,
-                               size_t input_length,
-                               uint8_t * signature,
-                               size_t signature_size,
-                               size_t * signature_length );
+psa_status_t psa_sign_message(mbedtls_svc_key_id_t key,
+                              psa_algorithm_t alg,
+                              const uint8_t *input,
+                              size_t input_length,
+                              uint8_t *signature,
+                              size_t signature_size,
+                              size_t *signature_length);
 
 /** \brief Verify the signature of a message with a public key, using
  *         a hash-and-sign verification algorithm.
@@ -2970,12 +2970,12 @@ psa_status_t psa_sign_message( mbedtls_svc_key_id_t key,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_verify_message( mbedtls_svc_key_id_t key,
-                                 psa_algorithm_t alg,
-                                 const uint8_t * input,
-                                 size_t input_length,
-                                 const uint8_t * signature,
-                                 size_t signature_length );
+psa_status_t psa_verify_message(mbedtls_svc_key_id_t key,
+                                psa_algorithm_t alg,
+                                const uint8_t *input,
+                                size_t input_length,
+                                const uint8_t *signature,
+                                size_t signature_length);
 
 /**
  * \brief Sign a hash or short message with a private key.

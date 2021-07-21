@@ -66,11 +66,11 @@
  *         The hardware accelerator failed.
  */
 int mbedtls_ssl_cf_hmac(
-        mbedtls_md_context_t *ctx,
-        const unsigned char *add_data, size_t add_data_len,
-        const unsigned char *data, size_t data_len_secret,
-        size_t min_data_len, size_t max_data_len,
-        unsigned char *output );
+    mbedtls_md_context_t *ctx,
+    const unsigned char *add_data, size_t add_data_len,
+    const unsigned char *data, size_t data_len_secret,
+    size_t min_data_len, size_t max_data_len,
+    unsigned char *output);
 
 /** \brief Copy data from a secret position with constant flow.
  *
@@ -90,11 +90,11 @@ int mbedtls_ssl_cf_hmac(
  * \param offset_max    The maximal value of \p offset_secret.
  * \param len           The number of bytes to copy.
  */
-void mbedtls_ssl_cf_memcpy_offset( unsigned char *dst,
-                                   const unsigned char *src_base,
-                                   size_t offset_secret,
-                                   size_t offset_min, size_t offset_max,
-                                   size_t len );
+void mbedtls_ssl_cf_memcpy_offset(unsigned char *dst,
+                                  const unsigned char *src_base,
+                                  size_t offset_secret,
+                                  size_t offset_min, size_t offset_max,
+                                  size_t len);
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 
 #endif /* MBEDTLS_SSL_INVASIVE_H */

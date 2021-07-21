@@ -19,8 +19,7 @@
 #ifndef CMAC_ALT_H
 #define CMAC_ALT_H
 
-struct mbedtls_cmac_context_t
-{
+struct mbedtls_cmac_context_t {
     int dummy;
 };
 

@@ -84,7 +84,7 @@ static inline void psa_set_key_enrollment_algorithm(
 static inline psa_algorithm_t psa_get_key_enrollment_algorithm(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg2) );
+    return (attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg2));
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -113,7 +113,7 @@ static inline psa_algorithm_t psa_get_key_enrollment_algorithm(
  */
 psa_status_t psa_get_key_slot_number(
     const psa_key_attributes_t *attributes,
-    psa_key_slot_number_t *slot_number );
+    psa_key_slot_number_t *slot_number);
 
 /** Choose the slot number where a key is stored.
  *
@@ -140,7 +140,7 @@ psa_status_t psa_get_key_slot_number(
  */
 static inline void psa_set_key_slot_number(
     psa_key_attributes_t *attributes,
-    psa_key_slot_number_t slot_number )
+    psa_key_slot_number_t slot_number)
 {
     attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(flags) |= MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
     attributes->MBEDTLS_PRIVATE(slot_number) = slot_number;
@@ -153,7 +153,7 @@ static inline void psa_set_key_slot_number(
  * \param[out] attributes       The attribute structure to write to.
  */
 static inline void psa_clear_key_slot_number(
-    psa_key_attributes_t *attributes )
+    psa_key_attributes_t *attributes)
 {
     attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(flags) &= ~MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
 }
@@ -216,7 +216,7 @@ psa_status_t mbedtls_psa_register_se_key(
  *
  * This is an Mbed TLS extension.
  */
-void mbedtls_psa_crypto_free( void );
+void mbedtls_psa_crypto_free(void);
 
 /** \brief Statistics about
  * resource consumption related to the PSA keystore.
@@ -224,8 +224,7 @@ void mbedtls_psa_crypto_free( void );
  * \note The content of this structure is not part of the stable API and ABI
  *       of Mbed Crypto and may change arbitrarily from version to version.
  */
-typedef struct mbedtls_psa_stats_s
-{
+typedef struct mbedtls_psa_stats_s {
     /** Number of slots containing key material for a volatile key. */
     size_t MBEDTLS_PRIVATE(volatile_slots);
     /** Number of slots containing key material for a key which is in
@@ -256,7 +255,7 @@ typedef struct mbedtls_psa_stats_s
  *       between the application and the keystore, the service may or
  *       may not expose this function.
  */
-void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats );
+void mbedtls_psa_get_stats(mbedtls_psa_stats_t *stats);
 
 /**
  * \brief Inject an initial entropy seed for the random generator into
@@ -499,9 +498,9 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  */
 psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
-                                           psa_key_type_t type,
-                                           const uint8_t *data,
-                                           size_t data_length);
+        psa_key_type_t type,
+        const uint8_t *data,
+        size_t data_length);
 
 /**
  * \brief Get domain parameters for a key.
@@ -589,53 +588,52 @@ psa_status_t psa_get_key_domain_parameters(
  *                      (`PSA_ECC_FAMILY_xxx`).
  * \return              \c 0 on failure (\p grpid is not recognized).
  */
-static inline psa_ecc_family_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid,
-                                                        size_t *bits )
+static inline psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
+        size_t *bits)
 {
-    switch( grpid )
-    {
-        case MBEDTLS_ECP_DP_SECP192R1:
-            *bits = 192;
-            return( PSA_ECC_FAMILY_SECP_R1 );
-        case MBEDTLS_ECP_DP_SECP224R1:
-            *bits = 224;
-            return( PSA_ECC_FAMILY_SECP_R1 );
-        case MBEDTLS_ECP_DP_SECP256R1:
-            *bits = 256;
-            return( PSA_ECC_FAMILY_SECP_R1 );
-        case MBEDTLS_ECP_DP_SECP384R1:
-            *bits = 384;
-            return( PSA_ECC_FAMILY_SECP_R1 );
-        case MBEDTLS_ECP_DP_SECP521R1:
-            *bits = 521;
-            return( PSA_ECC_FAMILY_SECP_R1 );
-        case MBEDTLS_ECP_DP_BP256R1:
-            *bits = 256;
-            return( PSA_ECC_FAMILY_BRAINPOOL_P_R1 );
-        case MBEDTLS_ECP_DP_BP384R1:
-            *bits = 384;
-            return( PSA_ECC_FAMILY_BRAINPOOL_P_R1 );
-        case MBEDTLS_ECP_DP_BP512R1:
-            *bits = 512;
-            return( PSA_ECC_FAMILY_BRAINPOOL_P_R1 );
-        case MBEDTLS_ECP_DP_CURVE25519:
-            *bits = 255;
-            return( PSA_ECC_FAMILY_MONTGOMERY );
-        case MBEDTLS_ECP_DP_SECP192K1:
-            *bits = 192;
-            return( PSA_ECC_FAMILY_SECP_K1 );
-        case MBEDTLS_ECP_DP_SECP224K1:
-            *bits = 224;
-            return( PSA_ECC_FAMILY_SECP_K1 );
-        case MBEDTLS_ECP_DP_SECP256K1:
-            *bits = 256;
-            return( PSA_ECC_FAMILY_SECP_K1 );
-        case MBEDTLS_ECP_DP_CURVE448:
-            *bits = 448;
-            return( PSA_ECC_FAMILY_MONTGOMERY );
-        default:
-            *bits = 0;
-            return( 0 );
+    switch (grpid) {
+    case MBEDTLS_ECP_DP_SECP192R1:
+        *bits = 192;
+        return (PSA_ECC_FAMILY_SECP_R1);
+    case MBEDTLS_ECP_DP_SECP224R1:
+        *bits = 224;
+        return (PSA_ECC_FAMILY_SECP_R1);
+    case MBEDTLS_ECP_DP_SECP256R1:
+        *bits = 256;
+        return (PSA_ECC_FAMILY_SECP_R1);
+    case MBEDTLS_ECP_DP_SECP384R1:
+        *bits = 384;
+        return (PSA_ECC_FAMILY_SECP_R1);
+    case MBEDTLS_ECP_DP_SECP521R1:
+        *bits = 521;
+        return (PSA_ECC_FAMILY_SECP_R1);
+    case MBEDTLS_ECP_DP_BP256R1:
+        *bits = 256;
+        return (PSA_ECC_FAMILY_BRAINPOOL_P_R1);
+    case MBEDTLS_ECP_DP_BP384R1:
+        *bits = 384;
+        return (PSA_ECC_FAMILY_BRAINPOOL_P_R1);
+    case MBEDTLS_ECP_DP_BP512R1:
+        *bits = 512;
+        return (PSA_ECC_FAMILY_BRAINPOOL_P_R1);
+    case MBEDTLS_ECP_DP_CURVE25519:
+        *bits = 255;
+        return (PSA_ECC_FAMILY_MONTGOMERY);
+    case MBEDTLS_ECP_DP_SECP192K1:
+        *bits = 192;
+        return (PSA_ECC_FAMILY_SECP_K1);
+    case MBEDTLS_ECP_DP_SECP224K1:
+        *bits = 224;
+        return (PSA_ECC_FAMILY_SECP_K1);
+    case MBEDTLS_ECP_DP_SECP256K1:
+        *bits = 256;
+        return (PSA_ECC_FAMILY_SECP_K1);
+    case MBEDTLS_ECP_DP_CURVE448:
+        *bits = 448;
+        return (PSA_ECC_FAMILY_MONTGOMERY);
+    default:
+        *bits = 0;
+        return (0);
     }
 }
 
@@ -658,9 +656,9 @@ static inline psa_ecc_family_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id gr
  * \return              #MBEDTLS_ECP_DP_NONE if \p bits is not
  *                      correct for \p curve.
  */
-mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
-                                               size_t bits,
-                                               int bits_is_sloppy );
+mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
+        size_t bits,
+        int bits_is_sloppy);
 #endif /* MBEDTLS_ECP_C */
 
 /**@}*/
@@ -711,7 +709,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
  */
 psa_status_t mbedtls_psa_external_get_random(
     mbedtls_psa_external_random_context_t *context,
-    uint8_t *output, size_t output_size, size_t *output_length );
+    uint8_t *output, size_t output_size, size_t *output_length);
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 /**@}*/
@@ -756,10 +754,10 @@ typedef uint64_t psa_drv_slot_number_t;
  * \retval 0
  *         The key identifier is not a builtin key identifier.
  */
-static inline int psa_key_id_is_builtin( psa_key_id_t key_id )
+static inline int psa_key_id_is_builtin(psa_key_id_t key_id)
 {
-    return( ( key_id >= MBEDTLS_PSA_KEY_ID_BUILTIN_MIN ) &&
-            ( key_id <= MBEDTLS_PSA_KEY_ID_BUILTIN_MAX ) );
+    return ((key_id >= MBEDTLS_PSA_KEY_ID_BUILTIN_MIN) &&
+            (key_id <= MBEDTLS_PSA_KEY_ID_BUILTIN_MAX));
 }
 
 /** Platform function to obtain the location and slot number of a built-in key.
@@ -809,7 +807,7 @@ static inline int psa_key_id_is_builtin( psa_key_id_t key_id )
 psa_status_t mbedtls_psa_platform_get_builtin_key(
     mbedtls_svc_key_id_t key_id,
     psa_key_lifetime_t *lifetime,
-    psa_drv_slot_number_t *slot_number );
+    psa_drv_slot_number_t *slot_number);
 #endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 
 /** @} */
@@ -1166,8 +1164,8 @@ typedef struct psa_pake_cipher_suite_s psa_pake_cipher_suite_t;
  * \return The PAKE algorithm stored in the cipher suite structure.
  */
 static psa_algorithm_t psa_pake_cs_get_algorithm(
-                           const psa_pake_cipher_suite_t* cipher_suite
-                           );
+    const psa_pake_cipher_suite_t *cipher_suite
+);
 
 /** Declare the PAKE algorithm for the cipher suite.
  *
@@ -1186,9 +1184,9 @@ static psa_algorithm_t psa_pake_cs_get_algorithm(
  *                             \p cipher_suite becomes unspecified.
  */
 static void psa_pake_cs_set_algorithm(
-                           psa_pake_cipher_suite_t* cipher_suite,
-                           psa_algorithm_t algorithm
-                           );
+    psa_pake_cipher_suite_t *cipher_suite,
+    psa_algorithm_t algorithm
+);
 
 /** Retrieve the primitive from a PAKE cipher suite.
  *
@@ -1201,8 +1199,8 @@ static void psa_pake_cs_set_algorithm(
  * \return The primitive stored in the cipher suite structure.
  */
 static psa_pake_primitive_t psa_pake_cs_get_primitive(
-                           const psa_pake_cipher_suite_t* cipher_suite
-                           );
+    const psa_pake_cipher_suite_t *cipher_suite
+);
 
 /** Declare the primitive for a PAKE cipher suite.
  *
@@ -1218,9 +1216,9 @@ static psa_pake_primitive_t psa_pake_cs_get_primitive(
  *                             unspecified.
  */
 static void psa_pake_cs_set_primitive(
-                           psa_pake_cipher_suite_t* cipher_suite,
-                           psa_pake_primitive_t primitive
-                           );
+    psa_pake_cipher_suite_t *cipher_suite,
+    psa_pake_primitive_t primitive
+);
 
 /** Retrieve the hash algorithm from a PAKE cipher suite.
  *
@@ -1235,8 +1233,8 @@ static void psa_pake_cs_set_primitive(
  *         the hash algorithm is not set.
  */
 static psa_algorithm_t psa_pake_cs_get_hash(
-                           const psa_pake_cipher_suite_t* cipher_suite
-                           );
+    const psa_pake_cipher_suite_t *cipher_suite
+);
 
 /** Declare the hash algorithm for a PAKE cipher suite.
  *
@@ -1259,9 +1257,9 @@ static psa_algorithm_t psa_pake_cs_get_hash(
  *                              \p cipher_suite becomes unspecified.
  */
 static void psa_pake_cs_set_hash(
-                           psa_pake_cipher_suite_t* cipher_suite,
-                           psa_algorithm_t hash
-                           );
+    psa_pake_cipher_suite_t *cipher_suite,
+    psa_algorithm_t hash
+);
 
 /** The type of the state data structure for PAKE operations.
  *
@@ -1742,8 +1740,7 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
  */
 #define PSA_PAKE_INPUT_MAX_SIZE 0
 
-struct psa_pake_cipher_suite_s
-{
+struct psa_pake_cipher_suite_s {
     psa_algorithm_t algorithm;
     psa_pake_primitive_type_t type;
     psa_pake_family_t family;
@@ -1754,56 +1751,56 @@ struct psa_pake_cipher_suite_s
 static inline psa_algorithm_t psa_pake_cs_get_algorithm(
     const psa_pake_cipher_suite_t *cipher_suite)
 {
-    return(cipher_suite->algorithm);
+    return (cipher_suite->algorithm);
 }
 
 static inline void psa_pake_cs_set_algorithm(
     psa_pake_cipher_suite_t *cipher_suite,
     psa_algorithm_t algorithm)
 {
-    if(!PSA_ALG_IS_PAKE(algorithm))
+    if (!PSA_ALG_IS_PAKE(algorithm)) {
         cipher_suite->algorithm = 0;
-    else
+    } else {
         cipher_suite->algorithm = algorithm;
+    }
 }
 
 static inline psa_pake_primitive_t psa_pake_cs_get_primitive(
     const psa_pake_cipher_suite_t *cipher_suite)
 {
-    return(PSA_PAKE_PRIMITIVE(cipher_suite->type, cipher_suite->family,
-                cipher_suite->bits));
+    return (PSA_PAKE_PRIMITIVE(cipher_suite->type, cipher_suite->family,
+                               cipher_suite->bits));
 }
 
 static inline void psa_pake_cs_set_primitive(
     psa_pake_cipher_suite_t *cipher_suite,
     psa_pake_primitive_t primitive)
 {
-    cipher_suite->type = (psa_pake_primitive_type_t) (primitive >> 24);
-    cipher_suite->family = (psa_pake_family_t) (0xFF & (primitive >> 16));
-    cipher_suite->bits = (uint16_t) (0xFFFF & primitive);
+    cipher_suite->type = (psa_pake_primitive_type_t)(primitive >> 24);
+    cipher_suite->family = (psa_pake_family_t)(0xFF & (primitive >> 16));
+    cipher_suite->bits = (uint16_t)(0xFFFF & primitive);
 }
 
 static inline psa_algorithm_t psa_pake_cs_get_hash(
     const psa_pake_cipher_suite_t *cipher_suite)
 {
-    return(cipher_suite->hash);
+    return (cipher_suite->hash);
 }
 
 static inline void psa_pake_cs_set_hash(
     psa_pake_cipher_suite_t *cipher_suite,
     psa_algorithm_t hash)
 {
-    if(!PSA_ALG_IS_HASH(hash))
+    if (!PSA_ALG_IS_HASH(hash)) {
         cipher_suite->hash = 0;
-    else
+    } else {
         cipher_suite->hash = hash;
+    }
 }
 
-struct psa_pake_operation_s
-{
+struct psa_pake_operation_s {
     psa_algorithm_t alg;
-    union
-    {
+    union {
         /* Make the union non-empty even with no supported algorithms. */
         uint8_t dummy;
     } ctx;
@@ -1814,7 +1811,7 @@ struct psa_pake_operation_s
 static inline struct psa_pake_operation_s psa_pake_operation_init(void)
 {
     const struct psa_pake_operation_s v = PSA_PAKE_OPERATION_INIT;
-    return(v);
+    return (v);
 }
 
 #ifdef __cplusplus

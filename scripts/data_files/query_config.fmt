@@ -112,10 +112,10 @@
 #pragma warning(disable:4003)
 #endif /* _MSC_VER */
 
-int query_config( const char *config )
+int query_config(const char *config)
 {
-CHECK_CONFIG    /* If the symbol is not found, return an error */
-    return( 1 );
+    CHECK_CONFIG    /* If the symbol is not found, return an error */
+    return (1);
 }
 
 #if defined(_MSC_VER)

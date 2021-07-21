@@ -50,9 +50,8 @@ typedef UINT32 uint32_t;
 #endif
 
 /* Type for Hex parameters */
-typedef struct data_tag
-{
-    uint8_t *   x;
+typedef struct data_tag {
+    uint8_t    *x;
     uint32_t    len;
 } data_t;
 
@@ -99,65 +98,60 @@ typedef struct data_tag
  *
  * \return 0 if the key store is empty, 1 otherwise.
  */
-int test_fail_if_psa_leaking( int line_no, const char *filename )
+int test_fail_if_psa_leaking(int line_no, const char *filename)
 {
-    const char *msg = mbedtls_test_helper_is_psa_leaking( );
-    if( msg == NULL )
+    const char *msg = mbedtls_test_helper_is_psa_leaking();
+    if (msg == NULL) {
         return 0;
-    else
-    {
-        mbedtls_test_fail( msg, line_no, filename );
+    } else {
+        mbedtls_test_fail(msg, line_no, filename);
         return 1;
     }
 }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_C) */
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-static int redirect_output( FILE* out_stream, const char* path )
+static int redirect_output(FILE *out_stream, const char *path)
 {
     int out_fd, dup_fd;
-    FILE* path_stream;
+    FILE *path_stream;
 
-    out_fd = fileno( out_stream );
-    dup_fd = dup( out_fd );
+    out_fd = fileno(out_stream);
+    dup_fd = dup(out_fd);
 
-    if( dup_fd == -1 )
-    {
-        return( -1 );
+    if (dup_fd == -1) {
+        return (-1);
     }
 
-    path_stream = fopen( path, "w" );
-    if( path_stream == NULL )
-    {
-        close( dup_fd );
-        return( -1 );
+    path_stream = fopen(path, "w");
+    if (path_stream == NULL) {
+        close(dup_fd);
+        return (-1);
     }
 
-    fflush( out_stream );
-    if( dup2( fileno( path_stream ), out_fd ) == -1 )
-    {
-        close( dup_fd );
-        fclose( path_stream );
-        return( -1 );
+    fflush(out_stream);
+    if (dup2(fileno(path_stream), out_fd) == -1) {
+        close(dup_fd);
+        fclose(path_stream);
+        return (-1);
     }
 
-    fclose( path_stream );
-    return( dup_fd );
+    fclose(path_stream);
+    return (dup_fd);
 }
 
-static int restore_output( FILE* out_stream, int dup_fd )
+static int restore_output(FILE *out_stream, int dup_fd)
 {
-    int out_fd = fileno( out_stream );
+    int out_fd = fileno(out_stream);
 
-    fflush( out_stream );
-    if( dup2( dup_fd, out_fd ) == -1 )
-    {
-        close( out_fd );
-        close( dup_fd );
-        return( -1 );
+    fflush(out_stream);
+    if (dup2(dup_fd, out_fd) == -1) {
+        close(out_fd);
+        close(dup_fd);
+        return (-1);
     }
 
-    close( dup_fd );
-    return( 0 );
+    close(dup_fd);
+    return (0);
 }
 #endif /* __unix__ || __APPLE__ __MACH__ */

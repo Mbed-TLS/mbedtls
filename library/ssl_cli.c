@@ -762,7 +762,7 @@ static int ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
     *p++ = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_USE_SRTP );
 
 
-    *p++ = MBEDTLS_BYTE_1( ext_len & 0xFF00 );
+    *p++ = MBEDTLS_BYTE_1( ext_len );
     *p++ = MBEDTLS_BYTE_0( ext_len );
 
     /* protection profile length: 2*(ssl->conf->dtls_srtp_profile_list_len) */

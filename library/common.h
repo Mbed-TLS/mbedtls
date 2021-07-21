@@ -70,9 +70,8 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
 
 /** Byte Reading Macros
  *
- * Obtain the most significant byte of x using 0xff
- * Using MBEDTLS_BYTE_a will shift a*8 bits
- * to retrieve the next byte of information
+ * Given a multi-byte integer \p x, MBEDTLS_BYTE_n retrieves the n-th 
+ * byte from x, where byte 0 is the least significant byte.
  */
 #define MBEDTLS_BYTE_0( x ) ( (uint8_t) (   ( x )         & 0xff ) )
 #define MBEDTLS_BYTE_1( x ) ( (uint8_t) ( ( ( x ) >> 8  ) & 0xff ) )

@@ -1012,8 +1012,7 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp, size_t *olen,
     /*
      * Next two bytes are the namedcurve value
      */
-    buf[0] = MBEDTLS_BYTE_1( curve_info->tls_id );
-    buf[1] = MBEDTLS_BYTE_0( curve_info->tls_id );
+    MBEDTLS_PUT_UINT16_BE( curve_info->tls_id, buf, 0 );
 
     return( 0 );
 }

@@ -22,3 +22,7 @@
 # |if (one ||
 # |    two);
 --min-conditional-indent=0
+
+# Pointer space style:
+# |int *p;
+--align-pointer=name

@@ -7,6 +7,12 @@
 # |}
 --style=kr
 
+# Mandate braces for one-line compound statements.
+# |if (condition) {
+# |    foo();
+# |}
+--add-braces
+
 # Parenthesis whitespace style:
 # |if (condition) function(arguments);
 --unpad-paren

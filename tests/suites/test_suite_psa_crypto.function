@@ -4002,7 +4002,8 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
-    /* Test for not sending any additional data or data (encrypt) */
+    /* Test for not sending any additional data or data after setting non zero
+     * lengths for them. (encrypt) */
 
     operation = psa_aead_operation_init( );
 
@@ -4022,7 +4023,8 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
-    /* Test for not sending any additional data or data (decrypt) */
+    /* Test for not sending any additional data or data after setting non-zero
+     * lengths for them. (decrypt) */
 
     operation = psa_aead_operation_init( );
 
@@ -4042,7 +4044,8 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
-    /* Test for not sending any additional data. */
+    /* Test for not sending any additional data after setting a non-zero length
+     * for it. */
 
     operation = psa_aead_operation_init( );
 

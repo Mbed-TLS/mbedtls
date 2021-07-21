@@ -54,7 +54,7 @@
 
 /** Byte Reading Macros
  *
- * Given a multi-byte integer \p x, MBEDTLS_BYTE_n retrieves the n-th 
+ * Given a multi-byte integer \p x, MBEDTLS_BYTE_n retrieves the n-th
  * byte from x, where byte 0 is the least significant byte.
  */
 #define MBEDTLS_BYTE_0( x ) ( (uint8_t) (   ( x )         & 0xff ) )

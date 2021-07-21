@@ -17,3 +17,8 @@
 # |if (condition) function(arguments);
 --unpad-paren
 --pad-header
+
+# Indentation inside parentheses:
+# |if (one ||
+# |    two);
+--min-conditional-indent=0

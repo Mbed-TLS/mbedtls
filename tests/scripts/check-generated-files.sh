@@ -115,3 +115,4 @@ check scripts/generate_features.pl library/version_features.c
 check scripts/generate_visualc_files.pl visualc/VS2010
 check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generated.c
 check tests/scripts/generate_psa_tests.py $(tests/scripts/generate_psa_tests.py --list)
+check scripts/generate_2to3_knowledge.py scripts/data_files/2to3-knowledge-generated.json

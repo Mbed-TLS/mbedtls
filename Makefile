@@ -2,6 +2,12 @@ DESTDIR=/usr/local
 PREFIX=mbedtls_
 PERL ?= perl
 
+ifdef WINDOWS
+PYTHON ?= python
+else
+PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
+endif
+
 .SILENT:
 
 .PHONY: all no_test programs lib tests install uninstall clean test check covtest lcov apidoc apidoc_clean
@@ -35,6 +41,7 @@ generated_files: library/generated_files
 generated_files: programs/generated_files
 generated_files: tests/generated_files
 generated_files: visualc_files
+generated_files: scripts/data_files/2to3-knowledge-generated.json
 
 .PHONY: visualc_files
 VISUALC_FILES = visualc/VS2010/mbedTLS.sln visualc/VS2010/mbedTLS.vcxproj
@@ -53,6 +60,11 @@ $(VISUALC_FILES): scripts/data_files/vs2010-sln-template.sln
 $(VISUALC_FILES):
 	echo "  Gen   $@ ..."
 	$(PERL) scripts/generate_visualc_files.pl
+
+scripts/data_files/2to3-knowledge-generated.json: $(filter-out %config%,$(wildcard include/mbedtls/*.h))
+scripts/data_files/2to3-knowledge-generated.json: scripts/generate_2to3_knowledge.py
+	echo "  Gen   $@ ..."
+	$(PYTHON) scripts/generate_2to3_knowledge.py
 
 ifndef WINDOWS
 install: no_test
@@ -125,9 +137,11 @@ neat: clean_more_on_top
 	$(MAKE) -C tests neat
 ifndef WINDOWS
 	rm -f visualc/VS2010/*.vcxproj visualc/VS2010/mbedTLS.sln
+	rm -f scripts/data_files/2to3-knowledge-generated.json
 else
 	if exist visualc\VS2010\*.vcxproj del /Q /F visualc\VS2010\*.vcxproj
 	if exist visualc\VS2010\mbedTLS.sln del /Q /F visualc\VS2010\mbedTLS.sln
+	if exist scripts\data_files\2to3-knowledge-generated.json del /Q /F scripts\data_files\2to3-knowledge-generated.json
 endif
 
 check: lib tests

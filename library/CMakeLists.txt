@@ -44,6 +44,8 @@ set(src_crypto
     hash_info.c
     hkdf.c
     hmac_drbg.c
+    lmots.c
+    lms.c
     md.c
     md5.c
     memory_buffer_alloc.c

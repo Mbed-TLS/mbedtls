@@ -1,0 +1,12 @@
+Features
+    * Add the LMS post-quantum-safe stateful-hash asymmetric signature scheme
+      as defined in RFC8554 and NIST.SP.200-208. This currently only supports
+      one parameter set (LMS_SHA256_M32_H10), meaning that each private key can
+      be used to sign 1024 messages. As such, it is not intended for use in TLS,
+      but instead for verification of assets transmitted over an insecure
+      channel, particularly firmware images. This is one of the signature
+      schemes recommended by the IETF draft SUIT standard for IOT firmware
+      upgrades (RFC9019).
+    * Add the LM-OTS post-quantum-safe one-time signature scheme, which is
+      required for LMS. This can be used independently, but each key can only be
+      used to sign one message so is impractical for most circumstances.

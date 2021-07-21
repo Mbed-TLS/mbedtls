@@ -1,0 +1,85 @@
+/* BEGIN_HEADER */
+#include "mbedtls/lms.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_LMS_C:MBEDTLS_SHA256_C:MBEDTLS_CTR_DRBG_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void lms_sign_verify_test ( data_t * msg )
+{
+    mbedtls_lms_context ctx;
+    unsigned char sig[MBEDTLS_LMS_SIG_LEN];
+    mbedtls_entropy_context entropy_ctx;
+    mbedtls_ctr_drbg_context drbg_ctx;
+    uint8_t seed[16];
+    int rc;
+
+    mbedtls_entropy_init( &entropy_ctx );
+    mbedtls_ctr_drbg_init( &drbg_ctx );
+    mbedtls_lms_init( &ctx );
+
+    TEST_ASSERT( mbedtls_ctr_drbg_seed( &drbg_ctx, mbedtls_entropy_func,
+                 &entropy_ctx, ( uint8_t* )"", 0 ) == 0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_random( &drbg_ctx, seed, sizeof( seed ) ) == 0 );
+
+    TEST_ASSERT( mbedtls_lms_set_algorithm_type( &ctx, MBEDTLS_LMS_SHA256_M32_H10, MBEDTLS_LMOTS_SHA256_N32_W8 ) == 0 );
+
+    /* Allocation failure isn't a test failure, since it likely just means there's not enough memory to run the test */
+    rc = mbedtls_lms_gen_privkey( &ctx, mbedtls_ctr_drbg_random, &drbg_ctx, seed, sizeof( seed ) );
+    TEST_ASSUME( rc != MBEDTLS_ERR_LMS_ALLOC_FAILED );
+    TEST_ASSERT( rc == 0 );
+
+    TEST_ASSERT( mbedtls_lms_gen_pubkey( &ctx) == 0 );
+
+    TEST_ASSERT( mbedtls_lms_sign( &ctx, mbedtls_ctr_drbg_random, &drbg_ctx, msg->x, msg->len, sig ) == 0 );
+
+    TEST_ASSERT( mbedtls_lms_verify( &ctx, msg->x, msg->len, sig) == 0 );
+
+exit:
+    mbedtls_entropy_free( &entropy_ctx );
+    mbedtls_ctr_drbg_free( &drbg_ctx );
+    mbedtls_lms_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void lms_verify_test ( data_t * msg, data_t * sig, data_t * pub_key,
+                          int expected_rc )
+{
+    mbedtls_lms_context ctx;
+
+    mbedtls_lms_init( &ctx);
+
+    mbedtls_lms_import_pubkey( &ctx, pub_key->x );
+
+    TEST_ASSERT( mbedtls_lms_verify( &ctx, msg->x, msg->len, sig->x ) == expected_rc );
+
+exit:
+    mbedtls_lms_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void lms_import_export_test (  data_t * pub_key )
+{
+    mbedtls_lms_context ctx;
+    uint8_t exported_pub_key[MBEDTLS_LMS_PUBKEY_LEN];
+
+    mbedtls_lms_init(&ctx);
+    TEST_ASSERT( mbedtls_lms_import_pubkey( &ctx, pub_key->x ) == 0 );
+    TEST_ASSERT( mbedtls_lms_export_pubkey( &ctx, exported_pub_key) == 0 );
+
+    ASSERT_COMPARE( pub_key->x, MBEDTLS_LMS_PUBKEY_LEN,
+                    exported_pub_key, MBEDTLS_LMS_PUBKEY_LEN );
+
+exit:
+    mbedtls_lms_free( &ctx );
+}
+/* END_CASE */
+

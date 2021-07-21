@@ -1,0 +1,13 @@
+# Brace style:
+# |int foo()
+# |{
+# |    if (condition) {
+# |        stuff();
+# |    }
+# |}
+--style=kr
+
+# Parenthesis whitespace style:
+# |if (condition) function(arguments);
+--unpad-paren
+--pad-header

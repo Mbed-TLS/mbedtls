@@ -1,3 +1,28 @@
+#!/usr/bin/env python3
+
+# test_translate_names.py
+#
+# Copyright The Mbed TLS Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Purpose
+#
+# Test translate_ciphers.py by running every MBedTLS ciphersuite name
+# combination through the translate functions and comparing them to their
+# correct GNU or OpenSSL counterpart.
+
 from translate_ciphers import *
 
 def assert_equal(translate, original):
@@ -235,7 +260,6 @@ def test_mbed_ossl_common():
         o = translate_ossl(m_ciphers[i])
         assert_equal(o, o_ciphers[i])
 
-        
 def test_mbed_gnu_common():
     m_ciphers = [
         "TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-CBC-SHA256",
@@ -420,7 +444,6 @@ def test_mbed_gnu_common():
 
         g = translate_gnu(m_ciphers[i])
         assert_equal(g, g_ciphers[i])
-        
 
 test_all_common()
 test_mbed_ossl_common()

@@ -299,7 +299,8 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
                                          data_t *expected_output,
                                          int expect_valid_signature,
                                          int is_encrypt,
-                                         int do_zero_parts )
+                                         int do_zero_parts,
+                                         int swap_set_functions )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -396,12 +397,25 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
 
     PSA_ASSERT( status );
 
-    PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
-
-    if( do_set_lengths )
+    if( swap_set_functions )
     {
-        PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
-                                          data_true_size ) );
+        if( do_set_lengths )
+        {
+            PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
+                                              data_true_size ) );
+        }
+
+        PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
+    }
+    else
+    {
+        PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
+
+        if( do_set_lengths )
+        {
+            PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
+                                              data_true_size ) );
+        }
     }
 
     if( ad_part_len != -1 )
@@ -3493,7 +3507,8 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                                input_data, -1,
                                                do_set_lengths,
                                                expected_output,
-                                               1, 1, 0 ) )
+                                               1, 1, 0,
+                                               ( ad_part_len & 0x01 ) ) )
                 break;
 
             /* length(0) part, length(ad_part_len) part, length(0) part... */
@@ -3506,7 +3521,8 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                                input_data, -1,
                                                do_set_lengths,
                                                expected_output,
-                                               1, 1, 1 ) )
+                                               1, 1, 1,
+                                               ( ad_part_len & 0x01 ) ) )
                 break;
         }
     }
@@ -3526,7 +3542,8 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                                input_data, data_part_len,
                                                do_set_lengths,
                                                expected_output,
-                                               1, 1, 0 ) )
+                                               1, 1, 0,
+                                               ( data_part_len & 0x01 ) ) )
                 break;
 
             /* length(0) part, length(data_part_len) part, length(0) part... */
@@ -3538,7 +3555,8 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                                input_data, data_part_len,
                                                do_set_lengths,
                                                expected_output,
-                                               1, 1, 1 ) )
+                                               1, 1, 1,
+                                               ( data_part_len & 0x01 ) ) )
                 break;
         }
     }
@@ -3582,7 +3600,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                                do_set_lengths,
                                                expected_output,
                                                expect_valid_signature,
-                                               0, 0 ) )
+                                               0, 0,
+                                               ( ad_part_len & 0x01 ) ) )
                 break;
 
             /* length(0) part, length(ad_part_len) part, length(0) part... */
@@ -3596,7 +3615,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                                do_set_lengths,
                                                expected_output,
                                                expect_valid_signature,
-                                               0, 1 ) )
+                                               0, 1,
+                                               ( ad_part_len & 0x01 ) ) )
                 break;
         }
     }
@@ -3617,7 +3637,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                                do_set_lengths,
                                                expected_output,
                                                expect_valid_signature,
-                                               0, 0 ) )
+                                               0, 0,
+                                               ( data_part_len & 0x01 ) ) )
                 break;
 
             /* length(0) part, length(data_part_len) part, length(0) part... */
@@ -3630,7 +3651,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                                do_set_lengths,
                                                expected_output,
                                                expect_valid_signature,
-                                               0, 1 ) )
+                                               0, 1,
+                                               ( data_part_len & 0x01 ) ) )
                 break;
         }
     }
@@ -4010,50 +4032,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     TEST_EQUAL( psa_aead_set_lengths( &operation, additional_data->len,
                                       input_data->len ),
                 PSA_ERROR_BAD_STATE );
-
-    psa_aead_abort( &operation );
-
-    /* Test that generate/set nonce and set lengths are interchangeable (we
-     * already tested set nonce followed by set lengths above). */
-
-    operation = psa_aead_operation_init( );
-
-    PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
-
-    PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
-                                      input_data->len ) );
-
-    PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
-
-    psa_aead_abort( &operation );
-
-    /* ------------------------------------------------------- */
-
-    operation = psa_aead_operation_init( );
-
-    PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
-
-    PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
-                                      input_data->len ) );
-
-    PSA_ASSERT( psa_aead_generate_nonce( &operation, nonce_buffer,
-                                         PSA_AEAD_NONCE_MAX_SIZE,
-                                         &nonce_length ) );
-
-    psa_aead_abort( &operation );
-
-    /* ------------------------------------------------------- */
-
-    operation = psa_aead_operation_init( );
-
-    PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
-
-    PSA_ASSERT( psa_aead_generate_nonce( &operation, nonce_buffer,
-                                         PSA_AEAD_NONCE_MAX_SIZE,
-                                         &nonce_length ) );
-
-    PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
-                                      input_data->len ) );
 
     psa_aead_abort( &operation );
 

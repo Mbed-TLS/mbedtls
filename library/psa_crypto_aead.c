@@ -628,7 +628,7 @@ psa_status_t mbedtls_psa_aead_finish(
         status =  mbedtls_to_psa_error(
             mbedtls_gcm_finish( &operation->ctx.gcm,
                                 ciphertext, ciphertext_size,
-                                tag, tag_size ) );
+                                tag, operation->tag_length ) );
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)

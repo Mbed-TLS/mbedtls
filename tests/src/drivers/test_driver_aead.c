@@ -272,9 +272,26 @@ psa_status_t mbedtls_test_transparent_aead_verify(
     }
     else
     {
-        mbedtls_test_driver_aead_hooks.driver_status =
-            mbedtls_psa_aead_verify( operation, plaintext, plaintext_size,
-                                    plaintext_length, tag, tag_length );
+       uint8_t check_tag[PSA_AEAD_TAG_MAX_SIZE];
+       size_t check_tag_length;
+
+       mbedtls_test_driver_aead_hooks.driver_status =
+          mbedtls_psa_aead_finish( operation,
+                                   plaintext,
+                                   plaintext_size,
+                                   plaintext_length,
+                                   check_tag,
+                                   tag_length,
+                                   &check_tag_length );
+
+       if( mbedtls_test_driver_aead_hooks.driver_status == PSA_SUCCESS )
+       {
+          if( tag_length != check_tag_length ||
+              mbedtls_psa_safer_memcmp( tag, check_tag, tag_length )
+              != 0 )
+             mbedtls_test_driver_aead_hooks.driver_status =
+                                                    PSA_ERROR_INVALID_SIGNATURE;
+       }
     }
 
     return( mbedtls_test_driver_aead_hooks.driver_status );

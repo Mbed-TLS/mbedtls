@@ -30,8 +30,10 @@ Data = TypedDict('Data', {  #pylint: disable=invalid-name
 
 COMMENT_RE = re.compile(r'//[^\n]+|/\*.*?\*/', re.DOTALL)
 STRUCT_DEFINITION_RE = \
-    re.compile(r'\ntypedef struct\b\s*\w*\s*\{(.*?)\}\s*(\w+);',
-               re.DOTALL)
+    re.compile('|'.join([
+        r'\ntypedef\s+struct\b\s*\w*\s*\{(?P<tbody>.*?)\}\s*(?P<tname>\w+);',
+        r'\nstruct\b\s*(?P<name>\w+)\s*\{(?P<body>.*?)\}\s*;',
+    ]), re.DOTALL)
 FIELD_RE = re.compile(
     r'\b(?:' +
     '|'.join([
@@ -68,7 +70,9 @@ def list_file_fields(header: str, data: Data) -> None:
     # be any troublesome ones.
     content = re.sub(COMMENT_RE, r' ', content)
     for m in re.finditer(STRUCT_DEFINITION_RE, content):
-        body, type_name = m.groups()
+        body = m.group('body') or m.group('tbody')
+        # Assume that struct names and typedef names are the same.
+        type_name = m.group('tname') or m.group('name')
         data['private_fields'][type_name] = []
         data['public_fields'][type_name] = []
         list_type_fields(data['private_fields'][type_name],

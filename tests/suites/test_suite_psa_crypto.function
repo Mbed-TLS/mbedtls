@@ -282,8 +282,13 @@ typedef enum {
  * \param do_set_lengths            If non-zero, then set lengths prior to
  *                                  calling encryption / decryption.
  * \param expected_output           Expected output
- * \param expected_status_arg       Expected status
+ * \param expect_valid_signature    If non zero, we expect the signature to be
+ *                                  valid
  * \param is_encrypt                If non-zero this is an encryption operation.
+ * \param do_zero_parts             If non-zero, interleave zero length chunks
+ *                                  with normal length chunks
+ * \param swap_set_functions        If non-zero, swap the order of set lengths
+ *                                  and set nonce.
  *
  * \return int                      Zero on failure, non-zero on success.
  *

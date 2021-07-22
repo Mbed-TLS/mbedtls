@@ -1,5 +1,34 @@
 #!/bin/sh
 
+# test_translate_format.sh
+#
+# Copyright The Mbed TLS Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Purpose
+#
+# Test translate_ciphers.py formatting by comparing the translated
+# ciphersuite names to the true names. As in compat.sh, the spaces between
+# the ciphersuite names are normalised.
+#
+# On fail, the translated cipher suite names do not match the correct ones.
+# In this case the difference will be printed in stdout.
+#
+# This files main purpose is to ensure translate_ciphers.py can take strings
+# in the expected format and return them in the format compat.sh will expect.
+
 # Ciphers that will use translate_ciphers.py
 M_CIPHERS=""
 O_CIPHERS=""
@@ -19,7 +48,7 @@ CIPHERS="TLS-ECDHE-ECDSA-WITH-NULL-SHA      \
 
 M_CIPHERS="$M_CIPHERS                       \
            $CIPHERS"
-                
+
 G=`python3 translate_ciphers.py g "$CIPHERS"`
 G_CIPHERS="$G_CIPHERS                       \
            $G"

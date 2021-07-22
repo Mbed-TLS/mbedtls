@@ -1,4 +1,5 @@
 import re
+import sys
 
 def translate_gnu(m_cipher):
     # Remove "TLS-"
@@ -64,3 +65,34 @@ def translate_ossl(m_cipher):
         m_cipher = m_cipher.replace("DHE", "EDH")
 
     return m_cipher
+
+def format_g(m_ciphers):
+    #ciphers = (re.findall(r"TLS-.+\s*\\", m_ciphers))
+    m_ciphers = m_ciphers.split()
+    g_ciphers = []
+    for i in m_ciphers:
+        g_ciphers.append(translate_gnu(i))
+    return " ".join(g_ciphers)
+
+def format_o(m_ciphers):
+    m_ciphers = m_ciphers.split()
+    o_ciphers = []
+    for i in m_ciphers:
+        o_ciphers.append(translate_ossl(i))
+    return " ".join(o_ciphers)
+
+def main():
+    # print command line arguments
+    if len(sys.argv) <= 2:
+        exit(1)
+    if sys.argv[1] == "g":
+        print(format_g(sys.argv[2]))
+        exit(0)
+    elif sys.argv[1] == "o":
+        print(format_o(sys.argv[2]))
+        exit(0)
+    else: 
+        exit(1)
+
+if __name__ == "__main__":
+    main()

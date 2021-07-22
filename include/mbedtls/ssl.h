@@ -1214,7 +1214,7 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_SSL_SRV_C)
     unsigned int MBEDTLS_PRIVATE(cert_req_ca_list) : 1;  /*!< enable sending CA list in
                                           Certificate Request messages?     */
-    unsigned int respect_cli_pref : 1;  /*!< pick the ciphersuite according to
+    unsigned int MBEDTLS_PRIVATE(respect_cli_pref) : 1;  /*!< pick the ciphersuite according to
                                           the client's preferences rather
                                           than ours                         */
 #endif

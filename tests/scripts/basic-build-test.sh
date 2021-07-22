@@ -159,7 +159,7 @@ echo
 # A failure of the left-hand side of a pipe is ignored (this is a limitation
 # of sh). We'll use the presence of this file as a marker that the generation
 # of the report succeeded.
-rm -f "basic-build-test-$$.ok"
+rm -f "tests/basic-build-test-$$.ok"
 
 {
 
@@ -272,6 +272,8 @@ rm -f "basic-build-test-$$.ok"
     echo "Branches Tested    : $BRANCHES_TESTED of $BRANCHES_TOTAL $BRANCHES_PERCENT%"
     echo
 
+    # Mark the report generation as having succeeded. This must be the
+    # last thing in the report generation.
     touch "basic-build-test-$$.ok"
 } | tee coverage-summary.txt
 
@@ -284,4 +286,4 @@ fi
 # The file must exist, otherwise it means something went wrong while generating
 # the coverage report. If something did go wrong, rm will complain so this
 # script will exit with a failure status.
-rm "basic-build-test-$$.ok"
+rm "tests/basic-build-test-$$.ok"

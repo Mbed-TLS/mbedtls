@@ -43,6 +43,7 @@ FIELD_RE = re.compile(
         r')\s*\)\s*\([^;]*?\)'
     ]) +
     r')(?:\s*\[[^;]*?\])*' + # optional array lengths
+    r'(?:\s*:\s*[0-9]+\s*)?' + # optional bit field width
     r'\s*;',
     re.DOTALL
 )

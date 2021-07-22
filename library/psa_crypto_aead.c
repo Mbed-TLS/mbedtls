@@ -296,7 +296,7 @@ psa_status_t mbedtls_psa_aead_decrypt(
         goto exit;
 
     if( mbedtls_aead_check_nonce_length( &operation, nonce_length )
-        != PSA_SUCCESS)
+        != PSA_SUCCESS )
     {
         status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
@@ -428,7 +428,7 @@ psa_status_t mbedtls_psa_aead_set_nonce(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     if( mbedtls_aead_check_nonce_length( operation, nonce_length )
-        != PSA_SUCCESS)
+        != PSA_SUCCESS )
     {
         return( PSA_ERROR_INVALID_ARGUMENT );
     }

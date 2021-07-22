@@ -925,7 +925,7 @@ struct mbedtls_ssl_session
     unsigned char MBEDTLS_PRIVATE(id)[32];       /*!< session identifier */
     unsigned char MBEDTLS_PRIVATE(master)[48];   /*!< the master secret  */
 
-    unsigned char exported;
+    unsigned char MBEDTLS_PRIVATE(exported);
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)

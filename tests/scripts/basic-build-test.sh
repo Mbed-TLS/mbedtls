@@ -289,10 +289,15 @@ fi
 # If the coverage summary doesn't end with the expected last two lines
 # ("Branches Tested" and a blank line), either there was an error while
 # creating the coverage summary or the coverage summary reported failures.
+# The script runs under `set -e`, so most failures cause it to abort,
+# but failures on the left-hand side of a pipe are not detected (this is
+# a limitation of sh), so we check that the left-hand side of the pipe
+# succeeded by checking that it took the last action that it was expected
+# to take.
 newline='
 '
 case "$(tail -n2 coverage-summary.txt)" in
-    *"$newline"*) exit 1;;
-    "Branches Tested"*) :;;
-    *) exit 1;;
+    *"$newline"*) exit 1;; # last line was not blank
+    "Branches Tested"*) :;; # looks good
+    *) exit 1;; # next-to-last line had unexpected content
 esac

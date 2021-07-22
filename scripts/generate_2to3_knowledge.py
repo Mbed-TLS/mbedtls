@@ -28,7 +28,7 @@ Data = TypedDict('Data', {  #pylint: disable=invalid-name
     'public_fields': Dict[str, List[str]],
 })
 
-COMMENT_RE = re.compile(r'//[^\n]+|/\*.*?\*/')
+COMMENT_RE = re.compile(r'//[^\n]+|/\*.*?\*/', re.DOTALL)
 STRUCT_DEFINITION_RE = \
     re.compile(r'\ntypedef struct\b\s*\w*\s*\{(.*?)\}\s*(\w+);',
                re.DOTALL)
@@ -43,7 +43,8 @@ FIELD_RE = re.compile(
         r')\s*\)\s*\([^;]*?\)'
     ]) +
     r')(?:\s*\[[^;]*?\])*' + # optional array lengths
-    r'\s*;'
+    r'\s*;',
+    re.DOTALL
 )
 
 def list_type_fields(private_list: List[str],

@@ -70,7 +70,7 @@ int mbedtls_x25519_make_params( mbedtls_x25519_context *ctx, size_t *olen,
 
     *olen = MBEDTLS_X25519_KEY_SIZE_BYTES + 4;
     if( blen < *olen )
-        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL ;
 
     *buf++ = MBEDTLS_ECP_TLS_NAMED_CURVE;
     *buf++ = MBEDTLS_ECP_TLS_CURVE25519 >> 8;
@@ -84,21 +84,21 @@ int mbedtls_x25519_make_params( mbedtls_x25519_context *ctx, size_t *olen,
     if( memcmp( buf, base, MBEDTLS_X25519_KEY_SIZE_BYTES) == 0 )
         return MBEDTLS_ERR_ECP_RANDOM_FAILED;
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_x25519_read_params( mbedtls_x25519_context *ctx,
                         const unsigned char **buf, const unsigned char *end )
 {
     if( end - *buf < MBEDTLS_X25519_KEY_SIZE_BYTES + 1 )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA ;
 
     if( ( *(*buf)++ != MBEDTLS_X25519_KEY_SIZE_BYTES ) )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA ;
 
     memcpy( ctx->peer_point, *buf, MBEDTLS_X25519_KEY_SIZE_BYTES );
     *buf += MBEDTLS_X25519_KEY_SIZE_BYTES;
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_x25519_get_params( mbedtls_x25519_context *ctx, const mbedtls_ecp_keypair *key,
@@ -112,7 +112,7 @@ int mbedtls_x25519_get_params( mbedtls_x25519_context *ctx, const mbedtls_ecp_ke
     case MBEDTLS_X25519_ECDH_OURS:
         return mbedtls_mpi_write_binary_le( &key->d, ctx->our_secret, MBEDTLS_X25519_KEY_SIZE_BYTES );
     default:
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA ;
     }
 }
 
@@ -129,7 +129,7 @@ int mbedtls_x25519_calc_secret( mbedtls_x25519_context *ctx, size_t *olen,
     *olen = MBEDTLS_X25519_KEY_SIZE_BYTES;
 
     if( blen < *olen )
-        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL ;
 
     Hacl_Curve25519_crypto_scalarmult( buf, ctx->our_secret, ctx->peer_point);
 
@@ -139,7 +139,7 @@ int mbedtls_x25519_calc_secret( mbedtls_x25519_context *ctx, size_t *olen,
     if( memcmp( buf, ctx->our_secret, MBEDTLS_X25519_KEY_SIZE_BYTES) == 0 )
         return MBEDTLS_ERR_ECP_RANDOM_FAILED;
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_x25519_make_public( mbedtls_x25519_context *ctx, size_t *olen,
@@ -151,14 +151,14 @@ int mbedtls_x25519_make_public( mbedtls_x25519_context *ctx, size_t *olen,
     unsigned char base[MBEDTLS_X25519_KEY_SIZE_BYTES] = { 0 };
 
     if( ctx == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA ;
 
     if( ( ret = f_rng( p_rng, ctx->our_secret, MBEDTLS_X25519_KEY_SIZE_BYTES ) ) != 0 )
         return ret;
 
     *olen = MBEDTLS_X25519_KEY_SIZE_BYTES + 1;
     if( blen < *olen )
-        return(MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL);
+        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
     *buf++ = MBEDTLS_X25519_KEY_SIZE_BYTES;
 
     base[0] = 9;
@@ -168,18 +168,18 @@ int mbedtls_x25519_make_public( mbedtls_x25519_context *ctx, size_t *olen,
     if( memcmp( buf, base, MBEDTLS_X25519_KEY_SIZE_BYTES ) == 0 )
         return MBEDTLS_ERR_ECP_RANDOM_FAILED;
 
-    return( ret );
+    return ret ;
 }
 
 int mbedtls_x25519_read_public( mbedtls_x25519_context *ctx,
                         const unsigned char *buf, size_t blen )
 {
     if( blen < MBEDTLS_X25519_KEY_SIZE_BYTES + 1 )
-        return(MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL);
+        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
     if( (*buf++ != MBEDTLS_X25519_KEY_SIZE_BYTES) )
-        return(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     memcpy( ctx->peer_point, buf, MBEDTLS_X25519_KEY_SIZE_BYTES );
-    return( 0 );
+    return 0 ;
 }
 
 

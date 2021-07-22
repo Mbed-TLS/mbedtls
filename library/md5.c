@@ -98,7 +98,7 @@ int mbedtls_md5_starts( mbedtls_md5_context *ctx )
     ctx->state[2] = 0x98BADCFE;
     ctx->state[3] = 0x10325476;
 
-    return( 0 );
+    return 0 ;
 }
 
 #if !defined(MBEDTLS_MD5_PROCESS_ALT)
@@ -234,7 +234,7 @@ int mbedtls_internal_md5_process( mbedtls_md5_context *ctx,
     /* Zeroise variables to clear sensitive data from memory. */
     mbedtls_platform_zeroize( &local, sizeof( local ) );
 
-    return( 0 );
+    return 0 ;
 }
 
 #endif /* !MBEDTLS_MD5_PROCESS_ALT */
@@ -251,7 +251,7 @@ int mbedtls_md5_update( mbedtls_md5_context *ctx,
     uint32_t left;
 
     if( ilen == 0 )
-        return( 0 );
+        return 0 ;
 
     left = ctx->total[0] & 0x3F;
     fill = 64 - left;
@@ -266,7 +266,7 @@ int mbedtls_md5_update( mbedtls_md5_context *ctx,
     {
         memcpy( (void *) (ctx->buffer + left), input, fill );
         if( ( ret = mbedtls_internal_md5_process( ctx, ctx->buffer ) ) != 0 )
-            return( ret );
+            return ret ;
 
         input += fill;
         ilen  -= fill;
@@ -276,7 +276,7 @@ int mbedtls_md5_update( mbedtls_md5_context *ctx,
     while( ilen >= 64 )
     {
         if( ( ret = mbedtls_internal_md5_process( ctx, input ) ) != 0 )
-            return( ret );
+            return ret ;
 
         input += 64;
         ilen  -= 64;
@@ -287,7 +287,7 @@ int mbedtls_md5_update( mbedtls_md5_context *ctx,
         memcpy( (void *) (ctx->buffer + left), input, ilen );
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -318,7 +318,7 @@ int mbedtls_md5_finish( mbedtls_md5_context *ctx,
         memset( ctx->buffer + used, 0, 64 - used );
 
         if( ( ret = mbedtls_internal_md5_process( ctx, ctx->buffer ) ) != 0 )
-            return( ret );
+            return ret ;
 
         memset( ctx->buffer, 0, 56 );
     }
@@ -334,7 +334,7 @@ int mbedtls_md5_finish( mbedtls_md5_context *ctx,
     PUT_UINT32_LE( high, ctx->buffer, 60 );
 
     if( ( ret = mbedtls_internal_md5_process( ctx, ctx->buffer ) ) != 0 )
-        return( ret );
+        return ret ;
 
     /*
      * Output final state
@@ -344,7 +344,7 @@ int mbedtls_md5_finish( mbedtls_md5_context *ctx,
     PUT_UINT32_LE( ctx->state[2], output,  8 );
     PUT_UINT32_LE( ctx->state[3], output, 12 );
 
-    return( 0 );
+    return 0 ;
 }
 
 #endif /* !MBEDTLS_MD5_ALT */
@@ -373,7 +373,7 @@ int mbedtls_md5( const unsigned char *input,
 exit:
     mbedtls_md5_free( &ctx );
 
-    return( ret );
+    return ret ;
 }
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -444,13 +444,13 @@ int mbedtls_md5_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "\n" );
 
-    return( 0 );
+    return 0 ;
 
 fail:
     if( verbose != 0 )
         mbedtls_printf( "failed\n" );
 
-    return( ret );
+    return ret ;
 }
 
 #endif /* MBEDTLS_SELF_TEST */

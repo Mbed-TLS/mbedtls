@@ -92,7 +92,7 @@ psa_status_t mbedtls_psa_ecp_load_representation(
          * So its data length is 2m+1 where m is the curve size in bits.
          */
         if( ( data_length & 1 ) == 0 )
-            return( PSA_ERROR_INVALID_ARGUMENT );
+            return PSA_ERROR_INVALID_ARGUMENT ;
         curve_bytes = data_length / 2;
 
         /* Montgomery public keys are represented in compressed format, meaning
@@ -106,7 +106,7 @@ psa_status_t mbedtls_psa_ecp_load_representation(
     {
         /* With an explicit bit-size, the data must have the matching length. */
         if( curve_bytes != PSA_BITS_TO_BYTES( curve_bits ) )
-            return( PSA_ERROR_INVALID_ARGUMENT );
+            return PSA_ERROR_INVALID_ARGUMENT ;
     }
     else
     {
@@ -119,7 +119,7 @@ psa_status_t mbedtls_psa_ecp_load_representation(
     /* Allocate and initialize a key representation. */
     ecp = mbedtls_calloc( 1, sizeof( mbedtls_ecp_keypair ) );
     if( ecp == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        return PSA_ERROR_INSUFFICIENT_MEMORY ;
     mbedtls_ecp_keypair_init( ecp );
 
     /* Load the group. */
@@ -179,7 +179,7 @@ exit:
         mbedtls_free( ecp );
     }
 
-    return( status );
+    return status ;
 }
 #endif /* defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ||
@@ -227,7 +227,7 @@ exit:
     mbedtls_ecp_keypair_free( ecp );
     mbedtls_free( ecp );
 
-    return( status );
+    return status ;
 }
 
 psa_status_t mbedtls_psa_ecp_export_key( psa_key_type_t type,
@@ -249,7 +249,7 @@ psa_status_t mbedtls_psa_ecp_export_key( psa_key_type_t type,
                                  mbedtls_psa_get_random,
                                  MBEDTLS_PSA_RANDOM_STATE ) );
             if( status != PSA_SUCCESS )
-                return( status );
+                return status ;
         }
 
         status = mbedtls_to_psa_error(
@@ -261,12 +261,12 @@ psa_status_t mbedtls_psa_ecp_export_key( psa_key_type_t type,
         if( status != PSA_SUCCESS )
             memset( data, 0, data_size );
 
-        return( status );
+        return status ;
     }
     else
     {
         if( data_size < PSA_BITS_TO_BYTES( ecp->grp.nbits ) )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
+            return PSA_ERROR_BUFFER_TOO_SMALL ;
 
         status = mbedtls_to_psa_error(
                     mbedtls_ecp_write_key( ecp,
@@ -277,7 +277,7 @@ psa_status_t mbedtls_psa_ecp_export_key( psa_key_type_t type,
         else
             memset( data, 0, data_size );
 
-        return( status );
+        return status ;
     }
 }
 
@@ -293,7 +293,7 @@ static psa_status_t ecp_export_public_key(
         attributes->core.type, attributes->core.bits,
         key_buffer, key_buffer_size, &ecp );
     if( status != PSA_SUCCESS )
-        return( status );
+        return status ;
 
     status = mbedtls_psa_ecp_export_key(
                  PSA_KEY_TYPE_ECC_PUBLIC_KEY(
@@ -303,7 +303,7 @@ static psa_status_t ecp_export_public_key(
     mbedtls_ecp_keypair_free( ecp );
     mbedtls_free( ecp );
 
-    return( status );
+    return status ;
 }
 #endif /* defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
@@ -326,10 +326,10 @@ static psa_status_t ecp_generate_key(
     mbedtls_ecp_keypair ecp;
 
     if( attributes->domain_parameters_size != 0 )
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
 
     if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
 
     mbedtls_ecp_keypair_init( &ecp );
     ret = mbedtls_ecp_gen_key( grp_id, &ecp,
@@ -338,7 +338,7 @@ static psa_status_t ecp_generate_key(
     if( ret != 0 )
     {
         mbedtls_ecp_keypair_free( &ecp );
-        return( mbedtls_to_psa_error( ret ) );
+        return mbedtls_to_psa_error( ret ) ;
     }
 
     status = mbedtls_to_psa_error(
@@ -349,7 +349,7 @@ static psa_status_t ecp_generate_key(
     if( status == PSA_SUCCESS )
         *key_buffer_length = key_buffer_size;
 
-    return( status );
+    return status ;
 }
 #endif /* defined(BUILTIN_KEY_TYPE_ECC_KEY_PAIR) */
 
@@ -377,7 +377,7 @@ static psa_status_t ecdsa_sign_hash(
                                                   key_buffer_size,
                                                   &ecp );
     if( status != PSA_SUCCESS )
-        return( status );
+        return status ;
 
     curve_bytes = PSA_BITS_TO_BYTES( ecp->grp.pbits );
     mbedtls_mpi_init( &r );
@@ -430,7 +430,7 @@ cleanup:
     mbedtls_ecp_keypair_free( ecp );
     mbedtls_free( ecp );
 
-    return( mbedtls_to_psa_error( ret ) );
+    return mbedtls_to_psa_error( ret ) ;
 }
 
 static psa_status_t ecdsa_verify_hash(
@@ -453,7 +453,7 @@ static psa_status_t ecdsa_verify_hash(
                                                   key_buffer_size,
                                                   &ecp );
     if( status != PSA_SUCCESS )
-        return( status );
+        return status ;
 
     curve_bytes = PSA_BITS_TO_BYTES( ecp->grp.pbits );
     mbedtls_mpi_init( &r );
@@ -489,7 +489,7 @@ cleanup:
     mbedtls_ecp_keypair_free( ecp );
     mbedtls_free( ecp );
 
-    return( mbedtls_to_psa_error( ret ) );
+    return mbedtls_to_psa_error( ret ) ;
 }
 
 #endif /* defined(BUILTIN_ALG_ECDSA) || \
@@ -632,7 +632,7 @@ psa_status_t mbedtls_transparent_test_driver_ecdsa_sign_hash(
     (void)signature;
     (void)signature_size;
     (void)signature_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 #endif
 }
 
@@ -656,7 +656,7 @@ psa_status_t mbedtls_transparent_test_driver_ecdsa_verify_hash(
     (void)hash_length;
     (void)signature;
     (void)signature_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 #endif
 }
 

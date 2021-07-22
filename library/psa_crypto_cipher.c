@@ -102,13 +102,13 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
                 mode = MBEDTLS_MODE_CHACHAPOLY;
                 break;
             default:
-                return( NULL );
+                return NULL ;
         }
     }
     else if( alg == PSA_ALG_CMAC )
         mode = MBEDTLS_MODE_ECB;
     else
-        return( NULL );
+        return NULL ;
 
     switch( key_type )
     {
@@ -135,7 +135,7 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
             cipher_id_tmp = MBEDTLS_CIPHER_ID_CHACHA20;
             break;
         default:
-            return( NULL );
+            return NULL ;
     }
     if( cipher_id != NULL )
         *cipher_id = cipher_id_tmp;
@@ -167,7 +167,7 @@ static psa_status_t cipher_setup(
     cipher_info = mbedtls_cipher_info_from_psa( alg, key_type,
                                                 key_bits, NULL );
     if( cipher_info == NULL )
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
 
     ret = mbedtls_cipher_setup( &operation->ctx.cipher, cipher_info );
     if( ret != 0 )
@@ -219,7 +219,7 @@ static psa_status_t cipher_setup(
     operation->iv_length = PSA_CIPHER_IV_LENGTH( key_type, alg );
 
 exit:
-    return( mbedtls_to_psa_error( ret ) );
+    return mbedtls_to_psa_error( ret ) ;
 }
 
 static psa_status_t cipher_encrypt_setup(
@@ -248,7 +248,7 @@ static psa_status_t cipher_set_iv( mbedtls_psa_cipher_operation_t *operation,
                             const uint8_t *iv, size_t iv_length )
 {
     if( iv_length != operation->iv_length )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return PSA_ERROR_INVALID_ARGUMENT ;
 
     return( mbedtls_to_psa_error(
                 mbedtls_cipher_set_iv( &operation->ctx.cipher,
@@ -340,7 +340,7 @@ static psa_status_t psa_cipher_update_ecb(
     status = PSA_SUCCESS;
 
 exit:
-    return( status );
+    return status ;
 }
 
 static psa_status_t cipher_update( mbedtls_psa_cipher_operation_t *operation,
@@ -369,7 +369,7 @@ static psa_status_t cipher_update( mbedtls_psa_cipher_operation_t *operation,
     }
 
     if( output_size < expected_output_size )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
+        return PSA_ERROR_BUFFER_TOO_SMALL ;
 
     if( operation->alg == PSA_ALG_ECB_NO_PADDING )
     {
@@ -390,10 +390,10 @@ static psa_status_t cipher_update( mbedtls_psa_cipher_operation_t *operation,
                                    input_length, output, output_length ) );
 
         if( *output_length > output_size )
-            return( PSA_ERROR_CORRUPTION_DETECTED );
+            return PSA_ERROR_CORRUPTION_DETECTED ;
     }
 
-    return( status );
+    return status ;
 }
 
 static psa_status_t cipher_finish( mbedtls_psa_cipher_operation_t *operation,
@@ -432,7 +432,7 @@ exit:
     mbedtls_platform_zeroize( temp_output_buffer,
                               sizeof( temp_output_buffer ) );
 
-    return( status );
+    return status ;
 }
 
 static psa_status_t cipher_abort( mbedtls_psa_cipher_operation_t *operation )
@@ -440,11 +440,11 @@ static psa_status_t cipher_abort( mbedtls_psa_cipher_operation_t *operation )
     /* Sanity check (shouldn't happen: operation->alg should
      * always have been initialized to a valid value). */
     if( ! PSA_ALG_IS_CIPHER( operation->alg ) )
-        return( PSA_ERROR_BAD_STATE );
+        return PSA_ERROR_BAD_STATE ;
 
     mbedtls_cipher_free( &operation->ctx.cipher );
 
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 static psa_status_t cipher_encrypt( const psa_key_attributes_t *attributes,
@@ -497,7 +497,7 @@ exit:
         status = cipher_abort( &operation );
     else
         cipher_abort( &operation );
-    return( status );
+    return status ;
 }
 
 static psa_status_t cipher_decrypt( const psa_key_attributes_t *attributes,
@@ -546,7 +546,7 @@ exit:
         status = cipher_abort( &operation );
     else
         cipher_abort( &operation );
-    return( status );
+    return status ;
 }
 #endif /* MBEDTLS_PSA_BUILTIN_CIPHER || PSA_CRYPTO_DRIVER_TEST */
 
@@ -575,7 +575,7 @@ psa_status_t mbedtls_psa_cipher_set_iv( mbedtls_psa_cipher_operation_t *operatio
                                         const uint8_t *iv,
                                         size_t iv_length )
 {
-    return( cipher_set_iv( operation, iv, iv_length ) );
+    return cipher_set_iv( operation, iv, iv_length ) ;
 }
 
 psa_status_t mbedtls_psa_cipher_update( mbedtls_psa_cipher_operation_t *operation,
@@ -594,12 +594,12 @@ psa_status_t mbedtls_psa_cipher_finish( mbedtls_psa_cipher_operation_t *operatio
                                         size_t output_size,
                                         size_t *output_length )
 {
-    return( cipher_finish( operation, output, output_size, output_length ) );
+    return cipher_finish( operation, output, output_size, output_length ) ;
 }
 
 psa_status_t mbedtls_psa_cipher_abort( mbedtls_psa_cipher_operation_t *operation )
 {
-    return( cipher_abort( operation ) );
+    return cipher_abort( operation ) ;
 }
 
 psa_status_t mbedtls_psa_cipher_encrypt( const psa_key_attributes_t *attributes,
@@ -662,7 +662,7 @@ psa_status_t mbedtls_transparent_test_driver_cipher_set_iv(
     mbedtls_psa_cipher_operation_t *operation,
     const uint8_t *iv, size_t iv_length )
 {
-    return( cipher_set_iv( operation, iv, iv_length ) );
+    return cipher_set_iv( operation, iv, iv_length ) ;
 }
 
 psa_status_t mbedtls_transparent_test_driver_cipher_update(
@@ -678,13 +678,13 @@ psa_status_t mbedtls_transparent_test_driver_cipher_finish(
     mbedtls_psa_cipher_operation_t *operation,
     uint8_t *output, size_t output_size, size_t *output_length )
 {
-    return( cipher_finish( operation, output, output_size, output_length ) );
+    return cipher_finish( operation, output, output_size, output_length ) ;
 }
 
 psa_status_t mbedtls_transparent_test_driver_cipher_abort(
     mbedtls_psa_cipher_operation_t *operation )
 {
-    return( cipher_abort( operation ) );
+    return cipher_abort( operation ) ;
 }
 
 psa_status_t mbedtls_transparent_test_driver_cipher_encrypt(

@@ -2094,7 +2094,7 @@ static inline mbedtls_svc_key_id_t mbedtls_svc_key_id_make(
 {
     (void)unused;
 
-    return( key_id );
+    return key_id ;
 }
 
 /** Compare two key identifiers.
@@ -2107,7 +2107,7 @@ static inline mbedtls_svc_key_id_t mbedtls_svc_key_id_make(
 static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
                                             mbedtls_svc_key_id_t id2 )
 {
-    return( id1 == id2 );
+    return id1 == id2 ;
 }
 
 /** Check whether a key identifier is null.
@@ -2118,7 +2118,7 @@ static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
  */
 static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 {
-    return( key == 0 );
+    return key == 0 ;
 }
 
 #else /* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
@@ -2161,7 +2161,7 @@ static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
  */
 static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 {
-    return( key.MBEDTLS_PRIVATE(key_id) == 0 );
+    return key.MBEDTLS_PRIVATE(key_id) == 0 ;
 }
 
 #endif /* !MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */

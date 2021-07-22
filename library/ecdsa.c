@@ -185,7 +185,7 @@ static void ecdsa_restart_det_free( mbedtls_ecdsa_restart_det_ctx *ctx )
     {                                                                \
         rs_ctx->SUB = mbedtls_calloc( 1, sizeof( *rs_ctx->SUB ) );   \
         if( rs_ctx->SUB == NULL )                                    \
-            return( MBEDTLS_ERR_ECP_ALLOC_FAILED );                  \
+            return MBEDTLS_ERR_ECP_ALLOC_FAILED ;                  \
                                                                      \
         ecdsa_restart_## SUB ##_init( rs_ctx->SUB );                 \
     }                                                                \
@@ -240,7 +240,7 @@ static int derive_mpi( const mbedtls_ecp_group *grp, mbedtls_mpi *x,
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( x, x, &grp->N ) );
 
 cleanup:
-    return( ret );
+    return ret ;
 }
 #endif /* ECDSA_DETERMINISTIC || !ECDSA_SIGN_ALT || !ECDSA_VERIFY_ALT */
 
@@ -265,11 +265,11 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if( ! mbedtls_ecdsa_can_do( grp->id ) || grp->N.p == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA ;
 
     /* Make sure d is in range 1..n-1 */
     if( mbedtls_mpi_cmp_int( d, 1 ) < 0 || mbedtls_mpi_cmp_mpi( d, &grp->N ) >= 0 )
-        return( MBEDTLS_ERR_ECP_INVALID_KEY );
+        return MBEDTLS_ERR_ECP_INVALID_KEY ;
 
     mbedtls_ecp_point_init( &R );
     mbedtls_mpi_init( &k ); mbedtls_mpi_init( &e ); mbedtls_mpi_init( &t );
@@ -380,7 +380,7 @@ cleanup:
 
     ECDSA_RS_LEAVE( sig );
 
-    return( ret );
+    return ret ;
 }
 
 int mbedtls_ecdsa_can_do( mbedtls_ecp_group_id gid )
@@ -441,7 +441,7 @@ static int ecdsa_sign_det_restartable( mbedtls_ecp_group *grp,
     mbedtls_mpi h;
 
     if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA ;
 
     mbedtls_mpi_init( &h );
     mbedtls_hmac_drbg_init( &rng_ctx );
@@ -489,7 +489,7 @@ cleanup:
 
     ECDSA_RS_LEAVE( det );
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -537,7 +537,7 @@ static int ecdsa_verify_restartable( mbedtls_ecp_group *grp,
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if( ! mbedtls_ecdsa_can_do( grp->id ) || grp->N.p == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA ;
 
     ECDSA_RS_ENTER( ver );
 
@@ -622,7 +622,7 @@ cleanup:
 
     ECDSA_RS_LEAVE( ver );
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -640,7 +640,7 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
     ECDSA_VALIDATE_RET( s   != NULL );
     ECDSA_VALIDATE_RET( buf != NULL || blen == 0 );
 
-    return( ecdsa_verify_restartable( grp, buf, blen, Q, r, s, NULL ) );
+    return ecdsa_verify_restartable( grp, buf, blen, Q, r, s, NULL ) ;
 }
 #endif /* !MBEDTLS_ECDSA_VERIFY_ALT */
 
@@ -664,12 +664,12 @@ static int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
                                        MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
 
     if( len > sig_size )
-        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL ;
 
     memcpy( sig, p, len );
     *slen = len;
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -691,7 +691,7 @@ int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
     ECDSA_VALIDATE_RET( slen  != NULL );
 
     if( f_rng == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA ;
 
     mbedtls_mpi_init( &r );
     mbedtls_mpi_init( &s );
@@ -722,7 +722,7 @@ cleanup:
     mbedtls_mpi_free( &r );
     mbedtls_mpi_free( &s );
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -820,7 +820,7 @@ cleanup:
     mbedtls_mpi_free( &r );
     mbedtls_mpi_free( &s );
 
-    return( ret );
+    return ret ;
 }
 
 #if !defined(MBEDTLS_ECDSA_GENKEY_ALT)
@@ -836,7 +836,7 @@ int mbedtls_ecdsa_genkey( mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
 
     ret = mbedtls_ecp_group_load( &ctx->grp, gid );
     if( ret != 0 )
-        return( ret );
+        return ret ;
 
    return( mbedtls_ecp_gen_keypair( &ctx->grp, &ctx->d,
                                     &ctx->Q, f_rng, p_rng ) );
@@ -859,7 +859,7 @@ int mbedtls_ecdsa_from_keypair( mbedtls_ecdsa_context *ctx, const mbedtls_ecp_ke
         mbedtls_ecdsa_free( ctx );
     }
 
-    return( ret );
+    return ret ;
 }
 
 /*

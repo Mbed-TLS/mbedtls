@@ -127,7 +127,7 @@ Hacl_Bignum_Fmul_mul_shift_reduce_(
 inline static void Hacl_Bignum_Fmul_fmul(uint64_t *output, uint64_t *input, uint64_t *input2)
 {
   uint64_t tmp[5U] = { 0U };
-  memcpy(tmp, input, (uint32_t)5U * sizeof input[0U]);
+  memcpy(tmp, input, (uint32_t)5U * sizeof(input[0U]));
   KRML_CHECK_SIZE(sizeof (FStar_UInt128_uint128), (uint32_t)5U);
   {
     FStar_UInt128_uint128 t[5U];
@@ -265,7 +265,7 @@ Hacl_Bignum_Fsquare_fsquare_times(uint64_t *output, uint64_t *input, uint32_t co
       for (_i = 0U; _i < (uint32_t)5U; ++_i)
         t[_i] = FStar_UInt128_uint64_to_uint128((uint64_t)0U);
     }
-    memcpy(output, input, (uint32_t)5U * sizeof input[0U]);
+    memcpy(output, input, (uint32_t)5U * sizeof(input[0U]));
     Hacl_Bignum_Fsquare_fsquare_times_(output, t, count1);
   }
 }
@@ -347,7 +347,7 @@ inline static void Hacl_Bignum_fdifference(uint64_t *a, uint64_t *b)
   uint64_t b2;
   uint64_t b3;
   uint64_t b4;
-  memcpy(tmp, b, (uint32_t)5U * sizeof b[0U]);
+  memcpy(tmp, b, (uint32_t)5U * sizeof(b[0U]));
   b0 = tmp[0U];
   b1 = tmp[1U];
   b2 = tmp[2U];
@@ -451,7 +451,7 @@ static void Hacl_EC_Point_swap_conditional(uint64_t *a, uint64_t *b, uint64_t is
 
 static void Hacl_EC_Point_copy(uint64_t *output, uint64_t *input)
 {
-  memcpy(output, input, (uint32_t)5U * sizeof input[0U]);
+  memcpy(output, input, (uint32_t)5U * sizeof(input[0U]));
   memcpy(output + (uint32_t)5U,
     input + (uint32_t)5U,
     (uint32_t)5U * sizeof (input + (uint32_t)5U)[0U]);
@@ -645,10 +645,10 @@ Hacl_EC_AddAndDouble_fmonty(
   uint64_t *xx;
   uint64_t *zz;
   uint64_t scalar;
-  memcpy(origx, x, (uint32_t)5U * sizeof x[0U]);
+  memcpy(origx, x, (uint32_t)5U * sizeof(x[0U]));
   Hacl_Bignum_fsum(x, z);
   Hacl_Bignum_fdifference(z, origx);
-  memcpy(origxprime0, xprime, (uint32_t)5U * sizeof xprime[0U]);
+  memcpy(origxprime0, xprime, (uint32_t)5U * sizeof(xprime[0U]));
   Hacl_Bignum_fsum(xprime, zprime);
   Hacl_Bignum_fdifference(zprime, origxprime0);
   Hacl_Bignum_fmul(xxprime0, xprime, z);
@@ -659,7 +659,7 @@ Hacl_EC_AddAndDouble_fmonty(
   xxprime = buf + (uint32_t)25U;
   zzprime = buf + (uint32_t)30U;
   zzzprime = buf + (uint32_t)35U;
-  memcpy(origxprime, xxprime, (uint32_t)5U * sizeof xxprime[0U]);
+  memcpy(origxprime, xxprime, (uint32_t)5U * sizeof(xxprime[0U]));
   Hacl_Bignum_fsum(xxprime, zzprime);
   Hacl_Bignum_fdifference(zzprime, origxprime);
   Hacl_Bignum_Fsquare_fsquare_times(x3, xxprime, (uint32_t)1U);
@@ -783,7 +783,7 @@ void Hacl_Curve25519_crypto_scalarmult(uint8_t *mypublic, uint8_t *secret, uint8
     uint8_t e311;
     uint8_t e312;
     uint8_t *scalar;
-    memcpy(e, secret, (uint32_t)32U * sizeof secret[0U]);
+    memcpy(e, secret, (uint32_t)32U * sizeof(secret[0U]));
     e0 = e[0U];
     e31 = e[31U];
     e01 = e0 & (uint8_t)248U;

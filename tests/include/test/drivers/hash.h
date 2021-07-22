@@ -40,7 +40,7 @@ static inline mbedtls_test_driver_hash_hooks_t
     mbedtls_test_driver_hash_hooks_init( void )
 {
     const mbedtls_test_driver_hash_hooks_t v = MBEDTLS_TEST_DRIVER_HASH_INIT;
-    return( v );
+    return v ;
 }
 
 extern mbedtls_test_driver_hash_hooks_t mbedtls_test_driver_hash_hooks;

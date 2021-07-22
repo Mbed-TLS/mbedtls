@@ -128,7 +128,7 @@ static int write_public_key( mbedtls_pk_context *key, const char *output_file )
     if( opt.output_format == OUTPUT_FORMAT_PEM )
     {
         if( ( ret = mbedtls_pk_write_pubkey_pem( key, output_buf, 16000 ) ) != 0 )
-            return( ret );
+            return ret ;
 
         len = strlen( (char *) output_buf );
     }
@@ -136,24 +136,24 @@ static int write_public_key( mbedtls_pk_context *key, const char *output_file )
 #endif
     {
         if( ( ret = mbedtls_pk_write_pubkey_der( key, output_buf, 16000 ) ) < 0 )
-            return( ret );
+            return ret ;
 
         len = ret;
         c = output_buf + sizeof(output_buf) - len;
     }
 
     if( ( f = fopen( output_file, "w" ) ) == NULL )
-        return( -1 );
+        return -1 ;
 
     if( fwrite( c, 1, len, f ) != len )
     {
         fclose( f );
-        return( -1 );
+        return -1 ;
     }
 
     fclose( f );
 
-    return( 0 );
+    return 0 ;
 }
 
 static int write_private_key( mbedtls_pk_context *key, const char *output_file )
@@ -170,7 +170,7 @@ static int write_private_key( mbedtls_pk_context *key, const char *output_file )
     if( opt.output_format == OUTPUT_FORMAT_PEM )
     {
         if( ( ret = mbedtls_pk_write_key_pem( key, output_buf, 16000 ) ) != 0 )
-            return( ret );
+            return ret ;
 
         len = strlen( (char *) output_buf );
     }
@@ -178,24 +178,24 @@ static int write_private_key( mbedtls_pk_context *key, const char *output_file )
 #endif
     {
         if( ( ret = mbedtls_pk_write_key_der( key, output_buf, 16000 ) ) < 0 )
-            return( ret );
+            return ret ;
 
         len = ret;
         c = output_buf + sizeof(output_buf) - len;
     }
 
     if( ( f = fopen( output_file, "w" ) ) == NULL )
-        return( -1 );
+        return -1 ;
 
     if( fwrite( c, 1, len, f ) != len )
     {
         fclose( f );
-        return( -1 );
+        return -1 ;
     }
 
     fclose( f );
 
-    return( 0 );
+    return 0 ;
 }
 
 int main( int argc, char *argv[] )

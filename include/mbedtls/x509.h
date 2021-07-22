@@ -354,7 +354,7 @@ int mbedtls_x509_write_sig( unsigned char **p, unsigned char *start,
 #define MBEDTLS_X509_SAFE_SNPRINTF                          \
     do {                                                    \
         if( ret < 0 || (size_t) ret >= n )                  \
-            return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );    \
+            return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL ;    \
                                                             \
         n -= (size_t) ret;                                  \
         p += (size_t) ret;                                  \

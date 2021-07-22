@@ -100,15 +100,15 @@ int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned ch
 
     ret = mbedtls_asn1_write_named_bitstring( &c, buf, &key_usage, 8 );
     if( ret < 3 || ret > 4 )
-        return( ret );
+        return ret ;
 
     ret = mbedtls_x509write_csr_set_extension( ctx, MBEDTLS_OID_KEY_USAGE,
                                        MBEDTLS_OID_SIZE( MBEDTLS_OID_KEY_USAGE ),
                                        0, c, (size_t)ret );
     if( ret != 0 )
-        return( ret );
+        return ret ;
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
@@ -122,15 +122,15 @@ int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
 
     ret = mbedtls_asn1_write_named_bitstring( &c, buf, &ns_cert_type, 8 );
     if( ret < 3 || ret > 4 )
-        return( ret );
+        return ret ;
 
     ret = mbedtls_x509write_csr_set_extension( ctx, MBEDTLS_OID_NS_CERT_TYPE,
                                        MBEDTLS_OID_SIZE( MBEDTLS_OID_NS_CERT_TYPE ),
                                        0, c, (size_t)ret );
     if( ret != 0 )
-        return( ret );
+        return ret ;
 
-    return( 0 );
+    return 0 ;
 }
 
 static int x509write_csr_der_internal( mbedtls_x509write_csr *ctx,
@@ -220,26 +220,26 @@ static int x509write_csr_der_internal( mbedtls_x509write_csr *ctx,
      */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( psa_hash_setup( &hash_operation, hash_alg ) != PSA_SUCCESS )
-        return( MBEDTLS_ERR_X509_FATAL_ERROR );
+        return MBEDTLS_ERR_X509_FATAL_ERROR ;
 
     if( psa_hash_update( &hash_operation, c, len ) != PSA_SUCCESS )
-        return( MBEDTLS_ERR_X509_FATAL_ERROR );
+        return MBEDTLS_ERR_X509_FATAL_ERROR ;
 
     if( psa_hash_finish( &hash_operation, hash, sizeof( hash ), &hash_len )
         != PSA_SUCCESS )
     {
-        return( MBEDTLS_ERR_X509_FATAL_ERROR );
+        return MBEDTLS_ERR_X509_FATAL_ERROR ;
     }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
     ret = mbedtls_md( mbedtls_md_info_from_type( ctx->md_alg ), c, len, hash );
     if( ret != 0 )
-        return( ret );
+        return ret ;
 #endif
     if( ( ret = mbedtls_pk_sign( ctx->key, ctx->md_alg, hash, 0,
                                  sig, sig_size, &sig_len,
                                  f_rng, p_rng ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     if( mbedtls_pk_can_do( ctx->key, MBEDTLS_PK_RSA ) )
@@ -247,12 +247,12 @@ static int x509write_csr_der_internal( mbedtls_x509write_csr *ctx,
     else if( mbedtls_pk_can_do( ctx->key, MBEDTLS_PK_ECDSA ) )
         pk_alg = MBEDTLS_PK_ECDSA;
     else
-        return( MBEDTLS_ERR_X509_INVALID_ALG );
+        return MBEDTLS_ERR_X509_INVALID_ALG ;
 
     if( ( ret = mbedtls_oid_get_oid_by_sig_alg( pk_alg, ctx->md_alg,
                                               &sig_oid, &sig_oid_len ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     /*
@@ -289,7 +289,7 @@ static int x509write_csr_der_internal( mbedtls_x509write_csr *ctx,
     /* Zero the unused bytes at the start of buf */
     memset( buf, 0, c2 - buf);
 
-    return( (int) len );
+    return (int) len ;
 }
 
 int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf,
@@ -302,7 +302,7 @@ int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf,
 
     if( ( sig = mbedtls_calloc( 1, MBEDTLS_PK_SIGNATURE_MAX_SIZE ) ) == NULL )
     {
-        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+        return MBEDTLS_ERR_X509_ALLOC_FAILED ;
     }
 
     ret = x509write_csr_der_internal( ctx, buf, size,
@@ -311,7 +311,7 @@ int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf,
 
     mbedtls_free( sig );
 
-    return( ret );
+    return ret ;
 }
 
 #define PEM_BEGIN_CSR           "-----BEGIN CERTIFICATE REQUEST-----\n"
@@ -328,17 +328,17 @@ int mbedtls_x509write_csr_pem( mbedtls_x509write_csr *ctx, unsigned char *buf, s
     if( ( ret = mbedtls_x509write_csr_der( ctx, buf, size,
                                    f_rng, p_rng ) ) < 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     if( ( ret = mbedtls_pem_write_buffer( PEM_BEGIN_CSR, PEM_END_CSR,
                                   buf + size - ret,
                                   ret, buf, size, &olen ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_PEM_WRITE_C */
 

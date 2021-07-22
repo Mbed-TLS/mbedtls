@@ -63,14 +63,14 @@ static int pem_get_iv( const unsigned char *s, unsigned char *iv,
         if( *s >= '0' && *s <= '9' ) j = *s - '0'; else
         if( *s >= 'A' && *s <= 'F' ) j = *s - '7'; else
         if( *s >= 'a' && *s <= 'f' ) j = *s - 'W'; else
-            return( MBEDTLS_ERR_PEM_INVALID_ENC_IV );
+            return MBEDTLS_ERR_PEM_INVALID_ENC_IV ;
 
         k = ( ( i & 1 ) != 0 ) ? j : j << 4;
 
         iv[i >> 1] = (unsigned char)( iv[i >> 1] | k );
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 static int pem_pbkdf1( unsigned char *key, size_t keylen,
@@ -128,7 +128,7 @@ exit:
     mbedtls_md5_free( &md5_ctx );
     mbedtls_platform_zeroize( md5sum, 16 );
 
-    return( ret );
+    return ret ;
 }
 
 #if defined(MBEDTLS_DES_C)
@@ -157,7 +157,7 @@ exit:
     mbedtls_des_free( &des_ctx );
     mbedtls_platform_zeroize( des_key, 8 );
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -185,7 +185,7 @@ exit:
     mbedtls_des3_free( &des3_ctx );
     mbedtls_platform_zeroize( des3_key, 24 );
 
-    return( ret );
+    return ret ;
 }
 #endif /* MBEDTLS_DES_C */
 
@@ -215,7 +215,7 @@ exit:
     mbedtls_aes_free( &aes_ctx );
     mbedtls_platform_zeroize( aes_key, keylen );
 
-    return( ret );
+    return ret ;
 }
 #endif /* MBEDTLS_AES_C */
 
@@ -241,23 +241,23 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
           ( MBEDTLS_AES_C || MBEDTLS_DES_C ) */
 
     if( ctx == NULL )
-        return( MBEDTLS_ERR_PEM_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_PEM_BAD_INPUT_DATA ;
 
     s1 = (unsigned char *) strstr( (const char *) data, header );
 
     if( s1 == NULL )
-        return( MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT );
+        return MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT ;
 
     s2 = (unsigned char *) strstr( (const char *) data, footer );
 
     if( s2 == NULL || s2 <= s1 )
-        return( MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT );
+        return MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT ;
 
     s1 += strlen( header );
     if( *s1 == ' '  ) s1++;
     if( *s1 == '\r' ) s1++;
     if( *s1 == '\n' ) s1++;
-    else return( MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT );
+    else return MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT ;
 
     end = s2;
     end += strlen( footer );
@@ -277,7 +277,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
         s1 += 22;
         if( *s1 == '\r' ) s1++;
         if( *s1 == '\n' ) s1++;
-        else return( MBEDTLS_ERR_PEM_INVALID_DATA );
+        else return MBEDTLS_ERR_PEM_INVALID_DATA ;
 
 
 #if defined(MBEDTLS_DES_C)
@@ -287,7 +287,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
 
             s1 += 23;
             if( s2 - s1 < 16 || pem_get_iv( s1, pem_iv, 8 ) != 0 )
-                return( MBEDTLS_ERR_PEM_INVALID_ENC_IV );
+                return MBEDTLS_ERR_PEM_INVALID_ENC_IV ;
 
             s1 += 16;
         }
@@ -297,7 +297,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
 
             s1 += 18;
             if( s2 - s1 < 16 || pem_get_iv( s1, pem_iv, 8) != 0 )
-                return( MBEDTLS_ERR_PEM_INVALID_ENC_IV );
+                return MBEDTLS_ERR_PEM_INVALID_ENC_IV ;
 
             s1 += 16;
         }
@@ -307,7 +307,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
         if( s2 - s1 >= 14 && memcmp( s1, "DEK-Info: AES-", 14 ) == 0 )
         {
             if( s2 - s1 < 22 )
-                return( MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG );
+                return MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG ;
             else if( memcmp( s1, "DEK-Info: AES-128-CBC,", 22 ) == 0 )
                 enc_alg = MBEDTLS_CIPHER_AES_128_CBC;
             else if( memcmp( s1, "DEK-Info: AES-192-CBC,", 22 ) == 0 )
@@ -315,44 +315,44 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
             else if( memcmp( s1, "DEK-Info: AES-256-CBC,", 22 ) == 0 )
                 enc_alg = MBEDTLS_CIPHER_AES_256_CBC;
             else
-                return( MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG );
+                return MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG ;
 
             s1 += 22;
             if( s2 - s1 < 32 || pem_get_iv( s1, pem_iv, 16 ) != 0 )
-                return( MBEDTLS_ERR_PEM_INVALID_ENC_IV );
+                return MBEDTLS_ERR_PEM_INVALID_ENC_IV ;
 
             s1 += 32;
         }
 #endif /* MBEDTLS_AES_C */
 
         if( enc_alg == MBEDTLS_CIPHER_NONE )
-            return( MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG );
+            return MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG ;
 
         if( *s1 == '\r' ) s1++;
         if( *s1 == '\n' ) s1++;
-        else return( MBEDTLS_ERR_PEM_INVALID_DATA );
+        else return MBEDTLS_ERR_PEM_INVALID_DATA ;
 #else
-        return( MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE );
+        return MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE ;
 #endif /* MBEDTLS_MD5_C && MBEDTLS_CIPHER_MODE_CBC &&
           ( MBEDTLS_AES_C || MBEDTLS_DES_C ) */
     }
 
     if( s1 >= s2 )
-        return( MBEDTLS_ERR_PEM_INVALID_DATA );
+        return MBEDTLS_ERR_PEM_INVALID_DATA ;
 
     ret = mbedtls_base64_decode( NULL, 0, &len, s1, s2 - s1 );
 
     if( ret == MBEDTLS_ERR_BASE64_INVALID_CHARACTER )
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PEM_INVALID_DATA, ret ) );
+        return MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PEM_INVALID_DATA, ret ) ;
 
     if( ( buf = mbedtls_calloc( 1, len ) ) == NULL )
-        return( MBEDTLS_ERR_PEM_ALLOC_FAILED );
+        return MBEDTLS_ERR_PEM_ALLOC_FAILED ;
 
     if( ( ret = mbedtls_base64_decode( buf, len, &len, s1, s2 - s1 ) ) != 0 )
     {
         mbedtls_platform_zeroize( buf, len );
         mbedtls_free( buf );
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PEM_INVALID_DATA, ret ) );
+        return MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PEM_INVALID_DATA, ret ) ;
     }
 
     if( enc != 0 )
@@ -363,7 +363,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
         {
             mbedtls_platform_zeroize( buf, len );
             mbedtls_free( buf );
-            return( MBEDTLS_ERR_PEM_PASSWORD_REQUIRED );
+            return MBEDTLS_ERR_PEM_PASSWORD_REQUIRED ;
         }
 
         ret = 0;
@@ -387,7 +387,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
         if( ret != 0 )
         {
             mbedtls_free( buf );
-            return( ret );
+            return ret ;
         }
 
         /*
@@ -400,12 +400,12 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
         {
             mbedtls_platform_zeroize( buf, len );
             mbedtls_free( buf );
-            return( MBEDTLS_ERR_PEM_PASSWORD_MISMATCH );
+            return MBEDTLS_ERR_PEM_PASSWORD_MISMATCH ;
         }
 #else
         mbedtls_platform_zeroize( buf, len );
         mbedtls_free( buf );
-        return( MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE );
+        return MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE ;
 #endif /* MBEDTLS_MD5_C && MBEDTLS_CIPHER_MODE_CBC &&
           ( MBEDTLS_AES_C || MBEDTLS_DES_C ) */
     }
@@ -413,7 +413,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
     ctx->buf = buf;
     ctx->buflen = len;
 
-    return( 0 );
+    return 0 ;
 }
 
 void mbedtls_pem_free( mbedtls_pem_context *ctx )
@@ -444,18 +444,18 @@ int mbedtls_pem_write_buffer( const char *header, const char *footer,
     if( use_len + add_len > buf_len )
     {
         *olen = use_len + add_len;
-        return( MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL );
+        return MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL ;
     }
 
     if( use_len != 0 &&
         ( ( encode_buf = mbedtls_calloc( 1, use_len ) ) == NULL ) )
-        return( MBEDTLS_ERR_PEM_ALLOC_FAILED );
+        return MBEDTLS_ERR_PEM_ALLOC_FAILED ;
 
     if( ( ret = mbedtls_base64_encode( encode_buf, use_len, &use_len, der_data,
                                der_len ) ) != 0 )
     {
         mbedtls_free( encode_buf );
-        return( ret );
+        return ret ;
     }
 
     memcpy( p, header, strlen( header ) );
@@ -482,7 +482,7 @@ int mbedtls_pem_write_buffer( const char *header, const char *footer,
     memset( buf + *olen, 0, buf_len - *olen );
 
     mbedtls_free( encode_buf );
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_PEM_WRITE_C */
 #endif /* MBEDTLS_PEM_PARSE_C || MBEDTLS_PEM_WRITE_C */

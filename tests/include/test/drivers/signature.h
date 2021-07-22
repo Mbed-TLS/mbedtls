@@ -42,7 +42,7 @@ static inline mbedtls_test_driver_signature_hooks_t
 {
     const mbedtls_test_driver_signature_hooks_t
         v = MBEDTLS_TEST_DRIVER_SIGNATURE_INIT;
-    return( v );
+    return v ;
 }
 
 extern mbedtls_test_driver_signature_hooks_t

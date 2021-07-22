@@ -63,17 +63,17 @@ psa_status_t mbedtls_test_transparent_generate_key(
     ++mbedtls_test_driver_key_management_hooks.hits;
 
     if( mbedtls_test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_key_management_hooks.forced_status );
+        return mbedtls_test_driver_key_management_hooks.forced_status ;
 
     if( mbedtls_test_driver_key_management_hooks.forced_output != NULL )
     {
         if( mbedtls_test_driver_key_management_hooks.forced_output_length >
             key_size )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
+            return PSA_ERROR_BUFFER_TOO_SMALL ;
         memcpy( key, mbedtls_test_driver_key_management_hooks.forced_output,
                 mbedtls_test_driver_key_management_hooks.forced_output_length );
         *key_length = mbedtls_test_driver_key_management_hooks.forced_output_length;
-        return( PSA_SUCCESS );
+        return PSA_SUCCESS ;
     }
 
     /* Copied from psa_crypto.c */
@@ -95,7 +95,7 @@ psa_status_t mbedtls_test_transparent_generate_key(
 #endif /* defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) */
     {
         (void)attributes;
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
     }
 }
 
@@ -107,7 +107,7 @@ psa_status_t mbedtls_test_opaque_generate_key(
     (void) key;
     (void) key_size;
     (void) key_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 }
 
 psa_status_t mbedtls_test_transparent_import_key(
@@ -122,7 +122,7 @@ psa_status_t mbedtls_test_transparent_import_key(
     ++mbedtls_test_driver_key_management_hooks.hits;
 
     if( mbedtls_test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_key_management_hooks.forced_status );
+        return mbedtls_test_driver_key_management_hooks.forced_status ;
 
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_type_t type = psa_get_key_type( attributes );
@@ -162,7 +162,7 @@ psa_status_t mbedtls_test_transparent_import_key(
         (void)type;
     }
 
-    return( status );
+    return status ;
 }
 
 psa_status_t mbedtls_test_opaque_export_key(
@@ -173,7 +173,7 @@ psa_status_t mbedtls_test_opaque_export_key(
     if( key_length != sizeof( psa_drv_slot_number_t ) )
     {
         /* Test driver does not support generic opaque key handling yet. */
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
     }
 
     /* Assume this is a builtin key based on the key material length. */
@@ -186,47 +186,47 @@ psa_status_t mbedtls_test_opaque_export_key(
              * returning the private key. */
             if( psa_get_key_type( attributes ) !=
                 PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
+                return PSA_ERROR_CORRUPTION_DETECTED ;
             if( psa_get_key_bits( attributes ) != 256 )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
+                return PSA_ERROR_CORRUPTION_DETECTED ;
             if( psa_get_key_algorithm( attributes ) !=
                 PSA_ALG_ECDSA( PSA_ALG_ANY_HASH ) )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
+                return PSA_ERROR_CORRUPTION_DETECTED ;
             if( ( psa_get_key_usage_flags( attributes ) &
                   PSA_KEY_USAGE_EXPORT ) == 0 )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
+                return PSA_ERROR_CORRUPTION_DETECTED ;
 
             if( data_size < sizeof( mbedtls_test_driver_ecdsa_key ) )
-                return( PSA_ERROR_BUFFER_TOO_SMALL );
+                return PSA_ERROR_BUFFER_TOO_SMALL ;
 
             memcpy( data, mbedtls_test_driver_ecdsa_key,
                     sizeof( mbedtls_test_driver_ecdsa_key ) );
             *data_length = sizeof( mbedtls_test_driver_ecdsa_key );
-            return( PSA_SUCCESS );
+            return PSA_SUCCESS ;
 
         case PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT:
             /* This is the AES slot. Verify the key's attributes before
              * returning the key. */
             if( psa_get_key_type( attributes ) != PSA_KEY_TYPE_AES )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
+                return PSA_ERROR_CORRUPTION_DETECTED ;
             if( psa_get_key_bits( attributes ) != 128 )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
+                return PSA_ERROR_CORRUPTION_DETECTED ;
             if( psa_get_key_algorithm( attributes ) != PSA_ALG_CTR )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
+                return PSA_ERROR_CORRUPTION_DETECTED ;
             if( ( psa_get_key_usage_flags( attributes ) &
                   PSA_KEY_USAGE_EXPORT ) == 0 )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
+                return PSA_ERROR_CORRUPTION_DETECTED ;
 
             if( data_size < sizeof( mbedtls_test_driver_aes_key ) )
-                return( PSA_ERROR_BUFFER_TOO_SMALL );
+                return PSA_ERROR_BUFFER_TOO_SMALL ;
 
             memcpy( data, mbedtls_test_driver_aes_key,
                     sizeof( mbedtls_test_driver_aes_key ) );
             *data_length = sizeof( mbedtls_test_driver_aes_key );
-            return( PSA_SUCCESS );
+            return PSA_SUCCESS ;
 
         default:
-            return( PSA_ERROR_DOES_NOT_EXIST );
+            return PSA_ERROR_DOES_NOT_EXIST ;
     }
 }
 
@@ -238,17 +238,17 @@ psa_status_t mbedtls_test_transparent_export_public_key(
     ++mbedtls_test_driver_key_management_hooks.hits;
 
     if( mbedtls_test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_key_management_hooks.forced_status );
+        return mbedtls_test_driver_key_management_hooks.forced_status ;
 
     if( mbedtls_test_driver_key_management_hooks.forced_output != NULL )
     {
         if( mbedtls_test_driver_key_management_hooks.forced_output_length >
             data_size )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
+            return PSA_ERROR_BUFFER_TOO_SMALL ;
         memcpy( data, mbedtls_test_driver_key_management_hooks.forced_output,
                 mbedtls_test_driver_key_management_hooks.forced_output_length );
         *data_length = mbedtls_test_driver_key_management_hooks.forced_output_length;
-        return( PSA_SUCCESS );
+        return PSA_SUCCESS ;
     }
 
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -283,7 +283,7 @@ psa_status_t mbedtls_test_transparent_export_public_key(
         (void)key_type;
     }
 
-    return( status );
+    return status ;
 }
 
 psa_status_t mbedtls_test_opaque_export_public_key(
@@ -294,7 +294,7 @@ psa_status_t mbedtls_test_opaque_export_public_key(
     if( key_length != sizeof( psa_drv_slot_number_t ) )
     {
         /* Test driver does not support generic opaque key handling yet. */
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
     }
 
     /* Assume this is a builtin key based on the key material length. */
@@ -306,23 +306,23 @@ psa_status_t mbedtls_test_opaque_export_public_key(
              * returning the public key. */
             if( psa_get_key_type( attributes ) !=
                 PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
+                return PSA_ERROR_CORRUPTION_DETECTED ;
             if( psa_get_key_bits( attributes ) != 256 )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
+                return PSA_ERROR_CORRUPTION_DETECTED ;
             if( psa_get_key_algorithm( attributes ) !=
                 PSA_ALG_ECDSA( PSA_ALG_ANY_HASH ) )
-                return( PSA_ERROR_CORRUPTION_DETECTED );
+                return PSA_ERROR_CORRUPTION_DETECTED ;
 
             if( data_size < sizeof( mbedtls_test_driver_ecdsa_pubkey ) )
-                return( PSA_ERROR_BUFFER_TOO_SMALL );
+                return PSA_ERROR_BUFFER_TOO_SMALL ;
 
             memcpy( data, mbedtls_test_driver_ecdsa_pubkey,
                     sizeof( mbedtls_test_driver_ecdsa_pubkey ) );
             *data_length = sizeof( mbedtls_test_driver_ecdsa_pubkey );
-            return( PSA_SUCCESS );
+            return PSA_SUCCESS ;
 
         default:
-            return( PSA_ERROR_DOES_NOT_EXIST );
+            return PSA_ERROR_DOES_NOT_EXIST ;
     }
 }
 
@@ -354,12 +354,12 @@ psa_status_t mbedtls_test_opaque_get_builtin_key(
             psa_set_key_algorithm( attributes, PSA_ALG_CTR );
 
             if( key_buffer_size < sizeof( psa_drv_slot_number_t ) )
-                return( PSA_ERROR_BUFFER_TOO_SMALL );
+                return PSA_ERROR_BUFFER_TOO_SMALL ;
 
             *( (psa_drv_slot_number_t*) key_buffer ) =
                 PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT;
             *key_buffer_length = sizeof( psa_drv_slot_number_t );
-            return( PSA_SUCCESS );
+            return PSA_SUCCESS ;
         case PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT:
             psa_set_key_type(
                 attributes,
@@ -374,14 +374,14 @@ psa_status_t mbedtls_test_opaque_get_builtin_key(
                 attributes, PSA_ALG_ECDSA( PSA_ALG_ANY_HASH ) );
 
             if( key_buffer_size < sizeof( psa_drv_slot_number_t ) )
-                return( PSA_ERROR_BUFFER_TOO_SMALL );
+                return PSA_ERROR_BUFFER_TOO_SMALL ;
 
             *( (psa_drv_slot_number_t*) key_buffer ) =
                 PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT;
             *key_buffer_length = sizeof( psa_drv_slot_number_t );
-            return( PSA_SUCCESS );
+            return PSA_SUCCESS ;
         default:
-            return( PSA_ERROR_DOES_NOT_EXIST );
+            return PSA_ERROR_DOES_NOT_EXIST ;
     }
 }
 

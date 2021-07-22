@@ -42,18 +42,18 @@ int mbedtls_test_uses_key_id( mbedtls_svc_key_id_t key_id )
         PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
     {
         /* Don't touch key id values that designate non-key files. */
-        return( 1 );
+        return 1 ;
     }
     for( i = 0; i < num_key_ids_used ; i++ )
     {
         if( mbedtls_svc_key_id_equal( key_id, key_ids_used_in_test[i] ) )
-            return( 1 );
+            return 1 ;
     }
     if( num_key_ids_used == ARRAY_LENGTH( key_ids_used_in_test ) )
-        return( 0 );
+        return 0 ;
     key_ids_used_in_test[num_key_ids_used] = key_id;
     ++num_key_ids_used;
-    return( 1 );
+    return 1 ;
 }
 
 void mbedtls_test_psa_purge_key_storage( void )
@@ -80,17 +80,17 @@ const char *mbedtls_test_helper_is_psa_leaking( void )
     mbedtls_psa_get_stats( &stats );
 
     if( stats.volatile_slots != 0 )
-        return( "A volatile slot has not been closed properly." );
+        return "A volatile slot has not been closed properly." ;
     if( stats.persistent_slots != 0 )
-        return( "A persistent slot has not been closed properly." );
+        return "A persistent slot has not been closed properly." ;
     if( stats.external_slots != 0 )
-        return( "An external slot has not been closed properly." );
+        return "An external slot has not been closed properly." ;
      if( stats.half_filled_slots != 0 )
-        return( "A half-filled slot has not been cleared properly." );
+        return "A half-filled slot has not been cleared properly." ;
     if( stats.locked_slots != 0 )
-        return( "Some slots are still marked as locked." );
+        return "Some slots are still marked as locked." ;
 
-    return( NULL );
+    return NULL ;
 }
 
 #if defined(RECORD_PSA_STATUS_COVERAGE_LOG)
@@ -110,7 +110,7 @@ psa_status_t mbedtls_test_record_status( psa_status_t status,
     if( log == NULL )
         log = fopen( STATUS_LOG_FILE_NAME, "a" );
     fprintf( log, "%d:%s:%s:%d:%s\n", (int) status, func, file, line, expr );
-    return( status );
+    return status ;
 }
 #endif /* defined(RECORD_PSA_STATUS_COVERAGE_LOG) */
 
@@ -124,7 +124,7 @@ psa_key_usage_t mbedtls_test_update_key_usage_flags( psa_key_usage_t usage_flags
     if( usage_flags & PSA_KEY_USAGE_VERIFY_HASH )
         updated_usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
 
-    return( updated_usage );
+    return updated_usage ;
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

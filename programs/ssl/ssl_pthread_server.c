@@ -267,7 +267,7 @@ thread_exit:
 
     thread_info->thread_complete = 1;
 
-    return( NULL );
+    return NULL ;
 }
 
 static int thread_create( mbedtls_net_context *client_fd )
@@ -292,7 +292,7 @@ static int thread_create( mbedtls_net_context *client_fd )
     }
 
     if( i == MAX_NUM_THREADS )
-        return( -1 );
+        return -1 ;
 
     /*
      * Fill thread-info for thread
@@ -304,10 +304,10 @@ static int thread_create( mbedtls_net_context *client_fd )
     if( ( ret = pthread_create( &threads[i].thread, NULL, handle_ssl_connection,
                                 &threads[i].data ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 int main( void )

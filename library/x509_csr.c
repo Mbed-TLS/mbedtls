@@ -70,13 +70,13 @@ static int x509_csr_get_version( unsigned char **p,
         if( ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
         {
             *ver = 0;
-            return( 0 );
+            return 0 ;
         }
 
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_VERSION, ret ) );
+        return MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_VERSION, ret ) ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -96,7 +96,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
      * Check for valid input
      */
     if( csr == NULL || buf == NULL || buflen == 0 )
-        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA ;
 
     mbedtls_x509_csr_init( csr );
 
@@ -106,7 +106,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
     p = mbedtls_calloc( 1, len = buflen );
 
     if( p == NULL )
-        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+        return MBEDTLS_ERR_X509_ALLOC_FAILED ;
 
     memcpy( p, buf, buflen );
 
@@ -125,7 +125,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
-        return( MBEDTLS_ERR_X509_INVALID_FORMAT );
+        return MBEDTLS_ERR_X509_INVALID_FORMAT ;
     }
 
     if( len != (size_t) ( end - p ) )
@@ -144,7 +144,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_FORMAT, ret ) );
+        return MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_FORMAT, ret ) ;
     }
 
     end = p + len;
@@ -156,13 +156,13 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
     if( ( ret = x509_csr_get_version( &p, end, &csr->version ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
-        return( ret );
+        return ret ;
     }
 
     if( csr->version != 0 )
     {
         mbedtls_x509_csr_free( csr );
-        return( MBEDTLS_ERR_X509_UNKNOWN_VERSION );
+        return MBEDTLS_ERR_X509_UNKNOWN_VERSION ;
     }
 
     csr->version++;
@@ -176,13 +176,13 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_FORMAT, ret ) );
+        return MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_FORMAT, ret ) ;
     }
 
     if( ( ret = mbedtls_x509_get_name( &p, p + len, &csr->subject ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
-        return( ret );
+        return ret ;
     }
 
     csr->subject_raw.len = p - csr->subject_raw.p;
@@ -193,7 +193,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
     if( ( ret = mbedtls_pk_parse_subpubkey( &p, end, &csr->pk ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
-        return( ret );
+        return ret ;
     }
 
     /*
@@ -210,7 +210,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_FORMAT, ret ) );
+        return MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_FORMAT, ret ) ;
     }
 
     p += len;
@@ -224,7 +224,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
     if( ( ret = mbedtls_x509_get_alg( &p, end, &csr->sig_oid, &sig_params ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
-        return( ret );
+        return ret ;
     }
 
     if( ( ret = mbedtls_x509_get_sig_alg( &csr->sig_oid, &sig_params,
@@ -232,13 +232,13 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
                                   &csr->sig_opts ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
-        return( MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG );
+        return MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG ;
     }
 
     if( ( ret = mbedtls_x509_get_sig( &p, end, &csr->sig ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
-        return( ret );
+        return ret ;
     }
 
     if( p != end )
@@ -248,7 +248,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH ) );
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -266,7 +266,7 @@ int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, siz
      * Check for valid input
      */
     if( csr == NULL || buf == NULL || buflen == 0 )
-        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA ;
 
 #if defined(MBEDTLS_PEM_PARSE_C)
     /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
@@ -295,10 +295,10 @@ int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, siz
 
         mbedtls_pem_free( &pem );
         if( ret != MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
-            return( ret );
+            return ret ;
     }
 #endif /* MBEDTLS_PEM_PARSE_C */
-    return( mbedtls_x509_csr_parse_der( csr, buf, buflen ) );
+    return mbedtls_x509_csr_parse_der( csr, buf, buflen ) ;
 }
 
 #if defined(MBEDTLS_FS_IO)
@@ -312,14 +312,14 @@ int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path )
     unsigned char *buf;
 
     if( ( ret = mbedtls_pk_load_file( path, &buf, &n ) ) != 0 )
-        return( ret );
+        return ret ;
 
     ret = mbedtls_x509_csr_parse( csr, buf, n );
 
     mbedtls_platform_zeroize( buf, n );
     mbedtls_free( buf );
 
-    return( ret );
+    return ret ;
 }
 #endif /* MBEDTLS_FS_IO */
 
@@ -359,7 +359,7 @@ int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
     if( ( ret = mbedtls_x509_key_size_helper( key_size_str, BEFORE_COLON,
                                       mbedtls_pk_get_name( &csr->pk ) ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,

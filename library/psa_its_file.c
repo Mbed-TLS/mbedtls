@@ -100,14 +100,14 @@ static psa_status_t psa_its_read_file( psa_storage_uid_t uid,
     psa_its_fill_filename( uid, filename );
     *p_stream = fopen( filename, "rb" );
     if( *p_stream == NULL )
-        return( PSA_ERROR_DOES_NOT_EXIST );
+        return PSA_ERROR_DOES_NOT_EXIST ;
 
     n = fread( &header, 1, sizeof( header ), *p_stream );
     if( n != sizeof( header ) )
-        return( PSA_ERROR_DATA_CORRUPT );
+        return PSA_ERROR_DATA_CORRUPT ;
     if( memcmp( header.magic, PSA_ITS_MAGIC_STRING,
                 PSA_ITS_MAGIC_LENGTH ) != 0 )
-        return( PSA_ERROR_DATA_CORRUPT );
+        return PSA_ERROR_DATA_CORRUPT ;
 
     p_info->size = ( header.size[0] |
                      header.size[1] << 8 |
@@ -117,7 +117,7 @@ static psa_status_t psa_its_read_file( psa_storage_uid_t uid,
                       header.flags[1] << 8 |
                       header.flags[2] << 16 |
                       header.flags[3] << 24 );
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 psa_status_t psa_its_get_info( psa_storage_uid_t uid,
@@ -128,7 +128,7 @@ psa_status_t psa_its_get_info( psa_storage_uid_t uid,
     status = psa_its_read_file( uid, p_info, &stream );
     if( stream != NULL )
         fclose( stream );
-    return( status );
+    return status ;
 }
 
 psa_status_t psa_its_get( psa_storage_uid_t uid,
@@ -176,7 +176,7 @@ psa_status_t psa_its_get( psa_storage_uid_t uid,
 exit:
     if( stream != NULL )
         fclose( stream );
-    return( status );
+    return status ;
 }
 
 psa_status_t psa_its_set( psa_storage_uid_t uid,
@@ -235,7 +235,7 @@ exit:
      * temporary file doesn't exist and so remove() is expected to fail.
      * Thus we just ignore the return status of remove(). */
     (void) remove( PSA_ITS_STORAGE_TEMP );
-    return( status );
+    return status ;
 }
 
 psa_status_t psa_its_remove( psa_storage_uid_t uid )
@@ -245,11 +245,11 @@ psa_status_t psa_its_remove( psa_storage_uid_t uid )
     psa_its_fill_filename( uid, filename );
     stream = fopen( filename, "rb" );
     if( stream == NULL )
-        return( PSA_ERROR_DOES_NOT_EXIST );
+        return PSA_ERROR_DOES_NOT_EXIST ;
     fclose( stream );
     if( remove( filename ) != 0 )
-        return( PSA_ERROR_STORAGE_FAILURE );
-    return( PSA_SUCCESS );
+        return PSA_ERROR_STORAGE_FAILURE ;
+    return PSA_SUCCESS ;
 }
 
 #endif /* MBEDTLS_PSA_ITS_FILE_C */

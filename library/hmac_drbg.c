@@ -101,7 +101,7 @@ int mbedtls_hmac_drbg_update( mbedtls_hmac_drbg_context *ctx,
 
 exit:
     mbedtls_platform_zeroize( K, sizeof( K ) );
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -114,7 +114,7 @@ int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( ( ret = mbedtls_md_setup( &ctx->md_ctx, md_info, 1 ) ) != 0 )
-        return( ret );
+        return ret ;
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &ctx->mutex );
@@ -127,13 +127,13 @@ int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
      */
     if( ( ret = mbedtls_md_hmac_starts( &ctx->md_ctx, ctx->V,
                                         mbedtls_md_get_size( md_info ) ) ) != 0 )
-        return( ret );
+        return ret ;
     memset( ctx->V, 0x01, mbedtls_md_get_size( md_info ) );
 
     if( ( ret = mbedtls_hmac_drbg_update( ctx, data, data_len ) ) != 0 )
-        return( ret );
+        return ret ;
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -161,7 +161,7 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
         if( len > MBEDTLS_HMAC_DRBG_MAX_INPUT ||
             total_entropy_len + len > MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT )
         {
-            return( MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG );
+            return MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG ;
         }
     }
 
@@ -171,7 +171,7 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
     if( ( ret = ctx->f_entropy( ctx->p_entropy,
                                 seed, ctx->entropy_len ) ) != 0 )
     {
-        return( MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED );
+        return MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED ;
     }
     seedlen += ctx->entropy_len;
 
@@ -190,7 +190,7 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
                                     seed + seedlen,
                                     ctx->entropy_len / 2 ) ) != 0 )
         {
-            return( MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED );
+            return MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED ;
         }
 
         seedlen += ctx->entropy_len / 2;
@@ -214,7 +214,7 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
 exit:
     /* 4. Done */
     mbedtls_platform_zeroize( seed, seedlen );
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -223,7 +223,7 @@ exit:
 int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
                       const unsigned char *additional, size_t len )
 {
-    return( hmac_drbg_reseed_core( ctx, additional, len, 0 ) );
+    return hmac_drbg_reseed_core( ctx, additional, len, 0 ) ;
 }
 
 /*
@@ -243,7 +243,7 @@ int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
     size_t md_size;
 
     if( ( ret = mbedtls_md_setup( &ctx->md_ctx, md_info, 1 ) ) != 0 )
-        return( ret );
+        return ret ;
 
     /* The mutex is initialized iff the md context is set up. */
 #if defined(MBEDTLS_THREADING_C)
@@ -258,7 +258,7 @@ int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
      * MD context with an all-zero key. Then set V to its initial value.
      */
     if( ( ret = mbedtls_md_hmac_starts( &ctx->md_ctx, ctx->V, md_size ) ) != 0 )
-        return( ret );
+        return ret ;
     memset( ctx->V, 0x01, md_size );
 
     ctx->f_entropy = f_entropy;
@@ -281,10 +281,10 @@ int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
     if( ( ret = hmac_drbg_reseed_core( ctx, custom, len,
                                        1 /* add nonce */ ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -328,11 +328,11 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
 
     /* II. Check request length */
     if( out_len > MBEDTLS_HMAC_DRBG_MAX_REQUEST )
-        return( MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG );
+        return MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG ;
 
     /* III. Check input length */
     if( add_len > MBEDTLS_HMAC_DRBG_MAX_INPUT )
-        return( MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG );
+        return MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG ;
 
     /* 1. (aka VII and IX) Check reseed counter and PR */
     if( ctx->f_entropy != NULL && /* For no-reseeding instances */
@@ -340,7 +340,7 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
           ctx->reseed_counter > ctx->reseed_interval ) )
     {
         if( ( ret = mbedtls_hmac_drbg_reseed( ctx, additional, add_len ) ) != 0 )
-            return( ret );
+            return ret ;
 
         add_len = 0; /* VII.4 */
     }
@@ -381,7 +381,7 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
 
 exit:
     /* 8. Done */
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -394,17 +394,17 @@ int mbedtls_hmac_drbg_random( void *p_rng, unsigned char *output, size_t out_len
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
-        return( ret );
+        return ret ;
 #endif
 
     ret = mbedtls_hmac_drbg_random_with_add( ctx, output, out_len, NULL, 0 );
 
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR ;
 #endif
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -434,7 +434,7 @@ int mbedtls_hmac_drbg_write_seed_file( mbedtls_hmac_drbg_context *ctx, const cha
     unsigned char buf[ MBEDTLS_HMAC_DRBG_MAX_INPUT ];
 
     if( ( f = fopen( path, "wb" ) ) == NULL )
-        return( MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR );
+        return MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR ;
 
     if( ( ret = mbedtls_hmac_drbg_random( ctx, buf, sizeof( buf ) ) ) != 0 )
         goto exit;
@@ -451,7 +451,7 @@ exit:
     fclose( f );
     mbedtls_platform_zeroize( buf, sizeof( buf ) );
 
-    return( ret );
+    return ret ;
 }
 
 int mbedtls_hmac_drbg_update_seed_file( mbedtls_hmac_drbg_context *ctx, const char *path )
@@ -463,7 +463,7 @@ int mbedtls_hmac_drbg_update_seed_file( mbedtls_hmac_drbg_context *ctx, const ch
     unsigned char c;
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR );
+        return MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR ;
 
     n = fread( buf, 1, sizeof( buf ), f );
     if( fread( &c, 1, 1, f ) != 0 )
@@ -486,8 +486,8 @@ exit:
     if( f != NULL )
         fclose( f );
     if( ret != 0 )
-        return( ret );
-    return( mbedtls_hmac_drbg_write_seed_file( ctx, path ) );
+        return ret ;
+    return mbedtls_hmac_drbg_write_seed_file( ctx, path ) ;
 }
 #endif /* MBEDTLS_FS_IO */
 
@@ -499,7 +499,7 @@ exit:
 int mbedtls_hmac_drbg_self_test( int verbose )
 {
     (void) verbose;
-    return( 0 );
+    return 0 ;
 }
 #else
 
@@ -544,14 +544,14 @@ static int hmac_drbg_self_test_entropy( void *data,
     const unsigned char *p = data;
     memcpy( buf, p + test_offset, len );
     test_offset += len;
-    return( 0 );
+    return 0 ;
 }
 
 #define CHK( c )    if( (c) != 0 )                          \
                     {                                       \
                         if( verbose != 0 )                  \
                             mbedtls_printf( "failed\n" );  \
-                        return( 1 );                        \
+                        return 1 ;                        \
                     }
 
 /*
@@ -612,7 +612,7 @@ int mbedtls_hmac_drbg_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "\n" );
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_SHA1_C */
 #endif /* MBEDTLS_SELF_TEST */

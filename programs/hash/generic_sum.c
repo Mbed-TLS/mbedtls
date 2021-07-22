@@ -57,7 +57,7 @@ static int generic_wrapper( const mbedtls_md_info_t *md_info, char *filename, un
     if( ret == 2 )
         mbedtls_fprintf( stderr, "failed to read: %s\n", filename );
 
-    return( ret );
+    return ret ;
 }
 
 static int generic_print( const mbedtls_md_info_t *md_info, char *filename )
@@ -66,13 +66,13 @@ static int generic_print( const mbedtls_md_info_t *md_info, char *filename )
     unsigned char sum[MBEDTLS_MD_MAX_SIZE];
 
     if( generic_wrapper( md_info, filename, sum ) != 0 )
-        return( 1 );
+        return 1 ;
 
     for( i = 0; i < mbedtls_md_get_size( md_info ); i++ )
         mbedtls_printf( "%02x", sum[i] );
 
     mbedtls_printf( "  %s\n", filename );
-    return( 0 );
+    return 0 ;
 }
 
 static int generic_check( const mbedtls_md_info_t *md_info, char *filename )
@@ -94,7 +94,7 @@ static int generic_check( const mbedtls_md_info_t *md_info, char *filename )
     if( ( f = fopen( filename, "rb" ) ) == NULL )
     {
         mbedtls_printf( "failed to open: %s\n", filename );
-        return( 1 );
+        return 1 ;
     }
 
     nb_err1 = nb_err2 = 0;
@@ -164,7 +164,7 @@ static int generic_check( const mbedtls_md_info_t *md_info, char *filename )
 
     fclose( f );
 
-    return( nb_err1 != 0 || nb_err2 != 0 );
+    return nb_err1 != 0 || nb_err2 != 0 ;
 }
 
 int main( int argc, char *argv[] )

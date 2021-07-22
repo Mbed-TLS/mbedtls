@@ -82,25 +82,25 @@ psa_se_drv_table_entry_t *psa_get_se_driver_entry(
      * (which designates transparent keys). Make sure we never return
      * a driver entry for location 0. */
     if( location == 0 )
-        return( NULL );
+        return NULL ;
     for( i = 0; i < PSA_MAX_SE_DRIVERS; i++ )
     {
         if( driver_table[i].location == location )
-            return( &driver_table[i] );
+            return &driver_table[i] ;
     }
-    return( NULL );
+    return NULL ;
 }
 
 const psa_drv_se_t *psa_get_se_driver_methods(
     const psa_se_drv_table_entry_t *driver )
 {
-    return( driver->methods );
+    return driver->methods ;
 }
 
 psa_drv_se_context_t *psa_get_se_driver_context(
     psa_se_drv_table_entry_t *driver )
 {
-    return( &driver->u.context );
+    return &driver->u.context ;
 }
 
 int psa_get_se_driver( psa_key_lifetime_t lifetime,
@@ -112,7 +112,7 @@ int psa_get_se_driver( psa_key_lifetime_t lifetime,
         *p_methods = ( driver ? driver->methods : NULL );
     if( p_drv_context != NULL )
         *p_drv_context = ( driver ? &driver->u.context : NULL );
-    return( driver != NULL );
+    return driver != NULL ;
 }
 
 
@@ -126,17 +126,17 @@ static psa_status_t psa_get_se_driver_its_file_uid(
     psa_storage_uid_t *uid )
 {
     if( driver->location > PSA_MAX_SE_LOCATION )
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
 
 #if SIZE_MAX > UINT32_MAX
     /* ITS file sizes are limited to 32 bits. */
     if( driver->u.internal.persistent_data_size > UINT32_MAX )
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
 #endif
 
     /* See the documentation of PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE. */
     *uid = PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE + driver->location;
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 psa_status_t psa_load_se_persistent_data(
@@ -148,7 +148,7 @@ psa_status_t psa_load_se_persistent_data(
 
     status = psa_get_se_driver_its_file_uid( driver, &uid );
     if( status != PSA_SUCCESS )
-        return( status );
+        return status ;
 
     /* Read the amount of persistent data that the driver requests.
      * If the data in storage is larger, it is truncated. If the data
@@ -171,7 +171,7 @@ psa_status_t psa_save_se_persistent_data(
 
     status = psa_get_se_driver_its_file_uid( driver, &uid );
     if( status != PSA_SUCCESS )
-        return( status );
+        return status ;
 
     /* psa_get_se_driver_its_file_uid ensures that the size_t
      * persistent_data_size is in range, but compilers don't know that,
@@ -186,9 +186,9 @@ psa_status_t psa_destroy_se_persistent_data( psa_key_location_t location )
 {
     psa_storage_uid_t uid;
     if( location > PSA_MAX_SE_LOCATION )
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
     uid = PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE + location;
-    return( psa_its_remove( uid ) );
+    return psa_its_remove( uid ) ;
 }
 
 psa_status_t psa_find_se_slot_for_key(
@@ -203,11 +203,11 @@ psa_status_t psa_find_se_slot_for_key(
 
     /* If the location is wrong, it's a bug in the library. */
     if( driver->location != key_location )
-        return( PSA_ERROR_CORRUPTION_DETECTED );
+        return PSA_ERROR_CORRUPTION_DETECTED ;
 
     /* If the driver doesn't support key creation in any way, give up now. */
     if( driver->methods->key_management == NULL )
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
 
     if( psa_get_key_slot_number( attributes, slot_number ) == PSA_SUCCESS )
     {
@@ -218,7 +218,7 @@ psa_status_t psa_find_se_slot_for_key(
         psa_drv_se_validate_slot_number_t p_validate_slot_number =
             driver->methods->key_management->p_validate_slot_number;
         if( p_validate_slot_number == NULL )
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return PSA_ERROR_NOT_SUPPORTED ;
         status = p_validate_slot_number( &driver->u.context,
                                          driver->u.internal.persistent_data,
                                          attributes, method,
@@ -228,7 +228,7 @@ psa_status_t psa_find_se_slot_for_key(
     {
         /* The application didn't specify a slot number. This doesn't
          * make sense when registering a slot. */
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return PSA_ERROR_INVALID_ARGUMENT ;
     }
     else
     {
@@ -237,13 +237,13 @@ psa_status_t psa_find_se_slot_for_key(
         psa_drv_se_allocate_key_t p_allocate =
             driver->methods->key_management->p_allocate;
         if( p_allocate == NULL )
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return PSA_ERROR_NOT_SUPPORTED ;
         status = p_allocate( &driver->u.context,
                              driver->u.internal.persistent_data,
                              attributes, method,
                              slot_number );
     }
-    return( status );
+    return status ;
 }
 
 psa_status_t psa_destroy_se_key( psa_se_drv_table_entry_t *driver,
@@ -261,13 +261,13 @@ psa_status_t psa_destroy_se_key( psa_se_drv_table_entry_t *driver,
      * keys, it's really a lack of permission. */
     if( driver->methods->key_management == NULL ||
         driver->methods->key_management->p_destroy == NULL )
-        return( PSA_ERROR_NOT_PERMITTED );
+        return PSA_ERROR_NOT_PERMITTED ;
     status = driver->methods->key_management->p_destroy(
         &driver->u.context,
         driver->u.internal.persistent_data,
         slot_number );
     storage_status = psa_save_se_persistent_data( driver );
-    return( status == PSA_SUCCESS ? storage_status : status );
+    return status == PSA_SUCCESS ? storage_status : status ;
 }
 
 psa_status_t psa_init_all_se_drivers( void )
@@ -286,13 +286,13 @@ psa_status_t psa_init_all_se_drivers( void )
                 driver->u.internal.persistent_data,
                 driver->location );
             if( status != PSA_SUCCESS )
-                return( status );
+                return status ;
             status = psa_save_se_persistent_data( driver );
             if( status != PSA_SUCCESS )
-                return( status );
+                return status ;
         }
     }
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 
@@ -309,7 +309,7 @@ psa_status_t psa_register_se_driver(
     psa_status_t status;
 
     if( methods->hal_version != PSA_DRV_SE_HAL_VERSION )
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
     /* Driver table entries are 0-initialized. 0 is not a valid driver
      * location because it means a transparent key. */
 #if defined(static_assert)
@@ -317,9 +317,9 @@ psa_status_t psa_register_se_driver(
                    "Secure element support requires 0 to mean a local key" );
 #endif
     if( location == PSA_KEY_LOCATION_LOCAL_STORAGE )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return PSA_ERROR_INVALID_ARGUMENT ;
     if( location > PSA_MAX_SE_LOCATION )
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
 
     for( i = 0; i < PSA_MAX_SE_DRIVERS; i++ )
     {
@@ -329,10 +329,10 @@ psa_status_t psa_register_se_driver(
          * entry. Since entries are created in order and never deleted,
          * there can't be a used entry after the first free entry. */
         if( driver_table[i].location == location )
-            return( PSA_ERROR_ALREADY_EXISTS );
+            return PSA_ERROR_ALREADY_EXISTS ;
     }
     if( i == PSA_MAX_SE_DRIVERS )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        return PSA_ERROR_INSUFFICIENT_MEMORY ;
 
     driver_table[i].location = location;
     driver_table[i].methods = methods;
@@ -356,11 +356,11 @@ psa_status_t psa_register_se_driver(
             goto error;
     }
 
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 
 error:
     memset( &driver_table[i], 0, sizeof( driver_table[i] ) );
-    return( status );
+    return status ;
 }
 
 void psa_unregister_all_se_drivers( void )

@@ -61,7 +61,7 @@ int dev_random_entropy_poll( void *data, unsigned char *output,
 
     file = fopen( "/dev/random", "rb" );
     if( file == NULL )
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED ;
 
     while( left > 0 )
     {
@@ -70,7 +70,7 @@ int dev_random_entropy_poll( void *data, unsigned char *output,
         if( ret == 0 && ferror( file ) )
         {
             fclose( file );
-            return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+            return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED ;
         }
 
         p += ret;
@@ -80,7 +80,7 @@ int dev_random_entropy_poll( void *data, unsigned char *output,
     fclose( file );
     *olen = len;
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* !_WIN32 */
 #endif
@@ -157,31 +157,31 @@ static int write_private_key( mbedtls_pk_context *key, const char *output_file )
     if( opt.format == FORMAT_PEM )
     {
         if( ( ret = mbedtls_pk_write_key_pem( key, output_buf, 16000 ) ) != 0 )
-            return( ret );
+            return ret ;
 
         len = strlen( (char *) output_buf );
     }
     else
     {
         if( ( ret = mbedtls_pk_write_key_der( key, output_buf, 16000 ) ) < 0 )
-            return( ret );
+            return ret ;
 
         len = ret;
         c = output_buf + sizeof(output_buf) - len;
     }
 
     if( ( f = fopen( output_file, "wb" ) ) == NULL )
-        return( -1 );
+        return -1 ;
 
     if( fwrite( c, 1, len, f ) != len )
     {
         fclose( f );
-        return( -1 );
+        return -1 ;
     }
 
     fclose( f );
 
-    return( 0 );
+    return 0 ;
 }
 
 int main( int argc, char *argv[] )

@@ -83,7 +83,7 @@ static int cmac_multiply_by_u( unsigned char *output,
     }
     else
     {
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
     }
 
     for( i = (int)blocksize - 1; i >= 0; i-- )
@@ -108,7 +108,7 @@ static int cmac_multiply_by_u( unsigned char *output,
 
     output[ blocksize - 1 ] ^= R_n & mask;
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -143,7 +143,7 @@ static int cmac_generate_subkeys( mbedtls_cipher_context_t *ctx,
 exit:
     mbedtls_platform_zeroize( L, sizeof( L ) );
 
-    return( ret );
+    return ret ;
 }
 #endif /* !defined(MBEDTLS_CMAC_ALT) || defined(MBEDTLS_SELF_TEST) */
 
@@ -190,11 +190,11 @@ int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
     int retval;
 
     if( ctx == NULL || ctx->cipher_info == NULL || key == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
 
     if( ( retval = mbedtls_cipher_setkey( ctx, key, (int)keybits,
                                           MBEDTLS_ENCRYPT ) ) != 0 )
-        return( retval );
+        return retval ;
 
     type = ctx->cipher_info->type;
 
@@ -206,14 +206,14 @@ int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
         case MBEDTLS_CIPHER_DES_EDE3_ECB:
             break;
         default:
-            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
     }
 
     /* Allocated and initialise in the cipher context memory for the CMAC
      * context */
     cmac_ctx = mbedtls_calloc( 1, sizeof( mbedtls_cmac_context_t ) );
     if( cmac_ctx == NULL )
-        return( MBEDTLS_ERR_CIPHER_ALLOC_FAILED );
+        return MBEDTLS_ERR_CIPHER_ALLOC_FAILED ;
 
     ctx->cmac_ctx = cmac_ctx;
 
@@ -232,7 +232,7 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
 
     if( ctx == NULL || ctx->cipher_info == NULL || input == NULL ||
         ctx->cmac_ctx == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
 
     cmac_ctx = ctx->cmac_ctx;
     block_size = ctx->cipher_info->block_size;
@@ -287,7 +287,7 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
     }
 
 exit:
-    return( ret );
+    return ret ;
 }
 
 int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
@@ -303,7 +303,7 @@ int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
 
     if( ctx == NULL || ctx->cipher_info == NULL || ctx->cmac_ctx == NULL ||
         output == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
 
     cmac_ctx = ctx->cmac_ctx;
     block_size = ctx->cipher_info->block_size;
@@ -348,7 +348,7 @@ exit:
                               sizeof( cmac_ctx->unprocessed_block ) );
 
     mbedtls_platform_zeroize( state, MBEDTLS_CIPHER_BLKSIZE_MAX );
-    return( ret );
+    return ret ;
 }
 
 int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx )
@@ -356,7 +356,7 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx )
     mbedtls_cmac_context_t* cmac_ctx;
 
     if( ctx == NULL || ctx->cipher_info == NULL || ctx->cmac_ctx == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
 
     cmac_ctx = ctx->cmac_ctx;
 
@@ -367,7 +367,7 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx )
     mbedtls_platform_zeroize( cmac_ctx->state,
                               sizeof( cmac_ctx->state ) );
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
@@ -379,7 +379,7 @@ int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( cipher_info == NULL || key == NULL || input == NULL || output == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
 
     mbedtls_cipher_init( &ctx );
 
@@ -399,7 +399,7 @@ int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
 exit:
     mbedtls_cipher_free( &ctx );
 
-    return( ret );
+    return ret ;
 }
 
 #if defined(MBEDTLS_AES_C)
@@ -416,7 +416,7 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
     unsigned char int_key[MBEDTLS_AES_BLOCK_SIZE];
 
     if( key == NULL || input == NULL || output == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
 
     cipher_info = mbedtls_cipher_info_from_type( MBEDTLS_CIPHER_AES_128_ECB );
     if( cipher_info == NULL )
@@ -447,7 +447,7 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
 exit:
     mbedtls_platform_zeroize( int_key, sizeof( int_key ) );
 
-    return( ret );
+    return ret ;
 }
 #endif /* MBEDTLS_AES_C */
 
@@ -760,7 +760,7 @@ static int cmac_test_subkeys( int verbose,
     if( cipher_info == NULL )
     {
         /* Failing at this point must be due to a build issue */
-        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE ;
     }
 
     for( i = 0; i < num_tests; i++ )
@@ -831,7 +831,7 @@ cleanup:
     mbedtls_cipher_free( &ctx );
 
 exit:
-    return( ret );
+    return ret ;
 }
 
 static int cmac_test_wth_cipher( int verbose,
@@ -896,7 +896,7 @@ static int cmac_test_wth_cipher( int verbose,
     ret = 0;
 
 exit:
-    return( ret );
+    return ret ;
 }
 
 #if defined(MBEDTLS_AES_C)
@@ -917,14 +917,14 @@ static int test_aes128_cmac_prf( int verbose )
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
 
-            return( ret );
+            return ret ;
         }
         else if( verbose != 0 )
         {
             mbedtls_printf( "passed\n" );
         }
     }
-    return( ret );
+    return ret ;
 }
 #endif /* MBEDTLS_AES_C */
 
@@ -943,7 +943,7 @@ int mbedtls_cmac_self_test( int verbose )
                                    MBEDTLS_AES_BLOCK_SIZE,
                                    NB_CMAC_TESTS_PER_KEY ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     if( ( ret = cmac_test_wth_cipher( verbose,
@@ -957,7 +957,7 @@ int mbedtls_cmac_self_test( int verbose )
                                       MBEDTLS_AES_BLOCK_SIZE,
                                       NB_CMAC_TESTS_PER_KEY ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     /* AES-192 */
@@ -970,7 +970,7 @@ int mbedtls_cmac_self_test( int verbose )
                                    MBEDTLS_AES_BLOCK_SIZE,
                                    NB_CMAC_TESTS_PER_KEY ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     if( ( ret = cmac_test_wth_cipher( verbose,
@@ -984,7 +984,7 @@ int mbedtls_cmac_self_test( int verbose )
                                       MBEDTLS_AES_BLOCK_SIZE,
                                       NB_CMAC_TESTS_PER_KEY ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     /* AES-256 */
@@ -997,7 +997,7 @@ int mbedtls_cmac_self_test( int verbose )
                                    MBEDTLS_AES_BLOCK_SIZE,
                                    NB_CMAC_TESTS_PER_KEY ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     if( ( ret = cmac_test_wth_cipher ( verbose,
@@ -1011,7 +1011,7 @@ int mbedtls_cmac_self_test( int verbose )
                                        MBEDTLS_AES_BLOCK_SIZE,
                                        NB_CMAC_TESTS_PER_KEY ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 #endif /* MBEDTLS_AES_C */
 
@@ -1026,7 +1026,7 @@ int mbedtls_cmac_self_test( int verbose )
                                    MBEDTLS_DES3_BLOCK_SIZE,
                                    NB_CMAC_TESTS_PER_KEY ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     if( ( ret = cmac_test_wth_cipher( verbose,
@@ -1040,7 +1040,7 @@ int mbedtls_cmac_self_test( int verbose )
                                       MBEDTLS_DES3_BLOCK_SIZE,
                                       NB_CMAC_TESTS_PER_KEY ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     /* 3DES 3 key */
@@ -1053,7 +1053,7 @@ int mbedtls_cmac_self_test( int verbose )
                                    MBEDTLS_DES3_BLOCK_SIZE,
                                    NB_CMAC_TESTS_PER_KEY ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     if( ( ret = cmac_test_wth_cipher( verbose,
@@ -1067,19 +1067,19 @@ int mbedtls_cmac_self_test( int verbose )
                                       MBEDTLS_DES3_BLOCK_SIZE,
                                       NB_CMAC_TESTS_PER_KEY ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 #endif /* MBEDTLS_DES_C */
 
 #if defined(MBEDTLS_AES_C)
     if( ( ret = test_aes128_cmac_prf( verbose ) ) != 0 )
-        return( ret );
+        return ret ;
 #endif /* MBEDTLS_AES_C */
 
     if( verbose != 0 )
         mbedtls_printf( "\n" );
 
-    return( 0 );
+    return 0 ;
 }
 
 #endif /* MBEDTLS_SELF_TEST */

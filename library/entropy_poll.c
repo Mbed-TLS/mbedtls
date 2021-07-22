@@ -65,19 +65,19 @@ int mbedtls_platform_entropy_poll( void *data, unsigned char *output, size_t len
     if( CryptAcquireContext( &provider, NULL, NULL,
                               PROV_RSA_FULL, CRYPT_VERIFYCONTEXT ) == FALSE )
     {
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED ;
     }
 
     if( CryptGenRandom( provider, (DWORD) len, output ) == FALSE )
     {
         CryptReleaseContext( provider, 0 );
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED ;
     }
 
     CryptReleaseContext( provider, 0 );
     *olen = len;
 
-    return( 0 );
+    return 0 ;
 }
 #else /* _WIN32 && !EFIX64 && !EFI32 */
 
@@ -101,7 +101,7 @@ static int getrandom_wrapper( void *buf, size_t buflen, unsigned int flags )
     memset( buf, 0, buflen );
 #endif
 #endif
-    return( syscall( SYS_getrandom, buf, buflen, flags ) );
+    return syscall( SYS_getrandom, buf, buflen, flags ) ;
 }
 #endif /* SYS_getrandom */
 #endif /* __linux__ || __midipix__ */
@@ -147,11 +147,11 @@ static int sysctl_arnd_wrapper( unsigned char *buf, size_t buflen )
     {
         len = buflen > 256 ? 256 : buflen;
         if( sysctl(name, 2, buf, &len, NULL, 0) == -1 )
-            return( -1 );
+            return -1 ;
         buflen -= len;
         buf += len;
     }
-    return( 0 );
+    return 0 ;
 }
 #endif /* KERN_ARND */
 #endif /* __FreeBSD__ || __NetBSD__ */
@@ -171,10 +171,10 @@ int mbedtls_platform_entropy_poll( void *data,
     if( ret >= 0 )
     {
         *olen = ret;
-        return( 0 );
+        return 0 ;
     }
     else if( errno != ENOSYS )
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED ;
     /* Fall through if the system call isn't known. */
 #else
     ((void) ret);
@@ -184,28 +184,28 @@ int mbedtls_platform_entropy_poll( void *data,
     ((void) file);
     ((void) read_len);
     if( sysctl_arnd_wrapper( output, len ) == -1 )
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED ;
     *olen = len;
-    return( 0 );
+    return 0 ;
 #else
 
     *olen = 0;
 
     file = fopen( "/dev/urandom", "rb" );
     if( file == NULL )
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED ;
 
     read_len = fread( output, 1, len, file );
     if( read_len != len )
     {
         fclose( file );
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED ;
     }
 
     fclose( file );
     *olen = len;
 
-    return( 0 );
+    return 0 ;
 #endif /* HAVE_SYSCTL_ARND */
 }
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
@@ -222,7 +222,7 @@ int mbedtls_nv_seed_poll( void *data,
     memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
 
     if( mbedtls_nv_seed_read( buf, MBEDTLS_ENTROPY_BLOCK_SIZE ) < 0 )
-      return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+      return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED ;
 
     if( len < use_len )
       use_len = len;
@@ -230,7 +230,7 @@ int mbedtls_nv_seed_poll( void *data,
     memcpy( output, buf, use_len );
     *olen = use_len;
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
 

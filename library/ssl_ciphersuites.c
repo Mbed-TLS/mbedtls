@@ -1905,7 +1905,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 #if defined(MBEDTLS_SSL_CIPHERSUITES)
 const int *mbedtls_ssl_list_ciphersuites( void )
 {
-    return( ciphersuite_preference );
+    return ciphersuite_preference ;
 }
 #else
 #define MAX_CIPHERSUITES    sizeof( ciphersuite_definitions     ) /         \
@@ -1917,7 +1917,7 @@ static int ciphersuite_is_removed( const mbedtls_ssl_ciphersuite_t *cs_info )
 {
     (void)cs_info;
 
-    return( 0 );
+    return 0 ;
 }
 
 const int *mbedtls_ssl_list_ciphersuites( void )
@@ -1947,7 +1947,7 @@ const int *mbedtls_ssl_list_ciphersuites( void )
         supported_init = 1;
     }
 
-    return( supported_ciphersuites );
+    return supported_ciphersuites ;
 }
 #endif /* MBEDTLS_SSL_CIPHERSUITES */
 
@@ -1957,17 +1957,17 @@ const mbedtls_ssl_ciphersuite_t *mbedtls_ssl_ciphersuite_from_string(
     const mbedtls_ssl_ciphersuite_t *cur = ciphersuite_definitions;
 
     if( NULL == ciphersuite_name )
-        return( NULL );
+        return NULL ;
 
     while( cur->id != 0 )
     {
         if( 0 == strcmp( cur->name, ciphersuite_name ) )
-            return( cur );
+            return cur ;
 
         cur++;
     }
 
-    return( NULL );
+    return NULL ;
 }
 
 const mbedtls_ssl_ciphersuite_t *mbedtls_ssl_ciphersuite_from_id( int ciphersuite )
@@ -1977,12 +1977,12 @@ const mbedtls_ssl_ciphersuite_t *mbedtls_ssl_ciphersuite_from_id( int ciphersuit
     while( cur->id != 0 )
     {
         if( cur->id == ciphersuite )
-            return( cur );
+            return cur ;
 
         cur++;
     }
 
-    return( NULL );
+    return NULL ;
 }
 
 const char *mbedtls_ssl_get_ciphersuite_name( const int ciphersuite_id )
@@ -1992,9 +1992,9 @@ const char *mbedtls_ssl_get_ciphersuite_name( const int ciphersuite_id )
     cur = mbedtls_ssl_ciphersuite_from_id( ciphersuite_id );
 
     if( cur == NULL )
-        return( "unknown" );
+        return "unknown" ;
 
-    return( cur->name );
+    return cur->name ;
 }
 
 int mbedtls_ssl_get_ciphersuite_id( const char *ciphersuite_name )
@@ -2004,9 +2004,9 @@ int mbedtls_ssl_get_ciphersuite_id( const char *ciphersuite_name )
     cur = mbedtls_ssl_ciphersuite_from_string( ciphersuite_name );
 
     if( cur == NULL )
-        return( 0 );
+        return 0 ;
 
-    return( cur->id );
+    return cur->id ;
 }
 
 #if defined(MBEDTLS_PK_C)
@@ -2018,17 +2018,17 @@ mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg( const mbedtls_ssl_ciph
         case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
-            return( MBEDTLS_PK_RSA );
+            return MBEDTLS_PK_RSA ;
 
         case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
-            return( MBEDTLS_PK_ECDSA );
+            return MBEDTLS_PK_ECDSA ;
 
         case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
-            return( MBEDTLS_PK_ECKEY );
+            return MBEDTLS_PK_ECKEY ;
 
         default:
-            return( MBEDTLS_PK_NONE );
+            return MBEDTLS_PK_NONE ;
     }
 }
 
@@ -2039,13 +2039,13 @@ mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg( const mbedtls_ssl_ciphers
         case MBEDTLS_KEY_EXCHANGE_RSA:
         case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
-            return( MBEDTLS_PK_RSA );
+            return MBEDTLS_PK_RSA ;
 
         case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
-            return( MBEDTLS_PK_ECDSA );
+            return MBEDTLS_PK_ECDSA ;
 
         default:
-            return( MBEDTLS_PK_NONE );
+            return MBEDTLS_PK_NONE ;
     }
 }
 
@@ -2063,10 +2063,10 @@ int mbedtls_ssl_ciphersuite_uses_ec( const mbedtls_ssl_ciphersuite_t *info )
         case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
         case MBEDTLS_KEY_EXCHANGE_ECJPAKE:
-            return( 1 );
+            return 1 ;
 
         default:
-            return( 0 );
+            return 0 ;
     }
 }
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED*/
@@ -2080,10 +2080,10 @@ int mbedtls_ssl_ciphersuite_uses_psk( const mbedtls_ssl_ciphersuite_t *info )
         case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
         case MBEDTLS_KEY_EXCHANGE_DHE_PSK:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
-            return( 1 );
+            return 1 ;
 
         default:
-            return( 0 );
+            return 0 ;
     }
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */

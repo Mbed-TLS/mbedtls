@@ -40,9 +40,9 @@ static int open_file_on_fd( mbedtls_net_context *ctx, int wanted_fd )
         TEST_ASSERT( close( got_fd ) >= 0 );
     }
     ctx->fd = wanted_fd;
-    return( 0 );
+    return 0 ;
 exit:
-    return( -1 );
+    return -1 ;
 }
 #endif /* MBEDTLS_PLATFORM_IS_UNIXLIKE */
 

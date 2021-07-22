@@ -56,7 +56,7 @@ int mbedtls_test_rnd_std_rand( void *rng_state,
     arc4random_buf( output, len );
 #endif /* !OpenBSD && !NetBSD */
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_test_rnd_zero_rand( void *rng_state,
@@ -68,7 +68,7 @@ int mbedtls_test_rnd_zero_rand( void *rng_state,
 
     memset( output, 0, len );
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_test_rnd_buffer_rand( void *rng_state,
@@ -79,7 +79,7 @@ int mbedtls_test_rnd_buffer_rand( void *rng_state,
     size_t use_len;
 
     if( rng_state == NULL )
-        return( mbedtls_test_rnd_std_rand( NULL, output, len ) );
+        return mbedtls_test_rnd_std_rand( NULL, output, len ) ;
 
     use_len = len;
     if( len > info->length )
@@ -101,10 +101,10 @@ int mbedtls_test_rnd_buffer_rand( void *rng_state,
                                           len - use_len ) );
         }
         else
-            return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+            return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_test_rnd_pseudo_rand( void *rng_state,
@@ -117,7 +117,7 @@ int mbedtls_test_rnd_pseudo_rand( void *rng_state,
     unsigned char result[4], *out = output;
 
     if( rng_state == NULL )
-        return( mbedtls_test_rnd_std_rand( NULL, output, len ) );
+        return mbedtls_test_rnd_std_rand( NULL, output, len ) ;
 
     k = info->key;
 
@@ -141,5 +141,5 @@ int mbedtls_test_rnd_pseudo_rand( void *rng_state,
         out += 4;
     }
 
-    return( 0 );
+    return 0 ;
 }

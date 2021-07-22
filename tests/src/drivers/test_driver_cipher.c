@@ -51,18 +51,18 @@ psa_status_t mbedtls_test_transparent_cipher_encrypt(
     if( mbedtls_test_driver_cipher_hooks.forced_output != NULL )
     {
         if( output_size < mbedtls_test_driver_cipher_hooks.forced_output_length )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
+            return PSA_ERROR_BUFFER_TOO_SMALL ;
 
         memcpy( output,
                 mbedtls_test_driver_cipher_hooks.forced_output,
                 mbedtls_test_driver_cipher_hooks.forced_output_length );
         *output_length = mbedtls_test_driver_cipher_hooks.forced_output_length;
 
-        return( mbedtls_test_driver_cipher_hooks.forced_status );
+        return mbedtls_test_driver_cipher_hooks.forced_status ;
     }
 
     if( mbedtls_test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_cipher_hooks.forced_status );
+        return mbedtls_test_driver_cipher_hooks.forced_status ;
 
     psa_generate_random( output, PSA_CIPHER_IV_LENGTH( attributes->core.type, alg ) );
 
@@ -88,18 +88,18 @@ psa_status_t mbedtls_test_transparent_cipher_decrypt(
     if( mbedtls_test_driver_cipher_hooks.forced_output != NULL )
     {
         if( output_size < mbedtls_test_driver_cipher_hooks.forced_output_length )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
+            return PSA_ERROR_BUFFER_TOO_SMALL ;
 
         memcpy( output,
                 mbedtls_test_driver_cipher_hooks.forced_output,
                 mbedtls_test_driver_cipher_hooks.forced_output_length );
         *output_length = mbedtls_test_driver_cipher_hooks.forced_output_length;
 
-        return( mbedtls_test_driver_cipher_hooks.forced_status );
+        return mbedtls_test_driver_cipher_hooks.forced_status ;
     }
 
     if( mbedtls_test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_cipher_hooks.forced_status );
+        return mbedtls_test_driver_cipher_hooks.forced_status ;
 
     return( mbedtls_transparent_test_driver_cipher_decrypt(
                 attributes, key_buffer, key_buffer_size,
@@ -122,7 +122,7 @@ psa_status_t mbedtls_test_transparent_cipher_encrypt_setup(
     memset( operation, 0, sizeof( *operation ) );
 
     if( mbedtls_test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_cipher_hooks.forced_status );
+        return mbedtls_test_driver_cipher_hooks.forced_status ;
 
     return ( mbedtls_transparent_test_driver_cipher_encrypt_setup(
                  operation, attributes, key, key_length, alg ) );
@@ -137,7 +137,7 @@ psa_status_t mbedtls_test_transparent_cipher_decrypt_setup(
     mbedtls_test_driver_cipher_hooks.hits++;
 
     if( mbedtls_test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_cipher_hooks.forced_status );
+        return mbedtls_test_driver_cipher_hooks.forced_status ;
 
     return ( mbedtls_transparent_test_driver_cipher_decrypt_setup(
                  operation, attributes, key, key_length, alg ) );
@@ -149,7 +149,7 @@ psa_status_t mbedtls_test_transparent_cipher_abort(
     mbedtls_test_driver_cipher_hooks.hits++;
 
     if( operation->alg == 0 )
-        return( PSA_SUCCESS );
+        return PSA_SUCCESS ;
 
     mbedtls_transparent_test_driver_cipher_abort( operation );
 
@@ -159,7 +159,7 @@ psa_status_t mbedtls_test_transparent_cipher_abort(
      * our context struct. */
     memset( operation, 0, sizeof( *operation ) );
 
-    return( mbedtls_test_driver_cipher_hooks.forced_status );
+    return mbedtls_test_driver_cipher_hooks.forced_status ;
 }
 
 psa_status_t mbedtls_test_transparent_cipher_set_iv(
@@ -170,7 +170,7 @@ psa_status_t mbedtls_test_transparent_cipher_set_iv(
     mbedtls_test_driver_cipher_hooks.hits++;
 
     if( mbedtls_test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_cipher_hooks.forced_status );
+        return mbedtls_test_driver_cipher_hooks.forced_status ;
 
     return( mbedtls_transparent_test_driver_cipher_set_iv(
                 operation, iv, iv_length ) );
@@ -196,11 +196,11 @@ psa_status_t mbedtls_test_transparent_cipher_update(
                 mbedtls_test_driver_cipher_hooks.forced_output_length );
         *output_length = mbedtls_test_driver_cipher_hooks.forced_output_length;
 
-        return( mbedtls_test_driver_cipher_hooks.forced_status );
+        return mbedtls_test_driver_cipher_hooks.forced_status ;
     }
 
     if( mbedtls_test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_cipher_hooks.forced_status );
+        return mbedtls_test_driver_cipher_hooks.forced_status ;
 
     return( mbedtls_transparent_test_driver_cipher_update(
                 operation, input, input_length,
@@ -225,11 +225,11 @@ psa_status_t mbedtls_test_transparent_cipher_finish(
                 mbedtls_test_driver_cipher_hooks.forced_output_length );
         *output_length = mbedtls_test_driver_cipher_hooks.forced_output_length;
 
-        return( mbedtls_test_driver_cipher_hooks.forced_status );
+        return mbedtls_test_driver_cipher_hooks.forced_status ;
     }
 
     if( mbedtls_test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_cipher_hooks.forced_status );
+        return mbedtls_test_driver_cipher_hooks.forced_status ;
 
     return( mbedtls_transparent_test_driver_cipher_finish(
                 operation, output, output_size, output_length ) );
@@ -254,7 +254,7 @@ psa_status_t mbedtls_test_opaque_cipher_encrypt(
     (void) output;
     (void) output_size;
     (void) output_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 }
 
 psa_status_t mbedtls_test_opaque_cipher_decrypt(
@@ -273,7 +273,7 @@ psa_status_t mbedtls_test_opaque_cipher_decrypt(
     (void) output;
     (void) output_size;
     (void) output_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 }
 
 psa_status_t mbedtls_test_opaque_cipher_encrypt_setup(
@@ -287,7 +287,7 @@ psa_status_t mbedtls_test_opaque_cipher_encrypt_setup(
     (void) key;
     (void) key_length;
     (void) alg;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 }
 
 psa_status_t mbedtls_test_opaque_cipher_decrypt_setup(
@@ -301,14 +301,14 @@ psa_status_t mbedtls_test_opaque_cipher_decrypt_setup(
     (void) key;
     (void) key_length;
     (void) alg;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 }
 
 psa_status_t mbedtls_test_opaque_cipher_abort(
     mbedtls_opaque_test_driver_cipher_operation_t *operation )
 {
     (void) operation;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 }
 
 psa_status_t mbedtls_test_opaque_cipher_set_iv(
@@ -319,7 +319,7 @@ psa_status_t mbedtls_test_opaque_cipher_set_iv(
     (void) operation;
     (void) iv;
     (void) iv_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 }
 
 psa_status_t mbedtls_test_opaque_cipher_update(
@@ -336,7 +336,7 @@ psa_status_t mbedtls_test_opaque_cipher_update(
     (void) output;
     (void) output_size;
     (void) output_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 }
 
 psa_status_t mbedtls_test_opaque_cipher_finish(
@@ -349,6 +349,6 @@ psa_status_t mbedtls_test_opaque_cipher_finish(
     (void) output;
     (void) output_size;
     (void) output_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 }
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

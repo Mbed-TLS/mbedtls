@@ -123,14 +123,14 @@ static int redirect_output( FILE* out_stream, const char* path )
 
     if( dup_fd == -1 )
     {
-        return( -1 );
+        return -1 ;
     }
 
     path_stream = fopen( path, "w" );
     if( path_stream == NULL )
     {
         close( dup_fd );
-        return( -1 );
+        return -1 ;
     }
 
     fflush( out_stream );
@@ -138,11 +138,11 @@ static int redirect_output( FILE* out_stream, const char* path )
     {
         close( dup_fd );
         fclose( path_stream );
-        return( -1 );
+        return -1 ;
     }
 
     fclose( path_stream );
-    return( dup_fd );
+    return dup_fd ;
 }
 
 static int restore_output( FILE* out_stream, int dup_fd )
@@ -154,10 +154,10 @@ static int restore_output( FILE* out_stream, int dup_fd )
     {
         close( out_fd );
         close( dup_fd );
-        return( -1 );
+        return -1 ;
     }
 
     close( dup_fd );
-    return( 0 );
+    return 0 ;
 }
 #endif /* __unix__ || __APPLE__ __MACH__ */

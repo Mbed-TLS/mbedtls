@@ -221,7 +221,7 @@ int mbedtls_chacha20_setkey( mbedtls_chacha20_context *ctx,
     ctx->state[10] = BYTES_TO_U32_LE( key, 24 );
     ctx->state[11] = BYTES_TO_U32_LE( key, 28 );
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
@@ -244,7 +244,7 @@ int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
     /* Initially, there's no keystream bytes available */
     ctx->keystream_bytes_used = CHACHA20_BLOCK_SIZE_BYTES;
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
@@ -309,7 +309,7 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
 
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_chacha20_crypt( const unsigned char key[32],
@@ -341,7 +341,7 @@ int mbedtls_chacha20_crypt( const unsigned char key[32],
 
 cleanup:
     mbedtls_chacha20_free( &ctx );
-    return( ret );
+    return ret ;
 }
 
 #endif /* !MBEDTLS_CHACHA20_ALT */
@@ -525,7 +525,7 @@ static const size_t test_lengths[2] =
             if( verbose != 0 )          \
                 mbedtls_printf args;    \
                                         \
-            return( -1 );               \
+            return -1 ;               \
         }                               \
     }                                   \
     while( 0 )
@@ -560,7 +560,7 @@ int mbedtls_chacha20_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "\n" );
 
-    return( 0 );
+    return 0 ;
 }
 
 #endif /* MBEDTLS_SELF_TEST */

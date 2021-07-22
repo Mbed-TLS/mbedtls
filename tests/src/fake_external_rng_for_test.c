@@ -45,12 +45,12 @@ psa_status_t mbedtls_psa_external_get_random(
     (void) context;
 
     if( !test_insecure_external_rng_enabled )
-        return( PSA_ERROR_INSUFFICIENT_ENTROPY );
+        return PSA_ERROR_INSUFFICIENT_ENTROPY ;
 
     /* This implementation is for test purposes only!
      * Use the libc non-cryptographic random generator. */
     mbedtls_test_rnd_std_rand( NULL, output, output_size );
     *output_length = output_size;
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */

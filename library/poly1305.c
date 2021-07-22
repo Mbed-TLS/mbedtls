@@ -82,7 +82,7 @@ static uint64_t mul64( uint32_t a, uint32_t b )
 #else
 static inline uint64_t mul64( uint32_t a, uint32_t b )
 {
-    return( (uint64_t) a * b );
+    return (uint64_t) a * b ;
 }
 #endif
 
@@ -318,7 +318,7 @@ int mbedtls_poly1305_starts( mbedtls_poly1305_context *ctx,
     mbedtls_platform_zeroize( ctx->queue, sizeof( ctx->queue ) );
     ctx->queue_len = 0U;
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
@@ -382,7 +382,7 @@ int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
         memcpy( ctx->queue, &input[offset], remaining );
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_poly1305_finish( mbedtls_poly1305_context *ctx,
@@ -409,7 +409,7 @@ int mbedtls_poly1305_finish( mbedtls_poly1305_context *ctx,
 
     poly1305_compute_mac( ctx, mac );
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_poly1305_mac( const unsigned char key[32],
@@ -437,7 +437,7 @@ int mbedtls_poly1305_mac( const unsigned char key[32],
 
 cleanup:
     mbedtls_poly1305_free( &ctx );
-    return( ret );
+    return ret ;
 }
 
 #endif /* MBEDTLS_POLY1305_ALT */
@@ -518,7 +518,7 @@ static const unsigned char test_mac[2][16] =
             if( verbose != 0 )          \
                 mbedtls_printf args;    \
                                         \
-            return( -1 );               \
+            return -1 ;               \
         }                               \
     }                                   \
     while( 0 )
@@ -549,7 +549,7 @@ int mbedtls_poly1305_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "\n" );
 
-    return( 0 );
+    return 0 ;
 }
 
 #endif /* MBEDTLS_SELF_TEST */

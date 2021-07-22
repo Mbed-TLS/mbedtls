@@ -361,7 +361,7 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx,
         case 128: ctx->nr = 3; idx = 0; break;
         case 192:
         case 256: ctx->nr = 4; idx = 1; break;
-        default : return( MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA );
+        default : return MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA ;
     }
 
     for( i = 0; i < keybits / 8; ++i )
@@ -439,7 +439,7 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx,
         }
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -490,7 +490,7 @@ int mbedtls_camellia_setkey_dec( mbedtls_camellia_context *ctx,
 exit:
     mbedtls_camellia_free( &cty );
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -557,7 +557,7 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
     PUT_UINT32_BE( X[0], output,  8 );
     PUT_UINT32_BE( X[1], output, 12 );
 
-    return( 0 );
+    return 0 ;
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -581,7 +581,7 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
     CAMELLIA_VALIDATE_RET( length == 0 || output != NULL );
 
     if( length % 16 )
-        return( MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH );
+        return MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH ;
 
     if( mode == MBEDTLS_CAMELLIA_DECRYPT )
     {
@@ -616,7 +616,7 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
         }
     }
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -644,7 +644,7 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
 
     n = *iv_off;
     if( n >= 16 )
-        return( MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA ;
 
     if( mode == MBEDTLS_CAMELLIA_DECRYPT )
     {
@@ -675,7 +675,7 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
 
     *iv_off = n;
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
@@ -702,7 +702,7 @@ int mbedtls_camellia_crypt_ctr( mbedtls_camellia_context *ctx,
 
     n = *nc_off;
     if( n >= 16 )
-        return( MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA ;
 
     while( length-- )
     {
@@ -722,7 +722,7 @@ int mbedtls_camellia_crypt_ctr( mbedtls_camellia_context *ctx,
 
     *nc_off = n;
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 #endif /* !MBEDTLS_CAMELLIA_ALT */
@@ -1102,7 +1102,7 @@ int mbedtls_camellia_self_test( int verbose )
 
 exit:
     mbedtls_camellia_free( &ctx );
-    return( ret );
+    return ret ;
 }
 
 #endif /* MBEDTLS_SELF_TEST */

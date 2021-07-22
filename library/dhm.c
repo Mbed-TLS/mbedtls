@@ -70,20 +70,20 @@ static int dhm_read_bignum( mbedtls_mpi *X,
     int ret, n;
 
     if( end - *p < 2 )
-        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_DHM_BAD_INPUT_DATA ;
 
     n = ( (*p)[0] << 8 ) | (*p)[1];
     (*p) += 2;
 
     if( (int)( end - *p ) < n )
-        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_DHM_BAD_INPUT_DATA ;
 
     if( ( ret = mbedtls_mpi_read_binary( X, *p, n ) ) != 0 )
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_READ_PARAMS_FAILED, ret ) );
+        return MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_READ_PARAMS_FAILED, ret ) ;
 
     (*p) += n;
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -115,7 +115,7 @@ static int dhm_check_range( const mbedtls_mpi *param, const mbedtls_mpi *P )
 
 cleanup:
     mbedtls_mpi_free( &U );
-    return( ret );
+    return ret ;
 }
 
 void mbedtls_dhm_init( mbedtls_dhm_context *ctx )
@@ -126,12 +126,12 @@ void mbedtls_dhm_init( mbedtls_dhm_context *ctx )
 
 size_t mbedtls_dhm_get_bitlen( const mbedtls_dhm_context *ctx )
 {
-    return( mbedtls_mpi_bitlen( &ctx->P ) );
+    return mbedtls_mpi_bitlen( &ctx->P ) ;
 }
 
 size_t mbedtls_dhm_get_len( const mbedtls_dhm_context *ctx )
 {
-    return( mbedtls_mpi_size( &ctx->P ) );
+    return mbedtls_mpi_size( &ctx->P ) ;
 }
 
 int mbedtls_dhm_get_value( const mbedtls_dhm_context *ctx,
@@ -160,9 +160,9 @@ int mbedtls_dhm_get_value( const mbedtls_dhm_context *ctx,
             src = &ctx->K;
             break;
         default:
-            return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+            return MBEDTLS_ERR_DHM_BAD_INPUT_DATA ;
     }
-    return( mbedtls_mpi_copy( dest, src ) );
+    return mbedtls_mpi_copy( dest, src ) ;
 }
 
 /*
@@ -180,12 +180,12 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
     if( ( ret = dhm_read_bignum( &ctx->P,  p, end ) ) != 0 ||
         ( ret = dhm_read_bignum( &ctx->G,  p, end ) ) != 0 ||
         ( ret = dhm_read_bignum( &ctx->GY, p, end ) ) != 0 )
-        return( ret );
+        return ret ;
 
     if( ( ret = dhm_check_range( &ctx->GY, &ctx->P ) ) != 0 )
-        return( ret );
+        return ret ;
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -200,7 +200,7 @@ static int dhm_random_below( mbedtls_mpi *R, const mbedtls_mpi *M,
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( R, R, 1 ) );
 
 cleanup:
-    return( ret );
+    return ret ;
 }
 
 static int dhm_make_common( mbedtls_dhm_context *ctx, int x_size,
@@ -210,9 +210,9 @@ static int dhm_make_common( mbedtls_dhm_context *ctx, int x_size,
     int ret = 0;
 
     if( mbedtls_mpi_cmp_int( &ctx->P, 0 ) == 0 )
-        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_DHM_BAD_INPUT_DATA ;
     if( x_size < 0 )
-        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_DHM_BAD_INPUT_DATA ;
 
     if( (unsigned) x_size < mbedtls_mpi_size( &ctx->P ) )
     {
@@ -223,9 +223,9 @@ static int dhm_make_common( mbedtls_dhm_context *ctx, int x_size,
         /* Generate X as large as possible ( <= P - 2 ) */
         ret = dhm_random_below( &ctx->X, &ctx->P, f_rng, p_rng );
         if( ret == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
-            return( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED );
+            return MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED ;
         if( ret != 0 )
-            return( ret );
+            return ret ;
     }
 
     /*
@@ -235,10 +235,10 @@ static int dhm_make_common( mbedtls_dhm_context *ctx, int x_size,
                           &ctx->P , &ctx->RP ) );
 
     if( ( ret = dhm_check_range( &ctx->GX, &ctx->P ) ) != 0 )
-        return( ret );
+        return ret ;
 
 cleanup:
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -289,7 +289,7 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
 cleanup:
     if( ret != 0 && ret > -128 )
         ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED, ret );
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -307,10 +307,10 @@ int mbedtls_dhm_set_group( mbedtls_dhm_context *ctx,
     if( ( ret = mbedtls_mpi_copy( &ctx->P, P ) ) != 0 ||
         ( ret = mbedtls_mpi_copy( &ctx->G, G ) ) != 0 )
     {
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_SET_GROUP_FAILED, ret ) );
+        return MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_SET_GROUP_FAILED, ret ) ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -324,12 +324,12 @@ int mbedtls_dhm_read_public( mbedtls_dhm_context *ctx,
     DHM_VALIDATE_RET( input != NULL );
 
     if( ilen < 1 || ilen > mbedtls_dhm_get_len( ctx ) )
-        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_DHM_BAD_INPUT_DATA ;
 
     if( ( ret = mbedtls_mpi_read_binary( &ctx->GY, input, ilen ) ) != 0 )
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_READ_PUBLIC_FAILED, ret ) );
+        return MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_READ_PUBLIC_FAILED, ret ) ;
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -346,11 +346,11 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
     DHM_VALIDATE_RET( f_rng != NULL );
 
     if( olen < 1 || olen > mbedtls_dhm_get_len( ctx ) )
-        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_DHM_BAD_INPUT_DATA ;
 
     ret = dhm_make_common( ctx, x_size, f_rng, p_rng );
     if( ret == MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED )
-        return( MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED );
+        return MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED ;
     if( ret != 0 )
         goto cleanup;
 
@@ -359,7 +359,7 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
 cleanup:
     if( ret != 0 && ret > -128 )
         ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED, ret );
-    return( ret );
+    return ret ;
 }
 
 
@@ -387,7 +387,7 @@ static int dhm_update_blinding( mbedtls_dhm_context *ctx,
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &ctx->Vi, 1 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &ctx->Vf, 1 ) );
 
-        return( 0 );
+        return 0 ;
     }
 
     /*
@@ -402,7 +402,7 @@ static int dhm_update_blinding( mbedtls_dhm_context *ctx,
         MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->Vf, &ctx->Vf, &ctx->Vf ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->Vf, &ctx->Vf, &ctx->P ) );
 
-        return( 0 );
+        return 0 ;
     }
 
     /*
@@ -427,7 +427,7 @@ static int dhm_update_blinding( mbedtls_dhm_context *ctx,
 cleanup:
     mbedtls_mpi_free( &R );
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -445,13 +445,13 @@ int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
     DHM_VALIDATE_RET( olen != NULL );
 
     if( f_rng == NULL )
-        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_DHM_BAD_INPUT_DATA ;
 
     if( output_size < mbedtls_dhm_get_len( ctx ) )
-        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_DHM_BAD_INPUT_DATA ;
 
     if( ( ret = dhm_check_range( &ctx->GY, &ctx->P ) ) != 0 )
-        return( ret );
+        return ret ;
 
     mbedtls_mpi_init( &GYb );
 
@@ -477,9 +477,9 @@ cleanup:
     mbedtls_mpi_free( &GYb );
 
     if( ret != 0 )
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_CALC_SECRET_FAILED, ret ) );
+        return MBEDTLS_ERROR_ADD( MBEDTLS_ERR_DHM_CALC_SECRET_FAILED, ret ) ;
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -602,7 +602,7 @@ exit:
     if( ret != 0 )
         mbedtls_dhm_free( dhm );
 
-    return( ret );
+    return ret ;
 }
 
 #if defined(MBEDTLS_FS_IO)
@@ -619,13 +619,13 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
     long size;
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( MBEDTLS_ERR_DHM_FILE_IO_ERROR );
+        return MBEDTLS_ERR_DHM_FILE_IO_ERROR ;
 
     fseek( f, 0, SEEK_END );
     if( ( size = ftell( f ) ) == -1 )
     {
         fclose( f );
-        return( MBEDTLS_ERR_DHM_FILE_IO_ERROR );
+        return MBEDTLS_ERR_DHM_FILE_IO_ERROR ;
     }
     fseek( f, 0, SEEK_SET );
 
@@ -635,7 +635,7 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
         ( *buf = mbedtls_calloc( 1, *n + 1 ) ) == NULL )
     {
         fclose( f );
-        return( MBEDTLS_ERR_DHM_ALLOC_FAILED );
+        return MBEDTLS_ERR_DHM_ALLOC_FAILED ;
     }
 
     if( fread( *buf, 1, *n, f ) != *n )
@@ -645,7 +645,7 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
         mbedtls_platform_zeroize( *buf, *n + 1 );
         mbedtls_free( *buf );
 
-        return( MBEDTLS_ERR_DHM_FILE_IO_ERROR );
+        return MBEDTLS_ERR_DHM_FILE_IO_ERROR ;
     }
 
     fclose( f );
@@ -655,7 +655,7 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
     if( strstr( (const char *) *buf, "-----BEGIN " ) != NULL )
         ++*n;
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -670,14 +670,14 @@ int mbedtls_dhm_parse_dhmfile( mbedtls_dhm_context *dhm, const char *path )
     DHM_VALIDATE_RET( path != NULL );
 
     if( ( ret = load_file( path, &buf, &n ) ) != 0 )
-        return( ret );
+        return ret ;
 
     ret = mbedtls_dhm_parse_dhm( dhm, buf, n );
 
     mbedtls_platform_zeroize( buf, n );
     mbedtls_free( buf );
 
-    return( ret );
+    return ret ;
 }
 #endif /* MBEDTLS_FS_IO */
 #endif /* MBEDTLS_ASN1_PARSE_C */
@@ -740,7 +740,7 @@ int mbedtls_dhm_self_test( int verbose )
 exit:
     mbedtls_dhm_free( &dhm );
 
-    return( ret );
+    return ret ;
 }
 
 #endif /* MBEDTLS_SELF_TEST */

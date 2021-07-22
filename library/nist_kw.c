@@ -69,7 +69,7 @@ static inline unsigned char mbedtls_nist_kw_safer_memcmp( const void *a, const v
         diff |= x ^ y;
     }
 
-    return( diff );
+    return diff ;
 }
 
 /*! The 64-bit default integrity check value (ICV) for KW mode. */
@@ -118,10 +118,10 @@ int mbedtls_nist_kw_setkey( mbedtls_nist_kw_context *ctx,
                                                    keybits,
                                                    MBEDTLS_MODE_ECB );
     if( cipher_info == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
 
     if( cipher_info->block_size != 16 )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
 
     /*
      * SP 800-38F currently defines AES cipher as the only block cipher allowed:
@@ -133,22 +133,22 @@ int mbedtls_nist_kw_setkey( mbedtls_nist_kw_context *ctx,
      *  such as Camellia and Aria.
      */
     if( cipher != MBEDTLS_CIPHER_ID_AES )
-        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE ;
 
     mbedtls_cipher_free( &ctx->cipher_ctx );
 
     if( ( ret = mbedtls_cipher_setup( &ctx->cipher_ctx, cipher_info ) ) != 0 )
-        return( ret );
+        return ret ;
 
     if( ( ret = mbedtls_cipher_setkey( &ctx->cipher_ctx, key, keybits,
                                        is_wrap ? MBEDTLS_ENCRYPT :
                                                  MBEDTLS_DECRYPT )
                                                                    ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -198,7 +198,7 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
     {
         if( out_size < in_len + KW_SEMIBLOCK_LENGTH )
         {
-            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
         }
 
         /*
@@ -211,7 +211,7 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
 #endif
             in_len % KW_SEMIBLOCK_LENGTH != 0 )
         {
-            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
         }
 
         memcpy( output, NIST_KW_ICV1, KW_SEMIBLOCK_LENGTH );
@@ -226,7 +226,7 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
 
         if( out_size < in_len + KW_SEMIBLOCK_LENGTH + padlen )
         {
-            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
         }
 
         /*
@@ -239,7 +239,7 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
 #endif
           )
         {
-            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
         }
 
         memcpy( output, NIST_KW_ICV2, KW_SEMIBLOCK_LENGTH / 2 );
@@ -308,7 +308,7 @@ cleanup:
     mbedtls_platform_zeroize( inbuff, KW_SEMIBLOCK_LENGTH * 2 );
     mbedtls_platform_zeroize( outbuff, KW_SEMIBLOCK_LENGTH * 2 );
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -335,7 +335,7 @@ static int unwrap( mbedtls_nist_kw_context *ctx,
 
     if( semiblocks < MIN_SEMIBLOCKS_COUNT )
     {
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
     }
 
     memcpy( A, input, KW_SEMIBLOCK_LENGTH );
@@ -374,7 +374,7 @@ cleanup:
     mbedtls_platform_zeroize( inbuff, sizeof( inbuff )  );
     mbedtls_platform_zeroize( outbuff, sizeof( outbuff ) );
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -394,7 +394,7 @@ int mbedtls_nist_kw_unwrap( mbedtls_nist_kw_context *ctx,
     *out_len = 0;
     if( out_size < in_len - KW_SEMIBLOCK_LENGTH )
     {
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
     }
 
     if( mode == MBEDTLS_KW_MODE_KW )
@@ -409,7 +409,7 @@ int mbedtls_nist_kw_unwrap( mbedtls_nist_kw_context *ctx,
 #endif
             in_len % KW_SEMIBLOCK_LENGTH != 0 )
         {
-            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
         }
 
         ret = unwrap( ctx, input, in_len / KW_SEMIBLOCK_LENGTH,
@@ -441,7 +441,7 @@ int mbedtls_nist_kw_unwrap( mbedtls_nist_kw_context *ctx,
 #endif
             in_len % KW_SEMIBLOCK_LENGTH != 0 )
         {
-            return(  MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ;
         }
 
         if( in_len == KW_SEMIBLOCK_LENGTH * 2 )
@@ -526,7 +526,7 @@ cleanup:
     mbedtls_platform_zeroize( &diff, sizeof( diff ) );
     mbedtls_platform_zeroize( A, sizeof( A ) );
 
-    return( ret );
+    return ret ;
 }
 
 #endif /* !MBEDTLS_NIST_KW_ALT */
@@ -744,7 +744,7 @@ end:
     if( verbose != 0 )
         mbedtls_printf( "\n" );
 
-    return( ret );
+    return ret ;
 }
 
 #endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */

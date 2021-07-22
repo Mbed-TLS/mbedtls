@@ -72,7 +72,7 @@ int main( void )
             "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_FS_IO "
             "not defined and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER "
             "defined.\n" );
-    return( 0 );
+    return 0 ;
 }
 #else
 
@@ -184,7 +184,7 @@ static psa_status_t save_key( psa_key_id_t key,
 exit:
     if( key_file != NULL)
         fclose( key_file );
-    return( status );
+    return status ;
 }
 
 /* Generate a master key for use in this demo.
@@ -210,7 +210,7 @@ static psa_status_t generate( const char *key_file_name )
 
 exit:
     (void) psa_destroy_key( key );
-    return( status );
+    return status ;
 }
 
 /* Load the master key from a file.
@@ -259,7 +259,7 @@ exit:
         (void) psa_destroy_key( *master_key );
         *master_key = 0;
     }
-    return( status );
+    return status ;
 }
 
 /* Derive the intermediate keys, using the list of labels provided on
@@ -314,7 +314,7 @@ exit:
         psa_destroy_key( *key );
         *key = 0;
     }
-    return( status );
+    return status ;
 }
 
 /* Derive a wrapping key from the last intermediate key. */
@@ -351,7 +351,7 @@ static psa_status_t derive_wrapping_key( psa_key_usage_t usage,
 
 exit:
     psa_key_derivation_abort( &operation );
-    return( status );
+    return status ;
 }
 
 static psa_status_t wrap_data( const char *input_file_name,
@@ -433,7 +433,7 @@ exit:
     if( buffer != NULL )
         mbedtls_platform_zeroize( buffer, buffer_size );
     free( buffer );
-    return( status );
+    return status ;
 }
 
 static psa_status_t unwrap_data( const char *input_file_name,
@@ -522,7 +522,7 @@ exit:
     if( buffer != NULL )
         mbedtls_platform_zeroize( buffer, ciphertext_size );
     free( buffer );
-    return( status );
+    return status ;
 }
 
 static psa_status_t run( enum program_mode mode,
@@ -540,7 +540,7 @@ static psa_status_t run( enum program_mode mode,
 
     /* Generate mode is unlike the others. Generate the master key and exit. */
     if( mode == MODE_GENERATE )
-        return( generate( key_file_name ) );
+        return generate( key_file_name ) ;
 
     /* Read the master key. */
     PSA_CHECK( import_key_from_file( PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT,
@@ -584,7 +584,7 @@ exit:
     (void) psa_destroy_key( wrapping_key );
     /* Deinitialize the PSA crypto library. */
     mbedtls_psa_crypto_free( );
-    return( status );
+    return status ;
 }
 
 static void usage( void )
@@ -625,7 +625,7 @@ int main( int argc, char *argv[] )
         strcmp( argv[1], "--help" ) == 0 )
     {
         usage( );
-        return( EXIT_SUCCESS );
+        return EXIT_SUCCESS ;
     }
 
     for( i = 2; i < argc; i++ )
@@ -646,7 +646,7 @@ int main( int argc, char *argv[] )
             {
                 printf( "Maximum ladder depth %u exceeded.\n",
                                 (unsigned) MAX_LADDER_DEPTH );
-                return( EXIT_FAILURE );
+                return EXIT_FAILURE ;
             }
             ladder[ladder_depth] = q;
             ++ladder_depth;
@@ -680,13 +680,13 @@ int main( int argc, char *argv[] )
         ( mode == MODE_WRAP || mode == MODE_UNWRAP ) )
     {
         printf( "Required argument missing: input\n" );
-        return( DEMO_ERROR );
+        return DEMO_ERROR ;
     }
     if( output_file_name == NULL &&
         ( mode == MODE_SAVE || mode == MODE_WRAP || mode == MODE_UNWRAP ) )
     {
         printf( "Required argument missing: output\n" );
-        return( DEMO_ERROR );
+        return DEMO_ERROR ;
     }
 
     status = run( mode, key_file_name,
@@ -698,6 +698,6 @@ int main( int argc, char *argv[] )
 
 usage_failure:
     usage( );
-    return( EXIT_FAILURE );
+    return EXIT_FAILURE ;
 }
 #endif /* MBEDTLS_SHA256_C && MBEDTLS_MD_C && MBEDTLS_AES_C && MBEDTLS_CCM_C && MBEDTLS_PSA_CRYPTO_C && MBEDTLS_FS_IO */

@@ -159,7 +159,7 @@ void mbedtls_mps_trace_print_msg( int id, int line, const char *format, ... );
         /* Breaks tail recursion. */            \
         int ret__ = val;                        \
         MBEDTLS_MPS_TRACE_END( ret__ );         \
-        return( ret__ );                        \
+        return ret__ ;                        \
     } while( 0 )
 
 #else /* MBEDTLS_MPS_TRACE */
@@ -168,7 +168,7 @@ void mbedtls_mps_trace_print_msg( int id, int line, const char *format, ... );
 #define MBEDTLS_MPS_TRACE_INIT( ... )  do { } while( 0 )
 #define MBEDTLS_MPS_TRACE_END          do { } while( 0 )
 
-#define MBEDTLS_MPS_TRACE_RETURN( val ) return( val );
+#define MBEDTLS_MPS_TRACE_RETURN( val ) return val ;
 
 #endif /* MBEDTLS_MPS_TRACE */
 

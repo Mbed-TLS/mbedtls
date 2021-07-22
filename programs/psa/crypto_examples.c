@@ -54,7 +54,7 @@ int main( void )
             "and/or MBEDTLS_CIPHER_MODE_WITH_PADDING "
             "not defined and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER"
             " defined.\r\n" );
-    return( 0 );
+    return 0 ;
 }
 #else
 
@@ -91,7 +91,7 @@ static psa_status_t cipher_operation( psa_cipher_operation_t *operation,
     *output_len += len;
 
 exit:
-    return( status );
+    return status ;
 }
 
 static psa_status_t cipher_encrypt( psa_key_id_t key,
@@ -122,7 +122,7 @@ static psa_status_t cipher_encrypt( psa_key_id_t key,
 
 exit:
     psa_cipher_abort( &operation );
-    return( status );
+    return status ;
 }
 
 static psa_status_t cipher_decrypt( psa_key_id_t key,
@@ -152,7 +152,7 @@ static psa_status_t cipher_decrypt( psa_key_id_t key,
 
 exit:
     psa_cipher_abort( &operation );
-    return( status );
+    return status ;
 }
 
 static psa_status_t
@@ -201,7 +201,7 @@ cipher_example_encrypt_decrypt_aes_cbc_nopad_1_block( void )
 
 exit:
     psa_destroy_key( key );
-    return( status );
+    return status ;
 }
 
 static psa_status_t cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( void )
@@ -249,7 +249,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( void )
 
 exit:
     psa_destroy_key( key );
-    return( status );
+    return status ;
 }
 
 static psa_status_t cipher_example_encrypt_decrypt_aes_ctr_multi( void )
@@ -296,7 +296,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_ctr_multi( void )
 
 exit:
     psa_destroy_key( key );
-    return( status );
+    return status ;
 }
 
 static void cipher_examples( void )
@@ -325,7 +325,7 @@ int main( void )
     cipher_examples( );
 exit:
     mbedtls_psa_crypto_free( );
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_PSA_CRYPTO_C && MBEDTLS_AES_C && MBEDTLS_CIPHER_MODE_CBC &&
           MBEDTLS_CIPHER_MODE_CTR && MBEDTLS_CIPHER_MODE_WITH_PADDING */

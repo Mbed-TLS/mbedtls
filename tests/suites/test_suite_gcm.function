@@ -59,7 +59,7 @@ static int check_multipart( mbedtls_gcm_context *ctx,
     ok = 1;
 exit:
     mbedtls_free( output );
-    return( ok );
+    return ok ;
 }
 
 static void check_cipher_with_empty_ad( mbedtls_gcm_context *ctx,

@@ -46,5 +46,5 @@ int main()
 
     mbedtls_printf( "Built against %s\n", version );
 
-    return( 0 );
+    return 0 ;
 }

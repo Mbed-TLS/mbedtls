@@ -562,7 +562,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
         case 128: ctx->nr = 10; break;
         case 192: ctx->nr = 12; break;
         case 256: ctx->nr = 14; break;
-        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
+        default : return MBEDTLS_ERR_AES_INVALID_KEY_LENGTH ;
     }
 
 #if !defined(MBEDTLS_AES_ROM_TABLES)
@@ -585,7 +585,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
-        return( mbedtls_aesni_setkey_enc( (unsigned char *) ctx->rk, key, keybits ) );
+        return mbedtls_aesni_setkey_enc( (unsigned char *) ctx->rk, key, keybits ) ;
 #endif
 
     for( i = 0; i < ( keybits >> 5 ); i++ )
@@ -656,7 +656,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
             break;
     }
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* !MBEDTLS_AES_SETKEY_ENC_ALT */
 
@@ -728,7 +728,7 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
 exit:
     mbedtls_aes_free( &cty );
 
-    return( ret );
+    return ret ;
 }
 #endif /* !MBEDTLS_AES_SETKEY_DEC_ALT */
 
@@ -747,7 +747,7 @@ static int mbedtls_aes_xts_decode_keys( const unsigned char *key,
     {
         case 256: break;
         case 512: break;
-        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
+        default : return MBEDTLS_ERR_AES_INVALID_KEY_LENGTH ;
     }
 
     *key1bits = half_keybits;
@@ -772,12 +772,12 @@ int mbedtls_aes_xts_setkey_enc( mbedtls_aes_xts_context *ctx,
     ret = mbedtls_aes_xts_decode_keys( key, keybits, &key1, &key1bits,
                                        &key2, &key2bits );
     if( ret != 0 )
-        return( ret );
+        return ret ;
 
     /* Set the tweak key. Always set tweak key for the encryption mode. */
     ret = mbedtls_aes_setkey_enc( &ctx->tweak, key2, key2bits );
     if( ret != 0 )
-        return( ret );
+        return ret ;
 
     /* Set crypt key for encryption. */
     return mbedtls_aes_setkey_enc( &ctx->crypt, key1, key1bits );
@@ -797,12 +797,12 @@ int mbedtls_aes_xts_setkey_dec( mbedtls_aes_xts_context *ctx,
     ret = mbedtls_aes_xts_decode_keys( key, keybits, &key1, &key1bits,
                                        &key2, &key2bits );
     if( ret != 0 )
-        return( ret );
+        return ret ;
 
     /* Set the tweak key. Always set tweak key for encryption. */
     ret = mbedtls_aes_setkey_enc( &ctx->tweak, key2, key2bits );
     if( ret != 0 )
-        return( ret );
+        return ret ;
 
     /* Set crypt key for decryption. */
     return mbedtls_aes_setkey_dec( &ctx->crypt, key1, key1bits );
@@ -917,7 +917,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 
     mbedtls_platform_zeroize( &t, sizeof( t ) );
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* !MBEDTLS_AES_ENCRYPT_ALT */
 
@@ -981,7 +981,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
 
     mbedtls_platform_zeroize( &t, sizeof( t ) );
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* !MBEDTLS_AES_DECRYPT_ALT */
 
@@ -1001,14 +1001,14 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
 
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
-        return( mbedtls_aesni_crypt_ecb( ctx, mode, input, output ) );
+        return mbedtls_aesni_crypt_ecb( ctx, mode, input, output ) ;
 #endif
 
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
     if( aes_padlock_ace > 0)
     {
         if( mbedtls_padlock_xcryptecb( ctx, mode, input, output ) == 0 )
-            return( 0 );
+            return 0 ;
 
         // If padlock data misaligned, we just fall back to
         // unaccelerated mode
@@ -1017,9 +1017,9 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
 #endif
 
     if( mode == MBEDTLS_AES_ENCRYPT )
-        return( mbedtls_internal_aes_encrypt( ctx, input, output ) );
+        return mbedtls_internal_aes_encrypt( ctx, input, output ) ;
     else
-        return( mbedtls_internal_aes_decrypt( ctx, input, output ) );
+        return mbedtls_internal_aes_decrypt( ctx, input, output ) ;
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -1044,13 +1044,13 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
     AES_VALIDATE_RET( output != NULL );
 
     if( length % 16 )
-        return( MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH );
+        return MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH ;
 
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
     if( aes_padlock_ace > 0 )
     {
         if( mbedtls_padlock_xcryptcbc( ctx, mode, length, iv, input, output ) == 0 )
-            return( 0 );
+            return 0 ;
 
         // If padlock data misaligned, we just fall back to
         // unaccelerated mode
@@ -1091,7 +1091,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
         }
     }
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -1187,7 +1187,7 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
     ret = mbedtls_aes_crypt_ecb( &ctx->tweak, MBEDTLS_AES_ENCRYPT,
                                  data_unit, tweak );
     if( ret != 0 )
-        return( ret );
+        return ret ;
 
     while( blocks-- )
     {
@@ -1209,7 +1209,7 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
 
         ret = mbedtls_aes_crypt_ecb( &ctx->crypt, mode, tmp, tmp );
         if( ret != 0 )
-            return( ret );
+            return ret ;
 
         for( i = 0; i < 16; i++ )
             output[i] = tmp[i] ^ tweak[i];
@@ -1257,7 +1257,7 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
             prev_output[i] = tmp[i] ^ t[i];
     }
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
 
@@ -1287,7 +1287,7 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
     n = *iv_off;
 
     if( n > 15 )
-        return( MBEDTLS_ERR_AES_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_AES_BAD_INPUT_DATA ;
 
     if( mode == MBEDTLS_AES_DECRYPT )
     {
@@ -1318,7 +1318,7 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
 
     *iv_off = n;
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -1356,7 +1356,7 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
         memcpy( iv, ov + 1, 16 );
     }
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
@@ -1383,7 +1383,7 @@ int mbedtls_aes_crypt_ofb( mbedtls_aes_context *ctx,
     n = *iv_off;
 
     if( n > 15 )
-        return( MBEDTLS_ERR_AES_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_AES_BAD_INPUT_DATA ;
 
     while( length-- )
     {
@@ -1401,7 +1401,7 @@ int mbedtls_aes_crypt_ofb( mbedtls_aes_context *ctx,
     *iv_off = n;
 
 exit:
-    return( ret );
+    return ret ;
 }
 #endif /* MBEDTLS_CIPHER_MODE_OFB */
 
@@ -1430,7 +1430,7 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
     n = *nc_off;
 
     if ( n > 0x0F )
-        return( MBEDTLS_ERR_AES_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_AES_BAD_INPUT_DATA ;
 
     while( length-- )
     {
@@ -1449,7 +1449,7 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
 
     *nc_off = n;
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
@@ -2187,7 +2187,7 @@ exit:
 
     mbedtls_aes_free( &ctx );
 
-    return( ret );
+    return ret ;
 }
 
 #endif /* MBEDTLS_SELF_TEST */

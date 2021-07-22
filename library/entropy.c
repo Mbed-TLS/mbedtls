@@ -118,7 +118,7 @@ int mbedtls_entropy_add_source( mbedtls_entropy_context *ctx,
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
-        return( ret );
+        return ret ;
 #endif
 
     idx = ctx->source_count;
@@ -138,10 +138,10 @@ int mbedtls_entropy_add_source( mbedtls_entropy_context *ctx,
 exit:
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR ;
 #endif
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -200,7 +200,7 @@ static int entropy_update( mbedtls_entropy_context *ctx, unsigned char source_id
 cleanup:
     mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
 
-    return( ret );
+    return ret ;
 }
 
 int mbedtls_entropy_update_manual( mbedtls_entropy_context *ctx,
@@ -210,17 +210,17 @@ int mbedtls_entropy_update_manual( mbedtls_entropy_context *ctx,
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
-        return( ret );
+        return ret ;
 #endif
 
     ret = entropy_update( ctx, MBEDTLS_ENTROPY_SOURCE_MANUAL, data, len );
 
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR ;
 #endif
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -235,7 +235,7 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
     size_t olen;
 
     if( ctx->source_count == 0 )
-        return( MBEDTLS_ERR_ENTROPY_NO_SOURCES_DEFINED );
+        return MBEDTLS_ERR_ENTROPY_NO_SOURCES_DEFINED ;
 
     /*
      * Run through our entropy sources
@@ -259,7 +259,7 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
         {
             if( ( ret = entropy_update( ctx, (unsigned char) i,
                                         buf, olen ) ) != 0 )
-                return( ret );
+                return ret ;
             ctx->source[i].size += olen;
         }
     }
@@ -270,7 +270,7 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
 cleanup:
     mbedtls_platform_zeroize( buf, sizeof( buf ) );
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -282,17 +282,17 @@ int mbedtls_entropy_gather( mbedtls_entropy_context *ctx )
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
-        return( ret );
+        return ret ;
 #endif
 
     ret = entropy_gather_internal( ctx );
 
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR ;
 #endif
 
-    return( ret );
+    return ret ;
 }
 
 int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
@@ -303,7 +303,7 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
     if( len > MBEDTLS_ENTROPY_BLOCK_SIZE )
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED ;
 
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
     /* Update the NV entropy seed before generating any entropy for outside
@@ -313,13 +313,13 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
     {
         ctx->initial_entropy_run = 1;
         if( ( ret = mbedtls_entropy_update_nv_seed( ctx ) ) != 0 )
-            return( ret );
+            return ret ;
     }
 #endif
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
-        return( ret );
+        return ret ;
 #endif
 
     /*
@@ -411,10 +411,10 @@ exit:
 
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR ;
 #endif
 
-    return( ret );
+    return ret ;
 }
 
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
@@ -425,16 +425,16 @@ int mbedtls_entropy_update_nv_seed( mbedtls_entropy_context *ctx )
 
     /* Read new seed  and write it to NV */
     if( ( ret = mbedtls_entropy_func( ctx, buf, MBEDTLS_ENTROPY_BLOCK_SIZE ) ) != 0 )
-        return( ret );
+        return ret ;
 
     if( mbedtls_nv_seed_write( buf, MBEDTLS_ENTROPY_BLOCK_SIZE ) < 0 )
-        return( MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR );
+        return MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR ;
 
     /* Manually update the remaining stream with a separator value to diverge */
     memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
     ret = mbedtls_entropy_update_manual( ctx, buf, MBEDTLS_ENTROPY_BLOCK_SIZE );
 
-    return( ret );
+    return ret ;
 }
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
 
@@ -471,7 +471,7 @@ exit:
     if( f != NULL )
         fclose( f );
 
-    return( ret );
+    return ret ;
 }
 
 int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const char *path )
@@ -482,7 +482,7 @@ int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const char *
     unsigned char buf[ MBEDTLS_ENTROPY_MAX_SEED_SIZE ];
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
-        return( MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR );
+        return MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR ;
 
     fseek( f, 0, SEEK_END );
     n = (size_t) ftell( f );
@@ -501,9 +501,9 @@ int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const char *
     mbedtls_platform_zeroize( buf, sizeof( buf ) );
 
     if( ret != 0 )
-        return( ret );
+        return ret ;
 
-    return( mbedtls_entropy_write_seed_file( ctx, path ) );
+    return mbedtls_entropy_write_seed_file( ctx, path ) ;
 }
 #endif /* MBEDTLS_FS_IO */
 
@@ -519,7 +519,7 @@ static int entropy_dummy_source( void *data, unsigned char *output,
     memset( output, 0x2a, len );
     *olen = len;
 
-    return( 0 );
+    return 0 ;
 }
 
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
@@ -535,7 +535,7 @@ static int mbedtls_entropy_source_self_test_gather( unsigned char *buf, size_t b
     {
         if( ( ret = mbedtls_hardware_poll( NULL, buf + entropy_len,
             buf_len - entropy_len, &olen ) ) != 0 )
-            return( ret );
+            return ret ;
 
         entropy_len += olen;
         attempts--;
@@ -546,7 +546,7 @@ static int mbedtls_entropy_source_self_test_gather( unsigned char *buf, size_t b
         ret = 1;
     }
 
-    return( ret );
+    return ret ;
 }
 
 
@@ -563,7 +563,7 @@ static int mbedtls_entropy_source_self_test_check_bits( const unsigned char *buf
         unset |= buf[i];
     }
 
-    return( set == 0xFF || unset == 0x00 );
+    return set == 0xFF || unset == 0x00 ;
 }
 
 /*
@@ -615,7 +615,7 @@ cleanup:
         mbedtls_printf( "\n" );
     }
 
-    return( ret != 0 );
+    return ret != 0 ;
 }
 
 #endif /* MBEDTLS_ENTROPY_HARDWARE_ALT */
@@ -647,7 +647,7 @@ int mbedtls_entropy_self_test( int verbose )
     if( ret != 0 )
         goto cleanup;
 
-    if( ( ret = mbedtls_entropy_update_manual( &ctx, buf, sizeof buf ) ) != 0 )
+    if( ( ret = mbedtls_entropy_update_manual( &ctx, buf, sizeof(buf) ) ) != 0 )
         goto cleanup;
 
     /*
@@ -694,7 +694,7 @@ cleanup:
         mbedtls_printf( "\n" );
     }
 
-    return( ret != 0 );
+    return ret != 0 ;
 }
 #endif /* MBEDTLS_SELF_TEST */
 

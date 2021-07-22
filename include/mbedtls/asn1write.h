@@ -30,7 +30,7 @@
     do                                                  \
     {                                                   \
         if( ( ret = (f) ) < 0 )                         \
-            return( ret );                              \
+            return ret ;                              \
         else                                            \
             (g) += ret;                                 \
     } while( 0 )

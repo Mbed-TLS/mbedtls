@@ -65,7 +65,7 @@ int main( int argc, char *argv[] )
         if( *end != '\0' )
         {
             mbedtls_printf( USAGE );
-            return( 0 );
+            return 0 ;
         }
     }
     if( val > 0 )

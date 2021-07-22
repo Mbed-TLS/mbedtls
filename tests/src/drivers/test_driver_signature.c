@@ -88,7 +88,7 @@ psa_status_t sign_hash(
         }
         else
         {
-            return( PSA_ERROR_INVALID_ARGUMENT );
+            return PSA_ERROR_INVALID_ARGUMENT ;
         }
     }
     else
@@ -104,7 +104,7 @@ psa_status_t sign_hash(
         (void)signature;
         (void)signature_size;
         (void)signature_length;
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
     }
 }
 
@@ -146,7 +146,7 @@ psa_status_t verify_hash(
         }
         else
         {
-            return( PSA_ERROR_INVALID_ARGUMENT );
+            return PSA_ERROR_INVALID_ARGUMENT ;
         }
     }
     else
@@ -162,7 +162,7 @@ psa_status_t verify_hash(
         (void)signature;
         (void)signature_length;
 
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
     }
 }
 
@@ -184,18 +184,18 @@ psa_status_t mbedtls_test_transparent_signature_sign_message(
     ++mbedtls_test_driver_signature_sign_hooks.hits;
 
     if( mbedtls_test_driver_signature_sign_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_signature_sign_hooks.forced_status );
+        return mbedtls_test_driver_signature_sign_hooks.forced_status ;
 
     if( mbedtls_test_driver_signature_sign_hooks.forced_output != NULL )
     {
         if( mbedtls_test_driver_signature_sign_hooks.forced_output_length > signature_size )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
+            return PSA_ERROR_BUFFER_TOO_SMALL ;
 
         memcpy( signature, mbedtls_test_driver_signature_sign_hooks.forced_output,
                 mbedtls_test_driver_signature_sign_hooks.forced_output_length );
         *signature_length = mbedtls_test_driver_signature_sign_hooks.forced_output_length;
 
-        return( PSA_SUCCESS );
+        return PSA_SUCCESS ;
     }
 
     status = mbedtls_transparent_test_driver_hash_compute(
@@ -231,7 +231,7 @@ psa_status_t mbedtls_test_opaque_signature_sign_message(
     (void) signature_size;
     (void) signature_length;
 
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 }
 
 psa_status_t mbedtls_test_transparent_signature_verify_message(
@@ -251,7 +251,7 @@ psa_status_t mbedtls_test_transparent_signature_verify_message(
     ++mbedtls_test_driver_signature_verify_hooks.hits;
 
     if( mbedtls_test_driver_signature_verify_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_signature_verify_hooks.forced_status );
+        return mbedtls_test_driver_signature_verify_hooks.forced_status ;
 
     status = mbedtls_transparent_test_driver_hash_compute(
                 PSA_ALG_SIGN_GET_HASH( alg ), input, input_length,
@@ -284,7 +284,7 @@ psa_status_t mbedtls_test_opaque_signature_verify_message(
     (void) signature;
     (void) signature_length;
 
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 }
 
 psa_status_t mbedtls_test_transparent_signature_sign_hash(
@@ -297,16 +297,16 @@ psa_status_t mbedtls_test_transparent_signature_sign_hash(
     ++mbedtls_test_driver_signature_sign_hooks.hits;
 
     if( mbedtls_test_driver_signature_sign_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_signature_sign_hooks.forced_status );
+        return mbedtls_test_driver_signature_sign_hooks.forced_status ;
 
     if( mbedtls_test_driver_signature_sign_hooks.forced_output != NULL )
     {
         if( mbedtls_test_driver_signature_sign_hooks.forced_output_length > signature_size )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
+            return PSA_ERROR_BUFFER_TOO_SMALL ;
         memcpy( signature, mbedtls_test_driver_signature_sign_hooks.forced_output,
                 mbedtls_test_driver_signature_sign_hooks.forced_output_length );
         *signature_length = mbedtls_test_driver_signature_sign_hooks.forced_output_length;
-        return( PSA_SUCCESS );
+        return PSA_SUCCESS ;
     }
 
     return sign_hash( attributes, key_buffer, key_buffer_size,
@@ -331,7 +331,7 @@ psa_status_t mbedtls_test_opaque_signature_sign_hash(
     (void) signature_size;
     (void) signature_length;
 
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 }
 
 psa_status_t mbedtls_test_transparent_signature_verify_hash(
@@ -344,7 +344,7 @@ psa_status_t mbedtls_test_transparent_signature_verify_hash(
     ++mbedtls_test_driver_signature_verify_hooks.hits;
 
     if( mbedtls_test_driver_signature_verify_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_signature_verify_hooks.forced_status );
+        return mbedtls_test_driver_signature_verify_hooks.forced_status ;
 
     return verify_hash( attributes, key_buffer, key_buffer_size,
                         alg, hash, hash_length,
@@ -366,7 +366,7 @@ psa_status_t mbedtls_test_opaque_signature_verify_hash(
     (void) hash_length;
     (void) signature;
     (void) signature_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

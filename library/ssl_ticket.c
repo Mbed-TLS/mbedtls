@@ -78,10 +78,10 @@ static int ssl_ticket_gen_key( mbedtls_ssl_ticket_context *ctx,
 #endif
 
     if( ( ret = ctx->f_rng( ctx->p_rng, key->name, sizeof( key->name ) ) ) != 0 )
-        return( ret );
+        return ret ;
 
     if( ( ret = ctx->f_rng( ctx->p_rng, buf, sizeof( buf ) ) ) != 0 )
-        return( ret );
+        return ret ;
 
     /* With GCM and CCM, same context can encrypt & decrypt */
     ret = mbedtls_cipher_setkey( &key->ctx, buf,
@@ -90,7 +90,7 @@ static int ssl_ticket_gen_key( mbedtls_ssl_ticket_context *ctx,
 
     mbedtls_platform_zeroize( buf, sizeof( buf ) );
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -109,16 +109,16 @@ static int ssl_ticket_update_keys( mbedtls_ssl_ticket_context *ctx )
         if( current_time >= key_time &&
             current_time - key_time < ctx->ticket_lifetime )
         {
-            return( 0 );
+            return 0 ;
         }
 
         ctx->active = 1 - ctx->active;
 
-        return( ssl_ticket_gen_key( ctx, ctx->active ) );
+        return ssl_ticket_gen_key( ctx, ctx->active ) ;
     }
     else
 #endif /* MBEDTLS_HAVE_TIME */
-        return( 0 );
+        return 0 ;
 }
 
 /*
@@ -139,46 +139,46 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
 
     cipher_info = mbedtls_cipher_info_from_type( cipher);
     if( cipher_info == NULL )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA ;
 
     if( cipher_info->mode != MBEDTLS_MODE_GCM &&
         cipher_info->mode != MBEDTLS_MODE_CCM )
     {
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA ;
     }
 
     if( cipher_info->key_bitlen > 8 * MAX_KEY_BYTES )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA ;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     ret = mbedtls_cipher_setup_psa( &ctx->keys[0].ctx,
                                     cipher_info, TICKET_AUTH_TAG_BYTES );
     if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
-        return( ret );
+        return ret ;
     /* We don't yet expect to support all ciphers through PSA,
      * so allow fallback to ordinary mbedtls_cipher_setup(). */
     if( ret == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     if( ( ret = mbedtls_cipher_setup( &ctx->keys[0].ctx, cipher_info ) ) != 0 )
-        return( ret );
+        return ret ;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     ret = mbedtls_cipher_setup_psa( &ctx->keys[1].ctx,
                                     cipher_info, TICKET_AUTH_TAG_BYTES );
     if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
-        return( ret );
+        return ret ;
     if( ret == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     if( ( ret = mbedtls_cipher_setup( &ctx->keys[1].ctx, cipher_info ) ) != 0 )
-        return( ret );
+        return ret ;
 
     if( ( ret = ssl_ticket_gen_key( ctx, 0 ) ) != 0 ||
         ( ret = ssl_ticket_gen_key( ctx, 1 ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -214,7 +214,7 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
     *tlen = 0;
 
     if( ctx == NULL || ctx->f_rng == NULL )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA ;
 
     /* We need at least 4 bytes for key_name, 12 for IV, 2 for len 16 for tag,
      * in addition to session itself, that will be checked when writing it. */
@@ -222,7 +222,7 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
-        return( ret );
+        return ret ;
 #endif
 
     if( ( ret = ssl_ticket_update_keys( ctx ) ) != 0 )
@@ -270,10 +270,10 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR ;
 #endif
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -287,9 +287,9 @@ static mbedtls_ssl_ticket_key *ssl_ticket_select_key(
 
     for( i = 0; i < sizeof( ctx->keys ) / sizeof( *ctx->keys ); i++ )
         if( memcmp( name, ctx->keys[i].name, 4 ) == 0 )
-            return( &ctx->keys[i] );
+            return &ctx->keys[i] ;
 
-    return( NULL );
+    return NULL ;
 }
 
 /*
@@ -310,14 +310,14 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
     size_t enc_len, clear_len;
 
     if( ctx == NULL || ctx->f_rng == NULL )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA ;
 
     if( len < TICKET_MIN_LEN )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA ;
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
-        return( ret );
+        return ret ;
 #endif
 
     if( ( ret = ssl_ticket_update_keys( ctx ) ) != 0 )
@@ -381,10 +381,10 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR ;
 #endif
 
-    return( ret );
+    return ret ;
 }
 
 /*

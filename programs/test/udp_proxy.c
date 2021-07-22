@@ -332,41 +332,41 @@ static void get_options( int argc, char *argv[] )
 
 static const char *msg_type( unsigned char *msg, size_t len )
 {
-    if( len < 1 )                           return( "Invalid" );
+    if( len < 1 )                           return "Invalid" ;
     switch( msg[0] )
     {
-        case MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC:    return( "ChangeCipherSpec" );
-        case MBEDTLS_SSL_MSG_ALERT:                 return( "Alert" );
-        case MBEDTLS_SSL_MSG_APPLICATION_DATA:      return( "ApplicationData" );
-        case MBEDTLS_SSL_MSG_CID:                   return( "CID" );
+        case MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC:    return "ChangeCipherSpec" ;
+        case MBEDTLS_SSL_MSG_ALERT:                 return "Alert" ;
+        case MBEDTLS_SSL_MSG_APPLICATION_DATA:      return "ApplicationData" ;
+        case MBEDTLS_SSL_MSG_CID:                   return "CID" ;
         case MBEDTLS_SSL_MSG_HANDSHAKE:             break; /* See below */
-        default:                            return( "Unknown" );
+        default:                            return "Unknown" ;
     }
 
-    if( len < 13 + 12 )                     return( "Invalid handshake" );
+    if( len < 13 + 12 )                     return "Invalid handshake" ;
 
     /*
      * Our handshake message are less than 2^16 bytes long, so they should
      * have 0 as the first byte of length, frag_offset and frag_length.
      * Otherwise, assume they are encrypted.
      */
-    if( msg[14] || msg[19] || msg[22] )     return( "Encrypted handshake" );
+    if( msg[14] || msg[19] || msg[22] )     return "Encrypted handshake" ;
 
     switch( msg[13] )
     {
-        case MBEDTLS_SSL_HS_HELLO_REQUEST:          return( "HelloRequest" );
-        case MBEDTLS_SSL_HS_CLIENT_HELLO:           return( "ClientHello" );
-        case MBEDTLS_SSL_HS_SERVER_HELLO:           return( "ServerHello" );
-        case MBEDTLS_SSL_HS_HELLO_VERIFY_REQUEST:   return( "HelloVerifyRequest" );
-        case MBEDTLS_SSL_HS_NEW_SESSION_TICKET:     return( "NewSessionTicket" );
-        case MBEDTLS_SSL_HS_CERTIFICATE:            return( "Certificate" );
-        case MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE:    return( "ServerKeyExchange" );
-        case MBEDTLS_SSL_HS_CERTIFICATE_REQUEST:    return( "CertificateRequest" );
-        case MBEDTLS_SSL_HS_SERVER_HELLO_DONE:      return( "ServerHelloDone" );
-        case MBEDTLS_SSL_HS_CERTIFICATE_VERIFY:     return( "CertificateVerify" );
-        case MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE:    return( "ClientKeyExchange" );
-        case MBEDTLS_SSL_HS_FINISHED:               return( "Finished" );
-        default:                            return( "Unknown handshake" );
+        case MBEDTLS_SSL_HS_HELLO_REQUEST:          return "HelloRequest" ;
+        case MBEDTLS_SSL_HS_CLIENT_HELLO:           return "ClientHello" ;
+        case MBEDTLS_SSL_HS_SERVER_HELLO:           return "ServerHello" ;
+        case MBEDTLS_SSL_HS_HELLO_VERIFY_REQUEST:   return "HelloVerifyRequest" ;
+        case MBEDTLS_SSL_HS_NEW_SESSION_TICKET:     return "NewSessionTicket" ;
+        case MBEDTLS_SSL_HS_CERTIFICATE:            return "Certificate" ;
+        case MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE:    return "ServerKeyExchange" ;
+        case MBEDTLS_SSL_HS_CERTIFICATE_REQUEST:    return "CertificateRequest" ;
+        case MBEDTLS_SSL_HS_SERVER_HELLO_DONE:      return "ServerHelloDone" ;
+        case MBEDTLS_SSL_HS_CERTIFICATE_VERIFY:     return "CertificateVerify" ;
+        case MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE:    return "ClientKeyExchange" ;
+        case MBEDTLS_SSL_HS_FINISHED:               return "Finished" ;
+        default:                            return "Unknown handshake" ;
     }
 }
 
@@ -381,10 +381,10 @@ static unsigned ellapsed_time( void )
     {
         (void) mbedtls_timing_get_timer( &hires, 1 );
         initialized = 1;
-        return( 0 );
+        return 0 ;
     }
 
-    return( mbedtls_timing_get_timer( &hires, 0 ) );
+    return mbedtls_timing_get_timer( &hires, 0 ) ;
 }
 
 typedef struct
@@ -417,7 +417,7 @@ static int ctx_buffer_flush( ctx_buffer *buf )
     buf->len           = 0;
     buf->num_datagrams = 0;
 
-    return( ret );
+    return ret ;
 }
 
 static unsigned ctx_buffer_time_remaining( ctx_buffer *buf )
@@ -425,12 +425,12 @@ static unsigned ctx_buffer_time_remaining( ctx_buffer *buf )
     unsigned const cur_time = ellapsed_time();
 
     if( buf->num_datagrams == 0 )
-        return( (unsigned) -1 );
+        return (unsigned) -1 ;
 
     if( cur_time - buf->packet_lifetime >= opt.pack )
-        return( 0 );
+        return 0 ;
 
-    return( opt.pack - ( cur_time - buf->packet_lifetime ) );
+    return opt.pack - ( cur_time - buf->packet_lifetime ) ;
 }
 
 static int ctx_buffer_append( ctx_buffer *buf,
@@ -440,13 +440,13 @@ static int ctx_buffer_append( ctx_buffer *buf,
     int ret;
 
     if( len > (size_t) INT_MAX )
-        return( -1 );
+        return -1 ;
 
     if( len > sizeof( buf->data ) )
     {
         mbedtls_printf( "  ! buffer size %u too large (max %u)\n",
                         (unsigned) len, (unsigned) sizeof( buf->data ) );
-        return( -1 );
+        return -1 ;
     }
 
     if( sizeof( buf->data ) - buf->len < len )
@@ -454,7 +454,7 @@ static int ctx_buffer_append( ctx_buffer *buf,
         if( ( ret = ctx_buffer_flush( buf ) ) <= 0 )
         {
             mbedtls_printf( "ctx_buffer_flush failed with -%#04x", (unsigned int) -ret );
-            return( ret );
+            return ret ;
         }
     }
 
@@ -464,7 +464,7 @@ static int ctx_buffer_append( ctx_buffer *buf,
     if( ++buf->num_datagrams == 1 )
         buf->packet_lifetime = ellapsed_time();
 
-    return( (int) len );
+    return (int) len ;
 }
 #endif /* MBEDTLS_TIMING_C */
 
@@ -483,9 +483,9 @@ static int dispatch_data( mbedtls_net_context *ctx,
             buf = &outbuf[1];
 
         if( buf == NULL )
-            return( -1 );
+            return -1 ;
 
-        return( ctx_buffer_append( buf, data, len ) );
+        return ctx_buffer_append( buf, data, len ) ;
     }
 #endif /* MBEDTLS_TIMING_C */
 
@@ -494,7 +494,7 @@ static int dispatch_data( mbedtls_net_context *ctx,
     {
         mbedtls_printf( "net_send returned -%#04x\n", (unsigned int) -ret );
     }
-    return( ret );
+    return ret ;
 }
 
 typedef struct
@@ -578,7 +578,7 @@ int send_packet( const packet *p, const char *why )
         if( ( ret = dispatch_data( dst, buf, p->len ) ) <= 0 )
         {
             mbedtls_printf( "  ! dispatch returned %d\n", ret );
-            return( ret );
+            return ret ;
         }
     }
 
@@ -602,7 +602,7 @@ int send_packet( const packet *p, const char *why )
         if( ( ret = dispatch_data( dst, buf, p->len ) ) <= 0 )
         {
             mbedtls_printf( "  ! dispatch returned %d\n", ret );
-            return( ret );
+            return ret ;
         }
     }
 
@@ -610,7 +610,7 @@ int send_packet( const packet *p, const char *why )
     if( ( ret = dispatch_data( dst, p->buf, p->len ) ) <= 0 )
     {
         mbedtls_printf( "  ! dispatch returned %d\n", ret );
-        return( ret );
+        return ret ;
     }
 
     /* Don't duplicate Application Data, only handshake covered */
@@ -623,7 +623,7 @@ int send_packet( const packet *p, const char *why )
         if( ( ret = dispatch_data( dst, p->buf, p->len ) ) <= 0 )
         {
             mbedtls_printf( "  ! dispatch returned %d\n", ret );
-            return( ret );
+            return ret ;
         }
     }
 
@@ -638,13 +638,13 @@ int send_packet( const packet *p, const char *why )
                                         initial_clihlo.len ) ) <= 0 )
         {
             mbedtls_printf( "  ! dispatch returned %d\n", ret );
-            return( ret );
+            return ret ;
         }
 
         inject_clihlo_state = ICH_INJECTED;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 #define MAX_DELAYED_MSG 5
@@ -673,11 +673,11 @@ int send_delayed()
     {
         ret = send_packet( &prev[offset], "delayed" );
         if( ret != 0 )
-            return( ret );
+            return ret ;
     }
 
     clear_pending();
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -713,7 +713,7 @@ int handle_message( const char *way,
     if( ( ret = mbedtls_net_recv( src, cur.buf, sizeof( cur.buf ) ) ) <= 0 )
     {
         mbedtls_printf( "  ! mbedtls_net_recv returned %d\n", ret );
-        return( ret );
+        return ret ;
     }
 
     cur.len  = ret;
@@ -751,7 +751,7 @@ int handle_message( const char *way,
             mbedtls_free( delay_list[delay_idx] );
             delay_list[delay_idx] = NULL;
 
-            return( 0 );
+            return 0 ;
         }
     }
 
@@ -787,15 +787,15 @@ int handle_message( const char *way,
     {
         /* forward and possibly duplicate */
         if( ( ret = send_packet( &cur, "forwarded" ) ) != 0 )
-            return( ret );
+            return ret ;
 
         /* send previously delayed messages if any */
         ret = send_delayed();
         if( ret != 0 )
-            return( ret );
+            return ret ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 int main( int argc, char *argv[] )

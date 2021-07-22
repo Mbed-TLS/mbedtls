@@ -37,7 +37,7 @@ int mbedtls_test_platform_setup( void )
 #if defined(MBEDTLS_PLATFORM_C)
     ret = mbedtls_platform_setup( &platform_ctx );
 #endif /* MBEDTLS_PLATFORM_C */
-    return( ret );
+    return ret ;
 }
 
 void mbedtls_test_platform_teardown( void )
@@ -56,9 +56,9 @@ static int ascii2uc(const char c, unsigned char *uc)
     else if( ( c >= 'A' ) && ( c <= 'F' ) )
         *uc = c - 'A' + 10;
     else
-        return( -1 );
+        return -1 ;
 
-    return( 0 );
+    return 0 ;
 }
 
 void mbedtls_test_fail( const char *test, int line_no, const char* filename )
@@ -108,24 +108,24 @@ int mbedtls_test_unhexify( unsigned char *obuf,
 
     /* Must be even number of bytes. */
     if ( ( *len ) & 1 )
-        return( -1 );
+        return -1 ;
     *len /= 2;
 
     if ( (*len) > obufmax )
-        return( -1 );
+        return -1 ;
 
     while( *ibuf != 0 )
     {
         if ( ascii2uc( *(ibuf++), &uc ) != 0 )
-            return( -1 );
+            return -1 ;
 
         if ( ascii2uc( *(ibuf++), &uc2 ) != 0 )
-            return( -1 );
+            return -1 ;
 
         *(obuf++) = ( uc << 4 ) | uc2;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 void mbedtls_test_hexify( unsigned char *obuf,
@@ -164,7 +164,7 @@ unsigned char *mbedtls_test_zero_alloc( size_t len )
 
     memset( p, 0x00, actual_len );
 
-    return( p );
+    return p ;
 }
 
 unsigned char *mbedtls_test_unhexify_alloc( const char *ibuf, size_t *olen )
@@ -175,13 +175,13 @@ unsigned char *mbedtls_test_unhexify_alloc( const char *ibuf, size_t *olen )
     *olen = strlen( ibuf ) / 2;
 
     if( *olen == 0 )
-        return( mbedtls_test_zero_alloc( *olen ) );
+        return mbedtls_test_zero_alloc( *olen ) ;
 
     obuf = mbedtls_calloc( 1, *olen );
     TEST_HELPER_ASSERT( obuf != NULL );
     TEST_HELPER_ASSERT( mbedtls_test_unhexify( obuf, *olen, ibuf, &len ) == 0 );
 
-    return( obuf );
+    return obuf ;
 }
 
 int mbedtls_test_hexcmp( uint8_t * a, uint8_t * b,
@@ -191,7 +191,7 @@ int mbedtls_test_hexcmp( uint8_t * a, uint8_t * b,
     uint32_t i = 0;
 
     if( a_len != b_len )
-        return( -1 );
+        return -1 ;
 
     for( i = 0; i < a_len; i++ )
     {
@@ -268,9 +268,9 @@ int mbedtls_test_read_mpi( mbedtls_mpi *X, int radix, const char *s )
     if( s[0] == 0 )
     {
         mbedtls_mpi_free( X );
-        return( 0 );
+        return 0 ;
     }
     else
-        return( mbedtls_mpi_read_string( X, radix, s ) );
+        return mbedtls_mpi_read_string( X, radix, s ) ;
 }
 #endif

@@ -1177,7 +1177,7 @@ int psk_dummy_callback( void *p_info, mbedtls_ssl_context *ssl,
     (void) name;
     (void) name_len;
 
-    return ( 0 );
+    return 0 ;
 }
 
 #if MBEDTLS_SSL_CID_OUT_LEN_MAX > MBEDTLS_SSL_CID_IN_LEN_MAX
@@ -1428,7 +1428,7 @@ cleanup:
     mbedtls_free( md0 );
     mbedtls_free( md1 );
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -1458,13 +1458,13 @@ static int ssl_populate_session_tls12( mbedtls_ssl_session *session,
         mbedtls_x509_crt_init( &tmp_crt );
         ret = mbedtls_x509_crt_parse_file( &tmp_crt, crt_file );
         if( ret != 0 )
-            return( ret );
+            return ret ;
 
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
         /* Move temporary CRT. */
         session->peer_cert = mbedtls_calloc( 1, sizeof( *session->peer_cert ) );
         if( session->peer_cert == NULL )
-            return( -1 );
+            return -1 ;
         *session->peer_cert = tmp_crt;
         memset( &tmp_crt, 0, sizeof( tmp_crt ) );
 #else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
@@ -1472,13 +1472,13 @@ static int ssl_populate_session_tls12( mbedtls_ssl_session *session,
         session->peer_cert_digest =
             mbedtls_calloc( 1, MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN );
         if( session->peer_cert_digest == NULL )
-            return( -1 );
+            return -1 ;
         ret = mbedtls_md( mbedtls_md_info_from_type(
                               MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE ),
                           tmp_crt.raw.p, tmp_crt.raw.len,
                           session->peer_cert_digest );
         if( ret != 0 )
-            return( ret );
+            return ret ;
         session->peer_cert_digest_type =
             MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE;
         session->peer_cert_digest_len =
@@ -1497,7 +1497,7 @@ static int ssl_populate_session_tls12( mbedtls_ssl_session *session,
     {
         session->ticket = mbedtls_calloc( 1, ticket_len );
         if( session->ticket == NULL )
-            return( -1 );
+            return -1 ;
         memset( session->ticket, 33, ticket_len );
     }
     session->ticket_len = ticket_len;
@@ -1513,7 +1513,7 @@ static int ssl_populate_session_tls12( mbedtls_ssl_session *session,
     session->encrypt_then_mac = 1;
 #endif
 
-    return( 0 );
+    return 0 ;
 }
 
 /*

@@ -86,7 +86,7 @@ int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N,
     const size_t num_primes = sizeof( primes ) / sizeof( *primes );
 
     if( P == NULL || Q == NULL || P->p != NULL || Q->p != NULL )
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA ;
 
     if( mbedtls_mpi_cmp_int( N, 0 ) <= 0 ||
         mbedtls_mpi_cmp_int( D, 1 ) <= 0 ||
@@ -94,7 +94,7 @@ int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N,
         mbedtls_mpi_cmp_int( E, 1 ) <= 0 ||
         mbedtls_mpi_cmp_mpi( E, N ) >= 0 )
     {
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA ;
     }
 
     /*
@@ -187,7 +187,7 @@ cleanup:
 
     mbedtls_mpi_free( &K );
     mbedtls_mpi_free( &T );
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -203,13 +203,13 @@ int mbedtls_rsa_deduce_private_exponent( mbedtls_mpi const *P,
     mbedtls_mpi K, L;
 
     if( D == NULL || mbedtls_mpi_cmp_int( D, 0 ) != 0 )
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA ;
 
     if( mbedtls_mpi_cmp_int( P, 1 ) <= 0 ||
         mbedtls_mpi_cmp_int( Q, 1 ) <= 0 ||
         mbedtls_mpi_cmp_int( E, 0 ) == 0 )
     {
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA ;
     }
 
     mbedtls_mpi_init( &K );
@@ -234,7 +234,7 @@ cleanup:
     mbedtls_mpi_free( &K );
     mbedtls_mpi_free( &L );
 
-    return( ret );
+    return ret ;
 }
 
 int mbedtls_rsa_deduce_crt( const mbedtls_mpi *P, const mbedtls_mpi *Q,
@@ -268,7 +268,7 @@ int mbedtls_rsa_deduce_crt( const mbedtls_mpi *P, const mbedtls_mpi *Q,
 cleanup:
     mbedtls_mpi_free( &K );
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -392,7 +392,7 @@ cleanup:
         ret += MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
     }
 
-    return( ret );
+    return ret ;
 }
 
 /*
@@ -480,7 +480,7 @@ cleanup:
     mbedtls_mpi_free( &K );
     mbedtls_mpi_free( &L );
 
-    return( ret );
+    return ret ;
 }
 
 #endif /* MBEDTLS_RSA_C */

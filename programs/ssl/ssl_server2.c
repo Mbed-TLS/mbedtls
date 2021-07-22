@@ -616,13 +616,13 @@ struct options
 static int get_auth_mode( const char *s )
 {
     if( strcmp( s, "none" ) == 0 )
-        return( MBEDTLS_SSL_VERIFY_NONE );
+        return MBEDTLS_SSL_VERIFY_NONE ;
     if( strcmp( s, "optional" ) == 0 )
-        return( MBEDTLS_SSL_VERIFY_OPTIONAL );
+        return MBEDTLS_SSL_VERIFY_OPTIONAL ;
     if( strcmp( s, "required" ) == 0 )
-        return( MBEDTLS_SSL_VERIFY_REQUIRED );
+        return MBEDTLS_SSL_VERIFY_REQUIRED ;
 
-    return( -1 );
+    return -1 ;
 }
 
 /*
@@ -701,7 +701,7 @@ sni_entry *sni_parse( char *sni_string )
         if( ( new = mbedtls_calloc( 1, sizeof( sni_entry ) ) ) == NULL )
         {
             sni_free( cur );
-            return( NULL );
+            return NULL ;
         }
 
         GET_ITEM( new->name );
@@ -760,12 +760,12 @@ sni_entry *sni_parse( char *sni_string )
         cur = new;
     }
 
-    return( cur );
+    return cur ;
 
 error:
     sni_free( new );
     sni_free( cur );
-    return( NULL );
+    return NULL ;
 }
 
 /*
@@ -787,13 +787,13 @@ int sni_callback( void *p_info, mbedtls_ssl_context *ssl,
             if( cur->authmode != DFL_AUTH_MODE )
                 mbedtls_ssl_set_hs_authmode( ssl, cur->authmode );
 
-            return( mbedtls_ssl_set_hs_own_cert( ssl, cur->cert, cur->key ) );
+            return mbedtls_ssl_set_hs_own_cert( ssl, cur->cert, cur->key ) ;
         }
 
         cur = cur->next;
     }
 
-    return( -1 );
+    return -1 ;
 }
 
 #endif /* SNI_OPTION */
@@ -830,7 +830,7 @@ int psk_free( psk_entry *head )
         {
             status = psa_destroy_key( slot );
             if( status != PSA_SUCCESS )
-                return( status );
+                return status ;
         }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
@@ -839,7 +839,7 @@ int psk_free( psk_entry *head )
         head = next;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -877,12 +877,12 @@ psk_entry *psk_parse( char *psk_string )
         cur = new;
     }
 
-    return( cur );
+    return cur ;
 
 error:
     psk_free( new );
     psk_free( cur );
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -900,16 +900,16 @@ int psk_callback( void *p_info, mbedtls_ssl_context *ssl,
         {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
             if( cur->slot != 0 )
-                return( mbedtls_ssl_set_hs_psk_opaque( ssl, cur->slot ) );
+                return mbedtls_ssl_set_hs_psk_opaque( ssl, cur->slot ) ;
             else
 #endif
-            return( mbedtls_ssl_set_hs_psk( ssl, cur->key, cur->key_len ) );
+            return mbedtls_ssl_set_hs_psk( ssl, cur->key, cur->key_len ) ;
         }
 
         cur = cur->next;
     }
 
-    return( -1 );
+    return -1 ;
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
@@ -977,13 +977,13 @@ int ssl_async_set_key( ssl_async_key_context_t *ctx,
                        unsigned delay )
 {
     if( ctx->slots_used >= sizeof( ctx->slots ) / sizeof( *ctx->slots ) )
-        return( -1 );
+        return -1 ;
     ctx->slots[ctx->slots_used].cert = cert;
     ctx->slots[ctx->slots_used].pk = pk;
     ctx->slots[ctx->slots_used].delay = delay;
     ctx->slots[ctx->slots_used].pk_owned = pk_take_ownership;
     ++ctx->slots_used;
-    return( 0 );
+    return 0 ;
 }
 
 #define SSL_ASYNC_INPUT_MAX_SIZE 512
@@ -1047,7 +1047,7 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
     {
         mbedtls_printf( "Async %s callback: no key matches this certificate.\n",
                         op_name );
-        return( MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH );
+        return MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH ;
     }
     mbedtls_printf( "Async %s callback: using key slot %u, delay=%u.\n",
                     op_name, slot, config_data->slots[slot].delay );
@@ -1055,15 +1055,15 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
     if( config_data->inject_error == SSL_ASYNC_INJECT_ERROR_START )
     {
         mbedtls_printf( "Async %s callback: injected error\n", op_name );
-        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE ;
     }
 
     if( input_len > SSL_ASYNC_INPUT_MAX_SIZE )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA ;
 
     ctx = mbedtls_calloc( 1, sizeof( *ctx ) );
     if( ctx == NULL )
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+        return MBEDTLS_ERR_SSL_ALLOC_FAILED ;
     ctx->slot = slot;
     ctx->operation_type = op_type;
     ctx->md_alg = md_alg;
@@ -1073,9 +1073,9 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
     mbedtls_ssl_set_async_operation_data( ssl, ctx );
 
     if( ctx->remaining_delay == 0 )
-        return( 0 );
+        return 0 ;
     else
-        return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
+        return MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ;
 }
 
 static int ssl_async_sign( mbedtls_ssl_context *ssl,
@@ -1116,7 +1116,7 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
         --ctx->remaining_delay;
         mbedtls_printf( "Async resume (slot %u): call %u more times.\n",
                         ctx->slot, ctx->remaining_delay );
-        return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
+        return MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ;
     }
 
     switch( ctx->operation_type )
@@ -1138,7 +1138,7 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
             mbedtls_printf( "Async resume (slot %u): unknown operation type %ld. This shouldn't happen.\n",
                             ctx->slot, (long) ctx->operation_type );
             mbedtls_free( ctx );
-            return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE ;
             break;
     }
 
@@ -1149,13 +1149,13 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
         mbedtls_printf( "Async resume callback: %s done but injected error\n",
                         op_name );
         mbedtls_free( ctx );
-        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE ;
     }
 
     mbedtls_printf( "Async resume (slot %u): %s done, status=%d.\n",
                     ctx->slot, op_name, ret );
     mbedtls_free( ctx );
-    return( ret );
+    return ret ;
 }
 
 static void ssl_async_cancel( mbedtls_ssl_context *ssl )
@@ -1184,10 +1184,10 @@ static psa_status_t psa_setup_psk_key_slot( psa_key_id_t *slot,
     if( status != PSA_SUCCESS )
     {
         fprintf( stderr, "IMPORT\n" );
-        return( status );
+        return status ;
     }
 
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
@@ -1201,7 +1201,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
     int cid_negotiated;
 
     if( opt.transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        return( 0 );
+        return 0 ;
 
     /* Check if the use of a CID has been negotiated */
     ret = mbedtls_ssl_get_peer_cid( ssl, &cid_negotiated,
@@ -1210,7 +1210,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_get_peer_cid returned -0x%x\n\n",
                         (unsigned int) -ret );
-        return( ret );
+        return ret ;
     }
 
     if( cid_negotiated == MBEDTLS_SSL_CID_DISABLED )
@@ -1237,7 +1237,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
         mbedtls_printf( "\n" );
     }
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 

@@ -76,23 +76,23 @@ static inline int mps_reader_is_accumulating(
 {
     mbedtls_mps_size_t acc_remaining;
     if( rd->acc == NULL )
-        return( 0 );
+        return 0 ;
 
     acc_remaining = rd->acc_share.acc_remaining;
-    return( acc_remaining > 0 );
+    return acc_remaining > 0 ;
 }
 
 static inline int mps_reader_is_producing(
     mbedtls_mps_reader const *rd )
 {
     unsigned char *frag = rd->frag;
-    return( frag == NULL );
+    return frag == NULL ;
 }
 
 static inline int mps_reader_is_consuming(
     mbedtls_mps_reader const *rd )
 {
-    return( !mps_reader_is_producing( rd ) );
+    return !mps_reader_is_producing( rd ) ;
 }
 
 static inline mbedtls_mps_size_t mps_reader_get_fragment_offset(
@@ -102,10 +102,10 @@ static inline mbedtls_mps_size_t mps_reader_get_fragment_offset(
     mbedtls_mps_size_t frag_offset;
 
     if( acc == NULL )
-        return( 0 );
+        return 0 ;
 
     frag_offset = rd->acc_share.frag_offset;
-    return( frag_offset );
+    return frag_offset ;
 }
 
 static inline mbedtls_mps_size_t mps_reader_serving_from_accumulator(
@@ -116,7 +116,7 @@ static inline mbedtls_mps_size_t mps_reader_serving_from_accumulator(
     frag_offset = mps_reader_get_fragment_offset( rd );
     end = rd->end;
 
-    return( end < frag_offset );
+    return end < frag_offset ;
 }
 
 static inline void mps_reader_zero( mbedtls_mps_reader *rd )

@@ -88,7 +88,7 @@ int has_even_parity( uint32_t value )
     value ^= value >> 16;
     value ^= value >> 8;
     value ^= value >> 4;
-    return( 0x9669 & 1 << ( value & 0xf ) );
+    return 0x9669 & 1 << ( value & 0xf ) ;
 }
 #define TEST_PARITY( value )                    \
     TEST_ASSERT( has_even_parity( value ) )

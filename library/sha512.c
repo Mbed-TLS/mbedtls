@@ -150,7 +150,7 @@ int mbedtls_sha512_starts( mbedtls_sha512_context *ctx, int is384 )
     else
     {
 #if !defined(MBEDTLS_SHA384_C)
-        return( MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_SHA512_BAD_INPUT_DATA ;
 #else
         /* SHA-384 */
         ctx->state[0] = UL64(0xCBBB9D5DC1059ED8);
@@ -168,7 +168,7 @@ int mbedtls_sha512_starts( mbedtls_sha512_context *ctx, int is384 )
     ctx->is384 = is384;
 #endif
 
-    return( 0 );
+    return 0 ;
 }
 
 #if !defined(MBEDTLS_SHA512_PROCESS_ALT)
@@ -319,7 +319,7 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
     /* Zeroise buffers and variables to clear sensitive data from memory. */
     mbedtls_platform_zeroize( &local, sizeof( local ) );
 
-    return( 0 );
+    return 0 ;
 }
 
 #endif /* !MBEDTLS_SHA512_PROCESS_ALT */
@@ -339,7 +339,7 @@ int mbedtls_sha512_update( mbedtls_sha512_context *ctx,
     SHA512_VALIDATE_RET( ilen == 0 || input != NULL );
 
     if( ilen == 0 )
-        return( 0 );
+        return 0 ;
 
     left = (unsigned int) (ctx->total[0] & 0x7F);
     fill = 128 - left;
@@ -354,7 +354,7 @@ int mbedtls_sha512_update( mbedtls_sha512_context *ctx,
         memcpy( (void *) (ctx->buffer + left), input, fill );
 
         if( ( ret = mbedtls_internal_sha512_process( ctx, ctx->buffer ) ) != 0 )
-            return( ret );
+            return ret ;
 
         input += fill;
         ilen  -= fill;
@@ -364,7 +364,7 @@ int mbedtls_sha512_update( mbedtls_sha512_context *ctx,
     while( ilen >= 128 )
     {
         if( ( ret = mbedtls_internal_sha512_process( ctx, input ) ) != 0 )
-            return( ret );
+            return ret ;
 
         input += 128;
         ilen  -= 128;
@@ -373,7 +373,7 @@ int mbedtls_sha512_update( mbedtls_sha512_context *ctx,
     if( ilen > 0 )
         memcpy( (void *) (ctx->buffer + left), input, ilen );
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -407,7 +407,7 @@ int mbedtls_sha512_finish( mbedtls_sha512_context *ctx,
         memset( ctx->buffer + used, 0, 128 - used );
 
         if( ( ret = mbedtls_internal_sha512_process( ctx, ctx->buffer ) ) != 0 )
-            return( ret );
+            return ret ;
 
         memset( ctx->buffer, 0, 112 );
     }
@@ -423,7 +423,7 @@ int mbedtls_sha512_finish( mbedtls_sha512_context *ctx,
     sha512_put_uint64_be( low,  ctx->buffer, 120 );
 
     if( ( ret = mbedtls_internal_sha512_process( ctx, ctx->buffer ) ) != 0 )
-        return( ret );
+        return ret ;
 
     /*
      * Output final state
@@ -443,7 +443,7 @@ int mbedtls_sha512_finish( mbedtls_sha512_context *ctx,
         sha512_put_uint64_be( ctx->state[7], output, 56 );
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 #endif /* !MBEDTLS_SHA512_ALT */
@@ -481,7 +481,7 @@ int mbedtls_sha512( const unsigned char *input,
 exit:
     mbedtls_sha512_free( &ctx );
 
-    return( ret );
+    return ret ;
 }
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -574,7 +574,7 @@ int mbedtls_sha512_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "Buffer allocation failed\n" );
 
-        return( 1 );
+        return 1 ;
     }
 
     mbedtls_sha512_init( &ctx );
@@ -639,7 +639,7 @@ exit:
     mbedtls_sha512_free( &ctx );
     mbedtls_free( buf );
 
-    return( ret );
+    return ret ;
 }
 
 #undef ARRAY_LENGTH

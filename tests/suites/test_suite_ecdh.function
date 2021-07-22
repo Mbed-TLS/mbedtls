@@ -14,7 +14,7 @@ static int load_public_key( int grp_id, data_t *point,
                                            &ecp->Q ) == 0 );
     ok = 1;
 exit:
-    return( ok );
+    return ok ;
 }
 
 static int load_private_key( int grp_id, data_t *private_key,
@@ -33,7 +33,7 @@ static int load_private_key( int grp_id, data_t *private_key,
                                   rnd_info ) == 0 );
     ok = 1;
 exit:
-    return( ok );
+    return ok ;
 }
 
 /* END_HEADER */

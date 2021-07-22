@@ -96,7 +96,7 @@ static inline uint32_t aria_p1( uint32_t x )
 {
     uint32_t r;
     __asm( "rev16 %0, %1" : "=l" (r) : "l" (x) );
-    return( r );
+    return r ;
 }
 #define ARIA_P1 aria_p1
 #elif defined(__ARMCC_VERSION) && __ARMCC_VERSION < 6000000 && \
@@ -105,7 +105,7 @@ static inline uint32_t aria_p1( uint32_t x )
 {
     uint32_t r;
     __asm( "rev16 r, x" );
-    return( r );
+    return r ;
 }
 #define ARIA_P1 aria_p1
 #endif
@@ -147,7 +147,7 @@ static inline uint32_t aria_p3( uint32_t x )
 {
     uint32_t r;
     __asm( "rev %0, %1" : "=l" (r) : "l" (x) );
-    return( r );
+    return r ;
 }
 #define ARIA_P3 aria_p3
 #elif defined(__ARMCC_VERSION) && __ARMCC_VERSION < 6000000 && \
@@ -156,7 +156,7 @@ static inline uint32_t aria_p3( uint32_t x )
 {
     uint32_t r;
     __asm( "rev r, x" );
-    return( r );
+    return r ;
 }
 #define ARIA_P3 aria_p3
 #endif
@@ -166,7 +166,7 @@ static inline uint32_t aria_p3( uint32_t x )
 static inline uint32_t aria_p3( uint32_t x )
 {
     __asm( "bswap %0" : "=r" (x) : "0" (x) );
-    return( x );
+    return x ;
 }
 #define ARIA_P3 aria_p3
 #endif /* x86 gnuc */
@@ -453,7 +453,7 @@ int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
     ARIA_VALIDATE_RET( key != NULL );
 
     if( keybits != 128 && keybits != 192 && keybits != 256 )
-        return( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_ARIA_BAD_INPUT_DATA ;
 
     /* Copy key to W0 (and potential remainder to W1) */
     GET_UINT32_LE( w[0][0], key,  0 );
@@ -495,7 +495,7 @@ int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
     /* w holds enough info to reconstruct the round keys */
     mbedtls_platform_zeroize( w, sizeof( w ) );
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -510,7 +510,7 @@ int mbedtls_aria_setkey_dec( mbedtls_aria_context *ctx,
 
     ret = mbedtls_aria_setkey_enc( ctx, key, keybits );
     if( ret != 0 )
-        return( ret );
+        return ret ;
 
     /* flip the order of round keys */
     for( i = 0, j = ctx->nr; i < j; i++, j-- )
@@ -530,7 +530,7 @@ int mbedtls_aria_setkey_dec( mbedtls_aria_context *ctx,
                 &ctx->rk[i][2], &ctx->rk[i][3] );
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -587,7 +587,7 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
     PUT_UINT32_LE( c, output,  8 );
     PUT_UINT32_LE( d, output, 12 );
 
-    return( 0 );
+    return 0 ;
 }
 
 /* Initialize context */
@@ -628,7 +628,7 @@ int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,
     ARIA_VALIDATE_RET( iv != NULL );
 
     if( length % MBEDTLS_ARIA_BLOCKSIZE )
-        return( MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH );
+        return MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH ;
 
     if( mode == MBEDTLS_ARIA_DECRYPT )
     {
@@ -663,7 +663,7 @@ int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,
         }
     }
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -696,7 +696,7 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
      * buffer overflow. Therefore, guard against this
      * outside of parameter validation. */
     if( n >= MBEDTLS_ARIA_BLOCKSIZE )
-        return( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_ARIA_BAD_INPUT_DATA ;
 
     if( mode == MBEDTLS_ARIA_DECRYPT )
     {
@@ -727,7 +727,7 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
 
     *iv_off = n;
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
@@ -758,7 +758,7 @@ int mbedtls_aria_crypt_ctr( mbedtls_aria_context *ctx,
      * buffer overflow. Therefore, guard against this
      * outside of parameter validation. */
     if( n >= MBEDTLS_ARIA_BLOCKSIZE )
-        return( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_ARIA_BAD_INPUT_DATA ;
 
     while( length-- )
     {
@@ -778,7 +778,7 @@ int mbedtls_aria_crypt_ctr( mbedtls_aria_context *ctx,
 
     *nc_off = n;
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 #endif /* !MBEDTLS_ARIA_ALT */
@@ -1072,7 +1072,7 @@ int mbedtls_aria_self_test( int verbose )
 
 exit:
     mbedtls_aria_free( &ctx );
-    return( ret );
+    return ret ;
 }
 
 #endif /* MBEDTLS_SELF_TEST */

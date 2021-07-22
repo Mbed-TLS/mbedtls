@@ -85,9 +85,9 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
         {
             *lifetime = builtin_key->lifetime;
             *slot_number = builtin_key->slot_number;
-            return( PSA_SUCCESS );
+            return PSA_SUCCESS ;
         }
     }
 
-    return( PSA_ERROR_DOES_NOT_EXIST );
+    return PSA_ERROR_DOES_NOT_EXIST ;
 }

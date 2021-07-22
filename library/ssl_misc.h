@@ -350,7 +350,7 @@ static inline int mbedtls_ssl_chk_buf_ptr( const uint8_t *cur,
     do {                                                                 \
         if( mbedtls_ssl_chk_buf_ptr( ( cur ), ( end ), ( need ) ) != 0 ) \
         {                                                                \
-            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );                  \
+            return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL ;                  \
         }                                                                \
     } while( 0 )
 
@@ -753,10 +753,10 @@ static inline int mbedtls_ssl_transform_uses_aead(
         const mbedtls_ssl_transform *transform )
 {
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
-    return( transform->maclen == 0 && transform->taglen != 0 );
+    return transform->maclen == 0 && transform->taglen != 0 ;
 #else
     (void) transform;
-    return( 1 );
+    return 1 ;
 #endif
 }
 
@@ -1015,10 +1015,10 @@ static inline int mbedtls_ssl_get_psk( const mbedtls_ssl_context *ssl,
     {
         *psk = NULL;
         *psk_len = 0;
-        return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
+        return MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1033,12 +1033,12 @@ static inline psa_key_id_t mbedtls_ssl_get_opaque_psk(
     const mbedtls_ssl_context *ssl )
 {
     if( ! mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
-        return( ssl->handshake->psk_opaque );
+        return ssl->handshake->psk_opaque ;
 
     if( ! mbedtls_svc_key_id_is_null( ssl->conf->psk_opaque ) )
-        return( ssl->conf->psk_opaque );
+        return ssl->conf->psk_opaque ;
 
-    return( MBEDTLS_SVC_KEY_ID_INIT );
+    return MBEDTLS_SVC_KEY_ID_INIT ;
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
@@ -1076,7 +1076,7 @@ static inline mbedtls_ssl_srtp_profile mbedtls_ssl_check_srtp_profile_value
             return srtp_profile_value;
         default: break;
     }
-    return( MBEDTLS_TLS_SRTP_UNSET );
+    return MBEDTLS_TLS_SRTP_UNSET ;
 }
 #endif
 
@@ -1090,7 +1090,7 @@ static inline mbedtls_pk_context *mbedtls_ssl_own_key( mbedtls_ssl_context *ssl 
     else
         key_cert = ssl->conf->key_cert;
 
-    return( key_cert == NULL ? NULL : key_cert->key );
+    return key_cert == NULL ? NULL : key_cert->key ;
 }
 
 static inline mbedtls_x509_crt *mbedtls_ssl_own_cert( mbedtls_ssl_context *ssl )
@@ -1102,7 +1102,7 @@ static inline mbedtls_x509_crt *mbedtls_ssl_own_cert( mbedtls_ssl_context *ssl )
     else
         key_cert = ssl->conf->key_cert;
 
-    return( key_cert == NULL ? NULL : key_cert->cert );
+    return key_cert == NULL ? NULL : key_cert->cert ;
 }
 
 /*
@@ -1134,12 +1134,12 @@ static inline size_t mbedtls_ssl_in_hdr_len( const mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        return( 13 );
+        return 13 ;
     }
     else
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
     {
-        return( 5 );
+        return 5 ;
     }
 }
 
@@ -1152,11 +1152,11 @@ static inline size_t mbedtls_ssl_hs_hdr_len( const mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        return( 12 );
+        return 12 ;
 #else
     ((void) ssl);
 #endif
-    return( 4 );
+    return 4 ;
 }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -1192,7 +1192,7 @@ static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t
         diff |= x ^ y;
     }
 
-    return( diff );
+    return diff ;
 }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -1222,11 +1222,11 @@ static inline size_t mbedtls_ssl_ep_len( const mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        return( 2 );
+        return 2 ;
 #else
     ((void) ssl);
 #endif
-    return( 0 );
+    return 0 ;
 }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

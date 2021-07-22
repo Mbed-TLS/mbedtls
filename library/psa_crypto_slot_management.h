@@ -140,11 +140,11 @@ psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
 static inline psa_status_t psa_lock_key_slot( psa_key_slot_t *slot )
 {
     if( slot->lock_count >= SIZE_MAX )
-        return( PSA_ERROR_CORRUPTION_DETECTED );
+        return PSA_ERROR_CORRUPTION_DETECTED ;
 
     slot->lock_count++;
 
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 /** Unlock a key slot.

@@ -43,7 +43,7 @@ int mbedtls_hkdf( const mbedtls_md_info_t *md, const unsigned char *salt,
 
     mbedtls_platform_zeroize( prk, sizeof( prk ) );
 
-    return( ret );
+    return ret ;
 }
 
 int mbedtls_hkdf_extract( const mbedtls_md_info_t *md,
@@ -73,7 +73,7 @@ int mbedtls_hkdf_extract( const mbedtls_md_info_t *md,
         salt_len = hash_len;
     }
 
-    return( mbedtls_md_hmac( md, salt, salt_len, ikm, ikm_len, prk ) );
+    return mbedtls_md_hmac( md, salt, salt_len, ikm, ikm_len, prk ) ;
 }
 
 int mbedtls_hkdf_expand( const mbedtls_md_info_t *md, const unsigned char *prk,
@@ -91,14 +91,14 @@ int mbedtls_hkdf_expand( const mbedtls_md_info_t *md, const unsigned char *prk,
 
     if( okm == NULL )
     {
-        return( MBEDTLS_ERR_HKDF_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_HKDF_BAD_INPUT_DATA ;
     }
 
     hash_len = mbedtls_md_get_size( md );
 
     if( prk_len < hash_len || hash_len == 0 )
     {
-        return( MBEDTLS_ERR_HKDF_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_HKDF_BAD_INPUT_DATA ;
     }
 
     if( info == NULL )
@@ -120,7 +120,7 @@ int mbedtls_hkdf_expand( const mbedtls_md_info_t *md, const unsigned char *prk,
      */
     if( n > 255 )
     {
-        return( MBEDTLS_ERR_HKDF_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_HKDF_BAD_INPUT_DATA ;
     }
 
     mbedtls_md_init( &ctx );
@@ -183,7 +183,7 @@ exit:
     mbedtls_md_free( &ctx );
     mbedtls_platform_zeroize( t, sizeof( t ) );
 
-    return( ret );
+    return ret ;
 }
 
 #endif /* MBEDTLS_HKDF_C */

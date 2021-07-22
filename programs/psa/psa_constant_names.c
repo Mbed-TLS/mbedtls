@@ -33,7 +33,7 @@ int snprintf( char *s, size_t n, const char *fmt, ... )
 
     /* Avoid calling the invalid parameter handler by checking ourselves */
     if( s == NULL || n == 0 || fmt == NULL )
-        return( -1 );
+        return -1 ;
 
     va_start( argp, fmt );
 #if defined(_TRUNCATE) && !defined(__MINGW32__)
@@ -48,7 +48,7 @@ int snprintf( char *s, size_t n, const char *fmt, ... )
 #endif
     va_end( argp );
 
-    return( ret );
+    return ret ;
 }
 #endif
 

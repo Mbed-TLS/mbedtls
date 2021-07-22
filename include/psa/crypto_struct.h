@@ -93,7 +93,7 @@ struct psa_hash_operation_s
 static inline struct psa_hash_operation_s psa_hash_operation_init( void )
 {
     const struct psa_hash_operation_s v = PSA_HASH_OPERATION_INIT;
-    return( v );
+    return v ;
 }
 
 struct psa_cipher_operation_s
@@ -118,7 +118,7 @@ struct psa_cipher_operation_s
 static inline struct psa_cipher_operation_s psa_cipher_operation_init( void )
 {
     const struct psa_cipher_operation_s v = PSA_CIPHER_OPERATION_INIT;
-    return( v );
+    return v ;
 }
 
 /* Include the context definition for the compiled-in drivers for the composite
@@ -143,7 +143,7 @@ struct psa_mac_operation_s
 static inline struct psa_mac_operation_s psa_mac_operation_init( void )
 {
     const struct psa_mac_operation_s v = PSA_MAC_OPERATION_INIT;
-    return( v );
+    return v ;
 }
 
 struct psa_aead_operation_s
@@ -164,7 +164,7 @@ struct psa_aead_operation_s
 static inline struct psa_aead_operation_s psa_aead_operation_init( void )
 {
     const struct psa_aead_operation_s v = PSA_AEAD_OPERATION_INIT;
-    return( v );
+    return v ;
 }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
@@ -251,7 +251,7 @@ static inline struct psa_key_derivation_s psa_key_derivation_operation_init(
         void )
 {
     const struct psa_key_derivation_s v = PSA_KEY_DERIVATION_OPERATION_INIT;
-    return( v );
+    return v ;
 }
 
 struct psa_key_policy_s
@@ -266,7 +266,7 @@ typedef struct psa_key_policy_s psa_key_policy_t;
 static inline struct psa_key_policy_s psa_key_policy_init( void )
 {
     const struct psa_key_policy_s v = PSA_KEY_POLICY_INIT;
-    return( v );
+    return v ;
 }
 
 /* The type used internally for key sizes.
@@ -339,7 +339,7 @@ struct psa_key_attributes_s
 static inline struct psa_key_attributes_s psa_key_attributes_init( void )
 {
     const struct psa_key_attributes_s v = PSA_KEY_ATTRIBUTES_INIT;
-    return( v );
+    return v ;
 }
 
 static inline void psa_set_key_id( psa_key_attributes_t *attributes,

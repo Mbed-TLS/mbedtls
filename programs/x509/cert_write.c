@@ -191,22 +191,22 @@ int write_certificate( mbedtls_x509write_cert *crt, const char *output_file,
     memset( output_buf, 0, 4096 );
     if( ( ret = mbedtls_x509write_crt_pem( crt, output_buf, 4096,
                                            f_rng, p_rng ) ) < 0 )
-        return( ret );
+        return ret ;
 
     len = strlen( (char *) output_buf );
 
     if( ( f = fopen( output_file, "w" ) ) == NULL )
-        return( -1 );
+        return -1 ;
 
     if( fwrite( output_buf, 1, len, f ) != len )
     {
         fclose( f );
-        return( -1 );
+        return -1 ;
     }
 
     fclose( f );
 
-    return( 0 );
+    return 0 ;
 }
 
 int main( int argc, char *argv[] )

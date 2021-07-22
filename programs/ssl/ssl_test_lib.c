@@ -65,7 +65,7 @@ static int dummy_entropy( void *data, unsigned char *output, size_t len )
         //replace result with pseudo random
         output[i] = (unsigned char) rand();
     }
-    return( ret );
+    return ret ;
 }
 #endif
 
@@ -95,7 +95,7 @@ int rng_seed( rng_context_t *rng, int reproducible, const char *pers )
     {
         mbedtls_fprintf( stderr,
                          "MBEDTLS_USE_PSA_CRYPTO does not support reproducible mode.\n" );
-        return( -1 );
+        return -1 ;
     }
 #endif
 #if defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
@@ -106,9 +106,9 @@ int rng_seed( rng_context_t *rng, int reproducible, const char *pers )
     {
         mbedtls_fprintf( stderr,
                          "The PSA RNG does not support reproducible mode.\n" );
-        return( -1 );
+        return -1 ;
     }
-    return( 0 );
+    return 0 ;
 #else /* !MBEDTLS_TEST_USE_PSA_CRYPTO_RNG */
     int ( *f_entropy )( void *, unsigned char *, size_t ) =
         ( reproducible ? dummy_entropy : mbedtls_entropy_func );
@@ -142,11 +142,11 @@ int rng_seed( rng_context_t *rng, int reproducible, const char *pers )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
                         (unsigned int) -ret );
-        return( ret );
+        return ret ;
     }
 #endif /* !MBEDTLS_TEST_USE_PSA_CRYPTO_RNG */
 
-    return( 0 );
+    return 0 ;
 }
 
 void rng_free( rng_context_t *rng )
@@ -181,9 +181,9 @@ int rng_get( void *p_rng, unsigned char *output, size_t output_len )
     rng_context_t *rng = p_rng;
 
 #if defined(MBEDTLS_CTR_DRBG_C)
-    return( mbedtls_ctr_drbg_random( &rng->drbg, output, output_len ) );
+    return mbedtls_ctr_drbg_random( &rng->drbg, output, output_len ) ;
 #elif defined(MBEDTLS_HMAC_DRBG_C)
-    return( mbedtls_hmac_drbg_random( &rng->drbg, output, output_len ) );
+    return mbedtls_hmac_drbg_random( &rng->drbg, output, output_len ) ;
 #else
 #error "No DRBG available"
 #endif
@@ -243,7 +243,7 @@ exit:
     }
 
     *candidates = first;
-    return( ret );
+    return ret ;
 }
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
@@ -255,13 +255,13 @@ int delayed_recv( void *ctx, unsigned char *buf, size_t len )
     if( first_try )
     {
         first_try = 0;
-        return( MBEDTLS_ERR_SSL_WANT_READ );
+        return MBEDTLS_ERR_SSL_WANT_READ ;
     }
 
     ret = mbedtls_net_recv( ctx, buf, len );
     if( ret != MBEDTLS_ERR_SSL_WANT_READ )
         first_try = 1; /* Next call will be a new operation */
-    return( ret );
+    return ret ;
 }
 
 int delayed_send( void *ctx, const unsigned char *buf, size_t len )
@@ -272,13 +272,13 @@ int delayed_send( void *ctx, const unsigned char *buf, size_t len )
     if( first_try )
     {
         first_try = 0;
-        return( MBEDTLS_ERR_SSL_WANT_WRITE );
+        return MBEDTLS_ERR_SSL_WANT_WRITE ;
     }
 
     ret = mbedtls_net_send( ctx, buf, len );
     if( ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         first_try = 1; /* Next call will be a new operation */
-    return( ret );
+    return ret ;
 }
 
 #if !defined(MBEDTLS_TIMING_C)
@@ -299,7 +299,7 @@ int idle( mbedtls_net_context *fd,
         poll_type = MBEDTLS_NET_POLL_READ;
 #if !defined(MBEDTLS_TIMING_C)
     else
-        return( 0 );
+        return 0 ;
 #endif
 
     while( 1 )
@@ -318,13 +318,13 @@ int idle( mbedtls_net_context *fd,
         {
             ret = mbedtls_net_poll( fd, poll_type, 0 );
             if( ret < 0 )
-                return( ret );
+                return ret ;
             if( ret == poll_type )
                 break;
         }
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 #if defined(MBEDTLS_TEST_HOOKS)
@@ -346,8 +346,8 @@ int test_hooks_failure_detected( void )
 #endif
 
     if( mbedtls_test_info.result != MBEDTLS_TEST_RESULT_SUCCESS )
-        return( 1 );
-    return( 0 );
+        return 1 ;
+    return 0 ;
 }
 
 void test_hooks_free( void )

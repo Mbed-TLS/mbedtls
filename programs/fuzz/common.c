@@ -27,9 +27,9 @@ int dummy_send( void *ctx, const unsigned char *buf, size_t len )
 
     //pretends we wrote everything ok
     if( len > INT_MAX ) {
-        return( -1 );
+        return -1 ;
     }
-    return( (int) len );
+    return (int) len ;
 }
 
 int fuzz_recv( void *ctx, unsigned char *buf, size_t len )
@@ -39,10 +39,10 @@ int fuzz_recv( void *ctx, unsigned char *buf, size_t len )
 
     if(biomemfuzz->Offset == biomemfuzz->Size) {
         //EOF
-        return( 0 );
+        return 0 ;
     }
     if( len > INT_MAX ) {
-        return( -1 );
+        return -1 ;
     }
     if( len + biomemfuzz->Offset > biomemfuzz->Size ) {
         //do not overflow
@@ -50,7 +50,7 @@ int fuzz_recv( void *ctx, unsigned char *buf, size_t len )
     }
     memcpy(buf, biomemfuzz->Data + biomemfuzz->Offset, len);
     biomemfuzz->Offset += len;
-    return( (int) len );
+    return (int) len ;
 }
 
 int dummy_random( void *p_rng, unsigned char *output, size_t output_len )
@@ -69,7 +69,7 @@ int dummy_random( void *p_rng, unsigned char *output, size_t output_len )
         //replace result with pseudo random
         output[i] = (unsigned char) rand();
     }
-    return( ret );
+    return ret ;
 }
 
 int dummy_entropy( void *data, unsigned char *output, size_t len )
@@ -84,7 +84,7 @@ int dummy_entropy( void *data, unsigned char *output, size_t len )
         //replace result with pseudo random
         output[i] = (unsigned char) rand();
     }
-    return( 0 );
+    return 0 ;
 }
 
 int fuzz_recv_timeout( void *ctx, unsigned char *buf, size_t len,

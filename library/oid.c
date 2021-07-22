@@ -63,16 +63,16 @@
         const TYPE_T *p = (LIST);                                       \
         const mbedtls_oid_descriptor_t *cur =                           \
             (const mbedtls_oid_descriptor_t *) p;                       \
-        if( p == NULL || oid == NULL ) return( NULL );                  \
+        if( p == NULL || oid == NULL ) return NULL ;                  \
         while( cur->asn1 != NULL ) {                                    \
             if( cur->asn1_len == oid->len &&                            \
                 memcmp( cur->asn1, oid->p, oid->len ) == 0 ) {          \
-                return( p );                                            \
+                return p ;                                            \
             }                                                           \
             p++;                                                        \
             cur = (const mbedtls_oid_descriptor_t *) p;                 \
         }                                                               \
-        return( NULL );                                                 \
+        return NULL ;                                                 \
     }
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
@@ -84,9 +84,9 @@
 int FN_NAME( const mbedtls_asn1_buf *oid, ATTR1_TYPE * ATTR1 )                  \
 {                                                                       \
     const TYPE_T *data = oid_ ## TYPE_NAME ## _from_asn1( oid );        \
-    if( data == NULL ) return( MBEDTLS_ERR_OID_NOT_FOUND );            \
+    if( data == NULL ) return MBEDTLS_ERR_OID_NOT_FOUND ;            \
     *ATTR1 = data->descriptor.ATTR1;                                    \
-    return( 0 );                                                        \
+    return 0 ;                                                        \
 }
 #endif /* MBEDTLS_X509_REMOVE_INFO */
 
@@ -98,9 +98,9 @@ int FN_NAME( const mbedtls_asn1_buf *oid, ATTR1_TYPE * ATTR1 )                  
 int FN_NAME( const mbedtls_asn1_buf *oid, ATTR1_TYPE * ATTR1 )                  \
 {                                                                       \
     const TYPE_T *data = oid_ ## TYPE_NAME ## _from_asn1( oid );        \
-    if( data == NULL ) return( MBEDTLS_ERR_OID_NOT_FOUND );            \
+    if( data == NULL ) return MBEDTLS_ERR_OID_NOT_FOUND ;            \
     *ATTR1 = data->ATTR1;                                               \
-    return( 0 );                                                        \
+    return 0 ;                                                        \
 }
 
 /*
@@ -113,10 +113,10 @@ int FN_NAME( const mbedtls_asn1_buf *oid, ATTR1_TYPE * ATTR1,               \
                                           ATTR2_TYPE * ATTR2 )              \
 {                                                                           \
     const TYPE_T *data = oid_ ## TYPE_NAME ## _from_asn1( oid );            \
-    if( data == NULL ) return( MBEDTLS_ERR_OID_NOT_FOUND );                 \
+    if( data == NULL ) return MBEDTLS_ERR_OID_NOT_FOUND ;                 \
     *(ATTR1) = data->ATTR1;                                                 \
     *(ATTR2) = data->ATTR2;                                                 \
-    return( 0 );                                                            \
+    return 0 ;                                                            \
 }
 
 /*
@@ -131,11 +131,11 @@ int FN_NAME( ATTR1_TYPE ATTR1, const char **oid, size_t *olen )             \
         if( cur->ATTR1 == (ATTR1) ) {                                       \
             *oid = cur->descriptor.asn1;                                    \
             *olen = cur->descriptor.asn1_len;                               \
-            return( 0 );                                                    \
+            return 0 ;                                                    \
         }                                                                   \
         cur++;                                                              \
     }                                                                       \
-    return( MBEDTLS_ERR_OID_NOT_FOUND );                                    \
+    return MBEDTLS_ERR_OID_NOT_FOUND ;                                    \
 }
 
 /*
@@ -152,11 +152,11 @@ int FN_NAME( ATTR1_TYPE ATTR1, ATTR2_TYPE ATTR2, const char **oid ,         \
         if( cur->ATTR1 == (ATTR1) && cur->ATTR2 == (ATTR2) ) {              \
             *oid = cur->descriptor.asn1;                                    \
             *olen = cur->descriptor.asn1_len;                               \
-            return( 0 );                                                    \
+            return 0 ;                                                    \
         }                                                                   \
         cur++;                                                              \
     }                                                                       \
-    return( MBEDTLS_ERR_OID_NOT_FOUND );                                   \
+    return MBEDTLS_ERR_OID_NOT_FOUND ;                                   \
 }
 
 /*
@@ -732,7 +732,7 @@ FN_OID_GET_ATTR2(mbedtls_oid_get_pkcs12_pbe_alg, oid_pkcs12_pbe_alg_t, pkcs12_pb
 #define OID_SAFE_SNPRINTF                               \
     do {                                                \
         if( ret < 0 || (size_t) ret >= n )              \
-            return( MBEDTLS_ERR_OID_BUF_TOO_SMALL );    \
+            return MBEDTLS_ERR_OID_BUF_TOO_SMALL ;    \
                                                         \
         n -= (size_t) ret;                              \
         p += (size_t) ret;                              \
@@ -762,7 +762,7 @@ int mbedtls_oid_get_numeric_string( char *buf, size_t size,
     {
         /* Prevent overflow in value. */
         if( ( ( value << 7 ) >> 7 ) != value )
-            return( MBEDTLS_ERR_OID_BUF_TOO_SMALL );
+            return MBEDTLS_ERR_OID_BUF_TOO_SMALL ;
 
         value <<= 7;
         value += oid->p[i] & 0x7F;

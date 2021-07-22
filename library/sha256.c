@@ -142,7 +142,7 @@ int mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 )
 
     ctx->is224 = is224;
 
-    return( 0 );
+    return 0 ;
 }
 
 #if !defined(MBEDTLS_SHA256_PROCESS_ALT)
@@ -277,7 +277,7 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
     /* Zeroise buffers and variables to clear sensitive data from memory. */
     mbedtls_platform_zeroize( &local, sizeof( local ) );
 
-    return( 0 );
+    return 0 ;
 }
 
 #endif /* !MBEDTLS_SHA256_PROCESS_ALT */
@@ -297,7 +297,7 @@ int mbedtls_sha256_update( mbedtls_sha256_context *ctx,
     SHA256_VALIDATE_RET( ilen == 0 || input != NULL );
 
     if( ilen == 0 )
-        return( 0 );
+        return 0 ;
 
     left = ctx->total[0] & 0x3F;
     fill = 64 - left;
@@ -313,7 +313,7 @@ int mbedtls_sha256_update( mbedtls_sha256_context *ctx,
         memcpy( (void *) (ctx->buffer + left), input, fill );
 
         if( ( ret = mbedtls_internal_sha256_process( ctx, ctx->buffer ) ) != 0 )
-            return( ret );
+            return ret ;
 
         input += fill;
         ilen  -= fill;
@@ -323,7 +323,7 @@ int mbedtls_sha256_update( mbedtls_sha256_context *ctx,
     while( ilen >= 64 )
     {
         if( ( ret = mbedtls_internal_sha256_process( ctx, input ) ) != 0 )
-            return( ret );
+            return ret ;
 
         input += 64;
         ilen  -= 64;
@@ -332,7 +332,7 @@ int mbedtls_sha256_update( mbedtls_sha256_context *ctx,
     if( ilen > 0 )
         memcpy( (void *) (ctx->buffer + left), input, ilen );
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -366,7 +366,7 @@ int mbedtls_sha256_finish( mbedtls_sha256_context *ctx,
         memset( ctx->buffer + used, 0, 64 - used );
 
         if( ( ret = mbedtls_internal_sha256_process( ctx, ctx->buffer ) ) != 0 )
-            return( ret );
+            return ret ;
 
         memset( ctx->buffer, 0, 56 );
     }
@@ -382,7 +382,7 @@ int mbedtls_sha256_finish( mbedtls_sha256_context *ctx,
     PUT_UINT32_BE( low,  ctx->buffer, 60 );
 
     if( ( ret = mbedtls_internal_sha256_process( ctx, ctx->buffer ) ) != 0 )
-        return( ret );
+        return ret ;
 
     /*
      * Output final state
@@ -400,7 +400,7 @@ int mbedtls_sha256_finish( mbedtls_sha256_context *ctx,
 #endif
         PUT_UINT32_BE( ctx->state[7], output, 28 );
 
-    return( 0 );
+    return 0 ;
 }
 
 #endif /* !MBEDTLS_SHA256_ALT */
@@ -439,7 +439,7 @@ int mbedtls_sha256( const unsigned char *input,
 exit:
     mbedtls_sha256_free( &ctx );
 
-    return( ret );
+    return ret ;
 }
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -509,7 +509,7 @@ int mbedtls_sha256_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "Buffer allocation failed\n" );
 
-        return( 1 );
+        return 1 ;
     }
 
     mbedtls_sha256_init( &ctx );
@@ -572,7 +572,7 @@ exit:
     mbedtls_sha256_free( &ctx );
     mbedtls_free( buf );
 
-    return( ret );
+    return ret ;
 }
 
 #endif /* MBEDTLS_SELF_TEST */

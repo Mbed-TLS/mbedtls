@@ -24,8 +24,8 @@
 static inline void *custom_calloc( size_t nmemb, size_t size )
 {
     if( nmemb == 0 || size == 0 )
-        return( NULL );
-    return( calloc( nmemb, size ) );
+        return NULL ;
+    return calloc( nmemb, size ) ;
 }
 
 #define MBEDTLS_PLATFORM_MEMORY

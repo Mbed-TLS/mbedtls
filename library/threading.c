@@ -88,23 +88,23 @@ static void threading_mutex_free_pthread( mbedtls_threading_mutex_t *mutex )
 static int threading_mutex_lock_pthread( mbedtls_threading_mutex_t *mutex )
 {
     if( mutex == NULL || ! mutex->is_valid )
-        return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_THREADING_BAD_INPUT_DATA ;
 
     if( pthread_mutex_lock( &mutex->mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR ;
 
-    return( 0 );
+    return 0 ;
 }
 
 static int threading_mutex_unlock_pthread( mbedtls_threading_mutex_t *mutex )
 {
     if( mutex == NULL || ! mutex->is_valid )
-        return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_THREADING_BAD_INPUT_DATA ;
 
     if( pthread_mutex_unlock( &mutex->mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+        return MBEDTLS_ERR_THREADING_MUTEX_ERROR ;
 
-    return( 0 );
+    return 0 ;
 }
 
 void (*mbedtls_mutex_init)( mbedtls_threading_mutex_t * ) = threading_mutex_init_pthread;
@@ -123,7 +123,7 @@ int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t * ) = threading_mutex_unl
 static int threading_mutex_fail( mbedtls_threading_mutex_t *mutex )
 {
     ((void) mutex );
-    return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
+    return MBEDTLS_ERR_THREADING_BAD_INPUT_DATA ;
 }
 static void threading_mutex_dummy( mbedtls_threading_mutex_t *mutex )
 {

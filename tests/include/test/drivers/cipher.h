@@ -44,7 +44,7 @@ static inline mbedtls_test_driver_cipher_hooks_t
      mbedtls_test_driver_cipher_hooks_init( void )
 {
     const mbedtls_test_driver_cipher_hooks_t v = MBEDTLS_TEST_DRIVER_CIPHER_INIT;
-    return( v );
+    return v ;
 }
 
 extern mbedtls_test_driver_cipher_hooks_t mbedtls_test_driver_cipher_hooks;

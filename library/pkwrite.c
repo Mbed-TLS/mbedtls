@@ -94,13 +94,13 @@ end_of_export:
 
     mbedtls_mpi_free( &T );
     if( ret < 0 )
-        return( ret );
+        return ret ;
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start, MBEDTLS_ASN1_CONSTRUCTED |
                                                  MBEDTLS_ASN1_SEQUENCE ) );
 
-    return( (int) len );
+    return (int) len ;
 }
 #endif /* MBEDTLS_RSA_C */
 
@@ -119,16 +119,16 @@ static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
                                         &len, buf, sizeof( buf ) ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     if( *p < start || (size_t)( *p - start ) < len )
-        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL ;
 
     *p -= len;
     memcpy( *p, buf, len );
 
-    return( (int) len );
+    return (int) len ;
 }
 
 /*
@@ -145,11 +145,11 @@ static int pk_write_ec_param( unsigned char **p, unsigned char *start,
     size_t oid_len;
 
     if( ( ret = mbedtls_oid_get_oid_by_ec_grp( ec->grp.id, &oid, &oid_len ) ) != 0 )
-        return( ret );
+        return ret ;
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_oid( p, start, oid, oid_len ) );
 
-    return( (int) len );
+    return (int) len ;
 }
 
 /*
@@ -169,7 +169,7 @@ static int pk_write_ec_private( unsigned char **p, unsigned char *start,
 
 exit:
     mbedtls_platform_zeroize( tmp, byte_length );
-    return( ret );
+    return ret ;
 }
 #endif /* MBEDTLS_ECP_C */
 
@@ -201,13 +201,13 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
         psa_key_id_t* key_id = (psa_key_id_t*) key->pk_ctx;
 
         if ( *p < start )
-            return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+            return MBEDTLS_ERR_PK_BAD_INPUT_DATA ;
 
         buffer_size = (size_t)( *p - start );
         if ( psa_export_public_key( *key_id, start, buffer_size, &len )
              != PSA_SUCCESS )
         {
-            return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+            return MBEDTLS_ERR_PK_BAD_INPUT_DATA ;
         }
         else
         {
@@ -217,9 +217,9 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
     }
     else
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE ;
 
-    return( (int) len );
+    return (int) len ;
 }
 
 int mbedtls_pk_write_pubkey_der( const mbedtls_pk_context *key, unsigned char *buf, size_t size )
@@ -232,7 +232,7 @@ int mbedtls_pk_write_pubkey_der( const mbedtls_pk_context *key, unsigned char *b
 
     PK_VALIDATE_RET( key != NULL );
     if( size == 0 )
-        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL ;
     PK_VALIDATE_RET( buf != NULL );
 
     c = buf + size;
@@ -240,7 +240,7 @@ int mbedtls_pk_write_pubkey_der( const mbedtls_pk_context *key, unsigned char *b
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_pk_write_pubkey( &c, buf, key ) );
 
     if( c - buf < 1 )
-        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL ;
 
     /*
      *  SubjectPublicKeyInfo  ::=  SEQUENCE  {
@@ -271,18 +271,18 @@ int mbedtls_pk_write_pubkey_der( const mbedtls_pk_context *key, unsigned char *b
 
         key_id = *((psa_key_id_t*) key->pk_ctx );
         if( PSA_SUCCESS != psa_get_key_attributes( key_id, &attributes ) )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED ;
         key_type = psa_get_key_type( &attributes );
         bits = psa_get_key_bits( &attributes );
         psa_reset_key_attributes( &attributes );
 
         curve = PSA_KEY_TYPE_ECC_GET_FAMILY( key_type );
         if( curve == 0 )
-            return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE ;
 
         ret = mbedtls_psa_get_ecc_oid_from_id( curve, bits, &oid, &oid_len );
         if( ret != 0 )
-            return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE ;
 
         /* Write EC algorithm parameters; that's akin
          * to pk_write_ec_param() above. */
@@ -297,7 +297,7 @@ int mbedtls_pk_write_pubkey_der( const mbedtls_pk_context *key, unsigned char *b
     if( ( ret = mbedtls_oid_get_oid_by_pk_alg( pk_type, &oid,
                                                &oid_len ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_algorithm_identifier( &c, buf, oid, oid_len,
@@ -307,7 +307,7 @@ int mbedtls_pk_write_pubkey_der( const mbedtls_pk_context *key, unsigned char *b
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_CONSTRUCTED |
                                                 MBEDTLS_ASN1_SEQUENCE ) );
 
-    return( (int) len );
+    return (int) len ;
 }
 
 int mbedtls_pk_write_key_der( const mbedtls_pk_context *key, unsigned char *buf, size_t size )
@@ -318,7 +318,7 @@ int mbedtls_pk_write_key_der( const mbedtls_pk_context *key, unsigned char *buf,
 
     PK_VALIDATE_RET( key != NULL );
     if( size == 0 )
-        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL ;
     PK_VALIDATE_RET( buf != NULL );
 
     c = buf + size;
@@ -392,7 +392,7 @@ int mbedtls_pk_write_key_der( const mbedtls_pk_context *key, unsigned char *buf,
 
         mbedtls_mpi_free( &T );
         if( ret < 0 )
-            return( ret );
+            return ret ;
 
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_int( &c, buf, 0 ) );
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
@@ -423,7 +423,7 @@ int mbedtls_pk_write_key_der( const mbedtls_pk_context *key, unsigned char *buf,
         MBEDTLS_ASN1_CHK_ADD( pub_len, pk_write_ec_pubkey( &c, buf, ec ) );
 
         if( c - buf < 1 )
-            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+            return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL ;
         *--c = 0;
         pub_len += 1;
 
@@ -455,9 +455,9 @@ int mbedtls_pk_write_key_der( const mbedtls_pk_context *key, unsigned char *buf,
     }
     else
 #endif /* MBEDTLS_ECP_C */
-        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE ;
 
-    return( (int) len );
+    return (int) len ;
 }
 
 #if defined(MBEDTLS_PEM_WRITE_C)
@@ -565,17 +565,17 @@ int mbedtls_pk_write_pubkey_pem( const mbedtls_pk_context *key, unsigned char *b
     if( ( ret = mbedtls_pk_write_pubkey_der( key, output_buf,
                                      sizeof(output_buf) ) ) < 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     if( ( ret = mbedtls_pem_write_buffer( PEM_BEGIN_PUBLIC_KEY, PEM_END_PUBLIC_KEY,
                                   output_buf + sizeof(output_buf) - ret,
                                   ret, buf, size, &olen ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_pk_write_key_pem( const mbedtls_pk_context *key, unsigned char *buf, size_t size )
@@ -589,7 +589,7 @@ int mbedtls_pk_write_key_pem( const mbedtls_pk_context *key, unsigned char *buf,
     PK_VALIDATE_RET( buf != NULL || size == 0 );
 
     if( ( ret = mbedtls_pk_write_key_der( key, output_buf, sizeof(output_buf) ) ) < 0 )
-        return( ret );
+        return ret ;
 
 #if defined(MBEDTLS_RSA_C)
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_RSA )
@@ -607,16 +607,16 @@ int mbedtls_pk_write_key_pem( const mbedtls_pk_context *key, unsigned char *buf,
     }
     else
 #endif
-        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE ;
 
     if( ( ret = mbedtls_pem_write_buffer( begin, end,
                                   output_buf + sizeof(output_buf) - ret,
                                   ret, buf, size, &olen ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_PEM_WRITE_C */
 

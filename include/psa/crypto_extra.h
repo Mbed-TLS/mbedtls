@@ -596,46 +596,46 @@ static inline psa_ecc_family_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id gr
     {
         case MBEDTLS_ECP_DP_SECP192R1:
             *bits = 192;
-            return( PSA_ECC_FAMILY_SECP_R1 );
+            return PSA_ECC_FAMILY_SECP_R1 ;
         case MBEDTLS_ECP_DP_SECP224R1:
             *bits = 224;
-            return( PSA_ECC_FAMILY_SECP_R1 );
+            return PSA_ECC_FAMILY_SECP_R1 ;
         case MBEDTLS_ECP_DP_SECP256R1:
             *bits = 256;
-            return( PSA_ECC_FAMILY_SECP_R1 );
+            return PSA_ECC_FAMILY_SECP_R1 ;
         case MBEDTLS_ECP_DP_SECP384R1:
             *bits = 384;
-            return( PSA_ECC_FAMILY_SECP_R1 );
+            return PSA_ECC_FAMILY_SECP_R1 ;
         case MBEDTLS_ECP_DP_SECP521R1:
             *bits = 521;
-            return( PSA_ECC_FAMILY_SECP_R1 );
+            return PSA_ECC_FAMILY_SECP_R1 ;
         case MBEDTLS_ECP_DP_BP256R1:
             *bits = 256;
-            return( PSA_ECC_FAMILY_BRAINPOOL_P_R1 );
+            return PSA_ECC_FAMILY_BRAINPOOL_P_R1 ;
         case MBEDTLS_ECP_DP_BP384R1:
             *bits = 384;
-            return( PSA_ECC_FAMILY_BRAINPOOL_P_R1 );
+            return PSA_ECC_FAMILY_BRAINPOOL_P_R1 ;
         case MBEDTLS_ECP_DP_BP512R1:
             *bits = 512;
-            return( PSA_ECC_FAMILY_BRAINPOOL_P_R1 );
+            return PSA_ECC_FAMILY_BRAINPOOL_P_R1 ;
         case MBEDTLS_ECP_DP_CURVE25519:
             *bits = 255;
-            return( PSA_ECC_FAMILY_MONTGOMERY );
+            return PSA_ECC_FAMILY_MONTGOMERY ;
         case MBEDTLS_ECP_DP_SECP192K1:
             *bits = 192;
-            return( PSA_ECC_FAMILY_SECP_K1 );
+            return PSA_ECC_FAMILY_SECP_K1 ;
         case MBEDTLS_ECP_DP_SECP224K1:
             *bits = 224;
-            return( PSA_ECC_FAMILY_SECP_K1 );
+            return PSA_ECC_FAMILY_SECP_K1 ;
         case MBEDTLS_ECP_DP_SECP256K1:
             *bits = 256;
-            return( PSA_ECC_FAMILY_SECP_K1 );
+            return PSA_ECC_FAMILY_SECP_K1 ;
         case MBEDTLS_ECP_DP_CURVE448:
             *bits = 448;
-            return( PSA_ECC_FAMILY_MONTGOMERY );
+            return PSA_ECC_FAMILY_MONTGOMERY ;
         default:
             *bits = 0;
-            return( 0 );
+            return 0 ;
     }
 }
 
@@ -1754,7 +1754,7 @@ struct psa_pake_cipher_suite_s
 static inline psa_algorithm_t psa_pake_cs_get_algorithm(
     const psa_pake_cipher_suite_t *cipher_suite)
 {
-    return(cipher_suite->algorithm);
+    return cipher_suite->algorithm;
 }
 
 static inline void psa_pake_cs_set_algorithm(
@@ -1786,7 +1786,7 @@ static inline void psa_pake_cs_set_primitive(
 static inline psa_algorithm_t psa_pake_cs_get_hash(
     const psa_pake_cipher_suite_t *cipher_suite)
 {
-    return(cipher_suite->hash);
+    return cipher_suite->hash;
 }
 
 static inline void psa_pake_cs_set_hash(
@@ -1814,7 +1814,7 @@ struct psa_pake_operation_s
 static inline struct psa_pake_operation_s psa_pake_operation_init(void)
 {
     const struct psa_pake_operation_s v = PSA_PAKE_OPERATION_INIT;
-    return(v);
+    return v;
 }
 
 #ifdef __cplusplus

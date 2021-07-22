@@ -101,9 +101,9 @@ int mbedtls_x509write_crt_set_serial( mbedtls_x509write_cert *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( ( ret = mbedtls_mpi_copy( &ctx->serial, serial ) ) != 0 )
-        return( ret );
+        return ret ;
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_x509write_crt_set_validity( mbedtls_x509write_cert *ctx,
@@ -113,14 +113,14 @@ int mbedtls_x509write_crt_set_validity( mbedtls_x509write_cert *ctx,
     if( strlen( not_before ) != MBEDTLS_X509_RFC5280_UTC_TIME_LEN - 1 ||
         strlen( not_after )  != MBEDTLS_X509_RFC5280_UTC_TIME_LEN - 1 )
     {
-        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA ;
     }
     strncpy( ctx->not_before, not_before, MBEDTLS_X509_RFC5280_UTC_TIME_LEN );
     strncpy( ctx->not_after , not_after , MBEDTLS_X509_RFC5280_UTC_TIME_LEN );
     ctx->not_before[MBEDTLS_X509_RFC5280_UTC_TIME_LEN - 1] = 'Z';
     ctx->not_after[MBEDTLS_X509_RFC5280_UTC_TIME_LEN - 1] = 'Z';
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_x509write_crt_set_extension( mbedtls_x509write_cert *ctx,
@@ -143,7 +143,7 @@ int mbedtls_x509write_crt_set_basic_constraints( mbedtls_x509write_cert *ctx,
     memset( buf, 0, sizeof(buf) );
 
     if( is_ca && max_pathlen > 127 )
-        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA ;
 
     if( is_ca )
     {
@@ -181,7 +181,7 @@ int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ct
     ret = mbedtls_sha1( buf + sizeof( buf ) - len, len,
                             buf + sizeof( buf ) - 20 );
     if( ret != 0 )
-        return( ret );
+        return ret ;
     c = buf + sizeof( buf ) - 20;
     len = 20;
 
@@ -209,7 +209,7 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
     ret = mbedtls_sha1( buf + sizeof( buf ) - len, len,
                             buf + sizeof( buf ) - 20 );
     if( ret != 0 )
-        return( ret );
+        return ret ;
     c = buf + sizeof( buf ) - 20;
     len = 20;
 
@@ -248,7 +248,7 @@ int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx,
 
     /* Check that nothing other than the allowed flags is set */
     if( ( key_usage & ~allowed_bits ) != 0 )
-        return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
+        return MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE ;
 
     c = buf + 5;
     ku[0] = (unsigned char)( key_usage      );
@@ -256,17 +256,17 @@ int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx,
     ret = mbedtls_asn1_write_named_bitstring( &c, buf, ku, 9 );
 
     if( ret < 0 )
-        return( ret );
+        return ret ;
     else if( ret < 3 || ret > 5 )
-        return( MBEDTLS_ERR_X509_INVALID_FORMAT );
+        return MBEDTLS_ERR_X509_INVALID_FORMAT ;
 
     ret = mbedtls_x509write_crt_set_extension( ctx, MBEDTLS_OID_KEY_USAGE,
                                    MBEDTLS_OID_SIZE( MBEDTLS_OID_KEY_USAGE ),
                                    1, c, (size_t)ret );
     if( ret != 0 )
-        return( ret );
+        return ret ;
 
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_x509write_crt_set_ns_cert_type( mbedtls_x509write_cert *ctx,
@@ -280,15 +280,15 @@ int mbedtls_x509write_crt_set_ns_cert_type( mbedtls_x509write_cert *ctx,
 
     ret = mbedtls_asn1_write_named_bitstring( &c, buf, &ns_cert_type, 8 );
     if( ret < 3 || ret > 4 )
-        return( ret );
+        return ret ;
 
     ret = mbedtls_x509write_crt_set_extension( ctx, MBEDTLS_OID_NS_CERT_TYPE,
                                    MBEDTLS_OID_SIZE( MBEDTLS_OID_NS_CERT_TYPE ),
                                    0, c, (size_t)ret );
     if( ret != 0 )
-        return( ret );
+        return ret ;
 
-    return( 0 );
+    return 0 ;
 }
 
 static int x509_write_time( unsigned char **p, unsigned char *start,
@@ -319,7 +319,7 @@ static int x509_write_time( unsigned char **p, unsigned char *start,
                                              MBEDTLS_ASN1_GENERALIZED_TIME ) );
     }
 
-    return( (int) len );
+    return (int) len ;
 }
 
 int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
@@ -351,12 +351,12 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
     else if( mbedtls_pk_can_do( ctx->issuer_key, MBEDTLS_PK_ECDSA ) )
         pk_alg = MBEDTLS_PK_ECDSA;
     else
-        return( MBEDTLS_ERR_X509_INVALID_ALG );
+        return MBEDTLS_ERR_X509_INVALID_ALG ;
 
     if( ( ret = mbedtls_oid_get_oid_by_sig_alg( pk_alg, ctx->md_alg,
                                           &sig_oid, &sig_oid_len ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     /*
@@ -470,14 +470,14 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
     if( ( ret = mbedtls_md( mbedtls_md_info_from_type( ctx->md_alg ), c,
                             len, hash ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     if( ( ret = mbedtls_pk_sign( ctx->issuer_key, ctx->md_alg,
                                  hash, 0, sig, sizeof( sig ), &sig_len,
                                  f_rng, p_rng ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     /* Move CRT to the front of the buffer to have space
@@ -509,7 +509,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
                                                  MBEDTLS_ASN1_CONSTRUCTED |
                                                  MBEDTLS_ASN1_SEQUENCE ) );
 
-    return( (int) len );
+    return (int) len ;
 }
 
 #define PEM_BEGIN_CRT           "-----BEGIN CERTIFICATE-----\n"
@@ -527,17 +527,17 @@ int mbedtls_x509write_crt_pem( mbedtls_x509write_cert *crt,
     if( ( ret = mbedtls_x509write_crt_der( crt, buf, size,
                                    f_rng, p_rng ) ) < 0 )
     {
-        return( ret );
+        return ret ;
     }
 
     if( ( ret = mbedtls_pem_write_buffer( PEM_BEGIN_CRT, PEM_END_CRT,
                                           buf + size - ret, ret,
                                           buf, size, &olen ) ) != 0 )
     {
-        return( ret );
+        return ret ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_PEM_WRITE_C */
 

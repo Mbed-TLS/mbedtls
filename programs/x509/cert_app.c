@@ -138,7 +138,7 @@ static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, uint32_t *fl
         mbedtls_printf( "%s\n", buf );
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 int main( int argc, char *argv[] )

@@ -26,11 +26,11 @@ psa_status_t remove_seed_file( void )
 {
 #if defined(MBEDTLS_PSA_ITS_FILE_C)
     if( remove( "00000000ffffff52.psa_its" ) == 0 )
-        return( PSA_SUCCESS );
+        return PSA_SUCCESS ;
     else
-        return( PSA_ERROR_DOES_NOT_EXIST );
+        return PSA_ERROR_DOES_NOT_EXIST ;
 #else
-    return( psa_its_remove( PSA_CRYPTO_ITS_RANDOM_SEED_UID ) );
+    return psa_its_remove( PSA_CRYPTO_ITS_RANDOM_SEED_UID ) ;
 #endif
 }
 

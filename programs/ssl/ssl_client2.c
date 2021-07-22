@@ -518,7 +518,7 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
         memcpy( peer_crt_info, buf, sizeof( buf ) );
 
     if( opt.debug_level == 0 )
-        return( 0 );
+        return 0 ;
 
     mbedtls_printf( "%s", buf );
 #else
@@ -534,7 +534,7 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
         mbedtls_printf( "%s\n", buf );
     }
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
@@ -548,7 +548,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
     int cid_negotiated;
 
     if( opt.transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        return( 0 );
+        return 0 ;
 
     /* Check if the use of a CID has been negotiated,
      * but don't ask for the CID value and length.
@@ -566,7 +566,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_get_peer_cid returned -0x%x\n\n",
                         (unsigned int) -ret );
-        return( ret );
+        return ret ;
     }
 
     if( cid_negotiated == MBEDTLS_SSL_CID_DISABLED )
@@ -590,7 +590,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_get_peer_cid returned -0x%x\n\n",
                             (unsigned int) -ret );
-            return( ret );
+            return ret ;
         }
 
         /* Ask for just length + value of the peer's CID. */
@@ -600,7 +600,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_get_peer_cid returned -0x%x\n\n",
                             (unsigned int) -ret );
-            return( ret );
+            return ret ;
         }
         mbedtls_printf( "(%s) Peer CID (length %u Bytes): ",
                         additional_description,
@@ -613,7 +613,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
         mbedtls_printf( "\n" );
     }
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 

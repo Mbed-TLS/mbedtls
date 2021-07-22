@@ -46,7 +46,7 @@ static inline mbedtls_test_driver_key_management_hooks_t
 {
     const mbedtls_test_driver_key_management_hooks_t
         v = MBEDTLS_TEST_DRIVER_KEY_MANAGEMENT_INIT;
-    return( v );
+    return v ;
 }
 
 extern mbedtls_test_driver_key_management_hooks_t

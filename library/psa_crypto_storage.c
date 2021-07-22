@@ -70,7 +70,7 @@ static psa_storage_uid_t psa_its_identifier_of_slot( mbedtls_svc_key_id_t key )
      * psa_is_key_id_valid() in psa_crypto_slot_management.c
      * is responsible for ensuring that key identifiers do not have a
      * value that is reserved for non-key files. */
-    return( key );
+    return key ;
 #endif
 }
 
@@ -101,13 +101,13 @@ static psa_status_t psa_crypto_storage_load(
 
     status = psa_its_get_info( data_identifier, &data_identifier_info );
     if( status  != PSA_SUCCESS )
-        return( status );
+        return status ;
 
     status = psa_its_get( data_identifier, 0, (uint32_t) data_size, data, &data_length );
     if( data_size  != data_length )
-        return( PSA_ERROR_DATA_INVALID );
+        return PSA_ERROR_DATA_INVALID ;
 
-    return( status );
+    return status ;
 }
 
 int psa_is_key_present_in_storage( const mbedtls_svc_key_id_t key )
@@ -119,8 +119,8 @@ int psa_is_key_present_in_storage( const mbedtls_svc_key_id_t key )
     ret = psa_its_get_info( data_identifier, &data_identifier_info );
 
     if( ret == PSA_ERROR_DOES_NOT_EXIST )
-        return( 0 );
-    return( 1 );
+        return 0 ;
+    return 1 ;
 }
 
 /**
@@ -149,12 +149,12 @@ static psa_status_t psa_crypto_storage_store( const mbedtls_svc_key_id_t key,
     struct psa_storage_info_t data_identifier_info;
 
     if( psa_is_key_present_in_storage( key ) == 1 )
-        return( PSA_ERROR_ALREADY_EXISTS );
+        return PSA_ERROR_ALREADY_EXISTS ;
 
     status = psa_its_set( data_identifier, (uint32_t) data_length, data, 0 );
     if( status != PSA_SUCCESS )
     {
-        return( PSA_ERROR_DATA_INVALID );
+        return PSA_ERROR_DATA_INVALID ;
     }
 
     status = psa_its_get_info( data_identifier, &data_identifier_info );
@@ -178,7 +178,7 @@ exit:
          * nothing else we can do. */
         (void) psa_its_remove( data_identifier );
     }
-    return( status );
+    return status ;
 }
 
 psa_status_t psa_destroy_persistent_key( const mbedtls_svc_key_id_t key )
@@ -189,16 +189,16 @@ psa_status_t psa_destroy_persistent_key( const mbedtls_svc_key_id_t key )
 
     ret = psa_its_get_info( data_identifier, &data_identifier_info );
     if( ret == PSA_ERROR_DOES_NOT_EXIST )
-        return( PSA_SUCCESS );
+        return PSA_SUCCESS ;
 
     if( psa_its_remove( data_identifier ) != PSA_SUCCESS )
-        return( PSA_ERROR_DATA_INVALID );
+        return PSA_ERROR_DATA_INVALID ;
 
     ret = psa_its_get_info( data_identifier, &data_identifier_info );
     if( ret != PSA_ERROR_DOES_NOT_EXIST )
-        return( PSA_ERROR_DATA_INVALID );
+        return PSA_ERROR_DATA_INVALID ;
 
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 /**
@@ -223,11 +223,11 @@ static psa_status_t psa_crypto_storage_get_data_length(
 
     status = psa_its_get_info( data_identifier, &data_identifier_info );
     if( status != PSA_SUCCESS )
-        return( status );
+        return status ;
 
     *data_length = (size_t) data_identifier_info.size;
 
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 /*
@@ -313,8 +313,8 @@ static psa_status_t check_magic_header( const uint8_t *data )
 {
     if( memcmp( data, PSA_KEY_STORAGE_MAGIC_HEADER,
                 PSA_KEY_STORAGE_MAGIC_HEADER_LENGTH ) != 0 )
-        return( PSA_ERROR_DATA_INVALID );
-    return( PSA_SUCCESS );
+        return PSA_ERROR_DATA_INVALID ;
+    return PSA_SUCCESS ;
 }
 
 psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
@@ -329,20 +329,20 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
     uint32_t version;
 
     if( storage_data_length < sizeof(*storage_format) )
-        return( PSA_ERROR_DATA_INVALID );
+        return PSA_ERROR_DATA_INVALID ;
 
     status = check_magic_header( storage_data );
     if( status != PSA_SUCCESS )
-        return( status );
+        return status ;
 
     GET_UINT32_LE( version, storage_format->version, 0 );
     if( version != 0 )
-        return( PSA_ERROR_DATA_INVALID );
+        return PSA_ERROR_DATA_INVALID ;
 
     GET_UINT32_LE( *key_data_length, storage_format->data_len, 0 );
     if( *key_data_length > ( storage_data_length - sizeof(*storage_format) ) ||
         *key_data_length > PSA_CRYPTO_MAX_STORAGE_SIZE )
-        return( PSA_ERROR_DATA_INVALID );
+        return PSA_ERROR_DATA_INVALID ;
 
     if( *key_data_length == 0 )
     {
@@ -352,7 +352,7 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
     {
         *key_data = mbedtls_calloc( 1, *key_data_length );
         if( *key_data == NULL )
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+            return PSA_ERROR_INSUFFICIENT_MEMORY ;
         memcpy( *key_data, storage_format->key_data, *key_data_length );
     }
 
@@ -363,7 +363,7 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
     GET_UINT32_LE( attr->policy.alg, storage_format->policy, sizeof( uint32_t ) );
     GET_UINT32_LE( attr->policy.alg2, storage_format->policy, 2 * sizeof( uint32_t ) );
 
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 psa_status_t psa_save_persistent_key( const psa_core_key_attributes_t *attr,
@@ -376,15 +376,15 @@ psa_status_t psa_save_persistent_key( const psa_core_key_attributes_t *attr,
 
     /* All keys saved to persistent storage always have a key context */
     if( data == NULL || data_length == 0 )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return PSA_ERROR_INVALID_ARGUMENT ;
 
     if( data_length > PSA_CRYPTO_MAX_STORAGE_SIZE )
-        return( PSA_ERROR_INSUFFICIENT_STORAGE );
+        return PSA_ERROR_INSUFFICIENT_STORAGE ;
     storage_data_length = data_length + sizeof( psa_persistent_key_storage_format );
 
     storage_data = mbedtls_calloc( 1, storage_data_length );
     if( storage_data == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        return PSA_ERROR_INSUFFICIENT_MEMORY ;
 
     psa_format_key_data_for_storage( data, data_length, attr, storage_data );
 
@@ -393,7 +393,7 @@ psa_status_t psa_save_persistent_key( const psa_core_key_attributes_t *attr,
 
     mbedtls_free( storage_data );
 
-    return( status );
+    return status ;
 }
 
 void psa_free_persistent_key_data( uint8_t *key_data, size_t key_data_length )
@@ -416,12 +416,12 @@ psa_status_t psa_load_persistent_key( psa_core_key_attributes_t *attr,
 
     status = psa_crypto_storage_get_data_length( key, &storage_data_length );
     if( status != PSA_SUCCESS )
-        return( status );
+        return status ;
 
     loaded_data = mbedtls_calloc( 1, storage_data_length );
 
     if( loaded_data == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        return PSA_ERROR_INSUFFICIENT_MEMORY ;
 
     status = psa_crypto_storage_load( key, loaded_data, storage_data_length );
     if( status != PSA_SUCCESS )
@@ -437,7 +437,7 @@ psa_status_t psa_load_persistent_key( psa_core_key_attributes_t *attr,
 
 exit:
     mbedtls_free( loaded_data );
-    return( status );
+    return status ;
 }
 
 
@@ -459,10 +459,10 @@ psa_status_t psa_crypto_save_transaction( void )
     {
         /* This shouldn't happen: we're trying to start a transaction while
          * there is still a transaction that hasn't been replayed. */
-        return( PSA_ERROR_CORRUPTION_DETECTED );
+        return PSA_ERROR_CORRUPTION_DETECTED ;
     }
     else if( status != PSA_ERROR_DOES_NOT_EXIST )
-        return( status );
+        return status ;
     return( psa_its_set( PSA_CRYPTO_ITS_TRANSACTION_UID,
                          sizeof( psa_crypto_transaction ),
                          &psa_crypto_transaction,
@@ -477,10 +477,10 @@ psa_status_t psa_crypto_load_transaction( void )
                           sizeof( psa_crypto_transaction ),
                           &psa_crypto_transaction, &length );
     if( status != PSA_SUCCESS )
-        return( status );
+        return status ;
     if( length != sizeof( psa_crypto_transaction ) )
-        return( PSA_ERROR_DATA_INVALID );
-    return( PSA_SUCCESS );
+        return PSA_ERROR_DATA_INVALID ;
+    return PSA_SUCCESS ;
 }
 
 psa_status_t psa_crypto_stop_transaction( void )
@@ -490,7 +490,7 @@ psa_status_t psa_crypto_stop_transaction( void )
      * finished now. It's too late to go back, so zero out the in-memory
      * data. */
     memset( &psa_crypto_transaction, 0, sizeof( psa_crypto_transaction ) );
-    return( status );
+    return status ;
 }
 
 #endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
@@ -519,7 +519,7 @@ psa_status_t mbedtls_psa_storage_inject_entropy( const unsigned char *seed,
         /* You should not be here. Seed needs to be injected only once */
         status = PSA_ERROR_NOT_PERMITTED;
     }
-    return( status );
+    return status ;
 }
 #endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 

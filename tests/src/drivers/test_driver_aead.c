@@ -55,7 +55,7 @@ psa_status_t mbedtls_test_transparent_aead_encrypt(
                 ciphertext, ciphertext_size, ciphertext_length );
     }
 
-    return( mbedtls_test_driver_aead_hooks.driver_status );
+    return mbedtls_test_driver_aead_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_transparent_aead_decrypt(
@@ -86,7 +86,7 @@ psa_status_t mbedtls_test_transparent_aead_decrypt(
                 plaintext, plaintext_size, plaintext_length );
     }
 
-    return( mbedtls_test_driver_aead_hooks.driver_status );
+    return mbedtls_test_driver_aead_hooks.driver_status ;
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

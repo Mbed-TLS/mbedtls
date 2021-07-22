@@ -44,9 +44,9 @@ static int mem_is_char( void *buffer, unsigned char c, size_t size )
     for( i = 0; i < size; i++ )
     {
         if( ( (unsigned char *) buffer )[i] != c )
-            return( 0 );
+            return 0 ;
     }
-    return( 1 );
+    return 1 ;
 }
 
 /* Write the ASN.1 INTEGER with the value 2^(bits-1)+x backwards from *p. */
@@ -58,11 +58,11 @@ static int asn1_write_10x( unsigned char **p,
     int ret;
     int len = bits / 8 + 1;
     if( bits == 0 )
-        return( MBEDTLS_ERR_ASN1_INVALID_DATA );
+        return MBEDTLS_ERR_ASN1_INVALID_DATA ;
     if( bits <= 8 && x >= 1 << ( bits - 1 ) )
-        return( MBEDTLS_ERR_ASN1_INVALID_DATA );
+        return MBEDTLS_ERR_ASN1_INVALID_DATA ;
     if( *p < start || *p - start < (ptrdiff_t) len )
-        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL ;
     *p -= len;
     ( *p )[len-1] = x;
     if( bits % 8 == 0 )
@@ -72,7 +72,7 @@ static int asn1_write_10x( unsigned char **p,
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start,
                                                        MBEDTLS_ASN1_INTEGER ) );
-    return( len );
+    return len ;
 }
 
 static int construct_fake_rsa_key( unsigned char *buffer,
@@ -130,7 +130,7 @@ static int construct_fake_rsa_key( unsigned char *buffer,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE;
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, buffer, tag ) );
     }
-    return( len );
+    return len ;
 }
 
 int exercise_mac_setup( psa_key_type_t key_type,
@@ -159,11 +159,11 @@ int exercise_mac_setup( psa_key_type_t key_type,
     }
 
     psa_destroy_key( key );
-    return( 1 );
+    return 1 ;
 
 exit:
     psa_destroy_key( key );
-    return( 0 );
+    return 0 ;
 }
 
 int exercise_cipher_setup( psa_key_type_t key_type,
@@ -193,11 +193,11 @@ int exercise_cipher_setup( psa_key_type_t key_type,
     }
 
     psa_destroy_key( key );
-    return( 1 );
+    return 1 ;
 
 exit:
     psa_destroy_key( key );
-    return( 0 );
+    return 0 ;
 }
 
 static int test_operations_on_invalid_key( mbedtls_svc_key_id_t key )
@@ -239,7 +239,7 @@ exit:
      */
     psa_reset_key_attributes( &attributes );
 
-    return( ok );
+    return ok ;
 }
 
 /* Assert that a key isn't reported as having a slot number. */

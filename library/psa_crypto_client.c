@@ -47,7 +47,7 @@ psa_status_t psa_set_key_domain_parameters( psa_key_attributes_t *attributes,
     {
         copy = mbedtls_calloc( 1, data_length );
         if( copy == NULL )
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+            return PSA_ERROR_INSUFFICIENT_MEMORY ;
         memcpy( copy, data, data_length );
     }
     /* After this point, this function is guaranteed to succeed, so it
@@ -63,7 +63,7 @@ psa_status_t psa_set_key_domain_parameters( psa_key_attributes_t *attributes,
     attributes->domain_parameters = copy;
     attributes->domain_parameters_size = data_length;
     attributes->core.type = type;
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 psa_status_t psa_get_key_domain_parameters(
@@ -71,12 +71,12 @@ psa_status_t psa_get_key_domain_parameters(
     uint8_t *data, size_t data_size, size_t *data_length )
 {
     if( attributes->domain_parameters_size > data_size )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
+        return PSA_ERROR_BUFFER_TOO_SMALL ;
     *data_length = attributes->domain_parameters_size;
     if( attributes->domain_parameters_size != 0 )
         memcpy( data, attributes->domain_parameters,
                 attributes->domain_parameters_size );
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_CLIENT */

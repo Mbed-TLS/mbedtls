@@ -115,9 +115,9 @@ static const x509_attr_descriptor_t *x509_attr_descr_from_name( const char *name
             break;
 
     if ( cur->name == NULL )
-        return( NULL );
+        return NULL ;
 
-    return( cur );
+    return cur ;
 }
 
 int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *name )
@@ -170,7 +170,7 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
 
             if(cur == NULL )
             {
-                return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+                return MBEDTLS_ERR_X509_ALLOC_FAILED ;
             }
 
             // set tagType
@@ -199,7 +199,7 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
 
 exit:
 
-    return( ret );
+    return ret ;
 }
 
 /* The first byte of the value in the mbedtls_asn1_named_data structure is reserved
@@ -213,13 +213,13 @@ int mbedtls_x509_set_extension( mbedtls_asn1_named_data **head, const char *oid,
     if( ( cur = mbedtls_asn1_store_named_data( head, oid, oid_len,
                                        NULL, val_len + 1 ) ) == NULL )
     {
-        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+        return MBEDTLS_ERR_X509_ALLOC_FAILED ;
     }
 
     cur->val.p[0] = critical;
     memcpy( cur->val.p + 1, val, val_len );
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -263,7 +263,7 @@ static int x509_write_name( unsigned char **p, unsigned char *start, mbedtls_asn
                                                  MBEDTLS_ASN1_CONSTRUCTED |
                                                  MBEDTLS_ASN1_SET ) );
 
-    return( (int) len );
+    return (int) len ;
 }
 
 int mbedtls_x509_write_names( unsigned char **p, unsigned char *start,
@@ -283,7 +283,7 @@ int mbedtls_x509_write_names( unsigned char **p, unsigned char *start,
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start, MBEDTLS_ASN1_CONSTRUCTED |
                                                  MBEDTLS_ASN1_SEQUENCE ) );
 
-    return( (int) len );
+    return (int) len ;
 }
 
 int mbedtls_x509_write_sig( unsigned char **p, unsigned char *start,
@@ -294,14 +294,14 @@ int mbedtls_x509_write_sig( unsigned char **p, unsigned char *start,
     size_t len = 0;
 
     if( *p < start || (size_t)( *p - start ) < size )
-        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL ;
 
     len = size;
     (*p) -= len;
     memcpy( *p, sig, len );
 
     if( *p - start < 1 )
-        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL ;
 
     *--(*p) = 0;
     len += 1;
@@ -314,7 +314,7 @@ int mbedtls_x509_write_sig( unsigned char **p, unsigned char *start,
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_algorithm_identifier( p, start, oid,
                                                         oid_len, 0 ) );
 
-    return( (int) len );
+    return (int) len ;
 }
 
 static int x509_write_extension( unsigned char **p, unsigned char *start,
@@ -342,7 +342,7 @@ static int x509_write_extension( unsigned char **p, unsigned char *start,
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start, MBEDTLS_ASN1_CONSTRUCTED |
                                                  MBEDTLS_ASN1_SEQUENCE ) );
 
-    return( (int) len );
+    return (int) len ;
 }
 
 /*
@@ -368,7 +368,7 @@ int mbedtls_x509_write_extensions( unsigned char **p, unsigned char *start,
         cur_ext = cur_ext->next;
     }
 
-    return( (int) len );
+    return (int) len ;
 }
 
 #endif /* MBEDTLS_X509_CREATE_C */

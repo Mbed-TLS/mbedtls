@@ -93,7 +93,7 @@ static psa_status_t psa_check_rsa_key_byte_aligned(
             status = PSA_ERROR_NOT_SUPPORTED;
     }
     mbedtls_mpi_free( &n );
-    return( status );
+    return status ;
 }
 
 psa_status_t mbedtls_psa_rsa_load_representation(
@@ -144,7 +144,7 @@ psa_status_t mbedtls_psa_rsa_load_representation(
 
 exit:
     mbedtls_pk_free( &ctx );
-    return( status );
+    return status ;
 }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) ||
@@ -189,7 +189,7 @@ exit:
     mbedtls_rsa_free( rsa );
     mbedtls_free( rsa );
 
-    return( status );
+    return status ;
 }
 
 psa_status_t mbedtls_psa_rsa_export_key( psa_key_type_t type,
@@ -219,7 +219,7 @@ psa_status_t mbedtls_psa_rsa_export_key( psa_key_type_t type,
     {
         /* Clean up in case pk_write failed halfway through. */
         memset( data, 0, data_size );
-        return( mbedtls_to_psa_error( ret ) );
+        return mbedtls_to_psa_error( ret ) ;
     }
 
     /* The mbedtls_pk_xxx functions write to the end of the buffer.
@@ -237,14 +237,14 @@ psa_status_t mbedtls_psa_rsa_export_key( psa_key_type_t type,
     }
 
     *data_length = ret;
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 #else
     (void) type;
     (void) rsa;
     (void) data;
     (void) data_size;
     (void) data_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 #endif /* MBEDTLS_PK_WRITE_C */
 }
 
@@ -259,7 +259,7 @@ static psa_status_t rsa_export_public_key(
     status = mbedtls_psa_rsa_load_representation(
                  attributes->core.type, key_buffer, key_buffer_size, &rsa );
     if( status != PSA_SUCCESS )
-        return( status );
+        return status ;
 
     status = mbedtls_psa_rsa_export_key( PSA_KEY_TYPE_RSA_PUBLIC_KEY,
                                          rsa,
@@ -270,7 +270,7 @@ static psa_status_t rsa_export_public_key(
     mbedtls_rsa_free( rsa );
     mbedtls_free( rsa );
 
-    return( status );
+    return status ;
 }
 #endif /* defined(BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
         * defined(BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
@@ -287,20 +287,20 @@ static psa_status_t psa_rsa_read_exponent( const uint8_t *domain_parameters,
     if( domain_parameters_size == 0 )
     {
         *exponent = 65537;
-        return( PSA_SUCCESS );
+        return PSA_SUCCESS ;
     }
 
     /* Mbed TLS encodes the public exponent as an int. For simplicity, only
      * support values that fit in a 32-bit integer, which is larger than
      * int on just about every platform anyway. */
     if( domain_parameters_size > sizeof( acc ) )
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
     for( i = 0; i < domain_parameters_size; i++ )
         acc = ( acc << 8 ) | domain_parameters[i];
     if( acc > INT_MAX )
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
     *exponent = acc;
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 static psa_status_t rsa_generate_key(
@@ -316,7 +316,7 @@ static psa_status_t rsa_generate_key(
                                     attributes->domain_parameters_size,
                                     &exponent );
     if( status != PSA_SUCCESS )
-        return( status );
+        return status ;
 
     mbedtls_rsa_init( &rsa );
     ret = mbedtls_rsa_gen_key( &rsa,
@@ -325,14 +325,14 @@ static psa_status_t rsa_generate_key(
                                (unsigned int)attributes->core.bits,
                                exponent );
     if( ret != 0 )
-        return( mbedtls_to_psa_error( ret ) );
+        return mbedtls_to_psa_error( ret ) ;
 
     status = mbedtls_psa_rsa_export_key( attributes->core.type,
                                          &rsa, key_buffer, key_buffer_size,
                                          key_buffer_length );
     mbedtls_rsa_free( &rsa );
 
-    return( status );
+    return status ;
 }
 #endif /* defined(BUILTIN_KEY_TYPE_RSA_KEY_PAIR)
         * defined(MBEDTLS_GENPRIME) */
@@ -358,19 +358,19 @@ static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
      * overflow later. */
 #if SIZE_MAX > UINT_MAX
     if( hash_length > UINT_MAX )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return PSA_ERROR_INVALID_ARGUMENT ;
 #endif
 
     /* For signatures using a hash, the hash length must be correct. */
     if( alg != PSA_ALG_RSA_PKCS1V15_SIGN_RAW )
     {
         if( md_info == NULL )
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return PSA_ERROR_NOT_SUPPORTED ;
         if( mbedtls_md_get_size( md_info ) != hash_length )
-            return( PSA_ERROR_INVALID_ARGUMENT );
+            return PSA_ERROR_INVALID_ARGUMENT ;
     }
 
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 static psa_status_t rsa_sign_hash(
@@ -389,7 +389,7 @@ static psa_status_t rsa_sign_hash(
                                                   key_buffer_size,
                                                   &rsa );
     if( status != PSA_SUCCESS )
-        return( status );
+        return status ;
 
     status = psa_rsa_decode_md_type( alg, hash_length, &md_alg );
     if( status != PSA_SUCCESS )
@@ -450,7 +450,7 @@ exit:
     mbedtls_rsa_free( rsa );
     mbedtls_free( rsa );
 
-    return( status );
+    return status ;
 }
 
 static psa_status_t rsa_verify_hash(
@@ -528,7 +528,7 @@ exit:
     mbedtls_rsa_free( rsa );
     mbedtls_free( rsa );
 
-    return( status );
+    return status ;
 }
 
 #endif /* defined(BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||
@@ -669,7 +669,7 @@ psa_status_t mbedtls_transparent_test_driver_rsa_sign_hash(
     (void)signature;
     (void)signature_size;
     (void)signature_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 #endif
 }
 
@@ -695,7 +695,7 @@ psa_status_t mbedtls_transparent_test_driver_rsa_verify_hash(
     (void)hash_length;
     (void)signature;
     (void)signature_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED ;
 #endif
 }
 #endif /* defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) ||

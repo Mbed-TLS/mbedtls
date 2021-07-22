@@ -46,7 +46,7 @@
        if( ! (TEST) )                                       \
        {                                                    \
           mbedtls_test_fail( #TEST, __LINE__, __FILE__ );   \
-          return( PSA_ERROR_DETECTED_BY_DRIVER );           \
+          return PSA_ERROR_DETECTED_BY_DRIVER ;           \
        }                                                    \
     } while( 0 )
 
@@ -103,14 +103,14 @@ static size_t ecc_curve_bits( psa_ecc_family_t curve, size_t data_length )
     {
         case PSA_ECC_FAMILY_SECP_R1:
             if( data_length == PSA_BYTES_TO_BITS( 521 ) )
-                return( 521 );
+                return 521 ;
             break;
         case PSA_ECC_FAMILY_MONTGOMERY:
             if( data_length == PSA_BYTES_TO_BITS( 255 ) )
-                return( 255 );
+                return 255 ;
     }
     /* If not listed above, assume a multiple of 8 bits. */
-    return( PSA_BYTES_TO_BITS( data_length ) );
+    return PSA_BYTES_TO_BITS( data_length ) ;
 }
 
 
@@ -141,7 +141,7 @@ static psa_status_t validate_slot_number_as_directed(
                           validate_slot_number_directions.slot_number );
     DRIVER_ASSERT_RETURN( method ==
                           validate_slot_number_directions.method );
-    return( validate_slot_number_directions.status );
+    return validate_slot_number_directions.status ;
 }
 
 /* Allocate slot numbers with a monotonic counter. */
@@ -160,13 +160,13 @@ static psa_status_t counter_allocate( psa_drv_se_context_t *context,
     (void) attributes;
     (void) method;
     if( context->persistent_data_size != sizeof( psa_key_slot_number_t ) )
-        return( PSA_ERROR_DETECTED_BY_DRIVER );
+        return PSA_ERROR_DETECTED_BY_DRIVER ;
     ++*p_counter;
     if( *p_counter == 0 )
-        return( PSA_ERROR_INSUFFICIENT_STORAGE );
+        return PSA_ERROR_INSUFFICIENT_STORAGE ;
     shadow_counter = *p_counter;
     *slot_number = *p_counter;
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 /* Null import: do nothing, but pretend it worked. */
@@ -184,7 +184,7 @@ static psa_status_t null_import( psa_drv_se_context_t *context,
     /* We're supposed to return a key size. Return one that's correct for
      * plain data keys. */
     *bits = PSA_BYTES_TO_BITS( data_length );
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 /* Null generate: do nothing, but pretend it worked. */
@@ -206,7 +206,7 @@ static psa_status_t null_generate( psa_drv_se_context_t *context,
         DRIVER_ASSERT_RETURN( pubkey_size == 0 );
     }
 
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 /* Null destroy: do nothing, but pretend it worked. */
@@ -217,7 +217,7 @@ static psa_status_t null_destroy( psa_drv_se_context_t *context,
     (void) context;
     (void) persistent_data;
     (void) slot_number;
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 
@@ -274,10 +274,10 @@ static psa_status_t ram_create_common( psa_drv_se_context_t *context,
     if( required_storage > sizeof( ram_slots[slot_number].content ) )
     {
         memset( &ram_slots[slot_number], 0, sizeof( ram_slots[slot_number] ) );
-        return( PSA_ERROR_INSUFFICIENT_STORAGE );
+        return PSA_ERROR_INSUFFICIENT_STORAGE ;
     }
 
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 /* This function does everything except actually generating key material.
@@ -304,7 +304,7 @@ static psa_status_t ram_fake_generate( psa_drv_se_context_t *context,
 
     status = ram_create_common( context, slot_number, attributes,
                                 required_storage );
-    return( status );
+    return status ;
 }
 
 static psa_status_t ram_import( psa_drv_se_context_t *context,
@@ -318,7 +318,7 @@ static psa_status_t ram_import( psa_drv_se_context_t *context,
     psa_status_t status = ram_create_common( context, slot_number, attributes,
                                              data_length );
     if( status != PSA_SUCCESS )
-        return( status );
+        return status ;
 
     /* The RAM driver only works for certain key types: raw keys,
      * and ECC key pairs. This is true in particular of the bit-size
@@ -329,18 +329,18 @@ static psa_status_t ram_import( psa_drv_se_context_t *context,
     {
         *bits = ecc_curve_bits( PSA_KEY_TYPE_ECC_GET_FAMILY( type ), data_length );
         if( *bits == 0 )
-            return( PSA_ERROR_DETECTED_BY_DRIVER );
+            return PSA_ERROR_DETECTED_BY_DRIVER ;
     }
     else
     {
         memset( &ram_slots[slot_number], 0, sizeof( ram_slots[slot_number] ) );
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
     }
 
     ram_slots[slot_number].bits = *bits;
     memcpy( ram_slots[slot_number].content, data, data_length );
 
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 static psa_status_t ram_export( psa_drv_se_context_t *context,
@@ -354,10 +354,10 @@ static psa_status_t ram_export( psa_drv_se_context_t *context,
     DRIVER_ASSERT_RETURN( slot_number < ARRAY_LENGTH( ram_slots ) );
     actual_size = PSA_BITS_TO_BYTES( ram_slots[slot_number].bits );
     if( actual_size > data_size )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
+        return PSA_ERROR_BUFFER_TOO_SMALL ;
     *data_length = actual_size;
     memcpy( data, ram_slots[slot_number].content, actual_size );
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 static psa_status_t ram_export_public( psa_drv_se_context_t *context,
@@ -381,10 +381,10 @@ static psa_status_t ram_export_public( psa_drv_se_context_t *context,
                              PSA_BITS_TO_BYTES( ram_slots[slot_number].bits ),
                              &key );
     if( status != PSA_SUCCESS )
-        return( status );
+        return status ;
     status = psa_export_public_key( key, data, data_size, data_length );
     psa_destroy_key( key );
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 static psa_status_t ram_destroy( psa_drv_se_context_t *context,
@@ -397,7 +397,7 @@ static psa_status_t ram_destroy( psa_drv_se_context_t *context,
     memset( &ram_slots[slot_number], 0, sizeof( ram_slots[slot_number] ) );
     *slot_usage &= ~(ram_slot_usage_t)( 1 << slot_number );
     ram_shadow_slot_usage = *slot_usage;
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 static psa_status_t ram_allocate( psa_drv_se_context_t *context,
@@ -417,10 +417,10 @@ static psa_status_t ram_allocate( psa_drv_se_context_t *context,
         if( ! ( *slot_usage & 1 << *slot_number ) )
         {
             ram_shadow_slot_usage = *slot_usage;
-            return( PSA_SUCCESS );
+            return PSA_SUCCESS ;
         }
     }
-    return( PSA_ERROR_INSUFFICIENT_STORAGE );
+    return PSA_ERROR_INSUFFICIENT_STORAGE ;
 }
 
 static psa_status_t ram_validate_slot_number(
@@ -435,8 +435,8 @@ static psa_status_t ram_validate_slot_number(
     (void) attributes;
     (void) method;
     if( slot_number >= ARRAY_LENGTH( ram_slots ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    return( PSA_SUCCESS );
+        return PSA_ERROR_INVALID_ARGUMENT ;
+    return PSA_SUCCESS ;
 }
 
 static psa_status_t ram_sign( psa_drv_se_context_t *context,
@@ -470,7 +470,7 @@ static psa_status_t ram_sign( psa_drv_se_context_t *context,
 
 exit:
     psa_destroy_key( key );
-    return( status );
+    return status ;
 }
 
 static psa_status_t ram_verify( psa_drv_se_context_t *context,
@@ -504,7 +504,7 @@ static psa_status_t ram_verify( psa_drv_se_context_t *context,
 
 exit:
     psa_destroy_key( key );
-    return( status );
+    return status ;
 }
 
 
@@ -583,7 +583,7 @@ exit:
      */
     psa_reset_key_attributes( &actual_attributes );
 
-    return( ok );
+    return ok ;
 }
 
 /* Get the file UID corresponding to the specified location.
@@ -593,8 +593,8 @@ exit:
 psa_storage_uid_t file_uid_for_location( psa_key_location_t location )
 {
     if( location > PSA_MAX_SE_LOCATION )
-        return( 0 );
-    return( 0xfffffe00 + location );
+        return 0 ;
+    return 0xfffffe00 + location ;
 }
 
 /* Check that the persistent data of a driver has its expected content. */
@@ -615,7 +615,7 @@ static int check_persistent_data( psa_key_location_t location,
 
 exit:
     mbedtls_free( loaded );
-    return( ok );
+    return ok ;
 }
 
 /* Check that no persistent data exists for the given location. */
@@ -629,7 +629,7 @@ static int check_no_persistent_data( psa_key_location_t location )
     ok = 1;
 
 exit:
-    return( ok );
+    return ok ;
 }
 
 /* Check that a function's return status is "smoke-free", i.e. that
@@ -646,9 +646,9 @@ static int is_status_smoke_free( psa_status_t status )
         case PSA_ERROR_INVALID_ARGUMENT:
         case PSA_ERROR_INVALID_SIGNATURE:
         case PSA_ERROR_INVALID_PADDING:
-            return( 1 );
+            return 1 ;
         default:
-            return( 0 );
+            return 0 ;
     }
 }
 #define SMOKE_ASSERT( expr )                    \
@@ -764,7 +764,7 @@ exit:
      */
     psa_reset_key_attributes( &attributes );
 
-    return( ok );
+    return ok ;
 }
 
 static void psa_purge_storage( void )

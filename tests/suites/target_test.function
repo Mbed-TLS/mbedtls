@@ -54,9 +54,9 @@ int verify_dependencies( uint8_t count, uint8_t * dep_p )
     for ( i = 0; i < count; i++ )
     {
         if ( dep_check( (int)(dep_p[i]) ) != DEPENDENCY_SUPPORTED )
-            return( DEPENDENCY_NOT_SUPPORTED );
+            return DEPENDENCY_NOT_SUPPORTED ;
     }
-    return( DEPENDENCY_SUPPORTED );
+    return DEPENDENCY_SUPPORTED ;
 }
 
 /**
@@ -80,7 +80,7 @@ uint8_t receive_byte()
                                                c, &len ) == 0 );
     TEST_HELPER_ASSERT( len != 2 );
 
-    return( byte );
+    return byte ;
 }
 
 /**
@@ -111,7 +111,7 @@ uint32_t receive_uint32()
                                                c, &len ) == 0 );
     TEST_HELPER_ASSERT( len != 8 );
 
-    return( value );
+    return value ;
 }
 
 /**
@@ -129,7 +129,7 @@ uint32_t parse_uint32( uint8_t * p )
     value |= *p++ << 16;
     value |= *p++ << 8;
     value |= *p;
-    return( value );
+    return value ;
 }
 
 
@@ -157,7 +157,7 @@ uint8_t * receive_data( uint32_t * data_len )
             continue;
         i++;
         if ( c != '{' )
-            return( NULL );
+            return NULL ;
     }
 
     /* Read data length */
@@ -188,7 +188,7 @@ uint8_t * receive_data( uint32_t * data_len )
         *data_len = 0;
     }
 
-    return( data );
+    return data ;
 }
 
 /**
@@ -230,7 +230,7 @@ uint32_t find_hex_count( uint8_t count, uint8_t * data, uint32_t data_len )
         }
     }
 
-    return( hex_count );
+    return hex_count ;
 }
 
 /**
@@ -317,7 +317,7 @@ exit:
         params = NULL;
     }
 
-    return( params );
+    return params ;
 }
 
 /**
@@ -444,6 +444,6 @@ int execute_tests( int args, const char ** argv )
         else
             send_status( mbedtls_test_info.result );
     }
-    return( 0 );
+    return 0 ;
 }
 

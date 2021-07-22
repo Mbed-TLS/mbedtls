@@ -54,7 +54,7 @@ psa_status_t mbedtls_test_transparent_mac_compute(
                 mac, mac_size, mac_length );
     }
 
-    return( mbedtls_test_driver_mac_hooks.driver_status );
+    return mbedtls_test_driver_mac_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_transparent_mac_sign_setup(
@@ -78,7 +78,7 @@ psa_status_t mbedtls_test_transparent_mac_sign_setup(
                 operation, attributes, key_buffer, key_buffer_size, alg );
     }
 
-    return( mbedtls_test_driver_mac_hooks.driver_status );
+    return mbedtls_test_driver_mac_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_transparent_mac_verify_setup(
@@ -102,7 +102,7 @@ psa_status_t mbedtls_test_transparent_mac_verify_setup(
                 operation, attributes, key_buffer, key_buffer_size, alg );
     }
 
-    return( mbedtls_test_driver_mac_hooks.driver_status );
+    return mbedtls_test_driver_mac_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_transparent_mac_update(
@@ -124,7 +124,7 @@ psa_status_t mbedtls_test_transparent_mac_update(
                 operation, input, input_length );
     }
 
-    return( mbedtls_test_driver_mac_hooks.driver_status );
+    return mbedtls_test_driver_mac_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_transparent_mac_sign_finish(
@@ -147,7 +147,7 @@ psa_status_t mbedtls_test_transparent_mac_sign_finish(
                 operation, mac, mac_size, mac_length );
     }
 
-    return( mbedtls_test_driver_mac_hooks.driver_status );
+    return mbedtls_test_driver_mac_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_transparent_mac_verify_finish(
@@ -169,7 +169,7 @@ psa_status_t mbedtls_test_transparent_mac_verify_finish(
                 operation, mac, mac_length );
     }
 
-    return( mbedtls_test_driver_mac_hooks.driver_status );
+    return mbedtls_test_driver_mac_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_transparent_mac_abort(
@@ -188,7 +188,7 @@ psa_status_t mbedtls_test_transparent_mac_abort(
             mbedtls_transparent_test_driver_mac_abort( operation );
     }
 
-    return( mbedtls_test_driver_mac_hooks.driver_status );
+    return mbedtls_test_driver_mac_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_opaque_mac_compute(
@@ -218,7 +218,7 @@ psa_status_t mbedtls_test_opaque_mac_compute(
                 mac, mac_size, mac_length );
     }
 
-    return( mbedtls_test_driver_mac_hooks.driver_status );
+    return mbedtls_test_driver_mac_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_opaque_mac_sign_setup(
@@ -242,7 +242,7 @@ psa_status_t mbedtls_test_opaque_mac_sign_setup(
                 operation, attributes, key_buffer, key_buffer_size, alg );
     }
 
-    return( mbedtls_test_driver_mac_hooks.driver_status );
+    return mbedtls_test_driver_mac_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_opaque_mac_verify_setup(
@@ -266,7 +266,7 @@ psa_status_t mbedtls_test_opaque_mac_verify_setup(
                 operation, attributes, key_buffer, key_buffer_size, alg );
     }
 
-    return( mbedtls_test_driver_mac_hooks.driver_status );
+    return mbedtls_test_driver_mac_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_opaque_mac_update(
@@ -288,7 +288,7 @@ psa_status_t mbedtls_test_opaque_mac_update(
                 operation, input, input_length );
     }
 
-    return( mbedtls_test_driver_mac_hooks.driver_status );
+    return mbedtls_test_driver_mac_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_opaque_mac_sign_finish(
@@ -311,7 +311,7 @@ psa_status_t mbedtls_test_opaque_mac_sign_finish(
                 operation, mac, mac_size, mac_length );
     }
 
-    return( mbedtls_test_driver_mac_hooks.driver_status );
+    return mbedtls_test_driver_mac_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_opaque_mac_verify_finish(
@@ -333,7 +333,7 @@ psa_status_t mbedtls_test_opaque_mac_verify_finish(
                 operation, mac, mac_length );
     }
 
-    return( mbedtls_test_driver_mac_hooks.driver_status );
+    return mbedtls_test_driver_mac_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_opaque_mac_abort(
@@ -352,7 +352,7 @@ psa_status_t mbedtls_test_opaque_mac_abort(
             mbedtls_opaque_test_driver_mac_abort( operation );
     }
 
-    return( mbedtls_test_driver_mac_hooks.driver_status );
+    return mbedtls_test_driver_mac_hooks.driver_status ;
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

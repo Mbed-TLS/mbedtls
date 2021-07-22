@@ -68,7 +68,7 @@ static psa_status_t psa_its_set_wrap( psa_storage_uid_t uid,
 {
     if( uid_max != (psa_storage_uid_t)( -1 ) && uid_max < uid )
         uid_max = uid;
-    return( psa_its_set( uid, data_length, p_data, create_flags ) );
+    return psa_its_set( uid, data_length, p_data, create_flags ) ;
 }
 
 /* END_HEADER */

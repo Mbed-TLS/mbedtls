@@ -91,7 +91,7 @@ static psa_status_t psa_aead_setup(
                                                 attributes->core.type, key_bits,
                                                 &cipher_id );
     if( cipher_info == NULL )
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
 
     switch( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) )
     {
@@ -103,14 +103,14 @@ static psa_status_t psa_aead_setup(
              * The call to mbedtls_ccm_encrypt_and_tag or
              * mbedtls_ccm_auth_decrypt will validate the tag length. */
             if( PSA_BLOCK_CIPHER_BLOCK_LENGTH( attributes->core.type ) != 16 )
-                return( PSA_ERROR_INVALID_ARGUMENT );
+                return PSA_ERROR_INVALID_ARGUMENT ;
 
             mbedtls_ccm_init( &operation->ctx.ccm );
             status = mbedtls_to_psa_error(
                 mbedtls_ccm_setkey( &operation->ctx.ccm, cipher_id,
                                     key_buffer, (unsigned int) key_bits ) );
             if( status != PSA_SUCCESS )
-                return( status );
+                return status ;
             break;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 
@@ -122,14 +122,14 @@ static psa_status_t psa_aead_setup(
              * The call to mbedtls_gcm_crypt_and_tag or
              * mbedtls_gcm_auth_decrypt will validate the tag length. */
             if( PSA_BLOCK_CIPHER_BLOCK_LENGTH( attributes->core.type ) != 16 )
-                return( PSA_ERROR_INVALID_ARGUMENT );
+                return PSA_ERROR_INVALID_ARGUMENT ;
 
             mbedtls_gcm_init( &operation->ctx.gcm );
             status = mbedtls_to_psa_error(
                 mbedtls_gcm_setkey( &operation->ctx.gcm, cipher_id,
                                     key_buffer, (unsigned int) key_bits ) );
             if( status != PSA_SUCCESS )
-                return( status );
+                return status ;
             break;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
 
@@ -139,31 +139,31 @@ static psa_status_t psa_aead_setup(
             full_tag_length = 16;
             /* We only support the default tag length. */
             if( alg != PSA_ALG_CHACHA20_POLY1305 )
-                return( PSA_ERROR_NOT_SUPPORTED );
+                return PSA_ERROR_NOT_SUPPORTED ;
 
             mbedtls_chachapoly_init( &operation->ctx.chachapoly );
             status = mbedtls_to_psa_error(
                 mbedtls_chachapoly_setkey( &operation->ctx.chachapoly,
                                            key_buffer ) );
             if( status != PSA_SUCCESS )
-                return( status );
+                return status ;
             break;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
 
         default:
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return PSA_ERROR_NOT_SUPPORTED ;
     }
 
     if( PSA_AEAD_TAG_LENGTH( attributes->core.type,
                              key_bits, alg )
         > full_tag_length )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return PSA_ERROR_INVALID_ARGUMENT ;
 
     operation->tag_length = PSA_AEAD_TAG_LENGTH( attributes->core.type,
                                                  key_bits,
                                                  alg );
 
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 psa_status_t mbedtls_psa_aead_encrypt(
@@ -243,7 +243,7 @@ psa_status_t mbedtls_psa_aead_encrypt(
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
         (void) tag;
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
     }
 
     if( status == PSA_SUCCESS )
@@ -252,7 +252,7 @@ psa_status_t mbedtls_psa_aead_encrypt(
 exit:
     psa_aead_abort_internal( &operation );
 
-    return( status );
+    return status ;
 }
 
 /* Locate the tag in a ciphertext buffer containing the encrypted data
@@ -268,12 +268,12 @@ static psa_status_t psa_aead_unpadded_locate_tag( size_t tag_length,
 {
     size_t payload_length;
     if( tag_length > ciphertext_length )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return PSA_ERROR_INVALID_ARGUMENT ;
     payload_length = ciphertext_length - tag_length;
     if( payload_length > plaintext_size )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
+        return PSA_ERROR_BUFFER_TOO_SMALL ;
     *p_tag = ciphertext + payload_length;
-    return( PSA_SUCCESS );
+    return PSA_SUCCESS ;
 }
 
 psa_status_t mbedtls_psa_aead_decrypt(
@@ -349,7 +349,7 @@ psa_status_t mbedtls_psa_aead_decrypt(
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED ;
     }
 
     if( status == PSA_SUCCESS )
@@ -360,7 +360,7 @@ exit:
 
     if( status == PSA_SUCCESS )
         *plaintext_length = ciphertext_length - operation.tag_length;
-    return( status );
+    return status ;
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

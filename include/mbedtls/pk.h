@@ -390,7 +390,7 @@ size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx );
  */
 static inline size_t mbedtls_pk_get_len( const mbedtls_pk_context *ctx )
 {
-    return( ( mbedtls_pk_get_bitlen( ctx ) + 7 ) / 8 );
+    return ( mbedtls_pk_get_bitlen( ctx ) + 7 ) / 8 ;
 }
 
 /**

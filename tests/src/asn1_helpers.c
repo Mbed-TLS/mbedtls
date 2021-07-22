@@ -52,7 +52,7 @@ int mbedtls_test_asn1_skip_integer( unsigned char **p, const unsigned char *end,
         --len;
     }
     if( min_bits == 0 && len == 0 )
-        return( 1 );
+        return 1 ;
     msb = ( *p )[0];
     TEST_ASSERT( msb != 0 );
     actual_bits = 8 * ( len - 1 );
@@ -66,9 +66,9 @@ int mbedtls_test_asn1_skip_integer( unsigned char **p, const unsigned char *end,
     if( must_be_odd )
         TEST_ASSERT( ( ( *p )[len-1] & 1 ) != 0 );
     *p += len;
-    return( 1 );
+    return 1 ;
 exit:
-    return( 0 );
+    return 0 ;
 }
 
 #endif /* MBEDTLS_ASN1_PARSE_C */

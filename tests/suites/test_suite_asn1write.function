@@ -20,9 +20,9 @@ int generic_write_start_step( generic_write_data_t *data )
     data->end = data->output + data->size;
     data->p = data->end;
     data->start = data->end - data->size;
-    return( 1 );
+    return 1 ;
 exit:
-    return( 0 );
+    return 0 ;
 }
 
 int generic_write_finish_step( generic_write_data_t *data,
@@ -47,7 +47,7 @@ int generic_write_finish_step( generic_write_data_t *data,
 exit:
     mbedtls_free( data->output );
     data->output = NULL;
-    return( ok );
+    return ok ;
 }
 
 /* END_HEADER */

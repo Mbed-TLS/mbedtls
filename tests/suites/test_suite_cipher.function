@@ -48,10 +48,10 @@ static int cipher_reset_key( mbedtls_cipher_context_t *ctx, int cipher_id,
 
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( ctx, key->x, 8 * key->len,
                                              direction ) );
-    return( 1 );
+    return 1 ;
 
 exit:
-    return( 0 );
+    return 0 ;
 }
 
 /*

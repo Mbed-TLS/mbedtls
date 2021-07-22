@@ -46,18 +46,18 @@ static int test_written_key( const psa_key_attributes_t *attributes,
 
 exit:
     mbedtls_free( actual_representation );
-    return( ok );
+    return ok ;
 }
 
 /** Check if a key is exportable. */
 static int can_export( const psa_key_attributes_t *attributes )
 {
     if( psa_get_key_usage_flags( attributes ) & PSA_KEY_USAGE_EXPORT )
-        return( 1 );
+        return 1 ;
     else if( PSA_KEY_TYPE_IS_PUBLIC_KEY( psa_get_key_type( attributes ) ) )
-        return( 1 );
+        return 1 ;
     else
-        return( 0 );
+        return 0 ;
 }
 
 /** Write a key with the given representation to storage, then check
@@ -137,7 +137,7 @@ exit:
     psa_reset_key_attributes( &actual_attributes );
     psa_its_remove( uid );
     mbedtls_free( exported_material );
-    return( ok );
+    return ok ;
 }
 
 /* END_HEADER */

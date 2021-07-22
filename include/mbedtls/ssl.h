@@ -3146,16 +3146,16 @@ static inline const char *mbedtls_ssl_get_srtp_profile_as_string( mbedtls_ssl_sr
     switch( profile )
     {
         case MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80:
-            return( "MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80" );
+            return "MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_80" ;
         case MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32:
-            return( "MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32" );
+            return "MBEDTLS_TLS_SRTP_AES128_CM_HMAC_SHA1_32" ;
         case MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80:
-            return( "MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80" );
+            return "MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_80" ;
         case MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32:
-            return( "MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32" );
+            return "MBEDTLS_TLS_SRTP_NULL_HMAC_SHA1_32" ;
         default: break;
     }
-    return( "" );
+    return "" ;
 }
 #endif /* MBEDTLS_DEBUG_C */
 /**

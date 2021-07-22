@@ -357,9 +357,9 @@ int mbedtls_des_key_check_key_parity( const unsigned char key[MBEDTLS_DES_KEY_SI
 
     for( i = 0; i < MBEDTLS_DES_KEY_SIZE; i++ )
         if( key[i] != odd_parity_table[key[i] / 2] )
-            return( 1 );
+            return 1 ;
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -412,9 +412,9 @@ int mbedtls_des_key_check_weak( const unsigned char key[MBEDTLS_DES_KEY_SIZE] )
 
     for( i = 0; i < WEAK_KEY_COUNT; i++ )
         if( memcmp( weak_key_table[i], key, MBEDTLS_DES_KEY_SIZE) == 0 )
-            return( 1 );
+            return 1 ;
 
-    return( 0 );
+    return 0 ;
 }
 
 #if !defined(MBEDTLS_DES_SETKEY_ALT)
@@ -495,7 +495,7 @@ int mbedtls_des_setkey_enc( mbedtls_des_context *ctx, const unsigned char key[MB
 {
     mbedtls_des_setkey( ctx->sk, key );
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -513,7 +513,7 @@ int mbedtls_des_setkey_dec( mbedtls_des_context *ctx, const unsigned char key[MB
         SWAP( ctx->sk[i + 1], ctx->sk[31 - i] );
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 static void des3_set2key( uint32_t esk[96],
@@ -552,7 +552,7 @@ int mbedtls_des3_set2key_enc( mbedtls_des3_context *ctx,
     des3_set2key( ctx->sk, sk, key );
     mbedtls_platform_zeroize( sk,  sizeof( sk ) );
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -566,7 +566,7 @@ int mbedtls_des3_set2key_dec( mbedtls_des3_context *ctx,
     des3_set2key( sk, ctx->sk, key );
     mbedtls_platform_zeroize( sk,  sizeof( sk ) );
 
-    return( 0 );
+    return 0 ;
 }
 
 static void des3_set3key( uint32_t esk[96],
@@ -603,7 +603,7 @@ int mbedtls_des3_set3key_enc( mbedtls_des3_context *ctx,
     des3_set3key( ctx->sk, sk, key );
     mbedtls_platform_zeroize( sk,  sizeof( sk ) );
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -617,7 +617,7 @@ int mbedtls_des3_set3key_dec( mbedtls_des3_context *ctx,
     des3_set3key( sk, ctx->sk, key );
     mbedtls_platform_zeroize( sk,  sizeof( sk ) );
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -649,7 +649,7 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
     PUT_UINT32_BE( Y, output, 0 );
     PUT_UINT32_BE( X, output, 4 );
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* !MBEDTLS_DES_CRYPT_ECB_ALT */
 
@@ -668,7 +668,7 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
     unsigned char temp[8];
 
     if( length % 8 )
-        return( MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH );
+        return MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH ;
 
     if( mode == MBEDTLS_DES_ENCRYPT )
     {
@@ -703,7 +703,7 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
         }
     }
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -748,7 +748,7 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
     PUT_UINT32_BE( Y, output, 0 );
     PUT_UINT32_BE( X, output, 4 );
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* !MBEDTLS_DES3_CRYPT_ECB_ALT */
 
@@ -767,7 +767,7 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
     unsigned char temp[8];
 
     if( length % 8 )
-        return( MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH );
+        return MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH ;
 
     if( mode == MBEDTLS_DES_ENCRYPT )
     {
@@ -802,7 +802,7 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
         }
     }
 
-    return( 0 );
+    return 0 ;
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -919,7 +919,7 @@ int mbedtls_des_self_test( int verbose )
             break;
 
         default:
-            return( 1 );
+            return 1 ;
         }
 
         for( j = 0; j < 100; j++ )
@@ -994,7 +994,7 @@ int mbedtls_des_self_test( int verbose )
             break;
 
         default:
-            return( 1 );
+            return 1 ;
         }
 
         if( v == MBEDTLS_DES_DECRYPT )
@@ -1050,7 +1050,7 @@ exit:
     mbedtls_des_free( &ctx );
     mbedtls_des3_free( &ctx3 );
 
-    return( ret );
+    return ret ;
 }
 
 #endif /* MBEDTLS_SELF_TEST */

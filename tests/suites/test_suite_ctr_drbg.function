@@ -18,10 +18,10 @@ static int mbedtls_test_entropy_func( void *data, unsigned char *buf, size_t len
 {
     const unsigned char *p = (unsigned char *) data;
     if( test_offset_idx + len > test_max_idx )
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED ;
     memcpy( buf, p + test_offset_idx, len );
     test_offset_idx += len;
-    return( 0 );
+    return 0 ;
 }
 
 static void ctr_drbg_validate_internal( int reseed_mode, data_t * nonce,
@@ -285,7 +285,7 @@ void ctr_drbg_entropy_usage( int entropy_nonce_len )
     }
     TEST_EQUAL( test_offset_idx, expected_idx );
 
-    /* Call update with too much data (sizeof entropy > MAX(_SEED)_INPUT).
+    /* Call update with too much data (sizeof(entropy) > MAX(_SEED)_INPUT).
      * Make sure it's detected as an error and doesn't cause memory
      * corruption. */
     TEST_ASSERT( mbedtls_ctr_drbg_update(

@@ -92,6 +92,6 @@ size_t mbedtls_test_size_function(
                             ( ( key_bits + 7 ) / 8 ) );
     }
 
-    return( key_buffer_size );
+    return key_buffer_size ;
 }
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

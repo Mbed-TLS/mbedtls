@@ -246,7 +246,7 @@ static unsigned long mbedtls_timing_hardclock( void )
     unsigned long tsc;
     __asm   rdtsc
     __asm   mov  [tsc], eax
-    return( tsc );
+    return tsc ;
 }
 #endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           ( _MSC_VER && _M_IX86 ) || __WATCOMC__ */
@@ -262,7 +262,7 @@ static unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long lo, hi;
     asm volatile( "rdtsc" : "=a" (lo), "=d" (hi) );
-    return( lo );
+    return lo ;
 }
 #endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && __i386__ */
@@ -276,7 +276,7 @@ static unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long lo, hi;
     asm volatile( "rdtsc" : "=a" (lo), "=d" (hi) );
-    return( lo | ( hi << 32 ) );
+    return lo | ( hi << 32 ) ;
 }
 #endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && ( __amd64__ || __x86_64__ ) */
@@ -298,7 +298,7 @@ static unsigned long mbedtls_timing_hardclock( void )
     }
     while( tbu0 != tbu1 );
 
-    return( tbl );
+    return tbl ;
 }
 #endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && ( __powerpc__ || __ppc__ ) */
@@ -315,7 +315,7 @@ static unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long tick;
     asm volatile( "rdpr %%tick, %0;" : "=&r" (tick) );
-    return( tick );
+    return tick ;
 }
 #endif /* __OpenBSD__ */
 #endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
@@ -331,7 +331,7 @@ static unsigned long mbedtls_timing_hardclock( void )
     unsigned long tick;
     asm volatile( ".byte 0x83, 0x41, 0x00, 0x00" );
     asm volatile( "mov   %%g1, %0" : "=r" (tick) );
-    return( tick );
+    return tick ;
 }
 #endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && __sparc__ && !__sparc64__ */
@@ -345,7 +345,7 @@ static unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long cc;
     asm volatile( "rpcc %0" : "=r" (cc) );
-    return( cc & 0xFFFFFFFF );
+    return cc & 0xFFFFFFFF ;
 }
 #endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && __alpha__ */
@@ -359,7 +359,7 @@ static unsigned long mbedtls_timing_hardclock( void )
 {
     unsigned long itc;
     asm volatile( "mov %0 = ar.itc" : "=r" (itc) );
-    return( itc );
+    return itc ;
 }
 #endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && __ia64__ */
@@ -476,7 +476,7 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
         len -= use_len;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 #define CHECK_AND_CONTINUE( R )                                         \
@@ -523,10 +523,10 @@ static int set_ecp_curve( const char *string, mbedtls_ecp_curve_info *curve )
     if( found != NULL )
     {
         *curve = *found;
-        return( 1 );
+        return 1 ;
     }
     else
-        return( 0 );
+        return 0 ;
 }
 #endif
 

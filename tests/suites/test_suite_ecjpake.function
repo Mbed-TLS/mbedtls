@@ -86,7 +86,7 @@ static int ecjpake_test_load( mbedtls_ecjpake_context *ctx,
                      &ctx->Xp2, Xp2, len_Xp2 ) );
 
 cleanup:
-    return( ret );
+    return ret ;
 }
 
 #define ADD_SIZE( x )   x, sizeof( x )

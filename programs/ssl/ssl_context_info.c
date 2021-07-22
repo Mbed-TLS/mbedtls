@@ -30,7 +30,7 @@ int main( void )
 {
     printf("MBEDTLS_X509_CRT_PARSE_C and/or MBEDTLS_ERROR_C and/or "
            "MBEDTLS_SSL_TLS_C not defined.\n");
-    return( 0 );
+    return 0 ;
 }
 #else
 

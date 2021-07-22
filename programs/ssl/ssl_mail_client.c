@@ -190,7 +190,7 @@ static int do_handshake( mbedtls_ssl_context *ssl )
             mbedtls_strerror( ret, (char *) buf, 1024 );
 #endif
             mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned %d: %s\n\n", ret, buf );
-            return( -1 );
+            return -1 ;
         }
     }
 
@@ -227,7 +227,7 @@ static int do_handshake( mbedtls_ssl_context *ssl )
     mbedtls_printf( "%s\n", buf );
 #endif
 
-    return( 0 );
+    return 0 ;
 }
 
 static int write_ssl_data( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
@@ -244,7 +244,7 @@ static int write_ssl_data( mbedtls_ssl_context *ssl, unsigned char *buf, size_t 
         }
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 static int write_ssl_and_get_response( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )

@@ -147,7 +147,7 @@ static int calloc_self_test( int verbose )
     mbedtls_free( empty2 );
     mbedtls_free( buffer1 );
     mbedtls_free( buffer2 );
-    return( failures );
+    return failures ;
 }
 #endif /* MBEDTLS_SELF_TEST */
 
@@ -165,10 +165,10 @@ static int test_snprintf( size_t n, const char *ref_buf, int ref_ret )
         ref_ret != ret ||
         memcmp( buf + n, ref + n, sizeof( buf ) - n ) != 0 )
     {
-        return( 1 );
+        return 1 ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 static int run_test_snprintf( void )
@@ -220,7 +220,7 @@ int mbedtls_entropy_self_test_wrapper( int verbose )
 #if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
     create_entropy_seed_file( );
 #endif
-    return( mbedtls_entropy_self_test( verbose ) );
+    return mbedtls_entropy_self_test( verbose ) ;
 }
 #endif
 
@@ -235,7 +235,7 @@ int mbedtls_memory_buffer_alloc_free_and_self_test( int verbose )
 #endif
     }
     mbedtls_memory_buffer_alloc_free( );
-    return( mbedtls_memory_buffer_alloc_self_test( verbose ) );
+    return mbedtls_memory_buffer_alloc_self_test( verbose ) ;
 }
 #endif
 

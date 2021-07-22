@@ -47,7 +47,7 @@ psa_status_t mbedtls_test_transparent_hash_compute(
                 hash, hash_size, hash_length );
     }
 
-    return( mbedtls_test_driver_hash_hooks.driver_status );
+    return mbedtls_test_driver_hash_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_transparent_hash_setup(
@@ -67,7 +67,7 @@ psa_status_t mbedtls_test_transparent_hash_setup(
             mbedtls_transparent_test_driver_hash_setup( operation, alg );
     }
 
-    return( mbedtls_test_driver_hash_hooks.driver_status );
+    return mbedtls_test_driver_hash_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_transparent_hash_clone(
@@ -88,7 +88,7 @@ psa_status_t mbedtls_test_transparent_hash_clone(
                                                         target_operation );
     }
 
-    return( mbedtls_test_driver_hash_hooks.driver_status );
+    return mbedtls_test_driver_hash_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_transparent_hash_update(
@@ -110,7 +110,7 @@ psa_status_t mbedtls_test_transparent_hash_update(
                 operation, input, input_length );
     }
 
-    return( mbedtls_test_driver_hash_hooks.driver_status );
+    return mbedtls_test_driver_hash_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_transparent_hash_finish(
@@ -133,7 +133,7 @@ psa_status_t mbedtls_test_transparent_hash_finish(
                 operation, hash, hash_size, hash_length );
     }
 
-    return( mbedtls_test_driver_hash_hooks.driver_status );
+    return mbedtls_test_driver_hash_hooks.driver_status ;
 }
 
 psa_status_t mbedtls_test_transparent_hash_abort(
@@ -152,6 +152,6 @@ psa_status_t mbedtls_test_transparent_hash_abort(
             mbedtls_transparent_test_driver_hash_abort( operation );
     }
 
-    return( mbedtls_test_driver_hash_hooks.driver_status );
+    return mbedtls_test_driver_hash_hooks.driver_status ;
 }
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

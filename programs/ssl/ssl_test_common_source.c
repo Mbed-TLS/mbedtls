@@ -152,7 +152,7 @@ int ssl_check_record( mbedtls_ssl_context const *ssl,
      * so make a copy. */
     tmp_buf = mbedtls_calloc( 1, len );
     if( tmp_buf == NULL )
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+        return MBEDTLS_ERR_SSL_ALLOC_FAILED ;
     memcpy( tmp_buf, buf, len );
 
     ret_cr1 = mbedtls_ssl_check_record( ssl, tmp_buf, len );
@@ -201,7 +201,7 @@ int ssl_check_record( mbedtls_ssl_context const *ssl,
 cleanup:
     mbedtls_free( tmp_buf );
 
-    return( my_ret );
+    return my_ret ;
 }
 
 int recv_cb( void *ctx, unsigned char *buf, size_t len )
@@ -215,7 +215,7 @@ int recv_cb( void *ctx, unsigned char *buf, size_t len )
     else
         ret = mbedtls_net_recv( io_ctx->net, buf, len );
     if( ret < 0 )
-        return( ret );
+        return ret ;
     recv_len = (size_t) ret;
 
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
@@ -224,10 +224,10 @@ int recv_cb( void *ctx, unsigned char *buf, size_t len )
          * in between receiving the packet from the underlying
          * transport and passing it on to the TLS stack. */
         if( ssl_check_record( io_ctx->ssl, buf, recv_len ) != 0 )
-            return( -1 );
+            return -1 ;
     }
 
-    return( (int) recv_len );
+    return (int) recv_len ;
 }
 
 int recv_timeout_cb( void *ctx, unsigned char *buf, size_t len,
@@ -239,7 +239,7 @@ int recv_timeout_cb( void *ctx, unsigned char *buf, size_t len,
 
     ret = mbedtls_net_recv_timeout( io_ctx->net, buf, len, timeout );
     if( ret < 0 )
-        return( ret );
+        return ret ;
     recv_len = (size_t) ret;
 
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
@@ -248,10 +248,10 @@ int recv_timeout_cb( void *ctx, unsigned char *buf, size_t len,
          * in between receiving the packet from the underlying
          * transport and passing it on to the TLS stack. */
         if( ssl_check_record( io_ctx->ssl, buf, recv_len ) != 0 )
-            return( -1 );
+            return -1 ;
     }
 
-    return( (int) recv_len );
+    return (int) recv_len ;
 }
 
 int send_cb( void *ctx, unsigned char const *buf, size_t len )
@@ -259,9 +259,9 @@ int send_cb( void *ctx, unsigned char const *buf, size_t len )
     io_ctx_t *io_ctx = (io_ctx_t*) ctx;
 
     if( opt.nbio == 2 )
-        return( delayed_send( io_ctx->net, buf, len ) );
+        return delayed_send( io_ctx->net, buf, len ) ;
 
-    return( mbedtls_net_send( io_ctx->net, buf, len ) );
+    return mbedtls_net_send( io_ctx->net, buf, len ) ;
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -294,7 +294,7 @@ int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
                           uint32_t flags )
 {
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
-    return( mbedtls_x509_crt_verify_info( buf, size, prefix, flags ) );
+    return mbedtls_x509_crt_verify_info( buf, size, prefix, flags ) ;
 
 #else /* !MBEDTLS_X509_REMOVE_INFO */
     int ret;

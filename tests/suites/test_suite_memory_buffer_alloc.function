@@ -13,12 +13,12 @@
 static int check_pointer( void *p )
 {
     if( p == NULL )
-        return( -1 );
+        return -1 ;
 
     if( (size_t) p % MBEDTLS_MEMORY_ALIGN_MULTIPLE != 0 )
-        return( -1 );
+        return -1 ;
 
-    return( 0 );
+    return 0 ;
 }
 /* END_SUITE_HELPERS */
 

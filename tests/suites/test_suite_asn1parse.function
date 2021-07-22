@@ -31,7 +31,7 @@ static int nested_parse( unsigned char **const p,
     ret = mbedtls_asn1_get_len( &content_start, end, &len );
     TEST_ASSERT( content_start <= end );
     if( ret != 0 )
-        return( ret );
+        return ret ;
 
     /* Since we have a valid element start (tag and length), retrieve and
      * check the tag. */
@@ -111,14 +111,14 @@ static int nested_parse( unsigned char **const p,
         default:
             /* No further testing implemented for this tag. */
             *p += len;
-            return( 0 );
+            return 0 ;
     }
 
     TEST_ASSERT( *p <= end );
-    return( ret );
+    return ret ;
 
 exit:
-    return( ERR_PARSE_INCONSISTENCY );
+    return ERR_PARSE_INCONSISTENCY ;
 }
 
 int get_len_step( const data_t *input, size_t buffer_size,
@@ -168,11 +168,11 @@ int get_len_step( const data_t *input, size_t buffer_size,
         TEST_EQUAL( ret, MBEDTLS_ERR_ASN1_OUT_OF_DATA );
     }
     mbedtls_free( buf );
-    return( 1 );
+    return 1 ;
 
 exit:
     mbedtls_free( buf );
-    return( 0 );
+    return 0 ;
 }
 
 typedef struct
@@ -201,7 +201,7 @@ static int traverse_callback( void *ctx, int tag,
     mbedtls_test_set_step( offset );
 
     if( *rest == 0 )
-        return( RET_TRAVERSE_STOP );
+        return RET_TRAVERSE_STOP ;
     n = strtoul( rest, (char **) &rest, 0 );
     TEST_EQUAL( n, offset );
     TEST_EQUAL( *rest, ',' );
@@ -216,10 +216,10 @@ static int traverse_callback( void *ctx, int tag,
         ++rest;
 
     state->description = rest;
-    return( 0 );
+    return 0 ;
 
 exit:
-    return( RET_TRAVERSE_ERROR );
+    return RET_TRAVERSE_ERROR ;
 }
 
 /* END_HEADER */

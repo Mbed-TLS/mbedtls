@@ -43,13 +43,13 @@ static int fake_entropy_source( void *state_arg,
     size_t i;
 
     if( state->step >= state->max_steps )
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED ;
 
     *olen = MIN( len, state->length_sequence[state->step] );
     for( i = 0; i < *olen; i++ )
         output[i] = i;
     ++state->step;
-    return( 0 );
+    return 0 ;
 }
 
 #define ENTROPY_SOURCE_PLATFORM                 0x00000001

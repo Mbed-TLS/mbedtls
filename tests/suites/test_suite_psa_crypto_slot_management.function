@@ -68,9 +68,9 @@ static int invalidate_key( invalidate_method_t invalidate_method,
         case INVALIDATE_BY_SHUTDOWN:
             break;
     }
-    return( 1 );
+    return 1 ;
 exit:
-    return( 0 );
+    return 0 ;
 }
 
 /** Restart the PSA subsystem if \p invalidate_method says so. */
@@ -81,7 +81,7 @@ static int invalidate_psa( invalidate_method_t invalidate_method )
         case INVALIDATE_BY_CLOSING:
         case INVALIDATE_BY_DESTROYING:
         case INVALIDATE_BY_PURGING:
-            return( 1 );
+            return 1 ;
         case INVALIDATE_BY_CLOSING_WITH_SHUTDOWN:
         case INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN:
         case INVALIDATE_BY_PURGING_WITH_SHUTDOWN:
@@ -97,10 +97,10 @@ static int invalidate_psa( invalidate_method_t invalidate_method )
 
     PSA_ASSERT( psa_crypto_init( ) );
     ASSERT_PSA_PRISTINE( );
-    return( 1 );
+    return 1 ;
 
 exit:
-    return( 0 );
+    return 0 ;
 }
 
 /* END_HEADER */

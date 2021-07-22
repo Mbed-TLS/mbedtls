@@ -110,7 +110,7 @@ exit:
      */
     psa_reset_key_attributes( &attributes );
 
-    return( ok );
+    return ok ;
 }
 
 static int exercise_mac_key( mbedtls_svc_key_id_t key,
@@ -151,11 +151,11 @@ static int exercise_mac_key( mbedtls_svc_key_id_t key,
                     verify_status );
     }
 
-    return( 1 );
+    return 1 ;
 
 exit:
     psa_mac_abort( &operation );
-    return( 0 );
+    return 0 ;
 }
 
 static int exercise_cipher_key( mbedtls_svc_key_id_t key,
@@ -224,11 +224,11 @@ static int exercise_cipher_key( mbedtls_svc_key_id_t key,
             PSA_ASSERT( status );
     }
 
-    return( 1 );
+    return 1 ;
 
 exit:
     psa_cipher_abort( &operation );
-    return( 0 );
+    return 0 ;
 }
 
 static int exercise_aead_key( mbedtls_svc_key_id_t key,
@@ -287,10 +287,10 @@ static int exercise_aead_key( mbedtls_svc_key_id_t key,
                     verify_status );
     }
 
-    return( 1 );
+    return 1 ;
 
 exit:
-    return( 0 );
+    return 0 ;
 }
 
 static int exercise_signature_key( mbedtls_svc_key_id_t key,
@@ -371,10 +371,10 @@ static int exercise_signature_key( mbedtls_svc_key_id_t key,
         }
     }
 
-    return( 1 );
+    return 1 ;
 
 exit:
-    return( 0 );
+    return 0 ;
 }
 
 static int exercise_asymmetric_encryption_key( mbedtls_svc_key_id_t key,
@@ -409,10 +409,10 @@ static int exercise_asymmetric_encryption_key( mbedtls_svc_key_id_t key,
                          status == PSA_ERROR_INVALID_PADDING ) ) );
     }
 
-    return( 1 );
+    return 1 ;
 
 exit:
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_test_psa_setup_key_derivation_wrap(
@@ -458,10 +458,10 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
     if( capacity != SIZE_MAX )
         PSA_ASSERT( psa_key_derivation_set_capacity( operation, capacity ) );
 
-    return( 1 );
+    return 1 ;
 
 exit:
-    return( 0 );
+    return 0 ;
 }
 
 
@@ -491,10 +491,10 @@ static int exercise_key_derivation_key( mbedtls_svc_key_id_t key,
         PSA_ASSERT( psa_key_derivation_abort( &operation ) );
     }
 
-    return( 1 );
+    return 1 ;
 
 exit:
-    return( 0 );
+    return 0 ;
 }
 
 /* We need two keys to exercise key agreement. Exercise the
@@ -534,7 +534,7 @@ exit:
     psa_reset_key_attributes( &attributes );
 
     mbedtls_free( public_key );
-    return( status );
+    return status ;
 }
 
 /* We need two keys to exercise key agreement. Exercise the
@@ -586,7 +586,7 @@ exit:
     psa_reset_key_attributes( &attributes );
 
     mbedtls_free( public_key );
-    return( status );
+    return status ;
 }
 
 static int exercise_raw_key_agreement_key( mbedtls_svc_key_id_t key,
@@ -604,7 +604,7 @@ static int exercise_raw_key_agreement_key( mbedtls_svc_key_id_t key,
     ok = 1;
 
 exit:
-    return( ok );
+    return ok ;
 }
 
 static int exercise_key_agreement_key( mbedtls_svc_key_id_t key,
@@ -629,7 +629,7 @@ static int exercise_key_agreement_key( mbedtls_svc_key_id_t key,
     ok = 1;
 
 exit:
-    return( ok );
+    return ok ;
 }
 
 int mbedtls_test_psa_exported_key_sanity_check(
@@ -785,10 +785,10 @@ int mbedtls_test_psa_exported_key_sanity_check(
     }
 #endif
 
-    return( 1 );
+    return 1 ;
 
 exit:
-    return( 0 );
+    return 0 ;
 }
 
 static int exercise_export_key( mbedtls_svc_key_id_t key,
@@ -832,7 +832,7 @@ exit:
     psa_reset_key_attributes( &attributes );
 
     mbedtls_free( exported );
-    return( ok );
+    return ok ;
 }
 
 static int exercise_export_public_key( mbedtls_svc_key_id_t key )
@@ -880,7 +880,7 @@ exit:
     psa_reset_key_attributes( &attributes );
 
     mbedtls_free( exported );
-    return( ok );
+    return ok ;
 }
 
 int mbedtls_test_psa_exercise_key( mbedtls_svc_key_id_t key,
@@ -890,7 +890,7 @@ int mbedtls_test_psa_exercise_key( mbedtls_svc_key_id_t key,
     int ok = 0;
 
     if( ! check_key_attributes_sanity( key ) )
-        return( 0 );
+        return 0 ;
 
     if( alg == 0 )
         ok = 1; /* If no algorihm, do nothing (used for raw data "keys"). */
@@ -917,7 +917,7 @@ int mbedtls_test_psa_exercise_key( mbedtls_svc_key_id_t key,
     ok = ok && exercise_export_public_key( key );
 
 exit:
-    return( ok );
+    return ok ;
 }
 
 psa_key_usage_t mbedtls_test_psa_usage_to_exercise( psa_key_type_t type,
@@ -952,11 +952,11 @@ psa_key_usage_t mbedtls_test_psa_usage_to_exercise( psa_key_type_t type,
     else if( PSA_ALG_IS_KEY_DERIVATION( alg ) ||
              PSA_ALG_IS_KEY_AGREEMENT( alg ) )
     {
-        return( PSA_KEY_USAGE_DERIVE );
+        return PSA_KEY_USAGE_DERIVE ;
     }
     else
     {
-        return( 0 );
+        return 0 ;
     }
 
 }

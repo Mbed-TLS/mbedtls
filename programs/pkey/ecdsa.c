@@ -81,7 +81,7 @@ static void dump_pubkey( const char *title, mbedtls_ecdsa_context *key )
     size_t len;
 
     if( mbedtls_ecp_point_write_binary( &key->MBEDTLS_PRIVATE(grp), &key->MBEDTLS_PRIVATE(Q),
-                MBEDTLS_ECP_PF_UNCOMPRESSED, &len, buf, sizeof buf ) != 0 )
+                MBEDTLS_ECP_PF_UNCOMPRESSED, &len, buf, sizeof(buf) ) != 0 )
     {
         mbedtls_printf("internal error\n");
         return;

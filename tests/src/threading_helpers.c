@@ -160,7 +160,7 @@ static int mbedtls_test_wrap_mutex_lock( mbedtls_threading_mutex_t *mutex )
             mbedtls_test_mutex_usage_error( mutex, "corrupted state" );
             break;
     }
-    return( ret );
+    return ret ;
 }
 
 static int mbedtls_test_wrap_mutex_unlock( mbedtls_threading_mutex_t *mutex )
@@ -182,7 +182,7 @@ static int mbedtls_test_wrap_mutex_unlock( mbedtls_threading_mutex_t *mutex )
             mbedtls_test_mutex_usage_error( mutex, "corrupted state" );
             break;
     }
-    return( ret );
+    return ret ;
 }
 
 void mbedtls_test_mutex_usage_init( void )

@@ -26,7 +26,7 @@
 
 unsigned int mbedtls_version_get_number( void )
 {
-    return( MBEDTLS_VERSION_NUMBER );
+    return MBEDTLS_VERSION_NUMBER ;
 }
 
 void mbedtls_version_get_string( char *string )

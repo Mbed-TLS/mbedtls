@@ -60,7 +60,7 @@ int mbedtls_aesni_has_support( unsigned int what )
         done = 1;
     }
 
-    return( ( c & what ) != 0 );
+    return ( c & what ) != 0 ;
 }
 
 /*
@@ -131,7 +131,7 @@ int mbedtls_aesni_crypt_ecb( mbedtls_aes_context *ctx,
          : "memory", "cc", "xmm0", "xmm1" );
 
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -453,10 +453,10 @@ int mbedtls_aesni_setkey_enc( unsigned char *rk,
         case 128: aesni_setkey_enc_128( rk, key ); break;
         case 192: aesni_setkey_enc_192( rk, key ); break;
         case 256: aesni_setkey_enc_256( rk, key ); break;
-        default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
+        default : return MBEDTLS_ERR_AES_INVALID_KEY_LENGTH ;
     }
 
-    return( 0 );
+    return 0 ;
 }
 
 #endif /* MBEDTLS_HAVE_X86_64 */

@@ -65,7 +65,7 @@ int mbedtls_padlock_has_support( int feature )
         flags = edx;
     }
 
-    return( flags & feature );
+    return flags & feature ;
 }
 
 /*
@@ -105,7 +105,7 @@ int mbedtls_padlock_xcryptecb( mbedtls_aes_context *ctx,
 
     memcpy( output, blk, 16 );
 
-    return( 0 );
+    return 0 ;
 }
 
 /*
@@ -127,7 +127,7 @@ int mbedtls_padlock_xcryptcbc( mbedtls_aes_context *ctx,
 
     if( ( (long) input  & 15 ) != 0 ||
         ( (long) output & 15 ) != 0 )
-        return( MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED );
+        return MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED ;
 
     rk = ctx->rk;
     iw = MBEDTLS_PADLOCK_ALIGN16( buf );
@@ -156,7 +156,7 @@ int mbedtls_padlock_xcryptcbc( mbedtls_aes_context *ctx,
 
     memcpy( iv, iw, 16 );
 
-    return( 0 );
+    return 0 ;
 }
 
 #endif /* MBEDTLS_HAVE_X86 */

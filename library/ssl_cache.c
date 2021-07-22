@@ -85,7 +85,7 @@ static int ssl_cache_find_entry( mbedtls_ssl_cache_context *cache,
         ret = 0;
     }
 
-    return( ret );
+    return ret ;
 }
 
 
@@ -100,7 +100,7 @@ int mbedtls_ssl_cache_get( void *data,
 
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &cache->mutex ) != 0 )
-        return( 1 );
+        return 1 ;
 #endif
 
     ret = ssl_cache_find_entry( cache, session_id, session_id_len, &entry );
@@ -121,7 +121,7 @@ exit:
         ret = 1;
 #endif
 
-    return( ret );
+    return ret ;
 }
 
 static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
@@ -188,7 +188,7 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
         /* Create new entry */
         cur = mbedtls_calloc( 1, sizeof(mbedtls_ssl_cache_entry) );
         if( cur == NULL )
-            return( 1 );
+            return 1 ;
 
         /* Append to the end of the linked list. */
         if( last == NULL )
@@ -208,12 +208,12 @@ static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
     {
         /* This should only happen on an ill-configured cache
          * with max_entries == 0. */
-        return( 1 );
+        return 1 ;
     }
 #else /* MBEDTLS_HAVE_TIME */
     /* Reuse first entry in chain, but move to last place. */
     if( cache->chain == NULL )
-        return( 1 );
+        return 1 ;
 
     old = cache->chain;
     cache->chain = old->next;
@@ -241,7 +241,7 @@ found:
     }
 
     *dst = cur;
-    return( 0 );
+    return 0 ;
 }
 
 int mbedtls_ssl_cache_set( void *data,
@@ -258,7 +258,7 @@ int mbedtls_ssl_cache_set( void *data,
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &cache->mutex ) ) != 0 )
-        return( ret );
+        return ret ;
 #endif
 
     ret = ssl_cache_pick_writing_slot( cache,
@@ -314,7 +314,7 @@ exit:
     if( session_serialized != NULL )
         mbedtls_platform_zeroize( session_serialized, session_serialized_len );
 
-    return( ret );
+    return ret ;
 }
 
 #if defined(MBEDTLS_HAVE_TIME)

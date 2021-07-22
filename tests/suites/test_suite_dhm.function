@@ -15,7 +15,7 @@ int check_get_value( const mbedtls_dhm_context *ctx,
 
 exit:
     mbedtls_mpi_free( &actual );
-    return( ok );
+    return ok ;
 }
 
 /* Sanity checks on a Diffie-Hellman parameter: check the length-value
@@ -47,7 +47,7 @@ static int check_dhm_param_output( const mbedtls_mpi *expected,
     ok = 1;
 exit:
     mbedtls_mpi_free( &actual );
-    return( ok );
+    return ok ;
 }
 
 /* Sanity checks on Diffie-Hellman parameters: syntax, range, and comparison
@@ -75,9 +75,9 @@ static int check_dhm_params( const mbedtls_dhm_context *ctx,
         goto exit;
     TEST_EQUAL( offset, ske_len );
 
-    return( 1 );
+    return 1 ;
 exit:
-    return( 0 );
+    return 0 ;
 }
 
 /* END_HEADER */

@@ -1,0 +1,113 @@
+#!/bin/sh
+
+# Ciphers that will use translate_ciphers.py
+M_CIPHERS=""
+O_CIPHERS=""
+G_CIPHERS=""
+
+# Ciphers taken directly from compat.sh
+Mt_CIPHERS=""
+Ot_CIPHERS=""
+Gt_CIPHERS=""
+
+# Initial list to be split into 3
+CIPHERS="TLS-ECDHE-ECDSA-WITH-NULL-SHA      \
+    TLS-ECDHE-ECDSA-WITH-3DES-EDE-CBC-SHA   \
+    TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA    \
+    TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA    \
+    "
+
+M_CIPHERS="$M_CIPHERS                       \
+           $CIPHERS"
+                
+G=`python3 translate_ciphers.py g "$CIPHERS"`
+G_CIPHERS="$G_CIPHERS                       \
+           $G"
+
+O=`python3 translate_ciphers.py o "$CIPHERS"`
+O_CIPHERS="$O_CIPHERS                       \
+           $O"
+
+Mt_CIPHERS="$Mt_CIPHERS                       \
+    TLS-ECDHE-ECDSA-WITH-NULL-SHA           \
+    TLS-ECDHE-ECDSA-WITH-3DES-EDE-CBC-SHA   \
+    TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA    \
+    TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA    \
+    "
+Gt_CIPHERS="$Gt_CIPHERS                       \
+    +ECDHE-ECDSA:+NULL:+SHA1                \
+    +ECDHE-ECDSA:+3DES-CBC:+SHA1            \
+    +ECDHE-ECDSA:+AES-128-CBC:+SHA1         \
+    +ECDHE-ECDSA:+AES-256-CBC:+SHA1         \
+    "
+Ot_CIPHERS="$Ot_CIPHERS               \
+    ECDHE-ECDSA-NULL-SHA            \
+    ECDHE-ECDSA-DES-CBC3-SHA        \
+    ECDHE-ECDSA-AES128-SHA          \
+    ECDHE-ECDSA-AES256-SHA          \
+    "
+
+
+# Initial list to be split into 3
+CIPHERS="TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256         \
+          TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384         \
+          TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256         \
+          TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384         \
+         "
+
+M_CIPHERS="$M_CIPHERS                       \
+           $CIPHERS"
+
+G=`python3 translate_ciphers.py g "$CIPHERS"`
+G_CIPHERS="$G_CIPHERS                       \
+           $G"
+
+O=`python3 translate_ciphers.py o "$CIPHERS"`
+O_CIPHERS="$O_CIPHERS                       \
+           $O"
+
+Mt_CIPHERS="$Mt_CIPHERS                               \
+    TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256         \
+    TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384         \
+    TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256         \
+    TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384         \
+    "
+Gt_CIPHERS="$Gt_CIPHERS                               \
+    +ECDHE-ECDSA:+AES-128-CBC:+SHA256               \
+    +ECDHE-ECDSA:+AES-256-CBC:+SHA384               \
+    +ECDHE-ECDSA:+AES-128-GCM:+AEAD                 \
+    +ECDHE-ECDSA:+AES-256-GCM:+AEAD                 \
+    "
+Ot_CIPHERS="$Ot_CIPHERS               \
+    ECDHE-ECDSA-AES128-SHA256       \
+    ECDHE-ECDSA-AES256-SHA384       \
+    ECDHE-ECDSA-AES128-GCM-SHA256   \
+    ECDHE-ECDSA-AES256-GCM-SHA384   \
+    "
+
+# Normalise spacing
+M_CIPHERS=$( echo "$M_CIPHERS" | sed -e 's/[[:space:]][[:space:]]*/ /g' -e 's/^ //' -e 's/ $//')
+G_CIPHERS=$( echo "$G_CIPHERS" | sed -e 's/[[:space:]][[:space:]]*/ /g' -e 's/^ //' -e 's/ $//')
+O_CIPHERS=$( echo "$O_CIPHERS" | sed -e 's/[[:space:]][[:space:]]*/ /g' -e 's/^ //' -e 's/ $//')
+
+Mt_CIPHERS=$( echo "$Mt_CIPHERS" | sed -e 's/[[:space:]][[:space:]]*/ /g' -e 's/^ //' -e 's/ $//')
+Gt_CIPHERS=$( echo "$Gt_CIPHERS" | sed -e 's/[[:space:]][[:space:]]*/ /g' -e 's/^ //' -e 's/ $//')
+Ot_CIPHERS=$( echo "$Ot_CIPHERS" | sed -e 's/[[:space:]][[:space:]]*/ /g' -e 's/^ //' -e 's/ $//')
+
+# Compare the compat.sh names with the translated names
+# Upon fail, print them to view the differences
+if [ "$Mt_CIPHERS" != "$M_CIPHERS" ]
+then
+    echo "MBED Translated:   $M_CIPHERS"
+    echo "MBED Original:     $Mt_CIPHERS"
+fi
+if [ "$Gt_CIPHERS" != "$G_CIPHERS" ]
+then
+    echo "GNU Translated:    $G_CIPHERS"
+    echo "GNU Original:      $Gt_CIPHERS"
+fi
+if [ "$Ot_CIPHERS" != "$O_CIPHERS" ]
+then
+    echo "OpenSSL Translated: $O_CIPHERS"
+    echo "OpenSSL Original:   $Ot_CIPHERS"
+fi

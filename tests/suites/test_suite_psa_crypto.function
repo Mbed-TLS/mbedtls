@@ -298,7 +298,8 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
                                          int do_set_lengths,
                                          data_t *expected_output,
                                          int expect_valid_signature,
-                                         int is_encrypt )
+                                         int is_encrypt,
+                                         int do_zero_parts )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -323,6 +324,7 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
     int test_ok = 0;
+    uint32_t part_count = 0;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -409,13 +411,21 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
 
         while( part_offset < additional_data->len )
         {
-            if( additional_data->len - part_offset < ( uint32_t ) ad_part_len )
+            if( do_zero_parts && part_count++ & 0x01 )
             {
-                part_length = additional_data->len - part_offset;
+                part_length = 0;
             }
             else
             {
-                part_length = ad_part_len;
+                if( additional_data->len - part_offset <
+                    ( uint32_t ) ad_part_len )
+                {
+                    part_length = additional_data->len - part_offset;
+                }
+                else
+                {
+                    part_length = ad_part_len;
+                }
             }
 
             PSA_ASSERT( psa_aead_update_ad( &operation,
@@ -444,13 +454,20 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
 
         while( part_offset < data_true_size )
         {
-            if( ( data_true_size - part_offset ) < ( uint32_t ) data_part_len )
+            if( do_zero_parts && part_count++ & 0x01 )
             {
-                part_length = ( data_true_size - part_offset );
+                part_length = 0;
             }
             else
             {
-                part_length = data_part_len;
+                if( ( data_true_size - part_offset ) < ( uint32_t ) data_part_len )
+                {
+                    part_length = ( data_true_size - part_offset );
+                }
+                else
+                {
+                    part_length = data_part_len;
+                }
             }
 
             PSA_ASSERT( psa_aead_update( &operation,
@@ -3468,6 +3485,7 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
         {
             mbedtls_test_set_step( ad_part_len );
 
+            /* Split ad into length(ad_part_len) parts. */
             if( !aead_multipart_internal_func( key_type_arg, key_data,
                                                alg_arg, nonce,
                                                additional_data,
@@ -3475,7 +3493,20 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                                input_data, -1,
                                                do_set_lengths,
                                                expected_output,
-                                               1, 1 ) )
+                                               1, 1, 0 ) )
+                break;
+
+            /* length(0) part, length(ad_part_len) part, length(0) part... */
+            mbedtls_test_set_step( 1000 + ad_part_len );
+
+            if( !aead_multipart_internal_func( key_type_arg, key_data,
+                                               alg_arg, nonce,
+                                               additional_data,
+                                               ad_part_len,
+                                               input_data, -1,
+                                               do_set_lengths,
+                                               expected_output,
+                                               1, 1, 1 ) )
                 break;
         }
     }
@@ -3486,7 +3517,8 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
         for( data_part_len = 1; data_part_len <= input_data->len;
              data_part_len++ )
         {
-            mbedtls_test_set_step( 1000 + data_part_len );
+            /* Split data into length(data_part_len) parts. */
+            mbedtls_test_set_step( 2000 + data_part_len );
 
             if( !aead_multipart_internal_func( key_type_arg, key_data,
                                                alg_arg, nonce,
@@ -3494,7 +3526,19 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                                input_data, data_part_len,
                                                do_set_lengths,
                                                expected_output,
-                                               1, 1 ) )
+                                               1, 1, 0 ) )
+                break;
+
+            /* length(0) part, length(data_part_len) part, length(0) part... */
+            mbedtls_test_set_step( 3000 + data_part_len );
+
+            if( !aead_multipart_internal_func( key_type_arg, key_data,
+                                               alg_arg, nonce,
+                                               additional_data, -1,
+                                               input_data, data_part_len,
+                                               do_set_lengths,
+                                               expected_output,
+                                               1, 1, 1 ) )
                 break;
         }
     }
@@ -3527,6 +3571,7 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
         for( ad_part_len = 1; ad_part_len <= additional_data->len;
              ad_part_len++ )
         {
+            /* Split ad into length(ad_part_len) parts. */
             mbedtls_test_set_step( ad_part_len );
 
             if( !aead_multipart_internal_func( key_type_arg, key_data,
@@ -3537,7 +3582,21 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                                do_set_lengths,
                                                expected_output,
                                                expect_valid_signature,
-                                               0 ) )
+                                               0, 0 ) )
+                break;
+
+            /* length(0) part, length(ad_part_len) part, length(0) part... */
+            mbedtls_test_set_step( 1000 + ad_part_len );
+
+            if( !aead_multipart_internal_func( key_type_arg, key_data,
+                                               alg_arg, nonce,
+                                               additional_data,
+                                               ad_part_len,
+                                               input_data, -1,
+                                               do_set_lengths,
+                                               expected_output,
+                                               expect_valid_signature,
+                                               0, 1 ) )
                 break;
         }
     }
@@ -3548,7 +3607,8 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
         for( data_part_len = 1; data_part_len <= input_data->len;
              data_part_len++ )
         {
-            mbedtls_test_set_step( 1000 + data_part_len );
+            /* Split data into length(data_part_len) parts. */
+            mbedtls_test_set_step( 2000 + data_part_len );
 
             if( !aead_multipart_internal_func( key_type_arg, key_data,
                                                alg_arg, nonce,
@@ -3557,7 +3617,20 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                                do_set_lengths,
                                                expected_output,
                                                expect_valid_signature,
-                                               0 ) )
+                                               0, 0 ) )
+                break;
+
+            /* length(0) part, length(data_part_len) part, length(0) part... */
+            mbedtls_test_set_step( 3000 + data_part_len );
+
+            if( !aead_multipart_internal_func( key_type_arg, key_data,
+                                               alg_arg, nonce,
+                                               additional_data, -1,
+                                               input_data, data_part_len,
+                                               do_set_lengths,
+                                               expected_output,
+                                               expect_valid_signature,
+                                               0, 1 ) )
                 break;
         }
     }

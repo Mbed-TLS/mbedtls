@@ -633,9 +633,18 @@ psa_status_t mbedtls_psa_aead_finish(
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
+    {
+        /* Belt and braces. Although the above tag_size check should have
+         * already done this, if we later start supporting smaller tag sizes
+         * for chachapoly, then passing a tag buffer smaller than 16 into here
+         * could cause a buffer overflow, so better safe than sorry. */
+        if( tag_size < 16 )
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+
         status = mbedtls_to_psa_error(
             mbedtls_chachapoly_finish( &operation->ctx.chachapoly,
                                        tag ) );
+    }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
